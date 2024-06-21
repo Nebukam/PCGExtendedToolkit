@@ -51,7 +51,7 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 			Context->IndicesRemap.Empty(Context->CurrentIO->GetNum());
 			Context->CurrentIO->CreateOutKeys();
 
-			if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO, false))
+			if (!Context->PrepareCurrentGraphForPoints(Context->CurrentIO, false))
 			{
 				PCGEX_GRAPH_MISSING_METADATA
 				return false;
@@ -65,7 +65,7 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_CachingGraphIndices))
 	{
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex)
 		{
 			FWriteScopeLock WriteLock(Context->IndicesLock);
 			const int32 CachedIndex = Context->GetCachedIndex(PointIndex);
@@ -73,7 +73,7 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 			Context->SetCachedIndex(PointIndex, PointIndex);    // Update cached value with fresh one
 		};
 
-		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
+		if (!Context->Process(ProcessPoint, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->SetState(PCGExGraph::State_SwappingGraphIndices);
 	}
@@ -81,7 +81,7 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 	// 2nd Pass on points - Swap indices with updated ones
 	if (Context->IsState(PCGExGraph::State_SwappingGraphIndices))
 	{
-		auto ConsolidatePoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		auto ConsolidatePoint = [&](const int32 PointIndex)
 		{
 			FReadScopeLock ReadLock(Context->IndicesLock);
 			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
@@ -98,7 +98,7 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 			}
 		};
 
-		if (!Context->ProcessCurrentPoints(ConsolidatePoint)) { return false; }
+		if (!Context->Process(ConsolidatePoint, Context->CurrentIO->GetNum())) { return false; }
 		Context->SetState(PCGExGraph::State_FindingEdgeTypes);
 	}
 
@@ -106,12 +106,7 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
-		auto ConsolidateEdgesType = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
-		{
-			ComputeEdgeType(Context->SocketInfos, PointIndex);
-		};
-
-		if (!Context->ProcessCurrentPoints(ConsolidateEdgesType)) { return false; }
+		if (!Context->Process([&](const int32 PointIndex) { ComputeEdgeType(Context->SocketInfos, PointIndex); }, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->WriteSocketInfos();
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);

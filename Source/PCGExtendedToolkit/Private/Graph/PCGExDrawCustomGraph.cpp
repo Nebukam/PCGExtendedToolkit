@@ -84,7 +84,7 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 		else
 		{
-			if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO))
+			if (!Context->PrepareCurrentGraphForPoints(Context->CurrentIO))
 			{
 				PCGEX_GRAPH_MISSING_METADATA
 				return false;
@@ -95,9 +95,9 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex)
 		{
-			const PCGEx::FPointRef& Point = PointIO.GetInPointRef(PointIndex);
+			const PCGEx::FPointRef& Point = Context->CurrentIO->GetInPointRef(PointIndex);
 			const FVector Start = Point.Point->Transform.GetLocation();
 
 			TArray<PCGExGraph::FSocketProbe> Probes;
@@ -107,7 +107,7 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				const PCGExGraph::FSocketMetadata SocketMetadata = SocketInfos.Socket->GetData(PointIndex);
 
-				if (!PointIO.GetIn()->GetPoints().IsValidIndex(SocketMetadata.Index)) { continue; } // Attempting to draw a graph with the wrong set of input points
+				if (!Context->CurrentIO->GetIn()->GetPoints().IsValidIndex(SocketMetadata.Index)) { continue; } // Attempting to draw a graph with the wrong set of input points
 
 				if (Settings->bDrawSocketCones && Context->GraphSolver)
 				{
@@ -143,7 +143,7 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 					if (SocketMetadata.Index == -1) { continue; }
 					if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Context->CurrentGraphEdgeCrawlingTypes))) == 0) { continue; }
 
-					const FPCGPoint& PtB = PointIO.GetInPoint(SocketMetadata.Index);
+					const FPCGPoint& PtB = Context->CurrentIO->GetInPoint(SocketMetadata.Index);
 					FVector End = PtB.Transform.GetLocation();
 					float Thickness = 1.0f;
 					float ArrowSize = 0.0f;
@@ -194,7 +194,7 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (!Context->ProcessCurrentPoints(ProcessPoint, true)) { return false; }
+		if (!Context->Process(ProcessPoint, Context->CurrentIO->GetNum(), true)) { return false; }
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 

@@ -129,11 +129,11 @@ namespace PCGExConvexHull
 		if (!Settings->GraphBuilderSettings.bPruneIsolatedPoints && Settings->bMarkHull)
 		{
 			HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-			HullMarkPointWriter->BindAndSetNumUninitialized(*PointIO);
+			HullMarkPointWriter->BindAndSetNumUninitialized(PointIO);
 			StartParallelLoopForPoints();
 		}
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &Settings->GraphBuilderSettings);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;

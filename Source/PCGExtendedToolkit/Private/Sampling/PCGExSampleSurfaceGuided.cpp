@@ -102,14 +102,14 @@ namespace PCGExSampleSurfaceGuided
 		DirectionGetter = new PCGEx::FLocalVectorGetter();
 		DirectionGetter->Capture(Settings->Direction);
 
-		if (!DirectionGetter->Grab(*PointIO))
+		if (!DirectionGetter->Grab(PointIO))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Some inputs don't have the required Direction data."));
 			return false;
 		}
 
 		{
-			PCGExData::FPointIO& OutputIO = *PointIO;
+			PCGExData::FPointIO* OutputIO = PointIO;
 			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_FWD_INIT)
 		}
 
@@ -119,7 +119,7 @@ namespace PCGExSampleSurfaceGuided
 		if (Settings->bUseLocalMaxDistance)
 		{
 			MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
-			if (MaxDistanceGetter->Grab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
+			if (MaxDistanceGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
 		StartParallelLoopForPoints();

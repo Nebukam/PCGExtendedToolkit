@@ -89,52 +89,52 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			const int32 NumPoints = PointIO.GetNum();
+		const int32 NumPoints = Context->CurrentIO->GetNum();
 
+		auto Initialize = [&]()
+		{
 			Context->ArriveTangents.SetNum(NumPoints);
 			Context->LeaveTangents.SetNum(NumPoints);
 
-			Context->ArriveTangentsAccessor = PCGEx::FAttributeAccessor<FVector>::FindOrCreate(PointIO, Context->Tangents->ArriveName);
-			Context->LeaveTangentsAccessor = PCGEx::FAttributeAccessor<FVector>::FindOrCreate(PointIO, Context->Tangents->LeaveName);
+			Context->ArriveTangentsAccessor = PCGEx::FAttributeAccessor<FVector>::FindOrCreate(Context->CurrentIO, Context->Tangents->ArriveName);
+			Context->LeaveTangentsAccessor = PCGEx::FAttributeAccessor<FVector>::FindOrCreate(Context->CurrentIO, Context->Tangents->LeaveName);
 
-			Context->Tangents->PrepareForData(PointIO);
+			Context->Tangents->PrepareForData(Context->CurrentIO);
 		};
 
-		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 Index)
 		{
 			FVector& OutArrive = Context->ArriveTangents[Index];
 			FVector& OutLeave = Context->LeaveTangents[Index];
 
-			const PCGEx::FPointRef MainPoint = PCGEx::FPointRef(PointIO.GetOutPoint(Index), Index);
-			const PCGEx::FPointRef PrevPoint = PCGEx::FPointRef(PointIO.TryGetOutPoint(Index - 1), Index - 1);
-			const PCGEx::FPointRef NextPoint = PCGEx::FPointRef(PointIO.TryGetOutPoint(Index + 1), Index + 1);
+			const PCGEx::FPointRef MainPoint = PCGEx::FPointRef(Context->CurrentIO->GetOutPoint(Index), Index);
+			const PCGEx::FPointRef PrevPoint = PCGEx::FPointRef(Context->CurrentIO->TryGetOutPoint(Index - 1), Index - 1);
+			const PCGEx::FPointRef NextPoint = PCGEx::FPointRef(Context->CurrentIO->TryGetOutPoint(Index + 1), Index + 1);
 
 			if (NextPoint.IsValid() && PrevPoint.IsValid()) { Context->Tangents->ProcessPoint(MainPoint, PrevPoint, NextPoint, OutArrive, OutLeave); }
 			else if (NextPoint.IsValid()) { Context->Tangents->ProcessFirstPoint(MainPoint, NextPoint, OutArrive, OutLeave); }
 			else if (PrevPoint.IsValid()) { Context->Tangents->ProcessLastPoint(MainPoint, PrevPoint, OutArrive, OutLeave); }
 		};
 
-		auto ProcessPointTile = [&](const int32 Index, const PCGExData::FPointIO& PointIO)
+		auto ProcessPointTile = [&](const int32 Index)
 		{
 			FVector& OutArrive = Context->ArriveTangents[Index];
 			FVector& OutLeave = Context->LeaveTangents[Index];
 
-			const int32 MaxIndex = PointIO.GetNum() - 1;
+			const int32 MaxIndex = NumPoints - 1;
 			const int32 PrevIndex = PCGExMath::Tile(Index - 1, 0, MaxIndex);
 			const int32 NextIndex = PCGExMath::Tile(Index + 1, 0, MaxIndex);
 
-			const PCGEx::FPointRef MainPoint = PCGEx::FPointRef(PointIO.GetOutPoint(Index), Index);
-			const PCGEx::FPointRef PrevPoint = PCGEx::FPointRef(PointIO.GetOutPoint(PrevIndex), PrevIndex);
-			const PCGEx::FPointRef NextPoint = PCGEx::FPointRef(PointIO.GetOutPoint(NextIndex), NextIndex);
+			const PCGEx::FPointRef MainPoint = PCGEx::FPointRef(Context->CurrentIO->GetOutPoint(Index), Index);
+			const PCGEx::FPointRef PrevPoint = PCGEx::FPointRef(Context->CurrentIO->GetOutPoint(PrevIndex), PrevIndex);
+			const PCGEx::FPointRef NextPoint = PCGEx::FPointRef(Context->CurrentIO->GetOutPoint(NextIndex), NextIndex);
 
 			Context->Tangents->ProcessPoint(MainPoint, PrevPoint, NextPoint, OutArrive, OutLeave);
 		};
 
 		bool bProcessingComplete;
-		if (Settings->bClosedPath) { bProcessingComplete = Context->ProcessCurrentPoints(Initialize, ProcessPointTile); }
-		else { bProcessingComplete = Context->ProcessCurrentPoints(Initialize, ProcessPoint); }
+		if (Settings->bClosedPath) { bProcessingComplete = Context->Process(Initialize, ProcessPointTile, NumPoints); }
+		else { bProcessingComplete = Context->Process(Initialize, ProcessPoint, NumPoints); }
 
 		if (!bProcessingComplete) { return false; }
 

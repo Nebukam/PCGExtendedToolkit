@@ -441,10 +441,10 @@ namespace PCGExGraph
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(PCGExData::FPointIO& InPointIO, const FPCGExGraphBuilderSettings* InSettings, const int32 NumEdgeReserve = 6, PCGExData::FPointIOCollection* InSourceEdges = nullptr)
+		FGraphBuilder(PCGExData::FPointIO* InPointIO, const FPCGExGraphBuilderSettings* InSettings, const int32 NumEdgeReserve = 6, PCGExData::FPointIOCollection* InSourceEdges = nullptr)
 			: OutputSettings(InSettings), SourceEdgesIO(InSourceEdges)
 		{
-			PointIO = &InPointIO;
+			PointIO = InPointIO;
 			PairId = PointIO->GetOutIn()->UID;
 			PointIO->Tags->Set(TagStr_ClusterPair, PairId, PairIdStr);
 
@@ -474,17 +474,17 @@ namespace PCGExGraph
 	};
 
 	static bool BuildEndpointsLookup(
-		const PCGExData::FPointIO& InPointIO,
+		const PCGExData::FPointIO* InPointIO,
 		TMap<int64, int32>& OutIndices,
 		TArray<int32>& OutAdjacency)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable);
 
-		OutAdjacency.SetNumUninitialized(InPointIO.GetNum());
+		OutAdjacency.SetNumUninitialized(InPointIO->GetNum());
 		OutIndices.Empty();
 
 		PCGEx::TFAttributeReader<int64>* IndexReader = new PCGEx::TFAttributeReader<int64>(Tag_VtxEndpoint);
-		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO&>(InPointIO)))
+		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO*>(InPointIO)))
 		{
 			PCGEX_DELETE(IndexReader)
 			return false;
@@ -535,7 +535,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	static bool GetReducedVtxIndices(PCGExData::FPointIO& InEdges, const TMap<int64, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
+	static bool GetReducedVtxIndices(PCGExData::FPointIO* InEdges, const TMap<int64, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
 	{
 		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
 
@@ -595,19 +595,19 @@ namespace PCGExGraphTask
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
 
-		PCGExData::FPointIO& EdgeIO = *SubGraph->EdgeIO;
+		PCGExData::FPointIO* EdgeIO = SubGraph->EdgeIO;
 
-		TArray<FPCGPoint>& MutablePoints = EdgeIO.GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = EdgeIO->GetOut()->GetMutablePoints();
 
 		int32 PointIndex = 0;
 
-		if (EdgeIO.GetIn())
+		if (EdgeIO->GetIn())
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::GatherPreExistingPoints);
 			MutablePoints.SetNumUninitialized(SubGraph->Edges.Num());
 
 			// Copy any existing point properties first
-			const TArray<FPCGPoint>& InPoints = EdgeIO.GetIn()->GetPoints();
+			const TArray<FPCGPoint>& InPoints = EdgeIO->GetIn()->GetPoints();
 			for (const int32 EdgeIndex : SubGraph->Edges)
 			{
 				const int32 EdgePtIndex = Graph->Edges[EdgeIndex].PointIndex;
@@ -617,9 +617,9 @@ namespace PCGExGraphTask
 			for (int i = PointIndex; i < SubGraph->Edges.Num(); i++) { MutablePoints[i] = FPCGPoint(); }
 		}
 
-		EdgeIO.SetNumInitialized(SubGraph->Edges.Num(), true);
+		EdgeIO->SetNumInitialized(SubGraph->Edges.Num(), true);
 
-		EdgeIO.CreateOutKeys();
+		EdgeIO->CreateOutKeys();
 
 		PCGEx::TFAttributeWriter<int64>* EdgeEndpoints = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false);
 
@@ -665,7 +665,7 @@ namespace PCGExGraphTask
 
 		if (Graph->bRefreshEdgeSeed)
 		{
-			const FVector SeedOffset = FVector(EdgeIO.IOIndex);
+			const FVector SeedOffset = FVector(EdgeIO->IOIndex);
 			for (FPCGPoint& Point : MutablePoints) { PCGExMath::RandomizeSeed(Point, SeedOffset); }
 		}
 
@@ -702,7 +702,7 @@ namespace PCGExGraphTask
 		                    PCGExGraph::FGraph* InGraph,
 		                    PCGExGraph::FSubGraph* InSubGraph,
 		                    PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  Graph(InGraph),
 			  SubGraph(InSubGraph),
 			  MetadataSettings(InMetadataSettings)
@@ -725,7 +725,7 @@ namespace PCGExGraphTask
 			PCGExGraph::FGraph* InGraph,
 			const TArray<PCGExGraph::FSubGraph*>& InSubGraphs,
 			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  Graph(InGraph),
 			  SubGraphs(InSubGraphs),
 			  MetadataSettings(InMetadataSettings)
@@ -752,7 +752,7 @@ namespace PCGExGraphTask
 			PCGExData::FPointIO* InPointIO,
 			PCGExGraph::FGraphBuilder* InGraphBuilder,
 			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  Builder(InGraphBuilder),
 			  MetadataSettings(InMetadataSettings)
 		{
@@ -772,7 +772,7 @@ namespace PCGExGraphTask
 		                  PCGExData::FPointIOCollection* InVtxCollection,
 		                  PCGExData::FPointIOCollection* InEdgeCollection,
 		                  FPCGExTransformSettings* InTransformSettings) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			GraphBuilder(InGraphBuilder),
 			VtxCollection(InVtxCollection),
 			EdgeCollection(InEdgeCollection),

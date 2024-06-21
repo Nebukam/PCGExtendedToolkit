@@ -12,7 +12,7 @@ namespace PCGExMT
 		Reset();
 	}
 
-	void FTaskManager::OnAsyncTaskExecutionComplete(PCGExMT::FPCGExTask* AsyncTask, bool bSuccess)
+	void FTaskManager::OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess)
 	{
 		if (bFlushing) { return; }
 		FWriteScopeLock WriteLock(ManagerLock);

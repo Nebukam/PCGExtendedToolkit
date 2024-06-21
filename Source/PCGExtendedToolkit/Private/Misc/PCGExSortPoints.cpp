@@ -90,7 +90,7 @@ bool FPCGExSortPointIO::ExecuteTask()
 	{
 		FPCGExSortRule* NewRule = new FPCGExSortRule();
 		NewRule->Capture(RuleDescriptor);
-		if (!NewRule->Grab(*PointIO))
+		if (!NewRule->Grab(PointIO))
 		{
 			delete NewRule;
 			continue;

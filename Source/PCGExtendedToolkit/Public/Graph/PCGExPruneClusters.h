@@ -73,7 +73,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPruneClusterTask final : public PCGExMT::FPCG
 public:
 	FPCGExPruneClusterTask(PCGExData::FPointIO* InPointIO,
 	                       PCGExData::FPointIO* InEdgesIO) :
-		PCGExMT::FPCGExTask(InPointIO),
+		FPCGExTask(InPointIO),
 		EdgesIO(InEdgesIO)
 	{
 	}

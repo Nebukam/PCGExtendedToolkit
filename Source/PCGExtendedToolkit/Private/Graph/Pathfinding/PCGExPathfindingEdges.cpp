@@ -53,11 +53,11 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 		return;
 	}
 
-	PCGExData::FPointIO& PathPoints = OutputPaths->Emplace_GetRef(Cluster->PointsIO->GetIn(), PCGExData::EInit::NewOutput);
-	UPCGPointData* OutData = PathPoints.GetOut();
+	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef(Cluster->PointsIO->GetIn(), PCGExData::EInit::NewOutput);
+	UPCGPointData* OutData = PathPoints->GetOut();
 
-	PCGExGraph::CleanupClusterTags(&PathPoints, true);
-	PCGExGraph::CleanupVtxData(&PathPoints);
+	PCGExGraph::CleanupClusterTags(PathPoints, true);
+	PCGExGraph::CleanupVtxData(PathPoints);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	const TArray<FPCGPoint>& InPoints = Cluster->PointsIO->GetIn()->GetPoints();
@@ -68,11 +68,11 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]); }
 	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
-	if (Settings->bUseSeedAttributeToTagPath) { PathPoints.Tags->RawTags.Add(SeedTagValueGetter->SoftGet(Seed, TEXT(""))); }
-	if (Settings->bUseGoalAttributeToTagPath) { PathPoints.Tags->RawTags.Add(GoalTagValueGetter->SoftGet(Goal, TEXT(""))); }
+	if (Settings->bUseSeedAttributeToTagPath) { PathPoints->Tags->RawTags.Add(SeedTagValueGetter->SoftGet(Seed, TEXT(""))); }
+	if (Settings->bUseGoalAttributeToTagPath) { PathPoints->Tags->RawTags.Add(GoalTagValueGetter->SoftGet(Goal, TEXT(""))); }
 
-	SeedForwardHandler->Forward(Query->SeedIndex, &PathPoints);
-	GoalForwardHandler->Forward(Query->GoalIndex, &PathPoints);
+	SeedForwardHandler->Forward(Query->SeedIndex, PathPoints);
+	GoalForwardHandler->Forward(Query->GoalIndex, PathPoints);
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
@@ -160,7 +160,7 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 
 	// Prepare path queries
 
-	Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
+	Context->GoalPicker->PrepareForData(Context->SeedsPoints, Context->GoalsPoints);
 	PCGExPathfinding::ProcessGoals(
 		Context->SeedsPoints, Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
@@ -233,6 +233,8 @@ namespace PCGExPathfindingEdge
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingEdge::FClusterProcessor::Process);
+
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathfindingEdges)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }

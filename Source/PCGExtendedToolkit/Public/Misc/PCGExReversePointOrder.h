@@ -54,7 +54,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderTask final : public PCGExMT:
 {
 public:
 	FPCGExReversePointOrderTask(PCGExData::FPointIO* InPointIO) :
-		PCGExMT::FPCGExTask(InPointIO)
+		FPCGExTask(InPointIO)
 	{
 	}
 

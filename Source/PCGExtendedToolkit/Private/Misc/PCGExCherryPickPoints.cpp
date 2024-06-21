@@ -36,7 +36,7 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGContext* InContext) const
 		PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
 		Getter->Capture(Settings->ReadIndexFromAttribute);
 
-		if (!Getter->Grab(*Targets))
+		if (!Getter->Grab(Targets))
 		{
 			PCGEX_DELETE(Targets)
 			PCGEX_DELETE(Getter)
@@ -106,7 +106,7 @@ namespace PCGExCherryPickPoints
 			TSet<int32> UniqueIndices;
 			PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
 			Getter->Capture(Settings->ReadIndexFromAttribute);
-			if (!Getter->Grab(*PointIO))
+			if (!Getter->Grab(PointIO))
 			{
 				PCGEX_DELETE(Getter)
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Could not find any paths to fuse."));

@@ -119,7 +119,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 
 	// Prepare path queries
 
-	Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
+	Context->GoalPicker->PrepareForData(Context->SeedsPoints, Context->GoalsPoints);
 	PCGExPathfinding::ProcessGoals(
 		Context->SeedsPoints, Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
@@ -143,7 +143,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		if (!Boot(Context)) { return true; }
 		Context->AdvancePointsIO();
-		Context->GoalPicker->PrepareForData(*Context->CurrentIO, *Context->GoalsPoints);
+		Context->GoalPicker->PrepareForData(Context->CurrentIO, Context->GoalsPoints);
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
@@ -239,8 +239,8 @@ bool FSampleNavmeshTask::ExecuteTask()
 	const int32 NumPositions = PathLocations.Num();
 	const int32 LastPosition = NumPositions - 1;
 
-	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(*PointIO, PCGExData::EInit::NewOutput);
-	UPCGPointData* OutData = PathPoints.GetOut();
+	PCGExData::FPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+	UPCGPointData* OutData = PathPoints->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	MutablePoints.SetNumUninitialized(NumPositions);
 
@@ -255,24 +255,24 @@ bool FSampleNavmeshTask::ExecuteTask()
 	(MutablePoints[LastPosition] = *Goal).Transform.SetLocation(Location);
 
 	PCGExDataBlending::FMetadataBlender* TempBlender =
-		Context->Blending->CreateBlender(PathPoints, *Context->GoalsPoints);
+		Context->Blending->CreateBlender(PathPoints, Context->GoalsPoints);
 
 	TArrayView<FPCGPoint> View(MutablePoints);
 	Context->Blending->BlendSubPoints(View, Metrics, TempBlender);
 
 	if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(MutablePoints.Num())) { TempBlender->Write(); }
 	else { TempBlender->Write(Manager); }
-	
+
 	PCGEX_DELETE(TempBlender)
 
 	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Settings->bAddGoalToPath) { MutablePoints.Pop(); }
 
-	if (Settings->bUseSeedAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->SeedTagValueGetter->SoftGet(*Seed, TEXT(""))); }
-	if (Settings->bUseGoalAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->GoalTagValueGetter->SoftGet(*Goal, TEXT(""))); }
+	if (Settings->bUseSeedAttributeToTagPath) { PathPoints->Tags->RawTags.Add(Context->SeedTagValueGetter->SoftGet(*Seed, TEXT(""))); }
+	if (Settings->bUseGoalAttributeToTagPath) { PathPoints->Tags->RawTags.Add(Context->GoalTagValueGetter->SoftGet(*Goal, TEXT(""))); }
 
-	Context->SeedForwardHandler->Forward(Query->SeedIndex, &PathPoints);
-	Context->GoalForwardHandler->Forward(Query->GoalIndex, &PathPoints);
+	Context->SeedForwardHandler->Forward(Query->SeedIndex, PathPoints);
+	Context->GoalForwardHandler->Forward(Query->GoalIndex, PathPoints);
 
 	return true;
 }

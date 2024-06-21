@@ -63,7 +63,7 @@ public:
 	FPCGExCreateVtxPartitionTask(PCGExData::FPointIO* InPointIO,
 	                             PCGExData::FPointIO* InEdgeIO,
 	                             TMap<int64, int32>* InEndpointsLookup) :
-		PCGExMT::FPCGExTask(InPointIO),
+		FPCGExTask(InPointIO),
 		EdgeIO(InEdgeIO),
 		EndpointsLookup(InEndpointsLookup)
 	{

@@ -532,7 +532,7 @@ namespace PCGExGraphTask
 	public:
 		FFindPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                            PCGExGraph::FPointEdgeIntersections* InIntersectionList)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -546,7 +546,7 @@ namespace PCGExGraphTask
 	public:
 		FInsertPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                              PCGExGraph::FPointEdgeIntersections* InIntersectionList)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -561,7 +561,7 @@ namespace PCGExGraphTask
 	public:
 		FFindEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                           PCGExGraph::FEdgeEdgeIntersections* InIntersectionList)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -575,7 +575,7 @@ namespace PCGExGraphTask
 	public:
 		FInsertEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                             PCGExGraph::FEdgeEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -595,7 +595,7 @@ namespace PCGExGraphTask
 	public:
 		FCompoundGraphInsertPoints(PCGExData::FPointIO* InPointIO,
 		                           PCGExGraph::FCompoundGraph* InGraph)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  Graph(InGraph)
 		{
 		}
@@ -612,7 +612,7 @@ namespace PCGExGraphTask
 		                          PCGExGraph::FCompoundGraph* InGraph,
 		                          PCGExData::FPointIO* InEdgeIO,
 		                          TMap<int64, int32>* InEndpointsLookup)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  Graph(InGraph),
 			  EdgeIO(InEdgeIO),
 			  EndpointsLookup(InEndpointsLookup)

@@ -15,11 +15,11 @@ UPCGExBridgeEdgeClustersSettings::UPCGExBridgeEdgeClustersSettings(
 {
 }
 
+PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(BridgeEdgeClusters)
 
-PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExBridgeEdgeClustersContext::~FPCGExBridgeEdgeClustersContext()
 {
@@ -53,11 +53,12 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExBridgeClusters::FProcessorBatch>(
-			[](PCGExData::FPointIOTaggedEntries* Entries)
+			[&](PCGExData::FPointIOTaggedEntries* Entries)
 			{
 				if (Entries->Entries.Num() == 1)
 				{
 					// No clusters to consolidate, just dump existing points
+					Context->CurrentIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 					Entries->Entries[0]->InitializeOutput(PCGExData::EInit::DuplicateInput);
 					return false;
 				}
@@ -66,8 +67,9 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 			},
 			[&](PCGExBridgeClusters::FProcessorBatch* NewBatch)
 			{
+				NewBatch->bRequiresWriteStep = true;
 			},
-			PCGExGraph::State_ProcessingEdges))
+			PCGExMT::State_Done))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created."));
 			Context->Done();
@@ -75,30 +77,6 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 	}
 
 	if (!Context->ProcessClusters()) { return false; }
-
-	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
-	{
-		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Context->Batches)
-		{
-			PCGExBridgeClusters::FProcessorBatch* TBatch = static_cast<PCGExBridgeClusters::FProcessorBatch*>(Batch);
-			TBatch->ConnectClusters();
-		}
-
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_ASYNC_WAIT
-
-		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Context->Batches)
-		{
-			PCGExBridgeClusters::FProcessorBatch* TBatch = static_cast<PCGExBridgeClusters::FProcessorBatch*>(Batch);
-			TBatch->Write();
-		}
-
-		Context->Done();
-	}
 
 	if (Context->IsDone())
 	{
@@ -146,14 +124,24 @@ namespace PCGExBridgeClusters
 
 	bool FProcessorBatch::PrepareProcessing()
 	{
-		PCGEX_SETTINGS(BridgeEdgeClusters)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BridgeEdgeClusters)
 		const FPCGExBridgeEdgeClustersContext* InContext = static_cast<FPCGExBridgeEdgeClustersContext*>(Context);
 
-		ConsolidatedEdges = &EdgeCollection->Emplace_GetRef(PCGExData::EInit::NewOutput);
+		ConsolidatedEdges = TypedContext->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
 
 		if (!TBatch::PrepareProcessing()) { return false; }
 
 		return true;
+	}
+
+	void FProcessorBatch::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		TBatch<FProcessor>::Process(AsyncManager);
+
+		// Start merging right away
+		Merger = new FPCGExPointIOMerger(*ConsolidatedEdges);
+		Merger->Append(Edges);
+		Merger->Merge(AsyncManagerPtr);
 	}
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
@@ -167,28 +155,16 @@ namespace PCGExBridgeClusters
 
 	void FProcessorBatch::CompleteWork()
 	{
-		TArray<PCGExData::FPointIO*> ValidEdgeIOs;
-		// Gather all valid clusters
-		for (const FProcessor* Processor : Processors)
-		{
-			if (Processor->Cluster->bValid)
-			{
-				ValidClusters.Add(Processor->Cluster);
-				ValidEdgeIOs.Add(Processor->Cluster->EdgesIO);
-			}
-		}
+		const int32 NumValidClusters = GatherValidClusters();
 
-		if (Processors.Num() != ValidClusters.Num())
+		if (Processors.Num() != NumValidClusters)
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx/edges groups have invalid clusters. Make sure to sanitize the input first."));
 		}
 
 		if (ValidClusters.IsEmpty()) { return; } // Skip work completion entirely
 
-		// Fire & forget merge all valid edges
-		Merger = new FPCGExPointIOMerger(*ConsolidatedEdges);
-		Merger->Append(ValidEdgeIOs);
-		Merger->Merge(AsyncManagerPtr);
+		Merger->Write(AsyncManagerPtr); // Write base attributes value while finding bridges		
 
 		////
 		PCGEX_SETTINGS(BridgeEdgeClusters)
@@ -284,25 +260,21 @@ namespace PCGExBridgeClusters
 	void FProcessorBatch::Write()
 	{
 		TBatch<FProcessor>::Write();
-		Merger->Write(AsyncManagerPtr);
-	}
 
-	void FProcessorBatch::ConnectClusters()
-	{
 		TArray<FPCGPoint>& MutableEdges = ConsolidatedEdges->GetOut()->GetMutablePoints();
 		UPCGMetadata* Metadata = ConsolidatedEdges->GetOut()->Metadata;
 
 		for (const uint64 Bridge : Bridges)
 		{
-			FPCGPoint& EdgePoint = MutableEdges.Emplace_GetRef();
-			Metadata->InitializeOnSet(EdgePoint.MetadataEntry);
+			int32 EdgePointIndex;
+			FPCGPoint& EdgePoint = ConsolidatedEdges->NewPoint(EdgePointIndex);
 
 			uint32 Start;
 			uint32 End;
 			PCGEx::H64(Bridge, Start, End);
 
 			AsyncManagerPtr->Start<FPCGExCreateBridgeTask>(
-				MutableEdges.Num() - 1, ConsolidatedEdges,
+				EdgePointIndex, ConsolidatedEdges,
 				this, ValidClusters[Start], ValidClusters[End]);
 		}
 	}
@@ -330,7 +302,8 @@ namespace PCGExBridgeClusters
 		}
 
 		UPCGMetadata* EdgeMetadata = PointIO->GetOut()->Metadata;
-		FPCGMetadataAttribute<int64>* EdgeEndpointsAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeEndpoints));
+
+		FPCGMetadataAttribute<int64>* InVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(Batch->VtxIO->GetIn()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
 
 		FPCGPoint& EdgePoint = PointIO->GetOut()->GetMutablePoints()[TaskIndex];
 
@@ -340,31 +313,26 @@ namespace PCGExBridgeClusters
 		EdgePoint.Transform.SetLocation(FMath::Lerp(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation(), 0.5));
 
 		uint32 StartIdx;
+		uint32 StartNumEdges;
+
 		uint32 EndIdx;
-		
-		BumpEdgeNum(StartPoint, EndPoint, StartIdx, EndIdx);
+		uint32 EndNumEdges;
+
+		PCGEx::H64(InVtxEndpointAtt->GetValueFromItemKey(Batch->VtxIO->GetInPoint(IndexA).MetadataEntry), StartIdx, StartNumEdges);
+		PCGEx::H64(InVtxEndpointAtt->GetValueFromItemKey(Batch->VtxIO->GetInPoint(IndexB).MetadataEntry), EndIdx, EndNumEdges);
+
+		FPCGMetadataAttribute<int64>* EdgeEndpointsAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeEndpoints));
+		FPCGMetadataAttribute<int64>* OutVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(Batch->VtxIO->GetOut()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
+
 		EdgeEndpointsAtt->SetValue(EdgePoint.MetadataEntry, PCGEx::H64(StartIdx, EndIdx));
+		OutVtxEndpointAtt->SetValue(StartPoint.MetadataEntry, PCGEx::H64(StartIdx, StartNumEdges + 1));
+		OutVtxEndpointAtt->SetValue(EndPoint.MetadataEntry, PCGEx::H64(EndIdx, EndNumEdges + 1));
+
+		const int64 ClusterId = Batch->VtxIO->GetOut()->UID;
+		PCGExData::WriteMark(Batch->VtxIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
+		PCGExData::WriteMark(PointIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
 
 		return true;
-	}
-
-	void FPCGExCreateBridgeTask::BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B, uint32& OutStartIdx, uint32& OutEndIdx) const
-	{
-		FWriteScopeLock WriteScopeLock(Batch->BatchLock);
-
-		FPCGMetadataAttribute<int64>* VtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(Batch->VtxIO->GetOut()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
-
-		uint32 Idx;
-		uint32 Num;
-		PCGEx::H64(VtxEndpointAtt->GetValueFromItemKey(A.MetadataEntry), Idx, Num);
-		OutStartIdx = Idx;
-		
-		VtxEndpointAtt->SetValue(A.MetadataEntry, PCGEx::H64(Idx, Num + 1));
-
-		
-		PCGEx::H64(VtxEndpointAtt->GetValueFromItemKey(B.MetadataEntry), Idx, Num);
-		OutEndIdx = Idx;
-		VtxEndpointAtt->SetValue(B.MetadataEntry, PCGEx::H64(Idx, Num + 1));
 	}
 }
 

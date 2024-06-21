@@ -61,7 +61,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedTask final : public PCGExMT::FPCGE
 {
 public:
 	FPCGExRefreshSeedTask(PCGExData::FPointIO* InPointIO) :
-		PCGExMT::FPCGExTask(InPointIO)
+		FPCGExTask(InPointIO)
 	{
 	}
 

@@ -50,9 +50,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxContext final : public FPCGExPoint
 	friend class FPCGExLloydRelaxElement;
 
 	virtual ~FPCGExLloydRelaxContext() override;
-
-	PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
-	TArray<FVector> ActivePositions;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElement
@@ -68,26 +65,49 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax3Task final : public PCGExMT::FPCGExTask
+namespace PCGExLloydRelax
 {
-public:
-	FPCGExLloydRelax3Task(PCGExData::FPointIO* InPointIO,
-	                      TArray<FVector>* InPositions,
-	                      const FPCGExInfluenceSettings* InInfluenceSettings,
-	                      const int32 InNumIterations,
-	                      PCGEx::FLocalSingleFieldGetter* InInfluenceGetter = nullptr) :
-		PCGExMT::FPCGExTask(InPointIO),
-		ActivePositions(InPositions),
-		InfluenceSettings(InInfluenceSettings),
-		NumIterations(InNumIterations),
-		InfluenceGetter(InInfluenceGetter)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		friend class FLloydRelaxTask;
 
-	TArray<FVector>* ActivePositions = nullptr;
-	const FPCGExInfluenceSettings* InfluenceSettings = nullptr;
-	int32 NumIterations = 0;
-	PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
+		double ConstantInfluence = 1;
 
-	virtual bool ExecuteTask() override;
-};
+		PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
+		TArray<FVector> ActivePositions;
+		bool bProgressiveInfluence = false;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FLloydRelaxTask final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FLloydRelaxTask(PCGExData::FPointIO* InPointIO,
+		                FProcessor* InProcessor,
+		                const FPCGExInfluenceSettings* InInfluenceSettings,
+		                const int32 InNumIterations) :
+			FPCGExTask(InPointIO),
+			Processor(InProcessor),
+			InfluenceSettings(InInfluenceSettings),
+			NumIterations(InNumIterations)
+		{
+		}
+
+		FProcessor* Processor = nullptr;
+		const FPCGExInfluenceSettings* InfluenceSettings = nullptr;
+		int32 NumIterations = 0;
+
+		virtual bool ExecuteTask() override;
+	};
+}

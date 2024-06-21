@@ -25,7 +25,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialNeighborsSettings
 	/** Longest edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExEdgeOutputWithIndexSettings SmallestNeighbor = FPCGExEdgeOutputWithIndexSettings(TEXT("Smallest"));
-
 };
 
 /**

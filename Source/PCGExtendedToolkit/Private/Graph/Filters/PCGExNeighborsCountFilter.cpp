@@ -24,7 +24,7 @@ namespace PCGExNodeNeighborsCount
 		{
 			LocalCount = new PCGEx::FLocalSingleFieldGetter();
 			LocalCount->Capture(TypedFilterFactory->Descriptor.LocalCount);
-			LocalCount->Grab(*PointIO, false);
+			LocalCount->Grab(PointIO, false);
 
 			bValid = LocalCount->IsUsable(PointIO->GetNum());
 

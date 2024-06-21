@@ -73,10 +73,12 @@ namespace PCGExHeuristics
 
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 
-		explicit THeuristicsHandler(FPCGExPointsProcessorContext* InContext);
+		explicit THeuristicsHandler(FPCGContext* InContext);
+		explicit THeuristicsHandler(FPCGContext* InContext, const TArray<UPCGHeuristicsFactoryBase*>& InFactories);
 		explicit THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation);
 		~THeuristicsHandler();
 
+		void BuildFrom(FPCGContext* InContext, const TArray<UPCGHeuristicsFactoryBase*>& InFactories);
 		void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 		void CompleteClusterPreparation();
 

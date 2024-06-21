@@ -21,7 +21,7 @@ FString FPCGExAttributeDebugDrawDescriptor::GetDisplayName() const
 }
 #endif
 
-bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO& PointIO)
+bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO* PointIO)
 {
 	bValid = false;
 
@@ -278,7 +278,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		Context->CurrentIO->CreateInKeys();
-		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Bind(*Context->CurrentIO); }
+		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Bind(Context->CurrentIO); }
 
 		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
 		{

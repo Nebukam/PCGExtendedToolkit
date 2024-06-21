@@ -41,9 +41,9 @@ bool UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InConte
 
 bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
 
-PCGExData::FPointIO& UPCGExNeighborSampleOperation::GetSourceIO() const
+PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const
 {
-	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Point ? *Cluster->PointsIO : *Cluster->EdgesIO;
+	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Point ? Cluster->PointsIO : Cluster->EdgesIO;
 }
 
 void UPCGExNeighborSampleOperation::ProcessNodeForPoints(const int32 InNodeIndex) const

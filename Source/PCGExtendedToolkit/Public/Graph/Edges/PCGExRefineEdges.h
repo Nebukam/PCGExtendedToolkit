@@ -93,7 +93,7 @@ namespace PCGExRefineEdges
 		            PCGExCluster::FCluster* InCluster,
 		            UPCGExEdgeRefineOperation* InRefinement,
 		            PCGExHeuristics::THeuristicsHandler* InHeuristicsHandler) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			Cluster(InCluster),
 			Refinement(InRefinement),
 			HeuristicsHandler(InHeuristicsHandler)

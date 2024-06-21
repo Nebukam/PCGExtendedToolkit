@@ -390,7 +390,7 @@ namespace PCGExGraph
 		void DeleteFrom(const UPCGPointData* PointData) const;
 		void Write(bool bDoCleanup = true);
 
-		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);
+		void PrepareForPointData(const PCGExData::FPointIO* PointIO, const bool ReadOnly = true);
 
 		void GetDirection(const int32 PointIndex, FVector& OutDirection) const
 		{
@@ -495,7 +495,7 @@ namespace PCGExGraph
 		 * @param PointIO
 		 * @param bReadOnly 
 		 */
-		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true);
+		void PrepareForPointData(const PCGExData::FPointIO* PointIO, const bool bReadOnly = true);
 
 		const TArray<FSocket>& GetSockets() const { return Sockets; }
 
@@ -644,7 +644,7 @@ public:
 	 * @param PointIO
 	 * @param bReadOnly 
 	 */
-	void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly) const;
+	void PrepareForPointData(const PCGExData::FPointIO* PointIO, const bool bReadOnly) const;
 
 	/**
 	 * 

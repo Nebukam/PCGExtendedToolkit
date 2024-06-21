@@ -87,7 +87,7 @@ namespace PCGExPruneEdges
 		double MaxEdgeLength = TNumericLimits<double>::Min();
 		double SumEdgeLength = 0;
 
-		BuildIndexedEdges(*EdgesIO, *EndpointsLookup, IndexedEdges);
+		BuildIndexedEdges(EdgesIO, *EndpointsLookup, IndexedEdges);
 
 		const TArray<FPCGPoint>& InNodePoints = VtxIO->GetIn()->GetPoints();
 

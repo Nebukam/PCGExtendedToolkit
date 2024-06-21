@@ -182,7 +182,7 @@ namespace PCGExGraph
 	};
 
 	static bool BuildIndexedEdges(
-		const PCGExData::FPointIO& EdgeIO,
+		const PCGExData::FPointIO* EdgeIO,
 		const TMap<int64, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
 		const bool bStopOnError = false)
@@ -190,14 +190,14 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
 		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
-		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
+		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
 		{
 			PCGEX_DELETE(EndpointsReader)
 			return false;
 		}
 
 		bool bValid = true;
-		const int32 NumEdges = EdgeIO.GetNum();
+		const int32 NumEdges = EdgeIO->GetNum();
 
 		OutEdges.SetNum(NumEdges);
 
@@ -216,7 +216,7 @@ namespace PCGExGraph
 
 				if ((!StartPointIndexPtr || !EndPointIndexPtr)) { continue; }
 
-				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, EdgeIndex, EdgeIO.IOIndex);
+				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, EdgeIndex, EdgeIO->IOIndex);
 				EdgeIndex++;
 			}
 
@@ -239,7 +239,7 @@ namespace PCGExGraph
 					break;
 				}
 
-				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
+				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO->IOIndex);
 			}
 		}
 
@@ -249,7 +249,7 @@ namespace PCGExGraph
 	}
 
 	static bool BuildIndexedEdges(
-		const PCGExData::FPointIO& EdgeIO,
+		const PCGExData::FPointIO* EdgeIO,
 		const TMap<int64, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
 		TSet<int32>& OutNodePoints,
@@ -260,14 +260,14 @@ namespace PCGExGraph
 
 		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
 
-		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
+		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
 		{
 			PCGEX_DELETE(EndpointsReader)
 			return false;
 		}
 
 		bool bValid = true;
-		const int32 NumEdges = EdgeIO.GetNum();
+		const int32 NumEdges = EdgeIO->GetNum();
 
 		OutEdges.SetNumUninitialized(NumEdges);
 
@@ -289,7 +289,7 @@ namespace PCGExGraph
 				OutNodePoints.Add(*StartPointIndexPtr);
 				OutNodePoints.Add(*EndPointIndexPtr);
 
-				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, EdgeIndex, EdgeIO.IOIndex);
+				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, EdgeIndex, EdgeIO->IOIndex);
 				EdgeIndex++;
 			}
 
@@ -315,7 +315,7 @@ namespace PCGExGraph
 				OutNodePoints.Add(*StartPointIndexPtr);
 				OutNodePoints.Add(*EndPointIndexPtr);
 
-				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
+				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO->IOIndex);
 			}
 		}
 

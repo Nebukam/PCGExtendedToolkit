@@ -55,19 +55,20 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
+
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		int32 Index = 0;
-		Context->MainPoints->ForEach(
-			[&](PCGExData::FPointIO& PointIO, const int32)
+		while (Context->AdvancePointsIO())
+		{
+			if (Context->CurrentIO->GetNum() > 2)
 			{
-				if (PointIO.GetNum() > 2)
-				{
-					PointIO.CreateInKeys();
-					PointIO.CreateOutKeys();
-					Context->GetAsyncManager()->Start<FPCGExBlendPathTask>(Index++, &PointIO);
-				}
-			});
+				Context->CurrentIO->CreateInKeys();
+				Context->CurrentIO->CreateOutKeys();
+				Context->GetAsyncManager()->Start<FPCGExBlendPathTask>(Index++, Context->CurrentIO);
+			}
+		}
+
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
@@ -89,7 +90,7 @@ bool FPCGExBlendPathTask::ExecuteTask()
 
 	if (PathPoints.IsEmpty()) { return false; }
 
-	PCGExDataBlending::FMetadataBlender* Blender = Context->Blending->CreateBlender(*PointIO, *PointIO);
+	PCGExDataBlending::FMetadataBlender* Blender = Context->Blending->CreateBlender(PointIO, PointIO);
 
 	const PCGEx::FPointRef StartPoint = PointIO->GetOutPointRef(0);
 	const PCGEx::FPointRef EndPoint = PointIO->GetOutPointRef(PathPoints.Num() - 1);

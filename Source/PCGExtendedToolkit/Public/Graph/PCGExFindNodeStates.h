@@ -108,7 +108,7 @@ namespace PCGExFindNodeState
 
 		bool bRequiresPrep = false;
 		TArray<int32> NodePointIndices;
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
@@ -122,7 +122,6 @@ namespace PCGExFindNodeState
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
-
 	};
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>

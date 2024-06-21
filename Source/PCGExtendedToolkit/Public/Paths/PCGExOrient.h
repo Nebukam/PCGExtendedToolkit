@@ -7,7 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "SubPoints/Orient/PCGExSubPointsOrientOperation.h"
+#include "Orient/PCGExOrientOperation.h"
 #include "PCGExOrient.generated.h"
 
 /**
@@ -28,23 +28,28 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	//~Begin UObject interface
-public:
-	virtual void PostInitProperties() override;
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
+	virtual FName GetPointFilterLabel() const override;
+	
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExAxis OrientAxis = EPCGExAxis::Forward;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExAxis UpAxis = EPCGExAxis::Up;
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsOrientOperation> Orientation;
+	TObjectPtr<UPCGExOrientOperation> Orientation;
+
+	/** Default value, can be overriden per-point through filters. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bFlipDirection = false;
+	
+
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext final : public FPCGExPathProcessorContext
@@ -52,7 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext final : public FPCGExPathProce
 	friend class FPCGExOrientElement;
 
 public:
-	UPCGExSubPointsOrientOperation* Orientation;
+	UPCGExOrientOperation* Orientation;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExOrientElement final : public FPCGExPathProcessorElement
@@ -67,3 +72,25 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExOrient
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		UPCGExOrientOperation* Orient = nullptr;
+		int32 LastIndex = 0;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+	};
+}

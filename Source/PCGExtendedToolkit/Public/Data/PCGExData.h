@@ -71,9 +71,9 @@ namespace PCGExData
 	}
 
 	template <typename T>
-	static FPCGMetadataAttribute<T>* WriteMark(const FPointIO& PointIO, const FName MarkID, T MarkValue)
+	static FPCGMetadataAttribute<T>* WriteMark(const FPointIO* PointIO, const FName MarkID, T MarkValue)
 	{
-		return WriteMark(PointIO.GetOut()->Metadata, MarkID, MarkValue);
+		return WriteMark(PointIO->GetOut()->Metadata, MarkID, MarkValue);
 	}
 
 

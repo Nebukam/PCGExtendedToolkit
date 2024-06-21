@@ -48,12 +48,12 @@ namespace PCGExDataBlending
 		PCGEX_DELETE(InitializedIndices)
 	}
 
-	void FDataBlendingOperationBase::PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource)
+	void FDataBlendingOperationBase::PrepareForData(PCGExData::FPointIO* InPrimaryData, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource)
 	{
 		PCGEX_DELETE(InitializedIndices)
 	}
 
-	void FDataBlendingOperationBase::PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource)
+	void FDataBlendingOperationBase::PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource)
 	{
 		PCGEX_DELETE(InitializedIndices)
 	}
@@ -99,7 +99,7 @@ namespace PCGExDataBlendingTask
 		PointIO->CreateInKeys();
 
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(BlendingSettings);
-		MetadataBlender->PrepareForData(*TargetIO);
+		MetadataBlender->PrepareForData(TargetIO);
 
 		const TArray<FPCGPoint>& SourcePoints = PointIO->GetIn()->GetPoints();
 
@@ -128,7 +128,7 @@ namespace PCGExDataBlendingTask
 
 		if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(NumCompounds)) { MetadataBlender->Write(Manager); }
 		else { MetadataBlender->Write(Manager); }
-		
+
 		PCGEX_DELETE(MetadataBlender);
 
 		if (MetadataSettings)
@@ -150,8 +150,8 @@ namespace PCGExDataBlendingTask
 		PCGEx::TFAttributeWriter<bool>* CompoundedWriter = bWriteCompounded ? new PCGEx::TFAttributeWriter<bool>(MetadataSettings->CompoundedAttributeName, false, false) : nullptr;
 		PCGEx::TFAttributeWriter<int32>* CompoundSizeWriter = bWriteCompoundSize ? new PCGEx::TFAttributeWriter<int32>(MetadataSettings->CompoundSizeAttributeName, 0, false) : nullptr;
 
-		if (CompoundedWriter) { CompoundedWriter->BindAndGet(*PointIO); }
-		if (CompoundSizeWriter) { CompoundSizeWriter->BindAndGet(*PointIO); }
+		if (CompoundedWriter) { CompoundedWriter->BindAndGet(PointIO); }
+		if (CompoundSizeWriter) { CompoundSizeWriter->BindAndGet(PointIO); }
 
 		for (int i = 0; i < CompoundList->Compounds.Num(); i++)
 		{

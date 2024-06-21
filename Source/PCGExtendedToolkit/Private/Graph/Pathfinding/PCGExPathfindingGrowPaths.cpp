@@ -142,10 +142,10 @@ bool PCGExGrow::FGrowth::Grow()
 void PCGExGrow::FGrowth::Write()
 {
 	const PCGExData::FPointIO& VtxPoints = *Context->CurrentIO;
-	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(VtxPoints.GetIn(), PCGExData::EInit::NewOutput);
-	UPCGPointData* OutData = PathPoints.GetOut();
+	PCGExData::FPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(VtxPoints.GetIn(), PCGExData::EInit::NewOutput);
+	UPCGPointData* OutData = PathPoints->GetOut();
 
-	PCGExGraph::CleanupVtxData(&PathPoints);
+	PCGExGraph::CleanupVtxData(PathPoints);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
@@ -157,14 +157,14 @@ void PCGExGrow::FGrowth::Write()
 		MutablePoints.Add(InPoints[Context->CurrentCluster->Nodes[VtxIndex].PointIndex]);
 	}
 
-	PathPoints.Tags->Append(VtxPoints.Tags);
+	PathPoints->Tags->Append(VtxPoints.Tags);
 
 	if (Settings->bUseSeedAttributeToTagPath)
 	{
-		PathPoints.Tags->RawTags.Add(Context->TagValueGetter->SoftGet(Context->SeedsPoints->GetInPoint(SeedPointIndex), TEXT("")));
+		PathPoints->Tags->RawTags.Add(Context->TagValueGetter->SoftGet(Context->SeedsPoints->GetInPoint(SeedPointIndex), TEXT("")));
 	}
 
-	Context->SeedForwardHandler->Forward(SeedPointIndex, &PathPoints);
+	Context->SeedForwardHandler->Forward(SeedPointIndex, PathPoints);
 }
 
 void PCGExGrow::FGrowth::Init()
@@ -251,22 +251,22 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->NumIterations == EPCGExGrowthValueSource::SeedAttribute)
 	{
-		PCGEX_GROWTH_GRAB_SINGLE_FIELD(NumIterations, *Context->SeedsPoints)
+		PCGEX_GROWTH_GRAB_SINGLE_FIELD(NumIterations, Context->SeedsPoints)
 	}
 
 	if (Settings->SeedNumBranches == EPCGExGrowthValueSource::SeedAttribute)
 	{
-		PCGEX_GROWTH_GRAB_SINGLE_FIELD(NumBranches, *Context->SeedsPoints)
+		PCGEX_GROWTH_GRAB_SINGLE_FIELD(NumBranches, Context->SeedsPoints)
 	}
 
 	if (Settings->GrowthDirection == EPCGExGrowthValueSource::SeedAttribute)
 	{
-		PCGEX_GROWTH_GRAB_VECTOR_FIELD(GrowthDirection, *Context->SeedsPoints)
+		PCGEX_GROWTH_GRAB_VECTOR_FIELD(GrowthDirection, Context->SeedsPoints)
 	}
 
 	if (Settings->GrowthMaxDistance == EPCGExGrowthValueSource::SeedAttribute)
 	{
-		PCGEX_GROWTH_GRAB_SINGLE_FIELD(GrowthMaxDistance, *Context->SeedsPoints)
+		PCGEX_GROWTH_GRAB_SINGLE_FIELD(GrowthMaxDistance, Context->SeedsPoints)
 	}
 
 	Context->GrowthStopGetter = new PCGEx::FLocalBoolGetter();
@@ -313,29 +313,29 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 			if (Settings->NumIterations == EPCGExGrowthValueSource::VtxAttribute)
 			{
 				PCGEX_DELETE(Context->NumIterationsGetter)
-				PCGEX_GROWTH_GRAB_SINGLE_FIELD(NumIterations, *Context->CurrentIO)
+				PCGEX_GROWTH_GRAB_SINGLE_FIELD(NumIterations, Context->CurrentIO)
 			}
 
 			if (Settings->SeedNumBranches == EPCGExGrowthValueSource::VtxAttribute)
 			{
 				PCGEX_DELETE(Context->NumBranchesGetter)
-				PCGEX_GROWTH_GRAB_SINGLE_FIELD(NumBranches, *Context->CurrentIO)
+				PCGEX_GROWTH_GRAB_SINGLE_FIELD(NumBranches, Context->CurrentIO)
 			}
 
 			if (Settings->GrowthDirection == EPCGExGrowthValueSource::VtxAttribute)
 			{
 				PCGEX_DELETE(Context->GrowthDirectionGetter)
-				PCGEX_GROWTH_GRAB_VECTOR_FIELD(GrowthDirection, *Context->CurrentIO)
+				PCGEX_GROWTH_GRAB_VECTOR_FIELD(GrowthDirection, Context->CurrentIO)
 			}
 
 			if (Settings->GrowthMaxDistance == EPCGExGrowthValueSource::VtxAttribute)
 			{
 				PCGEX_DELETE(Context->GrowthMaxDistanceGetter)
-				PCGEX_GROWTH_GRAB_SINGLE_FIELD(GrowthMaxDistance, *Context->CurrentIO)
+				PCGEX_GROWTH_GRAB_SINGLE_FIELD(GrowthMaxDistance, Context->CurrentIO)
 			}
 
-			Context->GrowthStopGetter->Grab(*Context->CurrentIO);
-			Context->NoGrowthGetter->Grab(*Context->CurrentIO);
+			Context->GrowthStopGetter->Grab(Context->CurrentIO);
+			Context->NoGrowthGetter->Grab(Context->CurrentIO);
 
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}

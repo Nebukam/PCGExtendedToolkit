@@ -85,7 +85,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 			return false;
 		}
 
-		if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO, false))
+		if (!Context->PrepareCurrentGraphForPoints(Context->CurrentIO, false))
 		{
 			PCGEX_GRAPH_MISSING_METADATA
 			return false;
@@ -104,9 +104,9 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 	{
 		//PCGEX_ASYNC_WAIT
 
-		auto ProcessProbe = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		auto ProcessProbe = [&](const int32 PointIndex)
 		{
-			const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO.GetOutPoint(PointIndex), PointIndex);
+			const PCGEx::FPointRef Point = PCGEx::FPointRef(Context->CurrentIO->GetOutPoint(PointIndex), PointIndex);
 
 			Context->SetCachedIndex(PointIndex, PointIndex);
 
@@ -115,7 +115,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 
 			const FBoxCenterAndExtent BoxCAE = FBoxCenterAndExtent(Point.Point->Transform.GetLocation(), FVector(MaxRadius));
 
-			const TArray<FPCGPoint>& InPoints = PointIO.GetIn()->GetPoints();
+			const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
 
 			auto ProcessPoint = [&](const FPCGPointRef& InPointRef)
 			{
@@ -124,7 +124,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 				if (!InPoints.IsValidIndex(static_cast<int32>(OtherPointIndex)) ||
 					static_cast<int32>(OtherPointIndex) == PointIndex) { return; }
 
-				const PCGEx::FPointRef& OtherPoint = PointIO.GetOutPointRef(OtherPointIndex);
+				const PCGEx::FPointRef& OtherPoint = Context->CurrentIO->GetOutPointRef(OtherPointIndex);
 				for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, OtherPoint); }
 			};
 
@@ -139,20 +139,14 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 			}
 		};
 
-		if (!Context->ProcessCurrentPoints(ProcessProbe)) { return false; }
+		if (!Context->Process(ProcessProbe, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->SetState(PCGExGraph::State_FindingEdgeTypes);
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
-		// Process params again for edges types
-		auto ProcessPointEdgeType = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
-		{
-			ComputeEdgeType(Context->SocketInfos, PointIndex);
-		};
-
-		if (!Context->ProcessCurrentPoints(ProcessPointEdgeType)) { return false; }
+		if (!Context->Process([&](const int32 PointIndex) { ComputeEdgeType(Context->SocketInfos, PointIndex); }, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->WriteSocketInfos();
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);

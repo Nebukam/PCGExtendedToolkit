@@ -113,7 +113,7 @@ namespace PCGExSmooth
 		NumPoints = PointIO->GetNum();
 
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(*PointIO);
+		MetadataBlender->PrepareForData(PointIO);
 
 		Influence.SetNum(NumPoints);
 		Smoothing.SetNum(NumPoints);
@@ -122,7 +122,7 @@ namespace PCGExSmooth
 		{
 			PCGEx::FLocalSingleFieldGetter* InfluenceGetter = new PCGEx::FLocalSingleFieldGetter();
 			InfluenceGetter->Capture(Settings->InfluenceAttribute);
-			if (!InfluenceGetter->Grab(*PointIO))
+			if (!InfluenceGetter->Grab(PointIO))
 			{
 				PCGEX_DELETE(InfluenceGetter)
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing influence attribute: {0}."), FText::FromName(Settings->InfluenceAttribute.GetName())));
@@ -141,7 +141,7 @@ namespace PCGExSmooth
 		{
 			PCGEx::FLocalSingleFieldGetter* SmoothingAmountGetter = new PCGEx::FLocalSingleFieldGetter();
 			SmoothingAmountGetter->Capture(Settings->InfluenceAttribute);
-			if (!SmoothingAmountGetter->Grab(*PointIO))
+			if (!SmoothingAmountGetter->Grab(PointIO))
 			{
 				PCGEX_DELETE(SmoothingAmountGetter)
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing smoothing amount attribute: {0}."), FText::FromName(Settings->InfluenceAttribute.GetName())));

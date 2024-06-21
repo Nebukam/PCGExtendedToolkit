@@ -166,7 +166,7 @@ namespace PCGExDataStateTask
 		FWriteIndividualState(
 			PCGExData::FPointIO* InPointIO,
 			PCGExDataState::TDataState* InHandler, const TArray<int32>* InInIndices) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			Handler(InHandler), InIndices(InInIndices)
 		{
 		}

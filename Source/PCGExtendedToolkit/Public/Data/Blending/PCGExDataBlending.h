@@ -363,8 +363,8 @@ namespace PCGExDataBlending
 		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
-		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(PCGExData::FPointIO* InPrimaryData, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
 
 		FORCEINLINE virtual bool GetIsInterpolation() const;
 		FORCEINLINE virtual bool GetRequiresPreparation() const;
@@ -415,7 +415,7 @@ namespace PCGExDataBlending
 
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::None; };
 
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 			bOwnsWriter = false;
@@ -423,31 +423,31 @@ namespace PCGExDataBlending
 
 			bInterpolationAllowed = Writer->GetAllowsInterpolation();
 
-			FPCGMetadataAttributeBase* Attribute = InSecondaryData.GetData(SecondarySource)->Metadata->GetMutableAttribute(AttributeName);
+			FPCGMetadataAttributeBase* Attribute = InSecondaryData->GetData(SecondarySource)->Metadata->GetMutableAttribute(AttributeName);
 			if (Attribute && Attribute->GetTypeId() == Writer->UnderlyingType) { TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute); }
 			else { TypedAttribute = nullptr; }
 
 			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryData, SecondarySource);
 		}
 
-		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(PCGExData::FPointIO* InPrimaryData, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 			bOwnsWriter = true;
 
-			FPCGMetadataAttributeBase* Attribute = InSecondaryData.GetData(SecondarySource)->Metadata->GetMutableAttribute(AttributeName);
+			FPCGMetadataAttributeBase* Attribute = InSecondaryData->GetData(SecondarySource)->Metadata->GetMutableAttribute(AttributeName);
 
 			Writer = new PCGEx::TFAttributeWriter<T>(AttributeName, T{}, Attribute ? Attribute->AllowsInterpolation() : true);
 			Writer->BindAndGet(InPrimaryData);
 
-			if (&InPrimaryData == &InSecondaryData && SecondarySource == PCGExData::ESource::Out)
+			if (InPrimaryData == InSecondaryData && SecondarySource == PCGExData::ESource::Out)
 			{
 				Reader = Writer;
 			}
 			else
 			{
 				Reader = new PCGEx::TFAttributeReader<T>(AttributeName);
-				Reader->Bind(const_cast<PCGExData::FPointIO&>(InSecondaryData));
+				Reader->Bind(const_cast<PCGExData::FPointIO*>(InSecondaryData));
 			}
 
 			bInterpolationAllowed = Writer->GetAllowsInterpolation() && Reader->GetAllowsInterpolation();
@@ -531,7 +531,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
 
 		// TODO : Async support? Already handled by wrappers, so might be redundant
-		
+
 		virtual void Write() override { Writer->Write(); }
 		virtual void Write(const TArrayView<int32> InIndices) override { Writer->Write(InIndices); }
 
@@ -577,11 +577,11 @@ namespace PCGExDataBlending
 	static void AssembleBlendingSettings(
 		const FPCGExPropertiesBlendingSettings& PropertiesBlending,
 		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
-		const PCGExData::FPointIO& SourceIO,
+		const PCGExData::FPointIO* SourceIO,
 		FPCGExBlendingSettings& OutSettings,
 		TSet<FName>& OutMissingAttributes)
 	{
-		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO.GetIn()->Metadata);
+		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
 		OutSettings = FPCGExBlendingSettings(PropertiesBlending);
 		OutSettings.BlendingFilter = EPCGExBlendingFilter::Include;
 
@@ -604,11 +604,11 @@ namespace PCGExDataBlending
 	static void AssembleBlendingSettings(
 		const EPCGExDataBlendingType& DefaultBlending,
 		const TSet<FName>& Attributes,
-		const PCGExData::FPointIO& SourceIO,
+		const PCGExData::FPointIO* SourceIO,
 		FPCGExBlendingSettings& OutSettings,
 		TSet<FName>& OutMissingAttributes)
 	{
-		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO.GetIn()->Metadata);
+		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
 		OutSettings = FPCGExBlendingSettings(FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None));
 		OutSettings.BlendingFilter = EPCGExBlendingFilter::Include;
 
@@ -637,7 +637,7 @@ namespace PCGExDataBlendingTask
 		                   PCGExData::FIdxCompoundList* InCompoundList,
 		                   const FPCGExDistanceSettings& InDistSettings,
 		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			TargetIO(InTargetIO),
 			BlendingSettings(InBlendingSettings),
 			CompoundList(InCompoundList),
@@ -661,7 +661,7 @@ namespace PCGExDataBlendingTask
 		FWriteFuseMetadata(PCGExData::FPointIO* InPointIO,
 		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings,
 		                   PCGExData::FIdxCompoundList* InCompoundList) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			MetadataSettings(InMetadataSettings),
 			CompoundList(InCompoundList)
 		{

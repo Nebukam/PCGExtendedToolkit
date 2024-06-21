@@ -57,15 +57,15 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 
 			for (int i = 0; i < Context->TaggedEdges->Entries.Num(); i++)
 			{
-				PCGExData::FPointIO& PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput);
+				PCGExData::FPointIO* PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::NewOutput);
 				PCGExData::FPointIO* EdgeIO = Context->TaggedEdges->Entries[i];
 
 				FString OutId;
-				PCGExGraph::SetClusterVtx(&PointPartitionIO, OutId);
+				PCGExGraph::SetClusterVtx(PointPartitionIO, OutId);
 				PCGExGraph::MarkClusterEdges(EdgeIO, OutId);
 
 				EdgeIO->CreateInKeys();
-				Context->GetAsyncManager()->Start<FPCGExCreateVtxPartitionTask>(i, &PointPartitionIO, EdgeIO, &Context->EndpointsLookup);
+				Context->GetAsyncManager()->Start<FPCGExCreateVtxPartitionTask>(i, PointPartitionIO, EdgeIO, &Context->EndpointsLookup);
 			}
 		}
 
@@ -91,12 +91,12 @@ bool FPCGExCreateVtxPartitionTask::ExecuteTask()
 	TArray<int32> ReducedVtxIndices;
 
 	int32 NumEdges = 0;
-	if (!PCGExGraph::GetReducedVtxIndices(*EdgeIO, EndpointsLookup, ReducedVtxIndices, NumEdges)) { return false; }
+	if (!PCGExGraph::GetReducedVtxIndices(EdgeIO, EndpointsLookup, ReducedVtxIndices, NumEdges)) { return false; }
 
 	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
 
 	PointIO->GetOut()->GetMutablePoints().SetNum(View.Num());
-	PCGEx::CopyPoints(*PointIO, *PointIO, View, 0, true);
+	PCGEx::CopyPoints(PointIO, PointIO, View, 0, true);
 
 	return true;
 }

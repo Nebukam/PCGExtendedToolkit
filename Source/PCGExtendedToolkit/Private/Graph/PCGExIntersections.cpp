@@ -213,7 +213,6 @@ namespace PCGExGraph
 		PointsCompounds->New()->Add(IOIndex, PointIndex);
 
 		return NewNode;
-		
 	}
 
 	PCGExData::FIdxCompound* FCompoundGraph::CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
@@ -625,7 +624,7 @@ namespace PCGExGraphTask
 	bool FCompoundGraphInsertEdges::ExecuteTask()
 	{
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-		if (!BuildIndexedEdges(*EdgeIO, *EndpointsLookup, IndexedEdges, true) ||
+		if (!BuildIndexedEdges(EdgeIO, *EndpointsLookup, IndexedEdges, true) ||
 			IndexedEdges.IsEmpty()) { return false; }
 
 		IndexedEdges.Sort(

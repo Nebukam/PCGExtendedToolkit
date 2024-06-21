@@ -148,7 +148,7 @@ namespace PCGExMeshToCluster
 		FExtractMeshAndBuildGraph(
 			PCGExData::FPointIO* InPointIO,
 			PCGExGeo::FGeoStaticMesh* InMesh) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			Mesh(InMesh)
 		{
 		}

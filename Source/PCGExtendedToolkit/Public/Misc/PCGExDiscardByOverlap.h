@@ -194,7 +194,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExComputePreciseOverlap final : public PCGExMT:
 public:
 	FPCGExComputePreciseOverlap(PCGExData::FPointIO* InPointIO,
 	                            const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
-		PCGExMT::FPCGExTask(InPointIO),
+		FPCGExTask(InPointIO),
 		BoundsSource(InBoundsSource), Bounds(InBounds)
 	{
 	}

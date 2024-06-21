@@ -83,5 +83,4 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 	bool IsRelativeMeasure() const { return SubsetMeasure == EPCGExMeanMeasure::Absolute; }
 	bool IsLocalMeasure() const { return SubsetSource == EPCGExFetchType::Attribute; }
-	
 };

@@ -315,7 +315,7 @@ namespace PCGExGraph
 
 		PCGEx::TFAttributeWriter<int64>* VtxEndpointWriter = new PCGEx::TFAttributeWriter<int64>(Tag_VtxEndpoint, 0, false);
 
-		VtxEndpointWriter->BindAndSetNumUninitialized(*PointIO);
+		VtxEndpointWriter->BindAndSetNumUninitialized(PointIO);
 
 		const TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetPoints();
 		for (const int32 NodeIndex : ValidNodes)
@@ -332,7 +332,7 @@ namespace PCGExGraph
 #define PCGEX_METADATA(_NAME, _TYPE, _DEFAULT, _ACCESSOR)\
 {if(MetadataSettings->bWrite##_NAME){\
 PCGEx::TFAttributeWriter<_TYPE>* Writer = MetadataSettings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(MetadataSettings->_NAME##AttributeName, _DEFAULT, false) : nullptr;\
-Writer->BindAndSetNumUninitialized(*PointIO);\
+Writer->BindAndSetNumUninitialized(PointIO);\
 		for(const int32 NodeIndex : ValidNodes){\
 		PCGExGraph::FGraphNodeMetadata** NodeMeta = Graph->NodeMetadata.Find(NodeIndex);\
 		if(NodeMeta){Writer->Values[Nodes[NodeIndex].PointIndex] = (*NodeMeta)->_ACCESSOR; }}\
@@ -349,7 +349,7 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 		bCompiledSuccessfully = true;
 
 		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(Tag_ClusterId, -1, false);
-		NumClusterIdWriter->BindAndSetNumUninitialized(*PointIO);
+		NumClusterIdWriter->BindAndSetNumUninitialized(PointIO);
 
 
 		// Subgraphs
@@ -364,11 +364,11 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex();
 				SourceEdgesIO && SourceEdgesIO->Pairs.IsValidIndex(IOIndex))
 			{
-				EdgeIO = &EdgesIO->Emplace_GetRef(*SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
+				EdgeIO = EdgesIO->Emplace_GetRef(SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
 			}
 			else
 			{
-				EdgeIO = &EdgesIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
+				EdgeIO = EdgesIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
 			}
 
 			const int64 ClusterId = EdgeIO->GetOut()->UID;
@@ -450,21 +450,21 @@ namespace PCGExGraphTask
 	{
 		if (!GraphBuilder->bCompiledSuccessfully) { return false; }
 
-		PCGExData::FPointIO& VtxDupe = VtxCollection->Emplace_GetRef(GraphBuilder->PointIO->GetOut(), PCGExData::EInit::DuplicateInput);
-		VtxDupe.IOIndex = TaskIndex;
+		PCGExData::FPointIO* VtxDupe = VtxCollection->Emplace_GetRef(GraphBuilder->PointIO->GetOut(), PCGExData::EInit::DuplicateInput);
+		VtxDupe->IOIndex = TaskIndex;
 
 		FString OutId;
-		PCGExGraph::SetClusterVtx(&VtxDupe, OutId);
+		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
-		InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &VtxDupe, TransformSettings);
+		InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, VtxDupe, TransformSettings);
 
 		for (const PCGExData::FPointIO* Edges : GraphBuilder->EdgesIO->Pairs)
 		{
-			PCGExData::FPointIO& EdgeDupe = EdgeCollection->Emplace_GetRef(Edges->GetOut(), PCGExData::EInit::DuplicateInput);
-			EdgeDupe.IOIndex = TaskIndex;
-			PCGExGraph::MarkClusterEdges(&EdgeDupe, OutId);
+			PCGExData::FPointIO* EdgeDupe = EdgeCollection->Emplace_GetRef(Edges->GetOut(), PCGExData::EInit::DuplicateInput);
+			EdgeDupe->IOIndex = TaskIndex;
+			PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
 
-			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
+			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, EdgeDupe, TransformSettings);
 		}
 
 		return true;

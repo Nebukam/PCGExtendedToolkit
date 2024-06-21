@@ -70,7 +70,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, Context->MergedInputSocketsNum);
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(Context->CurrentIO, &Context->GraphBuilderSettings, Context->MergedInputSocketsNum);
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
@@ -82,7 +82,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 		{
 			Context->CurrentIO->CreateInKeys();
 
-			if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO))
+			if (!Context->PrepareCurrentGraphForPoints(Context->CurrentIO))
 			{
 				PCGEX_GRAPH_MISSING_METADATA
 				return false;
@@ -96,7 +96,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_BuildCustomGraph))
 	{
-		auto InsertEdge = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		auto InsertEdge = [&](const int32 PointIndex)
 		{
 			const int32 EdgeType = Context->CurrentGraphEdgeCrawlingTypes;
 			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
@@ -122,7 +122,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 			}
 		};
 
-		if (!Context->ProcessCurrentPoints(InsertEdge)) { return false; }
+		if (!Context->Process(InsertEdge, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->GraphBuilder->Graph->InsertEdges(Context->Edges, -1);
 
@@ -151,20 +151,19 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 	{
 		if (Settings->bDeleteCustomGraphData)
 		{
-			Context->MainPoints->ForEach(
-				[&](const PCGExData::FPointIO& PointIO, int32)
+			for (const PCGExData::FPointIO* PointIO : Context->MainPoints->Pairs)
+			{
+				auto DeleteSockets = [&](const UPCGExGraphDefinition* Params, int32)
 				{
-					auto DeleteSockets = [&](const UPCGExGraphDefinition* Params, int32)
+					const UPCGPointData* OutData = PointIO->GetOut();
+					for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
 					{
-						const UPCGPointData* OutData = PointIO.GetOut();
-						for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
-						{
-							Socket.DeleteFrom(OutData);
-						}
-						OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
-					};
-					Context->Graphs.ForEach(Context, DeleteSockets);
-				});
+						Socket.DeleteFrom(OutData);
+					}
+					OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
+				};
+				Context->Graphs.ForEach(Context, DeleteSockets);
+			}
 		}
 
 		Context->OutputMainPoints();

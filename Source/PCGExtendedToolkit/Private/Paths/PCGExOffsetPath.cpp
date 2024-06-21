@@ -111,7 +111,7 @@ namespace PCGExOffsetPath
 		if (Settings->OffsetType == EPCGExFetchType::Attribute)
 		{
 			OffsetGetter->Capture(Settings->OffsetAttribute);
-			if (!OffsetGetter->Grab(*PointIO))
+			if (!OffsetGetter->Grab(PointIO))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing offset size attribute: {0}."), FText::FromName(Settings->OffsetAttribute.GetName())));
 				return false;
@@ -123,7 +123,7 @@ namespace PCGExOffsetPath
 		if (Settings->UpVectorType == EPCGExFetchType::Attribute)
 		{
 			UpGetter->Capture(Settings->UpVectorAttribute);
-			if (!UpGetter->Grab(*PointIO))
+			if (!UpGetter->Grab(PointIO))
 			{
 				PCGEX_DELETE(UpGetter)
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing UpVector attribute: {0}."), FText::FromName(Settings->UpVectorAttribute.GetName())));

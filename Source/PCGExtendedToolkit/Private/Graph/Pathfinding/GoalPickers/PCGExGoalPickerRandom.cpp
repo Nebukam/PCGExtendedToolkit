@@ -19,7 +19,7 @@ void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPickerRandom::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
+void UPCGExGoalPickerRandom::PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals)
 {
 	if (bUseLocalNumGoals && !NumGoalsGetter)
 	{

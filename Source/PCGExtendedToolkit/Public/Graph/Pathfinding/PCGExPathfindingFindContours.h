@@ -66,6 +66,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExForwardSettings SeedForwardAttributes;
 
+	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
+	bool bUseOctreeSearch = false;
+
 private:
 	friend class FPCGExFindContoursElement;
 };
@@ -132,7 +136,7 @@ namespace PCGExFindContours
 	public:
 		FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,
 		                      FProcessor* InClusterProcessor) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			ClusterProcessor(InClusterProcessor)
 		{
 		}

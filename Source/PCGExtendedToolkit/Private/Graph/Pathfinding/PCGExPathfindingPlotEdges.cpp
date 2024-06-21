@@ -67,12 +67,12 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		SeedPosition = GoalPosition;
 	}
 
-	PCGExData::FPointIO& PathPoints = OutputPaths->Emplace_GetRef(Cluster->PointsIO->GetIn(), PCGExData::EInit::NewOutput);
-	PCGExGraph::CleanupClusterTags(&PathPoints, true);
+	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef(Cluster->PointsIO->GetIn(), PCGExData::EInit::NewOutput);
+	PCGExGraph::CleanupClusterTags(PathPoints, true);
 
-	UPCGPointData* OutData = PathPoints.GetOut();
+	UPCGPointData* OutData = PathPoints->GetOut();
 
-	PCGExGraph::CleanupVtxData(&PathPoints);
+	PCGExGraph::CleanupVtxData(PathPoints);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	const TArray<FPCGPoint>& InPoints = Cluster->PointsIO->GetIn()->GetPoints();
@@ -95,7 +95,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 	}
 	if (bAddGoalToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
 
-	PathPoints.Tags->Append(InPlotPoints->Tags);
+	PathPoints->Tags->Append(InPlotPoints->Tags);
 
 	PCGEX_DELETE(LocalFeedbackHandler)
 }

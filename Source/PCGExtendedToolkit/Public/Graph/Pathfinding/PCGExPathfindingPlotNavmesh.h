@@ -124,7 +124,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPlotNavmeshTask final : public PCGExMT::FPCGE
 public:
 	FPCGExPlotNavmeshTask(
 		PCGExData::FPointIO* InPointIO) :
-		PCGExMT::FPCGExTask(InPointIO)
+		FPCGExTask(InPointIO)
 	{
 	}
 

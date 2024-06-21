@@ -197,26 +197,26 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
+		auto Initialize = [&]()
 		{
 			Context->Rules.Empty(); //
-			PointIO.CreateInKeys();
+			Context->CurrentIO->CreateInKeys();
 
-			const int32 NumPoints = PointIO.GetNum();
+			const int32 NumPoints = Context->CurrentIO->GetNum();
 
 			if (Settings->bWriteKeySum && !Context->bSplitOutput) { Context->KeySums.SetNumZeroed(NumPoints); }
 
 			for (FPCGExPartitonRuleDescriptor& Descriptor : Context->RulesDescriptors)
 			{
 				FPCGExFilter::FRule& NewRule = Context->Rules.Emplace_GetRef(Descriptor);
-				if (!NewRule.Grab(PointIO)) { Context->Rules.Pop(); }
+				if (!NewRule.Grab(Context->CurrentIO)) { Context->Rules.Pop(); }
 			}
 
 			// Prepare each rule so it cache the filter key by index
 			for (FPCGExFilter::FRule& Rule : Context->Rules) { Rule.FilteredValues.SetNumZeroed(NumPoints); }
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex)
 		{
 			PCGExPartition::FKPartition* Partition = Context->RootPartition;
 			for (FPCGExFilter::FRule& Rule : Context->Rules)
@@ -229,7 +229,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 			Partition->Add(PointIndex);
 		};
 
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+		if (!Context->Process(Initialize, ProcessPoint, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->RootPartition->SortPartitions();
 
@@ -267,14 +267,14 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 					IndiceMap.Empty();
 				}
 
-				PCGEx::FAttributeAccessor<int64>* Accessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(*Context->CurrentIO, Rule.RuleDescriptor->KeyAttributeName, 0, false);
+				PCGEx::FAttributeAccessor<int64>* Accessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(Context->CurrentIO, Rule.RuleDescriptor->KeyAttributeName, 0, false);
 				Accessor->SetRange(Rule.FilteredValues);
 				delete Accessor;
 
 				if (Settings->bWriteKeySum)
 				{
 					for (int i = 0; i < Rule.FilteredValues.Num(); i++) { Context->KeySums[i] += Rule.FilteredValues[i]; }
-					PCGEx::FAttributeAccessor<int64>* KSAccessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(*Context->CurrentIO, Settings->KeySumAttributeName, 0, false);
+					PCGEx::FAttributeAccessor<int64>* KSAccessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(Context->CurrentIO, Settings->KeySumAttributeName, 0, false);
 					KSAccessor->SetRange(Context->KeySums);
 					delete KSAccessor;
 				}

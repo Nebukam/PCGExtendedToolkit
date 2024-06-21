@@ -38,7 +38,10 @@ namespace PCGEx
 		TArray<EPCGMetadataTypes> Types;
 		InMetadata->GetAttributes(Names, Types);
 		const int32 NumAttributes = Names.Num();
-		for (int i = 0; i < NumAttributes; i++) { OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i])); }
+		for (int i = 0; i < NumAttributes; i++)
+		{
+			OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i], InMetadata->GetConstAttribute(Names[i])->AllowsInterpolation()));
+		}
 	}
 
 	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
@@ -47,10 +50,11 @@ namespace PCGEx
 		TArray<EPCGMetadataTypes> Types;
 		InMetadata->GetAttributes(OutNames, Types);
 		const int32 NumAttributes = OutNames.Num();
+
 		for (int i = 0; i < NumAttributes; i++)
 		{
 			FName Name = OutNames[i];
-			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i]));
+			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i], InMetadata->GetConstAttribute(Name)->AllowsInterpolation()));
 		}
 	}
 

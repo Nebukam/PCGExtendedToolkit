@@ -57,7 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExP
 
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
 
-	bool PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);
+	bool PrepareCurrentGraphForPoints(const PCGExData::FPointIO* PointIO, const bool ReadOnly = true);
 	void OutputGraphParams() { Graphs.OutputTo(this); }
 
 	void OutputPointsAndGraphParams()

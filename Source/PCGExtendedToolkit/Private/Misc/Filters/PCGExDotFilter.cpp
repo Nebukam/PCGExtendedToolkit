@@ -14,7 +14,7 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 
 	OperandA = new PCGEx::FLocalVectorGetter();
 	OperandA->Capture(TypedFilterFactory->Descriptor.OperandA);
-	OperandA->Grab(*PointIO, false);
+	OperandA->Grab(PointIO, false);
 	bValid = OperandA->IsUsable(PointIO->GetNum());
 
 	if (!bValid)
@@ -28,7 +28,7 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
 		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
-		OperandB->Grab(*PointIO, false);
+		OperandB->Grab(PointIO, false);
 		bValid = OperandB->IsUsable(PointIO->GetNum());
 
 		if (!bValid)
@@ -43,7 +43,7 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 	if (TypedFilterFactory->Descriptor.DotComparisonSettings.DotValue == EPCGExFetchType::Attribute)
 	{
 		DotValue->Capture(TypedFilterFactory->Descriptor.DotComparisonSettings.DotAttribute);
-		DotValue->Grab(*PointIO, false);
+		DotValue->Grab(PointIO, false);
 		bValid = DotValue->IsUsable(PointIO->GetNum());
 
 		if (!bValid)

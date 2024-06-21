@@ -25,7 +25,7 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::PrepareForData(
-		PCGExData::FPointIO& InData,
+		PCGExData::FPointIO* InData,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation)
 	{
@@ -33,8 +33,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::PrepareForData(
-		PCGExData::FPointIO& InPrimaryData,
-		const PCGExData::FPointIO& InSecondaryData,
+		PCGExData::FPointIO* InPrimaryData,
+		const PCGExData::FPointIO* InSecondaryData,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation)
 	{
@@ -224,8 +224,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::InternalPrepareForData(
-		PCGExData::FPointIO& InPrimaryData,
-		const PCGExData::FPointIO& InSecondaryData,
+		PCGExData::FPointIO* InPrimaryData,
+		const PCGExData::FPointIO* InSecondaryData,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation)
 	{
@@ -242,24 +242,24 @@ namespace PCGExDataBlending
 			}
 		}
 
-		InPrimaryData.CreateOutKeys();
-		const_cast<PCGExData::FPointIO&>(InSecondaryData).CreateKeys(SecondarySource);
+		InPrimaryData->CreateOutKeys();
+		const_cast<PCGExData::FPointIO*>(InSecondaryData)->CreateKeys(SecondarySource);
 
-		PrimaryPoints = &InPrimaryData.GetOut()->GetMutablePoints();
-		SecondaryPoints = const_cast<TArray<FPCGPoint>*>(&InSecondaryData.GetData(SecondarySource)->GetPoints());
+		PrimaryPoints = &InPrimaryData->GetOut()->GetMutablePoints();
+		SecondaryPoints = const_cast<TArray<FPCGPoint>*>(&InSecondaryData->GetData(SecondarySource)->GetPoints());
 
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut()->Metadata, Identities);
+		PCGEx::FAttributeIdentity::Get(InPrimaryData->GetOut()->Metadata, Identities);
 		BlendingSettings->Filter(Identities);
 
-		if (&InSecondaryData != &InPrimaryData)
+		if constexpr (&InSecondaryData != &InPrimaryData)
 		{
 			TArray<FName> PrimaryNames;
 			TArray<FName> SecondaryNames;
 			TMap<FName, PCGEx::FAttributeIdentity> PrimaryIdentityMap;
 			TMap<FName, PCGEx::FAttributeIdentity> SecondaryIdentityMap;
-			PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut()->Metadata, PrimaryNames, PrimaryIdentityMap);
-			PCGEx::FAttributeIdentity::Get(InSecondaryData.GetData(SecondarySource)->Metadata, SecondaryNames, SecondaryIdentityMap);
+			PCGEx::FAttributeIdentity::Get(InPrimaryData->GetOut()->Metadata, PrimaryNames, PrimaryIdentityMap);
+			PCGEx::FAttributeIdentity::Get(InSecondaryData->GetData(SecondarySource)->Metadata, SecondaryNames, SecondaryIdentityMap);
 
 			for (FName PrimaryName : PrimaryNames)
 			{

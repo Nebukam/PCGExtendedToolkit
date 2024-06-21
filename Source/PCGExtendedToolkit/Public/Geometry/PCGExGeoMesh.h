@@ -318,7 +318,7 @@ namespace PCGExGeo
 	{
 	public:
 		FExtractStaticMeshTask(PCGExData::FPointIO* InPointIO, FGeoStaticMesh* InGSM) :
-			PCGExMT::FPCGExTask(InPointIO), GSM(InGSM)
+			FPCGExTask(InPointIO), GSM(InGSM)
 		{
 		}
 

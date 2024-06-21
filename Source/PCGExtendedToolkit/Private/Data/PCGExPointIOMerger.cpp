@@ -5,153 +5,159 @@
 
 FPCGExPointIOMerger::FPCGExPointIOMerger(PCGExData::FPointIO& OutData)
 {
-	MergedData = &OutData;
-	MergedPoints.Empty();
-	Identities.Empty();
-	AllowsInterpolation.Empty();
+	CompositeIO = &OutData;
 }
 
 FPCGExPointIOMerger::~FPCGExPointIOMerger()
 {
-	PCGEX_DELETE_TARRAY(WriterList)
+	CompositeIO = nullptr;
 
-	Identities.Empty();
-	AllowsInterpolation.Empty();
+	IOSources.Empty();
+	Scopes.Empty();
+	UniqueIdentities.Empty();
 
-	if (bCleanupInputs) { for (PCGExData::FPointIO* PointIO : MergedPoints) { PointIO->CleanupKeys(); } }
-	MergedPoints.Empty();
-
-	MergedData->CleanupKeys();
-	MergedData = nullptr;
+	PCGEX_DELETE_TARRAY(Writers)
 }
 
-void FPCGExPointIOMerger::Append(PCGExData::FPointIO& InData)
+void FPCGExPointIOMerger::Append(PCGExData::FPointIO* InData)
 {
-	MergedPoints.Add(&InData);
+	const int32 NumPoints = InData->GetNum();
 
-	TArray<PCGEx::FAttributeIdentity> NewIdentities;
-	PCGEx::FAttributeIdentity::Get(InData.GetIn()->Metadata, NewIdentities);
-	for (PCGEx::FAttributeIdentity& NewIdentity : NewIdentities)
-	{
-		if (Identities.Find(NewIdentity.Name)) { continue; } //TODO: Will likely create issues if there is an attribute mismatch, resolve during merge.
-		Identities.Add(NewIdentity.Name, NewIdentity);
-		AllowsInterpolation.Add(NewIdentity.Name, InData.GetIn()->Metadata->GetConstAttribute(NewIdentity.Name)->AllowsInterpolation());
-	}
+	if (NumPoints <= 0) { return; }
 
-	TotalPoints += InData.GetNum();
-
-	InData.CreateInKeys();
+	IOSources.Add(InData);
+	Scopes.Add(PCGEx::H64(NumCompositePoints, NumPoints));
+	NumCompositePoints += NumPoints;
 }
 
 void FPCGExPointIOMerger::Append(const TArray<PCGExData::FPointIO*>& InData)
 {
-	for (const PCGExData::FPointIO* PointIO : InData) { Append(const_cast<PCGExData::FPointIO&>(*PointIO)); }
+	for (const PCGExData::FPointIO* PointIO : InData) { Append(const_cast<PCGExData::FPointIO*>(PointIO)); }
+}
+
+void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
+{
+	for (const PCGExData::FPointIO* PointIO : InCollection->Pairs) { Append(const_cast<PCGExData::FPointIO*>(PointIO)); }
 }
 
 void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const bool CleanupInputs)
 {
-	bCleanupInputs = CleanupInputs;
+	CompositeIO->SetNumInitialized(NumCompositePoints);
+	TArray<FPCGPoint>& MutablePoints = CompositeIO->GetOut()->GetMutablePoints();
 
-	TArray<FPCGPoint>& MutablePoints = MergedData->GetOut()->GetMutablePoints();
-	MutablePoints.SetNumUninitialized(TotalPoints);
+	TMap<FName, EPCGMetadataTypes> ExpectedTypes;
 
-	int32 StartIndex = 0;
+	const int32 NumSources = IOSources.Num();
 
-	for (const PCGExData::FPointIO* PointIO : MergedPoints)
+	for (int i = 0; i < NumSources; i++)
 	{
-		const int32 NumPoints = PointIO->GetNum();
-		for (int i = 0; i < NumPoints; i++)
+		const PCGExData::FPointIO* Source = IOSources[i];
+		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
+
+		const uint32 StartIndex = PCGEx::H64A(Scopes[i]);
+
+		// Copy source points -- TODO : could be made async if we split in two steps (merge points then merge attributes)
+		for (int j = 0; j < SourcePoints.Num(); j++)
 		{
-			FPCGPoint& Point = MutablePoints[StartIndex + i] = PointIO->GetInPoint(i);
-			Point.MetadataEntry = PCGInvalidEntryKey;
+			const int32 TargetIndex = StartIndex + j;
+			const PCGMetadataEntryKey Key = MutablePoints[TargetIndex].MetadataEntry;
+			MutablePoints[TargetIndex] = SourcePoints[j];
+			MutablePoints[TargetIndex].MetadataEntry = Key;
 		}
 
-		StartIndex += NumPoints;
-	}
-
-	MergedData->CreateOutKeys();
-
-	// Prepare writers for each attribute on the merged
-	FPCGExPointIOMerger* Merger = this;
-
-	for (const TPair<FName, PCGEx::FAttributeIdentity>& Identity : Identities)
-	{
-		PCGMetadataAttribute::CallbackWithRightType(
-			static_cast<uint16>(Identity.Value.UnderlyingType), [&](auto DummyValue)
+		// Discover attributes
+		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
+		PCGEx::FAttributeIdentity::Get(Source->GetIn()->Metadata, SourceAttributes);
+		for (PCGEx::FAttributeIdentity SourceAtt : SourceAttributes)
+		{
+			const EPCGMetadataTypes* ExpectedType = ExpectedTypes.Find(SourceAtt.Name);
+			if (!ExpectedType)
 			{
-				using T = decltype(DummyValue);
-				PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(Identity.Key, T{}, *AllowsInterpolation.Find(Identity.Key));
-				Writer->BindAndGet(*MergedData);
+				ExpectedTypes.Add(SourceAtt.Name, SourceAtt.UnderlyingType);
 
-				Writers.Add(Identity.Key, Writer);
-				WriterList.Add(Writer);
+				PCGMetadataAttribute::CallbackWithRightType(
+					static_cast<uint16>(SourceAtt.UnderlyingType), [&](auto DummyValue)
+					{
+						using T = decltype(DummyValue);
+						PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation);
+						Writers.Add(Writer);
+						UniqueIdentities.Add(SourceAtt);
+					});
 
-				int32 PointIndex = 0;
-				for (PCGExData::FPointIO* PointIO : MergedPoints) { AsyncManager->Start<FPCGExAttributeMergeTask>(PointIndex++, PointIO, Merger, Identity.Key); }
-			});
+				continue;
+			}
+
+			if (*ExpectedType != SourceAtt.UnderlyingType)
+			{
+				// Type mismatch; TODO Log warning
+			}
+		}
 	}
+
+	CompositeIO->CreateOutKeys();
+
+	for (int i = 0; i < UniqueIdentities.Num(); i++) { AsyncManager->Start<PCGExPointIOMerger::FWriteAttributeTask>(i, CompositeIO, this); }
 }
 
 void FPCGExPointIOMerger::Write()
 {
-	for (const TPair<FName, PCGEx::FAAttributeIO*>& Pair : Writers)
+	for (int i = 0; i < UniqueIdentities.Num(); i++)
 	{
 		PCGMetadataAttribute::CallbackWithRightType(
-			static_cast<uint16>(Identities.Find(Pair.Key)->UnderlyingType), [&](auto DummyValue)
+			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				static_cast<PCGEx::TFAttributeWriter<T>*>(Pair.Value)->Write();
-			});
-	}
-}
-
-void FPCGExPointIOMerger::Write(PCGExMT::FTaskManager* AsyncManager)
-{
-	for (const TPair<FName, PCGEx::FAAttributeIO*>& Pair : Writers)
-	{
-		PCGMetadataAttribute::CallbackWithRightType(
-			static_cast<uint16>(Identities.Find(Pair.Key)->UnderlyingType), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				if (PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(Pair.Value))
-				{
-					PCGExMT::WriteAndDelete<PCGEx::TFAttributeWriter<T>>(AsyncManager, Writer);
-				}
+				PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(Writers[i]);
+				Writer->Write();
+				delete Writer;
 			});
 	}
 
 	Writers.Empty();
-	WriterList.Empty();
 }
 
-bool FPCGExAttributeMergeTask::ExecuteTask()
+void FPCGExPointIOMerger::Write(PCGExMT::FTaskManager* AsyncManager)
 {
-	const int32 NumPoints = PointIO->GetNum();
-
-	int32 StartIndex = 0;
-	for (int i = 0; i < TaskIndex; i++) { StartIndex += Merger->MergedPoints[i]->GetNum(); }
-
-	PCGMetadataAttribute::CallbackWithRightType(
-		static_cast<uint16>(Merger->Identities.Find(AttributeName)->UnderlyingType), [&](auto DummyValue)
-		{
-			using T = decltype(DummyValue);
-
-			PCGEx::FAAttributeIO** WriterPtr = Merger->Writers.Find(AttributeName);
-			if (!WriterPtr) { return; }
-
-			PCGEx::TFAttributeReader<T>* Reader = new PCGEx::TFAttributeReader<T>(AttributeName);
-			if (!Reader->Bind(*PointIO))
+	for (int i = 0; i < UniqueIdentities.Num(); i++)
+	{
+		PCGMetadataAttribute::CallbackWithRightType(
+			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
 			{
-				PCGEX_DELETE(Reader)
-				return;
-			}
+				using T = decltype(DummyValue);
+				PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(Writers[i]);
+				PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Writer)
+			});
+	}
 
-			PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(*WriterPtr);
+	Writers.Empty();
+}
 
-			for (int i = 0; i < NumPoints; i++) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
+namespace PCGExPointIOMerger
+{
+	bool FWriteAttributeTask::ExecuteTask()
+	{
+		const PCGEx::FAttributeIdentity& Identity = Merger->UniqueIdentities[TaskIndex];
+		PCGEx::FAAttributeIO* Writer = Merger->Writers[TaskIndex];
 
-			PCGEX_DELETE(Reader)
-		});
+		PCGMetadataAttribute::CallbackWithRightType(
+			Identity.GetTypeId(), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				PCGEx::TFAttributeWriter<T>* TypedWriter = static_cast<PCGEx::TFAttributeWriter<T>*>(Writer);
+				TypedWriter->BindAndSetNumUninitialized(PointIO);
 
-	return true;
+				for (int i = 0; i < Merger->IOSources.Num(); i++)
+				{
+					PCGExData::FPointIO* SourceIO = Merger->IOSources[i];
+					const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Name);
+
+					if (!Attribute) { continue; }                            // Missing attribute
+					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
+
+					Manager->Start<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedWriter);
+				}
+			});
+
+		return true;
+	}
 }

@@ -44,7 +44,7 @@ namespace PCGExGraph
 		if (bDoCleanup) { Cleanup(); }
 	}
 
-	void FSocket::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
+	void FSocket::PrepareForPointData(const PCGExData::FPointIO* PointIO, const bool ReadOnly)
 	{
 		Cleanup();
 
@@ -65,14 +65,14 @@ namespace PCGExGraph
 		PCGEX_LOCAL_SOCKET_ATT(Angle, SingleField)
 		PCGEX_LOCAL_SOCKET_ATT(Radius, SingleField)
 
-		if (LocalAngleGetter && LocalAngleGetter->IsUsable(PointIO.GetNum()) && Descriptor.bLocalAngleIsDegrees)
+		if (LocalAngleGetter && LocalAngleGetter->IsUsable(PointIO->GetNum()) && Descriptor.bLocalAngleIsDegrees)
 		{
 			for (int i = 0; i < LocalAngleGetter->Values.Num(); i++) { LocalAngleGetter->Values[i] = PCGExMath::DegreesToDot(LocalAngleGetter->Values[i]); }
 		}
 
 #undef PCGEX_LOCAL_SOCKET_ATT
 
-		PCGExData::FPointIO& MutablePointIO = const_cast<PCGExData::FPointIO&>(PointIO);
+		PCGExData::FPointIO* MutablePointIO = const_cast<PCGExData::FPointIO*>(PointIO);
 
 		if (bReadOnly)
 		{
@@ -185,7 +185,7 @@ namespace PCGExGraph
 		PostProcessSockets();
 	}
 
-	void FSocketMapping::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly)
+	void FSocketMapping::PrepareForPointData(const PCGExData::FPointIO* PointIO, const bool bReadOnly)
 	{
 		//TODO: Write index per graph instead of per socket
 		//GetRemappedIndices(PointIO, ) GetParamPropertyName(ParamPropertyNameIndex)
@@ -286,7 +286,7 @@ void UPCGExGraphDefinition::Initialize()
 	CachedIndexAttributeName = PCGEx::GetCompoundName(GraphIdentifier, FName("CachedIndex"));
 }
 
-void UPCGExGraphDefinition::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true) const
+void UPCGExGraphDefinition::PrepareForPointData(const PCGExData::FPointIO* PointIO, const bool bReadOnly = true) const
 {
 	SocketMapping->PrepareForPointData(PointIO, bReadOnly);
 }
@@ -380,7 +380,7 @@ namespace PCGExGraph
 			if (!EdgeTypeAttributes[i]) { continue; }
 			PCGEx::TFAttributeReader<int32>* Reader = new PCGEx::TFAttributeReader<int32>(EdgeTypeAttributes[i]->Name);
 			EdgeTypeReaders[i] = Reader;
-			Reader->Bind(const_cast<PCGExData::FPointIO&>(*PointIO));
+			Reader->Bind(const_cast<PCGExData::FPointIO*>(PointIO));
 		}
 
 		return false;

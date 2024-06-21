@@ -54,7 +54,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 	TSet<FName> MissingTargetAttributes;
 	PCGExDataBlending::AssembleBlendingSettings(
 		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None),
-		Settings->TargetAttributes, *Context->Targets, Context->BlendingSettings, MissingTargetAttributes);
+		Settings->TargetAttributes, Context->Targets, Context->BlendingSettings, MissingTargetAttributes);
 
 	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on edges: {0}."), FText::FromName(Id))); }
 
@@ -127,7 +127,7 @@ namespace PCGExSampleNearestPoints
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FPointIO& OutputIO = *PointIO;
+			PCGExData::FPointIO* OutputIO = PointIO;
 			PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_FWD_INIT)
 		}
 
@@ -135,7 +135,7 @@ namespace PCGExSampleNearestPoints
 			!TypedContext->BlendingSettings.GetPropertiesBlendingSettings().HasNoBlending())
 		{
 			Blender = new PCGExDataBlending::FMetadataBlender(&TypedContext->BlendingSettings);
-			Blender->PrepareForData(*PointIO, *TypedContext->Targets);
+			Blender->PrepareForData(PointIO, TypedContext->Targets);
 		}
 
 		RangeMinGetter = new PCGEx::FLocalSingleFieldGetter();
@@ -151,24 +151,24 @@ namespace PCGExSampleNearestPoints
 		{
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 			{
-				if (!LookAtUpGetter->Grab(*TypedContext->Targets)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookUp is invalid on target.")); }
+				if (!LookAtUpGetter->Grab(TypedContext->Targets)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookUp is invalid on target.")); }
 			}
 		}
 
 		if (Settings->bUseLocalRangeMin)
 		{
-			if (RangeMinGetter->Grab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
+			if (RangeMinGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
 		if (Settings->bUseLocalRangeMax)
 		{
-			if (RangeMaxGetter->Grab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
+			if (RangeMaxGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
 		}
 
 		if (Settings->bWriteLookAtTransform)
 		{
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Source &&
-				!LookAtUpGetter->Grab(*PointIO))
+				!LookAtUpGetter->Grab(PointIO))
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookUp is invalid on source."));
 			}

@@ -90,9 +90,9 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
 	{
-		auto PreparePoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO) { Context->FilterManager->PrepareSingle(Index); };
-
-		if (!Context->ProcessCurrentPoints(PreparePoint)) { return false; }
+		if (!Context->Process(
+			[&](const int32 Index) { Context->FilterManager->PrepareSingle(Index); },
+			Context->CurrentIO->GetNum())) { return false; }
 
 		Context->FilterManager->PreparationComplete();
 		Context->SetState(PCGExMT::State_ProcessingPoints);
@@ -100,14 +100,12 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO) { Context->FilterManager->Test(Index); };
-
-		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
+		if (!Context->Process([&](const int32 Index) { Context->FilterManager->Test(Index); }, Context->CurrentIO->GetNum())) { return false; }
 
 		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
 
-		TArray<FPCGPoint>& InsidePoints = Context->Inside->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput).GetOut()->GetMutablePoints();
-		TArray<FPCGPoint>& OutsidePoints = Context->Outside->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput).GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& InsidePoints = Context->Inside->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::NewOutput)->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& OutsidePoints = Context->Outside->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::NewOutput)->GetOut()->GetMutablePoints();
 
 		int32 Index = 0;
 

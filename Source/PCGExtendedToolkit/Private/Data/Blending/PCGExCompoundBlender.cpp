@@ -115,16 +115,16 @@ namespace PCGExDataBlending
 					bool bAttributeWasPresent = TargetData->GetOut()->Metadata->HasAttribute(SrcMap->Identity.Name);
 
 					PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(SrcMap->Identity.Name, T{}, SrcMap->AllowsInterpolation);
-					Writer->BindAndGet(*CurrentTargetData);
+					Writer->BindAndGet(CurrentTargetData);
 
 					SrcMap->Writer = Writer;
 
 					for (int i = 0; i < Sources.Num(); i++)
 					{
-						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, *Sources[i]); }
+						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, Sources[i]); }
 					}
 
-					SrcMap->TargetBlendOp->PrepareForData(Writer, *TargetData, PCGExData::ESource::Out);
+					SrcMap->TargetBlendOp->PrepareForData(Writer, TargetData, PCGExData::ESource::Out);
 				});
 		}
 	}

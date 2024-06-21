@@ -59,7 +59,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNumericCompareFilterFactory : public UPCGExFi
 
 public:
 	FPCGExNumericCompareFilterDescriptor Descriptor;
-	
+
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };
 

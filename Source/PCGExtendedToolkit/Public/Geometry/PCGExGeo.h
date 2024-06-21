@@ -66,7 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 				NormalGetter->Capture(LocalNormal);
 			}
 
-			if (!NormalGetter->Grab(*PointIO)) { PCGEX_DELETE(NormalGetter) }
+			if (!NormalGetter->Grab(PointIO)) { PCGEX_DELETE(NormalGetter) }
 		}
 	}
 
@@ -349,7 +349,7 @@ namespace PCGExGeoTasks
 			PCGExData::FPointIO* InPointIO,
 			PCGExData::FPointIO* InTargetIO,
 			FPCGExTransformSettings* InTransformSettings) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			TargetIO(InTargetIO),
 			TransformSettings(InTransformSettings)
 		{

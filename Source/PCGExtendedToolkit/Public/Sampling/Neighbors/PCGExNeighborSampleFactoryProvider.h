@@ -130,7 +130,7 @@ public:
 	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster);
 	virtual bool IsOperationValid();
 
-	PCGExData::FPointIO& GetSourceIO() const;
+	PCGExData::FPointIO* GetSourceIO() const;
 
 	FORCEINLINE virtual void ProcessNodeForPoints(const int32 InNodeIndex) const;
 	FORCEINLINE virtual void ProcessNodeForEdges(const int32 InNodeIndex) const;

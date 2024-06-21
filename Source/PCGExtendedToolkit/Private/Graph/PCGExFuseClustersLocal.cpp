@@ -173,7 +173,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 
 		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
 		Context->CompoundGraph->GetUniqueEdges(UniqueEdges);
@@ -211,7 +211,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 			if (Settings->bUseCustomPointEdgeBlending) { Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->CustomPointEdgeBlendingSettings)); }
 			else { Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->DefaultPointsBlendingSettings)); }
 
-			Context->MetadataBlender->PrepareForData(*Context->CurrentIO, PCGExData::ESource::Out, true);
+			Context->MetadataBlender->PrepareForData(Context->CurrentIO, PCGExData::ESource::Out, true);
 		};
 
 		auto BlendPointEdgeMetadata = [&](const int32 Index)
@@ -263,7 +263,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 			if (Settings->bUseCustomEdgeEdgeBlending) { Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->CustomEdgeEdgeBlendingSettings)); }
 			else { Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->DefaultPointsBlendingSettings)); }
 
-			Context->MetadataBlender->PrepareForData(*Context->CurrentIO, PCGExData::ESource::Out, true);
+			Context->MetadataBlender->PrepareForData(Context->CurrentIO, PCGExData::ESource::Out, true);
 		};
 
 		auto BlendCrossingMetadata = [&](const int32 Index) { Context->EdgeEdgeIntersections->BlendIntersection(Index, Context->MetadataBlender); };

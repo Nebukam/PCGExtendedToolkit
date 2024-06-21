@@ -83,7 +83,7 @@ namespace PCGExGraph
 				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomPointEdgeBlendingSettings); }
 				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingSettings); }
 
-				MetadataBlender->PrepareForData(*CompoundPoints, PCGExData::ESource::Out, true);
+				MetadataBlender->PrepareForData(CompoundPoints, PCGExData::ESource::Out, true);
 			};
 
 			auto BlendPointEdgeMetadata = [&](const int32 Index)
@@ -136,7 +136,7 @@ namespace PCGExGraph
 				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomEdgeEdgeBlendingSettings); }
 				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingSettings); }
 
-				MetadataBlender->PrepareForData(*CompoundPoints, PCGExData::ESource::Out, true);
+				MetadataBlender->PrepareForData(CompoundPoints, PCGExData::ESource::Out, true);
 			};
 
 			auto BlendCrossingMetadata = [&](const int32 Index) { EdgeEdgeIntersections->BlendIntersection(Index, MetadataBlender); };

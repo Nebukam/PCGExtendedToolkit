@@ -67,7 +67,7 @@ public:
 	FPCGExPackClusterTask(PCGExData::FPointIO* InPointIO,
 	                      PCGExData::FPointIO* InInEdges,
 	                      const TMap<int64, int32>& InEndpointsLookup) :
-		PCGExMT::FPCGExTask(InPointIO),
+		FPCGExTask(InPointIO),
 		InEdges(InInEdges),
 		EndpointsLookup(InEndpointsLookup)
 	{

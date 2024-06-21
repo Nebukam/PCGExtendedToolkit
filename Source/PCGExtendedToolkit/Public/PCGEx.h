@@ -464,9 +464,9 @@ namespace PCGEx
 		const FPCGPoint* Point = nullptr;
 		const int32 Index = -1;
 
-		FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
+		FORCEINLINE FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
 	};
-
+	
 	static UWorld* GetWorld(const FPCGContext* Context)
 	{
 		check(Context->SourceComponent.IsValid());
@@ -499,11 +499,11 @@ namespace PCGEx
 				continue;
 			}
 
-			OutScopes.Emplace(PCGEx::H64(StartIndex, Count));
+			OutScopes.Emplace(H64(StartIndex, Count));
 			LastIndex = StartIndex = NextIndex;
 			Count = 0;
 		}
 
-		OutScopes.Emplace(PCGEx::H64(StartIndex, Count));
+		OutScopes.Emplace(H64(StartIndex, Count));
 	}
 }

@@ -26,20 +26,21 @@ bool FPCGExDeleteCustomGraphElement::ExecuteInternal(
 
 	if (!Boot(Context)) { return true; }
 
-	Context->MainPoints->ForEach(
-		[&](const PCGExData::FPointIO& PointIO, const int32)
+	while (Context->AdvancePointsIO())
+	{
+		auto DeleteSockets = [&](const UPCGExGraphDefinition* Params, int32)
 		{
-			auto DeleteSockets = [&](const UPCGExGraphDefinition* Params, int32)
+			const UPCGPointData* OutData = Context->CurrentIO->GetOut();
+			for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
 			{
-				const UPCGPointData* OutData = PointIO.GetOut();
-				for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
-				{
-					Socket.DeleteFrom(OutData);
-				}
-				OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
-			};
-			Context->Graphs.ForEach(Context, DeleteSockets);
-		});
+				Socket.DeleteFrom(OutData);
+			}
+			OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
+		};
+
+		Context->Graphs.ForEach(Context, DeleteSockets);
+	}
+
 
 	Context->OutputMainPoints();
 	Context->Done();

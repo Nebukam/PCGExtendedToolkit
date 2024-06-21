@@ -78,7 +78,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterDescriptor
 	/** Rounding mode for near measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0.001;
-	
 };
 
 /**

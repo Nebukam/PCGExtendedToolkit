@@ -44,7 +44,7 @@ namespace PCGExMT
 	PCGEX_ASYNC_STATE(State_Processing)
 	PCGEX_ASYNC_STATE(State_Completing)
 	PCGEX_ASYNC_STATE(State_Writing)
-	
+
 	PCGEX_ASYNC_STATE(State_CompoundWriting)
 	PCGEX_ASYNC_STATE(State_MetaWriting)
 	PCGEX_ASYNC_STATE(State_MetaWriting2)
@@ -207,7 +207,7 @@ namespace PCGExMT
 
 		void Reserve(const int32 NumTasks) { QueuedTasks.Reserve(NumTasks); }
 
-		void OnAsyncTaskExecutionComplete(PCGExMT::FPCGExTask* AsyncTask, bool bSuccess);
+		void OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess);
 		bool IsAsyncWorkComplete() const;
 
 		void Reset();
@@ -224,14 +224,14 @@ namespace PCGExMT
 
 	class PCGEXTENDEDTOOLKIT_API PCGExMT::FPCGExTask : public FNonAbandonableTask
 	{
-		friend class PCGExMT::FTaskManager;
+		friend class FTaskManager;
 
 	protected:
 		bool bIsAsync = true;
 
 	public:
 		virtual ~FPCGExTask() = default;
-		PCGExMT::FTaskManager* Manager = nullptr;
+		FTaskManager* Manager = nullptr;
 		int32 TaskIndex = -1;
 		FAsyncTaskBase* TaskPtr = nullptr;
 		PCGExData::FPointIO* PointIO = nullptr;
@@ -279,12 +279,12 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FWriteTask final : public PCGExMT::FPCGExTask
+	class PCGEXTENDEDTOOLKIT_API FWriteTask final : public FPCGExTask
 	{
 	public:
 		FWriteTask(PCGExData::FPointIO* InPointIO,
 		           T* InOperation)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  Operation(InOperation)
 
 		{
@@ -300,12 +300,12 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FWriteAndDeleteTask final : public PCGExMT::FPCGExTask
+	class PCGEXTENDEDTOOLKIT_API FWriteAndDeleteTask final : public FPCGExTask
 	{
 	public:
 		FWriteAndDeleteTask(PCGExData::FPointIO* InPointIO,
 		                    T* InOperation)
-			: PCGExMT::FPCGExTask(InPointIO),
+			: FPCGExTask(InPointIO),
 			  Operation(InOperation)
 
 		{
@@ -322,9 +322,8 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	static void Write(PCGExMT::FTaskManager* AsyncManager, T* Operation) { AsyncManager->Start<FWriteTask<T>>(-1, nullptr, Operation); }
+	static void Write(FTaskManager* AsyncManager, T* Operation) { AsyncManager->Start<FWriteTask<T>>(-1, nullptr, Operation); }
 
 	template <typename T>
-	static void WriteAndDelete(PCGExMT::FTaskManager* AsyncManager, T* Operation) { AsyncManager->Start<FWriteAndDeleteTask<T>>(-1, nullptr, Operation); }
-	
+	static void WriteAndDelete(FTaskManager* AsyncManager, T* Operation) { AsyncManager->Start<FWriteAndDeleteTask<T>>(-1, nullptr, Operation); }
 }

@@ -88,7 +88,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	{
 		CurrentIO->CreateInKeys();
 		//ProjectionSettings.Init(CurrentIO); // TODO : Move to FClusterProcessor?
-		if (bBuildEndpointsLookup) { PCGExGraph::BuildEndpointsLookup(*CurrentIO, EndpointsLookup, EndpointsAdjacency); }
+		if (bBuildEndpointsLookup) { PCGExGraph::BuildEndpointsLookup(CurrentIO, EndpointsLookup, EndpointsAdjacency); }
 	}
 	else
 	{
@@ -116,7 +116,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 		CurrentCluster->bIsOneToOne = (TaggedEdges->Entries.Num() == 1);
 
 		if (!CurrentCluster->BuildFrom(
-			*CurrentEdges, CurrentIO->GetIn()->GetPoints(),
+			CurrentEdges, CurrentIO->GetIn()->GetPoints(),
 			EndpointsLookup, &EndpointsAdjacency))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed. \n If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));

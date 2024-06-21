@@ -98,9 +98,7 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
 	{
-		auto PreparePoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO) { Context->StatesManager->PrepareSingle(Index); };
-
-		if (!Context->ProcessCurrentPoints(PreparePoint)) { return false; }
+		if (!Context->Process([&](const int32 Index) { Context->StatesManager->PrepareSingle(Index); }, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->StatesManager->PreparationComplete();
 		Context->SetState(PCGExMT::State_ProcessingPoints);
@@ -108,9 +106,7 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO) { Context->StatesManager->Test(Index); };
-
-		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
+		if (!Context->Process([&](const int32 Index) { Context->StatesManager->Test(Index); }, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->SetState(PCGExGraph::State_WritingMainState);
 	}
@@ -142,17 +138,9 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 	{
 		PCGEX_ASYNC_WAIT
 
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			Context->StatesManager->WritePrepareForStateAttributes(Context);
-		};
-
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
-		{
-			Context->StatesManager->WriteStateAttributes(PointIndex);
-		};
-
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+		if (!Context->Process(
+			[&]() { Context->StatesManager->WritePrepareForStateAttributes(Context); },
+			[&](const int32 PointIndex) { Context->StatesManager->WriteStateAttributes(PointIndex); }, Context->CurrentIO->GetNum())) { return false; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -160,17 +148,16 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 	{
 		if (Settings->bDeleteCustomGraphData)
 		{
-			Context->MainPoints->ForEach(
-				[&](const PCGExData::FPointIO& PointIO, int32)
+			for (const PCGExData::FPointIO* PointIO : Context->MainPoints->Pairs)
+			{
+				auto DeleteSockets = [&](const UPCGExGraphDefinition* Params, int32)
 				{
-					auto DeleteSockets = [&](const UPCGExGraphDefinition* Params, int32)
-					{
-						const UPCGPointData* OutData = PointIO.GetOut();
-						for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets) { Socket.DeleteFrom(OutData); }
-						OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
-					};
-					Context->Graphs.ForEach(Context, DeleteSockets);
-				});
+					const UPCGPointData* OutData = PointIO->GetOut();
+					for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets) { Socket.DeleteFrom(OutData); }
+					OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
+				};
+				Context->Graphs.ForEach(Context, DeleteSockets);
+			}
 
 			Context->OutputMainPoints();
 		}

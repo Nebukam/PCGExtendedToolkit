@@ -68,7 +68,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterFactory : public UPCGExFilterFactor
 
 public:
 	FPCGExMeanFilterDescriptor Descriptor;
-	
+
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };
 

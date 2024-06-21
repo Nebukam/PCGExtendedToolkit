@@ -47,7 +47,6 @@ public:
 	/** Attribute to read value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector ReadIndexFromAttribute;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExCherryPickPointsContext final : public FPCGExPointsProcessorContext
@@ -77,6 +76,7 @@ namespace PCGExCherryPickPoints
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		TArray<int32> PickedIndices;
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)
 			: FPointsProcessor(InPoints)
@@ -87,4 +87,3 @@ namespace PCGExCherryPickPoints
 		virtual void CompleteWork() override;
 	};
 }
-

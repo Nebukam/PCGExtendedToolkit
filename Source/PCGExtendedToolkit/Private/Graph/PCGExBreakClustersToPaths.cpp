@@ -139,18 +139,18 @@ namespace PCGExBreakClustersToPaths
 		if (ChainSize < Settings->MinPointCount) { return; }
 		if (Settings->bOmitAbovePointCount && ChainSize > Settings->MaxPointCount) { return; }
 
-		const PCGExData::FPointIO& PathIO = InContext->Paths->Emplace_GetRef(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
-		TArray<FPCGPoint>& MutablePoints = PathIO.GetOut()->GetMutablePoints();
+		const PCGExData::FPointIO* PathIO = InContext->Paths->Emplace_GetRef(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(ChainSize);
 		int32 PointCount = 0;
 
-		auto AddPoint = [&](const int32 NodeIndex) { MutablePoints[PointCount++] = PathIO.GetInPoint(Cluster->Nodes[NodeIndex].PointIndex); };
+		auto AddPoint = [&](const int32 NodeIndex) { MutablePoints[PointCount++] = PathIO->GetInPoint(Cluster->Nodes[NodeIndex].PointIndex); };
 
 		AddPoint(Chain->First);
 		for (const int32 NodeIndex : Chain->Nodes) { AddPoint(NodeIndex); }
 		AddPoint(Chain->Last);
 
-		PathIO.SetNumInitialized(ChainSize, true);
+		PathIO->SetNumInitialized(ChainSize, true);
 	}
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
@@ -158,15 +158,15 @@ namespace PCGExBreakClustersToPaths
 		PCGEX_SETTINGS(BreakClustersToPaths)
 		const FPCGExBreakClustersToPathsContext* InContext = static_cast<FPCGExBreakClustersToPathsContext*>(Context);
 
-		const PCGExData::FPointIO& PathIO = InContext->Paths->Emplace_GetRef(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
-		TArray<FPCGPoint>& MutablePoints = PathIO.GetOut()->GetMutablePoints();
+		const PCGExData::FPointIO* PathIO = InContext->Paths->Emplace_GetRef(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 
-		MutablePoints[0] = PathIO.GetInPoint(Edge.Start);
-		MutablePoints[1] = PathIO.GetInPoint(Edge.End);
+		MutablePoints[0] = PathIO->GetInPoint(Edge.Start);
+		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
 
 
-		PathIO.SetNumInitialized(2, true);
+		PathIO->SetNumInitialized(2, true);
 	}
 }
 

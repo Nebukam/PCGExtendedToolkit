@@ -103,7 +103,7 @@ namespace PCGExSampleNearestSurface
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FPointIO& OutputIO = *PointIO;
+			PCGExData::FPointIO* OutputIO = PointIO;
 			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_FWD_INIT)
 		}
 
@@ -112,7 +112,7 @@ namespace PCGExSampleNearestSurface
 		if (Settings->bUseLocalMaxDistance)
 		{
 			MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
-			if (MaxDistanceGetter->Grab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
+			if (MaxDistanceGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
 		StartParallelLoopForPoints();

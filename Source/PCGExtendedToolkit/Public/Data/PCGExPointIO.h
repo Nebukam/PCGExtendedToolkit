@@ -114,6 +114,9 @@ namespace PCGExData
 		FORCEINLINE PCGEx::FPointRef GetInPointRef(const int32 Index) const { return PCGEx::FPointRef(In->GetPoints()[Index], Index); }
 		FORCEINLINE PCGEx::FPointRef GetOutPointRef(const int32 Index) const { return PCGEx::FPointRef(Out->GetPoints()[Index], Index); }
 
+		FORCEINLINE PCGEx::FPointRef* GetInPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(In->GetPoints()[Index], Index); }
+		FORCEINLINE PCGEx::FPointRef* GetOutPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(Out->GetPoints()[Index], Index); }
+		
 		FORCEINLINE const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
 		FORCEINLINE const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
 
@@ -170,19 +173,19 @@ namespace PCGExData
 			const FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
 			EInit InitOut = EInit::NoOutput);
 
-		FPointIO& Emplace_GetRef(
-			const FPointIO& PointIO,
+		FPointIO* Emplace_GetRef(
+			const FPointIO* PointIO,
 			const EInit InitOut = EInit::NoOutput);
 
-		FPointIO& Emplace_GetRef(
+		FPointIO* Emplace_GetRef(
 			const FPCGTaggedData& Source,
 			const UPCGPointData* In,
 			const EInit InitOut = EInit::NoOutput);
-		FPointIO& Emplace_GetRef(
+		FPointIO* Emplace_GetRef(
 			const UPCGPointData* In,
 			EInit InitOut = EInit::NoOutput);
 
-		FPointIO& Emplace_GetRef(EInit InitOut = EInit::NewOutput);
+		FPointIO* Emplace_GetRef(EInit InitOut = EInit::NewOutput);
 
 		bool IsEmpty() const { return Pairs.IsEmpty(); }
 		int32 Num() const { return Pairs.Num(); }
@@ -191,8 +194,6 @@ namespace PCGExData
 
 		void OutputTo(FPCGContext* Context);
 		void OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
-
-		void ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop);
 
 		void Sort();
 

@@ -104,7 +104,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			return false;
 		}
 
-		if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO))
+		if (!Context->PrepareCurrentGraphForPoints(Context->CurrentIO))
 		{
 			PCGEX_GRAPH_MISSING_METADATA
 			return false;
@@ -115,7 +115,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex)
 		{
 			const int32 EdgeType = Context->CurrentGraphEdgeCrawlingTypes;
 
@@ -138,7 +138,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			}
 		};
 
-		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
+		if (!Context->Process(ProcessPoint, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}

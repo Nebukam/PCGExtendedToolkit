@@ -108,13 +108,23 @@ namespace PCGEx
 
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
 	{
-		FName Name = NAME_None;
-		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
+		const FName Name = NAME_None;
+		const EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
+		const bool bAllowsInterpolation = true;
 
-		FAttributeIdentity(const FName InName, const EPCGMetadataTypes InUnderlyingType)
-			: Name(InName), UnderlyingType(InUnderlyingType)
+		FAttributeIdentity(const FAttributeIdentity& Other)
+			: Name(Other.Name), UnderlyingType(Other.UnderlyingType), bAllowsInterpolation(Other.bAllowsInterpolation)
 		{
 		}
+
+		FAttributeIdentity(const FName InName, const EPCGMetadataTypes InUnderlyingType, const bool AllowsInterpolation)
+			: Name(InName), UnderlyingType(InUnderlyingType), bAllowsInterpolation(AllowsInterpolation)
+		{
+		}
+
+		int16 GetTypeId() const { return static_cast<int16>(UnderlyingType); }
+		bool IsA(const int16 InType) const { return GetTypeId() == InType; }
+		bool IsA(const EPCGMetadataTypes InType) const { return UnderlyingType == InType; }
 
 		FString GetDisplayName() const { return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
 		bool operator==(const FAttributeIdentity& Other) const { return Name == Other.Name; }
@@ -242,8 +252,8 @@ namespace PCGEx
 			: FAttributeAccessorBase<T>()
 		{
 			this->Flush();
-			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
-			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
+			this->Direction = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Direction, InData->Metadata);
 
 			const TArrayView<FPCGPoint> View(InData->GetMutablePoints());
 			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(View);
@@ -276,15 +286,15 @@ namespace PCGEx
 		}
 
 		static FAttributeAccessor* FindOrCreate(
-			PCGExData::FPointIO& InPointIO, FName AttributeName,
+			PCGExData::FPointIO* InPointIO, FName AttributeName,
 			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
-			UPCGPointData* InData = InPointIO.GetOut();
+			UPCGPointData* InData = InPointIO->GetOut();
 			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
 				AttributeName, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 
-			return new FAttributeAccessor<T>(InData, InAttribute, InPointIO.CreateOutKeys());
+			return new FAttributeAccessor<T>(InData, InAttribute, InPointIO->CreateOutKeys());
 		}
 	};
 
@@ -300,8 +310,8 @@ namespace PCGEx
 		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
 		{
 			this->Flush();
-			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
-			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
+			this->Direction = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Direction, InData->Metadata);
 
 			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(InData->GetPoints());
 
@@ -309,12 +319,12 @@ namespace PCGEx
 			this->Keys = this->InternalKeys;
 		}
 
-		static FConstAttributeAccessor* Find(const PCGExData::FPointIO& InPointIO, const FName AttributeName)
+		static FConstAttributeAccessor* Find(const PCGExData::FPointIO* InPointIO, const FName AttributeName)
 		{
-			const UPCGPointData* InData = InPointIO.GetIn();
+			const UPCGPointData* InData = InPointIO->GetIn();
 			if (FPCGMetadataAttributeBase* InAttribute = InData->Metadata->GetMutableAttribute(AttributeName))
 			{
-				return new FConstAttributeAccessor(InData, InAttribute, InPointIO.GetInKeys());
+				return new FConstAttributeAccessor(InData, InAttribute, InPointIO->GetInKeys());
 			}
 			return nullptr;
 		}
@@ -354,7 +364,7 @@ namespace PCGEx
 		bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
 
 		void SetNum(int32 Num) { Values.SetNumZeroed(Num); }
-		virtual bool Bind(PCGExData::FPointIO& PointIO) = 0;
+		virtual bool Bind(PCGExData::FPointIO* PointIO) = 0;
 
 		FORCEINLINE T operator[](int32 Index) const { return this->Values[Index]; }
 
@@ -399,32 +409,32 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Bind(PCGExData::FPointIO& PointIO) override
+		virtual bool Bind(PCGExData::FPointIO* PointIO) override
 		{
 			PCGEX_DELETE(this->Accessor)
 			this->Accessor = FAttributeAccessor<T>::FindOrCreate(
 				PointIO, this->Name, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
-			this->UnderlyingType = PointIO.GetOut()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
+			this->UnderlyingType = PointIO->GetOut()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
 
-		bool BindAndGet(PCGExData::FPointIO& PointIO)
+		bool BindAndGet(PCGExData::FPointIO* PointIO)
 		{
 			if (Bind(PointIO))
 			{
-				this->SetNum(PointIO.GetOutNum());
+				this->SetNum(PointIO->GetOutNum());
 				this->Accessor->GetRange(this->Values);
 				return true;
 			}
 			return false;
 		}
 
-		bool BindAndSetNumUninitialized(PCGExData::FPointIO& PointIO)
+		bool BindAndSetNumUninitialized(PCGExData::FPointIO* PointIO)
 		{
 			if (Bind(PointIO))
 			{
-				this->Values.SetNumUninitialized(PointIO.GetOutNum());
+				this->Values.SetNumUninitialized(PointIO->GetOutNum());
 				return true;
 			}
 			return false;
@@ -449,7 +459,7 @@ namespace PCGEx
 			if (this->Values.IsEmpty()) { return; }
 			uint32 Start;
 			uint32 Count;
-			PCGEx::H64(Scope, Start, Count);
+			H64(Scope, Start, Count);
 			this->Accessor->SetRange(MakeArrayView(this->Values.GetData() + Start, Count), Start);
 		}
 	};
@@ -463,14 +473,14 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Bind(PCGExData::FPointIO& PointIO) override
+		virtual bool Bind(PCGExData::FPointIO* PointIO) override
 		{
 			PCGEX_DELETE(this->Accessor)
 			this->Accessor = FConstAttributeAccessor<T>::Find(PointIO, this->Name);
 			if (!this->Accessor) { return false; }
-			this->SetNum(PointIO.GetNum());
+			this->SetNum(PointIO->GetNum());
 			this->Accessor->GetRange(this->Values);
-			this->UnderlyingType = PointIO.GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
+			this->UnderlyingType = PointIO->GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
 	};
@@ -533,7 +543,7 @@ namespace PCGEx
 		 * @param PointIO
 		 * @param bCaptureMinMax 
 		 */
-		bool Grab(const PCGExData::FPointIO& PointIO, const bool bCaptureMinMax = false)
+		bool Grab(const PCGExData::FPointIO* PointIO, const bool bCaptureMinMax = false)
 		{
 			Cleanup();
 
@@ -544,7 +554,7 @@ namespace PCGEx
 			bValid = false;
 			if (!bEnabled) { return false; }
 
-			const UPCGPointData* InData = PointIO.GetIn();
+			const UPCGPointData* InData = PointIO->GetIn();
 
 			TArray<FString> ExtraNames;
 			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Descriptor.Selector, InData, ExtraNames);
@@ -552,7 +562,7 @@ namespace PCGEx
 
 			ProcessExtraNames(ExtraNames);
 
-			int32 NumPoints = PointIO.GetNum();
+			int32 NumPoints = PointIO->GetNum();
 			Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)
 			{
@@ -571,7 +581,7 @@ namespace PCGEx
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
 						FPCGAttributeAccessor<RawT>* Accessor = new FPCGAttributeAccessor<RawT>(TypedAttribute, InData->Metadata);
-						IPCGAttributeAccessorKeys* Keys = const_cast<PCGExData::FPointIO&>(PointIO).CreateInKeys();
+						IPCGAttributeAccessorKeys* Keys = const_cast<PCGExData::FPointIO*>(PointIO)->CreateInKeys();
 						TArrayView<RawT> View(RawValues);
 						Accessor->GetRange(View, 0, *Keys, PCGEX_AAFLAG);
 
@@ -741,15 +751,15 @@ namespace PCGEx
 #pragma region attribute copy
 
 	static void CopyPoints(
-		const PCGExData::FPointIO& Source,
-		const PCGExData::FPointIO& Target,
+		const PCGExData::FPointIO* Source,
+		const PCGExData::FPointIO* Target,
 		const TArrayView<int32>& SourceIndices,
 		const int32 TargetIndex = 0,
 		const bool bKeepSourceMetadataEntry = false)
 	{
 		const int32 NumIndices = SourceIndices.Num();
-		const TArray<FPCGPoint>& SourcePoints = Source.GetIn()->GetPoints();
-		TArray<FPCGPoint>& TargetPoints = Target.GetOut()->GetMutablePoints();
+		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
+		TArray<FPCGPoint>& TargetPoints = Target->GetOut()->GetMutablePoints();
 
 		if (bKeepSourceMetadataEntry)
 		{
@@ -775,8 +785,8 @@ namespace PCGEx
 	static void CopyValues(
 		PCGExMT::FTaskManager* AsyncManager,
 		FAttributeIdentity Identity,
-		const PCGExData::FPointIO& Source,
-		PCGExData::FPointIO& Target,
+		const PCGExData::FPointIO* Source,
+		PCGExData::FPointIO* Target,
 		const TArrayView<int32>& SourceIndices,
 		const int32 TargetIndex = 0)
 	{
@@ -787,7 +797,7 @@ namespace PCGEx
 				using T = decltype(DummyValue);
 				TArray<T> RawValues;
 
-				const FPCGMetadataAttribute<T>* SourceAttribute = Source.GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
+				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
 				TFAttributeWriter<T>* Writer = new TFAttributeWriter<T>(
 					Identity.Name,
 					SourceAttribute->GetValueFromItemKey(PCGInvalidEntryKey),
@@ -795,7 +805,7 @@ namespace PCGEx
 
 				Writer->BindAndGet(Target);
 
-				const TArray<FPCGPoint>& SourcePoints = Source.GetIn()->GetPoints();
+				const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
 				const int32 NumIndices = SourceIndices.Num();
 				for (int i = 0; i < NumIndices; i++)
 				{

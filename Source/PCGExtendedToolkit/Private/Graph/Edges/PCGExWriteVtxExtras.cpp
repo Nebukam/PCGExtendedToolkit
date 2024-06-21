@@ -152,7 +152,7 @@ namespace PCGExWriteVtxExtras
 		if (!TBatch::PrepareProcessing()) { return false; }
 
 		{
-			PCGExData::FPointIO& OutputIO = *VtxIO;
+			PCGExData::FPointIO* OutputIO = VtxIO;
 			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_FWD_INIT)
 		}
 
@@ -191,7 +191,7 @@ namespace PCGExWriteVtxExtras
 	void FProcessorBatch::Write()
 	{
 		TBatch<FProcessor>::Write();
-		
+
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_WRITE)
 		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->Write(AsyncManagerPtr); }
 	}

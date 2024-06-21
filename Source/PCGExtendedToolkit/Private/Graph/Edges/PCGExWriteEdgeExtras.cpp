@@ -98,7 +98,7 @@ namespace PCGExWriteEdgeExtras
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FPointIO& OutputIO = *EdgesIO;
+			PCGExData::FPointIO* OutputIO = EdgesIO;
 			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_FWD_INIT)
 		}
 
@@ -110,7 +110,7 @@ namespace PCGExWriteEdgeExtras
 				bOwnSolidificationRad##_AXIS = true;\
 				SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
 				SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
-				SolidificationRad##_AXIS->Grab(*EdgesIO); }
+				SolidificationRad##_AXIS->Grab(EdgesIO); }
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 
@@ -119,7 +119,7 @@ namespace PCGExWriteEdgeExtras
 			if (Settings->SolidificationLerpOperand == EPCGExFetchType::Attribute)
 			{
 				SolidificationLerpGetter->Capture(Settings->SolidificationLerpAttribute);
-				if (!SolidificationLerpGetter->Grab(*EdgesIO))
+				if (!SolidificationLerpGetter->Grab(EdgesIO))
 				{
 					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified SolidificationEdgeLerp Attribute {0}."), FText::FromName(Settings->SolidificationLerpAttribute.GetName())));
 				}
@@ -134,13 +134,13 @@ namespace PCGExWriteEdgeExtras
 		{
 			EdgeDirCompGetter = new PCGEx::FLocalVectorGetter();
 			EdgeDirCompGetter->Capture(Settings->EdgeSourceAttribute);
-			EdgeDirCompGetter->Grab(*EdgesIO);
+			EdgeDirCompGetter->Grab(EdgesIO);
 		}
 
 		if (Settings->bEndpointsBlending)
 		{
 			MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
-			MetadataBlender->PrepareForData(*EdgesIO, *VtxIO, PCGExData::ESource::In, true);
+			MetadataBlender->PrepareForData(EdgesIO, VtxIO, PCGExData::ESource::In, true);
 		}
 
 		bAscendingDesired = Settings->DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
@@ -304,7 +304,7 @@ namespace PCGExWriteEdgeExtras
 		{
 			VtxDirCompGetter = new PCGEx::FLocalSingleFieldGetter();
 			VtxDirCompGetter->Capture(Settings->VtxSourceAttribute);
-			VtxDirCompGetter->Grab(*VtxIO);
+			VtxDirCompGetter->Grab(VtxIO);
 		}
 
 		if (Settings->SolidificationAxis != EPCGExMinimalAxis::None)
@@ -314,7 +314,7 @@ namespace PCGExWriteEdgeExtras
 						if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Point) {\
 						SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
 						SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
-						SolidificationRad##_AXIS->Grab(*VtxIO); }
+						SolidificationRad##_AXIS->Grab(VtxIO); }
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 		}

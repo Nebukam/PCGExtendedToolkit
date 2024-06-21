@@ -100,33 +100,33 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	PCGEx::FAttributesInfos* VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
 
 	InEdges->CreateInKeys();
-	PCGExData::FPointIO& PackedIO = Context->PackedClusters->Emplace_GetRef(*InEdges, PCGExData::EInit::DuplicateInput);
+	PCGExData::FPointIO* PackedIO = Context->PackedClusters->Emplace_GetRef(InEdges, PCGExData::EInit::DuplicateInput);
 
 	int32 NumEdges = 0;
 	TArray<int32> ReducedVtxIndices;
 
-	if (!PCGExGraph::GetReducedVtxIndices(*InEdges, &EndpointsLookup, ReducedVtxIndices, NumEdges)) { return false; }
+	if (!PCGExGraph::GetReducedVtxIndices(InEdges, &EndpointsLookup, ReducedVtxIndices, NumEdges)) { return false; }
 
-	TArray<FPCGPoint>& MutablePoints = PackedIO.GetOut()->GetMutablePoints();
+	TArray<FPCGPoint>& MutablePoints = PackedIO->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(NumEdges + ReducedVtxIndices.Num());
 
-	PackedIO.CleanupKeys();
-	PackedIO.CreateOutKeys();
+	PackedIO->CleanupKeys();
+	PackedIO->CreateOutKeys();
 
 	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
-	PCGEx::CopyPoints(*PointIO, PackedIO, View, NumEdges);
+	PCGEx::CopyPoints(PointIO, PackedIO, View, NumEdges);
 
 	for (const PCGEx::FAttributeIdentity& Identity : VtxAttributes->Identities)
 	{
-		CopyValues(Manager, Identity, *PointIO, PackedIO, View, NumEdges);
+		CopyValues(Manager, Identity, PointIO, PackedIO, View, NumEdges);
 	}
 
 	WriteMark(PackedIO, PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
 
-	PCGExGraph::CleanupClusterTags(&PackedIO);
+	PCGExGraph::CleanupClusterTags(PackedIO);
 
 	FString OutPairId;
-	PackedIO.Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
+	PackedIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
 
 	InEdges->CleanupKeys();
 

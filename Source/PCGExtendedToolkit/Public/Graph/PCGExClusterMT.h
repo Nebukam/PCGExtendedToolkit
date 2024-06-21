@@ -133,7 +133,11 @@ namespace PCGExClusterMT
 			Cluster->PointsIO = VtxIO;
 			Cluster->EdgesIO = EdgesIO;
 
-			if (!Cluster->BuildFrom(*EdgesIO, VtxIO->GetIn()->GetPoints(), *EndpointsLookup, ExpectedAdjacency)) { return false; }
+			if (!Cluster->BuildFrom(EdgesIO, VtxIO->GetIn()->GetPoints(), *EndpointsLookup, ExpectedAdjacency))
+			{
+				PCGEX_DELETE(Cluster)
+				return false;
+			}
 
 			Cluster->RebuildBounds();
 			NumNodes = Cluster->Nodes.Num();
@@ -173,6 +177,7 @@ namespace PCGExClusterMT
 
 			if (bRequiresHeuristics)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProcessor::Heuristics);
 				HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(static_cast<FPCGExPointsProcessorContext*>(AsyncManagerPtr->Context));
 				HeuristicsHandler->PrepareForCluster(Cluster);
 				HeuristicsHandler->CompleteClusterPreparation();
@@ -357,6 +362,8 @@ namespace PCGExClusterMT
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		FPCGExGraphBuilderSettings GraphBuilderSettings;
 
+		TArray<PCGExCluster::FCluster*> ValidClusters;
+
 		bool RequiresGraphBuilder() const { return bRequiresGraphBuilder; }
 		bool RequiresHeuristics() const { return bRequiresHeuristics; }
 		virtual void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
@@ -388,11 +395,11 @@ namespace PCGExClusterMT
 		virtual bool PrepareProcessing()
 		{
 			VtxIO->CreateInKeys();
-			PCGExGraph::BuildEndpointsLookup(*VtxIO, EndpointsLookup, ExpectedAdjacency);
+			PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
 
 			if (RequiresGraphBuilder())
 			{
-				GraphBuilder = new PCGExGraph::FGraphBuilder(*VtxIO, &GraphBuilderSettings, 6, EdgeCollection);
+				GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderSettings, 6, EdgeCollection);
 			}
 
 			return true;
@@ -449,6 +456,18 @@ namespace PCGExClusterMT
 		TBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
 			FClusterProcessorBatchBase(InContext, InVtx, InEdges)
 		{
+		}
+
+		int32 GatherValidClusters()
+		{
+			ValidClusters.Empty();
+
+			for (const T* P : Processors)
+			{
+				if (!P->Cluster) { continue; }
+				ValidClusters.Add(P->Cluster);
+			}
+			return ValidClusters.Num();
 		}
 
 		virtual ~TBatch() override

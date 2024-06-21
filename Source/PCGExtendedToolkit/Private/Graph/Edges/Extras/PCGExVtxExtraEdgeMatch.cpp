@@ -29,13 +29,13 @@ bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExD
 	if (Descriptor.MatchingEdge.bWriteDirection)
 	{
 		MatchingDirWriter = new PCGEx::TFAttributeWriter<FVector>(Descriptor.MatchingEdge.DirectionAttribute);
-		MatchingDirWriter->BindAndSetNumUninitialized(*InVtx);
+		MatchingDirWriter->BindAndSetNumUninitialized(InVtx);
 	}
 
 	if (Descriptor.MatchingEdge.bWriteLength)
 	{
 		MatchingLenWriter = new PCGEx::TFAttributeWriter<double>(Descriptor.MatchingEdge.LengthAttribute);
-		MatchingLenWriter->BindAndSetNumUninitialized(*InVtx);
+		MatchingLenWriter->BindAndSetNumUninitialized(InVtx);
 	}
 
 	return bIsValidOperation;

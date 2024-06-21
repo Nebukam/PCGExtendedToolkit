@@ -165,7 +165,7 @@ namespace PCGExBuildVoronoi
 
 		ActivePositions.Empty();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &Settings->GraphBuilderSettings);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
 		GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr);

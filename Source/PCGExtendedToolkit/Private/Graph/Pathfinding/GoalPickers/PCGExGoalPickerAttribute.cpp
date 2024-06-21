@@ -18,7 +18,7 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
+void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals)
 {
 	Super::PrepareForData(InSeeds, InGoals);
 

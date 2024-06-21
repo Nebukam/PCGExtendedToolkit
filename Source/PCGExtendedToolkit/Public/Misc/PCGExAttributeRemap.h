@@ -127,7 +127,7 @@ public:
 	FPCGExRemapPointIO(PCGExData::FPointIO* InPointIO,
 	                   const EPCGMetadataTypes InDataType,
 	                   const int32 InDimensions) :
-		PCGExMT::FPCGExTask(InPointIO),
+		FPCGExTask(InPointIO),
 		DataType(InDataType),
 		Dimensions(InDimensions)
 	{

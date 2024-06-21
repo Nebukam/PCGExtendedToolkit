@@ -15,7 +15,7 @@ void PCGExPointsFilter::TMeanFilter::Capture(const FPCGContext* InContext, const
 	Target = new PCGEx::FLocalSingleFieldGetter();
 
 	Target->Capture(TypedFilterFactory->Descriptor.Target);
-	Target->Grab(*PointIO, true);
+	Target->Grab(PointIO, true);
 	bValid = Target->IsUsable(PointIO->GetNum());
 
 	if (!bValid)

@@ -73,7 +73,7 @@ namespace PCGExGraph
 			CompoundGraph = InCompoundGraph;
 			CompoundPoints = InCompoundPoints;
 
-			GraphBuilder = new FGraphBuilder(*CompoundPoints, &InBuilderSettings, 4);
+			GraphBuilder = new FGraphBuilder(CompoundPoints, &InBuilderSettings, 4);
 
 			BuildGraph(GraphBuilder);
 

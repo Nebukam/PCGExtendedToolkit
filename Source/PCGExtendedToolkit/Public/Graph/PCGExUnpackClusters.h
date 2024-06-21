@@ -69,7 +69,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExUnpackClusterTask final : public PCGExMT::FPC
 {
 public:
 	FPCGExUnpackClusterTask(PCGExData::FPointIO* InPointIO) :
-		PCGExMT::FPCGExTask(InPointIO)
+		FPCGExTask(InPointIO)
 	{
 	}
 

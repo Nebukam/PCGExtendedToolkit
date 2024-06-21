@@ -304,38 +304,38 @@ namespace PCGExData
 		UniqueData.Empty();
 	}
 
-	FPointIO& FPointIOCollection::Emplace_GetRef(
-		const FPointIO& PointIO,
+	FPointIO* FPointIOCollection::Emplace_GetRef(
+		const FPointIO* PointIO,
 		const EInit InitOut)
 	{
-		FPointIO& Branch = Emplace_GetRef(PointIO.GetIn(), InitOut);
-		Branch.Tags->Reset(*PointIO.Tags);
-		Branch.RootIO = const_cast<FPointIO*>(&PointIO);
+		FPointIO* Branch = Emplace_GetRef(PointIO->GetIn(), InitOut);
+		Branch->Tags->Reset(*PointIO->Tags);
+		Branch->RootIO = const_cast<FPointIO*>(PointIO);
 		return Branch;
 	}
 
-	FPointIO& FPointIOCollection::Emplace_GetRef(
+	FPointIO* FPointIOCollection::Emplace_GetRef(
 		const FPCGTaggedData& Source,
 		const UPCGPointData* In,
 		const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		return *Pairs.Add_GetRef(new FPointIO(In, DefaultOutputLabel, InitOut, Pairs.Num(), &Source.Tags));
+		return Pairs.Add_GetRef(new FPointIO(In, DefaultOutputLabel, InitOut, Pairs.Num(), &Source.Tags));
 	}
 
-	FPointIO& FPointIOCollection::Emplace_GetRef(
+	FPointIO* FPointIOCollection::Emplace_GetRef(
 		const UPCGPointData* In,
 		const EInit InitOut)
 	{
 		const FPCGTaggedData Source;
 		FWriteScopeLock WriteLock(PairsLock);
-		return *Pairs.Add_GetRef(new FPointIO(In, DefaultOutputLabel, InitOut, Pairs.Num(), &Source.Tags));
+		return Pairs.Add_GetRef(new FPointIO(In, DefaultOutputLabel, InitOut, Pairs.Num(), &Source.Tags));
 	}
 
-	FPointIO& FPointIOCollection::Emplace_GetRef(const EInit InitOut)
+	FPointIO* FPointIOCollection::Emplace_GetRef(const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		return *Pairs.Add_GetRef(new FPointIO(DefaultOutputLabel, InitOut, Pairs.Num()));
+		return Pairs.Add_GetRef(new FPointIO(DefaultOutputLabel, InitOut, Pairs.Num()));
 	}
 
 	/**
@@ -358,11 +358,6 @@ namespace PCGExData
 	{
 		Sort();
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, MinPointCount, MaxPointCount); }
-	}
-
-	void FPointIOCollection::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)
-	{
-		for (int i = 0; i < Pairs.Num(); i++) { BodyLoop(*Pairs[i], i); }
 	}
 
 	void FPointIOCollection::Sort()

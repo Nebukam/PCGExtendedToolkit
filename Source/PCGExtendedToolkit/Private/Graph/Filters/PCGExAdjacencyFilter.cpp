@@ -28,7 +28,7 @@ namespace PCGExNodeAdjacency
 		{
 			OperandA = new PCGEx::FLocalSingleFieldGetter();
 			OperandA->Capture(TypedFilterFactory->Descriptor.OperandA);
-			OperandA->Grab(*PointIO, false);
+			OperandA->Grab(PointIO, false);
 
 			bValid = OperandA->IsUsable(PointIO->GetNum());
 
@@ -44,7 +44,7 @@ namespace PCGExNodeAdjacency
 		{
 			LocalMeasure = new PCGEx::FLocalSingleFieldGetter();
 			LocalMeasure->Capture(TypedFilterFactory->Descriptor.Adjacency.LocalMeasure);
-			LocalMeasure->Grab(*PointIO, false);
+			LocalMeasure->Grab(PointIO, false);
 
 			bValid = LocalMeasure->IsUsable(PointIO->GetNum());
 
@@ -60,7 +60,7 @@ namespace PCGExNodeAdjacency
 
 		OperandB = new PCGEx::FLocalSingleFieldGetter();
 		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
-		OperandB->Grab(*PointIO, false);
+		OperandB->Grab(PointIO, false);
 		bValid = OperandB->IsUsable(PointIO->GetNum());
 
 		if (!bValid)
@@ -76,7 +76,7 @@ namespace PCGExNodeAdjacency
 
 		OperandB = new PCGEx::FLocalSingleFieldGetter();
 		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
-		OperandB->Grab(*EdgeIO, false);
+		OperandB->Grab(EdgeIO, false);
 		bValid = OperandB->IsUsable(EdgeIO->GetNum());
 
 		if (!bValid)

@@ -196,7 +196,7 @@ namespace PCGExCluster
 		~FCluster();
 
 		bool BuildFrom(
-			const PCGExData::FPointIO& EdgeIO,
+			const PCGExData::FPointIO* EdgeIO,
 			const TArray<FPCGPoint>& InNodePoints,
 			const TMap<int64, int32>& InEndpointsLookup,
 			const TArray<int32>* InExpectedAdjacency = nullptr);
@@ -217,7 +217,7 @@ namespace PCGExCluster
 
 		void GetNodePointIndices(TArray<int32>& OutIndices);
 		void GetNodePointScopes(TArray<uint64>& OutScopes);
-		
+
 		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
 		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth, const TSet<int32>& Skip) const;
 
@@ -386,7 +386,7 @@ namespace PCGExClusterTask
 			const PCGExData::FPointIO* InEdgeIO,
 			const TMap<int64, int32>* InEndpointsLookup,
 			const TArray<int32>* InExpectedAdjacency) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			Cluster(InCluster),
 			EdgeIO(InEdgeIO),
 			EndpointsLookup(InEndpointsLookup),
@@ -412,7 +412,7 @@ namespace PCGExClusterTask
 		                TArray<PCGExCluster::FNodeChain*>* InChains,
 		                const bool InSkipSingleEdgeChains = false,
 		                const bool InDeadEndsOnly = false) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			Cluster(InCluster),
 			Breakpoints(InBreakpoints),
 			Chains(InChains),
@@ -440,7 +440,7 @@ namespace PCGExClusterTask
 		            TArray<PCGExCluster::FNodeChain*>* InChains,
 		            const int32 InStartIndex,
 		            const uint64 InAdjacencyHash) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			Cluster(InCluster),
 			Breakpoints(InBreakpoints),
 			Chains(InChains),
@@ -517,7 +517,7 @@ namespace PCGExClusterTask
 	public:
 		FProjectCluster(PCGExData::FPointIO* InPointIO,
 		                PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			Cluster(InCluster),
 			Projection(InProjection)
 		{
@@ -538,7 +538,7 @@ namespace PCGExClusterTask
 		                     PCGExData::FPointIOCollection* InVtxCollection,
 		                     PCGExData::FPointIOCollection* InEdgeCollection,
 		                     FPCGExTransformSettings* InTransformSettings) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			Vtx(InVtx),
 			Edges(InEdges),
 			VtxCollection(InVtxCollection),

@@ -69,7 +69,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionTask final : public PCG
 {
 public:
 	FPCGExPointsPathIntersectionTask(PCGExData::FPointIO* InPointIO) :
-		PCGExMT::FPCGExTask(InPointIO)
+		FPCGExTask(InPointIO)
 	{
 	}
 

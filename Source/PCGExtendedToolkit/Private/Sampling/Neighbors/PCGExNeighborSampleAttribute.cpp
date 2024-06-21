@@ -48,7 +48,7 @@ bool UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 	}
 
 	Blender = new PCGExDataBlending::FMetadataBlender(&MetadataBlendingSettings);
-	Blender->PrepareForData(*Cluster->PointsIO, GetSourceIO(), PCGExData::ESource::In, true);
+	Blender->PrepareForData(Cluster->PointsIO, GetSourceIO(), PCGExData::ESource::In, true);
 
 	bIsValidOperation = true;
 	return bRequirePerPointPrep;

@@ -33,48 +33,18 @@ namespace PCGExHeuristics
 		for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGExPointsProcessorContext* InContext)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext)
 	{
-		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(PCGExGraph::SourceHeuristicsLabel);
-
-		TArray<UPCGHeuristicsFactoryBase*> InputFactories;
-		if (PCGExFactories::GetInputFactories(InContext, PCGExGraph::SourceHeuristicsLabel, InputFactories, {PCGExFactories::EType::Heuristics}, false))
-		{
-			for (const UPCGHeuristicsFactoryBase* OperationFactory : InputFactories)
-			{
-				UPCGExHeuristicOperation* Operation = nullptr;
-
-				if (const UPCGHeuristicsFactoryFeedback* FeedbackFactory = Cast<UPCGHeuristicsFactoryFeedback>(OperationFactory))
-				{
-					if (!FeedbackFactory->IsGlobal())
-					{
-						LocalFeedbackFactories.Add(OperationFactory);
-						continue;
-					}
-
-					Operation = OperationFactory->CreateOperation();
-					Feedbacks.Add(Cast<UPCGExHeuristicFeedback>(Operation));
-				}
-				else
-				{
-					Operation = OperationFactory->CreateOperation();
-				}
-
-				Operations.Add(Operation);
-				Operation->WeightFactor = OperationFactory->WeightFactor;
-				Operation->ReferenceWeight = ReferenceWeight * Operation->WeightFactor;
-				InContext->RegisterOperation<UPCGExHeuristicOperation>(Operation);
-			}
-		}
-
-		if (Operations.IsEmpty())
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid heuristics. Will use Shortest Distance as default. (Local feedback heuristics don't count)"));
-			UPCGExHeuristicDistance* DefaultHeuristics = NewObject<UPCGExHeuristicDistance>();
-			DefaultHeuristics->ReferenceWeight = ReferenceWeight;
-			Operations.Add(DefaultHeuristics);
-		}
+		TArray<UPCGHeuristicsFactoryBase*> ContextFactories;
+		PCGExFactories::GetInputFactories(InContext, PCGExGraph::SourceHeuristicsLabel, ContextFactories, {PCGExFactories::EType::Heuristics}, false);
+		BuildFrom(InContext, ContextFactories);
 	}
+
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TArray<UPCGHeuristicsFactoryBase*>& InFactories)
+	{
+		BuildFrom(InContext, InFactories);
+	}
+
 
 	THeuristicsHandler::THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation)
 	{
@@ -91,6 +61,44 @@ namespace PCGExHeuristics
 
 		Operations.Empty();
 		Feedbacks.Empty();
+	}
+
+	void THeuristicsHandler::BuildFrom(FPCGContext* InContext, const TArray<UPCGHeuristicsFactoryBase*>& InFactories)
+	{
+		for (const UPCGHeuristicsFactoryBase* OperationFactory : InFactories)
+		{
+			UPCGExHeuristicOperation* Operation = nullptr;
+
+			if (const UPCGHeuristicsFactoryFeedback* FeedbackFactory = Cast<UPCGHeuristicsFactoryFeedback>(OperationFactory))
+			{
+				if (!FeedbackFactory->IsGlobal())
+				{
+					LocalFeedbackFactories.Add(OperationFactory);
+					continue;
+				}
+
+				Operation = OperationFactory->CreateOperation();
+				Feedbacks.Add(Cast<UPCGExHeuristicFeedback>(Operation));
+			}
+			else
+			{
+				Operation = OperationFactory->CreateOperation();
+			}
+
+			Operations.Add(Operation);
+			Operation->WeightFactor = OperationFactory->WeightFactor;
+			Operation->ReferenceWeight = ReferenceWeight * Operation->WeightFactor;
+			Operation->BindContext(InContext);
+		}
+
+
+		if (Operations.IsEmpty())
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid heuristics. Will use Shortest Distance as default. (Local feedback heuristics don't count)"));
+			UPCGExHeuristicDistance* DefaultHeuristics = NewObject<UPCGExHeuristicDistance>();
+			DefaultHeuristics->ReferenceWeight = ReferenceWeight;
+			Operations.Add(DefaultHeuristics);
+		}
 	}
 
 	void THeuristicsHandler::PrepareForCluster(PCGExCluster::FCluster* InCluster)

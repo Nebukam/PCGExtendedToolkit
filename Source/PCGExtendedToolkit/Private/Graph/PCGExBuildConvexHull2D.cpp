@@ -103,9 +103,9 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 	TSet<uint64> UniqueEdges;
 	const TArray<PCGExGraph::FIndexedEdge>& Edges = GraphBuilder->Graph->Edges;
 
-	const PCGExData::FPointIO& PathIO = PathsIO->Emplace_GetRef(*CurrentIO, PCGExData::EInit::NewOutput);
+	const PCGExData::FPointIO* PathIO = PathsIO->Emplace_GetRef(CurrentIO, PCGExData::EInit::NewOutput);
 
-	TArray<FPCGPoint>& MutablePathPoints = PathIO.GetOut()->GetMutablePoints();
+	TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
 	TSet<int32> VisitedEdges;
 	VisitedEdges.Reserve(Edges.Num());
 
@@ -190,11 +190,11 @@ namespace PCGExConvexHull2D
 		if (!Settings->GraphBuilderSettings.bPruneIsolatedPoints && Settings->bMarkHull)
 		{
 			HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-			HullMarkPointWriter->BindAndSetNumUninitialized(*PointIO);
+			HullMarkPointWriter->BindAndSetNumUninitialized(PointIO);
 			StartParallelLoopForPoints();
 		}
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &Settings->GraphBuilderSettings);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;

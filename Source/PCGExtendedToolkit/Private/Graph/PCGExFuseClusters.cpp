@@ -136,7 +136,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetAsyncState(PCGExMT::State_CompoundWriting);
 	}
 
-	if(Context->IsState(PCGExMT::State_CompoundWriting))
+	if (Context->IsState(PCGExMT::State_CompoundWriting))
 	{
 		PCGEX_ASYNC_WAIT
 
@@ -154,7 +154,6 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 				GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
 			});
-		
 	}
 
 	if (!Context->CompoundProcessor->Execute()) { return false; }
@@ -180,7 +179,7 @@ namespace PCGExFuseClusters
 
 		// Prepare insertion
 
-		if (!BuildIndexedEdges(*EdgesIO, *EndpointsLookup, IndexedEdges, true)) { return false; }
+		if (!BuildIndexedEdges(EdgesIO, *EndpointsLookup, IndexedEdges, true)) { return false; }
 		if (IndexedEdges.IsEmpty()) { return false; }
 
 		bInvalidEdges = false;

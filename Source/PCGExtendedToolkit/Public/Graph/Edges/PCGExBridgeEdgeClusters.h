@@ -39,9 +39,9 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
 	/** Method used to find & insert bridges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -104,17 +104,14 @@ namespace PCGExBridgeClusters
 		FPCGExPointIOMerger* Merger = nullptr;
 		TSet<uint64> Bridges;
 
-		TArray<PCGExCluster::FCluster*> ValidClusters;
-
 		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
 		virtual ~FProcessorBatch() override;
 
 		virtual bool PrepareProcessing() override;
+		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
-		
-		void ConnectClusters();
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public PCGExMT::FPCGExTask
@@ -125,7 +122,7 @@ namespace PCGExBridgeClusters
 			FProcessorBatch* InBatch,
 			PCGExCluster::FCluster* A,
 			PCGExCluster::FCluster* B) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			Batch(InBatch),
 			ClusterA(A),
 			ClusterB(B)
@@ -138,7 +135,5 @@ namespace PCGExBridgeClusters
 		PCGExCluster::FCluster* ClusterB = nullptr;
 
 		virtual bool ExecuteTask() override;
-
-		void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B, uint32& OutStartIdx, uint32& OutEndIdx) const;
 	};
 }

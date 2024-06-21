@@ -13,7 +13,7 @@ void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InConte
 	TFilter::Capture(InContext, PointIO);
 
 	OperandA = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandA.GetName());
-	bValid = OperandA->Bind(*const_cast<PCGExData::FPointIO*>(PointIO));
+	bValid = OperandA->Bind(const_cast<PCGExData::FPointIO*>(PointIO));
 
 	if (!bValid)
 	{
@@ -25,7 +25,7 @@ void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InConte
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
 		OperandB = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandB.GetName());
-		bValid = OperandB->Bind(*const_cast<PCGExData::FPointIO*>(PointIO));
+		bValid = OperandB->Bind(const_cast<PCGExData::FPointIO*>(PointIO));
 
 		if (!bValid)
 		{

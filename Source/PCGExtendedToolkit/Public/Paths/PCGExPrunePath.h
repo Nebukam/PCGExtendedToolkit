@@ -76,7 +76,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPrunePathTask final : public PCGExMT::FPCGExT
 {
 public:
 	FPCGExPrunePathTask(PCGExData::FPointIO* InPointIO) :
-		PCGExMT::FPCGExTask(InPointIO)
+		FPCGExTask(InPointIO)
 	{
 	}
 

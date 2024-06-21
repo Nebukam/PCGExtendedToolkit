@@ -14,7 +14,7 @@ void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InC
 
 	OperandA = new PCGEx::FLocalSingleFieldGetter();
 	OperandA->Capture(TypedFilterFactory->Descriptor.OperandA);
-	OperandA->Grab(*PointIO, false);
+	OperandA->Grab(PointIO, false);
 	bValid = OperandA->IsUsable(PointIO->GetNum());
 
 	if (!bValid)
@@ -28,7 +28,7 @@ void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InC
 	{
 		OperandB = new PCGEx::FLocalSingleFieldGetter();
 		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
-		OperandB->Grab(*PointIO, false);
+		OperandB->Grab(PointIO, false);
 		bValid = OperandB->IsUsable(PointIO->GetNum());
 
 		if (!bValid)

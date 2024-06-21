@@ -223,7 +223,7 @@ namespace PCGExPointsToBounds
 	public:
 		FComputeIOBoundsTask(PCGExData::FPointIO* InPointIO,
 		                     const EPCGExPointBoundsSource InBoundsSource, FBounds* InBounds) :
-			PCGExMT::FPCGExTask(InPointIO),
+			FPCGExTask(InPointIO),
 			BoundsSource(InBoundsSource), Bounds(InBounds)
 		{
 		}

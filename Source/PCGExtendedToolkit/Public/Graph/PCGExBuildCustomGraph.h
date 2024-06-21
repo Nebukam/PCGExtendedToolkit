@@ -96,7 +96,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExProbeTask final : public PCGExMT::FPCGExTask
 public:
 	FPCGExProbeTask(
 		PCGExData::FPointIO* InPointIO) :
-		PCGExMT::FPCGExTask(InPointIO)
+		FPCGExTask(InPointIO)
 	{
 	}
 

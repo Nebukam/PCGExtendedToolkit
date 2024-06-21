@@ -125,7 +125,7 @@ namespace PCGExBuildDelaunay
 
 		ActivePositions.Empty();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &Settings->GraphBuilderSettings);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr);
@@ -156,7 +156,7 @@ namespace PCGExBuildDelaunay
 
 		if (HullMarkPointWriter)
 		{
-			HullMarkPointWriter->BindAndSetNumUninitialized(*PointIO);
+			HullMarkPointWriter->BindAndSetNumUninitialized(PointIO);
 			StartParallelLoopForPoints();
 		}
 	}

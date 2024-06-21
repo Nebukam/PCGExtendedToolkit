@@ -127,7 +127,7 @@ namespace PCGExCluster
 	}
 
 	bool FCluster::BuildFrom(
-		const PCGExData::FPointIO& EdgeIO,
+		const PCGExData::FPointIO* EdgeIO,
 		const TArray<FPCGPoint>& InNodePoints,
 		const TMap<int64, int32>& InEndpointsLookup,
 		const TArray<int32>* InExpectedAdjacency)
@@ -197,15 +197,22 @@ namespace PCGExCluster
 
 	void FCluster::RebuildNodeOctree()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCluster::RebuildNodeOctree);
 		PCGEX_DELETE(NodeOctree)
-		NodeOctree = new ClusterItemOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
-		for (const FNode& Node : Nodes) { NodeOctree->AddElement(FClusterItemRef(Node.NodeIndex, FBoxSphereBounds(FSphere(Node.Position, 0)))); }
+		NodeOctree = new ClusterItemOctree(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
+		const TArray<FPCGPoint>& VtxPoints = PointsIO->GetIn()->GetPoints();
+		for (const FNode& Node : Nodes)
+		{
+			const FPCGPoint& Pt = VtxPoints[Node.PointIndex];
+			NodeOctree->AddElement(FClusterItemRef(Node.NodeIndex, FBoxSphereBounds(Pt.GetLocalBounds().TransformBy(Pt.Transform))));
+		}
 	}
 
 	void FCluster::RebuildEdgeOctree()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCluster::RebuildEdgeOctree);
 		PCGEX_DELETE(EdgeOctree)
-		EdgeOctree = new ClusterItemOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
+		EdgeOctree = new ClusterItemOctree(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 		for (const PCGExGraph::FIndexedEdge& Edge : Edges)
 		{
 			const FNode& Start = Nodes[*NodeIndexLookup.Find(Edge.Start)];
@@ -874,7 +881,7 @@ namespace PCGExClusterTask
 	bool FBuildCluster::ExecuteTask()
 	{
 		Cluster->BuildFrom(
-			*EdgeIO, PointIO->GetIn()->GetPoints(),
+			EdgeIO, PointIO->GetIn()->GetPoints(),
 			*EndpointsLookup, ExpectedAdjacency);
 
 		return true;
@@ -970,21 +977,21 @@ namespace PCGExClusterTask
 
 	bool FCopyClustersToPoint::ExecuteTask()
 	{
-		PCGExData::FPointIO& VtxDupe = VtxCollection->Emplace_GetRef(Vtx->GetIn(), PCGExData::EInit::DuplicateInput);
-		VtxDupe.IOIndex = TaskIndex;
+		PCGExData::FPointIO* VtxDupe = VtxCollection->Emplace_GetRef(Vtx->GetIn(), PCGExData::EInit::DuplicateInput);
+		VtxDupe->IOIndex = TaskIndex;
 
 		FString OutId;
-		PCGExGraph::SetClusterVtx(&VtxDupe, OutId);
+		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
-		InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &VtxDupe, TransformSettings);
+		InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, VtxDupe, TransformSettings);
 
 		for (const PCGExData::FPointIO* EdgeIO : Edges)
 		{
-			PCGExData::FPointIO& EdgeDupe = EdgeCollection->Emplace_GetRef(EdgeIO->GetIn(), PCGExData::EInit::DuplicateInput);
-			EdgeDupe.IOIndex = TaskIndex;
-			PCGExGraph::MarkClusterEdges(&EdgeDupe, OutId);
+			PCGExData::FPointIO* EdgeDupe = EdgeCollection->Emplace_GetRef(EdgeIO->GetIn(), PCGExData::EInit::DuplicateInput);
+			EdgeDupe->IOIndex = TaskIndex;
+			PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
 
-			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
+			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, EdgeDupe, TransformSettings);
 		}
 
 		return true;

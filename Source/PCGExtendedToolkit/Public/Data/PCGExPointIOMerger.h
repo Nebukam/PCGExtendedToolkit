@@ -13,42 +13,77 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPointIOMerger final
 	friend class FPCGExAttributeMergeTask;
 
 public:
+	TArray<PCGEx::FAttributeIdentity> UniqueIdentities;
+	PCGExData::FPointIO* CompositeIO = nullptr;
+	TArray<PCGExData::FPointIO*> IOSources;
+	TArray<uint64> Scopes;
+	TArray<PCGEx::FAAttributeIO*> Writers;
+
 	FPCGExPointIOMerger(PCGExData::FPointIO& OutData);
 	~FPCGExPointIOMerger();
 
-	void Append(PCGExData::FPointIO& InData);
+	void Append(PCGExData::FPointIO* InData);
 	void Append(const TArray<PCGExData::FPointIO*>& InData);
+	void Append(PCGExData::FPointIOCollection* InCollection);
 	void Merge(PCGExMT::FTaskManager* AsyncManager, bool CleanupInputs = true);
 	void Write();
 	void Write(PCGExMT::FTaskManager* AsyncManager);
 
-	int32 TotalPoints = 0;
-
 protected:
-	TMap<FName, PCGEx::FAttributeIdentity> Identities;
-	TMap<FName, PCGEx::FAAttributeIO*> Writers;
-	TArray<PCGEx::FAAttributeIO*> WriterList;
-	TMap<FName, bool> AllowsInterpolation;
-	PCGExData::FPointIO* MergedData = nullptr;
-	TArray<PCGExData::FPointIO*> MergedPoints;
-	bool bCleanupInputs = true;
+	int32 NumCompositePoints = 0;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeMergeTask final : public PCGExMT::FPCGExTask
+namespace PCGExPointIOMerger
 {
-public:
-	FPCGExAttributeMergeTask(
-		PCGExData::FPointIO* InPointIO,
-		FPCGExPointIOMerger* InMerger,
-		const FName InAttributeName)
-		: PCGExMT::FPCGExTask(InPointIO),
-		  Merger(InMerger),
-		  AttributeName(InAttributeName)
+	class PCGEXTENDEDTOOLKIT_API FWriteAttributeTask final : public PCGExMT::FPCGExTask
 	{
-	}
+	public:
+		FWriteAttributeTask(
+			PCGExData::FPointIO* InPointIO,
+			FPCGExPointIOMerger* InMerger)
+			: FPCGExTask(InPointIO),
+			  Merger(InMerger)
+		{
+		}
 
-	FPCGExPointIOMerger* Merger = nullptr;
-	FName AttributeName;
+		FPCGExPointIOMerger* Merger = nullptr;
+		virtual bool ExecuteTask() override;
+	};
 
-	virtual bool ExecuteTask() override;
-};
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FWriteAttributeScopeTask final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FWriteAttributeScopeTask(
+			PCGExData::FPointIO* InPointIO,
+			const uint64 InScope,
+			const PCGEx::FAttributeIdentity& InIdentity,
+			PCGEx::TFAttributeWriter<T>* InWriter)
+			: FPCGExTask(InPointIO),
+			  Scope(InScope),
+			  Identity(InIdentity),
+			  Writer(InWriter)
+		{
+		}
+
+		const uint64 Scope;
+		const PCGEx::FAttributeIdentity Identity;
+		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
+
+		virtual bool ExecuteTask() override
+		{
+			PCGEx::TFAttributeReader<T>* Reader = new PCGEx::TFAttributeReader<T>(Identity.Name);
+			Reader->Bind(PointIO);
+
+			uint32 StartIndex;
+			uint32 Range;
+			PCGEx::H64(Scope, StartIndex, Range);
+
+			int32 Count = static_cast<int>(Range);
+			for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
+
+			PCGEX_DELETE(Reader);
+			return true;
+		}
+	};
+}

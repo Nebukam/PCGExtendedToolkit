@@ -22,15 +22,15 @@ void UPCGExSubPointsBlendOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
+void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO* InPointIO)
 {
 	Super::PrepareForData(InPointIO);
 	PrepareForData(InPointIO, InPointIO, PCGExData::ESource::In);
 }
 
 void UPCGExSubPointsBlendOperation::PrepareForData(
-	PCGExData::FPointIO& InPrimaryData,
-	const PCGExData::FPointIO& InSecondaryData,
+	PCGExData::FPointIO* InPrimaryData,
+	const PCGExData::FPointIO* InSecondaryData,
 	const PCGExData::ESource SecondarySource)
 {
 	PCGEX_DELETE(InternalBlender)
@@ -99,8 +99,8 @@ void UPCGExSubPointsBlendOperation::Cleanup()
 }
 
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(
-	PCGExData::FPointIO& InPrimaryIO,
-	const PCGExData::FPointIO& InSecondaryIO,
+	PCGExData::FPointIO* InPrimaryIO,
+	const PCGExData::FPointIO* InSecondaryIO,
 	const PCGExData::ESource SecondarySource)
 {
 	BlendingSettings.DefaultBlending = GetDefaultBlending();

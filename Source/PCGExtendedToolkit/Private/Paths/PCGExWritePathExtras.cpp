@@ -87,7 +87,7 @@ namespace PCGExWritePathExtras
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FPointIO& OutputIO = *PointIO;
+			PCGExData::FPointIO* OutputIO = PointIO;
 			PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_FWD_INIT)
 		}
 
@@ -104,7 +104,7 @@ namespace PCGExWritePathExtras
 		if (Settings->bUseLocalUpVector)
 		{
 			Up->Capture(Settings->LocalUpVector);
-			Up->Grab(*PointIO);
+			Up->Grab(PointIO);
 		}
 
 		Positions.SetNum(NumPoints);

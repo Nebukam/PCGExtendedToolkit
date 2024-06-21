@@ -18,7 +18,7 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 
 		Getter->Capture(WeightMultiplierAttribute);
 
-		if (Getter->Grab(*PointIO))
+		if (Getter->Grab(PointIO))
 		{
 			LocalWeightMultiplier.SetNumZeroed(NumPoints);
 			for (int i = 0; i < NumPoints; i++) { LocalWeightMultiplier[i] = Getter->Values[i]; }

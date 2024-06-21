@@ -72,13 +72,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 		if (bWriteDirection)
 		{
 			DirWriter = new PCGEx::TFAttributeWriter<FVector>(DirectionAttribute);
-			DirWriter->BindAndSetNumUninitialized(*InVtx);
+			DirWriter->BindAndSetNumUninitialized(InVtx);
 		}
 
 		if (bWriteLength)
 		{
 			LengthWriter = new PCGEx::TFAttributeWriter<double>(LengthAttribute);
-			LengthWriter->BindAndSetNumUninitialized(*InVtx);
+			LengthWriter->BindAndSetNumUninitialized(InVtx);
 		}
 	}
 
@@ -174,19 +174,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 		if (bWriteEdgeIndex)
 		{
 			EIdxWriter = new PCGEx::TFAttributeWriter<int32>(EdgeIndexAttribute);
-			EIdxWriter->BindAndSetNumUninitialized(*InVtx);
+			EIdxWriter->BindAndSetNumUninitialized(InVtx);
 		}
 
 		if (bWriteVtxIndex)
 		{
 			VIdxWriter = new PCGEx::TFAttributeWriter<int32>(VtxIndexAttribute);
-			VIdxWriter->BindAndSetNumUninitialized(*InVtx);
+			VIdxWriter->BindAndSetNumUninitialized(InVtx);
 		}
 
 		if (bWriteNeighborCount)
 		{
 			NCountWriter = new PCGEx::TFAttributeWriter<int32>(NeighborCountAttribute);
-			NCountWriter->BindAndSetNumUninitialized(*InVtx);
+			NCountWriter->BindAndSetNumUninitialized(InVtx);
 		}
 	}
 

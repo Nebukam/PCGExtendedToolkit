@@ -83,7 +83,7 @@ void FPCGExCustomGraphProcessorContext::WriteSocketInfos() const
 	for (const PCGExGraph::FSocketInfos& Infos : SocketInfos) { Infos.Socket->Write(); }
 }
 
-bool FPCGExCustomGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
+bool FPCGExCustomGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::FPointIO* PointIO, const bool ReadOnly)
 {
 	bValidCurrentGraph = false;
 	bReadOnly = ReadOnly;
@@ -92,13 +92,13 @@ bool FPCGExCustomGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGEx
 	{
 		PCGEX_DELETE(CachedIndexWriter)
 		if (!CachedIndexReader) { CachedIndexReader = new PCGEx::TFAttributeReader<int32>(CurrentGraph->CachedIndexAttributeName); }
-		bValidCurrentGraph = CachedIndexReader->Bind(const_cast<PCGExData::FPointIO&>(PointIO));
+		bValidCurrentGraph = CachedIndexReader->Bind(const_cast<PCGExData::FPointIO*>(PointIO));
 	}
 	else
 	{
 		PCGEX_DELETE(CachedIndexReader)
 		if (!CachedIndexWriter) { CachedIndexWriter = new PCGEx::TFAttributeWriter<int32>(CurrentGraph->CachedIndexAttributeName, -1, false); }
-		bValidCurrentGraph = CachedIndexWriter->BindAndGet(const_cast<PCGExData::FPointIO&>(PointIO));
+		bValidCurrentGraph = CachedIndexWriter->BindAndGet(const_cast<PCGExData::FPointIO*>(PointIO));
 	}
 
 	if (bValidCurrentGraph) { CurrentGraph->PrepareForPointData(PointIO, bReadOnly); }

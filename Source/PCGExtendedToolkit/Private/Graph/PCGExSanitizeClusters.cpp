@@ -101,12 +101,12 @@ bool FPCGExSanitizeClusterTask::ExecuteTask()
 	FPCGExSanitizeClustersContext* Context = Manager->GetContext<FPCGExSanitizeClustersContext>();
 	PCGEX_SETTINGS(SanitizeClusters)
 
-	Context->Builders[TaskIndex] = new PCGExGraph::FGraphBuilder(*PointIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
+	Context->Builders[TaskIndex] = new PCGExGraph::FGraphBuilder(PointIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 
 	TMap<int64, int32>& Map = Context->EndpointsLookups[TaskIndex];
 	TArray<int32> Adjacency;
 
-	PCGExGraph::BuildEndpointsLookup(*PointIO, Map, Adjacency);
+	PCGExGraph::BuildEndpointsLookup(PointIO, Map, Adjacency);
 
 	for (PCGExData::FPointIO* Edges : TaggedEdges->Entries)
 	{
@@ -126,7 +126,7 @@ bool FPCGExSanitizeInsertTask::ExecuteTask()
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 	EdgeIO->CreateInKeys();
 
-	BuildIndexedEdges(*EdgeIO, Context->EndpointsLookups[TaskIndex], IndexedEdges);
+	BuildIndexedEdges(EdgeIO, Context->EndpointsLookups[TaskIndex], IndexedEdges);
 	if (!IndexedEdges.IsEmpty()) { Builder->Graph->InsertEdges(IndexedEdges); }
 
 	EdgeIO->CleanupKeys();

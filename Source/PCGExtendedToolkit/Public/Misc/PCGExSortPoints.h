@@ -127,7 +127,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExSortPointIO final : public PCGExMT::FPCGExTas
 {
 public:
 	FPCGExSortPointIO(PCGExData::FPointIO* InPointIO) :
-		PCGExMT::FPCGExTask(InPointIO)
+		FPCGExTask(InPointIO)
 	{
 	}
 

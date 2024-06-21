@@ -190,7 +190,7 @@ namespace PCGExSubdivide
 
 	void FProcessor::CompleteWork()
 	{
-		Blending->PrepareForData(*PointIO, *PointIO, PCGExData::ESource::Out);
+		Blending->PrepareForData(PointIO, PointIO, PCGExData::ESource::Out);
 		StartParallelLoopForRange(Milestones.Num());
 	}
 

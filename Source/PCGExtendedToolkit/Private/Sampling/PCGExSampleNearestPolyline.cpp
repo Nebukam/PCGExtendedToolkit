@@ -124,7 +124,7 @@ namespace PCGExSampleNearestPolyline
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FPointIO& OutputIO = *PointIO;
+			PCGExData::FPointIO* OutputIO = PointIO;
 			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_FWD_INIT)
 		}
 
@@ -142,18 +142,18 @@ namespace PCGExSampleNearestPolyline
 
 		if (Settings->bUseLocalRangeMin)
 		{
-			if (!RangeMinGetter->Grab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
+			if (!RangeMinGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
 		if (Settings->bUseLocalRangeMax)
 		{
-			if (!RangeMaxGetter->Grab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
+			if (!RangeMaxGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
 		}
 
 		if (Settings->bWriteLookAtTransform)
 		{
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Source &&
-				!LookAtUpGetter->Grab(*PointIO))
+				!LookAtUpGetter->Grab(PointIO))
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookUp is invalid on source."));
 			}

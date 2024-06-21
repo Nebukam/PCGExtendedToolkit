@@ -224,7 +224,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto ProcessTarget = [&](const int32 TargetIndex, const PCGExData::FPointIO& PointIO)
+		auto ProcessTarget = [&](const int32 TargetIndex)
 		{
 			const int32 MeshIdx = Context->MeshIdx[TargetIndex];
 
@@ -235,7 +235,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformSettings);
 		};
 
-		if (!Context->ProcessCurrentPoints(ProcessTarget)) { return false; }
+		if (!Context->Process(ProcessTarget, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
@@ -278,10 +278,10 @@ namespace PCGExMeshToCluster
 		}
 
 
-		PCGExData::FPointIO& RootVtx = Context->RootVtx->Emplace_GetRef();
-		RootVtx.IOIndex = TaskIndex;
-		RootVtx.SetNumInitialized(Mesh->Vertices.Num());
-		TArray<FPCGPoint>& VtxPoints = RootVtx.GetOut()->GetMutablePoints();
+		PCGExData::FPointIO* RootVtx = Context->RootVtx->Emplace_GetRef();
+		RootVtx->IOIndex = TaskIndex;
+		RootVtx->SetNumInitialized(Mesh->Vertices.Num());
+		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtx, &Context->GraphBuilderSettings);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;

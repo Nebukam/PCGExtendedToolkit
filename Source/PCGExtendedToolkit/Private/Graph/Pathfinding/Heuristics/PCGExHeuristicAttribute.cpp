@@ -12,14 +12,14 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 {
 	Super::PrepareForCluster(InCluster);
 
-	PCGExData::FPointIO& InPoints = Source == EPCGExGraphValueSource::Point ? *InCluster->PointsIO : *InCluster->EdgesIO;
+	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Point ? InCluster->PointsIO : InCluster->EdgesIO;
 
-	if (LastPoints == &InPoints) { return; }
+	if (LastPoints == InPoints) { return; }
 
-	const int32 NumPoints = InPoints.GetNum();
+	const int32 NumPoints = InPoints->GetNum();
 
-	LastPoints = &InPoints;
-	InPoints.CreateInKeys();
+	LastPoints = InPoints;
+	InPoints->CreateInKeys();
 	CachedScores.SetNumZeroed(NumPoints);
 
 	PCGEx::FLocalSingleFieldGetter* ModifierGetter = new PCGEx::FLocalSingleFieldGetter();

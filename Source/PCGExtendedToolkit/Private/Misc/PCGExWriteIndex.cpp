@@ -54,18 +54,18 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (Context->bOutputNormalizedIndex)
 		{
-			auto Initialize = [&](PCGExData::FPointIO& PointIO)
+			auto Initialize = [&]()
 			{
-				Context->NormalizedIndicesBuffer.Reset(PointIO.GetNum());
-				Context->NormalizedIndexAccessor = PCGEx::FAttributeAccessor<double>::FindOrCreate(PointIO, Context->OutputAttributeName, -1, false);
+				Context->NormalizedIndicesBuffer.Reset(Context->CurrentIO->GetNum());
+				Context->NormalizedIndexAccessor = PCGEx::FAttributeAccessor<double>::FindOrCreate(Context->CurrentIO, Context->OutputAttributeName, -1, false);
 				Context->NormalizedIndexAccessor->GetRange(Context->NormalizedIndicesBuffer, 0);
 			};
 
-			if (!Context->ProcessCurrentPoints(
-				Initialize, [&](const int32 Index, const PCGExData::FPointIO& PointIO)
+			if (!Context->Process(
+				Initialize, [&](const int32 Index)
 				{
 					Context->NormalizedIndicesBuffer[Index] = static_cast<double>(Index) / static_cast<double>(Context->NormalizedIndicesBuffer.Num());
-				}))
+				}, Context->CurrentIO->GetNum()))
 			{
 				return false;
 			}
@@ -76,18 +76,18 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 		else
 		{
-			auto Initialize = [&](PCGExData::FPointIO& PointIO)
+			auto Initialize = [&]()
 			{
-				Context->IndicesBuffer.Reset(PointIO.GetNum());
-				Context->IndexAccessor = PCGEx::FAttributeAccessor<int32>::FindOrCreate(PointIO, Context->OutputAttributeName, -1, false);
+				Context->IndicesBuffer.Reset(Context->CurrentIO->GetNum());
+				Context->IndexAccessor = PCGEx::FAttributeAccessor<int32>::FindOrCreate(Context->CurrentIO, Context->OutputAttributeName, -1, false);
 				Context->IndexAccessor->GetRange(Context->IndicesBuffer, 0);
 			};
 
-			if (!Context->ProcessCurrentPoints(
-				Initialize, [&](const int32 Index, const PCGExData::FPointIO& PointIO)
+			if (!Context->Process(
+				Initialize, [&](const int32 Index)
 				{
 					Context->IndicesBuffer[Index] = Index;
-				}))
+				}, Context->CurrentIO->GetNum()))
 			{
 				return false;
 			}

@@ -66,7 +66,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClusterTask final : public PCGExMT::F
 public:
 	FPCGExSanitizeClusterTask(PCGExData::FPointIO* InPointIO,
 	                          PCGExData::FPointIOTaggedEntries* InTaggedEdges) :
-		PCGExMT::FPCGExTask(InPointIO),
+		FPCGExTask(InPointIO),
 		TaggedEdges(InTaggedEdges)
 	{
 	}
@@ -81,7 +81,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeInsertTask final : public PCGExMT::FP
 public:
 	FPCGExSanitizeInsertTask(PCGExData::FPointIO* InPointIO,
 	                         PCGExData::FPointIO* InEdgeIO) :
-		PCGExMT::FPCGExTask(InPointIO),
+		FPCGExTask(InPointIO),
 		EdgeIO(InEdgeIO)
 	{
 	}

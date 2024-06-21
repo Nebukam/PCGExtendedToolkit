@@ -219,6 +219,8 @@ namespace PCGExFindContours
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
+		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
+
 		ProjectionSettings = Settings->ProjectionSettings;
 		ProjectionSettings.Init(VtxIO);
 		ClusterProjection = new PCGExCluster::FClusterProjection(Cluster, &ProjectionSettings);
@@ -236,14 +238,14 @@ namespace PCGExFindContours
 		{
 			for (int i = 0; i < TypedContext->ProjectedSeeds.Num(); i++)
 			{
-				TypedContext->TryFindContours(&TypedContext->Paths->Emplace_GetRef(*VtxIO, PCGExData::EInit::NewOutput), i, this);
+				TypedContext->TryFindContours(TypedContext->Paths->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput), i, this);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < TypedContext->ProjectedSeeds.Num(); i++)
 			{
-				AsyncManagerPtr->Start<FPCGExFindContourTask>(i, &TypedContext->Paths->Emplace_GetRef(*VtxIO, PCGExData::EInit::NewOutput), this);
+				AsyncManagerPtr->Start<FPCGExFindContourTask>(i, TypedContext->Paths->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput), this);
 			}
 		}
 	}

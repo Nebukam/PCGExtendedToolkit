@@ -80,7 +80,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathTask final : public PCGExMT::FPCGExT
 {
 public:
 	FPCGExBlendPathTask(PCGExData::FPointIO* InPointIO) :
-		PCGExMT::FPCGExTask(InPointIO)
+		FPCGExTask(InPointIO)
 	{
 	}
 

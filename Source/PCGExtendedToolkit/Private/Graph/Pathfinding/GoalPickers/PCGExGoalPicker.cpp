@@ -16,9 +16,9 @@ void UPCGExGoalPicker::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPicker::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
+void UPCGExGoalPicker::PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals)
 {
-	MaxGoalIndex = InGoals.GetNum() - 1;
+	MaxGoalIndex = InGoals->GetNum() - 1;
 }
 
 int32 UPCGExGoalPicker::GetGoalIndex(const PCGEx::FPointRef& Seed) const

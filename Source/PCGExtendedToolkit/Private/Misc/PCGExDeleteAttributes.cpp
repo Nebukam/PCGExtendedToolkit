@@ -37,7 +37,7 @@ bool FPCGExDeleteAttributesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Boot(Context)) { return true; }
 
-	while(Context->AdvancePointsIO())
+	while (Context->AdvancePointsIO())
 	{
 		for (const FName& Name : Settings->AttributeNames) { Context->CurrentIO->GetOut()->Metadata->DeleteAttribute(Name); }
 	}
@@ -45,7 +45,7 @@ bool FPCGExDeleteAttributesElement::ExecuteInternal(FPCGContext* InContext) cons
 	Context->OutputMainPoints();
 	Context->Done();
 	Context->ExecuteEnd();
-	
+
 	return true;
 }
 
