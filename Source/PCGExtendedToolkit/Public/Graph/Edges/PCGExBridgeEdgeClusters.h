@@ -112,9 +112,9 @@ namespace PCGExBridgeClusters
 		virtual bool PrepareProcessing() override;
 		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
 		virtual void CompleteWork() override;
-
+		virtual void Write() override;
+		
 		void ConnectClusters();
-		void Write() const;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public PCGExMT::FPCGExTask

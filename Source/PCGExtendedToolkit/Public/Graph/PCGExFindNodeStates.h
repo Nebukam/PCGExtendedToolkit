@@ -97,3 +97,42 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExFindNodeState
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		friend class FProcessorBatch;
+
+		PCGExDataState::TStatesManager* StatesManager = nullptr;
+
+		bool bRequiresPrep = false;
+		TArray<int32> NodePointIndices;
+		
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+
+	};
+
+	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+	public:
+		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		virtual ~FProcessorBatch() override;
+
+		virtual bool PrepareProcessing() override;
+		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		virtual void Write() override;
+	};
+}

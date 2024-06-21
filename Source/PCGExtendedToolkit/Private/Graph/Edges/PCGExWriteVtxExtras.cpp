@@ -56,6 +56,7 @@ bool FPCGExWriteVtxExtrasElement::ExecuteInternal(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExWriteVtxExtras::FProcessorBatch* NewBatch)
 			{
+				NewBatch->bRequiresWriteStep = true;
 			},
 			PCGExMT::State_Done))
 		{
@@ -92,14 +93,16 @@ namespace PCGExWriteVtxExtras
 		if (VtxNormalWriter)
 		{
 			ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionSettings);
-			ProjectedCluster->Build();
+			StartParallelLoopForRange(Cluster->Nodes.Num());
+			//ProjectedCluster->Build();
 		}
 
-		if (VtxNormalWriter || VtxEdgeCountWriter) { StartParallelLoopForNodes(); }
-
-		StartParallelLoopForNodes();
-
 		return true;
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	{
+		ProjectedCluster->Nodes[Iteration].Project(Cluster, ProjectionSettings);
 	}
 
 	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
@@ -119,6 +122,11 @@ namespace PCGExWriteVtxExtras
 		GetAdjacencyData(Cluster, Node, Adjacency);
 
 		for (UPCGExVtxExtraOperation* Op : (*ExtraOperations)) { Op->ProcessNode(Cluster, Node, Adjacency); }
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		StartParallelLoopForNodes();
 	}
 
 	//////// BATCH
@@ -180,11 +188,11 @@ namespace PCGExWriteVtxExtras
 		return true;
 	}
 
-	void FProcessorBatch::CompleteWork()
+	void FProcessorBatch::Write()
 	{
-		TBatch<FProcessor>::CompleteWork();
+		TBatch<FProcessor>::Write();
+		
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_WRITE)
-
 		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->Write(AsyncManagerPtr); }
 	}
 }

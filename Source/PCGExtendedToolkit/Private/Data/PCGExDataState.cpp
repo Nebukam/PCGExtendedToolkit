@@ -145,7 +145,7 @@ namespace PCGExDataState
 		HighestState[PointIndex] = HState;
 	}
 
-	void TStatesManager::WriteStateNames(const FName AttributeName, const FName DefaultValue, const TArray<int32>& InIndices)
+	void TStatesManager::WriteStateNames(PCGExMT::FTaskManager* AsyncManager, const FName AttributeName, const FName DefaultValue, const TArray<int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<FName>* StateNameWriter = new PCGEx::TFAttributeWriter<FName>(AttributeName, DefaultValue, false);
 		StateNameWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO&>(*PointIO));
@@ -160,11 +160,12 @@ namespace PCGExDataState
 			else { StateNameWriter->Values[i] = DefaultValue; }
 		}
 
+		//PCGEX_ASYNC_WRITE_DELETE(AsyncManager, StateNameWriter)
 		StateNameWriter->Write();
 		PCGEX_DELETE(StateNameWriter)
 	}
 
-	void TStatesManager::WriteStateValues(const FName AttributeName, const int32 DefaultValue, const TArray<int32>& InIndices)
+	void TStatesManager::WriteStateValues(PCGExMT::FTaskManager* AsyncManager, const FName AttributeName, const int32 DefaultValue, const TArray<int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<int32>* StateValueWriter = new PCGEx::TFAttributeWriter<int32>(AttributeName, DefaultValue, false);
 		StateValueWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO&>(*PointIO));
@@ -179,6 +180,7 @@ namespace PCGExDataState
 			else { StateValueWriter->Values[i] = DefaultValue; }
 		}
 
+		//PCGEX_ASYNC_WRITE_DELETE(AsyncManager, StateValueWriter)
 		StateValueWriter->Write();
 		PCGEX_DELETE(StateValueWriter)
 	}

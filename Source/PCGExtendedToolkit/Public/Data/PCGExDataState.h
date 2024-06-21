@@ -93,8 +93,8 @@ namespace PCGExDataState
 
 		virtual void Test(const int32 PointIndex) override;
 
-		void WriteStateNames(FName AttributeName, FName DefaultValue, const TArray<int32>& InIndices);
-		void WriteStateValues(FName AttributeName, int32 DefaultValue, const TArray<int32>& InIndices);
+		void WriteStateNames(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, FName DefaultValue, const TArray<int32>& InIndices);
+		void WriteStateValues(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, int32 DefaultValue, const TArray<int32>& InIndices);
 		void WriteStateIndividualStates(PCGExMT::FTaskManager* AsyncManager, const TArray<int32>& InIndices);
 
 		void WritePrepareForStateAttributes(const FPCGContext* InContext);

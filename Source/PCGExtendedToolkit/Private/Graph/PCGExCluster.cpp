@@ -166,7 +166,7 @@ namespace PCGExCluster
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const PCGExGraph::FIndexedEdge& SortedEdge = Edges[i];
-			
+
 			const int32 StartNodeIndex = *NodeIndexLookup.Find(SortedEdge.Start);
 			const int32 EndNodeIndex = *NodeIndexLookup.Find(SortedEdge.End);
 
@@ -650,15 +650,8 @@ namespace PCGExCluster
 
 	void FClusterProjection::Build()
 	{
-		for (FNodeProjection& PNode
-
-
-		     :
-		     Nodes
-		)
-		{
-			PNode.Project(Cluster, ProjectionSettings);
-		}
+		TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProjection::Build);
+		for (FNodeProjection& PNode : Nodes) { PNode.Project(Cluster, ProjectionSettings); }
 	}
 
 	int32 FClusterProjection::FindNextAdjacentNode(const EPCGExClusterSearchOrientationMode Orient, const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)

@@ -48,118 +48,29 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindNodeStatesElement::Execute);
 
+	// TODO : Need to refactor state system.
+	
 	PCGEX_CONTEXT_AND_SETTINGS(FindNodeStates)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else { Context->SetState(PCGExGraph::State_ReadyForNextEdges); }
-	}
-
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
-	{
-		PCGEX_DELETE(Context->StatesManager)
-		Context->NodeIndices.Empty();
-
-		if (!Context->AdvanceEdges(true))
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
-		}
-
-		if (!Context->CurrentCluster) { return false; }
-
-		Context->CurrentCluster->GetNodePointIndices(Context->NodeIndices);
-		Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
-		Context->StatesManager->RegisterAndCapture<UPCGExNodeStateFactory>(
-			Context, Context->StateFactories, [&](PCGExDataFilter::TFilter* Handler)
+		if (!Context->StartProcessingClusters<PCGExFindNodeState::FProcessorBatch>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExFindNodeState::FProcessorBatch* NewBatch)
 			{
-				PCGExCluster::FNodeStateHandler* NodeStateHandler = static_cast<PCGExCluster::FNodeStateHandler*>(Handler);
-				NodeStateHandler->CaptureCluster(Context, Context->CurrentCluster);
-			});
-
-		if (!Context->StatesManager->bValid)
+				//NewBatch->bRequiresWriteStep = true;
+			},
+			PCGExMT::State_Done))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points could not be used with any graph."));
-			return false;
-		}
-
-		if (Context->StatesManager->bHasPartials)
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points only have partial metadata."));
-		}
-
-		Context->CurrentIO->CreateInKeys();
-
-		if (Context->StatesManager->PrepareForTesting(Context->NodeIndices)) { Context->SetState(PCGExDataFilter::State_PreparingFilters); }
-		else { Context->SetState(PCGExCluster::State_ProcessingCluster); }
-	}
-
-	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
-	{
-		auto PrepareNode = [&](const int32 Index) { Context->StatesManager->PrepareSingle(Index); };
-
-		if (!Context->Process(PrepareNode, Context->CurrentCluster->Nodes.Num())) { return false; }
-
-		Context->StatesManager->PreparationComplete();
-		Context->SetState(PCGExCluster::State_ProcessingCluster);
-	}
-
-	if (Context->IsState(PCGExCluster::State_ProcessingCluster))
-	{
-		auto ProcessNode = [&](const int32 Index) { Context->StatesManager->Test(Context->NodeIndices[Index]); };
-
-		if (!Context->Process(ProcessNode, Context->NodeIndices.Num())) { return false; }
-
-		Context->SetState(PCGExGraph::State_WritingMainState);
-	}
-
-	if (Context->IsState(PCGExGraph::State_WritingMainState))
-	{
-		if (Settings->bWriteStateName)
-		{
-			Context->StatesManager->WriteStateNames(Settings->StateNameAttributeName, Settings->StatelessName, Context->NodeIndices);
-		}
-
-		if (Settings->bWriteStateValue)
-		{
-			Context->StatesManager->WriteStateValues(Settings->StateValueAttributeName, Settings->StatelessValue, Context->NodeIndices);
-		}
-
-		if (Settings->bWriteEachStateIndividually)
-		{
-			Context->StatesManager->WriteStateIndividualStates(Context->GetAsyncManager(), Context->NodeIndices);
-			Context->SetAsyncState(PCGExGraph::State_WritingStatesAttributes);
-		}
-		else
-		{
-			Context->SetAsyncState(PCGExGraph::State_WritingStatesAttributes);
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+			return true;
 		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_WritingStatesAttributes))
-	{
-		PCGEX_ASYNC_WAIT
+	if (!Context->ProcessClusters()) { return false; }
 
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			Context->StatesManager->WritePrepareForStateAttributes(Context);
-		};
-
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
-		{
-			Context->StatesManager->WriteStateAttributes(PointIndex);
-		};
-
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-	}
 
 	if (Context->IsDone())
 	{
@@ -168,6 +79,119 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 	}
 
 	return Context->IsDone();
+}
+
+namespace PCGExFindNodeState
+{
+	FProcessor::~FProcessor()
+	{
+		PCGEX_DELETE(StatesManager)
+	}
+
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindNodeStates)
+
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+
+		Cluster->GetNodePointIndices(NodePointIndices);
+
+		StatesManager = new PCGExDataState::TStatesManager(VtxIO);
+		StatesManager->RegisterAndCapture<UPCGExNodeStateFactory>(
+			Context, TypedContext->StateFactories, [&](PCGExDataFilter::TFilter* Handler)
+			{
+				PCGExCluster::FNodeStateHandler* NodeStateHandler = static_cast<PCGExCluster::FNodeStateHandler*>(Handler);
+				NodeStateHandler->CaptureCluster(Context, Cluster);
+			});
+
+		if (!StatesManager->bValid)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some input points could not be used with any graph."));
+			PCGEX_DELETE(StatesManager)
+			return false;
+		}
+
+		if (StatesManager->bHasPartials)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some input points only have partial metadata."));
+		}
+
+		if (StatesManager->PrepareForTesting(NodePointIndices))
+		{
+			bRequiresPrep = true;
+			for (int i = 0; i < NodePointIndices.Num(); i++) { StatesManager->PrepareSingle(i); }
+			StatesManager->PreparationComplete();
+		}
+
+		StartParallelLoopForNodes();
+
+		return true;
+	}
+
+	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node) { StatesManager->Test(Node.PointIndex); }
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	{
+		StatesManager->WriteStateAttributes(Cluster->Nodes[Iteration].PointIndex);
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindNodeStates)
+
+		if (Settings->bWriteStateName)
+		{
+			StatesManager->WriteStateNames(AsyncManagerPtr, Settings->StateNameAttributeName, Settings->StatelessName, NodePointIndices);
+		}
+
+		if (Settings->bWriteStateValue)
+		{
+			StatesManager->WriteStateValues(AsyncManagerPtr, Settings->StateValueAttributeName, Settings->StatelessValue, NodePointIndices);
+		}
+
+		if (Settings->bWriteEachStateIndividually)
+		{
+			StatesManager->WriteStateIndividualStates(AsyncManagerPtr, NodePointIndices);
+		}
+
+		StatesManager->WritePrepareForStateAttributes(Context);
+		StartParallelLoopForRange(NumNodes);
+	}
+
+	void FProcessor::Write()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindNodeStates)
+	}
+
+	//////// BATCH
+
+	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+		TBatch(InContext, InVtx, InEdges)
+	{
+	}
+
+	FProcessorBatch::~FProcessorBatch()
+	{
+	}
+
+	bool FProcessorBatch::PrepareProcessing()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindNodeStates)
+
+		if (!TBatch::PrepareProcessing()) { return false; }
+
+		return true;
+	}
+
+	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
+	{
+		return true;
+	}
+
+	void FProcessorBatch::Write()
+	{
+		TBatch<FProcessor>::Write();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

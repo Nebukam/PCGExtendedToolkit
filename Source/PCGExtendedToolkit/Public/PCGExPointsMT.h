@@ -46,8 +46,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 	PCGEX_POINTS_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
 
-	PCGEX_POINTS_MT_TASK(FAsyncWrite, { Target->Write(); })
-
 	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessPointRange, {Target->ProcessPoints(Source, TaskIndex, Iterations);})
 
 	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations);})
@@ -383,7 +381,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				for (T* Processor : Processors)
 				{
 					if (Processor->IsTrivial()) { continue; }
-					AsyncManagerPtr->Start<FAsyncWrite<T>>(-1, nullptr, Processor);
+					PCGExMT::Write<T>(AsyncManagerPtr, Processor);
 				}
 
 				StartClosedBatchProcessing();
@@ -436,7 +434,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 	static void WriteBatch(PCGExMT::FTaskManager* Manager, FPointsProcessorBatchBase* Batch)
 	{
-		Manager->Start<FAsyncWrite<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
+		PCGEX_ASYNC_WRITE(Manager, Batch)
 	}
 }
 

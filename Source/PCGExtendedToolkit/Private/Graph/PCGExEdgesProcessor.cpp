@@ -4,6 +4,7 @@
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "Data/PCGExGraphDefinition.h"
+#include "Graph/PCGExClusterMT.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -154,20 +155,16 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 		{
 			if (!IsAsyncWorkComplete()) { return false; }
 
-			if (!bClusterUseGraphBuilder) { AdvanceBatch(); }
+			if (!bDoClusterBatchGraphBuilding) { AdvanceBatch(); }
 			else
 			{
-				CurrentBatch->GraphBuilder->CompileAsync(GetAsyncManager());
+				bClusterBatchInlined = false;
+				for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
+				{
+					Batch->GraphBuilder->CompileAsync(GetAsyncManager());
+				}
 				SetAsyncState(PCGExGraph::State_Compiling);
 			}
-		}
-
-		if (IsState(PCGExGraph::State_Compiling))
-		{
-			if (!IsAsyncWorkComplete()) { return false; }
-
-			CurrentBatch->GraphBuilder->Write(this);
-			AdvanceBatch();
 		}
 	}
 	else
@@ -184,7 +181,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 		{
 			if (!IsAsyncWorkComplete()) { return false; }
 
-			if (!bClusterUseGraphBuilder) { SetState(State_ClusterProcessingDone); }
+			if (!bDoClusterBatchGraphBuilding) { SetState(State_ClusterProcessingDone); }
 			else
 			{
 				for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
@@ -204,7 +201,18 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 				if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(this); }
 			}
 
-			SetState(State_ClusterProcessingDone);
+			if (bDoClusterBatchWritingStep)
+			{
+				WriteBatches(GetAsyncManager(), Batches);
+				SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
+			}
+			else { SetState(State_ClusterProcessingDone); }
+		}
+
+		if (IsState(PCGExClusterMT::MTState_ClusterWriting))
+		{
+			if (!IsAsyncWorkComplete()) { return false; }
+			SetState(TargetState_PointsProcessingDone);
 		}
 	}
 

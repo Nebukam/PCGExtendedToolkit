@@ -281,6 +281,12 @@ namespace PCGExBridgeClusters
 		}
 	}
 
+	void FProcessorBatch::Write()
+	{
+		TBatch<FProcessor>::Write();
+		Merger->Write(AsyncManagerPtr);
+	}
+
 	void FProcessorBatch::ConnectClusters()
 	{
 		TArray<FPCGPoint>& MutableEdges = ConsolidatedEdges->GetOut()->GetMutablePoints();
@@ -299,11 +305,6 @@ namespace PCGExBridgeClusters
 				MutableEdges.Num() - 1, ConsolidatedEdges,
 				this, ValidClusters[Start], ValidClusters[End]);
 		}
-	}
-
-	void FProcessorBatch::Write() const
-	{
-		Merger->Write();
 	}
 
 

@@ -119,12 +119,12 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 	{
 		if (Settings->bWriteStateName)
 		{
-			Context->StatesManager->WriteStateNames(Settings->StateNameAttributeName, Settings->StatelessName, Context->PointIndices);
+			Context->StatesManager->WriteStateNames(Context->GetAsyncManager(), Settings->StateNameAttributeName, Settings->StatelessName, Context->PointIndices);
 		}
 
 		if (Settings->bWriteStateValue)
 		{
-			Context->StatesManager->WriteStateValues(Settings->StateValueAttributeName, Settings->StatelessValue, Context->PointIndices);
+			Context->StatesManager->WriteStateValues(Context->GetAsyncManager(), Settings->StateValueAttributeName, Settings->StatelessValue, Context->PointIndices);
 		}
 
 		if (Settings->bWriteEachStateIndividually)

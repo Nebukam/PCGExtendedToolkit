@@ -20,6 +20,7 @@ public:
 	void Append(const TArray<PCGExData::FPointIO*>& InData);
 	void Merge(PCGExMT::FTaskManager* AsyncManager, bool CleanupInputs = true);
 	void Write();
+	void Write(PCGExMT::FTaskManager* AsyncManager);
 
 	int32 TotalPoints = 0;
 

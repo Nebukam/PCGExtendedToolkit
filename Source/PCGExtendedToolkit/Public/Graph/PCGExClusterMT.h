@@ -15,6 +15,7 @@ namespace PCGExClusterMT
 {
 	PCGEX_ASYNC_STATE(MTState_ClusterProcessing)
 	PCGEX_ASYNC_STATE(MTState_ClusterCompletingWork)
+	PCGEX_ASYNC_STATE(MTState_ClusterWriting)
 
 #pragma region Tasks
 
@@ -66,6 +67,7 @@ namespace PCGExClusterMT
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 		bool bBuildCluster = true;
 		bool bRequiresHeuristics = false;
+		int32 NumNodes = 0;
 
 	public:
 		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
@@ -134,6 +136,7 @@ namespace PCGExClusterMT
 			if (!Cluster->BuildFrom(*EdgesIO, VtxIO->GetIn()->GetPoints(), *EndpointsLookup, ExpectedAdjacency)) { return false; }
 
 			Cluster->RebuildBounds();
+			NumNodes = Cluster->Nodes.Num();
 
 #pragma region Vtx filter data
 
@@ -320,6 +323,10 @@ namespace PCGExClusterMT
 		virtual void CompleteWork()
 		{
 		}
+
+		virtual void Write()
+		{
+		}
 	};
 
 	class FClusterProcessorBatchBase
@@ -337,6 +344,8 @@ namespace PCGExClusterMT
 		bool bRequiresGraphBuilder = false;
 
 	public:
+		bool bRequiresWriteStep = false;
+
 		mutable FRWLock BatchLock;
 
 		FPCGContext* Context = nullptr;
@@ -354,7 +363,7 @@ namespace PCGExClusterMT
 
 		bool bInlineProcessing = false;
 		bool bInlineCompletion = false;
-		
+
 		FClusterProcessorBatchBase(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
 			Context(InContext), VtxIO(InVtx)
 		{
@@ -420,6 +429,10 @@ namespace PCGExClusterMT
 		}
 
 		virtual void CompleteWork()
+		{
+		}
+
+		virtual void Write()
 		{
 		}
 	};
@@ -520,6 +533,25 @@ namespace PCGExClusterMT
 			}
 		}
 
+		virtual void Write() override
+		{
+			CurrentState = PCGExMT::State_Writing;
+			if (bInlineCompletion)
+			{
+				for (T* Processor : Processors) { Processor->Write(); }
+			}
+			else
+			{
+				for (T* Processor : Processors)
+				{
+					if (Processor->IsTrivial()) { continue; }
+					PCGExMT::Write<T>(AsyncManagerPtr, Processor);
+				}
+
+				StartClosedBatchProcessing();
+			}
+		}
+
 		virtual void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations) override
 		{
 			if (CurrentState == PCGExMT::State_Processing)
@@ -529,6 +561,10 @@ namespace PCGExClusterMT
 			else if (CurrentState == PCGExMT::State_Completing)
 			{
 				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->CompleteWork(); }
+			}
+			else if (CurrentState == PCGExMT::State_Writing)
+			{
+				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->Write(); }
 			}
 		}
 
@@ -596,10 +632,17 @@ namespace PCGExClusterMT
 
 	static void CompleteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
 	{
-		for (FClusterProcessorBatchBase* Batch : Batches)
-		{
-			CompleteBatch(Manager, Batch);
-		}
+		for (FClusterProcessorBatchBase* Batch : Batches) { CompleteBatch(Manager, Batch); }
+	}
+
+	static void WriteBatch(PCGExMT::FTaskManager* Manager, FClusterProcessorBatchBase* Batch)
+	{
+		PCGEX_ASYNC_WRITE(Manager, Batch)
+	}
+
+	static void WriteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
+	{
+		for (FClusterProcessorBatchBase* Batch : Batches) { WriteBatch(Manager, Batch); }
 	}
 }
 

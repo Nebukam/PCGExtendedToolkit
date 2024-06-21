@@ -96,7 +96,8 @@ protected:
 	bool bHasValidHeuristics = false;
 
 	PCGExMT::AsyncState State_ClusterProcessingDone;
-	bool bClusterUseGraphBuilder = false;
+	bool bDoClusterBatchGraphBuilding = false;
+	bool bDoClusterBatchWritingStep = false;
 
 	bool bClusterRequiresHeuristics = false;
 	bool bClusterBatchInlined = false;
@@ -116,7 +117,8 @@ protected:
 		State_ClusterProcessingDone = InState;
 
 		bClusterRequiresHeuristics = true;
-		bClusterUseGraphBuilder = false;
+		bDoClusterBatchGraphBuilding = false;
+		bDoClusterBatchWritingStep = false;
 		bBuildEndpointsLookup = false;
 
 		while (AdvancePointsIO(false))
@@ -143,12 +145,17 @@ protected:
 				}
 			}
 
+			if (NewBatch->bRequiresWriteStep)
+			{
+				bDoClusterBatchWritingStep = true;
+			}
+
 			NewBatch->EdgeCollection = MainEdges;
 			if (VtxFiltersData) { NewBatch->SetVtxFilterData(VtxFiltersData); }
 
 			if (NewBatch->RequiresGraphBuilder())
 			{
-				bClusterUseGraphBuilder = true;
+				bDoClusterBatchGraphBuilding = true;
 				NewBatch->GraphBuilderSettings = GraphBuilderSettings;
 			}
 

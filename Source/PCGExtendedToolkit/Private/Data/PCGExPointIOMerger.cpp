@@ -105,6 +105,25 @@ void FPCGExPointIOMerger::Write()
 	}
 }
 
+void FPCGExPointIOMerger::Write(PCGExMT::FTaskManager* AsyncManager)
+{
+	for (const TPair<FName, PCGEx::FAAttributeIO*>& Pair : Writers)
+	{
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>(Identities.Find(Pair.Key)->UnderlyingType), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				if (PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(Pair.Value))
+				{
+					PCGExMT::WriteAndDelete<PCGEx::TFAttributeWriter<T>>(AsyncManager, Writer);
+				}
+			});
+	}
+
+	Writers.Empty();
+	WriterList.Empty();
+}
+
 bool FPCGExAttributeMergeTask::ExecuteTask()
 {
 	const int32 NumPoints = PointIO->GetNum();
