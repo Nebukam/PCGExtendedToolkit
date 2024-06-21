@@ -129,17 +129,6 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FCompoundBlender::Merge(
-		FPCGExAsyncManager* AsyncManager,
-		PCGExData::FPointIO* TargetData,
-		PCGExData::FIdxCompoundList* CompoundList,
-		const FPCGExDistanceSettings& DistSettings)
-	{
-		PrepareMerge(TargetData, CompoundList);
-		FCompoundBlender* Merger = this;
-		AsyncManager->Start<FPCGExCompoundBlendTask>(-1, TargetData, Merger, DistSettings);
-	}
-
 	void FCompoundBlender::MergeSingle(const int32 CompoundIndex, const FPCGExDistanceSettings& DistSettings)
 	{
 		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
@@ -225,18 +214,19 @@ namespace PCGExDataBlending
 		}
 	}
 
-	bool FPCGExCompoundBlendTask::ExecuteTask()
+	void FCompoundBlender::Write(PCGExMT::FTaskManager* AsyncManager)
 	{
-		for (int i = 0; i < Merger->CurrentCompoundList->Compounds.Num(); i++)
+		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
-			InternalStart<FPCGExCompoundedPointBlendTask>(i, PointIO, Merger, DistSettings);
+			PCGMetadataAttribute::CallbackWithRightType(
+				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					if (PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(SrcMap->Writer))
+					{
+						PCGExMT::WriteAndDelete<PCGEx::TFAttributeWriter<T>>(AsyncManager, Writer);
+					}
+				});
 		}
-		return true;
-	}
-
-	bool FPCGExCompoundedPointBlendTask::ExecuteTask()
-	{
-		Merger->MergeSingle(TaskIndex, DistSettings);
-		return true;
 	}
 }

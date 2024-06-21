@@ -76,11 +76,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathTask final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExBlendPathTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+		PCGExMT::FPCGExTask(InPointIO)
 	{
 	}
 

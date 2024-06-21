@@ -3,6 +3,7 @@
 
 #include "Data/Blending/PCGExDataBlending.h"
 
+#include "PCGExGlobalSettings.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
@@ -102,7 +103,8 @@ namespace PCGExDataBlendingTask
 
 		const TArray<FPCGPoint>& SourcePoints = PointIO->GetIn()->GetPoints();
 
-		for (int i = 0; i < CompoundList->Compounds.Num(); i++)
+		const int32 NumCompounds = CompoundList->Compounds.Num();
+		for (int i = 0; i < NumCompounds; i++)
 		{
 			PCGExData::FIdxCompound* Idx = CompoundList->Compounds[i];
 			const PCGEx::FPointRef Target = TargetIO->GetOutPointRef(i);
@@ -124,7 +126,9 @@ namespace PCGExDataBlendingTask
 			MetadataBlender->CompleteBlending(Target, TotalWeight, Idx->CompoundedPoints.Num());
 		}
 
-		MetadataBlender->Write();
+		if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(NumCompounds)) { MetadataBlender->Write(Manager); }
+		else { MetadataBlender->Write(Manager); }
+		
 		PCGEX_DELETE(MetadataBlender);
 
 		if (MetadataSettings)

@@ -104,7 +104,7 @@ namespace PCGExFuseCollinear
 	{
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

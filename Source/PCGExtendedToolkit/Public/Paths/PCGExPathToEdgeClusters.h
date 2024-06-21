@@ -155,7 +155,7 @@ namespace PCGExPathToClusters
 
 		virtual ~FNonFusingProcessor() override;
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 
@@ -176,7 +176,7 @@ namespace PCGExPathToClusters
 
 		virtual ~FFusingProcessor() override;
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 	};
 
 	class FFusingProcessorBatch final : public PCGExPointsMT::TBatch<FFusingProcessor>
@@ -193,7 +193,7 @@ namespace PCGExPathToClusters
 		FFusingProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection);
 		virtual ~FFusingProcessorBatch() override;
 
-		virtual void Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual bool PrepareSingle(FFusingProcessor* PointsProcessor) override;
 		virtual void CompleteWork() override;
 

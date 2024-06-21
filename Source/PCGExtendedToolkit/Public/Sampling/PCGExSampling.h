@@ -37,7 +37,7 @@ PCGEX_DELETE(_NAME##Writer)}
 #define PCGEX_OUTPUT_VALUE_C(_NAME, _INDEX, _VALUE) if(Context->_NAME##Writer){(*Context->_NAME##Writer)[_INDEX] = _VALUE; }
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){(*_NAME##Writer)[_INDEX] = _VALUE; }
 #define PCGEX_OUTPUT_WRITE_C(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->Write();}
-#define PCGEX_OUTPUT_WRITE(_NAME, _TYPE) if(_NAME##Writer){_NAME##Writer->Write();}
+#define PCGEX_OUTPUT_WRITE(_NAME, _TYPE) if(_NAME##Writer){if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(_NAME##Writer->Values.Num())) { _NAME##Writer->Write(); PCGEX_DELETE(_NAME##Writer) }else{   PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, _NAME##Writer) }} // if(_NAME##Writer){_NAME##Writer->Write();}
 #define PCGEX_OUTPUT_ACCESSOR_INIT_C(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndSetNumUninitialized(OutputIO);}
 #define PCGEX_OUTPUT_ACCESSOR_INIT(_NAME, _TYPE) if(_NAME##Writer){_NAME##Writer->BindAndSetNumUninitialized(OutputIO);}
 #define PCGEX_OUTPUT_DELETE(_NAME, _TYPE) PCGEX_DELETE(_NAME##Writer)

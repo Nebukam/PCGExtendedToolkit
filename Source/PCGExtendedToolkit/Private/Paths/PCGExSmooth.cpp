@@ -103,7 +103,7 @@ namespace PCGExSmooth
 		Influence.Empty();
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Smooth)
 
@@ -179,7 +179,8 @@ namespace PCGExSmooth
 
 	void FProcessor::CompleteWork()
 	{
-		MetadataBlender->Write();
+		if (IsTrivial()) { MetadataBlender->Write(); }
+		else { MetadataBlender->Write(AsyncManagerPtr); }
 	}
 }
 #undef LOCTEXT_NAMESPACE

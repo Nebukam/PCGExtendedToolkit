@@ -98,7 +98,7 @@ namespace PCGExBuildDelaunay
 		PCGEX_DELETE(HullMarkPointWriter)
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
 

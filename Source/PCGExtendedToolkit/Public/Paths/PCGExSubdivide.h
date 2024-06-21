@@ -118,7 +118,7 @@ namespace PCGExSubdivide
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		void ProcessPathPoint(int32 Index);
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void CompleteWork() override;

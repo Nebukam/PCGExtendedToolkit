@@ -20,20 +20,20 @@ namespace PCGExClusterMT
 
 #define PCGEX_CLUSTER_MT_TASK(_NAME, _BODY)\
 	template <typename T>\
-	class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
-	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget){} \
+	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
 		T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
 
 #define PCGEX_CLUSTER_MT_TASK_RANGE(_NAME, _BODY)\
 	template <typename T>\
-	class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
-	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InIterations) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget), Iterations(InIterations){} \
+	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InIterations) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations){} \
 		T* Target = nullptr; uint64 Iterations = 0; virtual bool ExecuteTask() override{_BODY return true; }};
 
 #define PCGEX_CLUSTER_MT_TASK_Scope(_NAME, _BODY)\
 	template <typename T>\
-	class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
-	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const TArray<uint64>& InScopes) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget), Scopes(InScopes){} \
+	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const TArray<uint64>& InScopes) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Scopes(InScopes){} \
 	T* Target = nullptr; TArray<uint64> Scopes; virtual bool ExecuteTask() override{_BODY return true; }};
 
 	PCGEX_CLUSTER_MT_TASK(FStartClusterBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
@@ -63,7 +63,7 @@ namespace PCGExClusterMT
 		friend class FClusterProcessorBatchBase;
 
 	protected:
-		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
+		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 		bool bBuildCluster = true;
 		bool bRequiresHeuristics = false;
 
@@ -120,7 +120,7 @@ namespace PCGExClusterMT
 
 		void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager)
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager)
 		{
 			AsyncManagerPtr = AsyncManager;
 
@@ -325,7 +325,7 @@ namespace PCGExClusterMT
 	class FClusterProcessorBatchBase
 	{
 	protected:
-		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
+		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 
 		UPCGExNodeStateFactory* VtxFiltersData = nullptr;
 		UPCGExNodeStateFactory* EdgesFiltersData = nullptr; //TODO
@@ -389,7 +389,7 @@ namespace PCGExClusterMT
 			return true;
 		}
 
-		virtual void Process(FPCGExAsyncManager* AsyncManager)
+		virtual void Process(PCGExMT::FTaskManager* AsyncManager)
 		{
 			AsyncManagerPtr = AsyncManager;
 		}
@@ -456,7 +456,7 @@ namespace PCGExClusterMT
 			return FClusterProcessorBatchBase::PrepareProcessing();
 		}
 
-		virtual void Process(FPCGExAsyncManager* AsyncManager) override
+		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override
 		{
 			FClusterProcessorBatchBase::Process(AsyncManager);
 
@@ -584,17 +584,17 @@ namespace PCGExClusterMT
 		}
 	};
 
-	static void ScheduleBatch(FPCGExAsyncManager* Manager, FClusterProcessorBatchBase* Batch)
+	static void ScheduleBatch(PCGExMT::FTaskManager* Manager, FClusterProcessorBatchBase* Batch)
 	{
 		Manager->Start<FStartClusterBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 
-	static void CompleteBatch(FPCGExAsyncManager* Manager, FClusterProcessorBatchBase* Batch)
+	static void CompleteBatch(PCGExMT::FTaskManager* Manager, FClusterProcessorBatchBase* Batch)
 	{
 		Manager->Start<FStartClusterBatchCompleteWork<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 
-	static void CompleteBatches(FPCGExAsyncManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
+	static void CompleteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
 	{
 		for (FClusterProcessorBatchBase* Batch : Batches)
 		{

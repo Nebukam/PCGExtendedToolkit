@@ -106,7 +106,7 @@ namespace PCGExSubdivide
 		FlagAttribute = nullptr;
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -196,7 +196,7 @@ namespace PCGExSubdivide
 
 	void FProcessor::Write()
 	{
-		Blending->Write();
+		Blending->Write(AsyncManagerPtr);
 	}
 }
 

@@ -217,7 +217,7 @@ namespace PCGExWriteEdgeExtras
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
 

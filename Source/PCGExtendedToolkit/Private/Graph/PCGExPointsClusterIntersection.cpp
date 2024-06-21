@@ -70,7 +70,7 @@ bool FPCGExPointsClusterIntersectionElement::ExecuteInternal(FPCGContext* InCont
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}

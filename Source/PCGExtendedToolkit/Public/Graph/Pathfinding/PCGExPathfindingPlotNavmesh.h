@@ -119,12 +119,12 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPlotNavmeshTask final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPlotNavmeshTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExPlotNavmeshTask(
 		PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+		PCGExMT::FPCGExTask(InPointIO)
 	{
 	}
 

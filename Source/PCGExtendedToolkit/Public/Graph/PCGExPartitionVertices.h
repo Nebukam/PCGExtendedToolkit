@@ -57,13 +57,13 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateVtxPartitionTask final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateVtxPartitionTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExCreateVtxPartitionTask(PCGExData::FPointIO* InPointIO,
 	                             PCGExData::FPointIO* InEdgeIO,
 	                             TMap<int64, int32>* InEndpointsLookup) :
-		FPCGExNonAbandonableTask(InPointIO),
+		PCGExMT::FPCGExTask(InPointIO),
 		EdgeIO(InEdgeIO),
 		EndpointsLookup(InEndpointsLookup)
 	{

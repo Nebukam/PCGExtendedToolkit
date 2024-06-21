@@ -187,10 +187,18 @@ namespace PCGExDataBlending
 		PropertiesBlender->BlendRangeFromTo(*From.Point, *To.Point, View, Weights);
 	}
 
-	void FMetadataBlender::Write(const bool bFlush)
+	void FMetadataBlender::Write()
 	{
 		for (FDataBlendingOperationBase* Op : Attributes) { Op->Write(); }
-		if (bFlush) { Flush(); }
+		Flush();
+	}
+
+	void FMetadataBlender::Write(PCGExMT::FTaskManager* AsyncManager)
+	{
+		for (FDataBlendingOperationBase* Op : Attributes) { PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Op) }
+		Attributes.Empty();
+
+		Flush();
 	}
 
 	void FMetadataBlender::Write(const TArrayView<int32> InIndices, const bool bFlush)

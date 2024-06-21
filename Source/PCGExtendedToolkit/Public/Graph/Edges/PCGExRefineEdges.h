@@ -86,14 +86,14 @@ protected:
 
 namespace PCGExRefineEdges
 {
-	class PCGEXTENDEDTOOLKIT_API FRefineTask final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FRefineTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FRefineTask(PCGExData::FPointIO* InPointIO,
 		            PCGExCluster::FCluster* InCluster,
 		            UPCGExEdgeRefineOperation* InRefinement,
 		            PCGExHeuristics::THeuristicsHandler* InHeuristicsHandler) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			Cluster(InCluster),
 			Refinement(InRefinement),
 			HeuristicsHandler(InHeuristicsHandler)
@@ -118,7 +118,7 @@ namespace PCGExRefineEdges
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 
 		UPCGExEdgeRefineOperation* Refinement = nullptr;

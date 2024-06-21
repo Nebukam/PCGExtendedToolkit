@@ -4,8 +4,16 @@
 #pragma once
 
 #include "PCGContext.h"
+#include "PCGExMacros.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGAsync.h"
+
+#pragma region MT MACROS
+
+#define PCGEX_ASYNC_WRITE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::Write(_MANAGER, _TARGET); }
+#define PCGEX_ASYNC_WRITE_DELETE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::WriteAndDelete(_MANAGER, _TARGET); _TARGET = nullptr; }
+
+#pragma endregion
 
 namespace PCGExMT
 {
@@ -20,7 +28,6 @@ namespace PCGExMT
 	constexpr int32 GAsyncLoop_M = 256;
 	constexpr int32 GAsyncLoop_L = 512;
 	constexpr int32 GAsyncLoop_XL = 1024;
-
 
 	using AsyncState = uint64;
 
@@ -37,53 +44,10 @@ namespace PCGExMT
 	PCGEX_ASYNC_STATE(State_Processing)
 	PCGEX_ASYNC_STATE(State_Completing)
 	PCGEX_ASYNC_STATE(State_Writing)
-
-	struct PCGEXTENDEDTOOLKIT_API FChunkedLoop
-	{
-		FChunkedLoop()
-		{
-		}
-
-		int32 NumIterations = -1;
-		int32 ChunkSize = 32;
-
-		int32 CurrentIndex = -1;
-
-		template <class InitializeFunc, class LoopBodyFunc>
-		bool Execute(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody)
-		{
-			if (CurrentIndex == -1)
-			{
-				Initialize();
-				CurrentIndex = 0;
-			}
-			return Execute(LoopBody);
-		}
-
-		template <class LoopBodyFunc>
-		bool Execute(LoopBodyFunc&& LoopBody)
-		{
-			if (CurrentIndex == -1) { CurrentIndex = 0; }
-			const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
-			if (ChunkNumIterations > 0)
-			{
-				for (int i = 0; i < ChunkNumIterations; i++) { LoopBody(CurrentIndex + i); }
-				CurrentIndex += ChunkNumIterations;
-			}
-			if (CurrentIndex >= NumIterations)
-			{
-				CurrentIndex = -1;
-				return true;
-			}
-			return false;
-		}
-
-	protected:
-		int32 GetCurrentChunkSize() const
-		{
-			return FMath::Min(ChunkSize, NumIterations - CurrentIndex);
-		}
-	};
+	
+	PCGEX_ASYNC_STATE(State_CompoundWriting)
+	PCGEX_ASYNC_STATE(State_MetaWriting)
+	PCGEX_ASYNC_STATE(State_MetaWriting2)
 
 	struct PCGEXTENDEDTOOLKIT_API FAsyncParallelLoop
 	{
@@ -167,267 +131,200 @@ namespace PCGExMT
 		}
 	};
 
-	/**
-	 * 
-	 * @tparam LoopBodyFunc 
-	 * @param Context The context containing the AsyncState
-	 * @param NumIterations The number of calls that will be done to the provided function, also an upper bound on the number of data generated.
-	 * @param Initialize Called once when the processing starts
-	 * @param LoopBody Signature: bool(int32 ReadIndex, int32 WriteIndex).
-	 * @param ChunkSize Size of the chunks to cut the input data with
-	 * @param bForceSync
-	 * @return 
-	 */
-	static bool ParallelForLoop
-		(
-		FPCGContext* Context,
-		const int32 NumIterations,
-		TFunction<void()>&& Initialize,
-		TFunction<void(int32)>&& LoopBody,
-		const int32 ChunkSize = 32,
-		const bool bForceSync = false)
+	class FPCGExTask;
+
+	class PCGEXTENDEDTOOLKIT_API FTaskManager
 	{
-		if (bForceSync)
-		{
-			Initialize();
-			for (int i = 0; i < NumIterations; i++) { LoopBody(i); }
-			return true;
-		}
+		friend class FPCGExTask;
 
-		auto InnerBodyLoop = [&](const int32 ReadIndex, int32 WriteIndex)
-		{
-			LoopBody(ReadIndex);
-			return true;
-		};
-		return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumIterations, Initialize, InnerBodyLoop, true, ChunkSize);
-	}
+	public:
+		~FTaskManager();
 
-	static bool ParallelForLoop
-		(
-		FPCGContext* Context,
-		const int32 NumIterations,
-		TFunction<void(int32)>&& LoopBody,
-		const int32 ChunkSize = 32,
-		const bool bForceSync = false)
-	{
-		if (bForceSync)
-		{
-			for (int i = 0; i < NumIterations; i++) { LoopBody(i); }
-			return true;
-		}
+		mutable FRWLock ManagerLock;
+		FPCGContext* Context;
+		bool bStopped = false;
+		bool bForceSync = false;
 
-		auto InnerBodyLoop = [&](const int32 ReadIndex, int32 WriteIndex)
+		template <typename T, typename... Args>
+		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			LoopBody(ReadIndex);
-			return true;
-		};
-		return FPCGAsync::AsyncProcessingOneToOneEx(
-			&(Context->AsyncState), NumIterations, []()
 			{
-			}, InnerBodyLoop, true, ChunkSize);
-	}
-}
+				FReadScopeLock ReadScopeLock(ManagerLock);
+				if (bStopped || bFlushing) { return; }
+			}
 
-class FPCGExNonAbandonableTask;
-
-class PCGEXTENDEDTOOLKIT_API FPCGExAsyncManager
-{
-	friend class FPCGExNonAbandonableTask;
-
-public:
-	~FPCGExAsyncManager();
-
-	mutable FRWLock ManagerLock;
-	FPCGContext* Context;
-	bool bStopped = false;
-	bool bForceSync = false;
-
-	template <typename T, typename... Args>
-	void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
-	{
-		{
-			FReadScopeLock ReadScopeLock(ManagerLock);
-			if (bStopped || bFlushing) { return; }
+			if (bForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
+			else { StartBackgroundTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 		}
 
-		if (bForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
-		else { StartBackgroundTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
-	}
-
-	template <typename T, typename... Args>
-	void StartSynchronous(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
-	{
+		template <typename T, typename... Args>
+		void StartSynchronous(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			FReadScopeLock ReadScopeLock(ManagerLock);
-			if (bStopped || bFlushing) { return; }
+			{
+				FReadScopeLock ReadScopeLock(ManagerLock);
+				if (bStopped || bFlushing) { return; }
+			}
+
+			StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
 		}
 
-		StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
-	}
-
-	template <typename T>
-	void StartBackgroundTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
-	{
+		template <typename T>
+		void StartBackgroundTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
-			FWriteScopeLock WriteLock(ManagerLock);
-			if (bStopped || bFlushing) { return; }
-			NumStarted++;
-			QueuedTasks.Add(AsyncTask);
+			{
+				FWriteScopeLock WriteLock(ManagerLock);
+				if (bStopped || bFlushing) { return; }
+				NumStarted++;
+				QueuedTasks.Add(AsyncTask);
+			}
+
+			T& Task = AsyncTask->GetTask();
+			Task.TaskPtr = AsyncTask;
+			Task.Manager = this;
+			Task.TaskIndex = TaskIndex;
+
+			AsyncTask->StartBackgroundTask();
 		}
 
-		T& Task = AsyncTask->GetTask();
-		Task.TaskPtr = AsyncTask;
-		Task.Manager = this;
-		Task.TaskIndex = TaskIndex;
-
-		AsyncTask->StartBackgroundTask();
-	}
-
-	template <typename T>
-	void StartSynchronousTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
-	{
+		template <typename T>
+		void StartSynchronousTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
-			FReadScopeLock ReadLock(ManagerLock);
-			if (bStopped || bFlushing) { return; }
+			{
+				FReadScopeLock ReadLock(ManagerLock);
+				if (bStopped || bFlushing) { return; }
+			}
+
+			T& Task = AsyncTask->GetTask();
+			Task.TaskPtr = AsyncTask;
+			Task.Manager = this;
+			Task.TaskIndex = TaskIndex;
+			Task.bIsAsync = false;
+
+			Task.ExecuteTask();
+			delete AsyncTask;
 		}
 
-		T& Task = AsyncTask->GetTask();
-		Task.TaskPtr = AsyncTask;
-		Task.Manager = this;
-		Task.TaskIndex = TaskIndex;
-		Task.bIsAsync = false;
 
-		Task.ExecuteTask();
-		delete AsyncTask;
-	}
+		void Reserve(const int32 NumTasks) { QueuedTasks.Reserve(NumTasks); }
 
+		void OnAsyncTaskExecutionComplete(PCGExMT::FPCGExTask* AsyncTask, bool bSuccess);
+		bool IsAsyncWorkComplete() const;
 
-	void Reserve(const int32 NumTasks) { QueuedTasks.Reserve(NumTasks); }
+		void Reset();
 
-	void OnAsyncTaskExecutionComplete(FPCGExNonAbandonableTask* AsyncTask, bool bSuccess);
-	bool IsAsyncWorkComplete() const;
+		template <typename T>
+		T* GetContext() { return static_cast<T*>(Context); }
 
-	void Reset();
+	protected:
+		bool bFlushing = false;
+		int32 NumStarted = 0;
+		int32 NumCompleted = 0;
+		TSet<FAsyncTaskBase*> QueuedTasks;
+	};
 
-	template <typename T>
-	T* GetContext() { return static_cast<T*>(Context); }
+	class PCGEXTENDEDTOOLKIT_API PCGExMT::FPCGExTask : public FNonAbandonableTask
+	{
+		friend class PCGExMT::FTaskManager;
 
-protected:
-	bool bFlushing = false;
-	int32 NumStarted = 0;
-	int32 NumCompleted = 0;
-	TSet<FAsyncTaskBase*> QueuedTasks;
-};
+	protected:
+		bool bIsAsync = true;
 
-class PCGEXTENDEDTOOLKIT_API FPCGExNonAbandonableTask : public FNonAbandonableTask
-{
-	friend class FPCGExAsyncManager;
-
-protected:
-	bool bIsAsync = true;
-
-public:
-	virtual ~FPCGExNonAbandonableTask() = default;
-	FPCGExAsyncManager* Manager = nullptr;
-	int32 TaskIndex = -1;
-	FAsyncTaskBase* TaskPtr = nullptr;
-	PCGExData::FPointIO* PointIO = nullptr;
+	public:
+		virtual ~FPCGExTask() = default;
+		PCGExMT::FTaskManager* Manager = nullptr;
+		int32 TaskIndex = -1;
+		FAsyncTaskBase* TaskPtr = nullptr;
+		PCGExData::FPointIO* PointIO = nullptr;
 
 #define PCGEX_ASYNC_CHECKPOINT_VOID  if (!Checkpoint()) { return; }
 #define PCGEX_ASYNC_CHECKPOINT  if (!Checkpoint()) { return false; }
 
-	FPCGExNonAbandonableTask(PCGExData::FPointIO* InPointIO) : PointIO(InPointIO)
-	{
-	}
-
-	FORCEINLINE TStatId GetStatId() const
-	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT(FPCGExAsyncTask, STATGROUP_ThreadPoolAsyncTasks);
-	}
-
-	void DoWork()
-	{
-		if (bWorkDone) { return; }
-		PCGEX_ASYNC_CHECKPOINT_VOID
-		bWorkDone = true;
-		Manager->OnAsyncTaskExecutionComplete(this, ExecuteTask());
-	}
-
-	virtual bool ExecuteTask() = 0;
-
-protected:
-	bool bWorkDone = false;
-	bool Checkpoint() const { return !(!Manager || Manager->bStopped || Manager->bFlushing); }
-
-	template <typename T, typename... Args>
-	void InternalStart(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
-	{
-		PCGEX_ASYNC_CHECKPOINT_VOID
-		if (!bIsAsync) { Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...); }
-		else { Manager->Start<T>(TaskIndex, InPointsIO, args...); }
-	}
-
-	template <typename T, typename... Args>
-	void InternalStartSync(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
-	{
-		PCGEX_ASYNC_CHECKPOINT_VOID
-		Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...);
-	}
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExLoopChunkTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExLoopChunkTask(PCGExData::FPointIO* InPointIO,
-	                    const int32 InNumIterations) :
-		FPCGExNonAbandonableTask(InPointIO),
-		NumIterations(InNumIterations)
-	{
-	}
-
-	int32 NumIterations = 0;
-
-	virtual bool ExecuteTask() override
-	{
-		for (int i = 0; i < NumIterations; i++) { LoopBody(TaskIndex + i); }
-		return true;
-	}
-
-	virtual void LoopBody(const int32 Iteration) = 0;
-};
-
-template <typename T>
-class PCGEXTENDEDTOOLKIT_API FPCGExParallelLoopTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExParallelLoopTask(PCGExData::FPointIO* InPointIO,
-	                       const int32 InNumIterations,
-	                       const int32 InChunkSize) :
-		FPCGExNonAbandonableTask(InPointIO),
-		NumIterations(InNumIterations),
-		ChunkSize(InChunkSize)
-	{
-	}
-
-	int32 NumIterations = 0;
-	int32 ChunkSize = 0;
-
-	virtual bool ExecuteTask() override
-	{
-		if (!LoopInit()) { return false; }
-		const int32 LoopCount = FMath::Max(NumIterations / ChunkSize, 1);
-		int32 StartIndex = 0;
-
-		for (int i = 0; i < LoopCount; i++)
+		PCGExMT::FPCGExTask(PCGExData::FPointIO* InPointIO) : PointIO(InPointIO)
 		{
-			const int32 LoopNumIterations = FMath::Min(NumIterations, FMath::Min(ChunkSize, NumIterations - (ChunkSize * i)));
-			if (LoopNumIterations == 0) { break; }
-			InternalStart<T>(StartIndex, PointIO, LoopNumIterations);
-			StartIndex += ChunkSize;
 		}
 
-		return true;
-	}
+		FORCEINLINE TStatId GetStatId() const
+		{
+			RETURN_QUICK_DECLARE_CYCLE_STAT(FPCGExAsyncTask, STATGROUP_ThreadPoolAsyncTasks);
+		}
 
-	virtual bool LoopInit() { return true; }
-};
+		void DoWork()
+		{
+			if (bWorkDone) { return; }
+			PCGEX_ASYNC_CHECKPOINT_VOID
+			bWorkDone = true;
+			Manager->OnAsyncTaskExecutionComplete(this, ExecuteTask());
+		}
+
+		virtual bool ExecuteTask() = 0;
+
+	protected:
+		bool bWorkDone = false;
+		bool Checkpoint() const { return !(!Manager || Manager->bStopped || Manager->bFlushing); }
+
+		template <typename T, typename... Args>
+		void InternalStart(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+		{
+			PCGEX_ASYNC_CHECKPOINT_VOID
+			if (!bIsAsync) { Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...); }
+			else { Manager->Start<T>(TaskIndex, InPointsIO, args...); }
+		}
+
+		template <typename T, typename... Args>
+		void InternalStartSync(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+		{
+			PCGEX_ASYNC_CHECKPOINT_VOID
+			Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...);
+		}
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FWriteTask final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FWriteTask(PCGExData::FPointIO* InPointIO,
+		           T* InOperation)
+			: PCGExMT::FPCGExTask(InPointIO),
+			  Operation(InOperation)
+
+		{
+		}
+
+		T* Operation = nullptr;
+
+		virtual bool ExecuteTask() override
+		{
+			Operation->Write();
+			return false;
+		}
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FWriteAndDeleteTask final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FWriteAndDeleteTask(PCGExData::FPointIO* InPointIO,
+		                    T* InOperation)
+			: PCGExMT::FPCGExTask(InPointIO),
+			  Operation(InOperation)
+
+		{
+		}
+
+		T* Operation = nullptr;
+
+		virtual bool ExecuteTask() override
+		{
+			Operation->Write();
+			PCGEX_DELETE(Operation)
+			return false;
+		}
+	};
+
+	template <typename T>
+	static void Write(PCGExMT::FTaskManager* AsyncManager, T* Operation) { AsyncManager->Start<FWriteTask<T>>(-1, nullptr, Operation); }
+
+	template <typename T>
+	static void WriteAndDelete(PCGExMT::FTaskManager* AsyncManager, T* Operation) { AsyncManager->Start<FWriteAndDeleteTask<T>>(-1, nullptr, Operation); }
+	
+}

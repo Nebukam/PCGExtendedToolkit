@@ -1,7 +1,6 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "PCGExOperation.h"
 #include "PCGParamData.h"
 
@@ -54,7 +53,7 @@ void UPCGExOperation::Write(const uint64 Scope)
 {
 }
 
-void UPCGExOperation::Write(FPCGExAsyncManager* AsyncManager)
+void UPCGExOperation::Write(PCGExMT::FTaskManager* AsyncManager)
 {
 }
 

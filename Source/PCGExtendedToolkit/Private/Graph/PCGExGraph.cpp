@@ -238,7 +238,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraphBuilder::CompileAsync(FPCGExAsyncManager* AsyncManager, FGraphMetadataSettings* MetadataSettings)
+	void FGraphBuilder::CompileAsync(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataSettings* MetadataSettings)
 	{
 		if (Graph->Nodes.Num() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 		{
@@ -251,7 +251,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraphBuilder::Compile(FPCGExAsyncManager* AsyncManager, FGraphMetadataSettings* MetadataSettings)
+	void FGraphBuilder::Compile(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataSettings* MetadataSettings)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraphBuilder::Compile);
 

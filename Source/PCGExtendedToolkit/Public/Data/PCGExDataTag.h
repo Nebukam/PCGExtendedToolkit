@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
+#include "PCGExMacros.h"
+
 #include "Kismet/KismetStringLibrary.h"
 
 namespace PCGExData

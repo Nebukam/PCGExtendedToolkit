@@ -83,7 +83,7 @@ namespace PCGExSampleNeighbors
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
 		virtual void CompleteWork() override;
 	};

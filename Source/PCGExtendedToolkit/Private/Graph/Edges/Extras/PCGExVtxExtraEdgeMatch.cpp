@@ -52,7 +52,7 @@ void UPCGExVtxExtraEdgeMatch::Write()
 	Descriptor.MatchingEdge.Write();
 }
 
-void UPCGExVtxExtraEdgeMatch::Write(FPCGExAsyncManager* AsyncManager)
+void UPCGExVtxExtraEdgeMatch::Write(PCGExMT::FTaskManager* AsyncManager)
 {
 	Super::Write(AsyncManager);
 	Descriptor.MatchingEdge.Write(AsyncManager);

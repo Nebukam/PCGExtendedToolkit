@@ -75,7 +75,7 @@ namespace PCGExPruneEdges
 		EdgeLengths.Empty();
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_SETTINGS(PruneEdgesByLength)
 

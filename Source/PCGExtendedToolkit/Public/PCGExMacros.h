@@ -6,6 +6,119 @@
 #ifndef PCGEX_MACROS
 #define PCGEX_MACROS
 
+#pragma region PCGEX MACROS
+
+#define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
+#define FSTRING(_TEXT) FString(_TEXT)
+
+#define PCGEX_DELETE(_VALUE) if(_VALUE){ delete _VALUE; _VALUE = nullptr; }
+#define PCGEX_DELETE_UOBJECT(_VALUE) if(_VALUE){ if (_VALUE->IsRooted()){_VALUE->RemoveFromRoot();} _VALUE->MarkAsGarbage(); _VALUE = nullptr; } // ConditionalBeginDestroy
+#define PCGEX_DELETE_OPERATION(_VALUE) if(_VALUE){ _VALUE->Cleanup(); PCGEX_DELETE_UOBJECT(_VALUE) _VALUE = nullptr; } // ConditionalBeginDestroy
+#define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
+#define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
+#define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
+#define PCGEX_TRIM(_VALUE) _VALUE.SetNum(_VALUE.Num());
+
+#define PCGEX_FOREACH_XYZ(MACRO)\
+MACRO(X)\
+MACRO(Y)\
+MACRO(Z)
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
+enum class EPCGPinStatus : uint8
+{
+	Normal = 0,
+	Required,
+	Advanced
+};
+#endif
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
+#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
+MACRO(bool, Boolean, __VA_ARGS__)       \
+MACRO(int32, Integer32, __VA_ARGS__)      \
+MACRO(int64, Integer64, __VA_ARGS__)      \
+MACRO(float, Float, __VA_ARGS__)      \
+MACRO(double, Double, __VA_ARGS__)     \
+MACRO(FVector2D, Vector2, __VA_ARGS__)  \
+MACRO(FVector, Vector, __VA_ARGS__)    \
+MACRO(FVector4, Vector4, __VA_ARGS__)   \
+MACRO(FQuat, Quaternion, __VA_ARGS__)      \
+MACRO(FRotator, Rotator, __VA_ARGS__)   \
+MACRO(FTransform, Transform, __VA_ARGS__) \
+MACRO(FString, String, __VA_ARGS__)    \
+MACRO(FName, Name, __VA_ARGS__)
+#else
+#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
+MACRO(bool, Boolean, __VA_ARGS__)       \
+MACRO(int32, Integer32, __VA_ARGS__)      \
+MACRO(int64, Integer64, __VA_ARGS__)      \
+MACRO(float, Float, __VA_ARGS__)      \
+MACRO(double, Double, __VA_ARGS__)     \
+MACRO(FVector2D, Vector2, __VA_ARGS__)  \
+MACRO(FVector, Vector, __VA_ARGS__)    \
+MACRO(FVector4, Vector4, __VA_ARGS__)   \
+MACRO(FQuat, Quaternion, __VA_ARGS__)      \
+MACRO(FRotator, Rotator, __VA_ARGS__)   \
+MACRO(FTransform, Transform, __VA_ARGS__) \
+MACRO(FString, String, __VA_ARGS__)    \
+MACRO(FName, Name, __VA_ARGS__)\
+MACRO(FSoftObjectPath, SoftObjectPath, __VA_ARGS__)\
+MACRO(FSoftClassPath, SoftClassPath, __VA_ARGS__)
+#endif
+
+/**
+ * Enum, Point.[Getter]
+ * @param MACRO 
+ */
+#define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
+MACRO(EPCGPointProperties::Density, Density) \
+MACRO(EPCGPointProperties::BoundsMin, BoundsMin) \
+MACRO(EPCGPointProperties::BoundsMax, BoundsMax) \
+MACRO(EPCGPointProperties::Extents, GetExtents()) \
+MACRO(EPCGPointProperties::Color, Color) \
+MACRO(EPCGPointProperties::Position, Transform.GetLocation()) \
+MACRO(EPCGPointProperties::Rotation, Transform.Rotator()) \
+MACRO(EPCGPointProperties::Scale, Transform.GetScale3D()) \
+MACRO(EPCGPointProperties::Transform, Transform) \
+MACRO(EPCGPointProperties::Steepness, Steepness) \
+MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter()) \
+MACRO(EPCGPointProperties::Seed, Seed)
+
+#define PCGEX_FOREACH_POINTPROPERTY_LEAN(MACRO)\
+MACRO(Density) \
+MACRO(BoundsMin) \
+MACRO(BoundsMax) \
+MACRO(Color) \
+MACRO(Position) \
+MACRO(Rotation) \
+MACRO(Scale) \
+MACRO(Steepness) \
+MACRO(Seed)
+
+/**
+ * Name
+ * @param MACRO 
+ */
+#define PCGEX_FOREACH_GETSET_POINTPROPERTY(MACRO)\
+MACRO(Density) \
+MACRO(BoundsMin) \
+MACRO(BoundsMax) \
+MACRO(Color) \
+MACRO(Transform) \
+MACRO(Steepness) \
+MACRO(Seed)
+
+#define PCGEX_FOREACH_POINTEXTRAPROPERTY(MACRO)\
+MACRO(EPCGExtraProperties::Index, MetadataEntry)
+
+#define PCGEX_LOAD_SOFTOBJECT(_TYPE, _SOURCE, _TARGET, _DEFAULT)\
+if (!_SOURCE.ToSoftObjectPath().IsValid()) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }\
+else { _TARGET = _SOURCE.LoadSynchronous(); }\
+if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
+
+#pragma endregion
+
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ return bCacheResult ? FName(FString("* ")+GetDefaultNodeTitle().ToString()) : FName(GetDefaultNodeTitle().ToString()); }\
@@ -49,7 +162,7 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 
 #define PCGEX_TYPED_CONTEXT_AND_SETTINGS(_NAME) FPCGEx##_NAME##Context* TypedContext = GetContext<FPCGEx##_NAME##Context>(); const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 
-#define PCGEX_WAIT_ASYNC if (!Context->IsAsyncWorkComplete()) {return false;}
+#define PCGEX_ASYNC_WAIT if (!Context->IsAsyncWorkComplete()) {return false;}
 
 #if WITH_EDITOR
 #define PCGEX_PIN_TOOLTIP(_TOOLTIP) Pin.Tooltip = FTEXT(_TOOLTIP);

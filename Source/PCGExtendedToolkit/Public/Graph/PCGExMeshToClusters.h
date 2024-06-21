@@ -142,13 +142,13 @@ protected:
 
 namespace PCGExMeshToCluster
 {
-	class PCGEXTENDEDTOOLKIT_API FExtractMeshAndBuildGraph final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FExtractMeshAndBuildGraph(
 			PCGExData::FPointIO* InPointIO,
 			PCGExGeo::FGeoStaticMesh* InMesh) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			Mesh(InMesh)
 		{
 		}

@@ -83,7 +83,7 @@ namespace PCGExCherryPickPoints
 		{
 		}
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 }

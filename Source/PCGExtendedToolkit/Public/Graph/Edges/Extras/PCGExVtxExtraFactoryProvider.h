@@ -20,27 +20,6 @@ namespace PCGExVtxExtra
 {
 	const FName SourceExtrasLabel = TEXT("Extras");
 	const FName OutputExtraLabel = TEXT("Extra");
-
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FWriteOpTask final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FWriteOpTask(PCGExData::FPointIO* InPointIO,
-		            T* InOperation)
-			: FPCGExNonAbandonableTask(InPointIO),
-			  Operation(InOperation)
-
-		{
-		}
-
-		T* Operation = nullptr;
-
-		virtual bool ExecuteTask() override
-		{
-			Operation->Write();
-			return false;
-		}
-	};
 }
 
 USTRUCT(BlueprintType)
@@ -121,12 +100,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 		if (LengthWriter) { LengthWriter->Write(); }
 	}
 
-	virtual void Write(FPCGExAsyncManager* AsyncManager) const
+	virtual void Write(PCGExMT::FTaskManager* AsyncManager)
 	{
-		if (DirWriter) { AsyncManager->Start<PCGExVtxExtra::FWriteOpTask<PCGEx::TFAttributeWriter<FVector>>>(-1, nullptr, DirWriter ); }
-		if (LengthWriter) { AsyncManager->Start<PCGExVtxExtra::FWriteOpTask<PCGEx::TFAttributeWriter<double>>>(-1, nullptr, LengthWriter ); }
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, DirWriter)
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, LengthWriter)
 	}
-	
+
 	virtual void Cleanup()
 	{
 		PCGEX_DELETE(DirWriter)
@@ -239,13 +218,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 		if (VIdxWriter) { VIdxWriter->Write(); }
 		if (NCountWriter) { NCountWriter->Write(); }
 	}
-	
-	virtual void Write(FPCGExAsyncManager* AsyncManager) const override
+
+	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override
 	{
 		FPCGExSimpleEdgeOutputSettings::Write(AsyncManager);
-		if (EIdxWriter) { AsyncManager->Start<PCGExVtxExtra::FWriteOpTask<PCGEx::TFAttributeWriter<int32>>>(-1, nullptr, EIdxWriter ); }
-		if (VIdxWriter) { AsyncManager->Start<PCGExVtxExtra::FWriteOpTask<PCGEx::TFAttributeWriter<int32>>>(-1, nullptr, VIdxWriter ); }
-		if (NCountWriter) { AsyncManager->Start<PCGExVtxExtra::FWriteOpTask<PCGEx::TFAttributeWriter<int32>>>(-1, nullptr, NCountWriter ); }
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, EIdxWriter)
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, VIdxWriter)
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, NCountWriter)
 	}
 
 	virtual void Cleanup() override
@@ -255,7 +234,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 		PCGEX_DELETE(VIdxWriter)
 		PCGEX_DELETE(NCountWriter)
 	}
-	
 };
 
 /**
@@ -275,7 +253,7 @@ public:
 	FORCEINLINE virtual void ProcessNode(const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
 
 	virtual void Write() override;
-	virtual void Write(FPCGExAsyncManager* AsyncManager) override;
+	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override;
 
 	virtual void Cleanup() override;
 

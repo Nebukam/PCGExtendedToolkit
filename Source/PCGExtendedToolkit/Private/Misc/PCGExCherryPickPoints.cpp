@@ -96,7 +96,7 @@ bool FPCGExCherryPickPointsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExCherryPickPoints
 {
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CherryPickPoints)
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

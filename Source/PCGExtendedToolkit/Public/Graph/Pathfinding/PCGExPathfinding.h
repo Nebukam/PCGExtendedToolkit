@@ -167,12 +167,12 @@ namespace PCGExPathfinding
 	}
 }
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExPathfindingTask(PCGExData::FPointIO* InPointIO,
 	                      const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
-		FPCGExNonAbandonableTask(InPointIO),
+		PCGExMT::FPCGExTask(InPointIO),
 		Queries(InQueries)
 	{
 	}

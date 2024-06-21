@@ -50,11 +50,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderTask final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExReversePointOrderTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+		PCGExMT::FPCGExTask(InPointIO)
 	{
 	}
 

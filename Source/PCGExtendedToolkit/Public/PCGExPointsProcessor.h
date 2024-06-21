@@ -167,7 +167,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	virtual void Done();
 	virtual void ExecuteEnd() override;
 
-	FPCGExAsyncManager* GetAsyncManager();
+	PCGExMT::FTaskManager* GetAsyncManager();
 
 	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
 	void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true);
@@ -279,7 +279,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 
 protected:
 	PCGExMT::FAsyncParallelLoop AsyncLoop;
-	FPCGExAsyncManager* AsyncManager = nullptr;
+	PCGExMT::FTaskManager* AsyncManager = nullptr;
 
 	PCGEx::FPointLoop ChunkedPointLoop;
 	PCGEx::FAsyncPointLoop AsyncPointLoop;

@@ -76,7 +76,7 @@ namespace PCGExFusePoints
 		PCGEX_DELETE(CompoundPointsBlender)
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FusePoints)
 
@@ -138,7 +138,7 @@ namespace PCGExFusePoints
 
 	void FProcessor::Write()
 	{
-		CompoundPointsBlender->Write();
+		CompoundPointsBlender->Write(AsyncManagerPtr);
 	}
 }
 

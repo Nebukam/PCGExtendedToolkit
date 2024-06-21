@@ -91,7 +91,7 @@ void UPCGExVtxExtraSpecialEdges::Write()
 	Descriptor.AverageEdge.Write();
 }
 
-void UPCGExVtxExtraSpecialEdges::Write(FPCGExAsyncManager* AsyncManager)
+void UPCGExVtxExtraSpecialEdges::Write(PCGExMT::FTaskManager* AsyncManager)
 {
 	Super::Write(AsyncManager);
 	Descriptor.ShortestEdge.Write(AsyncManager);

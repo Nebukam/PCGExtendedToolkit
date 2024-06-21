@@ -49,7 +49,8 @@ namespace PCGExDataBlending
 
 		void BlendRangeFromTo(const PCGEx::FPointRef& From, const PCGEx::FPointRef& To, const int32 StartIndex, const TArrayView<double>& Weights);
 
-		void Write(bool bFlush = true);
+		void Write();
+		void Write(PCGExMT::FTaskManager* AsyncManager);
 		void Write(TArrayView<int32> InIndices, bool bFlush = true);
 
 		void Flush();

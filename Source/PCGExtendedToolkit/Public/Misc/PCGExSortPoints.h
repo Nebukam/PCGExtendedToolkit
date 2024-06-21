@@ -123,11 +123,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointIO final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExSortPointIO final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExSortPointIO(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+		PCGExMT::FPCGExTask(InPointIO)
 	{
 	}
 

@@ -85,7 +85,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 		Context->SetState(PCGExDiscardByOverlap::State_InitialOverlap);
 	}
 
@@ -144,7 +144,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExDiscardByOverlap::State_PreciseOverlap))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		// Remove non-overlapping data
 		for (int i = 0; i < Context->IOBounds.Num(); i++)

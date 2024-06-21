@@ -97,7 +97,7 @@ namespace PCGExOffsetPath
 		Normals.Empty();
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(OffsetPath)
 

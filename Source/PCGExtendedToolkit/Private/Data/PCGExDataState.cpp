@@ -183,7 +183,7 @@ namespace PCGExDataState
 		PCGEX_DELETE(StateValueWriter)
 	}
 
-	void TStatesManager::WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArray<int32>& InIndices)
+	void TStatesManager::WriteStateIndividualStates(PCGExMT::FTaskManager* AsyncManager, const TArray<int32>& InIndices)
 	{
 		for (PCGExDataFilter::TFilter* Handler : Handlers)
 		{

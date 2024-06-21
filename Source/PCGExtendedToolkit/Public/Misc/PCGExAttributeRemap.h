@@ -121,13 +121,13 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRemapPointIO final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExRemapPointIO final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExRemapPointIO(PCGExData::FPointIO* InPointIO,
 	                   const EPCGMetadataTypes InDataType,
 	                   const int32 InDimensions) :
-		FPCGExNonAbandonableTask(InPointIO),
+		PCGExMT::FPCGExTask(InPointIO),
 		DataType(InDataType),
 		Dimensions(InDimensions)
 	{

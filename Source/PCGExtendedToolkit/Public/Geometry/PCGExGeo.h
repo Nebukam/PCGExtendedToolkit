@@ -342,14 +342,14 @@ namespace PCGExGeo
 
 namespace PCGExGeoTasks
 {
-	class PCGEXTENDEDTOOLKIT_API FTransformPointIO final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FTransformPointIO final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FTransformPointIO(
 			PCGExData::FPointIO* InPointIO,
 			PCGExData::FPointIO* InTargetIO,
 			FPCGExTransformSettings* InTransformSettings) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			TargetIO(InTargetIO),
 			TransformSettings(InTransformSettings)
 		{

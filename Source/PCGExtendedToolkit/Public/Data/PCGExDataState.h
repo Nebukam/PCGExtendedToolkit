@@ -95,7 +95,7 @@ namespace PCGExDataState
 
 		void WriteStateNames(FName AttributeName, FName DefaultValue, const TArray<int32>& InIndices);
 		void WriteStateValues(FName AttributeName, int32 DefaultValue, const TArray<int32>& InIndices);
-		void WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArray<int32>& InIndices);
+		void WriteStateIndividualStates(PCGExMT::FTaskManager* AsyncManager, const TArray<int32>& InIndices);
 
 		void WritePrepareForStateAttributes(const FPCGContext* InContext);
 		void WriteStateAttributes(const int32 PointIndex);
@@ -160,13 +160,13 @@ namespace PCGExDataState
 
 namespace PCGExDataStateTask
 {
-	class PCGEXTENDEDTOOLKIT_API FWriteIndividualState final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FWriteIndividualState final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteIndividualState(
 			PCGExData::FPointIO* InPointIO,
 			PCGExDataState::TDataState* InHandler, const TArray<int32>* InInIndices) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			Handler(InHandler), InIndices(InInIndices)
 		{
 		}

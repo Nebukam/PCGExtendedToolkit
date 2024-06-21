@@ -217,7 +217,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ExtractingMesh))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
 	}
@@ -242,7 +242,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->VtxChildCollection->OutputTo(Context);
 		Context->EdgeChildCollection->OutputTo(Context);

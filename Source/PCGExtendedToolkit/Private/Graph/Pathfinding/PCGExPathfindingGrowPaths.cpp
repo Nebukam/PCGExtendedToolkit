@@ -362,7 +362,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->HeuristicsHandler->CompleteClusterPreparation();
 

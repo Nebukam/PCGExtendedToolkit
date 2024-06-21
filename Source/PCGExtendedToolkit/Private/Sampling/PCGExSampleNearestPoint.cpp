@@ -120,7 +120,7 @@ namespace PCGExSampleNearestPoints
 		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DELETE)
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestPoint)
 
@@ -355,7 +355,11 @@ namespace PCGExSampleNearestPoints
 	void FProcessor::CompleteWork()
 	{
 		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_WRITE)
-		if (Blender) { Blender->Write(); }
+		if (Blender)
+		{
+			if (IsTrivial()) { Blender->Write(); }
+			else { Blender->Write(AsyncManagerPtr); }
+		}
 	}
 }
 

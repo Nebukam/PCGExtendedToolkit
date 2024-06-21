@@ -30,14 +30,14 @@ namespace PCGExPointsMT
 
 #define PCGEX_POINTS_MT_TASK(_NAME, _BODY)\
 template <typename T>\
-class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
-public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget){} \
+class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
 T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
 
 #define PCGEX_POINTS_MT_TASK_RANGE(_NAME, _BODY)\
 template <typename T>\
-class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
-public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations, const PCGExData::ESource InSource = PCGExData::ESource::In) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget), Iterations(InIterations), Source(InSource){} \
+class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations, const PCGExData::ESource InSource = PCGExData::ESource::In) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations), Source(InSource){} \
 T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source; virtual bool ExecuteTask() override{_BODY return true; }};
 
 	PCGEX_POINTS_MT_TASK(FStartPointsBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
@@ -59,7 +59,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	class FPointsProcessor
 	{
 	protected:
-		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
+		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 
 	public:
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
@@ -98,7 +98,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			FilterFactories = InFactories;
 		}
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager)
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager)
 		{
 			AsyncManagerPtr = AsyncManager;
 
@@ -205,7 +205,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	class FPointsProcessorBatchBase
 	{
 	protected:
-		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
+		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 
 	public:
@@ -240,7 +240,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			return true;
 		}
 
-		virtual void Process(FPCGExAsyncManager* AsyncManager)
+		virtual void Process(PCGExMT::FTaskManager* AsyncManager)
 		{
 		}
 
@@ -308,7 +308,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			return FPointsProcessorBatchBase::PrepareProcessing();
 		}
 
-		virtual void Process(FPCGExAsyncManager* AsyncManager) override
+		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override
 		{
 			if (PointsCollection.IsEmpty()) { return; }
 
@@ -424,17 +424,17 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		}
 	};
 
-	static void ScheduleBatch(FPCGExAsyncManager* Manager, FPointsProcessorBatchBase* Batch)
+	static void ScheduleBatch(PCGExMT::FTaskManager* Manager, FPointsProcessorBatchBase* Batch)
 	{
 		Manager->Start<FStartPointsBatchProcessing<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 
-	static void CompleteBatch(FPCGExAsyncManager* Manager, FPointsProcessorBatchBase* Batch)
+	static void CompleteBatch(PCGExMT::FTaskManager* Manager, FPointsProcessorBatchBase* Batch)
 	{
 		Manager->Start<FAsyncCompleteWork<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 
-	static void WriteBatch(FPCGExAsyncManager* Manager, FPointsProcessorBatchBase* Batch)
+	static void WriteBatch(PCGExMT::FTaskManager* Manager, FPointsProcessorBatchBase* Batch)
 	{
 		Manager->Start<FAsyncWrite<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
 	}

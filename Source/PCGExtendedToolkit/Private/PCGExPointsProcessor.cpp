@@ -263,12 +263,12 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	return true;
 }
 
-FPCGExAsyncManager* FPCGExPointsProcessorContext::GetAsyncManager()
+PCGExMT::FTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
 {
 	if (!AsyncManager)
 	{
 		FWriteScopeLock WriteLock(ContextLock);
-		AsyncManager = new FPCGExAsyncManager();
+		AsyncManager = new PCGExMT::FTaskManager();
 		AsyncManager->bForceSync = !bDoAsyncProcessing;
 		AsyncManager->Context = this;
 	}

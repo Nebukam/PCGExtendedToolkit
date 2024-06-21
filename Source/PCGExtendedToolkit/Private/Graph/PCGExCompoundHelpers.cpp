@@ -93,9 +93,19 @@ namespace PCGExGraph
 
 			if (!Context->Process(Initialize, BlendPointEdgeMetadata, PointEdgeIntersections->Edges.Num())) { return false; }
 
-			if (MetadataBlender) { MetadataBlender->Write(); }
+			if (MetadataBlender)
+			{
+				if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(CompoundPoints->GetNum())) { MetadataBlender->Write(); }
+				else { MetadataBlender->Write(Context->GetAsyncManager()); }
+			}
 
 			PCGEX_DELETE(PointEdgeIntersections)
+			Context->SetAsyncState(PCGExMT::State_CompoundWriting);
+		}
+
+		if (Context->IsState(PCGExMT::State_CompoundWriting))
+		{
+			if (MetadataBlender) { PCGEX_ASYNC_WAIT }
 			PCGEX_DELETE(MetadataBlender)
 
 			if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
@@ -133,9 +143,19 @@ namespace PCGExGraph
 
 			if (!Context->Process(Initialize, BlendCrossingMetadata, EdgeEdgeIntersections->Crossings.Num())) { return false; }
 
-			if (MetadataBlender) { MetadataBlender->Write(); }
+			if (MetadataBlender)
+			{
+				if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(CompoundPoints->GetNum())) { MetadataBlender->Write(); }
+				else { MetadataBlender->Write(Context->GetAsyncManager()); }
+			}
 
 			PCGEX_DELETE(EdgeEdgeIntersections)
+			Context->SetAsyncState(PCGExMT::State_MetaWriting2);
+		}
+
+		if (Context->IsState(PCGExMT::State_MetaWriting2))
+		{
+			if (MetadataBlender) { PCGEX_ASYNC_WAIT }
 			PCGEX_DELETE(MetadataBlender)
 
 			Context->SetState(State_WritingClusters);
@@ -150,7 +170,7 @@ namespace PCGExGraph
 
 		if (Context->IsState(State_Compiling))
 		{
-			PCGEX_WAIT_ASYNC
+			PCGEX_ASYNC_WAIT
 
 			if (!GraphBuilder->bCompiledSuccessfully)
 			{

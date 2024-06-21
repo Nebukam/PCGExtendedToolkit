@@ -97,7 +97,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 		Context->Done();
 	}
 
@@ -247,9 +247,11 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 			View, MilestonesMetrics[i], TempBlender);
 	}
 
-	TempBlender->Write();
-
+	if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(MutablePoints.Num())) { TempBlender->Write(); }
+	else { TempBlender->Write(Manager); }
+	
 	PCGEX_DELETE(TempBlender)
+
 	MilestonesMetrics.Empty();
 
 	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }

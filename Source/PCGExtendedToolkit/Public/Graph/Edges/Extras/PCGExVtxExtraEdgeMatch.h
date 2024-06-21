@@ -52,7 +52,7 @@ public:
 	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx) override;
 	virtual void ProcessNode(const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
 	virtual void Write() override;
-	virtual void Write(FPCGExAsyncManager* AsyncManager) override;
+	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override;
 	virtual void Cleanup() override;
 
 protected:

@@ -189,12 +189,12 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExComputePreciseOverlap final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExComputePreciseOverlap final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExComputePreciseOverlap(PCGExData::FPointIO* InPointIO,
 	                            const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
-		FPCGExNonAbandonableTask(InPointIO),
+		PCGExMT::FPCGExTask(InPointIO),
 		BoundsSource(InBoundsSource), Bounds(InBounds)
 	{
 	}

@@ -88,7 +88,7 @@ namespace PCGExBreakClustersToPaths
 		PCGEX_DELETE_TARRAY(Chains)
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 

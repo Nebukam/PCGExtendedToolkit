@@ -112,7 +112,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
@@ -165,7 +165,13 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 		if (!Context->Process(MergeCompound, Context->CompoundGraph->NumNodes())) { return false; }
 
-		Context->CompoundPointsBlender->Write();
+		Context->CompoundPointsBlender->Write(Context->GetAsyncManager());
+		Context->SetAsyncState(PCGExMT::State_CompoundWriting);
+	}
+
+	if (Context->IsState(PCGExMT::State_CompoundWriting))
+	{
+		PCGEX_ASYNC_WAIT
 
 		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 
@@ -214,10 +220,20 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 		if (!Context->Process(Initialize, BlendPointEdgeMetadata, Context->PointEdgeIntersections->Edges.Num())) { return false; }
 
-		if (Context->MetadataBlender) { Context->MetadataBlender->Write(); }
+		if (Context->MetadataBlender)
+		{
+			if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(Context->CurrentIO->GetNum())) { Context->MetadataBlender->Write(); }
+			else { Context->MetadataBlender->Write(Context->GetAsyncManager()); }
+			PCGEX_DELETE(Context->MetadataBlender)
+		}
 
 		PCGEX_DELETE(Context->PointEdgeIntersections)
-		PCGEX_DELETE(Context->MetadataBlender)
+		Context->SetAsyncState(PCGExMT::State_MetaWriting);
+	}
+
+	if (Context->IsState(PCGExMT::State_MetaWriting))
+	{
+		PCGEX_ASYNC_WAIT
 
 		if (Settings->bFindEdgeEdgeIntersections) { FindEdgeEdgeIntersections(); }
 		else { Context->SetAsyncState(PCGExGraph::State_WritingClusters); }
@@ -254,17 +270,26 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 		if (!Context->Process(Initialize, BlendCrossingMetadata, Context->EdgeEdgeIntersections->Crossings.Num())) { return false; }
 
-		if (Context->MetadataBlender) { Context->MetadataBlender->Write(); }
+		if (Context->MetadataBlender)
+		{
+			if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(Context->CurrentIO->GetNum())) { Context->MetadataBlender->Write(); }
+			else { Context->MetadataBlender->Write(Context->GetAsyncManager()); }
+			PCGEX_DELETE(Context->MetadataBlender)
+		}
 
 		PCGEX_DELETE(Context->EdgeEdgeIntersections)
-		PCGEX_DELETE(Context->MetadataBlender)
+		Context->SetAsyncState(PCGExMT::State_MetaWriting2);
+	}
 
+	if (Context->IsState(PCGExMT::State_MetaWriting2))
+	{
+		PCGEX_ASYNC_WAIT
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->GraphBuilder->CompileAsync(Context->GetAsyncManager(), &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
@@ -273,7 +298,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
 			//TODO : Need to merge edge compounds once we have the final edge configuration.

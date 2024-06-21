@@ -48,7 +48,7 @@ void FPCGExPointIOMerger::Append(const TArray<PCGExData::FPointIO*>& InData)
 	for (const PCGExData::FPointIO* PointIO : InData) { Append(const_cast<PCGExData::FPointIO&>(*PointIO)); }
 }
 
-void FPCGExPointIOMerger::Merge(FPCGExAsyncManager* AsyncManager, const bool CleanupInputs)
+void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const bool CleanupInputs)
 {
 	bCleanupInputs = CleanupInputs;
 

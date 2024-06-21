@@ -9,8 +9,10 @@
 #include "Metadata/Accessors/IPCGAttributeAccessor.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
+#include "PCGExMacros.h"
 #include "PCGEx.h"
 #include "PCGExMath.h"
+#include "PCGExMT.h"
 #include "PCGExPointIO.h"
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
 
@@ -771,6 +773,7 @@ namespace PCGEx
 	}
 
 	static void CopyValues(
+		PCGExMT::FTaskManager* AsyncManager,
 		FAttributeIdentity Identity,
 		const PCGExData::FPointIO& Source,
 		PCGExData::FPointIO& Target,
@@ -799,7 +802,7 @@ namespace PCGEx
 					Writer->Values[TargetIndex + i] = SourceAttribute->GetValueFromItemKey(SourcePoints[SourceIndices[i]].MetadataEntry);
 				}
 
-				Writer->Write();
+				PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Writer);
 				PCGEX_DELETE(Writer)
 			});
 	}

@@ -145,7 +145,7 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingStatesAttributes))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{

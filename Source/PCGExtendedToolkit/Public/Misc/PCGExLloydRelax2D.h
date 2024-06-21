@@ -73,7 +73,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2Task final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2Task final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExLloydRelax2Task(PCGExData::FPointIO* InPointIO,
@@ -82,7 +82,7 @@ public:
 	                      const int32 InNumIterations,
 	                      PCGEx::FLocalSingleFieldGetter* InInfluenceGetter = nullptr,
 	                      FPCGExGeo2DProjectionSettings* InProjectionSettings = nullptr) :
-		FPCGExNonAbandonableTask(InPointIO),
+		PCGExMT::FPCGExTask(InPointIO),
 		ActivePositions(InPositions),
 		InfluenceSettings(InInfluenceSettings),
 		NumIterations(InNumIterations),

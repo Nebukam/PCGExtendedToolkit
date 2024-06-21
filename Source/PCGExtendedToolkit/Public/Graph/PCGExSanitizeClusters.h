@@ -61,12 +61,12 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClusterTask final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExSanitizeClusterTask(PCGExData::FPointIO* InPointIO,
 	                          PCGExData::FPointIOTaggedEntries* InTaggedEdges) :
-		FPCGExNonAbandonableTask(InPointIO),
+		PCGExMT::FPCGExTask(InPointIO),
 		TaggedEdges(InTaggedEdges)
 	{
 	}
@@ -76,12 +76,12 @@ public:
 	virtual bool ExecuteTask() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeInsertTask final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeInsertTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExSanitizeInsertTask(PCGExData::FPointIO* InPointIO,
 	                         PCGExData::FPointIO* InEdgeIO) :
-		FPCGExNonAbandonableTask(InPointIO),
+		PCGExMT::FPCGExTask(InPointIO),
 		EdgeIO(InEdgeIO)
 	{
 	}

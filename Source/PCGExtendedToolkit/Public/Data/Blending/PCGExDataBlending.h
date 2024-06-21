@@ -530,6 +530,8 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual T GetPrimaryValue(const int32 Index) const { return (*Writer)[Index]; }
 		FORCEINLINE virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
 
+		// TODO : Async support? Already handled by wrappers, so might be redundant
+		
 		virtual void Write() override { Writer->Write(); }
 		virtual void Write(const TArrayView<int32> InIndices) override { Writer->Write(InIndices); }
 
@@ -626,7 +628,7 @@ namespace PCGExDataBlending
 
 namespace PCGExDataBlendingTask
 {
-	class PCGEXTENDEDTOOLKIT_API FBlendCompoundedIO final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FBlendCompoundedIO final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FBlendCompoundedIO(PCGExData::FPointIO* InPointIO,
@@ -635,7 +637,7 @@ namespace PCGExDataBlendingTask
 		                   PCGExData::FIdxCompoundList* InCompoundList,
 		                   const FPCGExDistanceSettings& InDistSettings,
 		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			TargetIO(InTargetIO),
 			BlendingSettings(InBlendingSettings),
 			CompoundList(InCompoundList),
@@ -653,13 +655,13 @@ namespace PCGExDataBlendingTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FWriteFuseMetadata final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FWriteFuseMetadata final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteFuseMetadata(PCGExData::FPointIO* InPointIO,
 		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings,
 		                   PCGExData::FIdxCompoundList* InCompoundList) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			MetadataSettings(InMetadataSettings),
 			CompoundList(InCompoundList)
 		{

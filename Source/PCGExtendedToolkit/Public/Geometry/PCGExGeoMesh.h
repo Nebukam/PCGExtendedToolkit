@@ -264,7 +264,7 @@ namespace PCGExGeo
 			bIsLoaded = true;
 		}
 
-		void ExtractMeshAsync(FPCGExAsyncManager* AsyncManager)
+		void ExtractMeshAsync(PCGExMT::FTaskManager* AsyncManager)
 		{
 			if (bIsLoaded) { return; }
 			if (!bIsValid) { return; }
@@ -314,11 +314,11 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FExtractStaticMeshTask(PCGExData::FPointIO* InPointIO, FGeoStaticMesh* InGSM) :
-			FPCGExNonAbandonableTask(InPointIO), GSM(InGSM)
+			PCGExMT::FPCGExTask(InPointIO), GSM(InGSM)
 		{
 		}
 

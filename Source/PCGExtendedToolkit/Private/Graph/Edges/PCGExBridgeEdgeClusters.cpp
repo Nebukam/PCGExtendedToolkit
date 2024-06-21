@@ -89,7 +89,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Context->Batches)
 		{
@@ -111,7 +111,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 namespace PCGExBridgeClusters
 {
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 

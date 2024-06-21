@@ -18,7 +18,7 @@ public:
 
 	void Append(PCGExData::FPointIO& InData);
 	void Append(const TArray<PCGExData::FPointIO*>& InData);
-	void Merge(FPCGExAsyncManager* AsyncManager, bool CleanupInputs = true);
+	void Merge(PCGExMT::FTaskManager* AsyncManager, bool CleanupInputs = true);
 	void Write();
 
 	int32 TotalPoints = 0;
@@ -33,14 +33,14 @@ protected:
 	bool bCleanupInputs = true;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeMergeTask final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExAttributeMergeTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExAttributeMergeTask(
 		PCGExData::FPointIO* InPointIO,
 		FPCGExPointIOMerger* InMerger,
 		const FName InAttributeName)
-		: FPCGExNonAbandonableTask(InPointIO),
+		: PCGExMT::FPCGExTask(InPointIO),
 		  Merger(InMerger),
 		  AttributeName(InAttributeName)
 	{

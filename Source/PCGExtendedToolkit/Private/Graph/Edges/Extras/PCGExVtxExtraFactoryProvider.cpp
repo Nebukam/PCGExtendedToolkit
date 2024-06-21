@@ -32,7 +32,7 @@ void UPCGExVtxExtraOperation::Write()
 {
 }
 
-void UPCGExVtxExtraOperation::Write(FPCGExAsyncManager* AsyncManager)
+void UPCGExVtxExtraOperation::Write(PCGExMT::FTaskManager* AsyncManager)
 {
 }
 

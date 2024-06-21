@@ -106,7 +106,7 @@ namespace PCGExRefineEdges
 	{
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 

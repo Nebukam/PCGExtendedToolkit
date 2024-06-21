@@ -86,6 +86,12 @@ void UPCGExSubPointsBlendOperation::Write()
 	Super::Write();
 }
 
+void UPCGExSubPointsBlendOperation::Write(PCGExMT::FTaskManager* AsyncManager)
+{
+	if (InternalBlender) { InternalBlender->Write(AsyncManager); }
+	Super::Write(AsyncManager);
+}
+
 void UPCGExSubPointsBlendOperation::Cleanup()
 {
 	PCGEX_DELETE(InternalBlender)

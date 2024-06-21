@@ -165,7 +165,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExGraph::State_Pathfinding))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->OutputPaths->OutputTo(Context);
 		Context->Done();
@@ -260,8 +260,9 @@ bool FSampleNavmeshTask::ExecuteTask()
 	TArrayView<FPCGPoint> View(MutablePoints);
 	Context->Blending->BlendSubPoints(View, Metrics, TempBlender);
 
-	TempBlender->Write();
-
+	if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(MutablePoints.Num())) { TempBlender->Write(); }
+	else { TempBlender->Write(Manager); }
+	
 	PCGEX_DELETE(TempBlender)
 
 	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }

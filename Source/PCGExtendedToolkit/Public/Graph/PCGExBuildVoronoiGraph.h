@@ -109,7 +109,7 @@ namespace PCGExBuildVoronoi
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

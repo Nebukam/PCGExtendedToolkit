@@ -132,7 +132,14 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
 
-		Context->CompoundPointsBlender->Write();
+		Context->CompoundPointsBlender->Write(Context->GetAsyncManager());
+		Context->SetAsyncState(PCGExMT::State_CompoundWriting);
+	}
+
+	if(Context->IsState(PCGExMT::State_CompoundWriting))
+	{
+		PCGEX_ASYNC_WAIT
+
 		PCGEX_DELETE(Context->CompoundPointsBlender)
 
 		Context->CompoundProcessor->StartProcessing(
@@ -147,6 +154,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 				GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
 			});
+		
 	}
 
 	if (!Context->CompoundProcessor->Execute()) { return false; }
@@ -164,7 +172,7 @@ namespace PCGExFuseClusters
 	{
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseClusters)
 

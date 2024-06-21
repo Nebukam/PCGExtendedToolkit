@@ -162,25 +162,13 @@ namespace PCGExCluster
 		}
 
 		const int32 NumEdges = Edges.Num();
-		//EdgeIndexLookup.Reserve(NumEdges);
-
-		/*
-		EdgeList.Sort(
-			[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
-			{
-				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
-			});
-			*/
 
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const PCGExGraph::FIndexedEdge& SortedEdge = Edges[i];
-			//SortedEdge.EdgeIndex = i; // Only required if we sort the array first
-
+			
 			const int32 StartNodeIndex = *NodeIndexLookup.Find(SortedEdge.Start);
 			const int32 EndNodeIndex = *NodeIndexLookup.Find(SortedEdge.End);
-
-			//EdgeIndexLookup.Add(PCGEx::H64U(StartNodeIndex, EndNodeIndex), i);
 
 			Nodes[StartNodeIndex].Adjacency.AddUnique(PCGEx::H64(EndNodeIndex, i));
 			Nodes[EndNodeIndex].Adjacency.AddUnique(PCGEx::H64(StartNodeIndex, i));

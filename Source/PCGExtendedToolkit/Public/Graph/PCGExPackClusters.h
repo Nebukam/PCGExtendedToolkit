@@ -61,13 +61,13 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExPackClusterTask(PCGExData::FPointIO* InPointIO,
 	                      PCGExData::FPointIO* InInEdges,
 	                      const TMap<int64, int32>& InEndpointsLookup) :
-		FPCGExNonAbandonableTask(InPointIO),
+		PCGExMT::FPCGExTask(InPointIO),
 		InEdges(InInEdges),
 		EndpointsLookup(InEndpointsLookup)
 	{

@@ -109,7 +109,7 @@ namespace PCGExPointsToBounds
 	};
 
 	static void ComputeBounds(
-		FPCGExAsyncManager* Manager,
+		PCGExMT::FTaskManager* Manager,
 		PCGExData::FPointIOCollection* IOGroup,
 		TArray<FBounds*>& OutBounds,
 		const EPCGExPointBoundsSource BoundsSource)
@@ -218,12 +218,12 @@ protected:
 
 namespace PCGExPointsToBounds
 {
-	class PCGEXTENDEDTOOLKIT_API FComputeIOBoundsTask final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FComputeIOBoundsTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FComputeIOBoundsTask(PCGExData::FPointIO* InPointIO,
 		                     const EPCGExPointBoundsSource InBoundsSource, FBounds* InBounds) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			BoundsSource(InBoundsSource), Bounds(InBounds)
 		{
 		}
@@ -247,7 +247,7 @@ namespace PCGExPointsToBounds
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 }

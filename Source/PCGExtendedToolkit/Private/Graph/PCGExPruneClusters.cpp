@@ -72,7 +72,7 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		TSet<PCGExData::FPointIO*> KeepList;
 		TSet<PCGExData::FPointIO*> OmitList;

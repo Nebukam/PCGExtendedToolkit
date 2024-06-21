@@ -75,7 +75,7 @@ namespace PCGExSimplifyClusters
 		PCGEX_DELETE_TARRAY(Chains)
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::Process);
 

@@ -84,10 +84,11 @@ namespace PCGExDataBlending
 		void AddSources(const PCGExData::FPointIOCollection& InDataGroup);
 
 		void PrepareMerge(PCGExData::FPointIO* TargetData, PCGExData::FIdxCompoundList* CompoundList);
-		void Merge(FPCGExAsyncManager* AsyncManager, PCGExData::FPointIO* TargetData, PCGExData::FIdxCompoundList* CompoundList, const FPCGExDistanceSettings& DistSettings);
+		void Merge(PCGExMT::FTaskManager* AsyncManager, PCGExData::FPointIO* TargetData, PCGExData::FIdxCompoundList* CompoundList, const FPCGExDistanceSettings& DistSettings);
 		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceSettings& DistSettings);
 
 		void Write();
+		void Write(PCGExMT::FTaskManager* AsyncManager);
 
 	protected:
 		const FPCGExBlendingSettings* BlendingSettings = nullptr;
@@ -99,43 +100,5 @@ namespace PCGExDataBlending
 		PCGExData::FIdxCompoundList* CurrentCompoundList = nullptr;
 		PCGExData::FPointIO* CurrentTargetData = nullptr;
 		FPropertiesBlender* PropertiesBlender = nullptr;
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundBlendTask final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FPCGExCompoundBlendTask(PCGExData::FPointIO* InPointIO,
-		                        FCompoundBlender* InMerger,
-		                        const FPCGExDistanceSettings& InDistSettings)
-			: FPCGExNonAbandonableTask(InPointIO),
-			  Merger(InMerger),
-			  DistSettings(InDistSettings)
-
-		{
-		}
-
-		FCompoundBlender* Merger = nullptr;
-		FPCGExDistanceSettings DistSettings;
-
-
-		virtual bool ExecuteTask() override;
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundedPointBlendTask final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FPCGExCompoundedPointBlendTask(PCGExData::FPointIO* InPointIO,
-		                               FCompoundBlender* InMerger,
-		                               const FPCGExDistanceSettings& InDistSettings)
-			: FPCGExNonAbandonableTask(InPointIO),
-			  Merger(InMerger),
-			  DistSettings(InDistSettings)
-		{
-		}
-
-		FCompoundBlender* Merger = nullptr;
-		FPCGExDistanceSettings DistSettings;
-
-		virtual bool ExecuteTask() override;
 	};
 }

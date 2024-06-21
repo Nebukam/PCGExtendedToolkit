@@ -62,6 +62,8 @@ public:
 		const int32 Offset = 0) const;
 
 	virtual void Write() override;
+	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override;
+	
 	virtual void Cleanup() override;
 
 	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(

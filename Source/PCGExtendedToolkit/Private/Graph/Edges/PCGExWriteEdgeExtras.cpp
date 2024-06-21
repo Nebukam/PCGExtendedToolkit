@@ -91,7 +91,7 @@ namespace PCGExWriteEdgeExtras
 #undef PCGEX_CLEAN_LOCAL_AXIS_GETTER
 	}
 
-	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
 
@@ -269,7 +269,11 @@ namespace PCGExWriteEdgeExtras
 	void FProcessor::CompleteWork()
 	{
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_WRITE)
-		if (MetadataBlender) { MetadataBlender->Write(); }
+		if (MetadataBlender)
+		{
+			if (IsTrivial()) { MetadataBlender->Write(); }
+			else { MetadataBlender->Write(AsyncManagerPtr); }
+		}
 	}
 
 	//////// BATCH

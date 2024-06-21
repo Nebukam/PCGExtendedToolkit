@@ -461,8 +461,8 @@ namespace PCGExGraph
 			bPrunePoints = OutputSettings->bPruneIsolatedPoints;
 		}
 
-		void CompileAsync(FPCGExAsyncManager* AsyncManager, FGraphMetadataSettings* MetadataSettings = nullptr);
-		void Compile(FPCGExAsyncManager* AsyncManager, FGraphMetadataSettings* MetadataSettings = nullptr);
+		void CompileAsync(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataSettings* MetadataSettings = nullptr);
+		void Compile(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataSettings* MetadataSettings = nullptr);
 
 		void Write(FPCGContext* InContext) const;
 
@@ -695,14 +695,14 @@ namespace PCGExGraphTask
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteSubGraphEdges(PCGExData::FPointIO* InPointIO,
 		                    PCGExGraph::FGraph* InGraph,
 		                    PCGExGraph::FSubGraph* InSubGraph,
 		                    PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-			: FPCGExNonAbandonableTask(InPointIO),
+			: PCGExMT::FPCGExTask(InPointIO),
 			  Graph(InGraph),
 			  SubGraph(InSubGraph),
 			  MetadataSettings(InMetadataSettings)
@@ -717,7 +717,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FWriteSmallSubGraphEdges final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FWriteSmallSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteSmallSubGraphEdges(
@@ -725,7 +725,7 @@ namespace PCGExGraphTask
 			PCGExGraph::FGraph* InGraph,
 			const TArray<PCGExGraph::FSubGraph*>& InSubGraphs,
 			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-			: FPCGExNonAbandonableTask(InPointIO),
+			: PCGExMT::FPCGExTask(InPointIO),
 			  Graph(InGraph),
 			  SubGraphs(InSubGraphs),
 			  MetadataSettings(InMetadataSettings)
@@ -745,14 +745,14 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCompileGraph final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCompileGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FCompileGraph(
 			PCGExData::FPointIO* InPointIO,
 			PCGExGraph::FGraphBuilder* InGraphBuilder,
 			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-			: FPCGExNonAbandonableTask(InPointIO),
+			: PCGExMT::FPCGExTask(InPointIO),
 			  Builder(InGraphBuilder),
 			  MetadataSettings(InMetadataSettings)
 		{
@@ -764,7 +764,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FCopyGraphToPoint(PCGExData::FPointIO* InPointIO,
@@ -772,7 +772,7 @@ namespace PCGExGraphTask
 		                  PCGExData::FPointIOCollection* InVtxCollection,
 		                  PCGExData::FPointIOCollection* InEdgeCollection,
 		                  FPCGExTransformSettings* InTransformSettings) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			GraphBuilder(InGraphBuilder),
 			VtxCollection(InVtxCollection),
 			EdgeCollection(InEdgeCollection),

@@ -79,7 +79,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 		Context->Done();
 	}
 
@@ -118,7 +118,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 
 	for (const PCGEx::FAttributeIdentity& Identity : VtxAttributes->Identities)
 	{
-		CopyValues(Identity, *PointIO, PackedIO, View, NumEdges);
+		CopyValues(Manager, Identity, *PointIO, PackedIO, View, NumEdges);
 	}
 
 	WriteMark(PackedIO, PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);

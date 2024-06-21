@@ -68,7 +68,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax3Task final : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax3Task final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExLloydRelax3Task(PCGExData::FPointIO* InPointIO,
@@ -76,7 +76,7 @@ public:
 	                      const FPCGExInfluenceSettings* InInfluenceSettings,
 	                      const int32 InNumIterations,
 	                      PCGEx::FLocalSingleFieldGetter* InInfluenceGetter = nullptr) :
-		FPCGExNonAbandonableTask(InPointIO),
+		PCGExMT::FPCGExTask(InPointIO),
 		ActivePositions(InPositions),
 		InfluenceSettings(InInfluenceSettings),
 		NumIterations(InNumIterations),

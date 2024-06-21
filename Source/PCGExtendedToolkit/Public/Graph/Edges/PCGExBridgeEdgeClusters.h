@@ -92,7 +92,7 @@ namespace PCGExBridgeClusters
 		{
 		}
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
 	};
@@ -117,7 +117,7 @@ namespace PCGExBridgeClusters
 		void Write() const;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FPCGExCreateBridgeTask(
@@ -125,7 +125,7 @@ namespace PCGExBridgeClusters
 			FProcessorBatch* InBatch,
 			PCGExCluster::FCluster* A,
 			PCGExCluster::FCluster* B) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			Batch(InBatch),
 			ClusterA(A),
 			ClusterB(B)

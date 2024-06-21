@@ -119,7 +119,7 @@ namespace PCGExFindContours
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 
 		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
@@ -127,12 +127,12 @@ namespace PCGExFindContours
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,
 		                      FProcessor* InClusterProcessor) :
-			FPCGExNonAbandonableTask(InPointIO),
+			PCGExMT::FPCGExTask(InPointIO),
 			ClusterProcessor(InClusterProcessor)
 		{
 		}

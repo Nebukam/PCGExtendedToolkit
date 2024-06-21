@@ -173,7 +173,7 @@ namespace PCGExPathToClusters
 		PCGEX_DELETE(GraphBuilder)
 	}
 
-	bool FNonFusingProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FNonFusingProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
@@ -225,7 +225,7 @@ namespace PCGExPathToClusters
 	{
 	}
 
-	bool FFusingProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	bool FFusingProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
@@ -281,7 +281,7 @@ namespace PCGExPathToClusters
 		CompoundPoints = nullptr;
 	}
 
-	void FFusingProcessorBatch::Process(FPCGExAsyncManager* AsyncManager)
+	void FFusingProcessorBatch::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 

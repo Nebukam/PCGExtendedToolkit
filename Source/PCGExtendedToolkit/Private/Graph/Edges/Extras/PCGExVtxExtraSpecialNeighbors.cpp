@@ -77,7 +77,7 @@ void UPCGExVtxExtraSpecialNeighbors::Write()
 	Descriptor.SmallestNeighbor.Write();
 }
 
-void UPCGExVtxExtraSpecialNeighbors::Write(FPCGExAsyncManager* AsyncManager)
+void UPCGExVtxExtraSpecialNeighbors::Write(PCGExMT::FTaskManager* AsyncManager)
 {
 	Super::Write(AsyncManager);
 	Descriptor.LargestNeighbor.Write(AsyncManager);
