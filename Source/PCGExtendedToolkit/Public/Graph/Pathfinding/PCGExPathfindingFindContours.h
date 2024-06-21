@@ -82,8 +82,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 
 	PCGExData::FPointIOCollection* Paths;
 
-	TArray<PCGEx::FLocalToStringGetter*> SeedTagGetters;
-	TArray<PCGExDataBlending::FDataForwardHandler*> SeedForwardHandlers;
+	PCGEx::FLocalToStringGetter* SeedTagGetter;
+	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler;
 
 	bool TryFindContours(PCGExData::FPointIO* PointIO, const int32 SeedIndex, const PCGExFindContours::FProcessor* ClusterProcessor);
 };

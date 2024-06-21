@@ -105,10 +105,8 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PointIO, co
 
 	if (Settings->bUseSeedAttributeToTagPath)
 	{
-		PCGEx::FLocalToStringGetter* TagGetter = SeedTagGetters[SeedIndex];
-		if (TagGetter->bEnabled) { PointIO->Tags->RawTags.Add(TagGetter->SoftGet(Seeds->GetInPoint(SeedIndex), FName(NAME_None).ToString())); }
-
-		SeedForwardHandlers[SeedIndex]->Forward(0, PointIO);
+		if (SeedTagGetter->bEnabled) { PointIO->Tags->RawTags.Add(SeedTagGetter->SoftGet(Seeds->GetInPoint(SeedIndex), FName(NAME_None).ToString())); }
+		SeedForwardHandler->Forward(SeedIndex, PointIO);
 	}
 
 	return true;
@@ -123,8 +121,8 @@ FPCGExFindContoursContext::~FPCGExFindContoursContext()
 	PCGEX_DELETE(Seeds)
 	PCGEX_DELETE(Paths)
 
-	PCGEX_DELETE_TARRAY(SeedTagGetters)
-	PCGEX_DELETE_TARRAY(SeedForwardHandlers)
+	PCGEX_DELETE(SeedTagGetter)
+	PCGEX_DELETE(SeedForwardHandler)
 
 	ProjectedSeeds.Empty();
 }
@@ -141,14 +139,12 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->bUseSeedAttributeToTagPath)
 	{
-		PCGEx::FLocalToStringGetter* NewTagGetter = new PCGEx::FLocalToStringGetter();
-		NewTagGetter->Capture(Settings->SeedTagAttribute);
-		NewTagGetter->SoftGrab(*Context->Seeds);
-		Context->SeedTagGetters.Add(NewTagGetter);
+		Context->SeedTagGetter = new PCGEx::FLocalToStringGetter();
+		Context->SeedTagGetter->Capture(Settings->SeedTagAttribute);
+		Context->SeedTagGetter->SoftGrab(*Context->Seeds);
 	}
 
-	PCGExDataBlending::FDataForwardHandler* NewForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->Seeds);
-	Context->SeedForwardHandlers.Add(NewForwardHandler);
+	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->Seeds);
 
 	Context->Paths = new PCGExData::FPointIOCollection();
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;

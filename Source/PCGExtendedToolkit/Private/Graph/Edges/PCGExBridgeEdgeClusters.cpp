@@ -339,13 +339,16 @@ namespace PCGExBridgeClusters
 
 		EdgePoint.Transform.SetLocation(FMath::Lerp(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation(), 0.5));
 
-		BumpEdgeNum(StartPoint, EndPoint);
-		EdgeEndpointsAtt->SetValue(EdgePoint.MetadataEntry, PCGExGraph::HCID(StartPoint.MetadataEntry, EndPoint.MetadataEntry));
+		uint32 StartIdx;
+		uint32 EndIdx;
+		
+		BumpEdgeNum(StartPoint, EndPoint, StartIdx, EndIdx);
+		EdgeEndpointsAtt->SetValue(EdgePoint.MetadataEntry, PCGEx::H64(StartIdx, EndIdx));
 
 		return true;
 	}
 
-	void FPCGExCreateBridgeTask::BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B) const
+	void FPCGExCreateBridgeTask::BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B, uint32& OutStartIdx, uint32& OutEndIdx) const
 	{
 		FWriteScopeLock WriteScopeLock(Batch->BatchLock);
 
@@ -354,9 +357,13 @@ namespace PCGExBridgeClusters
 		uint32 Idx;
 		uint32 Num;
 		PCGEx::H64(VtxEndpointAtt->GetValueFromItemKey(A.MetadataEntry), Idx, Num);
+		OutStartIdx = Idx;
+		
 		VtxEndpointAtt->SetValue(A.MetadataEntry, PCGEx::H64(Idx, Num + 1));
 
+		
 		PCGEx::H64(VtxEndpointAtt->GetValueFromItemKey(B.MetadataEntry), Idx, Num);
+		OutEndIdx = Idx;
 		VtxEndpointAtt->SetValue(B.MetadataEntry, PCGEx::H64(Idx, Num + 1));
 	}
 }

@@ -139,6 +139,6 @@ namespace PCGExBridgeClusters
 
 		virtual bool ExecuteTask() override;
 
-		void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B) const;
+		void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B, uint32& OutStartIdx, uint32& OutEndIdx) const;
 	};
 }
