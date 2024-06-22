@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExLloydRelax2DElement"
 #define PCGEX_NAMESPACE LloydRelax2D
 
-PCGExData::EInit UPCGExLloydRelax2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExLloydRelax2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax2D)
 
