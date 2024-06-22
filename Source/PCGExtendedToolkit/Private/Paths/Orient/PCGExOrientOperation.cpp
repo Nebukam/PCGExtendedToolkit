@@ -22,6 +22,7 @@ void UPCGExOrientOperation::PrepareForData(PCGExData::FPointIO* InPointIO)
 	
 }
 
-void UPCGExOrientOperation::Orient(PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double Factor) const
+FTransform UPCGExOrientOperation::ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const
 {
+	return Point.Point->Transform;
 }

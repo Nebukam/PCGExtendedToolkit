@@ -27,18 +27,20 @@ namespace PCGExDataBlending
 	void FMetadataBlender::PrepareForData(
 		PCGExData::FPointIO* InData,
 		const PCGExData::ESource SecondarySource,
-		const bool bInitFirstOperation)
+		const bool bInitFirstOperation,
+		const TSet<FName>* IgnoreAttributeSet)
 	{
-		InternalPrepareForData(InData, InData, SecondarySource, bInitFirstOperation);
+		InternalPrepareForData(InData, InData, SecondarySource, bInitFirstOperation, IgnoreAttributeSet);
 	}
 
 	void FMetadataBlender::PrepareForData(
 		PCGExData::FPointIO* InPrimaryData,
 		const PCGExData::FPointIO* InSecondaryData,
 		const PCGExData::ESource SecondarySource,
-		const bool bInitFirstOperation)
+		const bool bInitFirstOperation,
+		const TSet<FName>* IgnoreAttributeSet)
 	{
-		InternalPrepareForData(InPrimaryData, InSecondaryData, SecondarySource, bInitFirstOperation);
+		InternalPrepareForData(InPrimaryData, InSecondaryData, SecondarySource, bInitFirstOperation, IgnoreAttributeSet);
 	}
 
 	void FMetadataBlender::PrepareForBlending(const PCGEx::FPointRef& Target, const FPCGPoint* Defaults) const
@@ -227,7 +229,8 @@ namespace PCGExDataBlending
 		PCGExData::FPointIO* InPrimaryData,
 		const PCGExData::FPointIO* InSecondaryData,
 		const PCGExData::ESource SecondarySource,
-		const bool bInitFirstOperation)
+		const bool bInitFirstOperation,
+		const TSet<FName>* IgnoreAttributeSet)
 	{
 		Flush();
 
@@ -296,6 +299,8 @@ namespace PCGExDataBlending
 
 		for (const PCGEx::FAttributeIdentity& Identity : Identities)
 		{
+			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
+
 			const EPCGExDataBlendingType* TypePtr = BlendingSettings->AttributesOverrides.Find(Identity.Name);
 			FDataBlendingOperationBase* Op = CreateOperation(TypePtr ? *TypePtr : BlendingSettings->DefaultBlending, Identity);
 

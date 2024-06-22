@@ -112,18 +112,22 @@ bool FPCGExUnpackClusterTask::ExecuteTask()
 		return false;
 	}
 
-	PCGExData::FPointIO* NewEdges = Context->OutEdges->Emplace_GetRef(PointIO, PCGExData::EInit::DuplicateInput);
+	const TArray<FPCGPoint>& PackedPoints = PointIO->GetIn()->GetPoints();
+
+	PCGExData::FPointIO* NewEdges = Context->OutEdges->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 	TArray<FPCGPoint> MutableEdgePoints = NewEdges->GetOut()->GetMutablePoints();
-	MutableEdgePoints.Append(MakeArrayView(PointIO->GetIn()->GetPoints().GetData(), NumEdges));
+	MutableEdgePoints.Append(&PackedPoints[0], NumEdges);
+	NewEdges->GetOut()->SetPoints(MutableEdgePoints);
 
 	UPCGMetadata* Metadata = NewEdges->GetOut()->Metadata;
 	Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);
 	Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 	Metadata->DeleteAttribute(PCGExGraph::Tag_VtxEndpoint);
 
-	PCGExData::FPointIO* NewVtx = Context->OutPoints->Emplace_GetRef(PointIO, PCGExData::EInit::DuplicateInput);
+	PCGExData::FPointIO* NewVtx = Context->OutPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 	TArray<FPCGPoint> MutableVtxPoints = NewVtx->GetOut()->GetMutablePoints();
-	MutableVtxPoints.Append(MakeArrayView(PointIO->GetIn()->GetPoints().GetData() + NumEdges, NumVtx));
+	MutableVtxPoints.Append(&PackedPoints[NumEdges], NumVtx);
+	NewVtx->GetOut()->SetPoints(MutableVtxPoints);
 
 	Metadata = NewVtx->GetOut()->Metadata;
 	Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);

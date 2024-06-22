@@ -14,10 +14,10 @@ void UPCGExOrientWeighted::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExOrientWeighted::Orient(PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double Factor) const
+FTransform UPCGExOrientWeighted::ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const
 {
-	FPCGPoint& MPoint = Point.MutablePoint();
-	const FVector Current = MPoint.Transform.GetLocation();
+	FTransform OutT = Point.MutablePoint().Transform;
+	const FVector Current = OutT.GetLocation();
 
 	const FVector PrevPos = Previous.Point->Transform.GetLocation();
 	const FVector NextPos = Next.Point->Transform.GetLocation();
@@ -25,11 +25,13 @@ void UPCGExOrientWeighted::Orient(PCGEx::FPointRef& Point, const PCGEx::FPointRe
 	const FVector DirToNext = (Current - NextPos);
 	const double Weight = PCGExMath::FApex(PrevPos, NextPos, Current).Alpha;
 
-	MPoint.Transform.SetRotation(
+	OutT.SetRotation(
 		PCGExMath::MakeDirection(
 			OrientAxis,
-			FMath::Lerp(DirToPrev, DirToNext, bInverseWeight ? 1 - Weight : Weight).GetSafeNormal() * Factor,
+			FMath::Lerp(DirToPrev, DirToNext, bInverseWeight ? 1 - Weight : Weight).GetSafeNormal() * DirectionMultiplier,
 			PCGExMath::GetDirection(UpAxis)));
+
+	return OutT;
 }
 
 void UPCGExOrientWeighted::ApplyOverrides()

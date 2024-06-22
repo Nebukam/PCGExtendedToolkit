@@ -64,8 +64,8 @@ namespace PCGExData
 	template <typename T>
 	static FPCGMetadataAttribute<T>* WriteMark(UPCGMetadata* Metadata, const FName MarkID, T MarkValue)
 	{
-		FPCGMetadataAttribute<T>* Mark = Metadata->FindOrCreateAttribute<T>(MarkID, MarkValue, false, true, true);
-		Mark->ClearEntries();
+		Metadata->DeleteAttribute(MarkID);
+		FPCGMetadataAttribute<T>* Mark = Metadata->CreateAttribute<T>(MarkID, MarkValue, false, true);
 		Mark->SetDefaultValue(MarkValue);
 		return Mark;
 	}

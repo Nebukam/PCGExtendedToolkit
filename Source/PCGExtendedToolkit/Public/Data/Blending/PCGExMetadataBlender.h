@@ -26,13 +26,15 @@ namespace PCGExDataBlending
 		void PrepareForData(
 			PCGExData::FPointIO* InData,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
-			const bool bInitFirstOperation = false);
+			const bool bInitFirstOperation = false,
+			const TSet<FName>* IgnoreAttributeSet = nullptr);
 
 		void PrepareForData(
 			PCGExData::FPointIO* InPrimaryData,
 			const PCGExData::FPointIO* InSecondaryData,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
-			const bool bInitFirstOperation = false);
+			const bool bInitFirstOperation = false,
+			const TSet<FName>* IgnoreAttributeSet = nullptr);
 
 		FORCEINLINE void PrepareForBlending(const PCGEx::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const;
 		FORCEINLINE void PrepareForBlending(const int32 PrimaryIndex, const FPCGPoint* Defaults = nullptr) const;
@@ -72,6 +74,7 @@ namespace PCGExDataBlending
 			PCGExData::FPointIO* InPrimaryData,
 			const PCGExData::FPointIO* InSecondaryData,
 			const PCGExData::ESource SecondarySource,
-			const bool bInitFirstOperation);
+			const bool bInitFirstOperation,
+			const TSet<FName>* IgnoreAttributeSet);
 	};
 }

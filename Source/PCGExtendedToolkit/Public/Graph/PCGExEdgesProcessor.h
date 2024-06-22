@@ -95,7 +95,7 @@ protected:
 
 	bool bHasValidHeuristics = false;
 
-	PCGExMT::AsyncState State_ClusterProcessingDone;
+	PCGExMT::AsyncState TargetState_ClusterProcessingDone;
 	bool bDoClusterBatchGraphBuilding = false;
 	bool bDoClusterBatchWritingStep = false;
 
@@ -114,7 +114,7 @@ protected:
 
 		bClusterBatchInlined = bInlined;
 		CurrentBatchIndex = -1;
-		State_ClusterProcessingDone = InState;
+		TargetState_ClusterProcessingDone = InState;
 
 		bClusterRequiresHeuristics = true;
 		bDoClusterBatchGraphBuilding = false;

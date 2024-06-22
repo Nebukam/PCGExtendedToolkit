@@ -33,50 +33,51 @@ void UPCGExOrientLookAt::PrepareForData(PCGExData::FPointIO* InPointIO)
 	}
 }
 
-void UPCGExOrientLookAt::Orient(PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double Factor) const
+FTransform UPCGExOrientLookAt::ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const
 {
-	Super::Orient(Point, Previous, Next, Factor);
 	switch (LookAt)
 	{
 	default: ;
 	case EPCGExOrientLookAt::NextPoint:
-		LookAtWorldPos(Point.MutablePoint(), Next.Point->Transform.GetLocation(), Factor);
-		break;
+		return LookAtWorldPos(Point.Point->Transform, Next.Point->Transform.GetLocation(), DirectionMultiplier);
 	case EPCGExOrientLookAt::PreviousPoint:
-		LookAtWorldPos(Point.MutablePoint(), Previous.Point->Transform.GetLocation(), Factor);
-		break;
+		return LookAtWorldPos(Point.Point->Transform, Previous.Point->Transform.GetLocation(), DirectionMultiplier);
 	case EPCGExOrientLookAt::Direction:
-		LookAtDirection(Point.MutablePoint(), Point.Index, Factor);
-		break;
+		return LookAtDirection(Point.Point->Transform, Point.Index, DirectionMultiplier);
 	case EPCGExOrientLookAt::Position:
-		LookAtPosition(Point.MutablePoint(), Point.Index, Factor);
-		break;
+		return LookAtPosition(Point.Point->Transform, Point.Index, DirectionMultiplier);
 	}
 }
 
-void UPCGExOrientLookAt::LookAtWorldPos(FPCGPoint& Point, const FVector& WorldPos, const double Factor) const
+FTransform UPCGExOrientLookAt::LookAtWorldPos(FTransform InT, const FVector& WorldPos, const double DirectionMultiplier) const
 {
-	Point.Transform.SetRotation(
+	FTransform OutT = InT;
+	OutT.SetRotation(
 		PCGExMath::MakeDirection(
 			OrientAxis,
-			(Point.Transform.GetLocation() - WorldPos).GetSafeNormal() * Factor,
+			(InT.GetLocation() - WorldPos).GetSafeNormal() * DirectionMultiplier,
 			PCGExMath::GetDirection(UpAxis)));
+	return OutT;
 }
 
-void UPCGExOrientLookAt::LookAtDirection(FPCGPoint& Point, const int32 Index, const double Factor) const
+FTransform UPCGExOrientLookAt::LookAtDirection(FTransform InT, const int32 Index, const double DirectionMultiplier) const
 {
-	Point.Transform.SetRotation(
+	FTransform OutT = InT;
+	OutT.SetRotation(
 		PCGExMath::MakeDirection(
-			OrientAxis, LookAtGetter->Values[Index].GetSafeNormal() * Factor, PCGExMath::GetDirection(UpAxis)));
+			OrientAxis, LookAtGetter->Values[Index].GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
+	return OutT;
 }
 
-void UPCGExOrientLookAt::LookAtPosition(FPCGPoint& Point, const int32 Index, const double Factor) const
+FTransform UPCGExOrientLookAt::LookAtPosition(FTransform InT, const int32 Index, const double DirectionMultiplier) const
 {
-	const FVector Current = Point.Transform.GetLocation();
+	FTransform OutT = InT;
+	const FVector Current = OutT.GetLocation();
 	const FVector Position = LookAtGetter->Values[Index];
-	Point.Transform.SetRotation(
+	OutT.SetRotation(
 		PCGExMath::MakeDirection(
-			OrientAxis, (Position - Current).GetSafeNormal() * Factor, PCGExMath::GetDirection(UpAxis)));
+			OrientAxis, (Position - Current).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
+	return OutT;
 }
 
 void UPCGExOrientLookAt::Cleanup()

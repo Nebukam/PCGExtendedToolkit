@@ -10,6 +10,13 @@
 #include "Orient/PCGExOrientOperation.h"
 #include "PCGExOrient.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
+enum class EPCGExOrientUsage : uint8
+{
+	ApplyToPoint UMETA(DisplayName = "Apply to point", ToolTip="Applies the orientation transform to the point"),
+	OutputToAttribute UMETA(DisplayName = "Output to attribute", ToolTip="Output the orientation transform to an attribute"),
+};
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -29,7 +36,7 @@ protected:
 	//~End UPCGSettings interface
 
 	virtual FName GetPointFilterLabel() const override;
-	
+
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -47,9 +54,14 @@ public:
 	/** Default value, can be overriden per-point through filters. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bFlipDirection = false;
-	
 
-	
+	/**  */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExOrientUsage Output = EPCGExOrientUsage::ApplyToPoint;
+
+	/**  */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Output==EPCGExOrientUsage::OutputToAttribute", EditConditionHides))
+	FName OutputAttribute = "Orient";
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext final : public FPCGExPathProcessorContext
@@ -77,6 +89,7 @@ namespace PCGExOrient
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		PCGEx::TFAttributeWriter<FTransform>* TransformWriter = nullptr;
 		UPCGExOrientOperation* Orient = nullptr;
 		int32 LastIndex = 0;
 

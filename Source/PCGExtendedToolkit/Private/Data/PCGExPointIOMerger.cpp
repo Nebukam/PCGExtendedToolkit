@@ -40,7 +40,7 @@ void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
 	for (const PCGExData::FPointIO* PointIO : InCollection->Pairs) { Append(const_cast<PCGExData::FPointIO*>(PointIO)); }
 }
 
-void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const bool CleanupInputs)
+void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<FName>* IgnoreAttributeSet)
 {
 	CompositeIO->SetNumInitialized(NumCompositePoints);
 	TArray<FPCGPoint>& MutablePoints = CompositeIO->GetOut()->GetMutablePoints();
@@ -70,6 +70,8 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const bool 
 		PCGEx::FAttributeIdentity::Get(Source->GetIn()->Metadata, SourceAttributes);
 		for (PCGEx::FAttributeIdentity SourceAtt : SourceAttributes)
 		{
+			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(SourceAtt.Name)) { continue; }
+
 			const EPCGMetadataTypes* ExpectedType = ExpectedTypes.Find(SourceAtt.Name);
 			if (!ExpectedType)
 			{

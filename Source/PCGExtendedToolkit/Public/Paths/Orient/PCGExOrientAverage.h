@@ -16,6 +16,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOrientAverage : public UPCGExOrientOperation
 	GENERATED_BODY()
 
 public:
-	virtual void Orient(PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double Factor) const override;
+	virtual FTransform ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const override;
 	
 };

@@ -78,11 +78,19 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsDone())
+	for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Context->Batches)
 	{
-		Context->OutputPointsAndEdges();
-		Context->ExecuteEnd();
+		const PCGExBridgeClusters::FProcessorBatch* BridgeBatch = static_cast<PCGExBridgeClusters::FProcessorBatch*>(Batch);
+		const int64 ClusterId = BridgeBatch->VtxIO->GetOut()->UID;
+		PCGExData::WriteMark(BridgeBatch->ConsolidatedEdges->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
+
+		FString OutId;
+		PCGExGraph::SetClusterVtx(BridgeBatch->VtxIO, OutId);
+		PCGExGraph::MarkClusterEdges(BridgeBatch->ConsolidatedEdges, OutId);
 	}
+
+	Context->OutputPointsAndEdges();
+	Context->ExecuteEnd();
 
 	return Context->IsDone();
 }
@@ -139,15 +147,16 @@ namespace PCGExBridgeClusters
 		TBatch<FProcessor>::Process(AsyncManager);
 
 		// Start merging right away
+		TSet<FName> IgnoreAttributes = {PCGExGraph::Tag_ClusterId};
+
 		Merger = new FPCGExPointIOMerger(*ConsolidatedEdges);
 		Merger->Append(Edges);
-		Merger->Merge(AsyncManagerPtr);
+		Merger->Merge(AsyncManagerPtr, &IgnoreAttributes);
 	}
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
 	{
 		PCGEX_SETTINGS(BridgeEdgeClusters)
-
 		ConsolidatedEdges->Tags->Append(ClusterProcessor->EdgesIO->Tags);
 
 		return true;
@@ -277,6 +286,12 @@ namespace PCGExBridgeClusters
 				EdgePointIndex, ConsolidatedEdges,
 				this, ValidClusters[Start], ValidClusters[End]);
 		}
+
+		// Force writing cluster ID to Vtx, otherwise we inherit from previous metadata.
+		const uint64 ClusterId = VtxIO->GetOut()->UID;
+		PCGEx::TFAttributeWriter<int64>* ClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_ClusterId);
+		for (int64& Id : ClusterIdWriter->Values) { Id = ClusterId; }
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, ClusterIdWriter);
 	}
 
 
@@ -327,10 +342,6 @@ namespace PCGExBridgeClusters
 		EdgeEndpointsAtt->SetValue(EdgePoint.MetadataEntry, PCGEx::H64(StartIdx, EndIdx));
 		OutVtxEndpointAtt->SetValue(StartPoint.MetadataEntry, PCGEx::H64(StartIdx, StartNumEdges + 1));
 		OutVtxEndpointAtt->SetValue(EndPoint.MetadataEntry, PCGEx::H64(EndIdx, EndNumEdges + 1));
-
-		const int64 ClusterId = Batch->VtxIO->GetOut()->UID;
-		PCGExData::WriteMark(Batch->VtxIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
-		PCGExData::WriteMark(PointIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
 
 		return true;
 	}

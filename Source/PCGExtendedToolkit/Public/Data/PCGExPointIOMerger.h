@@ -25,7 +25,7 @@ public:
 	void Append(PCGExData::FPointIO* InData);
 	void Append(const TArray<PCGExData::FPointIO*>& InData);
 	void Append(PCGExData::FPointIOCollection* InCollection);
-	void Merge(PCGExMT::FTaskManager* AsyncManager, bool CleanupInputs = true);
+	void Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<FName>* IgnoreAttributeSet = nullptr);
 	void Write();
 	void Write(PCGExMT::FTaskManager* AsyncManager);
 

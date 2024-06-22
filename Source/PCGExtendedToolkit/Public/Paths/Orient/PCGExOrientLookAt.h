@@ -37,11 +37,11 @@ public:
 
 	virtual void PrepareForData(PCGExData::FPointIO* InPointIO) override;
 
-	virtual void Orient(PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double Factor) const override;
+	virtual FTransform ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const override;
 
-	virtual void LookAtWorldPos(FPCGPoint& Point, const FVector& WorldPos, const double Factor) const;
-	virtual void LookAtDirection(FPCGPoint& Point, const int32 Index, const double Factor) const;
-	virtual void LookAtPosition(FPCGPoint& Point, const int32 Index, const double Factor) const;
+	virtual FTransform LookAtWorldPos(FTransform InT, const FVector& WorldPos, const double DirectionMultiplier) const;
+	virtual FTransform LookAtDirection(FTransform InT, const int32 Index, const double DirectionMultiplier) const;
+	virtual FTransform LookAtPosition(FTransform InT, const int32 Index, const double DirectionMultiplier) const;
 
 	virtual void Cleanup() override;
 

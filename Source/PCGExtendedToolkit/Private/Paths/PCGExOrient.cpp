@@ -24,6 +24,11 @@ bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
+	if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
+	{
+		PCGEX_VALIDATE_NAME(Settings->OutputAttribute);
+	}
+
 	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientAverage)
 	Context->Orientation->bClosedPath = Settings->bClosedPath;
 	Context->Orientation->OrientAxis = Settings->OrientAxis;
@@ -85,6 +90,7 @@ namespace PCGExOrient
 {
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE(TransformWriter)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -92,12 +98,18 @@ namespace PCGExOrient
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Orient)
 
 		DefaultPointFilterValue = Settings->bFlipDirection;
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LastIndex = PointIO->GetNum() - 1;
 		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
 		Orient->PrepareForData(PointIO);
+
+		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
+		{
+			TransformWriter = new PCGEx::TFAttributeWriter<FTransform>(Settings->OutputAttribute);
+			TransformWriter->BindAndSetNumUninitialized(PointIO);
+		}
 
 		StartParallelLoopForPoints();
 
@@ -108,19 +120,24 @@ namespace PCGExOrient
 	{
 		PCGEX_SETTINGS(Orient)
 
+		FTransform OutT;
+
 		PCGEx::FPointRef Current = PointIO->GetOutPointRef(Index);
 		if (Orient->bClosedPath)
 		{
 			const PCGEx::FPointRef Previous = Index == 0 ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index - 1);
 			const PCGEx::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(0) : PointIO->GetInPointRef(Index + 1);
-			Orient->Orient(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
+			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
 		}
 		else
 		{
 			const PCGEx::FPointRef Previous = Index == 0 ? Current : PointIO->GetInPointRef(Index - 1);
 			const PCGEx::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index + 1);
-			Orient->Orient(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
+			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
 		}
+
+		if (TransformWriter) { TransformWriter->Values[Index] = OutT; }
+		else { Point.Transform = OutT; }
 	}
 
 	void FProcessor::CompleteWork()
