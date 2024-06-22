@@ -26,26 +26,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 	
 	/** Where to read the compared direction from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType DirectionSource = EPCGExFetchType::Attribute;
+	EPCGExFetchType DirectionSource = EPCGExFetchType::Constant;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionSource==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionSource==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector Direction;
 
 	/** Direction for computing the dot product against the edge's. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionSource==EPCGExFetchType::Constant", EditConditionHides))
-	FVector DirectionConstant = FVector::UpVector;
+	FVector DirectionConstant = FVector::ForwardVector;
 
 	/** Whether to transform the direction source by the vtx' transform */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bAdditionalRequirementsOnly"))
-	bool bTransformDirection = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bTransformDirection = true;
 
 	/** Matching edge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bAdditionalRequirementsOnly"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExEdgeOutputWithIndexSettings MatchingEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Matching"));
 
 	/** Dot comparison settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, EditCondition="!bAdditionalRequirementsOnly"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExDotComparisonSettings DotComparisonSettings;
 };
 
