@@ -321,6 +321,8 @@ void UPCGExNeighborSampleOperation::FinalizeOperation()
 void UPCGExNeighborSampleOperation::Cleanup()
 {
 	Super::Cleanup();
+	PCGEX_DELETE(PointState)
+	PCGEX_DELETE(ValueState)
 }
 
 double UPCGExNeighborSampleOperation::SampleCurve(const double InTime) const { return WeightCurveObj->GetFloatValue(InTime); }
