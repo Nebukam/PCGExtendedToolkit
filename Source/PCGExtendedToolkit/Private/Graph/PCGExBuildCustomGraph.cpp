@@ -163,7 +163,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 
 bool FPCGExProbeTask::ExecuteTask()
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExProbeTask::ExecuteTask);
+	//TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExProbeTask::ExecuteTask);
 
 	const FPCGExBuildCustomGraphContext* Context = Manager->GetContext<FPCGExBuildCustomGraphContext>();
 	PCGEX_SETTINGS(BuildCustomGraph)

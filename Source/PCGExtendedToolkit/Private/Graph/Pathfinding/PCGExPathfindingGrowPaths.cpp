@@ -279,7 +279,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 	{
 		Context->TagValueGetter = new PCGEx::FLocalToStringGetter();
 		Context->TagValueGetter->Capture(Settings->SeedTagAttribute);
-		if (!Context->TagValueGetter->SoftGrab(*Context->SeedsPoints))
+		if (!Context->TagValueGetter->SoftGrab(Context->SeedsPoints))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on seed points."));
 			return false;

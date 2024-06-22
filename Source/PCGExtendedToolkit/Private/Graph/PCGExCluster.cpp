@@ -10,7 +10,7 @@
 
 PCGExFactories::EType UPCGExClusterFilterFactoryBase::GetFactoryType() const
 {
-	return PCGExFactories::EType::ClusterFilter;
+	return PCGExFactories::EType::ClusterNodeFilter;
 }
 
 PCGExFactories::EType UPCGExNodeStateFactory::GetFactoryType() const
@@ -103,6 +103,11 @@ namespace PCGExCluster
 		}
 	}
 
+	void FNode::Add(const FNode& Neighbor, int32 EdgeIndex)
+	{
+		Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex));
+	}
+
 #pragma endregion
 
 #pragma region FCluster
@@ -129,7 +134,7 @@ namespace PCGExCluster
 	bool FCluster::BuildFrom(
 		const PCGExData::FPointIO* EdgeIO,
 		const TArray<FPCGPoint>& InNodePoints,
-		const TMap<int64, int32>& InEndpointsLookup,
+		const TMap<uint32, int32>& InEndpointsLookup,
 		const TArray<int32>* InExpectedAdjacency)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
@@ -137,41 +142,43 @@ namespace PCGExCluster
 		Nodes.Empty();
 		Edges.Empty();
 		NodeIndexLookup.Empty();
-		//EdgeIndexLookup.Empty();
 
-		TSet<int32> NodePointsSet;
+		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(PCGExGraph::Tag_EdgeEndpoints);
 
-		if (!BuildIndexedEdges(EdgeIO, InEndpointsLookup, Edges, NodePointsSet, true))
+		auto OnFail = [&]()
 		{
-			bValid = false;
+			Nodes.Empty();
+			Edges.Empty();
+			PCGEX_DELETE(EndpointsReader)
 			return false;
-		}
+		};
 
-		bool bInvalidCluster = false;
+		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO))) { return OnFail(); }
 
-		const int32 NumNodes = NodePointsSet.Num();
-		Nodes.SetNum(NumNodes);
-		NodeIndexLookup.Reserve(NumNodes);
+		const int32 NumEdges = EdgeIO->GetNum();
 
-		int32 NodeIndex = 0;
-		for (int32 PointIndex : NodePointsSet)
-		{
-			Nodes[NodeIndex] = FNode(NodeIndex, PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
-			NodeIndexLookup.Add(PointIndex, NodeIndex);
-			NodeIndex++;
-		}
-
-		const int32 NumEdges = Edges.Num();
+		Edges.SetNumUninitialized(NumEdges);
+		Nodes.Reserve(PointsIO->GetNum());
+		NodeIndexLookup.Reserve(PointsIO->GetNum());
 
 		for (int i = 0; i < NumEdges; i++)
 		{
-			const PCGExGraph::FIndexedEdge& SortedEdge = Edges[i];
+			uint32 A;
+			uint32 B;
+			PCGEx::H64(EndpointsReader->Values[i], A, B);
 
-			const int32 StartNodeIndex = *NodeIndexLookup.Find(SortedEdge.Start);
-			const int32 EndNodeIndex = *NodeIndexLookup.Find(SortedEdge.End);
+			const int32* StartPointIndexPtr = InEndpointsLookup.Find(A);
+			const int32* EndPointIndexPtr = InEndpointsLookup.Find(B);
 
-			Nodes[StartNodeIndex].Adjacency.AddUnique(PCGEx::H64(EndNodeIndex, i));
-			Nodes[EndNodeIndex].Adjacency.AddUnique(PCGEx::H64(StartNodeIndex, i));
+			if ((!StartPointIndexPtr || !EndPointIndexPtr)) { return OnFail(); }
+
+			FNode& StartNode = GetOrCreateNodeUnsafe(*StartPointIndexPtr);
+			FNode& EndNode = GetOrCreateNodeUnsafe(*EndPointIndexPtr);
+
+			StartNode.Add(EndNode, i);
+			EndNode.Add(StartNode, i);
+
+			Edges[i] = PCGExGraph::FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO->IOIndex);
 		}
 
 		if (InExpectedAdjacency)
@@ -180,14 +187,15 @@ namespace PCGExCluster
 			{
 				if ((*InExpectedAdjacency)[Node.PointIndex] > Node.Adjacency.Num()) // We care about removed connections, not new ones 
 				{
-					bInvalidCluster = true;
-					break;
+					return OnFail();
 				}
 			}
 		}
 
-		bValid = !bInvalidCluster;
-		return bValid;
+		NodeIndexLookup.Shrink();
+		Nodes.Shrink();
+
+		return true;
 	}
 
 	void FCluster::RebuildBounds()
@@ -569,6 +577,19 @@ namespace PCGExCluster
 		return Result;
 	}
 
+	FNode& FCluster::GetOrCreateNodeUnsafe(int32 PointIndex)
+	{
+		const int32* NodeIndex = NodeIndexLookup.Find(PointIndex);
+
+		if (!NodeIndex)
+		{
+			NodeIndexLookup.Add(PointIndex, Nodes.Num());
+			return Nodes.Emplace_GetRef(Nodes.Num(), PointIndex, PointsIO->GetInPoint(PointIndex).Transform.GetLocation());
+		}
+
+		return Nodes[*NodeIndex];
+	}
+
 #pragma endregion
 
 #pragma region FNodeProjection
@@ -711,9 +732,9 @@ namespace PCGExCluster
 
 #pragma region FNodeStateHandler
 
-	PCGExDataFilter::EType TClusterFilter::GetFilterType() const { return PCGExDataFilter::EType::Cluster; }
+	PCGExDataFilter::EType TClusterNodeFilter::GetFilterType() const { return PCGExDataFilter::EType::ClusterNode; }
 
-	void TClusterFilter::CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster)
+	void TClusterNodeFilter::CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster)
 	{
 		bValid = true;
 		CapturedCluster = InCluster;
@@ -722,18 +743,18 @@ namespace PCGExCluster
 		if (bValid) { CaptureEdges(InContext, InCluster->EdgesIO); } // Only capture edges if we could capture nodes
 	}
 
-	void TClusterFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	void TClusterNodeFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
 		// Do not call Super:: as it sets bValid to true, and we want CaptureCluster to have control
 		// This is the filter is invalid if used somewhere that doesn't initialize clusters.
 		//TFilterHandler::Capture(PointIO);
 	}
 
-	void TClusterFilter::CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO)
+	void TClusterNodeFilter::CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO)
 	{
 	}
 
-	bool TClusterFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	bool TClusterNodeFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		if (bCacheResults)
 		{
@@ -745,7 +766,7 @@ namespace PCGExCluster
 		return false;
 	}
 
-	bool TClusterFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
+	bool TClusterNodeFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
 	{
 		return TFilter::PrepareForTesting(PointIO, PointIndices);
 	}
@@ -763,7 +784,7 @@ namespace PCGExCluster
 			if (TFilter* Handler = InFactory->FilterFactories[i]->CreateFilter())
 			{
 				Handler->bCacheResults = false; // So we don't create individual filter caches
-				if (Handler->GetFilterType() == PCGExDataFilter::EType::Cluster) { ClusterFilterHandlers.Add(static_cast<TClusterFilter*>(Handler)); }
+				if (Handler->GetFilterType() == PCGExDataFilter::EType::ClusterNode) { ClusterFilterHandlers.Add(static_cast<TClusterNodeFilter*>(Handler)); }
 				else { FilterHandlers.Add(Handler); }
 			}
 			else
@@ -777,7 +798,7 @@ namespace PCGExCluster
 	{
 		Cluster = InCluster;
 		TArray<TFilter*> InvalidTests;
-		TArray<TClusterFilter*> InvalidClusterTests;
+		TArray<TClusterNodeFilter*> InvalidClusterTests;
 
 		for (TFilter* Test : FilterHandlers)
 		{
@@ -791,13 +812,13 @@ namespace PCGExCluster
 			delete Filter;
 		}
 
-		for (TClusterFilter* Test : ClusterFilterHandlers)
+		for (TClusterNodeFilter* Test : ClusterFilterHandlers)
 		{
 			Test->CaptureCluster(InContext, Cluster);
 			if (!Test->bValid) { InvalidClusterTests.Add(Test); }
 		}
 
-		for (TClusterFilter* Filter : InvalidClusterTests)
+		for (TClusterNodeFilter* Filter : InvalidClusterTests)
 		{
 			ClusterFilterHandlers.Remove(Filter);
 			delete Filter;
@@ -819,7 +840,7 @@ namespace PCGExCluster
 		if (!ClusterFilterHandlers.IsEmpty())
 		{
 			const int32 NodeIndex = *Cluster->NodeIndexLookup.Find(PointIndex); // We get a point index from the FindNode
-			for (const TClusterFilter* Test : ClusterFilterHandlers) { if (!Test->Test(NodeIndex)) { return false; } }
+			for (const TClusterNodeFilter* Test : ClusterFilterHandlers) { if (!Test->Test(NodeIndex)) { return false; } }
 		}
 
 		return true;
@@ -833,7 +854,7 @@ namespace PCGExCluster
 		HeavyClusterFilterHandlers.Empty();
 
 		for (TFilter* Test : FilterHandlers) { if (Test->PrepareForTesting(PointIO)) { HeavyFilterHandlers.Add(Test); } }
-		for (TClusterFilter* Test : ClusterFilterHandlers) { if (Test->PrepareForTesting(PointIO)) { HeavyClusterFilterHandlers.Add(Test); } }
+		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { if (Test->PrepareForTesting(PointIO)) { HeavyClusterFilterHandlers.Add(Test); } }
 
 		return RequiresPerPointPreparation();
 	}
@@ -846,7 +867,7 @@ namespace PCGExCluster
 		HeavyClusterFilterHandlers.Empty();
 
 		for (TFilter* Test : FilterHandlers) { if (Test->PrepareForTesting(PointIO, PointIndices)) { HeavyFilterHandlers.Add(Test); } }
-		for (TClusterFilter* Test : ClusterFilterHandlers) { if (Test->PrepareForTesting(PointIO, PointIndices)) { HeavyClusterFilterHandlers.Add(Test); } }
+		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { if (Test->PrepareForTesting(PointIO, PointIndices)) { HeavyClusterFilterHandlers.Add(Test); } }
 
 		return RequiresPerPointPreparation();
 	}
@@ -858,14 +879,14 @@ namespace PCGExCluster
 		if (!HeavyClusterFilterHandlers.IsEmpty())
 		{
 			const int32 NodeIndex = *Cluster->NodeIndexLookup.Find(PointIndex); // We get a point index from the FindNode
-			for (TClusterFilter* Test : HeavyClusterFilterHandlers) { Test->PrepareSingle(NodeIndex); }
+			for (TClusterNodeFilter* Test : HeavyClusterFilterHandlers) { Test->PrepareSingle(NodeIndex); }
 		}
 	}
 
 	void FNodeStateHandler::PreparationComplete()
 	{
 		for (TFilter* Test : HeavyFilterHandlers) { Test->PreparationComplete(); }
-		for (TClusterFilter* Test : HeavyClusterFilterHandlers) { Test->PreparationComplete(); }
+		for (TClusterNodeFilter* Test : HeavyClusterFilterHandlers) { Test->PreparationComplete(); }
 	}
 
 	bool FNodeStateHandler::RequiresPerPointPreparation() const

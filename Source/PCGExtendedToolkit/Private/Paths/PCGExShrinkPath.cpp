@@ -26,7 +26,7 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 	{
 		PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
 		Getter->Capture(Settings->PrimaryDistanceSettings.DistanceAttribute);
-		if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read primary Distance value attribute on some inputs.")); }
+		if (!Getter->SoftGrab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read primary Distance value attribute on some inputs.")); }
 		Start = Getter->SoftGet(PointIO->GetInPoint(0), 0);
 		End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
 		PCGEX_DELETE(Getter);
@@ -44,7 +44,7 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 		{
 			PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
 			Getter->Capture(Settings->SecondaryDistanceSettings.DistanceAttribute);
-			if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read secondary Distance attribute on some inputs.")); }
+			if (!Getter->SoftGrab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read secondary Distance attribute on some inputs.")); }
 			End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
 			PCGEX_DELETE(Getter);
 		}
@@ -63,7 +63,7 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 	{
 		PCGEx::FLocalIntegerGetter* Getter = new PCGEx::FLocalIntegerGetter();
 		Getter->Capture(Settings->PrimaryCountSettings.CountAttribute);
-		if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read primary Distance value attribute on some inputs.")); }
+		if (!Getter->SoftGrab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read primary Distance value attribute on some inputs.")); }
 		Start = Getter->SoftGet(PointIO->GetInPoint(0), 0);
 		End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
 		PCGEX_DELETE(Getter);
@@ -79,7 +79,7 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 		{
 			PCGEx::FLocalIntegerGetter* Getter = new PCGEx::FLocalIntegerGetter();
 			Getter->Capture(Settings->PrimaryCountSettings.CountAttribute);
-			if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read secondary Distance attribute on some inputs.")); }
+			if (!Getter->SoftGrab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read secondary Distance attribute on some inputs.")); }
 			End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
 			PCGEX_DELETE(Getter);
 		}

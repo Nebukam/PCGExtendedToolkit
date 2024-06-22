@@ -59,7 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteLength"))
 	FName LengthAttribute = "Length";
 	PCGEx::TFAttributeWriter<double>* LengthWriter = nullptr;
-
+	
 	virtual bool Validate(const FPCGContext* InContext) const
 	{
 		if (bWriteDirection) { PCGEX_VALIDATE_NAME_C(InContext, DirectionAttribute); }
@@ -248,9 +248,13 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx);
+
+	virtual void ClusterReserve(const int32 NumClusters);
+	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster);
+	
 	virtual bool IsOperationValid();
 
-	FORCEINLINE virtual void ProcessNode(const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
+	FORCEINLINE virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
 
 	virtual void Write() override;
 	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override;

@@ -183,7 +183,7 @@ namespace PCGExGraph
 
 	static bool BuildIndexedEdges(
 		const PCGExData::FPointIO* EdgeIO,
-		const TMap<int64, int32>& EndpointsLookup,
+		const TMap<uint32, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
 		const bool bStopOnError = false)
 	{
@@ -250,7 +250,7 @@ namespace PCGExGraph
 
 	static bool BuildIndexedEdges(
 		const PCGExData::FPointIO* EdgeIO,
-		const TMap<int64, int32>& EndpointsLookup,
+		const TMap<uint32, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
 		TSet<int32>& OutNodePoints,
 		const bool bStopOnError = false)

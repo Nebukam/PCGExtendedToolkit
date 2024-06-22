@@ -20,7 +20,8 @@ namespace PCGExDataFilter
 	enum class EType : uint8
 	{
 		Default = 0,
-		Cluster
+		ClusterNode,
+		ClusterEdge,
 	};
 }
 

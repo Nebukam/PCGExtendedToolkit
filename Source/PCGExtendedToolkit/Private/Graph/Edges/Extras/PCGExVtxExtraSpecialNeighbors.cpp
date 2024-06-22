@@ -38,7 +38,7 @@ bool UPCGExVtxExtraSpecialNeighbors::PrepareForVtx(const FPCGContext* InContext,
 	return bIsValidOperation;
 }
 
-void UPCGExVtxExtraSpecialNeighbors::ProcessNode(const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxExtraSpecialNeighbors::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	double LLargest = TNumericLimits<double>::Min();
 	int32 ILargest = -1;

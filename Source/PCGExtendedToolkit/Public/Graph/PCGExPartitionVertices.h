@@ -62,7 +62,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExCreateVtxPartitionTask final : public PCGExMT
 public:
 	FPCGExCreateVtxPartitionTask(PCGExData::FPointIO* InPointIO,
 	                             PCGExData::FPointIO* InEdgeIO,
-	                             TMap<int64, int32>* InEndpointsLookup) :
+	                             TMap<uint32, int32>* InEndpointsLookup) :
 		FPCGExTask(InPointIO),
 		EdgeIO(InEdgeIO),
 		EndpointsLookup(InEndpointsLookup)
@@ -70,7 +70,7 @@ public:
 	}
 
 	PCGExData::FPointIO* EdgeIO = nullptr;
-	TMap<int64, int32>* EndpointsLookup = nullptr;
+	TMap<uint32, int32>* EndpointsLookup = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

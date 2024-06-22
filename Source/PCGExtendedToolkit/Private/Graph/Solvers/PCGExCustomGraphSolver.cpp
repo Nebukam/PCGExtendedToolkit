@@ -70,7 +70,7 @@ double UPCGExCustomGraphSolver::PrepareProbeForPointSocketPair(
 
 	if (InSocketInfos.Socket->Descriptor.bRelativeOrientation)
 	{
-		Probe.Direction = PtTransform.TransformVector(Probe.Direction);
+		Probe.Direction = PtTransform.TransformVectorNoScale(Probe.Direction);
 	}
 
 	Probe.Direction.Normalize();

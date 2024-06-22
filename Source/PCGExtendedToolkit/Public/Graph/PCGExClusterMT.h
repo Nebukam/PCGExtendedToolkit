@@ -86,7 +86,7 @@ namespace PCGExClusterMT
 		PCGExData::FPointIO* EdgesIO = nullptr;
 		int32 BatchIndex = -1;
 
-		TMap<int64, int32>* EndpointsLookup = nullptr;
+		TMap<uint32, int32>* EndpointsLookup = nullptr;
 		TArray<int32>* ExpectedAdjacency = nullptr;
 
 		PCGExCluster::FCluster* Cluster = nullptr;
@@ -96,10 +96,13 @@ namespace PCGExClusterMT
 		FClusterProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			VtxIO(InVtx), EdgesIO(InEdges)
 		{
+			PCGEX_LOG_CTR(FClusterProcessor)
 		}
 
 		virtual ~FClusterProcessor()
 		{
+			PCGEX_LOG_DTR(FClusterProcessor)
+
 			PCGEX_DELETE(HeuristicsHandler);
 			PCGEX_DELETE(Cluster);
 
@@ -342,7 +345,7 @@ namespace PCGExClusterMT
 		UPCGExNodeStateFactory* VtxFiltersData = nullptr;
 		UPCGExNodeStateFactory* EdgesFiltersData = nullptr; //TODO
 
-		TMap<int64, int32> EndpointsLookup;
+		TMap<uint32, int32> EndpointsLookup;
 		TArray<int32> ExpectedAdjacency;
 
 		bool bRequiresHeuristics = false;

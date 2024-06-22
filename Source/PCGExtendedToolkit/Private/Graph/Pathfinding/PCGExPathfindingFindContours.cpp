@@ -141,7 +141,7 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 	{
 		Context->SeedTagGetter = new PCGEx::FLocalToStringGetter();
 		Context->SeedTagGetter->Capture(Settings->SeedTagAttribute);
-		Context->SeedTagGetter->SoftGrab(*Context->Seeds);
+		Context->SeedTagGetter->SoftGrab(Context->Seeds);
 	}
 
 	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->Seeds);

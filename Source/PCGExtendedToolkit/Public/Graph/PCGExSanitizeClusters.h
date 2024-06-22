@@ -45,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext final : public FPCGE
 	virtual ~FPCGExSanitizeClustersContext() override;
 
 	TArray<PCGExGraph::FGraphBuilder*> Builders;
-	TArray<TMap<int64, int32>> EndpointsLookups;
+	TArray<TMap<uint32, int32>> EndpointsLookups;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersElement final : public FPCGExEdgesProcessorElement

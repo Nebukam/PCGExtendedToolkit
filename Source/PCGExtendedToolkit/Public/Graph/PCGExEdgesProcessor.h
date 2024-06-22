@@ -61,7 +61,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
-	TMap<int64, int32> EndpointsLookup;
+	TMap<uint32, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;
 
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;

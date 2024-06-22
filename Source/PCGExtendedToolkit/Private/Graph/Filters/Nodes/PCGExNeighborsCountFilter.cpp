@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Filters/PCGExNeighborsCountFilter.h"
+#include "Graph/Filters/Nodes/PCGExNeighborsCountFilter.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeNeighborsCountFilter"
@@ -14,7 +14,7 @@ PCGExDataFilter::TFilter* UPCGExNeighborsCountFilterFactory::CreateFilter() cons
 
 namespace PCGExNodeNeighborsCount
 {
-	PCGExDataFilter::EType TNeighborsCountFilter::GetFilterType() const { return PCGExDataFilter::EType::Cluster; }
+	PCGExDataFilter::EType TNeighborsCountFilter::GetFilterType() const { return PCGExDataFilter::EType::ClusterNode; }
 
 	void TNeighborsCountFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{

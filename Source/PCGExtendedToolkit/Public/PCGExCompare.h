@@ -413,6 +413,60 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 	/** Tolerance for dot comparison. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DotToleranceDegrees = 0.1;
+
+	bool bUseLocalDot = false;
+	PCGEx::FLocalSingleFieldGetter* LocalOperand = nullptr;
+
+	bool Init(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	{
+		bUseLocalDot = DotValue == EPCGExFetchType::Attribute;
+		
+		if (bUseLocalDot)
+		{
+			LocalOperand = new PCGEx::FLocalSingleFieldGetter();
+			LocalOperand->Capture(DotAttribute);
+
+			if (!LocalOperand->SoftGrab(PointIO))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Dot attribute: {0}."), FText::FromName(DotAttribute.GetName())));
+				return false;
+			}
+		}
+
+		if (DotUnits == EPCGExDotUnits::Degrees)
+		{
+			DotToleranceRaw = PCGExMath::DegreesToDot(DotToleranceDegrees);
+			DotConstantRaw = PCGExMath::DegreesToDot(DotConstantDegrees);
+		}
+
+		return false;
+	}
+
+	double GetDot(const FPCGPoint& Point) const
+	{
+		if (bUseLocalDot)
+		{
+			switch (DotUnits)
+			{
+			default: ;
+			case EPCGExDotUnits::Raw:
+				return LocalOperand->SoftGet(Point, 1);
+			case EPCGExDotUnits::Degrees:
+				return PCGExMath::DegreesToDot(LocalOperand->SoftGet(Point, 0));
+			}
+		}
+		return DotToleranceRaw;
+	}
+
+	bool Test(const double A, const double B) const
+	{
+		return PCGExCompare::Compare(Comparison, A, B, DotToleranceRaw);
+	}
+	
+	void Cleanup()
+	{
+		PCGEX_DELETE(LocalOperand)
+	}
 };
 
 

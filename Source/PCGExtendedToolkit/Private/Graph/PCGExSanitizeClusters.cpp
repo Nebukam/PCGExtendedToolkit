@@ -20,7 +20,7 @@ FPCGExSanitizeClustersContext::~FPCGExSanitizeClustersContext()
 
 	PCGEX_DELETE_TARRAY(Builders)
 
-	for (TMap<int64, int32>& Map : EndpointsLookups) { Map.Empty(); }
+	for (TMap<uint32, int32>& Map : EndpointsLookups) { Map.Empty(); }
 	EndpointsLookups.Empty();
 }
 
@@ -103,7 +103,7 @@ bool FPCGExSanitizeClusterTask::ExecuteTask()
 
 	Context->Builders[TaskIndex] = new PCGExGraph::FGraphBuilder(PointIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 
-	TMap<int64, int32>& Map = Context->EndpointsLookups[TaskIndex];
+	TMap<uint32, int32>& Map = Context->EndpointsLookups[TaskIndex];
 	TArray<int32> Adjacency;
 
 	PCGExGraph::BuildEndpointsLookup(PointIO, Map, Adjacency);

@@ -475,7 +475,7 @@ namespace PCGExGraph
 
 	static bool BuildEndpointsLookup(
 		const PCGExData::FPointIO* InPointIO,
-		TMap<int64, int32>& OutIndices,
+		TMap<uint32, int32>& OutIndices,
 		TArray<int32>& OutAdjacency)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable);
@@ -535,7 +535,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	static bool GetReducedVtxIndices(PCGExData::FPointIO* InEdges, const TMap<int64, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
+	static bool GetReducedVtxIndices(PCGExData::FPointIO* InEdges, const TMap<uint32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
 	{
 		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
 

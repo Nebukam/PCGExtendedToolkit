@@ -40,7 +40,7 @@ bool UPCGExVtxExtraSpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCG
 	return bIsValidOperation;
 }
 
-void UPCGExVtxExtraSpecialEdges::ProcessNode(const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxExtraSpecialEdges::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	double LLongest = TNumericLimits<double>::Min();
 	int32 ILongest = -1;

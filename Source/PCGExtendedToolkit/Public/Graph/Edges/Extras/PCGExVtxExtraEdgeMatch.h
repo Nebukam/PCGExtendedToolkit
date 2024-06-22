@@ -20,25 +20,37 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 {
 	GENERATED_BODY()
 
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExFetchType DirectionSource = EPCGExFetchType::Constant;
+	/** Direction orientation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExAdjacencyDirectionOrigin Origin = EPCGExAdjacencyDirectionOrigin::FromNode;
+	
+	/** Where to read the compared direction from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExFetchType DirectionSource = EPCGExFetchType::Attribute;
+
+	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionSource==EPCGExFetchType::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector Direction;
+
+	/** Direction for computing the dot product against the edge's. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionSource==EPCGExFetchType::Constant", EditConditionHides))
+	FVector DirectionConstant = FVector::UpVector;
 
 	/** Whether to transform the direction source by the vtx' transform */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bTransformSource = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bAdditionalRequirementsOnly"))
+	bool bTransformDirection = false;
 
 	/** Matching edge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bAdditionalRequirementsOnly"))
 	FPCGExEdgeOutputWithIndexSettings MatchingEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Matching"));
 
 	/** Dot comparison settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, EditCondition="!bAdditionalRequirementsOnly"))
 	FPCGExDotComparisonSettings DotComparisonSettings;
 };
 
 /**
- * ó
+ * 
  */
 UCLASS()
 class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraEdgeMatch : public UPCGExVtxExtraOperation
@@ -47,17 +59,25 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraEdgeMatch : public UPCGExVtxExtraOper
 
 public:
 	FPCGExEdgeMatchSettings Descriptor;
+	TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void ClusterReserve(const int32 NumClusters) override;
+	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster) override;
 	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx) override;
-	virtual void ProcessNode(const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
+	virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
 	virtual void Write() override;
 	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override;
 	virtual void Cleanup() override;
 
 protected:
-	PCGEx::TFAttributeWriter<FVector>* MatchingDirWriter = nullptr;
-	PCGEx::TFAttributeWriter<double>* MatchingLenWriter = nullptr;
+	bool bEdgeFilterInitialized = false;
+	void InitEdgeFilters();
+
+	mutable FRWLock FilterLock;
+
+	PCGEx::FLocalVectorGetter* DirGetter = nullptr;
+	TArray<PCGExDataFilter::TEarlyExitFilterManager*> FilterManagers;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -67,6 +87,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraEdgeMatchFactory : public UPCGExVtxEx
 
 public:
 	FPCGExEdgeMatchSettings Descriptor;
+	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 	virtual UPCGExVtxExtraOperation* CreateOperation() const override;
 };
 
@@ -82,6 +103,7 @@ public:
 		NeighborSamplerAttribute, "Vtx Extra : Edge Match", "Find the edge that matches the closest provided direction.",
 		FName(GetDisplayName()))
 
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 #endif
 	//~End UPCGSettings
 

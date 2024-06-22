@@ -168,7 +168,7 @@ public:
 
 	/** How the NumBranches value is to be interpreted against the actual number of neighbors. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
-	EPCGExMeanMeasure SeedNumBranchesMean = EPCGExMeanMeasure::Absolute;
+	EPCGExMeanMeasure SeedNumBranchesMean = EPCGExMeanMeasure::Discrete;
 
 	/** Num branches constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches == EPCGExGrowthValueSource::Constant", EditConditionHides))

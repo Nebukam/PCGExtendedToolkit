@@ -60,6 +60,7 @@ namespace PCGExData
 			const int32 InIndex = -1)
 			: In(nullptr), IOIndex(InIndex)
 		{
+			PCGEX_LOG_CTR(FPointIO)
 			DefaultOutputLabel = InDefaultOutputLabel;
 			NumInPoints = 0;
 			Tags = new FTags();
@@ -74,6 +75,7 @@ namespace PCGExData
 			const TSet<FString>* InTags = nullptr)
 			: In(InData), IOIndex(InIndex)
 		{
+			PCGEX_LOG_CTR(FPointIO)
 			DefaultOutputLabel = InDefaultOutputLabel;
 			Tags = InTags ? new FTags(*InTags) : new FTags();
 			NumInPoints = InData->GetPoints().Num();

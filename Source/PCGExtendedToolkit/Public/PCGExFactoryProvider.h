@@ -25,7 +25,8 @@ namespace PCGExFactories
 		SortRule,
 		PartitionRule,
 		Filter,
-		ClusterFilter,
+		ClusterNodeFilter,
+		ClusterEdgeFilter,
 		NodeState,
 		SocketState,
 		Sampler,
@@ -33,7 +34,8 @@ namespace PCGExFactories
 		VtxExtra
 	};
 
-	static inline TSet<EType> ClusterFilters = {EType::Filter, EType::ClusterFilter};
+	static inline TSet<EType> ClusterNodeFilters = {EType::Filter, EType::ClusterNodeFilter};
+	static inline TSet<EType> ClusterEdgeFilters = {EType::Filter, EType::ClusterEdgeFilter};
 }
 
 /**

@@ -611,7 +611,7 @@ namespace PCGExGraphTask
 		FCompoundGraphInsertEdges(PCGExData::FPointIO* InPointIO,
 		                          PCGExGraph::FCompoundGraph* InGraph,
 		                          PCGExData::FPointIO* InEdgeIO,
-		                          TMap<int64, int32>* InEndpointsLookup)
+		                          TMap<uint32, int32>* InEndpointsLookup)
 			: FPCGExTask(InPointIO),
 			  Graph(InGraph),
 			  EdgeIO(InEdgeIO),
@@ -621,7 +621,7 @@ namespace PCGExGraphTask
 
 		PCGExGraph::FCompoundGraph* Graph = nullptr;
 		PCGExData::FPointIO* EdgeIO = nullptr;
-		TMap<int64, int32>* EndpointsLookup = nullptr;
+		TMap<uint32, int32>* EndpointsLookup = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

@@ -632,7 +632,7 @@ namespace PCGEx
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param PointIO
 		 */
-		bool SoftGrab(const PCGExData::FPointIO& PointIO)
+		bool SoftGrab(const PCGExData::FPointIO* PointIO)
 		{
 			Cleanup();
 
@@ -640,7 +640,7 @@ namespace PCGEx
 			bValid = false;
 			if (!bEnabled) { return false; }
 
-			const UPCGPointData* InData = PointIO.GetIn();
+			const UPCGPointData* InData = PointIO->GetIn();
 
 			TArray<FString> ExtraNames;
 			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Descriptor.Selector, InData, ExtraNames);

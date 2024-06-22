@@ -204,6 +204,8 @@ namespace PCGExData
 
 	FPointIO::~FPointIO()
 	{
+		PCGEX_LOG_DTR(FPointIO)
+		
 		CleanupKeys();
 
 		PCGEX_DELETE(Tags)

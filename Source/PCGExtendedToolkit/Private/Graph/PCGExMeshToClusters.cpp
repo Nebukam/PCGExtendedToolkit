@@ -127,7 +127,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 				PCGEx::FLocalToStringGetter* PathGetter = new PCGEx::FLocalToStringGetter();
 				PathGetter->Capture(Selector);
-				if (!PathGetter->SoftGrab(*Context->MainPoints->Pairs[0]))
+				if (!PathGetter->SoftGrab(Context->MainPoints->Pairs[0]))
 				{
 					PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh attribute does not exists on targets."));
 					return false;

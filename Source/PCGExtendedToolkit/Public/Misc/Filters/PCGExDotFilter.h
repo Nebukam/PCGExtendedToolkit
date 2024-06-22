@@ -78,15 +78,15 @@ namespace PCGExPointsFilter
 		explicit TDotFilter(const UPCGExDotFilterFactory* InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
+			DotComparison = TypedFilterFactory->Descriptor.DotComparisonSettings;
 		}
 
 		const UPCGExDotFilterFactory* TypedFilterFactory;
 
-		double DotTolerance = 0;
+		FPCGExDotComparisonSettings DotComparison;
 
 		PCGEx::FLocalVectorGetter* OperandA = nullptr;
 		PCGEx::FLocalVectorGetter* OperandB = nullptr;
-		PCGEx::FLocalSingleFieldGetter* DotValue = nullptr;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
@@ -94,6 +94,7 @@ namespace PCGExPointsFilter
 		virtual ~TDotFilter() override
 		{
 			TypedFilterFactory = nullptr;
+			DotComparison.Cleanup();
 			PCGEX_DELETE(OperandA)
 			PCGEX_DELETE(OperandB)
 		}

@@ -8,6 +8,9 @@
 
 #pragma region PCGEX MACROS
 
+#define PCGEX_LOG_CTR(_NAME) if(false){ UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Constructor")) }
+#define PCGEX_LOG_DTR(_NAME) if(false){ UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Destructor")) }
+
 #define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
 #define FSTRING(_TEXT) FString(_TEXT)
 

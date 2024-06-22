@@ -66,7 +66,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask final : public PCGExMT::FPCGE
 public:
 	FPCGExPackClusterTask(PCGExData::FPointIO* InPointIO,
 	                      PCGExData::FPointIO* InInEdges,
-	                      const TMap<int64, int32>& InEndpointsLookup) :
+	                      const TMap<uint32, int32>& InEndpointsLookup) :
 		FPCGExTask(InPointIO),
 		InEdges(InInEdges),
 		EndpointsLookup(InEndpointsLookup)
@@ -79,7 +79,7 @@ public:
 	}
 
 	PCGExData::FPointIO* InEdges = nullptr;
-	TMap<int64, int32> EndpointsLookup;
+	TMap<uint32, int32> EndpointsLookup;
 
 	virtual bool ExecuteTask() override;
 };

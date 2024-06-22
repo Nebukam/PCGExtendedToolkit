@@ -76,10 +76,13 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		explicit FPointsProcessor(PCGExData::FPointIO* InPoints):
 			PointIO(InPoints)
 		{
+			PCGEX_LOG_CTR(FPointsProcessor)
 		}
 
 		virtual ~FPointsProcessor()
 		{
+			PCGEX_LOG_DTR(FPointsProcessor)
+			
 			PointIO = nullptr;
 			PCGEX_DELETE_OPERATION(PrimaryOperation)
 

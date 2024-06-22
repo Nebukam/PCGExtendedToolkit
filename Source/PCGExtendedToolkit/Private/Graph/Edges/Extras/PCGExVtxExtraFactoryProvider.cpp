@@ -22,9 +22,19 @@ bool UPCGExVtxExtraOperation::PrepareForVtx(const FPCGContext* InContext, PCGExD
 	return true;
 }
 
+void UPCGExVtxExtraOperation::ClusterReserve(const int32 NumClusters)
+{
+	
+}
+
+void UPCGExVtxExtraOperation::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster)
+{
+	// Store per-cluster stuff inside an array, return that array index for later use.
+}
+
 bool UPCGExVtxExtraOperation::IsOperationValid() { return bIsValidOperation; }
 
-void UPCGExVtxExtraOperation::ProcessNode(const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxExtraOperation::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 }
 

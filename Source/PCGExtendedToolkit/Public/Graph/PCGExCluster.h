@@ -169,10 +169,11 @@ namespace PCGExCluster
 		FORCEINLINE int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
 
 		void ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const;
+		FORCEINLINE void Add(const FNode& Neighbor, int32 Edge);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCluster
-	{
+	{				
 		bool bEdgeLengthsDirty = true;
 		bool bValid = false;
 		bool bIsOneToOne = false; // Whether the input data has a single set of edges for a single set of vtx 
@@ -198,7 +199,7 @@ namespace PCGExCluster
 		bool BuildFrom(
 			const PCGExData::FPointIO* EdgeIO,
 			const TArray<FPCGPoint>& InNodePoints,
-			const TMap<int64, int32>& InEndpointsLookup,
+			const TMap<uint32, int32>& InEndpointsLookup,
 			const TArray<int32>* InExpectedAdjacency = nullptr);
 
 		void RebuildBounds();
@@ -230,6 +231,10 @@ namespace PCGExCluster
 		void GetValidEdges(TArray<PCGExGraph::FIndexedEdge>& OutValidEdges) const;
 
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
+		
+	protected:
+		FNode& GetOrCreateNodeUnsafe(int32 PointIndex);
+		
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeProjection
@@ -285,10 +290,10 @@ namespace PCGExCluster
 		uint64 GetNHashU() const { return PCGEx::NH64U(First, Last); }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TClusterFilter : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TClusterNodeFilter : public PCGExDataFilter::TFilter
 	{
 	public:
-		explicit TClusterFilter(const UPCGExClusterFilterFactoryBase* InFactory)
+		explicit TClusterNodeFilter(const UPCGExClusterFilterFactoryBase* InFactory)
 			: TFilter(InFactory)
 		{
 			bValid = false;
@@ -314,8 +319,8 @@ namespace PCGExCluster
 
 		TArray<TFilter*> FilterHandlers;
 		TArray<TFilter*> HeavyFilterHandlers;
-		TArray<TClusterFilter*> ClusterFilterHandlers;
-		TArray<TClusterFilter*> HeavyClusterFilterHandlers;
+		TArray<TClusterNodeFilter*> ClusterFilterHandlers;
+		TArray<TClusterNodeFilter*> HeavyClusterFilterHandlers;
 
 		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
@@ -384,7 +389,7 @@ namespace PCGExClusterTask
 			PCGExData::FPointIO* InPointIO,
 			PCGExCluster::FCluster* InCluster,
 			const PCGExData::FPointIO* InEdgeIO,
-			const TMap<int64, int32>* InEndpointsLookup,
+			const TMap<uint32, int32>* InEndpointsLookup,
 			const TArray<int32>* InExpectedAdjacency) :
 			FPCGExTask(InPointIO),
 			Cluster(InCluster),
@@ -396,7 +401,7 @@ namespace PCGExClusterTask
 
 		PCGExCluster::FCluster* Cluster = nullptr;
 		const PCGExData::FPointIO* EdgeIO = nullptr;
-		const TMap<int64, int32>* EndpointsLookup = nullptr;
+		const TMap<uint32, int32>* EndpointsLookup = nullptr;
 		const TArray<int32>* ExpectedAdjacency = nullptr;
 
 		virtual bool ExecuteTask() override;

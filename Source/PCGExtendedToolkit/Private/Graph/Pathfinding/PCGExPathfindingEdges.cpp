@@ -134,7 +134,7 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 	{
 		Context->SeedTagValueGetter = new PCGEx::FLocalToStringGetter();
 		Context->SeedTagValueGetter->Capture(Settings->SeedTagAttribute);
-		if (!Context->SeedTagValueGetter->SoftGrab(*Context->SeedsPoints))
+		if (!Context->SeedTagValueGetter->SoftGrab(Context->SeedsPoints))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on Seed points."));
 			return false;
@@ -145,7 +145,7 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 	{
 		Context->GoalTagValueGetter = new PCGEx::FLocalToStringGetter();
 		Context->GoalTagValueGetter->Capture(Settings->GoalTagAttribute);
-		if (!Context->GoalTagValueGetter->SoftGrab(*Context->GoalsPoints))
+		if (!Context->GoalTagValueGetter->SoftGrab(Context->GoalsPoints))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on Goal points."));
 			return false;

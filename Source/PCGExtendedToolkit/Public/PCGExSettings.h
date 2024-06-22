@@ -13,6 +13,13 @@
 
 #include "PCGExSettings.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode"))
+enum class EPCGExAdjacencyDirectionOrigin : uint8
+{
+	FromNode UMETA(DisplayName = "From Node to Neighbor", Tooltip="..."),
+	FromNeighbor UMETA(DisplayName = "From Neighbor to Node", Tooltip="..."),
+};
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
 enum class EPCGExFetchType : uint8
 {

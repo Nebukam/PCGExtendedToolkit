@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
 #include "PCGExSettings.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExAdjacency.generated.h"
@@ -21,23 +22,23 @@ enum class EPCGExAdjacencyTestMode : uint8
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Gather Mode"))
 enum class EPCGExAdjacencyGatherMode : uint8
 {
-	Individual UMETA(DisplayName = "Individual", Tooltip="Test individual nodes"),
-	Average UMETA(DisplayName = "Average", Tooltip="Average value"),
-	Min UMETA(DisplayName = "Min", Tooltip="Min value"),
-	Max UMETA(DisplayName = "Max", Tooltip="Max value"),
-	Sum UMETA(DisplayName = "Sum", Tooltip="Sum value"),
+	Individual UMETA(DisplayName = "Individual", Tooltip="Test individual neighbors one by one"),
+	Average UMETA(DisplayName = "Average", Tooltip="Test against averaged value of all neighbors"),
+	Min UMETA(DisplayName = "Min", Tooltip="st against Min value of all neighbors"),
+	Max UMETA(DisplayName = "Max", Tooltip="st against Max value of all neighbors"),
+	Sum UMETA(DisplayName = "Sum", Tooltip="st against Sum value of all neighbors"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Mode"))
-enum class EPCGExAdjacencySubsetMode : uint8
+enum class EPCGExAdjacencyThreshold : uint8
 {
-	AtLeast UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least X adjacent nodes."),
-	AtMost UMETA(DisplayName = "At Most", Tooltip="Requirements must be met by at most X adjacent nodes."),
-	Exactly UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly X adjacent nodes, no more, no less.")
+	AtLeast UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least N adjacent nodes. \n (Where N is the Threshold)"),
+	AtMost UMETA(DisplayName = "At Most", Tooltip="Requirements must be met by at most N adjacent nodes. \n (Where N is the Threshold)"),
+	Exactly UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly N adjacent nodes, no more, no less. \n (Where N is the Threshold)")
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Relative Rounding Mode"))
-enum class EPCGExRelativeRoundingMode : uint8
+enum class EPCGExRelativeThresholdRoundingMode : uint8
 {
 	Round UMETA(DisplayName = "Round", Tooltip="Rounds value to closest integer (0.1 = 0, 0.9 = 1)"),
 	Floor UMETA(DisplayName = "Floor", Tooltip="Rounds value to closest smaller integer (0.1 = 0, 0.9 = 0)"),
@@ -55,32 +56,143 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 	/** How many adjacent items should be tested. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExAdjacencyTestMode Mode = EPCGExAdjacencyTestMode::All;
+	EPCGExAdjacencyTestMode Mode = EPCGExAdjacencyTestMode::Some;
 
 	/** How to consolidate value for testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::All", EditConditionHides))
 	EPCGExAdjacencyGatherMode Consolidation = EPCGExAdjacencyGatherMode::Average;
 
-	/** How should adjacency be observed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
-	EPCGExAdjacencySubsetMode SubsetMode = EPCGExAdjacencySubsetMode::AtLeast;
+	/** How to handle threshold comparison. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
+	EPCGExComparison ThresholdComparison = EPCGExComparison::NearlyEqual;
+
+	/** Comparison threshold */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides, ClampMin=0))
+	int32 ThresholdTolerance = 0;
 
 	/** Define the nodes subset' size that must meet requirements. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
-	EPCGExMeanMeasure SubsetMeasure = EPCGExMeanMeasure::Absolute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
+	EPCGExMeanMeasure ThresholdType = EPCGExMeanMeasure::Discrete;
 
 	/** Define the nodes subset' size that must meet requirements. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
-	EPCGExFetchType SubsetSource = EPCGExFetchType::Constant;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
+	EPCGExFetchType ThresholdSource = EPCGExFetchType::Constant;
+
+	/** Discrete threshold value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Constant && ThresholdMeasure == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
+	int32 DiscreteThreshold = 1;
+
+	/** Relative threshold value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Constant && ThresholdMeasure == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
+	double RelativeThreshold = 0.5;
 
 	/** Local measure attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector LocalMeasure;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
-	/** Constant Local measure value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Constant", EditConditionHides))
-	double ConstantMeasure = 0;
+	/** When using relative threshold mode, choose how to round it to a discrete value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdMeasure == EPCGExMeanMeasure::Relative", EditConditionHides))
+	EPCGExRelativeThresholdRoundingMode Rounding = EPCGExRelativeThresholdRoundingMode::Round;
 
-	bool IsRelativeMeasure() const { return SubsetMeasure == EPCGExMeanMeasure::Absolute; }
-	bool IsLocalMeasure() const { return SubsetSource == EPCGExFetchType::Attribute; }
+	bool bTestAllNeighbors = false;
+	bool bUseDiscreteMeasure = false;
+	bool bUseLocalThreshold = false;
+
+	PCGEx::FLocalSingleFieldGetter* LocalThreshold = nullptr;
+
+	bool Init(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	{
+		bUseDiscreteMeasure = ThresholdType == EPCGExMeanMeasure::Discrete;
+		bUseLocalThreshold = ThresholdSource == EPCGExFetchType::Attribute;
+		bTestAllNeighbors = Mode != EPCGExAdjacencyTestMode::Some;
+
+		if (bUseLocalThreshold)
+		{
+			LocalThreshold = new PCGEx::FLocalSingleFieldGetter();
+			LocalThreshold->Capture(ThresholdAttribute);
+
+			if (!LocalThreshold->SoftGrab(PointIO))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Threshold attribute: {0}."), FText::FromName(ThresholdAttribute.GetName())));
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	int32 GetThreshold(const PCGExCluster::FNode& Node) const
+	{
+		auto InternalEnsure = [&](int32 Value)-> int32
+		{
+			switch (ThresholdComparison)
+			{
+			case EPCGExComparison::StrictlyEqual:
+				return Value < Node.Adjacency.Num() ? -1 : Value;
+			case EPCGExComparison::StrictlyNotEqual:
+				return Value;
+			case EPCGExComparison::EqualOrGreater:
+				return Value < Node.Adjacency.Num() ? -1 : Value;
+			case EPCGExComparison::EqualOrSmaller:
+				return Value;
+			case EPCGExComparison::StrictlyGreater:
+				return Value <= Node.Adjacency.Num() ? -1 : Value;
+			case EPCGExComparison::StrictlySmaller:
+				return Value;
+			case EPCGExComparison::NearlyEqual:
+				return Value;
+			case EPCGExComparison::NearlyNotEqual:
+				return Value;
+			default:
+				return Value;
+			}
+		};
+
+		if (bUseLocalThreshold)
+		{
+			if (bUseDiscreteMeasure)
+			{
+				// Fetch absolute subset count from node
+				return InternalEnsure(LocalThreshold->Values[Node.PointIndex]);
+			}
+
+			// Fetch relative subset count from node and factor the local adjacency count
+			switch (Rounding)
+			{
+			default: ;
+			case EPCGExRelativeThresholdRoundingMode::Round:
+				return FMath::RoundToInt32(LocalThreshold->Values[Node.PointIndex] * Node.Adjacency.Num());
+			case EPCGExRelativeThresholdRoundingMode::Floor:
+				return FMath::FloorToInt32(LocalThreshold->Values[Node.PointIndex] * Node.Adjacency.Num());
+			case EPCGExRelativeThresholdRoundingMode::Ceil:
+				return FMath::CeilToInt32(LocalThreshold->Values[Node.PointIndex] * Node.Adjacency.Num());
+			}
+		}
+
+		if (bUseDiscreteMeasure)
+		{
+			// Use constant measure from settings
+			return InternalEnsure(DiscreteThreshold);
+		}
+
+		switch (Rounding)
+		{
+		default: ;
+		case EPCGExRelativeThresholdRoundingMode::Round:
+			return FMath::RoundToInt32(RelativeThreshold * Node.Adjacency.Num());
+		case EPCGExRelativeThresholdRoundingMode::Floor:
+			return FMath::FloorToInt32(RelativeThreshold * Node.Adjacency.Num());
+		case EPCGExRelativeThresholdRoundingMode::Ceil:
+			return FMath::CeilToInt32(RelativeThreshold * Node.Adjacency.Num());
+		}
+	}
+
+	void Cleanup()
+	{
+		PCGEX_DELETE(LocalThreshold)
+	}
 };
+
+namespace PCGExAdjacency
+{
+}

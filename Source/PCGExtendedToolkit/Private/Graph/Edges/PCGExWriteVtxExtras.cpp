@@ -90,6 +90,11 @@ namespace PCGExWriteVtxExtras
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
+		if (!ExtraOperations->IsEmpty())
+		{
+			for (UPCGExVtxExtraOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster); }
+		}
+
 		if (VtxNormalWriter)
 		{
 			ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionSettings);
@@ -121,7 +126,7 @@ namespace PCGExWriteVtxExtras
 		TArray<PCGExCluster::FAdjacencyData> Adjacency;
 		GetAdjacencyData(Cluster, Node, Adjacency);
 
-		for (UPCGExVtxExtraOperation* Op : (*ExtraOperations)) { Op->ProcessNode(Cluster, Node, Adjacency); }
+		for (UPCGExVtxExtraOperation* Op : (*ExtraOperations)) { Op->ProcessNode(BatchIndex, Cluster, Node, Adjacency); }
 	}
 
 	void FProcessor::CompleteWork()
@@ -167,7 +172,7 @@ namespace PCGExWriteVtxExtras
 				PCGEX_DELETE_OPERATION(NewOperation)
 				continue;
 			}
-
+			NewOperation->ClusterReserve(Edges.Num());
 			ExtraOperations.Add(NewOperation);
 		}
 

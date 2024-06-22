@@ -290,7 +290,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 	if (Settings->SupportsVtxFilters())
 	{
 		TArray<UPCGExFilterFactoryBase*> FilterFactories;
-		if (GetInputFactories(InContext, Settings->GetVtxFilterLabel(), FilterFactories, PCGExFactories::ClusterFilters, false))
+		if (GetInputFactories(InContext, Settings->GetVtxFilterLabel(), FilterFactories, PCGExFactories::ClusterNodeFilters, false))
 		{
 			Context->VtxFiltersData = NewObject<UPCGExNodeStateFactory>();
 			Context->VtxFiltersData->FilterFactories.Append(FilterFactories);
@@ -300,7 +300,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 	if (Settings->SupportsEdgesFilters())
 	{
 		TArray<UPCGExFilterFactoryBase*> FilterFactories;
-		if (GetInputFactories(InContext, Settings->GetEdgesFilterLabel(), FilterFactories, PCGExFactories::ClusterFilters, false))
+		if (GetInputFactories(InContext, Settings->GetEdgesFilterLabel(), FilterFactories, PCGExFactories::ClusterNodeFilters, false))
 		{
 			Context->EdgesFiltersData = NewObject<UPCGExNodeStateFactory>();
 			Context->EdgesFiltersData->FilterFactories.Append(FilterFactories);

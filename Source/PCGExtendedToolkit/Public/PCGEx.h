@@ -145,6 +145,8 @@ namespace PCGEx
 	const FName SourceTargetsLabel = TEXT("InTargets");
 	const FName OutputPointsLabel = TEXT("Out");
 
+	const FName SourceAdditionalReq = TEXT("AdditionalRequirementsFilters");
+	
 	const FName SourcePointFilters = TEXT("PointFilters");
 	const FName SourceUseValueIfFilters = TEXT("UsableValueFilters");
 
@@ -466,7 +468,7 @@ namespace PCGEx
 
 		FORCEINLINE FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
 	};
-	
+
 	static UWorld* GetWorld(const FPCGContext* Context)
 	{
 		check(Context->SourceComponent.IsValid());
