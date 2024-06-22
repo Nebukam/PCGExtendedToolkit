@@ -37,7 +37,7 @@ T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
 #define PCGEX_POINTS_MT_TASK_RANGE(_NAME, _BODY)\
 template <typename T>\
 class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
-public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations, const PCGExData::ESource InSource = PCGExData::ESource::In) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations), Source(InSource){} \
+public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations, const PCGExData::ESource InSource = PCGExData::ESource::Out) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations), Source(InSource){} \
 T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source; virtual bool ExecuteTask() override{_BODY return true; }};
 
 	PCGEX_POINTS_MT_TASK(FStartPointsBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
@@ -145,7 +145,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			while (CurrentCount < NumPoints)
 			{
 				AsyncManagerPtr->Start<FAsyncProcessPointRange<FPointsProcessor>>(
-					CurrentCount, nullptr, this, FMath::Min(NumPoints - CurrentCount, PLI));
+					CurrentCount, nullptr, this, FMath::Min(NumPoints - CurrentCount, PLI), Source);
 				CurrentCount += PLI;
 			}
 		}
