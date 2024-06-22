@@ -200,6 +200,7 @@ namespace PCGExCluster
 			else { NodeEndIndex = *NodeEndPtr; }
 
 			Edges[i] = PCGExGraph::FIndexedEdge(i, *EdgeStartPtr, *EdgeEndPtr, i, EdgeIO->IOIndex);
+			
 			Nodes[NodeStartIndex].Adjacency.Add(PCGEx::H64(NodeEndIndex, i));
 			Nodes[NodeEndIndex].Adjacency.Add(PCGEx::H64(NodeStartIndex, i));
 		}

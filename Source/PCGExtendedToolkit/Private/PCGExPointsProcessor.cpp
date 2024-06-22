@@ -138,6 +138,8 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	PCGEX_DELETE(AsyncLoop)
+	
 	for (UPCGExOperation* Operation : ProcessorOperations)
 	{
 		Operation->Cleanup();
@@ -327,9 +329,6 @@ FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 	InContext->ChunkSize = FMath::Max((Settings->ChunkSize <= 0 ? Settings->GetPreferredChunkSize() : Settings->ChunkSize), 1);
 
 	InContext->AsyncLoop = InContext->MakeLoop<PCGExMT::FAsyncParallelLoop>();
-
-	InContext->ChunkedPointLoop = InContext->MakeLoop<PCGEx::FPointLoop>();
-	InContext->AsyncPointLoop = InContext->MakeLoop<PCGEx::FAsyncPointLoop>();
 
 	InContext->MainPoints = new PCGExData::FPointIOCollection();
 	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();

@@ -182,17 +182,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	template <class InitializeFunc, class LoopBodyFunc>
 	bool Process(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, const int32 NumIterations, const bool bForceSync = false)
 	{
-		AsyncLoop.NumIterations = NumIterations;
-		AsyncLoop.bAsyncEnabled = bDoAsyncProcessing && !bForceSync;
-		return AsyncLoop.Execute(Initialize, LoopBody);
+		AsyncLoop->NumIterations = NumIterations;
+		AsyncLoop->bAsyncEnabled = bDoAsyncProcessing && !bForceSync;
+		return AsyncLoop->Execute(Initialize, LoopBody);
 	}
 
 	template <class LoopBodyFunc>
 	bool Process(LoopBodyFunc&& LoopBody, const int32 NumIterations, const bool bForceSync = false)
 	{
-		AsyncLoop.NumIterations = NumIterations;
-		AsyncLoop.bAsyncEnabled = bDoAsyncProcessing && !bForceSync;
-		return AsyncLoop.Execute(LoopBody);
+		AsyncLoop->NumIterations = NumIterations;
+		AsyncLoop->bAsyncEnabled = bDoAsyncProcessing && !bForceSync;
+		return AsyncLoop->Execute(LoopBody);
 	}
 
 	template <typename FullTask>
@@ -204,12 +204,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	PCGExData::FPointIO* TryGetSingleInput(FName InputName, const bool bThrowError) const;
 
 	template <typename T>
-	T MakeLoop()
+	T* MakeLoop()
 	{
-		T Loop = T{};
-		Loop.Context = this;
-		Loop.ChunkSize = ChunkSize;
-		Loop.bAsyncEnabled = bDoAsyncProcessing;
+		T* Loop = new T{};
+		Loop->Context = this;
+		Loop->ChunkSize = ChunkSize;
+		Loop->bAsyncEnabled = bDoAsyncProcessing;
 		return Loop;
 	}
 
@@ -275,11 +275,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 #pragma endregion
 
 protected:
-	PCGExMT::FAsyncParallelLoop AsyncLoop;
+	PCGExMT::FAsyncParallelLoop* AsyncLoop = nullptr;
 	PCGExMT::FTaskManager* AsyncManager = nullptr;
-
-	PCGEx::FPointLoop ChunkedPointLoop;
-	PCGEx::FAsyncPointLoop AsyncPointLoop;
 
 	PCGExMT::AsyncState CurrentState;
 	int32 CurrentPointIOIndex = -1;
