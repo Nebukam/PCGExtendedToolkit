@@ -19,8 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExForceGarbageCollectionSettings : public UPCGS
 	friend class FPCGExForceGarbageCollectionElement;
 
 public:
-	UPCGExForceGarbageCollectionSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
