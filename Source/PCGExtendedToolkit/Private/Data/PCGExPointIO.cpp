@@ -23,19 +23,15 @@ namespace PCGExData
 		case EInit::NewOutput:
 			Out = NewObject<UPCGPointData>();
 			if (In) { Out->InitializeFromData(In); }
-		//else { Out->CreateEmptyMetadata(); }
 			break;
-		//case EInit::Forward:
 		case EInit::DuplicateInput:
 			check(In)
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
 			break;
-
-		case EInit::Forward: // Seems to be creating a lot of weird issues
+		case EInit::Forward: // Use carefully
 			check(In)
 			Out = const_cast<UPCGPointData*>(In);
 			break;
-
 		default: ;
 		}
 	}

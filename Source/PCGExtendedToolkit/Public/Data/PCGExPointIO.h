@@ -84,6 +84,24 @@ namespace PCGExData
 
 		void InitializeOutput(EInit InitOut = EInit::NoOutput);
 
+		template <typename T>
+		void InitializeOutput(const EInit InitOut)
+		{
+			if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
+
+			switch (InitOut)
+			{
+			case EInit::NewOutput:
+				T* TypedOut = NewObject<T>();
+				Out = Cast<UPCGPointData>(TypedOut);
+				if (In) { Out->InitializeFromData(In); }
+				break;
+			default:
+				InitializeOutput((InitOut));
+				break;
+			}
+		}
+
 		~FPointIO();
 
 		const UPCGPointData* GetData(const ESource InSource) const;
@@ -118,7 +136,7 @@ namespace PCGExData
 
 		FORCEINLINE PCGEx::FPointRef* GetInPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(In->GetPoints()[Index], Index); }
 		FORCEINLINE PCGEx::FPointRef* GetOutPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(Out->GetPoints()[Index], Index); }
-		
+
 		FORCEINLINE const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
 		FORCEINLINE const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
 
