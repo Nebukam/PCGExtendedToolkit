@@ -139,7 +139,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(AsyncLoop)
-	
+
 	for (UPCGExOperation* Operation : ProcessorOperations)
 	{
 		Operation->Cleanup();
@@ -204,17 +204,23 @@ void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState OperationI
 
 #pragma endregion
 
-PCGExData::FPointIO* FPCGExPointsProcessorContext::TryGetSingleInput(const FName InputName, const bool bThrowError) const
+PCGExData::FPointIO* FPCGExPointsProcessorContext::TryGetSingleInput(const FName InputPinLabel, const bool bThrowError) const
 {
 	PCGExData::FPointIO* SingleIO = nullptr;
-	const PCGExData::FPointIOCollection* Collection = new PCGExData::FPointIOCollection(this, InputName);
+	const PCGExData::FPointIOCollection* Collection = new PCGExData::FPointIOCollection(this, InputPinLabel);
 	if (!Collection->Pairs.IsEmpty())
 	{
-		SingleIO = new PCGExData::FPointIO(Collection->Pairs[0]->GetIn(), InputName);
+		PCGExData::FPointIO* Data = Collection->Pairs[0];  
+		SingleIO = new PCGExData::FPointIO(Data->GetIn());
+
+		TSet<FString> TagDump;
+		Data->Tags->Dump(TagDump);
+		SingleIO->SetInfos(-1, InputPinLabel, &TagDump);
+		
 	}
 	else if (bThrowError)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, this, FText::Format(FText::FromString(TEXT("Missing {0} inputs")), FText::FromName(InputName)));
+		PCGE_LOG_C(Error, GraphAndLog, this, FText::Format(FText::FromString(TEXT("Missing {0} inputs")), FText::FromName(InputPinLabel)));
 	}
 
 	PCGEX_DELETE(Collection)
@@ -354,7 +360,10 @@ FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 			else { InData = nullptr; }
 		}
 
-		if (InData) { InContext->MainPoints->Emplace_GetRef(*Source, InData, Settings->GetMainOutputInitMode()); }
+		if (InData)
+		{
+			InContext->MainPoints->Emplace_GetRef(InData, Settings->GetMainOutputInitMode(), &Source->Tags);
+		}
 	}
 
 	return InContext;

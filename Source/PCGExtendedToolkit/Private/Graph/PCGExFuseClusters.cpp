@@ -7,6 +7,7 @@
 #include "Data/PCGExGraphDefinition.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Graph/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -59,7 +60,10 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 			&Settings->CustomEdgeEdgeBlendingSettings);
 	}
 
-	Context->CompoundPoints = new PCGExData::FPointIO(PCGExGraph::OutputVerticesLabel, PCGExData::EInit::NewOutput);
+	Context->CompoundPoints = new PCGExData::FPointIO(nullptr);
+	Context->CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
+	Context->CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+	
 	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
 			Settings->PointPointIntersectionSettings.FuseSettings,
 			Context->MainPoints->GetInBounds().ExpandBy(10), true,

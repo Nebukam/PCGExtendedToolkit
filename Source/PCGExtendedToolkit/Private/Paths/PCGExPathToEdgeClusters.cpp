@@ -5,6 +5,7 @@
 #include "Graph/PCGExGraph.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Graph/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathToEdgeClustersElement"
@@ -89,8 +90,9 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (Settings->bFusePaths)
 		{
-			Context->CompoundPoints = new PCGExData::FPointIO(Settings->GetMainOutputLabel());
-			Context->CompoundPoints->InitializeOutput(PCGExData::EInit::NewOutput);
+			Context->CompoundPoints = new PCGExData::FPointIO(nullptr);
+			Context->CompoundPoints->SetInfos(-1, Settings->GetMainOutputLabel(), nullptr);
+			Context->CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 			if (!Context->StartBatchProcessingPoints<PCGExPathToClusters::FFusingProcessorBatch>(
 				[](const PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
@@ -184,7 +186,7 @@ namespace PCGExPathToClusters
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
 
-		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		TArray<PCGExGraph::FIndexedEdge> Edges;
 

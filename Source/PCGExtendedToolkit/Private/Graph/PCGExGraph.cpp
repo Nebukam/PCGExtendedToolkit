@@ -6,6 +6,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/PCGExClusterData.h"
 
 namespace PCGExGraph
 {
@@ -364,11 +365,11 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex();
 				SourceEdgesIO && SourceEdgesIO->Pairs.IsValidIndex(IOIndex))
 			{
-				EdgeIO = EdgesIO->Emplace_GetRef(SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
+				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
 			}
 			else
 			{
-				EdgeIO = EdgesIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
+				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EInit::NewOutput);
 			}
 
 			const int64 ClusterId = EdgeIO->GetOut()->UID;

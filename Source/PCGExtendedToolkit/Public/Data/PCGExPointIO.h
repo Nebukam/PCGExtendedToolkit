@@ -11,6 +11,7 @@
 #include "PCGEx.h"
 #include "PCGExContext.h"
 #include "PCGExDataTag.h"
+#include "PCGExPointData.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 namespace PCGExData
@@ -54,52 +55,58 @@ namespace PCGExData
 		FTags* Tags = nullptr;
 		int32 IOIndex = 0;
 
-		explicit FPointIO(
-			const FName InDefaultOutputLabel,
-			const EInit InInit = EInit::NoOutput,
-			const int32 InIndex = -1)
-			: In(nullptr), IOIndex(InIndex)
+		explicit FPointIO(const UPCGPointData* InData):
+			In(InData)
 		{
 			PCGEX_LOG_CTR(FPointIO)
-			DefaultOutputLabel = InDefaultOutputLabel;
-			NumInPoints = 0;
-			Tags = new FTags();
-			InitializeOutput(InInit);
 		}
 
-		FPointIO(
-			const UPCGPointData* InData,
-			const FName InDefaultOutputLabel,
-			const EInit InInit = EInit::NoOutput,
-			const int32 InIndex = -1,
-			const TSet<FString>* InTags = nullptr)
-			: In(InData), IOIndex(InIndex)
-		{
-			PCGEX_LOG_CTR(FPointIO)
-			DefaultOutputLabel = InDefaultOutputLabel;
-			Tags = InTags ? new FTags(*InTags) : new FTags();
-			NumInPoints = InData->GetPoints().Num();
-			InitializeOutput(InInit);
-		}
+		void SetInfos(const int32 InIndex,
+		              const FName InDefaultOutputLabel,
+		              const TSet<FString>* InTags = nullptr);
 
 		void InitializeOutput(EInit InitOut = EInit::NoOutput);
 
 		template <typename T>
-		void InitializeOutput(const EInit InitOut)
+		void InitializeOutput(const EInit InitOut = EInit::NoOutput)
 		{
 			if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
 
-			switch (InitOut)
+			if (InitOut == EInit::NewOutput)
 			{
-			case EInit::NewOutput:
 				T* TypedOut = NewObject<T>();
 				Out = Cast<UPCGPointData>(TypedOut);
+				check(Out)
+				
 				if (In) { Out->InitializeFromData(In); }
-				break;
-			default:
-				InitializeOutput((InitOut));
-				break;
+				if (const UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(In)) { TypedOut->InitializeFromPCGExData(TypedPointData, EInit::NewOutput); }
+				return;
 			}
+
+			if (InitOut == EInit::DuplicateInput)
+			{
+				check(In)
+				const T* TypedIn = Cast<T>(In);
+				
+				if (!TypedIn)
+				{
+					// Need to broadcast to T
+					T* TypedOut = NewObject<T>();
+
+					if (UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(TypedOut)) { TypedPointData->CopyFrom(In); }
+					else { TypedOut->InitializeFromData(In); } // This is a potentially failed duplicate
+
+					Out = Cast<UPCGPointData>(TypedOut);
+				}
+				else
+				{
+					Out = Cast<UPCGPointData>(TypedIn->DuplicateData(true));
+				}
+
+				return;
+			}
+
+			InitializeOutput(InitOut);
 		}
 
 		~FPointIO();
@@ -152,8 +159,6 @@ namespace PCGExData
 
 		void CleanupKeys();
 
-		FPointIO& Branch();
-
 		void Disable() { bEnabled = false; }
 		void Enable() { bEnabled = true; }
 		bool IsEnabled() const { return bEnabled; }
@@ -193,19 +198,39 @@ namespace PCGExData
 			const FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
 			EInit InitOut = EInit::NoOutput);
 
-		FPointIO* Emplace_GetRef(
-			const FPointIO* PointIO,
-			const EInit InitOut = EInit::NoOutput);
-
-		FPointIO* Emplace_GetRef(
-			const FPCGTaggedData& Source,
-			const UPCGPointData* In,
-			const EInit InitOut = EInit::NoOutput);
-		FPointIO* Emplace_GetRef(
-			const UPCGPointData* In,
-			EInit InitOut = EInit::NoOutput);
-
+		FPointIO* Emplace_GetRef(const UPCGPointData* In, const EInit InitOut = EInit::NoOutput, const TSet<FString>* Tags = nullptr);
 		FPointIO* Emplace_GetRef(EInit InitOut = EInit::NewOutput);
+		FPointIO* Emplace_GetRef(const FPointIO* PointIO, const EInit InitOut = EInit::NoOutput);
+
+
+		template <typename T>
+		FPointIO* Emplace_GetRef(const UPCGPointData* In, const EInit InitOut = EInit::NoOutput, const TSet<FString>* Tags = nullptr)
+		{
+			FWriteScopeLock WriteLock(PairsLock);
+			FPointIO* NewIO = new FPointIO(In);
+			NewIO->SetInfos(Pairs.Add(NewIO), DefaultOutputLabel, Tags);
+			NewIO->InitializeOutput<T>(InitOut);
+			return NewIO;
+		}
+
+		template <typename T>
+		FPointIO* Emplace_GetRef(EInit InitOut = EInit::NewOutput)
+		{
+			FWriteScopeLock WriteLock(PairsLock);
+			FPointIO* NewIO = new FPointIO(nullptr);
+			NewIO->SetInfos(Pairs.Add(NewIO), DefaultOutputLabel);
+			NewIO->InitializeOutput<T>(InitOut);
+			return NewIO;
+		}
+
+		template <typename T>
+		FPointIO* Emplace_GetRef(const FPointIO* PointIO, const EInit InitOut = EInit::NoOutput)
+		{
+			FPointIO* Branch = Emplace_GetRef<T>(PointIO->GetIn(), InitOut);
+			Branch->Tags->Reset(*PointIO->Tags);
+			Branch->RootIO = const_cast<FPointIO*>(PointIO);
+			return Branch;
+		}
 
 		bool IsEmpty() const { return Pairs.IsEmpty(); }
 		int32 Num() const { return Pairs.Num(); }
@@ -287,7 +312,8 @@ namespace PCGExData
 		{
 			if (const UPCGPointData* InData = GetMutablePointData(Context, Source))
 			{
-				FPointIO* PointIO = new FPointIO(InData, OutputLabel, InitOut, -1, &Source.Tags);
+				FPointIO* PointIO = new FPointIO(InData);
+				PointIO->SetInfos(-1, OutputLabel, &Source.Tags);
 				PointIO->InitializeOutput(InitOut);
 				return PointIO;
 			}

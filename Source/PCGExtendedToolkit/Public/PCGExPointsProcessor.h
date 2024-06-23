@@ -201,7 +201,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 		GetAsyncManager()->Start<FullTask>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
 	}
 
-	PCGExData::FPointIO* TryGetSingleInput(FName InputName, const bool bThrowError) const;
+	PCGExData::FPointIO* TryGetSingleInput(FName InputPinLabel, const bool bThrowError) const;
 
 	template <typename T>
 	T* MakeLoop()

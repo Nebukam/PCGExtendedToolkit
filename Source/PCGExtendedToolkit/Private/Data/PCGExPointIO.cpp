@@ -5,34 +5,74 @@
 
 #include "PCGExContext.h"
 #include "PCGExMT.h"
+#include "Data/PCGExPointData.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 namespace PCGExData
 {
 #pragma region FPointIO
 
+	void FPointIO::SetInfos(
+		const int32 InIndex,
+		const FName InDefaultOutputLabel,
+		const TSet<FString>* InTags)
+	{
+		IOIndex = InIndex;
+		DefaultOutputLabel = InDefaultOutputLabel;
+		NumInPoints = In ? In->GetPoints().Num() : 0;
+		Tags = InTags ? new FTags(*InTags) : new FTags();
+	}
+
 	void FPointIO::InitializeOutput(const EInit InitOut)
 	{
 		if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
 
-		switch (InitOut)
+		if (InitOut == EInit::NoOutput)
 		{
-		case EInit::NoOutput:
 			Out = nullptr;
-			break;
-		case EInit::NewOutput:
-			Out = NewObject<UPCGPointData>();
-			if (In) { Out->InitializeFromData(In); }
-			break;
-		case EInit::DuplicateInput:
+			return;
+		}
+
+		if (InitOut == EInit::Forward)
+		{
+			check(In);
+			Out = const_cast<UPCGPointData*>(In);
+			return;
+		}
+
+		if (InitOut == EInit::NewOutput)
+		{
+			if(In)
+			{
+				UObject* GenericInstance = NewObject<UObject>(In->GetOuter(), In->GetClass());
+				Out = Cast<UPCGPointData>(GenericInstance);
+
+				// Input type was not a UPCGPointData child, should not happen.
+				check(Out)
+				
+				Out->InitializeFromData(In);
+
+				const UPCGExPointData* TypedInPointData = Cast<UPCGExPointData>(In);
+				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(Out);
+				
+				if (TypedInPointData && TypedOutPointData)
+				{
+					TypedOutPointData->InitializeFromPCGExData(TypedInPointData, EInit::NewOutput);
+				}
+				
+			}else
+			{
+				Out = NewObject<UPCGPointData>();
+			}
+			
+			return;
+		}
+
+		if (InitOut == EInit::DuplicateInput)
+		{
 			check(In)
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
-			break;
-		case EInit::Forward: // Use carefully
-			check(In)
-			Out = const_cast<UPCGPointData*>(In);
-			break;
-		default: ;
+			return;
 		}
 	}
 
@@ -201,7 +241,7 @@ namespace PCGExData
 	FPointIO::~FPointIO()
 	{
 		PCGEX_LOG_DTR(FPointIO)
-		
+
 		CleanupKeys();
 
 		PCGEX_DELETE(Tags)
@@ -215,15 +255,6 @@ namespace PCGExData
 		RootIO = nullptr;
 		In = nullptr;
 		Out = nullptr;
-	}
-
-	FPointIO& FPointIO::Branch()
-	{
-		TSet<FString> TagsCopy;
-		Tags->Dump(TagsCopy);
-		FPointIO& Branch = *(new FPointIO(GetIn(), DefaultOutputLabel, EInit::NewOutput, -1, &TagsCopy));
-		Branch.RootIO = this;
-		return Branch;
 	}
 
 	bool FPointIO::OutputTo(FPCGContext* Context)
@@ -297,49 +328,38 @@ namespace PCGExData
 
 			const UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
 			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
-			Emplace_GetRef(Source, MutablePointData, InitOut);
+			Emplace_GetRef(MutablePointData, InitOut, &Source.Tags);
 		}
 		UniqueData.Empty();
 	}
 
 	FPointIO* FPointIOCollection::Emplace_GetRef(
-		const FPointIO* PointIO,
-		const EInit InitOut)
-	{
-		FPointIO* Branch = Emplace_GetRef(PointIO->GetIn(), InitOut);
-		Branch->Tags->Reset(*PointIO->Tags);
-		Branch->RootIO = const_cast<FPointIO*>(PointIO);
-		return Branch;
-	}
-
-	FPointIO* FPointIOCollection::Emplace_GetRef(
-		const FPCGTaggedData& Source,
 		const UPCGPointData* In,
-		const EInit InitOut)
+		const EInit InitOut,
+		const TSet<FString>* Tags)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		FPointIO* NewIO = new FPointIO(In, DefaultOutputLabel, InitOut, Pairs.Num(), &Source.Tags);
-		Pairs.Add(NewIO);
-		return NewIO;
-	}
-
-	FPointIO* FPointIOCollection::Emplace_GetRef(
-		const UPCGPointData* In,
-		const EInit InitOut)
-	{
-		const FPCGTaggedData Source;
-		FWriteScopeLock WriteLock(PairsLock);
-		FPointIO* NewIO = new FPointIO(In, DefaultOutputLabel, InitOut, Pairs.Num(), &Source.Tags);
-		Pairs.Add(NewIO);
+		FPointIO* NewIO = new FPointIO(In);
+		NewIO->SetInfos(Pairs.Add(NewIO), DefaultOutputLabel, Tags);
+		NewIO->InitializeOutput(InitOut);
 		return NewIO;
 	}
 
 	FPointIO* FPointIOCollection::Emplace_GetRef(const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		FPointIO* NewIO = new FPointIO(DefaultOutputLabel, InitOut, Pairs.Num());
-		Pairs.Add(NewIO);
+		FPointIO* NewIO = new FPointIO(nullptr);
+		NewIO->SetInfos(Pairs.Add(NewIO), DefaultOutputLabel);
+		NewIO->InitializeOutput(InitOut);
 		return NewIO;
+	}
+
+	FPointIO* FPointIOCollection::Emplace_GetRef(const FPointIO* PointIO, const EInit InitOut)
+	{
+		FPointIO* Branch = Emplace_GetRef(PointIO->GetIn(), InitOut);
+		Branch->Tags->Reset(*PointIO->Tags);
+		Branch->RootIO = const_cast<FPointIO*>(PointIO);
+		return Branch;
 	}
 
 	/**

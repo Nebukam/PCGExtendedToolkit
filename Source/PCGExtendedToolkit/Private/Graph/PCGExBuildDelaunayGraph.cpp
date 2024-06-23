@@ -6,6 +6,7 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildDelaunayGraph
@@ -118,7 +119,7 @@ namespace PCGExBuildDelaunay
 			return false;
 		}
 
-		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::DuplicateInput);
 
 		if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(ActivePositions); }
 		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false); }

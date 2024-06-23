@@ -7,6 +7,7 @@
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildVoronoiGraph2D
@@ -123,7 +124,7 @@ namespace PCGExBuildVoronoi2D
 			return false;
 		}
 
-		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
 		const int32 NumSites = Voronoi->Centroids.Num();
