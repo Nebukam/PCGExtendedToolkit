@@ -55,7 +55,7 @@ bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) co
 	Context->OutputPointsAndEdges();
 	Context->Done();
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

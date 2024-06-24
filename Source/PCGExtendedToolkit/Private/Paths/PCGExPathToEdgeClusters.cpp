@@ -162,7 +162,7 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 		else { Context->OutputMainPoints(); }
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 namespace PCGExPathToClusters

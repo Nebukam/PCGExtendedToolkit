@@ -64,7 +64,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->OutputMainPoints();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 namespace PCGExFusePoints

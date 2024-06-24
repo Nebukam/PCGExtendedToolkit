@@ -54,7 +54,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	check(PCGExContext);
 
 	PCGExContext->FutureOutput(Settings->GetMainOutputLabel(), OutFactory);
-	PCGExContext->ExecuteEnd();
+	PCGExContext->OnComplete();
 
 	return true;
 }

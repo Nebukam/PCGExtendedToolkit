@@ -120,7 +120,7 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 		Context->OutputPointsAndGraphParams();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 int64 FPCGExConsolidateCustomGraphElement::GetFixedIndex(FPCGExConsolidateCustomGraphContext* Context, const int64 InIndex)

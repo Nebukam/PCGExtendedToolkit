@@ -88,7 +88,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 		Context->PackedClusters->OutputTo(Context);
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 bool FPCGExPackClusterTask::ExecuteTask()

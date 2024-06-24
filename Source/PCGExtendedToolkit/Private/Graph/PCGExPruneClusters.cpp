@@ -87,7 +87,7 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->OutputPointsAndEdges();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 bool FPCGExPruneClusterTask::ExecuteTask()

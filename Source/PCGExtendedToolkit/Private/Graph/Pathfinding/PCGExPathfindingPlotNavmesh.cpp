@@ -106,7 +106,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 		Context->OutputPaths->OutputTo(Context);
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 bool FPCGExPlotNavmeshTask::ExecuteTask()

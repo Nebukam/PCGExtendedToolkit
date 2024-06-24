@@ -92,7 +92,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 		Context->OutputMainPoints();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 namespace PCGExBuildVoronoi

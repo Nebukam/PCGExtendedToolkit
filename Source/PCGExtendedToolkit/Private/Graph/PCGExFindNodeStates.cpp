@@ -77,7 +77,7 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 		Context->OutputPointsAndEdges();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 namespace PCGExFindNodeState

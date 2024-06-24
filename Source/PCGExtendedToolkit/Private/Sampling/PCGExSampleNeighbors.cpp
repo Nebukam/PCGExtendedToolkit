@@ -84,7 +84,7 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 		Context->OutputPointsAndEdges();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 

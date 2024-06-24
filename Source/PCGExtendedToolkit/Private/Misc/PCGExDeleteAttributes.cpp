@@ -67,7 +67,7 @@ bool FPCGExDeleteAttributesElement::ExecuteInternal(FPCGContext* InContext) cons
 	Context->OutputMainPoints();
 	Context->Done();
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -67,7 +67,7 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->Done();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 bool FPCGExSortPointIO::ExecuteTask()

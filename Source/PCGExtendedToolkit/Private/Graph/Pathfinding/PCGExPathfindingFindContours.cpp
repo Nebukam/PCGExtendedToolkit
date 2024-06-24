@@ -204,7 +204,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 		Context->Paths->OutputTo(Context);
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 

@@ -21,5 +21,5 @@ public:
 	void FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
 	void FutureOutput(const FName Pin, UPCGData* InData);
 
-	virtual void ExecuteEnd();
+	virtual void OnComplete();
 };

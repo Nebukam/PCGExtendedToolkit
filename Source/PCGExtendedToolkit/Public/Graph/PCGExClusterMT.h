@@ -44,6 +44,8 @@ namespace PCGExClusterMT
 
 	PCGEX_CLUSTER_MT_TASK(FAsyncProcess, { Target->Process(Manager); })
 
+	PCGEX_CLUSTER_MT_TASK(FAsyncProcessWithUpdate, { Target->bIsProcessorValid = Target->Process(Manager); })
+
 	PCGEX_CLUSTER_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
 
 	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessNodeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Nodes->GetData() + TaskIndex, Iterations));})
@@ -81,13 +83,15 @@ namespace PCGExClusterMT
 		void ForwardCluster(bool bAsOwner)
 		{
 			bDeleteCluster = false;
-			if(UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(VtxIO->GetOut()))
+			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(VtxIO->GetOut()))
 			{
 				EdgesData->SetBoundCluster(Cluster, bAsOwner);
 			}
 		}
-		
+
 	public:
+		bool bIsProcessorValid = false;
+
 		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
 		UPCGExNodeStateFactory* VtxFiltersData = nullptr;
@@ -160,7 +164,6 @@ namespace PCGExClusterMT
 						// Cheap validation -- if there are artifact use SanitizeCluster node, it's still incredibly cheaper.
 						if (CachedCluster->IsValidWith(VtxIO, EdgesIO))
 						{
-							
 							//Yey, maybe?
 							Cluster = HandleCachedCluster(CachedCluster);
 						}
@@ -570,8 +573,8 @@ namespace PCGExClusterMT
 					ClosedBatchProcessors.Add(NewProcessor);
 				}
 
-				if (bInlineProcessing) { NewProcessor->Process(AsyncManagerPtr); }
-				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
+				if (bInlineProcessing) { NewProcessor->bIsProcessorValid = NewProcessor->Process(AsyncManagerPtr); }
+				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcessWithUpdate<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
 
 			StartClosedBatchProcessing();
@@ -585,13 +588,17 @@ namespace PCGExClusterMT
 
 			if (bInlineCompletion)
 			{
-				for (T* Processor : Processors) { Processor->CompleteWork(); }
+				for (T* Processor : Processors)
+				{
+					if (!Processor->bIsProcessorValid) { continue; }
+					Processor->CompleteWork();
+				}
 			}
 			else
 			{
 				for (T* Processor : Processors)
 				{
-					if (Processor->IsTrivial()) { continue; }
+					if (!Processor->bIsProcessorValid || Processor->IsTrivial()) { continue; }
 					AsyncManagerPtr->Start<FAsyncCompleteWork<T>>(-1, nullptr, Processor);
 				}
 
@@ -604,13 +611,17 @@ namespace PCGExClusterMT
 			CurrentState = PCGExMT::State_Writing;
 			if (bInlineCompletion)
 			{
-				for (T* Processor : Processors) { Processor->Write(); }
+				for (T* Processor : Processors)
+				{
+					if (!Processor->bIsProcessorValid) { continue; }
+					Processor->Write();
+				}
 			}
 			else
 			{
 				for (T* Processor : Processors)
 				{
-					if (Processor->IsTrivial()) { continue; }
+					if (!Processor->bIsProcessorValid || Processor->IsTrivial()) { continue; }
 					PCGExMT::Write<T>(AsyncManagerPtr, Processor);
 				}
 
@@ -622,15 +633,29 @@ namespace PCGExClusterMT
 		{
 			if (CurrentState == PCGExMT::State_Processing)
 			{
-				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->Process(AsyncManagerPtr); }
+				for (int i = 0; i < Iterations; i++)
+				{
+					T* Processor = ClosedBatchProcessors[StartIndex + i];
+					Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr);
+				}
 			}
 			else if (CurrentState == PCGExMT::State_Completing)
 			{
-				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->CompleteWork(); }
+				for (int i = 0; i < Iterations; i++)
+				{
+					T* Processor = ClosedBatchProcessors[StartIndex + i];
+					if (!Processor->bIsProcessorValid) { continue; }
+					Processor->CompleteWork();
+				}
 			}
 			else if (CurrentState == PCGExMT::State_Writing)
 			{
-				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->Write(); }
+				for (int i = 0; i < Iterations; i++)
+				{
+					T* Processor = ClosedBatchProcessors[StartIndex + i];
+					if (!Processor->bIsProcessorValid) { continue; }
+					Processor->Write();
+				}
 			}
 		}
 

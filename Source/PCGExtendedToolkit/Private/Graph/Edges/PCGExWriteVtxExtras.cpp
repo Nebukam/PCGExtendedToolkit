@@ -72,7 +72,7 @@ bool FPCGExWriteVtxExtrasElement::ExecuteInternal(
 		Context->OutputPointsAndEdges();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 namespace PCGExWriteVtxExtras

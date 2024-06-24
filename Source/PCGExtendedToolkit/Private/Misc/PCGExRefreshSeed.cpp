@@ -49,7 +49,7 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->OutputMainPoints();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 bool FPCGExRefreshSeedTask::ExecuteTask()

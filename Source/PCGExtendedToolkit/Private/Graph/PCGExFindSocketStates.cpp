@@ -167,7 +167,7 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 		}
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -178,7 +178,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 	Context->MainPoints->OutputTo(Context);
 	Context->MainEdges->OutputTo(Context);
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

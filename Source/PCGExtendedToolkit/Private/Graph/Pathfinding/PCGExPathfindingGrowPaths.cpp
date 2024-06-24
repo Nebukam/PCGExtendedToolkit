@@ -517,7 +517,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 		Context->OutputPaths->OutputTo(Context);
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 

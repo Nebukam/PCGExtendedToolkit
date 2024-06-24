@@ -68,7 +68,7 @@ bool FPCGExInternalDebugElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->OutputMainPoints();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

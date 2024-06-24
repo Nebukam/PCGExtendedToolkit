@@ -177,10 +177,10 @@ bool FPCGExPointsProcessorContext::ExecuteAutomation() { return true; }
 
 void FPCGExPointsProcessorContext::Done() { SetState(PCGExMT::State_Done); }
 
-bool FPCGExPointsProcessorContext::CompleteTaskExecution(const bool bForce)
+bool FPCGExPointsProcessorContext::TryComplete(const bool bForce)
 {
 	if (!bForce && !IsDone()) { return false; }
-	ExecuteEnd();
+	OnComplete();
 	return true;
 }
 

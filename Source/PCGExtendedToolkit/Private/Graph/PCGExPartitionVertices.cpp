@@ -51,7 +51,6 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExClusterMT::TBatch<PCGExPartitionVertices::FProcessor>* NewBatch)
 			{
-				
 			},
 			PCGExMT::State_Done))
 		{
@@ -62,17 +61,13 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	if (Context->IsDone())
 	{
-		PCGEX_ASYNC_WAIT
-
 		Context->VtxPartitions->OutputTo(Context);
 		Context->MainEdges->OutputTo(Context);
-
-		Context->Done();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 namespace PCGExPartitionVertices
@@ -85,25 +80,28 @@ namespace PCGExPartitionVertices
 
 	FProcessor::~FProcessor()
 	{
+		Remapping.Empty();
+		KeptIndices.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionVertices)
 
-		if (FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		Cluster->NodeIndexLookup->Empty();
 
 		PointPartitionIO = TypedContext->VtxPartitions->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PointPartitionIO->GetOut()->GetMutablePoints();
 
-		const int32 NumNodes = Cluster->Nodes->Num();
 		MutablePoints.SetNumUninitialized(NumNodes);
 		KeptIndices.SetNumUninitialized(NumNodes);
 		Remapping.Reserve(NumNodes);
-		Cluster->NodeIndexLookup->Reserve(NumNodes);
 
+		Cluster->NodeIndexLookup->Reserve(NumNodes);
+		Cluster->NumRawVtx = NumNodes;
+		
 		for (PCGExCluster::FNode& Node : (*Cluster->Nodes))
 		{
 			int32 i = Node.NodeIndex;
@@ -137,7 +135,7 @@ namespace PCGExPartitionVertices
 		FString OutId;
 		PCGExGraph::SetClusterVtx(PointPartitionIO, OutId);
 		PCGExGraph::MarkClusterEdges(EdgesIO, OutId);
-		
+
 		ForwardCluster(true);
 	}
 }

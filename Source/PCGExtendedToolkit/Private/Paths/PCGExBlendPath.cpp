@@ -79,7 +79,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->Done();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 bool FPCGExBlendPathTask::ExecuteTask()

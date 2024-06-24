@@ -89,7 +89,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		Context->OutputMainPoints();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 namespace PCGExRefineEdges

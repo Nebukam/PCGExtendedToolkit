@@ -87,7 +87,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 		Context->Done();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 bool FPCGExUnpackClusterTask::ExecuteTask()

@@ -44,6 +44,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 	PCGEX_POINTS_MT_TASK(FAsyncProcess, { Target->Process(Manager); })
 
+	PCGEX_POINTS_MT_TASK(FAsyncProcessWithUpdate, { Target->bIsProcessorValid = Target->Process(Manager); })
+
 	PCGEX_POINTS_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
 
 	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessPointRange, {Target->ProcessPoints(Source, TaskIndex, Iterations);})
@@ -60,6 +62,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 
 	public:
+		bool bIsProcessorValid = false;
+
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
 		bool bIsSmallPoints = false;
@@ -82,7 +86,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		virtual ~FPointsProcessor()
 		{
 			PCGEX_LOG_DTR(FPointsProcessor)
-			
+
 			PointIO = nullptr;
 			PCGEX_DELETE_OPERATION(PrimaryOperation)
 
@@ -341,8 +345,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 					ClosedBatchProcessors.Add(NewProcessor);
 				}
 
-				if (bInlineProcessing) { NewProcessor->Process(AsyncManagerPtr); }
-				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
+				if (bInlineProcessing) { NewProcessor->bIsProcessorValid = NewProcessor->Process(AsyncManagerPtr); }
+				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcessWithUpdate<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
 
 			StartClosedBatchProcessing();
@@ -358,13 +362,17 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			CurrentState = PCGExMT::State_Completing;
 			if (bInlineCompletion)
 			{
-				for (T* Processor : Processors) { Processor->CompleteWork(); }
+				for (T* Processor : Processors)
+				{
+					if (!Processor->bIsProcessorValid) { continue; }
+					Processor->CompleteWork();
+				}
 			}
 			else
 			{
 				for (T* Processor : Processors)
 				{
-					if (Processor->IsTrivial()) { continue; }
+					if (!Processor->bIsProcessorValid || Processor->IsTrivial()) { continue; }
 					AsyncManagerPtr->Start<FAsyncCompleteWork<T>>(-1, nullptr, Processor);
 				}
 
@@ -377,13 +385,17 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			CurrentState = PCGExMT::State_Writing;
 			if (bInlineCompletion)
 			{
-				for (T* Processor : Processors) { Processor->Write(); }
+				for (T* Processor : Processors)
+				{
+					if (!Processor->bIsProcessorValid) { continue; }
+					Processor->Write();
+				}
 			}
 			else
 			{
 				for (T* Processor : Processors)
 				{
-					if (Processor->IsTrivial()) { continue; }
+					if (!Processor->bIsProcessorValid || Processor->IsTrivial()) { continue; }
 					PCGExMT::Write<T>(AsyncManagerPtr, Processor);
 				}
 
@@ -395,15 +407,29 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		{
 			if (CurrentState == PCGExMT::State_Processing)
 			{
-				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->Process(AsyncManagerPtr); }
+				for (int i = 0; i < Iterations; i++)
+				{
+					T* Processor = ClosedBatchProcessors[StartIndex + i];
+					Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr);
+				}
 			}
 			else if (CurrentState == PCGExMT::State_Completing)
 			{
-				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->CompleteWork(); }
+				for (int i = 0; i < Iterations; i++)
+				{
+					T* Processor = ClosedBatchProcessors[StartIndex + i];
+					if (!Processor->bIsProcessorValid) { continue; }
+					Processor->CompleteWork();
+				}
 			}
 			else if (CurrentState == PCGExMT::State_Writing)
 			{
-				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->Write(); }
+				for (int i = 0; i < Iterations; i++)
+				{
+					T* Processor = ClosedBatchProcessors[StartIndex + i];
+					if (!Processor->bIsProcessorValid) { continue; }
+					Processor->Write();
+				}
 			}
 		}
 

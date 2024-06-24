@@ -138,7 +138,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->Outside->OutputTo(Context);
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

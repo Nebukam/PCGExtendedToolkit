@@ -157,7 +157,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 		Context->OutputPointsAndGraphParams();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 bool FPCGExProbeTask::ExecuteTask()

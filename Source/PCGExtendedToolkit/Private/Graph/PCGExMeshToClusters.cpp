@@ -250,7 +250,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		Context->Done();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 namespace PCGExMeshToCluster

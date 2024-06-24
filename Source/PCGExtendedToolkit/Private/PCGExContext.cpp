@@ -30,9 +30,10 @@ void FPCGExContext::WriteFutureOutputs()
 	FutureOutputs.Empty();
 }
 
-void FPCGExContext::ExecuteEnd()
+void FPCGExContext::OnComplete()
 {
 	WriteFutureOutputs();
+	
 	if (bFlattenOutput)
 	{
 		TSet<uint64> InputUIDs;

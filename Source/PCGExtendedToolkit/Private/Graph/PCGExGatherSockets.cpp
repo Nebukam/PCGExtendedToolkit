@@ -113,7 +113,7 @@ bool FPCGExGatherSocketsElement::ExecuteInternal(
 	check(PCGExContext);
 
 	PCGExContext->FutureOutput(PCGExGraph::OutputForwardGraphsLabel, OutParams);
-	PCGExContext->ExecuteEnd();
+	PCGExContext->OnComplete();
 
 	return true;
 }

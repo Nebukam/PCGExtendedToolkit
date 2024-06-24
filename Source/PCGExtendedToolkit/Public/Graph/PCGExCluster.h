@@ -184,9 +184,6 @@ namespace PCGExCluster
 		bool bOwnsLengths = true;
 		bool bOwnsVtxPointIndices = true;
 
-		int32 NumRawVtx = 0;
-		int32 NumRawEdges = 0;
-
 		bool bEdgeLengthsDirty = true;
 		bool bIsCopyCluster = false;
 		TArray<int32>* VtxPointIndices = nullptr;
@@ -195,6 +192,9 @@ namespace PCGExCluster
 		mutable FRWLock ClusterLock;
 
 	public:
+		int32 NumRawVtx = 0;
+		int32 NumRawEdges = 0;
+		
 		bool bValid = false;
 		bool bIsOneToOne = false; // Whether the input data has a single set of edges for a single set of vtx
 
@@ -229,7 +229,7 @@ namespace PCGExCluster
 		void BuildFrom(const PCGExGraph::FSubGraph* SubGraph);
 
 		bool IsValidWith(const PCGExData::FPointIO* InVtxIO, const PCGExData::FPointIO* InEdgesIO) const;
-
+		
 		const TArray<uint64>* GetVtxPointScopesPtr();
 		const TArray<int32>& GetVtxPointIndices();
 		TArrayView<const int32> GetVtxPointIndicesView();

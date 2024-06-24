@@ -85,7 +85,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		Context->OutputMainPoints();
 	}
 
-	return Context->CompleteTaskExecution();
+	return Context->TryComplete();
 }
 
 namespace PCGExBuildDelaunay
