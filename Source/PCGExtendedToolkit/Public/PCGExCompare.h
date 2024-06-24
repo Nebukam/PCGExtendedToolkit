@@ -439,7 +439,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 			DotConstantRaw = PCGExMath::DegreesToDot(DotConstantDegrees);
 		}
 
-		return false;
+		return true;
 	}
 
 	double GetDot(const FPCGPoint& Point) const
