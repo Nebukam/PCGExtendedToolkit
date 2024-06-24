@@ -31,8 +31,6 @@ namespace PCGExGeo
 	class PCGEXTENDEDTOOLKIT_API TDelaunay2
 	{
 	public:
-		UE::Geometry::FDelaunay2* Triangulation = nullptr;
-
 		TArray<FDelaunaySite2> Sites;
 
 		TSet<uint64> DelaunayEdges;
@@ -52,8 +50,6 @@ namespace PCGExGeo
 
 		void Clear()
 		{
-			PCGEX_DELETE(Triangulation)
-
 			Sites.Empty();
 			DelaunayEdges.Empty();
 			DelaunayHull.Empty();
@@ -70,7 +66,7 @@ namespace PCGExGeo
 			TArray<FVector2D> Positions2D;
 			ProjectionSettings.Project(Positions, Positions2D);
 
-			Triangulation = new UE::Geometry::FDelaunay2();
+			UE::Geometry::FDelaunay2 Triangulation;
 
 			TArray<UE::Geometry::FIndex3i> Triangles;
 			TArray<UE::Geometry::FIndex3i> Adjacencies;
@@ -78,7 +74,7 @@ namespace PCGExGeo
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay2D::Triangulate);
 
-				if (!Triangulation->Triangulate(Positions2D))
+				if (!Triangulation.Triangulate(Positions2D))
 				{
 					Positions2D.Empty();
 					Clear();
@@ -87,7 +83,7 @@ namespace PCGExGeo
 
 				Positions2D.Empty();
 				IsValid = true;
-				Triangulation->GetTrianglesAndAdjacency(Triangles, Adjacencies);
+				Triangulation.GetTrianglesAndAdjacency(Triangles, Adjacencies);
 			}
 
 			const int32 NumSites = Triangles.Num();
@@ -189,8 +185,6 @@ namespace PCGExGeo
 	class PCGEXTENDEDTOOLKIT_API TDelaunay3
 	{
 	public:
-		UE::Geometry::FDelaunay3* Tetrahedralization = nullptr;
-
 		TArray<FDelaunaySite3> Sites;
 
 		TSet<uint64> DelaunayEdges;
@@ -211,8 +205,6 @@ namespace PCGExGeo
 
 		void Clear()
 		{
-			PCGEX_DELETE(Tetrahedralization)
-
 			Sites.Empty();
 			DelaunayEdges.Empty();
 			DelaunayHull.Empty();
@@ -225,9 +217,9 @@ namespace PCGExGeo
 			Clear();
 			if (Positions.IsEmpty() || Positions.Num() <= 3) { return false; }
 
-			Tetrahedralization = new UE::Geometry::FDelaunay3();
+			UE::Geometry::FDelaunay3 Tetrahedralization;
 
-			if (!Tetrahedralization->Triangulate(Positions))
+			if (!Tetrahedralization.Triangulate(Positions))
 			{
 				Clear();
 				return false;
@@ -235,7 +227,7 @@ namespace PCGExGeo
 
 			IsValid = true;
 
-			TArray<FIntVector4> Tetrahedra = Tetrahedralization->GetTetrahedra();
+			TArray<FIntVector4> Tetrahedra = Tetrahedralization.GetTetrahedra();
 
 			const int32 NumSites = Tetrahedra.Num();
 			const int32 NumReserve = NumSites * 3;
