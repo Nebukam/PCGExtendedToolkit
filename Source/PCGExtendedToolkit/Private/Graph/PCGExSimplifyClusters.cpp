@@ -83,7 +83,9 @@ namespace PCGExSimplifyClusters
 
 		PCGEX_SETTINGS(SimplifyClusters)
 
-		for (int i = 0; i < Cluster->Nodes.Num(); i++) { if (Cluster->Nodes[i].IsComplex()) { VtxFilterCache[i] = true; } }
+		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+
+		for (int i = 0; i < NodesRef.Num(); i++) { if (NodesRef[i].IsComplex()) { VtxFilterCache[i] = true; } }
 
 		if (IsTrivial())
 		{
@@ -119,13 +121,14 @@ namespace PCGExSimplifyClusters
 		PCGExCluster::FNodeChain* Chain = Chains[Iteration];
 		if (!Chain) { return; }
 
-		TArray<PCGExCluster::FNode>& Nodes = Cluster->Nodes;
-		TArray<PCGExGraph::FIndexedEdge>& Edges = Cluster->Edges;
+		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
+		
 		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
 
 		const double FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 
-		const bool bIsDeadEnd = Nodes[Chain->First].Adjacency.Num() == 1 || Nodes[Chain->Last].Adjacency.Num() == 1;
+		const bool bIsDeadEnd = NodesRef[Chain->First].Adjacency.Num() == 1 || NodesRef[Chain->Last].Adjacency.Num() == 1;
 
 		if (Settings->bPruneDeadEnds && bIsDeadEnd) { return; }
 
@@ -134,8 +137,8 @@ namespace PCGExSimplifyClusters
 		if (!Settings->bMergeAboveAngularThreshold)
 		{
 			GraphBuilder->Graph->InsertEdge(
-				Nodes[Chain->First].PointIndex,
-				Nodes[Chain->Last].PointIndex,
+				NodesRef[Chain->First].PointIndex,
+				NodesRef[Chain->Last].PointIndex,
 				NewEdge, IOIndex);
 
 			return;
@@ -143,7 +146,7 @@ namespace PCGExSimplifyClusters
 
 		if (Chain->SingleEdge != -1)
 		{
-			GraphBuilder->Graph->InsertEdge(Edges[Chain->SingleEdge]);
+			GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]);
 			return;
 		}
 
@@ -157,9 +160,9 @@ namespace PCGExSimplifyClusters
 		{
 			const int32 CurrentIndex = Chain->Nodes[i];
 
-			PCGExCluster::FNode& CurrentNode = Nodes[CurrentIndex];
-			PCGExCluster::FNode& PrevNode = i == 0 ? Nodes[Chain->First] : Nodes[Chain->Nodes[i - 1]];
-			PCGExCluster::FNode& NextNode = i == LastIndex ? Nodes[Chain->Last] : Nodes[Chain->Nodes[i + 1]];
+			const PCGExCluster::FNode& CurrentNode = NodesRef[CurrentIndex];
+			const PCGExCluster::FNode& PrevNode = i == 0 ? NodesRef[Chain->First] : NodesRef[Chain->Nodes[i - 1]];
+			const PCGExCluster::FNode& NextNode = i == LastIndex ? NodesRef[Chain->Last] : NodesRef[Chain->Nodes[i + 1]];
 
 			const FVector A = (PrevNode.Position - CurrentNode.Position).GetSafeNormal();
 			const FVector B = (CurrentNode.Position - NextNode.Position).GetSafeNormal();
@@ -167,11 +170,11 @@ namespace PCGExSimplifyClusters
 			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > FixedDotThreshold) { continue; } }
 			else { if (FVector::DotProduct(A, B) < FixedDotThreshold) { continue; } }
 
-			NewEdges.Add(PCGEx::H64U(Nodes[StartIndex].PointIndex, Nodes[CurrentIndex].PointIndex));
+			NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[CurrentIndex].PointIndex));
 			StartIndex = CurrentIndex;
 		}
 
-		NewEdges.Add(PCGEx::H64U(Nodes[StartIndex].PointIndex, Nodes[Chain->Last].PointIndex)); // Wrap
+		NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[Chain->Last].PointIndex)); // Wrap
 
 		GraphBuilder->Graph->InsertEdges(NewEdges, IOIndex);
 	}

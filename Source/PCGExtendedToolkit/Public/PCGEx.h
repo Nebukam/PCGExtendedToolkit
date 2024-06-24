@@ -483,17 +483,18 @@ namespace PCGEx
 		std::swap(*Ptr1, *Ptr2);
 	}
 
-	static void ScopeIndices(TArray<int32>& InIndices, TArray<uint64>& OutScopes)
+	static void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes)
 	{
-		InIndices.Sort();
+		TArray<int32> InIndicesCopy = InIndices; 
+		InIndicesCopy.Sort();
 
-		int32 StartIndex = InIndices[0];
+		int32 StartIndex = InIndicesCopy[0];
 		int32 LastIndex = StartIndex;
 		int32 Count = 1;
 
-		for (int i = 1; i < InIndices.Num(); i++)
+		for (int i = 1; i < InIndicesCopy.Num(); i++)
 		{
-			const int32 NextIndex = InIndices[i];
+			const int32 NextIndex = InIndicesCopy[i];
 			if (NextIndex == (LastIndex + 1))
 			{
 				Count++;

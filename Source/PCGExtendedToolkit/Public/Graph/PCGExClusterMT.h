@@ -8,6 +8,7 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "PCGExCluster.h"
+#include "Data/PCGExClusterData.h"
 #include "Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
@@ -45,9 +46,9 @@ namespace PCGExClusterMT
 
 	PCGEX_CLUSTER_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
 
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessNodeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Nodes.GetData() + TaskIndex, Iterations));})
+	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessNodeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Nodes->GetData() + TaskIndex, Iterations));})
 
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessEdgeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Edges.GetData() + TaskIndex, Iterations));})
+	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessEdgeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Edges->GetData() + TaskIndex, Iterations));})
 
 	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations);})
 
@@ -67,6 +68,10 @@ namespace PCGExClusterMT
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 		bool bBuildCluster = true;
 		bool bRequiresHeuristics = false;
+		bool bCacheVtxPointIndices = false;
+
+		bool bCopyCluster = false;
+
 		int32 NumNodes = 0;
 
 	public:
@@ -79,6 +84,7 @@ namespace PCGExClusterMT
 
 		TArray<bool> VtxFilterCache;
 		TArray<bool> EdgeFilterCache;
+		const TArray<int32>* VtxPointIndicesCache = nullptr;
 
 		FPCGContext* Context = nullptr;
 
@@ -104,7 +110,7 @@ namespace PCGExClusterMT
 			PCGEX_LOG_DTR(FClusterProcessor)
 
 			PCGEX_DELETE(HeuristicsHandler);
-			PCGEX_DELETE(Cluster);
+			if (bCopyCluster) { PCGEX_DELETE(Cluster); } // Safely delete the cluster
 
 			VtxIO = nullptr;
 			EdgesIO = nullptr;
@@ -131,48 +137,72 @@ namespace PCGExClusterMT
 
 			if (!bBuildCluster) { return true; }
 
-			Cluster = new PCGExCluster::FCluster();
-			Cluster->bIsOneToOne = bIsOneToOne;
-			Cluster->PointsIO = VtxIO;
-			Cluster->EdgesIO = EdgesIO;
-
-			if (!Cluster->BuildFrom(EdgesIO, VtxIO->GetIn()->GetPoints(), *EndpointsLookup, ExpectedAdjacency))
+			if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
 			{
-				PCGEX_DELETE(Cluster)
-				return false;
+				if (const UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(EdgesIO->GetIn()))
+				{
+					//Try to fetch cached cluster
+					if (const PCGExCluster::FCluster* CachedCluster = ClusterEdgesData->GetBoundCluster())
+					{
+						// Cheap validation -- if there are artifact use SanitizeCluster node, it's still incredibly cheaper.
+						if (CachedCluster->IsValidWith(VtxIO, EdgesIO))
+						{
+							//Yey, maybe?
+							Cluster = new PCGExCluster::FCluster(CachedCluster, VtxIO, EdgesIO, bCopyCluster);
+						}
+					}
+				}
 			}
 
-			Cluster->RebuildBounds();
-			NumNodes = Cluster->Nodes.Num();
+			if (!Cluster)
+			{
+				Cluster = new PCGExCluster::FCluster();
+				Cluster->bIsOneToOne = bIsOneToOne;
+				Cluster->VtxIO = VtxIO;
+				Cluster->EdgesIO = EdgesIO;
+
+				if (!Cluster->BuildFrom(EdgesIO, VtxIO->GetIn()->GetPoints(), *EndpointsLookup, ExpectedAdjacency))
+				{
+					PCGEX_DELETE(Cluster)
+					return false;
+				}
+
+				Cluster->RebuildBounds();
+			}
+
+			NumNodes = Cluster->Nodes->Num();
 
 #pragma region Vtx filter data
 
+			if (bCacheVtxPointIndices || VtxFiltersData)
+			{
+				VtxPointIndicesCache = Cluster->GetVtxPointIndicesPtr();
+			}
+
 			if (VtxFiltersData)
 			{
-				VtxFilterCache.SetNumUninitialized(Cluster->Nodes.Num());
+				VtxFilterCache.SetNumUninitialized(VtxPointIndicesCache->Num());
 
-				TArray<int32> VtxIndices;
-				VtxIndices.SetNumUninitialized(Cluster->Nodes.Num());
-
-				for (int i = 0; i < VtxIndices.Num(); i++)
-				{
-					VtxIndices[i] = Cluster->Nodes[i].PointIndex;
-					VtxFilterCache[i] = DefaultVtxFilterValue;
-				}
+				for (int i = 0; i < VtxPointIndicesCache->Num(); i++) { VtxFilterCache[i] = DefaultVtxFilterValue; }
 
 				PCGExCluster::FNodeStateHandler* VtxFiltersHandler = static_cast<PCGExCluster::FNodeStateHandler*>(VtxFiltersData->CreateFilter());
 				VtxFiltersHandler->bCacheResults = false;
 				VtxFiltersHandler->CaptureCluster(Context, Cluster);
 
-				if (VtxFiltersHandler->PrepareForTesting(VtxIO, VtxIndices)) { for (int32 i : VtxIndices) { VtxFiltersHandler->PrepareSingle((i)); } }
-				for (int i = 0; i < VtxIndices.Num(); i++) { VtxFilterCache[i] = VtxFiltersHandler->Test(VtxIndices[i]); }
+				if (VtxFiltersHandler->PrepareForTesting(VtxIO, Cluster->GetVtxPointIndicesView()))
+				{
+					for (const int32 i : (*VtxPointIndicesCache)) { VtxFiltersHandler->PrepareSingle(i); }
+					VtxFiltersHandler->PreparationComplete();
+				}
+
+				const TArray<int32>& VIdxRef = *VtxPointIndicesCache;
+				for (int i = 0; i < VtxPointIndicesCache->Num(); i++) { VtxFilterCache[i] = VtxFiltersHandler->Test(VIdxRef[i]); }
 
 				PCGEX_DELETE(VtxFiltersHandler)
-				VtxIndices.Empty();
 			}
 			else
 			{
-				VtxFilterCache.SetNumUninitialized(Cluster->Nodes.Num());
+				VtxFilterCache.SetNumUninitialized(Cluster->Nodes->Num());
 				for (int i = 0; i < VtxFilterCache.Num(); i++) { VtxFilterCache[i] = DefaultVtxFilterValue; }
 			}
 
@@ -195,16 +225,16 @@ namespace PCGExClusterMT
 		{
 			if (IsTrivial())
 			{
-				for (PCGExCluster::FNode& Node : Cluster->Nodes) { ProcessSingleNode(Node); }
+				for (PCGExCluster::FNode& Node : (*Cluster->Nodes)) { ProcessSingleNode(Node); }
 				return;
 			}
 
 			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(PerLoopIterations);
 			int32 CurrentCount = 0;
-			while (CurrentCount < Cluster->Nodes.Num())
+			while (CurrentCount < Cluster->Nodes->Num())
 			{
 				AsyncManagerPtr->Start<FAsyncProcessNodeRange<FClusterProcessor>>(
-					CurrentCount, nullptr, this, FMath::Min(Cluster->Nodes.Num() - CurrentCount, PLI));
+					CurrentCount, nullptr, this, FMath::Min(Cluster->Nodes->Num() - CurrentCount, PLI));
 				CurrentCount += PLI;
 			}
 		}
@@ -213,16 +243,16 @@ namespace PCGExClusterMT
 		{
 			if (IsTrivial())
 			{
-				for (PCGExGraph::FIndexedEdge& Edge : Cluster->Edges) { ProcessSingleEdge(Edge); }
+				for (PCGExGraph::FIndexedEdge& Edge : (*Cluster->Edges)) { ProcessSingleEdge(Edge); }
 				return;
 			}
 
 			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(PerLoopIterations);
 			int32 CurrentCount = 0;
-			while (CurrentCount < Cluster->Edges.Num())
+			while (CurrentCount < Cluster->Edges->Num())
 			{
 				AsyncManagerPtr->Start<FAsyncProcessEdgeRange<FClusterProcessor>>(
-					CurrentCount, nullptr, this, FMath::Min(Cluster->Edges.Num() - CurrentCount, PLI));
+					CurrentCount, nullptr, this, FMath::Min(Cluster->Edges->Num() - CurrentCount, PLI));
 				CurrentCount += PLI;
 			}
 		}
@@ -272,7 +302,7 @@ namespace PCGExClusterMT
 		{
 		}
 
-		void StartParallelLoopForScopes(const TArrayView<uint64>& InScopes)
+		void StartParallelLoopForScopes(const TArrayView<const uint64>& InScopes)
 		{
 			if (IsTrivial())
 			{

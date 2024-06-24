@@ -129,7 +129,7 @@ if (_NAME##Blending != EPCGExDataBlendingType::None){ Target._ACCESSOR = Source.
 		for (int i = 0; i < Targets.Num(); i++) { Blend(From, To, Targets[i], Weights[i]); }
 	}
 
-	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const
+	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const
 	{
 		for (int i = 0; i < Targets.Num(); i++) { CompleteBlending(Targets[i], Counts[i], TotalWeights[i]); }
 	}

@@ -95,9 +95,11 @@ namespace PCGExBreakClustersToPaths
 		PCGEX_SETTINGS(BreakClustersToPaths)
 		FPCGExBreakClustersToPathsContext* InContext = static_cast<FPCGExBreakClustersToPathsContext*>(Context);
 
+		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
-			for (int i = 0; i < Cluster->Nodes.Num(); i++) { if (Cluster->Nodes[i].IsComplex()) { VtxFilterCache[i] = true; } }
+			for (int i = 0; i < NodesRef.Num(); i++) { if (NodesRef[i].IsComplex()) { VtxFilterCache[i] = true; } }
 
 			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
 				EdgesIO->IOIndex, nullptr, Cluster,
@@ -144,11 +146,11 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints.SetNumUninitialized(ChainSize);
 		int32 PointCount = 0;
 
-		auto AddPoint = [&](const int32 NodeIndex) { MutablePoints[PointCount++] = PathIO->GetInPoint(Cluster->Nodes[NodeIndex].PointIndex); };
+		const TArray<int32>& VtxPointsIndicesRef = *VtxPointIndicesCache;
 
-		AddPoint(Chain->First);
-		for (const int32 NodeIndex : Chain->Nodes) { AddPoint(NodeIndex); }
-		AddPoint(Chain->Last);
+		MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[Chain->First]);
+		for (const int32 NodeIndex : Chain->Nodes) { MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[NodeIndex]); }
+		MutablePoints[PointCount] = PathIO->GetInPoint(VtxPointsIndicesRef[Chain->Last]);
 
 		PathIO->SetNumInitialized(ChainSize, true);
 	}

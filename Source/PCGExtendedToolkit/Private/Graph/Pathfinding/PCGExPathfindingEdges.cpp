@@ -36,11 +36,12 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	// TODO : Vtx OR/AND edge points
 
 	PCGEX_SETTINGS_LOCAL(PathfindingEdges)
-
+	
 	const FPCGPoint& Seed = SeedsPoints->GetInPoint(Query->SeedIndex);
 	const FPCGPoint& Goal = GoalsPoints->GetInPoint(Query->GoalIndex);
 
-	const PCGExCluster::FCluster* Cluster = SearchOperation->Cluster;
+	PCGExCluster::FCluster* Cluster = SearchOperation->Cluster;
+	const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
 
 	TArray<int32> Path;
 
@@ -53,19 +54,19 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 		return;
 	}
 
-	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef(Cluster->PointsIO->GetIn(), PCGExData::EInit::NewOutput);
+	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathPoints->GetOut();
 
 	PCGExGraph::CleanupClusterTags(PathPoints, true);
 	PCGExGraph::CleanupVtxData(PathPoints);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Cluster->PointsIO->GetIn()->GetPoints();
+	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO->GetIn()->GetPoints();
 
 	MutablePoints.Reserve(Path.Num() + 2);
 
 	if (Settings->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
-	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]); }
+	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]); }
 	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
 	if (Settings->bUseSeedAttributeToTagPath) { PathPoints->Tags->RawTags.Add(SeedTagValueGetter->SoftGet(Seed, TEXT(""))); }

@@ -135,10 +135,10 @@ public:
 	FORCEINLINE virtual void ProcessNodeForPoints(const int32 InNodeIndex) const;
 	FORCEINLINE virtual void ProcessNodeForEdges(const int32 InNodeIndex) const;
 
-	FORCEINLINE virtual void PrepareNode(PCGExCluster::FNode& TargetNode) const;
-	FORCEINLINE virtual void BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const;
-	FORCEINLINE virtual void BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const;
-	FORCEINLINE virtual void FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const;
+	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const;
+	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const;
+	FORCEINLINE virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const;
+	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const;
 
 	virtual void FinalizeOperation();
 

@@ -12,7 +12,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 {
 	Super::PrepareForCluster(InCluster);
 
-	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Point ? InCluster->PointsIO : InCluster->EdgesIO;
+	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Point ? InCluster->VtxIO : InCluster->EdgesIO;
 
 	if (LastPoints == InPoints) { return; }
 

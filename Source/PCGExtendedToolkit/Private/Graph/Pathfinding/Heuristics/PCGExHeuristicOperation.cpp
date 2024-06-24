@@ -12,7 +12,7 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 	bHasCustomLocalWeightMultiplier = false;
 	if (bUseLocalWeightMultiplier)
 	{
-		const PCGExData::FPointIO* PointIO = LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? InCluster->PointsIO : InCluster->EdgesIO;
+		const PCGExData::FPointIO* PointIO = LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? InCluster->VtxIO : InCluster->EdgesIO;
 		const int32 NumPoints = PointIO->GetNum();
 		PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
 

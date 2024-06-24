@@ -85,8 +85,8 @@ namespace PCGExPathfinding
 		FExtraWeights(const PCGExCluster::FCluster* InCluster, const double InNodeScale, const double InEdgeScale)
 			: NodeScale(InNodeScale), EdgeScale(InEdgeScale)
 		{
-			NodeExtraWeight.SetNumZeroed(InCluster->Nodes.Num());
-			EdgeExtraWeight.SetNumZeroed(InCluster->Edges.Num());
+			NodeExtraWeight.SetNumZeroed(InCluster->Nodes->Num());
+			EdgeExtraWeight.SetNumZeroed(InCluster->Edges->Num());
 		}
 
 		~FExtraWeights()

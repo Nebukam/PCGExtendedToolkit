@@ -135,10 +135,10 @@ namespace PCGExSampleNeighbors
 			else { EdgeOps.Add(SamplingOperation); }
 		}
 
-		for (const PCGExCluster::FNode& Node : Cluster->Nodes)
+		for (int i = 0; i < Cluster->Nodes->Num(); i++)
 		{
-			for (const UPCGExNeighborSampleOperation* Op : PointStatePreparation) { Op->PointState->PrepareSingle(Node.NodeIndex); }
-			for (const UPCGExNeighborSampleOperation* Op : ValueStatePreparation) { Op->ValueState->PrepareSingle(Node.NodeIndex); }
+			for (const UPCGExNeighborSampleOperation* Op : PointStatePreparation) { Op->PointState->PrepareSingle(i); }
+			for (const UPCGExNeighborSampleOperation* Op : ValueStatePreparation) { Op->ValueState->PrepareSingle(i); }
 		}
 
 		StartParallelLoopForNodes();

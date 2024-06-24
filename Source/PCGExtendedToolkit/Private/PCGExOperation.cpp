@@ -45,7 +45,7 @@ void UPCGExOperation::Write()
 {
 }
 
-void UPCGExOperation::Write(const TArrayView<int32> Indices)
+void UPCGExOperation::Write(const TArrayView<const int32> Indices)
 {
 }
 

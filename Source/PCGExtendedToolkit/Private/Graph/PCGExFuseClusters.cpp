@@ -7,7 +7,7 @@
 #include "Data/PCGExGraphDefinition.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Graph/PCGExClusterData.h"
+#include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

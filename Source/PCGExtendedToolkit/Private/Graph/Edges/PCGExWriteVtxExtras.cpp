@@ -98,7 +98,7 @@ namespace PCGExWriteVtxExtras
 		if (VtxNormalWriter)
 		{
 			ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionSettings);
-			StartParallelLoopForRange(Cluster->Nodes.Num());
+			StartParallelLoopForRange(Cluster->Nodes->Num());
 			//ProjectedCluster->Build();
 		}
 

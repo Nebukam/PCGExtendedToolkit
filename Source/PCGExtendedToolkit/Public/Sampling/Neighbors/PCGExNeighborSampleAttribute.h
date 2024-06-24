@@ -35,10 +35,10 @@ public:
 
 	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster) override;
 
-	FORCEINLINE virtual void PrepareNode(PCGExCluster::FNode& TargetNode) const override;
-	FORCEINLINE virtual void BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const override;
-	FORCEINLINE virtual void BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const override;
-	FORCEINLINE virtual void FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override;
+	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override;
+	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const override;
+	FORCEINLINE virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const override;
+	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override;
 
 	virtual void FinalizeOperation() override;
 

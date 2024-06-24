@@ -90,6 +90,7 @@ namespace PCGExBridgeClusters
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
+			
 		}
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;

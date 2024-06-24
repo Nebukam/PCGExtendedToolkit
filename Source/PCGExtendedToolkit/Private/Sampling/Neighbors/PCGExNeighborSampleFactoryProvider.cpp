@@ -25,13 +25,13 @@ bool UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InConte
 	if (PointState)
 	{
 		PointState->CaptureCluster(Context, Cluster);
-		PointState->PrepareForTesting(Cluster->PointsIO);
+		PointState->PrepareForTesting(Cluster->VtxIO);
 	}
 
 	if (ValueState)
 	{
 		ValueState->CaptureCluster(Context, Cluster);
-		ValueState->PrepareForTesting(Cluster->PointsIO);
+		ValueState->PrepareForTesting(Cluster->VtxIO);
 	}
 
 	return
@@ -43,12 +43,15 @@ bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperatio
 
 PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const
 {
-	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Point ? Cluster->PointsIO : Cluster->EdgesIO;
+	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Point ? Cluster->VtxIO : Cluster->EdgesIO;
 }
 
 void UPCGExNeighborSampleOperation::ProcessNodeForPoints(const int32 InNodeIndex) const
 {
-	PCGExCluster::FNode& TargetNode = Cluster->Nodes[InNodeIndex];
+
+	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+	
+	PCGExCluster::FNode& TargetNode = (*Cluster->Nodes)[InNodeIndex];
 
 	if (PointState && !PointState->Test(TargetNode.PointIndex)) { return; }
 
@@ -81,7 +84,7 @@ void UPCGExNeighborSampleOperation::ProcessNodeForPoints(const int32 InNodeIndex
 				for (int i = 0; i < CurrentNeighbors->Num(); i++)
 				{
 					const int32 NIndex = (*CurrentNeighbors)[i];
-					const int32 PtIndex = Cluster->Nodes[NIndex].PointIndex;
+					const int32 PtIndex = NodesRef[NIndex].PointIndex;
 					if (ValueState->Test(PtIndex))
 					{
 						VisitedNodes.Add(NIndex);
@@ -94,7 +97,7 @@ void UPCGExNeighborSampleOperation::ProcessNodeForPoints(const int32 InNodeIndex
 			for (const int32 Index : *CurrentNeighbors)
 			{
 				VisitedNodes.Add(Index);
-				const PCGExCluster::FNode& NextNode = Cluster->Nodes[Index];
+				const PCGExCluster::FNode& NextNode = NodesRef[Index];
 				double LocalWeight = 1;
 
 				if (BaseSettings.BlendOver == EPCGExBlendOver::Distance)
@@ -128,7 +131,7 @@ void UPCGExNeighborSampleOperation::ProcessNodeForPoints(const int32 InNodeIndex
 		{
 			for (const int32 Index : *CurrentNeighbors)
 			{
-				const PCGExCluster::FNode& NextNode = Cluster->Nodes[Index];
+				const PCGExCluster::FNode& NextNode = NodesRef[Index];
 				double LocalWeight = 1;
 
 				if (ValueState && !ValueState->Test(NextNode.PointIndex)) { continue; }
@@ -164,7 +167,10 @@ void UPCGExNeighborSampleOperation::ProcessNodeForEdges(const int32 InNodeIndex)
 {
 	if (PointState && !PointState->Test(InNodeIndex)) { return; }
 
-	PCGExCluster::FNode& TargetNode = Cluster->Nodes[InNodeIndex];
+	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
+	
+	const PCGExCluster::FNode& TargetNode = NodesRef[InNodeIndex];
 
 	int32 CurrentDepth = 0;
 	int32 Count = 0;
@@ -204,7 +210,7 @@ void UPCGExNeighborSampleOperation::ProcessNodeForEdges(const int32 InNodeIndex)
 				for (int i = 0; i < CurrentNeighbors->Num(); i++)
 				{
 					const int32 NIndex = (*CurrentNeighbors)[i];
-					const int32 PtIndex = Cluster->Nodes[NIndex].PointIndex;
+					const int32 PtIndex = NodesRef[NIndex].PointIndex;
 					if (ValueState->Test(PtIndex))
 					{
 						IgnoredEndPoints.Add(NIndex);
@@ -217,7 +223,7 @@ void UPCGExNeighborSampleOperation::ProcessNodeForEdges(const int32 InNodeIndex)
 				for (int i = 0; i < CurrentEdges->Num(); i++)
 				{
 					const int32 EIndex = (*CurrentEdges)[i];
-					const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EIndex];
+					const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EIndex];
 					if (IgnoredEndPoints.Contains(Edge.Start) || IgnoredEndPoints.Contains(Edge.End))
 					{
 						VisitedEdges.Add(EIndex);
@@ -268,7 +274,7 @@ void UPCGExNeighborSampleOperation::ProcessNodeForEdges(const int32 InNodeIndex)
 			{
 				if (ValueState)
 				{
-					const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
+					const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 					if (!ValueState->Test(Edge.Start) || !ValueState->Test(Edge.End)) { continue; }
 				}
 
@@ -298,19 +304,19 @@ void UPCGExNeighborSampleOperation::ProcessNodeForEdges(const int32 InNodeIndex)
 	FinalizeNode(TargetNode, Count, TotalWeight);
 }
 
-void UPCGExNeighborSampleOperation::PrepareNode(PCGExCluster::FNode& TargetNode) const
+void UPCGExNeighborSampleOperation::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
 }
 
-void UPCGExNeighborSampleOperation::BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
+void UPCGExNeighborSampleOperation::BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
 {
 }
 
-void UPCGExNeighborSampleOperation::BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
+void UPCGExNeighborSampleOperation::BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
 {
 }
 
-void UPCGExNeighborSampleOperation::FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
+void UPCGExNeighborSampleOperation::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
 {
 }
 

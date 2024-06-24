@@ -107,12 +107,12 @@ namespace PCGExFindNodeState
 		PCGExDataState::TStatesManager* StatesManager = nullptr;
 
 		bool bRequiresPrep = false;
-		TArray<int32> NodePointIndices;
 
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
+			bCacheVtxPointIndices = true;
 		}
 
 		virtual ~FProcessor() override;

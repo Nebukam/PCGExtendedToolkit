@@ -25,29 +25,29 @@ bool UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InCont
 	return Super::PrepareForCluster(InContext, InCluster);
 }
 
-void UPCGExNeighborSampleProperties::PrepareNode(PCGExCluster::FNode& TargetNode) const
+void UPCGExNeighborSampleProperties::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
-	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
+	FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
 	Blender->PrepareBlending(A, A);
 }
 
-void UPCGExNeighborSampleProperties::BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
+void UPCGExNeighborSampleProperties::BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
 {
-	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
-	const FPCGPoint& B = Cluster->PointsIO->GetInPoint(OtherNode.PointIndex);
+	FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+	const FPCGPoint& B = Cluster->VtxIO->GetInPoint(OtherNode.PointIndex);
 	Blender->Blend(A, B, A, Weight);
 }
 
-void UPCGExNeighborSampleProperties::BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
+void UPCGExNeighborSampleProperties::BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
 {
-	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
+	FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
 	const FPCGPoint& B = Cluster->EdgesIO->GetInPoint(InEdgeIndex);
 	Blender->Blend(A, B, A, Weight);
 }
 
-void UPCGExNeighborSampleProperties::FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
+void UPCGExNeighborSampleProperties::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
 {
-	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
+	FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
 	Blender->CompleteBlending(A, Count, TotalWeight);
 }
 

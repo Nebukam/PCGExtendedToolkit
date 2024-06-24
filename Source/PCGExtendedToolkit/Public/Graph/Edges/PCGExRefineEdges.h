@@ -114,6 +114,7 @@ namespace PCGExRefineEdges
 			: FClusterProcessor(InVtx, InEdges)
 		{
 			DefaultVtxFilterValue = false;
+			bCopyCluster = true; // Since we flag edges and stuff
 		}
 
 		virtual ~FProcessor() override;

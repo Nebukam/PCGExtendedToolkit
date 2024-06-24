@@ -302,10 +302,13 @@ namespace PCGExBridgeClusters
 
 		double Distance = TNumericLimits<double>::Max();
 
+		const TArray<PCGExCluster::FNode>& NodesRefA = *ClusterA->Nodes;
+		const TArray<PCGExCluster::FNode>& NodesRefB = *ClusterB->Nodes;
+
 		//Brute force find closest points
-		for (const PCGExCluster::FNode& Node : ClusterA->Nodes)
+		for (const PCGExCluster::FNode& Node : NodesRefA)
 		{
-			const PCGExCluster::FNode& OtherNode = ClusterB->Nodes[ClusterB->FindClosestNode(Node.Position)];
+			const PCGExCluster::FNode& OtherNode = NodesRefB[ClusterB->FindClosestNode(Node.Position)];
 
 			if (const double Dist = FVector::DistSquared(Node.Position, OtherNode.Position);
 				Dist < Distance)

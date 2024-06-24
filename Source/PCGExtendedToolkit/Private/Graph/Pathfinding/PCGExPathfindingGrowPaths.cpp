@@ -42,7 +42,10 @@ int32 PCGExGrow::FGrowth::FindNextGrowthNodeIndex()
 		return NextGrowthIndex;
 	}
 
-	const PCGExCluster::FNode& CurrentNode = Context->CurrentCluster->Nodes[LastGrowthIndex];
+	const TArray<PCGExCluster::FNode>& NodesRef = *Context->CurrentCluster->Nodes;
+	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Context->CurrentCluster->Edges;
+
+	const PCGExCluster::FNode& CurrentNode = NodesRef[LastGrowthIndex];
 
 	double BestScore = TNumericLimits<double>::Max();
 	NextGrowthIndex = -1;
@@ -53,7 +56,7 @@ int32 PCGExGrow::FGrowth::FindNextGrowthNodeIndex()
 		uint32 EdgeIndex;
 		PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
 
-		const PCGExCluster::FNode& OtherNode = Context->CurrentCluster->Nodes[NeighborIndex];
+		const PCGExCluster::FNode& OtherNode = NodesRef[NeighborIndex];
 
 		if (Settings->bUseNoGrowth)
 		{
@@ -75,7 +78,7 @@ int32 PCGExGrow::FGrowth::FindNextGrowthNodeIndex()
 		*/
 
 		if (const double Score = GetGrowthScore(
-				CurrentNode, OtherNode, Context->CurrentCluster->Edges[EdgeIndex]);
+				CurrentNode, OtherNode, EdgesRef[EdgeIndex]);
 			Score < BestScore)
 		{
 			BestScore = Score;
@@ -91,13 +94,16 @@ bool PCGExGrow::FGrowth::Grow()
 {
 	if (NextGrowthIndex <= -1 || Path.Contains(NextGrowthIndex)) { return false; }
 
-	const PCGExCluster::FNode& CurrentNode = Context->CurrentCluster->Nodes[LastGrowthIndex];
-	const PCGExCluster::FNode& NextNode = Context->CurrentCluster->Nodes[NextGrowthIndex];
+	const TArray<PCGExCluster::FNode>& NodesRef = *Context->CurrentCluster->Nodes;
+	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Context->CurrentCluster->Edges;
+
+	const PCGExCluster::FNode& CurrentNode = NodesRef[LastGrowthIndex];
+	const PCGExCluster::FNode& NextNode = NodesRef[NextGrowthIndex];
 
 	Metrics.Add(NextNode.Position);
 	if (MaxDistance > 0 && Metrics.Length > MaxDistance) { return false; }
 
-	Context->HeuristicsHandler->FeedbackScore(NextNode, Context->CurrentCluster->Edges[CurrentNode.GetEdgeIndex(NextNode.NodeIndex)]);
+	Context->HeuristicsHandler->FeedbackScore(NextNode, EdgesRef[CurrentNode.GetEdgeIndex(NextNode.NodeIndex)]);
 
 	Iteration++;
 	Path.Add(NextGrowthIndex);
@@ -152,10 +158,8 @@ void PCGExGrow::FGrowth::Write()
 
 	MutablePoints.Reserve(Path.Num());
 
-	for (const int32 VtxIndex : Path)
-	{
-		MutablePoints.Add(InPoints[Context->CurrentCluster->Nodes[VtxIndex].PointIndex]);
-	}
+	const TArray<int32>& VtxPointIndices = Context->CurrentCluster->GetVtxPointIndices();
+	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]); }
 
 	PathPoints->Tags->Append(VtxPoints.Tags);
 
@@ -169,7 +173,7 @@ void PCGExGrow::FGrowth::Write()
 
 void PCGExGrow::FGrowth::Init()
 {
-	SeedNode = &Context->CurrentCluster->Nodes[LastGrowthIndex];
+	SeedNode = &(*Context->CurrentCluster->Nodes)[LastGrowthIndex];
 	GoalNode = new PCGExCluster::FNode();
 	GoalNode->Position = SeedNode->Position + GrowthDirection * 100;
 	Metrics.Reset(SeedNode->Position);
@@ -375,7 +379,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 			if (NodeIndex == -1) { continue; }
 
-			const PCGExCluster::FNode& Node = Context->CurrentCluster->Nodes[NodeIndex];
+			const PCGExCluster::FNode& Node = (*Context->CurrentCluster->Nodes)[NodeIndex];
 			if (!Settings->SeedPicking.WithinDistance(Node.Position, SeedPosition) ||
 				Node.Adjacency.IsEmpty()) { continue; }
 

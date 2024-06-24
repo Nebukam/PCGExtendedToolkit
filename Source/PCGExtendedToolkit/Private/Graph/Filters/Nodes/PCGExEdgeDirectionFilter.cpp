@@ -67,8 +67,10 @@ namespace PCGExNodeAdjacency
 
 	bool TEdgeDirectionFilter::Test(const int32 PointIndex) const
 	{
-		const PCGExCluster::FNode& Node = CapturedCluster->Nodes[PointIndex];
-		const FPCGPoint& Point = CapturedCluster->PointsIO->GetInPoint(Node.PointIndex);
+		const TArray<PCGExCluster::FNode>& NodesRef = *CapturedCluster->Nodes;
+		
+		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
+		const FPCGPoint& Point = CapturedCluster->VtxIO->GetInPoint(Node.PointIndex);
 
 		const FVector RefDir = TypedFilterFactory->Descriptor.bTransformDirection ?
 			                       Point.Transform.TransformVectorNoScale(OperandDirection->Values[Node.PointIndex].GetSafeNormal()) :
@@ -87,7 +89,7 @@ namespace PCGExNodeAdjacency
 			{
 				for (int i = 0; i < Dots.Num(); i++)
 				{
-					FVector Direction = (CapturedCluster->Nodes[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
+					FVector Direction = (NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
 					Dots[i] = FVector::DotProduct(RefDir, Direction);
 				}
 			}
@@ -95,7 +97,7 @@ namespace PCGExNodeAdjacency
 			{
 				for (int i = 0; i < Dots.Num(); i++)
 				{
-					FVector Direction = (CapturedCluster->Nodes[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
+					FVector Direction = (NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
 					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Direction));
 				}
 			}
@@ -106,7 +108,7 @@ namespace PCGExNodeAdjacency
 			{
 				for (int i = 0; i < Dots.Num(); i++)
 				{
-					FVector Direction = (Node.Position - CapturedCluster->Nodes[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
+					FVector Direction = (Node.Position - NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
 					Dots[i] = FVector::DotProduct(RefDir, Direction);
 				}
 			}
@@ -114,7 +116,7 @@ namespace PCGExNodeAdjacency
 			{
 				for (int i = 0; i < Dots.Num(); i++)
 				{
-					FVector Direction = (Node.Position - CapturedCluster->Nodes[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
+					FVector Direction = (Node.Position - NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
 					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Direction));
 				}
 			}

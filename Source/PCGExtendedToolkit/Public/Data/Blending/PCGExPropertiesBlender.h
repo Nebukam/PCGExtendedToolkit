@@ -53,7 +53,7 @@ namespace PCGExDataBlending
 
 		void PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const FPCGPoint& Default) const;
 		void BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
-		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const;
+		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const;
 
 		void BlendRangeFromTo(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
 

@@ -25,7 +25,7 @@ double UPCGExHeuristicDistance::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return SampleCurve(Cluster->EdgeLengths[Edge.EdgeIndex]) * ReferenceWeight;
+	return SampleCurve((*Cluster->EdgeLengths)[Edge.EdgeIndex]) * ReferenceWeight;
 }
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation() const

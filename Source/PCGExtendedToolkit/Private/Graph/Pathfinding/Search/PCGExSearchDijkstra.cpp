@@ -21,15 +21,18 @@ bool UPCGExSearchDijkstra::FindPath(
 	PCGExHeuristics::THeuristicsHandler* Heuristics,
 	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) const
 {
-	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 1)];
+	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
+
+	const PCGExCluster::FNode& SeedNode = NodesRef[Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 1)];
 	if (!SeedSelection->WithinDistance(SeedNode.Position, SeedPosition)) { return false; }
 
-	const PCGExCluster::FNode& GoalNode = Cluster->Nodes[Cluster->FindClosestNode(GoalPosition, GoalSelection->PickingMethod, 1)];
+	const PCGExCluster::FNode& GoalNode = NodesRef[Cluster->FindClosestNode(GoalPosition, GoalSelection->PickingMethod, 1)];
 	if (!GoalSelection->WithinDistance(GoalNode.Position, GoalPosition)) { return false; }
 
 	if (SeedNode.NodeIndex == GoalNode.NodeIndex) { return false; }
 
-	const int32 NumNodes = Cluster->Nodes.Num();
+	const int32 NumNodes = NodesRef.Num();
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchDijkstra::FindPath);
 
@@ -58,7 +61,7 @@ bool UPCGExSearchDijkstra::FindPath(
 	{
 		if (CurrentNodeIndex == GoalNode.NodeIndex) { break; } // Exit early
 
-		const PCGExCluster::FNode& Current = Cluster->Nodes[CurrentNodeIndex];
+		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
 
 		Visited.Add(CurrentNodeIndex, &bAlreadyVisited);
 		//if (bAlreadyVisited) { continue; }
@@ -71,8 +74,8 @@ bool UPCGExSearchDijkstra::FindPath(
 
 			if (Visited.Contains(NeighborIndex)) { continue; }
 
-			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[NeighborIndex];
-			const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
+			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
+			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 
 			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback);
 			const double PreviousScore = ScoredQueue->Scores[NeighborIndex];
@@ -98,10 +101,10 @@ bool UPCGExSearchDijkstra::FindPath(
 		PathHash = Previous[PathNodeIndex];
 		PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
 
-		const PCGExCluster::FNode& N = Cluster->Nodes[CurrentIndex];
+		const PCGExCluster::FNode& N = NodesRef[CurrentIndex];
 		if (PathNodeIndex != -1)
 		{
-			const PCGExGraph::FIndexedEdge& E = Cluster->Edges[PathEdgeIndex];
+			const PCGExGraph::FIndexedEdge& E = EdgesRef[PathEdgeIndex];
 			Heuristics->FeedbackScore(N, E);
 			if (LocalFeedback) { Heuristics->FeedbackScore(N, E); }
 		}

@@ -67,7 +67,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		SeedPosition = GoalPosition;
 	}
 
-	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef(Cluster->PointsIO->GetIn(), PCGExData::EInit::NewOutput);
+	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 	PCGExGraph::CleanupClusterTags(PathPoints, true);
 
 	UPCGPointData* OutData = PathPoints->GetOut();
@@ -75,11 +75,13 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 	PCGExGraph::CleanupVtxData(PathPoints);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Cluster->PointsIO->GetIn()->GetPoints();
+	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO->GetIn()->GetPoints();
 
 	MutablePoints.Reserve(Path.Num() + 2);
 
 	if (bAddSeedToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(0)).MetadataEntry = PCGInvalidEntryKey; }
+
+	const TArray<int32>& VtxPointIndices = SearchOperation->Cluster->GetVtxPointIndices();
 	int32 LastIndex = -1;
 	for (const int32 VtxIndex : Path)
 	{
@@ -90,7 +92,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		}
 
 		if (LastIndex == VtxIndex) { continue; } //Skip duplicates
-		MutablePoints.Add(InPoints[SearchOperation->Cluster->Nodes[VtxIndex].PointIndex]);
+		MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]);
 		LastIndex = VtxIndex;
 	}
 	if (bAddGoalToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }

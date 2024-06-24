@@ -36,6 +36,8 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PointIO, co
 	PCGEX_SETTINGS_LOCAL(FindContours)
 
 	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster;
+	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+
 	PCGExCluster::FClusterProjection* Projection = ClusterProcessor->ClusterProjection;
 
 	const FVector Guide = ProjectedSeeds[SeedIndex];
@@ -47,7 +49,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PointIO, co
 		return false;
 	}
 
-	const FVector SeedPosition = Cluster->Nodes[StartNodeIndex].Position;
+	const FVector SeedPosition = NodesRef[StartNodeIndex].Position;
 	if (!Settings->SeedPicking.WithinDistance(SeedPosition, Guide))
 	{
 		// Fail. Not within radius.
@@ -81,7 +83,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PointIO, co
 	{
 		if (NextIndex == StartNodeIndex) { break; } // Contour closed gracefully
 
-		const PCGExCluster::FNode& CurrentNode = Cluster->Nodes[NextIndex];
+		const PCGExCluster::FNode& CurrentNode = NodesRef[NextIndex];
 
 		Path.Add(NextIndex);
 
@@ -101,7 +103,9 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PointIO, co
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 	const TArray<FPCGPoint>& OriginPoints = PointIO->GetIn()->GetPoints();
 	MutablePoints.SetNumUninitialized(Path.Num());
-	for (int i = 0; i < Path.Num(); i++) { MutablePoints[i] = OriginPoints[Cluster->Nodes[Path[i]].PointIndex]; }
+
+	const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
+	for (int i = 0; i < Path.Num(); i++) { MutablePoints[i] = OriginPoints[VtxPointIndices[Path[i]]]; }
 
 	if (Settings->bUseSeedAttributeToTagPath)
 	{

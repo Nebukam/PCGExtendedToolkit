@@ -89,13 +89,13 @@ namespace PCGExDataState
 		}
 
 		virtual bool PrepareForTesting() override;
-		virtual bool PrepareForTesting(const TArrayView<int32>& PointIndices) override;
+		virtual bool PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
 
 		virtual void Test(const int32 PointIndex) override;
 
-		void WriteStateNames(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, FName DefaultValue, const TArray<int32>& InIndices);
-		void WriteStateValues(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, int32 DefaultValue, const TArray<int32>& InIndices);
-		void WriteStateIndividualStates(PCGExMT::FTaskManager* AsyncManager, const TArray<int32>& InIndices);
+		void WriteStateNames(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, FName DefaultValue, const TArrayView<const int32>& InIndices);
+		void WriteStateValues(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, int32 DefaultValue, const TArrayView<const int32>& InIndices);
+		void WriteStateIndividualStates(PCGExMT::FTaskManager* AsyncManager, const TArrayView<const int32>& InIndices);
 
 		void WritePrepareForStateAttributes(const FPCGContext* InContext);
 		void WriteStateAttributes(const int32 PointIndex);
@@ -165,14 +165,16 @@ namespace PCGExDataStateTask
 	public:
 		FWriteIndividualState(
 			PCGExData::FPointIO* InPointIO,
-			PCGExDataState::TDataState* InHandler, const TArray<int32>* InInIndices) :
+			PCGExDataState::TDataState* InHandler,
+			const TArrayView<const int32>& InIndices) :
 			FPCGExTask(InPointIO),
-			Handler(InHandler), InIndices(InInIndices)
+			Handler(InHandler),
+			Indices(InIndices)
 		{
 		}
 
 		PCGExDataState::TDataState* Handler = nullptr;
-		const TArray<int32>* InIndices = nullptr;
+		const TArrayView<const int32> Indices;
 
 		virtual bool ExecuteTask() override;
 	};

@@ -113,7 +113,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	PackedIO->CleanupKeys();
 	PackedIO->CreateOutKeys();
 
-	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
+	const TArrayView<const int32> View = MakeArrayView(ReducedVtxIndices);
 	PCGEx::CopyPoints(PointIO, PackedIO, View, NumEdges);
 
 	for (const PCGEx::FAttributeIdentity& Identity : VtxAttributes->Identities)

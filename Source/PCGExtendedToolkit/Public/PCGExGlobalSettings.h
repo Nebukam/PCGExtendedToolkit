@@ -23,6 +23,10 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
 	int32 SmallPointsSize = 256;
 
+	/** */
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
+	bool bCacheClusters = true;
+
 	bool IsSmallPointSize(const int32 InNum) const { return InNum <= SmallPointsSize; }
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))

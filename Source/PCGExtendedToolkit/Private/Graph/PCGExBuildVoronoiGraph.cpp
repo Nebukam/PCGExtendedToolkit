@@ -7,7 +7,7 @@
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
 #include "Graph/PCGExCluster.h"
-#include "Graph/PCGExClusterData.h"
+#include "Graph/Data/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildVoronoiGraph

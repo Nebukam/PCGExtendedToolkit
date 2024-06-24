@@ -22,7 +22,7 @@ void UPCGExPointData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPoin
 void UPCGExPointData::BeginDestroy()
 {
 	Super::BeginDestroy();
-	UE_LOG(LogTemp, Warning, TEXT("RELEASE UPCGExPointData"))
+	//UE_LOG(LogTemp, Warning, TEXT("RELEASE UPCGExPointData"))
 }
 
 UPCGSpatialData* UPCGExPointData::CopyInternal() const

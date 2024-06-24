@@ -97,6 +97,7 @@ namespace PCGExBreakClustersToPaths
 			FClusterProcessor(InVtx, InEdges)
 		{
 			DefaultVtxFilterValue = false;
+			bCacheVtxPointIndices = true;
 		}
 
 		virtual ~FProcessor() override;

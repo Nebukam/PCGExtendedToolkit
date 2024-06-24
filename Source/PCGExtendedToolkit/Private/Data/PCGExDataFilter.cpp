@@ -41,11 +41,11 @@ namespace PCGExDataFilter
 		return false;
 	}
 
-	bool TFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
+	bool TFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices)
 	{
 		if (bCacheResults)
 		{
-			if (const int32 NumPoints = PointIO->GetNum(); Results.Num() != NumPoints) { Results.SetNumUninitialized(NumPoints); }
+			if (const int32 NumPoints = PointIO->GetNum(); Results.Num() != NumPoints) { Results.SetNumUninitialized(NumPoints); } // TODO : This is wrong
 			for (const int32 i : PointIndices) { Results[i] = false; }
 		}
 
@@ -72,7 +72,7 @@ namespace PCGExDataFilter
 		return !HeavyHandlers.IsEmpty();
 	}
 
-	bool TFilterManager::PrepareForTesting(const TArrayView<int32>& PointIndices)
+	bool TFilterManager::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
 		HeavyHandlers.Reset();
 		for (TFilter* Handler : Handlers) { if (Handler->PrepareForTesting(PointIO, PointIndices)) { HeavyHandlers.Add(Handler); } }
@@ -134,7 +134,7 @@ namespace PCGExDataFilter
 		return !HeavyHandlers.IsEmpty();
 	}
 
-	bool TEarlyExitFilterManager::PrepareForTesting(const TArrayView<int32>& PointIndices)
+	bool TEarlyExitFilterManager::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
 		check(false) //this override Should not be used with early exit
 		return TFilterManager::PrepareForTesting(PointIndices);

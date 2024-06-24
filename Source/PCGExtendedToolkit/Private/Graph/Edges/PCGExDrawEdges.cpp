@@ -97,11 +97,14 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 				             PCGExMath::Lerp(Settings->Color, Settings->SecondaryColor, L) :
 				             Settings->Color;
 
-			for (const PCGExGraph::FIndexedEdge& Edge : Context->CurrentCluster->Edges)
+			const TArray<PCGExCluster::FNode>& NodesRef = *Context->CurrentCluster->Nodes;
+			const TMap<int32, int32>& NodeIndexLookupRef = *Context->CurrentCluster->NodeIndexLookup;
+
+			for (const PCGExGraph::FIndexedEdge& Edge : (*Context->CurrentCluster->Edges))
 			{
 				if (!Edge.bValid) { continue; }
-				FVector Start = Context->CurrentCluster->Nodes[*Context->CurrentCluster->NodeIndexLookup.Find(Edge.Start)].Position;
-				FVector End = Context->CurrentCluster->Nodes[*Context->CurrentCluster->NodeIndexLookup.Find(Edge.End)].Position;
+				FVector Start = NodesRef[NodeIndexLookupRef[Edge.Start]].Position;
+				FVector End = NodesRef[NodeIndexLookupRef[Edge.End]].Position;
 				DrawDebugLine(Context->World, Start, End, Col, true, -1, Settings->DepthPriority, Settings->Thickness);
 			}
 

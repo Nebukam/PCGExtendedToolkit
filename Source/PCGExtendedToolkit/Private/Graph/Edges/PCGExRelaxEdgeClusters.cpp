@@ -125,7 +125,7 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 
 		auto ProcessNode = [&](const int32 NodeIndex)
 		{
-			const PCGExCluster::FNode& Vtx = Context->CurrentCluster->Nodes[NodeIndex];
+			const PCGExCluster::FNode& Vtx = (*Context->CurrentCluster->Nodes)[NodeIndex];
 			Context->Relaxing->ProcessVertex(Vtx);
 		};
 

@@ -11,10 +11,12 @@ void UPCGExLaplacianRelaxing::ProcessVertex(const PCGExCluster::FNode& Vertex)
 	const FVector Position = (*ReadBuffer)[Vertex.PointIndex];
 	FVector Force = FVector::Zero();
 
+	const TArray<PCGExCluster::FNode>& NodesRef = *CurrentCluster->Nodes;
+	
 	for (const uint64 AdjacencyHash : Vertex.Adjacency)
 	{
 		const uint32 VtxIndex = PCGEx::H64A(AdjacencyHash);
-		const PCGExCluster::FNode& OtherVtx = CurrentCluster->Nodes[VtxIndex];
+		const PCGExCluster::FNode& OtherVtx = NodesRef[VtxIndex];
 		Force += (*ReadBuffer)[OtherVtx.PointIndex] - (*ReadBuffer)[Vertex.PointIndex];
 	}
 

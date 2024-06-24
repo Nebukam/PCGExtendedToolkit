@@ -35,7 +35,7 @@ public:
 
 	virtual void Cleanup();
 	virtual void Write();
-	virtual void Write(const TArrayView<int32> Indices);
+	virtual void Write(const TArrayView<const int32> Indices);
 	virtual void Write(const uint64 Scope);
 	virtual void Write(PCGExMT::FTaskManager* AsyncManager);
 

@@ -147,7 +147,7 @@ namespace PCGExDataBlending
 	void FMetadataBlender::CompleteRangeBlending(
 		const int32 StartIndex,
 		const int32 Range,
-		const TArrayView<int32>& Counts,
+		const TArrayView<const int32>& Counts,
 		const TArrayView<double>& TotalWeights) const
 	{
 		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->FinalizeRangeOperation(StartIndex, Counts, TotalWeights); }
@@ -203,7 +203,7 @@ namespace PCGExDataBlending
 		Flush();
 	}
 
-	void FMetadataBlender::Write(const TArrayView<int32> InIndices, const bool bFlush)
+	void FMetadataBlender::Write(const TArrayView<const int32> InIndices, const bool bFlush)
 	{
 		for (FDataBlendingOperationBase* Op : Attributes) { Op->Write(InIndices); }
 		if (bFlush) { Flush(); }

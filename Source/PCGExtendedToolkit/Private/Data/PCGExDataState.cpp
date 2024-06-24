@@ -122,7 +122,7 @@ namespace PCGExDataState
 		return TFilterManager::PrepareForTesting();
 	}
 
-	bool TStatesManager::PrepareForTesting(const TArrayView<int32>& PointIndices)
+	bool TStatesManager::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
 		if (const int32 NumPoints = PointIO->GetNum(); HighestState.Num() != NumPoints) { HighestState.SetNumUninitialized(NumPoints); }
 		for (const int32 i : PointIndices) { HighestState[i] = -1; }
@@ -145,7 +145,7 @@ namespace PCGExDataState
 		HighestState[PointIndex] = HState;
 	}
 
-	void TStatesManager::WriteStateNames(PCGExMT::FTaskManager* AsyncManager, const FName AttributeName, const FName DefaultValue, const TArray<int32>& InIndices)
+	void TStatesManager::WriteStateNames(PCGExMT::FTaskManager* AsyncManager, const FName AttributeName, const FName DefaultValue, const TArrayView<const int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<FName>* StateNameWriter = new PCGEx::TFAttributeWriter<FName>(AttributeName, DefaultValue, false);
 		StateNameWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO*>(PointIO));
@@ -165,7 +165,7 @@ namespace PCGExDataState
 		PCGEX_DELETE(StateNameWriter)
 	}
 
-	void TStatesManager::WriteStateValues(PCGExMT::FTaskManager* AsyncManager, const FName AttributeName, const int32 DefaultValue, const TArray<int32>& InIndices)
+	void TStatesManager::WriteStateValues(PCGExMT::FTaskManager* AsyncManager, const FName AttributeName, const int32 DefaultValue, const TArrayView<const int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<int32>* StateValueWriter = new PCGEx::TFAttributeWriter<int32>(AttributeName, DefaultValue, false);
 		StateValueWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO*>(PointIO));
@@ -185,13 +185,13 @@ namespace PCGExDataState
 		PCGEX_DELETE(StateValueWriter)
 	}
 
-	void TStatesManager::WriteStateIndividualStates(PCGExMT::FTaskManager* AsyncManager, const TArray<int32>& InIndices)
+	void TStatesManager::WriteStateIndividualStates(PCGExMT::FTaskManager* AsyncManager, const TArrayView<const int32>& InIndices)
 	{
 		for (PCGExDataFilter::TFilter* Handler : Handlers)
 		{
 			AsyncManager->Start<PCGExDataStateTask::FWriteIndividualState>(
 				Handler->Index, const_cast<PCGExData::FPointIO*>(PointIO),
-				static_cast<TDataState*>(Handler), &InIndices);
+				static_cast<TDataState*>(Handler), InIndices);
 		}
 	}
 
@@ -261,7 +261,7 @@ namespace PCGExDataStateTask
 		PCGEx::TFAttributeWriter<bool>* StateWriter = new PCGEx::TFAttributeWriter<bool>(static_cast<const UPCGExDataStateFactoryBase*>(Handler->Factory)->StateName);
 		StateWriter->BindAndSetNumUninitialized(PointIO);
 
-		for (const int32 i : (*InIndices)) { StateWriter->Values[i] = Handler->Results[i]; }
+		for (const int32 i : Indices) { StateWriter->Values[i] = Handler->Results[i]; }
 		StateWriter->Write();
 
 		PCGEX_DELETE(StateWriter)

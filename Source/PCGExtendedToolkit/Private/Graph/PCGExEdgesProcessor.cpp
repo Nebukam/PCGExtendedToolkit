@@ -124,7 +124,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 		}
 		else
 		{
-			CurrentCluster->PointsIO = CurrentIO;
+			CurrentCluster->VtxIO = CurrentIO;
 			CurrentCluster->EdgesIO = CurrentEdges;
 		}
 

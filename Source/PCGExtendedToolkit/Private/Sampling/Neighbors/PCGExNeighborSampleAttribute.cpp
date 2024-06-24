@@ -48,30 +48,30 @@ bool UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 	}
 
 	Blender = new PCGExDataBlending::FMetadataBlender(&MetadataBlendingSettings);
-	Blender->PrepareForData(Cluster->PointsIO, GetSourceIO(), PCGExData::ESource::In, true);
+	Blender->PrepareForData(Cluster->VtxIO, GetSourceIO(), PCGExData::ESource::In, true);
 
 	bIsValidOperation = true;
 	return bRequirePerPointPrep;
 }
 
-void UPCGExNeighborSampleAttribute::PrepareNode(PCGExCluster::FNode& TargetNode) const
+void UPCGExNeighborSampleAttribute::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
 	Blender->PrepareForBlending(TargetNode.PointIndex);
 }
 
-void UPCGExNeighborSampleAttribute::BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
+void UPCGExNeighborSampleAttribute::BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
 {
 	const int32 PrimaryIndex = TargetNode.PointIndex;
 	Blender->Blend(PrimaryIndex, OtherNode.PointIndex, PrimaryIndex, Weight);
 }
 
-void UPCGExNeighborSampleAttribute::BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
+void UPCGExNeighborSampleAttribute::BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
 {
 	const int32 PrimaryIndex = TargetNode.PointIndex;
 	Blender->Blend(PrimaryIndex, InEdgeIndex, PrimaryIndex, Weight);
 }
 
-void UPCGExNeighborSampleAttribute::FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
+void UPCGExNeighborSampleAttribute::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
 {
 	const int32 PrimaryIndex = TargetNode.PointIndex;
 	Blender->CompleteBlending(PrimaryIndex, Count, TotalWeight);
@@ -80,14 +80,7 @@ void UPCGExNeighborSampleAttribute::FinalizeNode(PCGExCluster::FNode& TargetNode
 void UPCGExNeighborSampleAttribute::FinalizeOperation()
 {
 	Super::FinalizeOperation();
-
-	TArray<int32> Indices;
-	Cluster->GetNodePointIndices(Indices);
-
-	Blender->Write(Indices);
-
-	Indices.Empty();
-
+	Blender->Write(Cluster->GetVtxPointIndicesView());
 	PCGEX_DELETE(Blender)
 }
 

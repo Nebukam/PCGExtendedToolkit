@@ -448,7 +448,7 @@ namespace PCGEx
 			this->Accessor->SetRange(this->Values);
 		}
 
-		void Write(const TArrayView<int32>& InIndices)
+		void Write(const TArrayView<const int32>& InIndices)
 		{
 			if (this->Values.IsEmpty()) { return; }
 			for (int32 Index : InIndices) { this->Accessor->Set(this->Values[Index], Index); }
@@ -753,7 +753,7 @@ namespace PCGEx
 	static void CopyPoints(
 		const PCGExData::FPointIO* Source,
 		const PCGExData::FPointIO* Target,
-		const TArrayView<int32>& SourceIndices,
+		const TArrayView<const int32>& SourceIndices,
 		const int32 TargetIndex = 0,
 		const bool bKeepSourceMetadataEntry = false)
 	{
@@ -787,7 +787,7 @@ namespace PCGEx
 		FAttributeIdentity Identity,
 		const PCGExData::FPointIO* Source,
 		PCGExData::FPointIO* Target,
-		const TArrayView<int32>& SourceIndices,
+		const TArrayView<const int32>& SourceIndices,
 		const int32 TargetIndex = 0)
 	{
 		PCGMetadataAttribute::CallbackWithRightType(

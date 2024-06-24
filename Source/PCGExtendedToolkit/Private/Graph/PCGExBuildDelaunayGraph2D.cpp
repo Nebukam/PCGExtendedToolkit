@@ -6,7 +6,7 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
-#include "Graph/PCGExClusterData.h"
+#include "Graph/Data/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildDelaunayGraph2D

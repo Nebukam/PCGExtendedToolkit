@@ -97,7 +97,7 @@ void UPCGExVtxExtraEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExClu
 		}
 	}
 
-	if (IBest != -1) { Descriptor.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], Cluster->Nodes[Adjacency[IBest].NodeIndex].Adjacency.Num()); }
+	if (IBest != -1) { Descriptor.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], (*Cluster->Nodes)[Adjacency[IBest].NodeIndex].Adjacency.Num()); }
 	else { Descriptor.MatchingEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 

@@ -377,13 +377,13 @@ namespace PCGExDataBlending
 
 		FORCEINLINE virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const = 0;
 		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const bool bFirstOperation) const = 0;
-		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
+		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
 
 		virtual void ResetToDefault(int32 WriteIndex) const;
 		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
 
 		virtual void Write() = 0;
-		virtual void Write(const TArrayView<int32> InIndices) = 0;
+		virtual void Write(const TArrayView<const int32> InIndices) = 0;
 
 	protected:
 		bool bOwnsWriter = true;
@@ -470,7 +470,7 @@ namespace PCGExDataBlending
 			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Weights, bFirstOperation);
 		}
 
-		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const override
+		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const override
 		{
 			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Counts.Num());
 			FinalizeValuesRangeOperation(View, Counts, TotalWeights);
@@ -503,7 +503,7 @@ namespace PCGExDataBlending
 			(*Writer)[WriteIndex] = SingleOperation(A, B, Weight);
 		}
 
-		FORCEINLINE virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<int32>& Counts, const TArrayView<double>& Weights) const
+		FORCEINLINE virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
 		{
 			if (!bInterpolationAllowed) { return; }
 			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
@@ -533,7 +533,7 @@ namespace PCGExDataBlending
 		// TODO : Async support? Already handled by wrappers, so might be redundant
 
 		virtual void Write() override { Writer->Write(); }
-		virtual void Write(const TArrayView<int32> InIndices) override { Writer->Write(InIndices); }
+		virtual void Write(const TArrayView<const int32> InIndices) override { Writer->Write(InIndices); }
 
 	protected:
 		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;

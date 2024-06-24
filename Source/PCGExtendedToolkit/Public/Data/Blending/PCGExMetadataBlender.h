@@ -47,13 +47,13 @@ namespace PCGExDataBlending
 
 		void PrepareRangeForBlending(const int32 StartIndex, const int32 Range) const;
 		void BlendRange(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const int32 StartIndex, const int32 Range, const TArrayView<double>& Weights);
-		void CompleteRangeBlending(const int32 StartIndex, const int32 Range, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const;
+		void CompleteRangeBlending(const int32 StartIndex, const int32 Range, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const;
 
 		void BlendRangeFromTo(const PCGEx::FPointRef& From, const PCGEx::FPointRef& To, const int32 StartIndex, const TArrayView<double>& Weights);
 
 		void Write();
 		void Write(PCGExMT::FTaskManager* AsyncManager);
-		void Write(TArrayView<int32> InIndices, bool bFlush = true);
+		void Write(TArrayView<const int32> InIndices, bool bFlush = true);
 
 		void Flush();
 

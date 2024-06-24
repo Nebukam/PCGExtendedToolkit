@@ -173,19 +173,40 @@ namespace PCGExCluster
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCluster
-	{				
+	{
+	protected:
+		bool bIsMirror = false;
+		bool bOwnsNodes = true;
+		bool bOwnsEdges = true;
+		bool bOwnsNodeOctree = true;
+		bool bOwnsEdgeOctree = true;
+		bool bOwnsLengths = true;
+		bool bOwnsVtxPointIndices = true;
+
+		int32 NumRawVtx = 0;
+		int32 NumRawEdges = 0;
+		
 		bool bEdgeLengthsDirty = true;
+		bool bIsCopyCluster = false;
+		TArray<int32>* VtxPointIndices = nullptr;
+		TArray<uint64>* VtxPointScopes = nullptr;
+		
+		mutable FRWLock ClusterLock;
+
+	public:
 		bool bValid = false;
-		bool bIsOneToOne = false; // Whether the input data has a single set of edges for a single set of vtx 
+		bool bIsOneToOne = false; // Whether the input data has a single set of edges for a single set of vtx
+
 		int32 ClusterID = -1;
-		TMap<int32, int32> NodeIndexLookup; // Node index -> Point Index
+		TMap<int32, int32>* NodeIndexLookup = nullptr; // Node index -> Point Index
 		//TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
-		TArray<FNode> Nodes;
-		TArray<PCGExGraph::FIndexedEdge> Edges;
-		TArray<double> EdgeLengths;
+		TArray<FNode>* Nodes = nullptr;
+		TArray<PCGExGraph::FIndexedEdge>* Edges = nullptr;
+		TArray<double>* EdgeLengths = nullptr;
+
 		FBox Bounds;
 
-		PCGExData::FPointIO* PointsIO = nullptr;
+		PCGExData::FPointIO* VtxIO = nullptr;
 		PCGExData::FPointIO* EdgesIO = nullptr;
 
 		using ClusterItemOctree = TOctree2<FClusterItemRef, FClusterItemRefSemantics>;
@@ -193,6 +214,7 @@ namespace PCGExCluster
 		ClusterItemOctree* EdgeOctree = nullptr;
 
 		FCluster();
+		FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO, bool bCopy);
 
 		~FCluster();
 
@@ -201,6 +223,18 @@ namespace PCGExCluster
 			const TArray<FPCGPoint>& InNodePoints,
 			const TMap<uint32, int32>& InEndpointsLookup,
 			const TArray<int32>* InExpectedAdjacency = nullptr);
+
+		void BuildFrom(const PCGExGraph::FSubGraph* SubGraph);
+
+		bool IsValidWith( const PCGExData::FPointIO* InVtxIO, const PCGExData::FPointIO* InEdgesIO) const;
+		
+		const TArray<uint64>* GetVtxPointScopesPtr();
+		const TArray<int32>& GetVtxPointIndices();
+		TArrayView<const int32> GetVtxPointIndicesView();
+		
+		const TArray<int32>* GetVtxPointIndicesPtr();
+		const TArray<uint64>& GetVtxPointScopes();
+		TArrayView<const uint64> GetVtxPointScopesView();
 
 		void RebuildBounds();
 		void RebuildNodeOctree();
@@ -216,9 +250,6 @@ namespace PCGExCluster
 
 		void ComputeEdgeLengths(bool bNormalize = false);
 
-		void GetNodePointIndices(TArray<int32>& OutIndices);
-		void GetNodePointScopes(TArray<uint64>& OutScopes);
-
 		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
 		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth, const TSet<int32>& Skip) const;
 
@@ -231,10 +262,11 @@ namespace PCGExCluster
 		void GetValidEdges(TArray<PCGExGraph::FIndexedEdge>& OutValidEdges) const;
 
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
-		
+
 	protected:
-		FNode& GetOrCreateNodeUnsafe(int32 PointIndex);
-		
+		FNode& GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex);
+		void CreateVtxPointIndices();
+		void CreateVtxPointScopes();
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeProjection
@@ -245,8 +277,8 @@ namespace PCGExCluster
 
 		explicit FNodeProjection(FNode* InNode);
 
-		void Project(FCluster* InCluster, const FPCGExGeo2DProjectionSettings* ProjectionSettings);
-		void ComputeNormal(FCluster* InCluster);
+		void Project(const FCluster* InCluster, const FPCGExGeo2DProjectionSettings* ProjectionSettings);
+		void ComputeNormal(const FCluster* InCluster);
 		FORCEINLINE int32 GetAdjacencyIndex(int32 NodeIndex) const;
 
 		~FNodeProjection();
@@ -307,7 +339,7 @@ namespace PCGExCluster
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
 		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices) override;
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices) override;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler final : public PCGExDataState::TDataState
@@ -326,7 +358,7 @@ namespace PCGExCluster
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices) override;
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices) override;
 		virtual void PrepareSingle(const int32 PointIndex) override;
 		virtual void PreparationComplete() override;
 
@@ -367,7 +399,7 @@ namespace PCGExCluster
 
 			PCGEx::H64(InNode.Adjacency[i], NIndex, EIndex);
 
-			const FNode& OtherNode = InCluster->Nodes[NIndex];
+			const FNode& OtherNode = (*InCluster->Nodes)[NIndex];
 			const FVector OtherPosition = OtherNode.Position;
 
 			FAdjacencyData& Data = OutData.Emplace_GetRef();
@@ -468,13 +500,15 @@ namespace PCGExClusterTask
 		const TArray<bool>* Breakpoints,
 		const PCGExCluster::FCluster* Cluster)
 	{
+		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+
 		int32 LastIndex = Chain->First;
 		int32 NextIndex = Chain->Last;
-		Chain->Edges.Add(Cluster->Nodes[LastIndex].GetEdgeIndex(NextIndex));
+		Chain->Edges.Add(Nodes[LastIndex].GetEdgeIndex(NextIndex));
 
 		while (NextIndex != -1)
 		{
-			const PCGExCluster::FNode& NextNode = Cluster->Nodes[NextIndex];
+			const PCGExCluster::FNode& NextNode = Nodes[NextIndex];
 			if ((*Breakpoints)[NextIndex] || NextNode.IsComplex() || NextNode.IsDeadEnd())
 			{
 				LastIndex = NextIndex;

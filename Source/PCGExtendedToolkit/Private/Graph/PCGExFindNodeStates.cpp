@@ -94,8 +94,6 @@ namespace PCGExFindNodeState
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		Cluster->GetNodePointIndices(NodePointIndices);
-
 		StatesManager = new PCGExDataState::TStatesManager(VtxIO);
 		StatesManager->RegisterAndCapture<UPCGExNodeStateFactory>(
 			Context, TypedContext->StateFactories, [&](PCGExDataFilter::TFilter* Handler)
@@ -116,10 +114,10 @@ namespace PCGExFindNodeState
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some input points only have partial metadata."));
 		}
 
-		if (StatesManager->PrepareForTesting(NodePointIndices))
+		if (StatesManager->PrepareForTesting(Cluster->GetVtxPointIndicesView()))
 		{
 			bRequiresPrep = true;
-			for (int i = 0; i < NodePointIndices.Num(); i++) { StatesManager->PrepareSingle(i); }
+			for (const int32 i : (*VtxPointIndicesCache)) { StatesManager->PrepareSingle(i); }
 			StatesManager->PreparationComplete();
 		}
 
@@ -132,7 +130,7 @@ namespace PCGExFindNodeState
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
-		StatesManager->WriteStateAttributes(Cluster->Nodes[Iteration].PointIndex);
+		StatesManager->WriteStateAttributes((*VtxPointIndicesCache)[Iteration]);
 	}
 
 	void FProcessor::CompleteWork()
@@ -141,17 +139,17 @@ namespace PCGExFindNodeState
 
 		if (Settings->bWriteStateName)
 		{
-			StatesManager->WriteStateNames(AsyncManagerPtr, Settings->StateNameAttributeName, Settings->StatelessName, NodePointIndices);
+			StatesManager->WriteStateNames(AsyncManagerPtr, Settings->StateNameAttributeName, Settings->StatelessName, Cluster->GetVtxPointIndicesView());
 		}
 
 		if (Settings->bWriteStateValue)
 		{
-			StatesManager->WriteStateValues(AsyncManagerPtr, Settings->StateValueAttributeName, Settings->StatelessValue, NodePointIndices);
+			StatesManager->WriteStateValues(AsyncManagerPtr, Settings->StateValueAttributeName, Settings->StatelessValue, Cluster->GetVtxPointIndicesView());
 		}
 
 		if (Settings->bWriteEachStateIndividually)
 		{
-			StatesManager->WriteStateIndividualStates(AsyncManagerPtr, NodePointIndices);
+			StatesManager->WriteStateIndividualStates(AsyncManagerPtr, Cluster->GetVtxPointIndicesView());
 		}
 
 		StatesManager->WritePrepareForStateAttributes(Context);
