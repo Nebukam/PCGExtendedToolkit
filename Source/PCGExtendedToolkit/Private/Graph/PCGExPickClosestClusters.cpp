@@ -203,10 +203,9 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 		}
 
 		Context->OutputPointsAndEdges();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE

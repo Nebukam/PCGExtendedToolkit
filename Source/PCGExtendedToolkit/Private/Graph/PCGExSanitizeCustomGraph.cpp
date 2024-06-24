@@ -118,10 +118,9 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 	{
 		Context->IndicesRemap.Empty();
 		Context->OutputPointsAndGraphParams();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 int64 FPCGExConsolidateCustomGraphElement::GetFixedIndex(FPCGExConsolidateCustomGraphContext* Context, const int64 InIndex)

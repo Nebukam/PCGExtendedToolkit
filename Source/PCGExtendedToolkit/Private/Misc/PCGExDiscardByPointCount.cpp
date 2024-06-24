@@ -35,9 +35,8 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 
 	Context->OutputMainPoints();
 	Context->Done();
-	Context->ExecuteEnd();
 
-	return true;
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE

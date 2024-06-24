@@ -89,10 +89,10 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 		PCGExGraph::MarkClusterEdges(BridgeBatch->ConsolidatedEdges, OutId);
 	}
 
+	Context->Done();
 	Context->OutputPointsAndEdges();
-	Context->ExecuteEnd();
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 namespace PCGExBridgeClusters

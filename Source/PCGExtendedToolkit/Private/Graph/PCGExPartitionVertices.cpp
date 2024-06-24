@@ -70,10 +70,9 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 		Context->MainEdges->OutputTo(Context);
 
 		Context->Done();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 namespace PCGExPartitionVertices

@@ -143,10 +143,9 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndEdges();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE

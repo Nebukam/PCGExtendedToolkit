@@ -81,9 +81,8 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 
 	Context->OutputMainPoints();
 	Context->Done();
-	Context->ExecuteEnd();
 
-	return true;
+	return Context->CompleteTaskExecution();
 }
 
 namespace PCGExOrient

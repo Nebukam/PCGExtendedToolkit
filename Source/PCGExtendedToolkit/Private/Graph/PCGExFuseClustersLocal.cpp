@@ -317,10 +317,9 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE

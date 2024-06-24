@@ -183,10 +183,9 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context);
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 namespace PCGExPathfindingPlotEdge

@@ -82,12 +82,10 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 		PCGEX_ASYNC_WAIT
 
 		Context->OutputPointsAndEdges();
-
 		Context->Done();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE

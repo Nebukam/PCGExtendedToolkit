@@ -165,11 +165,9 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 		{
 			Context->OutputPointsAndGraphParams();
 		}
-
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE

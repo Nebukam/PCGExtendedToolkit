@@ -44,9 +44,8 @@ bool FPCGExDeleteCustomGraphElement::ExecuteInternal(
 
 	Context->OutputMainPoints();
 	Context->Done();
-	Context->ExecuteEnd();
 
-	return true;
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE

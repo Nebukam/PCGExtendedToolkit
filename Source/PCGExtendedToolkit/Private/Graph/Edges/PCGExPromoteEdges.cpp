@@ -196,10 +196,9 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			Context->OutputMainPoints();
 		}
 
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE

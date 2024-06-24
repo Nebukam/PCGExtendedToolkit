@@ -78,10 +78,9 @@ bool FPCGExPointsClusterIntersectionElement::ExecuteInternal(FPCGContext* InCont
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 	*/
 }
 

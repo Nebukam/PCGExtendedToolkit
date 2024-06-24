@@ -65,10 +65,9 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndEdges();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 

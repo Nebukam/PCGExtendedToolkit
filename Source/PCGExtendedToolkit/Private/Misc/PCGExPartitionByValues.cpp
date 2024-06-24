@@ -339,10 +339,9 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 		if (!Context->Process(CreatePartition, Context->NumPartitions)) { return false; }
 
 		Context->Done();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE

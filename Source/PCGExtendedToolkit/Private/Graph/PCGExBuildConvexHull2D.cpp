@@ -92,10 +92,9 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	{
 		Context->OutputMainPoints();
 		Context->PathsIO->OutputTo(Context);
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const

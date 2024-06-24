@@ -248,10 +248,9 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		Context->EdgeChildCollection->OutputTo(Context);
 
 		Context->Done();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 namespace PCGExMeshToCluster

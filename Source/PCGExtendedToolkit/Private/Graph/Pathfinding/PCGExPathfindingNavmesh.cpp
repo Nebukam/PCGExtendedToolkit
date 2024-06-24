@@ -169,10 +169,9 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 
 		Context->OutputPaths->OutputTo(Context);
 		Context->Done();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 bool FSampleNavmeshTask::ExecuteTask()

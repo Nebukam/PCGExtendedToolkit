@@ -164,9 +164,8 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	Context->Done();
 	Context->CompoundPoints->OutputTo(Context);
-	Context->ExecuteEnd();
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 namespace PCGExFuseClusters

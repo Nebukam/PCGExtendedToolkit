@@ -89,10 +89,9 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecuteEnd();
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 namespace PCGExBuildDelaunay2D

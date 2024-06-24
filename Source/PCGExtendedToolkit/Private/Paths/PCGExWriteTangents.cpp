@@ -82,7 +82,6 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->AdvancePointsIO())
 		{
 			Context->Done();
-			Context->ExecuteEnd();
 		}
 		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}
@@ -143,7 +142,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	return Context->IsDone();
+	return Context->CompleteTaskExecution();
 }
 
 #undef LOCTEXT_NAMESPACE
