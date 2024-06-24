@@ -341,8 +341,7 @@ namespace PCGExGraph
 			VtxEndpointWriter->Values[Node.PointIndex] = PCGEx::H64(HCID(OutPoints[Node.PointIndex].MetadataEntry), Node.NumExportedEdges);
 		}
 
-		VtxEndpointWriter->Write();
-		PCGEX_DELETE(VtxEndpointWriter)
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, VtxEndpointWriter)
 
 		if (MetadataSettings && !Graph->NodeMetadata.IsEmpty())
 		{
@@ -353,7 +352,7 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 		for(const int32 NodeIndex : ValidNodes){\
 		PCGExGraph::FGraphNodeMetadata** NodeMeta = Graph->NodeMetadata.Find(NodeIndex);\
 		if(NodeMeta){Writer->Values[Nodes[NodeIndex].PointIndex] = (*NodeMeta)->_ACCESSOR; }}\
-		Writer->Write(); delete Writer; }}
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Writer) }}
 
 			PCGEX_METADATA(Compounded, bool, false, bCompounded)
 			PCGEX_METADATA(CompoundSize, int32, 0, CompoundSize)
@@ -426,10 +425,8 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 			SmallSubGraphs.Reset();
 		}
 
-		NumClusterIdWriter->Write();
-
 		MarkClusterVtx(PointIO, PairIdStr);
-		PCGEX_DELETE(NumClusterIdWriter)
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, NumClusterIdWriter)
 	}
 
 	void FGraphBuilder::Write(FPCGContext* InContext) const
@@ -440,7 +437,12 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 
 namespace PCGExGraphTask
 {
-	void WriteSubGraphEdges(const TArray<FPCGPoint>& Vertices, PCGExGraph::FGraph* Graph, PCGExGraph::FSubGraph* SubGraph, const PCGExGraph::FGraphMetadataSettings* MetadataSettings)
+	void WriteSubGraphEdges(
+		PCGExMT::FTaskManager * AsyncManager,
+		const TArray<FPCGPoint> & Vertices,
+		PCGExGraph::FGraph * Graph,
+		PCGExGraph::FSubGraph * SubGraph,
+		const PCGExGraph::FGraphMetadataSettings * MetadataSettings)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
 
@@ -518,9 +520,7 @@ namespace PCGExGraphTask
 			for (FPCGPoint& Point : MutablePoints) { PCGExMath::RandomizeSeed(Point, SeedOffset); }
 		}
 
-		EdgeEndpoints->Write();
-
-		PCGEX_DELETE(EdgeEndpoints)
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, EdgeEndpoints)
 
 		if (MetadataSettings &&
 			!Graph->EdgeMetadata.IsEmpty() &&
@@ -554,7 +554,7 @@ namespace PCGExGraphTask
 
 	bool FWriteSubGraphEdges::ExecuteTask()
 	{
-		WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
+		WriteSubGraphEdges(Manager, PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
 		return true;
 	}
 
@@ -562,7 +562,7 @@ namespace PCGExGraphTask
 	{
 		for (PCGExGraph::FSubGraph* SubGraph : SubGraphs)
 		{
-			WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
+			WriteSubGraphEdges(Manager, PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
 		}
 
 		return true;

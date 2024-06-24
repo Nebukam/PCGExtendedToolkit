@@ -605,10 +605,10 @@ namespace PCGExGraphTask
 #pragma region Graph tasks
 
 	static void WriteSubGraphEdges(
-		const TArray<FPCGPoint>& Vertices,
-		PCGExGraph::FGraph* Graph,
-		PCGExGraph::FSubGraph* SubGraph,
-		const PCGExGraph::FGraphMetadataSettings* MetadataSettings);
+		PCGExMT::FTaskManager* AsyncManager,
+		const TArray<FPCGPoint> & Vertices,
+		PCGExGraph::FGraph * Graph,
+		PCGExGraph::FSubGraph * SubGraph, const PCGExGraph::FGraphMetadataSettings * MetadataSettings);
 
 	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
