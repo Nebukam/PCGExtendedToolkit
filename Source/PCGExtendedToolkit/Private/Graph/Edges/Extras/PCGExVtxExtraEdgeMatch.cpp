@@ -58,7 +58,7 @@ bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExD
 		DirGetter->Capture(Descriptor.Direction);
 		if (!DirGetter->Grab(InVtx))
 		{
-			// TODO : Throw error
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Direction attribute is invalid"));
 			bIsValidOperation = false;
 			return false;
 		}

@@ -178,7 +178,7 @@ namespace PCGExBuildDelaunay2D
 	void FProcessor::Write()
 	{
 		if (!GraphBuilder) { return; }
-		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
+		if (HullMarkPointWriter) { PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, HullMarkPointWriter) }
 	}
 }
 
