@@ -94,13 +94,6 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 namespace PCGExRefineEdges
 {
-	bool FRefineTask::ExecuteTask()
-	{
-		const FPCGExRefineEdgesContext* Context = Manager->GetContext<FPCGExRefineEdgesContext>();
-		Refinement->Process(Cluster, HeuristicsHandler);
-		return false;
-	}
-
 	PCGExCluster::FCluster* FProcessor::HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
 	{
 		// Create a light working copy with edges only, will be deleted.
@@ -116,14 +109,21 @@ namespace PCGExRefineEdges
 	{
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		if (IsTrivial())
-		{
-			Refinement->Process(Cluster, HeuristicsHandler);
-			return true;
-		}
 
-		AsyncManagerPtr->Start<FRefineTask>(-1, nullptr, Cluster, Refinement, HeuristicsHandler);
+		if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
+		else if (Refinement->RequiresIndividualEdgeProcessing()) { StartParallelLoopForEdges(); }
+		else { Refinement->Process(Cluster, HeuristicsHandler); }
 		return true;
+	}
+
+	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
+	{
+		Refinement->ProcessNode(Node, Cluster, EdgeLock, HeuristicsHandler);
+	}
+
+	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
+	{
+		Refinement->ProcessEdge(Edge, Cluster, NodeLock, HeuristicsHandler);
 	}
 
 	void FProcessor::CompleteWork()

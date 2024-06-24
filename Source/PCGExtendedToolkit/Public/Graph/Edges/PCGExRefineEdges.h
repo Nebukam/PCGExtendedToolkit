@@ -86,31 +86,12 @@ protected:
 
 namespace PCGExRefineEdges
 {
-	class PCGEXTENDEDTOOLKIT_API FRefineTask final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FRefineTask(PCGExData::FPointIO* InPointIO,
-		            PCGExCluster::FCluster* InCluster,
-		            UPCGExEdgeRefineOperation* InRefinement,
-		            PCGExHeuristics::THeuristicsHandler* InHeuristicsHandler) :
-			FPCGExTask(InPointIO),
-			Cluster(InCluster),
-			Refinement(InRefinement),
-			HeuristicsHandler(InHeuristicsHandler)
-		{
-		}
-
-		PCGExCluster::FCluster* Cluster = nullptr;
-		UPCGExEdgeRefineOperation* Refinement = nullptr;
-		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 	protected:
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
+		mutable FRWLock NodeLock;
+		mutable FRWLock EdgeLock;
 		
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
@@ -122,6 +103,8 @@ namespace PCGExRefineEdges
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
 
 		UPCGExEdgeRefineOperation* Refinement = nullptr;

@@ -62,6 +62,14 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Output==EPCGExOrientUsage::OutputToAttribute", EditConditionHides))
 	FName OutputAttribute = "Orient";
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOutputDot = false;
+	
+	/** Whether to output the dot product between prev/next points.  */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputDot"))
+	FName DotAttribute = "Dot";
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext final : public FPCGExPathProcessorContext
@@ -90,6 +98,7 @@ namespace PCGExOrient
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		PCGEx::TFAttributeWriter<FTransform>* TransformWriter = nullptr;
+		PCGEx::TFAttributeWriter<double>* DotWriter = nullptr;
 		UPCGExOrientOperation* Orient = nullptr;
 		int32 LastIndex = 0;
 
@@ -104,6 +113,5 @@ namespace PCGExOrient
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
 		virtual void CompleteWork() override;
-		virtual void Write() override;
 	};
 }

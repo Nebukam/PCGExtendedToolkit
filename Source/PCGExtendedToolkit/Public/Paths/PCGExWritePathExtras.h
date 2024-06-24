@@ -9,6 +9,7 @@
 #include "PCGExWritePathExtras.generated.h"
 
 #define PCGEX_FOREACH_FIELD_PATHEXTRAS(MACRO)\
+MACRO(Dot, double)\
 MACRO(DistanceToNext, double)\
 MACRO(DistanceToPrev, double)\
 MACRO(DistanceToStart, double)\
@@ -100,6 +101,14 @@ public:
 	FName PathCentroidAttributeName = FName("PathCentroid");
 
 	///
+
+	/** Output Dot product of Prev/Next directions. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteDot = false;
+
+	/** Name of the 'double' attribute to write distance to next point to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, EditCondition="bWriteDot"))
+	FName DotAttributeName = FName("Dot");
 
 	/** Output distance to next. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -202,6 +211,10 @@ namespace PCGExWritePathExtras
 	{
 		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DECL)
 
+		TArray<FVector> Positions;
+		bool bClosedPath = false;
+		int32 LastIndex = 0;
+
 	public:
 		FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
@@ -211,6 +224,7 @@ namespace PCGExWritePathExtras
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
 		virtual void CompleteWork() override;
 	};
 }

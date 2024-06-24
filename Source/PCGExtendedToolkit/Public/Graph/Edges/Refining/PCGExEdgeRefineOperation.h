@@ -7,6 +7,16 @@
 #include "PCGExOperation.h"
 #include "PCGExEdgeRefineOperation.generated.h"
 
+namespace PCGExGraph
+{
+	struct FIndexedEdge;
+}
+
+namespace PCGExCluster
+{
+	struct FNode;
+}
+
 namespace PCGExHeuristics
 {
 	class THeuristicsHandler;
@@ -32,6 +42,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 
 public:
 	virtual bool RequiresHeuristics();
+	virtual bool RequiresIndividualNodeProcessing();
+	virtual bool RequiresIndividualEdgeProcessing();
 	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
+	virtual void ProcessNode(PCGExCluster::FNode& Node, PCGExCluster::FCluster* InCluster, FRWLock& EdgeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
+	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge, PCGExCluster::FCluster* InCluster, FRWLock& NodeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
 	virtual void Cleanup() override;
 };

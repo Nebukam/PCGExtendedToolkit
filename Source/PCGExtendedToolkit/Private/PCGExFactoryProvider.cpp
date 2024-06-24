@@ -2,8 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExFactoryProvider.h"
-
 #include "PCGExContext.h"
+#include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"
 #define PCGEX_NAMESPACE PCGExFactoryProvider

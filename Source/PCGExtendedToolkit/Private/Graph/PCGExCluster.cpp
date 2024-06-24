@@ -715,7 +715,19 @@ namespace PCGExCluster
 
 	void FCluster::GetValidEdges(TArray<PCGExGraph::FIndexedEdge>& OutValidEdges) const
 	{
-		for (const PCGExGraph::FIndexedEdge& Edge : (*Edges)) { if (Edge.bValid) { OutValidEdges.Add(Edge); } }
+		TArray<FNode>& NodesRef = (*Nodes);
+		TMap<int32, int32>& LookupRef = (*NodeIndexLookup);
+		for (const PCGExGraph::FIndexedEdge& Edge : (*Edges))
+		{
+			if (!Edge.bValid ||
+				!NodesRef[LookupRef[Edge.Start]].bValid || // Adds quite the cost
+				!NodesRef[LookupRef[Edge.End]].bValid)
+			{
+				continue;
+			}
+
+			OutValidEdges.Add(Edge);
+		}
 	}
 
 	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const int32 MinNeighborCount) const

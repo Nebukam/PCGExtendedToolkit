@@ -29,6 +29,11 @@ bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 		PCGEX_VALIDATE_NAME(Settings->OutputAttribute);
 	}
 
+	if (Settings->bOutputDot)
+	{
+		PCGEX_VALIDATE_NAME(Settings->DotAttribute);
+	}
+
 	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientAverage)
 	Context->Orientation->bClosedPath = Settings->bClosedPath;
 	Context->Orientation->OrientAxis = Settings->OrientAxis;
@@ -90,6 +95,7 @@ namespace PCGExOrient
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(TransformWriter)
+		PCGEX_DELETE(DotWriter)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -110,6 +116,12 @@ namespace PCGExOrient
 			TransformWriter->BindAndSetNumUninitialized(PointIO);
 		}
 
+		if (Settings->bOutputDot)
+		{
+			DotWriter = new PCGEx::TFAttributeWriter<double>(Settings->DotAttribute);
+			DotWriter->BindAndSetNumUninitialized(PointIO);
+		}
+
 		StartParallelLoopForPoints();
 
 		return true;
@@ -127,12 +139,14 @@ namespace PCGExOrient
 			const PCGEx::FPointRef Previous = Index == 0 ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index - 1);
 			const PCGEx::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(0) : PointIO->GetInPointRef(Index + 1);
 			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
+			if (Settings->bOutputDot) { DotWriter->Values[Index] = FVector::DotProduct(Previous.Point->Transform.GetLocation(), Next.Point->Transform.GetLocation()); }
 		}
 		else
 		{
 			const PCGEx::FPointRef Previous = Index == 0 ? Current : PointIO->GetInPointRef(Index - 1);
 			const PCGEx::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index + 1);
 			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
+			if (Settings->bOutputDot) { DotWriter->Values[Index] = FVector::DotProduct(Previous.Point->Transform.GetLocation(), Next.Point->Transform.GetLocation()); }
 		}
 
 		if (TransformWriter) { TransformWriter->Values[Index] = OutT; }
@@ -141,11 +155,10 @@ namespace PCGExOrient
 
 	void FProcessor::CompleteWork()
 	{
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, TransformWriter)
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, DotWriter)
 	}
 
-	void FProcessor::Write()
-	{
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

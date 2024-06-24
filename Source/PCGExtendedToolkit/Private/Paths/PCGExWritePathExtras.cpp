@@ -77,11 +77,14 @@ namespace PCGExWritePathExtras
 	FProcessor::~FProcessor()
 	{
 		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DELETE)
+		Positions.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathExtras)
+
+		bClosedPath = Settings->bClosedPath;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -94,7 +97,6 @@ namespace PCGExWritePathExtras
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
-		TArray<FVector> Positions;
 		TArray<FVector> Normals;
 
 		const FVector StaticUp = Settings->UpVector;
@@ -122,7 +124,7 @@ namespace PCGExWritePathExtras
 
 		PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(Positions[0]);
 
-		const int32 LastIndex = NumPoints - 1;
+		LastIndex = NumPoints - 1;
 		FVector PathCentroid = FVector::ZeroVector;
 
 		PCGEX_OUTPUT_VALUE(DirectionToNext, 0, (Positions[0] - Positions[1]).GetSafeNormal());
@@ -157,7 +159,7 @@ namespace PCGExWritePathExtras
 		PCGEX_OUTPUT_VALUE(DistanceToNext, LastIndex, 0);
 		PCGEX_OUTPUT_VALUE(DistanceToPrev, LastIndex, FVector::Dist(Positions[LastIndex-1],Positions[LastIndex]));
 
-		if (Settings->bClosedPath)
+		if (bClosedPath)
 		{
 			PCGEX_OUTPUT_VALUE(DirectionToPrev, 0, (Positions[0] - Positions[LastIndex]).GetSafeNormal());
 			PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex] - Positions[0]).GetSafeNormal());
@@ -192,7 +194,33 @@ namespace PCGExWritePathExtras
 
 		///
 
+		if (Settings->bWriteDot) { StartParallelLoopForPoints(); }
+
 		return true;
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
+	{
+		FVector Next;
+		FVector Prev;
+
+		if (Index == 0)
+		{
+			Prev = bClosedPath ? Positions[LastIndex] : FVector::ZeroVector;
+			Next = Positions[Index + 1];
+		}
+		else if (Index == LastIndex)
+		{
+			Prev = Positions[Index - 1];
+			Next = bClosedPath ? Positions[0] : FVector::ZeroVector;
+		}
+		else
+		{
+			Prev = Positions[Index - 1];
+			Next = Positions[Index + 1];
+		}
+
+		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Prev, Next));
 	}
 
 	void FProcessor::CompleteWork()
