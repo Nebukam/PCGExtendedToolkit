@@ -72,5 +72,5 @@ UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal() const
 void UPCGExClusterEdgesData::BeginDestroy()
 {
 	Super::BeginDestroy();
-	if (Cluster) { PCGEX_DELETE(Cluster) }
+	if (Cluster && bOwnsCluster) { PCGEX_DELETE(Cluster) }
 }
