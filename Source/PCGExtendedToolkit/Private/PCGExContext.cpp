@@ -3,6 +3,8 @@
 
 #include "PCGExContext.h"
 
+#include "Data/PCGSpatialData.h"
+
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
 void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags)
@@ -31,6 +33,17 @@ void FPCGExContext::WriteFutureOutputs()
 void FPCGExContext::ExecuteEnd()
 {
 	WriteFutureOutputs();
+	if (bFlattenOutput)
+	{
+		TSet<uint64> InputUIDs;
+		InputUIDs.Reserve(OutputData.TaggedData.Num());
+		for (FPCGTaggedData& InTaggedData : InputData.TaggedData) { if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InTaggedData.Data)) { InputUIDs.Add(SpatialData->UID); } }
+
+		for (FPCGTaggedData& OutTaggedData : OutputData.TaggedData)
+		{
+			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(OutTaggedData.Data); SpatialData && !InputUIDs.Contains(SpatialData->UID)) { SpatialData->Metadata->Flatten(); }
+		}
+	}
 }
 
 

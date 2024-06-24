@@ -69,11 +69,24 @@ namespace PCGExClusterMT
 		bool bBuildCluster = true;
 		bool bRequiresHeuristics = false;
 		bool bCacheVtxPointIndices = false;
-
-		bool bCopyCluster = false;
+		bool bDeleteCluster = false;
 
 		int32 NumNodes = 0;
 
+		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
+		{
+			return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, false, false, false);
+		}
+
+		void ForwardCluster(bool bAsOwner)
+		{
+			bDeleteCluster = false;
+			if(UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(VtxIO->GetOut()))
+			{
+				EdgesData->SetBoundCluster(Cluster, bAsOwner);
+			}
+		}
+		
 	public:
 		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
@@ -110,7 +123,7 @@ namespace PCGExClusterMT
 			PCGEX_LOG_DTR(FClusterProcessor)
 
 			PCGEX_DELETE(HeuristicsHandler);
-			if (bCopyCluster) { PCGEX_DELETE(Cluster); } // Safely delete the cluster
+			if (bDeleteCluster) { PCGEX_DELETE(Cluster); } // Safely delete the cluster
 
 			VtxIO = nullptr;
 			EdgesIO = nullptr;
@@ -147,8 +160,9 @@ namespace PCGExClusterMT
 						// Cheap validation -- if there are artifact use SanitizeCluster node, it's still incredibly cheaper.
 						if (CachedCluster->IsValidWith(VtxIO, EdgesIO))
 						{
+							
 							//Yey, maybe?
-							Cluster = new PCGExCluster::FCluster(CachedCluster, VtxIO, EdgesIO, bCopyCluster);
+							Cluster = HandleCachedCluster(CachedCluster);
 						}
 					}
 				}

@@ -121,36 +121,51 @@ namespace PCGExCluster
 		Bounds = FBox(ForceInit);
 	}
 
-	FCluster::FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO, const bool bCopy)
+	FCluster::FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO,
+	                   bool bCopyNodes, bool bCopyEdges, bool bCopyLookup)
 	{
 		bIsMirror = true;
 		bIsCopyCluster = false;
 
 		VtxIO = InVtxIO;
 		EdgesIO = InEdgesIO;
-		
+
 		NumRawVtx = InVtxIO->GetNum();
 		NumRawEdges = InEdgesIO->GetNum();
 
-		NodeIndexLookup = OtherCluster->NodeIndexLookup;
-
-		if (bCopy)
+		if (bCopyNodes)
 		{
-			bIsCopyCluster = true; //So node and edges can be modified
 			Nodes = new TArray<FNode>();
 			Nodes->Reserve(OtherCluster->Nodes->Num());
 			Nodes->Append(*OtherCluster->Nodes);
+		}
+		else
+		{
+			bOwnsNodes = false;
+			Nodes = OtherCluster->Nodes;
+		}
 
+		if (bCopyEdges)
+		{
 			Edges = new TArray<PCGExGraph::FIndexedEdge>();
 			Edges->Reserve(OtherCluster->Edges->Num());
 			Edges->Append(*OtherCluster->Edges);
 		}
 		else
 		{
-			Nodes = OtherCluster->Nodes;
 			Edges = OtherCluster->Edges;
-			bOwnsNodes = false;
 			bOwnsEdges = false;
+		}
+
+		if (bCopyLookup)
+		{
+			NodeIndexLookup = new TMap<int32, int32>();
+			NodeIndexLookup->Append(*OtherCluster->NodeIndexLookup);
+		}
+		else
+		{
+			NodeIndexLookup = OtherCluster->NodeIndexLookup;
+			bOwnsNodeIndexLookup = false;
 		}
 
 		Bounds = OtherCluster->Bounds;
@@ -174,11 +189,7 @@ namespace PCGExCluster
 
 	FCluster::~FCluster()
 	{
-		if (!bIsMirror)
-		{
-			PCGEX_DELETE(NodeIndexLookup)
-		}
-
+		if (bOwnsNodeIndexLookup) { PCGEX_DELETE(NodeIndexLookup) }
 		if (bOwnsNodes) { PCGEX_DELETE(Nodes) }
 		if (bOwnsEdges) { PCGEX_DELETE(Edges) }
 		if (bOwnsLengths) { PCGEX_DELETE(EdgeLengths) }
@@ -259,9 +270,8 @@ namespace PCGExCluster
 
 	void FCluster::BuildFrom(const PCGExGraph::FSubGraph* SubGraph)
 	{
-
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildClusterFromSubgraph);
-		
+
 		NumRawVtx = SubGraph->VtxIO->GetOutNum();
 		NumRawEdges = SubGraph->EdgesIO->GetOutNum();
 
@@ -280,7 +290,7 @@ namespace PCGExCluster
 			// Graph edge start/end points to a node, which may not be representative of the actual point indice
 			const int32 PtStartIndex = SubGraph->ParentGraph->Nodes[Edge.Start].PointIndex;
 			const int32 PtEndIndex = SubGraph->ParentGraph->Nodes[Edge.End].PointIndex;
-			
+
 			FNode& StartNode = GetOrCreateNodeUnsafe(VtxPoints, PtStartIndex);
 			FNode& EndNode = GetOrCreateNodeUnsafe(VtxPoints, PtEndIndex);
 

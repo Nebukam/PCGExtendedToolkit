@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
+#include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
 
 #include "PCGExPartitionVertices.generated.h"
@@ -57,20 +58,33 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateVtxPartitionTask final : public PCGExMT::FPCGExTask
+namespace PCGExPartitionVertices
 {
-public:
-	FPCGExCreateVtxPartitionTask(PCGExData::FPointIO* InPointIO,
-	                             PCGExData::FPointIO* InEdgeIO,
-	                             TMap<uint32, int32>* InEndpointsLookup) :
-		FPCGExTask(InPointIO),
-		EdgeIO(InEdgeIO),
-		EndpointsLookup(InEndpointsLookup)
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-	}
+		friend class FProcessorBatch;
 
-	PCGExData::FPointIO* EdgeIO = nullptr;
-	TMap<uint32, int32>* EndpointsLookup = nullptr;
+	protected:
+		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 
-	virtual bool ExecuteTask() override;
-};
+		PCGExData::FPointIO* PointPartitionIO = nullptr;
+		TMap<int32, int32> Remapping;
+		TArray<int32> KeptIndices;
+		
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+			
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		virtual void CompleteWork() override;
+
+	};
+
+}

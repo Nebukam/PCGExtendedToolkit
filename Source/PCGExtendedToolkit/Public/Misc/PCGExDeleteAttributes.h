@@ -9,6 +9,14 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExDeleteAttributes.generated.h"
 
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Delete Filter"))
+enum class EPCGExDeleteFilter : uint8
+{
+	Keep UMETA(DisplayName = "Keep", ToolTip="Keep items from the list and remove all others"),
+	Remove UMETA(DisplayName = "Remove", ToolTip="Remove items from the list"),
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExDeleteAttributesSettings : public UPCGExPointsProcessorSettings
 {
@@ -33,12 +41,22 @@ public:
 public:
 	/** List of attributes to delete. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDeleteFilter Mode = EPCGExDeleteFilter::Remove;
+
+	/** List of attributes to delete. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSet<FName> AttributeNames;
+
+	/** Additional list of attributes to delete, separated by a comma. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FString CommaSeparatedNames;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExDeleteAttributesElement;
+
+	TSet<FName> Targets;
 
 	virtual ~FPCGExDeleteAttributesContext() override;
 };

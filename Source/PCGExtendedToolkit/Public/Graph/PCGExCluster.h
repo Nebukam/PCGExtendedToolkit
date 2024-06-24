@@ -178,6 +178,7 @@ namespace PCGExCluster
 		bool bIsMirror = false;
 		bool bOwnsNodes = true;
 		bool bOwnsEdges = true;
+		bool bOwnsNodeIndexLookup = true;
 		bool bOwnsNodeOctree = true;
 		bool bOwnsEdgeOctree = true;
 		bool bOwnsLengths = true;
@@ -185,12 +186,12 @@ namespace PCGExCluster
 
 		int32 NumRawVtx = 0;
 		int32 NumRawEdges = 0;
-		
+
 		bool bEdgeLengthsDirty = true;
 		bool bIsCopyCluster = false;
 		TArray<int32>* VtxPointIndices = nullptr;
 		TArray<uint64>* VtxPointScopes = nullptr;
-		
+
 		mutable FRWLock ClusterLock;
 
 	public:
@@ -214,7 +215,8 @@ namespace PCGExCluster
 		ClusterItemOctree* EdgeOctree = nullptr;
 
 		FCluster();
-		FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO, bool bCopy);
+		FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO,
+		         bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);
 
 		~FCluster();
 
@@ -226,12 +228,12 @@ namespace PCGExCluster
 
 		void BuildFrom(const PCGExGraph::FSubGraph* SubGraph);
 
-		bool IsValidWith( const PCGExData::FPointIO* InVtxIO, const PCGExData::FPointIO* InEdgesIO) const;
-		
+		bool IsValidWith(const PCGExData::FPointIO* InVtxIO, const PCGExData::FPointIO* InEdgesIO) const;
+
 		const TArray<uint64>* GetVtxPointScopesPtr();
 		const TArray<int32>& GetVtxPointIndices();
 		TArrayView<const int32> GetVtxPointIndicesView();
-		
+
 		const TArray<int32>* GetVtxPointIndicesPtr();
 		const TArray<uint64>& GetVtxPointScopes();
 		TArrayView<const uint64> GetVtxPointScopesView();

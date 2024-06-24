@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExDeleteAttributes.h"
 
+#include "Helpers/PCGHelpers.h"
+
 #define LOCTEXT_NAMESPACE "PCGExDeleteAttributesElement"
 #define PCGEX_NAMESPACE DeleteAttributes
 
@@ -20,10 +22,12 @@ bool FPCGExDeleteAttributesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(DeleteAttributes)
 
-	if (Settings->AttributeNames.IsEmpty())
+	Context->Targets.Append(Settings->AttributeNames);
+
+	const TArray<FString> FilterAttributes = PCGHelpers::GetStringArrayFromCommaSeparatedString(Settings->CommaSeparatedNames);
+	for (const FString& FilterAttribute : FilterAttributes)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Attribute list is empty."));
-		return false;
+		Context->Targets.Add(FName(*FilterAttribute));
 	}
 
 	return true;
@@ -37,9 +41,27 @@ bool FPCGExDeleteAttributesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Boot(Context)) { return true; }
 
-	while (Context->AdvancePointsIO())
+	if (Settings->Mode == EPCGExDeleteFilter::Keep)
 	{
-		for (const FName& Name : Settings->AttributeNames) { Context->CurrentIO->GetOut()->Metadata->DeleteAttribute(Name); }
+		while (Context->AdvancePointsIO())
+		{
+			UPCGMetadata* Metadata = Context->CurrentIO->GetOut()->Metadata;
+			PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(Metadata);
+			for (const PCGEx::FAttributeIdentity& Identity : Infos->Identities)
+			{
+				if (!Context->Targets.Contains(Identity.Name)) { Metadata->DeleteAttribute(Identity.Name); }
+			}
+
+			PCGEX_DELETE(Infos)
+		}
+	}
+	else
+	{
+		UPCGMetadata* Metadata = Context->CurrentIO->GetOut()->Metadata;
+		while (Context->AdvancePointsIO())
+		{
+			for (const FName& Name : Context->Targets) { Metadata->DeleteAttribute(Name); }
+		}
 	}
 
 	Context->OutputMainPoints();

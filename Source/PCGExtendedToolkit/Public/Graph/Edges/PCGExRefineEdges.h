@@ -109,12 +109,14 @@ namespace PCGExRefineEdges
 
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
+	protected:
+		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
+		
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
 			: FClusterProcessor(InVtx, InEdges)
 		{
 			DefaultVtxFilterValue = false;
-			bCopyCluster = true; // Since we flag edges and stuff
 		}
 
 		virtual ~FProcessor() override;

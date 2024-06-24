@@ -13,6 +13,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExContext : public FPCGContext
 protected:
 	mutable FRWLock ContextOutputLock;
 	TArray<FPCGTaggedData> FutureOutputs;
+	bool bFlattenOutput = false;
 
 	void WriteFutureOutputs();
 

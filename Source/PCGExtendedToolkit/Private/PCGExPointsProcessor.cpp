@@ -177,22 +177,11 @@ bool FPCGExPointsProcessorContext::ExecuteAutomation() { return true; }
 
 void FPCGExPointsProcessorContext::Done() { SetState(PCGExMT::State_Done); }
 
-void FPCGExPointsProcessorContext::ExecuteEnd()
+bool FPCGExPointsProcessorContext::CompleteTaskExecution(const bool bForce)
 {
-	FPCGExContext::ExecuteEnd();
-
-	PCGEX_SETTINGS_LOCAL(PointsProcessor)
-	if (Settings->bFlattenOutput)
-	{
-		TSet<uint64> InputUIDs;
-		InputUIDs.Reserve(OutputData.TaggedData.Num());
-		for (FPCGTaggedData& InTaggedData : InputData.TaggedData) { if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InTaggedData.Data)) { InputUIDs.Add(SpatialData->UID); } }
-
-		for (FPCGTaggedData& OutTaggedData : OutputData.TaggedData)
-		{
-			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(OutTaggedData.Data); SpatialData && !InputUIDs.Contains(SpatialData->UID)) { SpatialData->Metadata->Flatten(); }
-		}
-	}
+	if (!bForce && !IsDone()) { return false; }
+	ExecuteEnd();
+	return true;
 }
 
 void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState OperationId, const bool bResetAsyncWork)
@@ -210,13 +199,12 @@ PCGExData::FPointIO* FPCGExPointsProcessorContext::TryGetSingleInput(const FName
 	const PCGExData::FPointIOCollection* Collection = new PCGExData::FPointIOCollection(this, InputPinLabel);
 	if (!Collection->Pairs.IsEmpty())
 	{
-		PCGExData::FPointIO* Data = Collection->Pairs[0];  
+		PCGExData::FPointIO* Data = Collection->Pairs[0];
 		SingleIO = new PCGExData::FPointIO(Data->GetIn());
 
 		TSet<FString> TagDump;
 		Data->Tags->Dump(TagDump);
 		SingleIO->SetInfos(-1, InputPinLabel, &TagDump);
-		
 	}
 	else if (bThrowError)
 	{
@@ -330,6 +318,8 @@ FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
 
+	InContext->bFlattenOutput = Settings->bFlattenOutput;
+	
 	InContext->SetState(PCGExMT::State_Setup);
 	InContext->bDoAsyncProcessing = Settings->bDoAsyncProcessing;
 	InContext->ChunkSize = FMath::Max((Settings->ChunkSize <= 0 ? Settings->GetPreferredChunkSize() : Settings->ChunkSize), 1);

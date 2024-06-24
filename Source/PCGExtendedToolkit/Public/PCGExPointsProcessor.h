@@ -165,7 +165,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
 	virtual void Done();
-	virtual void ExecuteEnd() override;
+
+	bool CompleteTaskExecution(const bool bForce = false);
 
 	PCGExMT::FTaskManager* GetAsyncManager();
 

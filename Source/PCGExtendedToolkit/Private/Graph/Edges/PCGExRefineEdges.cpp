@@ -102,6 +102,13 @@ namespace PCGExRefineEdges
 		return false;
 	}
 
+	PCGExCluster::FCluster* FProcessor::HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
+	{
+		// Create a light working copy with edges only, will be deleted.
+		bDeleteCluster = true;
+		return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, false, true, false);
+	}
+
 	FProcessor::~FProcessor()
 	{
 	}
