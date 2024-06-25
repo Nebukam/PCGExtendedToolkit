@@ -345,6 +345,7 @@ namespace PCGExGraph
 		TSet<int32> EdgesInIOIndices;
 		PCGExData::FPointIO* VtxIO = nullptr;
 		PCGExData::FPointIO* EdgesIO = nullptr;
+		TArray<FIndexedEdge> FlattenedEdges;
 
 		FSubGraph()
 		{
@@ -354,11 +355,12 @@ namespace PCGExGraph
 		{
 			Nodes.Empty();
 			Edges.Empty();
+			FlattenedEdges.Empty();
 			EdgesInIOIndices.Empty();
 			VtxIO = nullptr;
 			EdgesIO = nullptr;
 		}
-
+		
 		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph);
 
 		void LockOrder();
@@ -609,41 +611,34 @@ namespace PCGExGraphTask
 	static void WriteSubGraphEdges(
 		PCGExMT::FTaskManager* AsyncManager,
 		const TArray<FPCGPoint> & Vertices,
-		PCGExGraph::FGraph * Graph,
 		PCGExGraph::FSubGraph * SubGraph, const PCGExGraph::FGraphMetadataSettings * MetadataSettings);
 
 	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteSubGraphEdges(PCGExData::FPointIO* InPointIO,
-		                    PCGExGraph::FGraph* InGraph,
 		                    PCGExGraph::FSubGraph* InSubGraph,
 		                    PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
 			: FPCGExTask(InPointIO),
-			  Graph(InGraph),
 			  SubGraph(InSubGraph),
 			  MetadataSettings(InMetadataSettings)
 		{
 		}
 
-		PCGExGraph::FGraph* Graph = nullptr;
 		PCGExGraph::FSubGraph* SubGraph = nullptr;
-
 		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};
-
+	
 	class PCGEXTENDEDTOOLKIT_API FWriteSmallSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteSmallSubGraphEdges(
 			PCGExData::FPointIO* InPointIO,
-			PCGExGraph::FGraph* InGraph,
 			const TArray<PCGExGraph::FSubGraph*>& InSubGraphs,
 			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
 			: FPCGExTask(InPointIO),
-			  Graph(InGraph),
 			  SubGraphs(InSubGraphs),
 			  MetadataSettings(InMetadataSettings)
 		{
@@ -654,7 +649,6 @@ namespace PCGExGraphTask
 			SubGraphs.Empty();
 		}
 
-		PCGExGraph::FGraph* Graph = nullptr;
 		TArray<PCGExGraph::FSubGraph*> SubGraphs;
 
 		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
@@ -662,6 +656,20 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
+	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FWriteSubGraphCluster(PCGExData::FPointIO* InPointIO,
+							PCGExGraph::FSubGraph* InSubGraph)
+			: FPCGExTask(InPointIO),
+			  SubGraph(InSubGraph)
+		{
+		}
+
+		PCGExGraph::FSubGraph* SubGraph = nullptr;
+		virtual bool ExecuteTask() override;
+	};
+	
 	class PCGEXTENDEDTOOLKIT_API FCompileGraph final : public PCGExMT::FPCGExTask
 	{
 	public:

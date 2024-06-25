@@ -279,7 +279,7 @@ namespace PCGExMeshToCluster
 
 		PCGExData::FPointIO* RootVtx = Context->RootVtx->Emplace_GetRef();
 		RootVtx->IOIndex = TaskIndex;
-		RootVtx->SetNumInitialized(Mesh->Vertices.Num());
+		RootVtx->InitializeNum(Mesh->Vertices.Num());
 		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtx, &Context->GraphBuilderSettings);

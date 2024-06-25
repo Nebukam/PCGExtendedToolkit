@@ -155,7 +155,7 @@ namespace PCGExData
 		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit) const;
 		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const;
 
-		void SetNumInitialized(const int32 NumPoints, const bool bForceInit = false) const;
+		void InitializeNum(const int32 NumPoints, const bool bForceInit = false) const;
 
 		void CleanupKeys();
 

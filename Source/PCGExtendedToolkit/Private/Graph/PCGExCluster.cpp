@@ -279,26 +279,18 @@ namespace PCGExCluster
 		Nodes->Reserve(SubGraph->Nodes.Num());
 
 		TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Edges;
-		EdgesRef.SetNum(SubGraph->Edges.Num());
-				
-		// TODO : This can be optimized
-		int32 NewEdgeIndex = 0;
-		for (const int32 EdgeIndex : SubGraph->Edges)
+		EdgesRef.Reserve(NumRawEdges);
+		EdgesRef.Append(SubGraph->FlattenedEdges);
+
+		// TODO : This can probably be more optimal
+
+		for (const PCGExGraph::FIndexedEdge& E : SubGraph->FlattenedEdges)
 		{
-			const PCGExGraph::FIndexedEdge& Edge = SubGraph->ParentGraph->Edges[EdgeIndex];
+			FNode& StartNode = GetOrCreateNodeUnsafe(VtxPoints, E.Start);
+			FNode& EndNode = GetOrCreateNodeUnsafe(VtxPoints, E.End);
 
-			// Graph edge start/end points to a node, which may not be representative of the actual point indice
-			const int32 PtStartIndex = SubGraph->ParentGraph->Nodes[Edge.Start].PointIndex;
-			const int32 PtEndIndex = SubGraph->ParentGraph->Nodes[Edge.End].PointIndex;
-
-			FNode& StartNode = GetOrCreateNodeUnsafe(VtxPoints, PtStartIndex);
-			FNode& EndNode = GetOrCreateNodeUnsafe(VtxPoints, PtEndIndex);
-
-			StartNode.Add(EndNode, NewEdgeIndex);
-			EndNode.Add(StartNode, NewEdgeIndex);
-
-			EdgesRef[NewEdgeIndex] = PCGExGraph::FIndexedEdge(NewEdgeIndex, PtStartIndex, PtEndIndex, NewEdgeIndex, -1); // TODO : Need to update whoever
-			NewEdgeIndex++;
+			StartNode.Add(EndNode, E.EdgeIndex);
+			EndNode.Add(StartNode, E.EdgeIndex);
 		}
 	}
 

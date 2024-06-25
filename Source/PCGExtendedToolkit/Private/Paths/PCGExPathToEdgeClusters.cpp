@@ -313,7 +313,7 @@ namespace PCGExPathToClusters
 
 		CompoundPoints = TypedContext->CompoundPoints;
 		const int32 NumCompoundedNodes = CompoundGraph->NumNodes();
-		CompoundPoints->SetNumInitialized(NumCompoundedNodes, true);
+		CompoundPoints->InitializeNum(NumCompoundedNodes, true);
 
 		CompoundPointsBlender->PrepareMerge(CompoundPoints, CompoundGraph->PointsCompounds);
 

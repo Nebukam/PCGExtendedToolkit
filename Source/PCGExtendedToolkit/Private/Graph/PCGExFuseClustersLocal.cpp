@@ -129,7 +129,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
 
-		auto Initialize = [&]() { Context->CurrentIO->SetNumInitialized(NumCompoundNodes, true); };
+		auto Initialize = [&]() { Context->CurrentIO->InitializeNum(NumCompoundNodes, true); };
 
 		auto ProcessNode = [&](const int32 Index)
 		{

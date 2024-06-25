@@ -266,7 +266,7 @@ namespace PCGExCluster
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 
 	protected:
-		FNode& GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex);
+		FORCEINLINE FNode& GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex);
 		void CreateVtxPointIndices();
 		void CreateVtxPointScopes();
 	};

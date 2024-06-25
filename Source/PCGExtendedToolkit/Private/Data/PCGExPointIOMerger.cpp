@@ -42,7 +42,7 @@ void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
 
 void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<FName>* IgnoreAttributeSet)
 {
-	CompositeIO->SetNumInitialized(NumCompositePoints);
+	CompositeIO->InitializeNum(NumCompositePoints);
 	TArray<FPCGPoint>& MutablePoints = CompositeIO->GetOut()->GetMutablePoints();
 
 	TMap<FName, EPCGMetadataTypes> ExpectedTypes;

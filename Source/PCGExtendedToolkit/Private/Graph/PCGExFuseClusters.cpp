@@ -117,7 +117,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		auto Initialize = [&]()
 		{
 			PCGEX_DELETE_TARRAY(Context->Batches); // Cleanup processing data
-			Context->CompoundPoints->SetNumInitialized(NumCompoundNodes, true);
+			Context->CompoundPoints->InitializeNum(NumCompoundNodes, true);
 			Context->CompoundPointsBlender->PrepareMerge(Context->CompoundPoints, Context->CompoundGraph->PointsCompounds);
 		};
 

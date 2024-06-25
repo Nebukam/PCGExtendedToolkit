@@ -145,7 +145,7 @@ namespace PCGExBreakClustersToPaths
 		for (const int32 NodeIndex : Chain->Nodes) { MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[NodeIndex]); }
 		MutablePoints[PointCount] = PathIO->GetInPoint(VtxPointsIndicesRef[Chain->Last]);
 
-		PathIO->SetNumInitialized(ChainSize, true);
+		PathIO->InitializeNum(ChainSize, true);
 	}
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
@@ -161,7 +161,7 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
 
 
-		PathIO->SetNumInitialized(2, true);
+		PathIO->InitializeNum(2, true);
 	}
 }
 

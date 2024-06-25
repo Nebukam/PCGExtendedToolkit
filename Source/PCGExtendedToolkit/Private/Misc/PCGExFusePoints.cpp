@@ -121,7 +121,7 @@ namespace PCGExFusePoints
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FusePoints)
 
 		const int32 NumCompoundNodes = CompoundGraph->Nodes.Num();
-		PointIO->SetNumInitialized(NumCompoundNodes);
+		PointIO->InitializeNum(NumCompoundNodes);
 
 		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
 		CompoundPointsBlender->AddSources(*TypedContext->MainPoints);

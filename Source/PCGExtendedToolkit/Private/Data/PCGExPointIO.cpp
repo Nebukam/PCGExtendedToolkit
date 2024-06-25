@@ -42,29 +42,29 @@ namespace PCGExData
 
 		if (InitOut == EInit::NewOutput)
 		{
-			if(In)
+			if (In)
 			{
 				UObject* GenericInstance = NewObject<UObject>(In->GetOuter(), In->GetClass());
 				Out = Cast<UPCGPointData>(GenericInstance);
 
 				// Input type was not a UPCGPointData child, should not happen.
 				check(Out)
-				
+
 				Out->InitializeFromData(In);
 
 				const UPCGExPointData* TypedInPointData = Cast<UPCGExPointData>(In);
 				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(Out);
-				
+
 				if (TypedInPointData && TypedOutPointData)
 				{
 					TypedOutPointData->InitializeFromPCGExData(TypedInPointData, EInit::NewOutput);
 				}
-				
-			}else
+			}
+			else
 			{
 				Out = NewObject<UPCGPointData>();
 			}
-			
+
 			return;
 		}
 
@@ -209,23 +209,20 @@ namespace PCGExData
 		InitPoint(Point, FromPoint);
 	}
 
-	void FPointIO::SetNumInitialized(const int32 NumPoints, const bool bForceInit) const
+	void FPointIO::InitializeNum(const int32 NumPoints, const bool bForceInit) const
 	{
 		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
 		MutablePoints.SetNum(NumPoints);
 		if (bForceInit)
 		{
-			for (int i = 0; i < NumPoints; i++)
-			{
-				Out->Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
-			}
+			for (FPCGPoint& Pt : MutablePoints) { Out->Metadata->InitializeOnSet(Pt.MetadataEntry); }
 		}
 		else
 		{
-			for (int i = 0; i < NumPoints; i++)
+			for (FPCGPoint& Pt : MutablePoints)
 			{
-				if (MutablePoints[i].MetadataEntry != PCGInvalidEntryKey) { continue; }
-				Out->Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
+				if (Pt.MetadataEntry != PCGInvalidEntryKey) { continue; }
+				Out->Metadata->InitializeOnSet(Pt.MetadataEntry);
 			}
 		}
 	}
