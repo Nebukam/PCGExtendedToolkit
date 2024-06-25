@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExConnectPoints.h"
 
-#include "draco/attributes/geometry_indices.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"

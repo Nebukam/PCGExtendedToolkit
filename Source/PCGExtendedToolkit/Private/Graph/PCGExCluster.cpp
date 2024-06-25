@@ -280,7 +280,7 @@ namespace PCGExCluster
 
 		TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Edges;
 		EdgesRef.SetNum(SubGraph->Edges.Num());
-
+				
 		// TODO : This can be optimized
 		int32 NewEdgeIndex = 0;
 		for (const int32 EdgeIndex : SubGraph->Edges)
