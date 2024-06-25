@@ -23,13 +23,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorBase
 	{
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	explicit FPCGExProbeDescriptorBase(const bool SupportsRadius)
+		:bSupportRadius(SupportsRadius)
+	{
+	}
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(HideInDetailPanel))
+	bool bSupportRadius = true;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportRadius", EditConditionHides))
 	EPCGExFetchType SearchRadiusSource = EPCGExFetchType::Constant;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, EditCondition="SearchRadiusSource==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, EditCondition="bSupportRadius && SearchRadiusSource==EPCGExFetchType::Constant", EditConditionHides))
 	double SearchRadiusConstant = 100;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SearchRadiusSource==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportRadius && SearchRadiusSource==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector SearchRadiusAttribute;
 };
 

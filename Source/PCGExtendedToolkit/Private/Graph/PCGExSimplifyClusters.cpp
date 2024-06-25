@@ -90,13 +90,13 @@ namespace PCGExSimplifyClusters
 		{
 			AsyncManagerPtr->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
 				EdgesIO->IOIndex, nullptr, Cluster,
-				&VtxFilterCache, &Chains, false, Settings->bOperateOnDeadEndsOnly);
+				&VtxFilterCache, &Chains, false, false);
 		}
 		else
 		{
 			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
 				EdgesIO->IOIndex, nullptr, Cluster,
-				&VtxFilterCache, &Chains, false, Settings->bOperateOnDeadEndsOnly);
+				&VtxFilterCache, &Chains, false, false);
 		}
 
 		return true;
@@ -122,15 +122,20 @@ namespace PCGExSimplifyClusters
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
-		
-		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
-
-		const double FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 
 		const bool bIsDeadEnd = NodesRef[Chain->First].Adjacency.Num() == 1 || NodesRef[Chain->Last].Adjacency.Num() == 1;
 
 		if (Settings->bPruneDeadEnds && bIsDeadEnd) { return; }
 
+		if (Settings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
+		{
+			// Dump edges
+			for (const int32 EdgeIndex : Chain->Edges) { GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex]); }
+			return;
+		}
+
+		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
+		const double FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 
 		if (!Settings->bMergeAboveAngularThreshold)

@@ -19,7 +19,7 @@ UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExMeanMeasure : uint8
 {
 	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1"),
-	Discrete UMETA(DisplayName = "Absolute", ToolTip="Raw value will be used."),
+	Discrete UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Method"))

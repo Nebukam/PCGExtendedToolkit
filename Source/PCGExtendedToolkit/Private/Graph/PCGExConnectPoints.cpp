@@ -137,19 +137,23 @@ namespace PCGExConnectPoints
 			ProbeOperations.Add(NewOperation);
 		}
 
-		if (ProbeOperations.IsEmpty()) { return false; }
-
-		Octree = &PointIO->GetIn()->GetOctree();
+		if (ProbeOperations.IsEmpty() && DirectProbeOperations.IsEmpty()) { return false; }
 
 		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings, 2);
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
-		InPoints = &PointIO->GetIn()->GetPoints();
-		StartPtr = InPoints->GetData();
+		if (!ProbeOperations.IsEmpty())
+		{
+			Octree = &PointIO->GetIn()->GetOctree();
 
-		const TArray<FPCGPoint>& InPointsRef = (*InPoints);
-		Positions.SetNum(InPointsRef.Num());
-		for (int i = 0; i < InPointsRef.Num(); i++) { Positions[i] = InPointsRef[i].Transform.GetLocation(); }
+			InPoints = &PointIO->GetIn()->GetPoints();
+			StartPtr = InPoints->GetData();
+
+			const TArray<FPCGPoint>& InPointsRef = (*InPoints);
+			Positions.SetNum(InPointsRef.Num());
+
+			for (int i = 0; i < InPointsRef.Num(); i++) { Positions[i] = InPointsRef[i].Transform.GetLocation(); }
+		}
 
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -159,35 +163,40 @@ namespace PCGExConnectPoints
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 	{
-
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectPointsElement::ProcessSinglePoint);
-		
-		double MaxRadius = TNumericLimits<double>::Min();
-		if (!bUseVariableRadius) { MaxRadius = MaxRadiusSquared; }
-		else { for (UPCGExProbeOperation* Op : ProbeOperations) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusSquared == -1 ? Op->SearchRadiusCache[Index] : Op->SearchRadiusSquared); } }
 
-		const FVector Origin = Positions[Index];
-
-		TArray<PCGExProbing::FCandidate> Candidates;
-
-		auto ProcessPoint = [&](const FPCGPointRef& InPointRef)
+		if (!ProbeOperations.IsEmpty())
 		{
-			const ptrdiff_t OtherPointIndex = InPointRef.Point - StartPtr;
-			if (static_cast<int32>(OtherPointIndex) == Index) { return; }
+			double MaxRadius = TNumericLimits<double>::Min();
+			if (!bUseVariableRadius) { MaxRadius = MaxRadiusSquared; }
+			else { for (UPCGExProbeOperation* Op : ProbeOperations) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusSquared == -1 ? Op->SearchRadiusCache[Index] : Op->SearchRadiusSquared); } }
 
-			const FVector Position = Positions[OtherPointIndex];
-			Candidates.Emplace(
-				OtherPointIndex,
-				(Position - Origin).GetSafeNormal(),
-				FVector::DistSquared(Position, Origin));
-		};
+			const FVector Origin = Positions[Index];
 
-		Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(MaxRadius))), ProcessPoint);
+			TArray<PCGExProbing::FCandidate> Candidates;
 
-		//Candidates.Sort([&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
-		Algo::Sort(Candidates, [&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
+			auto ProcessPoint = [&](const FPCGPointRef& InPointRef)
+			{
+				const ptrdiff_t OtherPointIndex = InPointRef.Point - StartPtr;
+				if (static_cast<int32>(OtherPointIndex) == Index) { return; }
 
-		for (UPCGExProbeOperation* Op : ProbeOperations) { Op->ProcessCandidates(Index, Point, Candidates); }
+				const FVector Position = Positions[OtherPointIndex];
+				Candidates.Emplace(
+					OtherPointIndex,
+					(Position - Origin).GetSafeNormal(),
+					FVector::DistSquared(Position, Origin));
+			};
+
+			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(MaxRadius))), ProcessPoint);
+
+			if (!Candidates.IsEmpty())
+			{
+				//Candidates.Sort([&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
+				Algo::Sort(Candidates, [&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
+				for (UPCGExProbeOperation* Op : ProbeOperations) { Op->ProcessCandidates(Index, Point, Candidates); }
+			}
+		}
+
 		for (UPCGExProbeOperation* Op : DirectProbeOperations) { Op->ProcessNode(Index, Point); }
 	}
 
