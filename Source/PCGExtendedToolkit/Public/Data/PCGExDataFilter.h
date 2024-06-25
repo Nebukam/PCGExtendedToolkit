@@ -161,4 +161,5 @@ namespace PCGExDataFilter
 		virtual void PrepareForTesting() override;
 		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
 	};
+
 }
