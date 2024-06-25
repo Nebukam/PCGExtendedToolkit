@@ -408,7 +408,7 @@ namespace PCGExCluster
 			Data.NodeIndex = NIndex;
 			Data.NodePointIndex = OtherNode.PointIndex;
 			Data.EdgeIndex = EIndex;
-			Data.Direction = (OtherPosition - NodePosition).GetSafeNormal();
+			Data.Direction = (NodePosition - OtherPosition).GetSafeNormal();
 			Data.Length = FVector::Dist(NodePosition, OtherPosition);
 		}
 	}
