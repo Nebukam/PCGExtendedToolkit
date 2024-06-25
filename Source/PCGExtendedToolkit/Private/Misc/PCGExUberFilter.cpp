@@ -83,19 +83,9 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 			Context->CurrentIO->CreateInKeys();
 
-			if (Context->FilterManager->PrepareForTesting()) { Context->SetState(PCGExDataFilter::State_PreparingFilters); }
-			else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+			Context->FilterManager->PrepareForTesting();
+			Context->SetState(PCGExMT::State_ProcessingPoints);
 		}
-	}
-
-	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
-	{
-		if (!Context->Process(
-			[&](const int32 Index) { Context->FilterManager->PrepareSingle(Index); },
-			Context->CurrentIO->GetNum())) { return false; }
-
-		Context->FilterManager->PreparationComplete();
-		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))

@@ -81,7 +81,7 @@ namespace PCGExNodeAdjacency
 		}
 	}
 
-	bool TAdjacencyFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	void TAdjacencyFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		TClusterNodeFilter::PrepareForTesting(PointIO);
 
@@ -94,15 +94,13 @@ namespace PCGExNodeAdjacency
 			for (const PCGExCluster::FNode& Node : CapturedCluster->Nodes) { CachedThreshold[Node.NodeIndex] = Adjacency.GetThreshold(Node); }
 			*/
 		}
-
-		return false;
 	}
 
 	bool TAdjacencyFilter::Test(const int32 PointIndex) const
 	{
 		const TArray<PCGExCluster::FNode>& NodesRef = *CapturedCluster->Nodes;
 		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *CapturedCluster->Edges;
-		
+
 		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
 		const double A = OperandA->Values[Node.PointIndex];
 		double B = 0;

@@ -113,7 +113,7 @@ namespace PCGExDataState
 	}
 
 
-	bool TStatesManager::PrepareForTesting()
+	void TStatesManager::PrepareForTesting()
 	{
 		const int32 NumPoints = PointIO->GetNum();
 		HighestState.SetNumUninitialized(NumPoints);
@@ -122,7 +122,7 @@ namespace PCGExDataState
 		return TFilterManager::PrepareForTesting();
 	}
 
-	bool TStatesManager::PrepareForTesting(const TArrayView<const int32>& PointIndices)
+	void TStatesManager::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
 		if (const int32 NumPoints = PointIO->GetNum(); HighestState.Num() != NumPoints) { HighestState.SetNumUninitialized(NumPoints); }
 		for (const int32 i : PointIndices) { HighestState[i] = -1; }

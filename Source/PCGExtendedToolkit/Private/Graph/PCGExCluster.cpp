@@ -961,7 +961,7 @@ namespace PCGExCluster
 	{
 	}
 
-	bool TClusterNodeFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	void TClusterNodeFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		if (bCacheResults)
 		{
@@ -969,11 +969,9 @@ namespace PCGExCluster
 			Results.SetNumUninitialized(NumNodes);
 			for (int i = 0; i < NumNodes; i++) { Results[i] = false; }
 		}
-
-		return false;
 	}
 
-	bool TClusterNodeFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices)
+	void TClusterNodeFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices)
 	{
 		return TFilter::PrepareForTesting(PointIO, PointIndices);
 	}
@@ -1053,53 +1051,22 @@ namespace PCGExCluster
 		return true;
 	}
 
-	bool FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	void FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		TDataState::PrepareForTesting(PointIO);
 
-		HeavyFilterHandlers.Empty();
-		HeavyClusterFilterHandlers.Empty();
-
-		for (TFilter* Test : FilterHandlers) { if (Test->PrepareForTesting(PointIO)) { HeavyFilterHandlers.Add(Test); } }
-		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { if (Test->PrepareForTesting(PointIO)) { HeavyClusterFilterHandlers.Add(Test); } }
-
-		return RequiresPerPointPreparation();
+		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(PointIO); }
+		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { Test->PrepareForTesting(PointIO); }
 	}
 
-	bool FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices)
+	void FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices)
 	{
 		TDataState::PrepareForTesting(PointIO, PointIndices);
 
-		HeavyFilterHandlers.Empty();
-		HeavyClusterFilterHandlers.Empty();
-
-		for (TFilter* Test : FilterHandlers) { if (Test->PrepareForTesting(PointIO, PointIndices)) { HeavyFilterHandlers.Add(Test); } }
-		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { if (Test->PrepareForTesting(PointIO, PointIndices)) { HeavyClusterFilterHandlers.Add(Test); } }
-
-		return RequiresPerPointPreparation();
+		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(PointIO, PointIndices); }
+		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { Test->PrepareForTesting(PointIO, PointIndices); }
 	}
 
-	void FNodeStateHandler::PrepareSingle(const int32 PointIndex)
-	{
-		for (TFilter* Test : HeavyFilterHandlers) { Test->PrepareSingle(PointIndex); }
-
-		if (!HeavyClusterFilterHandlers.IsEmpty())
-		{
-			const int32 NodeIndex = *Cluster->NodeIndexLookup->Find(PointIndex); // We get a point index from the FindNode
-			for (TClusterNodeFilter* Test : HeavyClusterFilterHandlers) { Test->PrepareSingle(NodeIndex); }
-		}
-	}
-
-	void FNodeStateHandler::PreparationComplete()
-	{
-		for (TFilter* Test : HeavyFilterHandlers) { Test->PreparationComplete(); }
-		for (TClusterNodeFilter* Test : HeavyClusterFilterHandlers) { Test->PreparationComplete(); }
-	}
-
-	bool FNodeStateHandler::RequiresPerPointPreparation() const
-	{
-		return !HeavyFilterHandlers.IsEmpty() || !HeavyClusterFilterHandlers.IsEmpty();
-	}
 
 #pragma endregion
 }

@@ -340,8 +340,8 @@ namespace PCGExCluster
 		virtual void CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster);
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices) override;
+		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices) override;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler final : public PCGExDataState::TDataState
@@ -352,27 +352,18 @@ namespace PCGExCluster
 		const UPCGExNodeStateFactory* NodeStateDefinition = nullptr;
 
 		TArray<TFilter*> FilterHandlers;
-		TArray<TFilter*> HeavyFilterHandlers;
 		TArray<TClusterNodeFilter*> ClusterFilterHandlers;
-		TArray<TClusterNodeFilter*> HeavyClusterFilterHandlers;
 
 		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices) override;
-		virtual void PrepareSingle(const int32 PointIndex) override;
-		virtual void PreparationComplete() override;
-
-		bool RequiresPerPointPreparation() const;
+		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices) override;
 
 		virtual ~FNodeStateHandler() override
 		{
 			PCGEX_DELETE_TARRAY(FilterHandlers)
-			HeavyFilterHandlers.Empty();
-
 			PCGEX_DELETE_TARRAY(ClusterFilterHandlers)
-			HeavyClusterFilterHandlers.Empty();
 		}
 
 	protected:

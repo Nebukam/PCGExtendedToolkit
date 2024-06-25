@@ -104,9 +104,6 @@ namespace PCGExSampleNeighbors
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		TArray<UPCGExNeighborSampleOperation*> PointStatePreparation;
-		TArray<UPCGExNeighborSampleOperation*> ValueStatePreparation;
-
 		for (const UPCGExNeighborSamplerFactoryBase* OperationFactory : TypedContext->SamplerFactories)
 		{
 			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation();
@@ -121,17 +118,8 @@ namespace PCGExSampleNeighbors
 
 			SamplingOperations.Add(SamplingOperation);
 
-			if (SamplingOperation->PointState && SamplingOperation->PointState->RequiresPerPointPreparation()) { PointStatePreparation.Add(SamplingOperation); }
-			if (SamplingOperation->ValueState && SamplingOperation->ValueState->RequiresPerPointPreparation()) { ValueStatePreparation.Add(SamplingOperation); }
-
 			if (SamplingOperation->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point) { VtxOps.Add(SamplingOperation); }
 			else { EdgeOps.Add(SamplingOperation); }
-		}
-
-		for (int i = 0; i < Cluster->Nodes->Num(); i++)
-		{
-			for (const UPCGExNeighborSampleOperation* Op : PointStatePreparation) { Op->PointState->PrepareSingle(i); }
-			for (const UPCGExNeighborSampleOperation* Op : ValueStatePreparation) { Op->ValueState->PrepareSingle(i); }
 		}
 
 		StartParallelLoopForNodes();

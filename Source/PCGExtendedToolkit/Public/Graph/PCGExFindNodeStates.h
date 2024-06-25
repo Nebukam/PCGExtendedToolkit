@@ -106,8 +106,6 @@ namespace PCGExFindNodeState
 
 		PCGExDataState::TStatesManager* StatesManager = nullptr;
 
-		bool bRequiresPrep = false;
-
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)

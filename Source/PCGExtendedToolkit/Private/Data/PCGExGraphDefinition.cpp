@@ -366,7 +366,7 @@ namespace PCGExGraph
 		bPartial = (NumEnabledConditions != NumValid);
 	}
 
-	bool FSocketStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	void FSocketStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		TDataState::PrepareForTesting(PointIO);
 
@@ -377,8 +377,6 @@ namespace PCGExGraph
 			EdgeTypeReaders[i] = Reader;
 			Reader->Bind(const_cast<PCGExData::FPointIO*>(PointIO));
 		}
-
-		return false;
 	}
 
 	bool FSocketStateHandler::Test(const int32 PointIndex) const

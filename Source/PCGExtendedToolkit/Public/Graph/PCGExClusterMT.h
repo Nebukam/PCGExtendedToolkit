@@ -206,11 +206,7 @@ namespace PCGExClusterMT
 				VtxFiltersHandler->bCacheResults = false;
 				VtxFiltersHandler->CaptureCluster(Context, Cluster);
 
-				if (VtxFiltersHandler->PrepareForTesting(VtxIO, Cluster->GetVtxPointIndicesView()))
-				{
-					for (const int32 i : (*VtxPointIndicesCache)) { VtxFiltersHandler->PrepareSingle(i); }
-					VtxFiltersHandler->PreparationComplete();
-				}
+				VtxFiltersHandler->PrepareForTesting(VtxIO, Cluster->GetVtxPointIndicesView());
 
 				const TArray<int32>& VIdxRef = *VtxPointIndicesCache;
 				for (int i = 0; i < VtxPointIndicesCache->Num(); i++) { VtxFilterCache[i] = VtxFiltersHandler->Test(VIdxRef[i]); }

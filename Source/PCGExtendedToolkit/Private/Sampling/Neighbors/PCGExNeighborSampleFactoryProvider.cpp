@@ -18,7 +18,7 @@ void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-bool UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
+void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
 
@@ -33,10 +33,6 @@ bool UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InConte
 		ValueState->CaptureCluster(Context, Cluster);
 		ValueState->PrepareForTesting(Cluster->VtxIO);
 	}
-
-	return
-		(PointState && PointState->RequiresPerPointPreparation()) ||
-		(ValueState && ValueState->RequiresPerPointPreparation());
 }
 
 bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }

@@ -30,7 +30,7 @@ bool PCGExPointsFilter::TMeanFilter::Test(const int32 PointIndex) const
 	return FMath::IsWithin(Target->Values[PointIndex], ReferenceMin, ReferenceMax);
 }
 
-bool PCGExPointsFilter::TMeanFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TMeanFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 {
 	const int32 NumPoints = PointIO->GetNum();
 	Results.SetNum(NumPoints);
@@ -87,8 +87,6 @@ bool PCGExPointsFilter::TMeanFilter::PrepareForTesting(const PCGExData::FPointIO
 
 	ReferenceMin = FMath::Min(RMin, RMax);
 	ReferenceMax = FMath::Max(RMin, RMax);
-
-	return true;
 }
 
 #define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"

@@ -836,7 +836,7 @@ namespace PCGExGraph
 		void CaptureGraph(const FGraphInputs* GraphInputs, const PCGExData::FPointIO* InPointIO);
 		void CaptureGraph(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO);
 
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
 
 		virtual bool Test(const int32 PointIndex) const override;
 

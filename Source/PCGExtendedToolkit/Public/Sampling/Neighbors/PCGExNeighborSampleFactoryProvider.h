@@ -127,7 +127,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster);
+	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster);
 	virtual bool IsOperationValid();
 
 	PCGExData::FPointIO* GetSourceIO() const;

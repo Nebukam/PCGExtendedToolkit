@@ -113,12 +113,7 @@ namespace PCGExFindNodeState
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some input points only have partial metadata."));
 		}
 
-		if (StatesManager->PrepareForTesting(Cluster->GetVtxPointIndicesView()))
-		{
-			bRequiresPrep = true;
-			for (const int32 i : (*VtxPointIndicesCache)) { StatesManager->PrepareSingle(i); }
-			StatesManager->PreparationComplete();
-		}
+		StatesManager->PrepareForTesting(Cluster->GetVtxPointIndicesView());
 
 		StartParallelLoopForNodes();
 

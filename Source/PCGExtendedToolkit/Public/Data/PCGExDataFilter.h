@@ -44,7 +44,6 @@ public:
 
 namespace PCGExDataFilter
 {
-	PCGEX_ASYNC_STATE(State_PreparingFilters)
 	PCGEX_ASYNC_STATE(State_FilteringPoints)
 
 	const FName OutputFilterLabel = TEXT("Filter");
@@ -73,11 +72,8 @@ namespace PCGExDataFilter
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
 
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO);
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices);
-
-		virtual void PrepareSingle(const int32 PointIndex);
-		virtual void PreparationComplete();
+		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO);
+		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices);
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const = 0;
 
@@ -93,7 +89,6 @@ namespace PCGExDataFilter
 		explicit TFilterManager(const PCGExData::FPointIO* InPointIO);
 
 		TArray<TFilter*> Handlers;
-		TArray<TFilter*> HeavyHandlers;
 
 		bool bCacheResults = true;
 		bool bValid = false;
@@ -140,20 +135,14 @@ namespace PCGExDataFilter
 			}
 		}
 
-		virtual bool PrepareForTesting();
-		virtual bool PrepareForTesting(const TArrayView<const int32>& PointIndices);
-
-		virtual void PrepareSingle(const int32 PointIndex);
-		virtual void PreparationComplete();
+		virtual void PrepareForTesting();
+		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices);
 
 		virtual void Test(const int32 PointIndex);
-
-		virtual bool RequiresPerPointPreparation() const;
 
 		virtual ~TFilterManager()
 		{
 			PCGEX_DELETE_TARRAY(Handlers)
-			HeavyHandlers.Empty();
 		}
 
 	protected:
@@ -169,7 +158,7 @@ namespace PCGExDataFilter
 
 		virtual void Test(const int32 PointIndex) override;
 
-		virtual bool PrepareForTesting() override;
-		virtual bool PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
+		virtual void PrepareForTesting() override;
+		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
 	};
 }
