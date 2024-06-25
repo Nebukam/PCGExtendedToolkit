@@ -9,12 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExRelaxEdgeClusters"
 #define PCGEX_NAMESPACE RelaxEdgeClusters
 
-void UPCGExRelaxEdgeClustersSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Relaxing, UPCGExForceDirectedRelaxing)
-}
-
 PCGExData::EInit UPCGExRelaxEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(RelaxEdgeClusters)

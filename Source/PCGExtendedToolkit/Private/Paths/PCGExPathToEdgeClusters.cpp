@@ -11,11 +11,6 @@
 #define LOCTEXT_NAMESPACE "PCGExPathToEdgeClustersElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-UPCGExPathToEdgeClustersSettings::UPCGExPathToEdgeClustersSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 TArray<FPCGPinProperties> UPCGExPathToEdgeClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

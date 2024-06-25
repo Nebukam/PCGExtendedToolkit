@@ -147,7 +147,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsToBoundsSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
-	UPCGExPointsToBoundsSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

@@ -63,7 +63,7 @@ namespace PCGExHeuristics
 	public:
 		TArray<UPCGExHeuristicOperation*> Operations;
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
-		TArray<const UPCGHeuristicsFactoryBase*> LocalFeedbackFactories;
+		TArray<const UPCGExHeuristicsFactoryBase*> LocalFeedbackFactories;
 
 		PCGExCluster::FCluster* CurrentCluster = nullptr;
 
@@ -74,11 +74,11 @@ namespace PCGExHeuristics
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 
 		explicit THeuristicsHandler(FPCGContext* InContext);
-		explicit THeuristicsHandler(FPCGContext* InContext, const TArray<UPCGHeuristicsFactoryBase*>& InFactories);
+		explicit THeuristicsHandler(FPCGContext* InContext, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);
 		explicit THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation);
 		~THeuristicsHandler();
 
-		void BuildFrom(FPCGContext* InContext, const TArray<UPCGHeuristicsFactoryBase*>& InFactories);
+		void BuildFrom(FPCGContext* InContext, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);
 		void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 		void CompleteClusterPreparation();
 

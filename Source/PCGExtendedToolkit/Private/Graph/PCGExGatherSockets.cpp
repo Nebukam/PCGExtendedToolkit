@@ -8,13 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGatherSockets"
 #define PCGEX_NAMESPACE GatherSockets
 
-UPCGExGatherSocketsSettings::UPCGExGatherSocketsSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	RefreshSocketNames();
-}
-
 void UPCGExGatherSocketsSettings::RefreshSocketNames()
 {
 	GeneratedSocketNames.Empty();
@@ -32,7 +25,7 @@ FPCGElementPtr UPCGExGatherSocketsSettings::CreateElement() const { return MakeS
 TArray<FPCGPinProperties> UPCGExGatherSocketsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(PCGExGraph::SourceSocketParamsLabel, "Socket params to assemble into a consolidated Custom Graph Params object.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceProbesLabel, "Socket params to assemble into a consolidated Custom Graph Params object.", Required, {})
 	PCGEX_PIN_PARAM(PCGExGraph::SourceSocketOverrideParamsLabel, "Socket params used as a reference for global overriding.", Advanced, {})
 	return PinProperties;
 }
@@ -71,7 +64,7 @@ bool FPCGExGatherSocketsElement::ExecuteInternal(
 	TArray<FPCGExSocketDescriptor> InputSockets;
 	TArray<FPCGExSocketDescriptor> OmittedSockets;
 
-	PCGExGraph::GetUniqueSocketParams(Context, PCGExGraph::SourceSocketParamsLabel, InputSockets, OmittedSockets);
+	PCGExGraph::GetUniqueSocketParams(Context, PCGExGraph::SourceProbesLabel, InputSockets, OmittedSockets);
 
 	for (const FPCGExSocketDescriptor& SocketDescriptor : InputSockets)
 	{

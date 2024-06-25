@@ -8,11 +8,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
 
-UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 TArray<FPCGPinProperties> UPCGExPathProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

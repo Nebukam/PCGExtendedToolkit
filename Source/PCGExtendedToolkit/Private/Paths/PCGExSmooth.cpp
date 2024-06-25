@@ -23,12 +23,6 @@ PCGExData::EInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PC
 
 PCGEX_INITIALIZE_ELEMENT(Smooth)
 
-void UPCGExSmoothSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Smoothing, UPCGExMovingAverageSmoothing)
-}
-
 FPCGExSmoothContext::~FPCGExSmoothContext()
 {
 	PCGEX_TERMINATE_ASYNC

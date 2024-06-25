@@ -29,12 +29,6 @@ FName UPCGExBuildCustomGraphSettings::GetMainInputLabel() const { return PCGEx::
 
 PCGEX_INITIALIZE_ELEMENT(BuildCustomGraph)
 
-void UPCGExBuildCustomGraphSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(GraphSolver, UPCGExCustomGraphSolver)
-}
-
 bool FPCGExBuildCustomGraphElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }

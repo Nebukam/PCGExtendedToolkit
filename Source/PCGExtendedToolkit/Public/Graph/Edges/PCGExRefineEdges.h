@@ -33,7 +33,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRefineEdgesSettings : public UPCGExEdgesProce
 
 	//~Begin UObject interface
 public:
-	virtual void PostInitProperties() override;
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

@@ -17,11 +17,6 @@ FPCGExDiscardByOverlapContext::~FPCGExDiscardByOverlapContext()
 	PCGEX_DELETE_TARRAY(IOBounds)
 }
 
-UPCGExDiscardByOverlapSettings::UPCGExDiscardByOverlapSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 #if WITH_EDITOR
 void UPCGExDiscardByOverlapSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

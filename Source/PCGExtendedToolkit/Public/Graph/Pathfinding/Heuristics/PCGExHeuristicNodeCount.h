@@ -41,7 +41,7 @@ public:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryLeastNodes : public UPCGHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryLeastNodes : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 

@@ -18,14 +18,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGatherSocketsSettings : public UPCGSettings
 	GENERATED_BODY()
 
 public:
-	UPCGExGatherSocketsSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS(GraphParams, "Custom Graph : Assemble Sockets", "Assembles Sockets Params into a single, consolidated Custom Graph Sockets object.")
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSocket; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorProbe; }
 
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

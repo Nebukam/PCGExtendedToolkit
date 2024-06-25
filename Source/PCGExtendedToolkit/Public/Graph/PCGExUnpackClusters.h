@@ -13,7 +13,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExUnpackClustersSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
-	UPCGExUnpackClustersSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

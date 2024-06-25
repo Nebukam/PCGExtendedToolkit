@@ -20,12 +20,6 @@ PCGExData::EInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(Subdivide)
 
-void UPCGExSubdivideSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
-}
-
 FPCGExSubdivideContext::~FPCGExSubdivideContext()
 {
 	PCGEX_TERMINATE_ASYNC

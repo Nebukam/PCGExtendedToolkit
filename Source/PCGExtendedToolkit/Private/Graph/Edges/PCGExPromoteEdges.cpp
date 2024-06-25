@@ -18,12 +18,6 @@ PCGExData::EInit UPCGExPromoteEdgesSettings::GetMainOutputInitMode() const
 		       PCGExData::EInit::NewOutput;
 }
 
-void UPCGExPromoteEdgesSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Promotion, UPCGExEdgePromoteToPoint)
-}
-
 TArray<FPCGPinProperties> UPCGExPromoteEdgesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

@@ -7,11 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExFindClustersDataElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-UPCGExFindClustersDataSettings::UPCGExFindClustersDataSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;

@@ -27,7 +27,6 @@ protected:
 
 	//~Begin UObject interface
 public:
-	virtual void PostInitProperties() override;
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:

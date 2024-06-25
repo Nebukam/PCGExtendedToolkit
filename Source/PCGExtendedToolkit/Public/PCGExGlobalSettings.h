@@ -63,7 +63,7 @@ public:
 	FLinearColor NodeColorGraph = FLinearColor(0.000000, 0.615363, 1.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorSocket = FLinearColor(0.171875, 0.681472, 1.000000, 1.000000);
+	FLinearColor NodeColorProbe = FLinearColor(0.171875, 0.681472, 1.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorSocketState = FLinearColor(0.000000, 0.249991, 0.406250, 1.000000);

@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateCustomGraphSocket"
 #define PCGEX_NAMESPACE CreateCustomGraphSocket
 
-FName UPCGExCreateCustomGraphSocketSettings::GetMainOutputLabel() const { return PCGExGraph::OutputSocketParamsLabel; }
+FName UPCGExCreateCustomGraphSocketSettings::GetMainOutputLabel() const { return PCGExGraph::OutputProbeLabel; }
 
 UPCGExParamFactoryBase* UPCGExCreateCustomGraphSocketSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {

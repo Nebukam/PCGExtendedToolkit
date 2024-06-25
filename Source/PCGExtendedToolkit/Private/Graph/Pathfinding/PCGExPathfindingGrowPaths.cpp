@@ -201,13 +201,6 @@ TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::OutputPinPropertie
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingGrowPaths)
 
-void UPCGExPathfindingGrowPathsSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(SearchAlgorithm, UPCGExSearchAStar)
-	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
-}
-
 FPCGExPathfindingGrowPathsContext::~FPCGExPathfindingGrowPathsContext()
 {
 	PCGEX_TERMINATE_ASYNC

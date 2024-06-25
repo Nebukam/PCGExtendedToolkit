@@ -18,7 +18,7 @@ enum class EPCGExOrientUsage : uint8
 };
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExOrientSettings : public UPCGExPathProcessorSettings

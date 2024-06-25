@@ -59,7 +59,7 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactorySteepness : public UPCGHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactorySteepness : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 

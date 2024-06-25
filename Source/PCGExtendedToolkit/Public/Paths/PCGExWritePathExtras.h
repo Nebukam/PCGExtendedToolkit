@@ -25,7 +25,7 @@ MACRO(PathDirection, FVector)\
 MACRO(PathCentroid, FVector)
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExWritePathExtrasSettings : public UPCGExPathProcessorSettings
@@ -44,7 +44,6 @@ protected:
 
 	//~Begin UObject interface
 public:
-	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 
 public:

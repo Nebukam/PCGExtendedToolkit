@@ -237,11 +237,6 @@ namespace PCGExGraph
 
 #pragma region UPCGExGraphDefinition
 
-UPCGExGraphDefinition::UPCGExGraphDefinition(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 bool UPCGExGraphDefinition::HasMatchingGraphDefinition(const UPCGPointData* PointData) const
 {
 	// Whether the data has metadata matching this GraphData block or not

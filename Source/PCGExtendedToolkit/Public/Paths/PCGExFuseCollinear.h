@@ -9,7 +9,7 @@
 #include "PCGExFuseCollinear.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExFuseCollinearSettings : public UPCGExPathProcessorSettings
@@ -17,7 +17,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFuseCollinearSettings : public UPCGExPathProc
 	GENERATED_BODY()
 
 public:
-	UPCGExFuseCollinearSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

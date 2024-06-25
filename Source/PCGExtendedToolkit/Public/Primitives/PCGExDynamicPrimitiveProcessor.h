@@ -11,7 +11,7 @@
 #include "PCGExDynamicPrimitiveProcessor.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExDynamicPrimitiveProcessorSettings : public UPCGExPointsProcessorSettings
@@ -19,7 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDynamicPrimitiveProcessorSettings : public UP
 	GENERATED_BODY()
 
 public:
-	UPCGExDynamicPrimitiveProcessorSettings(const FObjectInitializer& ObjectInitializer);
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 	//~Begin UPCGSettings interface

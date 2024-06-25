@@ -8,12 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
 
-UPCGExFuseCollinearSettings::UPCGExFuseCollinearSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	//PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
-}
-
 #if WITH_EDITOR
 void UPCGExFuseCollinearSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

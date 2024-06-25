@@ -15,7 +15,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRelaxEdgeClustersSettings : public UPCGExEdge
 
 	//~Begin UObject interface
 public:
-	virtual void PostInitProperties() override;
 	//~End UObject interface
 
 	//~Begin UPCGSettings interface

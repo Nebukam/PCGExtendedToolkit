@@ -40,7 +40,7 @@ enum class EPCGExMeshAttributeHandling : uint8
 };
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExMeshToClustersSettings : public UPCGExPointsProcessorSettings

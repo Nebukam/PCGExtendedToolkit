@@ -9,12 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExPackClusters"
 #define PCGEX_NAMESPACE PackClusters
 
-UPCGExPackClustersSettings::UPCGExPackClustersSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 PCGExData::EInit UPCGExPackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGExData::EInit UPCGExPackClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }

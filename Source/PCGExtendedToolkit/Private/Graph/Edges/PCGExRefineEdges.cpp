@@ -10,12 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExRefineEdges"
 #define PCGEX_NAMESPACE RefineEdges
 
-void UPCGExRefineEdgesSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Refinement, UPCGExEdgeRefinePrimMST)
-}
-
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

@@ -10,12 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE WriteEdgeExtras
 
-UPCGExWriteEdgeExtrasSettings::UPCGExWriteEdgeExtrasSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
 PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 

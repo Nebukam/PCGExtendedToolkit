@@ -47,7 +47,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExWriteEdgeExtrasSettings : public UPCGExEdgesP
 	GENERATED_BODY()
 
 public:
-	UPCGExWriteEdgeExtrasSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

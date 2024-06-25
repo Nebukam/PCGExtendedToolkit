@@ -15,11 +15,6 @@ FPCGExPointsToBoundsContext::~FPCGExPointsToBoundsContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-UPCGExPointsToBoundsSettings::UPCGExPointsToBoundsSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 #if WITH_EDITOR
 void UPCGExPointsToBoundsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

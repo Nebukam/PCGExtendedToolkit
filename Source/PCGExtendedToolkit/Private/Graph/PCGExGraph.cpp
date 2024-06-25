@@ -113,20 +113,7 @@ namespace PCGExGraph
 	void FGraph::InsertEdges(const TSet<uint64>& InEdges, const int32 InIOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		uint32 A;
-		uint32 B;
-		bool bAlreadyExists;
-		for (const uint64& E : InEdges)
-		{
-			UniqueEdges.Add(E, &bAlreadyExists);
-			if (bAlreadyExists) { continue; }
-
-			PCGEx::H64(E, A, B);
-			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
-			Nodes[A].Add(EdgeIndex);
-			Nodes[B].Add(EdgeIndex);
-			Edges[EdgeIndex].IOIndex = InIOIndex;
-		}
+		InsertEdgesUnsafe(InEdges, InIOIndex);
 	}
 
 #define PCGEX_EDGE_INSERT\
@@ -153,6 +140,24 @@ namespace PCGExGraph
 			PCGEX_EDGE_INSERT
 			Edges[Edge.EdgeIndex].IOIndex = E.IOIndex;
 			Edges[Edge.EdgeIndex].PointIndex = E.PointIndex;
+		}
+	}
+
+	void FGraph::InsertEdgesUnsafe(const TSet<uint64>& InEdges, int32 InIOIndex)
+	{
+		uint32 A;
+		uint32 B;
+		bool bAlreadyExists;
+		for (const uint64& E : InEdges)
+		{
+			UniqueEdges.Add(E, &bAlreadyExists);
+			if (bAlreadyExists) { continue; }
+
+			PCGEx::H64(E, A, B);
+			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
+			Nodes[A].Add(EdgeIndex);
+			Nodes[B].Add(EdgeIndex);
+			Edges[EdgeIndex].IOIndex = InIOIndex;
 		}
 	}
 

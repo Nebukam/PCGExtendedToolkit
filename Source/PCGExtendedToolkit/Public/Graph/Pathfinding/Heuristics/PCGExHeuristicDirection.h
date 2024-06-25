@@ -52,7 +52,7 @@ protected:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryDirection : public UPCGHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryDirection : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 

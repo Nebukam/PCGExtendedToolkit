@@ -24,7 +24,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBridgeEdgeClustersSettings : public UPCGExEdg
 	GENERATED_BODY()
 
 public:
-	UPCGExBridgeEdgeClustersSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

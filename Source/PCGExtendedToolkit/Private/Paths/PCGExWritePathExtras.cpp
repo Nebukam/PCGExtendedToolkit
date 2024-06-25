@@ -17,12 +17,6 @@ PCGExData::EInit UPCGExWritePathExtrasSettings::GetMainOutputInitMode() const { 
 
 PCGEX_INITIALIZE_ELEMENT(WritePathExtras)
 
-void UPCGExWritePathExtrasSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(WritePathExtrasing, UPCGExMovingAverageWritePathExtrasing)
-}
-
 FPCGExWritePathExtrasContext::~FPCGExWritePathExtrasContext()
 {
 	PCGEX_TERMINATE_ASYNC

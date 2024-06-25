@@ -10,7 +10,7 @@
 #include "PCGExDeleteCustomGraph.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExDeleteCustomGraphSettings : public UPCGExCustomGraphProcessorSettings

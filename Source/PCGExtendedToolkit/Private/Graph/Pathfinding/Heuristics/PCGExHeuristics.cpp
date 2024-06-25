@@ -35,12 +35,12 @@ namespace PCGExHeuristics
 
 	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext)
 	{
-		TArray<UPCGHeuristicsFactoryBase*> ContextFactories;
+		TArray<UPCGExHeuristicsFactoryBase*> ContextFactories;
 		PCGExFactories::GetInputFactories(InContext, PCGExGraph::SourceHeuristicsLabel, ContextFactories, {PCGExFactories::EType::Heuristics}, false);
 		BuildFrom(InContext, ContextFactories);
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TArray<UPCGHeuristicsFactoryBase*>& InFactories)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
 	{
 		BuildFrom(InContext, InFactories);
 	}
@@ -63,9 +63,9 @@ namespace PCGExHeuristics
 		Feedbacks.Empty();
 	}
 
-	void THeuristicsHandler::BuildFrom(FPCGContext* InContext, const TArray<UPCGHeuristicsFactoryBase*>& InFactories)
+	void THeuristicsHandler::BuildFrom(FPCGContext* InContext, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
 	{
-		for (const UPCGHeuristicsFactoryBase* OperationFactory : InFactories)
+		for (const UPCGExHeuristicsFactoryBase* OperationFactory : InFactories)
 		{
 			UPCGExHeuristicOperation* Operation = nullptr;
 
@@ -175,7 +175,7 @@ namespace PCGExHeuristics
 		if (!LocalFeedbackFactories.IsEmpty()) { return nullptr; }
 		FLocalFeedbackHandler* NewLocalFeedbackHandler = new FLocalFeedbackHandler();
 
-		for (const UPCGHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
+		for (const UPCGExHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
 		{
 			UPCGExHeuristicFeedback* Feedback = Cast<UPCGExHeuristicFeedback>(Factory->CreateOperation());
 			Feedback->ReferenceWeight = ReferenceWeight * Factory->WeightFactor;

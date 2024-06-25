@@ -13,8 +13,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPackClustersSettings : public UPCGExEdgesProc
 	GENERATED_BODY()
 
 public:
-	UPCGExPackClustersSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PackClusters, "Graph : Pack Clusters", "Pack each cluster into an single point data object containing both vtx and edges.");

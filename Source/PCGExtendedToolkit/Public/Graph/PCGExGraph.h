@@ -130,8 +130,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeCrawlingSettings
 namespace PCGExGraph
 {
 	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
-	const FName SourceSocketParamsLabel = TEXT("Sockets");
-	const FName OutputSocketParamsLabel = TEXT("Socket");
+	const FName SourceProbesLabel = TEXT("Probes");
+	const FName OutputProbeLabel = TEXT("Probe");
 
 	const FName OutputSocketStateLabel = TEXT("SocketState");
 	const FName SourceSocketStateLabel = TEXT("SocketStates");
@@ -409,6 +409,8 @@ namespace PCGExGraph
 		void InsertEdges(const TArray<uint64>& InEdges, int32 InIOIndex);
 		void InsertEdges(const TArray<FUnsignedEdge>& InEdges, int32 InIOIndex);
 		void InsertEdges(const TArray<FIndexedEdge>& InEdges);
+		
+		void InsertEdgesUnsafe(const TSet<uint64>& InEdges, int32 InIOIndex);
 
 		TArrayView<FNode> AddNodes(const int32 NumNewNodes);
 

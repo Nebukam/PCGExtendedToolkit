@@ -48,7 +48,7 @@ namespace PCGExPartition
 
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesBaseSettings : public UPCGExPointsProcessorSettings
@@ -89,7 +89,7 @@ public:
 };
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPartitionByValuesBaseSettings

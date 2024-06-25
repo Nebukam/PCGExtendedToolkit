@@ -100,7 +100,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDiscardByOverlapSettings : public UPCGExPoint
 	GENERATED_BODY()
 
 public:
-	UPCGExDiscardByOverlapSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

@@ -45,13 +45,6 @@ FName UPCGExPathfindingNavmeshSettings::GetMainOutputLabel() const { return PCGE
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingNavmesh)
 
-void UPCGExPathfindingNavmeshSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
-}
-
 FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()
 {
 	PCGEX_TERMINATE_ASYNC

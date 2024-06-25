@@ -23,8 +23,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDrawEdgesSettings : public UPCGExEdgesProcess
 	GENERATED_BODY()
 
 public:
-	UPCGExDrawEdgesSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DrawEdges, "Draw Edges", "Draws debug edges");

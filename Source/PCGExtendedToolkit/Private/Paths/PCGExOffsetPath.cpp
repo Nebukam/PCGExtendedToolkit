@@ -17,12 +17,6 @@ PCGExData::EInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { retur
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 
-void UPCGExOffsetPathSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(OffsetPathing, UPCGExMovingAverageOffsetPathing)
-}
-
 FPCGExOffsetPathContext::~FPCGExOffsetPathContext()
 {
 	PCGEX_TERMINATE_ASYNC

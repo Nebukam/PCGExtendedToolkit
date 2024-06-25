@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryBase : public UPCGExParamFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 

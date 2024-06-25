@@ -21,7 +21,7 @@ namespace PCGExDataBlending
 }
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExPathToEdgeClustersSettings : public UPCGExPathProcessorSettings
@@ -29,7 +29,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathToEdgeClustersSettings : public UPCGExPat
 	GENERATED_BODY()
 
 public:
-	UPCGExPathToEdgeClustersSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

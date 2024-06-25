@@ -22,7 +22,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingEdgesSettings : public UPCGExEdges
 	GENERATED_BODY()
 
 public:
-	UPCGExPathfindingEdgesSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

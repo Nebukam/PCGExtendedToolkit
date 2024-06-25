@@ -20,7 +20,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFindContoursSettings : public UPCGExEdgesProc
 	GENERATED_BODY()
 
 public:
-	UPCGExFindContoursSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

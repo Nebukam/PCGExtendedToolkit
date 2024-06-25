@@ -9,12 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExBridgeEdgeClusters"
 #define PCGEX_NAMESPACE BridgeEdgeClusters
 
-UPCGExBridgeEdgeClustersSettings::UPCGExBridgeEdgeClustersSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 

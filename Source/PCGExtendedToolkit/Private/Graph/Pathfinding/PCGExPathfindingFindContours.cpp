@@ -8,12 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
 
-UPCGExFindContoursSettings::UPCGExFindContoursSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 TArray<FPCGPinProperties> UPCGExFindContoursSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

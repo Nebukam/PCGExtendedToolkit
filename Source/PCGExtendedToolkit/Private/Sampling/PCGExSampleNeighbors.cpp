@@ -9,12 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleNeighbors"
 #define PCGEX_NAMESPACE SampleNeighbors
 
-UPCGExSampleNeighborsSettings::UPCGExSampleNeighborsSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 TArray<FPCGPinProperties> UPCGExSampleNeighborsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

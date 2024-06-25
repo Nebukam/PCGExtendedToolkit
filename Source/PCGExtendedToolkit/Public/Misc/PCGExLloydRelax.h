@@ -12,7 +12,7 @@
 #include "PCGExLloydRelax.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExLloydRelaxSettings : public UPCGExPointsProcessorSettings

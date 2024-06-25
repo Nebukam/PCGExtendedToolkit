@@ -25,6 +25,7 @@ namespace PCGExFactories
 		SortRule,
 		PartitionRule,
 		Filter,
+		Probe,
 		ClusterNodeFilter,
 		ClusterEdgeFilter,
 		NodeState,

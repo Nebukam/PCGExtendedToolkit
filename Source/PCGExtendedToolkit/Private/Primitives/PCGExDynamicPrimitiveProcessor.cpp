@@ -5,11 +5,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExDynamicPrimitiveProcessorElement"
 
-UPCGExDynamicPrimitiveProcessorSettings::UPCGExDynamicPrimitiveProcessorSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 PCGExData::EInit UPCGExDynamicPrimitiveProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExDynamicPrimitiveProcessorSettings::InputPinProperties() const

@@ -36,12 +36,6 @@ FName UPCGExPathfindingPlotNavmeshSettings::GetMainOutputLabel() const { return 
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
 
-void UPCGExPathfindingPlotNavmeshSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
-}
-
 FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
 {
 	PCGEX_TERMINATE_ASYNC

@@ -8,12 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
 #define PCGEX_NAMESPACE PickClosestClusters
 
-UPCGExPickClosestClustersSettings::UPCGExPickClosestClustersSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 PCGExData::EInit UPCGExPickClosestClustersSettings::GetEdgeOutputInitMode() const { return FilterActions.Action == EPCGExFilterDataAction::Tag ? PCGExData::EInit::Forward : PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExPickClosestClustersSettings::GetMainOutputInitMode() const { return FilterActions.Action == EPCGExFilterDataAction::Tag ? PCGExData::EInit::Forward : PCGExData::EInit::NoOutput; }
 

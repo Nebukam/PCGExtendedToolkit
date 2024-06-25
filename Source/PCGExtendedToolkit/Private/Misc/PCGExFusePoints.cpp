@@ -18,11 +18,6 @@ FPCGExFusePointsContext::~FPCGExFusePointsContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-UPCGExFusePointsSettings::UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 PCGEX_INITIALIZE_ELEMENT(FusePoints)
 
 bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const

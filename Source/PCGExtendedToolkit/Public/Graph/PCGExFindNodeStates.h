@@ -10,7 +10,7 @@
 #include "PCGExFindNodeStates.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExFindNodeStatesSettings : public UPCGExEdgesProcessorSettings

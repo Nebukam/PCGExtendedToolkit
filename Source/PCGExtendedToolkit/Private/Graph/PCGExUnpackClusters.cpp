@@ -6,12 +6,6 @@
 #define LOCTEXT_NAMESPACE "PCGExUnpackClusters"
 #define PCGEX_NAMESPACE UnpackClusters
 
-UPCGExUnpackClustersSettings::UPCGExUnpackClustersSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 PCGExData::EInit UPCGExUnpackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FName UPCGExUnpackClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourcePackedClustersLabel; }

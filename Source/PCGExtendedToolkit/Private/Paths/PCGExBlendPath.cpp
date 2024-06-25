@@ -20,12 +20,6 @@ PCGExData::EInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
 
-void UPCGExBlendPathSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
-}
-
 FPCGExBlendPathContext::~FPCGExBlendPathContext()
 {
 	PCGEX_TERMINATE_ASYNC

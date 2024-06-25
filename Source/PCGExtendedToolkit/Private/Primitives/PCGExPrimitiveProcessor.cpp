@@ -5,10 +5,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExPrimitiveProcessorElement"
 
-UPCGExPrimitiveProcessorSettings::UPCGExPrimitiveProcessorSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
 
 PCGExData::EInit UPCGExPrimitiveProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 

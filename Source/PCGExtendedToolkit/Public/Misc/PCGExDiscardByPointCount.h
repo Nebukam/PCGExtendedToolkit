@@ -11,7 +11,7 @@
 #include "PCGExDiscardByPointCount.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExDiscardByPointCountSettings : public UPCGExPointsProcessorSettings

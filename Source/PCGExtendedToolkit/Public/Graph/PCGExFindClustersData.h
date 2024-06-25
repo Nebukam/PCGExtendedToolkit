@@ -12,7 +12,7 @@
 #include "PCGExFindClustersData.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExFindClustersDataSettings : public UPCGExPointsProcessorSettings
@@ -20,8 +20,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFindClustersDataSettings : public UPCGExPoint
 	GENERATED_BODY()
 
 public:
-	UPCGExFindClustersDataSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FindClustersData, "Find Clusters Data", "Find vtx/edge pairs among a soup of data collections");

@@ -51,7 +51,7 @@ protected:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryShortestDistance : public UPCGHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryShortestDistance : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 

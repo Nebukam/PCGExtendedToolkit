@@ -21,7 +21,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBreakClustersToPathsSettings : public UPCGExE
 	GENERATED_BODY()
 
 public:
-	UPCGExBreakClustersToPathsSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

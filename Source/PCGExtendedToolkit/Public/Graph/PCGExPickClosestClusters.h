@@ -33,7 +33,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPickClosestClustersSettings : public UPCGExEd
 	GENERATED_BODY()
 
 public:
-	UPCGExPickClosestClustersSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

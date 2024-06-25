@@ -104,14 +104,6 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
 
-void UPCGExPathfindingPlotEdgesSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-
-	PCGEX_OPERATION_DEFAULT(SearchAlgorithm, UPCGExSearchAStar)
-	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
-}
-
 FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC

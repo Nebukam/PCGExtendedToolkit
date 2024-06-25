@@ -86,11 +86,6 @@ bool PCGEx::FAsyncPointLoop::Advance(const TFunction<void(const int32, const PCG
 
 #pragma region UPCGSettings interface
 
-UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 #if WITH_EDITOR
 void UPCGExPointsProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

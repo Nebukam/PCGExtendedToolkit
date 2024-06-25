@@ -11,12 +11,6 @@
 
 #pragma region UPCGSettings interface
 
-UPCGExDebugSettings::UPCGExDebugSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 TArray<FPCGPinProperties> UPCGExDebugSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;

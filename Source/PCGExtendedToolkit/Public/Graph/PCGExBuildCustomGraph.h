@@ -17,7 +17,7 @@ namespace PCGExCluster
 }
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExBuildCustomGraphSettings : public UPCGExCustomGraphProcessorSettings
@@ -37,7 +37,6 @@ protected:
 
 	//~Begin UObject interface
 public:
-	virtual void PostInitProperties() override;
 
 #if WITH_EDITOR
 

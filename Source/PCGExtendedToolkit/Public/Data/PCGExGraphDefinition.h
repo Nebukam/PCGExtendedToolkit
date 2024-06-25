@@ -605,7 +605,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGraphDefinition : public UPCGPointData
 	GENERATED_BODY()
 
 public:
-	UPCGExGraphDefinition(const FObjectInitializer& ObjectInitializer);
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
 
 	TArray<FPCGExSocketDescriptor> SocketsDescriptors;

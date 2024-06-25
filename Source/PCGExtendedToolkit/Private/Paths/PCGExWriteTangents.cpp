@@ -18,12 +18,6 @@ void UPCGExWriteTangentsSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
 
-void UPCGExWriteTangentsSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Tangents, UPCGExAutoTangents)
-}
-
 FPCGExWriteTangentsContext::~FPCGExWriteTangentsContext()
 {
 	Tangents = nullptr;

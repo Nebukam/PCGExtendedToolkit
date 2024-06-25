@@ -23,8 +23,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNeighborsSettings : public UPCGExEdgesP
 	GENERATED_BODY()
 
 public:
-	UPCGExSampleNeighborsSettings(const FObjectInitializer& ObjectInitializer);
-
+	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNeighbors, "Sample : Neighbors", "Sample graph node' neighbors values.");

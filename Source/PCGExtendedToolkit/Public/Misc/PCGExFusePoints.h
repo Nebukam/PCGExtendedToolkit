@@ -67,7 +67,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFusePointsSettings : public UPCGExPointsProce
 	GENERATED_BODY()
 
 public:
-	UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
