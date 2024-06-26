@@ -62,7 +62,7 @@ bool FPCGExConnectPointsElement::Boot(FPCGContext* InContext) const
 	PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories, {PCGExFactories::EType::Filter}, false);
 	PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceFilterConnectables, Context->ConnetablesFiltersFactories, {PCGExFactories::EType::Filter}, false);
 
-	Context->CWStackingTolerance = FVector(Settings->StackingPreventionTolerance);
+	Context->CWStackingTolerance = FVector(1 / Settings->StackingPreventionTolerance);
 
 	return true;
 }
@@ -171,14 +171,16 @@ namespace PCGExConnectPoints
 		PCGExDataFilter::TEarlyExitFilterManager* GeneratorsFilter = nullptr;
 		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
 		{
-			GeneratorsFilter->Register<UPCGExFilterFactoryBase>(Context, TypedContext->GeneratorsFiltersFactories, PointIO);
+			GeneratorsFilter = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
+			GeneratorsFilter->Register<UPCGExFilterFactoryBase>(Context, TypedContext->GeneratorsFiltersFactories);
 			GeneratorsFilter->bCacheResults = false;
 		}
 
 		PCGExDataFilter::TEarlyExitFilterManager* ConnectableFilter = nullptr;
 		if (!TypedContext->ConnetablesFiltersFactories.IsEmpty())
 		{
-			ConnectableFilter->Register<UPCGExFilterFactoryBase>(Context, TypedContext->ConnetablesFiltersFactories, PointIO);
+			ConnectableFilter = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
+			ConnectableFilter->Register<UPCGExFilterFactoryBase>(Context, TypedContext->ConnetablesFiltersFactories);
 			ConnectableFilter->bCacheResults = false;
 		}
 
@@ -246,6 +248,8 @@ namespace PCGExConnectPoints
 		}
 
 		for (UPCGExProbeOperation* Op : DirectProbeOperations) { Op->ProcessNode(Index, Point, TempStack, CWStackingTolerance); }
+		
+		PCGEX_DELETE(TempStack)
 	}
 
 	void FProcessor::CompleteWork()

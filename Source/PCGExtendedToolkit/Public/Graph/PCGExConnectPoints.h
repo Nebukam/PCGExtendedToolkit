@@ -51,16 +51,16 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings", ShowOnlyInnerProperties))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bPreventStacking;
+	bool bPreventStacking = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPreventStacking", ClampMin=0.001, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPreventStacking", ClampMin=0.00001, ClampMax=1))
 	double StackingPreventionTolerance = 0.001;
+
+	/** Graph & Edges output properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsContext final : public FPCGExPointsProcessorContext
@@ -75,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsContext final : public FPCGExPo
 
 	PCGExData::FPointIOCollection* MainVtx = nullptr;
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
-	
+
 	FVector CWStackingTolerance = FVector::ZeroVector;
 };
 

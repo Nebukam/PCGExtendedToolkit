@@ -97,14 +97,9 @@ namespace PCGExDataFilter
 		PCGExDataCaching::FPool* PointDataCache = nullptr;
 
 		template <typename T_DEF>
-		void Register(const FPCGContext* InContext, const TArray<T_DEF*>& InDefinitions, const PCGExData::FPointIO* InPointIO)
+		void Register(const FPCGContext* InContext, const TArray<T_DEF*>& InFactories)
 		{
-			RegisterAndCapture(
-				InContext, InDefinitions, [&](TFilter* Handler)
-				{
-					Handler->PointDataCache = PointDataCache;
-					Handler->Capture(InContext, PointDataCache);
-				});
+			RegisterAndCapture(InContext, InFactories, [&](TFilter* Handler) { Handler->Capture(InContext, PointDataCache); });
 		}
 
 		template <typename T_DEF, class CaptureFunc>

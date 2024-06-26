@@ -126,7 +126,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 					PointFilterCache.Empty();
 
 					PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
-					FilterManager->Register<UPCGExFilterFactoryBase>(Context, *FilterFactories, PointIO);
+					FilterManager->Register<UPCGExFilterFactoryBase>(Context, *FilterFactories);
 					for (int i = 0; i < PointIO->GetNum(); i++) { FilterManager->Test(i); }
 
 					PointFilterCache.Append(FilterManager->Results);

@@ -28,10 +28,12 @@ void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, co
 	Super::PrepareForCluster(InContext, ClusterIdx, Cluster, VtxDataCache, EdgeDataCache);
 	if (FilterFactories && !FilterFactories->IsEmpty())
 	{
+		/*
 		PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(VtxDataCache);
 		FilterManagers[ClusterIdx] = FilterManager;
 		FilterManager->bCacheResults = false;
-		FilterManager->Register(InContext, *FilterFactories, Cluster->EdgesIO);
+		FilterManager->Register(InContext, *FilterFactories);
+		*/
 		// TODO : Prepare for cluster etc 
 	}
 }

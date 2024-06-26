@@ -31,7 +31,7 @@ bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 		}
 	}
 
-	CWStackingTolerance = FVector(Descriptor.StackingPreventionTolerance);
+	CWStackingTolerance = FVector(1 / Descriptor.StackingPreventionTolerance);
 
 	return true;
 }
@@ -59,7 +59,7 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 
 		if (Descriptor.bPreventStacking)
 		{
-			Occupied.Add(C.GH, &bIsStacking);
+			Occupied.Add(PCGEx::GH(C.Direction, CWStackingTolerance), &bIsStacking);
 			if (bIsStacking) { continue; }
 		}
 
