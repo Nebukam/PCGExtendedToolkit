@@ -64,7 +64,7 @@ bool UPCGExSearchDijkstra::FindPath(
 		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
 
 		Visited.Add(CurrentNodeIndex, &bAlreadyVisited);
-		//if (bAlreadyVisited) { continue; }
+		if (bAlreadyVisited) { continue; }
 
 		for (const uint64 AdjacencyHash : Current.Adjacency)
 		{
@@ -79,7 +79,7 @@ bool UPCGExSearchDijkstra::FindPath(
 
 			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback);
 			const double PreviousScore = ScoredQueue->Scores[NeighborIndex];
-			if (PreviousScore != -1 && AltScore >= PreviousScore) { continue; }
+			if (PreviousScore != -1 && AltScore > PreviousScore) { continue; }
 
 			ScoredQueue->Enqueue(NeighborIndex, AltScore);
 			Previous[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
