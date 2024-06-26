@@ -116,7 +116,10 @@ namespace PCGExConnectPoints
 		DirectProbeOperations.Empty();
 
 		Positions.Empty();
-		PointStatus.Empty();
+		CanGenerate.Empty();
+
+		Octree = nullptr;
+		PCGEX_DELETE(LocalOctree)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -155,18 +158,7 @@ namespace PCGExConnectPoints
 
 		InPoints = &PointIO->GetIn()->GetPoints();
 
-		if (!ProbeOperations.IsEmpty())
-		{
-			Octree = &PointIO->GetIn()->GetOctree();
-			StartPtr = InPoints->GetData();
-
-			const TArray<FPCGPoint>& InPointsRef = (*InPoints);
-			Positions.SetNum(InPointsRef.Num());
-
-			for (int i = 0; i < InPointsRef.Num(); i++) { Positions[i] = InPointsRef[i].Transform.GetLocation(); }
-		}
-
-		PointStatus.SetNumUninitialized(InPoints->Num());
+		CanGenerate.SetNumUninitialized(InPoints->Num());
 
 		PCGExDataFilter::TEarlyExitFilterManager* GeneratorsFilter = nullptr;
 		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
@@ -174,6 +166,7 @@ namespace PCGExConnectPoints
 			GeneratorsFilter = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
 			GeneratorsFilter->Register<UPCGExFilterFactoryBase>(Context, TypedContext->GeneratorsFiltersFactories);
 			GeneratorsFilter->bCacheResults = false;
+			GeneratorsFilter->PrepareForTesting();
 		}
 
 		PCGExDataFilter::TEarlyExitFilterManager* ConnectableFilter = nullptr;
@@ -182,15 +175,36 @@ namespace PCGExConnectPoints
 			ConnectableFilter = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
 			ConnectableFilter->Register<UPCGExFilterFactoryBase>(Context, TypedContext->ConnetablesFiltersFactories);
 			ConnectableFilter->bCacheResults = false;
+			ConnectableFilter->PrepareForTesting();
+
+			if (!ProbeOperations.IsEmpty())
+			{
+				const FBox B = PointIO->GetIn()->GetBounds();
+				LocalOctree = new UPCGPointData::PointOctree(B.GetCenter(), B.GetExtent().Length());
+
+				int Index = 0;
+				for (const FPCGPoint& Point : (*InPoints))
+				{
+					if (!ConnectableFilter->Test(Index++)) { continue; }
+					LocalOctree->AddElement(FPCGPointRef(Point));
+				}
+
+				Octree = LocalOctree;
+			}
 		}
 
-		for (int i = 0; i < PointStatus.Num(); i++)
+		if (!ProbeOperations.IsEmpty())
 		{
-			uint8 Status = 0;
-			Status |= (GeneratorsFilter ? GeneratorsFilter->DirectTest(i) : true) ? 1 : 0;
-			Status |= (ConnectableFilter ? ConnectableFilter->DirectTest(i) : true) ? 2 : 0;
-			PointStatus[i] = Status;
+			if (!Octree) { Octree = &PointIO->GetIn()->GetOctree(); }
+			StartPtr = InPoints->GetData();
+
+			const TArray<FPCGPoint>& InPointsRef = (*InPoints);
+			Positions.SetNum(InPointsRef.Num());
+
+			for (int i = 0; i < InPointsRef.Num(); i++) { Positions[i] = InPointsRef[i].Transform.GetLocation(); }
 		}
+
+		for (int i = 0; i < CanGenerate.Num(); i++) { CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->Test(i) : true; }
 
 		PCGEX_DELETE(GeneratorsFilter)
 		PCGEX_DELETE(ConnectableFilter)
@@ -207,7 +221,7 @@ namespace PCGExConnectPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectPointsElement::ProcessSinglePoint);
 
-		if ((PointStatus[Index] & 1) == 0) { return; } // Not a generator
+		if (!CanGenerate[Index]) { return; } // Not a generator
 
 		TSet<uint64>* TempStack = nullptr;
 		if (bPreventStacking) { TempStack = new TSet<uint64>(); }
@@ -225,8 +239,7 @@ namespace PCGExConnectPoints
 			auto ProcessPoint = [&](const FPCGPointRef& InPointRef)
 			{
 				const ptrdiff_t OtherPointIndex = InPointRef.Point - StartPtr;
-				if (static_cast<int32>(OtherPointIndex) == Index ||        // Is currently sampled point
-					((PointStatus[OtherPointIndex] & 2) == 0)) { return; } // Is not accepting connections
+				if (static_cast<int32>(OtherPointIndex) == Index) { return; }
 
 				const FVector Position = Positions[OtherPointIndex];
 				const FVector Dir = (Origin - Position).GetSafeNormal();
@@ -248,7 +261,7 @@ namespace PCGExConnectPoints
 		}
 
 		for (UPCGExProbeOperation* Op : DirectProbeOperations) { Op->ProcessNode(Index, Point, TempStack, CWStackingTolerance); }
-		
+
 		PCGEX_DELETE(TempStack)
 	}
 

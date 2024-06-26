@@ -106,7 +106,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 bool FPCGExPlotNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingPlotNavmeshContext* Context = static_cast<FPCGExPathfindingPlotNavmeshContext*>(Manager->Context);
-
+	PCGEX_SETTINGS(PathfindingPlotNavmesh)
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
@@ -119,10 +119,22 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	PathLocations.Emplace_GetRef(0, FirstPoint.Transform.GetLocation(), FirstPoint.MetadataEntry);
 	FVector LastPosition = FVector::ZeroVector;
 
+	int32 MaxIterations = Settings->bClosedPath ? NumPlots : NumPlots - 1;
 	for (int i = 0; i < NumPlots - 1; i++)
 	{
-		const FPCGPoint& SeedPoint = PointIO->GetInPoint(i);
-		const FPCGPoint& GoalPoint = PointIO->GetInPoint(i + 1);
+		FPCGPoint SeedPoint;
+		FPCGPoint GoalPoint;
+
+		if (Settings->bClosedPath && i == NumPlots - 1)
+		{
+			SeedPoint = PointIO->GetInPoint(i);
+			GoalPoint = PointIO->GetInPoint(0);
+		}
+		else
+		{
+			SeedPoint = PointIO->GetInPoint(i);
+			GoalPoint = PointIO->GetInPoint(i + 1);
+		}
 
 		FVector SeedPosition = SeedPoint.Transform.GetLocation();
 		FVector GoalPosition = GoalPoint.Transform.GetLocation();
@@ -164,8 +176,17 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 		PathLocations.Last().PlotIndex = i + 1;
 	}
 
-	const FPCGPoint& LastPoint = PointIO->GetInPoint(NumPlots - 1);
-	PathLocations.Emplace_GetRef(NumPlots - 1, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
+	if (Settings->bClosedPath)
+	{
+		const FPCGPoint& LastPoint = PointIO->GetInPoint(0);
+		PathLocations.Emplace_GetRef(0, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
+	}
+	else
+	{
+		const FPCGPoint& LastPoint = PointIO->GetInPoint(NumPlots - 1);
+		PathLocations.Emplace_GetRef(NumPlots - 1, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
+	}
+
 
 	int32 LastPlotIndex = -1;
 	TArray<int32> Milestones;

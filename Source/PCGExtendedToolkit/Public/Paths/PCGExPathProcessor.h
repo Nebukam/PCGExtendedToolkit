@@ -37,10 +37,9 @@ public:
 #if WITH_EDITOR
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPath; }
 #endif
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings interface
 
+	virtual FString GetPointFilterTooltip() const override;
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:

@@ -93,7 +93,7 @@ namespace PCGExDataState
 		virtual void PrepareForTesting() override;
 		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
 
-		virtual void Test(const int32 PointIndex) override;
+		virtual bool Test(const int32 PointIndex) override;
 
 		void WriteStateNames(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, FName DefaultValue, const TArrayView<const int32>& InIndices);
 		void WriteStateValues(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, int32 DefaultValue, const TArrayView<const int32>& InIndices);

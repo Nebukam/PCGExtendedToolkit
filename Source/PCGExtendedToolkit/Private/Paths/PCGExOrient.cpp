@@ -68,7 +68,6 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](PCGExPointsMT::TBatch<PCGExOrient::FProcessor>* NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->Orientation;
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			},
 			PCGExMT::State_Done))
 		{

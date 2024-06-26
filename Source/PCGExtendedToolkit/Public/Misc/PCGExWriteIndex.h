@@ -46,15 +46,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext final : public FPCGExPoint
 
 	virtual ~FPCGExWriteIndexContext() override;
 
-	mutable FRWLock MapLock;
-	bool bOutputNormalizedIndex;
-	FName OutputAttributeName = NAME_None;
-
-	TArray<int32> IndicesBuffer;
-	PCGEx::FAttributeAccessor<int32>* IndexAccessor = nullptr;
-
-	TArray<double> NormalizedIndicesBuffer;
-	PCGEx::FAttributeAccessor<double>* NormalizedIndexAccessor = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement

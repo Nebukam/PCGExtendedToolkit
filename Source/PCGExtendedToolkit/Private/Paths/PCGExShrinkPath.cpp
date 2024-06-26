@@ -145,7 +145,6 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](PCGExPointsMT::TBatch<PCGExShrinkPath::FProcessor>* NewBatch)
 			{
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			},
 			PCGExMT::State_Done))
 		{

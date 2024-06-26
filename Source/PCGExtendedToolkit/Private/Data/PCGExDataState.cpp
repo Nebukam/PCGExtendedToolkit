@@ -130,7 +130,7 @@ namespace PCGExDataState
 		return TFilterManager::PrepareForTesting(PointIndices);
 	}
 
-	void TStatesManager::Test(const int32 PointIndex)
+	bool TStatesManager::Test(const int32 PointIndex)
 	{
 		int32 HState = -1;
 
@@ -143,6 +143,7 @@ namespace PCGExDataState
 		}
 
 		HighestState[PointIndex] = HState;
+		return HState != -1;
 	}
 
 	void TStatesManager::WriteStateNames(PCGExMT::FTaskManager* AsyncManager, const FName AttributeName, const FName DefaultValue, const TArrayView<const int32>& InIndices)

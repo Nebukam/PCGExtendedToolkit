@@ -85,7 +85,6 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExSampleNearestPolyline::FProcessor>* NewBatch)
 			{
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			},
 			PCGExMT::State_Done))
 		{

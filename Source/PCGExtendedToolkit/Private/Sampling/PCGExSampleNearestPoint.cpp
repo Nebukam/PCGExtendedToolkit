@@ -87,7 +87,6 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>* NewBatch)
 			{
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			},
 			PCGExMT::State_Done))
 		{

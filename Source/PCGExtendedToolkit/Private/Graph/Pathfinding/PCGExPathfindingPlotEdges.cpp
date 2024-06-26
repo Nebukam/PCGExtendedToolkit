@@ -63,8 +63,22 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		}
 
 		if (bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
-
 		SeedPosition = GoalPosition;
+	}
+
+	if(Settings->bClosedPath)
+	{
+		FVector SeedPosition = InPlotPoints->GetInPoint(InPlotPoints->GetNum()-1).Transform.GetLocation();
+		FVector GoalPosition = InPlotPoints->GetInPoint(0).Transform.GetLocation();
+
+		if (!SearchOperation->FindPath(
+			SeedPosition, &Settings->SeedPicking,
+			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
+		{
+			// Failed
+		}
+
+		if (bAddPlotPointsToPath) { Path.Add(-1); } // Add First pt
 	}
 
 	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);

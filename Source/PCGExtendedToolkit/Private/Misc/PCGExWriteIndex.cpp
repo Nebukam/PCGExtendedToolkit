@@ -12,8 +12,7 @@ PCGEX_INITIALIZE_ELEMENT(WriteIndex)
 
 FPCGExWriteIndexContext::~FPCGExWriteIndexContext()
 {
-	IndicesBuffer.Empty();
-	NormalizedIndicesBuffer.Empty();
+	PCGEX_TERMINATE_ASYNC
 }
 
 bool FPCGExWriteIndexElement::Boot(FPCGContext* InContext) const
@@ -22,7 +21,7 @@ bool FPCGExWriteIndexElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteIndex)
 
-	PCGEX_VALIDATE_NAME(Context->OutputAttributeName)
+	PCGEX_VALIDATE_NAME(Settings->OutputAttributeName)
 
 	return true;
 }

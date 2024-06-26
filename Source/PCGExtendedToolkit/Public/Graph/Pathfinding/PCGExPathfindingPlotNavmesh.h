@@ -61,6 +61,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddPlotPointsToPath = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bClosedPath = false;
+
 	/** Whether the pathfinding requires a naviguable end location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bRequireNavigableEndLocation = true;
@@ -81,7 +84,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FNavAgentProperties NavAgentProperties;
 };
-
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext final : public FPCGExPointsProcessorContext
 {

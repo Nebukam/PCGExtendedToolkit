@@ -8,16 +8,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
 
-TArray<FPCGPinProperties> UPCGExPathProcessorSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (SupportsPointFilters())
-	{
-		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterLabel(), "Path points processing filters", Required, {}) }
-		else { PCGEX_PIN_PARAMS(GetPointFilterLabel(), "Path points processing filters", Advanced, {}) }
-	}
-	return PinProperties;
-}
+FString UPCGExPathProcessorSettings::GetPointFilterTooltip() const { return TEXT("Path points processing filters"); }
 
 PCGExData::EInit UPCGExPathProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 

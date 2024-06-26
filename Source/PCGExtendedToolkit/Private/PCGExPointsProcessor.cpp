@@ -100,8 +100,15 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 	if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
 	else { PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
 
+	if (SupportsPointFilters())
+	{
+		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterLabel(), GetPointFilterTooltip(), Required, {}) }
+		else { PCGEX_PIN_PARAMS(GetPointFilterLabel(), GetPointFilterTooltip(), Advanced, {}) }
+	}
+
 	return PinProperties;
 }
+
 
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
@@ -124,6 +131,11 @@ bool UPCGExPointsProcessorSettings::GetMainAcceptMultipleData() const { return t
 PCGExData::EInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FName UPCGExPointsProcessorSettings::GetPointFilterLabel() const { return NAME_None; }
+
+FString UPCGExPointsProcessorSettings::GetPointFilterTooltip() const { return TEXT("Filters"); }
+
+TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes() const { return {PCGExFactories::EType::Filter}; }
+
 bool UPCGExPointsProcessorSettings::SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
 bool UPCGExPointsProcessorSettings::RequiresPointFilters() const { return false; }
 
@@ -147,7 +159,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	ProcessorOperations.Empty();
 	OwnedProcessorOperations.Empty();
 
-	PCGEX_DELETE_TARRAY(FilterFactories)
+	FilterFactories.Empty();
 	PCGEX_DELETE(MainPoints)
 
 	CurrentIO = nullptr;
@@ -305,7 +317,7 @@ FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 	check(Settings);
 
 	InContext->bFlattenOutput = Settings->bFlattenOutput;
-	
+
 	InContext->SetState(PCGExMT::State_Setup);
 	InContext->bDoAsyncProcessing = Settings->bDoAsyncProcessing;
 	InContext->ChunkSize = FMath::Max((Settings->ChunkSize <= 0 ? Settings->GetPreferredChunkSize() : Settings->ChunkSize), 1);
@@ -360,7 +372,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->SupportsPointFilters())
 	{
-		PCGExFactories::GetInputFactories(InContext, Settings->GetPointFilterLabel(), Context->FilterFactories, {PCGExFactories::EType::Filter}, false);
+		PCGExFactories::GetInputFactories(InContext, Settings->GetPointFilterLabel(), Context->FilterFactories, Settings->GetPointFilterTypes(), false);
 		if (Settings->RequiresPointFilters() && Context->FilterFactories.IsEmpty())
 		{
 			PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(Settings->GetPointFilterLabel())));

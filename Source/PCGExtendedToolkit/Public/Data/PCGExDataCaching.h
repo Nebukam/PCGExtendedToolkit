@@ -82,7 +82,12 @@ namespace PCGExDataCaching
 				bInitialized = true;
 
 				Reader = new PCGEx::TFAttributeReader<T>(FullName);
-				Reader->Bind(Source);
+
+				if (!Reader->Bind(Source))
+				{
+					bInitialized = false;
+					PCGEX_DELETE(Reader)
+				}
 
 				return Reader;
 			}
@@ -238,7 +243,7 @@ namespace PCGExDataCaching
 		template <typename T>
 		FCache<T>* GetOrCreateWriter(const FName Name, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
 		{
-			FCache<T>* Cache = GetOrCreateCache(Name, PCGEx::GetMetadataType(T{}));
+			FCache<T>* Cache = GetOrCreateCache<T>(Name);
 			Cache->PrepareWriter(DefaultValue, bAllowInterpolation, bUninitialized);
 			return Cache;
 		}
@@ -255,7 +260,14 @@ namespace PCGExDataCaching
 		FCache<T>* GetOrCreateReader(const FName Name)
 		{
 			FCache<T>* Cache = GetOrCreateCache<T>(Name);
-			Cache->PrepareReader();
+			PCGEx::TFAttributeReader<T>* Reader = Cache->PrepareReader();
+			if (!Reader)
+			{
+				FWriteScopeLock WriteScopeLock(PoolLock);
+				Caches.Remove(Cache);
+				CacheMap.Remove(Cache->UID);
+				PCGEX_DELETE(Cache)
+			}
 			return Cache;
 		}
 

@@ -63,7 +63,6 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>* NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->SmoothingMethod;
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			},
 			PCGExMT::State_Done))
 		{

@@ -139,7 +139,7 @@ namespace PCGExDataFilter
 		virtual void PrepareForTesting();
 		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices);
 
-		virtual void Test(const int32 PointIndex);
+		virtual bool Test(const int32 PointIndex);
 
 		virtual ~TFilterManager()
 		{
@@ -157,8 +157,7 @@ namespace PCGExDataFilter
 
 		TArray<bool> Results;
 
-		virtual void Test(const int32 PointIndex) override;
-		bool DirectTest(const int32 PointIndex);
+		virtual bool Test(const int32 PointIndex) override;
 
 		virtual void PrepareForTesting() override;
 		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;

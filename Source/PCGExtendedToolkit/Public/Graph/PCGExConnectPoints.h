@@ -102,8 +102,9 @@ namespace PCGExConnectPoints
 		bool bUseVariableRadius = false;
 		double MaxRadiusSquared = TNumericLimits<double>::Min();
 
-		TArray<uint8> PointStatus;
+		TArray<bool> CanGenerate;
 		const UPCGPointData::PointOctree* Octree = nullptr;
+		UPCGPointData::PointOctree* LocalOctree = nullptr;
 
 		const FPCGPoint* StartPtr = nullptr;
 		const TArray<FPCGPoint>* InPoints = nullptr;

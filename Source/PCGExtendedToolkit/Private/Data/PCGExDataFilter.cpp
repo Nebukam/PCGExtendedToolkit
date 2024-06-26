@@ -63,9 +63,10 @@ namespace PCGExDataFilter
 		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIndices); }
 	}
 
-	void TFilterManager::Test(const int32 PointIndex)
+	bool TFilterManager::Test(const int32 PointIndex)
 	{
 		for (TFilter* Handler : Handlers) { Handler->Results[PointIndex] = Handler->Test(PointIndex); }
+		return true;
 	}
 
 	void TFilterManager::PostProcessHandler(TFilter* Handler)
@@ -77,7 +78,7 @@ namespace PCGExDataFilter
 	{
 	}
 
-	void TEarlyExitFilterManager::Test(const int32 PointIndex)
+	bool TEarlyExitFilterManager::Test(const int32 PointIndex)
 	{
 		bool bPass = true;
 		for (const TFilter* Handler : Handlers)
@@ -89,30 +90,37 @@ namespace PCGExDataFilter
 			}
 		}
 
-		Results[PointIndex] = bPass;
-	}
-
-	bool TEarlyExitFilterManager::DirectTest(const int32 PointIndex)
-	{
-		for (const TFilter* Handler : Handlers)
-		{
-			if (!Handler->Test(PointIndex))
-			{
-				return false;
-			}
-		}
-		return true;
+		if (bCacheResults) { Results[PointIndex] = bPass; }
+		return bPass;
 	}
 
 	void TEarlyExitFilterManager::PrepareForTesting()
 	{
-		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(); }
-		Results.SetNumUninitialized(PointDataCache->Source->GetNum());
-		for (bool& Result : Results) { Result = true; }
+		for (TFilter* Handler : Handlers)
+		{
+			Handler->bCacheResults = false;
+			Handler->PrepareForTesting();
+		}
+
+		if (bCacheResults)
+		{
+			Results.SetNumUninitialized(PointDataCache->Source->GetNum());
+			for (bool& Result : Results) { Result = true; }
+		}
 	}
 
 	void TEarlyExitFilterManager::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
-		check(false) //this override Should not be used with early exit
+		for (TFilter* Handler : Handlers)
+		{
+			Handler->bCacheResults = false;
+			Handler->PrepareForTesting(PointIndices);
+		}
+
+		if (bCacheResults)
+		{
+			Results.SetNumUninitialized(PointDataCache->Source->GetNum());
+			for (bool& Result : Results) { Result = true; }
+		}
 	}
 }

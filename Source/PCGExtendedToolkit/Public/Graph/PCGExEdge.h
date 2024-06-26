@@ -10,17 +10,6 @@
 
 #include "PCGExEdge.generated.h"
 
-UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Edge Type"))
-enum class EPCGExEdgeType : uint8
-{
-	Unknown  = 0 UMETA(DisplayName = "Unknown", Tooltip="Unknown type."),
-	Roaming  = 1 << 0 UMETA(DisplayName = "Roaming", Tooltip="Unidirectional edge."),
-	Shared   = 1 << 1 UMETA(DisplayName = "Shared", Tooltip="Shared edge, both sockets are connected; but do not match."),
-	Match    = 1 << 2 UMETA(DisplayName = "Match", Tooltip="Shared relation, considered a match by the primary socket owner; but does not match on the other."),
-	Complete = 1 << 3 UMETA(DisplayName = "Complete", Tooltip="Shared, matching relation on both sockets."),
-	Mirror   = 1 << 4 UMETA(DisplayName = "Mirrored relation", Tooltip="Mirrored relation, connected sockets are the same on both points."),
-};
-
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExDebugEdgeSettings
@@ -83,7 +72,6 @@ namespace PCGExGraph
 	{
 		uint32 Start = 0;
 		uint32 End = 0;
-		EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
 		bool bValid = true;
 
 		FEdge()
@@ -94,12 +82,6 @@ namespace PCGExGraph
 			Start(InStart), End(InEnd)
 		{
 			bValid = InStart != InEnd && InStart != -1 && InEnd != -1;
-		}
-
-		FEdge(const int32 InStart, const int32 InEnd, const EPCGExEdgeType InType)
-			: FEdge(InStart, InEnd)
-		{
-			Type = InType;
 		}
 
 		bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
@@ -124,7 +106,6 @@ namespace PCGExGraph
 		{
 			Start = static_cast<uint32>(InValue & 0xFFFFFFFF);
 			End = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
-			Type = EPCGExEdgeType::Unknown;
 		}
 	};
 
@@ -139,11 +120,6 @@ namespace PCGExGraph
 		{
 		}
 
-		FUnsignedEdge(const int32 InStart, const int32 InEnd, const EPCGExEdgeType InType):
-			FEdge(InStart, InEnd, InType)
-		{
-		}
-
 		bool operator==(const FUnsignedEdge& Other) const
 		{
 			return H64U() == Other.H64U();
@@ -152,7 +128,6 @@ namespace PCGExGraph
 		explicit FUnsignedEdge(const uint64 InValue)
 		{
 			PCGEx::H64(InValue, Start, End);
-			Type = EPCGExEdgeType::Unknown;
 		}
 
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }

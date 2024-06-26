@@ -116,20 +116,21 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 			if (FilterFactories)
 			{
+				PointFilterCache.SetNumUninitialized(PointIO->GetNum());
+				
 				if (FilterFactories->IsEmpty())
 				{
-					PointFilterCache.SetNumUninitialized(PointIO->GetNum());
 					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
 				}
 				else
 				{
-					PointFilterCache.Empty();
-
 					PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
-					FilterManager->Register<UPCGExFilterFactoryBase>(Context, *FilterFactories);
-					for (int i = 0; i < PointIO->GetNum(); i++) { FilterManager->Test(i); }
 
-					PointFilterCache.Append(FilterManager->Results);
+					FilterManager->Register<UPCGExFilterFactoryBase>(Context, *FilterFactories);
+					FilterManager->bCacheResults = false;
+					FilterManager->PrepareForTesting();
+					
+					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = FilterManager->Test(i); }
 					PCGEX_DELETE(FilterManager)
 				}
 			}

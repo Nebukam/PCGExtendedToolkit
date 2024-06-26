@@ -114,6 +114,8 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const;
 
 	virtual FName GetPointFilterLabel() const;
+	virtual FString GetPointFilterTooltip() const;
+	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const;
 	bool SupportsPointFilters() const;
 	virtual bool RequiresPointFilters() const;
 
@@ -155,13 +157,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	virtual bool ExecuteAutomation();
 
 	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
+
 	void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true)
 	{
 		if (bResetAsyncWork) { ResetAsyncWork(); }
 		if (CurrentState == OperationId) { return; }
 		CurrentState = OperationId;
 	}
-	
+
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
@@ -252,6 +255,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	{
 		PCGEX_DELETE(MainBatch)
 
+		PCGEX_SETTINGS_LOCAL(PointsProcessor)
+
 		TargetState_PointsProcessingDone = InState;
 		BatchablePoints.Empty();
 
@@ -264,7 +269,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 		if (BatchablePoints.IsEmpty()) { return false; }
 
 		MainBatch = new T(this, BatchablePoints);
-		InitBatch(static_cast<T*>(MainBatch));
+		T* TypedBatch = static_cast<T*>(MainBatch);
+		InitBatch(TypedBatch);
+
+		if (Settings->SupportsPointFilters())
+		{
+			TypedBatch->SetPointsFilterData(&FilterFactories);
+		}
 
 		ScheduleBatch(GetAsyncManager(), MainBatch);
 		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
