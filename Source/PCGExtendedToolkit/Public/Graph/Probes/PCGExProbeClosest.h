@@ -36,7 +36,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorClosest : public FPCGExProbeD
 	FPCGAttributePropertyInputSelector MaxConnectionsAttribute;
 
 	/** Attempts to prevent connections that are roughly in the same direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bPreventStacking = true;
 
 	/** Attempts to prevent connections that are roughly in the same direction */
