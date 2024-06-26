@@ -40,7 +40,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorClosest : public FPCGExProbeD
 	bool bPreventStacking = true;
 
 	/** Attempts to prevent connections that are roughly in the same direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPreventStacking", EditConditionHides, ClampMin=0.00001))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPreventStacking", ClampMin=0.00001))
 	double StackingPreventionTolerance = 0.001;
 
 	/** Unbounded means this probe will sample ALL points to find a match. This is uber expensive. */
