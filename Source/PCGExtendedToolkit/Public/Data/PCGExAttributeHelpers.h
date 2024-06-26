@@ -489,8 +489,12 @@ namespace PCGEx
 
 #pragma region Local Attribute Inputs
 
+	struct PCGEXTENDEDTOOLKIT_API FAttributeGetterBase
+	{
+	};
+
 	template <typename T>
-	struct PCGEXTENDEDTOOLKIT_API FAttributeGetter
+	struct PCGEXTENDEDTOOLKIT_API FAttributeGetter : public FAttributeGetterBase
 	{
 	protected:
 		bool bMinMaxDirty = true;
@@ -513,10 +517,14 @@ namespace PCGEx
 			FAttributeGetter<T>::Cleanup();
 		}
 
+		virtual EPCGMetadataTypes GetType() { return EPCGMetadataTypes::Unknown; }
+
 		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
 		bool bUseAxis = false;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 		EPCGExSingleField Field = EPCGExSingleField::X;
+
+		FName FullName = NAME_None;
 
 		TArray<T> Values;
 		mutable T Min = T{};
@@ -541,9 +549,13 @@ namespace PCGEx
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param PointIO
-		 * @param bCaptureMinMax 
+		 * @param Dump
+		 * @param bCaptureMinMax
+		 * @param OutMin
+		 * @param OutMax
 		 */
-		bool Grab(const PCGExData::FPointIO* PointIO, const bool bCaptureMinMax = false)
+		template <typename T>
+		bool GrabAndDump(const PCGExData::FPointIO* PointIO, TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax)
 		{
 			Cleanup();
 
@@ -560,7 +572,7 @@ namespace PCGEx
 			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Descriptor.Selector, InData, ExtraNames);
 			if (!Selector.IsValid()) { return false; }
 
-			ProcessExtraNames(ExtraNames);
+			ProcessExtraNames(Selector.GetName(), ExtraNames);
 
 			int32 NumPoints = PointIO->GetNum();
 			Selection = Selector.GetSelection();
@@ -577,7 +589,7 @@ namespace PCGEx
 						TArray<RawT> RawValues;
 
 						RawValues.SetNumUninitialized(NumPoints);
-						Values.SetNumUninitialized(NumPoints);
+						Dump.SetNumUninitialized(NumPoints);
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
 						FPCGAttributeAccessor<RawT>* Accessor = new FPCGAttributeAccessor<RawT>(TypedAttribute, InData->Metadata);
@@ -590,14 +602,14 @@ namespace PCGEx
 							for (int i = 0; i < NumPoints; i++)
 							{
 								T V = Convert(RawValues[i]);
-								Min = PCGExMath::Min(V, Min);
-								Max = PCGExMath::Max(V, Max);
-								Values[i] = V;
+								OutMin = PCGExMath::Min(V, OutMin);
+								OutMax = PCGExMath::Max(V, OutMax);
+								Dump[i] = V;
 							}
 						}
 						else
 						{
-							for (int i = 0; i < NumPoints; i++) { Values[i] = Convert(RawValues[i]); }
+							for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(RawValues[i]); }
 						}
 
 						RawValues.Empty();
@@ -610,11 +622,11 @@ namespace PCGEx
 			{
 				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-				Values.SetNumUninitialized(NumPoints);
+				Dump.SetNumUninitialized(NumPoints);
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
 				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) {\
-						T V = Convert(InPoints[i]._ACCESSOR); Min = PCGExMath::Min(V, Min); Max = PCGExMath::Max(V, Max); Values[i] = V;\
-					} } else { for (int i = 0; i < NumPoints; i++) { Values[i] = Convert(InPoints[i]._ACCESSOR); } } break;
+						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExMath::Min(V, OutMin); OutMax = PCGExMath::Max(V, OutMax); Dump[i] = V;\
+					} } else { for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } } break;
 
 				switch (Descriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
@@ -631,7 +643,13 @@ namespace PCGEx
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param PointIO
+		 * @param bCaptureMinMax 
 		 */
+		bool Grab(const PCGExData::FPointIO* PointIO, const bool bCaptureMinMax = false)
+		{
+			return GrabAndDump(PointIO, Values, bCaptureMinMax, Min, Max);
+		}
+
 		bool SoftGrab(const PCGExData::FPointIO* PointIO)
 		{
 			Cleanup();
@@ -646,7 +664,7 @@ namespace PCGEx
 			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Descriptor.Selector, InData, ExtraNames);
 			if (!Selector.IsValid()) { return false; }
 
-			ProcessExtraNames(ExtraNames);
+			ProcessExtraNames(Descriptor.Selector.GetName(), ExtraNames);
 
 			Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)
@@ -721,7 +739,7 @@ namespace PCGEx
 		virtual void Capture(const FPCGAttributePropertyInputSelector& InDescriptor) { Capture(FPCGExInputDescriptor(InDescriptor)); }
 
 	protected:
-		virtual void ProcessExtraNames(const TArray<FString>& ExtraNames)
+		virtual void ProcessExtraNames(const FName BaseName, const TArray<FString>& ExtraNames)
 		{
 			if (GetAxisSelection(ExtraNames, Axis))
 			{
@@ -737,6 +755,8 @@ namespace PCGEx
 			}
 
 			GetFieldSelection(ExtraNames, Field);
+
+			FullName = ExtraNames.IsEmpty() ? BaseName : FName(BaseName.ToString() + FString::Join(ExtraNames, TEXT(".")));
 		}
 
 		FORCEINLINE virtual T GetDefaultValue() const = 0;
@@ -823,6 +843,8 @@ namespace PCGEx
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalSingleFieldGetter : public FAttributeGetter<double>
 	{
+		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Double; }
+
 	protected:
 		virtual void ResetMinMax() override
 		{
@@ -928,6 +950,8 @@ namespace PCGEx
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalIntegerGetter final : public FAttributeGetter<int32>
 	{
+		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Integer32; }
+
 	protected:
 		virtual void ResetMinMax() override
 		{
@@ -1033,6 +1057,8 @@ namespace PCGEx
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalBoolGetter final : public FAttributeGetter<bool>
 	{
+		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Boolean; }
+
 	protected:
 		virtual void ResetMinMax() override
 		{
@@ -1138,6 +1164,8 @@ namespace PCGEx
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalVectorGetter final : public FAttributeGetter<FVector>
 	{
+		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Vector; }
+
 	protected:
 		virtual void ResetMinMax() override
 		{
@@ -1176,6 +1204,8 @@ namespace PCGEx
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalToStringGetter final : public FAttributeGetter<FString>
 	{
+		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::String; }
+
 	protected:
 		virtual void ResetMinMax() override
 		{

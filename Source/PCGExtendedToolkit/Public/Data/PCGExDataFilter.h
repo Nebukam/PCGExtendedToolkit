@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExData.h"
+#include "PCGExDataCaching.h"
 #include "PCGExFactoryProvider.h"
 
 #include "PCGExDataFilter.generated.h"
@@ -59,7 +60,7 @@ namespace PCGExDataFilter
 		{
 		}
 
-		const PCGExData::FPointIO* FilteredIO = nullptr;
+		PCGExDataCaching::FPool* PointDataCache = nullptr;
 
 		bool bCacheResults = true;
 		const UPCGExFilterFactoryBase* Factory;
@@ -70,10 +71,10 @@ namespace PCGExDataFilter
 
 		FORCEINLINE virtual EType GetFilterType() const;
 
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
+		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache);
 
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO);
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices);
+		virtual void PrepareForTesting();
+		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices);
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const = 0;
 
@@ -86,19 +87,24 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TFilterManager
 	{
 	public:
-		explicit TFilterManager(const PCGExData::FPointIO* InPointIO);
+		explicit TFilterManager(PCGExDataCaching::FPool* InPrimaryDataCache);
 
 		TArray<TFilter*> Handlers;
 
 		bool bCacheResults = true;
 		bool bValid = false;
 
-		const PCGExData::FPointIO* PointIO = nullptr;
+		PCGExDataCaching::FPool* PointDataCache = nullptr;
 
 		template <typename T_DEF>
 		void Register(const FPCGContext* InContext, const TArray<T_DEF*>& InDefinitions, const PCGExData::FPointIO* InPointIO)
 		{
-			RegisterAndCapture(InContext, InDefinitions, [&](TFilter* Handler) { Handler->Capture(InContext, InPointIO); });
+			RegisterAndCapture(
+				InContext, InDefinitions, [&](TFilter* Handler)
+				{
+					Handler->PointDataCache = PointDataCache;
+					Handler->Capture(InContext, PointDataCache);
+				});
 		}
 
 		template <typename T_DEF, class CaptureFunc>
@@ -152,14 +158,14 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TEarlyExitFilterManager final : public TFilterManager
 	{
 	public:
-		explicit TEarlyExitFilterManager(const PCGExData::FPointIO* InPointIO);
+		explicit TEarlyExitFilterManager(PCGExDataCaching::FPool* InPrimaryDataCache);
 
 		TArray<bool> Results;
 
 		virtual void Test(const int32 PointIndex) override;
+		bool DirectTest(const int32 PointIndex);
 
 		virtual void PrepareForTesting() override;
 		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
 	};
-
 }

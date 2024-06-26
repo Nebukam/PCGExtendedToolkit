@@ -10,6 +10,7 @@
 #include "PCGExEdge.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataCaching.h"
 
 #include "PCGExGraph.generated.h"
 
@@ -132,9 +133,9 @@ namespace PCGExGraph
 	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
 	const FName SourceProbesLabel = TEXT("Probes");
 	const FName OutputProbeLabel = TEXT("Probe");
-
-	const FName OutputSocketStateLabel = TEXT("SocketState");
-	const FName SourceSocketStateLabel = TEXT("SocketStates");
+	
+	const FName SourceFilterGenerators = TEXT("Generator Filters");
+	const FName SourceFilterConnectables = TEXT("Connectable Filters");
 
 	const FName SourceSingleGraphLabel = TEXT("Graph");
 	const FName OutputForwardGraphsLabel = TEXT("➜");
@@ -360,7 +361,7 @@ namespace PCGExGraph
 			VtxIO = nullptr;
 			EdgesIO = nullptr;
 		}
-		
+
 		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph);
 
 		void LockOrder();
@@ -411,7 +412,7 @@ namespace PCGExGraph
 		void InsertEdges(const TArray<uint64>& InEdges, int32 InIOIndex);
 		void InsertEdges(const TArray<FUnsignedEdge>& InEdges, int32 InIOIndex);
 		void InsertEdges(const TArray<FIndexedEdge>& InEdges);
-		
+
 		void InsertEdgesUnsafe(const TSet<uint64>& InEdges, int32 InIOIndex);
 
 		TArrayView<FNode> AddNodes(const int32 NumNewNodes);
@@ -459,6 +460,8 @@ namespace PCGExGraph
 		PCGExData::FPointIOCollection* EdgesIO = nullptr;
 		PCGExData::FPointIOCollection* SourceEdgesIO = nullptr;
 
+		PCGExDataCaching::FPool* VtxDataCache = nullptr;
+
 		bool bCompiledSuccessfully = false;
 
 		FGraphBuilder(PCGExData::FPointIO* InPointIO, const FPCGExGraphBuilderSettings* InSettings, const int32 NumEdgeReserve = 6, PCGExData::FPointIOCollection* InSourceEdges = nullptr)
@@ -469,6 +472,7 @@ namespace PCGExGraph
 			PointIO->Tags->Set(TagStr_ClusterPair, PairId, PairIdStr);
 
 			const int32 NumNodes = PointIO->GetOutNum();
+			VtxDataCache = new PCGExDataCaching::FPool(PointIO);
 
 			Graph = new FGraph(NumNodes, NumEdgeReserve);
 			Graph->bBuildClusters = InSettings->bOutputClusters;
@@ -491,6 +495,7 @@ namespace PCGExGraph
 		{
 			PCGEX_DELETE(Graph)
 			PCGEX_DELETE(EdgesIO)
+			PCGEX_DELETE(VtxDataCache)
 		}
 	};
 
@@ -610,8 +615,8 @@ namespace PCGExGraphTask
 
 	static void WriteSubGraphEdges(
 		PCGExMT::FTaskManager* AsyncManager,
-		const TArray<FPCGPoint> & Vertices,
-		PCGExGraph::FSubGraph * SubGraph, const PCGExGraph::FGraphMetadataSettings * MetadataSettings);
+		const TArray<FPCGPoint>& Vertices,
+		PCGExGraph::FSubGraph* SubGraph, const PCGExGraph::FGraphMetadataSettings* MetadataSettings);
 
 	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
@@ -630,7 +635,7 @@ namespace PCGExGraphTask
 
 		virtual bool ExecuteTask() override;
 	};
-	
+
 	class PCGEXTENDEDTOOLKIT_API FWriteSmallSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
@@ -660,7 +665,7 @@ namespace PCGExGraphTask
 	{
 	public:
 		FWriteSubGraphCluster(PCGExData::FPointIO* InPointIO,
-							PCGExGraph::FSubGraph* InSubGraph)
+		                      PCGExGraph::FSubGraph* InSubGraph)
 			: FPCGExTask(InPointIO),
 			  SubGraph(InSubGraph)
 		{
@@ -669,7 +674,7 @@ namespace PCGExGraphTask
 		PCGExGraph::FSubGraph* SubGraph = nullptr;
 		virtual bool ExecuteTask() override;
 	};
-	
+
 	class PCGEXTENDEDTOOLKIT_API FCompileGraph final : public PCGExMT::FPCGExTask
 	{
 	public:

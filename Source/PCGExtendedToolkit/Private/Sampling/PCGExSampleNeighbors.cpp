@@ -108,7 +108,7 @@ namespace PCGExSampleNeighbors
 		{
 			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation();
 			SamplingOperation->BindContext(TypedContext);
-			SamplingOperation->PrepareForCluster(Context, Cluster);
+			SamplingOperation->PrepareForCluster(Context, Cluster, VtxDataCache, EdgeDataCache);
 
 			if (!SamplingOperation->IsOperationValid())
 			{

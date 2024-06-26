@@ -52,8 +52,8 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 				if (Entries->Entries.Num() == 1)
 				{
 					// No clusters to consolidate, just dump existing points
-					Context->CurrentIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-					Entries->Entries[0]->InitializeOutput(PCGExData::EInit::DuplicateInput);
+					Context->CurrentIO->InitializeOutput(PCGExData::EInit::Forward);
+					Entries->Entries[0]->InitializeOutput(PCGExData::EInit::Forward);
 					return false;
 				}
 
@@ -66,7 +66,8 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 			PCGExMT::State_Done))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created."));
-			Context->Done();
+			Context->OutputPointsAndEdges();
+			return true;
 		}
 	}
 
@@ -83,7 +84,6 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 		PCGExGraph::MarkClusterEdges(BridgeBatch->ConsolidatedEdges, OutId);
 	}
 
-	Context->Done();
 	Context->OutputPointsAndEdges();
 
 	return Context->TryComplete();

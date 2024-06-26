@@ -13,19 +13,29 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 	if (bUseLocalWeightMultiplier)
 	{
 		const PCGExData::FPointIO* PointIO = LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? InCluster->VtxIO : InCluster->EdgesIO;
+		PCGExDataCaching::FPool* DataCache = LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? PrimaryDataCache : SecondaryDataCache;
+
 		const int32 NumPoints = PointIO->GetNum();
-		PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
+		PCGExDataCaching::FCache<double>* LocalWeightCache = DataCache->GetOrCreateGetter<double>(WeightMultiplierAttribute);
 
-		Getter->Capture(WeightMultiplierAttribute);
-
-		if (Getter->Grab(PointIO))
+		if (!LocalWeightCache)
 		{
-			LocalWeightMultiplier.SetNumZeroed(NumPoints);
-			for (int i = 0; i < NumPoints; i++) { LocalWeightMultiplier[i] = Getter->Values[i]; }
-			bHasCustomLocalWeightMultiplier = true;
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Invalid Heuristic attribute: {0}."), FText::FromName(WeightMultiplierAttribute.GetName())));
+			return;
 		}
 
-		PCGEX_DELETE(Getter)
+		if (LocalWeightMultiplierSource == EPCGExGraphValueSource::Point)
+		{
+			LocalWeightMultiplier.SetNumZeroed(InCluster->Nodes->Num());
+			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.NodeIndex] = LocalWeightCache->Values[Node.PointIndex]; }
+		}
+		else
+		{
+			LocalWeightMultiplier.SetNumZeroed(NumPoints);
+			for (int i = 0; i < NumPoints; i++) { LocalWeightMultiplier[i] = LocalWeightCache->Values[i]; }
+		}
+
+		bHasCustomLocalWeightMultiplier = true;
 	}
 }
 

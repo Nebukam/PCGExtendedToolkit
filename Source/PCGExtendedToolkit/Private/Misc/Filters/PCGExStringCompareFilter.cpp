@@ -8,12 +8,12 @@ PCGExDataFilter::TFilter* UPCGExStringCompareFilterFactory::CreateFilter() const
 	return new PCGExPointsFilter::TStringCompareFilter(this);
 }
 
-void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
 {
-	TFilter::Capture(InContext, PointIO);
+	TFilter::Capture(InContext, InPrimaryDataCache);
 
 	OperandA = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandA.GetName());
-	bValid = OperandA->Bind(const_cast<PCGExData::FPointIO*>(PointIO));
+	bValid = OperandA->Bind(InPrimaryDataCache->Source);
 
 	if (!bValid)
 	{
@@ -25,7 +25,7 @@ void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InConte
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
 		OperandB = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandB.GetName());
-		bValid = OperandB->Bind(const_cast<PCGExData::FPointIO*>(PointIO));
+		bValid = OperandB->Bind(InPrimaryDataCache->Source);
 
 		if (!bValid)
 		{

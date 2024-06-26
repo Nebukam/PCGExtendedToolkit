@@ -170,20 +170,11 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 bool FPCGExPointsProcessorContext::ExecuteAutomation() { return true; }
 
-void FPCGExPointsProcessorContext::Done() { SetState(PCGExMT::State_Done); }
-
 bool FPCGExPointsProcessorContext::TryComplete(const bool bForce)
 {
 	if (!bForce && !IsDone()) { return false; }
 	OnComplete();
 	return true;
-}
-
-void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState OperationId, const bool bResetAsyncWork)
-{
-	if (bResetAsyncWork) { ResetAsyncWork(); }
-	if (CurrentState == OperationId) { return; }
-	CurrentState = OperationId;
 }
 
 #pragma endregion

@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExPruneClusters.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Geometry/PCGExGeoPointBox.h"
 
 #pragma region UPCGSettings interface

@@ -7,6 +7,7 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExDataCaching.h"
 
 #include "PCGExOperation.generated.h"
 
@@ -40,6 +41,9 @@ public:
 	virtual void Write(PCGExMT::FTaskManager* AsyncManager);
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other);
+
+	PCGExDataCaching::FPool* PrimaryDataCache = nullptr;
+	PCGExDataCaching::FPool* SecondaryDataCache = nullptr;
 
 	template <typename T>
 	T* CopyOperation() const

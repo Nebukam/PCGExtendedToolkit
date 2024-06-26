@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Data/PCGExGraphDefinition.h"
-
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 
 #define PCGEX_FORWARD_HEURISTIC_FACTORY \

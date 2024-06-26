@@ -69,3 +69,27 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExWriteIndex
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		double NumPoints = 0;
+		PCGEx::TFAttributeWriter<int32>* IntWriter = nullptr;
+		PCGEx::TFAttributeWriter<double>* DoubleWriter = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override
+		{
+		}
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
+	};
+}

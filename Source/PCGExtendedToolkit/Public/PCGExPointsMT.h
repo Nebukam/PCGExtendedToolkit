@@ -7,6 +7,7 @@
 
 #include "PCGExMT.h"
 #include "PCGExOperation.h"
+#include "Data/PCGExDataCaching.h"
 #include "Data/PCGExDataFilter.h"
 #include "Graph/PCGExGraph.h"
 
@@ -64,6 +65,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	public:
 		bool bIsProcessorValid = false;
 
+		PCGExDataCaching::FPool* PointDataCache = nullptr;
+
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
 		bool bIsSmallPoints = false;
@@ -81,6 +84,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			PointIO(InPoints)
 		{
 			PCGEX_LOG_CTR(FPointsProcessor)
+			PointDataCache = new PCGExDataCaching::FPool(InPoints);
 		}
 
 		virtual ~FPointsProcessor()
@@ -91,6 +95,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			PCGEX_DELETE_OPERATION(PrimaryOperation)
 
 			PointFilterCache.Empty();
+			PCGEX_DELETE(PointDataCache)
 		}
 
 		template <typename T>
@@ -120,7 +125,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				{
 					PointFilterCache.Empty();
 
-					PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(PointIO);
+					PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
 					FilterManager->Register<UPCGExFilterFactoryBase>(Context, *FilterFactories, PointIO);
 					for (int i = 0; i < PointIO->GetNum(); i++) { FilterManager->Test(i); }
 
@@ -131,7 +136,11 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 #pragma endregion
 
-			if (PrimaryOperation) { PrimaryOperation = PrimaryOperation->CopyOperation<UPCGExOperation>(); }
+			if (PrimaryOperation)
+			{
+				PrimaryOperation = PrimaryOperation->CopyOperation<UPCGExOperation>();
+				PrimaryOperation->PrimaryDataCache = PointDataCache;
+			}
 
 			return true;
 		}

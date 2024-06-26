@@ -4,7 +4,7 @@
 #include "Graph/Edges/PCGExWriteEdgeExtras.h"
 
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Graph/Edges/Promoting/PCGExEdgePromoteToPoint.h"
+
 #include "Kismet/KismetMathLibrary.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"

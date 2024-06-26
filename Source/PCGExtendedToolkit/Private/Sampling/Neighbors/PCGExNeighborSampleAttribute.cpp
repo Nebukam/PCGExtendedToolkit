@@ -19,9 +19,9 @@ void UPCGExNeighborSampleAttribute::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
+void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 {
-	Super::PrepareForCluster(InContext, InCluster);
+	Super::PrepareForCluster(InContext, InCluster, InVtxDataCache, InEdgeDataCache);
 
 	PCGEX_DELETE(Blender)
 	bIsValidOperation = false;

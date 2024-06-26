@@ -18,20 +18,20 @@ void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
+void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 {
 	Cluster = InCluster;
 
 	if (PointState)
 	{
-		PointState->CaptureCluster(Context, Cluster);
-		PointState->PrepareForTesting(Cluster->VtxIO);
+		PointState->CaptureCluster(Context, Cluster, InVtxDataCache, InEdgeDataCache);
+		PointState->PrepareForTesting();
 	}
 
 	if (ValueState)
 	{
-		ValueState->CaptureCluster(Context, Cluster);
-		ValueState->PrepareForTesting(Cluster->VtxIO);
+		ValueState->CaptureCluster(Context, Cluster, InVtxDataCache, InEdgeDataCache);
+		ValueState->PrepareForTesting();
 	}
 }
 
@@ -44,9 +44,8 @@ PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const
 
 void UPCGExNeighborSampleOperation::ProcessNodeForPoints(const int32 InNodeIndex) const
 {
-
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-	
+
 	PCGExCluster::FNode& TargetNode = (*Cluster->Nodes)[InNodeIndex];
 
 	if (PointState && !PointState->Test(TargetNode.PointIndex)) { return; }
@@ -165,7 +164,7 @@ void UPCGExNeighborSampleOperation::ProcessNodeForEdges(const int32 InNodeIndex)
 
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
-	
+
 	const PCGExCluster::FNode& TargetNode = NodesRef[InNodeIndex];
 
 	int32 CurrentDepth = 0;

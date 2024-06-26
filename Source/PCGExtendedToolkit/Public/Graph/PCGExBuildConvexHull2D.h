@@ -4,10 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPointsProcessor.h"
 
-#include "PCGExCustomGraphProcessor.h"
 #include "Geometry/PCGExGeo.h"
-
 #include "PCGExBuildConvexHull2D.generated.h"
 
 namespace PCGExGeo

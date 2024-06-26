@@ -16,20 +16,22 @@ void UPCGExVtxExtraOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExVtxExtraOperation::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx)
+bool UPCGExVtxExtraOperation::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExDataCaching::FPool* VtxDataCache)
 {
+	PrimaryDataCache = VtxDataCache;
+	SecondaryDataCache = nullptr;
 	Vtx = InVtx;
 	return true;
 }
 
 void UPCGExVtxExtraOperation::ClusterReserve(const int32 NumClusters)
 {
-	
 }
 
-void UPCGExVtxExtraOperation::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster)
+void UPCGExVtxExtraOperation::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExDataCaching::FPool* VtxDataCache, PCGExDataCaching::FPool* EdgeDataCache)
 {
-	// Store per-cluster stuff inside an array, return that array index for later use.
+	PrimaryDataCache = VtxDataCache;
+	SecondaryDataCache = EdgeDataCache;
 }
 
 bool UPCGExVtxExtraOperation::IsOperationValid() { return bIsValidOperation; }

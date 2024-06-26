@@ -23,12 +23,12 @@ void UPCGExVtxExtraEdgeMatch::ClusterReserve(const int32 NumClusters)
 	for (int i = 0; i < NumClusters; i++) { FilterManagers[i] = nullptr; }
 }
 
-void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster)
+void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExDataCaching::FPool* VtxDataCache, PCGExDataCaching::FPool* EdgeDataCache)
 {
-	Super::PrepareForCluster(InContext, ClusterIdx, Cluster);
+	Super::PrepareForCluster(InContext, ClusterIdx, Cluster, VtxDataCache, EdgeDataCache);
 	if (FilterFactories && !FilterFactories->IsEmpty())
 	{
-		PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(Cluster->EdgesIO);
+		PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(VtxDataCache);
 		FilterManagers[ClusterIdx] = FilterManager;
 		FilterManager->bCacheResults = false;
 		FilterManager->Register(InContext, *FilterFactories, Cluster->EdgesIO);
@@ -36,9 +36,9 @@ void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, co
 	}
 }
 
-bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx)
+bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExDataCaching::FPool* VtxDataCache)
 {
-	if (!Super::PrepareForVtx(InContext, InVtx)) { return false; }
+	if (!Super::PrepareForVtx(InContext, InVtx, VtxDataCache)) { return false; }
 
 	if (!Descriptor.MatchingEdge.Validate(InContext))
 	{
@@ -46,7 +46,7 @@ bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExD
 		return false;
 	}
 
-	if (!Descriptor.DotComparisonSettings.Init(InContext, InVtx))
+	if (!Descriptor.DotComparisonSettings.Init(InContext, VtxDataCache))
 	{
 		bIsValidOperation = false;
 		return false;
@@ -54,9 +54,8 @@ bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExD
 
 	if (Descriptor.DirectionSource == EPCGExFetchType::Attribute)
 	{
-		DirGetter = new PCGEx::FLocalVectorGetter();
-		DirGetter->Capture(Descriptor.Direction);
-		if (!DirGetter->Grab(InVtx))
+		DirCache = PrimaryDataCache->GetOrCreateGetter<FVector>(Descriptor.Direction);
+		if (!DirCache)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Direction attribute is invalid"));
 			bIsValidOperation = false;
@@ -77,9 +76,9 @@ void UPCGExVtxExtraEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExClu
 
 	double BestDot = TNumericLimits<double>::Min();
 	int32 IBest = -1;
-	const double DotB = Descriptor.DotComparisonSettings.GetDot(Point);
+	const double DotB = Descriptor.DotComparisonSettings.GetDot(Node.PointIndex);
 
-	FVector NodeDirection = DirGetter ? DirGetter->Values[Node.PointIndex] : Descriptor.DirectionConstant;
+	FVector NodeDirection = DirCache ? DirCache->Values[Node.PointIndex] : Descriptor.DirectionConstant;
 	if (Descriptor.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
 
 	for (int i = 0; i < Adjacency.Num(); i++)
@@ -115,10 +114,8 @@ void UPCGExVtxExtraEdgeMatch::Write(PCGExMT::FTaskManager* AsyncManager)
 
 void UPCGExVtxExtraEdgeMatch::Cleanup()
 {
-	PCGEX_DELETE(DirGetter)
 	PCGEX_DELETE_TARRAY(FilterManagers)
 
-	Descriptor.DotComparisonSettings.Cleanup();
 	Descriptor.MatchingEdge.Cleanup();
 	Super::Cleanup();
 }

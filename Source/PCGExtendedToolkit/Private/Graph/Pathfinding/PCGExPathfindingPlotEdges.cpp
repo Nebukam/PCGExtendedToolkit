@@ -67,7 +67,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		SeedPosition = GoalPosition;
 	}
 
-	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 	PCGExGraph::CleanupClusterTags(PathPoints, true);
 
 	UPCGPointData* OutData = PathPoints->GetOut();

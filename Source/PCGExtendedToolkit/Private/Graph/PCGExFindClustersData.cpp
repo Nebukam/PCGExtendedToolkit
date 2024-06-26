@@ -60,10 +60,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindClustersData)
 
-	if (Context->IsSetup())
-	{
-		if (!Boot(Context)) { return true; }
-	}
+	if (!Boot(Context)) { return true; }
 
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = new PCGExData::FPointIOTaggedDictionary(PCGExGraph::TagStr_ClusterPair);
 
@@ -167,8 +164,6 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 
 	PCGEX_DELETE(InputDictionary)
-
-	Context->Done();
 
 	Context->MainPoints->OutputTo(Context);
 	Context->MainEdges->OutputTo(Context);

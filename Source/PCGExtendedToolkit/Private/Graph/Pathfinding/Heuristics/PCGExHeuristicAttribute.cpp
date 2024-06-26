@@ -13,41 +13,48 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	Super::PrepareForCluster(InCluster);
 
 	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Point ? InCluster->VtxIO : InCluster->EdgesIO;
+	PCGExDataCaching::FPool* DataCache = Source == EPCGExGraphValueSource::Point ? PrimaryDataCache : SecondaryDataCache;
 
 	if (LastPoints == InPoints) { return; }
 
-	const int32 NumPoints = InPoints->GetNum();
-
+	const int32 NumPoints = Source == EPCGExGraphValueSource::Point ? InCluster->Nodes->Num() : InPoints->GetNum();
+	
 	LastPoints = InPoints;
 	InPoints->CreateInKeys();
 	CachedScores.SetNumZeroed(NumPoints);
 
-	PCGEx::FLocalSingleFieldGetter* ModifierGetter = new PCGEx::FLocalSingleFieldGetter();
-	ModifierGetter->Capture(Attribute);
-
-	const bool bModifierGrabbed = ModifierGetter->Grab(InPoints, true);
-	if (!bModifierGrabbed || !ModifierGetter->bValid || !ModifierGetter->bEnabled)
+	PCGExDataCaching::FCache<double>* ModifiersCache = DataCache->GetOrCreateGetter<double>(Attribute, true);
+	
+	if (!ModifiersCache)
 	{
-		PCGEX_DELETE(ModifierGetter)
 		PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Heuristic attribute: {0}."), FText::FromName(Attribute.GetName())));
 		return;
 	}
 
-	const double MinValue = ModifierGetter->Min;
-	const double MaxValue = ModifierGetter->Max;
-
+	const double MinValue = ModifiersCache->Min;
+	const double MaxValue = ModifiersCache->Max;
+	
 	const double OutMin = bInvert ? 1 : 0;
 	const double OutMax = bInvert ? 0 : 1;
-
+	
 	const double Factor = ReferenceWeight * WeightFactor;
 
-	for (int i = 0; i < NumPoints; i++)
+	if (Source == EPCGExGraphValueSource::Point)
 	{
-		const double NormalizedValue = PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, OutMin, OutMax);
-		CachedScores[i] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
+		for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
+		{
+			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Values[Node.PointIndex], MinValue, MaxValue, OutMin, OutMax);
+			CachedScores[Node.NodeIndex] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
+		}
 	}
-
-	PCGEX_DELETE(ModifierGetter)
+	else
+	{
+		for (int i = 0; i < NumPoints; i++)
+		{
+			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Values[i], MinValue, MaxValue, OutMin, OutMax);
+			CachedScores[i] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
+		}
+	}
 }
 
 double UPCGExHeuristicAttribute::GetGlobalScore(
@@ -65,7 +72,7 @@ double UPCGExHeuristicAttribute::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return CachedScores[Source == EPCGExGraphValueSource::Edge ? Edge.PointIndex : To.PointIndex];
+	return CachedScores[Source == EPCGExGraphValueSource::Edge ? Edge.PointIndex : To.NodeIndex];
 }
 
 void UPCGExHeuristicAttribute::Cleanup()

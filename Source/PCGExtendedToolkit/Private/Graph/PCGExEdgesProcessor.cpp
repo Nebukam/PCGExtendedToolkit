@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExEdgesProcessor.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Graph/PCGExClusterMT.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -112,20 +112,31 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 		if (!bBuildCluster) { return true; }
 
 		CurrentEdges->CreateInKeys();
-		CurrentCluster = new PCGExCluster::FCluster();
-		CurrentCluster->bIsOneToOne = (TaggedEdges->Entries.Num() == 1);
 
-		if (!CurrentCluster->BuildFrom(
-			CurrentEdges, CurrentIO->GetIn()->GetPoints(),
-			EndpointsLookup, &EndpointsAdjacency))
+		if (const PCGExCluster::FCluster* CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO, CurrentEdges))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed. \n If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
-			PCGEX_DELETE(CurrentCluster)
+			CurrentCluster = new PCGExCluster::FCluster(
+				CachedCluster, CurrentIO, CurrentEdges,
+				false, false, false);
 		}
-		else
+
+		if (!CurrentCluster)
 		{
-			CurrentCluster->VtxIO = CurrentIO;
-			CurrentCluster->EdgesIO = CurrentEdges;
+			CurrentCluster = new PCGExCluster::FCluster();
+			CurrentCluster->bIsOneToOne = (TaggedEdges->Entries.Num() == 1);
+
+			if (!CurrentCluster->BuildFrom(
+				CurrentEdges, CurrentIO->GetIn()->GetPoints(),
+				EndpointsLookup, &EndpointsAdjacency))
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed. \n If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
+				PCGEX_DELETE(CurrentCluster)
+			}
+			else
+			{
+				CurrentCluster->VtxIO = CurrentIO;
+				CurrentCluster->EdgesIO = CurrentEdges;
+			}
 		}
 
 		return true;

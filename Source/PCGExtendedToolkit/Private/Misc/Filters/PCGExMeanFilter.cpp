@@ -8,15 +8,12 @@ PCGExDataFilter::TFilter* UPCGExMeanFilterFactory::CreateFilter() const
 	return new PCGExPointsFilter::TMeanFilter(this);
 }
 
-void PCGExPointsFilter::TMeanFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TMeanFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
 {
-	TFilter::Capture(InContext, PointIO);
+	TFilter::Capture(InContext, InPrimaryDataCache);
 
-	Target = new PCGEx::FLocalSingleFieldGetter();
-
-	Target->Capture(TypedFilterFactory->Descriptor.Target);
-	Target->Grab(PointIO, true);
-	bValid = Target->IsUsable(PointIO->GetNum());
+	Target = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.Target, true);
+	bValid = Target != nullptr;
 
 	if (!bValid)
 	{
@@ -30,9 +27,9 @@ bool PCGExPointsFilter::TMeanFilter::Test(const int32 PointIndex) const
 	return FMath::IsWithin(Target->Values[PointIndex], ReferenceMin, ReferenceMax);
 }
 
-void PCGExPointsFilter::TMeanFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TMeanFilter::PrepareForTesting()
 {
-	const int32 NumPoints = PointIO->GetNum();
+	const int32 NumPoints = PointDataCache->Source->GetNum();
 	Results.SetNum(NumPoints);
 
 	double SumValue = 0;

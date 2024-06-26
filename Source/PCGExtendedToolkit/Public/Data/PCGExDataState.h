@@ -63,7 +63,7 @@ namespace PCGExDataState
 		const UPCGExDataStateFactoryBase* StateFactory;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
-		virtual void PrepareForWriting(PCGExData::FPointIO* PointIO);
+		virtual void PrepareForWriting();
 
 		virtual ~TDataState() override
 		{
@@ -83,8 +83,10 @@ namespace PCGExDataState
 		TArray<int32> HighestState;
 		bool bHasPartials = false;
 
-		explicit TStatesManager(const PCGExData::FPointIO* InPointIO)
-			: TFilterManager(InPointIO)
+		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
+
+		explicit TStatesManager(PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
+			: TFilterManager(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
 		{
 		}
 

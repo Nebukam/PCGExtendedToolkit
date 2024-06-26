@@ -20,43 +20,43 @@ bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 	}
 	else
 	{
-		PCGEx::FLocalVectorGetter* DirGetter = new PCGEx::FLocalVectorGetter();
-		DirGetter->Capture(Descriptor.DirectionAttribute);
+		DirectionCache = PrimaryDataCache->GetOrCreateGetter<FVector>(Descriptor.DirectionAttribute);
 
-		if (!DirGetter->Grab(InPointIO))
+		if (!DirectionCache)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Direction attribute: {0}")), FText::FromName(Descriptor.DirectionAttribute.GetName())));
-			PCGEX_DELETE(DirGetter)
 			return false;
 		}
-
-		DirectionCache.Reserve(InPointIO->GetNum());
-		DirectionCache.Append(DirGetter->Values);
-		PCGEX_DELETE(DirGetter)
 	}
 
 	return true;
 }
 
-void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates)
+void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST)
 {
-	// TODO : Implement
-	const double R = SearchRadiusSquared == -1 ? SearchRadiusCache[Index] : SearchRadiusSquared;
+	bool bIsStacking;
+	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
 	double BestDot = -1;
 	double BestDist = TNumericLimits<double>::Max();
 	int32 BestIndex = -1;
 
-	FVector Dir = bUseConstantDir ? Direction : DirectionCache[Index];
+	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
 	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
 
 	for (const PCGExProbing::FCandidate& C : Candidates)
 	{
 		if (C.Distance > R) { break; }
 
+		if(Stacks)
+		{
+			Stacks->Add(C.GH, &bIsStacking);
+			if (bIsStacking) { continue; }
+		}
+
 		const double Dot = FVector::DotProduct(Dir, C.Direction);
 
 		if (Dot < MaxDot) { continue; }
-		
+
 		if (Dot > BestDot)
 		{
 			if (C.Distance < BestDist)

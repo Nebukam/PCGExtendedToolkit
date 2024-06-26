@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExSimplifyClusters.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -130,7 +130,8 @@ namespace PCGExSimplifyClusters
 		if (Settings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
 		{
 			// Dump edges
-			for (const int32 EdgeIndex : Chain->Edges) { GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex]); }
+			if(Chain->SingleEdge != -1){GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]); }
+			else{for (const int32 EdgeIndex : Chain->Edges) { GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex]); }}
 			return;
 		}
 

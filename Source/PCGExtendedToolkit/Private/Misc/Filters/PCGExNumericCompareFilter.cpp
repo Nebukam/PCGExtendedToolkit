@@ -8,33 +8,27 @@ PCGExDataFilter::TFilter* UPCGExNumericCompareFilterFactory::CreateFilter() cons
 	return new PCGExPointsFilter::TNumericComparisonFilter(this);
 }
 
-void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
 {
-	TFilter::Capture(InContext, PointIO);
+	TFilter::Capture(InContext, InPrimaryDataCache);
 
-	OperandA = new PCGEx::FLocalSingleFieldGetter();
-	OperandA->Capture(TypedFilterFactory->Descriptor.OperandA);
-	OperandA->Grab(PointIO, false);
-	bValid = OperandA->IsUsable(PointIO->GetNum());
+	OperandA = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandA);
+	bValid = OperandA != nullptr;
 
 	if (!bValid)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
-		PCGEX_DELETE(OperandA)
 		return;
 	}
 
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = new PCGEx::FLocalSingleFieldGetter();
-		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
-		OperandB->Grab(PointIO, false);
-		bValid = OperandB->IsUsable(PointIO->GetNum());
+		OperandB = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+		bValid = OperandB != nullptr;
 
 		if (!bValid)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
-			PCGEX_DELETE(OperandB)
 		}
 	}
 }
@@ -42,7 +36,7 @@ void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InC
 bool PCGExPointsFilter::TNumericComparisonFilter::Test(const int32 PointIndex) const
 {
 	const double A = OperandA->Values[PointIndex];
-	const double B = TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
+	const double B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
 	return PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance);
 }
 

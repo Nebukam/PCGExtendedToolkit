@@ -41,6 +41,7 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
+
 		TArray<FPCGExSortRuleDescriptor> RuleDescriptors;
 		if (!Settings->GetSortingRules(Context, RuleDescriptors))
 		{
@@ -48,92 +49,98 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSortPoints::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](PCGExPointsMT::TBatch<PCGExSortPoints::FProcessor>* NewBatch)
+			{
+			},
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to sort."));
+			return true;
+		}
 	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		int32 IOIndex = 0;
-		while (Context->AdvancePointsIO(false)) { Context->GetAsyncManager()->Start<FPCGExSortPointIO>(IOIndex++, Context->CurrentIO); }
+	if (!Context->ProcessPointsBatch()) { return false; }
 
-		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
-	}
-
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		PCGEX_ASYNC_WAIT
-
-		Context->OutputMainPoints();
-		Context->Done();
-	}
+	Context->OutputMainPoints();
 
 	return Context->TryComplete();
 }
 
-bool FPCGExSortPointIO::ExecuteTask()
+namespace PCGExSortPoints
 {
-	const FPCGExPointsProcessorContext* Context = Manager->GetContext<FPCGExPointsProcessorContext>();
-	PCGEX_SETTINGS(SortPointsBase);
-
-	TArray<FPCGExSortRuleDescriptor> RuleDescriptors;
-	Settings->GetSortingRules(Context, RuleDescriptors);
-
-	TArray<FPCGExSortRule*> Rules;
-	Rules.Reserve(RuleDescriptors.Num());
-
-	PointIO->CreateOutKeys(); //Initialize metadata keys
-	TMap<PCGMetadataEntryKey, int32> PointIndices;
-	PointIO->PrintOutKeysMap(PointIndices, true);
-
-	for (const FPCGExSortRuleDescriptor& RuleDescriptor : RuleDescriptors)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		FPCGExSortRule* NewRule = new FPCGExSortRule();
-		NewRule->Capture(RuleDescriptor);
-		if (!NewRule->Grab(PointIO))
+		PCGEX_SETTINGS(SortPointsBase)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		TArray<FPCGExSortRuleDescriptor> RuleDescriptors;
+		Settings->GetSortingRules(Context, RuleDescriptors);
+
+		TArray<FPCGExSortRule*> Rules;
+		Rules.Reserve(RuleDescriptors.Num());
+
+		TMap<PCGMetadataEntryKey, int32> PointIndices;
+		PointIO->PrintOutKeysMap(PointIndices, true);
+
+		for (const FPCGExSortRuleDescriptor& RuleDescriptor : RuleDescriptors)
 		{
-			delete NewRule;
-			continue;
-		}
+			FPCGExSortRule* NewRule = new FPCGExSortRule();
+			PCGExDataCaching::FCache<double>* Cache = PointDataCache->GetOrCreateGetter<double>(RuleDescriptor.Selector);
 
-		//if (NewRule->bAbsolute) { for (double& Value : NewRule->Values) { Value = FMath::Abs(Value); } }
-
-		NewRule->Tolerance = RuleDescriptor.Tolerance;
-		NewRule->bInvertRule = RuleDescriptor.bInvertRule;
-		Rules.Add(NewRule);
-	}
-
-	if (Rules.IsEmpty())
-	{
-		// Don't sort
-		PointIndices.Empty();
-		return false;
-	}
-
-	auto SortPredicate = [&](const FPCGPoint& A, const FPCGPoint& B)
-	{
-		int Result = 0;
-		for (const FPCGExSortRule* Rule : Rules)
-		{
-			const double ValueA = Rule->Values[*PointIndices.Find(A.MetadataEntry)];
-			const double ValueB = Rule->Values[*PointIndices.Find(B.MetadataEntry)];
-			Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
-			if (Result != 0)
+			if (!Cache)
 			{
-				if (Rule->bInvertRule) { Result *= -1; }
-				break;
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some points are missing attributes used for sorting."));
+				delete NewRule;
+				continue;
 			}
+
+			NewRule->Cache = Cache;
+			NewRule->Tolerance = RuleDescriptor.Tolerance;
+			NewRule->bInvertRule = RuleDescriptor.bInvertRule;
+			Rules.Add(NewRule);
 		}
 
-		if (Settings->SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
-		return Result < 0;
-	};
+		if (Rules.IsEmpty())
+		{
+			// Don't sort
+			PointIndices.Empty();
+			return false;
+		}
 
-	PointIO->GetOut()->GetMutablePoints().Sort(SortPredicate);
+		auto SortPredicate = [&](const FPCGPoint& A, const FPCGPoint& B)
+		{
+			int Result = 0;
+			for (const FPCGExSortRule* Rule : Rules)
+			{
+				const double ValueA = Rule->Cache->Values[PointIndices[A.MetadataEntry]];
+				const double ValueB = Rule->Cache->Values[PointIndices[B.MetadataEntry]];
+				Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
+				if (Result != 0)
+				{
+					if (Rule->bInvertRule) { Result *= -1; }
+					break;
+				}
+			}
 
-	PointIndices.Empty();
-	PCGEX_DELETE_TARRAY(Rules)
+			if (Settings->SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
+			return Result < 0;
+		};
 
-	return true;
+		PointIO->GetOut()->GetMutablePoints().Sort(SortPredicate);
+
+		PointIndices.Empty();
+		PCGEX_DELETE_TARRAY(Rules)
+
+		return true;
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		FPointsProcessor::CompleteWork();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

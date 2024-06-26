@@ -18,33 +18,23 @@ bool UPCGExProbeIndex::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 
 	MaxIndex = PointIO->GetNum() - 1;
 
-	if (Descriptor.TargetIndex == EPCGExFetchType::Constant)
+	if (Descriptor.TargetIndex == EPCGExFetchType::Attribute)
 	{
-		bUseConstant = true;
-	}
-	else
-	{
-		PCGEx::FLocalIntegerGetter* NumGetter = new PCGEx::FLocalIntegerGetter();
-		NumGetter->Capture(Descriptor.TargetAttribute);
-
-		if (!NumGetter->Grab(InPointIO))
+		TargetCache = PrimaryDataCache->GetOrCreateGetter<int32>(Descriptor.TargetAttribute);
+		if (!TargetCache)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Target attribute: {0}")), FText::FromName(Descriptor.TargetAttribute.GetName())));
-			PCGEX_DELETE(NumGetter)
 			return false;
 		}
-
-		TargetCache.Reserve(InPointIO->GetNum());
-		TargetCache.Append(NumGetter->Values);
-		PCGEX_DELETE(NumGetter)
 	}
 
 	return true;
 }
 
-void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point)
+void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST)
 {
-	int32 Value = bUseConstant ? Descriptor.TargetConstant : TargetCache[Index];
+	// TODO : Implement Stacking mngmt
+	int32 Value = TargetCache ? TargetCache->Values[Index] : Descriptor.TargetConstant;
 
 	if (Descriptor.Mode == EPCGExProbeTargetMode::Target)
 	{

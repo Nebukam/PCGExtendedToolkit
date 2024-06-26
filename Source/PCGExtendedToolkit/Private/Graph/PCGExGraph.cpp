@@ -371,8 +371,7 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 
 		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(Tag_ClusterId, -1, false);
 		NumClusterIdWriter->BindAndSetNumUninitialized(PointIO);
-
-
+		
 		// Subgraphs
 
 		TArray<FSubGraph*> SmallSubGraphs;

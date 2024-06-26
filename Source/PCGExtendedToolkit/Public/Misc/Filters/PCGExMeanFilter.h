@@ -84,21 +84,20 @@ namespace PCGExPointsFilter
 
 		const UPCGExMeanFilterFactory* TypedFilterFactory;
 
-		PCGEx::FLocalSingleFieldGetter* Target = nullptr;
+		PCGExDataCaching::FCache<double>* Target = nullptr;
 
 		double ReferenceValue = 0;
 		double ReferenceMin = 0;
 		double ReferenceMax = 0;
 
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual void PrepareForTesting() override;
 
 		virtual ~TMeanFilter() override
 		{
 			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(Target)
 		}
 	};
 }

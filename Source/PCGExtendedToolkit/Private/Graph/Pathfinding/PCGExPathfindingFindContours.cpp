@@ -235,14 +235,14 @@ namespace PCGExFindContours
 		{
 			for (int i = 0; i < TypedContext->ProjectedSeeds.Num(); i++)
 			{
-				TypedContext->TryFindContours(TypedContext->Paths->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput), i, this);
+				TypedContext->TryFindContours(TypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput), i, this);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < TypedContext->ProjectedSeeds.Num(); i++)
 			{
-				AsyncManagerPtr->Start<FPCGExFindContourTask>(i, TypedContext->Paths->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput), this);
+				AsyncManagerPtr->Start<FPCGExFindContourTask>(i, TypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput), this);
 			}
 		}
 	}

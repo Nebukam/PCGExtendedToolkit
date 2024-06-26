@@ -16,22 +16,18 @@ namespace PCGExNodeNeighborsCount
 {
 	PCGExDataFilter::EType TNeighborsCountFilter::GetFilterType() const { return PCGExDataFilter::EType::ClusterNode; }
 
-	void TNeighborsCountFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	void TNeighborsCountFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
 	{
-		TFilter::Capture(InContext, PointIO);
+		TFilter::Capture(InContext, InPrimaryDataCache);
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			LocalCount = new PCGEx::FLocalSingleFieldGetter();
-			LocalCount->Capture(TypedFilterFactory->Descriptor.LocalCount);
-			LocalCount->Grab(PointIO, false);
-
-			bValid = LocalCount->IsUsable(PointIO->GetNum());
+			LocalCount = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.LocalCount);
+			bValid = LocalCount != nullptr;
 
 			if (!bValid)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid LocalCount attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.LocalCount.GetName())));
-				PCGEX_DELETE(LocalCount)
 			}
 		}
 	}

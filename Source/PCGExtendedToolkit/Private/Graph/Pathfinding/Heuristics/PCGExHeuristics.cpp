@@ -33,22 +33,18 @@ namespace PCGExHeuristics
 		for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
+		:VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
 	{
 		TArray<UPCGExHeuristicsFactoryBase*> ContextFactories;
 		PCGExFactories::GetInputFactories(InContext, PCGExGraph::SourceHeuristicsLabel, ContextFactories, {PCGExFactories::EType::Heuristics}, false);
 		BuildFrom(InContext, ContextFactories);
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
+		:VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
 	{
 		BuildFrom(InContext, InFactories);
-	}
-
-
-	THeuristicsHandler::THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation)
-	{
-		Operations.Add(InSingleOperation);
 	}
 
 	THeuristicsHandler::~THeuristicsHandler()
@@ -86,6 +82,8 @@ namespace PCGExHeuristics
 			}
 
 			Operations.Add(Operation);
+			Operation->PrimaryDataCache = VtxDataCache;
+			Operation->SecondaryDataCache = EdgeDataCache;
 			Operation->WeightFactor = OperationFactory->WeightFactor;
 			Operation->ReferenceWeight = ReferenceWeight * Operation->WeightFactor;
 			Operation->BindContext(InContext);
@@ -154,7 +152,7 @@ namespace PCGExHeuristics
 		for (const UPCGExHeuristicOperation* Op : Operations)
 		{
 			EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal);
-			DynamicWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.PointIndex, Edge.PointIndex));
+			DynamicWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.NodeIndex, Edge.PointIndex));
 		}
 		if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (DynamicWeight + LocalFeedback->TotalWeight); }
 		return EScore / DynamicWeight;

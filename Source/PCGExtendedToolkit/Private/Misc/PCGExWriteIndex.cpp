@@ -14,8 +14,6 @@ FPCGExWriteIndexContext::~FPCGExWriteIndexContext()
 {
 	IndicesBuffer.Empty();
 	NormalizedIndicesBuffer.Empty();
-	PCGEX_DELETE(NormalizedIndexAccessor)
-	PCGEX_DELETE(IndexAccessor)
 }
 
 bool FPCGExWriteIndexElement::Boot(FPCGContext* InContext) const
@@ -23,9 +21,6 @@ bool FPCGExWriteIndexElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteIndex)
-
-	PCGEX_FWD(bOutputNormalizedIndex)
-	PCGEX_FWD(OutputAttributeName)
 
 	PCGEX_VALIDATE_NAME(Context->OutputAttributeName)
 
@@ -41,69 +36,60 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
-	}
-
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		if (Context->bOutputNormalizedIndex)
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWriteIndex::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](PCGExPointsMT::TBatch<PCGExWriteIndex::FProcessor>* NewBatch)
+			{
+			},
+			PCGExMT::State_Done))
 		{
-			auto Initialize = [&]()
-			{
-				Context->NormalizedIndicesBuffer.Reset(Context->CurrentIO->GetNum());
-				Context->NormalizedIndexAccessor = PCGEx::FAttributeAccessor<double>::FindOrCreate(Context->CurrentIO, Context->OutputAttributeName, -1, false);
-				Context->NormalizedIndexAccessor->GetRange(Context->NormalizedIndicesBuffer, 0);
-			};
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to process."));
+			return true;
+		}
+	}
 
-			if (!Context->Process(
-				Initialize, [&](const int32 Index)
-				{
-					Context->NormalizedIndicesBuffer[Index] = static_cast<double>(Index) / static_cast<double>(Context->NormalizedIndicesBuffer.Num());
-				}, Context->CurrentIO->GetNum()))
-			{
-				return false;
-			}
+	if (!Context->ProcessPointsBatch()) { return false; }
 
-			Context->NormalizedIndexAccessor->SetRange(Context->NormalizedIndicesBuffer);
-			PCGEX_DELETE(Context->NormalizedIndexAccessor)
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+	Context->OutputMainPoints();
+
+	return Context->TryComplete();
+}
+
+namespace PCGExWriteIndex
+{
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteIndex)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		NumPoints = PointIO->GetNum();
+
+		if (Settings->bOutputNormalizedIndex)
+		{
+			PCGExDataCaching::FCache<double>* Cache = PointDataCache->GetOrCreateWriter<double>(Settings->OutputAttributeName, false);
+			DoubleWriter = Cache->PrepareWriter();
 		}
 		else
 		{
-			auto Initialize = [&]()
-			{
-				Context->IndicesBuffer.Reset(Context->CurrentIO->GetNum());
-				Context->IndexAccessor = PCGEx::FAttributeAccessor<int32>::FindOrCreate(Context->CurrentIO, Context->OutputAttributeName, -1, false);
-				Context->IndexAccessor->GetRange(Context->IndicesBuffer, 0);
-			};
-
-			if (!Context->Process(
-				Initialize, [&](const int32 Index)
-				{
-					Context->IndicesBuffer[Index] = Index;
-				}, Context->CurrentIO->GetNum()))
-			{
-				return false;
-			}
-
-			Context->IndexAccessor->SetRange(Context->IndicesBuffer);
-			PCGEX_DELETE(Context->IndexAccessor)
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			PCGExDataCaching::FCache<int32>* Cache = PointDataCache->GetOrCreateWriter<int32>(Settings->OutputAttributeName, false);
+			IntWriter = Cache->PrepareWriter();
 		}
+
+		return true;
 	}
 
-	if (Context->IsDone())
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 	{
-		Context->OutputMainPoints();
+		if (DoubleWriter) { DoubleWriter->Values[Index] = static_cast<double>(Index) / NumPoints; }
+		else { IntWriter->Values[Index] = Index; }
 	}
 
-	return Context->TryComplete();
+	void FProcessor::CompleteWork()
+	{
+		PointDataCache->Write(AsyncManagerPtr);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSettings.h"
+#include "Data/PCGExDataCaching.h"
 
 #include "PCGExCompare.generated.h"
 
@@ -415,18 +416,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 	double DotToleranceDegrees = 0.1;
 
 	bool bUseLocalDot = false;
-	PCGEx::FLocalSingleFieldGetter* LocalOperand = nullptr;
+	PCGExDataCaching::FCache<double>* LocalOperand = nullptr;
 
-	bool Init(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
 	{
 		bUseLocalDot = DotValue == EPCGExFetchType::Attribute;
-		
+
 		if (bUseLocalDot)
 		{
-			LocalOperand = new PCGEx::FLocalSingleFieldGetter();
-			LocalOperand->Capture(DotAttribute);
-
-			if (!LocalOperand->SoftGrab(PointIO))
+			LocalOperand = InPrimaryDataCache->GetOrCreateGetter<double>(DotAttribute);
+			if (!LocalOperand)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Dot attribute: {0}."), FText::FromName(DotAttribute.GetName())));
 				return false;
@@ -442,7 +441,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 		return true;
 	}
 
-	double GetDot(const FPCGPoint& Point) const
+	double GetDot(const int32 PointIndex) const
 	{
 		if (bUseLocalDot)
 		{
@@ -450,9 +449,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 			{
 			default: ;
 			case EPCGExDotUnits::Raw:
-				return LocalOperand->SoftGet(Point, 1);
+				return LocalOperand->Values[PointIndex];
 			case EPCGExDotUnits::Degrees:
-				return PCGExMath::DegreesToDot(LocalOperand->SoftGet(Point, 0));
+				return PCGExMath::DegreesToDot(LocalOperand->Values[PointIndex]);
 			}
 		}
 		return DotToleranceRaw;
@@ -461,11 +460,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 	bool Test(const double A, const double B) const
 	{
 		return PCGExCompare::Compare(Comparison, A, B, DotToleranceRaw);
-	}
-	
-	void Cleanup()
-	{
-		PCGEX_DELETE(LocalOperand)
 	}
 };
 

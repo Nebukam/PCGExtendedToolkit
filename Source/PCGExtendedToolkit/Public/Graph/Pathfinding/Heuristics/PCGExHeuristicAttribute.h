@@ -8,7 +8,7 @@
 #include "PCGExHeuristicsFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExHeuristicAttribute.generated.h"

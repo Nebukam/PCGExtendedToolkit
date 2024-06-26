@@ -134,7 +134,7 @@ namespace PCGExBreakClustersToPaths
 		if (ChainSize < Settings->MinPointCount) { return; }
 		if (Settings->bOmitAbovePointCount && ChainSize > Settings->MaxPointCount) { return; }
 
-		const PCGExData::FPointIO* PathIO = InContext->Paths->Emplace_GetRef(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+		const PCGExData::FPointIO* PathIO = InContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(ChainSize);
 		int32 PointCount = 0;
@@ -153,7 +153,7 @@ namespace PCGExBreakClustersToPaths
 		PCGEX_SETTINGS(BreakClustersToPaths)
 		const FPCGExBreakClustersToPathsContext* InContext = static_cast<FPCGExBreakClustersToPathsContext*>(Context);
 
-		const PCGExData::FPointIO* PathIO = InContext->Paths->Emplace_GetRef(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+		const PCGExData::FPointIO* PathIO = InContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 

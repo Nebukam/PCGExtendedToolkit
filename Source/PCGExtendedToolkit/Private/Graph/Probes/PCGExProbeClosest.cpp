@@ -22,45 +22,45 @@ bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 	}
 	else
 	{
-		PCGEx::FLocalIntegerGetter* NumGetter = new PCGEx::FLocalIntegerGetter();
-		NumGetter->Capture(Descriptor.MaxConnectionsAttribute);
+		MaxConnectionsCache = PrimaryDataCache->GetOrCreateGetter<int32>(Descriptor.MaxConnectionsAttribute);
 
-		if (!NumGetter->Grab(InPointIO))
+		if (!MaxConnectionsCache)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Max Connections attribute: {0}")), FText::FromName(Descriptor.MaxConnectionsAttribute.GetName())));
-			PCGEX_DELETE(NumGetter)
 			return false;
 		}
-
-		MaxConnectionsCache.Reserve(InPointIO->GetNum());
-		MaxConnectionsCache.Append(NumGetter->Values);
-		PCGEX_DELETE(NumGetter)
 	}
 
-	CWStackingTolerance = FVector(Descriptor.StackingDetectionTolerance);
+	CWStackingTolerance = FVector(Descriptor.StackingPreventionTolerance);
 
 	return true;
 }
 
-void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates)
+void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST)
 {
-	const int32 MaxIterations = FMath::Min(MaxConnections == -1 ? MaxConnectionsCache[Index] : MaxConnections, Candidates.Num());
-	const double R = SearchRadiusSquared == -1 ? SearchRadiusCache[Index] : SearchRadiusSquared;
+	bool bIsStacking;
+	const int32 MaxIterations = FMath::Min(MaxConnectionsCache ? MaxConnectionsCache->Values[Index] : MaxConnections, Candidates.Num());
+	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
 
 	if (MaxIterations <= 0) { return; }
 
 	TSet<uint64> Occupied;
-	bool bIsOccupied;
 	int32 Additions = 0;
 
 	for (PCGExProbing::FCandidate& C : Candidates)
 	{
 		if (C.Distance > R) { return; } // Candidates are sorted, stop there.
 
+		if (Stacks)
+		{
+			Stacks->Add(C.GH, &bIsStacking);
+			if (bIsStacking) { continue; }
+		}
+
 		if (Descriptor.bPreventStacking)
 		{
-			Occupied.Add(PCGEx::GH(C.Direction, CWStackingTolerance), &bIsOccupied);
-			if (bIsOccupied) { continue; }
+			Occupied.Add(C.GH, &bIsStacking);
+			if (bIsStacking) { continue; }
 		}
 
 		AddEdge(PCGEx::H64(Index, C.Index));
@@ -70,9 +70,9 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 	}
 }
 
-void UPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point)
+void UPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST)
 {
-	Super::ProcessNode(Index, Point);
+	Super::ProcessNode(Index, Point, nullptr, FVector::ZeroVector);
 }
 
 #if WITH_EDITOR

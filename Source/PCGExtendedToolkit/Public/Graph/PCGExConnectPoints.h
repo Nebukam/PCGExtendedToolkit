@@ -54,6 +54,13 @@ public:
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings", ShowOnlyInnerProperties))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bPreventStacking;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPreventStacking", ClampMin=0.001, ClampMax=1))
+	double StackingPreventionTolerance = 0.001;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsContext final : public FPCGExPointsProcessorContext
@@ -63,9 +70,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsContext final : public FPCGExPo
 	virtual ~FPCGExConnectPointsContext() override;
 
 	TArray<UPCGExProbeFactoryBase*> ProbeFactories;
+	TArray<UPCGExFilterFactoryBase*> GeneratorsFiltersFactories;
+	TArray<UPCGExFilterFactoryBase*> ConnetablesFiltersFactories;
 
 	PCGExData::FPointIOCollection* MainVtx = nullptr;
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
+	
+	FVector CWStackingTolerance = FVector::ZeroVector;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement
@@ -91,11 +102,15 @@ namespace PCGExConnectPoints
 		bool bUseVariableRadius = false;
 		double MaxRadiusSquared = TNumericLimits<double>::Min();
 
+		TArray<uint8> PointStatus;
 		const UPCGPointData::PointOctree* Octree = nullptr;
-		
+
 		const FPCGPoint* StartPtr = nullptr;
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		TArray<FVector> Positions;
+
+		bool bPreventStacking = false;
+		FVector CWStackingTolerance = FVector::ZeroVector;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)

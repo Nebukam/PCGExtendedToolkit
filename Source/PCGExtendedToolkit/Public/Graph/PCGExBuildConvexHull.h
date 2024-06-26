@@ -4,8 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "PCGExCustomGraphProcessor.h"
+#include "PCGExPointsProcessor.h"
 
 #include "PCGExBuildConvexHull.generated.h"
 

@@ -98,9 +98,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 	bool bUseDiscreteMeasure = false;
 	bool bUseLocalThreshold = false;
 
-	PCGEx::FLocalSingleFieldGetter* LocalThreshold = nullptr;
+	PCGExDataCaching::FCache<double>* LocalThreshold = nullptr;
 
-	bool Init(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
 	{
 		bUseDiscreteMeasure = ThresholdType == EPCGExMeanMeasure::Discrete;
 		bUseLocalThreshold = ThresholdSource == EPCGExFetchType::Attribute;
@@ -108,10 +108,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 		if (bUseLocalThreshold)
 		{
-			LocalThreshold = new PCGEx::FLocalSingleFieldGetter();
-			LocalThreshold->Capture(ThresholdAttribute);
-
-			if (!LocalThreshold->SoftGrab(PointIO))
+			LocalThreshold = InPrimaryDataCache->GetOrCreateGetter<double>(ThresholdAttribute);
+			if (!LocalThreshold)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Threshold attribute: {0}."), FText::FromName(ThresholdAttribute.GetName())));
 				return false;
@@ -187,10 +185,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 		}
 	}
 
-	void Cleanup()
-	{
-		PCGEX_DELETE(LocalThreshold)
-	}
 };
 
 namespace PCGExAdjacency

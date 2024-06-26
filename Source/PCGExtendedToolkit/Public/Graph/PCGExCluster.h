@@ -8,7 +8,8 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExGraphDefinition.h"
+#include "Data/PCGExDataState.h"
+#include "Data/PCGExDataFilter.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -194,7 +195,7 @@ namespace PCGExCluster
 	public:
 		int32 NumRawVtx = 0;
 		int32 NumRawEdges = 0;
-		
+
 		bool bValid = false;
 		bool bIsOneToOne = false; // Whether the input data has a single set of edges for a single set of vtx
 
@@ -229,7 +230,7 @@ namespace PCGExCluster
 		void BuildFrom(const PCGExGraph::FSubGraph* SubGraph);
 
 		bool IsValidWith(const PCGExData::FPointIO* InVtxIO, const PCGExData::FPointIO* InEdgesIO) const;
-		
+
 		const TArray<uint64>* GetVtxPointScopesPtr();
 		const TArray<int32>& GetVtxPointIndices();
 		TArrayView<const int32> GetVtxPointIndicesView();
@@ -333,15 +334,15 @@ namespace PCGExCluster
 			bValid = false;
 		}
 
+		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
 		const FCluster* CapturedCluster = nullptr;
 
 		FORCEINLINE virtual PCGExDataFilter::EType GetFilterType() const override;
 
-		virtual void CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster);
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache);
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices) override;
+		virtual void PrepareForTesting() override;
+		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler final : public PCGExDataState::TDataState
@@ -351,14 +352,16 @@ namespace PCGExCluster
 
 		const UPCGExNodeStateFactory* NodeStateDefinition = nullptr;
 
+		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
+
 		TArray<TFilter*> FilterHandlers;
 		TArray<TClusterNodeFilter*> ClusterFilterHandlers;
 
-		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
+		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices) override;
+		virtual void PrepareForTesting() override;
+		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
 
 		virtual ~FNodeStateHandler() override
 		{
@@ -402,7 +405,7 @@ namespace PCGExCluster
 			Data.Direction = (NodePosition - OtherPosition).GetSafeNormal();
 			Data.Length = FVector::Dist(NodePosition, OtherPosition);
 		}
-	}
+	}	
 }
 
 namespace PCGExClusterTask

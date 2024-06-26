@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDataState.h"
 #include "PCGExPointsProcessor.h"
-
-#include "Data/PCGExGraphDefinition.h"
+#include "PCGParamData.h"
 
 #include "PCGExDataStateFactoryProvider.generated.h"
 

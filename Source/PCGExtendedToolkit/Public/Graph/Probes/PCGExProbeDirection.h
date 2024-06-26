@@ -52,7 +52,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeDirection : public UPCGExProbeOperation
 
 public:
 	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
-	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates) override;
+	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST) override;
 
 	FPCGExProbeDescriptorDirection Descriptor;
 
@@ -60,7 +60,7 @@ protected:
 	bool bUseConstantDir = false;
 	double MaxDot = 0;
 	FVector Direction = FVector::ForwardVector;
-	TArray<FVector> DirectionCache;
+	PCGExDataCaching::FCache<FVector>* DirectionCache = nullptr;
 };
 
 ////

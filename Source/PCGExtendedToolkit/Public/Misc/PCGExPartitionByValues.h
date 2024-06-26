@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExFilter.h"
 
-#include "Graph/PCGExCustomGraphProcessor.h"
-
 #include "PCGExPartitionByValues.generated.h"
 
 namespace PCGExPartition

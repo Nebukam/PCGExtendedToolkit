@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExCopyClustersToPoints.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

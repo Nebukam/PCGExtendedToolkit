@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExMakeClustersUnique.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -53,7 +53,6 @@ bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) co
 	}
 
 	Context->OutputPointsAndEdges();
-	Context->Done();
 
 	return Context->TryComplete();
 }

@@ -10,13 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExUberFilter"
 #define PCGEX_NAMESPACE UberFilter
 
-TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExDataFilter::SourceFiltersLabel, "Filters.", Required, {})
-	return PinProperties;
-}
-
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -25,12 +18,16 @@ TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
+FName UPCGExUberFilterSettings::GetPointFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
+
+bool UPCGExUberFilterSettings::RequiresPointFilters() const { return true; }
+
 PCGExData::EInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGExUberFilterContext::~FPCGExUberFilterContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE(FilterManager)
+
 	PCGEX_DELETE(Inside)
 	PCGEX_DELETE(Outside)
 }
@@ -49,7 +46,7 @@ bool FPCGExUberFilterElement::Boot(FPCGContext* InContext) const
 	Context->Outside = new PCGExData::FPointIOCollection();
 	Context->Outside->DefaultOutputLabel = PCGExDataFilter::OutputOutsideFiltersLabel;
 
-	return PCGExFactories::GetInputFactories(Context, PCGExDataFilter::SourceFiltersLabel, Context->Factories, {PCGExFactories::EType::Filter});
+	return true;
 }
 
 bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
@@ -62,73 +59,81 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Boot(Context)) { return true; }
 
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
-
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		PCGEX_DELETE(Context->FilterManager)
-
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
-		{
-			Context->FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(Context->CurrentIO);
-			Context->FilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->Factories, Context->CurrentIO);
-
-			if (!Context->FilterManager->bValid)
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>* NewBatch)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points could not be filtered, likely due to missing attributes."));
-				return false;
-			}
-
-			Context->CurrentIO->CreateInKeys();
-
-			Context->FilterManager->PrepareForTesting();
-			Context->SetState(PCGExMT::State_ProcessingPoints);
+			},
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to filter."));
+			return true;
 		}
 	}
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		if (!Context->Process([&](const int32 Index) { Context->FilterManager->Test(Index); }, Context->CurrentIO->GetNum())) { return false; }
+	if (!Context->ProcessPointsBatch()) { return false; }
 
-		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
-
-		TArray<FPCGPoint>& InsidePoints = Context->Inside->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::NewOutput)->GetOut()->GetMutablePoints();
-		TArray<FPCGPoint>& OutsidePoints = Context->Outside->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::NewOutput)->GetOut()->GetMutablePoints();
-
-		int32 Index = 0;
-
-		if (Settings->bSwap)
-		{
-			for (const FPCGPoint& Point : InPoints)
-			{
-				if (!Context->FilterManager->Results[Index++]) { InsidePoints.Emplace(Point); }
-				else { OutsidePoints.Emplace(Point); }
-			}
-		}
-		else
-		{
-			for (const FPCGPoint& Point : InPoints)
-			{
-				if (Context->FilterManager->Results[Index++]) { InsidePoints.Emplace(Point); }
-				else { OutsidePoints.Emplace(Point); }
-			}
-		}
-
-		PCGEX_TRIM(OutsidePoints)
-		PCGEX_TRIM(InsidePoints)
-
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
-
-	if (Context->IsDone())
-	{
-		Context->Inside->OutputTo(Context);
-		Context->Outside->OutputTo(Context);
-	}
+	Context->Inside->OutputTo(Context);
+	Context->Outside->OutputTo(Context);
 
 	return Context->TryComplete();
+}
+
+namespace PCGExUberFilter
+{
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(UberFilter)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		for (const bool& Result : PointFilterCache)
+		{
+			if (Result) { NumInside++; }
+			else { NumOutside++; }
+		}
+
+		InCollection = Settings->bSwap ? TypedContext->Outside : TypedContext->Inside;
+		OutCollection = Settings->bSwap ? TypedContext->Inside : TypedContext->Outside;
+
+		if (NumInside == 0 || NumOutside == 0)
+		{
+			PCGExData::FPointIOCollection* OutputCollection;
+
+			if (NumInside == 0) { OutputCollection = InCollection; }
+			else { OutputCollection = OutCollection; }
+
+			OutputCollection->Emplace_GetRef(PointIO, PCGExData::EInit::Forward);
+
+			InCollection = nullptr;
+			OutCollection = nullptr;
+
+			return true;
+		}
+
+		return true;
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		if (!InCollection || !OutCollection) { return; }
+
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(UberFilter)
+
+		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
+
+		TArray<FPCGPoint>& InsidePoints = InCollection->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput)->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& OutsidePoints = OutCollection->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput)->GetOut()->GetMutablePoints();
+
+		InsidePoints.Reserve(NumInside);
+		OutsidePoints.Reserve(NumOutside);
+
+		for (int i = 0; i < PointFilterCache.Num(); i++)
+		{
+			if (PointFilterCache[i]) { InsidePoints.Emplace(OriginalPoints[i]); }
+			else { OutsidePoints.Emplace(OriginalPoints[i]); }
+		}
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

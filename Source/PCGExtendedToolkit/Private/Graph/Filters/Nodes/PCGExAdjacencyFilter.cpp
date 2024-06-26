@@ -17,46 +17,37 @@ namespace PCGExNodeAdjacency
 {
 	PCGExDataFilter::EType TAdjacencyFilter::GetFilterType() const { return PCGExDataFilter::EType::ClusterNode; }
 
-	void TAdjacencyFilter::CaptureCluster(const FPCGContext* InContext, const PCGExCluster::FCluster* InCluster)
+	void TAdjacencyFilter::CaptureCluster(const FPCGContext* InContext, const PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 	{
 		bCaptureFromNodes = TypedFilterFactory->Descriptor.OperandBSource != EPCGExGraphValueSource::Edge;
-		TClusterNodeFilter::CaptureCluster(InContext, InCluster);
+		TClusterNodeFilter::CaptureCluster(InContext, InCluster, InVtxDataCache, InEdgeDataCache);
 	}
 
-	void TAdjacencyFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	void TAdjacencyFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
 	{
-		TFilter::Capture(InContext, PointIO);
+		TFilter::Capture(InContext, InPrimaryDataCache);
 
 		auto ExitFail = [&]()
 		{
 			bValid = false;
-
-			Adjacency.Cleanup();
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
 		};
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			OperandA = new PCGEx::FLocalSingleFieldGetter();
-			OperandA->Capture(TypedFilterFactory->Descriptor.OperandA);
-			OperandA->Grab(PointIO, false);
-
-			if (!OperandA->Grab(PointIO, false))
+			OperandA = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandA);
+			if (!OperandA)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
 				return ExitFail();
 			}
 		}
 
-		if (!Adjacency.Init(InContext, PointIO)) { return ExitFail(); }
+		if (!Adjacency.Init(InContext, InPrimaryDataCache)) { return ExitFail(); }
 
 		if (!bCaptureFromNodes) { return; }
 
-		OperandB = new PCGEx::FLocalSingleFieldGetter();
-		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
-
-		if (!OperandB->Grab(PointIO, false))
+		OperandB = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+		if (!OperandB)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
 			ExitFail();
@@ -67,23 +58,18 @@ namespace PCGExNodeAdjacency
 	{
 		if (bCaptureFromNodes) { return; }
 
-		OperandB = new PCGEx::FLocalSingleFieldGetter();
-		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
-		OperandB->Grab(EdgeIO, false);
-		bValid = OperandB->IsUsable(EdgeIO->GetNum());
+		OperandB = EdgeDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+		bValid = OperandB != nullptr;
 
 		if (!bValid)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
-			Adjacency.Cleanup();
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
 		}
 	}
 
-	void TAdjacencyFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	void TAdjacencyFilter::PrepareForTesting()
 	{
-		TClusterNodeFilter::PrepareForTesting(PointIO);
+		TClusterNodeFilter::PrepareForTesting();
 
 		if (!Adjacency.bTestAllNeighbors)
 		{
@@ -99,7 +85,7 @@ namespace PCGExNodeAdjacency
 	bool TAdjacencyFilter::Test(const int32 PointIndex) const
 	{
 		const TArray<PCGExCluster::FNode>& NodesRef = *CapturedCluster->Nodes;
-		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *CapturedCluster->Edges;
+		//const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *CapturedCluster->Edges;
 
 		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
 		const double A = OperandA->Values[Node.PointIndex];
@@ -122,7 +108,7 @@ namespace PCGExNodeAdjacency
 				{
 					for (const uint64 AdjacencyHash : Node.Adjacency)
 					{
-						B = OperandA->Values[EdgesRef[PCGEx::H64B(AdjacencyHash)].PointIndex];
+						B = OperandA->Values[PCGEx::H64B(AdjacencyHash)];
 						if (!PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance)) { return false; }
 					}
 				}
@@ -140,7 +126,7 @@ namespace PCGExNodeAdjacency
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Values[EdgesRef[PCGEx::H64B(AdjacencyHash)].PointIndex]; }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Values[PCGEx::H64B(AdjacencyHash)]; }
 				}
 				B /= Node.Adjacency.Num();
 				break;
@@ -152,7 +138,7 @@ namespace PCGExNodeAdjacency
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Values[EdgesRef[PCGEx::H64B(AdjacencyHash)].PointIndex]); }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Values[PCGEx::H64B(AdjacencyHash)]); }
 				}
 				break;
 			case EPCGExAdjacencyGatherMode::Max:
@@ -163,7 +149,7 @@ namespace PCGExNodeAdjacency
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Values[EdgesRef[PCGEx::H64B(AdjacencyHash)].PointIndex]); }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Values[PCGEx::H64B(AdjacencyHash)]); }
 				}
 				break;
 			case EPCGExAdjacencyGatherMode::Sum:
@@ -173,7 +159,7 @@ namespace PCGExNodeAdjacency
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Values[EdgesRef[PCGEx::H64B(AdjacencyHash)].PointIndex]); }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Values[PCGEx::H64B(AdjacencyHash)]); }
 				}
 				break;
 			}
@@ -186,7 +172,6 @@ namespace PCGExNodeAdjacency
 
 		// Early exit on impossible thresholds (i.e node has less neighbor that the minimum or exact requirements)		
 		if (Threshold == -1) { return false; }
-
 
 		// TODO : We can be slightly more efficient and exiting early based on selected threshold mode
 
@@ -204,7 +189,7 @@ namespace PCGExNodeAdjacency
 		{
 			for (const uint64 AdjacencyHash : Node.Adjacency)
 			{
-				B = OperandA->Values[EdgesRef[PCGEx::H64B(AdjacencyHash)].PointIndex];
+				B = OperandA->Values[PCGEx::H64B(AdjacencyHash)];
 				if (PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance)) { LocalSuccessCount++; }
 			}
 		}

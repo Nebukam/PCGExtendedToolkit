@@ -18,35 +18,28 @@ bool UPCGExProbeOperation::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 	}
 	else
 	{
-		PCGEx::FLocalSingleFieldGetter* RadiusGetter = new PCGEx::FLocalSingleFieldGetter();
-		RadiusGetter->Capture(BaseDescriptor->SearchRadiusAttribute);
+		SearchRadiusCache = PrimaryDataCache->GetOrCreateGetter<double>(BaseDescriptor->SearchRadiusAttribute);
 
-		if (!RadiusGetter->Grab(InPointIO))
+		if (!SearchRadiusCache)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Radius attribute: {0}")), FText::FromName(BaseDescriptor->SearchRadiusAttribute.GetName())));
-			PCGEX_DELETE(RadiusGetter)
 			return false;
 		}
-
-		SearchRadiusCache.Reserve(InPointIO->GetNum());
-		SearchRadiusCache.Append(RadiusGetter->Values);
-		PCGEX_DELETE(RadiusGetter)
 	}
 
 	return true;
 }
 
-void UPCGExProbeOperation::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates)
+void UPCGExProbeOperation::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST)
 {
 }
 
-void UPCGExProbeOperation::ProcessNode(const int32 Index, const FPCGPoint& Point)
+void UPCGExProbeOperation::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST)
 {
 }
 
 void UPCGExProbeOperation::Cleanup()
 {
-	SearchRadiusCache.Empty();
 	UniqueEdges.Empty();
 	Super::Cleanup();
 }

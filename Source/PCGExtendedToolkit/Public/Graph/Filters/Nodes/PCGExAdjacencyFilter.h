@@ -7,7 +7,7 @@
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "PCGExSettings.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Graph/PCGExCluster.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
@@ -83,27 +83,25 @@ namespace PCGExNodeAdjacency
 		const UPCGExAdjacencyFilterFactory* TypedFilterFactory;
 
 		bool bCaptureFromNodes = false;
-		
+
 		TArray<double> CachedThreshold;
 		FPCGExAdjacencySettings Adjacency;
 
-		PCGEx::FLocalSingleFieldGetter* OperandA = nullptr;
-		PCGEx::FLocalSingleFieldGetter* OperandB = nullptr;
+		PCGExDataCaching::FCache<double>* OperandA = nullptr;
+		PCGExDataCaching::FCache<double>* OperandB = nullptr;
 
 		virtual PCGExDataFilter::EType GetFilterType() const override;
 
-		virtual void CaptureCluster(const FPCGContext* InContext, const PCGExCluster::FCluster* InCluster) override;
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void CaptureCluster(const FPCGContext* InContext, const PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache) override;
+		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO) override;
 
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual void PrepareForTesting() override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TAdjacencyFilter() override
 		{
-			Adjacency.Cleanup();
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
+			TypedFilterFactory = nullptr;
 		}
 	};
 }

@@ -12,6 +12,8 @@
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 
+class UPCGExVtxExtraOperation;
+
 namespace PCGExHeuristics
 {
 	class THeuristicsHandler;
@@ -43,11 +45,14 @@ enum class EPCGExGrowthUpdateMode : uint8
 	AddEachIteration UMETA(DisplayName = "Add Each Iteration", ToolTip="Add to the remaning number of iterations after each iteration."),
 };
 
-namespace PCGExGrow
+namespace PCGExGrowPaths
 {
+	class FProcessor;
+
 	class PCGEXTENDEDTOOLKIT_API FGrowth
 	{
 	public:
+		const FProcessor* Processor = nullptr;
 		const FPCGExPathfindingGrowPathsContext* Context = nullptr;
 		const UPCGExPathfindingGrowPathsSettings* Settings = nullptr;
 		const PCGExCluster::FNode* SeedNode = nullptr;
@@ -68,22 +73,11 @@ namespace PCGExGrow
 		TArray<int32> Path;
 
 		FGrowth(
-			const FPCGExPathfindingGrowPathsContext* InContext,
+			const FProcessor* InProcessor,
 			const UPCGExPathfindingGrowPathsSettings* InSettings,
 			const int32 InMaxIterations,
 			const int32 InLastGrowthIndex,
-			const FVector& InGrowthDirection) :
-			Context(InContext),
-			Settings(InSettings),
-			MaxIterations(InMaxIterations),
-			LastGrowthIndex(InLastGrowthIndex),
-			GrowthDirection(InGrowthDirection)
-		{
-			SoftMaxIterations = InMaxIterations;
-			Path.Reserve(MaxIterations);
-			Path.Add(InLastGrowthIndex);
-			Init();
-		}
+			const FVector& InGrowthDirection);
 
 		int32 FindNextGrowthNodeIndex();
 		bool Grow(); // return false if too far or couldn't connect for [reasons]
@@ -131,7 +125,6 @@ protected:
 
 	//~Begin UObject interface
 public:
-
 #if WITH_EDITOR
 
 public:
@@ -270,21 +263,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
-	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
+	PCGExDataCaching::FPool* SeedsDataCache = nullptr;
 
-	PCGEx::FLocalSingleFieldGetter* NumBranchesGetter = nullptr;
-	PCGEx::FLocalSingleFieldGetter* NumIterationsGetter = nullptr;
-	PCGEx::FLocalVectorGetter* GrowthDirectionGetter = nullptr;
-	PCGEx::FLocalSingleFieldGetter* GrowthMaxDistanceGetter = nullptr;
-
-
-	PCGEx::FLocalBoolGetter* GrowthStopGetter = nullptr;
-	PCGEx::FLocalBoolGetter* NoGrowthGetter = nullptr;
-
-	int32 CurrentPlotIndex = -1;
-
-	TArray<PCGExGrow::FGrowth*> Growths;
-	TArray<PCGExGrow::FGrowth*> QueuedGrowths;
+	PCGExDataCaching::FCache<int32>* NumIterations = nullptr;
+	PCGExDataCaching::FCache<int32>* NumBranches = nullptr;
+	PCGExDataCaching::FCache<FVector>* GrowthDirection = nullptr;
+	PCGExDataCaching::FCache<double>* GrowthMaxDistance = nullptr;
 
 	PCGEx::FLocalToStringGetter* TagValueGetter = nullptr;
 	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
@@ -302,3 +286,51 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExGrowPaths
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		friend class FGrowth;
+		friend class FProcessorBatch;
+
+		PCGExDataCaching::FCache<int32>* NumIterations = nullptr;
+		PCGExDataCaching::FCache<int32>* NumBranches = nullptr;
+		PCGExDataCaching::FCache<FVector>* GrowthDirection = nullptr;
+		PCGExDataCaching::FCache<double>* GrowthMaxDistance = nullptr;
+
+		PCGExDataCaching::FCache<bool>* GrowthStop = nullptr;
+		PCGExDataCaching::FCache<bool>* NoGrowth = nullptr;
+
+	public:
+		TArray<FGrowth*> Growths;
+		TArray<FGrowth*> QueuedGrowths;
+
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+		}
+
+		virtual ~FProcessor() override
+		{
+			Growths.Empty();
+			QueuedGrowths.Empty();
+		}
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+		void Grow();
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FGrowTask final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FGrowTask(PCGExData::FPointIO* InPointIO, FProcessor* InProcessor) :
+			FPCGExTask(InPointIO), Processor(InProcessor)
+		{
+		}
+
+		FProcessor* Processor = nullptr;
+		virtual bool ExecuteTask() override;
+	};
+}

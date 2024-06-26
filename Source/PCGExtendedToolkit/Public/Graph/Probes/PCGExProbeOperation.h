@@ -24,13 +24,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorBase
 	}
 
 	explicit FPCGExProbeDescriptorBase(const bool SupportsRadius)
-		:bSupportRadius(SupportsRadius)
+		: bSupportRadius(SupportsRadius)
 	{
 	}
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(HideInDetailPanel))
 	bool bSupportRadius = true;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportRadius", EditConditionHides))
 	EPCGExFetchType SearchRadiusSource = EPCGExFetchType::Constant;
 
@@ -52,13 +52,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeOperation : public UPCGExOperation
 public:
 	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO);
 	virtual bool RequiresDirectProcessing();
-	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates);
-	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point);
+	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks = nullptr, const FVector& ST = FVector::ZeroVector);
+	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks = nullptr, const FVector& ST = FVector::ZeroVector);
 
 	virtual void Cleanup() override;
 
 	double SearchRadiusSquared = -1;
-	TArray<double> SearchRadiusCache;
+	PCGExDataCaching::FCache<double>* SearchRadiusCache = nullptr;
 
 	TSet<uint64> UniqueEdges;
 

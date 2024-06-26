@@ -27,7 +27,7 @@ namespace PCGExDataState
 		return false;
 	}
 
-	void TDataState::PrepareForWriting(PCGExData::FPointIO* PointIO)
+	void TDataState::PrepareForWriting()
 	{
 		const int32 NumPoints = Results.Num();
 
@@ -66,7 +66,7 @@ namespace PCGExDataState
 		OutValidStateAttributes.Empty();
 		OutInvalidStateAttributes.Empty();
 
-		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+		UPCGMetadata* Metadata = PointDataCache->Source->GetOut()->Metadata;
 
 		auto CreatePlaceholderAttributes = [&](
 			const TArray<PCGEx::FAttributesInfos*>& InfosList,
@@ -115,7 +115,7 @@ namespace PCGExDataState
 
 	void TStatesManager::PrepareForTesting()
 	{
-		const int32 NumPoints = PointIO->GetNum();
+		const int32 NumPoints = PointDataCache->Source->GetNum();
 		HighestState.SetNumUninitialized(NumPoints);
 		for (int32& State : HighestState) { State = -1; }
 
@@ -124,7 +124,7 @@ namespace PCGExDataState
 
 	void TStatesManager::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
-		if (const int32 NumPoints = PointIO->GetNum(); HighestState.Num() != NumPoints) { HighestState.SetNumUninitialized(NumPoints); }
+		if (const int32 NumPoints = PointDataCache->Source->GetNum(); HighestState.Num() != NumPoints) { HighestState.SetNumUninitialized(NumPoints); }
 		for (const int32 i : PointIndices) { HighestState[i] = -1; }
 
 		return TFilterManager::PrepareForTesting(PointIndices);
@@ -148,7 +148,7 @@ namespace PCGExDataState
 	void TStatesManager::WriteStateNames(PCGExMT::FTaskManager* AsyncManager, const FName AttributeName, const FName DefaultValue, const TArrayView<const int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<FName>* StateNameWriter = new PCGEx::TFAttributeWriter<FName>(AttributeName, DefaultValue, false);
-		StateNameWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO*>(PointIO));
+		StateNameWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO*>(PointDataCache->Source)); // TODO: Parallellllll
 
 		for (const int32 i : InIndices)
 		{
@@ -168,7 +168,7 @@ namespace PCGExDataState
 	void TStatesManager::WriteStateValues(PCGExMT::FTaskManager* AsyncManager, const FName AttributeName, const int32 DefaultValue, const TArrayView<const int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<int32>* StateValueWriter = new PCGEx::TFAttributeWriter<int32>(AttributeName, DefaultValue, false);
-		StateValueWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO*>(PointIO));
+		StateValueWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO*>(PointDataCache->Source)); // TODO: Parallellllll
 
 		for (const int32 i : InIndices)
 		{
@@ -190,19 +190,19 @@ namespace PCGExDataState
 		for (PCGExDataFilter::TFilter* Handler : Handlers)
 		{
 			AsyncManager->Start<PCGExDataStateTask::FWriteIndividualState>(
-				Handler->Index, const_cast<PCGExData::FPointIO*>(PointIO),
+				Handler->Index, const_cast<PCGExData::FPointIO*>(PointDataCache->Source),
 				static_cast<TDataState*>(Handler), InIndices);
 		}
 	}
 
 	void TStatesManager::WritePrepareForStateAttributes(const FPCGContext* InContext)
 	{
-		const int32 NumPoints = PointIO->GetNum();
+		const int32 NumPoints = PointDataCache->Source->GetNum();
 
 		for (PCGExDataFilter::TFilter* Handler : Handlers)
 		{
 			TDataState* StateHandler = static_cast<TDataState*>(Handler);
-			StateHandler->PrepareForWriting(const_cast<PCGExData::FPointIO*>(PointIO));
+			StateHandler->PrepareForWriting();
 
 			if (!StateHandler->OverlappingAttributes.IsEmpty())
 			{
@@ -214,7 +214,7 @@ namespace PCGExDataState
 
 	void TStatesManager::WriteStateAttributes(const int32 PointIndex)
 	{
-		const PCGMetadataEntryKey Key = PointIO->GetOutPoint(PointIndex).MetadataEntry;
+		const PCGMetadataEntryKey Key = PointDataCache->Source->GetOutPoint(PointIndex).MetadataEntry;
 
 		auto ForwardValues = [&](
 			TArray<FPCGMetadataAttributeBase*>& In,

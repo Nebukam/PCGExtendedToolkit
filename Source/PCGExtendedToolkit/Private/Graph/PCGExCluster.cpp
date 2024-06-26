@@ -941,27 +941,23 @@ namespace PCGExCluster
 
 	PCGExDataFilter::EType TClusterNodeFilter::GetFilterType() const { return PCGExDataFilter::EType::ClusterNode; }
 
-	void TClusterNodeFilter::CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster)
+	void TClusterNodeFilter::CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 	{
+		EdgeDataCache = InEdgeDataCache;
+
 		bValid = true;
 		CapturedCluster = InCluster;
 
-		Capture(InContext, InCluster->VtxIO);
-		if (bValid) { CaptureEdges(InContext, InCluster->EdgesIO); } // Only capture edges if we could capture nodes
-	}
+		Capture(InContext, InVtxDataCache);
 
-	void TClusterNodeFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
-	{
-		// Do not call Super:: as it sets bValid to true, and we want CaptureCluster to have control
-		// This is the filter is invalid if used somewhere that doesn't initialize clusters.
-		//TFilterHandler::Capture(PointIO);
+		if (bValid) { CaptureEdges(InContext, InCluster->EdgesIO); } // Only capture edges if we could capture nodes
 	}
 
 	void TClusterNodeFilter::CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO)
 	{
 	}
 
-	void TClusterNodeFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	void TClusterNodeFilter::PrepareForTesting()
 	{
 		if (bCacheResults)
 		{
@@ -971,9 +967,9 @@ namespace PCGExCluster
 		}
 	}
 
-	void TClusterNodeFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices)
+	void TClusterNodeFilter::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
-		return TFilter::PrepareForTesting(PointIO, PointIndices);
+		return TFilter::PrepareForTesting(PointIndices);
 	}
 
 	FNodeStateHandler::FNodeStateHandler(const UPCGExNodeStateFactory* InFactory)
@@ -999,15 +995,18 @@ namespace PCGExCluster
 		}
 	}
 
-	void FNodeStateHandler::CaptureCluster(const FPCGContext* InContext, FCluster* InCluster)
+	void FNodeStateHandler::CaptureCluster(const FPCGContext* InContext, FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 	{
+		PointDataCache = InVtxDataCache;
+		EdgeDataCache = InEdgeDataCache;
+
 		Cluster = InCluster;
 		TArray<TFilter*> InvalidTests;
 		TArray<TClusterNodeFilter*> InvalidClusterTests;
 
 		for (TFilter* Test : FilterHandlers)
 		{
-			Test->Capture(InContext, Cluster->VtxIO);
+			Test->Capture(InContext, InVtxDataCache);
 			if (!Test->bValid) { InvalidTests.Add(Test); }
 		}
 
@@ -1019,7 +1018,7 @@ namespace PCGExCluster
 
 		for (TClusterNodeFilter* Test : ClusterFilterHandlers)
 		{
-			Test->CaptureCluster(InContext, Cluster);
+			Test->CaptureCluster(InContext, Cluster, InVtxDataCache, InEdgeDataCache);
 			if (!Test->bValid) { InvalidClusterTests.Add(Test); }
 		}
 
@@ -1051,20 +1050,20 @@ namespace PCGExCluster
 		return true;
 	}
 
-	void FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	void FNodeStateHandler::PrepareForTesting()
 	{
-		TDataState::PrepareForTesting(PointIO);
+		TDataState::PrepareForTesting();
 
-		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(PointIO); }
-		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { Test->PrepareForTesting(PointIO); }
+		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(); }
+		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { Test->PrepareForTesting(); }
 	}
 
-	void FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices)
+	void FNodeStateHandler::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
-		TDataState::PrepareForTesting(PointIO, PointIndices);
+		TDataState::PrepareForTesting(PointIndices);
 
-		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(PointIO, PointIndices); }
-		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { Test->PrepareForTesting(PointIO, PointIndices); }
+		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(PointIndices); }
+		for (TClusterNodeFilter* Test : ClusterFilterHandlers) { Test->PrepareForTesting(PointIndices); }
 	}
 
 

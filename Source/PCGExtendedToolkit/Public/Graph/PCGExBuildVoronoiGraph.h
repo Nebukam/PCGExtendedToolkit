@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExCustomGraphProcessor.h"
+
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildVoronoiGraph.generated.h"

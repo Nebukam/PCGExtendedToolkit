@@ -93,12 +93,12 @@ namespace PCGExFindNodeState
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		StatesManager = new PCGExDataState::TStatesManager(VtxIO);
+		StatesManager = new PCGExDataState::TStatesManager(VtxDataCache, EdgeDataCache);
 		StatesManager->RegisterAndCapture<UPCGExNodeStateFactory>(
 			Context, TypedContext->StateFactories, [&](PCGExDataFilter::TFilter* Handler)
 			{
 				PCGExCluster::FNodeStateHandler* NodeStateHandler = static_cast<PCGExCluster::FNodeStateHandler*>(Handler);
-				NodeStateHandler->CaptureCluster(Context, Cluster);
+				NodeStateHandler->CaptureCluster(Context, Cluster, VtxDataCache, EdgeDataCache);
 			});
 
 		if (!StatesManager->bValid)

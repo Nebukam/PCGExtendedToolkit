@@ -33,12 +33,13 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
+	virtual FName GetPointFilterLabel() const override;
+	virtual bool RequiresPointFilters() const override;
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
@@ -56,9 +57,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext final : public FPCGExPoint
 	friend class FPCGExUberFilterElement;
 	virtual ~FPCGExUberFilterContext() override;
 
-	TArray<UPCGExFilterFactoryBase*> Factories;
-	PCGExDataFilter::TEarlyExitFilterManager* FilterManager = nullptr;
-
 	PCGExData::FPointIOCollection* Inside = nullptr;
 	PCGExData::FPointIOCollection* Outside = nullptr;
 };
@@ -74,3 +72,28 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExUberFilter
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		int32 NumInside = 0;
+		int32 NumOutside = 0;
+		
+		PCGExData::FPointIOCollection* InCollection = nullptr;
+		PCGExData::FPointIOCollection* OutCollection = nullptr;
+		
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override
+		{
+		}
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+	};
+}

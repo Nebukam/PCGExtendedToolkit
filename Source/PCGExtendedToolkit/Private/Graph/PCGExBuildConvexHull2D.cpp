@@ -102,7 +102,8 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 	TSet<uint64> UniqueEdges;
 	const TArray<PCGExGraph::FIndexedEdge>& Edges = GraphBuilder->Graph->Edges;
 
-	const PCGExData::FPointIO* PathIO = PathsIO->Emplace_GetRef(CurrentIO, PCGExData::EInit::NewOutput);
+	const TArray<FPCGPoint>& InPoints = GraphBuilder->PointIO->GetIn()->GetPoints();
+	const PCGExData::FPointIO* PathIO = PathsIO->Emplace_GetRef(GraphBuilder->PointIO, PCGExData::EInit::NewOutput);
 
 	TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
 	TSet<int32> VisitedEdges;
@@ -119,7 +120,7 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 		{
 			EdgeIndex = 0;
 			FirstIndex = Edges[EdgeIndex].Start;
-			MutablePathPoints.Add(CurrentIO->GetInPoint(FirstIndex));
+			MutablePathPoints.Add(InPoints[FirstIndex]);
 			CurrentIndex = Edges[EdgeIndex].End;
 		}
 		else
@@ -140,7 +141,7 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 		if (CurrentIndex == FirstIndex) { break; }
 
 		VisitedEdges.Add(EdgeIndex);
-		MutablePathPoints.Add(CurrentIO->GetInPoint(CurrentIndex));
+		MutablePathPoints.Add(InPoints[CurrentIndex]);
 	}
 
 	VisitedEdges.Empty();

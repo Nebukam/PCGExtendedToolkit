@@ -4,7 +4,7 @@
 #include "Graph/PCGExFuseClustersLocal.h"
 
 #include "Data/Blending/PCGExCompoundBlender.h"
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/PCGExIntersections.h"
 

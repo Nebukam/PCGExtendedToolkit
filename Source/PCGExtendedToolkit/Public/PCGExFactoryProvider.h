@@ -139,7 +139,7 @@ namespace PCGExFactories
 
 		if (OutFactories.IsEmpty())
 		{
-			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing valid filters.")); }
+			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing required '{0}' inputs."), FText::FromName(InLabel))); }
 			return false;
 		}
 

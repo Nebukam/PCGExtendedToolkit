@@ -21,9 +21,9 @@ void UPCGExVtxExtraSpecialNeighbors::CopySettingsFrom(const UPCGExOperation* Oth
 	}
 }
 
-bool UPCGExVtxExtraSpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx)
+bool UPCGExVtxExtraSpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExDataCaching::FPool* VtxDataCache)
 {
-	if (!Super::PrepareForVtx(InContext, InVtx)) { return false; }
+	if (!Super::PrepareForVtx(InContext, InVtx, VtxDataCache)) { return false; }
 
 	if (!Descriptor.LargestNeighbor.Validate(InContext) ||
 		!Descriptor.SmallestNeighbor.Validate(InContext))

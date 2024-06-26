@@ -4,8 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCompare.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Graph/PCGExCluster.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
@@ -68,18 +69,18 @@ namespace PCGExNodeNeighborsCount
 
 		const UPCGExNeighborsCountFilterFactory* TypedFilterFactory;
 
-		PCGEx::FLocalSingleFieldGetter* LocalCount = nullptr;
+		PCGExDataCaching::FCache<double>* LocalCount = nullptr;
 
 		virtual PCGExDataFilter::EType GetFilterType() const override;
 
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO) override;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TNeighborsCountFilter() override
 		{
-			PCGEX_DELETE(LocalCount)
+			TypedFilterFactory = nullptr;
 		}
 	};
 }

@@ -62,14 +62,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeIndex : public UPCGExProbeOperation
 public:
 	virtual bool RequiresDirectProcessing() override;
 	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
-	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point) override;
+	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST) override;
 
 	FPCGExProbeDescriptorIndex Descriptor;
-
-	TArray<int32> TargetCache;
+	PCGExDataCaching::FCache<int32>* TargetCache;
 
 protected:
-	bool bUseConstant = false;
 	int32 MaxIndex = -1;
 };
 

@@ -23,44 +23,44 @@ namespace PCGExDataFilter
 {
 	EType TFilter::GetFilterType() const { return EType::Default; }
 
-	void TFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	void TFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
 	{
-		FilteredIO = PointIO;
+		PointDataCache = InPointDataCache;
 		bValid = true;
 	}
 
-	void TFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	void TFilter::PrepareForTesting()
 	{
 		if (bCacheResults)
 		{
-			const int32 NumPoints = PointIO->GetNum();
+			const int32 NumPoints = PointDataCache->Source->GetNum();
 			Results.SetNumUninitialized(NumPoints);
 			for (bool& Result : Results) { Result = false; }
 		}
 	}
 
-	void TFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<const int32>& PointIndices)
+	void TFilter::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
 		if (bCacheResults)
 		{
-			if (const int32 NumPoints = PointIO->GetNum(); Results.Num() != NumPoints) { Results.SetNumUninitialized(NumPoints); } // TODO : This is wrong
+			if (const int32 NumPoints = PointDataCache->Source->GetNum(); Results.Num() != NumPoints) { Results.SetNumUninitialized(NumPoints); } // TODO : This is wrong
 			for (const int32 i : PointIndices) { Results[i] = false; }
 		}
 	}
 
-	TFilterManager::TFilterManager(const PCGExData::FPointIO* InPointIO)
-		: PointIO(InPointIO)
+	TFilterManager::TFilterManager(PCGExDataCaching::FPool* InPointDataCache)
+		: PointDataCache(InPointDataCache)
 	{
 	}
 
 	void TFilterManager::PrepareForTesting()
 	{
-		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
+		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(); }
 	}
 
 	void TFilterManager::PrepareForTesting(const TArrayView<const int32>& PointIndices)
 	{
-		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO, PointIndices); }
+		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIndices); }
 	}
 
 	void TFilterManager::Test(const int32 PointIndex)
@@ -72,8 +72,8 @@ namespace PCGExDataFilter
 	{
 	}
 
-	TEarlyExitFilterManager::TEarlyExitFilterManager(const PCGExData::FPointIO* InPointIO)
-		: TFilterManager(InPointIO)
+	TEarlyExitFilterManager::TEarlyExitFilterManager(PCGExDataCaching::FPool* InPointDataCache)
+		: TFilterManager(InPointDataCache)
 	{
 	}
 
@@ -92,10 +92,22 @@ namespace PCGExDataFilter
 		Results[PointIndex] = bPass;
 	}
 
+	bool TEarlyExitFilterManager::DirectTest(const int32 PointIndex)
+	{
+		for (const TFilter* Handler : Handlers)
+		{
+			if (!Handler->Test(PointIndex))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 	void TEarlyExitFilterManager::PrepareForTesting()
 	{
-		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
-		Results.SetNumUninitialized(PointIO->GetNum());
+		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(); }
+		Results.SetNumUninitialized(PointDataCache->Source->GetNum());
 		for (bool& Result : Results) { Result = true; }
 	}
 

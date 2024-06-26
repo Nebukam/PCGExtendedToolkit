@@ -133,10 +133,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bFlattenOutput = false;
 
-
-	template <typename T>
-	static T* EnsureOperation(UPCGExOperation* Operation) { return Operation ? static_cast<T*>(Operation) : NewObject<T>(); }
-
 protected:
 	virtual int32 GetPreferredChunkSize() const;
 	//~End UPCGExPointsProcessorSettings interface
@@ -158,18 +154,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 	virtual bool ExecuteAutomation();
 
+	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
+	void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true)
+	{
+		if (bResetAsyncWork) { ResetAsyncWork(); }
+		if (CurrentState == OperationId) { return; }
+		CurrentState = OperationId;
+	}
+	
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
-	virtual void Done();
+	void Done() { SetState(PCGExMT::State_Done); }
 
 	bool TryComplete(const bool bForce = false);
 
 	PCGExMT::FTaskManager* GetAsyncManager();
-
-	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
-	void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true);
 
 	int32 ChunkSize = 0;
 	bool bDoAsyncProcessing = true;

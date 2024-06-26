@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/PCGExPruneEdgesByLength.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Sampling/PCGExSampling.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"

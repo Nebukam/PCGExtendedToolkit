@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Data/PCGExGraphDefinition.h"
-
 #include "PCGExProbeFactoryProvider.generated.h"
 
 #define PCGEX_CREATE_PROBE_FACTORY(_NAME, _EXTRA_FACTORY, _EXTRA_OPERATION) \

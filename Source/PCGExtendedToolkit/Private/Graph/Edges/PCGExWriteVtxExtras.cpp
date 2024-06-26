@@ -5,7 +5,7 @@
 
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/Edges/Extras/PCGExVtxExtraFactoryProvider.h"
-#include "Graph/Edges/Promoting/PCGExEdgePromoteToPoint.h"
+
 #include "Kismet/KismetMathLibrary.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
@@ -91,7 +91,7 @@ namespace PCGExWriteVtxExtras
 
 		if (!ExtraOperations->IsEmpty())
 		{
-			for (UPCGExVtxExtraOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster); }
+			for (UPCGExVtxExtraOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster, VtxDataCache, EdgeDataCache); }
 		}
 
 		if (VtxNormalWriter)
@@ -166,7 +166,7 @@ namespace PCGExWriteVtxExtras
 		for (const UPCGExVtxExtraFactoryBase* Factory : TypedContext->ExtraFactories)
 		{
 			UPCGExVtxExtraOperation* NewOperation = Factory->CreateOperation();
-			if (!NewOperation->PrepareForVtx(Context, VtxIO))
+			if (!NewOperation->PrepareForVtx(Context, VtxIO, VtxDataCache))
 			{
 				PCGEX_DELETE_OPERATION(NewOperation)
 				continue;

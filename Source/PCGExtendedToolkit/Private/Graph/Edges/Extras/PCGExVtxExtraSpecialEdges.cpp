@@ -21,9 +21,9 @@ void UPCGExVtxExtraSpecialEdges::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExVtxExtraSpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx)
+bool UPCGExVtxExtraSpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExDataCaching::FPool* VtxDataCache)
 {
-	if (!Super::PrepareForVtx(InContext, InVtx)) { return false; }
+	if (!Super::PrepareForVtx(InContext, InVtx, VtxDataCache)) { return false; }
 
 	if (!Descriptor.ShortestEdge.Validate(InContext) ||
 		!Descriptor.LongestEdge.Validate(InContext) ||

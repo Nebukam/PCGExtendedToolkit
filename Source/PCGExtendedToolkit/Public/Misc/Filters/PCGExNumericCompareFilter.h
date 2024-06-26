@@ -75,17 +75,15 @@ namespace PCGExPointsFilter
 
 		const UPCGExNumericCompareFilterFactory* TypedFilterFactory;
 
-		PCGEx::FLocalSingleFieldGetter* OperandA = nullptr;
-		PCGEx::FLocalSingleFieldGetter* OperandB = nullptr;
+		PCGExDataCaching::FCache<double>* OperandA = nullptr;
+		PCGExDataCaching::FCache<double>* OperandB = nullptr;
 
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TNumericComparisonFilter() override
 		{
 			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
 		}
 	};
 }

@@ -88,14 +88,12 @@ namespace PCGExPointsFilter
 		PCGEx::TFAttributeReader<FString>* OperandA = nullptr;
 		PCGEx::TFAttributeReader<FString>* OperandB = nullptr;
 
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TStringCompareFilter() override
 		{
 			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
 		}
 	};
 }

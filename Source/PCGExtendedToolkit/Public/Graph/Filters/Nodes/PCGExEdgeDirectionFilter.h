@@ -7,7 +7,7 @@
 #include "Graph/Filters/PCGExAdjacency.h"
 #include "PCGExSettings.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Graph/PCGExCluster.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
@@ -26,8 +26,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterDescriptor
 	/** Adjacency Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExAdjacencySettings Adjacency;
-
-
+	
 	/** Direction orientation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAdjacencyDirectionOrigin Origin = EPCGExAdjacencyDirectionOrigin::FromNode;
@@ -91,21 +90,19 @@ namespace PCGExNodeAdjacency
 		FPCGExAdjacencySettings Adjacency;
 		FPCGExDotComparisonSettings DotComparison;
 
-		PCGEx::FLocalVectorGetter* OperandDirection = nullptr;
+		PCGExDataCaching::FCache<FVector>* OperandDirection = nullptr;
 
 		virtual PCGExDataFilter::EType GetFilterType() const override;
 
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
 		//virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO) override;
 
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual void PrepareForTesting() override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TEdgeDirectionFilter() override
 		{
-			Adjacency.Cleanup();
-			DotComparison.Cleanup();
-			PCGEX_DELETE(OperandDirection)
+			TypedFilterFactory = nullptr;
 		}
 	};
 }

@@ -77,9 +77,12 @@ namespace PCGExData
 				T* TypedOut = NewObject<T>();
 				Out = Cast<UPCGPointData>(TypedOut);
 				check(Out)
-				
+
 				if (In) { Out->InitializeFromData(In); }
-				if (const UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(In)) { TypedOut->InitializeFromPCGExData(TypedPointData, EInit::NewOutput); }
+				const UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(In);
+				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(TypedOut);
+				if (TypedPointData && TypedOutPointData) { TypedOutPointData->InitializeFromPCGExData(TypedPointData, EInit::NewOutput); }
+				
 				return;
 			}
 
@@ -87,7 +90,7 @@ namespace PCGExData
 			{
 				check(In)
 				const T* TypedIn = Cast<T>(In);
-				
+
 				if (!TypedIn)
 				{
 					// Need to broadcast to T

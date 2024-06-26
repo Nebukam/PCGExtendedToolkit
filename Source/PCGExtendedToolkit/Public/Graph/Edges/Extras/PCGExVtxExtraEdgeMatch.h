@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCompare.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
@@ -64,8 +65,8 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual void ClusterReserve(const int32 NumClusters) override;
-	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster) override;
-	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx) override;
+	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExDataCaching::FPool* VtxDataCache, PCGExDataCaching::FPool* EdgeDataCache) override;
+	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExDataCaching::FPool* VtxDataCache) override;
 	virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
 	virtual void Write() override;
 	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override;
@@ -77,7 +78,7 @@ protected:
 
 	mutable FRWLock FilterLock;
 
-	PCGEx::FLocalVectorGetter* DirGetter = nullptr;
+	PCGExDataCaching::FCache<FVector>* DirCache = nullptr;
 	TArray<PCGExDataFilter::TEarlyExitFilterManager*> FilterManagers;
 };
 

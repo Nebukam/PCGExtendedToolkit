@@ -17,40 +17,35 @@ namespace PCGExNodeAdjacency
 {
 	PCGExDataFilter::EType TEdgeDirectionFilter::GetFilterType() const { return PCGExDataFilter::EType::ClusterNode; }
 
-	void TEdgeDirectionFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	void TEdgeDirectionFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
 	{
-		bFromNode = TypedFilterFactory->Descriptor.Origin == EPCGExAdjacencyDirectionOrigin::FromNode;
+		TFilter::Capture(InContext, InPrimaryDataCache);
 
-		TFilter::Capture(InContext, PointIO);
+		bFromNode = TypedFilterFactory->Descriptor.Origin == EPCGExAdjacencyDirectionOrigin::FromNode;
 
 		auto ExitFail = [&]()
 		{
 			bValid = false;
-
-			Adjacency.Cleanup();
-			DotComparison.Cleanup();
 			PCGEX_DELETE(OperandDirection)
 		};
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			OperandDirection = new PCGEx::FLocalVectorGetter();
-			OperandDirection->Capture(TypedFilterFactory->Descriptor.Direction);
-
-			if (!OperandDirection->Grab(PointIO, false))
+			OperandDirection = PointDataCache->GetOrCreateGetter<FVector>(TypedFilterFactory->Descriptor.Direction);
+			if (!OperandDirection)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.Direction.GetName())));
 				return ExitFail();
 			}
 		}
 
-		if (!Adjacency.Init(InContext, PointIO)) { return ExitFail(); }
-		if (!DotComparison.Init(InContext, PointIO)) { return ExitFail(); }
+		if (!Adjacency.Init(InContext, PointDataCache)) { return ExitFail(); }
+		if (!DotComparison.Init(InContext, PointDataCache)) { return ExitFail(); }
 	}
 
-	void TEdgeDirectionFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	void TEdgeDirectionFilter::PrepareForTesting()
 	{
-		TClusterNodeFilter::PrepareForTesting(PointIO);
+		TClusterNodeFilter::PrepareForTesting();
 
 		if (!Adjacency.bTestAllNeighbors)
 		{
@@ -73,7 +68,7 @@ namespace PCGExNodeAdjacency
 		const FVector RefDir = TypedFilterFactory->Descriptor.bTransformDirection ?
 			                       Point.Transform.TransformVectorNoScale(OperandDirection->Values[Node.PointIndex].GetSafeNormal()) :
 			                       OperandDirection->Values[Node.PointIndex].GetSafeNormal();
-		const double A = DotComparison.GetDot(Point);
+		const double A = DotComparison.GetDot(Node.PointIndex);
 		double B = 0;
 
 		TArray<double> Dots;

@@ -85,18 +85,15 @@ namespace PCGExPointsFilter
 
 		FPCGExDotComparisonSettings DotComparison;
 
-		PCGEx::FLocalVectorGetter* OperandA = nullptr;
-		PCGEx::FLocalVectorGetter* OperandB = nullptr;
+		PCGExDataCaching::FCache<FVector>* OperandA = nullptr;
+		PCGExDataCaching::FCache<FVector>* OperandB = nullptr;
 
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TDotFilter() override
 		{
 			TypedFilterFactory = nullptr;
-			DotComparison.Cleanup();
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
 		}
 	};
 }

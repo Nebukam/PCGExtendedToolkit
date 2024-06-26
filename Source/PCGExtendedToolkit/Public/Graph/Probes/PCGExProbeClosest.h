@@ -41,7 +41,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorClosest : public FPCGExProbeD
 
 	/** Attempts to prevent connections that are roughly in the same direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPreventStacking", EditConditionHides, ClampMin=0.001))
-	double StackingDetectionTolerance = 0.01;
+	double StackingPreventionTolerance = 0.01;
 
 	/** Unbounded means this probe will sample ALL points to find a match. This is uber expensive. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -59,13 +59,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeClosest : public UPCGExProbeOperation
 public:
 	virtual bool RequiresDirectProcessing() override;
 	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
-	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates) override;
-	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point) override;
+	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST) override;
+	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST) override;
 
 	FPCGExProbeDescriptorClosest Descriptor;
 
 	int32 MaxConnections = 1;
-	TArray<int32> MaxConnectionsCache;
+	PCGExDataCaching::FCache<int32>* MaxConnectionsCache = nullptr;
 
 protected:
 	FVector CWStackingTolerance = FVector::ZeroVector;

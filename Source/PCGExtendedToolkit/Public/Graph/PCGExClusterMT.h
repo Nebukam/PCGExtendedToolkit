@@ -9,6 +9,7 @@
 #include "PCGExGraph.h"
 #include "PCGExCluster.h"
 #include "Data/PCGExClusterData.h"
+#include "Data/PCGExDataCaching.h"
 #include "Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
@@ -90,6 +91,9 @@ namespace PCGExClusterMT
 		}
 
 	public:
+		PCGExDataCaching::FPool* VtxDataCache = nullptr;
+		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
+
 		bool bIsProcessorValid = false;
 
 		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
@@ -120,6 +124,7 @@ namespace PCGExClusterMT
 			VtxIO(InVtx), EdgesIO(InEdges)
 		{
 			PCGEX_LOG_CTR(FClusterProcessor)
+			EdgeDataCache = new PCGExDataCaching::FPool(InEdges);
 		}
 
 		virtual ~FClusterProcessor()
@@ -134,6 +139,8 @@ namespace PCGExClusterMT
 
 			VtxFilterCache.Empty();
 			EdgeFilterCache.Empty();
+
+			PCGEX_DELETE(EdgeDataCache)
 		}
 
 		template <typename T>
@@ -154,21 +161,9 @@ namespace PCGExClusterMT
 
 			if (!bBuildCluster) { return true; }
 
-			if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
+			if (const PCGExCluster::FCluster* CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO))
 			{
-				if (const UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(EdgesIO->GetIn()))
-				{
-					//Try to fetch cached cluster
-					if (const PCGExCluster::FCluster* CachedCluster = ClusterEdgesData->GetBoundCluster())
-					{
-						// Cheap validation -- if there are artifact use SanitizeCluster node, it's still incredibly cheaper.
-						if (CachedCluster->IsValidWith(VtxIO, EdgesIO))
-						{
-							//Yey, maybe?
-							Cluster = HandleCachedCluster(CachedCluster);
-						}
-					}
-				}
+				Cluster = HandleCachedCluster(CachedCluster);
 			}
 
 			if (!Cluster)
@@ -204,9 +199,9 @@ namespace PCGExClusterMT
 
 				PCGExCluster::FNodeStateHandler* VtxFiltersHandler = static_cast<PCGExCluster::FNodeStateHandler*>(VtxFiltersData->CreateFilter());
 				VtxFiltersHandler->bCacheResults = false;
-				VtxFiltersHandler->CaptureCluster(Context, Cluster);
+				VtxFiltersHandler->CaptureCluster(Context, Cluster, VtxDataCache, EdgeDataCache);
 
-				VtxFiltersHandler->PrepareForTesting(VtxIO, Cluster->GetVtxPointIndicesView());
+				VtxFiltersHandler->PrepareForTesting(Cluster->GetVtxPointIndicesView());
 
 				const TArray<int32>& VIdxRef = *VtxPointIndicesCache;
 				for (int i = 0; i < VtxPointIndicesCache->Num(); i++) { VtxFilterCache[i] = VtxFiltersHandler->Test(VIdxRef[i]); }
@@ -224,7 +219,7 @@ namespace PCGExClusterMT
 			if (bRequiresHeuristics)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProcessor::Heuristics);
-				HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(static_cast<FPCGExPointsProcessorContext*>(AsyncManagerPtr->Context));
+				HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context, VtxDataCache, EdgeDataCache);
 				HeuristicsHandler->PrepareForCluster(Cluster);
 				HeuristicsHandler->CompleteClusterPreparation();
 			}
@@ -395,6 +390,8 @@ namespace PCGExClusterMT
 		bool bRequiresGraphBuilder = false;
 
 	public:
+		PCGExDataCaching::FPool* VtxDataCache = nullptr;
+
 		bool bRequiresWriteStep = false;
 
 		mutable FRWLock BatchLock;
@@ -421,6 +418,7 @@ namespace PCGExClusterMT
 			Context(InContext), VtxIO(InVtx)
 		{
 			Edges.Append(InEdges);
+			VtxDataCache = new PCGExDataCaching::FPool(InVtx);
 		}
 
 		virtual ~FClusterProcessorBatchBase()
@@ -433,6 +431,7 @@ namespace PCGExClusterMT
 			ExpectedAdjacency.Empty();
 
 			PCGEX_DELETE(GraphBuilder)
+			PCGEX_DELETE(VtxDataCache)
 		}
 
 		template <typename T>
@@ -551,6 +550,7 @@ namespace PCGExClusterMT
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
+				NewProcessor->VtxDataCache = VtxDataCache;
 
 				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
 				NewProcessor->SetRequiresHeuristics(RequiresHeuristics());

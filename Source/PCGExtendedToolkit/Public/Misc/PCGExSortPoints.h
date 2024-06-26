@@ -46,16 +46,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleDescriptor : public FPCGExInputDescr
 	//bool bAbsolute = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule final : public PCGEx::FLocalSingleFieldGetter
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule
 {
 	FPCGExSortRule()
 	{
 	}
 
-	FPCGExSortRule(const FPCGExSortRule& Other)
-		: FLocalSingleFieldGetter(Other)
-	{
-	}
+	PCGExDataCaching::FCache<double>* Cache = nullptr;
 
 	double Tolerance = 0.0001f;
 	bool bInvertRule = false;
@@ -123,13 +120,21 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointIO final : public PCGExMT::FPCGExTask
+namespace PCGExSortPoints
 {
-public:
-	FPCGExSortPointIO(PCGExData::FPointIO* InPointIO) :
-		FPCGExTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
 
-	virtual bool ExecuteTask() override;
-};
+		virtual ~FProcessor() override
+		{
+		}
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+	};
+}

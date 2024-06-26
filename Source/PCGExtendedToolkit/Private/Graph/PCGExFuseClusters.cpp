@@ -4,7 +4,7 @@
 #include "Graph/PCGExFuseClusters.h"
 #include "Graph/PCGExIntersections.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/Data/PCGExClusterData.h"
@@ -162,7 +162,6 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->CompoundProcessor->Execute()) { return false; }
 
-	Context->Done();
 	Context->CompoundPoints->OutputTo(Context);
 
 	return Context->TryComplete();
