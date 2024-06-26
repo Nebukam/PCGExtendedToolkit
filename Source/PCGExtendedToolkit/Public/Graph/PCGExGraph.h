@@ -54,7 +54,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
 	}
 
 	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
+	//UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
 	bool bPruneIsolatedPoints = true;
 
 	/** Don't output Clusters if they have less points than a specified amount. */
