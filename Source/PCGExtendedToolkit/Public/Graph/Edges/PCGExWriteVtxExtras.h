@@ -110,7 +110,7 @@ namespace PCGExWriteVtxExtras
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
-		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void CompleteWork() override;
 
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)

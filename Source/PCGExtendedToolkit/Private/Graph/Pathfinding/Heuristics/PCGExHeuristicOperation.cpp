@@ -12,8 +12,8 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 	bHasCustomLocalWeightMultiplier = false;
 	if (bUseLocalWeightMultiplier)
 	{
-		const PCGExData::FPointIO* PointIO = LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? InCluster->VtxIO : InCluster->EdgesIO;
-		PCGExDataCaching::FPool* DataCache = LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? PrimaryDataCache : SecondaryDataCache;
+		const PCGExData::FPointIO* PointIO = LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
+		PCGExDataCaching::FPool* DataCache = LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? PrimaryDataCache : SecondaryDataCache;
 
 		const int32 NumPoints = PointIO->GetNum();
 		PCGExDataCaching::FCache<double>* LocalWeightCache = DataCache->GetOrCreateGetter<double>(WeightMultiplierAttribute);
@@ -24,7 +24,7 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 			return;
 		}
 
-		if (LocalWeightMultiplierSource == EPCGExGraphValueSource::Point)
+		if (LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx)
 		{
 			LocalWeightMultiplier.SetNumZeroed(InCluster->Nodes->Num());
 			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.NodeIndex] = LocalWeightCache->Values[Node.PointIndex]; }
@@ -60,7 +60,7 @@ double UPCGExHeuristicOperation::GetEdgeScore(
 double UPCGExHeuristicOperation::GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const
 {
 	if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
-	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? PointIndex : EdgeIndex]);
+	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? PointIndex : EdgeIndex]);
 }
 
 void UPCGExHeuristicOperation::Cleanup()

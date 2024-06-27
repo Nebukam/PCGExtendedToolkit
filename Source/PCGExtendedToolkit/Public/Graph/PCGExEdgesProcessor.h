@@ -53,6 +53,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	virtual ~FPCGExEdgesProcessorContext() override;
 
+	TArray<UPCGExFilterFactoryBase*> VtxFilterFactories;
+	TArray<UPCGExFilterFactoryBase*> EdgeFilterFactories;
+
 	bool bDeterministicClusters = false;
 	bool bBuildEndpointsLookup = true;
 
@@ -151,7 +154,8 @@ protected:
 			}
 
 			NewBatch->EdgeCollection = MainEdges;
-			if (VtxFiltersData) { NewBatch->SetVtxFilterData(VtxFiltersData); }
+			// TODO : If required, won't init filter data properly.
+			if (!VtxFilterFactories.IsEmpty()) { NewBatch->SetVtxFilterFactories(&VtxFilterFactories); }
 
 			if (NewBatch->RequiresGraphBuilder())
 			{
@@ -176,9 +180,6 @@ protected:
 	void AdvanceBatch();
 
 	int32 CurrentEdgesIndex = -1;
-
-	UPCGExNodeStateFactory* VtxFiltersData = nullptr;
-	UPCGExNodeStateFactory* EdgesFiltersData = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement

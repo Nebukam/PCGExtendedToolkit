@@ -125,7 +125,7 @@ namespace PCGExFindContours
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 
-		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};

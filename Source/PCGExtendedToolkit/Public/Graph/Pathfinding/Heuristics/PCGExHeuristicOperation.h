@@ -22,7 +22,7 @@ public:
 	double ReferenceWeight = 1;
 	double WeightFactor = 1;
 	bool bUseLocalWeightMultiplier = false;
-	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Point;
+	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Vtx;
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
 

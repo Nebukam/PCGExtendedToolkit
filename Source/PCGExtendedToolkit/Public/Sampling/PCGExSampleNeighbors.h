@@ -8,6 +8,11 @@
 
 #include "PCGExSampleNeighbors.generated.h"
 
+namespace PCGExNeighborSample
+{
+	struct FNeighbor;
+}
+
 class UPCGExNeighborSamplerFactoryBase;
 class UPCGExNeighborSampleOperation;
 
@@ -70,9 +75,9 @@ namespace PCGExSampleNeighbors
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
+		TArray<UPCGExNeighborSampleOperation*> OpsWithValueTest;
 
-		TArray<UPCGExNeighborSampleOperation*> VtxOps;
-		TArray<UPCGExNeighborSampleOperation*> EdgeOps;
+		TArray<PCGExCluster::FExpandedNode*> ExpandedNodes;
 
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
@@ -83,7 +88,9 @@ namespace PCGExSampleNeighbors
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void CompleteWork() override;
+		virtual void Write() override;
 	};
 }

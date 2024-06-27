@@ -3,23 +3,24 @@
 
 #include "Misc/Filters/PCGExMeanFilter.h"
 
-PCGExDataFilter::TFilter* UPCGExMeanFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExMeanFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TMeanFilter(this);
 }
 
-void PCGExPointsFilter::TMeanFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
 {
-	TFilter::Capture(InContext, InPrimaryDataCache);
+	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
 	Target = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.Target, true);
-	bValid = Target != nullptr;
 
-	if (!bValid)
+	if (!Target)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Target attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.Target.GetName())));
-		PCGEX_DELETE(Target)
+		return false;
 	}
+
+	return true;
 }
 
 bool PCGExPointsFilter::TMeanFilter::Test(const int32 PointIndex) const
@@ -27,7 +28,7 @@ bool PCGExPointsFilter::TMeanFilter::Test(const int32 PointIndex) const
 	return FMath::IsWithin(Target->Values[PointIndex], ReferenceMin, ReferenceMax);
 }
 
-void PCGExPointsFilter::TMeanFilter::PrepareForTesting()
+void PCGExPointsFilter::TMeanFilter::PostInit()
 {
 	const int32 NumPoints = PointDataCache->Source->GetNum();
 	Results.SetNum(NumPoints);

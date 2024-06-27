@@ -37,7 +37,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 
 	for (const FName& Id : MissingAttributes)
 	{
-		if (BaseSettings.NeighborSource == EPCGExGraphValueSource::Point) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on vtx: {0}."), FText::FromName(Id))); }
+		if (BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on vtx: {0}."), FText::FromName(Id))); }
 		else { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on edges: {0}."), FText::FromName(Id))); }
 	}
 
@@ -58,16 +58,16 @@ void UPCGExNeighborSampleAttribute::PrepareNode(const PCGExCluster::FNode& Targe
 	Blender->PrepareForBlending(TargetNode.PointIndex);
 }
 
-void UPCGExNeighborSampleAttribute::BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
+void UPCGExNeighborSampleAttribute::BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
 {
 	const int32 PrimaryIndex = TargetNode.PointIndex;
-	Blender->Blend(PrimaryIndex, OtherNode.PointIndex, PrimaryIndex, Weight);
+	Blender->Blend(PrimaryIndex, Neighbor.Node->PointIndex, PrimaryIndex, Weight);
 }
 
-void UPCGExNeighborSampleAttribute::BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
+void UPCGExNeighborSampleAttribute::BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
 {
 	const int32 PrimaryIndex = TargetNode.PointIndex;
-	Blender->Blend(PrimaryIndex, InEdgeIndex, PrimaryIndex, Weight);
+	Blender->Blend(PrimaryIndex, Neighbor.Edge->PointIndex, PrimaryIndex, Weight);
 }
 
 void UPCGExNeighborSampleAttribute::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const

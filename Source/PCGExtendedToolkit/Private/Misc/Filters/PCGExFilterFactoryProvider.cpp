@@ -3,7 +3,7 @@
 
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateFilter"
 #define PCGEX_NAMESPACE PCGExCreateFilter
@@ -12,7 +12,7 @@
 FString UPCGExFilterProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-FName UPCGExFilterProviderSettings::GetMainOutputLabel() const { return PCGExDataFilter::OutputFilterLabel; }
+FName UPCGExFilterProviderSettings::GetMainOutputLabel() const { return PCGExPointFilter::OutputFilterLabel; }
 
 UPCGExParamFactoryBase* UPCGExFilterProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {

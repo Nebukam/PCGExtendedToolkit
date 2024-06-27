@@ -109,7 +109,7 @@ namespace PCGExWriteVtxExtras
 		ProjectedCluster->Nodes[Iteration].Project(Cluster, ProjectionSettings);
 	}
 
-	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
 		if (VtxNormalWriter)
 		{

@@ -10,7 +10,7 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-PCGExFactories::EType UPCGExSortingRule::GetFactoryType() const { return PCGExFactories::EType::SortRule; }
+PCGExFactories::EType UPCGExSortingRule::GetFactoryType() const { return PCGExFactories::EType::RuleSort; }
 
 FName UPCGExSortingRuleProviderSettings::GetMainOutputLabel() const { return FName(TEXT("SortingRule")); }
 
@@ -39,7 +39,7 @@ bool UPCGExModularSortPointsSettings::GetSortingRules(const FPCGContext* InConte
 	TArray<UPCGExSortingRule*> Factories;
 	if (!PCGExFactories::GetInputFactories(
 		InContext, TEXT("SortRules"),
-		Factories, {PCGExFactories::EType::SortRule}, false))
+		Factories, {PCGExFactories::EType::RuleSort}, false))
 	{
 		return false;
 	}

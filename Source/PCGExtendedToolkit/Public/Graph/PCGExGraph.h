@@ -27,7 +27,7 @@ namespace PCGExGeo
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source"))
 enum class EPCGExGraphValueSource : uint8
 {
-	Point UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
+	Vtx UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
 	Edge UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),
 };
 

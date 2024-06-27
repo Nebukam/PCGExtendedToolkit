@@ -12,12 +12,12 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 {
 	Super::PrepareForCluster(InCluster);
 
-	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Point ? InCluster->VtxIO : InCluster->EdgesIO;
-	PCGExDataCaching::FPool* DataCache = Source == EPCGExGraphValueSource::Point ? PrimaryDataCache : SecondaryDataCache;
+	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
+	PCGExDataCaching::FPool* DataCache = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataCache : SecondaryDataCache;
 
 	if (LastPoints == InPoints) { return; }
 
-	const int32 NumPoints = Source == EPCGExGraphValueSource::Point ? InCluster->Nodes->Num() : InPoints->GetNum();
+	const int32 NumPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->Nodes->Num() : InPoints->GetNum();
 	
 	LastPoints = InPoints;
 	InPoints->CreateInKeys();
@@ -39,7 +39,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	
 	const double Factor = ReferenceWeight * WeightFactor;
 
-	if (Source == EPCGExGraphValueSource::Point)
+	if (Source == EPCGExGraphValueSource::Vtx)
 	{
 		for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
 		{

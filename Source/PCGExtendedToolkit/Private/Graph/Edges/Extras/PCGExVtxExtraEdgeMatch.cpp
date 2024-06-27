@@ -29,7 +29,7 @@ void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, co
 	if (FilterFactories && !FilterFactories->IsEmpty())
 	{
 		/*
-		PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(VtxDataCache);
+		PCGExPointFilter::TEarlyExitFilterManager* FilterManager = new PCGExPointFilter::TEarlyExitFilterManager(VtxDataCache);
 		FilterManagers[ClusterIdx] = FilterManager;
 		FilterManager->bCacheResults = false;
 		FilterManager->Register(InContext, *FilterFactories);
@@ -72,7 +72,7 @@ bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExD
 
 void UPCGExVtxExtraEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	PCGExDataFilter::TEarlyExitFilterManager* EdgeFilters = FilterManagers[ClusterIdx]; //TODO : Implement properly
+	PCGExPointFilter::TManager* EdgeFilters = FilterManagers[ClusterIdx]; //TODO : Implement properly
 
 	const FPCGPoint& Point = Vtx->GetInPoint(Node.PointIndex);
 

@@ -62,6 +62,7 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>* NewBatch)
 			{
+				NewBatch->bRequiresWriteStep = true;
 			},
 			PCGExMT::State_Done))
 		{
@@ -86,16 +87,10 @@ namespace PCGExSampleNeighbors
 {
 	FProcessor::~FProcessor()
 	{
-		for (UPCGExNeighborSampleOperation* Op : SamplingOperations)
-		{
-			if (Op->PointState) { PCGEX_DELETE(Op->PointState) }
-			if (Op->ValueState) { PCGEX_DELETE(Op->ValueState) }
-			PCGEX_DELETE_OPERATION(Op)
-		}
-		SamplingOperations.Empty();
+		PCGEX_DELETE_TARRAY(ExpandedNodes)
 
-		VtxOps.Empty();
-		EdgeOps.Empty();
+		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_OPERATION(Op) }
+		SamplingOperations.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -117,23 +112,36 @@ namespace PCGExSampleNeighbors
 			}
 
 			SamplingOperations.Add(SamplingOperation);
-
-			if (SamplingOperation->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point) { VtxOps.Add(SamplingOperation); }
-			else { EdgeOps.Add(SamplingOperation); }
+			if (SamplingOperation->ValueFilters) { OpsWithValueTest.Add(SamplingOperation); }
 		}
+
+		ExpandedNodes.SetNumUninitialized(NumNodes);
+		Cluster->ComputeEdgeLengths();
 
 		StartParallelLoopForNodes();
 
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
-		for (const UPCGExNeighborSampleOperation* Op : VtxOps) { Op->ProcessNodeForPoints(Node.NodeIndex); }
-		for (const UPCGExNeighborSampleOperation* Op : EdgeOps) { Op->ProcessNodeForEdges(Node.NodeIndex); }
+		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->TestNode(*(Cluster->Nodes->GetData() + Iteration)); }
+
+		// Build expanded nodes
+		ExpandedNodes[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration);
+	}
+
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
+	{
+		for (const UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->ProcessNode(Index, ExpandedNodes); }
 	}
 
 	void FProcessor::CompleteWork()
+	{
+		StartParallelLoopForRange(NumNodes);
+	}
+
+	void FProcessor::Write()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
 	}

@@ -8,26 +8,18 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"
 #define PCGEX_NAMESPACE NodeEdgeDirectionFilter
 
-PCGExDataFilter::TFilter* UPCGExEdgeDirectionFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExEdgeDirectionFilterFactory::CreateFilter() const
 {
-	return new PCGExNodeAdjacency::TEdgeDirectionFilter(this);
+	return new PCGExNodeAdjacency::FEdgeDirectionFilter(this);
 }
 
 namespace PCGExNodeAdjacency
 {
-	PCGExDataFilter::EType TEdgeDirectionFilter::GetFilterType() const { return PCGExDataFilter::EType::ClusterNode; }
-
-	void TEdgeDirectionFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+	bool FEdgeDirectionFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 	{
-		TFilter::Capture(InContext, InPrimaryDataCache);
+		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
 
 		bFromNode = TypedFilterFactory->Descriptor.Origin == EPCGExAdjacencyDirectionOrigin::FromNode;
-
-		auto ExitFail = [&]()
-		{
-			bValid = false;
-			PCGEX_DELETE(OperandDirection)
-		};
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
@@ -35,35 +27,36 @@ namespace PCGExNodeAdjacency
 			if (!OperandDirection)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.Direction.GetName())));
-				return ExitFail();
+				return false;
 			}
 		}
 
-		if (!Adjacency.Init(InContext, PointDataCache)) { return ExitFail(); }
-		if (!DotComparison.Init(InContext, PointDataCache)) { return ExitFail(); }
-	}
+		if (!Adjacency.Init(InContext, PointDataCache)) { return false; }
 
-	void TEdgeDirectionFilter::PrepareForTesting()
-	{
-		TClusterNodeFilter::PrepareForTesting();
-
-		if (!Adjacency.bTestAllNeighbors)
+		if (TypedFilterFactory->Descriptor.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
 		{
-			// TODO : Test whether or not it's more efficient to cache the thresholds first or not (would need to grab Adjacency first instead of soft grab)
-			/*
-			const int32 NumNodes = CapturedCluster->Nodes.Num();
-			CachedThreshold.SetNumUninitialized(NumNodes);
-			for (const PCGExCluster::FNode& Node : CapturedCluster->Nodes) { CachedThreshold[Node.NodeIndex] = Adjacency.GetThreshold(Node); }
-			*/
+			if (!DotComparison.Init(InContext, PointDataCache)) { return false; }
 		}
+		else
+		{
+			bUseDot = false;
+			if (!HashComparison.Init(InContext, PointDataCache)) { return false; }
+		}
+
+		return true;
 	}
 
-	bool TEdgeDirectionFilter::Test(const int32 PointIndex) const
+	bool FEdgeDirectionFilter::Test(const PCGExCluster::FNode& Node) const
 	{
-		const TArray<PCGExCluster::FNode>& NodesRef = *CapturedCluster->Nodes;
+		return bUseDot ? TestDot(Node.PointIndex) : TestHash(Node.NodeIndex);
+	}
+
+	bool FEdgeDirectionFilter::TestDot(const int32 PointIndex) const
+	{
+		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
 		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
-		const FPCGPoint& Point = CapturedCluster->VtxIO->GetInPoint(Node.PointIndex);
+		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(Node.PointIndex);
 
 		const FVector RefDir = TypedFilterFactory->Descriptor.bTransformDirection ?
 			                       Point.Transform.TransformVectorNoScale(OperandDirection->Values[Node.PointIndex].GetSafeNormal()) :
@@ -83,7 +76,7 @@ namespace PCGExNodeAdjacency
 				for (int i = 0; i < Dots.Num(); i++)
 				{
 					FVector Direction = (NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
-					Dots[i] = FVector::DotProduct(RefDir, Direction);
+					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Direction));
 				}
 			}
 			else
@@ -91,7 +84,7 @@ namespace PCGExNodeAdjacency
 				for (int i = 0; i < Dots.Num(); i++)
 				{
 					FVector Direction = (NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
-					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Direction));
+					Dots[i] = FVector::DotProduct(RefDir, Direction);
 				}
 			}
 		}
@@ -102,7 +95,7 @@ namespace PCGExNodeAdjacency
 				for (int i = 0; i < Dots.Num(); i++)
 				{
 					FVector Direction = (Node.Position - NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
-					Dots[i] = FVector::DotProduct(RefDir, Direction);
+					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Direction));
 				}
 			}
 			else
@@ -110,7 +103,7 @@ namespace PCGExNodeAdjacency
 				for (int i = 0; i < Dots.Num(); i++)
 				{
 					FVector Direction = (Node.Position - NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
-					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Direction));
+					Dots[i] = FVector::DotProduct(RefDir, Direction);
 				}
 			}
 		}
@@ -155,6 +148,60 @@ namespace PCGExNodeAdjacency
 
 		int32 LocalSuccessCount = 0;
 		for (const double Dot : Dots) { if (DotComparison.Test(A, Dot)) { LocalSuccessCount++; } }
+
+		return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold);
+	}
+
+	bool FEdgeDirectionFilter::TestHash(const int32 PointIndex) const
+	{
+		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+
+		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
+		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(Node.PointIndex);
+
+		const FVector RefDir = TypedFilterFactory->Descriptor.bTransformDirection ?
+			                       Point.Transform.TransformVectorNoScale(OperandDirection->Values[Node.PointIndex].GetSafeNormal()) :
+			                       OperandDirection->Values[Node.PointIndex].GetSafeNormal();
+
+		const FVector CWTolerance = HashComparison.GetCWTolerance(Node.PointIndex);
+		const uint64 A = PCGEx::GH(RefDir, CWTolerance);
+
+		TArray<uint64> Hashes;
+		Hashes.SetNumUninitialized(Node.Adjacency.Num());
+
+		// Precompute all dot products
+
+		if (bFromNode)
+		{
+			for (int i = 0; i < Hashes.Num(); i++)
+			{
+				FVector Direction = (NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
+				Hashes[i] = PCGEx::GH(Direction, CWTolerance);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < Hashes.Num(); i++)
+			{
+				FVector Direction = (Node.Position - NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
+				Hashes[i] = PCGEx::GH(Direction, CWTolerance);
+			}
+		}
+
+		if (Adjacency.bTestAllNeighbors)
+		{
+			for (const double Hash : Hashes) { if (A != Hash) { return false; } }
+			return true;
+		}
+
+		// Only some adjacent samples must pass the comparison
+		const int32 Threshold = Adjacency.GetThreshold(Node);
+
+		// Early exit on impossible thresholds (i.e node has less neighbor that the minimum or exact requirements)		
+		if (Threshold == -1) { return false; }
+
+		int32 LocalSuccessCount = 0;
+		for (const double Hash : Hashes) { if (A == Hash) { LocalSuccessCount++; } }
 
 		return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold);
 	}

@@ -40,7 +40,7 @@ bool FPCGExFindNodeStatesElement::Boot(FPCGContext* InContext) const
 
 	return PCGExDataState::GetInputStateFactories(
 		Context, PCGExCluster::SourceNodeStateLabel,
-		Context->StateFactories, {PCGExFactories::EType::NodeState}, Settings->bAllowStateOverlap);
+		Context->StateFactories, {PCGExFactories::EType::StateNode}, Settings->bAllowStateOverlap);
 }
 
 bool FPCGExFindNodeStatesElement::ExecuteInternal(
@@ -95,7 +95,7 @@ namespace PCGExFindNodeState
 
 		StatesManager = new PCGExDataState::TStatesManager(VtxDataCache, EdgeDataCache);
 		StatesManager->RegisterAndCapture<UPCGExNodeStateFactory>(
-			Context, TypedContext->StateFactories, [&](PCGExDataFilter::TFilter* Handler)
+			Context, TypedContext->StateFactories, [&](PCGExPointFilter::TFilter* Handler)
 			{
 				PCGExCluster::FNodeStateHandler* NodeStateHandler = static_cast<PCGExCluster::FNodeStateHandler*>(Handler);
 				NodeStateHandler->CaptureCluster(Context, Cluster, VtxDataCache, EdgeDataCache);
@@ -120,7 +120,7 @@ namespace PCGExFindNodeState
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node) { StatesManager->Test(Node.PointIndex); }
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) { StatesManager->TestPoint(Node.PointIndex); }
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{

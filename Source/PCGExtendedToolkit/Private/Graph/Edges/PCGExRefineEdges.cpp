@@ -110,7 +110,7 @@ namespace PCGExRefineEdges
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
 		Refinement->ProcessNode(Node, Cluster, EdgeLock, HeuristicsHandler);
 	}

@@ -267,7 +267,7 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraFactoryBase : public UPCGExNodeStateFactory
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 

@@ -25,9 +25,9 @@ MACRO(NumSamples, int32)
 
 class UPCGExFilterFactoryBase;
 
-namespace PCGExDataFilter
+namespace PCGExPointFilter
 {
-	class TEarlyExitFilterManager;
+	class TEarlyExitPointFilterManager;
 }
 
 namespace PCGExPolyLine

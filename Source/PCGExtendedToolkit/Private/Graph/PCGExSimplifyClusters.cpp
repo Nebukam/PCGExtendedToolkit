@@ -12,7 +12,7 @@
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExSimplifyClustersSettings::GetVtxFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
+FName UPCGExSimplifyClustersSettings::GetVtxFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
 
 #pragma endregion
 

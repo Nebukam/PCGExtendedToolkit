@@ -16,7 +16,7 @@ TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::OutputPinPropertie
 PCGExData::EInit UPCGExBreakClustersToPathsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExBreakClustersToPathsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExBreakClustersToPathsSettings::GetVtxFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
+FName UPCGExBreakClustersToPathsSettings::GetVtxFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
 
 
 PCGEX_INITIALIZE_ELEMENT(BreakClustersToPaths)

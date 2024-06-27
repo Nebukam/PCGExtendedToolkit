@@ -116,7 +116,7 @@ namespace PCGExFindNodeState
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

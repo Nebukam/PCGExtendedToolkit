@@ -63,7 +63,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 			{
 				BestDist = C.Distance;
 				BestDot = Dot;
-				BestIndex = C.Index;
+				BestIndex = C.PointIndex;
 			}
 		}
 	}

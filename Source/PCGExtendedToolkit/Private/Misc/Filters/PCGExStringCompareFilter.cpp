@@ -3,36 +3,36 @@
 
 #include "Misc/Filters/PCGExStringCompareFilter.h"
 
-PCGExDataFilter::TFilter* UPCGExStringCompareFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExStringCompareFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TStringCompareFilter(this);
 }
 
-void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
 {
-	TFilter::Capture(InContext, InPrimaryDataCache);
+	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
 	OperandA = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandA.GetName());
-	bValid = OperandA->Bind(InPrimaryDataCache->Source);
-
-	if (!bValid)
+	if (!OperandA->Bind(InPointDataCache->Source))
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
 		PCGEX_DELETE(OperandA)
-		return;
+		return false;
 	}
 
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
 		OperandB = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandB.GetName());
-		bValid = OperandB->Bind(InPrimaryDataCache->Source);
-
-		if (!bValid)
+		if (!OperandB->Bind(InPointDataCache->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
+			PCGEX_DELETE(OperandA)
 			PCGEX_DELETE(OperandB)
+			return false;
 		}
 	}
+
+	return true;
 }
 
 bool PCGExPointsFilter::TStringCompareFilter::Test(const int32 PointIndex) const

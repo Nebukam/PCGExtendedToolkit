@@ -3,7 +3,7 @@
 
 #include "Paths/PCGExFuseCollinear.h"
 
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
@@ -18,7 +18,7 @@ void UPCGExFuseCollinearSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 
 PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExFuseCollinearSettings::GetPointFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
+FName UPCGExFuseCollinearSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
 

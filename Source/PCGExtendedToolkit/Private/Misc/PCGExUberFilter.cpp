@@ -5,7 +5,7 @@
 #include "Misc/PCGExUberFilter.h"
 
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExUberFilter"
 #define PCGEX_NAMESPACE UberFilter
@@ -13,12 +13,12 @@
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExDataFilter::OutputInsideFiltersLabel, "Points that passed the filters.", Required, {})
-	PCGEX_PIN_POINTS(PCGExDataFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Points that passed the filters.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", Required, {})
 	return PinProperties;
 }
 
-FName UPCGExUberFilterSettings::GetPointFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
+FName UPCGExUberFilterSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
 
 bool UPCGExUberFilterSettings::RequiresPointFilters() const { return true; }
 
@@ -41,10 +41,10 @@ bool FPCGExUberFilterElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
 
 	Context->Inside = new PCGExData::FPointIOCollection();
-	Context->Inside->DefaultOutputLabel = PCGExDataFilter::OutputInsideFiltersLabel;
+	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 
 	Context->Outside = new PCGExData::FPointIOCollection();
-	Context->Outside->DefaultOutputLabel = PCGExDataFilter::OutputOutsideFiltersLabel;
+	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
 
 	return true;
 }

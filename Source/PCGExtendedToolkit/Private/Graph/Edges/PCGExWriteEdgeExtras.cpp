@@ -211,7 +211,7 @@ namespace PCGExWriteEdgeExtras
 						TargetBoundsMax._AXIS = EdgeLength * EdgeLerp;\
 					}else if (SolidificationRad##_AXIS->bEnabled){\
 						double Rad = Extents._AXIS;\
-						if (Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Point) { Rad = FMath::Lerp(SolidificationRad##_AXIS->SafeGet(EdgeStartPtIndex, Rad), SolidificationRad##_AXIS->SafeGet(EdgeEndPtIndex, Rad), EdgeLerp); }\
+						if (Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->SafeGet(EdgeStartPtIndex, Rad), SolidificationRad##_AXIS->SafeGet(EdgeEndPtIndex, Rad), EdgeLerp); }\
 						else { Rad = SolidificationRad##_AXIS->SafeGet(Edge.PointIndex, Rad); }\
 						TargetBoundsMin._AXIS = -Rad;\
 						TargetBoundsMax._AXIS = Rad;\
@@ -304,7 +304,7 @@ namespace PCGExWriteEdgeExtras
 		{
 			// Prepare vtx-scoped getters
 #define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
-						if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Point) {\
+						if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) {\
 						SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
 						SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
 						SolidificationRad##_AXIS->Grab(VtxIO); }
@@ -325,7 +325,7 @@ namespace PCGExWriteEdgeExtras
 		{
 			// Fwd vtx-scoped getters
 #define PCGEX_ASSIGN_AXIS_GETTER(_AXIS) \
-			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Point) { \
+			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { \
 				ClusterProcessor->bOwnSolidificationRad##_AXIS = false; \
 				ClusterProcessor->SolidificationRad##_AXIS = SolidificationRad##_AXIS; }
 			PCGEX_FOREACH_XYZ(PCGEX_ASSIGN_AXIS_GETTER)

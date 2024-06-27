@@ -10,7 +10,7 @@
 
 PCGExFactories::EType UPCGExParamFactoryBase::GetFactoryType() const
 {
-	return PCGExFactories::EType::Default;
+	return PCGExFactories::EType::None;
 }
 
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() const

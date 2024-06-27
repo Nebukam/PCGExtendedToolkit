@@ -3,36 +3,36 @@
 
 #include "Misc/Filters/PCGExBitflagFilter.h"
 
-PCGExDataFilter::TFilter* UPCGExBitflagFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExBitflagFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TBitflagFilter(this);
 }
 
-void PCGExPointsFilter::TBitflagFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+bool PCGExPointsFilter::TBitflagFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
 {
-	TFilter::Capture(InContext, InPrimaryDataCache);
-
-	ValueCache = PointDataCache->GetOrCreateReader<int64>(TypedFilterFactory->Descriptor.Value);
-	bValid = ValueCache != nullptr;
+	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
 	CompositeMask = TypedFilterFactory->Descriptor.Mask.GetComposite();
-	
-	if (!bValid)
+
+	ValueCache = PointDataCache->GetOrCreateReader<int64>(TypedFilterFactory->Descriptor.Value);
+
+	if (!ValueCache)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Value attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.Value)));
-		return;
+		return false;
 	}
 
 	if (TypedFilterFactory->Descriptor.MaskType == EPCGExFetchType::Attribute)
 	{
 		MaskCache = PointDataCache->GetOrCreateReader<int64>(TypedFilterFactory->Descriptor.MaskAttribute);
-		bValid = MaskCache != nullptr;
-
-		if (!bValid)
+		if (!MaskCache)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Mask attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.MaskAttribute)));
+			return false;
 		}
 	}
+
+	return true;
 }
 
 bool PCGExPointsFilter::TBitflagFilter::Test(const int32 PointIndex) const

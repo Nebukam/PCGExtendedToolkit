@@ -16,6 +16,13 @@
 
 ///
 
+class UPCGExFilterFactoryBase;
+
+namespace PCGExPointFilter
+{
+	class TManager;
+}
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 {
@@ -79,7 +86,7 @@ protected:
 	mutable FRWLock FilterLock;
 
 	PCGExDataCaching::FCache<FVector>* DirCache = nullptr;
-	TArray<PCGExDataFilter::TEarlyExitFilterManager*> FilterManagers;
+	TArray<PCGExPointFilter::TManager*> FilterManagers;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

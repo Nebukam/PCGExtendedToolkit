@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestSurface.h"
 
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 #include "Engine/OverlapResult.h"
@@ -23,7 +23,7 @@ PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() con
 
 int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
-FName UPCGExSampleNearestSurfaceSettings::GetPointFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
+FName UPCGExSampleNearestSurfaceSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 

@@ -3,34 +3,35 @@
 
 #include "Misc/Filters/PCGExNumericCompareFilter.h"
 
-PCGExDataFilter::TFilter* UPCGExNumericCompareFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExNumericCompareFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TNumericComparisonFilter(this);
 }
 
-void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
 {
-	TFilter::Capture(InContext, InPrimaryDataCache);
+	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
 	OperandA = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandA);
-	bValid = OperandA != nullptr;
 
-	if (!bValid)
+	if (!OperandA)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
-		return;
+		return false;
 	}
 
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
 		OperandB = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
-		bValid = OperandB != nullptr;
 
-		if (!bValid)
+		if (!OperandB)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
+			return false;
 		}
 	}
+
+	return true;
 }
 
 bool PCGExPointsFilter::TNumericComparisonFilter::Test(const int32 PointIndex) const

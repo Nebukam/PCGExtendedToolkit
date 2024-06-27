@@ -9,6 +9,7 @@
 
 
 #include "Graph/PCGExCluster.h"
+#include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 #include "PCGExAdjacencyFilter.generated.h"
@@ -44,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 
 	/** Source of the Operand B value -- either the neighboring point, or the edge connecting to that point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExGraphValueSource OperandBSource = EPCGExGraphValueSource::Point;
+	EPCGExGraphValueSource OperandBSource = EPCGExGraphValueSource::Vtx;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand B (Neighbor)"))
@@ -66,16 +67,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyFilterFactory : public UPCGExCluster
 public:
 	FPCGExAdjacencyFilterDescriptor Descriptor;
 
-	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
+	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExNodeAdjacency
 {
-	class PCGEXTENDEDTOOLKIT_API TAdjacencyFilter final : public PCGExCluster::TClusterNodeFilter
+	class PCGEXTENDEDTOOLKIT_API FAdjacencyFilter final : public PCGExClusterFilter::TFilter
 	{
 	public:
-		explicit TAdjacencyFilter(const UPCGExAdjacencyFilterFactory* InFactory)
-			: TClusterNodeFilter(InFactory), TypedFilterFactory(InFactory)
+		explicit FAdjacencyFilter(const UPCGExAdjacencyFilterFactory* InFactory)
+			: PCGExClusterFilter::TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Adjacency = InFactory->Descriptor.Adjacency;
 		}
@@ -90,16 +91,11 @@ namespace PCGExNodeAdjacency
 		PCGExDataCaching::FCache<double>* OperandA = nullptr;
 		PCGExDataCaching::FCache<double>* OperandB = nullptr;
 
-		virtual PCGExDataFilter::EType GetFilterType() const override;
+		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache) override;
 
-		virtual void CaptureCluster(const FPCGContext* InContext, const PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache) override;
-		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
-		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO) override;
+		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
-		virtual void PrepareForTesting() override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
-
-		virtual ~TAdjacencyFilter() override
+		virtual ~FAdjacencyFilter() override
 		{
 			TypedFilterFactory = nullptr;
 		}

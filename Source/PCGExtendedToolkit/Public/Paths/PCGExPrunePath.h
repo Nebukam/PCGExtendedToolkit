@@ -47,7 +47,7 @@ public:
 
 	/** What to do with the selection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
-	FPCGExDataFilterActionSettings FilterActions;
+	FPCGExPointFilterActionSettings FilterActions;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPrunePathContext final : public FPCGExPathProcessorContext

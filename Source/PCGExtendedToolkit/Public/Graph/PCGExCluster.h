@@ -8,12 +8,9 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExDataState.h"
-#include "Data/PCGExDataFilter.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
-
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Search Mode"))
 enum class EPCGExClusterClosestSearchMode : uint8
@@ -62,34 +59,6 @@ enum class EPCGExClusterSearchOrientationMode : uint8
 	CCW UMETA(DisplayName = "Counter Clockwise"),
 	CW UMETA(DisplayName = "Clockwise"),
 };
-
-/**
- * 
- */
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryBase : public UPCGExFilterFactoryBase
-{
-	GENERATED_BODY()
-
-public:
-	virtual PCGExFactories::EType GetFactoryType() const override;
-};
-
-/**
- * 
- */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExNodeStateFactory : public UPCGExDataStateFactoryBase
-{
-	GENERATED_BODY()
-
-public:
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	virtual PCGExFactories::EType GetFactoryType() const override;
-	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
-	virtual void BeginDestroy() override;
-};
-
 
 namespace PCGExCluster
 {
@@ -171,6 +140,18 @@ namespace PCGExCluster
 
 		void ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const;
 		FORCEINLINE void Add(const FNode& Neighbor, int32 Edge);
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FExpandedNeighbor
+	{
+		const FNode* Node;
+		const PCGExGraph::FIndexedEdge* Edge;
+		FVector Direction;
+
+		FExpandedNeighbor(const FNode* InNode, const PCGExGraph::FIndexedEdge* InEdge, const FVector& InDirection):
+			Node(InNode), Edge(InEdge), Direction(InDirection)
+		{
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCluster
@@ -266,10 +247,67 @@ namespace PCGExCluster
 
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 
+		template <typename T, class MakeFunc>
+		void GrabNeighbors(const int32 NodeIndex, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
+		{
+			TArray<FNode>& NodesRef = (*Nodes);
+			TArray<PCGExGraph::FIndexedEdge>& EdgesRef = (*Edges);
+			FNode& Node = NodesRef[NodeIndex];
+			OutNeighbors.SetNumUninitialized(Node.Adjacency.Num());
+			for (int i = 0; i < Node.Adjacency.Num(); i++)
+			{
+				uint32 OtherNodeIndex;
+				uint32 EdgeIndex;
+				PCGEx::H64(Node.Adjacency[i], OtherNodeIndex, EdgeIndex);
+				OutNeighbors[i] = Make(Node, NodesRef[OtherNodeIndex], EdgesRef[EdgeIndex]);
+			}
+		}
+
+		template <typename T, class MakeFunc>
+		void GrabNeighbors(const FNode& Node, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
+		{
+			TArray<FNode>& NodesRef = (*Nodes);
+			TArray<PCGExGraph::FIndexedEdge>& EdgesRef = (*Edges);
+			OutNeighbors.SetNumUninitialized(Node.Adjacency.Num());
+			for (int i = 0; i < Node.Adjacency.Num(); i++)
+			{
+				uint32 OtherNodeIndex;
+				uint32 EdgeIndex;
+				PCGEx::H64(Node.Adjacency[i], OtherNodeIndex, EdgeIndex);
+				OutNeighbors[i] = Make(NodesRef[OtherNodeIndex], EdgesRef[EdgeIndex]);
+			}
+		}
+
 	protected:
 		FORCEINLINE FNode& GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex);
 		void CreateVtxPointIndices();
 		void CreateVtxPointScopes();
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FExpandedNode
+	{
+		const FNode* Node = nullptr;
+		TArray<FExpandedNeighbor> Neighbors;
+
+		FExpandedNode(const FCluster* Cluster, const int32 InNodeIndex):
+			Node(Cluster->Nodes->GetData() + InNodeIndex)
+		{
+			Neighbors.SetNumUninitialized(Node->Adjacency.Num());
+			for (int i = 0; i < Neighbors.Num(); i++)
+			{
+				uint32 NodeIndex;
+				uint32 EdgeIndex;
+				PCGEx::H64(Node->Adjacency[i], NodeIndex, EdgeIndex);
+				Neighbors[i] = FExpandedNeighbor(
+					Cluster->Nodes->GetData() + NodeIndex, Cluster->Edges->GetData() + EdgeIndex,
+					((Cluster->Nodes->GetData() + NodeIndex)->Position - Node->Position).GetSafeNormal());
+			}
+		}
+
+		~FExpandedNode()
+		{
+			Neighbors.Empty();
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeProjection
@@ -325,55 +363,6 @@ namespace PCGExCluster
 		uint64 GetNHashU() const { return PCGEx::NH64U(First, Last); }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TClusterNodeFilter : public PCGExDataFilter::TFilter
-	{
-	public:
-		explicit TClusterNodeFilter(const UPCGExClusterFilterFactoryBase* InFactory)
-			: TFilter(InFactory)
-		{
-			bValid = false;
-		}
-
-		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
-		const FCluster* CapturedCluster = nullptr;
-
-		FORCEINLINE virtual PCGExDataFilter::EType GetFilterType() const override;
-
-		virtual void CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache);
-		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
-		virtual void PrepareForTesting() override;
-		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler final : public PCGExDataState::TDataState
-	{
-	public:
-		explicit FNodeStateHandler(const UPCGExNodeStateFactory* InFactory);
-
-		const UPCGExNodeStateFactory* NodeStateDefinition = nullptr;
-
-		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
-
-		TArray<TFilter*> FilterHandlers;
-		TArray<TClusterNodeFilter*> ClusterFilterHandlers;
-
-		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache);
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
-
-		virtual void PrepareForTesting() override;
-		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
-
-		virtual ~FNodeStateHandler() override
-		{
-			PCGEX_DELETE_TARRAY(FilterHandlers)
-			PCGEX_DELETE_TARRAY(ClusterFilterHandlers)
-		}
-
-	protected:
-		PCGExData::FPointIO* LastPoints = nullptr;
-		FCluster* Cluster = nullptr;
-	};
-
 	struct PCGEXTENDEDTOOLKIT_API FAdjacencyData
 	{
 		int32 NodeIndex = -1;
@@ -405,7 +394,7 @@ namespace PCGExCluster
 			Data.Direction = (NodePosition - OtherPosition).GetSafeNormal();
 			Data.Length = FVector::Dist(NodePosition, OtherPosition);
 		}
-	}	
+	}
 }
 
 namespace PCGExClusterTask

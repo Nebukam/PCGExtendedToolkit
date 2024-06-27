@@ -4,7 +4,7 @@
 #include "Data/PCGExDataState.h"
 
 
-PCGExDataFilter::TFilter* UPCGExDataStateFactoryBase::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExDataStateFactoryBase::CreateFilter() const
 {
 	return new PCGExDataState::TDataState(this);
 }
@@ -119,7 +119,7 @@ namespace PCGExDataState
 		HighestState.SetNumUninitialized(NumPoints);
 		for (int32& State : HighestState) { State = -1; }
 
-		return TFilterManager::PrepareForTesting();
+		return TManager::PrepareForTesting();
 	}
 
 	void TStatesManager::PrepareForTesting(const TArrayView<const int32>& PointIndices)
@@ -127,22 +127,22 @@ namespace PCGExDataState
 		if (const int32 NumPoints = PointDataCache->Source->GetNum(); HighestState.Num() != NumPoints) { HighestState.SetNumUninitialized(NumPoints); }
 		for (const int32 i : PointIndices) { HighestState[i] = -1; }
 
-		return TFilterManager::PrepareForTesting(PointIndices);
+		return TManager::PrepareForTesting(PointIndices);
 	}
 
-	bool TStatesManager::Test(const int32 PointIndex)
+	bool TStatesManager::TestPoint(const int32 Index)
 	{
 		int32 HState = -1;
 
-		for (PCGExDataFilter::TFilter* Handler : Handlers)
+		for (PCGExPointFilter::TFilter* Handler : PointFilters)
 		{
 			const TDataState* StateHandler = static_cast<TDataState*>(Handler);
-			const bool bValue = Handler->Test(PointIndex);
-			Handler->Results[PointIndex] = bValue;
-			if (bValue) { HState = StateHandler->Index; }
+			const bool bValue = Handler->Test(Index);
+			Handler->Results[Index] = bValue;
+			if (bValue) { HState = StateHandler->FilterIndex; }
 		}
 
-		HighestState[PointIndex] = HState;
+		HighestState[Index] = HState;
 		return HState != -1;
 	}
 
@@ -155,7 +155,7 @@ namespace PCGExDataState
 		{
 			if (const int32 HighestStateId = HighestState[i]; HighestStateId != -1)
 			{
-				const UPCGExDataStateFactoryBase* State = static_cast<const UPCGExDataStateFactoryBase*>(Handlers[HighestStateId]->Factory);
+				const UPCGExDataStateFactoryBase* State = static_cast<const UPCGExDataStateFactoryBase*>(PointFilters[HighestStateId]->Factory);
 				StateNameWriter->Values[i] = State->StateName;
 			}
 			else { StateNameWriter->Values[i] = DefaultValue; }
@@ -175,7 +175,7 @@ namespace PCGExDataState
 		{
 			if (const int32 HighestStateId = HighestState[i]; HighestStateId != -1)
 			{
-				const UPCGExDataStateFactoryBase* State = static_cast<const UPCGExDataStateFactoryBase*>(Handlers[HighestStateId]->Factory);
+				const UPCGExDataStateFactoryBase* State = static_cast<const UPCGExDataStateFactoryBase*>(PointFilters[HighestStateId]->Factory);
 				StateValueWriter->Values[i] = State->StateId;
 			}
 			else { StateValueWriter->Values[i] = DefaultValue; }
@@ -188,10 +188,10 @@ namespace PCGExDataState
 
 	void TStatesManager::WriteStateIndividualStates(PCGExMT::FTaskManager* AsyncManager, const TArrayView<const int32>& InIndices)
 	{
-		for (PCGExDataFilter::TFilter* Handler : Handlers)
+		for (PCGExPointFilter::TFilter* Handler : PointFilters)
 		{
 			AsyncManager->Start<PCGExDataStateTask::FWriteIndividualState>(
-				Handler->Index, const_cast<PCGExData::FPointIO*>(PointDataCache->Source),
+				Handler->FilterIndex, const_cast<PCGExData::FPointIO*>(PointDataCache->Source),
 				static_cast<TDataState*>(Handler), InIndices);
 		}
 	}
@@ -200,7 +200,7 @@ namespace PCGExDataState
 	{
 		const int32 NumPoints = PointDataCache->Source->GetNum();
 
-		for (PCGExDataFilter::TFilter* Handler : Handlers)
+		for (PCGExPointFilter::TFilter* Handler : PointFilters)
 		{
 			TDataState* StateHandler = static_cast<TDataState*>(Handler);
 			StateHandler->PrepareForWriting();
@@ -237,19 +237,12 @@ namespace PCGExDataState
 			}
 		};
 
-		for (PCGExDataFilter::TFilter* Handler : Handlers)
+		for (PCGExPointFilter::TFilter* Handler : PointFilters)
 		{
 			TDataState* StateHandler = static_cast<TDataState*>(Handler);
 			if (Handler->Results[PointIndex]) { ForwardValues(StateHandler->InValidStateAttributes, StateHandler->OutValidStateAttributes); }
 			else { ForwardValues(StateHandler->InInvalidStateAttributes, StateHandler->OutInvalidStateAttributes); }
 		}
-	}
-
-	void TStatesManager::PostProcessHandler(PCGExDataFilter::TFilter* Handler)
-	{
-		const TDataState* StateHandler = static_cast<TDataState*>(Handler);
-		if (StateHandler->bPartial) { bHasPartials = true; }
-		TFilterManager::PostProcessHandler(Handler);
 	}
 }
 

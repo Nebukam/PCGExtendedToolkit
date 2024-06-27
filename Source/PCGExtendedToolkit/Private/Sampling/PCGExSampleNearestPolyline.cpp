@@ -3,7 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestPolyline.h"
 
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPolylineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
@@ -28,7 +28,7 @@ PCGExData::EInit UPCGExSampleNearestPolylineSettings::GetMainOutputInitMode() co
 
 int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
-FName UPCGExSampleNearestPolylineSettings::GetPointFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
+FName UPCGExSampleNearestPolylineSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPolyline)
 

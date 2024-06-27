@@ -7,38 +7,34 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeNeighborsCountFilter"
 #define PCGEX_NAMESPACE NodeNeighborsCountFilter
 
-PCGExDataFilter::TFilter* UPCGExNeighborsCountFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExNeighborsCountFilterFactory::CreateFilter() const
 {
-	return new PCGExNodeNeighborsCount::TNeighborsCountFilter(this);
+	return new PCGExNodeNeighborsCount::FNeighborsCountFilter(this);
 }
+
 
 namespace PCGExNodeNeighborsCount
 {
-	PCGExDataFilter::EType TNeighborsCountFilter::GetFilterType() const { return PCGExDataFilter::EType::ClusterNode; }
-
-	void TNeighborsCountFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 	{
-		TFilter::Capture(InContext, InPrimaryDataCache);
+		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
 			LocalCount = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.LocalCount);
-			bValid = LocalCount != nullptr;
 
-			if (!bValid)
+			if (!LocalCount)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid LocalCount attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.LocalCount.GetName())));
+				return false;
 			}
 		}
+
+		return true;
 	}
 
-	void TNeighborsCountFilter::CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO)
+	bool FNeighborsCountFilter::Test(const PCGExCluster::FNode& Node) const
 	{
-	}
-
-	bool TNeighborsCountFilter::Test(const int32 PointIndex) const
-	{
-		const PCGExCluster::FNode& Node = (*CapturedCluster->Nodes)[PointIndex];
 		const double A = Node.Adjacency.Num();
 		const double B = LocalCount ? LocalCount->Values[Node.PointIndex] : TypedFilterFactory->Descriptor.Count;
 		return PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance);

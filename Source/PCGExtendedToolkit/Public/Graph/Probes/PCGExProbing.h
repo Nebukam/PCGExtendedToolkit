@@ -10,13 +10,13 @@ namespace PCGExProbing
 {
 	struct PCGEXTENDEDTOOLKIT_API FCandidate
 	{
-		int32 Index;
+		int32 PointIndex;
 		FVector Direction;
 		double Distance;
 		uint64 GH;
 
 		FCandidate(const int32 InIndex, const FVector& InDirection, const double InDistance, const uint64 InGH):
-			Index(InIndex), Direction(InDirection), Distance(InDistance), GH(InGH)
+			PointIndex(InIndex), Direction(InDirection), Distance(InDistance), GH(InGH)
 		{
 		}
 	};

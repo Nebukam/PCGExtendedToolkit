@@ -8,7 +8,7 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExNumericCompareFilter.generated.h"
@@ -60,12 +60,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNumericCompareFilterFactory : public UPCGExFi
 public:
 	FPCGExNumericCompareFilterDescriptor Descriptor;
 
-	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
+	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TNumericComparisonFilter final : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TNumericComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TNumericComparisonFilter(const UPCGExNumericCompareFilterFactory* InDefinition)
@@ -78,7 +78,7 @@ namespace PCGExPointsFilter
 		PCGExDataCaching::FCache<double>* OperandA = nullptr;
 		PCGExDataCaching::FCache<double>* OperandB = nullptr;
 
-		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TNumericComparisonFilter() override

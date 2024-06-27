@@ -247,7 +247,7 @@ namespace PCGExFindContours
 		}
 	}
 
-	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
 		ClusterProjection->Nodes[Node.NodeIndex].Project(Cluster, &ProjectionSettings);
 	}

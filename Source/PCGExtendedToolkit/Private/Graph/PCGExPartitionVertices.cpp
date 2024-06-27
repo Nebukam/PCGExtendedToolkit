@@ -119,7 +119,7 @@ namespace PCGExPartitionVertices
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
 		PointPartitionIO->GetOut()->GetMutablePoints()[Node.NodeIndex] = VtxIO->GetInPoint(KeptIndices[Node.NodeIndex]);
 	}

@@ -53,10 +53,10 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
 
-	PCGEX_DELETE_UOBJECT(VtxFiltersData)
-	PCGEX_DELETE_UOBJECT(EdgesFiltersData)
-
 	PCGEX_DELETE_TARRAY(Batches)
+
+	VtxFilterFactories.Empty();
+	EdgeFilterFactories.Empty();
 
 	EndpointsLookup.Empty();
 }
@@ -300,22 +300,12 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->SupportsVtxFilters())
 	{
-		TArray<UPCGExFilterFactoryBase*> FilterFactories;
-		if (GetInputFactories(InContext, Settings->GetVtxFilterLabel(), FilterFactories, PCGExFactories::ClusterNodeFilters, false))
-		{
-			Context->VtxFiltersData = NewObject<UPCGExNodeStateFactory>();
-			Context->VtxFiltersData->FilterFactories.Append(FilterFactories);
-		}
+		GetInputFactories(InContext, Settings->GetVtxFilterLabel(), Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 	}
 
 	if (Settings->SupportsEdgesFilters())
 	{
-		TArray<UPCGExFilterFactoryBase*> FilterFactories;
-		if (GetInputFactories(InContext, Settings->GetEdgesFilterLabel(), FilterFactories, PCGExFactories::ClusterNodeFilters, false))
-		{
-			Context->EdgesFiltersData = NewObject<UPCGExNodeStateFactory>();
-			Context->EdgesFiltersData->FilterFactories.Append(FilterFactories);
-		}
+		GetInputFactories(InContext, Settings->GetEdgesFilterLabel(), Context->EdgeFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 	}
 
 	return true;

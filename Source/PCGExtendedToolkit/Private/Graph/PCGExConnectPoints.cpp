@@ -59,8 +59,8 @@ bool FPCGExConnectPointsElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories, {PCGExFactories::EType::Filter}, false);
-	PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceFilterConnectables, Context->ConnetablesFiltersFactories, {PCGExFactories::EType::Filter}, false);
+	PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories, {PCGExFactories::EType::FilterPoint}, false);
+	PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceFilterConnectables, Context->ConnetablesFiltersFactories, {PCGExFactories::EType::FilterPoint}, false);
 
 	Context->CWStackingTolerance = FVector(1 / Settings->StackingPreventionTolerance);
 
@@ -160,22 +160,18 @@ namespace PCGExConnectPoints
 
 		CanGenerate.SetNumUninitialized(InPoints->Num());
 
-		PCGExDataFilter::TEarlyExitFilterManager* GeneratorsFilter = nullptr;
+		PCGExPointFilter::TManager* GeneratorsFilter = nullptr;
 		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
 		{
-			GeneratorsFilter = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
-			GeneratorsFilter->Register<UPCGExFilterFactoryBase>(Context, TypedContext->GeneratorsFiltersFactories);
-			GeneratorsFilter->bCacheResults = false;
-			GeneratorsFilter->PrepareForTesting();
+			GeneratorsFilter = new PCGExPointFilter::TManager(PointDataCache);
+			GeneratorsFilter->Init(Context, TypedContext->GeneratorsFiltersFactories);
 		}
 
-		PCGExDataFilter::TEarlyExitFilterManager* ConnectableFilter = nullptr;
+		PCGExPointFilter::TManager* ConnectableFilter = nullptr;
 		if (!TypedContext->ConnetablesFiltersFactories.IsEmpty())
 		{
-			ConnectableFilter = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
-			ConnectableFilter->Register<UPCGExFilterFactoryBase>(Context, TypedContext->ConnetablesFiltersFactories);
-			ConnectableFilter->bCacheResults = false;
-			ConnectableFilter->PrepareForTesting();
+			ConnectableFilter = new PCGExPointFilter::TManager(PointDataCache);
+			ConnectableFilter->Init(Context, TypedContext->ConnetablesFiltersFactories);
 
 			if (!ProbeOperations.IsEmpty())
 			{
@@ -185,7 +181,7 @@ namespace PCGExConnectPoints
 				int Index = 0;
 				for (const FPCGPoint& Point : (*InPoints))
 				{
-					if (!ConnectableFilter->Test(Index++)) { continue; }
+					if (!ConnectableFilter->TestPoint(Index++)) { continue; }
 					LocalOctree->AddElement(FPCGPointRef(Point));
 				}
 
@@ -204,7 +200,7 @@ namespace PCGExConnectPoints
 			for (int i = 0; i < InPointsRef.Num(); i++) { Positions[i] = InPointsRef[i].Transform.GetLocation(); }
 		}
 
-		for (int i = 0; i < CanGenerate.Num(); i++) { CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->Test(i) : true; }
+		for (int i = 0; i < CanGenerate.Num(); i++) { CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->TestPoint(i) : true; }
 
 		PCGEX_DELETE(GeneratorsFilter)
 		PCGEX_DELETE(ConnectableFilter)

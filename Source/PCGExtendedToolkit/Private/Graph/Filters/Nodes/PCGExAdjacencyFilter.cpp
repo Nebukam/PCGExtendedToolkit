@@ -8,29 +8,18 @@
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
 #define PCGEX_NAMESPACE NodeAdjacencyFilter
 
-PCGExDataFilter::TFilter* UPCGExAdjacencyFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExAdjacencyFilterFactory::CreateFilter() const
 {
-	return new PCGExNodeAdjacency::TAdjacencyFilter(this);
+	return new PCGExNodeAdjacency::FAdjacencyFilter(this);
 }
 
 namespace PCGExNodeAdjacency
 {
-	PCGExDataFilter::EType TAdjacencyFilter::GetFilterType() const { return PCGExDataFilter::EType::ClusterNode; }
-
-	void TAdjacencyFilter::CaptureCluster(const FPCGContext* InContext, const PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
+	bool FAdjacencyFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 	{
+		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
+
 		bCaptureFromNodes = TypedFilterFactory->Descriptor.OperandBSource != EPCGExGraphValueSource::Edge;
-		TClusterNodeFilter::CaptureCluster(InContext, InCluster, InVtxDataCache, InEdgeDataCache);
-	}
-
-	void TAdjacencyFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
-	{
-		TFilter::Capture(InContext, InPrimaryDataCache);
-
-		auto ExitFail = [&]()
-		{
-			bValid = false;
-		};
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
@@ -38,56 +27,39 @@ namespace PCGExNodeAdjacency
 			if (!OperandA)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
-				return ExitFail();
+				return false;
 			}
 		}
 
-		if (!Adjacency.Init(InContext, InPrimaryDataCache)) { return ExitFail(); }
+		if (!Adjacency.Init(InContext, PointDataCache)) { return false; }
 
-		if (!bCaptureFromNodes) { return; }
-
-		OperandB = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
-		if (!OperandB)
+		if (bCaptureFromNodes)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
-			ExitFail();
+			OperandB = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+			if (!OperandB)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
+				return false;
+			}
 		}
+		else
+		{
+			OperandB = EdgeDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+			if (!OperandB)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
+				return false;
+			}
+		}
+
+		return true;
 	}
 
-	void TAdjacencyFilter::CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO)
+	bool FAdjacencyFilter::Test(const PCGExCluster::FNode& Node) const
 	{
-		if (bCaptureFromNodes) { return; }
-
-		OperandB = EdgeDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
-		bValid = OperandB != nullptr;
-
-		if (!bValid)
-		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
-		}
-	}
-
-	void TAdjacencyFilter::PrepareForTesting()
-	{
-		TClusterNodeFilter::PrepareForTesting();
-
-		if (!Adjacency.bTestAllNeighbors)
-		{
-			// TODO : Test whether or not it's more efficient to cache the thresholds first or not (would need to grab Adjacency first instead of soft grab)
-			/*
-			const int32 NumNodes = CapturedCluster->Nodes.Num();
-			CachedThreshold.SetNumUninitialized(NumNodes);
-			for (const PCGExCluster::FNode& Node : CapturedCluster->Nodes) { CachedThreshold[Node.NodeIndex] = Adjacency.GetThreshold(Node); }
-			*/
-		}
-	}
-
-	bool TAdjacencyFilter::Test(const int32 PointIndex) const
-	{
-		const TArray<PCGExCluster::FNode>& NodesRef = *CapturedCluster->Nodes;
+		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 		//const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *CapturedCluster->Edges;
 
-		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
 		const double A = OperandA->Values[Node.PointIndex];
 		double B = 0;
 

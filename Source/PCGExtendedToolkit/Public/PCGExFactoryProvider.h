@@ -21,22 +21,22 @@ namespace PCGExFactories
 {
 	enum class EType : uint8
 	{
-		Default = 0,
-		SortRule,
-		PartitionRule,
-		Filter,
+		None = 0,
+		FilterPoint,
+		FilterNode,
+		FilterEdge,
+		RuleSort,
+		RulePartition,
 		Probe,
-		ClusterNodeFilter,
-		ClusterEdgeFilter,
-		NodeState,
-		SocketState,
+		StateNode,
+		StateSocket,
 		Sampler,
 		Heuristics,
 		VtxExtra
 	};
 
-	static inline TSet<EType> ClusterNodeFilters = {EType::Filter, EType::ClusterNodeFilter};
-	static inline TSet<EType> ClusterEdgeFilters = {EType::Filter, EType::ClusterEdgeFilter};
+	static inline TSet<EType> ClusterNodeFilters = {EType::FilterPoint, EType::FilterNode};
+	static inline TSet<EType> ClusterEdgeFilters = {EType::FilterPoint, EType::FilterEdge};
 }
 
 /**
@@ -60,6 +60,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExParamFactoryBase : public UPCGExParamDataBase
 	GENERATED_BODY()
 
 public:
+	int32 Priority = 0;
 	FORCEINLINE virtual PCGExFactories::EType GetFactoryType() const;
 };
 

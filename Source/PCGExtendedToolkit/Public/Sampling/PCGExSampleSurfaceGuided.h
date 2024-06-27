@@ -20,9 +20,9 @@ MACRO(Distance, double)
 
 class UPCGExFilterFactoryBase;
 
-namespace PCGExDataFilter
+namespace PCGExPointFilter
 {
-	class TEarlyExitFilterManager;
+	class TEarlyExitPointFilterManager;
 }
 
 /**

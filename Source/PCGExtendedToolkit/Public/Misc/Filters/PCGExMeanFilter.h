@@ -7,7 +7,7 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExMeanFilter.generated.h"
@@ -69,12 +69,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterFactory : public UPCGExFilterFactor
 public:
 	FPCGExMeanFilterDescriptor Descriptor;
 
-	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
+	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TMeanFilter final : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TMeanFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TMeanFilter(const UPCGExMeanFilterFactory* InFactory)
@@ -90,10 +90,10 @@ namespace PCGExPointsFilter
 		double ReferenceMin = 0;
 		double ReferenceMax = 0;
 
-		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
-		virtual void PrepareForTesting() override;
+		virtual void PostInit() override;
 
 		virtual ~TMeanFilter() override
 		{

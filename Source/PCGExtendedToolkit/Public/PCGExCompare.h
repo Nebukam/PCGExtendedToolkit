@@ -96,15 +96,15 @@ namespace PCGExCompare
 		switch (Comparison)
 		{
 		case EPCGExBitflagComparison::ContainsAny:
-			return " &!=0 ";
+			return " Any From ";
 		case EPCGExBitflagComparison::ContainsAll:
-			return " &== ";
+			return " All From ";
 		case EPCGExBitflagComparison::IsExactly:
-			return " == ";
+			return " Exactly ";
 		case EPCGExBitflagComparison::NotContainsAny:
-			return " &==0 ";
+			return " Not Any ";
 		case EPCGExBitflagComparison::NotContainsAll:
-			return " &!= ";
+			return " Not All ";
 		default:
 			return " ?? ";
 		}
@@ -430,6 +430,65 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComparisonSettings
 	/** Comparison Tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual||Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides, ClampMin=0.001))
 	double Tolerance = 0.001;
+};
+
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Direction Check Mode"))
+enum class EPCGExDirectionCheckMode : uint8
+{
+	Dot UMETA(DisplayName = "Dot (Precise)", Tooltip="Extensive comparison using Dot product"),
+	Hash UMETA(DisplayName = "Hash (Fast)", Tooltip="Simplified check using hash comparison with a destructive tolerance"),
+};
+
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonSettings
+{
+	GENERATED_BODY()
+
+	FPCGExVectorHashComparisonSettings()
+	{
+	}
+
+	/** Type of Tolerance value source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExFetchType HashToleranceValue = EPCGExFetchType::Constant;
+
+	/** Tolerance value use for comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionValue==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector HashToleranceAttribute;
+
+	/** Tolerance value use for comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides, ClampMin=0.00001))
+	double HashToleranceConstant = 0.001;
+
+	FVector CWTolerance = FVector::ZeroVector;
+
+	bool bUseLocalTolerance = false;
+	PCGExDataCaching::FCache<double>* LocalOperand = nullptr;
+
+	bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+	{
+		bUseLocalTolerance = HashToleranceValue == EPCGExFetchType::Attribute;
+
+		if (bUseLocalTolerance)
+		{
+			LocalOperand = InPrimaryDataCache->GetOrCreateGetter<double>(HashToleranceAttribute);
+			if (!LocalOperand)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Hash Tolerance attribute: {0}."), FText::FromName(HashToleranceAttribute.GetName())));
+				return false;
+			}
+		}
+
+		CWTolerance = FVector(1 / HashToleranceConstant);
+		return true;
+	}
+
+	FVector GetCWTolerance(const int32 PointIndex) const
+	{
+		return bUseLocalTolerance ? FVector(1 / LocalOperand->Values[PointIndex]) : CWTolerance;
+	}
 };
 
 USTRUCT(BlueprintType)

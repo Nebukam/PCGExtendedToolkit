@@ -8,7 +8,7 @@
 #include "UObject/Object.h"
 
 #include "PCGExData.h"
-#include "PCGExDataFilter.h"
+#include "PCGExPointFilter.h"
 
 #include "PCGExDataState.generated.h"
 
@@ -30,7 +30,7 @@ public:
 	TArray<TObjectPtr<UPCGParamData>> InvalidStateAttributes;
 	TArray<PCGEx::FAttributesInfos*> InvalidStateAttributesInfos;
 
-	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
+	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
@@ -42,7 +42,7 @@ namespace PCGExDataState
 	const FName SourceValidStateAttributesLabel = TEXT("ValidStateAttributes");
 	const FName SourceInvalidStateAttributesLabel = TEXT("InvalidStateAttributes");
 
-	class PCGEXTENDEDTOOLKIT_API TDataState : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TDataState : public PCGExPointFilter::TFilter
 	{
 	public:
 		TArray<FPCGMetadataAttributeBase*> InValidStateAttributes;
@@ -56,7 +56,7 @@ namespace PCGExDataState
 		TSet<FString> OverlappingAttributes;
 
 		explicit TDataState(const UPCGExDataStateFactoryBase* InFactory)
-			: TFilter(InFactory), StateFactory(InFactory)
+			: TPointFilter(InFactory), StateFactory(InFactory)
 		{
 		}
 
@@ -77,7 +77,7 @@ namespace PCGExDataState
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TStatesManager final : public PCGExDataFilter::TFilterManager
+	class PCGEXTENDEDTOOLKIT_API TStatesManager final : public PCGExPointFilter::TManager
 	{
 	public:
 		TArray<int32> HighestState;
@@ -86,14 +86,14 @@ namespace PCGExDataState
 		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
 
 		explicit TStatesManager(PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
-			: TFilterManager(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
+			: TManager(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
 		{
 		}
 
 		virtual void PrepareForTesting() override;
 		virtual void PrepareForTesting(const TArrayView<const int32>& PointIndices) override;
 
-		virtual bool Test(const int32 PointIndex) override;
+		virtual bool TestPoint(const int32 Index) override;
 
 		void WriteStateNames(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, FName DefaultValue, const TArrayView<const int32>& InIndices);
 		void WriteStateValues(PCGExMT::FTaskManager* AsyncManager, FName AttributeName, int32 DefaultValue, const TArrayView<const int32>& InIndices);
@@ -104,11 +104,11 @@ namespace PCGExDataState
 
 		virtual ~TStatesManager() override
 		{
-			PCGEX_DELETE_TARRAY(Handlers)
+			PCGEX_DELETE_TARRAY(PointFilters)
 		}
 
 	protected:
-		virtual void PostProcessHandler(PCGExDataFilter::TFilter* Handler) override;
+		virtual void PostProcessHandler(PCGExPointFilter::TFilter* Handler) override;
 	};
 
 	template <typename T_DEF>

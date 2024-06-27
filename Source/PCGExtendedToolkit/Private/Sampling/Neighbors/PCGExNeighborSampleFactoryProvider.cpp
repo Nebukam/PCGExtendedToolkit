@@ -22,16 +22,16 @@ void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InConte
 {
 	Cluster = InCluster;
 
-	if (PointState)
+	if (!PointFilterFactories.IsEmpty())
 	{
-		PointState->CaptureCluster(Context, Cluster, InVtxDataCache, InEdgeDataCache);
-		PointState->PrepareForTesting();
+		PointFilters = new PCGExClusterFilter::TManager(InCluster, InVtxDataCache, InEdgeDataCache);
+		PointFilters->Init(InContext, PointFilterFactories);
 	}
 
-	if (ValueState)
+	if (!ValueFilterFactories.IsEmpty())
 	{
-		ValueState->CaptureCluster(Context, Cluster, InVtxDataCache, InEdgeDataCache);
-		ValueState->PrepareForTesting();
+		ValueFilters = new PCGExClusterFilter::TManager(InCluster, InVtxDataCache, InEdgeDataCache);
+		ValueFilters->Init(InContext, ValueFilterFactories);
 	}
 }
 
@@ -39,275 +39,111 @@ bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperatio
 
 PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const
 {
-	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Point ? Cluster->VtxIO : Cluster->EdgesIO;
+	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx ? Cluster->VtxIO : Cluster->EdgesIO;
 }
 
-void UPCGExNeighborSampleOperation::ProcessNodeForPoints(const int32 InNodeIndex) const
+void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const TArray<PCGExCluster::FExpandedNode*>& ExpandedNodes) const
 {
-	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+	const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
 
-	PCGExCluster::FNode& TargetNode = (*Cluster->Nodes)[InNodeIndex];
-
-	if (PointState && !PointState->Test(TargetNode.PointIndex)) { return; }
+	if (PointFilters && !PointFilters->TestNode(Node)) { return; }
 
 	int32 CurrentDepth = 0;
 	int32 Count = 0;
 	double TotalWeight = 0;
 
-	TArray<int32>* A = new TArray<int32>();
-	TArray<int32>* B = new TArray<int32>();
+	TArray<PCGExCluster::FExpandedNeighbor>* A = new TArray<PCGExCluster::FExpandedNeighbor>();
+	TArray<PCGExCluster::FExpandedNeighbor>* B = new TArray<PCGExCluster::FExpandedNeighbor>();
 
-	TArray<int32>* CurrentNeighbors = A;
-	TArray<int32>* NextNeighbors = B;
+	TArray<PCGExCluster::FExpandedNeighbor>* CurrentNeighbors = A;
+	TArray<PCGExCluster::FExpandedNeighbor>* NextNeighbors = B;
 	TSet<int32> VisitedNodes;
 
-	VisitedNodes.Add(InNodeIndex);
-	Cluster->GetConnectedNodes(InNodeIndex, *CurrentNeighbors, 1, VisitedNodes);
+	VisitedNodes.Add(NodeIndex);
+	CurrentNeighbors->Append(ExpandedNodes[NodeIndex]->Neighbors);
 
-	PrepareNode(TargetNode);
+	PrepareNode(Node);
 
 	while (CurrentDepth <= BaseSettings.MaxDepth)
 	{
+		if (NextNeighbors->IsEmpty()) { break; }
 		CurrentDepth++;
 
-		if (CurrentDepth != BaseSettings.MaxDepth)
+		for (const PCGExCluster::FExpandedNeighbor& Neighbor : (*CurrentNeighbors))
 		{
-			NextNeighbors->Empty();
+			VisitedNodes.Add(Neighbor.Node->NodeIndex);
+			double LocalWeight;
 
-			if (ValueState)
+			if (BaseSettings.BlendOver == EPCGExBlendOver::Distance)
 			{
-				for (int i = 0; i < CurrentNeighbors->Num(); i++)
+				const double Dist = FVector::Dist(Node.Position, Neighbor.Node->Position); // Use Neighbor.FromNode to accumulate per-path distance 
+				if (Dist > BaseSettings.MaxDistance) { continue; }
+				LocalWeight = 1 - (Dist / BaseSettings.MaxDistance);
+			}
+			else
+			{
+				LocalWeight = BaseSettings.BlendOver == EPCGExBlendOver::Distance ? 1 - (CurrentDepth / (BaseSettings.MaxDepth - 1)) : BaseSettings.FixedBlend;
+			}
+
+			LocalWeight = SampleCurve(LocalWeight);
+
+			if (BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx) { BlendNodePoint(Node, Neighbor, LocalWeight); }
+			else { BlendNodeEdge(Node, Neighbor, LocalWeight); }
+
+			Count++;
+			TotalWeight += LocalWeight;
+		}
+
+		if (CurrentDepth >= BaseSettings.MaxDepth) { break; }
+
+		// Gather next depth
+
+		NextNeighbors->Reset();
+		for (const PCGExCluster::FExpandedNeighbor& Old : (*CurrentNeighbors))
+		{
+			const TArray<PCGExCluster::FExpandedNeighbor>& Neighbors = ExpandedNodes[Old.Node->NodeIndex]->Neighbors;
+			if (ValueFilters)
+			{
+				for (const PCGExCluster::FExpandedNeighbor& Next : Neighbors)
 				{
-					const int32 NIndex = (*CurrentNeighbors)[i];
-					const int32 PtIndex = NodesRef[NIndex].PointIndex;
-					if (ValueState->Test(PtIndex))
+					int32 NextIndex = Next.Node->NodeIndex;
+					if (VisitedNodes.Contains(NextIndex)) { continue; }
+					if (!ValueFilters->Results[Next.Node->PointIndex])
 					{
-						VisitedNodes.Add(NIndex);
-						CurrentNeighbors->RemoveAt(i);
-						i--;
+						VisitedNodes.Add(NextIndex);
+						continue;
 					}
+					NextNeighbors->Add(Next);
 				}
 			}
-
-			for (const int32 Index : *CurrentNeighbors)
+			else
 			{
-				VisitedNodes.Add(Index);
-				const PCGExCluster::FNode& NextNode = NodesRef[Index];
-				double LocalWeight = 1;
-
-				if (BaseSettings.BlendOver == EPCGExBlendOver::Distance)
+				for (const PCGExCluster::FExpandedNeighbor& Next : Neighbors)
 				{
-					const double Dist = FVector::Distance(TargetNode.Position, NextNode.Position);
-					if (Dist > BaseSettings.MaxDistance) { continue; }
-					LocalWeight = 1 - (Dist / BaseSettings.MaxDistance);
+					if (VisitedNodes.Contains(Next.Node->NodeIndex)) { continue; }
+					NextNeighbors->Add(Next);
 				}
-				else
-				{
-					LocalWeight = BaseSettings.BlendOver == EPCGExBlendOver::Distance ? 1 - (CurrentDepth / (BaseSettings.MaxDepth - 1)) : BaseSettings.FixedBlend;
-				}
-
-				LocalWeight = SampleCurve(LocalWeight);
-
-				BlendNodePoint(TargetNode, NextNode, LocalWeight);
-
-				Count++;
-				TotalWeight += LocalWeight;
-			}
-
-			for (const int32 Index : *CurrentNeighbors)
-			{
-				VisitedNodes.Add(Index);
-				Cluster->GetConnectedNodes(Index, *NextNeighbors, 1, VisitedNodes);
-			}
-
-			std::swap(CurrentNeighbors, NextNeighbors);
-		}
-		else
-		{
-			for (const int32 Index : *CurrentNeighbors)
-			{
-				const PCGExCluster::FNode& NextNode = NodesRef[Index];
-				double LocalWeight = 1;
-
-				if (ValueState && !ValueState->Test(NextNode.PointIndex)) { continue; }
-
-				if (BaseSettings.BlendOver == EPCGExBlendOver::Distance)
-				{
-					const double Dist = FVector::Distance(TargetNode.Position, NextNode.Position);
-					if (Dist > BaseSettings.MaxDistance) { continue; }
-					LocalWeight = 1 - (Dist / BaseSettings.MaxDistance);
-				}
-				else
-				{
-					LocalWeight = BaseSettings.BlendOver == EPCGExBlendOver::Distance ? 1 - (CurrentDepth / (BaseSettings.MaxDepth - 1)) : BaseSettings.FixedBlend;
-				}
-
-				LocalWeight = SampleCurve(LocalWeight);
-
-				BlendNodePoint(TargetNode, NextNode, LocalWeight);
-
-				Count++;
-				TotalWeight += LocalWeight;
 			}
 		}
+
+		std::swap(CurrentNeighbors, NextNeighbors);
 	}
 
-	FinalizeNode(TargetNode, Count, TotalWeight);
+	FinalizeNode(Node, Count, TotalWeight);
 
 	PCGEX_DELETE(A)
 	PCGEX_DELETE(B)
-}
-
-void UPCGExNeighborSampleOperation::ProcessNodeForEdges(const int32 InNodeIndex) const
-{
-	if (PointState && !PointState->Test(InNodeIndex)) { return; }
-
-	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
-
-	const PCGExCluster::FNode& TargetNode = NodesRef[InNodeIndex];
-
-	int32 CurrentDepth = 0;
-	int32 Count = 0;
-	double TotalWeight = 0;
-
-	TArray<int32>* A = new TArray<int32>();
-	TArray<int32>* B = new TArray<int32>();
-	TArray<int32>* EA = new TArray<int32>();
-	TArray<int32>* EB = new TArray<int32>();
-
-	TArray<int32>* CurrentNeighbors = A;
-	TArray<int32>* NextNeighbors = B;
-
-	TArray<int32>* CurrentEdges = EA;
-	TArray<int32>* NextEdges = EB;
-
-	TSet<int32> VisitedNodes;
-	TSet<int32> VisitedEdges;
-
-	VisitedNodes.Add(InNodeIndex);
-	Cluster->GetConnectedEdges(InNodeIndex, *CurrentNeighbors, *CurrentEdges, 1, VisitedNodes, VisitedEdges);
-
-	PrepareNode(TargetNode);
-
-	while (CurrentDepth <= BaseSettings.MaxDepth)
-	{
-		CurrentDepth++;
-
-		if (CurrentDepth != BaseSettings.MaxDepth)
-		{
-			NextEdges->Empty();
-
-			if (ValueState)
-			{
-				TSet<int32> IgnoredEndPoints;
-
-				for (int i = 0; i < CurrentNeighbors->Num(); i++)
-				{
-					const int32 NIndex = (*CurrentNeighbors)[i];
-					const int32 PtIndex = NodesRef[NIndex].PointIndex;
-					if (ValueState->Test(PtIndex))
-					{
-						IgnoredEndPoints.Add(NIndex);
-						VisitedNodes.Add(NIndex);
-						CurrentNeighbors->RemoveAt(i);
-						i--;
-					}
-				}
-
-				for (int i = 0; i < CurrentEdges->Num(); i++)
-				{
-					const int32 EIndex = (*CurrentEdges)[i];
-					const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EIndex];
-					if (IgnoredEndPoints.Contains(Edge.Start) || IgnoredEndPoints.Contains(Edge.End))
-					{
-						VisitedEdges.Add(EIndex);
-						CurrentEdges->RemoveAt(i);
-						i--;
-					}
-				}
-
-				IgnoredEndPoints.Empty();
-			}
-
-			for (const int32 EdgeIndex : (*CurrentEdges))
-			{
-				VisitedEdges.Add(EdgeIndex);
-				double LocalWeight = 1;
-
-				if (BaseSettings.BlendOver == EPCGExBlendOver::Distance)
-				{
-					const double Dist = FVector::Distance(TargetNode.Position, Cluster->EdgesIO->GetInPoint(EdgeIndex).Transform.GetLocation());
-					if (Dist > BaseSettings.MaxDistance) { continue; }
-					LocalWeight = 1 - (Dist / BaseSettings.MaxDistance);
-				}
-				else
-				{
-					LocalWeight = BaseSettings.BlendOver == EPCGExBlendOver::Distance ? 1 - (CurrentDepth / (BaseSettings.MaxDepth - 1)) : BaseSettings.FixedBlend;
-				}
-
-				LocalWeight = SampleCurve(LocalWeight);
-
-				BlendNodeEdge(TargetNode, EdgeIndex, LocalWeight);
-
-				Count++;
-				TotalWeight += LocalWeight;
-			}
-
-			for (const int32 Index : *CurrentNeighbors) { VisitedNodes.Add(Index); }
-			for (const int32 Index : *CurrentNeighbors)
-			{
-				Cluster->GetConnectedEdges(Index, *NextNeighbors, *NextEdges, 1, VisitedNodes, VisitedEdges);
-			}
-
-			std::swap(CurrentNeighbors, NextNeighbors);
-			std::swap(CurrentEdges, NextEdges);
-		}
-		else
-		{
-			for (const int32 EdgeIndex : (*CurrentEdges))
-			{
-				if (ValueState)
-				{
-					const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
-					if (!ValueState->Test(Edge.Start) || !ValueState->Test(Edge.End)) { continue; }
-				}
-
-				double LocalWeight = 1;
-
-				if (BaseSettings.BlendOver == EPCGExBlendOver::Distance)
-				{
-					const double Dist = FVector::Distance(TargetNode.Position, Cluster->EdgesIO->GetInPoint(EdgeIndex).Transform.GetLocation());
-					if (Dist > BaseSettings.MaxDistance) { continue; }
-					LocalWeight = 1 - (Dist / BaseSettings.MaxDistance);
-				}
-				else
-				{
-					LocalWeight = BaseSettings.BlendOver == EPCGExBlendOver::Distance ? 1 - (CurrentDepth / (BaseSettings.MaxDepth - 1)) : BaseSettings.FixedBlend;
-				}
-
-				LocalWeight = SampleCurve(LocalWeight);
-
-				BlendNodeEdge(TargetNode, EdgeIndex, LocalWeight);
-
-				Count++;
-				TotalWeight += LocalWeight;
-			}
-		}
-	}
-
-	FinalizeNode(TargetNode, Count, TotalWeight);
 }
 
 void UPCGExNeighborSampleOperation::PrepareNode(const PCGExCluster::FNode& TargetNode) const
 {
 }
 
-void UPCGExNeighborSampleOperation::BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
+void UPCGExNeighborSampleOperation::BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
 {
 }
 
-void UPCGExNeighborSampleOperation::BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
+void UPCGExNeighborSampleOperation::BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
 {
 }
 
@@ -322,8 +158,8 @@ void UPCGExNeighborSampleOperation::FinalizeOperation()
 void UPCGExNeighborSampleOperation::Cleanup()
 {
 	Super::Cleanup();
-	PCGEX_DELETE(PointState)
-	PCGEX_DELETE(ValueState)
+	PCGEX_DELETE(PointFilters)
+	PCGEX_DELETE(ValueFilters)
 }
 
 double UPCGExNeighborSampleOperation::SampleCurve(const double InTime) const { return WeightCurveObj->GetFloatValue(InTime); }
@@ -362,16 +198,12 @@ FName UPCGExNeighborSampleProviderSettings::GetMainOutputLabel() const { return 
 UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGExNeighborSamplerFactoryBase>(InFactory);
+
 	SamplerFactory->Priority = Priority;
 	SamplerFactory->SamplingSettings = SamplingSettings;
-	GetInputFactories(InContext, PCGEx::SourcePointFilters, SamplerFactory->FilterFactories, PCGExFactories::ClusterNodeFilters, false);
 
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	if (GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, FilterFactories, PCGExFactories::ClusterNodeFilters, false))
-	{
-		SamplerFactory->ValueStateFactory = NewObject<UPCGExNodeStateFactory>();
-		SamplerFactory->ValueStateFactory->FilterFactories.Append(FilterFactories);
-	}
+	GetInputFactories(InContext, PCGEx::SourcePointFilters, SamplerFactory->PointFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 
 	return InFactory;
 }

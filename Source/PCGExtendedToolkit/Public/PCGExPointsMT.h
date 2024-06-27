@@ -8,7 +8,7 @@
 #include "PCGExMT.h"
 #include "PCGExOperation.h"
 #include "Data/PCGExDataCaching.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 #include "Graph/PCGExGraph.h"
 
 namespace PCGExPointsMT
@@ -124,13 +124,10 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				}
 				else
 				{
-					PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(PointDataCache);
-
-					FilterManager->Register<UPCGExFilterFactoryBase>(Context, *FilterFactories);
-					FilterManager->bCacheResults = false;
-					FilterManager->PrepareForTesting();
+					PCGExPointFilter::TManager* FilterManager = new PCGExPointFilter::TManager(PointDataCache);
+					FilterManager->Init(Context, *FilterFactories);
 					
-					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = FilterManager->Test(i); }
+					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = FilterManager->TestPoint(i); }
 					PCGEX_DELETE(FilterManager)
 				}
 			}

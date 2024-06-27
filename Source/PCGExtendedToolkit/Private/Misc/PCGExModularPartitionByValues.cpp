@@ -9,7 +9,7 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-PCGExFactories::EType UPCGExPartitionRule::GetFactoryType() const { return PCGExFactories::EType::PartitionRule; }
+PCGExFactories::EType UPCGExPartitionRule::GetFactoryType() const { return PCGExFactories::EType::RulePartition; }
 
 FName UPCGExPartitionRuleProviderSettings::GetMainOutputLabel() const { return FName(TEXT("PartitionRule")); }
 
@@ -37,7 +37,7 @@ bool UPCGExModularPartitionByValuesSettings::GetPartitionRules(const FPCGContext
 	TArray<UPCGExPartitionRule*> Factories;
 	if (!PCGExFactories::GetInputFactories(
 		InContext, TEXT("PartitionRules"),
-		Factories, {PCGExFactories::EType::PartitionRule}, false))
+		Factories, {PCGExFactories::EType::RulePartition}, false))
 	{
 		return false;
 	}

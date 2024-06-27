@@ -50,11 +50,11 @@ enum class EPCGExSubdivideMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDataFilterActionSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointFilterActionSettings
 {
 	GENERATED_BODY()
 
-	FPCGExDataFilterActionSettings()
+	FPCGExPointFilterActionSettings()
 	{
 	}
 

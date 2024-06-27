@@ -3,25 +3,20 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
-PCGExDataFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TDotFilter(this);
 }
 
-void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
 {
-	TFilter::Capture(InContext, InPrimaryDataCache);
-
-	auto ExitFail = [&]()
-	{
-		bValid = false;
-	};
+	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
 	OperandA = PointDataCache->GetOrCreateGetter<FVector>(TypedFilterFactory->Descriptor.OperandA);
 	if (!OperandA)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
-		return ExitFail();
+		return false;
 	}
 
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
@@ -30,9 +25,11 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, PCGExD
 		if (!OperandB)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
-			return ExitFail();
+			return false;
 		}
 	}
+
+	return true;
 }
 
 bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const

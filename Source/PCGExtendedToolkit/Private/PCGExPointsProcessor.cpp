@@ -5,7 +5,7 @@
 
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 #include "Helpers/PCGSettingsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -134,7 +134,7 @@ FName UPCGExPointsProcessorSettings::GetPointFilterLabel() const { return NAME_N
 
 FString UPCGExPointsProcessorSettings::GetPointFilterTooltip() const { return TEXT("Filters"); }
 
-TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes() const { return {PCGExFactories::EType::Filter}; }
+TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes() const { return {PCGExFactories::EType::FilterPoint}; }
 
 bool UPCGExPointsProcessorSettings::SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
 bool UPCGExPointsProcessorSettings::RequiresPointFilters() const { return false; }

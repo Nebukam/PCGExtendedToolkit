@@ -34,9 +34,9 @@ namespace PCGExDataBlending
 
 class UPCGExFilterFactoryBase;
 
-namespace PCGExDataFilter
+namespace PCGExPointFilter
 {
-	class TEarlyExitFilterManager;
+	class TEarlyExitPointFilterManager;
 }
 
 class UPCGExNodeStateFactory;

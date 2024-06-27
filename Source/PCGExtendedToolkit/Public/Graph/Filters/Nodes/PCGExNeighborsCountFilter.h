@@ -8,6 +8,7 @@
 
 
 #include "Graph/PCGExCluster.h"
+#include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
 #include "PCGExNeighborsCountFilter.generated.h"
@@ -54,16 +55,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborsCountFilterFactory : public UPCGExCl
 public:
 	FPCGExNeighborsCountFilterDescriptor Descriptor;
 
-	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
+	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExNodeNeighborsCount
 {
-	class PCGEXTENDEDTOOLKIT_API TNeighborsCountFilter final : public PCGExCluster::TClusterNodeFilter
+	class PCGEXTENDEDTOOLKIT_API FNeighborsCountFilter final : public PCGExClusterFilter::TFilter
 	{
 	public:
-		explicit TNeighborsCountFilter(const UPCGExNeighborsCountFilterFactory* InFactory)
-			: TClusterNodeFilter(InFactory), TypedFilterFactory(InFactory)
+		explicit FNeighborsCountFilter(const UPCGExNeighborsCountFilterFactory* InFactory)
+			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
@@ -71,14 +72,10 @@ namespace PCGExNodeNeighborsCount
 
 		PCGExDataCaching::FCache<double>* LocalCount = nullptr;
 
-		virtual PCGExDataFilter::EType GetFilterType() const override;
-
-		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
-		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO) override;
-
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
-
-		virtual ~TNeighborsCountFilter() override
+		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache) override;
+		virtual bool Test(const PCGExCluster::FNode& Node) const override;
+		
+		virtual ~FNeighborsCountFilter() override
 		{
 			TypedFilterFactory = nullptr;
 		}

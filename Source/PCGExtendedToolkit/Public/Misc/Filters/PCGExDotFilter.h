@@ -9,7 +9,7 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExDotFilter.generated.h"
@@ -67,12 +67,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterFactory : public UPCGExFilterFactory
 public:
 	FPCGExDotFilterDescriptor Descriptor;
 
-	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
+	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TDotFilter final : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TDotFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TDotFilter(const UPCGExDotFilterFactory* InFactory)
@@ -88,7 +88,7 @@ namespace PCGExPointsFilter
 		PCGExDataCaching::FCache<FVector>* OperandA = nullptr;
 		PCGExDataCaching::FCache<FVector>* OperandB = nullptr;
 
-		virtual void Capture(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TDotFilter() override

@@ -63,7 +63,7 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 			if (bIsStacking) { continue; }
 		}
 
-		AddEdge(PCGEx::H64(Index, C.Index));
+		AddEdge(PCGEx::H64(Index, C.PointIndex));
 
 		Additions++;
 		if (Additions >= MaxIterations) { return; }

@@ -27,7 +27,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicAttributeDescriptor : public FPCGEx
 
 	/** Read the data from either vertices or edges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Point;
+	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Vtx;
 
 	/** Attribute to read modifier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -59,7 +59,7 @@ public:
 
 	virtual void Cleanup() override;
 
-	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Point;
+	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;
 
 protected:
