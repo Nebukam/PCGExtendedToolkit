@@ -8,9 +8,9 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExBitflagOperation.generated.h"
+#include "PCGExBitmaskOperation.generated.h"
 
-namespace PCGExBitFlag
+namespace PCGExBitmask
 {
 	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const int64 Mask)
 	{
@@ -64,14 +64,14 @@ namespace PCGExBitFlag
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExBitflagOperationSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskOperationSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BitflagOperation, "Bitflag Operation", "Do a bitflag operation on an attribute.");
+	PCGEX_NODE_INFOS(BitmaskOperation, "Bitmask Operation", "Do a Bitmask operation on an attribute.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
 #endif
 
@@ -106,14 +106,14 @@ public:
 	FPCGExBitmask BitMask;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBitflagOperationContext final : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskOperationContext final : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExBitflagOperationElement;
+	friend class FPCGExBitmaskOperationElement;
 
-	virtual ~FPCGExBitflagOperationContext() override;
+	virtual ~FPCGExBitmaskOperationContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBitflagOperationElement final : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBitmaskOperationElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -126,7 +126,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExBitflagOperation
+namespace PCGExBitmaskOperation
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{

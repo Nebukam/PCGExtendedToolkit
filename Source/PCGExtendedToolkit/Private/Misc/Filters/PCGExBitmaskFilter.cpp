@@ -1,14 +1,14 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/Filters/PCGExBitflagFilter.h"
+#include "Misc/Filters/PCGExBitmaskFilter.h"
 
-PCGExPointFilter::TFilter* UPCGExBitflagFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExBitmaskFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TBitflagFilter(this);
+	return new PCGExPointsFilter::TBitmaskFilter(this);
 }
 
-bool PCGExPointsFilter::TBitflagFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
+bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
 {
 	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
@@ -35,7 +35,7 @@ bool PCGExPointsFilter::TBitflagFilter::Init(const FPCGContext* InContext, PCGEx
 	return true;
 }
 
-bool PCGExPointsFilter::TBitflagFilter::Test(const int32 PointIndex) const
+bool PCGExPointsFilter::TBitmaskFilter::Test(const int32 PointIndex) const
 {
 	return PCGExCompare::Compare(
 		TypedFilterFactory->Descriptor.Comparison,
@@ -50,10 +50,10 @@ namespace PCGExCompareFilter
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGEX_CREATE_FILTER_FACTORY(Bitflag)
+PCGEX_CREATE_FILTER_FACTORY(Bitmask)
 
 #if WITH_EDITOR
-FString UPCGExBitflagFilterProviderSettings::GetDisplayName() const
+FString UPCGExBitmaskFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = Descriptor.Value.ToString() + PCGExCompare::ToString(Descriptor.Comparison);
 

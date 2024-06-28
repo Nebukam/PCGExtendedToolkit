@@ -10,7 +10,7 @@
 
 #include "PCGExData.h"
 #include "PCGExPointFilter.h"
-#include "Misc/PCGExBitflagOperation.h"
+#include "..\Misc\PCGExBitmaskOperation.h"
 
 #include "PCGExPointStates.generated.h"
 

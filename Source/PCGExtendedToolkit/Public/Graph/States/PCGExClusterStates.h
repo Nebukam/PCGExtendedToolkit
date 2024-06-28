@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExPointStates.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "Misc/PCGExBitflagOperation.h"
+#include "..\..\Misc\PCGExBitmaskOperation.h"
 #include "PCGExClusterStates.generated.h"
 
 USTRUCT(BlueprintType)

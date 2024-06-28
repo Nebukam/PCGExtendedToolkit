@@ -11,14 +11,14 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
-#include "PCGExBitflagFilter.generated.h"
+#include "PCGExBitmaskFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBitflagFilterDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExBitflagFilterDescriptor()
+	FPCGExBitmaskFilterDescriptor()
 	{
 	}
 
@@ -48,27 +48,27 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitflagFilterDescriptor
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExBitflagFilterFactory : public UPCGExFilterFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExBitflagFilterDescriptor Descriptor;
+	FPCGExBitmaskFilterDescriptor Descriptor;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TBitflagFilter final : public PCGExPointFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TBitmaskFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TBitflagFilter(const UPCGExBitflagFilterFactory* InDefinition)
+		explicit TBitmaskFilter(const UPCGExBitmaskFilterFactory* InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExBitflagFilterFactory* TypedFilterFactory;
+		const UPCGExBitmaskFilterFactory* TypedFilterFactory;
 
 		PCGExDataCaching::FCache<int64>* ValueCache = nullptr;
 		PCGExDataCaching::FCache<int64>* MaskCache = nullptr;
@@ -76,9 +76,10 @@ namespace PCGExPointsFilter
 		int64 CompositeMask;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache) override;
+		
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
-		virtual ~TBitflagFilter() override
+		virtual ~TBitmaskFilter() override
 		{
 			TypedFilterFactory = nullptr;
 		}
@@ -88,7 +89,7 @@ namespace PCGExPointsFilter
 ///
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExBitflagFilterProviderSettings : public UPCGExFilterProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -96,7 +97,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CompareFilterFactory, "Filter : Bitflag", "Filter using bitflag comparison.",
+		CompareFilterFactory, "Filter : Bitmask", "Filter using bitflag comparison.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
@@ -104,7 +105,7 @@ public:
 public:
 	/** Filter Descriptor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBitflagFilterDescriptor Descriptor;
+	FPCGExBitmaskFilterDescriptor Descriptor;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
