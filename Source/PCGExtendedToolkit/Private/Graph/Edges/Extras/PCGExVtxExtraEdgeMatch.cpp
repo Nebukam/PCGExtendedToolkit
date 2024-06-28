@@ -3,6 +3,8 @@
 
 #include "Graph/Edges/Extras/PCGExVtxExtraEdgeMatch.h"
 
+#include "Data/PCGExPointFilter.h"
+
 #define LOCTEXT_NAMESPACE "PCGExVtxExtraEdgeMatch"
 #define PCGEX_NAMESPACE PCGExVtxExtraEdgeMatch
 
