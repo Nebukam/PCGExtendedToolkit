@@ -524,24 +524,3 @@ namespace PCGExDataBlending
 		PCGEX_DELETE(AttributesInfos)
 	}
 }
-
-namespace PCGExDataBlendingTask
-{
-	class PCGEXTENDEDTOOLKIT_API FWriteFuseMetadata final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FWriteFuseMetadata(PCGExData::FPointIO* InPointIO,
-		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings,
-		                   PCGExData::FIdxCompoundList* InCompoundList) :
-			FPCGExTask(InPointIO),
-			MetadataSettings(InMetadataSettings),
-			CompoundList(InCompoundList)
-		{
-		}
-
-		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
-		PCGExData::FIdxCompoundList* CompoundList = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-}

@@ -39,8 +39,11 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE(TargetsFacade->Source)
-	PCGEX_DELETE(TargetsFacade)
+	if (TargetsFacade)
+	{
+		PCGEX_DELETE(TargetsFacade->Source)
+		PCGEX_DELETE(TargetsFacade)
+	}
 }
 
 bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
@@ -63,7 +66,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None),
 		Settings->TargetAttributes, Context->TargetsFacade->Source, Context->BlendingSettings, MissingTargetAttributes);
 
-	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on edges: {0}."), FText::FromName(Id))); }
+	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on targets: {0}."), FText::FromName(Id))); }
 
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)

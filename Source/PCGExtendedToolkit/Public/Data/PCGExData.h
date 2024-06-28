@@ -137,7 +137,11 @@ namespace PCGExData
 		{
 			{
 				FReadScopeLock ReadScopeLock(CacheLock);
-				if (bInitialized) { return InSource == ESource::Out && Writer ? Writer : Reader; }
+				if (bInitialized)
+				{
+					if (InSource == ESource::Out && Writer) { return Writer; }
+					if (Reader) { return Reader; }
+				}
 			}
 
 			{

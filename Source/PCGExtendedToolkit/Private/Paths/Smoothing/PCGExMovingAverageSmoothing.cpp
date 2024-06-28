@@ -20,15 +20,13 @@ void UPCGExMovingAverageSmoothing::SmoothSingle(
 	const int32 SmoothingInt = Smoothing;
 	if (SmoothingInt == 0 || Influence == 0) { return; }
 
+	const double SafeWindowSize = FMath::Max(2, SmoothingInt);
+	double TotalWeight = 0;
+	int32 Count = 0;
+	MetadataBlender->PrepareForBlending(Target);
+
 	if (bClosedPath)
 	{
-		const double SafeWindowSize = FMath::Max(2, SmoothingInt);
-
-		int32 Count = 0;
-		MetadataBlender->PrepareForBlending(Target);
-
-		double TotalWeight = 0;
-
 		for (int i = -SafeWindowSize; i <= SafeWindowSize; i++)
 		{
 			const int32 Index = PCGExMath::Tile(Target.Index + i, 0, NumPoints);
@@ -37,18 +35,9 @@ void UPCGExMovingAverageSmoothing::SmoothSingle(
 			Count++;
 			TotalWeight += Weight;
 		}
-
-		MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 	}
 	else
 	{
-		const double SafeWindowSize = FMath::Max(2, SmoothingInt);
-
-		int32 Count = 0;
-		MetadataBlender->PrepareForBlending(Target);
-
-		double TotalWeight = 0;
-
 		for (int i = -SafeWindowSize; i <= SafeWindowSize; i++)
 		{
 			const int32 Index = Target.Index + i;
@@ -59,7 +48,7 @@ void UPCGExMovingAverageSmoothing::SmoothSingle(
 			Count++;
 			TotalWeight += Weight;
 		}
-
-		MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 	}
+
+	MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 }

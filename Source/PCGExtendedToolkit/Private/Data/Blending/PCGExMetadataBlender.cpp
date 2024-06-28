@@ -237,7 +237,7 @@ namespace PCGExDataBlending
 		PCGEx::FAttributeIdentity::Get(InPrimaryData->Source->GetOut()->Metadata, Identities);
 		BlendingSettings->Filter(Identities);
 
-		if constexpr (&InSecondaryData != &InPrimaryData)
+		if(InSecondaryData != InPrimaryData)
 		{
 			TArray<FName> PrimaryNames;
 			TArray<FName> SecondaryNames;
