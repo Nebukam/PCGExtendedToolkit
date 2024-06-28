@@ -144,6 +144,16 @@ namespace PCGExData
 				}
 			}
 
+			if (bInitialized)
+			{
+				check(Writer)
+				FWriteScopeLock WriteScopeLock(CacheLock);
+				PCGEx::TFAttributeReader<T>* TypedReader = new PCGEx::TFAttributeReader<T>(FullName);
+				if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) }
+				Reader = TypedReader;
+				return Reader;
+			}
+			else
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
 				bInitialized = true;

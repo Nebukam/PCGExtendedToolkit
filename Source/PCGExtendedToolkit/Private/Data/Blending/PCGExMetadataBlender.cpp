@@ -98,6 +98,9 @@ namespace PCGExDataBlending
 		const int32 Count,
 		const double TotalWeight) const
 	{
+
+		check(Count > 0) // Ugh, there's a check missing in a blender user...
+		
 		for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(Target.Index, Count, TotalWeight); }
 
 		if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
