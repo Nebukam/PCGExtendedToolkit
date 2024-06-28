@@ -64,7 +64,7 @@ namespace PCGExPointsFilter
 	{
 	public:
 		explicit TBitmaskFilter(const UPCGExBitmaskFilterFactory* InDefinition)
-			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
+			: TFilter(InDefinition), TypedFilterFactory(InDefinition), CompositeMask(InDefinition->Descriptor.BitMask.Get())
 		{
 		}
 

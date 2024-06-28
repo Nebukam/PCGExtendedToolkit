@@ -12,8 +12,6 @@ bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGEx
 {
 	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
-	CompositeMask = TypedFilterFactory->Descriptor.BitMask.Get();
-
 	ValueReader = PointDataCache->GetOrCreateReader<int64>(TypedFilterFactory->Descriptor.Value);
 
 	if (!ValueReader)

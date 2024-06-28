@@ -53,7 +53,11 @@ namespace PCGExPointFilter
 		{
 			TFilter* NewFilter = Factory->CreateFilter();
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
-			if (!InitFilter(InContext, NewFilter)) { delete NewFilter; }
+			if (!InitFilter(InContext, NewFilter))
+			{
+				delete NewFilter;
+				continue;
+			}
 			ManagedFilters.Add(NewFilter);
 		}
 
