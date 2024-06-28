@@ -20,13 +20,22 @@ public:
 	int32 ClusterDefaultBatchIterations = 256;
 	int32 GetClusterBatchIteration(const int32 In = -1) const { return In <= -1 ? ClusterDefaultBatchIterations : In; }
 
-	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
-	int32 SmallPointsSize = 256;
-
-	/** */
-	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
+	
+	/** Allow caching of clusters */
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
 	bool bCacheClusters = true;
 
+	/** Default value for new nodes (Editable per-node in the Graph Output Settings) */
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(EditCondition="bCacheClusters"))
+	bool bDefaultBuildAndCacheClusters = true;
+	
+	/** Default value for new nodes (Editable per-node in the Graph Output Settings) */
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(EditCondition="bDefaultBuildAndCacheClusters&&bCacheClusters"))
+	bool bDefaultCacheExpandedClusters = true;
+
+	
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
+	int32 SmallPointsSize = 256;
 	bool IsSmallPointSize(const int32 InNum) const { return InNum <= SmallPointsSize; }
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))

@@ -8,6 +8,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExEdge.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataCaching.h"
@@ -87,11 +88,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
 
 	/** If the use of cached clusters is enabled, output clusters along with the graph data. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
-	bool bOutputClusters = true;
+	bool bBuildAndCacheClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultBuildAndCacheClusters;
 
 	/** Expands the cluster data. Takes more space in memory but can be a very effective improvement depending on the operations you're doing on the cluster. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bOutputClusters"))
-	bool bExpandClusters = false;
+	bool bExpandClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultCacheExpandedClusters;
 
 	int32 GetMinClusterSize() const { return bRemoveSmallClusters ? MinClusterSize : 0; }
 	int32 GetMaxClusterSize() const { return bRemoveBigClusters ? MaxClusterSize : TNumericLimits<int32>::Max(); }
@@ -445,7 +446,7 @@ namespace PCGExGraph
 			VtxDataCache = new PCGExDataCaching::FPool(PointIO);
 
 			Graph = new FGraph(NumNodes, NumEdgeReserve);
-			Graph->bBuildClusters = InSettings->bOutputClusters;
+			Graph->bBuildClusters = InSettings->bBuildAndCacheClusters;
 			Graph->bExpandClusters = InSettings->bExpandClusters;
 			Graph->bWriteEdgePosition = OutputSettings->bWriteEdgePosition;
 			Graph->EdgePosition = OutputSettings->EdgePosition;
