@@ -13,7 +13,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	Super::PrepareForCluster(InCluster);
 
 	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
-	PCGExData::FPool* DataCache = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataCache : SecondaryDataCache;
+	PCGExData::FFacade* DataCache = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataCache : SecondaryDataCache;
 
 	if (LastPoints == InPoints) { return; }
 

@@ -89,9 +89,6 @@ namespace PCGExSampleNearestSurface
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(MaxDistanceGetter)
-
-		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DELETE)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -101,16 +98,14 @@ namespace PCGExSampleNearestSurface
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FPointIO* OutputIO = PointIO;
-			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_FWD_INIT)
+			PCGExData::FFacade* OutputFacade = PointDataCache;
+			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_INIT)
 		}
-
-		MaxDistanceGetter = new PCGEx::FLocalSingleFieldGetter();
 
 		if (Settings->bUseLocalMaxDistance)
 		{
-			MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
-			if (MaxDistanceGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
+			MaxDistanceGetter = PointDataCache->GetOrCreateGetter<double>(Settings->LocalMaxDistance);
+			if (!MaxDistanceGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
 		StartParallelLoopForPoints();
@@ -122,7 +117,7 @@ namespace PCGExSampleNearestSurface
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
-		const double MaxDistance = MaxDistanceGetter->SafeGet(Index, Settings->MaxDistance);
+		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : Settings->MaxDistance;
 
 		auto SamplingFailed = [&]()
 		{
@@ -217,7 +212,7 @@ namespace PCGExSampleNearestSurface
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_WRITE)
+		PointDataCache->Write(AsyncManagerPtr, true);
 	}
 }
 

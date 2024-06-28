@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Paths/Orient/PCGExOrientLookAt.h"
+#include "Paths/Orient/PCGExOrientLookAtMode.h"
 
 #include "PCGExPointsProcessor.h"
 
@@ -22,7 +22,7 @@ void UPCGExOrientLookAt::PrepareForData(PCGExData::FPointIO* InPointIO)
 	PCGEX_DELETE(LookAtGetter)
 	Super::PrepareForData(InPointIO);
 
-	if (LookAt == EPCGExOrientLookAt::Direction)
+	if (LookAt == EPCGExOrientLookAtMode::Direction)
 	{
 		LookAtGetter = new PCGEx::FLocalVectorGetter();
 		LookAtGetter->Capture(LookAtAttribute);
@@ -38,13 +38,13 @@ FTransform UPCGExOrientLookAt::ComputeOrientation(const PCGEx::FPointRef& Point,
 	switch (LookAt)
 	{
 	default: ;
-	case EPCGExOrientLookAt::NextPoint:
+	case EPCGExOrientLookAtMode::NextPoint:
 		return LookAtWorldPos(Point.Point->Transform, Next.Point->Transform.GetLocation(), DirectionMultiplier);
-	case EPCGExOrientLookAt::PreviousPoint:
+	case EPCGExOrientLookAtMode::PreviousPoint:
 		return LookAtWorldPos(Point.Point->Transform, Previous.Point->Transform.GetLocation(), DirectionMultiplier);
-	case EPCGExOrientLookAt::Direction:
+	case EPCGExOrientLookAtMode::Direction:
 		return LookAtDirection(Point.Point->Transform, Point.Index, DirectionMultiplier);
-	case EPCGExOrientLookAt::Position:
+	case EPCGExOrientLookAtMode::Position:
 		return LookAtPosition(Point.Point->Transform, Point.Index, DirectionMultiplier);
 	}
 }

@@ -146,8 +146,7 @@ namespace PCGExFindNodeState
 
 		if (!TBatch::PrepareProcessing()) { return false; }
 
-		PCGExData::FCache<int64>* Cache = VtxDataCache->GetOrCreateWriter(Settings->FlagAttribute, Settings->InitialFlags.Get(), false, false);
-		PCGEx::TFAttributeWriter<int64>* Writer = Cache->PrepareWriter();
+		PCGEx::TFAttributeWriter<int64>* Writer = VtxDataCache->GetOrCreateWriter(Settings->FlagAttribute, Settings->InitialFlags.Get(), false, false);
 		StateFlags = &Writer->Values;
 
 		return true;
@@ -161,7 +160,7 @@ namespace PCGExFindNodeState
 
 	void FProcessorBatch::Write()
 	{
-		VtxDataCache->Write();
+		VtxDataCache->Write(AsyncManagerPtr, true);
 	}
 }
 

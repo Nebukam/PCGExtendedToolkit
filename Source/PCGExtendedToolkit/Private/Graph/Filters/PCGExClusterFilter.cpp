@@ -9,12 +9,12 @@ namespace PCGExClusterFilter
 {
 	PCGExFilters::EType TFilter::GetFilterType() const { return PCGExFilters::EType::Node; }
 
-	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache)
+	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
 	{
 		return PCGExPointFilter::TFilter::Init(InContext, InPointDataCache);
 	}
 
-	bool TFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache)
+	bool TFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
 	{
 		Cluster = InCluster;
 		EdgeDataCache = InEdgeDataCache;
@@ -30,7 +30,7 @@ namespace PCGExClusterFilter
 		for (bool& Result : Results) { Result = false; }
 	}
 
-	TManager::TManager(PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache)
+	TManager::TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
 		: PCGExPointFilter::TManager(InPointDataCache), Cluster(InCluster), EdgeDataCache(InEdgeDataCache)
 	{
 	}

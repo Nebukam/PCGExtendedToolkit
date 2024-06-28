@@ -18,7 +18,7 @@ void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Oth
 	}
 }
 
-void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache)
+void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache)
 {
 	PCGEX_DELETE(Blender)
 	Blender = new PCGExDataBlending::FPropertiesBlender(BlendingSettings);

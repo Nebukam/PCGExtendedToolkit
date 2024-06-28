@@ -35,15 +35,10 @@ public:
 #endif
 
 	virtual void Cleanup();
-	virtual void Write();
-	virtual void Write(const TArrayView<const int32> Indices);
-	virtual void Write(const uint64 Scope);
-	virtual void Write(PCGExMT::FTaskManager* AsyncManager);
-
 	virtual void CopySettingsFrom(const UPCGExOperation* Other);
 
-	PCGExData::FPool* PrimaryDataCache = nullptr;
-	PCGExData::FPool* SecondaryDataCache = nullptr;
+	PCGExData::FFacade* PrimaryDataCache = nullptr;
+	PCGExData::FFacade* SecondaryDataCache = nullptr;
 
 	template <typename T>
 	T* CopyOperation() const

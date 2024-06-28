@@ -3,9 +3,7 @@
 
 #include "Misc/PCGExFusePoints.h"
 
-#include "MeshUtilitiesCommon.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
-#include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
@@ -124,15 +122,15 @@ namespace PCGExFusePoints
 		PointIO->InitializeNum(NumCompoundNodes);
 
 		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
-		CompoundPointsBlender->AddSources(*TypedContext->MainPoints);
-		CompoundPointsBlender->PrepareMerge(PointIO, CompoundGraph->PointsCompounds);
+		CompoundPointsBlender->AddSource(PointDataCache);
+		CompoundPointsBlender->PrepareMerge(PointDataCache, CompoundGraph->PointsCompounds);
 
 		StartParallelLoopForRange(NumCompoundNodes);
 	}
 
 	void FProcessor::Write()
 	{
-		CompoundPointsBlender->Write(AsyncManagerPtr);
+		PointDataCache->Write(AsyncManagerPtr, true);
 	}
 }
 

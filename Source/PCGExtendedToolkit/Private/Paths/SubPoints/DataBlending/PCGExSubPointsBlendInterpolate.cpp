@@ -78,11 +78,11 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 }
 
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendInterpolate::CreateBlender(
-	PCGExData::FPointIO* InPrimaryIO,
-	const PCGExData::FPointIO* InSecondaryIO,
+	PCGExData::FFacade* InPrimaryData,
+	PCGExData::FFacade* InSecondaryData,
 	const PCGExData::ESource SecondarySource)
 {
 	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
-	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, SecondarySource);
+	NewBlender->PrepareForData(InPrimaryData, InSecondaryData, SecondarySource);
 	return NewBlender;
 }

@@ -173,7 +173,7 @@ namespace PCGExSampleNearestSurface
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
+		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
 

@@ -19,7 +19,7 @@ void UPCGExNeighborSampleAttribute::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache)
+void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache)
 {
 	Super::PrepareForCluster(InContext, InCluster, InVtxDataCache, InEdgeDataCache);
 
@@ -48,7 +48,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 	}
 
 	Blender = new PCGExDataBlending::FMetadataBlender(&MetadataBlendingSettings);
-	Blender->PrepareForData(Cluster->VtxIO, GetSourceIO(), PCGExData::ESource::In, true);
+	Blender->PrepareForData(InVtxDataCache, GetSourceDataCache(), PCGExData::ESource::In, true);
 
 	bIsValidOperation = true;
 }
@@ -79,7 +79,6 @@ void UPCGExNeighborSampleAttribute::FinalizeNode(const PCGExCluster::FNode& Targ
 void UPCGExNeighborSampleAttribute::FinalizeOperation()
 {
 	Super::FinalizeOperation();
-	Blender->Write(Cluster->GetVtxPointIndicesView());
 	PCGEX_DELETE(Blender)
 }
 

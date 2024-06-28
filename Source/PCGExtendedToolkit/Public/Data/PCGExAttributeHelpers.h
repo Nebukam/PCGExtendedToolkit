@@ -251,7 +251,7 @@ namespace PCGEx
 		FAttributeAccessor(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute)
 			: FAttributeAccessorBase<T>()
 		{
-			this->Flush();
+			this->Cleanup();
 			this->Direction = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
 			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Direction, InData->Metadata);
 
@@ -309,7 +309,7 @@ namespace PCGEx
 
 		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
 		{
-			this->Flush();
+			this->Cleanup();
 			this->Direction = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
 			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Direction, InData->Metadata);
 

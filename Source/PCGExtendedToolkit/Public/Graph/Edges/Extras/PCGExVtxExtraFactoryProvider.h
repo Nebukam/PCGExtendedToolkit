@@ -59,7 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteLength"))
 	FName LengthAttribute = "Length";
 	PCGEx::TFAttributeWriter<double>* LengthWriter = nullptr;
-	
+
 	virtual bool Validate(const FPCGContext* InContext) const
 	{
 		if (bWriteDirection) { PCGEX_VALIDATE_NAME_C(InContext, DirectionAttribute); }
@@ -67,19 +67,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 		return true;
 	}
 
-	virtual void Init(PCGExData::FPointIO* InVtx)
+	virtual void Init(PCGExData::FFacade* InFacade)
 	{
-		if (bWriteDirection)
-		{
-			DirWriter = new PCGEx::TFAttributeWriter<FVector>(DirectionAttribute);
-			DirWriter->BindAndSetNumUninitialized(InVtx);
-		}
-
-		if (bWriteLength)
-		{
-			LengthWriter = new PCGEx::TFAttributeWriter<double>(LengthAttribute);
-			LengthWriter->BindAndSetNumUninitialized(InVtx);
-		}
+		if (bWriteDirection) { DirWriter = InFacade->GetOrCreateWriter<FVector>(LengthAttribute, true); }
+		if (bWriteLength) { LengthWriter = InFacade->GetOrCreateWriter<double>(LengthAttribute, true); }
 	}
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir)
@@ -94,22 +85,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 		if (LengthWriter) { LengthWriter->Values[EntryIndex] = Data.Length; }
 	}
 
-	virtual void Write() const
-	{
-		if (DirWriter) { DirWriter->Write(); }
-		if (LengthWriter) { LengthWriter->Write(); }
-	}
-
-	virtual void Write(PCGExMT::FTaskManager* AsyncManager)
-	{
-		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, DirWriter)
-		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, LengthWriter)
-	}
-
 	virtual void Cleanup()
 	{
-		PCGEX_DELETE(DirWriter)
-		PCGEX_DELETE(LengthWriter)
 	}
 };
 
@@ -167,27 +144,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 		return true;
 	}
 
-	virtual void Init(PCGExData::FPointIO* InVtx) override
+	virtual void Init(PCGExData::FFacade* InFacade) override
 	{
-		FPCGExSimpleEdgeOutputSettings::Init(InVtx);
-
-		if (bWriteEdgeIndex)
-		{
-			EIdxWriter = new PCGEx::TFAttributeWriter<int32>(EdgeIndexAttribute);
-			EIdxWriter->BindAndSetNumUninitialized(InVtx);
-		}
-
-		if (bWriteVtxIndex)
-		{
-			VIdxWriter = new PCGEx::TFAttributeWriter<int32>(VtxIndexAttribute);
-			VIdxWriter->BindAndSetNumUninitialized(InVtx);
-		}
-
-		if (bWriteNeighborCount)
-		{
-			NCountWriter = new PCGEx::TFAttributeWriter<int32>(NeighborCountAttribute);
-			NCountWriter->BindAndSetNumUninitialized(InVtx);
-		}
+		FPCGExSimpleEdgeOutputSettings::Init(InFacade);
+		if (bWriteEdgeIndex) { EIdxWriter = InFacade->GetOrCreateWriter<int32>(EdgeIndexAttribute, true); }
+		if (bWriteVtxIndex) { VIdxWriter = InFacade->GetOrCreateWriter<int32>(EdgeIndexAttribute, true); }
+		if (bWriteNeighborCount) { NCountWriter = InFacade->GetOrCreateWriter<int32>(EdgeIndexAttribute, true); }
 	}
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount)
@@ -211,28 +173,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 		if (NCountWriter) { NCountWriter->Values[EntryIndex] = NeighborCount; }
 	}
 
-	virtual void Write() const override
-	{
-		FPCGExSimpleEdgeOutputSettings::Write();
-		if (EIdxWriter) { EIdxWriter->Write(); }
-		if (VIdxWriter) { VIdxWriter->Write(); }
-		if (NCountWriter) { NCountWriter->Write(); }
-	}
-
-	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override
-	{
-		FPCGExSimpleEdgeOutputSettings::Write(AsyncManager);
-		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, EIdxWriter)
-		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, VIdxWriter)
-		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, NCountWriter)
-	}
-
 	virtual void Cleanup() override
 	{
 		FPCGExSimpleEdgeOutputSettings::Cleanup();
-		PCGEX_DELETE(EIdxWriter)
-		PCGEX_DELETE(VIdxWriter)
-		PCGEX_DELETE(NCountWriter)
 	}
 };
 
@@ -247,23 +190,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraOperation : public UPCGExOperation
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExData::FPool* VtxDataCache);
+	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache);
 
 	virtual void ClusterReserve(const int32 NumClusters);
-	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FPool* VtxDataCache, PCGExData::FPool* EdgeDataCache);
-	
+	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataCache, PCGExData::FFacade* EdgeDataCache);
+
 	virtual bool IsOperationValid();
 
 	FORCEINLINE virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
-
-	virtual void Write() override;
-	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override;
 
 	virtual void Cleanup() override;
 
 protected:
 	bool bIsValidOperation = true;
-	PCGExData::FPointIO* Vtx = nullptr;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

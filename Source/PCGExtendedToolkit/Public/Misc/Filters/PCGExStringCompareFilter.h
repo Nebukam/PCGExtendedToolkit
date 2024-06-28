@@ -74,7 +74,7 @@ namespace PCGExPointsFilter
 		PCGEx::TFAttributeReader<FString>* OperandA = nullptr;
 		PCGEx::TFAttributeReader<FString>* OperandB = nullptr;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TStringCompareFilter() override

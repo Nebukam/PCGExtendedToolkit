@@ -21,9 +21,9 @@ void UPCGExVtxExtraSpecialNeighbors::CopySettingsFrom(const UPCGExOperation* Oth
 	}
 }
 
-bool UPCGExVtxExtraSpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExData::FPool* VtxDataCache)
+bool UPCGExVtxExtraSpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache)
 {
-	if (!Super::PrepareForVtx(InContext, InVtx, VtxDataCache)) { return false; }
+	if (!Super::PrepareForVtx(InContext, InVtxDataCache)) { return false; }
 
 	if (!Descriptor.LargestNeighbor.Validate(InContext) ||
 		!Descriptor.SmallestNeighbor.Validate(InContext))
@@ -32,8 +32,8 @@ bool UPCGExVtxExtraSpecialNeighbors::PrepareForVtx(const FPCGContext* InContext,
 		return false;
 	}
 
-	Descriptor.LargestNeighbor.Init(InVtx);
-	Descriptor.SmallestNeighbor.Init(InVtx);
+	Descriptor.LargestNeighbor.Init(InVtxDataCache);
+	Descriptor.SmallestNeighbor.Init(InVtxDataCache);
 
 	return bIsValidOperation;
 }
@@ -68,20 +68,6 @@ void UPCGExVtxExtraSpecialNeighbors::ProcessNode(const int32 ClusterIdx, const P
 
 	if (ISmallest != -1) { Descriptor.SmallestNeighbor.Set(Node.PointIndex, Adjacency[ILargest], (*Cluster->Nodes)[Adjacency[ILargest].NodeIndex].Adjacency.Num()); }
 	else { Descriptor.SmallestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
-}
-
-void UPCGExVtxExtraSpecialNeighbors::Write()
-{
-	Super::Write();
-	Descriptor.LargestNeighbor.Write();
-	Descriptor.SmallestNeighbor.Write();
-}
-
-void UPCGExVtxExtraSpecialNeighbors::Write(PCGExMT::FTaskManager* AsyncManager)
-{
-	Super::Write(AsyncManager);
-	Descriptor.LargestNeighbor.Write(AsyncManager);
-	Descriptor.SmallestNeighbor.Write(AsyncManager);
 }
 
 void UPCGExVtxExtraSpecialNeighbors::Cleanup()

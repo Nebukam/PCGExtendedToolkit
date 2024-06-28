@@ -49,6 +49,12 @@ FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	PCGEX_DELETE(SeedsPoints);
+	PCGEX_DELETE(SeedsFacade);
+
+	PCGEX_DELETE(GoalsPoints);
+	PCGEX_DELETE(GoalsFacade);
+
 	PCGEX_DELETE_TARRAY(PathQueries)
 
 	PCGEX_DELETE(GoalsPoints)
@@ -79,6 +85,9 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 	Context->GoalsPoints = Context->TryGetSingleInput(PCGExGraph::SourceGoalsLabel, true);
 	if (!Context->GoalsPoints) { return false; }
 
+	Context->SeedsFacade = new PCGExData::FFacade(Context->SeedsPoints);
+	Context->GoalsFacade = new PCGExData::FFacade(Context->GoalsPoints);
+
 
 	if (Settings->bUseSeedAttributeToTagPath)
 	{
@@ -102,8 +111,8 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 		}
 	}
 
-	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
-	Context->GoalForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->GoalForwardAttributes, Context->GoalsPoints);
+	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
+	Context->GoalForwardHandler = new PCGExData::FDataForwardHandler(&Settings->GoalForwardAttributes, Context->GoalsPoints);
 
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
 
@@ -232,6 +241,8 @@ bool FSampleNavmeshTask::ExecuteTask()
 	const int32 LastPosition = NumPositions - 1;
 
 	PCGExData::FPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+	PCGExData::FFacade* PathFacade = new PCGExData::FFacade(PathPoints);
+
 	UPCGPointData* OutData = PathPoints->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	MutablePoints.SetNumUninitialized(NumPositions);
@@ -247,15 +258,14 @@ bool FSampleNavmeshTask::ExecuteTask()
 	(MutablePoints[LastPosition] = *Goal).Transform.SetLocation(Location);
 
 	PCGExDataBlending::FMetadataBlender* TempBlender =
-		Context->Blending->CreateBlender(PathPoints, Context->GoalsPoints);
+		Context->Blending->CreateBlender(PathFacade, Context->GoalsFacade);
 
 	TArrayView<FPCGPoint> View(MutablePoints);
 	Context->Blending->BlendSubPoints(View, Metrics, TempBlender);
-
-	if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(MutablePoints.Num())) { TempBlender->Write(); }
-	else { TempBlender->Write(Manager); }
-
 	PCGEX_DELETE(TempBlender)
+
+	PathFacade->Write(Manager, true);
+	PCGEX_DELETE(PathFacade)
 
 	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Settings->bAddGoalToPath) { MutablePoints.Pop(); }

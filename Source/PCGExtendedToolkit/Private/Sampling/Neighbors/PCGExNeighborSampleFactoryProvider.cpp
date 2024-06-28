@@ -18,9 +18,12 @@ void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache)
+void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache)
 {
 	Cluster = InCluster;
+
+	VtxDataCache = InVtxDataCache;
+	EdgeDataCache = InEdgeDataCache;
 
 	if (!PointFilterFactories.IsEmpty())
 	{
@@ -37,9 +40,11 @@ void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InConte
 
 bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
 
-PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const
+PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const { return GetSourceDataCache()->Source; }
+
+PCGExData::FFacade* UPCGExNeighborSampleOperation::GetSourceDataCache() const
 {
-	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx ? Cluster->VtxIO : Cluster->EdgesIO;
+	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx ? VtxDataCache : EdgeDataCache;
 }
 
 void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const

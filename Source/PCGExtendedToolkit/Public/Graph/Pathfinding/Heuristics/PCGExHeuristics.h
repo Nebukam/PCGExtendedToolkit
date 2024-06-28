@@ -25,8 +25,8 @@ namespace PCGExHeuristics
 	struct PCGEXTENDEDTOOLKIT_API FLocalFeedbackHandler
 	{
 
-		PCGExData::FPool* VtxDataCache = nullptr;
-		PCGExData::FPool* EdgeDataCache = nullptr;
+		PCGExData::FFacade* VtxDataCache = nullptr;
+		PCGExData::FFacade* EdgeDataCache = nullptr;
 		
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
 		double TotalWeight = 0;
@@ -65,8 +65,8 @@ namespace PCGExHeuristics
 	class PCGEXTENDEDTOOLKIT_API THeuristicsHandler
 	{
 	public:
-		PCGExData::FPool* VtxDataCache = nullptr;
-		PCGExData::FPool* EdgeDataCache = nullptr;
+		PCGExData::FFacade* VtxDataCache = nullptr;
+		PCGExData::FFacade* EdgeDataCache = nullptr;
 		
 		TArray<UPCGExHeuristicOperation*> Operations;
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
@@ -80,8 +80,8 @@ namespace PCGExHeuristics
 
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 
-		explicit THeuristicsHandler(FPCGContext* InContext, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache);
-		explicit THeuristicsHandler(FPCGContext* InContext, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);
+		explicit THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache);
+		explicit THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);
 		~THeuristicsHandler();
 
 		void BuildFrom(FPCGContext* InContext, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);

@@ -122,8 +122,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext final : public FPCGE
 	PCGEx::FLocalToStringGetter* SeedTagValueGetter = nullptr;
 	PCGEx::FLocalToStringGetter* GoalTagValueGetter = nullptr;
 
-	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
-	PCGExDataBlending::FDataForwardHandler* GoalForwardHandler = nullptr;
+	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
+	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;
 
 	TArray<PCGExPathfinding::FPathQuery*> PathQueries;
 

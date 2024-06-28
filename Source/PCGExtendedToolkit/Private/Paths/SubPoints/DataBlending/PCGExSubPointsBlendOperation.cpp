@@ -22,15 +22,15 @@ void UPCGExSubPointsBlendOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO* InPointIO)
+void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FFacade* InPrimaryData)
 {
-	Super::PrepareForData(InPointIO);
-	PrepareForData(InPointIO, InPointIO, PCGExData::ESource::In);
+	Super::PrepareForData(InPrimaryData);
+	PrepareForData(InPrimaryData, InPrimaryData, PCGExData::ESource::In);
 }
 
 void UPCGExSubPointsBlendOperation::PrepareForData(
-	PCGExData::FPointIO* InPrimaryData,
-	const PCGExData::FPointIO* InSecondaryData,
+	PCGExData::FFacade* InPrimaryData,
+	PCGExData::FFacade* InSecondaryData,
 	const PCGExData::ESource SecondarySource)
 {
 	PCGEX_DELETE(InternalBlender)
@@ -80,18 +80,6 @@ void UPCGExSubPointsBlendOperation::BlendSubPoints(const TArrayView<FPCGPoint>& 
 	BlendSubPoints(PCGEx::FPointRef(Start, Offset), PCGEx::FPointRef(End, Offset + LastIndex), SubPoints, Metrics, InBlender);
 }
 
-void UPCGExSubPointsBlendOperation::Write()
-{
-	if (InternalBlender) { InternalBlender->Write(); }
-	Super::Write();
-}
-
-void UPCGExSubPointsBlendOperation::Write(PCGExMT::FTaskManager* AsyncManager)
-{
-	if (InternalBlender) { InternalBlender->Write(AsyncManager); }
-	Super::Write(AsyncManager);
-}
-
 void UPCGExSubPointsBlendOperation::Cleanup()
 {
 	PCGEX_DELETE(InternalBlender)
@@ -99,13 +87,13 @@ void UPCGExSubPointsBlendOperation::Cleanup()
 }
 
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(
-	PCGExData::FPointIO* InPrimaryIO,
-	const PCGExData::FPointIO* InSecondaryIO,
+	PCGExData::FFacade* InPrimaryData,
+	PCGExData::FFacade* InSecondaryData,
 	const PCGExData::ESource SecondarySource)
 {
 	BlendingSettings.DefaultBlending = GetDefaultBlending();
 	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
-	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, SecondarySource);
+	NewBlender->PrepareForData(InPrimaryData, InSecondaryData, SecondarySource);
 
 	return NewBlender;
 }

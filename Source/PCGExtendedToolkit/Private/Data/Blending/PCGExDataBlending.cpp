@@ -11,51 +11,16 @@
 
 namespace PCGExDataBlending
 {
-	FDataForwardHandler::~FDataForwardHandler()
-	{
-	}
-
-	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardSettings* InSettings, const PCGExData::FPointIO* InSourceIO):
-		Settings(InSettings), SourceIO(InSourceIO)
-	{
-		if (!Settings->bEnabled) { return; }
-
-		PCGEx::FAttributeIdentity::Get(InSourceIO->GetIn()->Metadata, Identities);
-		Settings->Filter(Identities);
-	}
-
-	void FDataForwardHandler::Forward(const int32 SourceIndex, const PCGExData::FPointIO* Target)
-	{
-		if (Identities.IsEmpty()) { return; }
-		for (const PCGEx::FAttributeIdentity& Identity : Identities)
-		{
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					const FPCGMetadataAttribute<T>* SourceAtt = SourceIO->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
-					Target->GetOut()->Metadata->DeleteAttribute(Identity.Name);
-					FPCGMetadataAttribute<T>* Mark = Target->GetOut()->Metadata->FindOrCreateAttribute<T>(
-						Identity.Name,
-						SourceAtt->GetValueFromItemKey(SourceIO->GetInPoint(SourceIndex).MetadataEntry),
-						SourceAtt->AllowsInterpolation(), true, true);
-				});
-		}
-	}
-
 	FDataBlendingOperationBase::~FDataBlendingOperationBase()
 	{
-		PCGEX_DELETE(InitializedIndices)
 	}
 
-	void FDataBlendingOperationBase::PrepareForData(PCGExData::FPointIO* InPrimaryData, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource)
+	void FDataBlendingOperationBase::PrepareForData(PCGExData::FFacade* InPrimaryData, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource)
 	{
-		PCGEX_DELETE(InitializedIndices)
 	}
 
-	void FDataBlendingOperationBase::PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource)
+	void FDataBlendingOperationBase::PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource)
 	{
-		PCGEX_DELETE(InitializedIndices)
 	}
 
 	bool FDataBlendingOperationBase::GetIsInterpolation() const { return false; }
@@ -94,52 +59,6 @@ namespace PCGExDataBlending
 
 namespace PCGExDataBlendingTask
 {
-	bool FBlendCompoundedIO::ExecuteTask()
-	{
-		PointIO->CreateInKeys();
-
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(BlendingSettings);
-		MetadataBlender->PrepareForData(TargetIO);
-
-		const TArray<FPCGPoint>& SourcePoints = PointIO->GetIn()->GetPoints();
-
-		const int32 NumCompounds = CompoundList->Compounds.Num();
-		for (int i = 0; i < NumCompounds; i++)
-		{
-			PCGExData::FIdxCompound* Idx = CompoundList->Compounds[i];
-			const PCGEx::FPointRef Target = TargetIO->GetOutPointRef(i);
-
-			Idx->ComputeWeights(SourcePoints, *Target.Point, DistSettings);
-
-			MetadataBlender->PrepareForBlending(Target);
-
-			double TotalWeight = 0;
-
-			for (int j = 0; j < Idx->CompoundedPoints.Num(); j++)
-			{
-				const uint32 SourceIndex = PCGEx::H64B(Idx->CompoundedPoints[j]);
-				const double Weight = Idx->Weights[j];
-				MetadataBlender->Blend(Target, PointIO->GetInPointRef(SourceIndex), Target, Weight);
-				TotalWeight += Weight;
-			}
-
-			MetadataBlender->CompleteBlending(Target, TotalWeight, Idx->CompoundedPoints.Num());
-		}
-
-		if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(NumCompounds)) { MetadataBlender->Write(Manager); }
-		else { MetadataBlender->Write(Manager); }
-
-		PCGEX_DELETE(MetadataBlender);
-
-		if (MetadataSettings)
-		{
-			// Write fuse meta after, so we don't blend it
-			InternalStart<FWriteFuseMetadata>(TaskIndex, TargetIO, MetadataSettings, CompoundList);
-		}
-
-		return true;
-	}
-
 	bool FWriteFuseMetadata::ExecuteTask()
 	{
 		const bool bWriteCompounded = MetadataSettings->bWriteCompounded;

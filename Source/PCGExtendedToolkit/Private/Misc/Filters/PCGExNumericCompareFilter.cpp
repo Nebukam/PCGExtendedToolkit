@@ -8,7 +8,7 @@ PCGExPointFilter::TFilter* UPCGExNumericCompareFilterFactory::CreateFilter() con
 	return new PCGExPointsFilter::TNumericComparisonFilter(this);
 }
 
-bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache)
+bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
 {
 	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 

@@ -5,6 +5,36 @@
 
 namespace PCGExData
 {
+	
+#pragma region Pools & cache
+
+	void FCacheBase::IncrementWriteReadyNum()
+	{
+		FWriteScopeLock WriteScopeLock(WriteLock);
+		ReadyNum++;
+	}
+
+	void FCacheBase::ReadyWrite(PCGExMT::FTaskManager* AsyncManager)
+	{
+		FWriteScopeLock WriteScopeLock(WriteLock);
+		ReadyNum--;
+		if (ReadyNum <= 0) { Write(AsyncManager); }
+	}
+
+	void FCacheBase::Write(PCGExMT::FTaskManager* AsyncManager)
+	{
+	}
+	
+	FCacheBase* FFacade::TryGetCache(const uint64 UID)
+	{
+		FReadScopeLock ReadScopeLock(PoolLock);
+		FCacheBase** Found = CacheMap.Find(UID);
+		if (!Found) { return nullptr; }
+		return *Found;
+	}
+	
+#pragma endregion
+	
 #pragma region FIdxCompound
 
 	bool FIdxCompound::ContainsIOIndex(const int32 InIOIndex)
@@ -19,7 +49,7 @@ namespace PCGExData
 		return false;
 	}
 
-	void FIdxCompound::ComputeWeights(const TArray<FPointIO*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
+	void FIdxCompound::ComputeWeights(const TArray<FFacade*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
 	{
 		Weights.SetNumUninitialized(CompoundedPoints.Num());
 
@@ -30,7 +60,7 @@ namespace PCGExData
 			uint32 PtIndex;
 			PCGEx::H64(CompoundedPoints[i], IOIndex, PtIndex);
 
-			Weights[i] = DistSettings.GetDistance(Sources[IOIndex]->GetInPoint(PtIndex), Target);
+			Weights[i] = DistSettings.GetDistance(Sources[IOIndex]->Source->GetInPoint(PtIndex), Target);
 			DistSum += Weights[i];
 		}
 
@@ -98,31 +128,38 @@ namespace PCGExData
 
 #pragma endregion
 
-#pragma region Pools & cache
+#pragma region Data forwarding
 
-	void FCacheBase::IncrementWriteReadyNum()
-	{
-		FWriteScopeLock WriteScopeLock(WriteLock);
-		ReadyNum++;
-	}
-
-	void FCacheBase::ReadyWrite(PCGExMT::FTaskManager* AsyncManager)
-	{
-		FWriteScopeLock WriteScopeLock(WriteLock);
-		ReadyNum--;
-		if (ReadyNum <= 0) { Write(AsyncManager); }
-	}
-
-	void FCacheBase::Write(PCGExMT::FTaskManager* AsyncManager)
+	FDataForwardHandler::~FDataForwardHandler()
 	{
 	}
 
-	FCacheBase* FPool::TryGetCache(const uint64 UID)
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardSettings* InSettings, const PCGExData::FPointIO* InSourceIO):
+		Settings(InSettings), SourceIO(InSourceIO)
 	{
-		FReadScopeLock ReadScopeLock(PoolLock);
-		FCacheBase** Found = CacheMap.Find(UID);
-		if (!Found) { return nullptr; }
-		return *Found;
+		if (!Settings->bEnabled) { return; }
+
+		PCGEx::FAttributeIdentity::Get(InSourceIO->GetIn()->Metadata, Identities);
+		Settings->Filter(Identities);
+	}
+
+	void FDataForwardHandler::Forward(const int32 SourceIndex, const PCGExData::FPointIO* Target)
+	{
+		if (Identities.IsEmpty()) { return; }
+		for (const PCGEx::FAttributeIdentity& Identity : Identities)
+		{
+			PCGMetadataAttribute::CallbackWithRightType(
+				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					const FPCGMetadataAttribute<T>* SourceAtt = SourceIO->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
+					Target->GetOut()->Metadata->DeleteAttribute(Identity.Name);
+					FPCGMetadataAttribute<T>* Mark = Target->GetOut()->Metadata->FindOrCreateAttribute<T>(
+						Identity.Name,
+						SourceAtt->GetValueFromItemKey(SourceIO->GetInPoint(SourceIndex).MetadataEntry),
+						SourceAtt->AllowsInterpolation(), true, true);
+				});
+		}
 	}
 	
 #pragma endregion 

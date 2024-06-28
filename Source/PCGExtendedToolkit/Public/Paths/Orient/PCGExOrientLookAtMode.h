@@ -5,10 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOrientOperation.h"
-#include "PCGExOrientLookAt.generated.h"
+#include "PCGExOrientLookAtMode.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Orient Look At Mode"))
-enum class EPCGExOrientLookAt : uint8
+enum class EPCGExOrientLookAtMode : uint8
 {
 	NextPoint UMETA(DisplayName = "Next Point", ToolTip="Look at next point in path"),
 	PreviousPoint UMETA(DisplayName = "Previous Point", ToolTip="Look at previous point in path"),
@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOrientLookAt : public UPCGExOrientOperation
 public:
 	/** Look at method */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExOrientLookAt LookAt = EPCGExOrientLookAt::NextPoint;
+	EPCGExOrientLookAtMode LookAt = EPCGExOrientLookAtMode::NextPoint;
 
 	/** Vector attribute representing either a direction or world position, depending on selected mode. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAt::Direction", EditConditionHides))

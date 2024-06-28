@@ -82,18 +82,12 @@ namespace PCGExBitmaskOperation
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		PCGExData::FCache<int64>* WriteCache = PointDataCache->GetOrCreateWriter<int64>(Settings->FlagAttribute, 0, false, false);
-		Writer = WriteCache->PrepareWriter();
+		Writer = PointDataCache->GetOrCreateWriter<int64>(Settings->FlagAttribute, 0, false, false);
 
 		if (Settings->MaskType == EPCGExFetchType::Attribute)
 		{
-			PCGExData::FCache<int64>* ReadCache = PointDataCache->GetOrCreateReader<int64>(Settings->MaskAttribute);
-			if (!ReadCache)
-			{
-				return false;
-			}
-
-			Reader = ReadCache->PrepareReader();
+			Reader = PointDataCache->GetOrCreateReader<int64>(Settings->MaskAttribute);
+			if (!Reader) { return false; }
 		}
 		else
 		{
@@ -114,7 +108,7 @@ namespace PCGExBitmaskOperation
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataCache->Write(AsyncManagerPtr);
+		PointDataCache->Write(AsyncManagerPtr, true);
 	}
 }
 

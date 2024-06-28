@@ -57,15 +57,21 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 #pragma endregion
 
+	class FPointsProcessorBatchBase;
+
 	class FPointsProcessor
 	{
+		friend class FPointsProcessorBatchBase;
+
 	protected:
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 
 	public:
+		FPointsProcessorBatchBase* ParentBatch = nullptr;
+
 		bool bIsProcessorValid = false;
 
-		PCGExData::FPool* PointDataCache = nullptr;
+		PCGExData::FFacade* PointDataCache = nullptr;
 
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
@@ -84,7 +90,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			PointIO(InPoints)
 		{
 			PCGEX_LOG_CTR(FPointsProcessor)
-			PointDataCache = new PCGExData::FPool(InPoints);
+			PointDataCache = new PCGExData::FFacade(InPoints);
 		}
 
 		virtual ~FPointsProcessor()
@@ -117,7 +123,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			if (FilterFactories)
 			{
 				PointFilterCache.SetNumUninitialized(PointIO->GetNum());
-				
+
 				if (FilterFactories->IsEmpty())
 				{
 					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
@@ -126,7 +132,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				{
 					PCGExPointFilter::TManager* FilterManager = new PCGExPointFilter::TManager(PointDataCache);
 					FilterManager->Init(Context, *FilterFactories);
-					
+
 					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = FilterManager->Test(i); }
 					PCGEX_DELETE(FilterManager)
 				}
@@ -222,6 +228,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 	public:
 		bool bRequiresWriteStep = false;
+		TArray<PCGExData::FFacade*> ProcessorFacades;
 
 		mutable FRWLock BatchLock;
 
@@ -242,6 +249,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		{
 			Context = nullptr;
 			PointsCollection.Empty();
+			ProcessorFacades.Empty();
 		}
 
 		template <typename T>
@@ -334,12 +342,15 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 				T* NewProcessor = new T(IO);
 				NewProcessor->Context = Context;
+				NewProcessor->ParentBatch = this;
 
 				if (!PrepareSingle(NewProcessor))
 				{
 					PCGEX_DELETE(NewProcessor)
 					continue;
 				}
+
+				ProcessorFacades.Add(NewProcessor->PointDataCache);
 
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
 				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }

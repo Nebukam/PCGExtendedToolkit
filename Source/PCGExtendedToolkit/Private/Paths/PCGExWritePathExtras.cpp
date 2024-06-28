@@ -70,7 +70,6 @@ namespace PCGExWritePathExtras
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DELETE)
 		Positions.Empty();
 	}
 
@@ -83,8 +82,8 @@ namespace PCGExWritePathExtras
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FPointIO* OutputIO = PointIO;
-			PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_FWD_INIT)
+			PCGExData::FFacade* OutputFacade = PointDataCache;
+			PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
 		///
@@ -219,7 +218,7 @@ namespace PCGExWritePathExtras
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_WRITE)
+		PointDataCache->Write(AsyncManagerPtr, true);
 	}
 }
 

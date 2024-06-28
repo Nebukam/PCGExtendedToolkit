@@ -130,7 +130,7 @@ namespace PCGExBitmaskOperation
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		PCGEx::TFAttributeReader<int64>* Reader = nullptr;
+		PCGEx::FAttributeIOBase<int64>* Reader = nullptr;
 		PCGEx::TFAttributeWriter<int64>* Writer = nullptr;
 
 		int64 Mask = 0;

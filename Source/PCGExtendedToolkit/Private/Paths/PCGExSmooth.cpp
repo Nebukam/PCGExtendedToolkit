@@ -105,7 +105,7 @@ namespace PCGExSmooth
 		NumPoints = PointIO->GetNum();
 
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(PointIO);
+		MetadataBlender->PrepareForData(PointDataCache);
 
 		Influence.SetNum(NumPoints);
 		Smoothing.SetNum(NumPoints);
@@ -171,8 +171,7 @@ namespace PCGExSmooth
 
 	void FProcessor::CompleteWork()
 	{
-		if (IsTrivial()) { MetadataBlender->Write(); }
-		else { MetadataBlender->Write(AsyncManagerPtr); }
+		PointDataCache->Write(AsyncManagerPtr, true);
 	}
 }
 #undef LOCTEXT_NAMESPACE

@@ -65,13 +65,13 @@ namespace PCGExGraph
 			{
 				const FIndexedEdge& Edge = GraphBuilder->Graph->Edges[EdgeIndex];
 				if (!Edge.bValid) { return; }
-				FindCollinearNodes(PointEdgeIntersections, EdgeIndex, CompoundPoints->GetOut());
+				FindCollinearNodes(PointEdgeIntersections, EdgeIndex, CompoundFacade->Source->GetOut());
 			};
 
 			if (!Context->Process(PointEdge, GraphBuilder->Graph->Edges.Num())) { return false; }
 
 			PointEdgeIntersections->Insert(); // TODO : Async?
-			CompoundPoints->CleanupKeys();    // Required for later blending as point count has changed
+			CompoundFacade->Source->CleanupKeys();
 
 			Context->SetState(State_BlendingPointEdgeCrossings);
 		}
@@ -83,7 +83,7 @@ namespace PCGExGraph
 				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomPointEdgeBlendingSettings); }
 				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingSettings); }
 
-				MetadataBlender->PrepareForData(CompoundPoints, PCGExData::ESource::Out, true);
+				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out, true);
 			};
 
 			auto BlendPointEdgeMetadata = [&](const int32 Index)
@@ -93,11 +93,7 @@ namespace PCGExGraph
 
 			if (!Context->Process(Initialize, BlendPointEdgeMetadata, PointEdgeIntersections->Edges.Num())) { return false; }
 
-			if (MetadataBlender)
-			{
-				if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(CompoundPoints->GetNum())) { MetadataBlender->Write(); }
-				else { MetadataBlender->Write(Context->GetAsyncManager()); }
-			}
+			if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager(), true); }
 
 			PCGEX_DELETE(PointEdgeIntersections)
 			Context->SetAsyncState(PCGExMT::State_CompoundWriting);
@@ -124,7 +120,7 @@ namespace PCGExGraph
 			if (!Context->Process(EdgeEdge, GraphBuilder->Graph->Edges.Num())) { return false; }
 
 			EdgeEdgeIntersections->Insert(); // TODO : Async?
-			CompoundPoints->CleanupKeys();   // Required for later blending as point count has changed
+			CompoundFacade->Source->CleanupKeys();
 
 			Context->SetState(State_BlendingEdgeEdgeCrossings);
 		}
@@ -136,18 +132,14 @@ namespace PCGExGraph
 				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomEdgeEdgeBlendingSettings); }
 				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingSettings); }
 
-				MetadataBlender->PrepareForData(CompoundPoints, PCGExData::ESource::Out, true);
+				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out, true);
 			};
 
 			auto BlendCrossingMetadata = [&](const int32 Index) { EdgeEdgeIntersections->BlendIntersection(Index, MetadataBlender); };
 
 			if (!Context->Process(Initialize, BlendCrossingMetadata, EdgeEdgeIntersections->Crossings.Num())) { return false; }
 
-			if (MetadataBlender)
-			{
-				if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(CompoundPoints->GetNum())) { MetadataBlender->Write(); }
-				else { MetadataBlender->Write(Context->GetAsyncManager()); }
-			}
+			if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager(), true); }
 
 			PCGEX_DELETE(EdgeEdgeIntersections)
 			Context->SetAsyncState(PCGExMT::State_MetaWriting2);
@@ -174,7 +166,7 @@ namespace PCGExGraph
 
 			if (!GraphBuilder->bCompiledSuccessfully)
 			{
-				CompoundPoints->InitializeOutput(PCGExData::EInit::NoOutput);
+				CompoundFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 				return true;
 			}
 
@@ -195,7 +187,7 @@ namespace PCGExGraph
 	void FCompoundProcessor::FindPointEdgeIntersections()
 	{
 		PointEdgeIntersections = new FPointEdgeIntersections(
-			GraphBuilder->Graph, CompoundGraph, CompoundPoints, PointEdgeIntersectionSettings);
+			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, PointEdgeIntersectionSettings);
 
 		Context->SetState(State_FindingPointEdgeIntersections);
 	}
@@ -203,7 +195,7 @@ namespace PCGExGraph
 	void FCompoundProcessor::FindEdgeEdgeIntersections()
 	{
 		EdgeEdgeIntersections = new FEdgeEdgeIntersections(
-			GraphBuilder->Graph, CompoundGraph, CompoundPoints, EdgeEdgeIntersectionSettings);
+			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, EdgeEdgeIntersectionSettings);
 
 		Context->SetState(State_FindingEdgeEdgeIntersections);
 	}

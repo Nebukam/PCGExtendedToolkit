@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
@@ -80,25 +81,22 @@ namespace PCGExDataBlending
 		explicit FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings);
 		~FCompoundBlender();
 
-		void AddSource(PCGExData::FPointIO& InData);
-		void AddSources(const PCGExData::FPointIOCollection& InDataGroup);
+		void AddSource(PCGExData::FFacade* InFacade);
+		void AddSources(const TArray<PCGExData::FFacade*>& InFacades);
 
-		void PrepareMerge(PCGExData::FPointIO* TargetData, PCGExData::FIdxCompoundList* CompoundList);
-		void Merge(PCGExMT::FTaskManager* AsyncManager, PCGExData::FPointIO* TargetData, PCGExData::FIdxCompoundList* CompoundList, const FPCGExDistanceSettings& DistSettings);
+		void PrepareMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList);
+		void Merge(PCGExMT::FTaskManager* AsyncManager, PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList, const FPCGExDistanceSettings& DistSettings);
 		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceSettings& DistSettings);
-
-		void Write();
-		void Write(PCGExMT::FTaskManager* AsyncManager);
 
 	protected:
 		const FPCGExBlendingSettings* BlendingSettings = nullptr;
 
 		TArray<FAttributeSourceMap*> AttributeSourceMaps;
 		TMap<uint32, int32> IOIndices;
-		TArray<PCGExData::FPointIO*> Sources;
+		TArray<PCGExData::FFacade*> Sources;
 
 		PCGExData::FIdxCompoundList* CurrentCompoundList = nullptr;
-		PCGExData::FPointIO* CurrentTargetData = nullptr;
+		PCGExData::FFacade* CurrentTargetData = nullptr;
 		FPropertiesBlender* PropertiesBlender = nullptr;
 	};
 }

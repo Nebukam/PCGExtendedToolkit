@@ -41,22 +41,6 @@ void UPCGExOperation::Cleanup()
 	Context = nullptr;
 }
 
-void UPCGExOperation::Write()
-{
-}
-
-void UPCGExOperation::Write(const TArrayView<const int32> Indices)
-{
-}
-
-void UPCGExOperation::Write(const uint64 Scope)
-{
-}
-
-void UPCGExOperation::Write(PCGExMT::FTaskManager* AsyncManager)
-{
-}
-
 void UPCGExOperation::BeginDestroy()
 {
 	Cleanup();

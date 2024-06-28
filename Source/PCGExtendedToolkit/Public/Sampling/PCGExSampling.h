@@ -28,21 +28,9 @@ Context->bWrite##_NAME = Settings->bWrite##_NAME; \
 if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
 { PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME )); Context->bWrite##_NAME = false; }
 
-// Validate name and 
-#define PCGEX_OUTPUT_VALIDATE_NAME_AND_FLUSH_WRITER(_NAME, _TYPE)\
-if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
-{ PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Invalid output attribute name for " #_NAME ));\
-PCGEX_DELETE(_NAME##Writer)}
-
-#define PCGEX_OUTPUT_VALUE_C(_NAME, _INDEX, _VALUE) if(Context->_NAME##Writer){(*Context->_NAME##Writer)[_INDEX] = _VALUE; }
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){(*_NAME##Writer)[_INDEX] = _VALUE; }
-#define PCGEX_OUTPUT_WRITE_C(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->Write();}
-#define PCGEX_OUTPUT_WRITE(_NAME, _TYPE) if(_NAME##Writer){if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(_NAME##Writer->Values.Num())) { _NAME##Writer->Write(); PCGEX_DELETE(_NAME##Writer) }else{   PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, _NAME##Writer) }} // if(_NAME##Writer){_NAME##Writer->Write();}
-#define PCGEX_OUTPUT_ACCESSOR_INIT_C(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndSetNumUninitialized(OutputIO);}
 #define PCGEX_OUTPUT_ACCESSOR_INIT(_NAME, _TYPE) if(_NAME##Writer){_NAME##Writer->BindAndSetNumUninitialized(OutputIO);}
-#define PCGEX_OUTPUT_DELETE(_NAME, _TYPE) PCGEX_DELETE(_NAME##Writer)
-
-#define PCGEX_OUTPUT_FWD_INIT(_NAME, _TYPE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME##AttributeName); _NAME##Writer->BindAndSetNumUninitialized(OutputIO); }
+#define PCGEX_OUTPUT_INIT(_NAME, _TYPE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetOrCreateWriter<_TYPE>(Settings->_NAME##AttributeName, true); }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))
 enum class EPCGExSampleMethod : uint8

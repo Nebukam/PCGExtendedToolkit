@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
@@ -24,14 +25,14 @@ namespace PCGExDataBlending
 		explicit FMetadataBlender(const FMetadataBlender* ReferenceBlender);
 
 		void PrepareForData(
-			PCGExData::FPointIO* InData,
+			PCGExData::FFacade* InPrimaryData,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = false,
 			const TSet<FName>* IgnoreAttributeSet = nullptr);
 
 		void PrepareForData(
-			PCGExData::FPointIO* InPrimaryData,
-			const PCGExData::FPointIO* InSecondaryData,
+			PCGExData::FFacade* InPrimaryData,
+			PCGExData::FFacade* InSecondaryData,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = false,
 			const TSet<FName>* IgnoreAttributeSet = nullptr);
@@ -51,19 +52,15 @@ namespace PCGExDataBlending
 
 		void BlendRangeFromTo(const PCGEx::FPointRef& From, const PCGEx::FPointRef& To, const int32 StartIndex, const TArrayView<double>& Weights);
 
-		void Write();
-		void Write(PCGExMT::FTaskManager* AsyncManager);
-		void Write(TArrayView<const int32> InIndices, bool bFlush = true);
-
-		void Flush();
+		void Cleanup();
 
 	protected:
 		const FPCGExBlendingSettings* BlendingSettings = nullptr;
 		const FPropertiesBlender* PropertiesBlender = nullptr;
 		bool bSkipProperties = false;
-		TArray<FDataBlendingOperationBase*> Attributes;
-		TArray<FDataBlendingOperationBase*> AttributesToBePrepared;
-		TArray<FDataBlendingOperationBase*> AttributesToBeCompleted;
+		TArray<FDataBlendingOperationBase*> Operations;
+		TArray<FDataBlendingOperationBase*> OperationsToBePrepared;
+		TArray<FDataBlendingOperationBase*> OperationsToBeCompleted;
 
 		TArray<FPCGPoint>* PrimaryPoints = nullptr;
 		TArray<FPCGPoint>* SecondaryPoints = nullptr;
@@ -71,8 +68,8 @@ namespace PCGExDataBlending
 		TArray<bool> FirstPointOperation;
 
 		void InternalPrepareForData(
-			PCGExData::FPointIO* InPrimaryData,
-			const PCGExData::FPointIO* InSecondaryData,
+			PCGExData::FFacade* InPrimaryData,
+			PCGExData::FFacade* InSecondaryData,
 			const PCGExData::ESource SecondarySource,
 			const bool bInitFirstOperation,
 			const TSet<FName>* IgnoreAttributeSet);

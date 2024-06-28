@@ -119,8 +119,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPC
 
 	virtual ~FPCGExPathToEdgeClustersContext() override;
 
-	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-	PCGExData::FPointIO* CompoundPoints = nullptr;
+	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;	
+	PCGExData::FFacade* CompoundFacade = nullptr;
 
 	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
 };

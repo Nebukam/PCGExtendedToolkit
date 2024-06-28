@@ -31,7 +31,7 @@ namespace PCGExClusterStates
 		PCGEX_DELETE(Manager)
 	}
 
-	bool FState::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache)
+	bool FState::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
 	{
 		Descriptor.Init();
 
@@ -74,7 +74,7 @@ namespace PCGExClusterStates
 		else if (Descriptor.bOnTestFail && !bSuccess) { Descriptor.FailStateFlags.DoOperation(InFlags); }
 	}
 
-	FStateManager::FStateManager(TArray<int64>* InFlags, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache)
+	FStateManager::FStateManager(TArray<int64>* InFlags, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
 		: TManager(InCluster, InPointDataCache, InEdgeDataCache)
 	{
 		FlagsCache = InFlags;

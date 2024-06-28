@@ -274,7 +274,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext final : public FPC
 
 	virtual ~FPCGExSampleNearestPointContext() override;
 
-	PCGExData::FPointIO* Targets = nullptr;
+	PCGExData::FFacade* TargetsFacade = nullptr;
 
 	FPCGExBlendingSettings BlendingSettings;
 
@@ -300,9 +300,9 @@ namespace PCGExSampleNearestPoints
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		PCGEx::FLocalSingleFieldGetter* RangeMinGetter = nullptr;
-		PCGEx::FLocalSingleFieldGetter* RangeMaxGetter = nullptr;
-		PCGEx::FLocalVectorGetter* LookAtUpGetter = nullptr;
+		PCGExData::FCache<double>* RangeMinGetter = nullptr;
+		PCGExData::FCache<double>* RangeMaxGetter = nullptr;
+		PCGExData::FCache<FVector>* LookAtUpGetter = nullptr;
 
 		FVector SafeUpVector = FVector::UpVector;
 

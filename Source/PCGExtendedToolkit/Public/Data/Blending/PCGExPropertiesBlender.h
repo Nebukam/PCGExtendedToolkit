@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 

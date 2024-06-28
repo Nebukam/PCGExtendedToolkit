@@ -227,6 +227,8 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	const int32 NumPositions = PathLocations.Num();
 
 	PCGExData::FPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+	PCGExData::FFacade* PathFacade = new PCGExData::FFacade(PathPoints);
+
 	UPCGPointData* OutData = PathPoints->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 
@@ -242,7 +244,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	PathLocations.Empty();
 
 	PCGExDataBlending::FMetadataBlender* TempBlender =
-		Context->Blending->CreateBlender(PathPoints, PathPoints, PCGExData::ESource::Out);
+		Context->Blending->CreateBlender(PathFacade, PathFacade, PCGExData::ESource::Out);
 
 	for (int i = 0; i < Milestones.Num() - 1; i++)
 	{
@@ -261,10 +263,10 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 			View, MilestonesMetrics[i], TempBlender);
 	}
 
-	if (GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(MutablePoints.Num())) { TempBlender->Write(); }
-	else { TempBlender->Write(Manager); }
-
 	PCGEX_DELETE(TempBlender)
+
+	PathFacade->Write(Manager, true);
+	PCGEX_DELETE(PathFacade)
 
 	MilestonesMetrics.Empty();
 

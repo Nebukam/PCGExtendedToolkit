@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
 
 
 // Cherry picker merges metadata from varied sources into one.
@@ -7,6 +8,7 @@
 #include "Data/Blending/PCGExCompoundBlender.h"
 
 #include "Data/PCGExData.h"
+#include "Data/Blending//PCGExDataBlendingOperations.h"
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 namespace PCGExDataBlending
@@ -26,19 +28,19 @@ namespace PCGExDataBlending
 		PCGEX_DELETE_TARRAY(AttributeSourceMaps)
 	}
 
-	void FCompoundBlender::AddSource(PCGExData::FPointIO& InData)
+	void FCompoundBlender::AddSource(PCGExData::FFacade* InFacade)
 	{
-		const int32 SourceIdx = Sources.Add(&InData);
+		const int32 SourceIdx = Sources.Add(InFacade);
 		const int32 NumSources = Sources.Num();
-		IOIndices.Add(InData.IOIndex, SourceIdx);
+		IOIndices.Add(InFacade->Source->IOIndex, SourceIdx);
 
 		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps) { SrcMap->SetNum(NumSources); }
 
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
-		PCGEx::FAttributeIdentity::Get(InData.GetIn()->Metadata, SourceAttributes);
+		PCGEx::FAttributeIdentity::Get(InFacade->GetIn()->Metadata, SourceAttributes);
 		BlendingSettings->Filter(SourceAttributes);
 
-		UPCGMetadata* SourceMetadata = InData.GetIn()->Metadata;
+		UPCGMetadata* SourceMetadata = InFacade->GetIn()->Metadata;
 
 		for (const PCGEx::FAttributeIdentity& Identity : SourceAttributes)
 		{
@@ -82,16 +84,16 @@ namespace PCGExDataBlending
 			if (!SourceAttribute->AllowsInterpolation()) { Map->AllowsInterpolation = false; }
 		}
 
-		InData.CreateInKeys();
+		InFacade->Source->CreateInKeys();
 	}
 
-	void FCompoundBlender::AddSources(const PCGExData::FPointIOCollection& InDataGroup)
+	void FCompoundBlender::AddSources(const TArray<PCGExData::FFacade*>& InFacades)
 	{
-		for (PCGExData::FPointIO* IOPair : InDataGroup.Pairs) { AddSource(*IOPair); }
+		for (PCGExData::FFacade* Facade : InFacades) { AddSource(Facade); }
 	}
 
 	void FCompoundBlender::PrepareMerge(
-		PCGExData::FPointIO* TargetData,
+		PCGExData::FFacade* TargetData,
 		PCGExData::FIdxCompoundList* CompoundList)
 	{
 		CurrentCompoundList = CompoundList;
@@ -100,7 +102,7 @@ namespace PCGExDataBlending
 		PCGEX_DELETE(PropertiesBlender)
 		PropertiesBlender = new FPropertiesBlender(BlendingSettings->GetPropertiesBlendingSettings());
 
-		CurrentTargetData->CreateOutKeys();
+		CurrentTargetData->Source->CreateOutKeys();
 
 		// Create blending operations
 		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
@@ -112,10 +114,15 @@ namespace PCGExDataBlending
 				{
 					using T = decltype(DummyValue);
 
-					bool bAttributeWasPresent = TargetData->GetOut()->Metadata->HasAttribute(SrcMap->Identity.Name);
-
-					PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(SrcMap->Identity.Name, T{}, SrcMap->AllowsInterpolation);
-					Writer->BindAndGet(CurrentTargetData);
+					PCGEx::TFAttributeWriter<T>* Writer;
+					if (const FPCGMetadataAttribute<T>* ExistingAttribute = CurrentTargetData->FindConstAttribute<T>(SrcMap->Identity.Name))
+					{
+						Writer = CurrentTargetData->GetOrCreateWriter<T>(ExistingAttribute, true);
+					}
+					else
+					{
+						Writer = CurrentTargetData->GetOrCreateWriter<T>(SrcMap->Identity.Name, T{}, SrcMap->AllowsInterpolation, true);
+					}
 
 					SrcMap->Writer = Writer;
 
@@ -132,7 +139,7 @@ namespace PCGExDataBlending
 	void FCompoundBlender::MergeSingle(const int32 CompoundIndex, const FPCGExDistanceSettings& DistSettings)
 	{
 		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
-		Compound->ComputeWeights(Sources, CurrentTargetData->GetOutPoint(CompoundIndex), DistSettings);
+		Compound->ComputeWeights(Sources, CurrentTargetData->Source->GetOutPoint(CompoundIndex), DistSettings);
 
 		const int32 NumCompounded = Compound->Num();
 
@@ -141,7 +148,7 @@ namespace PCGExDataBlending
 
 		// Blend Properties
 
-		FPCGPoint& Target = CurrentTargetData->GetMutablePoint(CompoundIndex);
+		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(CompoundIndex);
 		PropertiesBlender->PrepareBlending(Target, Target);
 
 		for (int k = 0; k < NumCompounded; k++)
@@ -155,7 +162,7 @@ namespace PCGExDataBlending
 
 			const double Weight = Compound->Weights[k];
 
-			PropertiesBlender->Blend(Target, Sources[*IOIdx]->GetInPoint(PtIndex), Target, Weight);
+			PropertiesBlender->Blend(Target, Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target, Weight);
 
 			ValidCompounds++;
 			TotalWeight += Weight;
@@ -187,7 +194,7 @@ namespace PCGExDataBlending
 				const double Weight = Compound->Weights[k];
 
 				Operation->DoOperation(
-					CompoundIndex, Sources[*IOIdx]->GetInPoint(PtIndex),
+					CompoundIndex, Sources[*IOIdx]->Source->GetInPoint(PtIndex),
 					CompoundIndex, Weight, k == 0);
 
 				ValidCompounds++;
@@ -197,36 +204,6 @@ namespace PCGExDataBlending
 			if (ValidCompounds == 0) { continue; } // No valid attribute to merge on any compounded source
 
 			SrcMap->TargetBlendOp->FinalizeOperation(CompoundIndex, ValidCompounds, TotalWeight);
-		}
-	}
-
-	void FCompoundBlender::Write()
-	{
-		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
-		{
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					static_cast<PCGEx::TFAttributeWriter<T>*>(SrcMap->Writer)->Write();
-					PCGEX_DELETE(SrcMap->Writer)
-				});
-		}
-	}
-
-	void FCompoundBlender::Write(PCGExMT::FTaskManager* AsyncManager)
-	{
-		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
-		{
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					if (PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(SrcMap->Writer))
-					{
-						PCGExMT::WriteAndDelete<PCGEx::TFAttributeWriter<T>>(AsyncManager, Writer);
-					}
-				});
 		}
 	}
 }

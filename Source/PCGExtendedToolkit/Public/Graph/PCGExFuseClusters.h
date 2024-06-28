@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
+#include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExFuseClusters.generated.h"
 
@@ -98,8 +99,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext final : public FPCGExEdg
 
 	virtual ~FPCGExFuseClustersContext() override;
 
+	TArray<PCGExData::FFacade*> VtxFacades;
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-	PCGExData::FPointIO* CompoundPoints = nullptr;
+	PCGExData::FFacade* CompoundFacade = nullptr;
 
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;

@@ -147,7 +147,7 @@ namespace PCGExPointsToBounds
 		if (Settings->bBlendProperties)
 		{
 			MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-			MetadataBlender->PrepareForData(PointIO);
+			MetadataBlender->PrepareForData(PointDataCache);
 
 			const PCGEx::FPointRef Target = PointIO->GetOutPointRef(0);
 			MetadataBlender->PrepareForBlending(Target);
@@ -167,11 +167,12 @@ namespace PCGExPointsToBounds
 			MutablePoints[0].Transform.SetLocation(Center);
 			MutablePoints[0].BoundsMin = Box.Min - Center;
 			MutablePoints[0].BoundsMax = Box.Max - Center;
-
-			MetadataBlender->Write();
 		}
 
 		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, NumPoints); }
+
+		PointDataCache->Write(AsyncManagerPtr, true);
+		
 	}
 
 	bool FComputeIOBoundsTask::ExecuteTask()

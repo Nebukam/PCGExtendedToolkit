@@ -165,8 +165,8 @@ namespace PCGExSampleSurfaceGuided
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
-		PCGEx::FLocalVectorGetter* DirectionGetter = nullptr;
+		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
+		PCGExData::FCache<FVector>* DirectionGetter = nullptr;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 

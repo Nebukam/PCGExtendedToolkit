@@ -85,10 +85,6 @@ namespace PCGExSampleSurfaceGuided
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(MaxDistanceGetter)
-		PCGEX_DELETE(DirectionGetter)
-
-		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DELETE)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -97,27 +93,23 @@ namespace PCGExSampleSurfaceGuided
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		DirectionGetter = new PCGEx::FLocalVectorGetter();
-		DirectionGetter->Capture(Settings->Direction);
+		DirectionGetter = PointDataCache->GetOrCreateGetter<FVector>(Settings->Direction);
 
-		if (!DirectionGetter->Grab(PointIO))
+		if (!DirectionGetter)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Some inputs don't have the required Direction data."));
 			return false;
 		}
 
 		{
-			PCGExData::FPointIO* OutputIO = PointIO;
-			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_FWD_INIT)
+			PCGExData::FFacade* OutputFacade = PointDataCache;
+			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_INIT)
 		}
-
-
-		MaxDistanceGetter = new PCGEx::FLocalSingleFieldGetter();
 
 		if (Settings->bUseLocalMaxDistance)
 		{
-			MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
-			if (MaxDistanceGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
+			MaxDistanceGetter = PointDataCache->GetOrCreateGetter<double>(Settings->LocalMaxDistance);
+			if (MaxDistanceGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
 		StartParallelLoopForPoints();
@@ -129,8 +121,8 @@ namespace PCGExSampleSurfaceGuided
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
-		const double MaxDistance = MaxDistanceGetter->SafeGet(Index, Settings->MaxDistance);
-		const FVector Direction = (*DirectionGetter)[Index].GetSafeNormal();
+		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : Settings->MaxDistance;
+		const FVector Direction = DirectionGetter->Values[Index].GetSafeNormal();
 
 		auto SamplingFailed = [&]()
 		{
@@ -197,7 +189,7 @@ namespace PCGExSampleSurfaceGuided
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_WRITE)
+		PointDataCache->Write(AsyncManagerPtr, true);
 	}
 }
 

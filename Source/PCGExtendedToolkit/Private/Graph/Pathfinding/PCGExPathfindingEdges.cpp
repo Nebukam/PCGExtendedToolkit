@@ -147,8 +147,8 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 		}
 	}
 
-	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
-	Context->GoalForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->GoalForwardAttributes, Context->GoalsPoints);
+	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
+	Context->GoalForwardHandler = new PCGExData::FDataForwardHandler(&Settings->GoalForwardAttributes, Context->GoalsPoints);
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection();
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;

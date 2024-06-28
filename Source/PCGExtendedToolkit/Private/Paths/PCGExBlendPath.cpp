@@ -83,7 +83,9 @@ bool FPCGExBlendPathTask::ExecuteTask()
 
 	if (PathPoints.IsEmpty()) { return false; }
 
-	PCGExDataBlending::FMetadataBlender* Blender = Context->Blending->CreateBlender(PointIO, PointIO);
+	PCGExData::FFacade* PathFacade = new PCGExData::FFacade(PointIO);
+
+	PCGExDataBlending::FMetadataBlender* Blender = Context->Blending->CreateBlender(PathFacade, PathFacade);
 
 	const PCGEx::FPointRef StartPoint = PointIO->GetOutPointRef(0);
 	const PCGEx::FPointRef EndPoint = PointIO->GetOutPointRef(PathPoints.Num() - 1);
@@ -92,6 +94,7 @@ bool FPCGExBlendPathTask::ExecuteTask()
 	Context->Blending->BlendSubPoints(StartPoint, EndPoint, PathPoints, *Metrics, Blender);
 
 	PCGEX_DELETE(Blender);
+	PCGEX_DELETE(PathFacade);
 	PCGEX_DELETE(Metrics);
 
 	return true;

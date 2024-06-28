@@ -108,11 +108,6 @@ namespace PCGExSampleNearestPolyline
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(RangeMinGetter)
-		PCGEX_DELETE(RangeMaxGetter)
-		PCGEX_DELETE(LookAtUpGetter)
-
-		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DELETE)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -122,39 +117,30 @@ namespace PCGExSampleNearestPolyline
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FPointIO* OutputIO = PointIO;
-			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_FWD_INIT)
-		}
-
-		RangeMinGetter = new PCGEx::FLocalSingleFieldGetter();
-		RangeMinGetter->Capture(Settings->LocalRangeMin);
-
-		RangeMaxGetter = new PCGEx::FLocalSingleFieldGetter();
-		RangeMaxGetter->Capture(Settings->LocalRangeMax);
-
-		LookAtUpGetter = new PCGEx::FLocalVectorGetter();
-		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)
-		{
-			LookAtUpGetter->Capture(Settings->LookAtUpSource);
+			PCGExData::FFacade* OutputFacade = PointDataCache;
+			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_INIT)
 		}
 
 		if (Settings->bUseLocalRangeMin)
 		{
-			if (!RangeMinGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
+			RangeMinGetter = PointDataCache->GetOrCreateGetter<double>(Settings->LocalRangeMin);
+			if (!RangeMinGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
 		if (Settings->bUseLocalRangeMax)
 		{
-			if (!RangeMaxGetter->Grab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
+			RangeMaxGetter = PointDataCache->GetOrCreateGetter<double>(Settings->LocalRangeMax);
+			if (!RangeMaxGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
 		}
 
 		if (Settings->bWriteLookAtTransform)
 		{
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Source &&
-				!LookAtUpGetter->Grab(PointIO))
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookUp is invalid on source."));
-			}
+			} // 
+			else { LookAtUpGetter = PointDataCache->GetOrCreateGetter<FVector>(Settings->LookAtUpSource); }
+
+			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookAtUp is invalid.")); }
 		}
 
 		PointIO->CreateOutKeys();
@@ -170,7 +156,7 @@ namespace PCGExSampleNearestPolyline
 
 		auto SamplingFailed = [&]()
 		{
-			const double FailSafeDist = FMath::Sqrt(RangeMaxGetter->SafeGet(Index, Settings->RangeMax));
+			const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Values[Index]) : Settings->RangeMax;
 			PCGEX_OUTPUT_VALUE(Success, Index, false)
 			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
 			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
@@ -184,8 +170,8 @@ namespace PCGExSampleNearestPolyline
 			return;
 		}
 
-		double RangeMin = FMath::Pow(RangeMinGetter->SafeGet(Index, Settings->RangeMin), 2);
-		double RangeMax = FMath::Pow(RangeMaxGetter->SafeGet(Index, Settings->RangeMax), 2);
+		double RangeMin = FMath::Pow(RangeMinGetter ? RangeMinGetter->Values[Index] : Settings->RangeMin, 2);
+		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Values[Index] : Settings->RangeMax, 2);
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
@@ -252,14 +238,13 @@ namespace PCGExSampleNearestPolyline
 		FTransform WeightedTransform = FTransform::Identity;
 		WeightedTransform.SetScale3D(FVector::ZeroVector);
 
-		FVector WeightedUp = Settings->LookAtUpSelection == EPCGExSampleSource::Source ?
-			                     LookAtUpGetter->SafeGet(Index, SafeUpVector) :
-			                     SafeUpVector;
+		FVector WeightedUp = SafeUpVector;
+		if (Settings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Values[Index]; }
+
 		FVector WeightedSignAxis = FVector::Zero();
 		FVector WeightedAngleAxis = FVector::Zero();
 		double WeightedTime = 0;
 		double TotalWeight = 0;
-
 
 		auto ProcessTargetInfos = [&](const PCGExPolyLine::FSampleInfos& TargetInfos, const double Weight)
 		{
@@ -320,7 +305,7 @@ namespace PCGExSampleNearestPolyline
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE)
+		PointDataCache->Write(AsyncManagerPtr, true);
 	}
 }
 

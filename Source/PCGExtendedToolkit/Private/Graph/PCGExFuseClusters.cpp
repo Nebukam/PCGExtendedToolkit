@@ -23,7 +23,10 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(CompoundPoints)
+	PCGEX_DELETE_TARRAY(VtxFacades)
+
+	PCGEX_DELETE(CompoundFacade->Source)
+	PCGEX_DELETE(CompoundFacade)
 
 	PCGEX_DELETE(CompoundProcessor)
 }
@@ -60,10 +63,12 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 			&Settings->CustomEdgeEdgeBlendingSettings);
 	}
 
-	Context->CompoundPoints = new PCGExData::FPointIO(nullptr);
-	Context->CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
-	Context->CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
-	
+	PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(nullptr);
+	CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
+	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+
+	Context->CompoundFacade = new PCGExData::FFacade(CompoundPoints);
+
 	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
 			Settings->PointPointIntersectionSettings.FuseSettings,
 			Context->MainPoints->GetInBounds().ExpandBy(10), true,
@@ -71,7 +76,6 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 		);
 
 	Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(&Settings->DefaultPointsBlendingSettings);
-	Context->CompoundPointsBlender->AddSources(*Context->MainPoints);
 
 	return true;
 }
@@ -112,13 +116,21 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		TArray<FPCGPoint>& MutablePoints = Context->CompoundPoints->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = Context->CompoundFacade->GetOut()->GetMutablePoints();
 
 		auto Initialize = [&]()
 		{
-			PCGEX_DELETE_TARRAY(Context->Batches); // Cleanup processing data
-			Context->CompoundPoints->InitializeNum(NumCompoundNodes, true);
-			Context->CompoundPointsBlender->PrepareMerge(Context->CompoundPoints, Context->CompoundGraph->PointsCompounds);
+			Context->VtxFacades.Reserve(Context->Batches.Num());
+			for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Context->Batches)
+			{
+				Context->VtxFacades.Add(Batch->VtxDataCache);
+				Batch->VtxDataCache = nullptr; // Remove ownership of facade before deleting the processor
+			}
+
+			PCGEX_DELETE_TARRAY(Context->Batches);
+			Context->CompoundFacade->Source->InitializeNum(NumCompoundNodes, true);
+			Context->CompoundPointsBlender->AddSources(Context->VtxFacades);
+			Context->CompoundPointsBlender->PrepareMerge(Context->CompoundFacade, Context->CompoundGraph->PointsCompounds);
 		};
 
 		auto ProcessNode = [&](const int32 Index)
@@ -136,19 +148,19 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
 
-		Context->CompoundPointsBlender->Write(Context->GetAsyncManager());
+		PCGEX_DELETE(Context->CompoundPointsBlender)
+		
+		Context->CompoundFacade->Write(Context->GetAsyncManager(), true);
 		Context->SetAsyncState(PCGExMT::State_CompoundWriting);
 	}
 
 	if (Context->IsState(PCGExMT::State_CompoundWriting))
 	{
 		PCGEX_ASYNC_WAIT
-
-		PCGEX_DELETE(Context->CompoundPointsBlender)
-
+		
 		Context->CompoundProcessor->StartProcessing(
 			Context->CompoundGraph,
-			Context->CompoundPoints,
+			Context->CompoundFacade,
 			Settings->GraphBuilderSettings,
 			[&](PCGExGraph::FGraphBuilder* GraphBuilder)
 			{
@@ -162,7 +174,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->CompoundProcessor->Execute()) { return false; }
 
-	Context->CompoundPoints->OutputTo(Context);
+	Context->CompoundFacade->Source->OutputTo(Context);
 
 	return Context->TryComplete();
 }

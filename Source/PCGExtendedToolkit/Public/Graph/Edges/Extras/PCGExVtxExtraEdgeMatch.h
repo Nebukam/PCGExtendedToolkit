@@ -72,11 +72,9 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual void ClusterReserve(const int32 NumClusters) override;
-	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FPool* VtxDataCache, PCGExData::FPool* EdgeDataCache) override;
-	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExData::FPool* VtxDataCache) override;
+	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataCache, PCGExData::FFacade* EdgeDataCache) override;
+	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache) override;
 	virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
-	virtual void Write() override;
-	virtual void Write(PCGExMT::FTaskManager* AsyncManager) override;
 	virtual void Cleanup() override;
 
 protected:

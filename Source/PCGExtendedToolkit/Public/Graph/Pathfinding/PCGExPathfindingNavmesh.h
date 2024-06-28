@@ -37,7 +37,6 @@ protected:
 
 	//~Begin UObject interface
 public:
-
 #if WITH_EDITOR
 
 public:
@@ -122,7 +121,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPC
 	virtual ~FPCGExPathfindingNavmeshContext() override;
 
 	PCGExData::FPointIO* SeedsPoints = nullptr;
+	PCGExData::FFacade* SeedsFacade = nullptr;
+
 	PCGExData::FPointIO* GoalsPoints = nullptr;
+	PCGExData::FFacade* GoalsFacade = nullptr;
+
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
@@ -139,8 +142,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPC
 	PCGEx::FLocalToStringGetter* SeedTagValueGetter = nullptr;
 	PCGEx::FLocalToStringGetter* GoalTagValueGetter = nullptr;
 
-	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
-	PCGExDataBlending::FDataForwardHandler* GoalForwardHandler = nullptr;
+	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
+	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement

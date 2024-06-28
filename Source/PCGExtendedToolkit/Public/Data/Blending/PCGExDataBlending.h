@@ -7,6 +7,7 @@
 #include "PCGExMT.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 
 #include "PCGExDataBlending.generated.h"
 
@@ -40,14 +41,6 @@ enum class EPCGExBlendOver : uint8
 	Fixed UMETA(DisplayName = "Fixed", ToolTip="Fixed blend lerp/weight value"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Blending Filter"))
-enum class EPCGExBlendingFilter : uint8
-{
-	All UMETA(DisplayName = "All", ToolTip="All attributes"),
-	Exclude UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
-	Include UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
-};
-
 namespace PCGExGraph
 {
 	struct FGraphMetadataSettings;
@@ -73,53 +66,6 @@ enum class EPCGExDataBlendingType : uint8
 	Sum         = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum of all the data"),
 	WeightedSum = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
 	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExForwardSettings
-{
-	GENERATED_BODY()
-
-	FPCGExForwardSettings()
-	{
-	}
-
-	/** Is forwarding enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bEnabled = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bEnabled"))
-	EPCGExBlendingFilter FilterAttributes = EPCGExBlendingFilter::Include;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bEnabled && FilterAttributes!=EPCGExBlendingFilter::All", EditConditionHides))
-	TArray<FName> FilteredAttributes;
-
-	bool CanProcess(const FName AttributeName) const
-	{
-		switch (FilterAttributes)
-		{
-		default: ;
-		case EPCGExBlendingFilter::All:
-			return true;
-		case EPCGExBlendingFilter::Exclude:
-			return !FilteredAttributes.Contains(AttributeName);
-		case EPCGExBlendingFilter::Include:
-			return FilteredAttributes.Contains(AttributeName);
-		}
-	}
-
-	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
-	{
-		if (FilterAttributes == EPCGExBlendingFilter::All) { return; }
-		for (int i = 0; i < Identities.Num(); i++)
-		{
-			if (!CanProcess(Identities[i].Name))
-			{
-				Identities.RemoveAt(i);
-				i--;
-			}
-		}
-	}
 };
 
 USTRUCT(BlueprintType)
@@ -284,7 +230,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExBlendingFilter BlendingFilter = EPCGExBlendingFilter::All;
+	EPCGExAttributeFilter BlendingFilter = EPCGExAttributeFilter::All;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="BlendingFilter!=EPCGExBlendingFilter::All", EditConditionHides))
 	TArray<FName> FilteredAttributes;
@@ -312,18 +258,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 		switch (BlendingFilter)
 		{
 		default: ;
-		case EPCGExBlendingFilter::All:
+		case EPCGExAttributeFilter::All:
 			return true;
-		case EPCGExBlendingFilter::Exclude:
+		case EPCGExAttributeFilter::Exclude:
 			return !FilteredAttributes.Contains(AttributeName);
-		case EPCGExBlendingFilter::Include:
+		case EPCGExAttributeFilter::Include:
 			return FilteredAttributes.Contains(AttributeName);
 		}
 	}
 
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
 	{
-		if (BlendingFilter == EPCGExBlendingFilter::All) { return; }
+		if (BlendingFilter == EPCGExAttributeFilter::All) { return; }
 		for (int i = 0; i < Identities.Num(); i++)
 		{
 			if (!CanBlend(Identities[i].Name))
@@ -337,19 +283,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 namespace PCGExDataBlending
 {
-	class PCGEXTENDEDTOOLKIT_API FDataForwardHandler
-	{
-		const FPCGExForwardSettings* Settings = nullptr;
-		const PCGExData::FPointIO* SourceIO = nullptr;
-		TArray<PCGEx::FAttributeIdentity> Identities;
-
-	public:
-		~FDataForwardHandler();
-		explicit FDataForwardHandler(const FPCGExForwardSettings* InSettings, const PCGExData::FPointIO* InSourceIO);
-		void Forward(int32 SourceIndex, const PCGExData::FPointIO* Target);
-	};
-
-
 	/**
 	 * 
 	 */
@@ -363,8 +296,8 @@ namespace PCGExDataBlending
 		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
-		virtual void PrepareForData(PCGExData::FPointIO* InPrimaryData, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(PCGExData::FFacade* InPrimaryData, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
 
 		FORCEINLINE virtual bool GetIsInterpolation() const;
 		FORCEINLINE virtual bool GetRequiresPreparation() const;
@@ -382,14 +315,9 @@ namespace PCGExDataBlending
 		virtual void ResetToDefault(int32 WriteIndex) const;
 		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
 
-		virtual void Write() = 0;
-		virtual void Write(const TArrayView<const int32> InIndices) = 0;
-
 	protected:
-		bool bOwnsWriter = true;
-		bool bInterpolationAllowed = true;
+		bool bDoInterpolation = true;
 		FName AttributeName = NAME_None;
-		TSet<int32>* InitializedIndices = nullptr;
 	};
 
 	template <typename T>
@@ -398,13 +326,8 @@ namespace PCGExDataBlending
 	protected:
 		void Cleanup()
 		{
-			TypedAttribute = nullptr;
-			if (Reader == Writer) { Reader = nullptr; }
-			if (bOwnsWriter) { PCGEX_DELETE(Writer) }
-
-			PCGEX_DELETE(Reader)
-
-			bOwnsWriter = false;
+			Reader = nullptr;
+			Writer = nullptr;
 		}
 
 	public:
@@ -415,45 +338,29 @@ namespace PCGExDataBlending
 
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::None; };
 
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
-			bOwnsWriter = false;
 			Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(InWriter);
 
-			bInterpolationAllowed = Writer->GetAllowsInterpolation();
-
-			FPCGMetadataAttributeBase* Attribute = InSecondaryData->GetData(SecondarySource)->Metadata->GetMutableAttribute(AttributeName);
-			if (Attribute && Attribute->GetTypeId() == Writer->UnderlyingType) { TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute); }
-			else { TypedAttribute = nullptr; }
+			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
+			TypedAttribute = InSecondaryData->FindMutableAttribute<T>(AttributeName, SecondarySource);
 
 			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryData, SecondarySource);
 		}
 
-		virtual void PrepareForData(PCGExData::FPointIO* InPrimaryData, const PCGExData::FPointIO* InSecondaryData, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(PCGExData::FFacade* InPrimaryData, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
-			bOwnsWriter = true;
 
-			FPCGMetadataAttributeBase* Attribute = InSecondaryData->GetData(SecondarySource)->Metadata->GetMutableAttribute(AttributeName);
+			TypedAttribute = InSecondaryData->FindMutableAttribute<T>(AttributeName, SecondarySource);
 
-			Writer = new PCGEx::TFAttributeWriter<T>(AttributeName, T{}, Attribute ? Attribute->AllowsInterpolation() : true);
-			Writer->BindAndGet(InPrimaryData);
+			if (TypedAttribute) { Writer = InPrimaryData->GetOrCreateWriter<T>(TypedAttribute, true); }
+			else { Writer = InPrimaryData->GetOrCreateWriter<T>(AttributeName, T{}, true, true); }
 
-			if (InPrimaryData == InSecondaryData && SecondarySource == PCGExData::ESource::Out)
-			{
-				Reader = Writer;
-			}
-			else
-			{
-				Reader = new PCGEx::TFAttributeReader<T>(AttributeName);
-				Reader->Bind(const_cast<PCGExData::FPointIO*>(InSecondaryData));
-			}
+			Reader = InSecondaryData->GetOrCreateReader<T>(AttributeName, SecondarySource); // Will return writer is sources ==
 
-			bInterpolationAllowed = Writer->GetAllowsInterpolation() && Reader->GetAllowsInterpolation();
-
-			if (Attribute && Attribute->GetTypeId() == Writer->UnderlyingType) { TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute); }
-			else { TypedAttribute = nullptr; }
+			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
 
 			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData, SecondarySource);
 		}
@@ -483,29 +390,29 @@ namespace PCGExDataBlending
 
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const
 		{
-			if (!bInterpolationAllowed && GetIsInterpolation())
+			if (!bDoInterpolation)
 			{
-				const T B = (*Reader)[SecondaryReadIndex];
+				const T B = Reader->Values[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
-				const T A = (*Writer)[PrimaryReadIndex];
-				const T B = (*Reader)[SecondaryReadIndex];
+				const T A = Writer->Values[PrimaryReadIndex];
+				const T B = Reader->Values[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
 		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
-			const T A = (*Writer)[PrimaryReadIndex];
+			const T A = Writer->Values[PrimaryReadIndex];
 			const T B = TypedAttribute ? TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-			(*Writer)[WriteIndex] = SingleOperation(A, B, Weight);
+			Writer->Values[WriteIndex] = SingleOperation(A, B, Weight);
 		}
 
 		FORCEINLINE virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
 		{
-			if (!bInterpolationAllowed) { return; }
+			if (!bDoInterpolation) { return; }
 			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
 		}
 
@@ -527,14 +434,6 @@ namespace PCGExDataBlending
 			for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = DefaultValue; }
 		}
 
-		FORCEINLINE virtual T GetPrimaryValue(const int32 Index) const { return (*Writer)[Index]; }
-		FORCEINLINE virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
-
-		// TODO : Async support? Already handled by wrappers, so might be redundant
-
-		virtual void Write() override { Writer->Write(); }
-		virtual void Write(const TArrayView<const int32> InIndices) override { Writer->Write(InIndices); }
-
 	protected:
 		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;
 		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
@@ -546,31 +445,31 @@ namespace PCGExDataBlending
 	{
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const override
 		{
-			if (bFirstOperation || (!this->bInterpolationAllowed && this->GetIsInterpolation()))
+			if (bFirstOperation || !this->bDoInterpolation)
 			{
-				const T B = (*this->Reader)[SecondaryReadIndex];
+				const T B = this->Reader->Values[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
-				T A = (*this->Writer)[PrimaryReadIndex];
-				const T B = (*this->Reader)[SecondaryReadIndex];
+				T A = this->Writer->Values[PrimaryReadIndex];
+				const T B = this->Reader->Values[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = this->SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
 		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
-			const T A = (*this->Writer)[PrimaryReadIndex];
+			const T A = this->Writer->Values[PrimaryReadIndex];
 			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
 
 			if (bFirstOperation)
 			{
-				(*this->Writer)[WriteIndex] = B;
+				this->Writer->Values[WriteIndex] = B;
 				return;
 			}
 
-			(*this->Writer)[WriteIndex] = this->SingleOperation(A, B, Weight);
+			this->Writer->Values[WriteIndex] = this->SingleOperation(A, B, Weight);
 		}
 	};
 
@@ -583,7 +482,7 @@ namespace PCGExDataBlending
 	{
 		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
 		OutSettings = FPCGExBlendingSettings(PropertiesBlending);
-		OutSettings.BlendingFilter = EPCGExBlendingFilter::Include;
+		OutSettings.BlendingFilter = EPCGExAttributeFilter::Include;
 
 		TArray<FName> SourceAttributesList;
 		PerAttributeBlending.GetKeys(SourceAttributesList);
@@ -610,7 +509,7 @@ namespace PCGExDataBlending
 	{
 		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
 		OutSettings = FPCGExBlendingSettings(FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None));
-		OutSettings.BlendingFilter = EPCGExBlendingFilter::Include;
+		OutSettings.BlendingFilter = EPCGExAttributeFilter::Include;
 
 		AttributesInfos->FindMissing(Attributes, OutMissingAttributes);
 
@@ -628,33 +527,6 @@ namespace PCGExDataBlending
 
 namespace PCGExDataBlendingTask
 {
-	class PCGEXTENDEDTOOLKIT_API FBlendCompoundedIO final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FBlendCompoundedIO(PCGExData::FPointIO* InPointIO,
-		                   PCGExData::FPointIO* InTargetIO,
-		                   FPCGExBlendingSettings* InBlendingSettings,
-		                   PCGExData::FIdxCompoundList* InCompoundList,
-		                   const FPCGExDistanceSettings& InDistSettings,
-		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr) :
-			FPCGExTask(InPointIO),
-			TargetIO(InTargetIO),
-			BlendingSettings(InBlendingSettings),
-			CompoundList(InCompoundList),
-			DistSettings(InDistSettings),
-			MetadataSettings(InMetadataSettings)
-		{
-		}
-
-		PCGExData::FPointIO* TargetIO = nullptr;
-		FPCGExBlendingSettings* BlendingSettings = nullptr;
-		PCGExData::FIdxCompoundList* CompoundList = nullptr;
-		FPCGExDistanceSettings DistSettings;
-		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-
 	class PCGEXTENDEDTOOLKIT_API FWriteFuseMetadata final : public PCGExMT::FPCGExTask
 	{
 	public:

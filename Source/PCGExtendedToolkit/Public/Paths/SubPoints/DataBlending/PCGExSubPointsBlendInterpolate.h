@@ -33,7 +33,7 @@ public:
 		const PCGExMath::FPathMetricsSquared& Metrics,
 		PCGExDataBlending::FMetadataBlender* InBlender) const override;
 
-	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FPointIO* InPrimaryIO, const PCGExData::FPointIO* InSecondaryIO, const PCGExData::ESource SecondarySource) override;
+	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FFacade* InPrimaryData, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource) override;
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending() override;

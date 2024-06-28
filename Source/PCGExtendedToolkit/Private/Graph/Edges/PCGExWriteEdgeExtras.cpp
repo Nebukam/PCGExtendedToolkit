@@ -76,8 +76,6 @@ namespace PCGExWriteEdgeExtras
 
 		PCGEX_DELETE(SolidificationLerpGetter)
 
-		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DELETE)
-
 		// Delete owned getters
 #define PCGEX_CLEAN_LOCAL_AXIS_GETTER(_AXIS) if (bOwnSolidificationRad##_AXIS) { PCGEX_DELETE(SolidificationRad##_AXIS) }
 		PCGEX_FOREACH_XYZ(PCGEX_CLEAN_LOCAL_AXIS_GETTER)
@@ -91,8 +89,8 @@ namespace PCGExWriteEdgeExtras
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FPointIO* OutputIO = EdgesIO;
-			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_FWD_INIT)
+			PCGExData::FFacade* OutputFacade = EdgeDataCache;
+			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
 		if (bSolidify)
@@ -133,7 +131,7 @@ namespace PCGExWriteEdgeExtras
 		if (Settings->bEndpointsBlending)
 		{
 			MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
-			MetadataBlender->PrepareForData(EdgesIO, VtxIO, PCGExData::ESource::In, true);
+			MetadataBlender->PrepareForData(EdgeDataCache, VtxDataCache, PCGExData::ESource::In, true);
 		}
 
 		bAscendingDesired = Settings->DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
@@ -261,12 +259,7 @@ namespace PCGExWriteEdgeExtras
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_WRITE)
-		if (MetadataBlender)
-		{
-			if (IsTrivial()) { MetadataBlender->Write(); }
-			else { MetadataBlender->Write(AsyncManagerPtr); }
-		}
+		EdgeDataCache->Write(AsyncManagerPtr, true);
 	}
 
 	//////// BATCH

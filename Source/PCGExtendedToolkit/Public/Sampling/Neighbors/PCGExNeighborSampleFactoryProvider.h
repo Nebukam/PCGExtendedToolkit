@@ -118,20 +118,22 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleOperation : public UPCGExOperat
 	GENERATED_BODY()
 
 public:
-	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
-
 	PCGExClusterFilter::TManager* PointFilters = nullptr;
 	PCGExClusterFilter::TManager* ValueFilters = nullptr;
+
+	PCGExData::FFacade* VtxDataCache = nullptr;
+	PCGExData::FFacade* EdgeDataCache = nullptr;
 
 	FPCGExSamplingSettings BaseSettings;
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache);
+	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache);
 	virtual bool IsOperationValid();
 
 	PCGExData::FPointIO* GetSourceIO() const;
+	PCGExData::FFacade* GetSourceDataCache() const;
 
 	FORCEINLINE virtual void ProcessNode(const int32 NodeIndex) const;
 

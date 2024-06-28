@@ -36,7 +36,7 @@ namespace PCGExGraph
 		FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 		FCompoundGraph* CompoundGraph = nullptr;
-		PCGExData::FPointIO* CompoundPoints = nullptr;
+		PCGExData::FFacade* CompoundFacade = nullptr;
 		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 
 		explicit FCompoundProcessor(
@@ -60,7 +60,7 @@ namespace PCGExGraph
 		template <class BuildGraphFunc>
 		void StartProcessing(
 			FCompoundGraph* InCompoundGraph,
-			PCGExData::FPointIO* InCompoundPoints,
+			PCGExData::FFacade* InCompoundFacade,
 			const FPCGExGraphBuilderSettings& InBuilderSettings,
 			BuildGraphFunc&& BuildGraph)
 		{
@@ -71,9 +71,9 @@ namespace PCGExGraph
 			GraphMetadataSettings.Grab(Context, EdgeEdgeIntersectionSettings);
 
 			CompoundGraph = InCompoundGraph;
-			CompoundPoints = InCompoundPoints;
+			CompoundFacade = InCompoundFacade;
 
-			GraphBuilder = new FGraphBuilder(CompoundPoints, &InBuilderSettings, 4);
+			GraphBuilder = new FGraphBuilder(CompoundFacade->Source, &InBuilderSettings, 4);
 
 			BuildGraph(GraphBuilder);
 

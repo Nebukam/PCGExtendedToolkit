@@ -25,7 +25,7 @@ void UPCGExVtxExtraEdgeMatch::ClusterReserve(const int32 NumClusters)
 	for (int i = 0; i < NumClusters; i++) { FilterManagers[i] = nullptr; }
 }
 
-void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FPool* VtxDataCache, PCGExData::FPool* EdgeDataCache)
+void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataCache, PCGExData::FFacade* EdgeDataCache)
 {
 	Super::PrepareForCluster(InContext, ClusterIdx, Cluster, VtxDataCache, EdgeDataCache);
 	if (FilterFactories && !FilterFactories->IsEmpty())
@@ -40,9 +40,9 @@ void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, co
 	}
 }
 
-bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExData::FPool* VtxDataCache)
+bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache)
 {
-	if (!Super::PrepareForVtx(InContext, InVtx, VtxDataCache)) { return false; }
+	if (!Super::PrepareForVtx(InContext, InVtxDataCache)) { return false; }
 
 	if (!Descriptor.MatchingEdge.Validate(InContext))
 	{
@@ -50,7 +50,7 @@ bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExD
 		return false;
 	}
 
-	if (!Descriptor.DotComparisonSettings.Init(InContext, VtxDataCache))
+	if (!Descriptor.DotComparisonSettings.Init(InContext, InVtxDataCache))
 	{
 		bIsValidOperation = false;
 		return false;
@@ -67,7 +67,7 @@ bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExD
 		}
 	}
 
-	Descriptor.MatchingEdge.Init(InVtx);
+	Descriptor.MatchingEdge.Init(InVtxDataCache);
 
 	return bIsValidOperation;
 }
@@ -76,7 +76,7 @@ void UPCGExVtxExtraEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExClu
 {
 	PCGExPointFilter::TManager* EdgeFilters = FilterManagers[ClusterIdx]; //TODO : Implement properly
 
-	const FPCGPoint& Point = Vtx->GetInPoint(Node.PointIndex);
+	const FPCGPoint& Point = PrimaryDataCache->Source->GetInPoint(Node.PointIndex);
 
 	double BestDot = TNumericLimits<double>::Min();
 	int32 IBest = -1;
@@ -102,18 +102,6 @@ void UPCGExVtxExtraEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExClu
 
 	if (IBest != -1) { Descriptor.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], (*Cluster->Nodes)[Adjacency[IBest].NodeIndex].Adjacency.Num()); }
 	else { Descriptor.MatchingEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
-}
-
-void UPCGExVtxExtraEdgeMatch::Write()
-{
-	Super::Write();
-	Descriptor.MatchingEdge.Write();
-}
-
-void UPCGExVtxExtraEdgeMatch::Write(PCGExMT::FTaskManager* AsyncManager)
-{
-	Super::Write(AsyncManager);
-	Descriptor.MatchingEdge.Write(AsyncManager);
 }
 
 void UPCGExVtxExtraEdgeMatch::Cleanup()

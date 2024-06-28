@@ -143,7 +143,6 @@ namespace PCGExWriteVtxExtras
 	FProcessorBatch::~FProcessorBatch()
 	{
 		PCGEX_SETTINGS(WriteVtxExtras)
-		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DELETE)
 		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
 
 		ProjectionSettings.Cleanup();
@@ -156,8 +155,8 @@ namespace PCGExWriteVtxExtras
 		if (!TBatch::PrepareProcessing()) { return false; }
 
 		{
-			PCGExData::FPointIO* OutputIO = VtxIO;
-			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_FWD_INIT)
+			PCGExData::FFacade* OutputFacade = VtxDataCache;
+			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
 		ProjectionSettings = Settings->ProjectionSettings;
@@ -166,7 +165,7 @@ namespace PCGExWriteVtxExtras
 		for (const UPCGExVtxExtraFactoryBase* Factory : TypedContext->ExtraFactories)
 		{
 			UPCGExVtxExtraOperation* NewOperation = Factory->CreateOperation();
-			if (!NewOperation->PrepareForVtx(Context, VtxIO, VtxDataCache))
+			if (!NewOperation->PrepareForVtx(Context, VtxDataCache))
 			{
 				PCGEX_DELETE_OPERATION(NewOperation)
 				continue;
@@ -195,9 +194,7 @@ namespace PCGExWriteVtxExtras
 	void FProcessorBatch::Write()
 	{
 		TBatch<FProcessor>::Write();
-
-		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_WRITE)
-		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->Write(AsyncManagerPtr); }
+		VtxDataCache->Write(AsyncManagerPtr, true);
 	}
 }
 

@@ -142,7 +142,7 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 		Context->SeedTagGetter->SoftGrab(Context->Seeds);
 	}
 
-	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->Seeds);
+	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->Seeds);
 
 	Context->Paths = new PCGExData::FPointIOCollection();
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;

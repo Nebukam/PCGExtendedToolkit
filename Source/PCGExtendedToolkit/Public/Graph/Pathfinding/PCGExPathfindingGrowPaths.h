@@ -263,7 +263,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
-	PCGExData::FPool* SeedsDataCache = nullptr;
+	PCGExData::FFacade* SeedsDataCache = nullptr;
 
 	PCGExData::FCache<int32>* NumIterations = nullptr;
 	PCGExData::FCache<int32>* NumBranches = nullptr;
@@ -271,7 +271,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 	PCGExData::FCache<double>* GrowthMaxDistance = nullptr;
 
 	PCGEx::FLocalToStringGetter* TagValueGetter = nullptr;
-	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
+	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement

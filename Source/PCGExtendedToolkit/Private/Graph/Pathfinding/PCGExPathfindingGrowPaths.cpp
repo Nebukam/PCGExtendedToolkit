@@ -272,7 +272,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 		}
 	}
 
-	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
+	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
 
 	return true;
 }

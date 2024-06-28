@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSettings.h"
+#include "Data/Blending/PCGExDataBlending.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExGraph.h"
 

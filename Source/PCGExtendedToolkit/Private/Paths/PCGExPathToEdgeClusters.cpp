@@ -35,7 +35,8 @@ FPCGExPathToEdgeClustersContext::~FPCGExPathToEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(CompoundPoints)
+	PCGEX_DELETE(CompoundFacade->Source)
+	PCGEX_DELETE(CompoundFacade)
 
 	PCGEX_DELETE(CompoundProcessor)
 }
@@ -85,9 +86,11 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (Settings->bFusePaths)
 		{
-			Context->CompoundPoints = new PCGExData::FPointIO(nullptr);
-			Context->CompoundPoints->SetInfos(-1, Settings->GetMainOutputLabel(), nullptr);
-			Context->CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+			PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(nullptr);
+			Context->CompoundFacade = new PCGExData::FFacade(CompoundPoints);
+
+			CompoundPoints->SetInfos(-1, Settings->GetMainOutputLabel(), nullptr);
+			CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 			if (!Context->StartBatchProcessingPoints<PCGExPathToClusters::FFusingProcessorBatch>(
 				[](const PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
@@ -127,11 +130,10 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 			const PCGExPathToClusters::FFusingProcessorBatch* FusingBatch = static_cast<PCGExPathToClusters::FFusingProcessorBatch*>(Context->MainBatch);
 
 			Context->CompoundGraph = FusingBatch->CompoundGraph;
-			Context->CompoundPoints = FusingBatch->CompoundPoints;
 
 			Context->CompoundProcessor->StartProcessing(
 				FusingBatch->CompoundGraph,
-				FusingBatch->CompoundPoints,
+				Context->CompoundFacade,
 				Settings->GraphBuilderSettings,
 				[&](PCGExGraph::FGraphBuilder* GraphBuilder)
 				{
@@ -153,7 +155,7 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsDone())
 	{
-		if (Settings->bFusePaths) { Context->CompoundPoints->OutputTo(Context); }
+		if (Settings->bFusePaths) { Context->CompoundFacade->Source->OutputTo(Context); }
 		else { Context->OutputMainPoints(); }
 	}
 
@@ -309,13 +311,13 @@ namespace PCGExPathToClusters
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
 		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(&Settings->DefaultPointsBlendingSettings);
-		CompoundPointsBlender->AddSources(*MainPoints);
+		CompoundPointsBlender->AddSources(ProcessorFacades);
 
-		CompoundPoints = TypedContext->CompoundPoints;
+		CompoundPoints = TypedContext->CompoundFacade->Source;
 		const int32 NumCompoundedNodes = CompoundGraph->NumNodes();
 		CompoundPoints->InitializeNum(NumCompoundedNodes, true);
 
-		CompoundPointsBlender->PrepareMerge(CompoundPoints, CompoundGraph->PointsCompounds);
+		CompoundPointsBlender->PrepareMerge(TypedContext->CompoundFacade, CompoundGraph->PointsCompounds);
 
 		StartParallelLoopForRange(NumCompoundedNodes); // Update point center & blend
 
