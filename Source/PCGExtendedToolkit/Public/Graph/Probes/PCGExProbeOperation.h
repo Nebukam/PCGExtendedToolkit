@@ -28,7 +28,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorBase
 	{
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(HideInDetailPanel))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, HideInDetailPanel))
 	bool bSupportRadius = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSupportRadius", EditConditionHides))
