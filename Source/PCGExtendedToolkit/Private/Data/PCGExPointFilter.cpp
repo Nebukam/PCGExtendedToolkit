@@ -3,6 +3,8 @@
 
 #include "Data/PCGExPointFilter.h"
 
+#include "Graph/PCGExCluster.h"
+
 PCGExFactories::EType UPCGExFilterFactoryBase::GetFactoryType() const
 {
 	return PCGExFactories::EType::FilterPoint;
@@ -36,6 +38,10 @@ namespace PCGExPointFilter
 		for (bool& Result : Results) { Result = false; }
 	}
 
+	bool TFilter::Test(const int32 Index) const { return DefaultResult; }
+	bool TFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
+	bool TFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
+
 	TManager::TManager(PCGExDataCaching::FPool* InPointDataCache)
 		: PointDataCache(InPointDataCache)
 	{
@@ -48,38 +54,48 @@ namespace PCGExPointFilter
 			TFilter* NewFilter = Factory->CreateFilter();
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
 			if (!InitFilter(InContext, NewFilter)) { delete NewFilter; }
+			ManagedFilters.Add(NewFilter);
 		}
 
 		return PostInit(InContext);
 	}
 
-	bool TManager::TestPoint(const int32 Index)
+	bool TManager::Test(const int32 Index)
 	{
-		for (const TFilter* Handler : PointFilters) { if (!Handler->Test(Index)) { return false; } }
+		for (const TFilter* Handler : ManagedFilters) { if (!Handler->Test(Index)) { return false; } }
+		return true;
+	}
+
+	bool TManager::Test(const PCGExCluster::FNode& Node)
+	{
+		for (const TFilter* Handler : ManagedFilters) { if (!Handler->Test(Node)) { return false; } }
+		return true;
+	}
+
+	bool TManager::Test(const PCGExGraph::FIndexedEdge& Edge)
+	{
+		for (const TFilter* Handler : ManagedFilters) { if (!Handler->Test(Edge)) { return false; } }
 		return true;
 	}
 
 	bool TManager::InitFilter(const FPCGContext* InContext, TFilter* Filter)
 	{
-		if (!Filter->Init(InContext, PointDataCache)) { return false; }
-
-		PointFilters.Add(Filter);
-		return true;
+		return Filter->Init(InContext, PointDataCache);
 	}
 
 	bool TManager::PostInit(const FPCGContext* InContext)
 	{
-		bValid = !PointFilters.IsEmpty();
+		bValid = !ManagedFilters.IsEmpty();
 
 		if (!bValid) { return false; }
 
 		// Sort mappings so higher priorities come last, as they have to potential to override values.
-		PointFilters.Sort([&](const TFilter& A, const TFilter& B) { return A.Factory->Priority < B.Factory->Priority; });
+		ManagedFilters.Sort([&](const TFilter& A, const TFilter& B) { return A.Factory->Priority < B.Factory->Priority; });
 
 		// Update index & post-init
-		for (int i = 0; i < PointFilters.Num(); i++)
+		for (int i = 0; i < ManagedFilters.Num(); i++)
 		{
-			TFilter* Filter = PointFilters[i];
+			TFilter* Filter = ManagedFilters[i];
 			Filter->FilterIndex = i;
 			PostInitFilter(InContext, Filter);
 		}

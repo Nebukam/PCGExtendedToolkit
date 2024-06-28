@@ -33,6 +33,8 @@ namespace PCGExClusterStates
 
 	bool FState::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 	{
+		Descriptor.Init();
+
 		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
 
 		Manager = new PCGExClusterFilter::TManager(InCluster, PointDataCache, EdgeDataCache);
@@ -45,16 +47,31 @@ namespace PCGExClusterStates
 		return Manager->Init(InContext, InFactories);
 	}
 
+	bool FState::Test(const int32 Index) const
+	{
+		const bool bResult = Manager->Test(Index);
+		Manager->Results[Index] = bResult;
+		return bResult;
+	}
+
 	bool FState::Test(const PCGExCluster::FNode& Node) const
 	{
-		const bool bResult = Manager->TestNode(Node);
-		Manager->Results[Node.PointIndex] = bResult;
+		const bool bResult = Manager->Test(Node);
+		Manager->Results[Node.NodeIndex] = bResult;
+		return bResult;
+	}
+
+	bool FState::Test(const PCGExGraph::FIndexedEdge& Edge) const
+	{
+		const bool bResult = Manager->Test(Edge);
+		Manager->Results[Edge.PointIndex] = bResult;
 		return bResult;
 	}
 
 	void FState::ProcessFlags(const bool bSuccess, int64& InFlags) const
 	{
-		// TODO : Implement
+		if (Descriptor.bOnTestPass && bSuccess) { Descriptor.PassStateFlags.DoOperation(InFlags); }
+		else if (Descriptor.bOnTestFail && !bSuccess) { Descriptor.FailStateFlags.DoOperation(InFlags); }
 	}
 
 	FStateManager::FStateManager(TArray<int64>* InFlags, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
@@ -64,14 +81,28 @@ namespace PCGExClusterStates
 	}
 
 	FStateManager::~FStateManager()
-	{		
+	{
 		States.Empty();
 	}
 
-	bool FStateManager::TestNode(const PCGExCluster::FNode& Node)
+	bool FStateManager::Test(const int32 Index)
+	{
+		int64& Flags = (*FlagsCache)[Index];
+		for (const FState* State : States) { State->ProcessFlags(State->Test(Index), Flags); }
+		return true;
+	}
+
+	bool FStateManager::Test(const PCGExCluster::FNode& Node)
 	{
 		int64& Flags = (*FlagsCache)[Node.PointIndex];
 		for (const FState* State : States) { State->ProcessFlags(State->Test(Node), Flags); }
+		return true;
+	}
+
+	bool FStateManager::Test(const PCGExGraph::FIndexedEdge& Edge)
+	{
+		int64& Flags = (*FlagsCache)[Edge.PointIndex];
+		for (const FState* State : States) { State->ProcessFlags(State->Test(Edge), Flags); }
 		return true;
 	}
 

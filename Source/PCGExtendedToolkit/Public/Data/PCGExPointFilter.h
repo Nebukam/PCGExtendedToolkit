@@ -11,6 +11,16 @@
 
 #include "PCGExPointFilter.generated.h"
 
+namespace PCGExGraph
+{
+	struct FIndexedEdge;
+}
+
+namespace PCGExCluster
+{
+	struct FNode;
+}
+
 namespace PCGExPointFilter
 {
 	class TFilter;
@@ -61,6 +71,7 @@ namespace PCGExPointFilter
 		{
 		}
 
+		bool DefaultResult= true;
 		PCGExDataCaching::FPool* PointDataCache = nullptr;
 
 		bool bCacheResults = true;
@@ -75,7 +86,9 @@ namespace PCGExPointFilter
 
 		virtual void PostInit();
 		
-		FORCEINLINE virtual bool Test(const int32 Index) const = 0;
+		FORCEINLINE virtual bool Test(const int32 Index) const;
+		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const;
+		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const;
 
 		virtual ~TFilter()
 		{
@@ -97,15 +110,18 @@ namespace PCGExPointFilter
 		PCGExDataCaching::FPool* PointDataCache = nullptr;
 
 		bool Init(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
-		virtual bool TestPoint(const int32 Index);
+		
+		virtual bool Test(const int32 Index);
+		virtual bool Test(const PCGExCluster::FNode& Node);
+		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge);
 
 		virtual ~TManager()
 		{
-			PCGEX_DELETE_TARRAY(PointFilters)
+			PCGEX_DELETE_TARRAY(ManagedFilters)
 		}
 
 	protected:
-		TArray<TFilter*> PointFilters;
+		TArray<TFilter*> ManagedFilters;
 
 		virtual bool InitFilter(const FPCGContext* InContext, TFilter* Filter);
 		virtual bool PostInit(const FPCGContext* InContext);

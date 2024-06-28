@@ -115,7 +115,7 @@ namespace PCGExFindNodeState
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
-		StateManager->TestNode(Node);
+		StateManager->Test(Node);
 	}
 
 	void FProcessor::CompleteWork()

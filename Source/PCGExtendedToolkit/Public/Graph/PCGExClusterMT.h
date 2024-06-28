@@ -202,7 +202,7 @@ namespace PCGExClusterMT
 				FilterManager->Init(Context, *VtxFilterFactories);
 
 				const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-				for (const PCGExCluster::FNode& Node : NodesRef) { VtxFilterCache[Node.NodeIndex] = FilterManager->TestNode(Node); }
+				for (const PCGExCluster::FNode& Node : NodesRef) { VtxFilterCache[Node.NodeIndex] = FilterManager->Test(Node); }
 
 				PCGEX_DELETE(FilterManager)
 			}

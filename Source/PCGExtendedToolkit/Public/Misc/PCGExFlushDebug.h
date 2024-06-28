@@ -41,7 +41,7 @@ protected:
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
-	FLinearColor CustomColor = PCGEx::NodeColorDebug;
+	FLinearColor CustomColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExDebugContext final : public FPCGContext

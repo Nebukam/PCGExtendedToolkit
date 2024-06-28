@@ -58,14 +58,17 @@ namespace PCGExClusterStates
 
 		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache) override;
 		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
+
+		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
+		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override;
 
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
 	protected:
 		PCGExClusterFilter::TManager* Manager = nullptr;
 	};
-
+	
 	class PCGEXTENDEDTOOLKIT_API FStateManager : public PCGExClusterFilter::TManager
 	{
 		TArray<FState*> States;
@@ -75,8 +78,10 @@ namespace PCGExClusterStates
 		explicit FStateManager(TArray<int64>* InFlags, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache);
 		virtual ~FStateManager() override;
 
-		virtual bool TestNode(const PCGExCluster::FNode& Node) override;
-
+		virtual bool Test(const int32 Index) override;
+		virtual bool Test(const PCGExCluster::FNode& Node) override;
+		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) override;
+		
 	protected:
 		virtual void PostInitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter) override;
 	};

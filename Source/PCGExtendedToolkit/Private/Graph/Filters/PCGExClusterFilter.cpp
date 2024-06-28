@@ -16,9 +16,9 @@ namespace PCGExClusterFilter
 
 	bool TFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 	{
+		Cluster = InCluster;
 		EdgeDataCache = InEdgeDataCache;
 		if (!PCGExPointFilter::TFilter::Init(InContext, InPointDataCache)) { return false; }
-		Cluster = InCluster;
 		return true;
 	}
 
@@ -30,44 +30,21 @@ namespace PCGExClusterFilter
 		for (bool& Result : Results) { Result = false; }
 	}
 
-	bool TFilter::Test(const int32 Index) const
-	{
-		// Should never be called
-		check(false)
-		return true;
-	}
-
 	TManager::TManager(PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 		: PCGExPointFilter::TManager(InPointDataCache), Cluster(InCluster), EdgeDataCache(InEdgeDataCache)
 	{
 	}
 
-	bool TManager::TestNode(const PCGExCluster::FNode& Node)
-	{
-		if (!PCGExPointFilter::TManager::TestPoint(Node.PointIndex)) { return false; }
-		for (const TFilter* Handler : NodeFilters) { if (!Handler->Test(Node)) { return false; } }
-		return true;
-	}
-
 	bool TManager::InitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* Filter)
 	{
 		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return PCGExPointFilter::TManager::InitFilter(InContext, Filter); }
-
 		if (Filter->GetFilterType() == PCGExFilters::EType::Node)
 		{
 			TFilter* ClusterFilter = static_cast<TFilter*>(Filter);
 			if (!ClusterFilter->Init(InContext, Cluster, PointDataCache, EdgeDataCache)) { return false; }
-
-			NodeFilters.Add(ClusterFilter);
 			return true;
 		}
-
 		return false;
-	}
-
-	bool TManager::PostInit(const FPCGContext* InContext)
-	{
-		return PCGExPointFilter::TManager::PostInit(InContext);
 	}
 
 	void TManager::InitCache()

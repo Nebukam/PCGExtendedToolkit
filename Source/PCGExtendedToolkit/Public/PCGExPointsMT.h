@@ -127,7 +127,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 					PCGExPointFilter::TManager* FilterManager = new PCGExPointFilter::TManager(PointDataCache);
 					FilterManager->Init(Context, *FilterFactories);
 					
-					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = FilterManager->TestPoint(i); }
+					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = FilterManager->Test(i); }
 					PCGEX_DELETE(FilterManager)
 				}
 			}

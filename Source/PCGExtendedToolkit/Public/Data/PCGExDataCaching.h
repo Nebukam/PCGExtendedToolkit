@@ -145,9 +145,14 @@ namespace PCGExDataCaching
 
 		virtual void Write(PCGExMT::FTaskManager* AsyncManager = nullptr) override
 		{
-			check(Writer)
+			if (!Writer) { return; }
+			
 			if (AsyncManager) { PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Writer); }
-			else { Writer->Write(); }
+			else
+			{
+				Writer->Write();
+				PCGEX_DELETE(Writer)
+			}
 		}
 	};
 

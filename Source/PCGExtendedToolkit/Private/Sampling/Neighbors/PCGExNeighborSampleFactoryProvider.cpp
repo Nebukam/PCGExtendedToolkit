@@ -46,7 +46,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 {
 	const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
 
-	if (PointFilters && !PointFilters->TestNode(Node)) { return; }
+	if (PointFilters && !PointFilters->Test(Node)) { return; }
 
 	int32 CurrentDepth = 0;
 	int32 Count = 0;

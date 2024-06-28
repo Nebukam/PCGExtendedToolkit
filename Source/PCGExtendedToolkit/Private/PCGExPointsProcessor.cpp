@@ -7,6 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Helpers/PCGSettingsHelpers.h"
+#include "PCGExGlobalSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -85,13 +86,6 @@ bool PCGEx::FAsyncPointLoop::Advance(const TFunction<void(const int32, const PCG
 #pragma endregion
 
 #pragma region UPCGSettings interface
-
-#if WITH_EDITOR
-void UPCGExPointsProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
 
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {

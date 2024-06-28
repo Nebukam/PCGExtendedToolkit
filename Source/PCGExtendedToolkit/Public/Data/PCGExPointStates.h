@@ -25,10 +25,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateDescriptorBase
 
 	FName StateName = NAME_None;
 	int32 StateId = 0;
-		
+
 	/** Flags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBitmaskWithOperation StateFlags;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bOnTestPass = true;
+	
+	/** Operations executed on the flag if all filters pass */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOnTestPass"))
+	FPCGExBitmaskWithOperation PassStateFlags;
+
+	/** Flags */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bOnTestFail = true;
+	
+	/** Operations executed on the flag if any filters fail */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOnTestFail"))
+	FPCGExBitmaskWithOperation FailStateFlags;
+
+	void Init()
+	{
+		
+	}
+	
 };
 
 /**
@@ -81,7 +99,7 @@ namespace PCGExPointStates
 		explicit FStateManager(TArray<int64>* InFlags, PCGExDataCaching::FPool* InPointDataCache);
 		virtual ~FStateManager() override;
 
-		virtual bool TestPoint(const int32 Index) override;
+		virtual bool Test(const int32 Index) override;
 
 	protected:
 		virtual void PostInitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter) override;

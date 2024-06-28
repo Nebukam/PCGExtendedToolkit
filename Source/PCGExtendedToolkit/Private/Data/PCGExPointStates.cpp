@@ -38,7 +38,7 @@ namespace PCGExPointStates
 
 	bool FState::Test(const int32 Index) const
 	{
-		const bool bResult = Manager->TestPoint(Index);
+		const bool bResult = Manager->Test(Index);
 		Manager->Results[Index] = bResult;
 		return bResult;
 	}
@@ -69,7 +69,7 @@ namespace PCGExPointStates
 		States.Add(State);
 	}
 
-	bool FStateManager::TestPoint(const int32 Index)
+	bool FStateManager::Test(const int32 Index)
 	{
 		int64& Flags = (*FlagsCache)[Index];
 		for (const FState* State : States) { State->ProcessFlags(State->Test(Index), Flags); }

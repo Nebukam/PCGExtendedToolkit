@@ -79,8 +79,6 @@ namespace PCGExClusterFilter
 		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache);
 		virtual void PostInit() override;
 
-		virtual bool Test(const int32 Index) const override;
-		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const = 0;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API TManager : public PCGExPointFilter::TManager
@@ -91,20 +89,12 @@ namespace PCGExClusterFilter
 		PCGExCluster::FCluster* Cluster = nullptr;
 		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
 
-		virtual bool TestNode(const PCGExCluster::FNode& Node);
-
-		virtual ~TManager()
+		virtual ~TManager() override
 		{
-			PCGEX_DELETE_TARRAY(NodeFilters)
-			PCGEX_DELETE_TARRAY(EdgeFilters)
 		}
 
 	protected:
-		TArray<TFilter*> NodeFilters;
-		TArray<TFilter*> EdgeFilters;
-
 		virtual bool InitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* Filter) override;
-		virtual bool PostInit(const FPCGContext* InContext) override;
 
 		virtual void InitCache() override;
 	};

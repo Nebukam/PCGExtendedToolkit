@@ -181,7 +181,7 @@ namespace PCGExConnectPoints
 				int Index = 0;
 				for (const FPCGPoint& Point : (*InPoints))
 				{
-					if (!ConnectableFilter->TestPoint(Index++)) { continue; }
+					if (!ConnectableFilter->Test(Index++)) { continue; }
 					LocalOctree->AddElement(FPCGPointRef(Point));
 				}
 
@@ -200,7 +200,7 @@ namespace PCGExConnectPoints
 			for (int i = 0; i < InPointsRef.Num(); i++) { Positions[i] = InPointsRef[i].Transform.GetLocation(); }
 		}
 
-		for (int i = 0; i < CanGenerate.Num(); i++) { CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->TestPoint(i) : true; }
+		for (int i = 0; i < CanGenerate.Num(); i++) { CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->Test(i) : true; }
 
 		PCGEX_DELETE(GeneratorsFilter)
 		PCGEX_DELETE(ConnectableFilter)
