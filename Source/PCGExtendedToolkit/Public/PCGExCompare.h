@@ -6,7 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSettings.h"
-#include "Data/PCGExDataCaching.h"
+#include "Data/PCGExData.h"
 
 #include "PCGExCompare.generated.h"
 

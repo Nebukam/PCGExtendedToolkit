@@ -7,7 +7,7 @@
 #include "UObject/Object.h"
 
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExDataCaching.h"
+#include "Data/PCGExData.h"
 
 #include "PCGExOperation.generated.h"
 
