@@ -92,8 +92,8 @@ namespace PCGExClusterMT
 		}
 
 	public:
-		PCGExDataCaching::FPool* VtxDataCache = nullptr;
-		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
+		PCGExData::FPool* VtxDataCache = nullptr;
+		PCGExData::FPool* EdgeDataCache = nullptr;
 
 		bool bIsProcessorValid = false;
 
@@ -125,7 +125,7 @@ namespace PCGExClusterMT
 			VtxIO(InVtx), EdgesIO(InEdges)
 		{
 			PCGEX_LOG_CTR(FClusterProcessor)
-			EdgeDataCache = new PCGExDataCaching::FPool(InEdges);
+			EdgeDataCache = new PCGExData::FPool(InEdges);
 		}
 
 		virtual ~FClusterProcessor()
@@ -389,7 +389,7 @@ namespace PCGExClusterMT
 		bool bRequiresGraphBuilder = false;
 
 	public:
-		PCGExDataCaching::FPool* VtxDataCache = nullptr;
+		PCGExData::FPool* VtxDataCache = nullptr;
 
 		bool bRequiresWriteStep = false;
 
@@ -422,7 +422,7 @@ namespace PCGExClusterMT
 			Context(InContext), VtxIO(InVtx)
 		{
 			Edges.Append(InEdges);
-			VtxDataCache = new PCGExDataCaching::FPool(InVtx);
+			VtxDataCache = new PCGExData::FPool(InVtx);
 		}
 
 		virtual ~FClusterProcessorBatchBase()

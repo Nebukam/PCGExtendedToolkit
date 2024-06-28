@@ -102,9 +102,9 @@ namespace PCGExNodeAdjacency
 		FPCGExDotComparisonSettings DotComparison;
 		FPCGExVectorHashComparisonSettings HashComparison;
 
-		PCGExDataCaching::FCache<FVector>* OperandDirection = nullptr;
+		PCGExData::FCache<FVector>* OperandDirection = nullptr;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
 		bool TestDot(const int32 PointIndex) const;

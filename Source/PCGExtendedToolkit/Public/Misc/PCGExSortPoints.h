@@ -52,7 +52,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule
 	{
 	}
 
-	PCGExDataCaching::FCache<double>* Cache = nullptr;
+	PCGExData::FCache<double>* Cache = nullptr;
 
 	double Tolerance = 0.0001f;
 	bool bInvertRule = false;

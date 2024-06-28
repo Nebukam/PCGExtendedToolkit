@@ -71,12 +71,12 @@ namespace PCGExClusterFilter
 		}
 
 		PCGExCluster::FCluster* Cluster = nullptr;
-		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
+		PCGExData::FPool* EdgeDataCache = nullptr;
 
 		virtual PCGExFilters::EType GetFilterType() const override;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache) override;
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache);
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache);
 		virtual void PostInit() override;
 
 	};
@@ -84,10 +84,10 @@ namespace PCGExClusterFilter
 	class PCGEXTENDEDTOOLKIT_API TManager : public PCGExPointFilter::TManager
 	{
 	public:
-		TManager(PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache);
+		TManager(PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache);
 
 		PCGExCluster::FCluster* Cluster = nullptr;
-		PCGExDataCaching::FPool* EdgeDataCache = nullptr;
+		PCGExData::FPool* EdgeDataCache = nullptr;
 
 		virtual ~TManager() override
 		{

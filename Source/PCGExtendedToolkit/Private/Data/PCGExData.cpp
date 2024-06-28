@@ -97,4 +97,33 @@ namespace PCGExData
 	}
 
 #pragma endregion
+
+#pragma region Pools & cache
+
+	void FCacheBase::IncrementWriteReadyNum()
+	{
+		FWriteScopeLock WriteScopeLock(WriteLock);
+		ReadyNum++;
+	}
+
+	void FCacheBase::ReadyWrite(PCGExMT::FTaskManager* AsyncManager)
+	{
+		FWriteScopeLock WriteScopeLock(WriteLock);
+		ReadyNum--;
+		if (ReadyNum <= 0) { Write(AsyncManager); }
+	}
+
+	void FCacheBase::Write(PCGExMT::FTaskManager* AsyncManager)
+	{
+	}
+
+	FCacheBase* FPool::TryGetCache(const uint64 UID)
+	{
+		FReadScopeLock ReadScopeLock(PoolLock);
+		FCacheBase** Found = CacheMap.Find(UID);
+		if (!Found) { return nullptr; }
+		return *Found;
+	}
+	
+#pragma endregion 
 }

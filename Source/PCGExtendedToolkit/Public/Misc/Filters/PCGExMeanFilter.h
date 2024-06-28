@@ -84,13 +84,13 @@ namespace PCGExPointsFilter
 
 		const UPCGExMeanFilterFactory* TypedFilterFactory;
 
-		PCGExDataCaching::FCache<double>* Target = nullptr;
+		PCGExData::FCache<double>* Target = nullptr;
 
 		double ReferenceValue = 0;
 		double ReferenceMin = 0;
 		double ReferenceMax = 0;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual void PostInit() override;

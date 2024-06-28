@@ -18,7 +18,7 @@ void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
+void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache)
 {
 	Cluster = InCluster;
 

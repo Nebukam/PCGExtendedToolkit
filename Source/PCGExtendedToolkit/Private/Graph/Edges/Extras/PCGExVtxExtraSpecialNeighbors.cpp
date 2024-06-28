@@ -21,7 +21,7 @@ void UPCGExVtxExtraSpecialNeighbors::CopySettingsFrom(const UPCGExOperation* Oth
 	}
 }
 
-bool UPCGExVtxExtraSpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExDataCaching::FPool* VtxDataCache)
+bool UPCGExVtxExtraSpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExData::FPool* VtxDataCache)
 {
 	if (!Super::PrepareForVtx(InContext, InVtx, VtxDataCache)) { return false; }
 

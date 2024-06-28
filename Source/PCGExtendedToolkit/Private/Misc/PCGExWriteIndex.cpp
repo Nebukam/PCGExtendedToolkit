@@ -67,12 +67,12 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputNormalizedIndex)
 		{
-			PCGExDataCaching::FCache<double>* Cache = PointDataCache->GetOrCreateWriter<double>(Settings->OutputAttributeName, false);
+			PCGExData::FCache<double>* Cache = PointDataCache->GetOrCreateWriter<double>(Settings->OutputAttributeName, false);
 			DoubleWriter = Cache->PrepareWriter();
 		}
 		else
 		{
-			PCGExDataCaching::FCache<int32>* Cache = PointDataCache->GetOrCreateWriter<int32>(Settings->OutputAttributeName, false);
+			PCGExData::FCache<int32>* Cache = PointDataCache->GetOrCreateWriter<int32>(Settings->OutputAttributeName, false);
 			IntWriter = Cache->PrepareWriter();
 		}
 

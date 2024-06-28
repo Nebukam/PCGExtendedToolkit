@@ -70,12 +70,12 @@ namespace PCGExPointsFilter
 
 		const UPCGExBitmaskFilterFactory* TypedFilterFactory;
 
-		PCGExDataCaching::FCache<int64>* ValueCache = nullptr;
-		PCGExDataCaching::FCache<int64>* MaskCache = nullptr;
+		PCGExData::FCache<int64>* ValueCache = nullptr;
+		PCGExData::FCache<int64>* MaskCache = nullptr;
 
 		int64 CompositeMask;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache) override;
 		
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 

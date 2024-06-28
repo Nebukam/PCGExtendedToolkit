@@ -8,7 +8,7 @@ PCGExPointFilter::TFilter* UPCGExBitmaskFilterFactory::CreateFilter() const
 	return new PCGExPointsFilter::TBitmaskFilter(this);
 }
 
-bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
+bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache)
 {
 	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 

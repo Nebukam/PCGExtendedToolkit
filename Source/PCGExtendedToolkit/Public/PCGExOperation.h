@@ -42,8 +42,8 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other);
 
-	PCGExDataCaching::FPool* PrimaryDataCache = nullptr;
-	PCGExDataCaching::FPool* SecondaryDataCache = nullptr;
+	PCGExData::FPool* PrimaryDataCache = nullptr;
+	PCGExData::FPool* SecondaryDataCache = nullptr;
 
 	template <typename T>
 	T* CopyOperation() const

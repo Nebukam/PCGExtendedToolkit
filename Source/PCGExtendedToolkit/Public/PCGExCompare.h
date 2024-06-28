@@ -465,9 +465,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonSettings
 	FVector CWTolerance = FVector::ZeroVector;
 
 	bool bUseLocalTolerance = false;
-	PCGExDataCaching::FCache<double>* LocalOperand = nullptr;
+	PCGExData::FCache<double>* LocalOperand = nullptr;
 
-	bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+	bool Init(const FPCGContext* InContext, PCGExData::FPool* InPrimaryDataCache)
 	{
 		bUseLocalTolerance = HashToleranceValue == EPCGExFetchType::Attribute;
 
@@ -537,9 +537,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 	double DotToleranceDegrees = 0.1;
 
 	bool bUseLocalDot = false;
-	PCGExDataCaching::FCache<double>* LocalOperand = nullptr;
+	PCGExData::FCache<double>* LocalOperand = nullptr;
 
-	bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+	bool Init(const FPCGContext* InContext, PCGExData::FPool* InPrimaryDataCache)
 	{
 		bUseLocalDot = DotValue == EPCGExFetchType::Attribute;
 

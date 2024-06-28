@@ -263,12 +263,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
-	PCGExDataCaching::FPool* SeedsDataCache = nullptr;
+	PCGExData::FPool* SeedsDataCache = nullptr;
 
-	PCGExDataCaching::FCache<int32>* NumIterations = nullptr;
-	PCGExDataCaching::FCache<int32>* NumBranches = nullptr;
-	PCGExDataCaching::FCache<FVector>* GrowthDirection = nullptr;
-	PCGExDataCaching::FCache<double>* GrowthMaxDistance = nullptr;
+	PCGExData::FCache<int32>* NumIterations = nullptr;
+	PCGExData::FCache<int32>* NumBranches = nullptr;
+	PCGExData::FCache<FVector>* GrowthDirection = nullptr;
+	PCGExData::FCache<double>* GrowthMaxDistance = nullptr;
 
 	PCGEx::FLocalToStringGetter* TagValueGetter = nullptr;
 	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
@@ -294,13 +294,13 @@ namespace PCGExGrowPaths
 		friend class FGrowth;
 		friend class FProcessorBatch;
 
-		PCGExDataCaching::FCache<int32>* NumIterations = nullptr;
-		PCGExDataCaching::FCache<int32>* NumBranches = nullptr;
-		PCGExDataCaching::FCache<FVector>* GrowthDirection = nullptr;
-		PCGExDataCaching::FCache<double>* GrowthMaxDistance = nullptr;
+		PCGExData::FCache<int32>* NumIterations = nullptr;
+		PCGExData::FCache<int32>* NumBranches = nullptr;
+		PCGExData::FCache<FVector>* GrowthDirection = nullptr;
+		PCGExData::FCache<double>* GrowthMaxDistance = nullptr;
 
-		PCGExDataCaching::FCache<bool>* GrowthStop = nullptr;
-		PCGExDataCaching::FCache<bool>* NoGrowth = nullptr;
+		PCGExData::FCache<bool>* GrowthStop = nullptr;
+		PCGExData::FCache<bool>* NoGrowth = nullptr;
 
 	public:
 		TArray<FGrowth*> Growths;

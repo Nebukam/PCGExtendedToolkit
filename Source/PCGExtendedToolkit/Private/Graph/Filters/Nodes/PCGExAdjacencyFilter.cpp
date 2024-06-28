@@ -15,7 +15,7 @@ PCGExPointFilter::TFilter* UPCGExAdjacencyFilterFactory::CreateFilter() const
 
 namespace PCGExNodeAdjacency
 {
-	bool FAdjacencyFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
+	bool FAdjacencyFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache)
 	{
 		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
 

@@ -22,7 +22,7 @@ namespace PCGExPointStates
 		PCGEX_DELETE(Manager)
 	}
 
-	bool FState::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
+	bool FState::Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache)
 	{
 		if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
@@ -48,7 +48,7 @@ namespace PCGExPointStates
 		// TODO : Implement
 	}
 
-	FStateManager::FStateManager(TArray<int64>* InFlags, PCGExDataCaching::FPool* InPointDataCache)
+	FStateManager::FStateManager(TArray<int64>* InFlags, PCGExData::FPool* InPointDataCache)
 		: TManager(InPointDataCache)
 	{
 		FlagsCache = InFlags;

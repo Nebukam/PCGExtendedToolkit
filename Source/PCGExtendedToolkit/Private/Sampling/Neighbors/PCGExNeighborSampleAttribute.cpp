@@ -19,7 +19,7 @@ void UPCGExNeighborSampleAttribute::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
+void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache)
 {
 	Super::PrepareForCluster(InContext, InCluster, InVtxDataCache, InEdgeDataCache);
 

@@ -88,10 +88,10 @@ namespace PCGExNodeAdjacency
 		TArray<double> CachedThreshold;
 		FPCGExAdjacencySettings Adjacency;
 
-		PCGExDataCaching::FCache<double>* OperandA = nullptr;
-		PCGExDataCaching::FCache<double>* OperandB = nullptr;
+		PCGExData::FCache<double>* OperandA = nullptr;
+		PCGExData::FCache<double>* OperandB = nullptr;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache) override;
 
 		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override;
 

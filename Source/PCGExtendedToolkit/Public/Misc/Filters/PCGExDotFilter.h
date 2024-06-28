@@ -85,10 +85,10 @@ namespace PCGExPointsFilter
 
 		FPCGExDotComparisonSettings DotComparison;
 
-		PCGExDataCaching::FCache<FVector>* OperandA = nullptr;
-		PCGExDataCaching::FCache<FVector>* OperandB = nullptr;
+		PCGExData::FCache<FVector>* OperandA = nullptr;
+		PCGExData::FCache<FVector>* OperandB = nullptr;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TDotFilter() override

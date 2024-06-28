@@ -33,7 +33,7 @@ namespace PCGExHeuristics
 		for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache)
 		:VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
 	{
 		TArray<UPCGExHeuristicsFactoryBase*> ContextFactories;
@@ -41,7 +41,7 @@ namespace PCGExHeuristics
 		BuildFrom(InContext, ContextFactories);
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExDataCaching::FPool* InVtxDataCache, PCGExDataCaching::FPool* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExData::FPool* InVtxDataCache, PCGExData::FPool* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
 		:VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
 	{
 		BuildFrom(InContext, InFactories);

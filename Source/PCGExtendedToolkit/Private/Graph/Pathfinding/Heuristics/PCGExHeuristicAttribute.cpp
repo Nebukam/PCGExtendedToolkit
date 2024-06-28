@@ -13,7 +13,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	Super::PrepareForCluster(InCluster);
 
 	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
-	PCGExDataCaching::FPool* DataCache = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataCache : SecondaryDataCache;
+	PCGExData::FPool* DataCache = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataCache : SecondaryDataCache;
 
 	if (LastPoints == InPoints) { return; }
 
@@ -23,7 +23,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	InPoints->CreateInKeys();
 	CachedScores.SetNumZeroed(NumPoints);
 
-	PCGExDataCaching::FCache<double>* ModifiersCache = DataCache->GetOrCreateGetter<double>(Attribute, true);
+	PCGExData::FCache<double>* ModifiersCache = DataCache->GetOrCreateGetter<double>(Attribute, true);
 	
 	if (!ModifiersCache)
 	{

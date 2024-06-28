@@ -25,7 +25,7 @@ void UPCGExVtxExtraEdgeMatch::ClusterReserve(const int32 NumClusters)
 	for (int i = 0; i < NumClusters; i++) { FilterManagers[i] = nullptr; }
 }
 
-void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExDataCaching::FPool* VtxDataCache, PCGExDataCaching::FPool* EdgeDataCache)
+void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FPool* VtxDataCache, PCGExData::FPool* EdgeDataCache)
 {
 	Super::PrepareForCluster(InContext, ClusterIdx, Cluster, VtxDataCache, EdgeDataCache);
 	if (FilterFactories && !FilterFactories->IsEmpty())
@@ -40,7 +40,7 @@ void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, co
 	}
 }
 
-bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExDataCaching::FPool* VtxDataCache)
+bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExData::FPool* VtxDataCache)
 {
 	if (!Super::PrepareForVtx(InContext, InVtx, VtxDataCache)) { return false; }
 

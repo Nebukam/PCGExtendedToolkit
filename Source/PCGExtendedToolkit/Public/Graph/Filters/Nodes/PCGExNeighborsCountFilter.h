@@ -70,9 +70,9 @@ namespace PCGExNodeNeighborsCount
 
 		const UPCGExNeighborsCountFilterFactory* TypedFilterFactory;
 
-		PCGExDataCaching::FCache<double>* LocalCount = nullptr;
+		PCGExData::FCache<double>* LocalCount = nullptr;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 		
 		virtual ~FNeighborsCountFilter() override

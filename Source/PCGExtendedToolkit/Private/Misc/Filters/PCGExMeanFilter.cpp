@@ -8,7 +8,7 @@ PCGExPointFilter::TFilter* UPCGExMeanFilterFactory::CreateFilter() const
 	return new PCGExPointsFilter::TMeanFilter(this);
 }
 
-bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
+bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache)
 {
 	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 

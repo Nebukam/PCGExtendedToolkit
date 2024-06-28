@@ -15,7 +15,7 @@ PCGExPointFilter::TFilter* UPCGExNeighborsCountFilterFactory::CreateFilter() con
 
 namespace PCGExNodeNeighborsCount
 {
-	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
+	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FPool* InPointDataCache, PCGExData::FPool* InEdgeDataCache)
 	{
 		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
 

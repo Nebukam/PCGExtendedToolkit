@@ -65,7 +65,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	public:
 		bool bIsProcessorValid = false;
 
-		PCGExDataCaching::FPool* PointDataCache = nullptr;
+		PCGExData::FPool* PointDataCache = nullptr;
 
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
@@ -84,7 +84,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			PointIO(InPoints)
 		{
 			PCGEX_LOG_CTR(FPointsProcessor)
-			PointDataCache = new PCGExDataCaching::FPool(InPoints);
+			PointDataCache = new PCGExData::FPool(InPoints);
 		}
 
 		virtual ~FPointsProcessor()

@@ -24,7 +24,7 @@ namespace PCGExPointFilter
 {
 	PCGExFilters::EType TFilter::GetFilterType() const { return PCGExFilters::EType::Point; }
 
-	bool TFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
+	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache)
 	{
 		PointDataCache = InPointDataCache;
 		return true;
@@ -42,7 +42,7 @@ namespace PCGExPointFilter
 	bool TFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool TFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
 
-	TManager::TManager(PCGExDataCaching::FPool* InPointDataCache)
+	TManager::TManager(PCGExData::FPool* InPointDataCache)
 		: PointDataCache(InPointDataCache)
 	{
 	}

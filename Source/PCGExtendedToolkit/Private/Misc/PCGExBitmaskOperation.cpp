@@ -82,12 +82,12 @@ namespace PCGExBitmaskOperation
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		PCGExDataCaching::FCache<int64>* WriteCache = PointDataCache->GetOrCreateWriter<int64>(Settings->FlagAttribute, 0, false, false);
+		PCGExData::FCache<int64>* WriteCache = PointDataCache->GetOrCreateWriter<int64>(Settings->FlagAttribute, 0, false, false);
 		Writer = WriteCache->PrepareWriter();
 
 		if (Settings->MaskType == EPCGExFetchType::Attribute)
 		{
-			PCGExDataCaching::FCache<int64>* ReadCache = PointDataCache->GetOrCreateReader<int64>(Settings->MaskAttribute);
+			PCGExData::FCache<int64>* ReadCache = PointDataCache->GetOrCreateReader<int64>(Settings->MaskAttribute);
 			if (!ReadCache)
 			{
 				return false;

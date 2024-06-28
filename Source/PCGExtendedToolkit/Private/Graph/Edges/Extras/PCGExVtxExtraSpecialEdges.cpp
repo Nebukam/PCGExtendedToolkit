@@ -21,7 +21,7 @@ void UPCGExVtxExtraSpecialEdges::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExVtxExtraSpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExDataCaching::FPool* VtxDataCache)
+bool UPCGExVtxExtraSpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx, PCGExData::FPool* VtxDataCache)
 {
 	if (!Super::PrepareForVtx(InContext, InVtx, VtxDataCache)) { return false; }
 

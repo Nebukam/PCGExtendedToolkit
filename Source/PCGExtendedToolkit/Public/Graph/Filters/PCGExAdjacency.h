@@ -98,9 +98,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 	bool bUseDiscreteMeasure = false;
 	bool bUseLocalThreshold = false;
 
-	PCGExDataCaching::FCache<double>* LocalThreshold = nullptr;
+	PCGExData::FCache<double>* LocalThreshold = nullptr;
 
-	bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPrimaryDataCache)
+	bool Init(const FPCGContext* InContext, PCGExData::FPool* InPrimaryDataCache)
 	{
 		bUseDiscreteMeasure = ThresholdType == EPCGExMeanMeasure::Discrete;
 		bUseLocalThreshold = ThresholdSource == EPCGExFetchType::Attribute;

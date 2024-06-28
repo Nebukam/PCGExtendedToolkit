@@ -72,7 +72,7 @@ namespace PCGExPointFilter
 		}
 
 		bool DefaultResult= true;
-		PCGExDataCaching::FPool* PointDataCache = nullptr;
+		PCGExData::FPool* PointDataCache = nullptr;
 
 		bool bCacheResults = true;
 		const UPCGExFilterFactoryBase* Factory;
@@ -82,7 +82,7 @@ namespace PCGExPointFilter
 
 		FORCEINLINE virtual PCGExFilters::EType GetFilterType() const;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache);
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache);
 
 		virtual void PostInit();
 		
@@ -99,7 +99,7 @@ namespace PCGExPointFilter
 	class PCGEXTENDEDTOOLKIT_API TManager
 	{
 	public:
-		explicit TManager(PCGExDataCaching::FPool* InPointDataCache);
+		explicit TManager(PCGExData::FPool* InPointDataCache);
 
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
@@ -107,7 +107,7 @@ namespace PCGExPointFilter
 
 		bool bValid = false;
 
-		PCGExDataCaching::FPool* PointDataCache = nullptr;
+		PCGExData::FPool* PointDataCache = nullptr;
 
 		bool Init(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
 		

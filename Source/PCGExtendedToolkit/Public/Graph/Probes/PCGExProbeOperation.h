@@ -58,7 +58,7 @@ public:
 	virtual void Cleanup() override;
 
 	double SearchRadiusSquared = -1;
-	PCGExDataCaching::FCache<double>* SearchRadiusCache = nullptr;
+	PCGExData::FCache<double>* SearchRadiusCache = nullptr;
 
 	TSet<uint64> UniqueEdges;
 

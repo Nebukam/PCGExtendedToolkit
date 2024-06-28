@@ -60,7 +60,7 @@ protected:
 	bool bUseConstantDir = false;
 	double MaxDot = 0;
 	FVector Direction = FVector::ForwardVector;
-	PCGExDataCaching::FCache<FVector>* DirectionCache = nullptr;
+	PCGExData::FCache<FVector>* DirectionCache = nullptr;
 };
 
 ////

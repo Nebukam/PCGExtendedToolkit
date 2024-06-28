@@ -146,7 +146,7 @@ namespace PCGExFindNodeState
 
 		if (!TBatch::PrepareProcessing()) { return false; }
 
-		PCGExDataCaching::FCache<int64>* Cache = VtxDataCache->GetOrCreateWriter(Settings->FlagAttribute, Settings->InitialFlags.Get(), false, false);
+		PCGExData::FCache<int64>* Cache = VtxDataCache->GetOrCreateWriter(Settings->FlagAttribute, Settings->InitialFlags.Get(), false, false);
 		PCGEx::TFAttributeWriter<int64>* Writer = Cache->PrepareWriter();
 		StateFlags = &Writer->Values;
 

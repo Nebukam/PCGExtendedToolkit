@@ -8,7 +8,7 @@ PCGExPointFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
 	return new PCGExPointsFilter::TDotFilter(this);
 }
 
-bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExDataCaching::FPool* InPointDataCache)
+bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData::FPool* InPointDataCache)
 {
 	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
