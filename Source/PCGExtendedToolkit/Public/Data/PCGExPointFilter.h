@@ -109,8 +109,9 @@ namespace PCGExPointFilter
 
 		virtual bool InitFilter(const FPCGContext* InContext, TFilter* Filter);
 		virtual bool PostInit(const FPCGContext* InContext);
-		virtual void PostInitFilter(TFilter* Filter);
+		virtual void PostInitFilter(const FPCGContext* InContext, TFilter* InFilter);
 
 		virtual void InitCache();
 	};
+
 }

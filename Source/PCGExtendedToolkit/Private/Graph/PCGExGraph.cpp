@@ -371,7 +371,7 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 
 		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(Tag_ClusterId, -1, false);
 		NumClusterIdWriter->BindAndSetNumUninitialized(PointIO);
-		
+
 		// Subgraphs
 
 		TArray<FSubGraph*> SmallSubGraphs;
@@ -550,7 +550,12 @@ namespace PCGExGraphTask
 		{
 			if (UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(EdgeIO->GetOut()))
 			{
-				if (NumEdges < 100) { ClusterEdgesData->SetBoundCluster(SubGraph->CreateCluster(), true); }
+				if (NumEdges < 100)
+				{
+					PCGExCluster::FCluster* Cluster = SubGraph->CreateCluster();
+					ClusterEdgesData->SetBoundCluster(Cluster, true);
+					if (Graph->bExpandClusters) { Cluster->GetExpandedNodes(true); }
+				}
 				else { AsyncManager->Start<FWriteSubGraphCluster>(-1, nullptr, SubGraph); }
 			}
 		}
@@ -575,7 +580,9 @@ namespace PCGExGraphTask
 	bool FWriteSubGraphCluster::ExecuteTask()
 	{
 		UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesIO->GetOut());
-		ClusterEdgesData->SetBoundCluster(SubGraph->CreateCluster(), true);
+		PCGExCluster::FCluster* Cluster = SubGraph->CreateCluster();
+		ClusterEdgesData->SetBoundCluster(Cluster, true);
+		if (SubGraph->ParentGraph->bExpandClusters) { Cluster->ExpandNodes(Manager); }
 		return true;
 	}
 

@@ -42,7 +42,7 @@ PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const
 	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx ? Cluster->VtxIO : Cluster->EdgesIO;
 }
 
-void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const TArray<PCGExCluster::FExpandedNode*>& ExpandedNodes) const
+void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 {
 	const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
 
@@ -59,10 +59,13 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const TAr
 	TArray<PCGExCluster::FExpandedNeighbor>* NextNeighbors = B;
 	TSet<int32> VisitedNodes;
 
+	const TArray<PCGExCluster::FExpandedNode*>& ExpandedNodesRef = (*Cluster->ExpandedNodes);
+
 	VisitedNodes.Add(NodeIndex);
-	CurrentNeighbors->Append(ExpandedNodes[NodeIndex]->Neighbors);
+	CurrentNeighbors->Append(ExpandedNodesRef[NodeIndex]->Neighbors);
 
 	PrepareNode(Node);
+
 
 	while (CurrentDepth <= BaseSettings.MaxDepth)
 	{
@@ -101,7 +104,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex, const TAr
 		NextNeighbors->Reset();
 		for (const PCGExCluster::FExpandedNeighbor& Old : (*CurrentNeighbors))
 		{
-			const TArray<PCGExCluster::FExpandedNeighbor>& Neighbors = ExpandedNodes[Old.Node->NodeIndex]->Neighbors;
+			const TArray<PCGExCluster::FExpandedNeighbor>& Neighbors = ExpandedNodesRef[Old.Node->NodeIndex]->Neighbors;
 			if (ValueFilters)
 			{
 				for (const PCGExCluster::FExpandedNeighbor& Next : Neighbors)

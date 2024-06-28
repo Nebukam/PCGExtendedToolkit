@@ -12,7 +12,7 @@ bool PCGExPointsFilter::TBitflagFilter::Init(const FPCGContext* InContext, PCGEx
 {
 	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
 
-	CompositeMask = TypedFilterFactory->Descriptor.Mask.GetComposite();
+	CompositeMask = TypedFilterFactory->Descriptor.BitMask.Get();
 
 	ValueCache = PointDataCache->GetOrCreateReader<int64>(TypedFilterFactory->Descriptor.Value);
 

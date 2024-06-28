@@ -584,6 +584,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 	}
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bit Operation"))
+enum class EPCGExBitOp : uint8
+{
+	Set UMETA(DisplayName = "=", ToolTip="(Flags = Mask) Set the bit with the specified value."),
+	AND UMETA(DisplayName = "AND", ToolTip="(Flags &= Mask) Output true if boths bits == 1, otherwise false."),
+	OR UMETA(DisplayName = "OR", ToolTip="(Flags |= Mask) Output true if any of the bits == 1, otherwise false."),
+	NOT UMETA(DisplayName = "NOT", ToolTip="(Flags &= ~Mask) Like AND, but inverts the masks."),
+	XOR UMETA(DisplayName = "XOR", ToolTip="(Flags ^= Mask) Invert the flag bit where the mask == 1."),
+};
+
+#pragma region Bitmasks
+
+
 /*
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bitflag 64"))
 enum class EPCGExBitflag64 : int64
@@ -658,7 +671,7 @@ ENUM_CLASS_FLAGS(EPCGExBitflag64)
 */
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 0-8 Bits Range"))
-enum class EPCGExBitflag8_1 : uint8
+enum class EPCGExBitmask8_00_08 : uint8
 {
 	None   = 0,
 	Flag_1 = 1 << 0 UMETA(DisplayName = "(0) Alpha"),
@@ -671,11 +684,11 @@ enum class EPCGExBitflag8_1 : uint8
 	Flag_8 = 1 << 7 UMETA(DisplayName = "(7) Theta"),
 };
 
-ENUM_CLASS_FLAGS(EPCGExBitflag8_1)
-typedef TEnumAsByte<EPCGExBitflag8_1> EPCGExBitflag8_1Bitmask;
+ENUM_CLASS_FLAGS(EPCGExBitmask8_00_08)
+typedef TEnumAsByte<EPCGExBitmask8_00_08> EPCGExBitmask8_00_08Bitmask;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 8-16 Bits Range"))
-enum class EPCGExBitflag8_2 : uint8
+enum class EPCGExBitmask8_08_16 : uint8
 {
 	None    = 0,
 	Flag_9  = 1 << 0 UMETA(DisplayName = "(9) Iota"),
@@ -688,11 +701,11 @@ enum class EPCGExBitflag8_2 : uint8
 	Flag_16 = 1 << 7 UMETA(DisplayName = "(16) Pi"),
 };
 
-ENUM_CLASS_FLAGS(EPCGExBitflag8_2)
-typedef TEnumAsByte<EPCGExBitflag8_2> EPCGExBitflag8_2Bitmask;
+ENUM_CLASS_FLAGS(EPCGExBitmask8_08_16)
+typedef TEnumAsByte<EPCGExBitmask8_08_16> EPCGExBitmask8_08_16Bitmask;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 16-24 Bits Range"))
-enum class EPCGExBitflag8_3 : uint8
+enum class EPCGExBitmask8_16_24 : uint8
 {
 	None    = 0,
 	Flag_17 = 1 << 0 UMETA(DisplayName = "(17) Rho"),
@@ -705,11 +718,11 @@ enum class EPCGExBitflag8_3 : uint8
 	Flag_24 = 1 << 7 UMETA(DisplayName = "(24) Omega"),
 };
 
-ENUM_CLASS_FLAGS(EPCGExBitflag8_3)
-typedef TEnumAsByte<EPCGExBitflag8_3> EPCGExBitflag8_3Bitmask;
+ENUM_CLASS_FLAGS(EPCGExBitmask8_16_24)
+typedef TEnumAsByte<EPCGExBitmask8_16_24> EPCGExBitmask8_16_24Bitmask;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 24-32 Bits Range"))
-enum class EPCGExBitflag8_4 : uint8
+enum class EPCGExBitmask8_24_32 : uint8
 {
 	None    = 0,
 	Flag_25 = 1 << 0 UMETA(DisplayName = "(25) Ares"),
@@ -722,11 +735,11 @@ enum class EPCGExBitflag8_4 : uint8
 	Flag_32 = 1 << 7 UMETA(DisplayName = "(32) Demeter"),
 };
 
-ENUM_CLASS_FLAGS(EPCGExBitflag8_4)
-typedef TEnumAsByte<EPCGExBitflag8_4> EPCGExBitflag8_4Bitmask;
+ENUM_CLASS_FLAGS(EPCGExBitmask8_24_32)
+typedef TEnumAsByte<EPCGExBitmask8_24_32> EPCGExBitmask8_24_32Bitmask;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 32-40 Bits Range"))
-enum class EPCGExBitflag8_5 : uint8
+enum class EPCGExBitmask8_32_40 : uint8
 {
 	None    = 0,
 	Flag_33 = 1 << 0 UMETA(DisplayName = "(33) Dionysus"),
@@ -739,11 +752,11 @@ enum class EPCGExBitflag8_5 : uint8
 	Flag_40 = 1 << 7 UMETA(DisplayName = "(40) Mars"),
 };
 
-ENUM_CLASS_FLAGS(EPCGExBitflag8_5)
-typedef TEnumAsByte<EPCGExBitflag8_5> EPCGExBitflag8_5Bitmask;
+ENUM_CLASS_FLAGS(EPCGExBitmask8_32_40)
+typedef TEnumAsByte<EPCGExBitmask8_32_40> EPCGExBitmask8_32_40Bitmask;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 40-48 Bits Range"))
-enum class EPCGExBitflag8_6 : uint8
+enum class EPCGExBitmask8_40_48 : uint8
 {
 	None    = 0,
 	Flag_41 = 1 << 0 UMETA(DisplayName = "(41) Venus"),
@@ -756,11 +769,11 @@ enum class EPCGExBitflag8_6 : uint8
 	Flag_48 = 1 << 7 UMETA(DisplayName = "(48) Sol"),
 };
 
-ENUM_CLASS_FLAGS(EPCGExBitflag8_6)
-typedef TEnumAsByte<EPCGExBitflag8_6> EPCGExBitflag8_6Bitmask;
+ENUM_CLASS_FLAGS(EPCGExBitmask8_40_48)
+typedef TEnumAsByte<EPCGExBitmask8_40_48> EPCGExBitmask8_40_48Bitmask;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 48-56 Bits Range"))
-enum class EPCGExBitflag8_7 : uint8
+enum class EPCGExBitmask8_48_56 : uint8
 {
 	None    = 0,
 	Flag_49 = 1 << 0 UMETA(DisplayName = "(49) Luna"),
@@ -773,11 +786,11 @@ enum class EPCGExBitflag8_7 : uint8
 	Flag_56 = 1 << 7 UMETA(DisplayName = "(56) Aurora"),
 };
 
-ENUM_CLASS_FLAGS(EPCGExBitflag8_7)
-typedef TEnumAsByte<EPCGExBitflag8_7> EPCGExBitflag8_7Bitmask;
+ENUM_CLASS_FLAGS(EPCGExBitmask8_48_56)
+typedef TEnumAsByte<EPCGExBitmask8_48_56> EPCGExBitmask8_48_56Bitmask;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 56-64 Bits Range"))
-enum class EPCGExBitflag8_8 : uint8
+enum class EPCGExBitmask8_56_64 : uint8
 {
 	None    = 0,
 	Flag_57 = 1 << 0 UMETA(DisplayName = "(57) Flora"),
@@ -790,92 +803,269 @@ enum class EPCGExBitflag8_8 : uint8
 	Flag_64 = 1 << 7 UMETA(DisplayName = "(64) Pax"),
 };
 
-ENUM_CLASS_FLAGS(EPCGExBitflag8_8)
-typedef TEnumAsByte<EPCGExBitflag8_8> EPCGExBitflag8_8Bitmask;
+ENUM_CLASS_FLAGS(EPCGExBitmask8_56_64)
+typedef TEnumAsByte<EPCGExBitmask8_56_64> EPCGExBitmask8_56_64Bitmask;
 
+#pragma endregion
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExCompositeBitflagValue
+struct PCGEXTENDEDTOOLKIT_API FClampedBit
 {
 	GENERATED_BODY()
 
-	FPCGExCompositeBitflagValue()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", ClampMax = "63"))
+	uint8 BitIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bValue;
+
+	FClampedBit() : BitIndex(0), bValue(false)
 	{
 	}
 
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bWriteToRange1 = true;
+	int64 Get() const { return bValue ? (static_cast<int64>(0) | (1LL << BitIndex)) : (static_cast<int64>(0) & (~(1LL << BitIndex))); }
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag8_1", DisplayName="0-8 Bits"))
-	uint8 Range1 = 0;
+	bool operator==(const FClampedBit& Other) const { return BitIndex == Other.BitIndex; }
+	friend uint32 GetTypeHash(const FClampedBit& Key) { return HashCombine(0, GetTypeHash(Key.BitIndex)); }
+};
 
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bWriteToRange2 = true;
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FClampedBitOp
+{
+	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag8_2", DisplayName="8-16 Bits"))
-	uint8 Range2 = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0", ClampMax = "63"))
+	uint8 BitIndex;
 
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bWriteToRange3 = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EPCGExBitOp Op = EPCGExBitOp::OR;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag8_3", DisplayName="16-24 Bits"))
-	uint8 Range3 = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bValue;
 
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bWriteToRange4 = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag8_4", DisplayName="24-32 Bits"))
-	uint8 Range4 = 0;
-
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bWriteToRange5 = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag8_5", DisplayName="32-40 Bits"))
-	uint8 Range5 = 0;
-
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bWriteToRange6 = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag8_6", DisplayName="40-48 Bits"))
-	uint8 Range6 = 0;
-
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bWriteToRange7 = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag8_7", DisplayName="48-56 Bits"))
-	uint8 Range7 = 0;
-
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bWriteToRange8 = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag8_8", DisplayName="56-64 Bits"))
-	uint8 Range8 = 0;
-
-	int64 GetComposite() const
+	FClampedBitOp() : BitIndex(0), bValue(true)
 	{
-		int64 Composite = 0;
+	}
 
-		/*
-		Composite |= (bWriteToRange1 ? static_cast<int64>(Range1) : 0) << 0;
-		Composite |= (bWriteToRange2 ? static_cast<int64>(Range2) : 0) << 8;
-		Composite |= (bWriteToRange3 ? static_cast<int64>(Range3) : 0) << 16;
-		Composite |= (bWriteToRange4 ? static_cast<int64>(Range4) : 0) << 24;
-		Composite |= (bWriteToRange5 ? static_cast<int64>(Range5) : 0) << 32;
-		Composite |= (bWriteToRange6 ? static_cast<int64>(Range6) : 0) << 40;
-		Composite |= (bWriteToRange7 ? static_cast<int64>(Range7) : 0) << 48;
-		Composite |= (bWriteToRange8 ? static_cast<int64>(Range8) : 0) << 56;
-		*/
+	int64 Get() const { return bValue ? (static_cast<int64>(0) | (1LL << BitIndex)) : (static_cast<int64>(0) & (~(1LL << BitIndex))); }
 
-		Composite |= static_cast<int64>(Range1) << 0;
-		Composite |= static_cast<int64>(Range2) << 8;
-		Composite |= static_cast<int64>(Range3) << 16;
-		Composite |= static_cast<int64>(Range4) << 24;
-		Composite |= static_cast<int64>(Range5) << 32;
-		Composite |= static_cast<int64>(Range6) << 40;
-		Composite |= static_cast<int64>(Range7) << 48;
-		Composite |= static_cast<int64>(Range8) << 56;
+	bool operator==(const FClampedBitOp& Other) const { return BitIndex == Other.BitIndex; }
+	friend uint32 GetTypeHash(const FClampedBitOp& Key) { return HashCombine(0, GetTypeHash(Key.BitIndex)); }
+};
 
-		return Composite;
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
+{
+	GENERATED_BODY()
+
+	FPCGExBitmask()
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bIndividualBits = true;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bIndividualBits", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
+	TArray<FClampedBit> Bits;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_00_08", DisplayName="0-8 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_00_08 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_08_16", DisplayName="8-16 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_08_16 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_16_24", DisplayName="16-24 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_16_24 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_24_32", DisplayName="24-32 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_24_32 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_32_40", DisplayName="32-40 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_32_40 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_40_48", DisplayName="40-48 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_40_48 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_48_56", DisplayName="48-56 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_48_56 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_56_64", DisplayName="56-64 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_56_64 = 0;
+
+	int64 Get() const
+	{
+		int64 Mask = 0;
+
+		if (bIndividualBits)
+		{
+			for (const FClampedBit& Bit : Bits) { if (Bit.bValue) { Mask |= (1LL << Bit.BitIndex); } }
+		}
+		else
+		{
+			Mask |= static_cast<int64>(Range_00_08) << 0;
+			Mask |= static_cast<int64>(Range_08_16) << 8;
+			Mask |= static_cast<int64>(Range_16_24) << 16;
+			Mask |= static_cast<int64>(Range_24_32) << 24;
+			Mask |= static_cast<int64>(Range_32_40) << 32;
+			Mask |= static_cast<int64>(Range_40_48) << 40;
+			Mask |= static_cast<int64>(Range_48_56) << 48;
+			Mask |= static_cast<int64>(Range_56_64) << 56;
+		}
+
+		return Mask;
+	}
+
+	void DoOperation(EPCGExBitOp Op, int64& Flags) const
+	{
+		const int64 Mask = Get();
+		switch (Op)
+		{
+		case EPCGExBitOp::Set:
+			Flags = Mask;
+			break;
+		case EPCGExBitOp::AND:
+			Flags &= Mask;
+			break;
+		case EPCGExBitOp::OR:
+			Flags |= Mask;
+			break;
+		case EPCGExBitOp::NOT:
+			Flags &= ~Mask;
+			break;
+		case EPCGExBitOp::XOR:
+			Flags ^= Mask;
+			break;
+		default: ;
+		}
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
+{
+	GENERATED_BODY()
+
+	FPCGExBitmaskWithOperation()
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bIndividualBits = true;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bIndividualBits", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
+	TArray<FClampedBitOp> Bits;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="!bIndividualBits", EditConditionHides))
+	EPCGExBitOp Op = EPCGExBitOp::OR;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_00_08", DisplayName="0-8 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_00_08 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_08_16", DisplayName="8-16 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_08_16 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_16_24", DisplayName="16-24 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_16_24 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_24_32", DisplayName="24-32 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_24_32 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_32_40", DisplayName="32-40 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_32_40 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_40_48", DisplayName="40-48 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_40_48 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_48_56", DisplayName="48-56 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_48_56 = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_56_64", DisplayName="56-64 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	uint8 Range_56_64 = 0;
+
+	int64 Get() const
+	{
+		int64 Mask = 0;
+
+		if (bIndividualBits)
+		{
+			for (const FClampedBitOp& Bit : Bits) { if (Bit.bValue) { Mask |= (1LL << Bit.BitIndex); } }
+		}
+		else
+		{
+			Mask |= static_cast<int64>(Range_00_08) << 0;
+			Mask |= static_cast<int64>(Range_08_16) << 8;
+			Mask |= static_cast<int64>(Range_16_24) << 16;
+			Mask |= static_cast<int64>(Range_24_32) << 24;
+			Mask |= static_cast<int64>(Range_32_40) << 32;
+			Mask |= static_cast<int64>(Range_40_48) << 40;
+			Mask |= static_cast<int64>(Range_48_56) << 48;
+			Mask |= static_cast<int64>(Range_56_64) << 56;
+		}
+
+		return Mask;
+	}
+
+	void DoOperation(int64& Flags) const
+	{
+		if (bIndividualBits)
+		{
+			for (const FClampedBitOp& BitOp : Bits)
+			{
+				int64 Bit = BitOp.Get();
+				switch (BitOp.Op)
+				{
+				case EPCGExBitOp::Set:
+					if (BitOp.bValue) { Flags |= Bit; } // Set the bit
+					else { Flags &= Bit; }              // Clear the bit
+					break;
+				case EPCGExBitOp::AND:
+					Flags &= Bit;
+					break;
+				case EPCGExBitOp::OR:
+					Flags |= Bit;
+					break;
+				case EPCGExBitOp::NOT:
+					Flags &= ~Bit;
+					break;
+				case EPCGExBitOp::XOR:
+					Flags ^= Bit;
+					break;
+				default: ;
+				}
+			}
+		}
+		else
+		{
+			int64 Mask = 0;
+			Mask |= static_cast<int64>(Range_00_08) << 0;
+			Mask |= static_cast<int64>(Range_08_16) << 8;
+			Mask |= static_cast<int64>(Range_16_24) << 16;
+			Mask |= static_cast<int64>(Range_24_32) << 24;
+			Mask |= static_cast<int64>(Range_32_40) << 32;
+			Mask |= static_cast<int64>(Range_40_48) << 40;
+			Mask |= static_cast<int64>(Range_48_56) << 48;
+			Mask |= static_cast<int64>(Range_56_64) << 56;
+
+			switch (Op)
+			{
+			case EPCGExBitOp::Set:
+				Flags = Mask;
+				break;
+			case EPCGExBitOp::AND:
+				Flags &= Mask;
+				break;
+			case EPCGExBitOp::OR:
+				Flags |= Mask;
+				break;
+			case EPCGExBitOp::NOT:
+				Flags &= ~Mask;
+				break;
+			case EPCGExBitOp::XOR:
+				Flags ^= Mask;
+				break;
+			default: ;
+			}
+		}
 	}
 };
 

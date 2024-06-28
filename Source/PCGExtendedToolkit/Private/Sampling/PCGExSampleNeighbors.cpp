@@ -87,8 +87,6 @@ namespace PCGExSampleNeighbors
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_TARRAY(ExpandedNodes)
-
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_OPERATION(Op) }
 		SamplingOperations.Empty();
 	}
@@ -115,30 +113,35 @@ namespace PCGExSampleNeighbors
 			if (SamplingOperation->ValueFilters) { OpsWithValueTest.Add(SamplingOperation); }
 		}
 
-		ExpandedNodes.SetNumUninitialized(NumNodes);
+		ExpandedNodes = Cluster->ExpandedNodes;
+
+		if (!ExpandedNodes)
+		{
+			ExpandedNodes = Cluster->GetExpandedNodes(false);
+			bBuildExpandedNodes = true;
+		}
+
 		Cluster->ComputeEdgeLengths();
 
-		StartParallelLoopForNodes();
+		StartParallelLoopForRange(NumNodes);
 
 		return true;
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
+		if (bBuildExpandedNodes) { (*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration); }
 		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->TestNode(*(Cluster->Nodes->GetData() + Iteration)); }
-
-		// Build expanded nodes
-		ExpandedNodes[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
-		for (const UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->ProcessNode(Index, ExpandedNodes); }
+		for (const UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->ProcessNode(Index); }
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		StartParallelLoopForRange(NumNodes);
+		StartParallelLoopForNodes();
 	}
 
 	void FProcessor::Write()

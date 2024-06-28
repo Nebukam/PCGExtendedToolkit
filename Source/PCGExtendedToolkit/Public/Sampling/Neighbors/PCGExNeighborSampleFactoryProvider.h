@@ -133,7 +133,7 @@ public:
 
 	PCGExData::FPointIO* GetSourceIO() const;
 
-	FORCEINLINE virtual void ProcessNode(const int32 NodeIndex, const TArray<PCGExCluster::FExpandedNode*>& ExpandedNodes) const;
+	FORCEINLINE virtual void ProcessNode(const int32 NodeIndex) const;
 
 	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const;
 	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const;

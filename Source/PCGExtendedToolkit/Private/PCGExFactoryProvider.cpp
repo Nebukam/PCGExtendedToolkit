@@ -50,6 +50,8 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	UPCGExParamFactoryBase* OutFactory = Settings->CreateFactory(Context, nullptr);
 
+	if (!OutFactory) { return true; }
+
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 	check(PCGExContext);
 

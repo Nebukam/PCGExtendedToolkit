@@ -12,6 +12,11 @@
 
 #include "PCGExCluster.generated.h"
 
+namespace PCGExCluster
+{
+	struct FExpandedNode;
+}
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Search Mode"))
 enum class EPCGExClusterClosestSearchMode : uint8
 {
@@ -165,6 +170,7 @@ namespace PCGExCluster
 		bool bOwnsEdgeOctree = true;
 		bool bOwnsLengths = true;
 		bool bOwnsVtxPointIndices = true;
+		bool bOwnsExpandedNodes = true;
 
 		bool bEdgeLengthsDirty = true;
 		bool bIsCopyCluster = false;
@@ -184,6 +190,7 @@ namespace PCGExCluster
 		TMap<int32, int32>* NodeIndexLookup = nullptr; // Node index -> Point Index
 		//TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
 		TArray<FNode>* Nodes = nullptr;
+		TArray<FExpandedNode*>* ExpandedNodes = nullptr;
 		TArray<PCGExGraph::FIndexedEdge>* Edges = nullptr;
 		TArray<double>* EdgeLengths = nullptr;
 
@@ -247,6 +254,9 @@ namespace PCGExCluster
 
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 
+		TArray<FExpandedNode*>* GetExpandedNodes(const bool bBuild);
+		void ExpandNodes(PCGExMT::FTaskManager* AsyncManager);
+
 		template <typename T, class MakeFunc>
 		void GrabNeighbors(const int32 NodeIndex, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
 		{
@@ -306,6 +316,7 @@ namespace PCGExCluster
 
 		~FExpandedNode()
 		{
+			Node = nullptr;
 			Neighbors.Empty();
 		}
 	};
@@ -580,6 +591,20 @@ namespace PCGExClusterTask
 		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
 
 		FPCGExTransformSettings* TransformSettings = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FExpandCluster final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FExpandCluster(PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
+			FPCGExTask(InPointIO), Cluster(InCluster), NumIterations(InNumIterations)
+		{
+		}
+
+		PCGExCluster::FCluster* Cluster = nullptr;
+		int32 NumIterations = 0;
 
 		virtual bool ExecuteTask() override;
 	};

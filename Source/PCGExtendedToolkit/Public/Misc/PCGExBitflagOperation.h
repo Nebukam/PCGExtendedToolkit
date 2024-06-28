@@ -10,15 +10,58 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExBitflagOperation.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
-enum class EPCGExBitflagOperation : uint8
+namespace PCGExBitFlag
 {
-	Set UMETA(DisplayName = "Set (Flags = Mask)", ToolTip="Create or replace."),
-	AND UMETA(DisplayName = "AND (Flags &= Mask)", ToolTip="Add selected flags to an existing attribute."),
-	OR UMETA(DisplayName = "OR (Flags |= Mask)", ToolTip="Add selected flags to an existing attribute."),
-	ANDNOT UMETA(DisplayName = "AND NOT (Flags &= ~Mask)", ToolTip="Remove selected flags from an existing attribute."),
-	XOR UMETA(DisplayName = "XOR (Flags ^= Mask)", ToolTip="Toggle selected flags on an existing attribute."),
-};
+	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const int64 Mask)
+	{
+		switch (Op)
+		{
+		default: ;
+		case EPCGExBitOp::Set:
+			Flags = Mask;
+			break;
+		case EPCGExBitOp::AND:
+			Flags &= Mask;
+			break;
+		case EPCGExBitOp::OR:
+			Flags |= Mask;
+			break;
+		case EPCGExBitOp::NOT:
+			Flags &= ~Mask;
+			break;
+		case EPCGExBitOp::XOR:
+			Flags ^= Mask;
+			break;
+		}
+	}
+
+	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const TArray<FClampedBit>& Mask)
+	{
+		switch (Op)
+		{
+		default: ;
+		case EPCGExBitOp::Set:
+			for (const FClampedBit& Bit : Mask)
+			{
+				if (Bit.bValue) { Flags |= Bit.Get(); } // Set the bit
+				else { Flags &= ~Bit.Get(); }           // Clear the bit
+			}
+			break;
+		case EPCGExBitOp::AND:
+			for (const FClampedBit& Bit : Mask) { Flags &= Bit.Get(); }
+			break;
+		case EPCGExBitOp::OR:
+			for (const FClampedBit& Bit : Mask) { Flags |= Bit.Get(); }
+			break;
+		case EPCGExBitOp::NOT:
+			for (const FClampedBit& Bit : Mask) { Flags &= ~Bit.Get(); }
+			break;
+		case EPCGExBitOp::XOR:
+			for (const FClampedBit& Bit : Mask) { Flags ^= Bit.Get(); }
+			break;
+		}
+	}
+}
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExBitflagOperationSettings : public UPCGExPointsProcessorSettings
@@ -45,10 +88,10 @@ public:
 	/** Target attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName FlagAttribute;
-	
+
 	/** Target attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExBitflagOperation Operation;
+	EPCGExBitOp Operation;
 
 	/** Type of Mask */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -60,7 +103,7 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Constant", DisplayName="Mask", EditConditionHides))
-	FPCGExCompositeBitflagValue Mask;
+	FPCGExBitmask BitMask;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExBitflagOperationContext final : public FPCGExPointsProcessorContext
@@ -90,8 +133,8 @@ namespace PCGExBitflagOperation
 		PCGEx::TFAttributeReader<int64>* Reader = nullptr;
 		PCGEx::TFAttributeWriter<int64>* Writer = nullptr;
 
-		int64 CompositeMask = 0;
-		EPCGExBitflagOperation Op = EPCGExBitflagOperation::Set;
+		int64 Mask = 0;
+		EPCGExBitOp Op = EPCGExBitOp::Set;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

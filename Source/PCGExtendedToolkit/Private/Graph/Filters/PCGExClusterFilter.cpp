@@ -35,7 +35,7 @@ namespace PCGExClusterFilter
 		// Should never be called
 		check(false)
 		return true;
-	} 
+	}
 
 	TManager::TManager(PCGExCluster::FCluster* InCluster, PCGExDataCaching::FPool* InPointDataCache, PCGExDataCaching::FPool* InEdgeDataCache)
 		: PCGExPointFilter::TManager(InPointDataCache), Cluster(InCluster), EdgeDataCache(InEdgeDataCache)

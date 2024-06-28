@@ -88,10 +88,18 @@ namespace PCGExBitflagOperation
 		if (Settings->MaskType == EPCGExFetchType::Attribute)
 		{
 			PCGExDataCaching::FCache<int64>* ReadCache = PointDataCache->GetOrCreateReader<int64>(Settings->MaskAttribute);
+			if (!ReadCache)
+			{
+				return false;
+			}
+
 			Reader = ReadCache->PrepareReader();
 		}
+		else
+		{
+			Mask = Settings->BitMask.Get();
+		}
 
-		CompositeMask = Settings->Mask.GetComposite();
 		Op = Settings->Operation;
 
 		StartParallelLoopForPoints();
@@ -101,30 +109,7 @@ namespace PCGExBitflagOperation
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 	{
-		int64 Flags = Writer->Values[Index];
-		const int64 Mask = Reader ? Reader->Values[Index] : CompositeMask;
-
-		switch (Op)
-		{
-		default: ;
-		case EPCGExBitflagOperation::Set:
-			Flags = Mask;
-			break;
-		case EPCGExBitflagOperation::AND:
-			Flags &= Mask;
-			break;
-		case EPCGExBitflagOperation::OR:
-			Flags |= Mask;
-			break;
-		case EPCGExBitflagOperation::ANDNOT:
-			Flags &= ~Mask;
-			break;
-		case EPCGExBitflagOperation::XOR:
-			Flags ^= Mask;
-			break;
-		}
-
-		Writer->Values[Index] = Flags;
+		PCGExBitFlag::Do(Op, Writer->Values[Index], Reader ? Reader->Values[Index] : Mask);
 	}
 
 	void FProcessor::CompleteWork()

@@ -10,8 +10,6 @@
 
 #include "PCGExEdgesProcessor.generated.h"
 
-class UPCGExNodeStateFactory;
-
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
 {

@@ -112,6 +112,12 @@ namespace PCGExCluster
 		NumRawVtx = InVtxIO->GetNum();
 		NumRawEdges = InEdgesIO->GetNum();
 
+		ExpandedNodes = OtherCluster->ExpandedNodes;
+		if (ExpandedNodes)
+		{
+			bOwnsExpandedNodes = false;
+		}
+
 		if (bCopyNodes)
 		{
 			Nodes = new TArray<FNode>();
@@ -175,6 +181,7 @@ namespace PCGExCluster
 		if (bOwnsVtxPointIndices) { PCGEX_DELETE(VtxPointIndices) }
 		if (bOwnsNodeOctree) { PCGEX_DELETE(NodeOctree) }
 		if (bOwnsEdgeOctree) { PCGEX_DELETE(EdgeOctree) }
+		if (bOwnsExpandedNodes) { PCGEX_DELETE(ExpandedNodes) }
 	}
 
 	bool FCluster::BuildFrom(
@@ -724,6 +731,47 @@ namespace PCGExCluster
 		return Result;
 	}
 
+	TArray<FExpandedNode*>* FCluster::GetExpandedNodes(const bool bBuild)
+	{
+		{
+			FReadScopeLock ReadScopeLock(ClusterLock);
+			if (ExpandedNodes) { return ExpandedNodes; }
+		}
+		{
+			FWriteScopeLock WriteScopeLock(ClusterLock);
+
+			bOwnsExpandedNodes = true;
+			ExpandedNodes = new TArray<FExpandedNode*>();
+			ExpandedNodes->SetNumUninitialized(Nodes->Num());
+
+			TArray<FExpandedNode*>& ExpandedNodesRef = (*ExpandedNodes);
+			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); i++) { ExpandedNodesRef[i] = new FExpandedNode(this, i); } } // Ooof
+		}
+
+		return ExpandedNodes;
+	}
+
+	void FCluster::ExpandNodes(PCGExMT::FTaskManager* AsyncManager)
+	{
+		if (ExpandedNodes) { return; }
+
+		bOwnsExpandedNodes = true;
+		ExpandedNodes = new TArray<FExpandedNode*>();
+		ExpandedNodes->SetNumUninitialized(Nodes->Num());
+
+		int32 RemainingCount = Nodes->Num();
+		int32 Start = 0;
+		const int32 PerIterationsNum = 256;
+
+		while (RemainingCount != 0)
+		{
+			const int32 NumIterations = FMath::Min(RemainingCount, PerIterationsNum);
+			RemainingCount -= NumIterations;
+			AsyncManager->Start<PCGExClusterTask::FExpandCluster>(Start, nullptr, this, NumIterations);
+			Start += NumIterations;
+		}
+	}
+
 	FNode& FCluster::GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex)
 	{
 		const int32* NodeIndex = NodeIndexLookup->Find(PointIndex);
@@ -1037,6 +1085,13 @@ namespace PCGExClusterTask
 			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, EdgeDupe, TransformSettings);
 		}
 
+		return true;
+	}
+
+	bool FExpandCluster::ExecuteTask()
+	{
+		TArray<PCGExCluster::FExpandedNode*>& ExpandedNodesRef = (*Cluster->ExpandedNodes);
+		for (int i = 0; i < NumIterations; i++) { ExpandedNodesRef[TaskIndex + i] = new PCGExCluster::FExpandedNode(Cluster, TaskIndex + i); }
 		return true;
 	}
 }

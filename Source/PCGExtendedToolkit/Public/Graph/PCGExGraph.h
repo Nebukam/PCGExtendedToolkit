@@ -89,6 +89,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
 	bool bOutputClusters = true;
 
+	/** Expands the cluster data. Takes more space in memory but can be a very effective improvement depending on the operations you're doing on the cluster. */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bOutputClusters"))
+	bool bExpandClusters = false;
+
 	int32 GetMinClusterSize() const { return bRemoveSmallClusters ? MinClusterSize : 0; }
 	int32 GetMaxClusterSize() const { return bRemoveBigClusters ? MaxClusterSize : TNumericLimits<int32>::Max(); }
 };
@@ -98,7 +102,7 @@ namespace PCGExGraph
 	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
 	const FName SourceProbesLabel = TEXT("Probes");
 	const FName OutputProbeLabel = TEXT("Probe");
-	
+
 	const FName SourceFilterGenerators = TEXT("Generator Filters");
 	const FName SourceFilterConnectables = TEXT("Connectable Filters");
 
@@ -343,6 +347,7 @@ namespace PCGExGraph
 	public:
 		bool bRequiresConsolidation = false;
 		bool bBuildClusters = false;
+		bool bExpandClusters = false;
 
 		TArray<FNode> Nodes;
 		TMap<int32, FGraphNodeMetadata*> NodeMetadata;
@@ -441,6 +446,7 @@ namespace PCGExGraph
 
 			Graph = new FGraph(NumNodes, NumEdgeReserve);
 			Graph->bBuildClusters = InSettings->bOutputClusters;
+			Graph->bExpandClusters = InSettings->bExpandClusters;
 			Graph->bWriteEdgePosition = OutputSettings->bWriteEdgePosition;
 			Graph->EdgePosition = OutputSettings->EdgePosition;
 			Graph->bRefreshEdgeSeed = OutputSettings->bRefreshEdgeSeed;

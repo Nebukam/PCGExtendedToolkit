@@ -84,10 +84,10 @@ namespace PCGExClusterMT
 
 		void ForwardCluster(bool bAsOwner)
 		{
-			bDeleteCluster = false;
 			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(VtxIO->GetOut()))
 			{
 				EdgesData->SetBoundCluster(Cluster, bAsOwner);
+				bDeleteCluster = false;
 			}
 		}
 

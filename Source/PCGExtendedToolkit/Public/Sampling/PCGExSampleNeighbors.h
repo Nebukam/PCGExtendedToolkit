@@ -28,7 +28,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNeighborsSettings : public UPCGExEdgesP
 	GENERATED_BODY()
 
 public:
-	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNeighbors, "Sample : Neighbors", "Sample graph node' neighbors values.");
@@ -77,7 +76,8 @@ namespace PCGExSampleNeighbors
 		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
 		TArray<UPCGExNeighborSampleOperation*> OpsWithValueTest;
 
-		TArray<PCGExCluster::FExpandedNode*> ExpandedNodes;
+		bool bBuildExpandedNodes = false;
+		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
 
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):

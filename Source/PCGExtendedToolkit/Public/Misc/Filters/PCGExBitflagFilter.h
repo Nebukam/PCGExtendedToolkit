@@ -40,7 +40,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitflagFilterDescriptor
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Constant", DisplayName="Mask", EditConditionHides))
-	FPCGExCompositeBitflagValue Mask;
+	FPCGExBitmask BitMask;
 };
 
 

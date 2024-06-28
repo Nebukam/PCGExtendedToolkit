@@ -81,7 +81,7 @@ namespace PCGExPointFilter
 		{
 			TFilter* Filter = PointFilters[i];
 			Filter->FilterIndex = i;
-			PostInitFilter(Filter);
+			PostInitFilter(InContext, Filter);
 		}
 
 		if (bCacheResults) { InitCache(); }
@@ -89,9 +89,9 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	void TManager::PostInitFilter(TFilter* Filter)
+	void TManager::PostInitFilter(const FPCGContext* InContext, TFilter* InFilter)
 	{
-		Filter->PostInit();
+		InFilter->PostInit();
 	}
 
 	void TManager::InitCache()
