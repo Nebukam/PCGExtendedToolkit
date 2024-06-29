@@ -444,10 +444,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings : public FPCGExSourceFuseSettin
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision"))
-enum class EPCGExFusePrecision : uint8
+enum class EPCGExFuseMethod : uint8
 {
-	Fast UMETA(DisplayName = "Voxel (Fast and blocky)", Tooltip="Use some mathematical approximation to speed up the process, but loose in precision."),
-	Precise UMETA(DisplayName = "Precise (Slow but organic)", Tooltip="Precise mathematical computations, but is immensely slower as computations cannot be multithreaded in order to be deterministic."),
+	Voxel UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.\nDestructive toward initial topology."),
+	Octree UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology."),
 };
 
 USTRUCT(BlueprintType)
@@ -460,7 +460,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionSettings
 	FPCGExFuseSettings FuseSettings;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFusePrecision Precision = EPCGExFusePrecision::Fast;
+	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))

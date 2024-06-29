@@ -7,7 +7,7 @@
 #include "PCGExPathProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
-#include "PCGExPathToEdgeClusters.generated.h"
+#include "PCGExPathToClusters.generated.h"
 
 namespace PCGExGraph
 {
@@ -24,7 +24,7 @@ namespace PCGExDataBlending
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExPathToEdgeClustersSettings : public UPCGExPathProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPathToClustersSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -113,11 +113,11 @@ public:
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathToClustersContext final : public FPCGExPathProcessorContext
 {
-	friend class FPCGExPathToEdgeClustersElement;
+	friend class FPCGExPathToClustersElement;
 
-	virtual ~FPCGExPathToEdgeClustersContext() override;
+	virtual ~FPCGExPathToClustersContext() override;
 
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;	
 	PCGExData::FFacade* CompoundFacade = nullptr;
@@ -125,7 +125,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPC
 	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersElement final : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathToClustersElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

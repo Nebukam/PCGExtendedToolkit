@@ -30,16 +30,30 @@ namespace PCGExPointsMT
 #pragma region Tasks
 
 #define PCGEX_POINTS_MT_TASK(_NAME, _BODY)\
-template <typename T>\
-class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
-public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
-T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
+	template <typename T>\
+	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+		public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
+		T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
+
+#define PCGEX_POINTS_MT_TASK_RANGE_INLINE(_NAME, _BODY)\
+	template <typename T> \
+	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask {\
+		public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InPerNumIterations, const uint64 InTotalIterations, const PCGExData::ESource InSource = PCGExData::ESource::Out)\
+		: PCGExMT::FPCGExTask(InPointIO), Target(InTarget), PerNumIterations(InPerNumIterations), TotalIterations(InTotalIterations), Source(InSource){}\
+		T* Target = nullptr; uint64 PerNumIterations = 0; uint64 TotalIterations = 0; const PCGExData::ESource Source;\
+		virtual bool ExecuteTask() override {\
+		const uint64 RemainingIterations = TotalIterations - TaskIndex;\
+		uint64 Iterations = FMath::Min(PerNumIterations, RemainingIterations); _BODY \
+		int32 NextIndex = TaskIndex + Iterations; if (NextIndex >= TotalIterations) { return true; }\
+		InternalStart<_NAME>(NextIndex, nullptr, Target, PerNumIterations, TotalIterations);\
+		return true; } };
 
 #define PCGEX_POINTS_MT_TASK_RANGE(_NAME, _BODY)\
-template <typename T>\
-class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
-public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations, const PCGExData::ESource InSource = PCGExData::ESource::Out) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations), Source(InSource){} \
-T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source; virtual bool ExecuteTask() override{_BODY return true; }};
+	template <typename T>\
+		class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+			public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations, const PCGExData::ESource InSource = PCGExData::ESource::Out) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations), Source(InSource){} \
+			T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source; virtual bool ExecuteTask() override{_BODY return true; }}; \
+	PCGEX_POINTS_MT_TASK_RANGE_INLINE(_NAME##Inline, _BODY)
 
 	PCGEX_POINTS_MT_TASK(FStartPointsBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
 
@@ -65,6 +79,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 	protected:
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
+		bool bInlineProcessPoints = false;
+		bool bInlineProcessRange = false;
 
 	public:
 		FPointsProcessorBatchBase* ParentBatch = nullptr;
@@ -160,7 +176,14 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				return;
 			}
 
-			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
+
+			if (bInlineProcessPoints)
+			{
+				AsyncManagerPtr->Start<FAsyncProcessPointRangeInline<FPointsProcessor>>(0, nullptr, this, PLI, NumPoints, Source);
+				return;
+			}
+
 			int32 CurrentCount = 0;
 			while (CurrentCount < NumPoints)
 			{
@@ -178,7 +201,14 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				return;
 			}
 
-			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
+
+			if (bInlineProcessPoints)
+			{
+				AsyncManagerPtr->Start<FAsyncProcessRangeInline<FPointsProcessor>>(0, nullptr, this, PLI, NumIterations);
+				return;
+			}
+
 			int32 CurrentCount = 0;
 			while (CurrentCount < NumIterations)
 			{
@@ -227,6 +257,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 
 	public:
+		bool bInlineProcessing = false;
+		bool bInlineCompletion = false;
 		bool bRequiresWriteStep = false;
 		TArray<PCGExData::FFacade*> ProcessorFacades;
 
@@ -297,10 +329,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	template <typename T>
 	class TBatch : public FPointsProcessorBatchBase
 	{
-	protected:
-		bool bInlineProcessing = false;
-		bool bInlineCompletion = false;
-
 	public:
 		TArray<T*> Processors;
 		TArray<T*> ClosedBatchProcessors;
@@ -487,4 +515,5 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 
 #undef PCGEX_POINTS_MT_TASK
+#undef PCGEX_POINTS_MT_TASK_RANGE_INLINE
 #undef PCGEX_POINTS_MT_TASK_RANGE

@@ -166,6 +166,8 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 		{
 			if (!IsAsyncWorkComplete()) { return false; }
 
+			// TODO : This is a mess, look into it
+
 			if (!bDoClusterBatchGraphBuilding) { AdvanceBatch(); }
 			else
 			{
@@ -257,6 +259,7 @@ void FPCGExEdgesProcessorContext::AdvanceBatch()
 	else
 	{
 		CurrentBatch = Batches[CurrentBatchIndex];
+		PCGExClusterMT::ScheduleBatch(GetAsyncManager(), CurrentBatch);
 		SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing);
 	}
 }

@@ -162,8 +162,7 @@ protected:
 			}
 
 			Batches.Add(NewBatch);
-
-			PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch);
+			if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch); }
 		}
 
 		if (Batches.IsEmpty()) { return false; }

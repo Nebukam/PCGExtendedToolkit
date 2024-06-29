@@ -41,6 +41,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExFusePoints::FProcessor>* NewBatch)
 			{
+				NewBatch->bInlineProcessing = Settings->PointPointIntersectionSettings.FuseMethod == EPCGExFuseMethod::Octree;
 				NewBatch->bRequiresWriteStep = true;
 			},
 			PCGExMT::State_Done))
@@ -79,22 +80,12 @@ namespace PCGExFusePoints
 		CompoundGraph = new PCGExGraph::FCompoundGraph(
 			Settings->PointPointIntersectionSettings.FuseSettings,
 			PointIO->GetIn()->GetBounds().ExpandBy(10), true,
-			Settings->PointPointIntersectionSettings.Precision == EPCGExFusePrecision::Fast);
-		AsyncManagerPtr->Start<PCGExGraphTask::FCompoundGraphInsertPoints>(PointIO->IOIndex, PointIO, CompoundGraph);
+			Settings->PointPointIntersectionSettings.FuseMethod);
 
-		if (CompoundGraph->bFastMode) { StartParallelLoopForPoints(PCGExData::ESource::In); }
-		else
-		{
-			const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
-			for (int i = 0; i < Points.Num(); i++) { CompoundGraph->GetOrCreateNode(Points[i], PointIO->IOIndex, i); }
-		}
+		const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
+		for (int i = 0; i < Points.Num(); i++) { CompoundGraph->InsertPointUnsafe(Points[i], PointIO->IOIndex, i); }
 
 		return true;
-	}
-
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
-	{
-		CompoundGraph->GetOrCreateNode(Point, PointIO->IOIndex, Index);
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)

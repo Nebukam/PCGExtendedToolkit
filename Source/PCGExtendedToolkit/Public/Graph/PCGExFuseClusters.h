@@ -127,9 +127,11 @@ namespace PCGExFuseClusters
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+		const TArray<FPCGPoint>* InPoints = nullptr;
 
 	public:
 		bool bInvalidEdges = true;
+		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 
 		explicit FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
 			: FClusterProcessor(InVtx, InEdges)
@@ -141,6 +143,7 @@ namespace PCGExFuseClusters
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
 	};
 }

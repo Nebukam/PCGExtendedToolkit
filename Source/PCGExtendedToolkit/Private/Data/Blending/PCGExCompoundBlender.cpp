@@ -139,9 +139,16 @@ namespace PCGExDataBlending
 	void FCompoundBlender::MergeSingle(const int32 CompoundIndex, const FPCGExDistanceSettings& DistSettings)
 	{
 		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
-		Compound->ComputeWeights(Sources, CurrentTargetData->Source->GetOutPoint(CompoundIndex), DistSettings);
 
-		const int32 NumCompounded = Compound->Num();
+		TArray<uint64> CompoundHashes;
+		TArray<double> Weights;
+
+		Compound->ComputeWeights(
+			Sources, IOIndices,
+			CurrentTargetData->Source->GetOutPoint(CompoundIndex), DistSettings,
+			CompoundHashes, Weights);
+
+		const int32 NumCompounded = CompoundHashes.Num();
 
 		int32 ValidCompounds = 0;
 		double TotalWeight = 0;
@@ -155,12 +162,12 @@ namespace PCGExDataBlending
 		{
 			uint32 IOIndex;
 			uint32 PtIndex;
-			PCGEx::H64((*Compound)[k], IOIndex, PtIndex);
+			PCGEx::H64(CompoundHashes[k], IOIndex, PtIndex);
 
 			const int32* IOIdx = IOIndices.Find(IOIndex);
 			if (!IOIdx) { continue; }
 
-			const double Weight = Compound->Weights[k];
+			const double Weight = Weights[k];
 
 			PropertiesBlender->Blend(Target, Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target, Weight);
 
@@ -183,7 +190,7 @@ namespace PCGExDataBlending
 			{
 				uint32 IOIndex;
 				uint32 PtIndex;
-				PCGEx::H64((*Compound)[k], IOIndex, PtIndex);
+				PCGEx::H64(CompoundHashes[k], IOIndex, PtIndex);
 
 				const int32* IOIdx = IOIndices.Find(IOIndex);
 				if (!IOIdx) { continue; }
@@ -191,7 +198,7 @@ namespace PCGExDataBlending
 				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[*IOIdx];
 				if (!Operation) { continue; }
 
-				const double Weight = Compound->Weights[k];
+				const double Weight = Weights[k];
 
 				Operation->DoOperation(
 					CompoundIndex, Sources[*IOIdx]->Source->GetInPoint(PtIndex),

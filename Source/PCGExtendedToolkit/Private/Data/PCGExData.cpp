@@ -5,7 +5,6 @@
 
 namespace PCGExData
 {
-	
 #pragma region Pools & cache
 
 	void FCacheBase::IncrementWriteReadyNum()
@@ -24,7 +23,7 @@ namespace PCGExData
 	void FCacheBase::Write(PCGExMT::FTaskManager* AsyncManager)
 	{
 	}
-	
+
 	FCacheBase* FFacade::TryGetCache(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(PoolLock);
@@ -32,66 +31,53 @@ namespace PCGExData
 		if (!Found) { return nullptr; }
 		return *Found;
 	}
-	
+
 #pragma endregion
-	
+
 #pragma region FIdxCompound
 
-	bool FIdxCompound::ContainsIOIndex(const int32 InIOIndex)
+	void FIdxCompound::ComputeWeights(
+		const TArray<FFacade*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
+		const FPCGExDistanceSettings& DistSettings, TArray<uint64>& OutCompoundHashes, TArray<double>& OutWeights)
 	{
-		for (const uint64 H : CompoundedPoints)
-		{
-			uint32 A;
-			uint32 B;
-			PCGEx::H64(H, A, B);
-			if (A == InIOIndex) { return true; }
-		}
-		return false;
-	}
+		OutCompoundHashes.SetNumUninitialized(CompoundedHashSet.Num());
+		OutWeights.SetNumUninitialized(CompoundedHashSet.Num());
 
-	void FIdxCompound::ComputeWeights(const TArray<FFacade*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
-	{
-		Weights.SetNumUninitialized(CompoundedPoints.Num());
-
-		double DistSum = 0;
-		for (int i = 0; i < CompoundedPoints.Num(); i++)
+		double TotalWeight = 0;
+		int32 Index = 0;
+		for (const uint64 Hash : CompoundedHashSet)
 		{
 			uint32 IOIndex;
 			uint32 PtIndex;
-			PCGEx::H64(CompoundedPoints[i], IOIndex, PtIndex);
+			PCGEx::H64(Hash, IOIndex, PtIndex);
 
-			Weights[i] = DistSettings.GetDistance(Sources[IOIndex]->Source->GetInPoint(PtIndex), Target);
-			DistSum += Weights[i];
+			const int32* IOIdx = SourcesIdx.Find(IOIndex);
+			if (!IOIdx) { continue; }
+
+			OutCompoundHashes[Index] = Hash;
+
+			const double Weight = DistSettings.GetDistance(Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target);
+			OutWeights[Index] = Weight;
+			TotalWeight += Weight;
+
+			Index++;
 		}
 
-		if (DistSum == 0)
+		if (TotalWeight == 0)
 		{
-			const double StaticWeight = 1 / static_cast<double>(CompoundedPoints.Num());
-			for (double& Weight : Weights) { Weight = StaticWeight; }
+			const double StaticWeight = 1 / static_cast<double>(CompoundedHashSet.Num());
+			for (double& Weight : OutWeights) { Weight = StaticWeight; }
 			return;
 		}
 
-		for (double& Weight : Weights) { Weight = 1 - (Weight / DistSum); }
-	}
-
-	void FIdxCompound::ComputeWeights(const TArray<FPCGPoint>& SourcePoints, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
-	{
-		Weights.SetNumUninitialized(CompoundedPoints.Num());
-
-		double DistSum = 0;
-		for (int i = 0; i < CompoundedPoints.Num(); i++)
-		{
-			Weights[i] = DistSettings.GetDistance(Target, SourcePoints[PCGEx::H64B(CompoundedPoints[i])]);
-			DistSum += Weights[i];
-		}
-
-		for (double& Weight : Weights) { Weight = 1 - (Weight / DistSum); }
+		for (double& Weight : OutWeights) { Weight = 1 - (Weight / TotalWeight); }
 	}
 
 	uint64 FIdxCompound::Add(const int32 IOIndex, const int32 PointIndex)
 	{
+		IOIndices.Add(IOIndex);
 		const uint64 H = PCGEx::H64(IOIndex, PointIndex);
-		CompoundedPoints.AddUnique(H);
+		CompoundedHashSet.Add(H);
 		return H;
 	}
 
@@ -112,18 +98,10 @@ namespace PCGExData
 		return Compounds[Index]->Add(IOIndex, PointIndex);
 	}
 
-	void FIdxCompoundList::GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices)
+	bool FIdxCompoundList::IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
 	{
-		FIdxCompound* Compound = Compounds[Index];
-		OutIOIndices.SetNumUninitialized(Compound->Num());
-		for (int i = 0; i < OutIOIndices.Num(); i++) { OutIOIndices[i] = PCGEx::H64A(Compound->CompoundedPoints[i]); }
-	}
-
-	bool FIdxCompoundList::HasIOIndexOverlap(const int32 InIdx, const TArray<int32>& InIndices)
-	{
-		FIdxCompound* OtherComp = Compounds[InIdx];
-		for (const int32 IOIndex : InIndices) { if (OtherComp->ContainsIOIndex(IOIndex)) { return true; } }
-		return false;
+		const TSet<int32> Overlap = Compounds[InIdx]->IOIndices.Intersect(InIndices);
+		return Overlap.Num() > 0;
 	}
 
 #pragma endregion
@@ -161,6 +139,6 @@ namespace PCGExData
 				});
 		}
 	}
-	
-#pragma endregion 
+
+#pragma endregion
 }

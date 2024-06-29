@@ -225,8 +225,7 @@ namespace PCGExData
 		{
 			if (!Writer) { return; }
 
-			if (AsyncManager &&
-				GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(Source->GetOutNum()))
+			if (AsyncManager && !GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(Source->GetOutNum()))
 			{
 				PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Writer);
 			}
@@ -436,25 +435,22 @@ namespace PCGExData
 
 	struct PCGEXTENDEDTOOLKIT_API FIdxCompound
 	{
-		TArray<uint64> CompoundedPoints;
-		TArray<double> Weights;
+		TSet<int32> IOIndices;
+		TSet<uint64> CompoundedHashSet;
 
-		FIdxCompound() { CompoundedPoints.Empty(); }
+		FIdxCompound() { CompoundedHashSet.Empty(); }
 
 		~FIdxCompound()
 		{
-			CompoundedPoints.Empty();
-			Weights.Empty();
+			IOIndices.Empty();
+			CompoundedHashSet.Empty();
 		}
 
-		bool ContainsIOIndex(int32 InIOIndex);
-		void ComputeWeights(const TArray<FFacade*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings);
-		void ComputeWeights(const TArray<FPCGPoint>& SourcePoints, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings);
+		int32 Num() const { return CompoundedHashSet.Num(); }
+
+		void ComputeWeights(const TArray<FFacade*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings, TArray<uint64>& OutCompoundHashes, TArray<double>& OutWeights);
 
 		uint64 Add(const int32 IOIndex, const int32 PointIndex);
-
-		int32 Num() const { return CompoundedPoints.Num(); }
-		uint64 operator[](const int32 Index) const { return this->CompoundedPoints[Index]; }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FIdxCompoundList
@@ -469,8 +465,7 @@ namespace PCGExData
 		FIdxCompound* New();
 
 		FORCEINLINE uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex);
-		void GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices);
-		FORCEINLINE bool HasIOIndexOverlap(int32 InIdx, const TArray<int32>& InIndices);
+		FORCEINLINE bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
 
 		FIdxCompound* operator[](const int32 Index) const { return this->Compounds[Index]; }
 	};
