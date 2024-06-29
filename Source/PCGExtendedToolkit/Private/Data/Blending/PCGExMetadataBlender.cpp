@@ -99,7 +99,7 @@ namespace PCGExDataBlending
 		const double TotalWeight) const
 	{
 
-		check(Count > 0) // Ugh, there's a check missing in a blender user...
+		//check(Count > 0) // Ugh, there's a check missing in a blender user...
 		
 		for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(Target.Index, Count, TotalWeight); }
 
@@ -110,6 +110,8 @@ namespace PCGExDataBlending
 
 	void FMetadataBlender::CompleteBlending(const int32 PrimaryIndex, const int32 Count, const double TotalWeight) const
 	{
+		//check(Count > 0) // Ugh, there's a check missing in a blender user...
+		
 		for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(PrimaryIndex, Count, TotalWeight); }
 
 		if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }

@@ -42,6 +42,5 @@ void UPCGExRadiusSmoothing::SmoothSingle(
 		}
 	}
 
-	if (Count != 0) { MetadataBlender->CompleteBlending(Target, Count, TotalWeight); }
-	else { MetadataBlender->CompleteBlending(Target, 1, 1); }
+	MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 }

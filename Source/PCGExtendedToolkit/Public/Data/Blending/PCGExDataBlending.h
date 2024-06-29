@@ -355,8 +355,8 @@ namespace PCGExDataBlending
 
 			TypedAttribute = InSecondaryData->FindMutableAttribute<T>(AttributeName, SecondarySource);
 
-			if (TypedAttribute) { Writer = InPrimaryData->GetOrCreateWriter<T>(TypedAttribute, true); }
-			else { Writer = InPrimaryData->GetOrCreateWriter<T>(AttributeName, T{}, true, true); }
+			if (TypedAttribute) { Writer = InPrimaryData->GetOrCreateWriter<T>(TypedAttribute, false); }
+			else { Writer = InPrimaryData->GetOrCreateWriter<T>(AttributeName, T{}, true, false); }
 
 			Reader = InSecondaryData->GetOrCreateReader<T>(AttributeName, SecondarySource); // Will return writer is sources ==
 

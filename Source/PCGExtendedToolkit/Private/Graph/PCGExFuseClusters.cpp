@@ -210,6 +210,7 @@ FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
     }
 
     Context->CompoundFacade->Source->OutputTo(Context);
+	Context->Done();
 
     return Context->TryComplete();
 }
