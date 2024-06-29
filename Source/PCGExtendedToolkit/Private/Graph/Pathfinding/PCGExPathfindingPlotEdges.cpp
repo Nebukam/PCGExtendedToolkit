@@ -44,9 +44,16 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 	const PCGExCluster::FCluster* Cluster = SearchOperation->Cluster;
 
+
 	// TODO : Implement path-scoped extra weight management
 	PCGExHeuristics::FLocalFeedbackHandler* LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
 	TArray<int32> Path;
+
+	auto Exit = [&](bool bSuccess)
+	{
+		PCGEX_DELETE(LocalFeedbackHandler)
+		Path.Empty();
+	};
 
 	const int32 NumPlots = InPlotPoints->GetNum();
 
@@ -60,7 +67,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
-			// TODO : Handle this case
+			if (Settings->bOmitCompletePathOnFailedPlot) { return Exit(false); }
 		}
 
 		if (Settings->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
@@ -72,11 +79,18 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		FVector SeedPosition = InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1).Transform.GetLocation();
 		FVector GoalPosition = InPlotPoints->GetInPoint(0).Transform.GetLocation();
 
+		if (Settings->bAddPlotPointsToPath)
+		{
+			// Insert goal point as plot point
+			Path.Add(NumPlots * -1);
+		}
+
 		if (!SearchOperation->FindPath(
 			SeedPosition, &Settings->SeedPicking,
 			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
+			if (Settings->bOmitCompletePathOnFailedPlot) { return Exit(false); }
 		}
 	}
 
@@ -110,11 +124,15 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]);
 		LastIndex = VtxIndex;
 	}
-	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
+
+	if (Settings->bAddGoalToPath && !Settings->bClosedPath)
+	{
+		MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey;
+	}
 
 	PathPoints->Tags->Append(InPlotPoints->Tags);
 
-	PCGEX_DELETE(LocalFeedbackHandler)
+	return Exit(true);
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)

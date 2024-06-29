@@ -168,6 +168,10 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 			PathLocations.Last().MetadataEntryKey = GoalPoint.MetadataEntry;
 		}
+		else if (Settings->bOmitCompletePathOnFailedPlot)
+		{
+			return false;
+		}
 		else if (bAddGoal)
 		{
 			PathLocations.Emplace_GetRef(i, GoalPosition, GoalPoint.MetadataEntry);

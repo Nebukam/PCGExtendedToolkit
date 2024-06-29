@@ -48,8 +48,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionSettings
 	EPCGExClusterClosestSearchMode PickingMethod = EPCGExClusterClosestSearchMode::Edge;
 
 	/** Max distance at which a node can be selected. Use <= 0 to ignore distance check. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1))
 	double MaxDistance = -1;
+
+	// TODO : Support local attribute
 
 	FORCEINLINE bool WithinDistance(const FVector& NodePosition, const FVector& TargetPosition) const
 	{
