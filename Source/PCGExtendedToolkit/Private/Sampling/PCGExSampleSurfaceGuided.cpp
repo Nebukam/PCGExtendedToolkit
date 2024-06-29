@@ -141,7 +141,7 @@ namespace PCGExSampleSurfaceGuided
 		const FVector Origin = Point.Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;
-		CollisionParams.bTraceComplex = true;
+		CollisionParams.bTraceComplex = Settings->bTraceComplex;
 		CollisionParams.AddIgnoredActors(TypedContext->IgnoredActors);
 
 		const FVector Trace = Direction * MaxDistance;

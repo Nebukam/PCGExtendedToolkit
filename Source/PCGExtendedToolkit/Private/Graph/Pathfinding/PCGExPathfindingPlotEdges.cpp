@@ -78,8 +78,6 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		{
 			// Failed
 		}
-
-		if (Settings->bAddPlotPointsToPath) { Path.Add(-1); } // Add First pt
 	}
 
 	if (Path.Num() < 2 && !Settings->bAddSeedToPath && !Settings->bAddGoalToPath) { return; }
