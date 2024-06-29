@@ -109,8 +109,8 @@ namespace PCGExGraph
 			Nodes.Empty();
 			Edges.Empty();
 
-			if (InFuseSettings.bComponentWiseTolerance) { FVector(1 / InFuseSettings.Tolerances.X, 1 / InFuseSettings.Tolerances.Y, 1 / InFuseSettings.Tolerances.Z); }
-			else { CWTolerance = FVector(1 / InFuseSettings.Tolerance); }
+			if (InFuseSettings.bComponentWiseTolerance) { FVector(1 / (InFuseSettings.Tolerances.X * 2), 1 / (InFuseSettings.Tolerances.Y * 2), 1 / (InFuseSettings.Tolerances.Z * 2)); }
+			else { CWTolerance = FVector(1 / (InFuseSettings.Tolerance * 2)); }
 
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
