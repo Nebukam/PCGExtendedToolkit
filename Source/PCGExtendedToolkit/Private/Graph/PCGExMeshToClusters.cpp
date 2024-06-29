@@ -7,6 +7,7 @@
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoMesh.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/Data/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE MeshToClusters
@@ -277,7 +278,7 @@ namespace PCGExMeshToCluster
 		}
 
 
-		PCGExData::FPointIO* RootVtx = Context->RootVtx->Emplace_GetRef();
+		PCGExData::FPointIO* RootVtx = Context->RootVtx->Emplace_GetRef<UPCGExClusterNodesData>();
 		RootVtx->IOIndex = TaskIndex;
 		RootVtx->InitializeNum(Mesh->Vertices.Num());
 		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();

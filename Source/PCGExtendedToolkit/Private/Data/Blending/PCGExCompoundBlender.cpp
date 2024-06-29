@@ -117,11 +117,11 @@ namespace PCGExDataBlending
 					PCGEx::TFAttributeWriter<T>* Writer;
 					if (const FPCGMetadataAttribute<T>* ExistingAttribute = CurrentTargetData->FindConstAttribute<T>(SrcMap->Identity.Name))
 					{
-						Writer = CurrentTargetData->GetOrCreateWriter<T>(ExistingAttribute, true);
+						Writer = CurrentTargetData->GetOrCreateWriter<T>(ExistingAttribute, false);
 					}
 					else
 					{
-						Writer = CurrentTargetData->GetOrCreateWriter<T>(SrcMap->Identity.Name, T{}, SrcMap->AllowsInterpolation, true);
+						Writer = CurrentTargetData->GetOrCreateWriter<T>(SrcMap->Identity.Name, T{}, SrcMap->AllowsInterpolation, false);
 					}
 
 					SrcMap->Writer = Writer;
