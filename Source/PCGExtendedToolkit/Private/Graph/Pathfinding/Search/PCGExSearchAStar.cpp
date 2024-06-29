@@ -64,13 +64,16 @@ bool UPCGExSearchAStar::FindPath(
 
 	int32 CurrentNodeIndex;
 	double CurrentFScore;
+	bool bAlreadyVisited;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentFScore))
 	{
 		if (CurrentNodeIndex == GoalNode.NodeIndex) { break; } // Exit early
 
 		const double CurrentGScore = GScore[CurrentNodeIndex];
 		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
-		Visited.Add(CurrentNodeIndex);
+
+		Visited.Add(CurrentNodeIndex, &bAlreadyVisited);
+		if (bAlreadyVisited) { continue; }
 
 		for (const uint64 AdjacencyHash : Current.Adjacency)
 		{

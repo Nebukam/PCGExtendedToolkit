@@ -70,13 +70,6 @@ void UPCGExVtxExtraSpecialNeighbors::ProcessNode(const int32 ClusterIdx, const P
 	else { Descriptor.SmallestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
-void UPCGExVtxExtraSpecialNeighbors::Cleanup()
-{
-	Super::Cleanup();
-	Descriptor.LargestNeighbor.Cleanup();
-	Descriptor.SmallestNeighbor.Cleanup();
-}
-
 #if WITH_EDITOR
 FString UPCGExVtxExtraSpecialNeighborsSettings::GetDisplayName() const
 {

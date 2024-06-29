@@ -30,7 +30,7 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	// TODO : Vtx OR/AND edge points
 
 	PCGEX_SETTINGS_LOCAL(PathfindingEdges)
-	
+
 	const FPCGPoint& Seed = SeedsPoints->GetInPoint(Query->SeedIndex);
 	const FPCGPoint& Goal = GoalsPoints->GetInPoint(Query->GoalIndex);
 
@@ -45,6 +45,12 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 		Query->GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path))
 	{
 		// Failed
+		return;
+	}
+
+	if (Path.Num() < 2 && !Settings->bAddSeedToPath && !Settings->bAddGoalToPath)
+	{
+		// Omit
 		return;
 	}
 

@@ -107,8 +107,6 @@ void UPCGExVtxExtraEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExClu
 void UPCGExVtxExtraEdgeMatch::Cleanup()
 {
 	PCGEX_DELETE_TARRAY(FilterManagers)
-
-	Descriptor.MatchingEdge.Cleanup();
 	Super::Cleanup();
 }
 

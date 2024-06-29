@@ -222,7 +222,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	}
 
 	if (PathLocations.Num() <= PointIO->GetNum()) { return false; } //
-
+	if (PathLocations.Num() < 2) { return false; }
 
 	const int32 NumPositions = PathLocations.Num();
 

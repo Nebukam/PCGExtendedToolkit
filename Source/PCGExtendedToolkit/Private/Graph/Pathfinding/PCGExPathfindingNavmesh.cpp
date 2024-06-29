@@ -234,8 +234,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 		Metrics.Add(CurrentLocation);
 	}
 
-	if (PathLocations.Num() <= 2) { return false; } //
-
+	if (PathLocations.Num() <= 2) { return false; }
 
 	const int32 NumPositions = PathLocations.Num();
 	const int32 LastPosition = NumPositions - 1;

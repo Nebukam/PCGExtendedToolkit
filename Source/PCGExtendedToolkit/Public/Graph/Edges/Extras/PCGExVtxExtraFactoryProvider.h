@@ -69,7 +69,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 
 	virtual void Init(PCGExData::FFacade* InFacade)
 	{
-		if (bWriteDirection) { DirWriter = InFacade->GetOrCreateWriter<FVector>(LengthAttribute, true); }
+		if (bWriteDirection) { DirWriter = InFacade->GetOrCreateWriter<FVector>(DirectionAttribute, true); }
 		if (bWriteLength) { LengthWriter = InFacade->GetOrCreateWriter<double>(LengthAttribute, true); }
 	}
 
@@ -85,9 +85,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 		if (LengthWriter) { LengthWriter->Values[EntryIndex] = Data.Length; }
 	}
 
-	virtual void Cleanup()
-	{
-	}
 };
 
 USTRUCT(BlueprintType)
@@ -148,8 +145,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 	{
 		FPCGExSimpleEdgeOutputSettings::Init(InFacade);
 		if (bWriteEdgeIndex) { EIdxWriter = InFacade->GetOrCreateWriter<int32>(EdgeIndexAttribute, true); }
-		if (bWriteVtxIndex) { VIdxWriter = InFacade->GetOrCreateWriter<int32>(EdgeIndexAttribute, true); }
-		if (bWriteNeighborCount) { NCountWriter = InFacade->GetOrCreateWriter<int32>(EdgeIndexAttribute, true); }
+		if (bWriteVtxIndex) { VIdxWriter = InFacade->GetOrCreateWriter<int32>(VtxIndexAttribute, true); }
+		if (bWriteNeighborCount) { NCountWriter = InFacade->GetOrCreateWriter<int32>(NeighborCountAttribute, true); }
 	}
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount)
@@ -173,10 +170,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 		if (NCountWriter) { NCountWriter->Values[EntryIndex] = NeighborCount; }
 	}
 
-	virtual void Cleanup() override
-	{
-		FPCGExSimpleEdgeOutputSettings::Cleanup();
-	}
 };
 
 /**

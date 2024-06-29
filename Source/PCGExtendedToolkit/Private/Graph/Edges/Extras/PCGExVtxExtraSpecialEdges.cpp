@@ -83,14 +83,6 @@ void UPCGExVtxExtraSpecialEdges::ProcessNode(const int32 ClusterIdx, const PCGEx
 	else { Descriptor.ShortestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
-void UPCGExVtxExtraSpecialEdges::Cleanup()
-{
-	Super::Cleanup();
-	Descriptor.ShortestEdge.Cleanup();
-	Descriptor.LongestEdge.Cleanup();
-	Descriptor.AverageEdge.Cleanup();
-}
-
 #if WITH_EDITOR
 FString UPCGExVtxExtraSpecialEdgesSettings::GetDisplayName() const
 {

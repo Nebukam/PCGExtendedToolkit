@@ -95,10 +95,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext final : public F
 
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
 
-	bool bAddSeedToPath = true;
-	bool bAddGoalToPath = true;
-	bool bAddPlotPointsToPath = true;
-
 	void TryFindPath(
 		const UPCGExSearchOperation* SearchOperation,
 		const PCGExData::FPointIO* InPlotPoints, PCGExHeuristics::THeuristicsHandler* HeuristicsHandler) const;

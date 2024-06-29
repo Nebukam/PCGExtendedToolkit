@@ -60,15 +60,16 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
+			// TODO : Handle this case
 		}
 
-		if (bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
+		if (Settings->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
 		SeedPosition = GoalPosition;
 	}
 
-	if(Settings->bClosedPath)
+	if (Settings->bClosedPath)
 	{
-		FVector SeedPosition = InPlotPoints->GetInPoint(InPlotPoints->GetNum()-1).Transform.GetLocation();
+		FVector SeedPosition = InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1).Transform.GetLocation();
 		FVector GoalPosition = InPlotPoints->GetInPoint(0).Transform.GetLocation();
 
 		if (!SearchOperation->FindPath(
@@ -78,8 +79,10 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 			// Failed
 		}
 
-		if (bAddPlotPointsToPath) { Path.Add(-1); } // Add First pt
+		if (Settings->bAddPlotPointsToPath) { Path.Add(-1); } // Add First pt
 	}
+
+	if (Path.Num() < 2 && !Settings->bAddSeedToPath && !Settings->bAddGoalToPath) { return; }
 
 	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 	PCGExGraph::CleanupClusterTags(PathPoints, true);
@@ -93,7 +96,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 	MutablePoints.Reserve(Path.Num() + 2);
 
-	if (bAddSeedToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(0)).MetadataEntry = PCGInvalidEntryKey; }
+	if (Settings->bAddSeedToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(0)).MetadataEntry = PCGInvalidEntryKey; }
 
 	const TArray<int32>& VtxPointIndices = SearchOperation->Cluster->GetVtxPointIndices();
 	int32 LastIndex = -1;
@@ -109,7 +112,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]);
 		LastIndex = VtxIndex;
 	}
-	if (bAddGoalToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
+	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
 
 	PathPoints->Tags->Append(InPlotPoints->Tags);
 
@@ -203,7 +206,10 @@ namespace PCGExPathfindingPlotEdge
 
 		Context->TryFindPath(SearchOperation, Plots->Pairs[TaskIndex], Heuristics);
 
-		if (bInlined && Plots->Pairs.IsValidIndex(TaskIndex + 1))
+		if (bInlined && Plots
+		                ->
+		                Pairs.IsValidIndex(TaskIndex + 1)
+		)
 		{
 			Manager->Start<FPCGExPlotClusterPathTask>(TaskIndex + 1, PointIO, SearchOperation, Plots, Heuristics, true);
 		}

@@ -111,6 +111,7 @@ public:
 	/** Nav agent to be used by the nav system. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
 	FNavAgentProperties NavAgentProperties;
+	
 };
 
 
