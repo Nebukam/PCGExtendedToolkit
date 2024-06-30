@@ -23,11 +23,6 @@ MACRO(Distance, double)
 
 class UPCGExFilterFactoryBase;
 
-namespace PCGExPointFilter
-{
-	class TEarlyExitPointFilterManager;
-}
-
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -186,7 +181,7 @@ namespace PCGExSampleNearestSurface
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
 }

@@ -30,13 +30,7 @@ void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext,
 	Super::PrepareForCluster(InContext, ClusterIdx, Cluster, VtxDataCache, EdgeDataCache);
 	if (FilterFactories && !FilterFactories->IsEmpty())
 	{
-		/*
-		PCGExPointFilter::TEarlyExitFilterManager* FilterManager = new PCGExPointFilter::TEarlyExitFilterManager(VtxDataCache);
-		FilterManagers[ClusterIdx] = FilterManager;
-		FilterManager->bCacheResults = false;
-		FilterManager->Register(InContext, *FilterFactories);
-		*/
-		// TODO : Prepare for cluster etc 
+		// TODO
 	}
 }
 

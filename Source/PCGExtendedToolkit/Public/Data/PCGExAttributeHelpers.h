@@ -30,11 +30,11 @@ enum class EPCGExAttributeFilter : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeFilterSettings
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeGatherSettings()
+	FPCGExAttributeFilterSettings()
 	{
 	}
 
@@ -43,8 +43,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FilterAttributes!=EPCGExAttributeFilter::All", EditConditionHides))
 	TArray<FName> FilteredAttributes;
-
-	// TODO : Expose how to handle overlaps
 
 	bool Test(const FPCGMetadataAttributeBase* InAttribute) const
 	{
@@ -59,6 +57,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherSettings
 			return FilteredAttributes.Contains(InAttribute->Name);
 		}
 	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherSettings : public FPCGExAttributeFilterSettings
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeGatherSettings()
+	{
+	}
+
+	// TODO : Expose how to handle overlaps
 };
 
 USTRUCT(BlueprintType)
@@ -272,6 +282,9 @@ namespace PCGEx
 
 		T GetDefaultValue() const { return Attribute->GetValue(PCGInvalidEntryKey); }
 		bool GetAllowsInterpolation() const { return Attribute->AllowsInterpolation(); }
+
+		FPCGMetadataAttributeBase* GetAttribute() { return Attribute; }
+		FPCGMetadataAttribute<T>* GetTypedAttribute() { return Attribute; }
 
 		int32 GetNum() const { return NumEntries; }
 

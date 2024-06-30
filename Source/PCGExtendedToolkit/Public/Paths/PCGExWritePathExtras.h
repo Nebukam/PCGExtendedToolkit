@@ -223,7 +223,7 @@ namespace PCGExWritePathExtras
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
 }

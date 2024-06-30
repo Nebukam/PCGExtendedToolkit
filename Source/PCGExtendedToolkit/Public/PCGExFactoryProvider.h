@@ -33,7 +33,7 @@ namespace PCGExFactories
 		Sampler,
 		Heuristics,
 		VtxProperty,
-		BitmaskTransmog
+		MatchAndSet
 	};
 
 	static inline TSet<EType> ClusterNodeFilters = {EType::FilterPoint, EType::FilterNode};
@@ -117,10 +117,15 @@ namespace PCGExFactories
 	static bool GetInputFactories(const FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
+		TSet<uint64> UniqueData;
+		UniqueData.Reserve(Inputs.Num());
 
-		TSet<FName> UniqueStatesNames;
 		for (const FPCGTaggedData& TaggedData : Inputs)
 		{
+			bool bIsAlreadyInSet;
+			UniqueData.Add(TaggedData.Data->UID, &bIsAlreadyInSet);
+			if (bIsAlreadyInSet) { continue; }
+
 			if (const T_DEF* State = Cast<T_DEF>(TaggedData.Data))
 			{
 				if (!Types.Contains(State->GetFactoryType()))
@@ -136,8 +141,6 @@ namespace PCGExFactories
 				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Input '{0}' is not supported."), FText::FromString(TaggedData.Data->GetClass()->GetName())));
 			}
 		}
-
-		UniqueStatesNames.Empty();
 
 		if (OutFactories.IsEmpty())
 		{

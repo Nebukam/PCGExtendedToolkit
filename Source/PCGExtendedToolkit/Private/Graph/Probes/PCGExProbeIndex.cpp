@@ -31,7 +31,7 @@ bool UPCGExProbeIndex::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 	return true;
 }
 
-void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST)
+void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	// TODO : Implement Stacking mngmt
 	int32 Value = TargetCache ? TargetCache->Values[Index] : Descriptor.TargetConstant;
@@ -40,7 +40,7 @@ void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TS
 	{
 		Value = PCGExMath::SanitizeIndex(Value, MaxIndex, Descriptor.IndexSafety);
 		if (Value == -1) { return; }
-		AddEdge(PCGEx::H64(Index, Value));
+		OutEdges->Add(PCGEx::H64(Index, Value));
 		return;
 	}
 
@@ -48,23 +48,17 @@ void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TS
 	{
 		Value = PCGExMath::SanitizeIndex(Index + Value, MaxIndex, Descriptor.IndexSafety);
 		if (Value == -1) { return; }
-		AddEdge(PCGEx::H64(Index, Value));
+		OutEdges->Add(PCGEx::H64(Index, Value));
 		return;
 	}
 
 	if (Descriptor.Mode == EPCGExProbeTargetMode::TwoWayOffset)
 	{
 		int32 OIdx = PCGExMath::SanitizeIndex(Index + Value, MaxIndex, Descriptor.IndexSafety);
-		if (OIdx != -1)
-		{
-			AddEdge(PCGEx::H64(Index, OIdx));
-		}
+		if (OIdx != -1) { OutEdges->Add(PCGEx::H64(Index, OIdx)); }
 
 		OIdx = PCGExMath::SanitizeIndex(Index - Value, MaxIndex, Descriptor.IndexSafety);
-		if (OIdx != -1)
-		{
-			AddEdge(PCGEx::H64(Index, OIdx));
-		}
+		if (OIdx != -1) { OutEdges->Add(PCGEx::H64(Index, OIdx)); }
 	}
 }
 

@@ -25,11 +25,6 @@ MACRO(NumSamples, int32)
 
 class UPCGExFilterFactoryBase;
 
-namespace PCGExPointFilter
-{
-	class TEarlyExitPointFilterManager;
-}
-
 namespace PCGExPolyLine
 {
 	struct PCGEXTENDEDTOOLKIT_API FSampleInfos
@@ -313,7 +308,7 @@ namespace PCGExSampleNearestPolyline
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
 }

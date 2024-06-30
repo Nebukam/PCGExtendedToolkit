@@ -192,7 +192,7 @@ namespace PCGExWritePathExtras
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		FVector Next;
 		FVector Prev;

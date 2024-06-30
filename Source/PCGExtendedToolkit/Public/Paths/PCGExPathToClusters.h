@@ -195,7 +195,7 @@ namespace PCGExPathToClusters
 		virtual bool PrepareSingle(FFusingProcessor* PointsProcessor) override;
 		virtual void CompleteWork() override;
 
-		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 	};
 
 #pragma endregion

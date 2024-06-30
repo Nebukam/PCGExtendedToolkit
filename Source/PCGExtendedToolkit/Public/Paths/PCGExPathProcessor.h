@@ -11,11 +11,6 @@
 
 class UPCGExFilterFactoryBase;
 
-namespace PCGExPointFilter
-{
-	class TEarlyExitPointFilterManager;
-}
-
 class UPCGExNodeStateFactory;
 
 namespace PCGExCluster

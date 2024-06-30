@@ -36,7 +36,7 @@ bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 	return true;
 }
 
-void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST)
+void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsStacking;
 	const int32 MaxIterations = FMath::Min(MaxConnectionsCache ? MaxConnectionsCache->Values[Index] : MaxConnections, Candidates.Num());
@@ -51,9 +51,9 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 	{
 		if (C.Distance > R) { return; } // Candidates are sorted, stop there.
 
-		if (Stacks)
+		if (ConnectedSet)
 		{
-			Stacks->Add(C.GH, &bIsStacking);
+			ConnectedSet->Add(C.GH, &bIsStacking);
 			if (bIsStacking) { continue; }
 		}
 
@@ -63,16 +63,18 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 			if (bIsStacking) { continue; }
 		}
 
-		AddEdge(PCGEx::H64(Index, C.PointIndex));
-
+		bool bEdgeAlreadyExists;
+		OutEdges->Add(PCGEx::H64(Index, C.PointIndex), &bEdgeAlreadyExists);
+		if (bEdgeAlreadyExists) { continue; }
+		
 		Additions++;
 		if (Additions >= MaxIterations) { return; }
 	}
 }
 
-void UPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST)
+void UPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges)
 {
-	Super::ProcessNode(Index, Point, nullptr, FVector::ZeroVector);
+	Super::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges);
 }
 
 #if WITH_EDITOR

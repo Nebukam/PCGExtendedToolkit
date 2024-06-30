@@ -27,19 +27,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateDescriptorBase
 	int32 StateId = 0;
 
 	/** Flags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bOnTestPass = true;
 
 	/** Operations executed on the flag if all filters pass */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOnTestPass"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bOnTestPass"))
 	FPCGExBitmaskWithOperation PassStateFlags;
 
 	/** Flags */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bOnTestFail = true;
 
 	/** Operations executed on the flag if any filters fail */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOnTestFail"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bOnTestFail"))
 	FPCGExBitmaskWithOperation FailStateFlags;
 
 	void Init()

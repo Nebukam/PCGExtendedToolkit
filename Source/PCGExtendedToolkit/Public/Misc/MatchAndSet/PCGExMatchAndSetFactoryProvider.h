@@ -10,47 +10,57 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
+#include "Data/PCGExPointFilter.h"
 
-#include "PCGExBitmaskTransmog.generated.h"
+#include "PCGExMatchAndSetFactoryProvider.generated.h"
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_FACTORY(_NAME, _BODY) \
 	UPCGExParamFactoryBase* UPCGEx##_NAME##ProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const{ \
 	UPCGEx##_NAME##Factory* NewFactory = NewObject<UPCGEx##_NAME##Factory>(); _BODY Super::CreateFactory(InContext, NewFactory); return NewFactory; }
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_OPERATION(_NAME, _BODY) \
-UPCGExBitmaskTransmogOperation* UPCGEx##_NAME##Factory::CreateOperation() const{ \
+UPCGExMatchAndSetOperation* UPCGEx##_NAME##Factory::CreateOperation() const{ \
 	UPCGEx##_NAME##Operation* NewOperation = NewObject<UPCGEx##_NAME##Operation>(); \
 	NewOperation->Factory = const_cast<UPCGEx##_NAME##Factory*>(this); _BODY \
 	return NewOperation;}
 
-namespace PCGExBitmaskTransmog
+class UPCGExFilterFactoryBase;
+
+namespace PCGExMatchAndSet
 {
-	const FName SourceTransmogsLabel = TEXT("Transmogs");
+	const FName SourceMatchFilterLabel = TEXT("MatchFilters");
+	const FName SourceMatchAndSetsLabel = TEXT("MatchAndSets");
 	const FName SourceDefaultsLabel = TEXT("Default values");
-	const FName OutputTransmogLabel = TEXT("Transmog");
+	const FName OutputMatchAndSetLabel = TEXT("MatchAndSet");
 }
 
 /**
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskTransmogOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExBitmaskTransmogFactoryBase* Factory = nullptr;
+	UPCGExMatchAndSetFactoryBase* Factory = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache);
-	virtual void ProcessPoint(const FPCGPoint& Point, int64& Flags);
+	virtual void ProcessPoint(int32 Index, const FPCGPoint& Point);
+
+	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point);
+	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point);
 
 	virtual void Cleanup() override;
+
+protected:
+	PCGExPointFilter::TManager* FilterManager = nullptr;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskTransmogFactoryBase : public UPCGExParamFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
@@ -60,8 +70,10 @@ public:
 	PCGEx::FAttributesInfos* CheckSuccessInfos = nullptr;
 	PCGEx::FAttributesInfos* CheckFailInfos = nullptr;
 
+	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+
 	virtual PCGExFactories::EType GetFactoryType() const override;
-	virtual UPCGExBitmaskTransmogOperation* CreateOperation() const;
+	virtual UPCGExMatchAndSetOperation* CreateOperation() const;
 
 	virtual bool Boot(FPCGContext* InContext);
 	virtual bool AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage);
@@ -69,15 +81,15 @@ public:
 	virtual void BeginDestroy() override;
 };
 
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|BitmaskTransmog")
-class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskTransmogProviderSettings : public UPCGExFactoryProviderSettings
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|MatchAndSet")
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BitmaskTransmogAttribute, "Transmog : Abstract", "Abstract bitmask transmute settings.")
+	PCGEX_NODE_INFOS(MatchAndSetAbstract, "MatchAndSet : Abstract", "Abstract MatchAndSet Module.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

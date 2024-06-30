@@ -418,7 +418,7 @@ namespace PCGExPathToClusters
 	}
 
 	void
-	FFusingProcessorBatch::ProcessSingleRangeIteration(const int32 Iteration)
+	FFusingProcessorBatch::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
 		// Update center
 		CompoundPoints->GetMutablePoint(Iteration).Transform.SetLocation(

@@ -137,12 +137,12 @@ namespace PCGExOffsetPath
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		Point.Transform.SetLocation(Positions[Index] + (Normals[Index].GetSafeNormal() * OffsetGetter->SafeGet(Index, OffsetConstant)));
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
 		Normals[Iteration + 1] = NRM(Iteration, Iteration + 1, Iteration + 2); // Offset by 1 because loop should be -1 / 0 / +1
 	}

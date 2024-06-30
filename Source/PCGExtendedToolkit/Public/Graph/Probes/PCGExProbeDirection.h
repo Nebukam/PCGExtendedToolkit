@@ -39,6 +39,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorDirection : public FPCGExProb
 	/** Transform the direction with the point's */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTransformDirection = true;
+
+	/** This probe will sample candidates after the other. This is much more efficient. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bDoChainedProcessing = true;
 };
 
 /**
@@ -50,8 +54,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeDirection : public UPCGExProbeOperation
 	GENERATED_BODY()
 
 public:
+	virtual bool RequiresChainProcessing() override;
 	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
-	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST) override;
+	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges) override;
+
+	virtual void PrepareBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate) override;
+	virtual void ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate) override;
+	virtual void ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeDescriptorDirection Descriptor;
 

@@ -135,7 +135,7 @@ namespace PCGExSimplifyClusters
 		}
 
 		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
-		const double FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
+		const double FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold * 0.5);
 		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 
 		if (!Settings->bMergeAboveAngularThreshold)

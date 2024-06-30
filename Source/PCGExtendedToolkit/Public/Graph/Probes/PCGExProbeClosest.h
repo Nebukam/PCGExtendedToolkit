@@ -59,8 +59,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeClosest : public UPCGExProbeOperation
 public:
 	virtual bool RequiresDirectProcessing() override;
 	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
-	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST) override;
-	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST) override;
+	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges) override;
+	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeDescriptorClosest Descriptor;
 

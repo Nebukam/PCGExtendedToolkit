@@ -11,6 +11,11 @@
 
 namespace PCGExProbing
 {
+	struct FBestCandidate;
+}
+
+namespace PCGExProbing
+{
 	struct FCandidate;
 }
 
@@ -52,24 +57,22 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeOperation : public UPCGExOperation
 public:
 	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO);
 	virtual bool RequiresDirectProcessing();
-	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks = nullptr, const FVector& ST = FVector::ZeroVector);
-	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks = nullptr, const FVector& ST = FVector::ZeroVector);
+	virtual bool RequiresChainProcessing();
+	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges);
+
+	virtual void PrepareBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate);
+	virtual void ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate);
+	virtual void ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges);
+
+	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges);
 
 	virtual void Cleanup() override;
 
 	double SearchRadiusSquared = -1;
 	PCGExData::FCache<double>* SearchRadiusCache = nullptr;
-
-	TSet<uint64> UniqueEdges;
-
 	FPCGExProbeDescriptorBase* BaseDescriptor = nullptr;
 
 protected:
-	mutable FRWLock UniqueEdgesLock;
-
-
 	const PCGExData::FPointIO* PointIO = nullptr;
 	TArray<double> LocalWeightMultiplier;
-
-	void AddEdge(uint64 Edge);
 };

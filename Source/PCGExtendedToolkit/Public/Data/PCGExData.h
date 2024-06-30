@@ -82,9 +82,11 @@ namespace PCGExData
 	public:
 		FName FullName = NAME_None;
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
-		const uint64 UID;
+		FPCGMetadataAttributeBase* Attribute = nullptr;		
+		const uint64 UID;		
 		FPointIO* Source = nullptr;
 
+		bool bIsPureReader = false;
 
 		FCacheBase(const FName InFullName, const EPCGMetadataTypes InType):
 			FullName(InFullName), Type(InType), UID(CacheUID(FullName, Type))
@@ -140,7 +142,9 @@ namespace PCGExData
 				FWriteScopeLock WriteScopeLock(CacheLock);
 				PCGEx::TFAttributeReader<T>* TypedReader = new PCGEx::TFAttributeReader<T>(FullName);
 				if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) }
+				else { Attribute = TypedReader->Accessor->GetAttribute(); }
 				Reader = TypedReader;
+				bIsPureReader = false;
 				return Reader;
 			}
 			FWriteScopeLock WriteScopeLock(CacheLock);
@@ -152,6 +156,11 @@ namespace PCGExData
 			{
 				bInitialized = false;
 				PCGEX_DELETE(TypedReader)
+			}
+			else
+			{
+				Attribute = TypedReader->Accessor->GetAttribute();
+				bIsPureReader = true;
 			}
 
 			Reader = TypedReader;
@@ -168,10 +177,14 @@ namespace PCGExData
 				FWriteScopeLock WriteScopeLock(CacheLock);
 
 				bInitialized = true;
+				bIsPureReader = false;
 
 				Writer = new PCGEx::TFAttributeWriter<T>(FullName, DefaultValue, bAllowInterpolation);
+
 				if (bUninitialized) { Writer->BindAndSetNumUninitialized(Source); }
 				else { Writer->BindAndGet(Source); }
+				Attribute = Writer->Accessor->GetAttribute();
+
 				return Writer;
 			}
 		}
@@ -186,10 +199,14 @@ namespace PCGExData
 				FWriteScopeLock WriteScopeLock(CacheLock);
 
 				bInitialized = true;
+				bIsPureReader = false;
 
 				Writer = new PCGEx::TFAttributeWriter<T>(FullName);
+
 				if (bUninitialized) { Writer->BindAndSetNumUninitialized(Source); }
 				else { Writer->BindAndGet(Source); }
+				Attribute = Writer->Accessor->GetAttribute();
+
 				return Writer;
 			}
 		}
@@ -203,8 +220,10 @@ namespace PCGExData
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
 				bInitialized = true;
+				bIsPureReader = true;
 
 				Getter->GrabAndDump(Source, Values, bCaptureMinMax, Min, Max);
+				Attribute = Getter->Attribute;
 			}
 		}
 

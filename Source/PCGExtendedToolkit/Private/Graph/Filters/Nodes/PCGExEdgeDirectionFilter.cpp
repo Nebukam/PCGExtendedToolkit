@@ -19,7 +19,7 @@ namespace PCGExNodeAdjacency
 	{
 		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
 
-		bFromNode = TypedFilterFactory->Descriptor.Origin == EPCGExAdjacencyDirectionOrigin::FromNode;
+		bFromNode = TypedFilterFactory->Descriptor.DirectionOrder == EPCGExAdjacencyDirectionOrigin::FromNode;
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
@@ -212,7 +212,7 @@ PCGEX_CREATE_FILTER_FACTORY(EdgeDirection)
 #if WITH_EDITOR
 FString UPCGExEdgeDirectionFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = TEXT("Edge Direction ") + PCGExCompare::ToString(Descriptor.Comparison);
+	FString DisplayName = TEXT("Edge Direction ") + PCGExCompare::ToString(Descriptor.DotComparisonSettings.Comparison);
 
 	DisplayName += Descriptor.Direction.GetName().ToString();
 	DisplayName += TEXT(" (");

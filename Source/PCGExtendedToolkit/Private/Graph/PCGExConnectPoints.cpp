@@ -104,6 +104,8 @@ namespace PCGExConnectPoints
 {
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE_TARRAY(DistributedEdgesSet)
+
 		PCGEX_DELETE(GraphBuilder)
 
 		StartPtr = nullptr;
@@ -114,6 +116,8 @@ namespace PCGExConnectPoints
 
 		ProbeOperations.Empty();
 		DirectProbeOperations.Empty();
+		ChainProbeOperations.Empty();
+		SharedProbeOperations.Empty();
 
 		Positions.Empty();
 		CanGenerate.Empty();
@@ -148,8 +152,13 @@ namespace PCGExConnectPoints
 			if (NewOperation->SearchRadiusSquared == -1) { bUseVariableRadius = true; }
 			MaxRadiusSquared = FMath::Max(NewOperation->SearchRadiusSquared, MaxRadiusSquared);
 
+			if (NewOperation->RequiresChainProcessing()) { ChainProbeOperations.Add(NewOperation); }
+			else { SharedProbeOperations.Add(NewOperation); }
+
 			ProbeOperations.Add(NewOperation);
 		}
+
+		NumChainedOps = ChainProbeOperations.Num();
 
 		if (ProbeOperations.IsEmpty() && DirectProbeOperations.IsEmpty()) { return false; }
 
@@ -213,14 +222,30 @@ namespace PCGExConnectPoints
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
+	void FProcessor::PrepareParallelLoopForPoints(const TArray<uint64>& Loops)
+	{
+		FPointsProcessor::PrepareParallelLoopForPoints(Loops);
+		for (int i = 0; i < Loops.Num(); i++) { DistributedEdgesSet.Add(new TSet<uint64>()); }
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectPointsElement::ProcessSinglePoint);
 
 		if (!CanGenerate[Index]) { return; } // Not a generator
 
-		TSet<uint64>* TempStack = nullptr;
-		if (bPreventStacking) { TempStack = new TSet<uint64>(); }
+		TSet<uint64>* UniqueEdges = DistributedEdgesSet[LoopIdx];
+		TSet<uint64>* LocalConnectionStack = nullptr;
+		if (bPreventStacking) { LocalConnectionStack = new TSet<uint64>(); }
+
+
+		TArray<PCGExProbing::FBestCandidate> BestCandidates;
+
+		if (NumChainedOps > 0)
+		{
+			BestCandidates.SetNum(NumChainedOps);
+			for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->PrepareBestCandidate(Index, Point, BestCandidates[i]); }
+		}
 
 		if (!ProbeOperations.IsEmpty())
 		{
@@ -239,38 +264,44 @@ namespace PCGExConnectPoints
 
 				const FVector Position = Positions[OtherPointIndex];
 				const FVector Dir = (Origin - Position).GetSafeNormal();
-				Candidates.Emplace(
+				const int32 EmplaceIndex = Candidates.Emplace(
 					OtherPointIndex,
 					Dir,
 					FVector::DistSquared(Position, Origin),
 					bPreventStacking ? PCGEx::GH(Dir, CWStackingTolerance) : 0);
+
+				if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessCandidateChained(i, Point, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i]); } }
 			};
 
 			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(MaxRadius))), ProcessPoint);
 
+			if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessBestCandidate(Index, Point, BestCandidates[i], Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); } }
+
 			if (!Candidates.IsEmpty())
 			{
-				//Candidates.Sort([&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
 				Algo::Sort(Candidates, [&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
-				for (UPCGExProbeOperation* Op : ProbeOperations) { Op->ProcessCandidates(Index, Point, Candidates, TempStack, CWStackingTolerance); }
+				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, Point, Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
+			}
+			else
+			{
+				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, Point, Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
 			}
 		}
 
-		for (UPCGExProbeOperation* Op : DirectProbeOperations) { Op->ProcessNode(Index, Point, TempStack, CWStackingTolerance); }
+		for (UPCGExProbeOperation* Op : DirectProbeOperations) { Op->ProcessNode(Index, Point, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
 
-		PCGEX_DELETE(TempStack)
+		PCGEX_DELETE(LocalConnectionStack)
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		auto InsertEdges = [&](UPCGExProbeOperation* Op)
+		for (const TSet<uint64>* EdgesSet : DistributedEdgesSet)
 		{
-			GraphBuilder->Graph->InsertEdgesUnsafe(Op->UniqueEdges, -1);
-			Op->UniqueEdges.Empty();
-		};
+			GraphBuilder->Graph->InsertEdgesUnsafe(*EdgesSet, -1);
+			delete EdgesSet;
+		}
 
-		for (UPCGExProbeOperation* Op : ProbeOperations) { InsertEdges(Op); }
-		for (UPCGExProbeOperation* Op : DirectProbeOperations) { InsertEdges(Op); }
+		DistributedEdgesSet.Empty();
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr);
 	}

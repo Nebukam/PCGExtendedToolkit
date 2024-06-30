@@ -88,7 +88,7 @@ namespace PCGExFusePoints
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FusePoints)
 

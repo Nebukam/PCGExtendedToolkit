@@ -166,7 +166,7 @@ namespace PCGExNodeAdjacency
 			}
 		}
 
-		return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold);
+		return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold, Adjacency.ThresholdTolerance);
 	}
 }
 

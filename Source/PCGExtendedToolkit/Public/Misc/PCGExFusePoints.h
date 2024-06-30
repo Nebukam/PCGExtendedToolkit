@@ -136,7 +136,7 @@ namespace PCGExFusePoints
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

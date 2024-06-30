@@ -573,8 +573,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 
 	void ComputeDot()
 	{
-		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : -1;
-		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : 1;
+		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle * 0.5) : -1;
+		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle * 0.5) : 1;
 	}
 };
 

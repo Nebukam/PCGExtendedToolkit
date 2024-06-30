@@ -25,7 +25,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterDescriptor
 	}
 
 	/** Type of check; Note that Fast comparison ignores adjacency consolidation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExDirectionCheckMode ComparisonQuality = EPCGExDirectionCheckMode::Dot;
 
 	/** Adjacency Settings */
@@ -33,19 +33,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterDescriptor
 	FPCGExAdjacencySettings Adjacency;
 
 	/** Direction orientation */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExAdjacencyDirectionOrigin Origin = EPCGExAdjacencyDirectionOrigin::FromNode;
-
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExAdjacencyDirectionOrigin DirectionOrder = EPCGExAdjacencyDirectionOrigin::FromNode;
 
 	/** Where to read the compared direction from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExFetchType CompareAgainst = EPCGExFetchType::Attribute;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector Direction;
 
 	/** Direction for computing the dot product against the edge's. */

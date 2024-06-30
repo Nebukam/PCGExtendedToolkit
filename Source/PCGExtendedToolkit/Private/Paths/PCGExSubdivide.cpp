@@ -161,7 +161,7 @@ namespace PCGExSubdivide
 		Metrics.Add(EndPos);
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
 		if (!Milestones.IsValidIndex(Iteration + 1)) { return; } // Ignore last point
 

@@ -77,7 +77,7 @@ namespace PCGExWriteIndex
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		if (DoubleWriter) { DoubleWriter->Values[Index] = static_cast<double>(Index) / NumPoints; }
 		else { IntWriter->Values[Index] = Index; }

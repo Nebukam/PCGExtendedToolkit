@@ -125,7 +125,7 @@ TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::InputPinPro
 	return PinProperties;
 }
 
-FName UPCGExClusterStateFactoryProviderSettings::GetMainOutputLabel() const { return PCGExCluster::OutputNodeStateLabel; }
+FName UPCGExClusterStateFactoryProviderSettings::GetMainOutputLabel() const { return PCGExCluster::OutputNodeFlagLabel; }
 
 UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {

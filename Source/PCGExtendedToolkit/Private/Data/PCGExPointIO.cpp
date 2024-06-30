@@ -317,10 +317,12 @@ namespace PCGExData
 		Pairs.Empty(Sources.Num());
 		TSet<uint64> UniqueData;
 		UniqueData.Reserve(Sources.Num());
+
 		for (FPCGTaggedData& Source : Sources)
 		{
-			if (UniqueData.Contains(Source.Data->UID)) { continue; } // Dedupe
-			UniqueData.Add(Source.Data->UID);
+			bool bIsAlreadyInSet;
+			UniqueData.Add(Source.Data->UID, &bIsAlreadyInSet);
+			if (bIsAlreadyInSet) { continue; } // Dedupe
 
 			const UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
 			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }

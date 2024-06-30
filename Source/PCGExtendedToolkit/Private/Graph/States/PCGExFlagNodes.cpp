@@ -18,7 +18,7 @@ PCGExData::EInit UPCGExFlagNodesSettings::GetEdgeOutputInitMode() const { return
 TArray<FPCGPinProperties> UPCGExFlagNodesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExCluster::SourceNodeStateLabel, "Node states.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExCluster::SourceNodeFlagLabel, "Node states.", Required, {})
 	return PinProperties;
 }
 
@@ -36,7 +36,7 @@ bool FPCGExFlagNodesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FlagNodes)
 
-	return PCGExFactories::GetInputFactories(Context, PCGExCluster::SourceNodeStateLabel, Context->StateFactories, {PCGExFactories::EType::StateNode}, true);
+	return PCGExFactories::GetInputFactories(Context, PCGExCluster::SourceNodeFlagLabel, Context->StateFactories, {PCGExFactories::EType::StateNode}, true);
 }
 
 bool FPCGExFlagNodesElement::ExecuteInternal(

@@ -501,40 +501,40 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 	}
 
 	/** Comparison of the Dot value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
 
 	/** If enabled, the dot product will be made absolute before testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExDotUnits DotUnits = EPCGExDotUnits::Raw;
 
 	/** If enabled, the dot product will be made absolute before testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bUnsignedDot = false;
 
 	/** Type of Dot value source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExFetchType DotValue = EPCGExFetchType::Constant;
 
 	/** Dot value use for comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExFetchType::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector DotAttribute;
+	FPCGAttributePropertyInputSelector DotOrDegreesAttribute;
 
 	/** Dot value use for comparison (In raw -1/1 range) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExFetchType::Constant && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=-1, ClampMax=1))
-	double DotConstantRaw = 1;
-
-	/** Dot value use for comparison (In degrees) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExFetchType::Constant && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
-	double DotConstantDegrees = 0;
+	double DotConstant = 1;
 
 	/** Tolerance for dot comparison. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=0, ClampMax=1))
-	double DotToleranceRaw = 0.1;
+	double DotTolerance = 0.1;
+	
+	/** Dot value use for comparison (In degrees) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExFetchType::Constant && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	double DegreesConstant = 0;
 
 	/** Tolerance for dot comparison. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
-	double DotToleranceDegrees = 0.1;
+	double DegreesTolerance = 0.1;
 
 	bool bUseLocalDot = false;
 	PCGExData::FCache<double>* LocalOperand = nullptr;
@@ -545,18 +545,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 
 		if (bUseLocalDot)
 		{
-			LocalOperand = InPrimaryDataCache->GetOrCreateGetter<double>(DotAttribute);
+			LocalOperand = InPrimaryDataCache->GetOrCreateGetter<double>(DotOrDegreesAttribute);
 			if (!LocalOperand)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Dot attribute: {0}."), FText::FromName(DotAttribute.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Dot attribute: {0}."), FText::FromName(DotOrDegreesAttribute.GetName())));
 				return false;
 			}
 		}
 
 		if (DotUnits == EPCGExDotUnits::Degrees)
 		{
-			DotToleranceRaw = PCGExMath::DegreesToDot(DotToleranceDegrees);
-			DotConstantRaw = PCGExMath::DegreesToDot(DotConstantDegrees);
+			DotTolerance = PCGExMath::DegreesToDot(DegreesTolerance * 0.5);
+			DotConstant = PCGExMath::DegreesToDot(DegreesConstant * 0.5);
 		}
 
 		return true;
@@ -572,15 +572,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 			case EPCGExDotUnits::Raw:
 				return LocalOperand->Values[PointIndex];
 			case EPCGExDotUnits::Degrees:
-				return PCGExMath::DegreesToDot(LocalOperand->Values[PointIndex]);
+				return PCGExMath::DegreesToDot(LocalOperand->Values[PointIndex] * 0.5);
 			}
 		}
-		return DotToleranceRaw;
+		return DotTolerance;
 	}
 
 	bool Test(const double A, const double B) const
 	{
-		return PCGExCompare::Compare(Comparison, A, B, DotToleranceRaw);
+		return PCGExCompare::Compare(Comparison, A, B, DotTolerance);
 	}
 };
 

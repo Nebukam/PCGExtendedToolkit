@@ -7,6 +7,8 @@
 
 PCGEX_CREATE_PROBE_FACTORY(Direction, {}, {})
 
+bool UPCGExProbeDirection::RequiresChainProcessing() { return Descriptor.bDoChainedProcessing; }
+
 bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
@@ -32,43 +34,98 @@ bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 	return true;
 }
 
-void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST)
+void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges)
 {
-	bool bIsStacking;
+	bool bIsAlreadyConnected;
 	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
 	double BestDot = -1;
 	double BestDist = TNumericLimits<double>::Max();
-	int32 BestIndex = -1;
+	int32 BestCandidateIndex = -1;
 
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
 	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
 
-	for (const PCGExProbing::FCandidate& C : Candidates)
+	for (int i = 0; i < Candidates.Num(); i++)
 	{
-		if (C.Distance > R) { break; }
+		const PCGExProbing::FCandidate& C = Candidates[i];
 
-		if (Stacks)
-		{
-			Stacks->Add(C.GH, &bIsStacking);
-			if (bIsStacking) { continue; }
-		}
+		if (C.Distance > R) { break; }
+		if (ConnectedSet && ConnectedSet->Contains(C.GH)) { continue; }
+		if (OutEdges->Contains(PCGEx::H64(Index, C.PointIndex))) { continue; }
 
 		const double Dot = FVector::DotProduct(Dir, C.Direction);
 
 		if (Dot < MaxDot) { continue; }
 
-		if (Dot > BestDot)
+		if (Dot >= BestDot)
 		{
 			if (C.Distance < BestDist)
 			{
 				BestDist = C.Distance;
 				BestDot = Dot;
-				BestIndex = C.PointIndex;
+				BestCandidateIndex = i;
 			}
 		}
 	}
 
-	if (BestIndex != -1) { AddEdge(PCGEx::H64(Index, BestIndex)); }
+	if (BestCandidateIndex != -1)
+	{
+		const PCGExProbing::FCandidate& C = Candidates[BestCandidateIndex];
+
+		if (ConnectedSet)
+		{
+			ConnectedSet->Add(C.GH, &bIsAlreadyConnected);
+			if (bIsAlreadyConnected) { return;; }
+		}
+
+		OutEdges->Add(PCGEx::H64(Index, C.PointIndex));
+	}
+}
+
+void UPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate)
+{
+	InBestCandidate.BestIndex = -1;
+	InBestCandidate.BestPrimaryValue = -1;
+	InBestCandidate.BestSecondaryValue = TNumericLimits<double>::Max();
+}
+
+void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
+{
+	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
+	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
+	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
+
+	if (Candidate.Distance > R) { return; }
+
+	const double Dot = FVector::DotProduct(Dir, Candidate.Direction);
+
+	if (Dot < MaxDot) { return; }
+
+	if (Dot >= InBestCandidate.BestPrimaryValue)
+	{
+		if (Candidate.Distance < InBestCandidate.BestSecondaryValue)
+		{
+			InBestCandidate.BestSecondaryValue = Candidate.Distance;
+			InBestCandidate.BestPrimaryValue = Dot;
+			InBestCandidate.BestIndex = CandidateIndex;
+		}
+	}
+}
+
+void UPCGExProbeDirection::ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges)
+{
+	if (InBestCandidate.BestIndex == -1) { return; }
+
+	const PCGExProbing::FCandidate& C = Candidates[InBestCandidate.BestIndex];
+
+	bool bIsAlreadyConnected;
+	if (Stacks)
+	{
+		Stacks->Add(C.GH, &bIsAlreadyConnected);
+		if (bIsAlreadyConnected) { return; }
+	}
+
+	OutEdges->Add(PCGEx::H64(Index, C.PointIndex));
 }
 
 #if WITH_EDITOR

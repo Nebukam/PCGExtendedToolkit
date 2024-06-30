@@ -7,21 +7,21 @@
 
 #include "PCGExPointsProcessor.h"
 
-#include "PCGExTransmogBitmask.generated.h"
+#include "PCGExMatchAndSet.generated.h"
 
-class UPCGExBitmaskTransmogFactoryBase;
+class UPCGExMatchAndSetFactoryBase;
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExTransmogBitmaskSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(TransmogBitmask, "Bitmask Transmog", "Use a bitmask along with transmutation modules to turn a bitmask attribute into magic.");
+	PCGEX_NODE_INFOS(MatchAndSet, "Match And Set", "TBD.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -37,28 +37,30 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** Used as default bitmask attribute to read from. \n Note that transmutations can read from a different bitmask.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName DefaultBitmaskAttribute = "Bitmask";
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExAttributeGatherSettings DefaultAttributesFilter;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bDoConsumeProcessedAttributes = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoConsumeProcessedAttributes"))
+	FPCGExAttributeFilterSettings ConsumeProcessedAttributes;
+	
 private:
-	friend class FPCGExTransmogBitmaskElement;
+	friend class FPCGExMatchAndSetElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExTransmogBitmaskContext final : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExMatchAndSetContext final : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExTransmogBitmaskElement;
+	friend class FPCGExMatchAndSetElement;
 
-	virtual ~FPCGExTransmogBitmaskContext() override;
+	virtual ~FPCGExMatchAndSetContext() override;
 
 	PCGEx::FAttributesInfos* DefaultAttributes = nullptr;
-	TArray<UPCGExBitmaskTransmogFactoryBase*> TransmogsFactories;
+	TArray<UPCGExMatchAndSetFactoryBase*> MatchAndSetsFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExTransmogBitmaskElement final : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExMatchAndSetElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -71,7 +73,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExTransmogBitmask
+namespace PCGExMatchAndSet
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{

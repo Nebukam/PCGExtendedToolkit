@@ -69,8 +69,8 @@ enum class EPCGExClusterSearchOrientationMode : uint8
 
 namespace PCGExCluster
 {
-	const FName OutputNodeStateLabel = TEXT("NodeState");
-	const FName SourceNodeStateLabel = TEXT("NodeStates");
+	const FName OutputNodeFlagLabel = TEXT("Flag");
+	const FName SourceNodeFlagLabel = TEXT("Node Flags");
 
 	PCGEX_ASYNC_STATE(State_ProcessingCluster)
 	PCGEX_ASYNC_STATE(State_ProjectingCluster)

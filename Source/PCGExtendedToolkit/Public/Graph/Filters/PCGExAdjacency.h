@@ -55,44 +55,44 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 	}
 
 	/** How many adjacent items should be tested. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExAdjacencyTestMode Mode = EPCGExAdjacencyTestMode::Some;
 
 	/** How to consolidate value for testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExAdjacencyTestMode::All", EditConditionHides))
 	EPCGExAdjacencyGatherMode Consolidation = EPCGExAdjacencyGatherMode::Average;
 
 	/** How to handle threshold comparison. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
 	EPCGExComparison ThresholdComparison = EPCGExComparison::NearlyEqual;
-
-	/** Comparison threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides, ClampMin=0))
-	int32 ThresholdTolerance = 0;
-
+	
 	/** Define the nodes subset' size that must meet requirements. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
 	EPCGExMeanMeasure ThresholdType = EPCGExMeanMeasure::Discrete;
 
 	/** Define the nodes subset' size that must meet requirements. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
 	EPCGExFetchType ThresholdSource = EPCGExFetchType::Constant;
 
 	/** Discrete threshold value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Constant && ThresholdMeasure == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdSource==EPCGExFetchType::Constant && ThresholdType == EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
 	int32 DiscreteThreshold = 1;
 
 	/** Relative threshold value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Constant && ThresholdMeasure == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdSource==EPCGExFetchType::Constant && ThresholdType == EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
 	double RelativeThreshold = 0.5;
 
 	/** Local measure attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdSource==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector ThresholdAttribute;
 
 	/** When using relative threshold mode, choose how to round it to a discrete value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdMeasure == EPCGExMeanMeasure::Relative", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && ThresholdType == EPCGExMeanMeasure::Relative", EditConditionHides))
 	EPCGExRelativeThresholdRoundingMode Rounding = EPCGExRelativeThresholdRoundingMode::Round;
+
+	/** Comparison threshold */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (ThresholdComparison==EPCGExComparison::NearlyEqual || ThresholdComparison==EPCGExComparison::NearlyNotEqual)", EditConditionHides, ClampMin=0))
+	int32 ThresholdTolerance = 0;
 
 	bool bTestAllNeighbors = false;
 	bool bUseDiscreteMeasure = false;

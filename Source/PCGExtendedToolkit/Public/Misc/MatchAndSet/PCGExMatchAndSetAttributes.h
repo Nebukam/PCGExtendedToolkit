@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExBitmaskTransmog.h"
+#include "PCGExMatchAndSetFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
@@ -12,19 +12,19 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
 
-#include "PCGExTransmogAttributes.generated.h"
+#include "PCGExMatchAndSetAttributes.generated.h"
 
-namespace PCGExTransmogAttribute
+namespace PCGExMatchAndSetAttribute
 {
-	const FName SourceForwardSuccess = TEXT("ForwardOnSuccess");
-	const FName SourceForwardFail = TEXT("ForwardOnFail");
+	const FName SourceForwardSuccess = TEXT("MatchSuccess");
+	const FName SourceForwardFail = TEXT("MatchFail");
 }
 
 /**
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExTransmogAttributesOperation : public UPCGExBitmaskTransmogOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetAttributesOperation : public UPCGExMatchAndSetOperation
 {
 	GENERATED_BODY()
 
@@ -32,30 +32,31 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache) override;
-	virtual void ProcessPoint(const FPCGPoint& Point, int64& Flags) override;
+	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override;
+	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override;
 
 	virtual void Cleanup() override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExTransmogAttributesFactory : public UPCGExBitmaskTransmogFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetAttributesFactory : public UPCGExMatchAndSetFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	virtual UPCGExBitmaskTransmogOperation* CreateOperation() const override;
+	virtual UPCGExMatchAndSetOperation* CreateOperation() const override;
 	virtual bool Boot(FPCGContext* InContext) override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|TransmogAttributes")
-class PCGEXTENDEDTOOLKIT_API UPCGExTransmogAttributesProviderSettings : public UPCGExBitmaskTransmogProviderSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|MatchAndSetAttributes")
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetAttributesProviderSettings : public UPCGExMatchAndSetProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(TransmogAttributesAttribute, "Transmog : Attribute", "Forward attributes based on the check result.")
+	PCGEX_NODE_INFOS(MatchAndSetAttributesAttribute, "MatchAndSet : Attributes", "Forward attributes based on the match result.")
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 #endif

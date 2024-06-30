@@ -20,4 +20,15 @@ namespace PCGExProbing
 		{
 		}
 	};
+
+	struct PCGEXTENDEDTOOLKIT_API FBestCandidate
+	{
+		int32 BestIndex = -1;
+		double BestPrimaryValue = 0;
+		double BestSecondaryValue = 0;
+
+		FBestCandidate()
+		{
+		}
+	};
 }
