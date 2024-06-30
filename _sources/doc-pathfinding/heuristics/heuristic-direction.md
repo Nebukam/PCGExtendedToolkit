@@ -4,8 +4,8 @@ grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Direction
 subtitle: Subtitle
+summary: The **Direction** heuristic node ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_component.svg
 preview_img: docs/splash-search-direction.png
 toc_img: placeholder.jpg

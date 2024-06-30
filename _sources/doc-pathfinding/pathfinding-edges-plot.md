@@ -4,8 +4,8 @@ layout: page
 parent: Pathfinding
 title: Plot Edges Pathfinding
 subtitle: Find a path that goes through multiple chained points.
+summary: The **Plot Edges Pathfinding** mode ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_pathfinding-edges-plot.svg
 preview_img: docs/splash-plot-edges-pathfinding.png
 toc_img: placeholder.jpg

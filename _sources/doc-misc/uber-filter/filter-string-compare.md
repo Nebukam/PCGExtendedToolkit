@@ -2,8 +2,8 @@
 layout: page
 grand_parent: Misc
 parent: Uber Filter
-title: 🝖 Compare (String)
-subtitle: String comparison of two attributes
+title: 🝖 String Compare
+subtitle: The **Compare String Filter** compares two strings
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg

@@ -4,8 +4,8 @@ layout: page
 parent: Misc
 title: Uber Filter
 subtitle: Combine multiple filters
+summary: The **Uber Filter** node is a one-stop node for all your filtering needs.
 color: white
-summary: A one-stop node for all your filtering needs.
 splash: icons/icon_misc-write-index.svg
 preview_img: docs/splash-write-index.png
 toc_img: placeholder.jpg

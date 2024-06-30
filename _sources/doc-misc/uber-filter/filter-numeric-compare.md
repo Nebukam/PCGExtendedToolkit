@@ -2,8 +2,8 @@
 layout: page
 grand_parent: Misc
 parent: Uber Filter
-title: 🝖 Compare (Numeric)
-subtitle: Numerical comparison of two attributes
+title: 🝖 Numeric Comparison
+subtitle: The **Numeric Comparison Filter** compares the arithmetic value of two attributes
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
@@ -20,7 +20,7 @@ inputs:
         pin : 
 outputs:
     -   name : Filter
-        desc : A single filter
+        desc : A single filter definition
         pin : params
 ---
 

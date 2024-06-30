@@ -4,8 +4,8 @@ grand_parent: Misc
 parent: Partition by Values
 title: Partition by Values (Static)
 subtitle: Create complex partitions from multiple criteria
-color: white
 summary: The **Partition by Values** node offer enhanced control over sub-group creation using multiple criteria, with rules specifying attributes for partitioning and optional pre-processing. 
+color: white
 splash: icons/icon_misc-partition-by-values.svg
 preview_img: docs/splash-partition-by-values.png
 toc_img: docs/splash-partition-by-values.png

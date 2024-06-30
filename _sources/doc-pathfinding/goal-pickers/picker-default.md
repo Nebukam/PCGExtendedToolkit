@@ -4,8 +4,8 @@ grand_parent: Pathfinding
 parent: Goal Pickers
 title: Default
 subtitle: Match seeds to goals at the same index.
+summary: The **Default** picker ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_placement-center.svg
 preview_img: docs/splash-picker-default.png
 toc_img: placeholder.jpg

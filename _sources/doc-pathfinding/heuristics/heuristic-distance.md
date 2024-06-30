@@ -4,8 +4,8 @@ grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Shortest Distance
 subtitle: Subtitle
+summary: The **Shortest Distance** heuristic node ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_component.svg
 preview_img: docs/splash-search-shortest.png
 toc_img: placeholder.jpg

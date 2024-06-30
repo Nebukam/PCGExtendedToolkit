@@ -2,10 +2,10 @@
 layout: page
 #grand_parent: All Nodes
 parent: Pathfinding
-title: Plot Navmesh Pathfinding
+title: Plot Navmesh
 subtitle: Sample the navmesh to find a path that goes through multiple chained points.
+summary: The **Plot Navmesh** node ...
 color: white
-#summary: Each Plot dataset is interpreted as a list of point that must be connected by a single path, in order, then merged into a single consolidated path.
 splash: icons/icon_pathfinding-navmesh-plot.svg
 preview_img: docs/splash-navmesh-plot.png
 toc_img: placeholder.jpg

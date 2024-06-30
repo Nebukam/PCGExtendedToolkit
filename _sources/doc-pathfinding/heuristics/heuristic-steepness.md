@@ -4,8 +4,8 @@ grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Steepness
 subtitle: Favor flat paths
+summary: The **Steepness** heuristic node ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_component.svg
 preview_img: docs/splash-search-direction.png
 toc_img: placeholder.jpg

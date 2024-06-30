@@ -4,8 +4,8 @@ grand_parent: Misc
 parent: Debug
 title: Flush Debug
 subtitle: Flushes persistent debug lines
+summary: Flush persistent debug lines, to be used at the start of a PCG graph.
 color: red
-#summary: Flush persistent debug lines
 splash: icons/icon_hidden.svg
 preview_img: docs/splash-flush-debug.png
 toc_img: placeholder.jpg

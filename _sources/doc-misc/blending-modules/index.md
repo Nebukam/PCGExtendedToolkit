@@ -2,9 +2,8 @@
 layout: page
 parent: Misc
 title: Blending Modules
-subtitle: TBD
-color: white
 subtitle: An inventory of the available blending modules.
+color: white
 splash: icons/icon_sampling-point.svg
 preview_img: docs/splash-fuse-points.png
 nav_order: 10

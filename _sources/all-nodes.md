@@ -18,11 +18,6 @@ nav_order: 200
 {% include card_childs reference="Graphs" tagged='graphs' %}
 
 ---
-## Custom Graph Nodes
-<br>
-{% include card_childs reference="Custom Graphs" tagged='customgraph' %}
-
----
 ## Edges Nodes
 <br>
 {% include card_childs reference="Edges" tagged='edges' %}

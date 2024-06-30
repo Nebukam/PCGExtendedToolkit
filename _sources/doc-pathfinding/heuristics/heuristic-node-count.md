@@ -5,7 +5,7 @@ parent: 🝰 Heuristics
 title: 🝰 Least Nodes
 subtitle: Subtitle
 color: white
-#summary: summary_goes_here
+summary: The **Least Nodes** heuristic node ...
 splash: icons/icon_component.svg
 preview_img: docs/splash-search-least-nodes.png
 toc_img: placeholder.jpg

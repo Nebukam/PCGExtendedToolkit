@@ -4,8 +4,8 @@ layout: page
 parent: Pathfinding
 title: Edges Pathfinding
 subtitle: Find paths connecting seeds to goals.
+summary: The **Edges Pathfinding** mode ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_pathfinding-edges.svg
 preview_img: docs/splash-edges-pathfinding.png
 toc_img: placeholder.jpg

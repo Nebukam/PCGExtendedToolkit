@@ -4,8 +4,8 @@ grand_parent: Pathfinding
 parent: Search
 title: Dijkstra
 subtitle: Dijkstra's Algorithm
+summary: The **Dijkstra's Algorithm** search mode ...
 color: white
-#summary: Dijkstra's Algorithm
 splash: icons/icon_pathfinding-navmesh.svg
 preview_img: docs/splash-search-dijkstra.png
 toc_img: placeholder.jpg

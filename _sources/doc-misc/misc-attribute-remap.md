@@ -4,8 +4,8 @@ layout: page
 parent: Misc
 title: Attribute Remap
 subtitle: Highly customizable attribute remapping.
-color: white
 summary: The **Attribute Remap** allows you to easily do component-wise attribute remapping and clamping.
+color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: docs/splash-remap.png
 toc_img: placeholder.jpg

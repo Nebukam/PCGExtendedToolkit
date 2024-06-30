@@ -4,8 +4,8 @@ layout: page
 parent: Misc
 title: Discard Points by Overlap
 subtitle: Self-pruning but for collections.
+summary: The **Discard Points by Overlap** node ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_misc-discard-by-overlap.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg

@@ -1,6 +1,6 @@
 ---
 layout: page
-grand_parent: Graphs
+grand_parent: Clusters
 parent: Find Node States
 title: 🝢 Neighbors Properties
 subtitle: A specific rule for one or multiple neighbor properties sampling

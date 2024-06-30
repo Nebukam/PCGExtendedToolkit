@@ -4,8 +4,8 @@ grand_parent: Pathfinding
 parent: Search
 title: A* Star
 subtitle: A* Algorithm
+summary: The **A* Algorithm** search mode ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_pathfinding-navmesh.svg
 preview_img: docs/splash-search-astar.png
 toc_img: placeholder.jpg

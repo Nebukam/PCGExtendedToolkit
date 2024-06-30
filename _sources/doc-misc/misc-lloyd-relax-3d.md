@@ -3,7 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Misc
 title: 3D Lloyd Relaxation
-subtitle: Applies the Lloyd Relaxation algorithm.
+summary: The **2D Lloyd Relaxation** node applies the Lloyd Relaxation algorithm in 3D.
 color: white
 summary: Applies any number of Lloyd relaxation passes, in 3D space.
 splash: icons/icon_edges-relax.svg

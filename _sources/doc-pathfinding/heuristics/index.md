@@ -3,8 +3,8 @@ layout: page
 parent: Pathfinding
 title: 🝰 Heuristics
 subtitle: An inventory of the available heuristics modules.
-color: white
 #summary: summary_goes_here
+color: white
 splash: icons/icon_component.svg
 preview_img: placeholder.jpg
 nav_order: 20

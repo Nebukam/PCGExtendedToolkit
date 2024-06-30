@@ -2,8 +2,8 @@
 layout: page
 grand_parent: Misc
 parent: Uber Filter
-title: 🝖 Compare (Dot)
-subtitle: Compare the dot product of two vectors
+title: 🝖 Dot Product
+subtitle: The **Dot Product Filter** compares the dot product of two direction vectors
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg

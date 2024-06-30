@@ -4,8 +4,8 @@ layout: page
 parent: Pathfinding
 title: Find Contours
 subtitle: Find edge contours & outlines
+summary: The **Find Contours** node finds hole/outlines contours in a graph, using points as proximity seeds.
 color: white
-summary: The **Find Contours** nodes finds hole/outlines contours in a graph, using points as proximity seeds.
 splash: icons/icon_edges-extras.svg
 preview_img: docs/splash-edges-extras.png
 toc_img: placeholder.jpg

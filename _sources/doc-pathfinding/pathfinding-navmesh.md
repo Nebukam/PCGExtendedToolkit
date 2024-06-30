@@ -4,8 +4,8 @@ layout: page
 parent: Pathfinding
 title: Navmesh Pathfinding
 subtitle: Sample the navmesh to find paths
+summary: The **Navmesh** node ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_pathfinding-navmesh.svg
 preview_img: docs/splash-navmesh.png
 toc_img: placeholder.jpg

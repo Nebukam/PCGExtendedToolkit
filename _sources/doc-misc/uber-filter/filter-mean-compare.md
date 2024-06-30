@@ -2,8 +2,8 @@
 layout: page
 grand_parent: Misc
 parent: Uber Filter
-title: 🝖 Compare (Mean)
-subtitle: Compare the mean statistical value of two attributes
+title: 🝖 Mean Value
+subtitle: The **Mean Value Filter** compares the mean statistical value of two attributes
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
@@ -20,7 +20,7 @@ inputs:
         pin : 
 outputs:
     -   name : Filter
-        desc : A single filter
+        desc : A single filter definition
         pin : params
 ---
 

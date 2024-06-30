@@ -32,4 +32,4 @@ nav_order: 4
 ---
 # Inputs & Outputs
 ## Vtx & Edges
-See {% include lk id='Working with Graphs' %}
+See {% include lk id='Working with Clusters' %}

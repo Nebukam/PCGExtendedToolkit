@@ -842,7 +842,7 @@ figure.highlight pre, figure.highlight code { padding: 0; margin: 0; border: 0; 
 
 .node-io { display: flex; flex-direction: row; align-content: flex-start; justify-content: flex-start; flex-wrap: nowrap; align-items: flex-start; gap: 10px; margin-bottom: 40px; }
 
-.node-io .col { display: flex; flex: 1 1 auto; padding: 16px; padding-top: calc(1em + 20px); background-color: #212025; border-radius: 5px; font-size: 80%; gap: 10px; flex-direction: column; }
+.node-io .col { display: flex; flex: 1 1 50%; padding: 16px; padding-top: calc(1em + 20px); background-color: #212025; border-radius: 5px; font-size: 80%; gap: 10px; flex-direction: column; }
 
 .node-io .col::before { content: "→ Inputs"; font-size: 1em; transform: translateY(-128%); position: absolute; opacity: 0.2; }
 

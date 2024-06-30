@@ -4,8 +4,8 @@ grand_parent: Misc
 parent: Debug
 title: Draw Attributes
 subtitle: Draw lines and points from attributes
-color: red
 summary: This node is used in 100% of the screenshots of this documentation.
+color: red
 splash: icons/icon_misc-draw-attributes.svg
 preview_img: docs/splash-debug.png
 toc_img: placeholder.jpg

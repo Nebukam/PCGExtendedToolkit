@@ -13,6 +13,7 @@ tagged:
     - node
     - paths
 nav_order: 4
+has_children: true
 ---
 
 {% include header_card_node %}

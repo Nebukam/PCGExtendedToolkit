@@ -1,7 +1,7 @@
 ---
 layout: page
-grand_parent: Misc
-parent: Blending Modules
+grand_parent: Paths
+parent: Subdivide
 title: Inherit Last
 subtitle: Copy the last point' values
 color: white

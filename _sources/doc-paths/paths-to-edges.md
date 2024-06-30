@@ -23,7 +23,7 @@ nav_order: 6
 |:-------------|:------------------|
 |**Settings**||
 | Fuse Distance           | This define the distance at this the points are considered to be identical.  |
-| **Graph Output Settings**           | *See {% include lk id='Working with Graphs' a='#graph-output-settings-' %}.* |
+| **Graph Output Settings**           | *See {% include lk id='Working with Clusters' a='#graph-output-settings-' %}.* |
 
 ---
 # Inputs
@@ -33,5 +33,5 @@ Any number of point datasets assumed to be paths.
 ---
 # Outputs
 ## Vtx & Edges
-See {% include lk id='Working with Graphs' %}.  
+See {% include lk id='Working with Clusters' %}.  
 *Reminder that empty inputs will be ignored & pruned*.

@@ -4,8 +4,8 @@ layout: page
 parent: Misc
 title: Discard Points by Count
 subtitle: Filter point dataset by their point count.
+summary: The **Discard Points by Count** node ...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_misc-discard-by-count.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg

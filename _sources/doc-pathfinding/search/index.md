@@ -3,8 +3,8 @@ layout: page
 parent: Pathfinding
 title: Search
 subtitle: An inventory of the available search modules.
-color: white
 #summary: summary_goes_here
+color: white
 splash: icons/icon_pathfinding-navmesh.svg
 preview_img: placeholder.jpg
 nav_order: 10

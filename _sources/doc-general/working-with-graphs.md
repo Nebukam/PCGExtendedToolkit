@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: ∷ General
-title: Working with Graphs
+title: Working with Clusters
 subtitle: Vtx? Edges? 
 summary: A summary of what "graph" means and entails in the context of PCGEx.
 splash: icons/icon_edges-refine.svg
@@ -14,7 +14,7 @@ tagged:
 
 {% include header_card %}
 
-One of the main focus of PCGEx is working with graphs and edge-based structures. They're akin to a mesh without faces: a bunch of vertices connected by a bunch of edges.
+One of the main focus of PCGEx is working with Clusters : vtx & edge-based "graph" structures. They're akin to a mesh without faces: a bunch of vertices connected by a bunch of edges.
 {: .fs-5 .fw-400 } 
 
 {% include imgc a='docs/vtx-edge-cluster.png' %}  
@@ -36,7 +36,7 @@ PCGEx leverage PCG' point data as data holders in order to enable easy tweaking 
 ---
 ## Vtx
 
-A `Vtx` has two important piece of data written on it, and their position in space is relied upon for edge metrics -- `Vtx` being edges' start and end points.
+A `Vtx` has one important piece of data written on it, and their position in space is relied upon for edge metrics -- `Vtx` being edges' start and end points.
 ### Cached Index
 The `PCGEx/CachedIndex` attribute hold the index of the `Vtx` when it was written into a graph. This is the index `PCGEx/EdgeStart` and `PCGEx/EdgeEnd` refers to on the `Edges` points.  
 It is primarily useful to know whether the vtx structure has been altered or not, and ensure the graph is safe to use to avoid exceptions.
