@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Graph/PCGExEdgesProcessor.h"
-#include "PCGExBridgeEdgeClusters.generated.h"
+#include "PCGExConnectClusters.generated.h"
 
 class FPCGExPointIOMerger;
 
@@ -19,15 +19,15 @@ enum class EPCGExBridgeClusterMethod : uint8
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExBridgeEdgeClustersSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExConnectClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BridgeEdgeClusters, "Graph : Bridge Clusters", "Connects isolated edge clusters by their closest vertices.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(ConnectClusters, "Cluster : Connect", "Connects isolated edge clusters by their closest vertices, if they share the same vtx group.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 protected:
@@ -50,24 +50,24 @@ public:
 	FPCGExGeo2DProjectionSettings ProjectionSettings = FPCGExGeo2DProjectionSettings(false);
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 private:
-	friend class FPCGExBridgeEdgeClustersElement;
+	friend class FPCGExConnectClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext final : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersContext final : public FPCGExEdgesProcessorContext
 {
-	friend class FPCGExBridgeEdgeClustersElement;
+	friend class FPCGExConnectClustersElement;
 	friend class FPCGExCreateBridgeTask;
 
-	virtual ~FPCGExBridgeEdgeClustersContext() override;
+	virtual ~FPCGExConnectClustersContext() override;
 
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersElement final : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -22,7 +22,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPruneEdgesByLengthSettings : public UPCGExEdg
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PruneEdgesByLength, "Edges : Prune by Length", "Prune edges by length safely based on edges metrics. For more advanced/involved operations, prune edges yourself and use Sanitize Clusters.");
+	PCGEX_NODE_INFOS(PruneEdgesByLength, "Cluster : Prune edges by Length", "Prune edges by length safely based on edges metrics. For more advanced/involved operations, prune edges yourself and use Sanitize Clusters.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorEdge; }
 #endif
 
@@ -77,7 +77,7 @@ public:
 	FName MeanAttributeName = "Mean";
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 

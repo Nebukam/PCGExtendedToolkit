@@ -1,27 +1,27 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/Extras/PCGExVtxExtraSpecialEdges.h"
+#include "Graph/Edges/Properties/PCGExVtxPropertySpecialEdges.h"
 
-#define LOCTEXT_NAMESPACE "PCGExVtxExtraSpecialEdges"
-#define PCGEX_NAMESPACE PCGExVtxExtraSpecialEdges
+#define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialEdges"
+#define PCGEX_NAMESPACE PCGExVtxPropertySpecialEdges
 
 #define PCGEX_FOREACH_FIELD_SPECIALEDGE(MACRO)\
 MACRO(Shortest)\
 MACRO(Longest)\
 MACRO(Average)
 
-void UPCGExVtxExtraSpecialEdges::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExVtxPropertySpecialEdges::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExVtxExtraSpecialEdges* TypedOther = Cast<UPCGExVtxExtraSpecialEdges>(Other);
+	const UPCGExVtxPropertySpecialEdges* TypedOther = Cast<UPCGExVtxPropertySpecialEdges>(Other);
 	if (TypedOther)
 	{
 		Descriptor = TypedOther->Descriptor;
 	}
 }
 
-bool UPCGExVtxExtraSpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache)
+bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache)
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataCache)) { return false; }
 
@@ -40,7 +40,7 @@ bool UPCGExVtxExtraSpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCG
 	return bIsValidOperation;
 }
 
-void UPCGExVtxExtraSpecialEdges::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxPropertySpecialEdges::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	double LLongest = TNumericLimits<double>::Min();
 	int32 ILongest = -1;
@@ -84,22 +84,22 @@ void UPCGExVtxExtraSpecialEdges::ProcessNode(const int32 ClusterIdx, const PCGEx
 }
 
 #if WITH_EDITOR
-FString UPCGExVtxExtraSpecialEdgesSettings::GetDisplayName() const
+FString UPCGExVtxPropertySpecialEdgesSettings::GetDisplayName() const
 {
 	return TEXT("");
 }
 #endif
 
-UPCGExVtxExtraOperation* UPCGExVtxExtraSpecialEdgesFactory::CreateOperation() const
+UPCGExVtxPropertyOperation* UPCGExVtxPropertySpecialEdgesFactory::CreateOperation() const
 {
-	UPCGExVtxExtraSpecialEdges* NewOperation = NewObject<UPCGExVtxExtraSpecialEdges>();
+	UPCGExVtxPropertySpecialEdges* NewOperation = NewObject<UPCGExVtxPropertySpecialEdges>();
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }
 
-UPCGExParamFactoryBase* UPCGExVtxExtraSpecialEdgesSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExVtxPropertySpecialEdgesSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExVtxExtraSpecialEdgesFactory* NewFactory = NewObject<UPCGExVtxExtraSpecialEdgesFactory>();
+	UPCGExVtxPropertySpecialEdgesFactory* NewFactory = NewObject<UPCGExVtxPropertySpecialEdgesFactory>();
 	NewFactory->Descriptor = Descriptor;
 	return Super::CreateFactory(InContext, NewFactory);
 }

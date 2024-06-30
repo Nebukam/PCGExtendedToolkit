@@ -1,21 +1,21 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/PCGExBridgeEdgeClusters.h"
+#include "Graph/PCGExConnectClusters.h"
 
 #include "Data/PCGExPointIOMerger.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 
-#define LOCTEXT_NAMESPACE "PCGExBridgeEdgeClusters"
-#define PCGEX_NAMESPACE BridgeEdgeClusters
+#define LOCTEXT_NAMESPACE "PCGExConnectClusters"
+#define PCGEX_NAMESPACE ConnectClusters
 
-PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExConnectClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExConnectClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-PCGEX_INITIALIZE_ELEMENT(BridgeEdgeClusters)
+PCGEX_INITIALIZE_ELEMENT(ConnectClusters)
 
 
-FPCGExBridgeEdgeClustersContext::~FPCGExBridgeEdgeClustersContext()
+FPCGExConnectClustersContext::~FPCGExConnectClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
@@ -23,11 +23,11 @@ FPCGExBridgeEdgeClustersContext::~FPCGExBridgeEdgeClustersContext()
 }
 
 
-bool FPCGExBridgeEdgeClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExConnectClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(BridgeEdgeClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(ConnectClusters)
 
 	PCGEX_FWD(ProjectionSettings)
 	PCGEX_FWD(GraphBuilderSettings)
@@ -35,12 +35,12 @@ bool FPCGExBridgeEdgeClustersElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
+bool FPCGExConnectClustersElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBridgeEdgeClustersElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectClustersElement::Execute);
 
-	PCGEX_CONTEXT(BridgeEdgeClusters)
+	PCGEX_CONTEXT(ConnectClusters)
 
 	if (Context->IsSetup())
 	{
@@ -95,14 +95,14 @@ namespace PCGExBridgeClusters
 	{
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		PCGEX_SETTINGS(BridgeEdgeClusters)
+		PCGEX_SETTINGS(ConnectClusters)
 
 		return true;
 	}
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
 	{
-		PCGEX_SETTINGS(BridgeEdgeClusters)
+		PCGEX_SETTINGS(ConnectClusters)
 	}
 
 	void FProcessor::CompleteWork()
@@ -126,8 +126,8 @@ namespace PCGExBridgeClusters
 
 	bool FProcessorBatch::PrepareProcessing()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BridgeEdgeClusters)
-		const FPCGExBridgeEdgeClustersContext* InContext = static_cast<FPCGExBridgeEdgeClustersContext*>(Context);
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
+		const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(Context);
 
 		ConsolidatedEdges = TypedContext->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
 
@@ -150,7 +150,7 @@ namespace PCGExBridgeClusters
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
 	{
-		PCGEX_SETTINGS(BridgeEdgeClusters)
+		PCGEX_SETTINGS(ConnectClusters)
 		ConsolidatedEdges->Tags->Append(ClusterProcessor->EdgesIO->Tags);
 
 		return true;
@@ -170,8 +170,8 @@ namespace PCGExBridgeClusters
 		Merger->Write(AsyncManagerPtr); // Write base attributes value while finding bridges		
 
 		////
-		PCGEX_SETTINGS(BridgeEdgeClusters)
-		const FPCGExBridgeEdgeClustersContext* InContext = static_cast<FPCGExBridgeEdgeClustersContext*>(Context);
+		PCGEX_SETTINGS(ConnectClusters)
+		const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(Context);
 
 		const int32 NumBounds = ValidClusters.Num();
 		EPCGExBridgeClusterMethod SafeMethod = Settings->BridgeMethod;

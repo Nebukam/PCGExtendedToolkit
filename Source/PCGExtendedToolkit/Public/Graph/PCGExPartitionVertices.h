@@ -19,8 +19,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionVerticesSettings : public UPCGExEdge
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PartitionVertices, "Graph : Partition Vertices", "Split Vtx into per-cluster groups.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(PartitionVertices, "Cluster : Partition Vtx", "Split Vtx into per-cluster groups.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 protected:

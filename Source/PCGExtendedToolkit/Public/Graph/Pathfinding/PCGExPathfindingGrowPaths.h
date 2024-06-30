@@ -12,7 +12,7 @@
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 
-class UPCGExVtxExtraOperation;
+class UPCGExVtxPropertyOperation;
 
 namespace PCGExHeuristics
 {

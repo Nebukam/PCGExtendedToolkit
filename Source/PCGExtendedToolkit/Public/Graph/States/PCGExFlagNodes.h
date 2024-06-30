@@ -22,7 +22,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFlagNodesSettings : public UPCGExEdgesProcess
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FlagNodes, "Graph : Flag Nodes", "Find & writes node states as a int64 flag mask");
+	PCGEX_NODE_INFOS(FlagNodes, "Cluster : Flag Nodes", "Find & writes node states as a int64 flag mask");
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 

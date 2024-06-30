@@ -15,8 +15,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExUnpackClustersSettings : public UPCGExPointsP
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(UnpackClusters, "Graph : Unpack Clusters", "Restores vtx/edge clusters from packed dataset.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(UnpackClusters, "Cluster : Unpack", "Restores vtx/edge clusters from packed dataset.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;

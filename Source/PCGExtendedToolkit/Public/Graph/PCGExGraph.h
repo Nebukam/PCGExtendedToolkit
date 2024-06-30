@@ -91,7 +91,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
 	bool bBuildAndCacheClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultBuildAndCacheClusters;
 
 	/** Expands the cluster data. Takes more space in memory but can be a very effective improvement depending on the operations you're doing on the cluster. */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bOutputClusters"))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bBuildAndCacheClusters"))
 	bool bExpandClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultCacheExpandedClusters;
 
 	int32 GetMinClusterSize() const { return bRemoveSmallClusters ? MinClusterSize : 0; }

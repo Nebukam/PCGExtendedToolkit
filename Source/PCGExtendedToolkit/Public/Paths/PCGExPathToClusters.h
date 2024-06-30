@@ -32,7 +32,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathsToEdgeClusters, "Path : To Clusters", "Merge paths to edge clusters for glorious pathfinding inception");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraphGen; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -108,7 +108,7 @@ public:
 	FPCGExBlendingSettings CustomEdgeEdgeBlendingSettings;
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Graph Output Settings", meta = (PCG_Overridable, DisplayName="Graph Output Settings", ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 

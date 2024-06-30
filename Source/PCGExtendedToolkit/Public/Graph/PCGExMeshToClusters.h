@@ -51,8 +51,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeshToClustersSettings : public UPCGExPointsP
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MeshToClusters, "Graph : Mesh To Clusters", "Creates clusters from mesh topology.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraphGen; }
+	PCGEX_NODE_INFOS(MeshToClusters, "Mesh to Clusters", "Creates clusters from mesh topology.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -98,7 +98,7 @@ public:
 	bool bIgnoreMeshWarnings = false;
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 private:

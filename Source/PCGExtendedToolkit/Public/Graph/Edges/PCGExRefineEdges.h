@@ -35,7 +35,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRefineEdgesSettings : public UPCGExEdgesProce
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(RefineEdges, "Edges : Refine", "Refine edges according to special rules.");
+	PCGEX_NODE_INFOS(RefineEdges, "Cluster : Refine", "Refine edges according to special rules.");
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
@@ -53,7 +53,7 @@ public:
 	TObjectPtr<UPCGExEdgeRefineOperation> Refinement;
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 private:

@@ -17,8 +17,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCopyClustersToPointsSettings : public UPCGExE
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(CopyClustersToPoints, "Copy Clusters To Points", "Create a copies of the input clusters onto the target points. \n NOTE: Does not sanitize input.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(CopyClustersToPoints, "Cluster : Copy to Points", "Create a copies of the input clusters onto the target points. \n NOTE: Does not sanitize input.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 protected:

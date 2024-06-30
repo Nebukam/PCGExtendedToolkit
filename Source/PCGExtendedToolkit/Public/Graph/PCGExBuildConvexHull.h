@@ -24,8 +24,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildConvexHullSettings : public UPCGExPoints
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildConvexHull, "Graph : Convex Hull 3D", "Create a 3D Convex Hull triangulation for each input dataset.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraphGen; }
+	PCGEX_NODE_INFOS(BuildConvexHull, "Cluster : Convex Hull 3D", "Create a 3D Convex Hull triangulation for each input dataset.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -49,7 +49,7 @@ public:
 	FName HullAttributeName = "bIsOnHull";
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(true);
 
 private:

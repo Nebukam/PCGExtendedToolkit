@@ -8,28 +8,28 @@
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
-#include "PCGExWriteVtxExtras.generated.h"
+#include "PCGExWriteVtxProperties.generated.h"
 
 #define PCGEX_FOREACH_FIELD_VTXEXTRAS(MACRO) \
 MACRO(VtxNormal, FVector) \
 MACRO(VtxEdgeCount, int32)
-class UPCGExVtxExtraOperation;
-class UPCGExVtxExtraFactoryBase;
+class UPCGExVtxPropertyOperation;
+class UPCGExVtxPropertyFactoryBase;
 
-namespace PCGExWriteVtxExtras
+namespace PCGExWriteVtxProperties
 {
 	class FProcessorBatch;
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteVtxExtrasSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExWriteVtxPropertiesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WriteVtxExtras, "Vtx : Write Extras", "Extract & write extra informations from the edges connected to the vtx.");
+	PCGEX_NODE_INFOS(WriteVtxProperties, "Cluster : Vtx Properties", "Extract & write extra informations from the edges connected to the vtx.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
 #endif
 
@@ -64,21 +64,21 @@ public:
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 private:
-	friend class FPCGExWriteVtxExtrasElement;
+	friend class FPCGExWriteVtxPropertiesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteVtxExtrasContext final : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExWriteVtxPropertiesContext final : public FPCGExEdgesProcessorContext
 {
-	friend class FPCGExWriteVtxExtrasElement;
+	friend class FPCGExWriteVtxPropertiesElement;
 
-	virtual ~FPCGExWriteVtxExtrasContext() override;
+	virtual ~FPCGExWriteVtxPropertiesContext() override;
 
-	TArray<UPCGExVtxExtraFactoryBase*> ExtraFactories;
+	TArray<UPCGExVtxPropertyFactoryBase*> ExtraFactories;
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteVtxExtrasElement final : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteVtxPropertiesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -91,14 +91,14 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExWriteVtxExtras
+namespace PCGExWriteVtxProperties
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		friend class FProcessorBatch;
 
 		PCGExCluster::FClusterProjection* ProjectedCluster = nullptr;
-		TArray<UPCGExVtxExtraOperation*>* ExtraOperations = nullptr;
+		TArray<UPCGExVtxPropertyOperation*>* ExtraOperations = nullptr;
 
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
@@ -122,7 +122,7 @@ namespace PCGExWriteVtxExtras
 	{
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
 
-		TArray<UPCGExVtxExtraOperation*> ExtraOperations;
+		TArray<UPCGExVtxPropertyOperation*> ExtraOperations;
 
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 

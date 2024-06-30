@@ -95,7 +95,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NodeFilter, "Graph : Node Flag", "A single, filter-driven node flag.",
+		NodeFilter, "Cluster : Node Flag", "A single, filter-driven node flag.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
 #endif

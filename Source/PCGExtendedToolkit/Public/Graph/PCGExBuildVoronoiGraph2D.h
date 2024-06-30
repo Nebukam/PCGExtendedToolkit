@@ -27,8 +27,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildVoronoiGraph2DSettings : public UPCGExPo
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildVoronoiGraph2D, "Graph : Voronoi 2D", "Create a 2D Voronoi graph for each input dataset.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraphGen; }
+	PCGEX_NODE_INFOS(BuildVoronoiGraph2D, "Cluster : Voronoi 2D", "Create a 2D Voronoi graph for each input dataset.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -68,7 +68,7 @@ public:
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(false);
 
 private:

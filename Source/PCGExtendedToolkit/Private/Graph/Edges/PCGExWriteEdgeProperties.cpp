@@ -1,50 +1,50 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/PCGExWriteEdgeExtras.h"
+#include "..\..\..\Public\Graph\Edges\PCGExWriteEdgeProperties.h"
 
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "Kismet/KismetMathLibrary.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
-#define PCGEX_NAMESPACE WriteEdgeExtras
+#define PCGEX_NAMESPACE WriteEdgeProperties
 
-PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
-PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExWriteEdgePropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExWriteEdgePropertiesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-PCGEX_INITIALIZE_ELEMENT(WriteEdgeExtras)
+PCGEX_INITIALIZE_ELEMENT(WriteEdgeProperties)
 
-FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
+FPCGExWriteEdgePropertiesContext::~FPCGExWriteEdgePropertiesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
+bool FPCGExWriteEdgePropertiesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
+	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
 }
 
-bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
+bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteEdgeExtrasElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteEdgePropertiesElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
+	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartProcessingClusters<PCGExWriteEdgeExtras::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExWriteEdgeProperties::FProcessorBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExWriteEdgeExtras::FProcessorBatch* NewBatch)
+			[&](PCGExWriteEdgeProperties::FProcessorBatch* NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -65,7 +65,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 }
 
 
-namespace PCGExWriteEdgeExtras
+namespace PCGExWriteEdgeProperties
 {
 	FProcessor::~FProcessor()
 	{
@@ -84,7 +84,7 @@ namespace PCGExWriteEdgeExtras
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
@@ -145,7 +145,7 @@ namespace PCGExWriteEdgeExtras
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
 	{
-		PCGEX_SETTINGS(WriteEdgeExtras)
+		PCGEX_SETTINGS(WriteEdgeProperties)
 
 		uint32 EdgeStartPtIndex = Edge.Start;
 		uint32 EdgeEndPtIndex = Edge.End;
@@ -271,7 +271,7 @@ namespace PCGExWriteEdgeExtras
 
 	FProcessorBatch::~FProcessorBatch()
 	{
-		PCGEX_SETTINGS(WriteEdgeExtras)
+		PCGEX_SETTINGS(WriteEdgeProperties)
 
 		PCGEX_DELETE(VtxDirCompGetter)
 
@@ -282,7 +282,7 @@ namespace PCGExWriteEdgeExtras
 
 	bool FProcessorBatch::PrepareProcessing()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
 		if (!TBatch::PrepareProcessing()) { return false; }
 
@@ -310,7 +310,7 @@ namespace PCGExWriteEdgeExtras
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
 	{
-		PCGEX_SETTINGS(WriteEdgeExtras)
+		PCGEX_SETTINGS(WriteEdgeProperties)
 
 		const bool bSolidify = Settings->SolidificationAxis != EPCGExMinimalAxis::None;
 

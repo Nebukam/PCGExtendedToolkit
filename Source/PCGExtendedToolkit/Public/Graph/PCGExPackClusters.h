@@ -15,8 +15,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPackClustersSettings : public UPCGExEdgesProc
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PackClusters, "Graph : Pack Clusters", "Pack each cluster into an single point data object containing both vtx and edges.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(PackClusters, "Cluster : Pack", "Pack each cluster into an single point data object containing both vtx and edges.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

@@ -32,7 +32,7 @@ namespace PCGExFactories
 		StateSocket,
 		Sampler,
 		Heuristics,
-		VtxExtra,
+		VtxProperty,
 		BitmaskTransmog
 	};
 

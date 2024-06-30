@@ -11,12 +11,12 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
 
-#include "PCGExVtxExtraFactoryProvider.generated.h"
+#include "PCGExVtxPropertyFactoryProvider.generated.h"
 
 #define PCGEX_VTX_EXTRA_CREATE \
 	NewOperation->Descriptor = Descriptor;
 
-namespace PCGExVtxExtra
+namespace PCGExVtxProperty
 {
 	const FName SourceExtrasLabel = TEXT("Extras");
 	const FName OutputExtraLabel = TEXT("Extra");
@@ -174,7 +174,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
@@ -197,24 +197,24 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraFactoryBase : public UPCGExParamFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override;
-	virtual UPCGExVtxExtraOperation* CreateOperation() const;
+	virtual UPCGExVtxPropertyOperation* CreateOperation() const;
 };
 
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxExtra")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraProviderSettings : public UPCGExFactoryProviderSettings
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(VtxExtraAttribute, "Vtx Extra : Abstract", "Abstract vtx extra settings.")
+	PCGEX_NODE_INFOS(VtxPropertyAttribute, "Vtx : Abstract", "Abstract vtx extra settings.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

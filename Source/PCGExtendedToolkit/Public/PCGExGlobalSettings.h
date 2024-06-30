@@ -66,10 +66,10 @@ public:
 
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorGraphGen = FLinearColor(0.000000, 0.318537, 1.000000, 1.000000);
+	FLinearColor NodeColorClusterGen = FLinearColor(0.000000, 0.318537, 1.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorGraph = FLinearColor(0.000000, 0.615363, 1.000000, 1.000000);
+	FLinearColor NodeColorCluster = FLinearColor(0.000000, 0.615363, 1.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorProbe = FLinearColor(0.171875, 0.681472, 1.000000, 1.000000);

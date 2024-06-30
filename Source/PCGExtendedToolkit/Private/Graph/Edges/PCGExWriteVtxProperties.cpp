@@ -1,60 +1,60 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/PCGExWriteVtxExtras.h"
+#include "..\..\..\Public\Graph\Edges\PCGExWriteVtxProperties.h"
 
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Graph/Edges/Extras/PCGExVtxExtraFactoryProvider.h"
+#include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
 #include "Kismet/KismetMathLibrary.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
-#define PCGEX_NAMESPACE WriteVtxExtras
+#define PCGEX_NAMESPACE WriteVtxProperties
 
-TArray<FPCGPinProperties> UPCGExWriteVtxExtrasSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExWriteVtxPropertiesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExVtxExtra::SourceExtrasLabel, "Extra attribute handlers.", Normal, {})
+	PCGEX_PIN_PARAMS(PCGExVtxProperty::SourceExtrasLabel, "Extra attribute handlers.", Normal, {})
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExWriteVtxExtrasSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExWriteVtxExtrasSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExWriteVtxPropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExWriteVtxPropertiesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-PCGEX_INITIALIZE_ELEMENT(WriteVtxExtras)
+PCGEX_INITIALIZE_ELEMENT(WriteVtxProperties)
 
-FPCGExWriteVtxExtrasContext::~FPCGExWriteVtxExtrasContext()
+FPCGExWriteVtxPropertiesContext::~FPCGExWriteVtxPropertiesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExWriteVtxExtrasElement::Boot(FPCGContext* InContext) const
+bool FPCGExWriteVtxPropertiesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(WriteVtxExtras)
+	PCGEX_CONTEXT_AND_SETTINGS(WriteVtxProperties)
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories(InContext, PCGExVtxExtra::SourceExtrasLabel, Context->ExtraFactories, {PCGExFactories::EType::VtxExtra}, false);
+	PCGExFactories::GetInputFactories(InContext, PCGExVtxProperty::SourceExtrasLabel, Context->ExtraFactories, {PCGExFactories::EType::VtxProperty}, false);
 
 	return true;
 }
 
-bool FPCGExWriteVtxExtrasElement::ExecuteInternal(
+bool FPCGExWriteVtxPropertiesElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteVtxExtrasElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteVtxPropertiesElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(WriteVtxExtras)
+	PCGEX_CONTEXT_AND_SETTINGS(WriteVtxProperties)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartProcessingClusters<PCGExWriteVtxExtras::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExWriteVtxProperties::FProcessorBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExWriteVtxExtras::FProcessorBatch* NewBatch)
+			[&](PCGExWriteVtxProperties::FProcessorBatch* NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			},
@@ -75,7 +75,7 @@ bool FPCGExWriteVtxExtrasElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-namespace PCGExWriteVtxExtras
+namespace PCGExWriteVtxProperties
 {
 	FProcessor::~FProcessor()
 	{
@@ -85,13 +85,13 @@ namespace PCGExWriteVtxExtras
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxExtras)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxProperties)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		if (!ExtraOperations->IsEmpty())
 		{
-			for (UPCGExVtxExtraOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster, VtxDataCache, EdgeDataCache); }
+			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster, VtxDataCache, EdgeDataCache); }
 		}
 
 		if (VtxNormalWriter)
@@ -125,7 +125,7 @@ namespace PCGExWriteVtxExtras
 		TArray<PCGExCluster::FAdjacencyData> Adjacency;
 		GetAdjacencyData(Cluster, Node, Adjacency);
 
-		for (UPCGExVtxExtraOperation* Op : (*ExtraOperations)) { Op->ProcessNode(BatchIndex, Cluster, Node, Adjacency); }
+		for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->ProcessNode(BatchIndex, Cluster, Node, Adjacency); }
 	}
 
 	void FProcessor::CompleteWork()
@@ -142,15 +142,15 @@ namespace PCGExWriteVtxExtras
 
 	FProcessorBatch::~FProcessorBatch()
 	{
-		PCGEX_SETTINGS(WriteVtxExtras)
-		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
+		PCGEX_SETTINGS(WriteVtxProperties)
+		for (UPCGExVtxPropertyOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
 
 		ProjectionSettings.Cleanup();
 	}
 
 	bool FProcessorBatch::PrepareProcessing()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxExtras)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxProperties)
 
 		if (!TBatch::PrepareProcessing()) { return false; }
 
@@ -162,9 +162,9 @@ namespace PCGExWriteVtxExtras
 		ProjectionSettings = Settings->ProjectionSettings;
 		ProjectionSettings.Init(VtxIO);
 
-		for (const UPCGExVtxExtraFactoryBase* Factory : TypedContext->ExtraFactories)
+		for (const UPCGExVtxPropertyFactoryBase* Factory : TypedContext->ExtraFactories)
 		{
-			UPCGExVtxExtraOperation* NewOperation = Factory->CreateOperation();
+			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation();
 			if (!NewOperation->PrepareForVtx(Context, VtxDataCache))
 			{
 				PCGEX_DELETE_OPERATION(NewOperation)
@@ -179,7 +179,7 @@ namespace PCGExWriteVtxExtras
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
 	{
-		PCGEX_SETTINGS(WriteVtxExtras)
+		PCGEX_SETTINGS(WriteVtxProperties)
 
 		ClusterProcessor->ProjectionSettings = &ProjectionSettings;
 		ClusterProcessor->ExtraOperations = &ExtraOperations;

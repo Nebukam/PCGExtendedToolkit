@@ -27,8 +27,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildVoronoiGraphSettings : public UPCGExPoin
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Graph : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraphGen; }
+	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Cluster : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -64,7 +64,7 @@ public:
 	bool bMarkEdgeOnTouch = false;
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(false);
 
 private:
