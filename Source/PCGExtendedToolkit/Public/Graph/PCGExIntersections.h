@@ -135,8 +135,8 @@ namespace PCGExGraph
 		                                    const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                    const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		PCGExData::FIdxCompound* InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                            const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                            const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		                                          const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                          const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
 		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
 	};
@@ -584,5 +584,4 @@ namespace PCGExGraphTask
 	};
 
 #pragma endregion
-
 }

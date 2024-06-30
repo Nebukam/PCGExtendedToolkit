@@ -34,7 +34,7 @@ namespace PCGExHeuristics
 	}
 
 	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache)
-		:VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
+		: VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
 	{
 		TArray<UPCGExHeuristicsFactoryBase*> ContextFactories;
 		PCGExFactories::GetInputFactories(InContext, PCGExGraph::SourceHeuristicsLabel, ContextFactories, {PCGExFactories::EType::Heuristics}, false);
@@ -42,7 +42,7 @@ namespace PCGExHeuristics
 	}
 
 	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
-		:VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
+		: VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
 	{
 		BuildFrom(InContext, InFactories);
 	}

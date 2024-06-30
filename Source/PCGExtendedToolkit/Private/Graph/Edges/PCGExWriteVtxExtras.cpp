@@ -193,7 +193,7 @@ namespace PCGExWriteVtxExtras
 
 	void FProcessorBatch::Write()
 	{
-	//	TBatch<FProcessor>::Write();
+		//	TBatch<FProcessor>::Write();
 		VtxDataCache->Write(AsyncManagerPtr, true);
 	}
 }

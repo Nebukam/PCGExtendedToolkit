@@ -19,7 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDebugSettings : public UPCGSettings
 	friend class FPCGExDebugElement;
 
 public:
-	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;

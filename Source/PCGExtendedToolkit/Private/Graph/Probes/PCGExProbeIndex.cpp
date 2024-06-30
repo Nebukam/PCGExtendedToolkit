@@ -65,7 +65,6 @@ void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TS
 		{
 			AddEdge(PCGEx::H64(Index, OIdx));
 		}
-		return;
 	}
 }
 

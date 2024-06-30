@@ -31,7 +31,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 	/** Direction orientation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAdjacencyDirectionOrigin Origin = EPCGExAdjacencyDirectionOrigin::FromNode;
-	
+
 	/** Where to read the compared direction from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFetchType DirectionSource = EPCGExFetchType::Constant;
@@ -51,11 +51,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExDotComparisonSettings DotComparisonSettings;
-	
+
 	/** Matching edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Output"))
 	FPCGExEdgeOutputWithIndexSettings MatchingEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Matching"));
-
 };
 
 /**

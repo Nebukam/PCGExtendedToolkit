@@ -4,7 +4,6 @@
 #include "Graph/PCGExPartitionVertices.h"
 
 
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -101,7 +100,7 @@ namespace PCGExPartitionVertices
 
 		Cluster->NodeIndexLookup->Reserve(NumNodes);
 		Cluster->NumRawVtx = NumNodes;
-		
+
 		for (PCGExCluster::FNode& Node : (*Cluster->Nodes))
 		{
 			int32 i = Node.NodeIndex;

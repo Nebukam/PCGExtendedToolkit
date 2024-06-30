@@ -84,7 +84,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 		if (DirWriter) { DirWriter->Values[EntryIndex] = bInvertDirection ? Data.Direction * -1 : Data.Direction; }
 		if (LengthWriter) { LengthWriter->Values[EntryIndex] = Data.Length; }
 	}
-
 };
 
 USTRUCT(BlueprintType)
@@ -169,7 +168,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 		Set(EntryIndex, Data);
 		if (NCountWriter) { NCountWriter->Values[EntryIndex] = NeighborCount; }
 	}
-
 };
 
 /**

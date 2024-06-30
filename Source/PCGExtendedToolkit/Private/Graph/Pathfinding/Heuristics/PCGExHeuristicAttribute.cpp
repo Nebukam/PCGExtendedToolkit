@@ -18,13 +18,13 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	if (LastPoints == InPoints) { return; }
 
 	const int32 NumPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->Nodes->Num() : InPoints->GetNum();
-	
+
 	LastPoints = InPoints;
 	InPoints->CreateInKeys();
 	CachedScores.SetNumZeroed(NumPoints);
 
 	PCGExData::FCache<double>* ModifiersCache = DataCache->GetOrCreateGetter<double>(Attribute, true);
-	
+
 	if (!ModifiersCache)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Heuristic attribute: {0}."), FText::FromName(Attribute.GetName())));
@@ -33,10 +33,10 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 
 	const double MinValue = ModifiersCache->Min;
 	const double MaxValue = ModifiersCache->Max;
-	
+
 	const double OutMin = bInvert ? 1 : 0;
 	const double OutMax = bInvert ? 0 : 1;
-	
+
 	const double Factor = ReferenceWeight * WeightFactor;
 
 	if (Source == EPCGExGraphValueSource::Vtx)

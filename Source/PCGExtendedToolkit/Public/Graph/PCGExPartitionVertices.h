@@ -70,12 +70,11 @@ namespace PCGExPartitionVertices
 		PCGExData::FPointIO* PointPartitionIO = nullptr;
 		TMap<int32, int32> Remapping;
 		TArray<int32> KeptIndices;
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
-			
 		}
 
 		virtual ~FProcessor() override;
@@ -84,7 +83,5 @@ namespace PCGExPartitionVertices
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
-
 	};
-
 }

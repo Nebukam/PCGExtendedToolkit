@@ -33,7 +33,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRefineEdgesSettings : public UPCGExEdgesProce
 
 	//~Begin UObject interface
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(RefineEdges, "Edges : Refine", "Refine edges according to special rules.");
@@ -91,7 +90,7 @@ namespace PCGExRefineEdges
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 		mutable FRWLock NodeLock;
 		mutable FRWLock EdgeLock;
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
 			: FClusterProcessor(InVtx, InEdges)

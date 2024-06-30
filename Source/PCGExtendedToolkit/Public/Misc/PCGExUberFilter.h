@@ -79,10 +79,10 @@ namespace PCGExUberFilter
 	{
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
-		
+
 		PCGExData::FPointIOCollection* InCollection = nullptr;
 		PCGExData::FPointIOCollection* OutCollection = nullptr;
-		
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)

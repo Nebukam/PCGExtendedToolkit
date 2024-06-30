@@ -119,7 +119,7 @@ namespace PCGExGraph
 	FCompoundNode* FCompoundGraph::InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundGraph::InsertPointUnsafe);
-		
+
 		const FVector Origin = Point.Transform.GetLocation();
 		FCompoundNode* Node = nullptr;
 
@@ -592,5 +592,4 @@ namespace PCGExGraphTask
 		IntersectionList->Insert();
 		return true;
 	}
-
 }

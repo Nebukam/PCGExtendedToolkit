@@ -44,5 +44,4 @@ public:
 
 	virtual FName GetMainOutputLabel() const override;
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-
 };

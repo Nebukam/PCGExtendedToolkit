@@ -159,7 +159,7 @@ UPCGExParamFactoryBase* UPCGExVtxExtraEdgeMatchSettings::CreateFactory(FPCGConte
 {
 	UPCGExVtxExtraEdgeMatchFactory* NewFactory = NewObject<UPCGExVtxExtraEdgeMatchFactory>();
 	NewFactory->Descriptor = Descriptor;
-	PCGExFactories::GetInputFactories(InContext, PCGEx::SourceAdditionalReq, NewFactory->FilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(InContext, PCGEx::SourceAdditionalReq, NewFactory->FilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 	return Super::CreateFactory(InContext, NewFactory);
 }
 

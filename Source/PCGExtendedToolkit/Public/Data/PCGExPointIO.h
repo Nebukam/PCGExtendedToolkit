@@ -82,7 +82,7 @@ namespace PCGExData
 				const UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(In);
 				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(TypedOut);
 				if (TypedPointData && TypedOutPointData) { TypedOutPointData->InitializeFromPCGExData(TypedPointData, EInit::NewOutput); }
-				
+
 				return;
 			}
 

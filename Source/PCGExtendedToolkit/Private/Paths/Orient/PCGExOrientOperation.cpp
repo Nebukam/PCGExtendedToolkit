@@ -19,7 +19,6 @@ void UPCGExOrientOperation::CopySettingsFrom(const UPCGExOperation* Other)
 
 void UPCGExOrientOperation::PrepareForData(PCGExData::FPointIO* InPointIO)
 {
-	
 }
 
 FTransform UPCGExOrientOperation::ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const

@@ -66,7 +66,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputDot = false;
-	
+
 	/** Whether to output the dot product between prev/next points.  */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputDot"))
 	FName DotAttribute = "Dot";

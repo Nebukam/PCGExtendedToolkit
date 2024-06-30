@@ -98,9 +98,8 @@ namespace PCGExDataBlending
 		const int32 Count,
 		const double TotalWeight) const
 	{
-
 		//check(Count > 0) // Ugh, there's a check missing in a blender user...
-		
+
 		for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(Target.Index, Count, TotalWeight); }
 
 		if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
@@ -111,7 +110,7 @@ namespace PCGExDataBlending
 	void FMetadataBlender::CompleteBlending(const int32 PrimaryIndex, const int32 Count, const double TotalWeight) const
 	{
 		//check(Count > 0) // Ugh, there's a check missing in a blender user...
-		
+
 		for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(PrimaryIndex, Count, TotalWeight); }
 
 		if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
@@ -242,7 +241,7 @@ namespace PCGExDataBlending
 		PCGEx::FAttributeIdentity::Get(InPrimaryData->Source->GetOut()->Metadata, Identities);
 		BlendingSettings->Filter(Identities);
 
-		if(InSecondaryData != InPrimaryData)
+		if (InSecondaryData != InPrimaryData)
 		{
 			TArray<FName> PrimaryNames;
 			TArray<FName> SecondaryNames;

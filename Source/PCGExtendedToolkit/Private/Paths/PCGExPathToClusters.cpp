@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Paths\PCGExPathToClusters.h"
+#include "Paths/PCGExPathToClusters.h"
 #include "Graph/PCGExGraph.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"

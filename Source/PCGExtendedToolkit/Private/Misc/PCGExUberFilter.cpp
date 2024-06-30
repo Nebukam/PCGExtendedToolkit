@@ -61,7 +61,9 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>* NewBatch)			{			},
+			[&](PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>* NewBatch)
+			{
+			},
 			PCGExMT::State_Done))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to filter."));

@@ -78,7 +78,6 @@ namespace PCGExClusterFilter
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache) override;
 		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache);
 		virtual void PostInit() override;
-
 	};
 
 	class PCGEXTENDEDTOOLKIT_API TManager : public PCGExPointFilter::TManager

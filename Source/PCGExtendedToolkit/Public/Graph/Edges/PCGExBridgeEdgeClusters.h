@@ -24,7 +24,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBridgeEdgeClustersSettings : public UPCGExEdg
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BridgeEdgeClusters, "Graph : Bridge Clusters", "Connects isolated edge clusters by their closest vertices.");
@@ -89,7 +88,6 @@ namespace PCGExBridgeClusters
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
-			
 		}
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;

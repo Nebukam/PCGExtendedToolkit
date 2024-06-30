@@ -83,7 +83,7 @@ namespace PCGExData
 		FName FullName = NAME_None;
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
 		const uint64 UID;
-		PCGExData::FPointIO* Source = nullptr;
+		FPointIO* Source = nullptr;
 
 
 		FCacheBase(const FName InFullName, const EPCGMetadataTypes InType):
@@ -143,22 +143,19 @@ namespace PCGExData
 				Reader = TypedReader;
 				return Reader;
 			}
-			else
+			FWriteScopeLock WriteScopeLock(CacheLock);
+			bInitialized = true;
+
+			PCGEx::TFAttributeReader<T>* TypedReader = new PCGEx::TFAttributeReader<T>(FullName);
+
+			if (!TypedReader->Bind(Source))
 			{
-				FWriteScopeLock WriteScopeLock(CacheLock);
-				bInitialized = true;
-
-				PCGEx::TFAttributeReader<T>* TypedReader = new PCGEx::TFAttributeReader<T>(FullName);
-
-				if (!TypedReader->Bind(Source))
-				{
-					bInitialized = false;
-					PCGEX_DELETE(TypedReader)
-				}
-
-				Reader = TypedReader;
-				return Reader;
+				bInitialized = false;
+				PCGEX_DELETE(TypedReader)
 			}
+
+			Reader = TypedReader;
+			return Reader;
 		}
 
 		PCGEx::TFAttributeWriter<T>* PrepareWriter(T DefaultValue, bool bAllowInterpolation, bool bUninitialized = false)
@@ -232,13 +229,13 @@ namespace PCGExData
 		mutable FRWLock PoolLock;
 
 	public:
-		PCGExData::FPointIO* Source = nullptr;
+		FPointIO* Source = nullptr;
 		TArray<FCacheBase*> Caches;
 		TMap<uint64, FCacheBase*> CacheMap;
 
 		FCacheBase* TryGetCache(const uint64 UID);
 
-		explicit FFacade(PCGExData::FPointIO* InSource):
+		explicit FFacade(FPointIO* InSource):
 			Source(InSource)
 		{
 		}
@@ -389,7 +386,7 @@ namespace PCGExData
 			return Data->Metadata->GetConstTypedAttribute<T>(InName);
 		}
 
-		const UPCGPointData* GetData(PCGExData::ESource InSource) const { return Source->GetData(InSource); }
+		const UPCGPointData* GetData(ESource InSource) const { return Source->GetData(InSource); }
 		const UPCGPointData* GetIn() const { return Source->GetIn(); }
 		UPCGPointData* GetOut() const { return Source->GetOut(); }
 
@@ -519,13 +516,13 @@ namespace PCGExData
 	class PCGEXTENDEDTOOLKIT_API FDataForwardHandler
 	{
 		const FPCGExForwardSettings* Settings = nullptr;
-		const PCGExData::FPointIO* SourceIO = nullptr;
+		const FPointIO* SourceIO = nullptr;
 		TArray<PCGEx::FAttributeIdentity> Identities;
 
 	public:
 		~FDataForwardHandler();
-		explicit FDataForwardHandler(const FPCGExForwardSettings* InSettings, const PCGExData::FPointIO* InSourceIO);
-		void Forward(int32 SourceIndex, const PCGExData::FPointIO* Target);
+		explicit FDataForwardHandler(const FPCGExForwardSettings* InSettings, const FPointIO* InSourceIO);
+		void Forward(int32 SourceIndex, const FPointIO* Target);
 	};
 }
 

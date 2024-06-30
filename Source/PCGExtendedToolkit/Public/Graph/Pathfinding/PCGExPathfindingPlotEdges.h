@@ -84,7 +84,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bOmitCompletePathOnFailedPlot = false;
-	
 };
 
 

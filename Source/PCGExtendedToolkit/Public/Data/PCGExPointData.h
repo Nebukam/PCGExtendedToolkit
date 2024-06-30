@@ -26,8 +26,7 @@ public:
 	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EInit InitMode);
 
 	virtual void BeginDestroy() override;
-	
+
 protected:
 	virtual UPCGSpatialData* CopyInternal() const override;
-	
 };

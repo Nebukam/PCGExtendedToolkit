@@ -259,7 +259,7 @@ void FPCGExEdgesProcessorContext::AdvanceBatch()
 	else
 	{
 		CurrentBatch = Batches[CurrentBatchIndex];
-		PCGExClusterMT::ScheduleBatch(GetAsyncManager(), CurrentBatch);
+		ScheduleBatch(GetAsyncManager(), CurrentBatch);
 		SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing);
 	}
 }

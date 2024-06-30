@@ -121,8 +121,8 @@ PCGEX_BLEND_CASE(Lerp)
 		switch (Type)
 		{
 		default:
-			PCGEX_FOREACH_BLEND(PCGEX_BLEND_CASE)
-			}
+		PCGEX_FOREACH_BLEND(PCGEX_BLEND_CASE)
+		}
 
 		if (NewOperation) { NewOperation->SetAttributeName(Identity.Name); }
 		return NewOperation;

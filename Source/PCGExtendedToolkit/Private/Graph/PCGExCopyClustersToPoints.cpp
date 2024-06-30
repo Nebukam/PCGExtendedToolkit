@@ -4,7 +4,6 @@
 #include "Graph/PCGExCopyClustersToPoints.h"
 
 
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface

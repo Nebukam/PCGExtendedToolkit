@@ -45,7 +45,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext final : public FPCGExPoint
 	friend class FPCGExWriteIndexElement;
 
 	virtual ~FPCGExWriteIndexContext() override;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement

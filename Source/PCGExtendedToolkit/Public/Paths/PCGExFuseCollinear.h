@@ -17,7 +17,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFuseCollinearSettings : public UPCGExPathProc
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FuseCollinear, "Path : Fuse Collinear", "FuseCollinear paths points.");

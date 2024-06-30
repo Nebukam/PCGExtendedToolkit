@@ -16,10 +16,9 @@ bool UPCGExSearchAStar::FindPath(
 	PCGExHeuristics::THeuristicsHandler* Heuristics,
 	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) const
 {
-
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
-	
+
 	const PCGExCluster::FNode& SeedNode = NodesRef[Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 1)];
 	if (!SeedSelection->WithinDistance(SeedNode.Position, SeedPosition)) { return false; }
 

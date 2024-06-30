@@ -33,7 +33,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPickClosestClustersSettings : public UPCGExEd
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PickClosestClusters, "Graph : Pick Closest Clusters", "Pick the clusters closest to input targets.");

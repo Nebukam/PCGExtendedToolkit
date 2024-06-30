@@ -157,7 +157,6 @@ namespace PCGExOrient
 		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, TransformWriter)
 		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, DotWriter)
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

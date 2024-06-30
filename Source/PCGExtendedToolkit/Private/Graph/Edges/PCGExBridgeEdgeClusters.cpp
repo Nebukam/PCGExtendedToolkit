@@ -288,7 +288,6 @@ namespace PCGExBridgeClusters
 		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, ClusterIdWriter);
 
 		// TODO : OPTIM : We can easily build this batch' cluster by appending existing ones into a big one and just add edges
-		
 	}
 
 

@@ -86,7 +86,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bOmitCompletePathOnFailedPlot = false;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext final : public FPCGExPointsProcessorContext

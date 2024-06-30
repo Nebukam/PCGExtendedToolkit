@@ -29,7 +29,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathToClustersSettings : public UPCGExPathPro
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathsToEdgeClusters, "Path : To Clusters", "Merge paths to edge clusters for glorious pathfinding inception");
@@ -119,7 +118,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToClustersContext final : public FPCGExP
 
 	virtual ~FPCGExPathToClustersContext() override;
 
-	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;	
+	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FFacade* CompoundFacade = nullptr;
 
 	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;

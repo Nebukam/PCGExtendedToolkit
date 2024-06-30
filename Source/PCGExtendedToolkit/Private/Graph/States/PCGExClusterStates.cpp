@@ -133,7 +133,7 @@ UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory
 	NewFactory->Priority = Priority;
 	NewFactory->Descriptor = Descriptor;
 
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters))
+	if (!GetInputFactories(InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories, PCGExFactories::ClusterNodeFilters))
 	{
 		PCGEX_DELETE_UOBJECT(NewFactory)
 		return nullptr;

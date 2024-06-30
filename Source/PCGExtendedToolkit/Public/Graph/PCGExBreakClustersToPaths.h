@@ -21,7 +21,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBreakClustersToPathsSettings : public UPCGExE
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BreakClustersToPaths, "Graph : Break Clusters to Paths", "Create individual paths from continuous edge chains.");
