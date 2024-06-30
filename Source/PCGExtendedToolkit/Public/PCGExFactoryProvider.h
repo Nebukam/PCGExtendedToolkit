@@ -32,7 +32,8 @@ namespace PCGExFactories
 		StateSocket,
 		Sampler,
 		Heuristics,
-		VtxExtra
+		VtxExtra,
+		BitmaskTransmog
 	};
 
 	static inline TSet<EType> ClusterNodeFilters = {EType::FilterPoint, EType::FilterNode};
@@ -143,6 +144,8 @@ namespace PCGExFactories
 			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing required '{0}' inputs."), FText::FromName(InLabel))); }
 			return false;
 		}
+
+		OutFactories.Sort([](const T_DEF& A, const T_DEF& B) { return A.Priority < B.Priority; });
 
 		return true;
 	}

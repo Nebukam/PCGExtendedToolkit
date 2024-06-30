@@ -232,7 +232,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExAttributeFilter BlendingFilter = EPCGExAttributeFilter::All;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="BlendingFilter!=EPCGExBlendingFilter::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="BlendingFilter!=EPCGExAttributeFilter::All", EditConditionHides))
 	TArray<FName> FilteredAttributes;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

@@ -36,13 +36,7 @@ bool FPCGExFlagNodesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FlagNodes)
 
-	if (!PCGExFactories::GetInputFactories(Context, PCGExCluster::SourceNodeStateLabel, Context->StateFactories, {PCGExFactories::EType::StateNode}, true))
-	{
-		return false;
-	}
-
-	Context->StateFactories.Sort([](const UPCGExFilterFactoryBase& A, const UPCGExFilterFactoryBase& B) { return A.Priority < B.Priority; });
-	return true;
+	return PCGExFactories::GetInputFactories(Context, PCGExCluster::SourceNodeStateLabel, Context->StateFactories, {PCGExFactories::EType::StateNode}, true);
 }
 
 bool FPCGExFlagNodesElement::ExecuteInternal(
@@ -72,6 +66,7 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 	if (!Context->ProcessClusters()) { return false; }
 
 	Context->OutputPointsAndEdges();
+	Context->Done();
 
 	return Context->TryComplete();
 }

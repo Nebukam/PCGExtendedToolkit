@@ -12,16 +12,6 @@
 #include "UObject/Object.h"
 #include "PCGExData.generated.h"
 
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Attribute Filter"))
-enum class EPCGExAttributeFilter : uint8
-{
-	All UMETA(DisplayName = "All", ToolTip="All attributes"),
-	Exclude UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
-	Include UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
-};
-
-
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExForwardSettings
 {
@@ -38,7 +28,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bEnabled"))
 	EPCGExAttributeFilter FilterAttributes = EPCGExAttributeFilter::Include;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bEnabled && FilterAttributes!=EPCGExBlendingFilter::All", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bEnabled && FilterAttributes!=EPCGExAttributeFilter::All", EditConditionHides))
 	TArray<FName> FilteredAttributes;
 
 	bool CanProcess(const FName AttributeName) const

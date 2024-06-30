@@ -14,11 +14,52 @@
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "PCGExPointIO.h"
+#include "PCGParamData.h"
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
 
 #include "PCGExAttributeHelpers.generated.h"
 
 #pragma region Input Descriptors
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Attribute Filter"))
+enum class EPCGExAttributeFilter : uint8
+{
+	All UMETA(DisplayName = "All", ToolTip="All attributes"),
+	Exclude UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
+	Include UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherSettings
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeGatherSettings()
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExAttributeFilter FilterAttributes = EPCGExAttributeFilter::All;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FilterAttributes!=EPCGExAttributeFilter::All", EditConditionHides))
+	TArray<FName> FilteredAttributes;
+
+	// TODO : Expose how to handle overlaps
+
+	bool Test(const FPCGMetadataAttributeBase* InAttribute) const
+	{
+		switch (FilterAttributes)
+		{
+		default: ;
+		case EPCGExAttributeFilter::All:
+			return true;
+		case EPCGExAttributeFilter::Exclude:
+			return !FilteredAttributes.Contains(InAttribute->Name);
+		case EPCGExAttributeFilter::Include:
+			return FilteredAttributes.Contains(InAttribute->Name);
+		}
+	}
+};
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
@@ -135,8 +176,10 @@ namespace PCGEx
 
 	struct FAttributesInfos
 	{
+		TMap<FName, int32> Map;
 		TArray<FAttributeIdentity> Identities;
 		TArray<FPCGMetadataAttributeBase*> Attributes;
+
 		bool Contains(FName AttributeName, EPCGMetadataTypes Type);
 		bool Contains(FName AttributeName);
 		FAttributeIdentity* Find(FName AttributeName);
@@ -144,14 +187,52 @@ namespace PCGEx
 		bool FindMissing(const TSet<FName>& Checklist, TSet<FName>& OutMissing);
 		bool FindMissing(const TArray<FName>& Checklist, TSet<FName>& OutMissing);
 
+		void Append(FAttributesInfos* Other, const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& OutTypeMismatch);
+		void Update(FAttributesInfos* Other, const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& OutTypeMismatch);
+
 		~FAttributesInfos()
 		{
+			Map.Empty();
 			Identities.Empty();
 			Attributes.Empty();
 		}
 
 		static FAttributesInfos* Get(const UPCGMetadata* InMetadata);
 	};
+
+	static void GatherAttributes(
+		FAttributesInfos* OutInfos, const FPCGContext* InContext, FName InputLabel,
+		const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& Mismatches)
+	{
+		TArray<FPCGTaggedData> InputData = InContext->InputData.GetInputsByPin(InputLabel);
+		for (const FPCGTaggedData& TaggedData : InputData)
+		{
+			if (const UPCGParamData* AsParamData = Cast<UPCGParamData>(TaggedData.Data))
+			{
+				FAttributesInfos* Infos = FAttributesInfos::Get(AsParamData->Metadata);
+				OutInfos->Append(Infos, InSettings, Mismatches);
+				PCGEX_DELETE(Infos);
+				continue;
+			}
+
+			if (const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(TaggedData.Data))
+			{
+				FAttributesInfos* Infos = FAttributesInfos::Get(AsSpatialData->Metadata);
+				OutInfos->Append(Infos, InSettings, Mismatches);
+				PCGEX_DELETE(Infos);
+				continue;
+			}
+		}
+	}
+
+	static FAttributesInfos* GatherAttributes(
+		const FPCGContext* InContext, FName InputLabel,
+		const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& Mismatches)
+	{
+		FAttributesInfos* OutInfos = new FAttributesInfos();
+		GatherAttributes(OutInfos, InContext, InputLabel, InSettings, Mismatches);
+		return OutInfos;
+	}
 
 #pragma endregion
 
