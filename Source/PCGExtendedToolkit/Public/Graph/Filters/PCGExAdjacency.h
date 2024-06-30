@@ -184,7 +184,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 			return FMath::CeilToInt32(RelativeThreshold * Node.Adjacency.Num());
 		}
 	}
-
 };
 
 namespace PCGExAdjacency

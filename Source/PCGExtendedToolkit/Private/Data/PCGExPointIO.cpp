@@ -72,7 +72,6 @@ namespace PCGExData
 		{
 			check(In)
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
-			return;
 		}
 	}
 

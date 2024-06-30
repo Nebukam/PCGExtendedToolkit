@@ -685,7 +685,7 @@ enum class EPCGExBitmask8_00_08 : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_00_08)
-typedef TEnumAsByte<EPCGExBitmask8_00_08> EPCGExBitmask8_00_08Bitmask;
+using EPCGExBitmask8_00_08Bitmask = TEnumAsByte<EPCGExBitmask8_00_08>;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 8-16 Bits Range"))
 enum class EPCGExBitmask8_08_16 : uint8
@@ -702,7 +702,7 @@ enum class EPCGExBitmask8_08_16 : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_08_16)
-typedef TEnumAsByte<EPCGExBitmask8_08_16> EPCGExBitmask8_08_16Bitmask;
+using EPCGExBitmask8_08_16Bitmask = TEnumAsByte<EPCGExBitmask8_08_16>;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 16-24 Bits Range"))
 enum class EPCGExBitmask8_16_24 : uint8
@@ -719,7 +719,7 @@ enum class EPCGExBitmask8_16_24 : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_16_24)
-typedef TEnumAsByte<EPCGExBitmask8_16_24> EPCGExBitmask8_16_24Bitmask;
+using EPCGExBitmask8_16_24Bitmask = TEnumAsByte<EPCGExBitmask8_16_24>;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 24-32 Bits Range"))
 enum class EPCGExBitmask8_24_32 : uint8
@@ -736,7 +736,7 @@ enum class EPCGExBitmask8_24_32 : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_24_32)
-typedef TEnumAsByte<EPCGExBitmask8_24_32> EPCGExBitmask8_24_32Bitmask;
+using EPCGExBitmask8_24_32Bitmask = TEnumAsByte<EPCGExBitmask8_24_32>;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 32-40 Bits Range"))
 enum class EPCGExBitmask8_32_40 : uint8
@@ -753,7 +753,7 @@ enum class EPCGExBitmask8_32_40 : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_32_40)
-typedef TEnumAsByte<EPCGExBitmask8_32_40> EPCGExBitmask8_32_40Bitmask;
+using EPCGExBitmask8_32_40Bitmask = TEnumAsByte<EPCGExBitmask8_32_40>;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 40-48 Bits Range"))
 enum class EPCGExBitmask8_40_48 : uint8
@@ -770,7 +770,7 @@ enum class EPCGExBitmask8_40_48 : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_40_48)
-typedef TEnumAsByte<EPCGExBitmask8_40_48> EPCGExBitmask8_40_48Bitmask;
+using EPCGExBitmask8_40_48Bitmask = TEnumAsByte<EPCGExBitmask8_40_48>;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 48-56 Bits Range"))
 enum class EPCGExBitmask8_48_56 : uint8
@@ -787,7 +787,7 @@ enum class EPCGExBitmask8_48_56 : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_48_56)
-typedef TEnumAsByte<EPCGExBitmask8_48_56> EPCGExBitmask8_48_56Bitmask;
+using EPCGExBitmask8_48_56Bitmask = TEnumAsByte<EPCGExBitmask8_48_56>;
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Bitflag 56-64 Bits Range"))
 enum class EPCGExBitmask8_56_64 : uint8
@@ -804,7 +804,7 @@ enum class EPCGExBitmask8_56_64 : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_56_64)
-typedef TEnumAsByte<EPCGExBitmask8_56_64> EPCGExBitmask8_56_64Bitmask;
+using EPCGExBitmask8_56_64Bitmask = TEnumAsByte<EPCGExBitmask8_56_64>;
 
 #pragma endregion
 

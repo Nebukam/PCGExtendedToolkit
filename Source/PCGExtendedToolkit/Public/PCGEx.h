@@ -524,9 +524,10 @@ namespace PCGEx
 	static EPCGMetadataTypes GetMetadataType(const FName Dummy) { return EPCGMetadataTypes::Name; }
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-	
+
 	template <typename CompilerSafety = void>
 	static EPCGMetadataTypes GetMetadataType(const FSoftClassPath Dummy) { return EPCGMetadataTypes::Unknown; }
+
 	template <typename CompilerSafety = void>
 	static EPCGMetadataTypes GetMetadataType(const FSoftObjectPath Dummy) { return EPCGMetadataTypes::Unknown; }
 

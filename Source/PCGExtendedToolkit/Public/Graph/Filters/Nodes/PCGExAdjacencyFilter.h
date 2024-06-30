@@ -76,7 +76,7 @@ namespace PCGExNodeAdjacency
 	{
 	public:
 		explicit FAdjacencyFilter(const UPCGExAdjacencyFilterFactory* InFactory)
-			: PCGExClusterFilter::TFilter(InFactory), TypedFilterFactory(InFactory)
+			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Adjacency = InFactory->Descriptor.Adjacency;
 		}

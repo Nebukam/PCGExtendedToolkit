@@ -220,7 +220,6 @@ namespace PCGEx
 				FAttributesInfos* Infos = FAttributesInfos::Get(AsSpatialData->Metadata);
 				OutInfos->Append(Infos, InSettings, Mismatches);
 				PCGEX_DELETE(Infos);
-				continue;
 			}
 		}
 	}

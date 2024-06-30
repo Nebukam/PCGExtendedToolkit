@@ -761,7 +761,7 @@ namespace PCGExCluster
 
 		int32 RemainingCount = Nodes->Num();
 		int32 Start = 0;
-		const int32 PerIterationsNum = 256;
+		constexpr int32 PerIterationsNum = 256;
 
 		while (RemainingCount != 0)
 		{

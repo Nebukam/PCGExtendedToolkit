@@ -22,7 +22,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFindClustersDataSettings : public UPCGExPoint
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FindClustersData, "Find Clusters Data", "Find vtx/edge pairs among a soup of data collections");
+	PCGEX_NODE_INFOS(FindClustersData, "Find Clusters", "Find vtx/edge pairs among a soup of data collections");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorEdge; }
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

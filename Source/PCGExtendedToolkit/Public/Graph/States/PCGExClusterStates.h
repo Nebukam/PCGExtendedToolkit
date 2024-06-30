@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExPointStates.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "..\..\Misc\PCGExBitmaskOperation.h"
+#include "Misc/PCGExBitmaskOperation.h"
 #include "PCGExClusterStates.generated.h"
 
 USTRUCT(BlueprintType)
@@ -29,9 +29,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryBase : public UPCGExCluste
 	GENERATED_BODY()
 
 public:
-
 	virtual PCGExFactories::EType GetFactoryType() const override;
-	
+
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 
@@ -68,7 +67,7 @@ namespace PCGExClusterStates
 	protected:
 		PCGExClusterFilter::TManager* Manager = nullptr;
 	};
-	
+
 	class PCGEXTENDEDTOOLKIT_API FStateManager : public PCGExClusterFilter::TManager
 	{
 		TArray<FState*> States;
@@ -81,7 +80,7 @@ namespace PCGExClusterStates
 		virtual bool Test(const int32 Index) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) override;
 		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) override;
-		
+
 	protected:
 		virtual void PostInitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter) override;
 	};
@@ -95,7 +94,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryProviderSettings : public 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Graph : Node Flag", "A single, filter-driven node flag.",
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		NodeFilter, "Cluster : Node Flag", "A single, filter-driven node flag.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
 #endif
@@ -109,7 +109,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName Name = FName("Node State");
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Priority = 0;
 
@@ -117,5 +117,4 @@ public:
 	FPCGExClusterStateDescriptorBase Descriptor;
 
 	virtual FString GetDisplayName() const override;
-	
 };

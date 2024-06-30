@@ -17,8 +17,8 @@ void UPCGExEdgeRefinePrimMST::Process(
 	PCGExCluster::FCluster* InCluster,
 	PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
-	TArray<PCGExCluster::FNode>& NodesRef =*InCluster->Nodes; 
-	TArray<PCGExGraph::FIndexedEdge>& EdgesRef =*InCluster->Edges; 
+	TArray<PCGExCluster::FNode>& NodesRef = *InCluster->Nodes;
+	TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *InCluster->Edges;
 	const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
 	const int32 NumNodes = NodesRef.Num();
 

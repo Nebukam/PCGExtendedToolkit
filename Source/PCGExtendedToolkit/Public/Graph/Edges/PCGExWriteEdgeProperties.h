@@ -8,7 +8,7 @@
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
-#include "PCGExWriteEdgeExtras.generated.h"
+#include "PCGExWriteEdgeProperties.generated.h"
 
 #define PCGEX_FOREACH_FIELD_EDGEEXTRAS(MACRO)\
 MACRO(EdgeLength, double)\
@@ -20,7 +20,7 @@ namespace PCGExDataBlending
 	struct FPropertiesBlender;
 }
 
-namespace PCGExWriteEdgeExtras
+namespace PCGExWriteEdgeProperties
 {
 	class FProcessorBatch;
 }
@@ -42,15 +42,14 @@ enum class EPCGExEdgeDirectionChoice : uint8
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteEdgeExtrasSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExWriteEdgePropertiesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WriteEdgeExtras, "Edges : Write Extras", "Extract & write extra edge informations to the point representing the edge.");
+	PCGEX_NODE_INFOS(WriteEdgeProperties, "Cluster : Edge Properties", "Extract & write extra edge informations to the point representing the edge.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
 #endif
 
@@ -169,19 +168,19 @@ public:
 	FPCGAttributePropertyInputSelector RadiusZSourceAttribute;
 
 private:
-	friend class FPCGExWriteEdgeExtrasElement;
+	friend class FPCGExWriteEdgePropertiesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext final : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgePropertiesContext final : public FPCGExEdgesProcessorContext
 {
-	friend class FPCGExWriteEdgeExtrasElement;
+	friend class FPCGExWriteEdgePropertiesElement;
 
-	virtual ~FPCGExWriteEdgeExtrasContext() override;
+	virtual ~FPCGExWriteEdgePropertiesContext() override;
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement final : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -194,7 +193,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExWriteEdgeExtras
+namespace PCGExWriteEdgeProperties
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{

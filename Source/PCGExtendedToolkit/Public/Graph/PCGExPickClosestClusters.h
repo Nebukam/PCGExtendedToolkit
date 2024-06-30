@@ -33,11 +33,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPickClosestClustersSettings : public UPCGExEd
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PickClosestClusters, "Graph : Pick Closest Clusters", "Pick the clusters closest to input targets.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(PickClosestClusters, "Cluster : Pick Closest", "Pick the clusters closest to input targets.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

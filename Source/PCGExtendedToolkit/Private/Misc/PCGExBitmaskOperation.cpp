@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Misc\PCGExBitmaskOperation.h"
+#include "Misc/PCGExBitmaskOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBitmaskOperationElement"
 #define PCGEX_NAMESPACE BitmaskOperation

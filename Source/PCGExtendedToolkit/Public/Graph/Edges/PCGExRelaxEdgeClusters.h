@@ -19,7 +19,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(RelaxEdgeClusters, "Edges : Relax", "Relax point positions using edges connecting them.");
+	PCGEX_NODE_INFOS(RelaxEdgeClusters, "Cluster : Relax", "Relax point positions using edges connecting them.");
 #endif
 
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;

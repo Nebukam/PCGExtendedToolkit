@@ -24,10 +24,9 @@ namespace PCGExHeuristics
 {
 	struct PCGEXTENDEDTOOLKIT_API FLocalFeedbackHandler
 	{
-
 		PCGExData::FFacade* VtxDataCache = nullptr;
 		PCGExData::FFacade* EdgeDataCache = nullptr;
-		
+
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
 		double TotalWeight = 0;
 
@@ -67,7 +66,7 @@ namespace PCGExHeuristics
 	public:
 		PCGExData::FFacade* VtxDataCache = nullptr;
 		PCGExData::FFacade* EdgeDataCache = nullptr;
-		
+
 		TArray<UPCGExHeuristicOperation*> Operations;
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
 		TArray<const UPCGExHeuristicsFactoryBase*> LocalFeedbackFactories;

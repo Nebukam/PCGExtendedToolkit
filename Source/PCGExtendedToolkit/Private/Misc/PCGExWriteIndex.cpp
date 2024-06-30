@@ -67,7 +67,7 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputNormalizedIndex)
 		{
-			DoubleWriter= PointDataCache->GetOrCreateWriter<double>(Settings->OutputAttributeName, false);
+			DoubleWriter = PointDataCache->GetOrCreateWriter<double>(Settings->OutputAttributeName, false);
 		}
 		else
 		{

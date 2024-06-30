@@ -247,10 +247,11 @@ namespace PCGExFuseClusters
 		{
 			if (!BuildIndexedEdges(EdgesIO, *EndpointsLookup, IndexedEdges, true)) { return false; }
 			if (IndexedEdges.IsEmpty()) { return false; }
-		}else
+		}
+		else
 		{
-			NumNodes = Cluster->Nodes->Num(); 
-			NumEdges = Cluster->Edges->Num(); 
+			NumNodes = Cluster->Nodes->Num();
+			NumEdges = Cluster->Edges->Num();
 		}
 
 		InPoints = &VtxIO->GetIn()->GetPoints();
@@ -258,7 +259,7 @@ namespace PCGExFuseClusters
 		bInvalidEdges = false;
 		CompoundGraph = TypedContext->CompoundGraph;
 
-		bInlineProcessRange = bInlineProcessEdges = true;// TypedContext->CompoundGraph->Octree ? true : false;
+		bInlineProcessRange = bInlineProcessEdges = true; // TypedContext->CompoundGraph->Octree ? true : false;
 
 		if (Cluster) { StartParallelLoopForEdges(); }
 		else { StartParallelLoopForRange(IndexedEdges.Num()); }
@@ -290,7 +291,9 @@ namespace PCGExFuseClusters
 
 	void FProcessor::CompleteWork()
 	{
-		if (bInvalidEdges) { return; }
+		if (bInvalidEdges)
+		{
+		}
 
 		/*
 		                const TArray<FPCGPoint>& InPoints =

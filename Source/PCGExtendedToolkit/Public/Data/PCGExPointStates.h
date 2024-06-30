@@ -10,7 +10,7 @@
 
 #include "PCGExData.h"
 #include "PCGExPointFilter.h"
-#include "..\Misc\PCGExBitmaskOperation.h"
+#include "Misc/PCGExBitmaskOperation.h"
 
 #include "PCGExPointStates.generated.h"
 
@@ -29,7 +29,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateDescriptorBase
 	/** Flags */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOnTestPass = true;
-	
+
 	/** Operations executed on the flag if all filters pass */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOnTestPass"))
 	FPCGExBitmaskWithOperation PassStateFlags;
@@ -37,16 +37,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateDescriptorBase
 	/** Flags */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOnTestFail = true;
-	
+
 	/** Operations executed on the flag if any filters fail */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOnTestFail"))
 	FPCGExBitmaskWithOperation FailStateFlags;
 
 	void Init()
 	{
-		
 	}
-	
 };
 
 /**

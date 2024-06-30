@@ -38,7 +38,6 @@ protected:
 
 	//~Begin UObject interface
 public:
-
 #if WITH_EDITOR
 
 public:

@@ -4,7 +4,6 @@
 #include "Graph/PCGExSimplifyClusters.h"
 
 
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -130,8 +129,8 @@ namespace PCGExSimplifyClusters
 		if (Settings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
 		{
 			// Dump edges
-			if(Chain->SingleEdge != -1){GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]); }
-			else{for (const int32 EdgeIndex : Chain->Edges) { GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex]); }}
+			if (Chain->SingleEdge != -1) { GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]); }
+			else { for (const int32 EdgeIndex : Chain->Edges) { GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex]); } }
 			return;
 		}
 

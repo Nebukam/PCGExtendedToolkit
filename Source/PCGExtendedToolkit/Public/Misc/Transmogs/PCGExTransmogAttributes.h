@@ -31,8 +31,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTransmogAttributesOperation : public UPCGExBi
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache);
-	virtual void ProcessPoint(const FPCGPoint& Point, int64& Flags);
+	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache) override;
+	virtual void ProcessPoint(const FPCGPoint& Point, int64& Flags) override;
 
 	virtual void Cleanup() override;
 };
@@ -44,7 +44,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExTransmogAttributesFactory : public UPCGExBitm
 
 public:
 	virtual UPCGExBitmaskTransmogOperation* CreateOperation() const override;
-	virtual bool Boot(FPCGContext* InContext);
+	virtual bool Boot(FPCGContext* InContext) override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|TransmogAttributes")

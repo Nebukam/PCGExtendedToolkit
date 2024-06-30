@@ -20,7 +20,7 @@ public:
 	int32 ClusterDefaultBatchIterations = 256;
 	int32 GetClusterBatchIteration(const int32 In = -1) const { return In <= -1 ? ClusterDefaultBatchIterations : In; }
 
-	
+
 	/** Allow caching of clusters */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
 	bool bCacheClusters = true;
@@ -28,12 +28,12 @@ public:
 	/** Default value for new nodes (Editable per-node in the Graph Output Settings) */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(EditCondition="bCacheClusters"))
 	bool bDefaultBuildAndCacheClusters = true;
-	
+
 	/** Default value for new nodes (Editable per-node in the Graph Output Settings) */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(EditCondition="bDefaultBuildAndCacheClusters&&bCacheClusters"))
 	bool bDefaultCacheExpandedClusters = true;
 
-	
+
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
 	int32 SmallPointsSize = 256;
 	bool IsSmallPointSize(const int32 InNum) const { return InNum <= SmallPointsSize; }
@@ -66,10 +66,10 @@ public:
 
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorGraphGen = FLinearColor(0.000000, 0.318537, 1.000000, 1.000000);
+	FLinearColor NodeColorClusterGen = FLinearColor(0.000000, 0.318537, 1.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorGraph = FLinearColor(0.000000, 0.615363, 1.000000, 1.000000);
+	FLinearColor NodeColorCluster = FLinearColor(0.000000, 0.615363, 1.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorProbe = FLinearColor(0.171875, 0.681472, 1.000000, 1.000000);

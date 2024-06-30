@@ -8,11 +8,11 @@
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
-#include "PCGExVtxExtraFactoryProvider.h"
+#include "PCGExVtxPropertyFactoryProvider.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
-#include "PCGExVtxExtraEdgeMatch.generated.h"
+#include "PCGExVtxPropertyEdgeMatch.generated.h"
 
 ///
 
@@ -31,7 +31,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 	/** Direction orientation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAdjacencyDirectionOrigin Origin = EPCGExAdjacencyDirectionOrigin::FromNode;
-	
+
 	/** Where to read the compared direction from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFetchType DirectionSource = EPCGExFetchType::Constant;
@@ -51,18 +51,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExDotComparisonSettings DotComparisonSettings;
-	
+
 	/** Matching edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Output"))
 	FPCGExEdgeOutputWithIndexSettings MatchingEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Matching"));
-
 };
 
 /**
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraEdgeMatch : public UPCGExVtxExtraOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyEdgeMatch : public UPCGExVtxPropertyOperation
 {
 	GENERATED_BODY()
 
@@ -88,18 +87,18 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraEdgeMatchFactory : public UPCGExVtxExtraFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryBase
 {
 	GENERATED_BODY()
 
 public:
 	FPCGExEdgeMatchSettings Descriptor;
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	virtual UPCGExVtxExtraOperation* CreateOperation() const override;
+	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxExtra")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraEdgeMatchSettings : public UPCGExVtxExtraProviderSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyEdgeMatchSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
 
@@ -107,7 +106,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NeighborSamplerAttribute, "Vtx Extra : Edge Match", "Find the edge that matches the closest provided direction.",
+		NeighborSamplerAttribute, "Vtx : Edge Match", "Find the edge that matches the closest provided direction.",
 		FName(GetDisplayName()))
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

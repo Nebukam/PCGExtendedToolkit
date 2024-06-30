@@ -112,7 +112,7 @@ namespace PCGExData
 	{
 	}
 
-	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardSettings* InSettings, const PCGExData::FPointIO* InSourceIO):
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardSettings* InSettings, const FPointIO* InSourceIO):
 		Settings(InSettings), SourceIO(InSourceIO)
 	{
 		if (!Settings->bEnabled) { return; }
@@ -121,7 +121,7 @@ namespace PCGExData
 		Settings->Filter(Identities);
 	}
 
-	void FDataForwardHandler::Forward(const int32 SourceIndex, const PCGExData::FPointIO* Target)
+	void FDataForwardHandler::Forward(const int32 SourceIndex, const FPointIO* Target)
 	{
 		if (Identities.IsEmpty()) { return; }
 		for (const PCGEx::FAttributeIdentity& Identity : Identities)

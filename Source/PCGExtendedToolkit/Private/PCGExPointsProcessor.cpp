@@ -366,7 +366,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->SupportsPointFilters())
 	{
-		PCGExFactories::GetInputFactories(InContext, Settings->GetPointFilterLabel(), Context->FilterFactories, Settings->GetPointFilterTypes(), false);
+		GetInputFactories(InContext, Settings->GetPointFilterLabel(), Context->FilterFactories, Settings->GetPointFilterTypes(), false);
 		if (Settings->RequiresPointFilters() && Context->FilterFactories.IsEmpty())
 		{
 			PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(Settings->GetPointFilterLabel())));

@@ -120,7 +120,7 @@ public:
 
 	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
-	bool bCacheResult = false;
+	bool bCacheResult = true;
 
 	/** Flatten the output of this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")

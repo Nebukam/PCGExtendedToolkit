@@ -22,7 +22,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingEdgesSettings : public UPCGExEdges
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingEdges, "Pathfinding : Edges", "Extract paths from edges clusters.");
@@ -103,7 +102,6 @@ public:
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or slightly slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bUseOctreeSearch = false;
-
 };
 
 

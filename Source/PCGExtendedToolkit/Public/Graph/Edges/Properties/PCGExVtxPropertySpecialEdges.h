@@ -7,36 +7,40 @@
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
-#include "PCGExVtxExtraFactoryProvider.h"
+#include "PCGExVtxPropertyFactoryProvider.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
-#include "PCGExVtxExtraSpecialNeighbors.generated.h"
+#include "PCGExVtxPropertySpecialEdges.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialNeighborsSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialEdgesSettings
 {
 	GENERATED_BODY()
 
 	/** Shortest edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExEdgeOutputWithIndexSettings LargestNeighbor = FPCGExEdgeOutputWithIndexSettings(TEXT("Largest"));
+	FPCGExEdgeOutputWithIndexSettings ShortestEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Shortest"));
 
 	/** Longest edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExEdgeOutputWithIndexSettings SmallestNeighbor = FPCGExEdgeOutputWithIndexSettings(TEXT("Smallest"));
+	FPCGExEdgeOutputWithIndexSettings LongestEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Longest"));
+
+	/** Average edge. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExSimpleEdgeOutputSettings AverageEdge = FPCGExSimpleEdgeOutputSettings(TEXT("Average"));
 };
 
 /**
  * ó
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraSpecialNeighbors : public UPCGExVtxExtraOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialEdges : public UPCGExVtxPropertyOperation
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExSpecialNeighborsSettings Descriptor;
+	FPCGExSpecialEdgesSettings Descriptor;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache) override;
@@ -44,24 +48,24 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraSpecialNeighborsFactory : public UPCGExVtxExtraFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialEdgesFactory : public UPCGExVtxPropertyFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExSpecialNeighborsSettings Descriptor;
-	virtual UPCGExVtxExtraOperation* CreateOperation() const override;
+	FPCGExSpecialEdgesSettings Descriptor;
+	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxExtra")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraSpecialNeighborsSettings : public UPCGExVtxExtraProviderSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialEdgesSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NeighborSamplerAttribute, "Vtx Extra : Special Neighbors", "Fetch data from neighbors")
+	PCGEX_NODE_INFOS(NeighborSamplerAttribute, "Vtx : Special Edges", "Edge' edge cases (pun not intended)")
 
 #endif
 	//~End UPCGSettings
@@ -75,5 +79,5 @@ public:
 
 	/** Direction Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSpecialNeighborsSettings Descriptor;
+	FPCGExSpecialEdgesSettings Descriptor;
 };

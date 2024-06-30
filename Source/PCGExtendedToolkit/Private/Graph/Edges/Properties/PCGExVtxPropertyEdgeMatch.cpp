@@ -1,31 +1,31 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/Extras/PCGExVtxExtraEdgeMatch.h"
+#include "Graph/Edges/Properties/PCGExVtxPropertyEdgeMatch.h"
 
 #include "Data/PCGExPointFilter.h"
 
-#define LOCTEXT_NAMESPACE "PCGExVtxExtraEdgeMatch"
-#define PCGEX_NAMESPACE PCGExVtxExtraEdgeMatch
+#define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"
+#define PCGEX_NAMESPACE PCGExVtxPropertyEdgeMatch
 
-void UPCGExVtxExtraEdgeMatch::CopySettingsFrom(const UPCGExOperation* Other)
+void UPCGExVtxPropertyEdgeMatch::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExVtxExtraEdgeMatch* TypedOther = Cast<UPCGExVtxExtraEdgeMatch>(Other);
+	const UPCGExVtxPropertyEdgeMatch* TypedOther = Cast<UPCGExVtxPropertyEdgeMatch>(Other);
 	if (TypedOther)
 	{
 		Descriptor = TypedOther->Descriptor;
 	}
 }
 
-void UPCGExVtxExtraEdgeMatch::ClusterReserve(const int32 NumClusters)
+void UPCGExVtxPropertyEdgeMatch::ClusterReserve(const int32 NumClusters)
 {
 	Super::ClusterReserve(NumClusters);
 	FilterManagers.SetNumUninitialized(NumClusters);
 	for (int i = 0; i < NumClusters; i++) { FilterManagers[i] = nullptr; }
 }
 
-void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataCache, PCGExData::FFacade* EdgeDataCache)
+void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataCache, PCGExData::FFacade* EdgeDataCache)
 {
 	Super::PrepareForCluster(InContext, ClusterIdx, Cluster, VtxDataCache, EdgeDataCache);
 	if (FilterFactories && !FilterFactories->IsEmpty())
@@ -40,7 +40,7 @@ void UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, co
 	}
 }
 
-bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache)
+bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache)
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataCache)) { return false; }
 
@@ -72,7 +72,7 @@ bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExD
 	return bIsValidOperation;
 }
 
-void UPCGExVtxExtraEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	PCGExPointFilter::TManager* EdgeFilters = FilterManagers[ClusterIdx]; //TODO : Implement properly
 
@@ -104,13 +104,13 @@ void UPCGExVtxExtraEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGExClu
 	else { Descriptor.MatchingEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
-void UPCGExVtxExtraEdgeMatch::Cleanup()
+void UPCGExVtxPropertyEdgeMatch::Cleanup()
 {
 	PCGEX_DELETE_TARRAY(FilterManagers)
 	Super::Cleanup();
 }
 
-void UPCGExVtxExtraEdgeMatch::InitEdgeFilters()
+void UPCGExVtxPropertyEdgeMatch::InitEdgeFilters()
 {
 	if (bEdgeFilterInitialized) { return; }
 
@@ -120,7 +120,7 @@ void UPCGExVtxExtraEdgeMatch::InitEdgeFilters()
 }
 
 #if WITH_EDITOR
-FString UPCGExVtxExtraEdgeMatchSettings::GetDisplayName() const
+FString UPCGExVtxPropertyEdgeMatchSettings::GetDisplayName() const
 {
 	/*
 	if (Descriptor.SourceAttributes.IsEmpty()) { return TEXT(""); }
@@ -135,9 +135,9 @@ FString UPCGExVtxExtraEdgeMatchSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExVtxExtraOperation* UPCGExVtxExtraEdgeMatchFactory::CreateOperation() const
+UPCGExVtxPropertyOperation* UPCGExVtxPropertyEdgeMatchFactory::CreateOperation() const
 {
-	UPCGExVtxExtraEdgeMatch* NewOperation = NewObject<UPCGExVtxExtraEdgeMatch>();
+	UPCGExVtxPropertyEdgeMatch* NewOperation = NewObject<UPCGExVtxPropertyEdgeMatch>();
 	PCGEX_VTX_EXTRA_CREATE
 
 	if (!FilterFactories.IsEmpty())
@@ -148,18 +148,18 @@ UPCGExVtxExtraOperation* UPCGExVtxExtraEdgeMatchFactory::CreateOperation() const
 	return NewOperation;
 }
 
-TArray<FPCGPinProperties> UPCGExVtxExtraEdgeMatchSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExVtxPropertyEdgeMatchSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_PARAMS(PCGEx::SourceAdditionalReq, "Additional Requirements for the match", Advanced, {})
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExVtxExtraEdgeMatchSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExVtxPropertyEdgeMatchSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExVtxExtraEdgeMatchFactory* NewFactory = NewObject<UPCGExVtxExtraEdgeMatchFactory>();
+	UPCGExVtxPropertyEdgeMatchFactory* NewFactory = NewObject<UPCGExVtxPropertyEdgeMatchFactory>();
 	NewFactory->Descriptor = Descriptor;
-	PCGExFactories::GetInputFactories(InContext, PCGEx::SourceAdditionalReq, NewFactory->FilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+	GetInputFactories(InContext, PCGEx::SourceAdditionalReq, NewFactory->FilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 	return Super::CreateFactory(InContext, NewFactory);
 }
 

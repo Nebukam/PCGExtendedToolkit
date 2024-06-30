@@ -47,7 +47,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 	{
 		if (C.Distance > R) { break; }
 
-		if(Stacks)
+		if (Stacks)
 		{
 			Stacks->Add(C.GH, &bIsStacking);
 			if (bIsStacking) { continue; }

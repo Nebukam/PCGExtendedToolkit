@@ -25,7 +25,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDrawEdgesSettings : public UPCGExEdgesProcess
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DrawEdges, "Draw Edges", "Draws debug edges");
+	PCGEX_NODE_INFOS(DrawEdges, "Cluster : Draw Edges", "Draws debug edges");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorDebug; }
 #endif

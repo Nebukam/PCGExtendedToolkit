@@ -70,7 +70,7 @@ namespace PCGExPointFilter
 		{
 		}
 
-		bool DefaultResult= true;
+		bool DefaultResult = true;
 		PCGExData::FFacade* PointDataCache = nullptr;
 
 		bool bCacheResults = true;
@@ -84,7 +84,7 @@ namespace PCGExPointFilter
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache);
 
 		virtual void PostInit();
-		
+
 		FORCEINLINE virtual bool Test(const int32 Index) const;
 		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const;
 		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const;
@@ -109,7 +109,7 @@ namespace PCGExPointFilter
 		PCGExData::FFacade* PointDataCache = nullptr;
 
 		bool Init(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
-		
+
 		virtual bool Test(const int32 Index);
 		virtual bool Test(const PCGExCluster::FNode& Node);
 		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge);
@@ -128,5 +128,4 @@ namespace PCGExPointFilter
 
 		virtual void InitCache();
 	};
-
 }
