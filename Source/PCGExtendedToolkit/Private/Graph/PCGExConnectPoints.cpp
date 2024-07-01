@@ -118,7 +118,7 @@ namespace PCGExConnectPoints
 		ChainProbeOperations.Empty();
 		SharedProbeOperations.Empty();
 
-		Positions.Empty();
+		CachedTransforms.Empty();
 		CanGenerate.Empty();
 
 		PCGEX_DELETE(Octree)
@@ -174,7 +174,7 @@ namespace PCGExConnectPoints
 		const int32 NumPoints = InPointsRef.Num();
 
 		CanGenerate.SetNumUninitialized(NumPoints);
-		Positions.SetNumUninitialized(NumPoints);
+		CachedTransforms.SetNumUninitialized(NumPoints);
 
 		PCGExPointFilter::TManager* GeneratorsFilter = nullptr;
 		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
@@ -205,10 +205,9 @@ namespace PCGExConnectPoints
 
 				for (int i = 0; i < NumPoints; i++)
 				{
-					const FVector Pos = ProjectionSettings.ProjectFlat(InPointsRef[i].Transform.GetLocation());
-					Positions[i] = Pos;
+					CachedTransforms[i] = ProjectionSettings.ProjectFlat(InPointsRef[i].Transform, i);
 					if (ConnectableFilter && ConnectableFilter->Test(i)) { continue; }
-					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(Pos, PPRefExtents, PPRefRadius)));
+					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(CachedTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
 				}
 			}
 			else
@@ -217,11 +216,9 @@ namespace PCGExConnectPoints
 
 				for (int i = 0; i < NumPoints; i++)
 				{
-					const FVector Pos = InPointsRef[i].Transform.GetLocation();
-					Positions[i] = Pos;
-					PointIO->GetMutablePoint(i).Transform.SetLocation(Pos);
+					CachedTransforms[i] = InPointsRef[i].Transform;
 					if (ConnectableFilter && !ConnectableFilter->Test(i)) { continue; }
-					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(Pos, PPRefExtents, PPRefRadius)));
+					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(CachedTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
 				}
 			}
 		}
@@ -264,8 +261,7 @@ namespace PCGExConnectPoints
 		if (bUseProjection)
 		{
 			// Adjust local point transform with projection
-			const FQuat Quat = Point.Transform.GetRotation();
-			PointCopy.Transform = FTransform(FQuat::FindBetweenNormals(Quat.GetUpVector(), FVector::UpVector) * Quat, Point.Transform.GetLocation());
+			PointCopy.Transform = CachedTransforms[Index];
 		}
 
 		TArray<PCGExProbing::FBestCandidate> BestCandidates;
@@ -282,7 +278,7 @@ namespace PCGExConnectPoints
 			if (!bUseVariableRadius) { MaxRadius = MaxRadiusSquared; }
 			else { for (UPCGExProbeOperation* Op : ProbeOperations) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Values[Index] : Op->SearchRadiusSquared); } }
 
-			const FVector Origin = Positions[Index];
+			const FVector Origin = CachedTransforms[Index].GetLocation();
 
 			TArray<PCGExProbing::FCandidate> Candidates;
 
@@ -291,7 +287,7 @@ namespace PCGExConnectPoints
 				const int32 OtherPointIndex = InPositionRef.Index;
 				if (OtherPointIndex == Index) { return; }
 
-				const FVector Position = Positions[OtherPointIndex];
+				const FVector Position = CachedTransforms[OtherPointIndex].GetLocation();
 				const FVector Dir = (Origin - Position).GetSafeNormal();
 				const int32 EmplaceIndex = Candidates.Emplace(
 					OtherPointIndex,

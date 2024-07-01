@@ -161,7 +161,7 @@ namespace PCGExConnectPoints
 		PositionOctree* Octree = nullptr;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;
-		TArray<FVector> Positions;
+		TArray<FTransform> CachedTransforms;
 
 		TArray<TSet<uint64>*> DistributedEdgesSet;
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
