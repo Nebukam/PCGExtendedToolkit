@@ -44,8 +44,11 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 	int32 BestCandidateIndex = -1;
 
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
-	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
-	if (ProjectionMatrix) { Dir = ProjectionMatrix->InverseTransformVector(Dir); }
+	if (Descriptor.bTransformDirection)
+	{
+		Dir = Point.Transform.TransformVectorNoScale(Dir);
+		if (ProjectionMatrix) { Dir = ProjectionMatrix->InverseTransformVector(Dir); }
+	}
 
 	for (int i = 0; i < Candidates.Num(); i++)
 	{
@@ -104,8 +107,11 @@ void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 {
 	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
-	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
-	if (ProjectionMatrix) { Dir = ProjectionMatrix->InverseTransformVector(Dir); }
+	if (Descriptor.bTransformDirection)
+	{
+		Dir = Point.Transform.TransformVectorNoScale(Dir);
+		if (ProjectionMatrix) { Dir = ProjectionMatrix->InverseTransformVector(Dir); }
+	}
 
 	if (Candidate.Distance > R) { return; }
 
