@@ -80,7 +80,6 @@ namespace PCGExLloydRelax2D
 	{
 		PCGEX_DELETE(InfluenceGetter)
 		ActivePositions.Empty();
-		ProjectionSettings.Cleanup();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -90,7 +89,7 @@ namespace PCGExLloydRelax2D
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(PointIO);
+		ProjectionSettings.Init(Context, PointDataCache);
 
 		InfluenceGetter = new PCGEx::FLocalSingleFieldGetter();
 		InfluenceGetter->Capture(Settings->InfluenceSettings.LocalInfluence);

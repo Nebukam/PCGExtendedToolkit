@@ -132,6 +132,12 @@ namespace PCGExConnectPoints
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		if (Settings->bProjectPoints)
+		{
+			ProjectionSettings = Settings->ProjectionSettings;
+			ProjectionSettings.Init(Context, PointDataCache);
+		}
+
 		for (const UPCGExProbeFactoryBase* Factory : TypedContext->ProbeFactories)
 		{
 			UPCGExProbeOperation* NewOperation = Factory->CreateOperation();
@@ -142,6 +148,8 @@ namespace PCGExConnectPoints
 				PCGEX_DELETE_UOBJECT(NewOperation)
 				continue;
 			}
+
+			if (Settings->bProjectPoints) { NewOperation->ProjectionTransform = &ProjectionSettings.ProjectionTransform; }
 
 			if (NewOperation->RequiresDirectProcessing())
 			{
@@ -166,8 +174,11 @@ namespace PCGExConnectPoints
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		InPoints = &PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InPointsRef = *InPoints;
+		const int32 NumPoints = InPointsRef.Num();
 
-		CanGenerate.SetNumUninitialized(InPoints->Num());
+		CanGenerate.SetNumUninitialized(NumPoints);
+		Positions.SetNumUninitialized(NumPoints);
 
 		PCGExPointFilter::TManager* GeneratorsFilter = nullptr;
 		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
@@ -190,6 +201,7 @@ namespace PCGExConnectPoints
 				int Index = 0;
 				for (const FPCGPoint& Point : (*InPoints))
 				{
+					// TODO : Need to account for projection here
 					if (!ConnectableFilter->Test(Index++)) { continue; }
 					LocalOctree->AddElement(FPCGPointRef(Point));
 				}
@@ -198,15 +210,19 @@ namespace PCGExConnectPoints
 			}
 		}
 
+		if (Settings->bProjectPoints)
+		{
+			for (int i = 0; i < NumPoints; i++) { Positions[i] = Settings->ProjectionSettings.ProjectFlat(InPointsRef[i].Transform.GetLocation()); }
+		}
+		else
+		{
+			for (int i = 0; i < NumPoints; i++) { Positions[i] = InPointsRef[i].Transform.GetLocation(); }
+		}
+
 		if (!ProbeOperations.IsEmpty())
 		{
 			if (!Octree) { Octree = &PointIO->GetIn()->GetOctree(); }
 			StartPtr = InPoints->GetData();
-
-			const TArray<FPCGPoint>& InPointsRef = (*InPoints);
-			Positions.SetNum(InPointsRef.Num());
-
-			for (int i = 0; i < InPointsRef.Num(); i++) { Positions[i] = InPointsRef[i].Transform.GetLocation(); }
 		}
 
 		for (int i = 0; i < CanGenerate.Num(); i++) { CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->Test(i) : true; }
@@ -224,6 +240,8 @@ namespace PCGExConnectPoints
 
 	void FProcessor::PrepareParallelLoopForPoints(const TArray<uint64>& Loops)
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
+
 		FPointsProcessor::PrepareParallelLoopForPoints(Loops);
 		for (int i = 0; i < Loops.Num(); i++) { DistributedEdgesSet.Add(new TSet<uint64>()); }
 	}
@@ -273,7 +291,7 @@ namespace PCGExConnectPoints
 				if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessCandidateChained(i, Point, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i]); } }
 			};
 
-			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(MaxRadius))), ProcessPoint);
+			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(FMath::Sqrt(MaxRadius))), ProcessPoint);
 
 			if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessBestCandidate(Index, Point, BestCandidates[i], Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); } }
 

@@ -100,7 +100,6 @@ namespace PCGExBuildDelaunay2D
 	{
 		PCGEX_DELETE(Delaunay)
 
-		ProjectionSettings.Cleanup();
 		PCGEX_DELETE(GraphBuilder)
 
 		PCGEX_DELETE(HullMarkPointWriter)
@@ -113,7 +112,7 @@ namespace PCGExBuildDelaunay2D
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(PointIO);
+		ProjectionSettings.Init(Context, PointDataCache);
 
 		// Build delaunay
 

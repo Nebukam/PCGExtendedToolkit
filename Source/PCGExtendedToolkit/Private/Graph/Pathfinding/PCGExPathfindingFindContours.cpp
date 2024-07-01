@@ -207,7 +207,6 @@ namespace PCGExFindContours
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(ClusterProjection)
-		ProjectionSettings.Cleanup();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -219,7 +218,7 @@ namespace PCGExFindContours
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 
 		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(VtxIO);
+		ProjectionSettings.Init(Context, VtxDataCache);
 		ClusterProjection = new PCGExCluster::FClusterProjection(Cluster, &ProjectionSettings);
 
 		StartParallelLoopForNodes();

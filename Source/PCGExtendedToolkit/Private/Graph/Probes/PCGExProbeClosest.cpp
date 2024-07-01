@@ -38,13 +38,13 @@ bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 
 void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges)
 {
-	bool bIsStacking;
+	bool bIsAlreadyConnected;
 	const int32 MaxIterations = FMath::Min(MaxConnectionsCache ? MaxConnectionsCache->Values[Index] : MaxConnections, Candidates.Num());
 	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
 
 	if (MaxIterations <= 0) { return; }
 
-	TSet<uint64> Occupied;
+	TSet<uint64> LocalConnectedSet;
 	int32 Additions = 0;
 
 	for (PCGExProbing::FCandidate& C : Candidates)
@@ -53,19 +53,19 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 
 		if (ConnectedSet)
 		{
-			ConnectedSet->Add(C.GH, &bIsStacking);
-			if (bIsStacking) { continue; }
+			ConnectedSet->Add(C.GH, &bIsAlreadyConnected);
+			if (bIsAlreadyConnected) { continue; }
 		}
 
 		if (Descriptor.bPreventStacking)
 		{
-			Occupied.Add(PCGEx::GH(C.Direction, CWStackingTolerance), &bIsStacking);
-			if (bIsStacking) { continue; }
+			LocalConnectedSet.Add(PCGEx::GH(C.Direction, CWStackingTolerance), &bIsAlreadyConnected);
+			if (bIsAlreadyConnected) { continue; }
 		}
 
-		bool bEdgeAlreadyExists;
-		OutEdges->Add(PCGEx::H64(Index, C.PointIndex), &bEdgeAlreadyExists);
-		if (bEdgeAlreadyExists) { continue; }
+		//bool bEdgeAlreadyExists;
+		OutEdges->Add(PCGEx::H64(Index, C.PointIndex));
+		//if (bEdgeAlreadyExists) { continue; }
 		
 		Additions++;
 		if (Additions >= MaxIterations) { return; }

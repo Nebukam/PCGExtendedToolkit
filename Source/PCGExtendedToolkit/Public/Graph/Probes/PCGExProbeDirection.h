@@ -11,6 +11,13 @@
 
 #include "PCGExProbeDirection.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
+enum class EPCGExProbeDirectionPriorization : uint8
+{
+	Dot UMETA(DisplayName = "Best alignment", ToolTip="Favor the candidates that best align with the direction, as opposed to closest ones."),
+	Dist UMETA(DisplayName = "Closest position", ToolTip="Favor the candidates that are the closest, even if they were not the best aligned."),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorDirection : public FPCGExProbeDescriptorBase
 {
@@ -40,7 +47,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorDirection : public FPCGExProb
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bTransformDirection = true;
 
-	/** This probe will sample candidates after the other. This is much more efficient. */
+	/** What matters more? */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExProbeDirectionPriorization Favor = EPCGExProbeDirectionPriorization::Dist;
+	
+	/** This probe will sample candidates after the other. Can yield different results. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bDoChainedProcessing = true;
 };
@@ -67,6 +78,7 @@ public:
 protected:
 	bool bUseConstantDir = false;
 	double MaxDot = 0;
+	bool bUseBestDot = false;
 	FVector Direction = FVector::ForwardVector;
 	PCGExData::FCache<FVector>* DirectionCache = nullptr;
 };

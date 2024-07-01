@@ -144,8 +144,6 @@ namespace PCGExWriteVtxProperties
 	{
 		PCGEX_SETTINGS(WriteVtxProperties)
 		for (UPCGExVtxPropertyOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
-
-		ProjectionSettings.Cleanup();
 	}
 
 	bool FProcessorBatch::PrepareProcessing()
@@ -160,7 +158,7 @@ namespace PCGExWriteVtxProperties
 		}
 
 		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(VtxIO);
+		ProjectionSettings.Init(Context, VtxDataCache);
 
 		for (const UPCGExVtxPropertyFactoryBase* Factory : TypedContext->ExtraFactories)
 		{

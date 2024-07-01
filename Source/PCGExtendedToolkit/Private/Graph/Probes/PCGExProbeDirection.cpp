@@ -13,6 +13,7 @@ bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
+	bUseBestDot = Descriptor.Favor == EPCGExProbeDirectionPriorization::Dot;
 	MaxDot = PCGExMath::DegreesToDot(Descriptor.MaxAngle * 0.5);
 
 	if (Descriptor.DirectionSource == EPCGExFetchType::Constant)
@@ -44,6 +45,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
 	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
+	if (ProjectionTransform) { Dir = ProjectionTransform->InverseTransformVector(Dir); }
 
 	for (int i = 0; i < Candidates.Num(); i++)
 	{
@@ -51,20 +53,29 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 
 		if (C.Distance > R) { break; }
 		if (ConnectedSet && ConnectedSet->Contains(C.GH)) { continue; }
-		if (OutEdges->Contains(PCGEx::H64(Index, C.PointIndex))) { continue; }
+		//if (OutEdges->Contains(PCGEx::H64(Index, C.PointIndex))) { continue; }
 
 		const double Dot = FVector::DotProduct(Dir, C.Direction);
 
 		if (Dot < MaxDot) { continue; }
 
-		if (Dot >= BestDot)
+		if (bUseBestDot)
 		{
-			if (C.Distance < BestDist)
+			if (Dot >= BestDot)
 			{
-				BestDist = C.Distance;
-				BestDot = Dot;
-				BestCandidateIndex = i;
+				if (C.Distance < BestDist)
+				{
+					BestDist = C.Distance;
+					BestDot = Dot;
+					BestCandidateIndex = i;
+				}
 			}
+		}
+		else if (C.Distance < BestDist)
+		{
+			BestDist = C.Distance;
+			BestDot = Dot;
+			BestCandidateIndex = i;
 		}
 	}
 
@@ -94,6 +105,7 @@ void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
 	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
+	if (ProjectionTransform) { Dir = ProjectionTransform->InverseTransformVector(Dir); }
 
 	if (Candidate.Distance > R) { return; }
 
@@ -101,14 +113,23 @@ void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 
 	if (Dot < MaxDot) { return; }
 
-	if (Dot >= InBestCandidate.BestPrimaryValue)
+	if (bUseBestDot)
 	{
-		if (Candidate.Distance < InBestCandidate.BestSecondaryValue)
+		if (Dot >= InBestCandidate.BestPrimaryValue)
 		{
-			InBestCandidate.BestSecondaryValue = Candidate.Distance;
-			InBestCandidate.BestPrimaryValue = Dot;
-			InBestCandidate.BestIndex = CandidateIndex;
+			if (Candidate.Distance < InBestCandidate.BestSecondaryValue)
+			{
+				InBestCandidate.BestSecondaryValue = Candidate.Distance;
+				InBestCandidate.BestPrimaryValue = Dot;
+				InBestCandidate.BestIndex = CandidateIndex;
+			}
 		}
+	}
+	else if (Candidate.Distance < InBestCandidate.BestSecondaryValue)
+	{
+		InBestCandidate.BestSecondaryValue = Candidate.Distance;
+		InBestCandidate.BestPrimaryValue = Dot;
+		InBestCandidate.BestIndex = CandidateIndex;
 	}
 }
 

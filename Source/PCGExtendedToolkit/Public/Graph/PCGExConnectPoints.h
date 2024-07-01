@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExConnectPoints.generated.h"
@@ -57,6 +58,14 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPreventStacking", ClampMin=0.00001, ClampMax=1))
 	double StackingPreventionTolerance = 0.001;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bProjectPoints = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bProjectPoints", DisplayName="Project Points"))
+	FPCGExGeo2DProjectionSettings ProjectionSettings = FPCGExGeo2DProjectionSettings(false);
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
@@ -114,6 +123,7 @@ namespace PCGExConnectPoints
 		TArray<FVector> Positions;
 
 		TArray<TSet<uint64>*> DistributedEdgesSet;
+		FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 		bool bPreventStacking = false;
 		FVector CWStackingTolerance = FVector::ZeroVector;

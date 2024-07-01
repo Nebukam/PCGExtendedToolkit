@@ -18,8 +18,6 @@ PCGEX_INITIALIZE_ELEMENT(ConnectClusters)
 FPCGExConnectClustersContext::~FPCGExConnectClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	ProjectionSettings.Cleanup();
 }
 
 
