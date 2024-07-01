@@ -7,7 +7,7 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "PCGExSettings.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 #include "PCGExGeo.generated.h"
 
 USTRUCT(BlueprintType)
