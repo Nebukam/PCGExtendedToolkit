@@ -71,7 +71,7 @@ public:
 	double SearchRadiusSquared = -1;
 	PCGExData::FCache<double>* SearchRadiusCache = nullptr;
 	FPCGExProbeDescriptorBase* BaseDescriptor = nullptr;
-	FTransform* ProjectionTransform = nullptr;
+	FMatrix* ProjectionMatrix = nullptr;
 	
 protected:
 	const PCGExData::FPointIO* PointIO = nullptr;
