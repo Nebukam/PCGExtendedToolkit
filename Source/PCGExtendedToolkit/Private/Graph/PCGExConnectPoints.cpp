@@ -147,7 +147,11 @@ namespace PCGExConnectPoints
 				continue;
 			}
 
-			if (Settings->bProjectPoints) { NewOperation->ProjectionMatrix = &ProjectionSettings.ProjectionMatrix; }
+			if (Settings->bProjectPoints)
+			{
+				NewOperation->ProjectionQuat = &ProjectionSettings.ProjectionQuat;
+				NewOperation->ProjectionInverseQuat = &ProjectionSettings.ProjectionInverseQuat;
+			}
 
 			if (NewOperation->RequiresDirectProcessing())
 			{
@@ -191,7 +195,7 @@ namespace PCGExConnectPoints
 			ConnectableFilter = new PCGExPointFilter::TManager(PointDataCache);
 			ConnectableFilter->Init(Context, TypedContext->ConnetablesFiltersFactories);
 		}
-
+		
 		if (!ProbeOperations.IsEmpty())
 		{
 			const FBox B = PointIO->GetIn()->GetBounds();
@@ -206,7 +210,7 @@ namespace PCGExConnectPoints
 
 				for (int i = 0; i < NumPoints; i++)
 				{
-					const FVector Pos = Settings->ProjectionSettings.ProjectFlat(InPointsRef[i].Transform.GetLocation());
+					const FVector Pos = ProjectionSettings.ProjectFlat(InPointsRef[i].Transform.GetLocation());
 					Positions[i] = Pos;
 					if (ConnectableFilter && ConnectableFilter->Test(i)) { continue; }
 					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(Pos, PPRefExtents, PPRefRadius)));
@@ -220,6 +224,7 @@ namespace PCGExConnectPoints
 				{
 					const FVector Pos = InPointsRef[i].Transform.GetLocation();
 					Positions[i] = Pos;
+					PointIO->GetMutablePoint(i).Transform.SetLocation(Pos);
 					if (ConnectableFilter && !ConnectableFilter->Test(i)) { continue; }
 					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(Pos, PPRefExtents, PPRefRadius)));
 				}
@@ -321,7 +326,7 @@ namespace PCGExConnectPoints
 			GraphBuilder->Graph->InsertEdgesUnsafe(*EdgesSet, -1);
 			delete EdgesSet;
 		}
-
+		
 		DistributedEdgesSet.Empty();
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr);

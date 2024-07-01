@@ -47,14 +47,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bSupportLocalNormal && bLocalProjectionNormal", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalNormal;
 
-	FMatrix ProjectionMatrix = FMatrix::Identity;
 	PCGExData::FCache<FVector>* NormalGetter = nullptr;
+	FQuat ProjectionQuat = FQuat::Identity;
+	FQuat ProjectionInverseQuat = FQuat::Identity;
 
 	void Init(const FPCGContext* InContext, PCGExData::FFacade* PointDataCache = nullptr)
 	{
 		ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
-		ProjectionMatrix = FRotationMatrix::MakeFromZ(ProjectionNormal);
-
+		ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::UpVector);
+		ProjectionInverseQuat = ProjectionInverseQuat.Inverse();
+		
 		if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
 		if (bLocalProjectionNormal && PointDataCache)
 		{
@@ -70,18 +72,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	FORCEINLINE FVector Project(const FVector& InPosition, const int32 PointIndex) const
 	{
 		return NormalGetter ? FRotationMatrix::MakeFromZ((NormalGetter ? NormalGetter->Values[PointIndex] : ProjectionNormal).GetSafeNormal(1E-08, FVector::UpVector)).InverseTransformPosition(InPosition) :
-			       ProjectionMatrix.InverseTransformPosition(InPosition);
+			       ProjectionQuat.RotateVector(InPosition);
 	}
 
 	FORCEINLINE FVector Project(const FVector& InPosition) const
 	{
-		return ProjectionMatrix.InverseTransformPosition(InPosition);
+		return ProjectionQuat.RotateVector(InPosition);
 	}
 
 	FORCEINLINE FVector ProjectFlat(const FVector& InPosition) const
 	{
-		const FVector ProjectedVector = ProjectionMatrix.InverseTransformPosition(InPosition);
-		return FVector(ProjectedVector.X, ProjectedVector.Y, 0);
+		const FVector RotatedVector = ProjectionQuat.RotateVector(InPosition);
+		return FVector(RotatedVector.X, RotatedVector.Y, 0);
 	}
 
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const
@@ -89,11 +91,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 		const int32 NumVectors = InPositions.Num();
 		OutPositions.SetNum(NumVectors);
 
-		for (int i = 0; i < NumVectors; i++)
-		{
-			//const FVector V = DefaultMatrix.InverseTransformPosition(InPositions[i]);
-			OutPositions[i] = ProjectionMatrix.InverseTransformPosition(InPositions[i]); //FVector(V.X, V.Y, 0);
-		}
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]); }
 	}
 
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
@@ -103,7 +101,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 
 		for (int i = 0; i < NumVectors; i++)
 		{
-			const FVector V = ProjectionMatrix.InverseTransformPosition(InPositions[i]);
+			const FVector V = ProjectionQuat.RotateVector(InPositions[i]);
 			OutPositions[i] = FVector2D(V.X, V.Y);
 		}
 	}
@@ -113,11 +111,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 		const int32 NumVectors = InPoints.Num();
 		OutPositions->SetNum(NumVectors);
 
-		for (int i = 0; i < NumVectors; i++)
-		{
-			//const FVector V = DefaultMatrix.InverseTransformPosition(InPoints[i].Transform.GetLocation());
-			(*OutPositions)[i] = ProjectionMatrix.InverseTransformPosition(InPoints[i].Transform.GetLocation()); //FVector(V.X, V.Y, 0);
-		}
+		for (int i = 0; i < NumVectors; i++) { (*OutPositions)[i] = ProjectionQuat.RotateVector(InPoints[i].Transform.GetLocation()); }
 	}
 };
 
