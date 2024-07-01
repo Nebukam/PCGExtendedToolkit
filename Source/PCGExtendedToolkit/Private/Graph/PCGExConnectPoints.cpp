@@ -147,12 +147,6 @@ namespace PCGExConnectPoints
 				continue;
 			}
 
-			if (Settings->bProjectPoints)
-			{
-				NewOperation->ProjectionQuat = &ProjectionSettings.ProjectionQuat;
-				NewOperation->ProjectionInverseQuat = &ProjectionSettings.ProjectionInverseQuat;
-			}
-
 			if (NewOperation->RequiresDirectProcessing())
 			{
 				DirectProbeOperations.Add(NewOperation);
@@ -195,7 +189,7 @@ namespace PCGExConnectPoints
 			ConnectableFilter = new PCGExPointFilter::TManager(PointDataCache);
 			ConnectableFilter->Init(Context, TypedContext->ConnetablesFiltersFactories);
 		}
-		
+
 		if (!ProbeOperations.IsEmpty())
 		{
 			const FBox B = PointIO->GetIn()->GetBounds();
@@ -205,6 +199,7 @@ namespace PCGExConnectPoints
 
 			if (Settings->bProjectPoints)
 			{
+				bUseProjection = true;
 				const FVector ProjectedOctreeCenter = ProjectionSettings.ProjectFlat(B.GetCenter());
 				Octree = new PositionOctree(ProjectedOctreeCenter, B.GetExtent().Length());
 
@@ -264,13 +259,21 @@ namespace PCGExConnectPoints
 		TSet<uint64>* LocalConnectionStack = nullptr;
 		if (bPreventStacking) { LocalConnectionStack = new TSet<uint64>(); }
 
+		FPCGPoint PointCopy = Point;
+
+		if (bUseProjection)
+		{
+			// Adjust local point transform with projection
+			const FQuat Quat = Point.Transform.GetRotation();
+			PointCopy.Transform = FTransform(FQuat::FindBetweenNormals(Quat.GetUpVector(), FVector::UpVector) * Quat, Point.Transform.GetLocation());
+		}
 
 		TArray<PCGExProbing::FBestCandidate> BestCandidates;
 
 		if (NumChainedOps > 0)
 		{
 			BestCandidates.SetNum(NumChainedOps);
-			for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->PrepareBestCandidate(Index, Point, BestCandidates[i]); }
+			for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->PrepareBestCandidate(Index, PointCopy, BestCandidates[i]); }
 		}
 
 		if (!ProbeOperations.IsEmpty())
@@ -296,25 +299,25 @@ namespace PCGExConnectPoints
 					FVector::DistSquared(Position, Origin),
 					bPreventStacking ? PCGEx::GH(Dir, CWStackingTolerance) : 0);
 
-				if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessCandidateChained(i, Point, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i]); } }
+				if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessCandidateChained(i, PointCopy, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i]); } }
 			};
 
 			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(MaxRadius))), ProcessPoint);
 
-			if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessBestCandidate(Index, Point, BestCandidates[i], Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); } }
+			if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessBestCandidate(Index, PointCopy, BestCandidates[i], Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); } }
 
 			if (!Candidates.IsEmpty())
 			{
 				Algo::Sort(Candidates, [&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
-				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, Point, Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
+				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
 			}
 			else
 			{
-				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, Point, Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
+				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
 			}
 		}
 
-		for (UPCGExProbeOperation* Op : DirectProbeOperations) { Op->ProcessNode(Index, Point, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
+		for (UPCGExProbeOperation* Op : DirectProbeOperations) { Op->ProcessNode(Index, PointCopy, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
 
 		PCGEX_DELETE(LocalConnectionStack)
 	}
@@ -326,7 +329,7 @@ namespace PCGExConnectPoints
 			GraphBuilder->Graph->InsertEdgesUnsafe(*EdgesSet, -1);
 			delete EdgesSet;
 		}
-		
+
 		DistributedEdgesSet.Empty();
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr);

@@ -65,7 +65,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 	/** How to handle threshold comparison. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
 	EPCGExComparison ThresholdComparison = EPCGExComparison::NearlyEqual;
-	
+
 	/** Define the nodes subset' size that must meet requirements. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
 	EPCGExMeanMeasure ThresholdType = EPCGExMeanMeasure::Discrete;

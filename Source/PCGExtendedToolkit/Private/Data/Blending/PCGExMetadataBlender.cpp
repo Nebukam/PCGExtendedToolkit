@@ -288,7 +288,10 @@ namespace PCGExDataBlending
 			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
 
 			const EPCGExDataBlendingType* TypePtr = BlendingSettings->AttributesOverrides.Find(Identity.Name);
-			FDataBlendingOperationBase* Op = CreateOperation(TypePtr ? *TypePtr : BlendingSettings->DefaultBlending, Identity);
+
+			FDataBlendingOperationBase* Op;
+			if (PCGEx::IsPCGExAttribute(Identity.Name)) { Op = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
+			else { Op = CreateOperation(TypePtr ? *TypePtr : BlendingSettings->DefaultBlending, Identity); }
 
 			if (!Op) { continue; }
 

@@ -136,7 +136,7 @@ namespace PCGExMatchAndSet
 				if (!DataCache->bIsPureReader ||
 					!DataCache->Attribute ||
 					!Settings->ConsumeProcessedAttributes.Test(DataCache->Attribute) ||
-					DataCache->FullName.ToString().StartsWith(TEXT("PCGEx/"))) { continue; }
+					PCGEx::IsPCGExAttribute(DataCache->FullName)) { continue; }
 
 				Metadata->DeleteAttribute(DataCache->Attribute->Name);
 			}

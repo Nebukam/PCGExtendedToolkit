@@ -56,7 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 		ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
 		ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::UpVector);
 		ProjectionInverseQuat = ProjectionInverseQuat.Inverse();
-		
+
 		if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
 		if (bLocalProjectionNormal && PointDataCache)
 		{
@@ -69,9 +69,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	{
 	}
 
+	FORCEINLINE FQuat GetQuat(const int32 PointIndex) const
+	{
+		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Values[PointIndex].GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector) :
+			       ProjectionQuat;
+	}
+
 	FORCEINLINE FVector Project(const FVector& InPosition, const int32 PointIndex) const
 	{
-		return NormalGetter ? FRotationMatrix::MakeFromZ((NormalGetter ? NormalGetter->Values[PointIndex] : ProjectionNormal).GetSafeNormal(1E-08, FVector::UpVector)).InverseTransformPosition(InPosition) :
+		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Values[PointIndex].GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector).RotateVector(InPosition) :
 			       ProjectionQuat.RotateVector(InPosition);
 	}
 
@@ -82,36 +88,113 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 
 	FORCEINLINE FVector ProjectFlat(const FVector& InPosition) const
 	{
-		const FVector RotatedVector = ProjectionQuat.RotateVector(InPosition);
-		return FVector(RotatedVector.X, RotatedVector.Y, 0);
+		FVector RotatedPosition = ProjectionQuat.RotateVector(InPosition);
+		RotatedPosition.Z = 0;
+		return RotatedPosition;
+	}
+
+	FORCEINLINE FVector ProjectFlat(const FVector& InPosition, const int32 PointIndex) const
+	{
+		FVector RotatedPosition = GetQuat(PointIndex).RotateVector(InPosition);
+		RotatedPosition.Z = 0;
+		return RotatedPosition;
+	}
+
+	FORCEINLINE FTransform ProjectFlat(const FTransform& InTransform) const
+	{
+		FVector Position = ProjectionQuat.RotateVector(InTransform.GetLocation());
+		Position.Z = 0;
+		const FQuat Quat = InTransform.GetRotation();
+		return FTransform(FQuat::FindBetweenNormals(Quat.GetUpVector(), FVector::UpVector) * Quat, Position);
+	}
+
+	FORCEINLINE FTransform ProjectFlat(const FTransform& InTransform, const int32 PointIndex) const
+	{
+		FVector Position = GetQuat(PointIndex).RotateVector(InTransform.GetLocation());
+		Position.Z = 0;
+		const FQuat Quat = InTransform.GetRotation();
+		return FTransform(FQuat::FindBetweenNormals(Quat.GetUpVector(), FVector::UpVector) * Quat, Position);
+	}
+
+	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
+	{
+		const int32 NumVectors = InPositions.Num();
+		OutPositions.SetNumUninitialized(NumVectors);
+
+		if (NormalGetter)
+		{
+			for (int i = 0; i < NumVectors; i++)
+			{
+				OutPositions[i] = FQuat::FindBetweenNormals(
+					NormalGetter->Values[i].GetSafeNormal(1E-08, FVector::UpVector),
+					FVector::UpVector).RotateVector(InPositions[i]);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumVectors; i++)
+			{
+				OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]);
+			}
+		}
 	}
 
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		OutPositions.SetNum(NumVectors);
-
+		OutPositions.SetNumUninitialized(NumVectors);
 		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]); }
+	}
+
+	void Project(const TArray<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
+	{
+		const int32 NumVectors = InPositions.Num();
+		OutPositions.SetNumUninitialized(NumVectors);
+
+		if (NormalGetter)
+		{
+			for (int i = 0; i < NumVectors; i++)
+			{
+				OutPositions[i] = FVector2D(
+					FQuat::FindBetweenNormals(
+						NormalGetter->Values[i].GetSafeNormal(1E-08, FVector::UpVector),
+						FVector::UpVector).RotateVector(InPositions[i]));
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumVectors; i++)
+			{
+				OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i]));
+			}
+		}
 	}
 
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		OutPositions.SetNum(NumVectors);
-
-		for (int i = 0; i < NumVectors; i++)
-		{
-			const FVector V = ProjectionQuat.RotateVector(InPositions[i]);
-			OutPositions[i] = FVector2D(V.X, V.Y);
-		}
+		OutPositions.SetNumUninitialized(NumVectors);
+		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
 	}
 
-	void Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>* OutPositions) const
+	void Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPoints.Num();
-		OutPositions->SetNum(NumVectors);
+		OutPositions.SetNumUninitialized(NumVectors);
 
-		for (int i = 0; i < NumVectors; i++) { (*OutPositions)[i] = ProjectionQuat.RotateVector(InPoints[i].Transform.GetLocation()); }
+		if (NormalGetter)
+		{
+			for (int i = 0; i < NumVectors; i++)
+			{
+				OutPositions[i] = FQuat::FindBetweenNormals(
+					NormalGetter->Values[i].GetSafeNormal(1E-08, FVector::UpVector),
+					FVector::UpVector).RotateVector(InPoints[i].Transform.GetLocation());
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPoints[i].Transform.GetLocation()); }
+		}
 	}
 };
 

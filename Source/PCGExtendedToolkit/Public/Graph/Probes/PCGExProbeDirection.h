@@ -50,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorDirection : public FPCGExProb
 	/** What matters more? */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExProbeDirectionPriorization Favor = EPCGExProbeDirectionPriorization::Dist;
-	
+
 	/** This probe will sample candidates after the other. Can yield different results. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bDoChainedProcessing = true;

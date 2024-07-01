@@ -66,12 +66,11 @@ namespace PCGExGeo
 			TArray<FVector2D> Positions2D;
 			ProjectionSettings.Project(Positions, Positions2D);
 
-			UE::Geometry::FDelaunay2 Triangulation;
-
 			TArray<UE::Geometry::FIndex3i> Triangles;
 			TArray<UE::Geometry::FIndex3i> Adjacencies;
 
 			{
+				UE::Geometry::FDelaunay2 Triangulation;
 				TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay2D::Triangulate);
 
 				if (!Triangulation.Triangulate(Positions2D))

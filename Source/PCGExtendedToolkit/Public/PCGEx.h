@@ -141,6 +141,7 @@ enum class EPCGExTruncateMode : uint8
 
 namespace PCGEx
 {
+	const FString PCGExPrefix = TEXT("PCGEx/");
 	const FName SourcePointsLabel = TEXT("In");
 	const FName SourceTargetsLabel = TEXT("InTargets");
 	const FName OutputPointsLabel = TEXT("Out");
@@ -156,6 +157,13 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionExpoInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Expo_Inv.FC_PCGExWeightDistribution_Expo_Inv"));
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
 	const FSoftObjectPath SteepnessWeightCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExSteepness_Default.FC_PCGExSteepness_Default"));
+
+	static bool IsPCGExAttribute(const FString& InStr) { return InStr.StartsWith(PCGExPrefix); }
+	static bool IsPCGExAttribute(const FName InName) { return IsPCGExAttribute(InName.ToString()); }
+	static bool IsPCGExAttribute(const FText& InText) { return IsPCGExAttribute(InText.ToString()); }
+
+	static FName MakePCGExAttributeName(const FString& Str0) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}")), FText::FromString(PCGExPrefix), FText::FromString(Str0)).ToString()); }
+	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
 
 	static bool IsValidName(const FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
 

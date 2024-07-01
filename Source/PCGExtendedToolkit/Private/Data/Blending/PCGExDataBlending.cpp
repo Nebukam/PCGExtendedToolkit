@@ -6,8 +6,6 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExData.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
-#include "Graph/PCGExGraph.h"
 
 namespace PCGExDataBlending
 {

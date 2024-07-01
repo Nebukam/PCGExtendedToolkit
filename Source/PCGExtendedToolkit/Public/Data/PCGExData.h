@@ -82,8 +82,8 @@ namespace PCGExData
 	public:
 		FName FullName = NAME_None;
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
-		FPCGMetadataAttributeBase* Attribute = nullptr;		
-		const uint64 UID;		
+		FPCGMetadataAttributeBase* Attribute = nullptr;
+		const uint64 UID;
 		FPointIO* Source = nullptr;
 
 		bool bIsPureReader = false;
@@ -506,9 +506,9 @@ namespace PCGExData
 	}
 
 	template <typename T>
-	static bool TryReadMark(const FPointIO& PointIO, const FName MarkID, T& OutMark)
+	static bool TryReadMark(const FPointIO* PointIO, const FName MarkID, T& OutMark)
 	{
-		return TryReadMark(PointIO.GetIn() ? PointIO.GetIn()->Metadata : PointIO.GetOut()->Metadata, MarkID, OutMark);
+		return TryReadMark(PointIO->GetIn() ? PointIO->GetIn()->Metadata : PointIO->GetOut()->Metadata, MarkID, OutMark);
 	}
 
 	static void WriteId(const FPointIO& PointIO, const FName IdName, const int64 Id)

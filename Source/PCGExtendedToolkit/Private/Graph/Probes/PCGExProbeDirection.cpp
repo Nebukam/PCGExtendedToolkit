@@ -45,7 +45,6 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
 	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
-	if (ProjectionQuat) { Dir = ProjectionQuat->RotateVector(Dir); }
 
 	for (int i = 0; i < Candidates.Num(); i++)
 	{
@@ -86,7 +85,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 		if (ConnectedSet)
 		{
 			ConnectedSet->Add(C.GH, &bIsAlreadyConnected);
-			if (bIsAlreadyConnected) { return;; }
+			if (bIsAlreadyConnected) { return; }
 		}
 
 		OutEdges->Add(PCGEx::H64(Index, C.PointIndex));
@@ -105,7 +104,6 @@ void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
 	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
-	if (ProjectionQuat) { Dir = ProjectionQuat->RotateVector(Dir); }
 
 	if (Candidate.Distance > R) { return; }
 

@@ -74,7 +74,10 @@ namespace PCGExDataBlending
 			{
 				Map = new FAttributeSourceMap(Identity);
 				Map->SetNum(NumSources);
-				Map->TargetBlendOp = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingSettings->DefaultBlending, Identity);
+
+				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
+				else { Map->TargetBlendOp = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingSettings->DefaultBlending, Identity); }
+
 				AttributeSourceMaps.Add(Map);
 			}
 

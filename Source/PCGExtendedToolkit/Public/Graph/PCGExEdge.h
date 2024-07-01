@@ -39,17 +39,17 @@ namespace PCGExGraph
 	const FName SourcePackedClustersLabel = TEXT("Packed Clusters");
 	const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
 
-	const FName Tag_EdgeEndpoints = TEXT("PCGEx/EdgeEndpoints");
-	const FName Tag_VtxEndpoint = TEXT("PCGEx/VtxEndpoint");
-	const FName Tag_ClusterIndex = TEXT("PCGEx/ClusterIndex");
+	const FName Tag_EdgeEndpoints = FName(PCGEx::PCGExPrefix + TEXT("EdgeEndpoints"));
+	const FName Tag_VtxEndpoint = FName(PCGEx::PCGExPrefix + TEXT("VtxEndpoint"));
+	const FName Tag_ClusterIndex = FName(PCGEx::PCGExPrefix + TEXT("ClusterIndex"));
 
-	const FName Tag_ClusterPair = TEXT("PCGEx/ClusterPair");
+	const FName Tag_ClusterPair = FName(PCGEx::PCGExPrefix + TEXT("ClusterPair"));
 	const FString TagStr_ClusterPair = Tag_ClusterPair.ToString();
-	const FName Tag_ClusterId = TEXT("PCGEx/ClusterId");
+	const FName Tag_ClusterId = FName(PCGEx::PCGExPrefix + TEXT("ClusterId"));
 
-	const FName Tag_PCGExVtx = TEXT("PCGEx/ClusterVtx");
+	const FName Tag_PCGExVtx = FName(PCGEx::PCGExPrefix + TEXT("ClusterVtx"));
 	const FString TagStr_PCGExVtx = Tag_PCGExVtx.ToString();
-	const FName Tag_PCGExEdges = TEXT("PCGEx/ClusterEdges");
+	const FName Tag_PCGExEdges = FName(PCGEx::PCGExPrefix + TEXT("ClusterEdges"));
 	const FString TagStr_PCGExEdges = Tag_PCGExEdges.ToString();
 
 	PCGEX_ASYNC_STATE(State_ReadyForNextEdges)
