@@ -1,38 +1,40 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transform/PCGExFlatProject.h"
+#include "Transform/PCGExFlatProjection.h"
 
-#define LOCTEXT_NAMESPACE "PCGExFlatProjectElement"
-#define PCGEX_NAMESPACE FlatProject
+#define LOCTEXT_NAMESPACE "PCGExFlatProjectionElement"
+#define PCGEX_NAMESPACE FlatProjection
 
-PCGExData::EInit UPCGExFlatProjectSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFlatProjectionSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-PCGEX_INITIALIZE_ELEMENT(FlatProject)
+PCGEX_INITIALIZE_ELEMENT(FlatProjection)
 
-FPCGExFlatProjectContext::~FPCGExFlatProjectContext()
+FPCGExFlatProjectionContext::~FPCGExFlatProjectionContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExFlatProjectElement::Boot(FPCGContext* InContext) const
+bool FPCGExFlatProjectionElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(FlatProject)
+	PCGEX_CONTEXT_AND_SETTINGS(FlatProjection)
 
-	PCGEX_VALIDATE_NAME(Settings->AttributePrefix)
-
-	Context->CachedTransformAttributeName = PCGEx::MakePCGExAttributeName(Settings->AttributePrefix.ToString(), TEXT("T"));
+	if (Settings->bSaveAttributeForRestore || Settings->bRestorePreviousProjection)
+	{
+		PCGEX_VALIDATE_NAME(Settings->AttributePrefix)
+		Context->CachedTransformAttributeName = PCGEx::MakePCGExAttributeName(Settings->AttributePrefix.ToString(), TEXT("T"));
+	}
 
 	return true;
 }
 
-bool FPCGExFlatProjectElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFlatProjectElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFlatProjectionElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(FlatProject)
+	PCGEX_CONTEXT_AND_SETTINGS(FlatProjection)
 
 	if (Context->IsSetup())
 	{
@@ -40,10 +42,10 @@ bool FPCGExFlatProjectElement::ExecuteInternal(FPCGContext* InContext) const
 
 		bool bHasInvalidEntries = false;
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFlatProject::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFlatProjection::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry)
 			{
-				if (Settings->bInverseExistingProjection)
+				if (Settings->bRestorePreviousProjection)
 				{
 					if (!Entry->GetIn()->Metadata->HasAttribute(Context->CachedTransformAttributeName))
 					{
@@ -53,7 +55,7 @@ bool FPCGExFlatProjectElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExFlatProject::FProcessor>* NewBatch)
+			[&](PCGExPointsMT::TBatch<PCGExFlatProjection::FProcessor>* NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -75,22 +77,23 @@ bool FPCGExFlatProjectElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-namespace PCGExFlatProject
+namespace PCGExFlatProjection
 {
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlatProject)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlatProjection)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		bInverseExistingProjection = Settings->bInverseExistingProjection;
+		bWriteAttribute = Settings->bSaveAttributeForRestore;
+		bInverseExistingProjection = Settings->bRestorePreviousProjection;
 		bProjectLocalTransform = Settings->bAlignLocalTransform;
 
 		if (bInverseExistingProjection)
 		{
 			TransformReader = PointDataCache->GetOrCreateReader<FTransform>(TypedContext->CachedTransformAttributeName);
 		}
-		else
+		else if (bWriteAttribute)
 		{
 			ProjectionSettings = Settings->ProjectionSettings;
 			ProjectionSettings.Init(Context, PointDataCache);
@@ -108,7 +111,7 @@ namespace PCGExFlatProject
 		{
 			Point.Transform = TransformReader->Values[Index];
 		}
-		else
+		else if (bWriteAttribute)
 		{
 			TransformWriter->Values[Index] = Point.Transform;
 
@@ -125,13 +128,13 @@ namespace PCGExFlatProject
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlatProject)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlatProjection)
 		if (bInverseExistingProjection)
 		{
 			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 			Metadata->DeleteAttribute(TypedContext->CachedTransformAttributeName);
 		}
-		else
+		else if (bWriteAttribute)
 		{
 			PointDataCache->Write(AsyncManagerPtr, true);
 		}

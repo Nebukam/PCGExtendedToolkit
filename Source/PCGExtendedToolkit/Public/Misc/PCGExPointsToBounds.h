@@ -14,14 +14,6 @@
 
 class FPCGExComputeIOBounds;
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source"))
-enum class EPCGExPointBoundsSource : uint8
-{
-	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="TBD"),
-	ScaledExtents UMETA(DisplayName = "Scaled Extents", ToolTip="TBD"),
-	Extents UMETA(DisplayName = "Extents", ToolTip="TBD")
-};
-
 namespace PCGExPointsToBounds
 {
 	class FComputeIOBoundsTask;
@@ -129,13 +121,10 @@ namespace PCGExPointsToBounds
 		default: ;
 		case EPCGExPointBoundsSource::DensityBounds:
 			return Point.GetDensityBounds().GetBox();
-			break;
 		case EPCGExPointBoundsSource::ScaledExtents:
 			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()).GetBox();
-			break;
 		case EPCGExPointBoundsSource::Extents:
 			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetExtents()).GetBox();
-			break;
 		}
 	}
 }

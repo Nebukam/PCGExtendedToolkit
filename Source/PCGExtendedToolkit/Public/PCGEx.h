@@ -139,6 +139,14 @@ enum class EPCGExTruncateMode : uint8
 	Floor UMETA(DisplayName = "Floor", ToolTip="Floor"),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source"))
+enum class EPCGExPointBoundsSource : uint8
+{
+	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="TBD"),
+	ScaledExtents UMETA(DisplayName = "Scaled Extents", ToolTip="TBD"),
+	Extents UMETA(DisplayName = "Extents", ToolTip="TBD")
+};
+
 namespace PCGEx
 {
 	const FString PCGExPrefix = TEXT("PCGEx/");

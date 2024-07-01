@@ -7,4 +7,5 @@
 
 namespace PCGExTransform
 {
+	//TODO: Compute offset & positions relative to provided bounds
 }
