@@ -20,7 +20,7 @@ public:
 	TArray<uint64> Scopes;
 	TArray<PCGEx::FAAttributeIO*> Writers;
 
-	FPCGExPointIOMerger(PCGExData::FPointIO& OutData);
+	FPCGExPointIOMerger(PCGExData::FPointIO* OutMergedData);
 	~FPCGExPointIOMerger();
 
 	void Append(PCGExData::FPointIO* InData);

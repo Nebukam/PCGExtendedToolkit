@@ -4,9 +4,9 @@
 
 #include "Data/PCGExPointIOMerger.h"
 
-FPCGExPointIOMerger::FPCGExPointIOMerger(PCGExData::FPointIO& OutData)
+FPCGExPointIOMerger::FPCGExPointIOMerger(PCGExData::FPointIO* OutMergedData)
 {
-	CompositeIO = &OutData;
+	CompositeIO = OutMergedData;
 }
 
 FPCGExPointIOMerger::~FPCGExPointIOMerger()
@@ -52,7 +52,9 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<
 
 	for (int i = 0; i < NumSources; i++)
 	{
-		const PCGExData::FPointIO* Source = IOSources[i];
+		PCGExData::FPointIO* Source = IOSources[i];
+		Source->CreateInKeys();
+		
 		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
 
 		const uint32 StartIndex = PCGEx::H64A(Scopes[i]);

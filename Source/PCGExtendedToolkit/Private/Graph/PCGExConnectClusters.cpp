@@ -141,7 +141,7 @@ namespace PCGExBridgeClusters
 		// Start merging right away
 		TSet<FName> IgnoreAttributes = {PCGExGraph::Tag_ClusterId};
 
-		Merger = new FPCGExPointIOMerger(*ConsolidatedEdges);
+		Merger = new FPCGExPointIOMerger(ConsolidatedEdges);
 		Merger->Append(Edges);
 		Merger->Merge(AsyncManagerPtr, &IgnoreAttributes);
 	}

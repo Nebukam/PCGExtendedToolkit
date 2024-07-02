@@ -19,6 +19,8 @@ namespace PCGExData
 		TSet<FString> RawTags;       // Contains all data tag
 		TMap<FString, FString> Tags; // PCGEx Tags Name::Value
 
+		bool IsEmpty() const { return RawTags.IsEmpty() && Tags.IsEmpty(); }
+
 		FTags()
 		{
 			RawTags.Empty();
