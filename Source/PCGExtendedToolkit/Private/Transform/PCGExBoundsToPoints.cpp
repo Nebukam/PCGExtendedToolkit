@@ -62,7 +62,7 @@ namespace PCGExBoundsToPoints
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_TARRAY(NewOutputs)
+		NewOutputs.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -164,8 +164,6 @@ namespace PCGExBoundsToPoints
 			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 			for (int i = NumPoints; i < MutablePoints.Num(); i++) { Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry); }
 		}
-
-		NewOutputs.Empty();
 	}
 }
 
