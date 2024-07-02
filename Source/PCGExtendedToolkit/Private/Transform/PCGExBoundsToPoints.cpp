@@ -84,9 +84,7 @@ namespace PCGExBoundsToPoints
 			NewOutputs.SetNumUninitialized(PointIO->GetNum());
 			for (int i = 0; i < NewOutputs.Num(); i++)
 			{
-				PCGExData::FPointIO* NewIO = new PCGExData::FPointIO(PointIO->GetIn());
-				NewIO->InitializeOutput(PCGExData::EInit::NewOutput);
-				NewOutputs[i] = NewIO;
+				NewOutputs[i] = TypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 			}
 
 			if (bSymmetry)
@@ -166,6 +164,8 @@ namespace PCGExBoundsToPoints
 			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 			for (int i = NumPoints; i < MutablePoints.Num(); i++) { Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry); }
 		}
+
+		NewOutputs.Empty();
 	}
 }
 
