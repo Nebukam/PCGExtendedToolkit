@@ -49,13 +49,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExUVW UVW;
 
-	/** Use a Seed attribute value to tag output data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bGenerateNewData"))
-	bool bUsePointAttributeToTagNewData;
-
-	/** Which Seed attribute to use as tag. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bGenerateNewData&&bUsePointAttributeToTagNewData"))
-	FPCGAttributePropertyInputSelector TagAttribute;
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bGeneratePerPointData"))
+	FPCGExAttributeToTagSettings PointAttributesToOutputTags;
 
 private:
 	friend class FPCGExBoundsToPointsElement;
@@ -90,6 +86,7 @@ namespace PCGExBoundsToPoints
 		EPCGExMinimalAxis Axis = EPCGExMinimalAxis::None;
 
 		FPCGExUVW UVW;
+		FPCGExAttributeToTagSettings PointAttributesToOutputTags;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

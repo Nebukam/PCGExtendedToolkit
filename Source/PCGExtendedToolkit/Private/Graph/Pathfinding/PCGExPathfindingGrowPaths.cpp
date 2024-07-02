@@ -169,11 +169,7 @@ namespace PCGExGrowPaths
 
 		PathIO->Tags->Append(VtxIO->Tags);
 
-		if (Settings->bUseSeedAttributeToTagPath)
-		{
-			PathIO->Tags->RawTags.Add(Context->TagValueGetter->SoftGet(Context->SeedsPoints->GetInPoint(SeedPointIndex), TEXT("")));
-		}
-
+		Context->SeedAttributesToPathTags.Tag(SeedPointIndex, PathIO);
 		Context->SeedForwardHandler->Forward(SeedPointIndex, PathIO);
 	}
 
@@ -212,12 +208,12 @@ FPCGExPathfindingGrowPathsContext::~FPCGExPathfindingGrowPathsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	if (SeedsDataFacade) { PCGEX_DELETE(SeedsDataFacade->Source) }
 	PCGEX_DELETE(SeedsDataFacade)
 
-	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(OutputPaths)
 
-	PCGEX_DELETE(TagValueGetter)
+	SeedAttributesToPathTags.Cleanup();
 }
 
 bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
@@ -226,18 +222,12 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 
-	if (TArray<FPCGTaggedData> Seeds = InContext->InputData.GetInputsByPin(PCGExGraph::SourceSeedsLabel);
-		Seeds.Num() > 0)
-	{
-		const FPCGTaggedData& SeedsSource = Seeds[0];
-		Context->SeedsPoints = PCGExData::PCGExPointIO::GetPointIO(Context, SeedsSource);
-	}
+	PCGExData::FPointIO* SeedsPoints = nullptr;
 
-	if (!Context->SeedsPoints || Context->SeedsPoints->GetNum() == 0)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Seed Points."));
-		return false;
-	}
+	SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
+	if (!SeedsPoints) { return false; }
+
+	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection();
 
@@ -261,18 +251,8 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 		PCGEX_GROWTH_GRAB(Context, Context->GrowthMaxDistance, Context->SeedsDataFacade, double, Settings->GrowthMaxDistanceAttribute)
 	}
 
-	if (Settings->bUseSeedAttributeToTagPath)
-	{
-		Context->TagValueGetter = new PCGEx::FLocalToStringGetter();
-		Context->TagValueGetter->Capture(Settings->SeedTagAttribute);
-		if (!Context->TagValueGetter->SoftGrab(Context->SeedsPoints))
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on seed points."));
-			return false;
-		}
-	}
-
-	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
+	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
+	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, SeedsPoints);
 
 	return true;
 }
@@ -345,10 +325,10 @@ namespace PCGExGrowPaths
 		// Prepare growth points
 
 		// Find all growth points
-		const int32 SeedCount = TypedContext->SeedsPoints->GetNum();
+		const int32 SeedCount = TypedContext->SeedsDataFacade->Source->GetNum();
 		for (int i = 0; i < SeedCount; i++)
 		{
-			const FVector SeedPosition = TypedContext->SeedsPoints->GetInPoint(i).Transform.GetLocation();
+			const FVector SeedPosition = TypedContext->SeedsDataFacade->Source->GetInPoint(i).Transform.GetLocation();
 			const int32 NodeIndex = Cluster->FindClosestNode(SeedPosition, Settings->SeedPicking.PickingMethod, 1);
 
 			if (NodeIndex == -1) { continue; }

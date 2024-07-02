@@ -545,6 +545,67 @@ namespace PCGExData
 	};
 }
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagSettings
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeToTagSettings()
+	{
+	}
+
+	/** Use attribute value to tag output data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bEnabled = false;
+
+	/** Attributes which value will be used as tags. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bEnabled"))
+	TArray<FPCGAttributePropertyInputSelector> Attributes;
+
+	PCGExData::FFacade* TagSource = nullptr;
+	TArray<PCGEx::FLocalToStringGetter*> Getters;
+
+	bool Init(const FPCGContext* InContext, const PCGExData::FFacade* TagSourceFacade)
+	{
+		if (!bEnabled) { return true; }
+		for (FPCGAttributePropertyInputSelector& Selector : Attributes)
+		{
+			PCGEx::FLocalToStringGetter* Getter = new PCGEx::FLocalToStringGetter();
+			Getter->Capture(Selector);
+			if (!Getter->SoftGrab(TagSourceFacade->Source))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing specified Tag attribute."));
+				Cleanup();
+				return false;
+			}
+			Getters.Add(Getter);
+		}
+
+		return true;
+	}
+
+	void Tag(const FPCGPoint& Point, const PCGExData::FPointIO* PointIO) const
+	{
+		if (!bEnabled) { return; }
+		for (PCGEx::FLocalToStringGetter* Getter : Getters)
+		{
+			FString Tag = Getter->SoftGet(Point, TEXT(""));
+			if (Tag.IsEmpty()) { continue; }
+			PointIO->Tags->RawTags.Add(Tag);
+		}
+	}
+
+	void Tag(const int32 TagIndex, const PCGExData::FPointIO* PointIO) const
+	{
+		Tag(TagSource->GetIn()->GetPoint(TagIndex), PointIO);
+	}
+
+	void Cleanup()
+	{
+		PCGEX_DELETE_TARRAY(Getters);
+	}
+};
+
 namespace PCGExDataCachingTask
 {
 	/*

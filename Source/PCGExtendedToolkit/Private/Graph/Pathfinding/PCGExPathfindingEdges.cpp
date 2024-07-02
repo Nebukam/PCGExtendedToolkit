@@ -31,8 +31,8 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 
 	PCGEX_SETTINGS_LOCAL(PathfindingEdges)
 
-	const FPCGPoint& Seed = SeedsPoints->GetInPoint(Query->SeedIndex);
-	const FPCGPoint& Goal = GoalsPoints->GetInPoint(Query->GoalIndex);
+	const FPCGPoint& Seed = SeedsDataFacade->Source->GetInPoint(Query->SeedIndex);
+	const FPCGPoint& Goal = GoalsDataFacade->Source->GetInPoint(Query->GoalIndex);
 
 	PCGExCluster::FCluster* Cluster = SearchOperation->Cluster;
 	const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
@@ -54,11 +54,11 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 		return;
 	}
 
-	PCGExData::FPointIO* PathPoints = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
-	UPCGPointData* OutData = PathPoints->GetOut();
+	PCGExData::FPointIO* PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+	UPCGPointData* OutData = PathIO->GetOut();
 
-	PCGExGraph::CleanupClusterTags(PathPoints, true);
-	PCGExGraph::CleanupVtxData(PathPoints);
+	PCGExGraph::CleanupClusterTags(PathIO, true);
+	PCGExGraph::CleanupVtxData(PathIO);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO->GetIn()->GetPoints();
@@ -69,11 +69,11 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]); }
 	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
-	if (Settings->bUseSeedAttributeToTagPath) { PathPoints->Tags->RawTags.Add(SeedTagValueGetter->SoftGet(Seed, TEXT(""))); }
-	if (Settings->bUseGoalAttributeToTagPath) { PathPoints->Tags->RawTags.Add(GoalTagValueGetter->SoftGet(Goal, TEXT(""))); }
+	SeedAttributesToPathTags.Tag(Seed, PathIO);
+	GoalAttributesToPathTags.Tag(Goal, PathIO);
 
-	SeedForwardHandler->Forward(Query->SeedIndex, PathPoints);
-	GoalForwardHandler->Forward(Query->GoalIndex, PathPoints);
+	SeedForwardHandler->Forward(Query->SeedIndex, PathIO);
+	GoalForwardHandler->Forward(Query->GoalIndex, PathIO);
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
@@ -103,12 +103,16 @@ FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 
 	PCGEX_DELETE_TARRAY(PathQueries)
 
-	PCGEX_DELETE(SeedsPoints)
-	PCGEX_DELETE(GoalsPoints)
+	if (SeedsDataFacade) { PCGEX_DELETE(SeedsDataFacade->Source) }
+	PCGEX_DELETE(SeedsDataFacade)
+
+	if (GoalsDataFacade) { PCGEX_DELETE(GoalsDataFacade->Source) }
+	PCGEX_DELETE(GoalsDataFacade)
+
 	PCGEX_DELETE(OutputPaths)
 
-	PCGEX_DELETE(SeedTagValueGetter)
-	PCGEX_DELETE(GoalTagValueGetter)
+	SeedAttributesToPathTags.Cleanup();
+	GoalAttributesToPathTags.Cleanup();
 
 	PCGEX_DELETE(SeedForwardHandler)
 	PCGEX_DELETE(GoalForwardHandler)
@@ -124,52 +128,49 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
 
+	PCGExData::FPointIO* SeedsPoints = nullptr;
+	PCGExData::FPointIO* GoalsPoints = nullptr;
 
-	Context->SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
-	if (!Context->SeedsPoints) { return false; }
-
-	Context->GoalsPoints = Context->TryGetSingleInput(PCGExGraph::SourceGoalsLabel, true);
-	if (!Context->GoalsPoints) { return false; }
-
-	if (Settings->bUseSeedAttributeToTagPath)
+	auto Exit = [&]()
 	{
-		Context->SeedTagValueGetter = new PCGEx::FLocalToStringGetter();
-		Context->SeedTagValueGetter->Capture(Settings->SeedTagAttribute);
-		if (!Context->SeedTagValueGetter->SoftGrab(Context->SeedsPoints))
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on Seed points."));
-			return false;
-		}
-	}
+		PCGEX_DELETE(SeedsPoints)
+		PCGEX_DELETE(GoalsPoints)
+		return false;
+	};
 
-	if (Settings->bUseGoalAttributeToTagPath)
-	{
-		Context->GoalTagValueGetter = new PCGEx::FLocalToStringGetter();
-		Context->GoalTagValueGetter->Capture(Settings->GoalTagAttribute);
-		if (!Context->GoalTagValueGetter->SoftGrab(Context->GoalsPoints))
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on Goal points."));
-			return false;
-		}
-	}
+	SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
+	if (!SeedsPoints) { return Exit(); }
 
-	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
-	Context->GoalForwardHandler = new PCGExData::FDataForwardHandler(&Settings->GoalForwardAttributes, Context->GoalsPoints);
+	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
+
+	GoalsPoints = Context->TryGetSingleInput(PCGExGraph::SourceGoalsLabel, true);
+	if (!GoalsPoints) { return Exit(); }
+
+	Context->GoalsDataFacade = new PCGExData::FFacade(GoalsPoints);
+
+	PCGEX_FWD(SeedAttributesToPathTags)
+	PCGEX_FWD(GoalAttributesToPathTags)
+
+	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
+	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade)) { return false; }
+
+	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, SeedsPoints);
+	Context->GoalForwardHandler = new PCGExData::FDataForwardHandler(&Settings->GoalForwardAttributes, GoalsPoints);
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection();
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	// Prepare path queries
 
-	Context->GoalPicker->PrepareForData(Context->SeedsPoints, Context->GoalsPoints);
+	Context->GoalPicker->PrepareForData(SeedsPoints, GoalsPoints);
 	PCGExPathfinding::ProcessGoals(
-		Context->SeedsPoints, Context->GoalPicker,
+		SeedsPoints, Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
 		{
 			Context->PathQueries.Add(
 				new PCGExPathfinding::FPathQuery(
-					SeedIndex, Context->SeedsPoints->GetInPoint(SeedIndex).Transform.GetLocation(),
-					GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
+					SeedIndex, SeedsPoints->GetInPoint(SeedIndex).Transform.GetLocation(),
+					GoalIndex, GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
 		});
 
 	return true;

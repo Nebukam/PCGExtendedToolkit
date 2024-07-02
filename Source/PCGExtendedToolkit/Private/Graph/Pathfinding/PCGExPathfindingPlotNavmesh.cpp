@@ -230,10 +230,10 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 	const int32 NumPositions = PathLocations.Num();
 
-	PCGExData::FPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
-	PCGExData::FFacade* PathFacade = new PCGExData::FFacade(PathPoints);
+	PCGExData::FPointIO* PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+	PCGExData::FFacade* PathDataFacade = new PCGExData::FFacade(PathIO);
 
-	UPCGPointData* OutData = PathPoints->GetOut();
+	UPCGPointData* OutData = PathIO->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 
 	MutablePoints.SetNumUninitialized(NumPositions);
@@ -248,7 +248,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	PathLocations.Empty();
 
 	PCGExDataBlending::FMetadataBlender* TempBlender =
-		Context->Blending->CreateBlender(PathFacade, PathFacade, PCGExData::ESource::Out);
+		Context->Blending->CreateBlender(PathDataFacade, PathDataFacade, PCGExData::ESource::Out);
 
 	for (int i = 0; i < Milestones.Num() - 1; i++)
 	{
@@ -256,10 +256,10 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 		int32 EndIndex = Milestones[i + 1] + 1;
 		int32 Range = EndIndex - StartIndex - 1;
 
-		const FPCGPoint* EndPoint = PathPoints->TryGetOutPoint(EndIndex);
+		const FPCGPoint* EndPoint = PathIO->TryGetOutPoint(EndIndex);
 		if (!EndPoint) { continue; }
 
-		const FPCGPoint& StartPoint = PathPoints->GetOutPoint(StartIndex);
+		const FPCGPoint& StartPoint = PathIO->GetOutPoint(StartIndex);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
 		Context->Blending->BlendSubPoints(
@@ -269,8 +269,8 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 	PCGEX_DELETE(TempBlender)
 
-	PathFacade->Write(Manager, true);
-	PCGEX_DELETE(PathFacade)
+	PathDataFacade->Write(Manager, true);
+	PCGEX_DELETE(PathDataFacade)
 
 	MilestonesMetrics.Empty();
 

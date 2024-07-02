@@ -52,13 +52,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
-	/** Use a seed attribute value to tag output paths. */
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	bool bUseSeedAttributeToTagPath;
-
-	/** Which Seed attribute to use as tag. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseSeedAttributeToTagPath"))
-	FPCGAttributePropertyInputSelector SeedTagAttribute;
+	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -79,15 +75,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 
 	virtual ~FPCGExFindContoursContext() override;
 
-	PCGExData::FPointIO* Seeds;
+	PCGExData::FFacade* SeedsDataFacade = nullptr;
 	TArray<FVector> ProjectedSeeds;
 
 	PCGExData::FPointIOCollection* Paths;
 
-	PCGEx::FLocalToStringGetter* SeedTagGetter;
+	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler;
 
-	bool TryFindContours(PCGExData::FPointIO* PointIO, const int32 SeedIndex, const PCGExFindContours::FProcessor* ClusterProcessor);
+	bool TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, const PCGExFindContours::FProcessor* ClusterProcessor);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement

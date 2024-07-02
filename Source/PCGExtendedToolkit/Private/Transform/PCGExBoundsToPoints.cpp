@@ -63,6 +63,7 @@ namespace PCGExBoundsToPoints
 	FProcessor::~FProcessor()
 	{
 		NewOutputs.Empty();
+		PointAttributesToOutputTags.Cleanup();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -74,6 +75,9 @@ namespace PCGExBoundsToPoints
 		Axis = Settings->SymmetryAxis;
 		UVW = Settings->UVW;
 		if (!UVW.Init(Context, PointDataFacade)) { return false; }
+
+		PointAttributesToOutputTags = Settings->PointAttributesToOutputTags;
+		if (!PointAttributesToOutputTags.Init(Context, PointDataFacade)) { return false; }
 
 		NumPoints = PointIO->GetNum();
 		bGeneratePerPointData = Settings->bGeneratePerPointData;
@@ -131,6 +135,8 @@ namespace PCGExBoundsToPoints
 
 				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));
 			}
+
+			PointAttributesToOutputTags.Tag(Point, NewOutput);
 		}
 		else
 		{

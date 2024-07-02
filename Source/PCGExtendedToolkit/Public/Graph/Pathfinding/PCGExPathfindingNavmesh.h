@@ -78,26 +78,17 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Blending", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
-
-	/** Use a Seed attribute value to tag output paths. */
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	bool bUseSeedAttributeToTagPath;
-
-	/** Which Seed attribute to use as tag. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseSeedAttributeToTagPath"))
-	FPCGAttributePropertyInputSelector SeedTagAttribute;
+	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExForwardSettings SeedForwardAttributes;
 
-	/** Use a Goal attribute value to tag output paths. */
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	bool bUseGoalAttributeToTagPath;
-
-	/** Which Goal attribute to use as tag. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseGoalAttributeToTagPath"))
-	FPCGAttributePropertyInputSelector GoalTagAttribute;
+	FPCGExAttributeToTagSettings GoalAttributesToPathTags;
 
 	/** Which Goal attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -120,11 +111,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPC
 
 	virtual ~FPCGExPathfindingNavmeshContext() override;
 
-	PCGExData::FPointIO* SeedsPoints = nullptr;
-	PCGExData::FFacade* SeedsFacade = nullptr;
-
-	PCGExData::FPointIO* GoalsPoints = nullptr;
-	PCGExData::FFacade* GoalsFacade = nullptr;
+	PCGExData::FFacade* SeedsDataFacade = nullptr;
+	PCGExData::FFacade* GoalsDataFacade = nullptr;
 
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
@@ -139,8 +127,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPC
 	EPCGExPathfindingNavmeshMode PathfindingMode;
 	double FuseDistance = 10;
 
-	PCGEx::FLocalToStringGetter* SeedTagValueGetter = nullptr;
-	PCGEx::FLocalToStringGetter* GoalTagValueGetter = nullptr;
+	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
+	FPCGExAttributeToTagSettings GoalAttributesToPathTags;
 
 	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;

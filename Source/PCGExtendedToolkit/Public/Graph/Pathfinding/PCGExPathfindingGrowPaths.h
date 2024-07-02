@@ -232,13 +232,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
 	double VisitedStopThreshold = -1;
 
-	/** Use a Seed attribute value to tag output paths. */
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	bool bUseSeedAttributeToTagPath;
-
-	/** Which Seed attribute to use as tag. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseSeedAttributeToTagPath"))
-	FPCGAttributePropertyInputSelector SeedTagAttribute;
+	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -260,7 +256,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 
 	virtual ~FPCGExPathfindingGrowPathsContext() override;
 
-	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
 	PCGExData::FFacade* SeedsDataFacade = nullptr;
@@ -270,7 +265,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 	PCGExData::FCache<FVector>* GrowthDirection = nullptr;
 	PCGExData::FCache<double>* GrowthMaxDistance = nullptr;
 
-	PCGEx::FLocalToStringGetter* TagValueGetter = nullptr;
+	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 };
 
