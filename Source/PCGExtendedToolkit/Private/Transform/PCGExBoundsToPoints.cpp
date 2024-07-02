@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBoundsToPointsElement"
 #define PCGEX_NAMESPACE BoundsToPoints
 
-PCGExData::EInit UPCGExBoundsToPointsSettings::GetMainOutputInitMode() const { return bGeneratePerPointData ? PCGExData::EInit::NoOutput : SymmetryAxis == EPCGExMinimalAxis::None ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::NewOutput; }
+PCGExData::EInit UPCGExBoundsToPointsSettings::GetMainOutputInitMode() const { return bGeneratePerPointData ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 
 FPCGExBoundsToPointsContext::~FPCGExBoundsToPointsContext()
 {
@@ -71,6 +71,7 @@ namespace PCGExBoundsToPoints
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		Axis = Settings->SymmetryAxis;
 		UVW = Settings->UVW;
 		if (!UVW.Init(Context, PointDataFacade)) { return false; }
 
@@ -122,44 +123,35 @@ namespace PCGExBoundsToPoints
 			A.SetLocalCenter(FVector::Zero());
 			A.SetExtents(FVector(0.5));
 
-			const FVector Position = UVW.GetPosition(PointIO->GetInPointRef(Index));
-			A.Transform.SetLocation(Position);
-			
+			A.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index)));
+
 			if (bSymmetry)
 			{
-				const FVector OriginalPos = Point.Transform.GetLocation();
-				const FVector Dir = (OriginalPos - Position).GetSafeNormal();
-				const double Dist = FVector::Dist(OriginalPos, Position);
-
 				FPCGPoint& B = NewOutput->CopyPoint(Point, OutIndex);
 				B.SetLocalCenter(FVector::Zero());
 				B.SetExtents(FVector(0.5));
 
-				B.Transform.SetLocation(OriginalPos + (Dir * -Dist));
+				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));
 			}
 		}
 		else
 		{
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+
 			FPCGPoint& A = MutablePoints[Index];
 			A.SetLocalCenter(FVector::Zero());
 			A.SetExtents(FVector(0.5));
 
-			const FVector Position = UVW.GetPosition(PointIO->GetInPointRef(Index));
-			A.Transform.SetLocation(Position);
+			A.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index)));
 
 			if (bSymmetry)
 			{
-				const FVector OriginalPos = Point.Transform.GetLocation();
-				const FVector Dir = (OriginalPos - Position).GetSafeNormal();
-				const double Dist = FVector::Dist(OriginalPos, Position);
-
 				MutablePoints[NumPoints + Index] = Point;
 				FPCGPoint& B = MutablePoints[NumPoints + Index];
 				B.SetLocalCenter(FVector::Zero());
 				B.SetExtents(FVector(0.5));
 
-				B.Transform.SetLocation(OriginalPos + (Dir * -Dist));
+				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));
 			}
 		}
 	}

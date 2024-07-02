@@ -87,6 +87,7 @@ namespace PCGExBoundsToPoints
 		int32 NumPoints = 0;
 		bool bGeneratePerPointData = false;
 		bool bSymmetry = false;
+		EPCGExMinimalAxis Axis = EPCGExMinimalAxis::None;
 
 		FPCGExUVW UVW;
 

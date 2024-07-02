@@ -60,7 +60,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 	/** U Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Constant", EditConditionHides, DisplayName="U"))
-	double UConstant = 0.5;
+	double UConstant = 0;
 
 	/** U Attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", EditConditionHides, DisplayName="U"))
@@ -72,7 +72,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 	/** V Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="VSource==EPCGExFetchType::Constant", EditConditionHides, DisplayName="V"))
-	double VConstant = 0.5;
+	double VConstant = 0;
 
 	/** V Attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", EditConditionHides, DisplayName="V"))
@@ -84,7 +84,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 	/** W Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WSource==EPCGExFetchType::Constant", EditConditionHides, DisplayName="W"))
-	double WConstant = 0.5;
+	double WConstant = 0;
 
 	/** W Attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", EditConditionHides, DisplayName="W"))
@@ -143,7 +143,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	{
 		FBox Bounds;
 		PCGExTransform::GetBounds(*PointRef.Point, BoundsReference, Bounds);
-		const FVector LocalPosition = Bounds.Min + ((Bounds.GetExtent() * 2) * GetUVW(PointRef.Index));
+		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointRef.Index));
 		return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
 	}
 
@@ -151,50 +151,50 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	{
 		FBox Bounds;
 		PCGExTransform::GetBounds(*PointRef.Point, BoundsReference, Bounds);
-		const FVector LocalPosition = Bounds.Min + ((Bounds.GetExtent() * 2) * GetUVW(PointRef.Index));
+		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointRef.Index));
 		OutOffset = PointRef.Point->Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());
 		return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
 	}
 
 	// With axis
 
-	FVector GetUVW(const int32 PointIndex, const EPCGExMinimalAxis Axis) const
+	FVector GetUVW(const int32 PointIndex, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const
 	{
-		switch (Axis)
+		FVector Value = GetUVW(PointIndex);
+		if (bMirrorAxis)
 		{
-		default: ;
-		case EPCGExMinimalAxis::None:
-		case EPCGExMinimalAxis::Z:
-			return FVector(
-				UGetter ? UGetter->Values[PointIndex] : UConstant,
-				VGetter ? VGetter->Values[PointIndex] : VConstant,
-				WGetter ? WGetter->Values[PointIndex] : WConstant);
-		case EPCGExMinimalAxis::X:
-			return FVector(
-				WGetter ? WGetter->Values[PointIndex] : WConstant,
-				UGetter ? UGetter->Values[PointIndex] : UConstant,
-				VGetter ? VGetter->Values[PointIndex] : VConstant);
-		case EPCGExMinimalAxis::Y:
-			return FVector(
-				UGetter ? UGetter->Values[PointIndex] : UConstant,
-				WGetter ? WGetter->Values[PointIndex] : WConstant,
-				VGetter ? VGetter->Values[PointIndex] : VConstant);
+			switch (Axis)
+			{
+			default: ;
+			case EPCGExMinimalAxis::None:
+				break;
+			case EPCGExMinimalAxis::X:
+				Value.X *= -1;
+				break;
+			case EPCGExMinimalAxis::Y:
+				Value.Y *= -1;
+				break;
+			case EPCGExMinimalAxis::Z:
+				Value.Z *= -1;
+				break;
+			}
 		}
+		return Value;
 	}
 
-	FVector GetPosition(const PCGEx::FPointRef& PointRef, const EPCGExMinimalAxis Axis) const
+	FVector GetPosition(const PCGEx::FPointRef& PointRef, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const
 	{
 		FBox Bounds;
 		PCGExTransform::GetBounds(*PointRef.Point, BoundsReference, Bounds);
-		const FVector LocalPosition = Bounds.Min + ((Bounds.GetExtent() * 2) * GetUVW(PointRef.Index, Axis));
+		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointRef.Index, Axis, bMirrorAxis));
 		return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
 	}
 
-	FVector GetPosition(const PCGEx::FPointRef& PointRef, FVector& OutOffset, const EPCGExMinimalAxis Axis) const
+	FVector GetPosition(const PCGEx::FPointRef& PointRef, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const
 	{
 		FBox Bounds;
 		PCGExTransform::GetBounds(*PointRef.Point, BoundsReference, Bounds);
-		const FVector LocalPosition = Bounds.Min + ((Bounds.GetExtent() * 2) * GetUVW(PointRef.Index, Axis));
+		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointRef.Index, Axis, bMirrorAxis));
 		OutOffset = PointRef.Point->Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());
 		return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
 	}
