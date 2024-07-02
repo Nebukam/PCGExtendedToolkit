@@ -13,10 +13,10 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 	if (bUseLocalWeightMultiplier)
 	{
 		const PCGExData::FPointIO* PointIO = LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
-		PCGExData::FFacade* DataCache = LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? PrimaryDataCache : SecondaryDataCache;
+		PCGExData::FFacade* DataFacade = LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
 		const int32 NumPoints = PointIO->GetNum();
-		PCGExData::FCache<double>* LocalWeightCache = DataCache->GetOrCreateGetter<double>(WeightMultiplierAttribute);
+		PCGExData::FCache<double>* LocalWeightCache = DataFacade->GetOrCreateGetter<double>(WeightMultiplierAttribute);
 
 		if (!LocalWeightCache)
 		{

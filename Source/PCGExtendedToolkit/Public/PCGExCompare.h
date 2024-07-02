@@ -467,13 +467,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonSettings
 	bool bUseLocalTolerance = false;
 	PCGExData::FCache<double>* LocalOperand = nullptr;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPrimaryDataCache)
+	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPrimaryDataFacade)
 	{
 		bUseLocalTolerance = HashToleranceValue == EPCGExFetchType::Attribute;
 
 		if (bUseLocalTolerance)
 		{
-			LocalOperand = InPrimaryDataCache->GetOrCreateGetter<double>(HashToleranceAttribute);
+			LocalOperand = InPrimaryDataFacade->GetOrCreateGetter<double>(HashToleranceAttribute);
 			if (!LocalOperand)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Hash Tolerance attribute: {0}."), FText::FromName(HashToleranceAttribute.GetName())));

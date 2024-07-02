@@ -18,33 +18,33 @@ void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache)
+void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 {
 	Cluster = InCluster;
 
-	VtxDataCache = InVtxDataCache;
-	EdgeDataCache = InEdgeDataCache;
+	VtxDataFacade = InVtxDataFacade;
+	EdgeDataFacade = InEdgeDataFacade;
 
 	if (!PointFilterFactories.IsEmpty())
 	{
-		PointFilters = new PCGExClusterFilter::TManager(InCluster, InVtxDataCache, InEdgeDataCache);
+		PointFilters = new PCGExClusterFilter::TManager(InCluster, InVtxDataFacade, InEdgeDataFacade);
 		PointFilters->Init(InContext, PointFilterFactories);
 	}
 
 	if (!ValueFilterFactories.IsEmpty())
 	{
-		ValueFilters = new PCGExClusterFilter::TManager(InCluster, InVtxDataCache, InEdgeDataCache);
+		ValueFilters = new PCGExClusterFilter::TManager(InCluster, InVtxDataFacade, InEdgeDataFacade);
 		ValueFilters->Init(InContext, ValueFilterFactories);
 	}
 }
 
 bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
 
-PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const { return GetSourceDataCache()->Source; }
+PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const { return GetSourceDataFacade()->Source; }
 
-PCGExData::FFacade* UPCGExNeighborSampleOperation::GetSourceDataCache() const
+PCGExData::FFacade* UPCGExNeighborSampleOperation::GetSourceDataFacade() const
 {
-	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx ? VtxDataCache : EdgeDataCache;
+	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx ? VtxDataFacade : EdgeDataFacade;
 }
 
 void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const

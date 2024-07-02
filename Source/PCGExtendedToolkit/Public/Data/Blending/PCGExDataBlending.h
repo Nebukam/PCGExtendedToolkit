@@ -296,8 +296,8 @@ namespace PCGExDataBlending
 		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
-		virtual void PrepareForData(PCGExData::FFacade* InPrimaryData, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
 
 		FORCEINLINE virtual bool GetIsInterpolation() const;
 		FORCEINLINE virtual bool GetRequiresPreparation() const;
@@ -338,31 +338,31 @@ namespace PCGExDataBlending
 
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::None; };
 
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 			Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(InWriter);
 
 			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
-			TypedAttribute = InSecondaryData->FindMutableAttribute<T>(AttributeName, SecondarySource);
+			TypedAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
 
-			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryData, SecondarySource);
+			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
 		}
 
-		virtual void PrepareForData(PCGExData::FFacade* InPrimaryData, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 
-			TypedAttribute = InSecondaryData->FindMutableAttribute<T>(AttributeName, SecondarySource);
+			TypedAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
 
-			if (TypedAttribute) { Writer = InPrimaryData->GetOrCreateWriter<T>(TypedAttribute, false); }
-			else { Writer = InPrimaryData->GetOrCreateWriter<T>(AttributeName, T{}, true, false); }
+			if (TypedAttribute) { Writer = InPrimaryFacade->GetOrCreateWriter<T>(TypedAttribute, false); }
+			else { Writer = InPrimaryFacade->GetOrCreateWriter<T>(AttributeName, T{}, true, false); }
 
-			Reader = InSecondaryData->GetOrCreateReader<T>(AttributeName, SecondarySource); // Will return writer is sources ==
+			Reader = InSecondaryFacade->GetOrCreateReader<T>(AttributeName, SecondarySource); // Will return writer is sources ==
 
 			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
 
-			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData, SecondarySource);
+			FDataBlendingOperationBase::PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 		}
 
 		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const override

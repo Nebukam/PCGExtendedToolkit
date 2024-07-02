@@ -100,7 +100,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 	PCGExData::FCache<double>* LocalThreshold = nullptr;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPrimaryDataCache)
+	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPrimaryDataFacade)
 	{
 		bUseDiscreteMeasure = ThresholdType == EPCGExMeanMeasure::Discrete;
 		bUseLocalThreshold = ThresholdSource == EPCGExFetchType::Attribute;
@@ -108,7 +108,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 		if (bUseLocalThreshold)
 		{
-			LocalThreshold = InPrimaryDataCache->GetOrCreateGetter<double>(ThresholdAttribute);
+			LocalThreshold = InPrimaryDataFacade->GetOrCreateGetter<double>(ThresholdAttribute);
 			if (!LocalThreshold)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Threshold attribute: {0}."), FText::FromName(ThresholdAttribute.GetName())));

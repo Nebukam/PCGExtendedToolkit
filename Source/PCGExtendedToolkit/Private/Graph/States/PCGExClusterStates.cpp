@@ -31,13 +31,13 @@ namespace PCGExClusterStates
 		PCGEX_DELETE(Manager)
 	}
 
-	bool FState::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
+	bool FState::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 	{
 		Descriptor.Init();
 
-		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
+		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		Manager = new PCGExClusterFilter::TManager(InCluster, PointDataCache, EdgeDataCache);
+		Manager = new PCGExClusterFilter::TManager(InCluster, PointDataFacade, EdgeDataFacade);
 		Manager->bCacheResults = true;
 		return true;
 	}

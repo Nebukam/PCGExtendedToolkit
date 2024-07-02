@@ -147,8 +147,8 @@ FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			for (PCGExClusterMT::FClusterProcessorBatchBase* Batch :
 			     Context->Batches)
 			{
-				Context->VtxFacades.Add(Batch->VtxDataCache);
-				Batch->VtxDataCache = nullptr; // Remove ownership of facade
+				Context->VtxFacades.Add(Batch->VtxDataFacade);
+				Batch->VtxDataFacade = nullptr; // Remove ownership of facade
 				// before deleting the processor
 			}
 

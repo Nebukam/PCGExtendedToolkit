@@ -82,11 +82,11 @@ namespace PCGExBitmaskOperation
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		Writer = PointDataCache->GetOrCreateWriter<int64>(Settings->FlagAttribute, 0, false, false);
+		Writer = PointDataFacade->GetOrCreateWriter<int64>(Settings->FlagAttribute, 0, false, false);
 
 		if (Settings->MaskType == EPCGExFetchType::Attribute)
 		{
-			Reader = PointDataCache->GetOrCreateReader<int64>(Settings->MaskAttribute);
+			Reader = PointDataFacade->GetOrCreateReader<int64>(Settings->MaskAttribute);
 			if (!Reader) { return false; }
 		}
 		else
@@ -108,7 +108,7 @@ namespace PCGExBitmaskOperation
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataCache->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

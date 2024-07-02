@@ -15,15 +15,15 @@ PCGExPointFilter::TFilter* UPCGExEdgeDirectionFilterFactory::CreateFilter() cons
 
 namespace PCGExNodeAdjacency
 {
-	bool FEdgeDirectionFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
+	bool FEdgeDirectionFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 	{
-		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
+		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		bFromNode = TypedFilterFactory->Descriptor.DirectionOrder == EPCGExAdjacencyDirectionOrigin::FromNode;
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			OperandDirection = PointDataCache->GetOrCreateGetter<FVector>(TypedFilterFactory->Descriptor.Direction);
+			OperandDirection = PointDataFacade->GetOrCreateGetter<FVector>(TypedFilterFactory->Descriptor.Direction);
 			if (!OperandDirection)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.Direction.GetName())));
@@ -31,16 +31,16 @@ namespace PCGExNodeAdjacency
 			}
 		}
 
-		if (!Adjacency.Init(InContext, PointDataCache)) { return false; }
+		if (!Adjacency.Init(InContext, PointDataFacade)) { return false; }
 
 		if (TypedFilterFactory->Descriptor.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
 		{
-			if (!DotComparison.Init(InContext, PointDataCache)) { return false; }
+			if (!DotComparison.Init(InContext, PointDataFacade)) { return false; }
 		}
 		else
 		{
 			bUseDot = false;
-			if (!HashComparison.Init(InContext, PointDataCache)) { return false; }
+			if (!HashComparison.Init(InContext, PointDataFacade)) { return false; }
 		}
 
 		return true;

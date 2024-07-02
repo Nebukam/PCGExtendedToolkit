@@ -75,7 +75,7 @@ namespace PCGExPointsFilter
 
 		int64 CompositeMask;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 

@@ -82,7 +82,7 @@ namespace PCGExWritePathExtras
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataCache;
+			PCGExData::FFacade* OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
@@ -218,7 +218,7 @@ namespace PCGExWritePathExtras
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataCache->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

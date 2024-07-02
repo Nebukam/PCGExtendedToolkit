@@ -15,15 +15,15 @@ PCGExPointFilter::TFilter* UPCGExAdjacencyFilterFactory::CreateFilter() const
 
 namespace PCGExNodeAdjacency
 {
-	bool FAdjacencyFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
+	bool FAdjacencyFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 	{
-		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
+		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		bCaptureFromNodes = TypedFilterFactory->Descriptor.OperandBSource != EPCGExGraphValueSource::Edge;
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			OperandA = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandA);
+			OperandA = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandA);
 			if (!OperandA)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
@@ -31,11 +31,11 @@ namespace PCGExNodeAdjacency
 			}
 		}
 
-		if (!Adjacency.Init(InContext, PointDataCache)) { return false; }
+		if (!Adjacency.Init(InContext, PointDataFacade)) { return false; }
 
 		if (bCaptureFromNodes)
 		{
-			OperandB = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+			OperandB = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
 			if (!OperandB)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
@@ -44,7 +44,7 @@ namespace PCGExNodeAdjacency
 		}
 		else
 		{
-			OperandB = EdgeDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+			OperandB = EdgeDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
 			if (!OperandB)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));

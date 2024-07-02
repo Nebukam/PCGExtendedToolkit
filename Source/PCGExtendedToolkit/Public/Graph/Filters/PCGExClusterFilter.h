@@ -71,19 +71,19 @@ namespace PCGExClusterFilter
 		}
 
 		PCGExCluster::FCluster* Cluster = nullptr;
-		PCGExData::FFacade* EdgeDataCache = nullptr;
+		PCGExData::FFacade* EdgeDataFacade = nullptr;
 
 		virtual PCGExFilters::EType GetFilterType() const override;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache) override;
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache);
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade);
 		virtual void PostInit() override;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API TManager : public PCGExPointFilter::TManager
 	{
 	public:
-		TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache);
+		TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade);
 
 		PCGExCluster::FCluster* Cluster = nullptr;
 		PCGExData::FFacade* EdgeDataCache = nullptr;

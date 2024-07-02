@@ -183,13 +183,13 @@ namespace PCGExSubdivide
 
 	void FProcessor::CompleteWork()
 	{
-		Blending->PrepareForData(PointDataCache, PointDataCache, PCGExData::ESource::Out);
+		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out);
 		StartParallelLoopForRange(Milestones.Num());
 	}
 
 	void FProcessor::Write()
 	{
-		PointDataCache->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

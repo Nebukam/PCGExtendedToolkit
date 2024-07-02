@@ -17,7 +17,7 @@ void UPCGExSubPointsOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExSubPointsOperation::PrepareForData(PCGExData::FFacade* InPrimaryData)
+void UPCGExSubPointsOperation::PrepareForData(PCGExData::FFacade* InPrimaryFacade)
 {
 }
 

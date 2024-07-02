@@ -8,11 +8,11 @@ PCGExPointFilter::TFilter* UPCGExMeanFilterFactory::CreateFilter() const
 	return new PCGExPointsFilter::TMeanFilter(this);
 }
 
-bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
+bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 {
-	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
+	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	Target = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.Target, true);
+	Target = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.Target, true);
 
 	if (!Target)
 	{
@@ -30,7 +30,7 @@ bool PCGExPointsFilter::TMeanFilter::Test(const int32 PointIndex) const
 
 void PCGExPointsFilter::TMeanFilter::PostInit()
 {
-	const int32 NumPoints = PointDataCache->Source->GetNum();
+	const int32 NumPoints = PointDataFacade->Source->GetNum();
 	Results.SetNum(NumPoints);
 
 	double SumValue = 0;

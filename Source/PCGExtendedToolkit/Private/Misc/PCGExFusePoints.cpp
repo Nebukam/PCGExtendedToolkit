@@ -113,15 +113,15 @@ namespace PCGExFusePoints
 		PointIO->InitializeNum(NumCompoundNodes);
 
 		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
-		CompoundPointsBlender->AddSource(PointDataCache);
-		CompoundPointsBlender->PrepareMerge(PointDataCache, CompoundGraph->PointsCompounds);
+		CompoundPointsBlender->AddSource(PointDataFacade);
+		CompoundPointsBlender->PrepareMerge(PointDataFacade, CompoundGraph->PointsCompounds);
 
 		StartParallelLoopForRange(NumCompoundNodes);
 	}
 
 	void FProcessor::Write()
 	{
-		PointDataCache->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

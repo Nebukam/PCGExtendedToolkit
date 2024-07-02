@@ -98,13 +98,13 @@ namespace PCGExSampleNearestSurface
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataCache;
+			PCGExData::FFacade* OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_INIT)
 		}
 
 		if (Settings->bUseLocalMaxDistance)
 		{
-			MaxDistanceGetter = PointDataCache->GetOrCreateGetter<double>(Settings->LocalMaxDistance);
+			MaxDistanceGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->LocalMaxDistance);
 			if (!MaxDistanceGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
@@ -212,7 +212,7 @@ namespace PCGExSampleNearestSurface
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataCache->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

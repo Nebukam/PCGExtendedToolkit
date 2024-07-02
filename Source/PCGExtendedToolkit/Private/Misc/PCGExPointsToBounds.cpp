@@ -147,7 +147,7 @@ namespace PCGExPointsToBounds
 		if (Settings->bBlendProperties)
 		{
 			MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-			MetadataBlender->PrepareForData(PointDataCache);
+			MetadataBlender->PrepareForData(PointDataFacade);
 
 			const PCGEx::FPointRef Target = PointIO->GetOutPointRef(0);
 			MetadataBlender->PrepareForBlending(Target);
@@ -171,7 +171,7 @@ namespace PCGExPointsToBounds
 
 		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, NumPoints); }
 
-		PointDataCache->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 
 	bool FComputeIOBoundsTask::ExecuteTask()

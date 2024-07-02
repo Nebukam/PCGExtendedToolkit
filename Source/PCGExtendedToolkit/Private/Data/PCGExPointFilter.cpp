@@ -24,16 +24,16 @@ namespace PCGExPointFilter
 {
 	PCGExFilters::EType TFilter::GetFilterType() const { return PCGExFilters::EType::Point; }
 
-	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
+	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 	{
-		PointDataCache = InPointDataCache;
+		PointDataFacade = InPointDataFacade;
 		return true;
 	}
 
 	void TFilter::PostInit()
 	{
 		if (!bCacheResults) { return; }
-		const int32 NumResults = PointDataCache->Source->GetNum();
+		const int32 NumResults = PointDataFacade->Source->GetNum();
 		Results.SetNumUninitialized(NumResults);
 		for (bool& Result : Results) { Result = false; }
 	}
@@ -42,8 +42,8 @@ namespace PCGExPointFilter
 	bool TFilter::Test(const PCGExCluster::FNode& Node) const { return Test(Node.PointIndex); }
 	bool TFilter::Test(const PCGExGraph::FIndexedEdge& Edge) const { return Test(Edge.PointIndex); }
 
-	TManager::TManager(PCGExData::FFacade* InPointDataCache)
-		: PointDataCache(InPointDataCache)
+	TManager::TManager(PCGExData::FFacade* InPointDataFacade)
+		: PointDataFacade(InPointDataFacade)
 	{
 	}
 
@@ -84,7 +84,7 @@ namespace PCGExPointFilter
 
 	bool TManager::InitFilter(const FPCGContext* InContext, TFilter* Filter)
 	{
-		return Filter->Init(InContext, PointDataCache);
+		return Filter->Init(InContext, PointDataFacade);
 	}
 
 	bool TManager::PostInit(const FPCGContext* InContext)
@@ -116,7 +116,7 @@ namespace PCGExPointFilter
 
 	void TManager::InitCache()
 	{
-		const int32 NumResults = PointDataCache->Source->GetNum();
+		const int32 NumResults = PointDataFacade->Source->GetNum();
 		Results.SetNumUninitialized(NumResults);
 		for (bool& Result : Results) { Result = false; }
 	}

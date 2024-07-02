@@ -91,7 +91,7 @@ namespace PCGExWriteVtxProperties
 
 		if (!ExtraOperations->IsEmpty())
 		{
-			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster, VtxDataCache, EdgeDataCache); }
+			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster, VtxDataFacade, EdgeDataFacade); }
 		}
 
 		if (VtxNormalWriter)
@@ -153,17 +153,17 @@ namespace PCGExWriteVtxProperties
 		if (!TBatch::PrepareProcessing()) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = VtxDataCache;
+			PCGExData::FFacade* OutputFacade = VtxDataFacade;
 			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
 		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, VtxDataCache);
+		ProjectionSettings.Init(Context, VtxDataFacade);
 
 		for (const UPCGExVtxPropertyFactoryBase* Factory : TypedContext->ExtraFactories)
 		{
 			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation();
-			if (!NewOperation->PrepareForVtx(Context, VtxDataCache))
+			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade))
 			{
 				PCGEX_DELETE_OPERATION(NewOperation)
 				continue;
@@ -192,7 +192,7 @@ namespace PCGExWriteVtxProperties
 	void FProcessorBatch::Write()
 	{
 		//	TBatch<FProcessor>::Write();
-		VtxDataCache->Write(AsyncManagerPtr, true);
+		VtxDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

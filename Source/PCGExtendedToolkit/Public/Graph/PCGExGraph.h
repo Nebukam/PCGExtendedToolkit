@@ -431,7 +431,7 @@ namespace PCGExGraph
 		PCGExData::FPointIOCollection* EdgesIO = nullptr;
 		PCGExData::FPointIOCollection* SourceEdgesIO = nullptr;
 
-		PCGExData::FFacade* VtxDataCache = nullptr;
+		PCGExData::FFacade* VtxDataFacade = nullptr;
 
 		bool bCompiledSuccessfully = false;
 
@@ -443,7 +443,7 @@ namespace PCGExGraph
 			PointIO->Tags->Set(TagStr_ClusterPair, PairId, PairIdStr);
 
 			const int32 NumNodes = PointIO->GetOutNum();
-			VtxDataCache = new PCGExData::FFacade(PointIO);
+			VtxDataFacade = new PCGExData::FFacade(PointIO);
 
 			Graph = new FGraph(NumNodes, NumEdgeReserve);
 			Graph->bBuildClusters = InSettings->bBuildAndCacheClusters;
@@ -467,7 +467,7 @@ namespace PCGExGraph
 		{
 			PCGEX_DELETE(Graph)
 			PCGEX_DELETE(EdgesIO)
-			PCGEX_DELETE(VtxDataCache)
+			PCGEX_DELETE(VtxDataFacade)
 		}
 	};
 

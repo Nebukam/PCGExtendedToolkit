@@ -88,7 +88,7 @@ namespace PCGExPointsMT
 
 		bool bIsProcessorValid = false;
 
-		PCGExData::FFacade* PointDataCache = nullptr;
+		PCGExData::FFacade* PointDataFacade = nullptr;
 
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
@@ -107,7 +107,7 @@ namespace PCGExPointsMT
 			PointIO(InPoints)
 		{
 			PCGEX_LOG_CTR(FPointsProcessor)
-			PointDataCache = new PCGExData::FFacade(InPoints);
+			PointDataFacade = new PCGExData::FFacade(InPoints);
 		}
 
 		virtual ~FPointsProcessor()
@@ -118,7 +118,7 @@ namespace PCGExPointsMT
 			PCGEX_DELETE_OPERATION(PrimaryOperation)
 
 			PointFilterCache.Empty();
-			PCGEX_DELETE(PointDataCache)
+			PCGEX_DELETE(PointDataFacade)
 		}
 
 		template <typename T>
@@ -147,7 +147,7 @@ namespace PCGExPointsMT
 				}
 				else
 				{
-					PCGExPointFilter::TManager* FilterManager = new PCGExPointFilter::TManager(PointDataCache);
+					PCGExPointFilter::TManager* FilterManager = new PCGExPointFilter::TManager(PointDataFacade);
 					FilterManager->Init(Context, *FilterFactories);
 
 					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = FilterManager->Test(i); }
@@ -160,7 +160,7 @@ namespace PCGExPointsMT
 			if (PrimaryOperation)
 			{
 				PrimaryOperation = PrimaryOperation->CopyOperation<UPCGExOperation>();
-				PrimaryOperation->PrimaryDataCache = PointDataCache;
+				PrimaryOperation->PrimaryDataFacade = PointDataFacade;
 			}
 
 			return true;
@@ -409,7 +409,7 @@ namespace PCGExPointsMT
 					continue;
 				}
 
-				ProcessorFacades.Add(NewProcessor->PointDataCache);
+				ProcessorFacades.Add(NewProcessor->PointDataFacade);
 
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
 				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }

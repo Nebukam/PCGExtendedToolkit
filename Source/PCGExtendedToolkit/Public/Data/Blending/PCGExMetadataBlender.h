@@ -25,14 +25,14 @@ namespace PCGExDataBlending
 		explicit FMetadataBlender(const FMetadataBlender* ReferenceBlender);
 
 		void PrepareForData(
-			PCGExData::FFacade* InPrimaryData,
+			PCGExData::FFacade* InPrimaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = false,
 			const TSet<FName>* IgnoreAttributeSet = nullptr);
 
 		void PrepareForData(
-			PCGExData::FFacade* InPrimaryData,
-			PCGExData::FFacade* InSecondaryData,
+			PCGExData::FFacade* InPrimaryFacade,
+			PCGExData::FFacade* InSecondaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = false,
 			const TSet<FName>* IgnoreAttributeSet = nullptr);
@@ -68,8 +68,8 @@ namespace PCGExDataBlending
 		TArray<bool> FirstPointOperation;
 
 		void InternalPrepareForData(
-			PCGExData::FFacade* InPrimaryData,
-			PCGExData::FFacade* InSecondaryData,
+			PCGExData::FFacade* InPrimaryFacade,
+			PCGExData::FFacade* InSecondaryFacade,
 			const PCGExData::ESource SecondarySource,
 			const bool bInitFirstOperation,
 			const TSet<FName>* IgnoreAttributeSet);

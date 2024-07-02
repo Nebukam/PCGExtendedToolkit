@@ -181,10 +181,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOperation : public UPCGExOperation
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache);
+	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade);
 
 	virtual void ClusterReserve(const int32 NumClusters);
-	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataCache, PCGExData::FFacade* EdgeDataCache);
+	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataFacade, PCGExData::FFacade* EdgeDataFacade);
 
 	virtual bool IsOperationValid();
 

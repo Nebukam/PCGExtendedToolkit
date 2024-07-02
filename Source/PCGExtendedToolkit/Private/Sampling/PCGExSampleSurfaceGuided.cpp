@@ -93,7 +93,7 @@ namespace PCGExSampleSurfaceGuided
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		DirectionGetter = PointDataCache->GetOrCreateGetter<FVector>(Settings->Direction);
+		DirectionGetter = PointDataFacade->GetOrCreateGetter<FVector>(Settings->Direction);
 
 		if (!DirectionGetter)
 		{
@@ -102,13 +102,13 @@ namespace PCGExSampleSurfaceGuided
 		}
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataCache;
+			PCGExData::FFacade* OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_INIT)
 		}
 
 		if (Settings->bUseLocalMaxDistance)
 		{
-			MaxDistanceGetter = PointDataCache->GetOrCreateGetter<double>(Settings->LocalMaxDistance);
+			MaxDistanceGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->LocalMaxDistance);
 			if (MaxDistanceGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
@@ -189,7 +189,7 @@ namespace PCGExSampleSurfaceGuided
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataCache->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

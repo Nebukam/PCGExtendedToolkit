@@ -78,7 +78,7 @@ namespace PCGExPointStates
 		virtual ~FState() override;
 
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
 		virtual bool Test(const int32 Index) const override;
 
@@ -94,7 +94,7 @@ namespace PCGExPointStates
 		TArray<int64>* FlagsCache = nullptr;
 
 	public:
-		explicit FStateManager(TArray<int64>* InFlags, PCGExData::FFacade* InPointDataCache);
+		explicit FStateManager(TArray<int64>* InFlags, PCGExData::FFacade* InPointDataFacade);
 		virtual ~FStateManager() override;
 
 		virtual bool Test(const int32 Index) override;

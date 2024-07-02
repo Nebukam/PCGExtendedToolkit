@@ -133,7 +133,7 @@ namespace PCGExConnectPoints
 		if (Settings->bProjectPoints)
 		{
 			ProjectionSettings = Settings->ProjectionSettings;
-			ProjectionSettings.Init(Context, PointDataCache);
+			ProjectionSettings.Init(Context, PointDataFacade);
 		}
 
 		for (const UPCGExProbeFactoryBase* Factory : TypedContext->ProbeFactories)
@@ -179,14 +179,14 @@ namespace PCGExConnectPoints
 		PCGExPointFilter::TManager* GeneratorsFilter = nullptr;
 		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
 		{
-			GeneratorsFilter = new PCGExPointFilter::TManager(PointDataCache);
+			GeneratorsFilter = new PCGExPointFilter::TManager(PointDataFacade);
 			GeneratorsFilter->Init(Context, TypedContext->GeneratorsFiltersFactories);
 		}
 
 		PCGExPointFilter::TManager* ConnectableFilter = nullptr;
 		if (!TypedContext->ConnetablesFiltersFactories.IsEmpty())
 		{
-			ConnectableFilter = new PCGExPointFilter::TManager(PointDataCache);
+			ConnectableFilter = new PCGExPointFilter::TManager(PointDataFacade);
 			ConnectableFilter->Init(Context, TypedContext->ConnetablesFiltersFactories);
 		}
 

@@ -8,11 +8,11 @@ PCGExPointFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
 	return new PCGExPointsFilter::TDotFilter(this);
 }
 
-bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
+bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 {
-	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
+	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = PointDataCache->GetOrCreateGetter<FVector>(TypedFilterFactory->Descriptor.OperandA);
+	OperandA = PointDataFacade->GetOrCreateGetter<FVector>(TypedFilterFactory->Descriptor.OperandA);
 	if (!OperandA)
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
@@ -21,7 +21,7 @@ bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData
 
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = PointDataCache->GetOrCreateGetter<FVector>(TypedFilterFactory->Descriptor.OperandB);
+		OperandB = PointDataFacade->GetOrCreateGetter<FVector>(TypedFilterFactory->Descriptor.OperandB);
 		if (!OperandB)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
@@ -34,7 +34,7 @@ bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData
 
 bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 {
-	const FPCGPoint& Point = PointDataCache->Source->GetInPoint(PointIndex);
+	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
 	const FVector A = TypedFilterFactory->Descriptor.bTransformOperandA ?
 		                  OperandA->Values[PointIndex] :

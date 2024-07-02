@@ -127,11 +127,11 @@ namespace PCGExMatchAndSet
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MatchAndSet)
 
-		UPCGMetadata* Metadata = PointDataCache->GetOut()->Metadata;
+		UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
 
 		if (Settings->bDoConsumeProcessedAttributes)
 		{
-			for (const PCGExData::FCacheBase* DataCache : PointDataCache->Caches)
+			for (const PCGExData::FCacheBase* DataCache : PointDataFacade->Caches)
 			{
 				if (!DataCache->bIsPureReader ||
 					!DataCache->Attribute ||

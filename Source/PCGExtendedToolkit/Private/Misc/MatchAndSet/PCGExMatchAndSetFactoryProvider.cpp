@@ -18,11 +18,11 @@ void UPCGExMatchAndSetOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExMatchAndSetOperation::PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
+bool UPCGExMatchAndSetOperation::PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 {
-	PrimaryDataCache = InPointDataCache;
+	PrimaryDataFacade = InPointDataFacade;
 
-	FilterManager = new PCGExPointFilter::TManager(PrimaryDataCache);
+	FilterManager = new PCGExPointFilter::TManager(PrimaryDataFacade);
 	FilterManager->bCacheResults = false;
 	FilterManager->bCacheResultsPerFilter = false;
 

@@ -94,7 +94,7 @@ namespace PCGExFindNodeState
 
 		Cluster->ComputeEdgeLengths();
 
-		StateManager = new PCGExClusterStates::FStateManager(StateFlags, Cluster, VtxDataCache, EdgeDataCache);
+		StateManager = new PCGExClusterStates::FStateManager(StateFlags, Cluster, VtxDataFacade, EdgeDataFacade);
 		StateManager->Init(Context, TypedContext->StateFactories);
 
 		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }
@@ -141,7 +141,7 @@ namespace PCGExFindNodeState
 
 		if (!TBatch::PrepareProcessing()) { return false; }
 
-		PCGEx::TFAttributeWriter<int64>* Writer = VtxDataCache->GetOrCreateWriter(Settings->FlagAttribute, Settings->InitialFlags.Get(), false, false);
+		PCGEx::TFAttributeWriter<int64>* Writer = VtxDataFacade->GetOrCreateWriter(Settings->FlagAttribute, Settings->InitialFlags.Get(), false, false);
 		StateFlags = &Writer->Values;
 
 		return true;
@@ -155,7 +155,7 @@ namespace PCGExFindNodeState
 
 	void FProcessorBatch::Write()
 	{
-		VtxDataCache->Write(AsyncManagerPtr, true);
+		VtxDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

@@ -13,11 +13,11 @@ namespace PCGExDataBlending
 	{
 	}
 
-	void FDataBlendingOperationBase::PrepareForData(PCGExData::FFacade* InPrimaryData, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource)
+	void FDataBlendingOperationBase::PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource)
 	{
 	}
 
-	void FDataBlendingOperationBase::PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource)
+	void FDataBlendingOperationBase::PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource)
 	{
 	}
 

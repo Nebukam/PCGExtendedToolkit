@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExMovePivotElement"
 #define PCGEX_NAMESPACE MovePivot
 
-PCGExData::EInit UPCGExMovePivotSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EInit UPCGExMovePivotSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExMovePivotContext::~FPCGExMovePivotContext()
 {
@@ -62,7 +62,6 @@ namespace PCGExMovePivot
 {
 	FProcessor::~FProcessor()
 	{
-		
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -71,12 +70,20 @@ namespace PCGExMovePivot
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		UVW = Settings->UVW;
+		if (!UVW.Init(Context, PointDataFacade)) { return false; }
+
+		StartParallelLoopForPoints();
+
 		return true;
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MovePivot)
+		FVector Offset;
+		Point.Transform.SetLocation(UVW.GetPosition(PCGEx::FPointRef(Point, Index), Offset));
+		Point.BoundsMin += Offset;
+		Point.BoundsMax += Offset;
 	}
 }
 

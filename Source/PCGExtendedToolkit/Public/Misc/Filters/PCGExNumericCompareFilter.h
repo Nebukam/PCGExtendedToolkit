@@ -78,7 +78,7 @@ namespace PCGExPointsFilter
 		PCGExData::FCache<double>* OperandA = nullptr;
 		PCGExData::FCache<double>* OperandB = nullptr;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TNumericComparisonFilter() override

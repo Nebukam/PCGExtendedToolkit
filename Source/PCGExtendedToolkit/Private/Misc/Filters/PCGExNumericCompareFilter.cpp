@@ -8,11 +8,11 @@ PCGExPointFilter::TFilter* UPCGExNumericCompareFilterFactory::CreateFilter() con
 	return new PCGExPointsFilter::TNumericComparisonFilter(this);
 }
 
-bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
+bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 {
-	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
+	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandA);
+	OperandA = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandA);
 
 	if (!OperandA)
 	{
@@ -22,7 +22,7 @@ bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InCont
 
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+		OperandB = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
 
 		if (!OperandB)
 		{

@@ -166,7 +166,7 @@ namespace PCGExConvexHull2D
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, PointDataCache);
+		ProjectionSettings.Init(Context, PointDataFacade);
 
 		// Build delaunay
 

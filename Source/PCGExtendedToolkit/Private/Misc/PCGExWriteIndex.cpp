@@ -67,11 +67,11 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputNormalizedIndex)
 		{
-			DoubleWriter = PointDataCache->GetOrCreateWriter<double>(Settings->OutputAttributeName, false);
+			DoubleWriter = PointDataFacade->GetOrCreateWriter<double>(Settings->OutputAttributeName, false);
 		}
 		else
 		{
-			IntWriter = PointDataCache->GetOrCreateWriter<int32>(Settings->OutputAttributeName, false);
+			IntWriter = PointDataFacade->GetOrCreateWriter<int32>(Settings->OutputAttributeName, false);
 		}
 
 		return true;
@@ -85,7 +85,7 @@ namespace PCGExWriteIndex
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataCache->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

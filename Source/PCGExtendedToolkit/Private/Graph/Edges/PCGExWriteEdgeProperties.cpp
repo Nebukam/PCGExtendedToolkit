@@ -89,7 +89,7 @@ namespace PCGExWriteEdgeProperties
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = EdgeDataCache;
+			PCGExData::FFacade* OutputFacade = EdgeDataFacade;
 			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
@@ -131,7 +131,7 @@ namespace PCGExWriteEdgeProperties
 		if (Settings->bEndpointsBlending)
 		{
 			MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
-			MetadataBlender->PrepareForData(EdgeDataCache, VtxDataCache, PCGExData::ESource::In, true);
+			MetadataBlender->PrepareForData(EdgeDataFacade, VtxDataFacade, PCGExData::ESource::In, true);
 		}
 
 		bAscendingDesired = Settings->DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
@@ -259,7 +259,7 @@ namespace PCGExWriteEdgeProperties
 
 	void FProcessor::CompleteWork()
 	{
-		EdgeDataCache->Write(AsyncManagerPtr, true);
+		EdgeDataFacade->Write(AsyncManagerPtr, true);
 	}
 
 	//////// BATCH

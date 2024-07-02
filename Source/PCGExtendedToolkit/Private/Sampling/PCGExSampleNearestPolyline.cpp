@@ -117,19 +117,19 @@ namespace PCGExSampleNearestPolyline
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataCache;
+			PCGExData::FFacade* OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_INIT)
 		}
 
 		if (Settings->bUseLocalRangeMin)
 		{
-			RangeMinGetter = PointDataCache->GetOrCreateGetter<double>(Settings->LocalRangeMin);
+			RangeMinGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->LocalRangeMin);
 			if (!RangeMinGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
 		if (Settings->bUseLocalRangeMax)
 		{
-			RangeMaxGetter = PointDataCache->GetOrCreateGetter<double>(Settings->LocalRangeMax);
+			RangeMaxGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->LocalRangeMax);
 			if (!RangeMaxGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
 		}
 
@@ -138,7 +138,7 @@ namespace PCGExSampleNearestPolyline
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 			{
 			} // 
-			else { LookAtUpGetter = PointDataCache->GetOrCreateGetter<FVector>(Settings->LookAtUpSource); }
+			else { LookAtUpGetter = PointDataFacade->GetOrCreateGetter<FVector>(Settings->LookAtUpSource); }
 
 			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookAtUp is invalid.")); }
 		}
@@ -305,7 +305,7 @@ namespace PCGExSampleNearestPolyline
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataCache->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

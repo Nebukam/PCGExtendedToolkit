@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
 
 #include "PCGExBoundsToPoints.generated.h"
 
@@ -23,7 +24,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BoundsToPoints, "Bounds To Points", "Generate a point on the surface of the bounds.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTransform; }
 #endif
 
 protected:
@@ -36,58 +37,17 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** Overlap overlap test mode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
-
 	/** Generates a point collections per generated point */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bGenerateNewData = false;
+	bool bGeneratePerPointData = false;
 
 	/** Generate points in symmetry */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bSymmetry = false;
+	EPCGExMinimalAxis SymmetryAxis = EPCGExMinimalAxis::None;
 
-	/** Which axis to sample.\n W = depth on that axis, U & V are the two other axis. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExMinimalAxis Axis = EPCGExMinimalAxis::X;
-
-	/** U Source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExFetchType USource = EPCGExFetchType::Constant;
-
-	/** U Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Constant", DisplayName="U"))
-	double UConstant = 0.5;
-
-	/** U Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", DisplayName="U"))
-	FPCGAttributePropertyInputSelector UAttribute;
-
-	/** V Source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExFetchType VSource = EPCGExFetchType::Constant;
-
-	/** V Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="VSource==EPCGExFetchType::Constant", DisplayName="V"))
-	double VConstant = 0.5;
-
-	/** V Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", DisplayName="V"))
-	FPCGAttributePropertyInputSelector VAttribute;
-
-	/** W Source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExFetchType WSource = EPCGExFetchType::Constant;
-
-	/** W Constant */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WSource==EPCGExFetchType::Constant", DisplayName="W"))
-	double WConstant = 0.5;
-
-	/** W Attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", DisplayName="W"))
-	FPCGAttributePropertyInputSelector WAttribute;
-
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExUVW UVW;
 
 	/** Use a Seed attribute value to tag output data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bGenerateNewData"))
@@ -124,15 +84,24 @@ namespace PCGExBoundsToPoints
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		int32 NumPoints = 0;
+		bool bGeneratePerPointData = false;
+		bool bSymmetry = false;
+
+		FPCGExUVW UVW;
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
 		{
 		}
 
+		TArray<PCGExData::FPointIO*> NewOutputs;
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 	};
 }

@@ -121,19 +121,19 @@ public:
 	PCGExClusterFilter::TManager* PointFilters = nullptr;
 	PCGExClusterFilter::TManager* ValueFilters = nullptr;
 
-	PCGExData::FFacade* VtxDataCache = nullptr;
-	PCGExData::FFacade* EdgeDataCache = nullptr;
+	PCGExData::FFacade* VtxDataFacade = nullptr;
+	PCGExData::FFacade* EdgeDataFacade = nullptr;
 
 	FPCGExSamplingSettings BaseSettings;
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache);
+	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
 	PCGExData::FPointIO* GetSourceIO() const;
-	PCGExData::FFacade* GetSourceDataCache() const;
+	PCGExData::FFacade* GetSourceDataFacade() const;
 
 	FORCEINLINE virtual void ProcessNode(const int32 NodeIndex) const;
 

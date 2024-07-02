@@ -218,7 +218,7 @@ namespace PCGExFindContours
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 
 		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, VtxDataCache);
+		ProjectionSettings.Init(Context, VtxDataFacade);
 		ClusterProjection = new PCGExCluster::FClusterProjection(Cluster, &ProjectionSettings);
 
 		StartParallelLoopForNodes();

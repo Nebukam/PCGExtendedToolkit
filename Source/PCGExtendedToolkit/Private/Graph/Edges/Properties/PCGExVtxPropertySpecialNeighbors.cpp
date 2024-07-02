@@ -21,9 +21,9 @@ void UPCGExVtxPropertySpecialNeighbors::CopySettingsFrom(const UPCGExOperation* 
 	}
 }
 
-bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache)
+bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade)
 {
-	if (!Super::PrepareForVtx(InContext, InVtxDataCache)) { return false; }
+	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
 	if (!Descriptor.LargestNeighbor.Validate(InContext) ||
 		!Descriptor.SmallestNeighbor.Validate(InContext))
@@ -32,8 +32,8 @@ bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InConte
 		return false;
 	}
 
-	Descriptor.LargestNeighbor.Init(InVtxDataCache);
-	Descriptor.SmallestNeighbor.Init(InVtxDataCache);
+	Descriptor.LargestNeighbor.Init(InVtxDataFacade);
+	Descriptor.SmallestNeighbor.Init(InVtxDataFacade);
 
 	return bIsValidOperation;
 }

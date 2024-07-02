@@ -21,9 +21,9 @@ void UPCGExVtxPropertySpecialEdges::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache)
+bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade)
 {
-	if (!Super::PrepareForVtx(InContext, InVtxDataCache)) { return false; }
+	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
 	if (!Descriptor.ShortestEdge.Validate(InContext) ||
 		!Descriptor.LongestEdge.Validate(InContext) ||
@@ -33,9 +33,9 @@ bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, 
 		return false;
 	}
 
-	Descriptor.ShortestEdge.Init(InVtxDataCache);
-	Descriptor.LongestEdge.Init(InVtxDataCache);
-	Descriptor.AverageEdge.Init(InVtxDataCache);
+	Descriptor.ShortestEdge.Init(InVtxDataFacade);
+	Descriptor.LongestEdge.Init(InVtxDataFacade);
+	Descriptor.AverageEdge.Init(InVtxDataFacade);
 
 	return bIsValidOperation;
 }

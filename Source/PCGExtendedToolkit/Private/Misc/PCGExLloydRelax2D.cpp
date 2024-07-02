@@ -89,7 +89,7 @@ namespace PCGExLloydRelax2D
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, PointDataCache);
+		ProjectionSettings.Init(Context, PointDataFacade);
 
 		InfluenceGetter = new PCGEx::FLocalSingleFieldGetter();
 		InfluenceGetter->Capture(Settings->InfluenceSettings.LocalInfluence);

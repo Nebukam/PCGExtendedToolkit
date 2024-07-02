@@ -9,29 +9,29 @@ namespace PCGExClusterFilter
 {
 	PCGExFilters::EType TFilter::GetFilterType() const { return PCGExFilters::EType::Node; }
 
-	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
+	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 	{
-		return PCGExPointFilter::TFilter::Init(InContext, InPointDataCache);
+		return PCGExPointFilter::TFilter::Init(InContext, InPointDataFacade);
 	}
 
-	bool TFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
+	bool TFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 	{
 		Cluster = InCluster;
-		EdgeDataCache = InEdgeDataCache;
-		if (!PCGExPointFilter::TFilter::Init(InContext, InPointDataCache)) { return false; }
+		EdgeDataFacade = InEdgeDataFacade;
+		if (!PCGExPointFilter::TFilter::Init(InContext, InPointDataFacade)) { return false; }
 		return true;
 	}
 
 	void TFilter::PostInit()
 	{
 		if (!bCacheResults) { return; }
-		const int32 NumResults = GetFilterType() == PCGExFilters::EType::Node ? Cluster->Nodes->Num() : EdgeDataCache->Source->GetNum();
+		const int32 NumResults = GetFilterType() == PCGExFilters::EType::Node ? Cluster->Nodes->Num() : EdgeDataFacade->Source->GetNum();
 		Results.SetNumUninitialized(NumResults);
 		for (bool& Result : Results) { Result = false; }
 	}
 
-	TManager::TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
-		: PCGExPointFilter::TManager(InPointDataCache), Cluster(InCluster), EdgeDataCache(InEdgeDataCache)
+	TManager::TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+		: PCGExPointFilter::TManager(InPointDataFacade), Cluster(InCluster), EdgeDataCache(InEdgeDataFacade)
 	{
 	}
 
@@ -41,7 +41,7 @@ namespace PCGExClusterFilter
 		if (Filter->GetFilterType() == PCGExFilters::EType::Node)
 		{
 			TFilter* ClusterFilter = static_cast<TFilter*>(Filter);
-			if (!ClusterFilter->Init(InContext, Cluster, PointDataCache, EdgeDataCache)) { return false; }
+			if (!ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataCache)) { return false; }
 			return true;
 		}
 		return false;

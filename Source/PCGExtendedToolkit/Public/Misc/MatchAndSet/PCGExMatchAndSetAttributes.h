@@ -31,7 +31,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetAttributesOperation : public UPCGE
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache) override;
+	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override;
 	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override;
 

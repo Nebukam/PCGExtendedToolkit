@@ -263,7 +263,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
-	PCGExData::FFacade* SeedsDataCache = nullptr;
+	PCGExData::FFacade* SeedsDataFacade = nullptr;
 
 	PCGExData::FCache<int32>* NumIterations = nullptr;
 	PCGExData::FCache<int32>* NumBranches = nullptr;

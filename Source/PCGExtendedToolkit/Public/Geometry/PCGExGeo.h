@@ -51,16 +51,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	FQuat ProjectionQuat = FQuat::Identity;
 	FQuat ProjectionInverseQuat = FQuat::Identity;
 
-	void Init(const FPCGContext* InContext, PCGExData::FFacade* PointDataCache = nullptr)
+	void Init(const FPCGContext* InContext, PCGExData::FFacade* PointDataFacade = nullptr)
 	{
 		ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
 		ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::UpVector);
 		ProjectionInverseQuat = ProjectionInverseQuat.Inverse();
 
 		if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
-		if (bLocalProjectionNormal && PointDataCache)
+		if (bLocalProjectionNormal && PointDataFacade)
 		{
-			NormalGetter = PointDataCache->GetOrCreateGetter<FVector>(LocalNormal);
+			NormalGetter = PointDataFacade->GetOrCreateGetter<FVector>(LocalNormal);
 			if (!NormalGetter) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing normal attribute for projection.")); }
 		}
 	}

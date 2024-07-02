@@ -27,22 +27,22 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::PrepareForData(
-		PCGExData::FFacade* InPrimaryData,
+		PCGExData::FFacade* InPrimaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
 		const TSet<FName>* IgnoreAttributeSet)
 	{
-		InternalPrepareForData(InPrimaryData, InPrimaryData, SecondarySource, bInitFirstOperation, IgnoreAttributeSet);
+		InternalPrepareForData(InPrimaryFacade, InPrimaryFacade, SecondarySource, bInitFirstOperation, IgnoreAttributeSet);
 	}
 
 	void FMetadataBlender::PrepareForData(
-		PCGExData::FFacade* InPrimaryData,
-		PCGExData::FFacade* InSecondaryData,
+		PCGExData::FFacade* InPrimaryFacade,
+		PCGExData::FFacade* InSecondaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
 		const TSet<FName>* IgnoreAttributeSet)
 	{
-		InternalPrepareForData(InPrimaryData, InSecondaryData, SecondarySource, bInitFirstOperation, IgnoreAttributeSet);
+		InternalPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, bInitFirstOperation, IgnoreAttributeSet);
 	}
 
 	void FMetadataBlender::PrepareForBlending(const PCGEx::FPointRef& Target, const FPCGPoint* Defaults) const
@@ -212,8 +212,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::InternalPrepareForData(
-		PCGExData::FFacade* InPrimaryData,
-		PCGExData::FFacade* InSecondaryData,
+		PCGExData::FFacade* InPrimaryFacade,
+		PCGExData::FFacade* InSecondaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
 		const TSet<FName>* IgnoreAttributeSet)
@@ -231,24 +231,24 @@ namespace PCGExDataBlending
 			}
 		}
 
-		InPrimaryData->Source->CreateOutKeys();
-		InSecondaryData->Source->CreateKeys(SecondarySource);
+		InPrimaryFacade->Source->CreateOutKeys();
+		InSecondaryFacade->Source->CreateKeys(SecondarySource);
 
-		PrimaryPoints = &InPrimaryData->Source->GetOut()->GetMutablePoints();
-		SecondaryPoints = const_cast<TArray<FPCGPoint>*>(&InSecondaryData->Source->GetData(SecondarySource)->GetPoints());
+		PrimaryPoints = &InPrimaryFacade->Source->GetOut()->GetMutablePoints();
+		SecondaryPoints = const_cast<TArray<FPCGPoint>*>(&InSecondaryFacade->Source->GetData(SecondarySource)->GetPoints());
 
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		PCGEx::FAttributeIdentity::Get(InPrimaryData->Source->GetOut()->Metadata, Identities);
+		PCGEx::FAttributeIdentity::Get(InPrimaryFacade->Source->GetOut()->Metadata, Identities);
 		BlendingSettings->Filter(Identities);
 
-		if (InSecondaryData != InPrimaryData)
+		if (InSecondaryFacade != InPrimaryFacade)
 		{
 			TArray<FName> PrimaryNames;
 			TArray<FName> SecondaryNames;
 			TMap<FName, PCGEx::FAttributeIdentity> PrimaryIdentityMap;
 			TMap<FName, PCGEx::FAttributeIdentity> SecondaryIdentityMap;
-			PCGEx::FAttributeIdentity::Get(InPrimaryData->Source->GetOut()->Metadata, PrimaryNames, PrimaryIdentityMap);
-			PCGEx::FAttributeIdentity::Get(InSecondaryData->Source->GetData(SecondarySource)->Metadata, SecondaryNames, SecondaryIdentityMap);
+			PCGEx::FAttributeIdentity::Get(InPrimaryFacade->Source->GetOut()->Metadata, PrimaryNames, PrimaryIdentityMap);
+			PCGEx::FAttributeIdentity::Get(InSecondaryFacade->Source->GetData(SecondarySource)->Metadata, SecondaryNames, SecondaryIdentityMap);
 
 			for (FName PrimaryName : PrimaryNames)
 			{
@@ -301,7 +301,7 @@ namespace PCGExDataBlending
 			if (Op->GetRequiresPreparation()) { OperationsToBePrepared.Add(Op); }
 			if (Op->GetRequiresFinalization()) { OperationsToBeCompleted.Add(Op); }
 
-			Op->PrepareForData(InPrimaryData, InSecondaryData, SecondarySource);
+			Op->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 		}
 
 		FirstPointOperation.SetNum(PrimaryPoints->Num());

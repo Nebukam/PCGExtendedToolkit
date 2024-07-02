@@ -8,11 +8,11 @@ PCGExPointFilter::TFilter* UPCGExBitmaskFilterFactory::CreateFilter() const
 	return new PCGExPointsFilter::TBitmaskFilter(this);
 }
 
-bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
+bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 {
-	if (!TFilter::Init(InContext, InPointDataCache)) { return false; }
+	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	ValueReader = PointDataCache->GetOrCreateReader<int64>(TypedFilterFactory->Descriptor.Value);
+	ValueReader = PointDataFacade->GetOrCreateReader<int64>(TypedFilterFactory->Descriptor.Value);
 
 	if (!ValueReader)
 	{
@@ -22,7 +22,7 @@ bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGEx
 
 	if (TypedFilterFactory->Descriptor.MaskType == EPCGExFetchType::Attribute)
 	{
-		MaskReader = PointDataCache->GetOrCreateReader<int64>(TypedFilterFactory->Descriptor.MaskAttribute);
+		MaskReader = PointDataFacade->GetOrCreateReader<int64>(TypedFilterFactory->Descriptor.MaskAttribute);
 		if (!MaskReader)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Mask attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.MaskAttribute)));

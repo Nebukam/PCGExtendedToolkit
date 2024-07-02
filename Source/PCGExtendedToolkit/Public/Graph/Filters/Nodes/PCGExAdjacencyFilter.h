@@ -91,7 +91,7 @@ namespace PCGExNodeAdjacency
 		PCGExData::FCache<double>* OperandA = nullptr;
 		PCGExData::FCache<double>* OperandB = nullptr;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache) override;
+		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
 
 		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override;
 

@@ -33,8 +33,8 @@ namespace PCGExHeuristics
 		for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache)
-		: VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+		: VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
 	{
 		TArray<UPCGExHeuristicsFactoryBase*> ContextFactories;
 		PCGExFactories::GetInputFactories(InContext, PCGExGraph::SourceHeuristicsLabel, ContextFactories, {PCGExFactories::EType::Heuristics}, false);
@@ -42,7 +42,7 @@ namespace PCGExHeuristics
 	}
 
 	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
-		: VtxDataCache(InVtxDataCache), EdgeDataCache(InEdgeDataCache)
+		: VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache)
 	{
 		BuildFrom(InContext, InFactories);
 	}
@@ -82,8 +82,8 @@ namespace PCGExHeuristics
 			}
 
 			Operations.Add(Operation);
-			Operation->PrimaryDataCache = VtxDataCache;
-			Operation->SecondaryDataCache = EdgeDataCache;
+			Operation->PrimaryDataFacade = VtxDataFacade;
+			Operation->SecondaryDataFacade = EdgeDataFacade;
 			Operation->WeightFactor = OperationFactory->WeightFactor;
 			Operation->ReferenceWeight = ReferenceWeight * Operation->WeightFactor;
 			Operation->BindContext(InContext);

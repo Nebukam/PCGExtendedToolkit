@@ -91,13 +91,13 @@ namespace PCGExFlatProjection
 
 		if (bInverseExistingProjection)
 		{
-			TransformReader = PointDataCache->GetOrCreateReader<FTransform>(TypedContext->CachedTransformAttributeName);
+			TransformReader = PointDataFacade->GetOrCreateReader<FTransform>(TypedContext->CachedTransformAttributeName);
 		}
 		else if (bWriteAttribute)
 		{
 			ProjectionSettings = Settings->ProjectionSettings;
-			ProjectionSettings.Init(Context, PointDataCache);
-			TransformWriter = PointDataCache->GetOrCreateWriter<FTransform>(TypedContext->CachedTransformAttributeName, true);
+			ProjectionSettings.Init(Context, PointDataFacade);
+			TransformWriter = PointDataFacade->GetOrCreateWriter<FTransform>(TypedContext->CachedTransformAttributeName, true);
 		}
 
 		StartParallelLoopForPoints();
@@ -136,7 +136,7 @@ namespace PCGExFlatProjection
 		}
 		else if (bWriteAttribute)
 		{
-			PointDataCache->Write(AsyncManagerPtr, true);
+			PointDataFacade->Write(AsyncManagerPtr, true);
 		}
 	}
 }

@@ -15,13 +15,13 @@ PCGExPointFilter::TFilter* UPCGExNeighborsCountFilterFactory::CreateFilter() con
 
 namespace PCGExNodeNeighborsCount
 {
-	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
+	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 	{
-		if (!TFilter::Init(InContext, InCluster, InPointDataCache, InEdgeDataCache)) { return false; }
+		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			LocalCount = PointDataCache->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.LocalCount);
+			LocalCount = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.LocalCount);
 
 			if (!LocalCount)
 			{

@@ -212,7 +212,7 @@ FPCGExPathfindingGrowPathsContext::~FPCGExPathfindingGrowPathsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(SeedsDataCache)
+	PCGEX_DELETE(SeedsDataFacade)
 
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(OutputPaths)
@@ -243,22 +243,22 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->NumIterations == EPCGExGrowthValueSource::SeedAttribute)
 	{
-		PCGEX_GROWTH_GRAB(Context, Context->NumIterations, Context->SeedsDataCache, int32, Settings->NumIterationsAttribute)
+		PCGEX_GROWTH_GRAB(Context, Context->NumIterations, Context->SeedsDataFacade, int32, Settings->NumIterationsAttribute)
 	}
 
 	if (Settings->SeedNumBranches == EPCGExGrowthValueSource::SeedAttribute)
 	{
-		PCGEX_GROWTH_GRAB(Context, Context->NumBranches, Context->SeedsDataCache, int32, Settings->NumBranchesAttribute)
+		PCGEX_GROWTH_GRAB(Context, Context->NumBranches, Context->SeedsDataFacade, int32, Settings->NumBranchesAttribute)
 	}
 
 	if (Settings->GrowthDirection == EPCGExGrowthValueSource::SeedAttribute)
 	{
-		PCGEX_GROWTH_GRAB(Context, Context->GrowthDirection, Context->SeedsDataCache, FVector, Settings->GrowthDirectionAttribute)
+		PCGEX_GROWTH_GRAB(Context, Context->GrowthDirection, Context->SeedsDataFacade, FVector, Settings->GrowthDirectionAttribute)
 	}
 
 	if (Settings->GrowthMaxDistance == EPCGExGrowthValueSource::SeedAttribute)
 	{
-		PCGEX_GROWTH_GRAB(Context, Context->GrowthMaxDistance, Context->SeedsDataCache, double, Settings->GrowthMaxDistanceAttribute)
+		PCGEX_GROWTH_GRAB(Context, Context->GrowthMaxDistance, Context->SeedsDataFacade, double, Settings->GrowthMaxDistanceAttribute)
 	}
 
 	if (Settings->bUseSeedAttributeToTagPath)
@@ -319,26 +319,26 @@ namespace PCGExGrowPaths
 
 		if (Settings->NumIterations == EPCGExGrowthValueSource::VtxAttribute)
 		{
-			PCGEX_GROWTH_GRAB(Context, NumIterations, VtxDataCache, int32, Settings->NumIterationsAttribute)
+			PCGEX_GROWTH_GRAB(Context, NumIterations, VtxDataFacade, int32, Settings->NumIterationsAttribute)
 		}
 
 		if (Settings->SeedNumBranches == EPCGExGrowthValueSource::VtxAttribute)
 		{
-			PCGEX_GROWTH_GRAB(Context, NumBranches, VtxDataCache, int32, Settings->NumBranchesAttribute)
+			PCGEX_GROWTH_GRAB(Context, NumBranches, VtxDataFacade, int32, Settings->NumBranchesAttribute)
 		}
 
 		if (Settings->GrowthDirection == EPCGExGrowthValueSource::VtxAttribute)
 		{
-			PCGEX_GROWTH_GRAB(Context, GrowthDirection, VtxDataCache, FVector, Settings->GrowthDirectionAttribute)
+			PCGEX_GROWTH_GRAB(Context, GrowthDirection, VtxDataFacade, FVector, Settings->GrowthDirectionAttribute)
 		}
 
 		if (Settings->GrowthMaxDistance == EPCGExGrowthValueSource::VtxAttribute)
 		{
-			PCGEX_GROWTH_GRAB(Context, GrowthMaxDistance, VtxDataCache, double, Settings->GrowthMaxDistanceAttribute)
+			PCGEX_GROWTH_GRAB(Context, GrowthMaxDistance, VtxDataFacade, double, Settings->GrowthMaxDistanceAttribute)
 		}
 
-		GrowthStop = Settings->bUseGrowthStop ? VtxDataCache->GetOrCreateGetter<bool>(Settings->GrowthStopAttribute) : nullptr;
-		NoGrowth = Settings->bUseNoGrowth ? VtxDataCache->GetOrCreateGetter<bool>(Settings->NoGrowthAttribute) : nullptr;
+		GrowthStop = Settings->bUseGrowthStop ? VtxDataFacade->GetOrCreateGetter<bool>(Settings->GrowthStopAttribute) : nullptr;
+		NoGrowth = Settings->bUseNoGrowth ? VtxDataFacade->GetOrCreateGetter<bool>(Settings->NoGrowthAttribute) : nullptr;
 
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 

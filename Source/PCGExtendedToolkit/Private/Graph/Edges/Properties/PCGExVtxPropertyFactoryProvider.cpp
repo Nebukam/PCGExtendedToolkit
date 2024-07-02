@@ -16,10 +16,10 @@ void UPCGExVtxPropertyOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExVtxPropertyOperation::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache)
+bool UPCGExVtxPropertyOperation::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade)
 {
-	PrimaryDataCache = InVtxDataCache;
-	SecondaryDataCache = nullptr;
+	PrimaryDataFacade = InVtxDataFacade;
+	SecondaryDataFacade = nullptr;
 	return true;
 }
 
@@ -27,10 +27,10 @@ void UPCGExVtxPropertyOperation::ClusterReserve(const int32 NumClusters)
 {
 }
 
-void UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataCache, PCGExData::FFacade* EdgeDataCache)
+void UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataFacade, PCGExData::FFacade* EdgeDataFacade)
 {
-	PrimaryDataCache = VtxDataCache;
-	SecondaryDataCache = EdgeDataCache;
+	PrimaryDataFacade = VtxDataFacade;
+	SecondaryDataFacade = EdgeDataFacade;
 }
 
 bool UPCGExVtxPropertyOperation::IsOperationValid() { return bIsValidOperation; }

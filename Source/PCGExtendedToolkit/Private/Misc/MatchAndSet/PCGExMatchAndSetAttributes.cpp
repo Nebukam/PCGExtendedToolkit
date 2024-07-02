@@ -17,9 +17,9 @@ void UPCGExMatchAndSetAttributesOperation::CopySettingsFrom(const UPCGExOperatio
 	}
 }
 
-bool UPCGExMatchAndSetAttributesOperation::PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataCache)
+bool UPCGExMatchAndSetAttributesOperation::PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 {
-	if (!Super::PrepareForData(InContext, InPointDataCache)) { return false; }
+	if (!Super::PrepareForData(InContext, InPointDataFacade)) { return false; }
 	return true;
 }
 

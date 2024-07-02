@@ -28,8 +28,8 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(PCGExData::FFacade* InPrimaryData) override;
-	virtual void PrepareForData(PCGExData::FFacade* InPrimaryData, PCGExData::FFacade* InSecondaryData, const PCGExData::ESource SecondarySource);
+	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade) override;
+	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource);
 
 	virtual void ProcessSubPoints(
 		const PCGEx::FPointRef& Start,
@@ -64,8 +64,8 @@ public:
 	virtual void Cleanup() override;
 
 	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(
-		PCGExData::FFacade* InPrimaryData,
-		PCGExData::FFacade* InSecondaryData,
+		PCGExData::FFacade* InPrimaryFacade,
+		PCGExData::FFacade* InSecondaryFacade,
 		const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
 
 protected:
