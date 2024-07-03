@@ -8,13 +8,14 @@
 #include "Data/Blending/PCGExCompoundBlender.h"
 
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataFilter.h"
 #include "Data/Blending//PCGExDataBlendingOperations.h"
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 namespace PCGExDataBlending
 {
-	FCompoundBlender::FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings):
-		BlendingSettings(InBlendingSettings)
+	FCompoundBlender::FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings, const FPCGExCarryOverSettings* InCarryOver):
+		CarryOver(InCarryOver), BlendingSettings(InBlendingSettings)
 	{
 		Sources.Empty();
 		IOIndices.Empty();
@@ -38,6 +39,7 @@ namespace PCGExDataBlending
 
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
 		PCGEx::FAttributeIdentity::Get(InFacade->GetIn()->Metadata, SourceAttributes);
+		CarryOver->Filter(SourceAttributes);
 		BlendingSettings->Filter(SourceAttributes);
 
 		UPCGMetadata* SourceMetadata = InFacade->GetIn()->Metadata;

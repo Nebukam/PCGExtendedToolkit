@@ -13,14 +13,12 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit
-UPCGExFuseClustersSettings::GetMainOutputInitMode() const
+PCGExData::EInit UPCGExFuseClustersSettings::GetMainOutputInitMode() const
 {
 	return PCGExData::EInit::NoOutput;
 }
 
-PCGExData::EInit
-UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const
+PCGExData::EInit UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const
 {
 	return PCGExData::EInit::NoOutput;
 }
@@ -44,8 +42,7 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 
 PCGEX_INITIALIZE_ELEMENT(FuseClusters)
 
-bool
-FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext))
 	{
@@ -53,6 +50,12 @@ FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 	}
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseClusters)
+
+    PCGEX_FWD(VtxCarryOver)
+    Context->VtxCarryOver.Init();
+    
+    PCGEX_FWD(EdgesCarryOver)
+    Context->EdgesCarryOver.Init();
 
 	const_cast<UPCGExFuseClustersSettings*>(Settings)
 		->EdgeEdgeIntersectionSettings.ComputeDot();
@@ -93,13 +96,12 @@ FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 		Settings->PointPointIntersectionSettings.FuseMethod);
 
 	Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(
-		&Settings->DefaultPointsBlendingSettings);
+		&Settings->DefaultPointsBlendingSettings, &Context->VtxCarryOver);
 
 	return true;
 }
 
-bool
-FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFuseClustersElement::Execute);
 

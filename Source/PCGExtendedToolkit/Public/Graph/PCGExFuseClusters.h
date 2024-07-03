@@ -87,6 +87,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable, EditCondition="bUseCustomEdgeEdgeBlending"))
 	FPCGExBlendingSettings CustomEdgeEdgeBlendingSettings;
 
+
+	/** Meta filter settings for Vtx. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Meta Filters", meta = (PCG_Overridable, DisplayName="Carry Over Settings - Vtx"))
+	FPCGExCarryOverSettings VtxCarryOver;
+
+	/** Meta filter settings for Edges. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Meta Filters", meta = (PCG_Overridable, DisplayName="Carry Over Settings - Edges"))
+	FPCGExCarryOverSettings EdgesCarryOver;
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -102,6 +111,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext final : public FPCGExEdg
 	TArray<PCGExData::FFacade*> VtxFacades;
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FFacade* CompoundFacade = nullptr;
+
+	FPCGExCarryOverSettings VtxCarryOver;
+	FPCGExCarryOverSettings EdgesCarryOver;
 
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;

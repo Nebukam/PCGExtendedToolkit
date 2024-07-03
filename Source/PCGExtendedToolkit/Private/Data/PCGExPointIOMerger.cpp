@@ -4,6 +4,8 @@
 
 #include "Data/PCGExPointIOMerger.h"
 
+#include "Data/PCGExDataFilter.h"
+
 FPCGExPointIOMerger::FPCGExPointIOMerger(PCGExData::FPointIO* OutMergedData)
 {
 	CompositeIO = OutMergedData;
@@ -41,10 +43,11 @@ void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
 	for (const PCGExData::FPointIO* PointIO : InCollection->Pairs) { Append(const_cast<PCGExData::FPointIO*>(PointIO)); }
 }
 
-void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<FName>* IgnoreAttributeSet)
+void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverSettings* CarryOver)
 {
 	CompositeIO->InitializeNum(NumCompositePoints);
 	TArray<FPCGPoint>& MutablePoints = CompositeIO->GetOut()->GetMutablePoints();
+	CarryOver->Filter(CompositeIO);
 
 	TMap<FName, EPCGMetadataTypes> ExpectedTypes;
 
@@ -53,6 +56,7 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<
 	for (int i = 0; i < NumSources; i++)
 	{
 		PCGExData::FPointIO* Source = IOSources[i];
+		CompositeIO->Tags->Append(Source->Tags);
 		Source->CreateInKeys();
 
 		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
@@ -73,7 +77,8 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<
 		PCGEx::FAttributeIdentity::Get(Source->GetIn()->Metadata, SourceAttributes);
 		for (PCGEx::FAttributeIdentity SourceAtt : SourceAttributes)
 		{
-			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(SourceAtt.Name)) { continue; }
+			FString StrName = SourceAtt.Name.ToString();
+			if (!CarryOver->Attributes.Test(StrName)) { continue; }
 
 			const EPCGMetadataTypes* ExpectedType = ExpectedTypes.Find(SourceAtt.Name);
 			if (!ExpectedType)
@@ -99,6 +104,7 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<
 		}
 	}
 
+	CarryOver->Filter(CompositeIO);
 	CompositeIO->CreateOutKeys();
 
 	for (int i = 0; i < UniqueIdentities.Num(); i++) { AsyncManager->Start<PCGExPointIOMerger::FWriteAttributeTask>(i, CompositeIO, this); }

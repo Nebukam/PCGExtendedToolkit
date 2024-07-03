@@ -4,10 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExAttributeHelpers.h"
+struct FPCGExCarryOverSettings;
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointIOMerger final
 {
@@ -26,7 +27,7 @@ public:
 	void Append(PCGExData::FPointIO* InData);
 	void Append(const TArray<PCGExData::FPointIO*>& InData);
 	void Append(PCGExData::FPointIOCollection* InCollection);
-	void Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<FName>* IgnoreAttributeSet = nullptr);
+	void Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverSettings* CarryOver);
 	void Write();
 	void Write(PCGExMT::FTaskManager* AsyncManager);
 
@@ -80,7 +81,7 @@ namespace PCGExPointIOMerger
 			uint32 Range;
 			PCGEx::H64(Scope, StartIndex, Range);
 
-			int32 Count = static_cast<int>(Range);
+			const int32 Count = static_cast<int>(Range);
 			for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
 
 			PCGEX_DELETE(Reader);

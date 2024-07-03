@@ -254,7 +254,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(SeedAttributesToPathTags)
 	
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
-	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, SeedsPoints);
+	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(Settings->SeedForwardAttributes, SeedsPoints);
 
 	return true;
 }

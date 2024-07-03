@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSettings.h"
+#include "Data/PCGExDataFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExGraph.h"
@@ -96,6 +97,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExBlendingSettings BlendingSettings;
 
+	/** Meta filter settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverSettings CarryOver;
+
 private:
 	friend class FPCGExFusePointsElement;
 };
@@ -104,6 +109,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext final : public FPCGExPoint
 {
 	friend class FPCGExFusePointsElement;
 	virtual ~FPCGExFusePointsContext() override;
+	FPCGExCarryOverSettings CarryOver;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement final : public FPCGExPointsProcessorElement

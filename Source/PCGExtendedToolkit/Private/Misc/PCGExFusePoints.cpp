@@ -24,6 +24,9 @@ bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
+	PCGEX_FWD(CarryOver)
+	Context->CarryOver.Init();
+
 	return true;
 }
 
@@ -112,7 +115,7 @@ namespace PCGExFusePoints
 		const int32 NumCompoundNodes = CompoundGraph->Nodes.Num();
 		PointIO->InitializeNum(NumCompoundNodes);
 
-		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
+		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings), &TypedContext->CarryOver);
 		CompoundPointsBlender->AddSource(PointDataFacade);
 		CompoundPointsBlender->PrepareMerge(PointDataFacade, CompoundGraph->PointsCompounds);
 

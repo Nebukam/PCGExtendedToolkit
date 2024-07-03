@@ -44,7 +44,7 @@ public:
 	bool bDoConsumeProcessedAttributes = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoConsumeProcessedAttributes"))
-	FPCGExAttributeFilterSettings ConsumeProcessedAttributes;
+	FPCGExNameFiltersSettings ConsumeProcessedAttributes;
 
 private:
 	friend class FPCGExMatchAndSetElement;

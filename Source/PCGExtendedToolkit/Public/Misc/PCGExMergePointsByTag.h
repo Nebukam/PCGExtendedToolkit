@@ -30,7 +30,7 @@ namespace PCPGExMergePointsByTag
 		FMergeList();
 		~FMergeList();
 
-		void Merge(PCGExMT::FTaskManager* AsyncManager);
+		void Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverSettings* CarryOver);
 		void Write(PCGExMT::FTaskManager* AsyncManager) const;
 	};
 
@@ -52,7 +52,7 @@ namespace PCPGExMergePointsByTag
 		explicit FTagBuckets();
 		~FTagBuckets();
 
-		void Distribute(PCGExData::FPointIO* IO, const TSet<FString>& IgnoreTagsAndPrefixes);
+		void Distribute(PCGExData::FPointIO* IO, const FPCGExNameFiltersSettings& Filters);
 		void AddToReverseMap(PCGExData::FPointIO* IO, FTagBucket* Bucket);
 		void BuildMergeLists(EPCGExMergeByTagOverlapResolutionMode Mode, TArray<FMergeList*>& OutLists, const TArray<FString>& Priorities);
 	};
@@ -84,13 +84,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExMergeByTagOverlapResolutionMode Mode = EPCGExMergeByTagOverlapResolutionMode::Strict;
 
-	/** List of tags that should not be checked. This include prefixes. */
+	/** Tags to be processed or ignored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSet<FString> IgnoreTagsAndPrefixes = {PCGExGraph::TagStr_ClusterPair, PCGExGraph::TagStr_PCGExEdges, PCGExGraph::TagStr_PCGExVtx};
-
+	FPCGExNameFiltersSettings TagFilters;
+	
 	/** Which tag has merging authority over another. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TArray<FString> ResolutionPriorities;
+
+	/** Meta filter settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverSettings CarryOver;
+
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExMergePointsByTagContext final : public FPCGExPointsProcessorContext
@@ -99,6 +104,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMergePointsByTagContext final : public FPCGE
 
 	virtual ~FPCGExMergePointsByTagContext() override;
 
+	FPCGExNameFiltersSettings TagFilters;
+	FPCGExCarryOverSettings CarryOver;
+	
 	TArray<PCPGExMergePointsByTag::FMergeList*> MergeLists;
 };
 

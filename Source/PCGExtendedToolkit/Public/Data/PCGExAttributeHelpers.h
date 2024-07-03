@@ -21,55 +21,7 @@
 
 #pragma region Input Descriptors
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Attribute Filter"))
-enum class EPCGExAttributeFilter : uint8
-{
-	All UMETA(DisplayName = "All", ToolTip="All attributes"),
-	Exclude UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
-	Include UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeFilterSettings
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeFilterSettings()
-	{
-	}
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExAttributeFilter FilterAttributes = EPCGExAttributeFilter::All;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FilterAttributes!=EPCGExAttributeFilter::All", EditConditionHides))
-	TArray<FName> FilteredAttributes;
-
-	bool Test(const FPCGMetadataAttributeBase* InAttribute) const
-	{
-		switch (FilterAttributes)
-		{
-		default: ;
-		case EPCGExAttributeFilter::All:
-			return true;
-		case EPCGExAttributeFilter::Exclude:
-			return !FilteredAttributes.Contains(InAttribute->Name);
-		case EPCGExAttributeFilter::Include:
-			return FilteredAttributes.Contains(InAttribute->Name);
-		}
-	}
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherSettings : public FPCGExAttributeFilterSettings
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeGatherSettings()
-	{
-	}
-
-	// TODO : Expose how to handle overlaps
-};
+struct FPCGExAttributeGatherSettings;
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor

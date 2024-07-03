@@ -53,6 +53,9 @@ enum class EPCGExStringComparison : uint8
 	StrictlySmaller UMETA(DisplayName = " < (Length)", Tooltip="Operand A Strictly Smaller to Operand B"),
 	LocaleStrictlyGreater UMETA(DisplayName = " > (Locale)", Tooltip="Operand A Locale Strictly Greater to Operand B Locale"),
 	LocaleStrictlySmaller UMETA(DisplayName = " < (Locale)", Tooltip="Operand A Locale Strictly Smaller to Operand B Locale"),
+	Contains UMETA(DisplayName = " Contains ", Tooltip="Operand A contains Operand B"),
+	StartsWith UMETA(DisplayName = " Starts With ", Tooltip="Operand A starts with Operand B"),
+	EndsWith UMETA(DisplayName = " Ends With ", Tooltip="Operand A ends with Operand B"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bitflag Comparison"))

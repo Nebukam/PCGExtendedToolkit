@@ -154,8 +154,8 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade)) { return false; }
 
-	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, SeedsPoints);
-	Context->GoalForwardHandler = new PCGExData::FDataForwardHandler(&Settings->GoalForwardAttributes, GoalsPoints);
+	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(Settings->SeedForwardAttributes, SeedsPoints);
+	Context->GoalForwardHandler = new PCGExData::FDataForwardHandler(Settings->GoalForwardAttributes, GoalsPoints);
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection();
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;

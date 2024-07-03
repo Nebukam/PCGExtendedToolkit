@@ -4,21 +4,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExMatchAndRemoveTags.generated.h"
+#include "Data/PCGExDataFilter.h"
+#include "PCGExMetaFilter.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndRemoveTagsSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExMetaFilterSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MatchAndRemoveTags, "Match & Remove Tags", "Remove tags based on partial matches");
+	PCGEX_NODE_INFOS(MetaFilter, "Meta Filter", "Keep/Remove tags & attributes using string queries.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscRemove; }
 #endif
 
@@ -32,23 +32,21 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
-	/** Mode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExStringMatchMode Mode = EPCGExStringMatchMode::Contains;
-
-	/** Matches to look for and rename. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSet<FString> Matches;
+	/** List of attributes to delete. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExCarryOverSettings Filters;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMatchAndRemoveTagsContext final : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExMetaFilterContext final : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExMatchAndRemoveTagsElement;
+	friend class FPCGExMetaFilterElement;
 
-	virtual ~FPCGExMatchAndRemoveTagsContext() override;
+	FPCGExCarryOverSettings Filters;
+
+	virtual ~FPCGExMetaFilterContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMatchAndRemoveTagsElement final : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExMetaFilterElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

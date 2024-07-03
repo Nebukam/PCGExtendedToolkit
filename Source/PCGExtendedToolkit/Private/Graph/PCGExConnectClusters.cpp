@@ -27,6 +27,9 @@ bool FPCGExConnectClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectClusters)
 
+	PCGEX_FWD(CarryOver)
+	Context->CarryOver.Init();
+
 	PCGEX_FWD(ProjectionSettings)
 	PCGEX_FWD(GraphBuilderSettings)
 
@@ -136,6 +139,8 @@ namespace PCGExBridgeClusters
 
 	void FProcessorBatch::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
+		
 		TBatch<FProcessor>::Process(AsyncManager);
 
 		// Start merging right away
@@ -143,7 +148,7 @@ namespace PCGExBridgeClusters
 
 		Merger = new FPCGExPointIOMerger(ConsolidatedEdges);
 		Merger->Append(Edges);
-		Merger->Merge(AsyncManagerPtr, &IgnoreAttributes);
+		Merger->Merge(AsyncManagerPtr, &TypedContext->CarryOver);
 	}
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)

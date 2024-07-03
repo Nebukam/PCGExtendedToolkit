@@ -10,6 +10,7 @@
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExDataFilter.h"
 
 namespace PCGExDataBlending
 {
@@ -78,7 +79,9 @@ namespace PCGExDataBlending
 		friend class FPCGExCompoundedPointBlendTask;
 
 	public:
-		explicit FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings);
+		const FPCGExCarryOverSettings* CarryOver;
+		
+		explicit FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings, const FPCGExCarryOverSettings* InCarryOver);
 		~FCompoundBlender();
 
 		void AddSource(PCGExData::FFacade* InFacade);

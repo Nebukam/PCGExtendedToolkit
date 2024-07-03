@@ -62,6 +62,12 @@ bool PCGExPointsFilter::TStringCompareFilter::Test(const int32 PointIndex) const
 		return A > B;
 	case EPCGExStringComparison::LocaleStrictlySmaller:
 		return A < B;
+	case EPCGExStringComparison::Contains:
+		return A.Contains(B);
+	case EPCGExStringComparison::StartsWith:
+		return A.StartsWith(B);
+	case EPCGExStringComparison::EndsWith:
+		return A.EndsWith(B);
 	default:
 		return false;
 	}

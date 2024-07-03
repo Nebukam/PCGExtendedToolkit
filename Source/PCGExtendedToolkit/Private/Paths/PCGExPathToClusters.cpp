@@ -49,12 +49,12 @@ FPCGExPathToClustersContext::~FPCGExPathToClustersContext()
 
 bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPathProcessorElement::Boot(InContext))
-	{
-		return false;
-	}
+	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathToClusters)
+
+	PCGEX_FWD(CarryOver)
+	Context->CarryOver.Init();
 
 	const_cast<UPCGExPathToClustersSettings*>(Settings)
 		->EdgeEdgeIntersectionSettings.ComputeDot();
@@ -369,19 +369,16 @@ namespace PCGExPathToClusters
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToClusters)
 
-		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(
-			&Settings->DefaultPointsBlendingSettings);
+		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(&Settings->DefaultPointsBlendingSettings, &TypedContext->CarryOver);
 		CompoundPointsBlender->AddSources(ProcessorFacades);
 
 		CompoundPoints = TypedContext->CompoundFacade->Source;
 		const int32 NumCompoundedNodes = CompoundGraph->NumNodes();
 		CompoundPoints->InitializeNum(NumCompoundedNodes, true);
 
-		CompoundPointsBlender->PrepareMerge(
-			TypedContext->CompoundFacade, CompoundGraph->PointsCompounds);
+		CompoundPointsBlender->PrepareMerge(TypedContext->CompoundFacade, CompoundGraph->PointsCompounds);
 
-		StartParallelLoopForRange(
-			NumCompoundedNodes); // Update point center & blend
+		StartParallelLoopForRange(NumCompoundedNodes); // Update point center & blend
 
 		TBatch<FFusingProcessor>::CompleteWork();
 	}

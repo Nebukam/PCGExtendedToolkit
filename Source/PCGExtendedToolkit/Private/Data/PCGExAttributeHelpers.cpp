@@ -3,6 +3,8 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 
+#include "Helpers/PCGHelpers.h"
+
 #if WITH_EDITOR
 FString FPCGExInputDescriptor::GetDisplayName() const { return GetName().ToString(); }
 

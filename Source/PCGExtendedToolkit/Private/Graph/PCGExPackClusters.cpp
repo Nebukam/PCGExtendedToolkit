@@ -37,6 +37,9 @@ bool FPCGExPackClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PackClusters)
 
+	PCGEX_FWD(CarryOver)
+	Context->CarryOver.Init();
+
 	Context->PackedClusters = new PCGExData::FPointIOCollection();
 	Context->PackedClusters->DefaultOutputLabel = PCGExGraph::OutputPackedClustersLabel;
 
@@ -122,6 +125,10 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	PackedIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
 
 	InEdges->CleanupKeys();
+
+	Context->CarryOver.Filter(PointIO->Tags);
+	Context->CarryOver.Filter(InEdges->Tags);
+
 
 	return true;
 }

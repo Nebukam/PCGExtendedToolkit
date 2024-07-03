@@ -115,7 +115,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext final : public FPCGE
 
 	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;
-
+	
 	TArray<PCGExPathfinding::FPathQuery*> PathQueries;
 
 	void TryFindPath(

@@ -20,14 +20,14 @@ namespace PCPGExMergePointsByTag
 		PCGEX_DELETE(Merger)
 	}
 
-	void FMergeList::Merge(PCGExMT::FTaskManager* AsyncManager)
+	void FMergeList::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverSettings* CarryOver)
 	{
 		CompositeIO = IOs[0];
 		CompositeIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		Merger = new FPCGExPointIOMerger(CompositeIO);
 		Merger->Append(IOs);
-		Merger->Merge(AsyncManager);
+		Merger->Merge(AsyncManager, CarryOver);
 	}
 
 	void FMergeList::Write(PCGExMT::FTaskManager* AsyncManager) const
@@ -64,25 +64,14 @@ namespace PCPGExMergePointsByTag
 		ReverseBucketsMap.Empty();
 	}
 
-	void FTagBuckets::Distribute(PCGExData::FPointIO* IO, const TSet<FString>& IgnoreTagsAndPrefixes)
+	void FTagBuckets::Distribute(PCGExData::FPointIO* IO, const FPCGExNameFiltersSettings& Filters)
 	{
 		bool bDistributed = false;
 		if (!IO->Tags->IsEmpty())
 		{
-			for (TSet<FString> Flattags = IO->Tags->ToSet(); FString Tag : Flattags)
+			for (TSet<FString> FlattenedTags = IO->Tags->ToSet(); FString Tag : FlattenedTags)
 			{
-				bool bSkip = false;
-				if (IgnoreTagsAndPrefixes.Contains(Tag)) { continue; }
-				for (const FString& Ignore : IgnoreTagsAndPrefixes)
-				{
-					if (Tag.StartsWith(Ignore))
-					{
-						bSkip = true;
-						break;
-					}
-				}
-
-				if (bSkip) { continue; }
+				if (!Filters.Test(Tag)) { continue; }
 
 				if (const int32* BucketIndex = BucketsMap.Find(Tag))
 				{
@@ -229,8 +218,14 @@ bool FPCGExMergePointsByTagElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(MergePointsByTag)
 
+	PCGEX_FWD(TagFilters)
+	Context->TagFilters.Init();
+
+	PCGEX_FWD(CarryOver)
+	Context->CarryOver.Init();
+
 	PCPGExMergePointsByTag::FTagBuckets* Buckets = new PCPGExMergePointsByTag::FTagBuckets();
-	for (PCGExData::FPointIO* IO : Context->MainPoints->Pairs) { Buckets->Distribute(IO, Settings->IgnoreTagsAndPrefixes); }
+	for (PCGExData::FPointIO* IO : Context->MainPoints->Pairs) { Buckets->Distribute(IO, Context->TagFilters); }
 	Buckets->BuildMergeLists(Settings->Mode, Context->MergeLists, Settings->ResolutionPriorities);
 	PCGEX_DELETE(Buckets)
 
@@ -246,10 +241,9 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		for (PCPGExMergePointsByTag::FMergeList* List : Context->MergeLists) { List->Merge(Context->GetAsyncManager()); }
+		for (PCPGExMergePointsByTag::FMergeList* List : Context->MergeLists) { List->Merge(Context->GetAsyncManager(), &Context->CarryOver); }
 		Context->SetAsyncState(PCGExData::State_MergingData);
 	}
-
 
 	if (Context->IsState(PCGExData::State_MergingData))
 	{

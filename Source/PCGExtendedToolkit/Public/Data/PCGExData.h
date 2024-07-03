@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPointIO.h"
 #include "PCGExAttributeHelpers.h"
+#include "PCGExDataFilter.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExSettings.h"
 #include "Data/PCGPointData.h"
@@ -13,7 +14,19 @@
 #include "PCGExData.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExForwardSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherSettings : public FPCGExNameFiltersSettings
+{
+	GENERATED_BODY()
+
+	FPCGExAttributeGatherSettings()
+	{
+	}
+
+	// TODO : Expose how to handle overlaps
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExForwardSettings : public FPCGExNameFiltersSettings
 {
 	GENERATED_BODY()
 
@@ -22,35 +35,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardSettings
 	}
 
 	/** Is forwarding enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
 	bool bEnabled = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bEnabled"))
-	EPCGExAttributeFilter FilterAttributes = EPCGExAttributeFilter::Include;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bEnabled && FilterAttributes!=EPCGExAttributeFilter::All", EditConditionHides))
-	TArray<FName> FilteredAttributes;
-
-	bool CanProcess(const FName AttributeName) const
-	{
-		switch (FilterAttributes)
-		{
-		default: ;
-		case EPCGExAttributeFilter::All:
-			return true;
-		case EPCGExAttributeFilter::Exclude:
-			return !FilteredAttributes.Contains(AttributeName);
-		case EPCGExAttributeFilter::Include:
-			return FilteredAttributes.Contains(AttributeName);
-		}
-	}
 
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
 	{
-		if (FilterAttributes == EPCGExAttributeFilter::All) { return; }
+		if (FilterMode == EPCGExAttributeFilter::All) { return; }
 		for (int i = 0; i < Identities.Num(); i++)
 		{
-			if (!CanProcess(Identities[i].Name))
+			if (!Test(Identities[i].Name.ToString()))
 			{
 				Identities.RemoveAt(i);
 				i--;
@@ -543,13 +536,13 @@ namespace PCGExData
 
 	class PCGEXTENDEDTOOLKIT_API FDataForwardHandler
 	{
-		const FPCGExForwardSettings* Settings = nullptr;
+		FPCGExForwardSettings Filters;
 		const FPointIO* SourceIO = nullptr;
 		TArray<PCGEx::FAttributeIdentity> Identities;
 
 	public:
 		~FDataForwardHandler();
-		explicit FDataForwardHandler(const FPCGExForwardSettings* InSettings, const FPointIO* InSourceIO);
+		explicit FDataForwardHandler(const FPCGExForwardSettings& InFilters, const FPointIO* InSourceIO);
 		void Forward(int32 SourceIndex, const FPointIO* Target);
 	};
 }

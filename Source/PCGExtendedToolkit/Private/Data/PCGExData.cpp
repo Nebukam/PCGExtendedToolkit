@@ -90,13 +90,14 @@ namespace PCGExData
 	{
 	}
 
-	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardSettings* InSettings, const FPointIO* InSourceIO):
-		Settings(InSettings), SourceIO(InSourceIO)
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardSettings& InFilters, const FPointIO* InSourceIO):
+		Filters(InFilters), SourceIO(InSourceIO)
 	{
-		if (!Settings->bEnabled) { return; }
+		if (!Filters.bEnabled) { return; }
 
+		Filters.Init();
 		PCGEx::FAttributeIdentity::Get(InSourceIO->GetIn()->Metadata, Identities);
-		Settings->Filter(Identities);
+		Filters.Filter(Identities);
 	}
 
 	void FDataForwardHandler::Forward(const int32 SourceIndex, const FPointIO* Target)
