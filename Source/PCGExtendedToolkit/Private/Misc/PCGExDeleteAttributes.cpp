@@ -57,9 +57,9 @@ bool FPCGExDeleteAttributesElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 	else
 	{
-		UPCGMetadata* Metadata = Context->CurrentIO->GetOut()->Metadata;
 		while (Context->AdvancePointsIO())
 		{
+			UPCGMetadata* Metadata = Context->CurrentIO->GetOut()->Metadata;
 			for (const FName& Name : Context->Targets) { Metadata->DeleteAttribute(Name); }
 		}
 	}
