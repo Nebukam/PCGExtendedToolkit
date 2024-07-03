@@ -135,6 +135,7 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 	if (!SeedsPoints) { return false; }
 	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
 
+	PCGEX_FWD(SeedAttributesToPathTags)
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(&Settings->SeedForwardAttributes, SeedsPoints);
 
