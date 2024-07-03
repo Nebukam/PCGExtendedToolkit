@@ -265,8 +265,6 @@ namespace PCGExBridgeClusters
 
 	void FProcessorBatch::Write()
 	{
-		TBatch<FProcessor>::Write();
-
 		TArray<FPCGPoint>& MutableEdges = ConsolidatedEdges->GetOut()->GetMutablePoints();
 		UPCGMetadata* Metadata = ConsolidatedEdges->GetOut()->Metadata;
 
@@ -290,6 +288,7 @@ namespace PCGExBridgeClusters
 		for (int64& Id : ClusterIdWriter->Values) { Id = ClusterId; }
 		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, ClusterIdWriter);
 
+		TBatch<FProcessor>::Write();
 		// TODO : OPTIM : We can easily build this batch' cluster by appending existing ones into a big one and just add edges
 	}
 

@@ -149,6 +149,7 @@ namespace PCGExBuildVoronoi2D
 				RemappedIndices[i] = Centroids.Num();
 				FPCGPoint& NewPoint = Centroids.Emplace_GetRef();
 				NewPoint.Transform.SetLocation(Centroid);
+				PCGExMath::RandomizeSeed(NewPoint);
 			}
 
 			TArray<uint64> ValidEdges;
@@ -178,11 +179,19 @@ namespace PCGExBuildVoronoi2D
 
 			if (Settings->Method == EPCGExCellCenter::Circumcenter)
 			{
-				for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Circumcenters[i]); }
+				for (int i = 0; i < NumSites; i++)
+				{
+					Centroids[i].Transform.SetLocation(Voronoi->Circumcenters[i]);
+					PCGExMath::RandomizeSeed(Centroids[i]);
+				}
 			}
 			else if (Settings->Method == EPCGExCellCenter::Centroid)
 			{
-				for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+				for (int i = 0; i < NumSites; i++)
+				{
+					Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]);
+					PCGExMath::RandomizeSeed(Centroids[i]);
+				}
 			}
 			else if (Settings->Method == EPCGExCellCenter::Balanced)
 			{
@@ -192,12 +201,13 @@ namespace PCGExBuildVoronoi2D
 					FVector Target = Voronoi->Circumcenters[i];
 					if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
 					else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+					PCGExMath::RandomizeSeed(Centroids[i]);
 				}
 			}
 
 			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
-			
+
 			PCGEX_DELETE(Voronoi)
 		}
 

@@ -343,7 +343,7 @@ namespace PCGExClusterMT
 
 		virtual void ProcessView(int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
 		{
-			for (int i = 0; i < NodeView.Num(); i++) { ProcessSingleNode(i, NodeView[i]); }
+			for (int i = 0; i < NodeView.Num(); i++) { ProcessSingleNode(StartIndex + i, NodeView[i]); }
 		}
 
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
@@ -451,6 +451,7 @@ namespace PCGExClusterMT
 		PCGExData::FFacade* VtxDataFacade = nullptr;
 
 		bool bRequiresWriteStep = false;
+		bool bWriteVtxDataFacade = false;
 
 		mutable FRWLock BatchLock;
 
@@ -549,6 +550,7 @@ namespace PCGExClusterMT
 
 		virtual void Write()
 		{
+			if (bWriteVtxDataFacade) { VtxDataFacade->Write(AsyncManagerPtr, true); }
 		}
 	};
 
@@ -681,6 +683,8 @@ namespace PCGExClusterMT
 
 				StartClosedBatchProcessing();
 			}
+
+			FClusterProcessorBatchBase::Write();
 		}
 
 		virtual void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations) override

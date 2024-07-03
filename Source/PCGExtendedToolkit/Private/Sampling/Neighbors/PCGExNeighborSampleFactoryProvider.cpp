@@ -3,6 +3,8 @@
 
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
+#include "PCGPin.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
@@ -74,7 +76,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 
 	while (CurrentDepth <= BaseSettings.MaxDepth)
 	{
-		if (NextNeighbors->IsEmpty()) { break; }
+		if (CurrentNeighbors->IsEmpty()) { break; }
 		CurrentDepth++;
 
 		for (const PCGExCluster::FExpandedNeighbor& Neighbor : (*CurrentNeighbors))
@@ -90,7 +92,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 			}
 			else
 			{
-				LocalWeight = BaseSettings.BlendOver == EPCGExBlendOver::Distance ? 1 - (CurrentDepth / (BaseSettings.MaxDepth - 1)) : BaseSettings.FixedBlend;
+				LocalWeight = BaseSettings.BlendOver == EPCGExBlendOver::Index ? 1 - (CurrentDepth / (BaseSettings.MaxDepth)) : BaseSettings.FixedBlend;
 			}
 
 			LocalWeight = SampleCurve(LocalWeight);

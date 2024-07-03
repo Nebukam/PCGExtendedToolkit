@@ -151,6 +151,7 @@ namespace PCGExBuildVoronoi
 				RemappedIndices[i] = Centroids.Num();
 				FPCGPoint& NewPoint = Centroids.Emplace_GetRef();
 				NewPoint.Transform.SetLocation(Centroid);
+				PCGExMath::RandomizeSeed(NewPoint);
 			}
 
 			TArray<uint64> ValidEdges;
@@ -178,7 +179,11 @@ namespace PCGExBuildVoronoi
 			const int32 NumSites = Voronoi->Centroids.Num();
 			Centroids.SetNum(NumSites);
 
-			for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center); }
+			for (int i = 0; i < NumSites; i++)
+			{
+				Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center);
+				PCGExMath::RandomizeSeed(Centroids[i]);
+			}
 
 			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);

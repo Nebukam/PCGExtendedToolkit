@@ -63,6 +63,7 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 			[&](PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>* NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
+				NewBatch->bWriteVtxDataFacade = true;
 			},
 			PCGExMT::State_Done))
 		{
@@ -147,6 +148,7 @@ namespace PCGExSampleNeighbors
 	void FProcessor::Write()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
+		EdgeDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

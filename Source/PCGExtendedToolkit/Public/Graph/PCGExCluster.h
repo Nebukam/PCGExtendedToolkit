@@ -338,7 +338,9 @@ namespace PCGExCluster
 		FExpandedNode(const FCluster* Cluster, const int32 InNodeIndex):
 			Node(Cluster->Nodes->GetData() + InNodeIndex)
 		{
-			Neighbors.SetNumUninitialized(Node->Adjacency.Num());
+			const int32 NumNeighbors = Node->Adjacency.Num();
+			Neighbors.Reserve(NumNeighbors);
+			Neighbors.SetNumUninitialized(NumNeighbors);
 			for (int i = 0; i < Neighbors.Num(); i++)
 			{
 				uint32 NodeIndex;

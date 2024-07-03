@@ -36,7 +36,7 @@ public:
 	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override
 	{
 		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
-		Blender->PrepareBlending(A, A);
+		Blender->PrepareBlending(A, Cluster->VtxIO->GetInPoint(TargetNode.PointIndex));
 	}
 
 	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override
