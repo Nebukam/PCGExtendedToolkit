@@ -123,52 +123,85 @@ namespace PCGExBuildVoronoi2D
 			return false;
 		}
 
+		ActivePositions.Empty();
+
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
-		TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
-		const int32 NumSites = Voronoi->Centroids.Num();
-		Centroids.SetNum(NumSites);
-
-		if (Settings->Method == EPCGExCellCenter::Circumcenter)
-		{
-			for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Circumcenters[i]); }
-		}
-		else if (Settings->Method == EPCGExCellCenter::Centroid)
-		{
-			for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
-		}
-		else if (Settings->Method == EPCGExCellCenter::Balanced)
+		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
 			const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
+			TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
+
+			int32 NumSites = Voronoi->Centroids.Num();
+			TArray<int32> RemappedIndices;
+			RemappedIndices.SetNumUninitialized(NumSites);
+			Centroids.Reserve(NumSites);
+
 			for (int i = 0; i < NumSites; i++)
 			{
-				FVector Target = Voronoi->Circumcenters[i];
-				if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
-				else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
-			}
-		}
+				const FVector Centroid = Voronoi->Circumcenters[i];
+				if (!Bounds.IsInside(Centroid))
+				{
+					RemappedIndices[i] = -1;
+					continue;
+				}
 
-		/*
-		if (Settings->bMarkHull)
-		{
-			HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-			HullMarkPointWriter->BindAndSetNumUninitialized(*PointIO);
-			StartParallelLoopForRange(PointIO->GetNum());
+				RemappedIndices[i] = Centroids.Num();
+				FPCGPoint& NewPoint = Centroids.Emplace_GetRef();
+				NewPoint.Transform.SetLocation(Centroid);
+			}
+
+			TArray<uint64> ValidEdges;
+			ValidEdges.Reserve(Voronoi->VoronoiEdges.Num());
+
+			for (const uint64 Hash : Voronoi->VoronoiEdges)
+			{
+				const int32 A = RemappedIndices[PCGEx::H64A(Hash)];
+				const int32 B = RemappedIndices[PCGEx::H64B(Hash)];
+				if (A == -1 || B == -1) { continue; }
+				ValidEdges.Add(PCGEx::H64(A, B));
+			}
+
+			RemappedIndices.Empty();
+			PCGEX_DELETE(Voronoi)
+
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
+			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
+
+			ValidEdges.Empty();
 		}
 		else
 		{
+			TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
+			const int32 NumSites = Voronoi->Centroids.Num();
+			Centroids.SetNum(NumSites);
+
+			if (Settings->Method == EPCGExCellCenter::Circumcenter)
+			{
+				for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Circumcenters[i]); }
+			}
+			else if (Settings->Method == EPCGExCellCenter::Centroid)
+			{
+				for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+			}
+			else if (Settings->Method == EPCGExCellCenter::Balanced)
+			{
+				const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
+				for (int i = 0; i < NumSites; i++)
+				{
+					FVector Target = Voronoi->Circumcenters[i];
+					if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
+					else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+				}
+			}
+
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
+			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
+			
 			PCGEX_DELETE(Voronoi)
 		}
-		*/
-
-		ActivePositions.Empty();
-
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
-		GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr);
-
-		PCGEX_DELETE(Voronoi)
 
 		return true;
 	}

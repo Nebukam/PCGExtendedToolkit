@@ -47,10 +47,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellCenter Method = EPCGExCellCenter::Centroid;
 
-	/** Prune points and cell outside bounds (computed based on input vertices + optional extension)*/
+	/** Bounds used for point pruning & balanced centroid. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double ExpandBounds = 100;
 
+	/** Prune points outside bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method==EPCGExCellCenter::Circumcenter"))
+	bool bPruneOutOfBounds = false;
+	
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
