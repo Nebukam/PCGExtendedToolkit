@@ -127,6 +127,9 @@ namespace PCGExSampleNearestSurface
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
 			PCGEX_OUTPUT_VALUE(Success, Index, false)
+
+			PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
+			PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
 		};
 
 		if (!PointFilterCache[Index])
@@ -150,6 +153,7 @@ namespace PCGExSampleNearestSurface
 		auto ProcessOverlapResults = [&]()
 		{
 			float MinDist = MAX_FLT;
+			UPrimitiveComponent* HitComp = nullptr;
 			for (const FOverlapResult& Overlap : OutOverlaps)
 			{
 				if (!Overlap.bBlockingHit) { continue; }
@@ -166,6 +170,7 @@ namespace PCGExSampleNearestSurface
 					MinDist = Distance;
 					HitLocation = OutClosestLocation;
 					bSuccess = true;
+					HitComp = Overlap.Component.Get();
 				}
 			}
 
@@ -176,6 +181,19 @@ namespace PCGExSampleNearestSurface
 				PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
 				PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
+
+				if (HitComp)
+				{
+					PCGEX_OUTPUT_VALUE(ActorReference, Index, HitComp->GetOwner()->GetPathName())
+					UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
+					if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+					else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
+				}
+				else
+				{
+					PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
+					PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
+				}
 			}
 			else
 			{

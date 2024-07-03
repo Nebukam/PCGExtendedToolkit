@@ -130,6 +130,9 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
 			PCGEX_OUTPUT_VALUE(Success, Index, false)
+			
+			PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
+			PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
 		};
 
 		if (!PointFilterCache[Index])
@@ -156,6 +159,11 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.Normal)
 			PCGEX_OUTPUT_VALUE(Distance, Index, FVector::Distance(HitResult.ImpactPoint, Origin))
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
+			
+			if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName()) }
+			else { PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT("")) }
+			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+			else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
 			bSuccess = true;
 		};
 

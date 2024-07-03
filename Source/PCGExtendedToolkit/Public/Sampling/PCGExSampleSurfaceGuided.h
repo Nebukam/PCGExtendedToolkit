@@ -16,7 +16,9 @@
 MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(Normal, FVector)\
-MACRO(Distance, double)
+MACRO(Distance, double)\
+MACRO(ActorReference, FString)\
+MACRO(PhysMat, FString)
 
 class UPCGExFilterFactoryBase;
 
@@ -97,10 +99,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("TracedDistance");
 
-	/** Actor data to sample */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-	FPCGExActorDataSampling ActorDataSampling;
+	/** Write the actor reference hit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteActorReference = false;
 
+	/** Name of the 'string' attribute to write actor reference to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, EditCondition="bWriteActorReference"))
+	FName ActorReferenceAttributeName = FName("ActorReference");
+
+	/** Write the actor reference hit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWritePhysMat = false;
+
+	/** Name of the 'string' attribute to write actor reference to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, EditCondition="bWritePhysMat"))
+	FName PhysMatAttributeName = FName("PhysMat");
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	bool bTraceComplex = false;
 
@@ -130,6 +144,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
