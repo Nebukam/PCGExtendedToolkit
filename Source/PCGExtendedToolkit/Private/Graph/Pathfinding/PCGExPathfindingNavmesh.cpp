@@ -259,8 +259,8 @@ bool FSampleNavmeshTask::ExecuteTask()
 	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Settings->bAddGoalToPath) { MutablePoints.Pop(); }
 
-	Context->SeedAttributesToPathTags.Tag(*Seed, PathIO);
-	Context->GoalAttributesToPathTags.Tag(*Goal, PathIO);
+	Context->SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO);
+	Context->GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO);
 
 	Context->SeedForwardHandler->Forward(Query->SeedIndex, PathIO);
 	Context->GoalForwardHandler->Forward(Query->GoalIndex, PathIO);

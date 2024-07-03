@@ -122,6 +122,13 @@ enum class EPCGExSelectorType : uint8
 	Direction UMETA(DisplayName = "Direction", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] String Match Mode"))
+enum class EPCGExStringMatchMode : uint8
+{
+	Contains UMETA(DisplayName = "Contains", ToolTip=""),
+	StartsWith UMETA(DisplayName = "Starts with", ToolTip=""),
+	EndsWith UMETA(DisplayName = "Ends with", ToolTip=""),
+};
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Range Type"))
 enum class EPCGExRangeType : uint8

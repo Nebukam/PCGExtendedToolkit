@@ -136,7 +136,7 @@ namespace PCGExBoundsToPoints
 				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));
 			}
 
-			PointAttributesToOutputTags.Tag(Point, NewOutput);
+			PointAttributesToOutputTags.Tag(Index, NewOutput);
 		}
 		else
 		{

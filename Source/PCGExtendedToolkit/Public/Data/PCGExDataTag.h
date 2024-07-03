@@ -109,6 +109,128 @@ namespace PCGExData
 			RawTags.Remove(Key);
 		}
 
+		void Remove(const TSet<FString>& InSet)
+		{
+			for (const FString& Tag : InSet)
+			{
+				Tags.Remove(Tag);
+				RawTags.Remove(Tag);
+			}
+		}
+
+		void RemoveStartsWith(const FString& Prefix)
+		{
+			TSet<FString> ToBeRemoved;
+			for (const FString& Tag : RawTags) { if (Tag.StartsWith(Prefix)) { ToBeRemoved.Add(Tag); } }
+			for (const TPair<FString, FString>& Pair : Tags) { if (Pair.Key.StartsWith(Prefix)) { ToBeRemoved.Add(Pair.Key); } }
+			Remove(ToBeRemoved);
+		}
+
+		void RemoveEndsWith(const FString& Suffix)
+		{
+			TSet<FString> ToBeRemoved;
+			for (const FString& Tag : RawTags) { if (Tag.EndsWith(Suffix)) { ToBeRemoved.Add(Tag); } }
+			for (const TPair<FString, FString>& Pair : Tags) { if (Pair.Value == Suffix) { ToBeRemoved.Add(Pair.Key); } }
+			Remove(ToBeRemoved);
+		}
+
+		void RemoveContains(const FString& Substring)
+		{
+			TSet<FString> ToBeRemoved;
+			for (const FString& Tag : RawTags) { if (Tag.Contains(Substring)) { ToBeRemoved.Add(Tag); } }
+			for (const TPair<FString, FString>& Pair : Tags) { if (Pair.Key.Contains(Substring) || Pair.Value.Contains(Substring)) { ToBeRemoved.Add(Pair.Key); } }
+			Remove(ToBeRemoved);
+		}
+
+		void RemoveStartsWith(const TSet<FString>& Prefixes)
+		{
+			TSet<FString> ToBeRemoved;
+			for (const FString& Tag : RawTags)
+			{
+				for (const FString& Prefix : Prefixes)
+				{
+					if (Tag.StartsWith(Prefix))
+					{
+						ToBeRemoved.Add(Tag);
+						break;
+					}
+				}
+			}
+			for (const TPair<FString, FString>& Pair : Tags)
+			{
+				for (const FString& Prefix : Prefixes)
+				{
+					if (Pair.Key.StartsWith(Prefix))
+					{
+						ToBeRemoved.Add(Pair.Key);
+						break;
+					}
+				}
+			}
+
+			Remove(ToBeRemoved);
+		}
+
+		void RemoveEndsWith(const TSet<FString>& Suffixes)
+		{
+			TSet<FString> ToBeRemoved;
+			for (const FString& Tag : RawTags)
+			{
+				for (const FString& Prefix : Suffixes)
+				{
+					if (Tag.EndsWith(Prefix))
+					{
+						ToBeRemoved.Add(Tag);
+						break;
+					}
+				}
+			}
+
+			for (const TPair<FString, FString>& Pair : Tags)
+			{
+				for (const FString& Prefix : Suffixes)
+				{
+					if (Pair.Value == Prefix)
+					{
+						ToBeRemoved.Add(Pair.Key);
+						break;
+					}
+				}
+			}
+
+			Remove(ToBeRemoved);
+		}
+
+		void RemoveContains(const TSet<FString>& Substrings)
+		{
+			TSet<FString> ToBeRemoved;
+			for (const FString& Tag : RawTags)
+			{
+				for (const FString& Substring : Substrings)
+				{
+					if (Tag.Contains(Substring))
+					{
+						ToBeRemoved.Add(Tag);
+						break;
+					}
+				}
+			}
+
+			for (const TPair<FString, FString>& Pair : Tags)
+			{
+				for (const FString& Substring : Substrings)
+				{
+					if (Pair.Key.Contains(Substring) || Pair.Value.Contains(Substring))
+					{
+						ToBeRemoved.Add(Pair.Key);
+						break;
+					}
+				}
+			}
+
+			Remove(ToBeRemoved);
+		}
+
 		bool GetValue(const FString& Key, FString& OutValue)
 		{
 			if (FString* Value = Tags.Find(Key))

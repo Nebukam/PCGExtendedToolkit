@@ -564,19 +564,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagSettings
 	}
 
 	/** Use attribute value to tag output data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bEnabled = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	bool bAddIndexTag = false;
+
+	/** Use attribute value to tag output data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bAddIndexTag"))
+	FString IndexTagPrefix = TEXT("IndexTag:");
 
 	/** Attributes which value will be used as tags. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bEnabled"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
 
 	PCGExData::FFacade* TagSource = nullptr;
 	TArray<PCGEx::FLocalToStringGetter*> Getters;
 
-	bool Init(const FPCGContext* InContext, const PCGExData::FFacade* TagSourceFacade)
+	bool Init(const FPCGContext* InContext, PCGExData::FFacade* TagSourceFacade)
 	{
-		if (!bEnabled) { return true; }
 		for (FPCGAttributePropertyInputSelector& Selector : Attributes)
 		{
 			PCGEx::FLocalToStringGetter* Getter = new PCGEx::FLocalToStringGetter();
@@ -590,23 +593,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagSettings
 			Getters.Add(Getter);
 		}
 
+		TagSource = TagSourceFacade;
 		return true;
-	}
-
-	void Tag(const FPCGPoint& Point, const PCGExData::FPointIO* PointIO) const
-	{
-		if (!bEnabled) { return; }
-		for (PCGEx::FLocalToStringGetter* Getter : Getters)
-		{
-			FString Tag = Getter->SoftGet(Point, TEXT(""));
-			if (Tag.IsEmpty()) { continue; }
-			PointIO->Tags->RawTags.Add(Tag);
-		}
 	}
 
 	void Tag(const int32 TagIndex, const PCGExData::FPointIO* PointIO) const
 	{
-		Tag(TagSource->GetIn()->GetPoint(TagIndex), PointIO);
+		if (bAddIndexTag) { PointIO->Tags->RawTags.Add(IndexTagPrefix + FString::Printf(TEXT("%d"), TagIndex)); }
+
+		if (!Getters.IsEmpty())
+		{
+			const FPCGPoint& Point = TagSource->GetIn()->GetPoint(TagIndex);
+			for (PCGEx::FLocalToStringGetter* Getter : Getters)
+			{
+				FString Tag = Getter->SoftGet(Point, TEXT(""));
+				if (Tag.IsEmpty()) { continue; }
+				PointIO->Tags->RawTags.Add(Tag);
+			}
+		}
 	}
 
 	void Cleanup()

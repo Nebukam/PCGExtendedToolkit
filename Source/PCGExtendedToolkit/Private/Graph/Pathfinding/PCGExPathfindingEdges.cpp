@@ -69,8 +69,8 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]); }
 	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
-	SeedAttributesToPathTags.Tag(Seed, PathIO);
-	GoalAttributesToPathTags.Tag(Goal, PathIO);
+	SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO);
+	GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO);
 
 	SeedForwardHandler->Forward(Query->SeedIndex, PathIO);
 	GoalForwardHandler->Forward(Query->GoalIndex, PathIO);

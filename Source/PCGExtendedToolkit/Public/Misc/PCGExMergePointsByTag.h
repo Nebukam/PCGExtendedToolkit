@@ -31,7 +31,7 @@ namespace PCPGExMergePointsByTag
 		~FMergeList();
 
 		void Merge(PCGExMT::FTaskManager* AsyncManager);
-		void Write(PCGExMT::FTaskManager* AsyncManager);
+		void Write(PCGExMT::FTaskManager* AsyncManager) const;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FTagBucket
@@ -49,10 +49,10 @@ namespace PCPGExMergePointsByTag
 		TArray<FTagBucket*> Buckets;
 		TMap<FString, int32> BucketsMap;
 		TMap<PCGExData::FPointIO*, TSet<FTagBucket*>*> ReverseBucketsMap;
-		explicit FTagBuckets(PCGExData::FPointIOCollection* InCollection);
+		explicit FTagBuckets();
 		~FTagBuckets();
 
-		void Distribute(PCGExData::FPointIO* IO);
+		void Distribute(PCGExData::FPointIO* IO, const TSet<FString>& IgnoreTagsAndPrefixes);
 		void AddToReverseMap(PCGExData::FPointIO* IO, FTagBucket* Bucket);
 		void BuildMergeLists(EPCGExMergeByTagOverlapResolutionMode Mode, TArray<FMergeList*>& OutLists, const TArray<FString>& Priorities);
 	};

@@ -17,7 +17,6 @@ namespace PCPGExMergePointsByTag
 	FMergeList::~FMergeList()
 	{
 		IOs.Empty();
-		PCGEX_DELETE(CompositeIO)
 		PCGEX_DELETE(Merger)
 	}
 
@@ -31,7 +30,7 @@ namespace PCPGExMergePointsByTag
 		Merger->Merge(AsyncManager);
 	}
 
-	void FMergeList::Write(PCGExMT::FTaskManager* AsyncManager)
+	void FMergeList::Write(PCGExMT::FTaskManager* AsyncManager) const
 	{
 		Merger->Write(AsyncManager);
 	}
@@ -45,21 +44,17 @@ namespace PCPGExMergePointsByTag
 		IOs.Empty();
 	}
 
-	FTagBuckets::FTagBuckets(PCGExData::FPointIOCollection* InCollection)
+	FTagBuckets::FTagBuckets()
 	{
-		for (PCGExData::FPointIO* IO : InCollection->Pairs) { Distribute(IO); }
 	}
 
 	FTagBuckets::~FTagBuckets()
 	{
 		PCGEX_DELETE_TARRAY(Buckets)
-
 		BucketsMap.Empty();
 
 		TArray<PCGExData::FPointIO*> Keys;
-
 		ReverseBucketsMap.GetKeys(Keys);
-
 		for (const PCGExData::FPointIO* Key : Keys)
 		{
 			const TSet<FTagBucket*>* BucketSet = ReverseBucketsMap[Key];
@@ -69,26 +64,44 @@ namespace PCPGExMergePointsByTag
 		ReverseBucketsMap.Empty();
 	}
 
-	void FTagBuckets::Distribute(PCGExData::FPointIO* IO)
+	void FTagBuckets::Distribute(PCGExData::FPointIO* IO, const TSet<FString>& IgnoreTagsAndPrefixes)
 	{
-		if (IO->Tags->IsEmpty())
+		bool bDistributed = false;
+		if (!IO->Tags->IsEmpty())
 		{
-			IO->InitializeOutput(PCGExData::EInit::Forward);
-			return;
-		}
-
-		for (FString Tag : IO->Tags->RawTags)
-		{
-			if (const int32* BucketIndex = BucketsMap.Find(Tag))
+			for (TSet<FString> Flattags = IO->Tags->ToSet(); FString Tag : Flattags)
 			{
-				Buckets[*BucketIndex]->IOs.Add(IO);
-				continue;
-			}
+				bool bSkip = false;
+				if (IgnoreTagsAndPrefixes.Contains(Tag)) { continue; }
+				for (const FString& Ignore : IgnoreTagsAndPrefixes)
+				{
+					if (Tag.StartsWith(Ignore))
+					{
+						bSkip = true;
+						break;
+					}
+				}
 
-			FTagBucket* NewBucket = new FTagBucket(Tag);
-			BucketsMap.Add(Tag, Buckets.Add(NewBucket));
-			NewBucket->IOs.Add(IO);
+				if (bSkip) { continue; }
+
+				if (const int32* BucketIndex = BucketsMap.Find(Tag))
+				{
+					FTagBucket* ExistingBucket = Buckets[*BucketIndex];
+					ExistingBucket->IOs.Add(IO);
+					AddToReverseMap(IO, ExistingBucket);
+					bDistributed = true;
+					continue;
+				}
+
+				FTagBucket* NewBucket = new FTagBucket(Tag);
+				BucketsMap.Add(Tag, Buckets.Add(NewBucket));
+				AddToReverseMap(IO, NewBucket);
+				bDistributed = true;
+				NewBucket->IOs.Add(IO);
+			}
 		}
+
+		if (!bDistributed) { IO->InitializeOutput(PCGExData::EInit::Forward); }
 	}
 
 	void FTagBuckets::AddToReverseMap(PCGExData::FPointIO* IO, FTagBucket* Bucket)
@@ -216,7 +229,8 @@ bool FPCGExMergePointsByTagElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(MergePointsByTag)
 
-	PCPGExMergePointsByTag::FTagBuckets* Buckets = new PCPGExMergePointsByTag::FTagBuckets(Context->MainPoints);
+	PCPGExMergePointsByTag::FTagBuckets* Buckets = new PCPGExMergePointsByTag::FTagBuckets();
+	for (PCGExData::FPointIO* IO : Context->MainPoints->Pairs) { Buckets->Distribute(IO, Settings->IgnoreTagsAndPrefixes); }
 	Buckets->BuildMergeLists(Settings->Mode, Context->MergeLists, Settings->ResolutionPriorities);
 	PCGEX_DELETE(Buckets)
 
