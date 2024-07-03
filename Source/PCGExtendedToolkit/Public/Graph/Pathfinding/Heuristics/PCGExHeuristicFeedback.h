@@ -57,17 +57,37 @@ public:
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return NodeExtraWeight[From.NodeIndex];
+	}
 
 	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		const double* NodePtr = NodeExtraWeight.Find(To.NodeIndex);
+		const double* EdgePtr = EdgeExtraWeight.Find(Edge.EdgeIndex);
 
-	FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node);
-	FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
+		return ((NodePtr ? SampleCurve(*NodePtr / MaxNodeWeight) * ReferenceWeight : 0) + (EdgePtr ? SampleCurve(*EdgePtr / MaxEdgeWeight) * ReferenceWeight : 0));
+	}
+
+	FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node)
+	{
+		double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
+		MaxNodeWeight = FMath::Max(MaxNodeWeight, NodeWeight += ReferenceWeight * NodeScale);
+	}
+
+	FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge)
+	{
+		double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
+		double& EdgeWeight = NodeExtraWeight.FindOrAdd(Edge.EdgeIndex);
+		MaxNodeWeight = FMath::Max(MaxNodeWeight, NodeWeight += ReferenceWeight * NodeScale);
+		MaxEdgeWeight = FMath::Max(MaxEdgeWeight, EdgeWeight += ReferenceWeight * EdgeScale);
+	}
 
 	virtual void Cleanup() override;
 };
@@ -92,7 +112,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicFeedbackProviderSettings : public UP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsFeedback, "Heuristics : Feedback", "Heuristics based on visited score feedback.",

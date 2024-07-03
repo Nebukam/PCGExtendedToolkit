@@ -206,7 +206,17 @@ namespace PCGExGraph
 			CollinearPoints.Empty();
 		}
 
-		FORCEINLINE bool FindSplit(const FVector& Position, FPESplit& OutSplit) const;
+		FORCEINLINE bool FindSplit(const FVector& Position, FPESplit& OutSplit) const
+		{
+			const FVector ClosestPoint = FMath::ClosestPointOnSegment(Position, Start, End);
+
+			if ((ClosestPoint - Start).IsNearlyZero() || (ClosestPoint - End).IsNearlyZero()) { return false; } // Overlap endpoint
+			if (FVector::DistSquared(ClosestPoint, Position) >= ToleranceSquared) { return false; }             // Too far
+
+			OutSplit.ClosestPoint = ClosestPoint;
+			OutSplit.Time = (FVector::DistSquared(Start, ClosestPoint) / LengthSquared);
+			return true;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FPointEdgeIntersections
@@ -227,7 +237,12 @@ namespace PCGExGraph
 
 		void FindIntersections(FPCGExPointsProcessorContext* InContext);
 
-		FORCEINLINE void Add(const int32 EdgeIndex, const FPESplit& Split);
+		FORCEINLINE void Add(const int32 EdgeIndex, const FPESplit& Split)
+		{
+			FWriteScopeLock WriteLock(InsertionLock);
+			Edges[EdgeIndex].CollinearPoints.AddUnique(Split);
+		}
+
 		void Insert();
 
 		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
@@ -385,7 +400,28 @@ namespace PCGExGraph
 			Intersections.Empty();
 		}
 
-		FORCEINLINE bool FindSplit(const FEdgeEdgeProxy& OtherEdge, FEESplit& OutSplit) const;
+		FORCEINLINE bool FindSplit(const FEdgeEdgeProxy& OtherEdge, FEESplit& OutSplit) const
+		{
+			if (!Box.Intersect(OtherEdge.Box) || Start == OtherEdge.Start || Start == OtherEdge.End ||
+				End == OtherEdge.End || End == OtherEdge.Start) { return false; }
+
+			// TODO: Check directions/dot
+
+			FVector A;
+			FVector B;
+			FMath::SegmentDistToSegment(
+				Start, End,
+				OtherEdge.Start, OtherEdge.End,
+				A, B);
+
+			if (FVector::DistSquared(A, B) >= ToleranceSquared) { return false; }
+
+			OutSplit.Center = FMath::Lerp(A, B, 0.5);
+			OutSplit.TimeA = FVector::DistSquared(Start, A) / LengthSquared;
+			OutSplit.TimeB = FVector::DistSquared(OtherEdge.Start, B) / OtherEdge.LengthSquared;
+
+			return true;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeProxySemantics
@@ -442,7 +478,22 @@ namespace PCGExGraph
 
 		void FindIntersections(FPCGExPointsProcessorContext* InContext);
 
-		FORCEINLINE void Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split);
+		FORCEINLINE void Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split)
+		{
+			FWriteScopeLock WriteLock(InsertionLock);
+
+			CheckedPairs.Add(PCGEx::H64U(EdgeIndex, OtherEdgeIndex));
+
+			FEECrossing* OutSplit = new FEECrossing(Split);
+
+			OutSplit->NodeIndex = Crossings.Add(OutSplit) + Graph->Nodes.Num();
+			OutSplit->EdgeA = FMath::Min(EdgeIndex, OtherEdgeIndex);
+			OutSplit->EdgeB = FMath::Max(EdgeIndex, OtherEdgeIndex);
+
+			Edges[EdgeIndex].Intersections.AddUnique(OutSplit);
+			Edges[OtherEdgeIndex].Intersections.AddUnique(OutSplit);
+		}
+
 		void Insert();
 
 		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;

@@ -122,8 +122,7 @@ namespace PCGExCluster
 	{
 		FVector Position;
 
-		FNode():
-			PCGExGraph::FNode()
+		FNode(): PCGExGraph::FNode()
 		{
 			Position = FVector::ZeroVector;
 		}
@@ -135,18 +134,31 @@ namespace PCGExCluster
 
 		~FNode();
 
-		FORCEINLINE bool IsDeadEnd() const;
-		FORCEINLINE bool IsSimple() const;
-		FORCEINLINE bool IsComplex() const;
+		FORCEINLINE bool IsDeadEnd() const { return Adjacency.Num() == 1; }
+		FORCEINLINE bool IsSimple() const { return Adjacency.Num() == 2; }
+		FORCEINLINE bool IsComplex() const { return Adjacency.Num() > 2; }
 
-		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const;
+		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const
+		{
+			for (const uint64 AdjacencyHash : Adjacency) { if (OtherNodeIndex == PCGEx::H64A(AdjacencyHash)) { return true; } }
+			return false;
+		}
 
-		FORCEINLINE void AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex);
-		FORCEINLINE FVector GetCentroid(FCluster* InCluster) const;
-		FORCEINLINE int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
+		FORCEINLINE void AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex)
+		{
+			Adjacency.AddUnique(PCGEx::H64(InNodeIndex, InEdgeIndex));
+		}
+
+		FVector GetCentroid(const FCluster* InCluster) const;
+
+		FORCEINLINE int32 GetEdgeIndex(int32 AdjacentNodeIndex) const
+		{
+			for (const uint64 AdjacencyHash : Adjacency) { if (PCGEx::H64A(AdjacencyHash) == AdjacentNodeIndex) { return PCGEx::H64B(AdjacencyHash); } }
+			return -1;
+		}
 
 		void ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const;
-		FORCEINLINE void Add(const FNode& Neighbor, int32 Edge);
+		FORCEINLINE void Add(const FNode& Neighbor, int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FExpandedNeighbor
@@ -243,14 +255,24 @@ namespace PCGExCluster
 
 		void ComputeEdgeLengths(bool bNormalize = false);
 
-		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
-		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth, const TSet<int32>& Skip) const;
+		void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
+		void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth, const TSet<int32>& Skip) const;
 
-		FORCEINLINE void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth) const;
-		FORCEINLINE void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const;
+		void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth) const;
+		void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const;
 
-		FORCEINLINE FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const;
-		FORCEINLINE FVector GetCentroid(const int32 NodeIndex) const;
+		FORCEINLINE FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const
+		{
+			return ((Nodes->GetData() + FromIndex)->Position - (Nodes->GetData() + ToIndex)->Position).GetSafeNormal();
+		}
+
+		FORCEINLINE FVector GetCentroid(const int32 NodeIndex) const
+		{
+			const FNode* Node = (Nodes->GetData() + NodeIndex);
+			FVector Centroid = FVector::ZeroVector;
+			for (const uint64 AdjacencyHash : Node->Adjacency) { Centroid += (Nodes->GetData() + PCGEx::H64A(AdjacencyHash))->Position; }
+			return Centroid / static_cast<double>(Node->Adjacency.Num());
+		}
 
 		void GetValidEdges(TArray<PCGExGraph::FIndexedEdge>& OutValidEdges) const;
 
@@ -291,7 +313,19 @@ namespace PCGExCluster
 		}
 
 	protected:
-		FORCEINLINE FNode& GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex);
+		FORCEINLINE FNode& GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex)
+		{
+			const int32* NodeIndex = NodeIndexLookup->Find(PointIndex);
+
+			if (!NodeIndex)
+			{
+				NodeIndexLookup->Add(PointIndex, Nodes->Num());
+				return Nodes->Emplace_GetRef(Nodes->Num(), PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
+			}
+
+			return (*Nodes)[*NodeIndex];
+		}
+
 		void CreateVtxPointIndices();
 		void CreateVtxPointScopes();
 	};
@@ -333,7 +367,11 @@ namespace PCGExCluster
 
 		void Project(const FCluster* InCluster, const FPCGExGeo2DProjectionSettings* ProjectionSettings);
 		void ComputeNormal(const FCluster* InCluster);
-		FORCEINLINE int32 GetAdjacencyIndex(int32 NodeIndex) const;
+		FORCEINLINE int32 GetAdjacencyIndex(int32 NodeIndex) const
+		{
+			for (int i = 0; i < SortedAdjacency.Num(); i++) { if (PCGEx::H64A(SortedAdjacency[i]) == NodeIndex) { return i; } }
+			return -1;
+		}
 
 		~FNodeProjection();
 	};
@@ -349,9 +387,14 @@ namespace PCGExCluster
 		~FClusterProjection();
 
 		void Build();
-		FORCEINLINE int32 FindNextAdjacentNode(EPCGExClusterSearchOrientationMode Orient, int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
-		FORCEINLINE int32 FindNextAdjacentNodeCCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
-		FORCEINLINE int32 FindNextAdjacentNodeCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
+		FORCEINLINE int32 FindNextAdjacentNode(const EPCGExClusterSearchOrientationMode Orient, const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
+		{
+			if (Orient == EPCGExClusterSearchOrientationMode::CW) { return FindNextAdjacentNodeCW(NodeIndex, From, Exclusion, MinNeighbors); }
+			return FindNextAdjacentNodeCCW(NodeIndex, From, Exclusion, MinNeighbors);
+		}
+
+		int32 FindNextAdjacentNodeCCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
+		int32 FindNextAdjacentNodeCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeChain

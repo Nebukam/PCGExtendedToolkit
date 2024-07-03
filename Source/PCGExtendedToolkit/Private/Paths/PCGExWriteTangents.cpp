@@ -8,14 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-#if WITH_EDITOR
-void UPCGExWriteTangentsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	if (Tangents) { Tangents->UpdateUserFacingInfos(); }
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
 
 FPCGExWriteTangentsContext::~FPCGExWriteTangentsContext()

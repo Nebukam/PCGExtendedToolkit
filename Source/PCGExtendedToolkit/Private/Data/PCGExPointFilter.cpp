@@ -5,11 +5,6 @@
 
 #include "Graph/PCGExCluster.h"
 
-PCGExFactories::EType UPCGExFilterFactoryBase::GetFactoryType() const
-{
-	return PCGExFactories::EType::FilterPoint;
-}
-
 PCGExPointFilter::TFilter* UPCGExFilterFactoryBase::CreateFilter() const
 {
 	return nullptr;

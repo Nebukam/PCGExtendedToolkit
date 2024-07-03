@@ -110,7 +110,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryProviderSettings : public UP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(NodeFilter, "Abstract Point State Definition", "Base class for state factory management.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }

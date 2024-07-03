@@ -23,7 +23,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterProviderSettings : public UPCGExFactory
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		DotFilterFactory, "Filter : Abstract", "Creates an abstract filter definition.",

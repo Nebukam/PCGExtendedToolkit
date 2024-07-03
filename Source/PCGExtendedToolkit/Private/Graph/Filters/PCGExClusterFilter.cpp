@@ -54,6 +54,3 @@ namespace PCGExClusterFilter
 		for (bool& Result : Results) { Result = false; }
 	}
 }
-
-PCGExFactories::EType UPCGExNodeFilterFactoryBase::GetFactoryType() const { return PCGExFactories::EType::FilterNode; }
-PCGExFactories::EType UPCGExEdgeFilterFactoryBase::GetFactoryType() const { return PCGExFactories::EType::FilterEdge; }

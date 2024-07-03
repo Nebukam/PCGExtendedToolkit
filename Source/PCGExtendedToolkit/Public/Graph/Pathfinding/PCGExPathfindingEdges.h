@@ -22,18 +22,17 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingEdgesSettings : public UPCGExEdges
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingEdges, "Pathfinding : Edges", "Extract paths from edges clusters.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPathfinding; }
 #endif
 
 protected:
-	virtual FPCGElementPtr CreateElement() const override;
-
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	//~End UPCGSettings interface
+	virtual FPCGElementPtr CreateElement() const override;
+	//~End UPCGSettings
 
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
@@ -105,7 +104,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext final : public FPCGE
 
 	PCGExData::FFacade* SeedsDataFacade = nullptr;
 	PCGExData::FFacade* GoalsDataFacade = nullptr;
-	
+
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;

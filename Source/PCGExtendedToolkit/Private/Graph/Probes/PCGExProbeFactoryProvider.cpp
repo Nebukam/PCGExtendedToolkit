@@ -6,11 +6,6 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateProbe"
 #define PCGEX_NAMESPACE CreateProbe
 
-PCGExFactories::EType UPCGExProbeFactoryBase::GetFactoryType() const
-{
-	return PCGExFactories::EType::Probe;
-}
-
 UPCGExProbeOperation* UPCGExProbeFactoryBase::CreateOperation() const
 {
 	return nullptr; // Create probe operation

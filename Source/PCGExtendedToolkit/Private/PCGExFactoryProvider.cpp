@@ -8,11 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"
 #define PCGEX_NAMESPACE PCGExFactoryProvider
 
-PCGExFactories::EType UPCGExParamFactoryBase::GetFactoryType() const
-{
-	return PCGExFactories::EType::None;
-}
-
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;

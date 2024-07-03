@@ -62,7 +62,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExParamFactoryBase : public UPCGExParamDataBase
 
 public:
 	int32 Priority = 0;
-	FORCEINLINE virtual PCGExFactories::EType GetFactoryType() const;
+	virtual PCGExFactories::EType GetFactoryType() const { return PCGExFactories::EType::None; }
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -71,7 +71,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFactoryProviderSettings : public UPCGSettings
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
@@ -81,13 +81,13 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilter; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
+	//~Begin UPCGExFactoryProviderSettings
 public:
 	virtual FName GetMainOutputLabel() const;
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory = nullptr) const;
@@ -95,6 +95,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const;
 #endif
+	//~End UPCGExFactoryProviderSettings
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderElement final : public IPCGElement

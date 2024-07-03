@@ -8,14 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
 
-#if WITH_EDITOR
-void UPCGExFuseCollinearSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	//if (Blending) { Blending->UpdateUserFacingInfos(); }
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FName UPCGExFuseCollinearSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }

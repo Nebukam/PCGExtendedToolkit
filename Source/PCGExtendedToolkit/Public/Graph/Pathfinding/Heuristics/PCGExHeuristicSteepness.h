@@ -43,19 +43,28 @@ public:
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return SampleCurve(GetDot(From.Position, Goal.Position)) * ReferenceWeight;
+	}
 
 	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return SampleCurve(GetDot(From.Position, To.Position)) * ReferenceWeight;
+	}
 
 protected:
 	FVector UpwardVector = FVector::UpVector;
 
-	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const;
+	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const
+	{
+		return FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector));
+	}
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -75,7 +84,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsSteepnessProviderSettings : public 
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsSteepness, "Heuristics : Steepness", "Heuristics based on steepness.",

@@ -53,29 +53,6 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 	bIsValidOperation = true;
 }
 
-void UPCGExNeighborSampleAttribute::PrepareNode(const PCGExCluster::FNode& TargetNode) const
-{
-	Blender->PrepareForBlending(TargetNode.PointIndex);
-}
-
-void UPCGExNeighborSampleAttribute::BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
-{
-	const int32 PrimaryIndex = TargetNode.PointIndex;
-	Blender->Blend(PrimaryIndex, Neighbor.Node->PointIndex, PrimaryIndex, Weight);
-}
-
-void UPCGExNeighborSampleAttribute::BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
-{
-	const int32 PrimaryIndex = TargetNode.PointIndex;
-	Blender->Blend(PrimaryIndex, Neighbor.Edge->PointIndex, PrimaryIndex, Weight);
-}
-
-void UPCGExNeighborSampleAttribute::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
-{
-	const int32 PrimaryIndex = TargetNode.PointIndex;
-	Blender->CompleteBlending(PrimaryIndex, Count, TotalWeight);
-}
-
 void UPCGExNeighborSampleAttribute::FinalizeOperation()
 {
 	Super::FinalizeOperation();

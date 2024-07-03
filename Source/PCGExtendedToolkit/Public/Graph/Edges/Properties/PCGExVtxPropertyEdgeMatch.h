@@ -103,14 +103,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyEdgeMatchSettings : public UPCGExV
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NeighborSamplerAttribute, "Vtx : Edge Match", "Find the edge that matches the closest provided direction.",
 		FName(GetDisplayName()))
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 #endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
 public:

@@ -72,7 +72,7 @@ public:
 
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 
-	virtual PCGExFactories::EType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::MatchAndSet; }
 	virtual UPCGExMatchAndSetOperation* CreateOperation() const;
 
 	virtual bool Boot(FPCGContext* InContext);
@@ -87,13 +87,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetProviderSettings : public UPCGExFa
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(MatchAndSetAbstract, "MatchAndSet : Abstract", "Abstract MatchAndSet Module.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 #endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
 public:

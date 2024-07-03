@@ -35,7 +35,10 @@ public:
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return ReferenceWeight;
+	}
 };
 
 ////
@@ -57,7 +60,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsLeastNodesProviderSettings : public
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsLeastNodes, "Heuristics : Least Nodes", "Heuristics based on node count.",

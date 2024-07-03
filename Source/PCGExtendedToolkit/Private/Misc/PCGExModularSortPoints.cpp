@@ -10,8 +10,6 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-PCGExFactories::EType UPCGExSortingRule::GetFactoryType() const { return PCGExFactories::EType::RuleSort; }
-
 FName UPCGExSortingRuleProviderSettings::GetMainOutputLabel() const { return FName(TEXT("SortingRule")); }
 
 UPCGExParamFactoryBase* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
@@ -22,10 +20,9 @@ UPCGExParamFactoryBase* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGCon
 	return NewFactory;
 }
 
-FString UPCGExSortingRuleProviderSettings::GetDisplayName() const
-{
-	return Descriptor.GetDisplayName();
-}
+#if WITH_EDITOR
+FString UPCGExSortingRuleProviderSettings::GetDisplayName() const { return Descriptor.GetDisplayName(); }
+#endif
 
 TArray<FPCGPinProperties> UPCGExModularSortPointsSettings::InputPinProperties() const
 {

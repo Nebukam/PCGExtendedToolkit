@@ -10,29 +10,6 @@ void UPCGExHeuristicSteepness::PrepareForCluster(const PCGExCluster::FCluster* I
 	Super::PrepareForCluster(InCluster);
 }
 
-double UPCGExHeuristicSteepness::GetGlobalScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	return SampleCurve(GetDot(From.Position, Goal.Position)) * ReferenceWeight;
-}
-
-double UPCGExHeuristicSteepness::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FIndexedEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	return SampleCurve(GetDot(From.Position, To.Position)) * ReferenceWeight;
-}
-
-double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const
-{
-	return FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector));
-}
-
 UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() const
 {
 	UPCGExHeuristicSteepness* NewOperation = NewObject<UPCGExHeuristicSteepness>();

@@ -16,7 +16,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFlatProjectionSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FlatProjection, "Flat Projection", "Project points from their position in space to the XY plane.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorTransform; }
@@ -24,12 +24,12 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Whether this is a new projection or an old one*/
@@ -39,11 +39,11 @@ public:
 	/** The name of the attribute to write its index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName AttributePrefix = "FlatProjection";
-	
+
 	/** Whether this is a new projection or an old one*/
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-    bool bSaveAttributeForRestore = true;
-	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bSaveAttributeForRestore = true;
+
 	/** Whether this is a new projection or an old one*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bInverseExistingProjection"))
 	bool bAlignLocalTransform = false;
@@ -51,7 +51,6 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bInverseExistingProjection", DisplayName="Projection"))
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExFlatProjectionContext final : public FPCGExPointsProcessorContext

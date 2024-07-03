@@ -47,7 +47,7 @@ namespace PCGExData
 				UObject* GenericInstance = NewObject<UObject>(In->GetOuter(), In->GetClass());
 				Out = Cast<UPCGPointData>(GenericInstance);
 
-				// Input type was not a UPCGPointData child, should not happen.
+				// Input type was not a PointData child, should not happen.
 				check(Out)
 
 				Out->InitializeFromData(In);
@@ -75,23 +75,6 @@ namespace PCGExData
 		}
 	}
 
-	const UPCGPointData* FPointIO::GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
-	UPCGPointData* FPointIO::GetMutableData(const ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
-	const UPCGPointData* FPointIO::GetIn() const { return In; }
-	UPCGPointData* FPointIO::GetOut() const { return Out; }
-	const UPCGPointData* FPointIO::GetOutIn() const { return Out ? Out : In; }
-	const UPCGPointData* FPointIO::GetInOut() const { return In ? In : Out; }
-
-	int32 FPointIO::GetNum() const
-	{
-		return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1;
-	}
-
-	int32 FPointIO::GetOutNum() const
-	{
-		return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1;
-	}
-
 	FPCGAttributeAccessorKeysPoints* FPointIO::CreateInKeys()
 	{
 		if (InKeys) { return InKeys; }
@@ -99,8 +82,6 @@ namespace PCGExData
 		else { InKeys = new FPCGAttributeAccessorKeysPoints(In->GetPoints()); }
 		return InKeys;
 	}
-
-	FPCGAttributeAccessorKeysPoints* FPointIO::GetInKeys() const { return InKeys; }
 
 	void FPointIO::PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap)
 	{
@@ -119,8 +100,6 @@ namespace PCGExData
 		}
 		return OutKeys;
 	}
-
-	FPCGAttributeAccessorKeysPoints* FPointIO::GetOutKeys() const { return OutKeys; }
 
 	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, const bool bInitializeOnSet = false)
 	{
@@ -148,64 +127,6 @@ namespace PCGExData
 	FPCGAttributeAccessorKeysPoints* FPointIO::CreateKeys(const ESource InSource)
 	{
 		return InSource == ESource::In ? CreateInKeys() : CreateOutKeys();
-	}
-
-	FPCGAttributeAccessorKeysPoints* FPointIO::GetKeys(const ESource InSource) const
-	{
-		return InSource == ESource::In ? GetInKeys() : GetOutKeys();
-	}
-
-	void FPointIO::InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const
-	{
-		Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata);
-	}
-
-	void FPointIO::InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const
-	{
-		Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata);
-	}
-
-	void FPointIO::InitPoint(FPCGPoint& Point) const
-	{
-		Out->Metadata->InitializeOnSet(Point.MetadataEntry);
-	}
-
-	FPCGPoint& FPointIO::CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const
-	{
-		FWriteScopeLock WriteLock(PointsLock);
-		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-		OutIndex = MutablePoints.Num();
-		FPCGPoint& Pt = MutablePoints.Add_GetRef(FromPoint);
-		InitPoint(Pt, FromPoint);
-		return Pt;
-	}
-
-	FPCGPoint& FPointIO::NewPoint(int32& OutIndex) const
-	{
-		FWriteScopeLock WriteLock(PointsLock);
-		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-		FPCGPoint& Pt = MutablePoints.Emplace_GetRef();
-		OutIndex = MutablePoints.Num() - 1;
-		InitPoint(Pt);
-		return Pt;
-	}
-
-	void FPointIO::AddPoint(FPCGPoint& Point, int32& OutIndex, const bool bInit = true) const
-	{
-		FWriteScopeLock WriteLock(PointsLock);
-		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-		MutablePoints.Add(Point);
-		OutIndex = MutablePoints.Num() - 1;
-		if (bInit) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
-	}
-
-	void FPointIO::AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const
-	{
-		FWriteScopeLock WriteLock(PointsLock);
-		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-		MutablePoints.Add(Point);
-		OutIndex = MutablePoints.Num() - 1;
-		InitPoint(Point, FromPoint);
 	}
 
 	void FPointIO::InitializeNum(const int32 NumPoints, const bool bForceInit) const

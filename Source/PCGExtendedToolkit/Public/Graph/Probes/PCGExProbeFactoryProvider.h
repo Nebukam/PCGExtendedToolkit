@@ -25,7 +25,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryBase : public UPCGExParamFactoryB
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Probe; }
 	virtual UPCGExProbeOperation* CreateOperation() const;
 };
 
@@ -35,7 +35,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryProviderSettings : public UPCGExF
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(NodeFilter, "Probe Definition", "Creates a single probe to look for a nerbay connection.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorProbe; }

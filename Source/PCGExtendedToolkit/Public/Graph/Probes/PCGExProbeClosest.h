@@ -89,7 +89,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeClosestProviderSettings : public UPCGExP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		ProbeClosest, "Probe : Closests", "Probe in a given Closest.",

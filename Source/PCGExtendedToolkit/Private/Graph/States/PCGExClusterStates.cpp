@@ -6,11 +6,6 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
-PCGExFactories::EType UPCGExClusterStateFactoryBase::GetFactoryType() const
-{
-	return PCGExFactories::EType::StateNode;
-}
-
 PCGExPointFilter::TFilter* UPCGExClusterStateFactoryBase::CreateFilter() const
 {
 	PCGExClusterStates::FState* NewState = new PCGExClusterStates::FState(this);
@@ -142,7 +137,9 @@ UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory
 	return NewFactory;
 }
 
+#if WITH_EDITOR
 FString UPCGExClusterStateFactoryProviderSettings::GetDisplayName() const
 {
 	return Name.ToString();
 }
+#endif

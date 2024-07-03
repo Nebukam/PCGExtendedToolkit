@@ -59,10 +59,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialNeighborsSettings : public 
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(NeighborSamplerAttribute, "Vtx : Special Neighbors", "Fetch data from neighbors")
-
 #endif
 	//~End UPCGSettings
 

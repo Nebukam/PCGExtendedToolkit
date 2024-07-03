@@ -468,10 +468,19 @@ namespace PCGExData
 
 		int32 Num() const { return Compounds.Num(); }
 
-		FIdxCompound* New();
+		FORCEINLINE FIdxCompound* New()
+		{
+			FIdxCompound* NewPointCompound = new FIdxCompound();
+			Compounds.Add(NewPointCompound);
+			return NewPointCompound;
+		}
 
-		FORCEINLINE uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex);
-		FORCEINLINE bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices);
+		FORCEINLINE uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex) { return Compounds[Index]->Add(IOIndex, PointIndex); }
+		FORCEINLINE bool IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
+		{
+			const TSet<int32> Overlap = Compounds[InIdx]->IOIndices.Intersect(InIndices);
+			return Overlap.Num() > 0;
+		}
 
 		FIdxCompound* operator[](const int32 Index) const { return this->Compounds[Index]; }
 	};

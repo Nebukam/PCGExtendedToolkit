@@ -114,26 +114,26 @@ namespace PCGExData
 
 		~FPointIO();
 
-		const UPCGPointData* GetData(const ESource InSource) const;
-		UPCGPointData* GetMutableData(ESource InSource) const;
-		const UPCGPointData* GetIn() const;
-		UPCGPointData* GetOut() const;
-		const UPCGPointData* GetOutIn() const;
-		const UPCGPointData* GetInOut() const;
+		FORCEINLINE const UPCGPointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
+		FORCEINLINE UPCGPointData* GetMutableData(ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
+		FORCEINLINE const UPCGPointData* GetIn() const { return In; }
+		FORCEINLINE UPCGPointData* GetOut() const { return Out; }
+		FORCEINLINE const UPCGPointData* GetOutIn() const { return Out ? Out : In; }
+		FORCEINLINE const UPCGPointData* GetInOut() const { return In ? In : Out; }
 
-		int32 GetNum() const;
-		int32 GetOutNum() const;
+		FORCEINLINE int32 GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
+		FORCEINLINE int32 GetOutNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
 
 		FPCGAttributeAccessorKeysPoints* CreateInKeys();
-		FPCGAttributeAccessorKeysPoints* GetInKeys() const;
+		FORCEINLINE FPCGAttributeAccessorKeysPoints* GetInKeys() const { return InKeys; }
 		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap);
 
 		FPCGAttributeAccessorKeysPoints* CreateOutKeys();
-		FPCGAttributeAccessorKeysPoints* GetOutKeys() const;
+		FORCEINLINE FPCGAttributeAccessorKeysPoints* GetOutKeys() const { return OutKeys; }
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, bool bInitializeOnSet);
 
 		FPCGAttributeAccessorKeysPoints* CreateKeys(ESource InSource);
-		FPCGAttributeAccessorKeysPoints* GetKeys(ESource InSource) const;
+		FORCEINLINE FPCGAttributeAccessorKeysPoints* GetKeys(const ESource InSource) const { return InSource == ESource::In ? GetInKeys() : GetOutKeys(); }
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 
@@ -150,13 +150,46 @@ namespace PCGExData
 		FORCEINLINE const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
 		FORCEINLINE const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
 
-		FORCEINLINE void InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const;
-		FORCEINLINE void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
-		FORCEINLINE void InitPoint(FPCGPoint& Point) const;
-		FORCEINLINE FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const;
-		FORCEINLINE FPCGPoint& NewPoint(int32& OutIndex) const;
-		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit) const;
-		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const;
+		FORCEINLINE void InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata); }
+		FORCEINLINE void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata); }
+		FORCEINLINE void InitPoint(FPCGPoint& Point) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
+		FORCEINLINE FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const
+		{
+			FWriteScopeLock WriteLock(PointsLock);
+			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+			OutIndex = MutablePoints.Num();
+			FPCGPoint& Pt = MutablePoints.Add_GetRef(FromPoint);
+			InitPoint(Pt, FromPoint);
+			return Pt;
+		}
+
+		FORCEINLINE FPCGPoint& NewPoint(int32& OutIndex) const
+		{
+			FWriteScopeLock WriteLock(PointsLock);
+			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+			FPCGPoint& Pt = MutablePoints.Emplace_GetRef();
+			OutIndex = MutablePoints.Num() - 1;
+			InitPoint(Pt);
+			return Pt;
+		}
+
+		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit) const
+		{
+			FWriteScopeLock WriteLock(PointsLock);
+			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+			MutablePoints.Add(Point);
+			OutIndex = MutablePoints.Num() - 1;
+			if (bInit) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
+		}
+
+		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const
+		{
+			FWriteScopeLock WriteLock(PointsLock);
+			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+			MutablePoints.Add(Point);
+			OutIndex = MutablePoints.Num() - 1;
+			InitPoint(Point, FromPoint);
+		}
 
 		void InitializeNum(const int32 NumPoints, const bool bForceInit = false) const;
 

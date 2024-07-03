@@ -19,19 +19,18 @@ class PCGEXTENDEDTOOLKIT_API UPCGExForceGarbageCollectionSettings : public UPCGS
 	friend class FPCGExForceGarbageCollectionElement;
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS(ForceGarbageCollection, "Force Garbage Collection", "Triggers a garbage collection cycle.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExForceGarbageCollectionElement final : public FPCGPointProcessingElementBase

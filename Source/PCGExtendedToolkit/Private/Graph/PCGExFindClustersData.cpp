@@ -21,13 +21,6 @@ TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::OutputPinProperties() 
 	return PinProperties;
 }
 
-#if WITH_EDITOR
-void UPCGExFindClustersDataSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 PCGExData::EInit UPCGExFindClustersDataSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FName UPCGExFindClustersDataSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }

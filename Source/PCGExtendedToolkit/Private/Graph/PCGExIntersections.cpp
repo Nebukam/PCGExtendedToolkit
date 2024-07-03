@@ -303,18 +303,6 @@ namespace PCGExGraph
 		}
 	}
 
-	bool FPointEdgeProxy::FindSplit(const FVector& Position, FPESplit& OutSplit) const
-	{
-		const FVector ClosestPoint = FMath::ClosestPointOnSegment(Position, Start, End);
-
-		if ((ClosestPoint - Start).IsNearlyZero() || (ClosestPoint - End).IsNearlyZero()) { return false; } // Overlap endpoint
-		if (FVector::DistSquared(ClosestPoint, Position) >= ToleranceSquared) { return false; }             // Too far
-
-		OutSplit.ClosestPoint = ClosestPoint;
-		OutSplit.Time = (FVector::DistSquared(Start, ClosestPoint) / LengthSquared);
-		return true;
-	}
-
 	FPointEdgeIntersections::FPointEdgeIntersections(
 		FGraph* InGraph,
 		FCompoundGraph* InCompoundGraph,
@@ -345,12 +333,6 @@ namespace PCGExGraph
 			if (!Edge.bValid) { continue; }
 			InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindPointEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
 		}
-	}
-
-	void FPointEdgeIntersections::Add(const int32 EdgeIndex, const FPESplit& Split)
-	{
-		FWriteScopeLock WriteLock(InsertionLock);
-		Edges[EdgeIndex].CollinearPoints.AddUnique(Split);
 	}
 
 	void FPointEdgeIntersections::Insert()
@@ -420,29 +402,6 @@ namespace PCGExGraph
 		}
 	}
 
-	bool FEdgeEdgeProxy::FindSplit(const FEdgeEdgeProxy& OtherEdge, FEESplit& OutSplit) const
-	{
-		if (!Box.Intersect(OtherEdge.Box) || Start == OtherEdge.Start || Start == OtherEdge.End ||
-			End == OtherEdge.End || End == OtherEdge.Start) { return false; }
-
-		// TODO: Check directions/dot
-
-		FVector A;
-		FVector B;
-		FMath::SegmentDistToSegment(
-			Start, End,
-			OtherEdge.Start, OtherEdge.End,
-			A, B);
-
-		if (FVector::DistSquared(A, B) >= ToleranceSquared) { return false; }
-
-		OutSplit.Center = FMath::Lerp(A, B, 0.5);
-		OutSplit.TimeA = FVector::DistSquared(Start, A) / LengthSquared;
-		OutSplit.TimeB = FVector::DistSquared(OtherEdge.Start, B) / OtherEdge.LengthSquared;
-
-		return true;
-	}
-
 	FEdgeEdgeIntersections::FEdgeEdgeIntersections(
 		FGraph* InGraph,
 		FCompoundGraph* InCompoundGraph,
@@ -477,22 +436,6 @@ namespace PCGExGraph
 			if (!Edge.bValid) { continue; }
 			InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindEdgeEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
 		}
-	}
-
-	void FEdgeEdgeIntersections::Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split)
-	{
-		FWriteScopeLock WriteLock(InsertionLock);
-
-		CheckedPairs.Add(PCGEx::H64U(EdgeIndex, OtherEdgeIndex));
-
-		FEECrossing* OutSplit = new FEECrossing(Split);
-
-		OutSplit->NodeIndex = Crossings.Add(OutSplit) + Graph->Nodes.Num();
-		OutSplit->EdgeA = FMath::Min(EdgeIndex, OtherEdgeIndex);
-		OutSplit->EdgeB = FMath::Max(EdgeIndex, OtherEdgeIndex);
-
-		Edges[EdgeIndex].Intersections.AddUnique(OutSplit);
-		Edges[OtherEdgeIndex].Intersections.AddUnique(OutSplit);
 	}
 
 	void FEdgeEdgeIntersections::Insert()

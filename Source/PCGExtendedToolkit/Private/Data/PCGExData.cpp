@@ -84,28 +84,6 @@ namespace PCGExData
 
 #pragma endregion
 
-#pragma region FIdxCompoundList
-
-	FIdxCompound* FIdxCompoundList::New()
-	{
-		FIdxCompound* NewPointCompound = new FIdxCompound();
-		Compounds.Add(NewPointCompound);
-		return NewPointCompound;
-	}
-
-	uint64 FIdxCompoundList::Add(const int32 Index, const int32 IOIndex, const int32 PointIndex)
-	{
-		return Compounds[Index]->Add(IOIndex, PointIndex);
-	}
-
-	bool FIdxCompoundList::IOIndexOverlap(const int32 InIdx, const TSet<int32>& InIndices)
-	{
-		const TSet<int32> Overlap = Compounds[InIdx]->IOIndices.Intersect(InIndices);
-		return Overlap.Num() > 0;
-	}
-
-#pragma endregion
-
 #pragma region Data forwarding
 
 	FDataForwardHandler::~FDataForwardHandler()

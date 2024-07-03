@@ -26,16 +26,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOrientSettings : public UPCGExPathProcessorSe
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Orient, "Path : Orient", "Orient paths points");
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
+	//~Begin UPCGExPointProcessorSettings
+public:
 	virtual FName GetPointFilterLabel() const override;
+	//~End UPCGExPointProcessorSettings
 
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */

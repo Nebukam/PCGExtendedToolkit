@@ -19,22 +19,7 @@ namespace PCGExCluster
 		Adjacency.Empty();
 	}
 
-	bool FNode::IsDeadEnd() const { return Adjacency.Num() == 1; }
-	bool FNode::IsSimple() const { return Adjacency.Num() == 2; }
-	bool FNode::IsComplex() const { return Adjacency.Num() > 2; }
-
-	bool FNode::IsAdjacentTo(const int32 OtherNodeIndex) const
-	{
-		for (const uint64 AdjacencyHash : Adjacency) { if (OtherNodeIndex == PCGEx::H64A(AdjacencyHash)) { return true; } }
-		return false;
-	}
-
-	void FNode::AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex)
-	{
-		Adjacency.AddUnique(PCGEx::H64(InNodeIndex, InEdgeIndex));
-	}
-
-	FVector FNode::GetCentroid(FCluster* InCluster) const
+	FVector FNode::GetCentroid(const FCluster* InCluster) const
 	{
 		if (Adjacency.IsEmpty()) { return Position; }
 
@@ -55,18 +40,6 @@ namespace PCGExCluster
 		return Centroid;
 	}
 
-	int32 FNode::GetEdgeIndex(const int32 AdjacentNodeIndex) const
-	{
-		for (const uint64 AdjacencyHash : Adjacency)
-		{
-			uint32 NIndex;
-			uint32 EIndex;
-			PCGEx::H64(AdjacencyHash, NIndex, EIndex);
-			if (NIndex == AdjacentNodeIndex) { return EIndex; }
-		}
-		return -1;
-	}
-
 	void FNode::ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const
 	{
 		const int32 NumAdjacency = Adjacency.Num();
@@ -81,11 +54,6 @@ namespace PCGExCluster
 			OutNodes[i] = AdjacentNode;
 			OutEdges[i] = AdjacentEdge;
 		}
-	}
-
-	void FNode::Add(const FNode& Neighbor, int32 EdgeIndex)
-	{
-		Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex));
 	}
 
 #pragma endregion
@@ -676,30 +644,14 @@ namespace PCGExCluster
 		}
 	}
 
-	FVector FCluster::GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const
-	{
-		return ((*Nodes)[FromIndex].Position - (*Nodes)[ToIndex].Position).GetSafeNormal();
-	}
-
-	FVector FCluster::GetCentroid(const int32 NodeIndex) const
-	{
-		const TArray<FNode>& NodesRef = *Nodes;
-
-		const FNode& Node = NodesRef[NodeIndex];
-		FVector Centroid = FVector::ZeroVector;
-		for (const uint64 AdjacencyHash : Node.Adjacency) { Centroid += NodesRef[PCGEx::H64A(AdjacencyHash)].Position; }
-		return Centroid / static_cast<double>(Node.Adjacency.Num());
-	}
-
 	void FCluster::GetValidEdges(TArray<PCGExGraph::FIndexedEdge>& OutValidEdges) const
 	{
-		TArray<FNode>& NodesRef = (*Nodes);
 		TMap<int32, int32>& LookupRef = (*NodeIndexLookup);
 		for (const PCGExGraph::FIndexedEdge& Edge : (*Edges))
 		{
 			if (!Edge.bValid ||
-				!NodesRef[LookupRef[Edge.Start]].bValid || // Adds quite the cost
-				!NodesRef[LookupRef[Edge.End]].bValid)
+				!(Nodes->GetData() + LookupRef[Edge.Start])->bValid || // Adds quite the cost
+				!(Nodes->GetData() + LookupRef[Edge.End])->bValid)
 			{
 				continue;
 			}
@@ -770,19 +722,6 @@ namespace PCGExCluster
 			AsyncManager->Start<PCGExClusterTask::FExpandCluster>(Start, nullptr, this, NumIterations);
 			Start += NumIterations;
 		}
-	}
-
-	FNode& FCluster::GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex)
-	{
-		const int32* NodeIndex = NodeIndexLookup->Find(PointIndex);
-
-		if (!NodeIndex)
-		{
-			NodeIndexLookup->Add(PointIndex, Nodes->Num());
-			return Nodes->Emplace_GetRef(Nodes->Num(), PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
-		}
-
-		return (*Nodes)[*NodeIndex];
 	}
 
 	void FCluster::CreateVtxPointIndices()
@@ -871,12 +810,6 @@ namespace PCGExCluster
 		Normal /= SortedAdjacency.Num();
 	}
 
-	int32 FNodeProjection::GetAdjacencyIndex(const int32 NodeIndex) const
-	{
-		for (int i = 0; i < SortedAdjacency.Num(); i++) { if (PCGEx::H64A(SortedAdjacency[i]) == NodeIndex) { return i; } }
-		return -1;
-	}
-
 	FNodeProjection::~FNodeProjection()
 	{
 		SortedAdjacency.Empty();
@@ -910,12 +843,6 @@ namespace PCGExCluster
 		{
 			PNode.Project(Cluster, ProjectionSettings);
 		}
-	}
-
-	int32 FClusterProjection::FindNextAdjacentNode(const EPCGExClusterSearchOrientationMode Orient, const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
-	{
-		if (Orient == EPCGExClusterSearchOrientationMode::CW) { return FindNextAdjacentNodeCW(NodeIndex, From, Exclusion, MinNeighbors); }
-		return FindNextAdjacentNodeCCW(NodeIndex, From, Exclusion, MinNeighbors);
 	}
 
 	int32 FClusterProjection::FindNextAdjacentNodeCCW(const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)

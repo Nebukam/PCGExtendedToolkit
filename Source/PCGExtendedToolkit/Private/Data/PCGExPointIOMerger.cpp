@@ -54,7 +54,7 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const TSet<
 	{
 		PCGExData::FPointIO* Source = IOSources[i];
 		Source->CreateInKeys();
-		
+
 		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
 
 		const uint32 StartIndex = PCGEx::H64A(Scopes[i]);

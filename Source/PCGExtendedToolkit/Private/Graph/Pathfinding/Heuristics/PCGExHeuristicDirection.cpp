@@ -18,27 +18,6 @@ void UPCGExHeuristicDirection::PrepareForCluster(const PCGExCluster::FCluster* I
 	Super::PrepareForCluster(InCluster);
 }
 
-double UPCGExHeuristicDirection::GetGlobalScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	const FVector Dir = (Seed.Position - Goal.Position).GetSafeNormal();
-	const double Dot = FVector::DotProduct(Dir, (From.Position - Goal.Position).GetSafeNormal()) * -1;
-	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
-}
-
-double UPCGExHeuristicDirection::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FIndexedEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	const double Dot = (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1);
-	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
-}
-
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() const
 {
 	UPCGExHeuristicDirection* NewOperation = NewObject<UPCGExHeuristicDirection>();

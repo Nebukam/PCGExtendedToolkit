@@ -12,10 +12,10 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API TDataBlendingAverage final : public TDataBlendingOperation<T>
 	{
 	public:
-		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Average; };
-		virtual bool GetIsInterpolation() const override { return true; }
-		virtual bool GetRequiresPreparation() const override { return true; }
-		virtual bool GetRequiresFinalization() const override { return true; }
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Average; };
+		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresFinalization() const override { return true; }
 
 		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
@@ -26,18 +26,18 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API TDataBlendingCopy final : public TDataBlendingOperation<T>
 	{
 	public:
-		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Copy; };
-		virtual T SingleOperation(T A, T B, double Weight) const override { return B; }
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Copy; };
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return B; }
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API TDataBlendingSum final : public TDataBlendingOperation<T>
 	{
 	public:
-		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Sum; };
-		virtual bool GetIsInterpolation() const override { return true; }
-		virtual bool GetRequiresPreparation() const override { return true; }
-		virtual bool GetRequiresFinalization() const override { return false; }
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Sum; };
+		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 
 		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
@@ -47,7 +47,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API TDataBlendingMax final : public FDataBlendingOperationWithFirstInit<T>
 	{
 	public:
-		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Max; };
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Max; };
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Max(A, B); }
 	};
 
@@ -55,7 +55,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API TDataBlendingMin final : public FDataBlendingOperationWithFirstInit<T>
 	{
 	public:
-		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Min; };
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Min; };
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Min(A, B); }
 	};
 
@@ -63,10 +63,10 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API TDataBlendingWeight final : public TDataBlendingOperation<T>
 	{
 	public:
-		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Weight; };
-		virtual bool GetIsInterpolation() const override { return true; }
-		virtual bool GetRequiresPreparation() const override { return true; }
-		virtual bool GetRequiresFinalization() const override { return true; }
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Weight; };
+		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresFinalization() const override { return true; }
 
 		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
@@ -77,10 +77,10 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API TDataBlendingWeightedSum final : public TDataBlendingOperation<T>
 	{
 	public:
-		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::WeightedSum; };
-		virtual bool GetIsInterpolation() const override { return true; }
-		virtual bool GetRequiresPreparation() const override { return true; }
-		virtual bool GetRequiresFinalization() const override { return false; }
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::WeightedSum; };
+		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 
 		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); }
@@ -90,7 +90,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API TDataBlendingLerp final : public TDataBlendingOperation<T>
 	{
 	public:
-		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Lerp; };
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Lerp; };
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Lerp(A, B, Weight); }
 	};
 

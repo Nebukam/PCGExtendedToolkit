@@ -4,11 +4,6 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicNodeCount.h"
 
-double UPCGExHeuristicNodeCount::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
-{
-	return ReferenceWeight;
-}
-
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryLeastNodes::CreateOperation() const
 {
 	UPCGExHeuristicNodeCount* NewOperation = NewObject<UPCGExHeuristicNodeCount>();

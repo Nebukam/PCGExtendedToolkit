@@ -454,14 +454,14 @@ namespace PCGEx
 
 		FORCEINLINE T GetDefaultValue() const { return Accessor->GetDefaultValue(); }
 		FORCEINLINE T GetZeroedValue() const { return T{}; }
-		bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
+		FORCEINLINE bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
 
-		void SetNum(int32 Num) { Values.SetNumZeroed(Num); }
+		FORCEINLINE void SetNum(int32 Num) { Values.SetNumZeroed(Num); }
 		virtual bool Bind(PCGExData::FPointIO* PointIO) = 0;
 
 		FORCEINLINE T operator[](int32 Index) const { return this->Values[Index]; }
 
-		bool IsValid() { return Accessor != nullptr; }
+		FORCEINLINE bool IsValid() { return Accessor != nullptr; }
 
 		virtual ~FAttributeIOBase() override
 		{

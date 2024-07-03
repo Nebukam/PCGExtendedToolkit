@@ -29,7 +29,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryBase : public UPCGExCluste
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::StateNode; }
 
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
@@ -92,17 +92,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryProviderSettings : public 
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeFilter, "Cluster : Node Flag", "A single, filter-driven node flag.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterState; }
 #endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-
+public:
 	virtual FName GetMainOutputLabel() const override;
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
@@ -115,6 +117,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExClusterStateDescriptorBase Descriptor;
-
+	
+#if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
+#endif
+	
 };

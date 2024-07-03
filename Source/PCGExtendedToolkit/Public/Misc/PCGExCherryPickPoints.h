@@ -22,22 +22,21 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCherryPickPointsSettings : public UPCGExPoint
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(CherryPickPoints, "Cherry Pick Points", "Filter points by indices, either read from local attributes or using another list of points.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscRemove; }
 #endif
 
 protected:
-	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
-
-	//~Begin UPCGExPointsProcessorSettings interface
-public:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual FPCGElementPtr CreateElement() const override;
+	//~End UPCGSettings
 
+	//~Begin UPCGExPointsProcessorSettings
+public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** . */

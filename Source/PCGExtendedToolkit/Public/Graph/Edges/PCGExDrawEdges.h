@@ -23,7 +23,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDrawEdgesSettings : public UPCGExEdgesProcess
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DrawEdges, "Cluster : Draw Edges", "Draws debug edges");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
@@ -32,7 +32,7 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin IPCGExDebug interface
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;

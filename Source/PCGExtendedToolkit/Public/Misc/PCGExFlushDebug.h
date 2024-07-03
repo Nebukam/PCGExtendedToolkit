@@ -19,7 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDebugSettings : public UPCGSettings
 	friend class FPCGExDebugElement;
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS(DebugSettings, "Flush Debug", "Flush persistent debug lines.");
@@ -27,12 +27,11 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return CustomColor; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))

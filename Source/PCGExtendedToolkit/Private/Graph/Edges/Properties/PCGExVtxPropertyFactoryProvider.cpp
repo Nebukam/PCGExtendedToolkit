@@ -45,8 +45,6 @@ void UPCGExVtxPropertyOperation::Cleanup() { Super::Cleanup(); }
 FString UPCGExVtxPropertyProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-PCGExFactories::EType UPCGExVtxPropertyFactoryBase::GetFactoryType() const { return PCGExFactories::EType::VtxProperty; }
-
 UPCGExVtxPropertyOperation* UPCGExVtxPropertyFactoryBase::CreateOperation() const
 {
 	UPCGExVtxPropertyOperation* NewOperation = NewObject<UPCGExVtxPropertyOperation>();

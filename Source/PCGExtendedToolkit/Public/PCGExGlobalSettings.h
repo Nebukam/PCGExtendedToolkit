@@ -108,8 +108,8 @@ public:
 
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorPrimitives = FLinearColor(0.000000,0.065291,1.000000,1.000000);
+	FLinearColor NodeColorPrimitives = FLinearColor(0.000000, 0.065291, 1.000000, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorTransform = FLinearColor(1.000000,0.000000,0.185865,1.000000);
+	FLinearColor NodeColorTransform = FLinearColor(1.000000, 0.000000, 0.185865, 1.000000);
 };

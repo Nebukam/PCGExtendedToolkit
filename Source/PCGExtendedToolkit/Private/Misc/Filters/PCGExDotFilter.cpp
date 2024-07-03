@@ -52,6 +52,7 @@ bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 
 PCGEX_CREATE_FILTER_FACTORY(Dot)
 
+#if WITH_EDITOR
 FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = Descriptor.OperandA.GetName().ToString() + " . ";
@@ -61,6 +62,7 @@ FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 
 	return DisplayName;
 }
+#endif
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

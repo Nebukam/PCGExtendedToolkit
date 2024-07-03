@@ -58,12 +58,6 @@ namespace PCGExPartition
 		return *LayerPtr;
 	}
 
-	void FKPartition::Add(const int64 Index)
-	{
-		FWriteScopeLock WriteLock(PointLock);
-		Points.Add(Index);
-	}
-
 	void FKPartition::Register(TArray<FKPartition*>& Partitions)
 	{
 		if (!SubLayers.IsEmpty())

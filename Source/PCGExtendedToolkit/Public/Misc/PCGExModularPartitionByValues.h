@@ -19,7 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionRule : public UPCGExParamFactoryBase
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RulePartition; }
 	FPCGExPartitonRuleDescriptor Descriptor;
 };
 
@@ -29,7 +29,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionRuleProviderSettings : public UPCGEx
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		PartitionFactory, "Rule : Partition", "Creates an single partition rule to be used with the Partition by Values node.",
@@ -38,6 +38,7 @@ public:
 #endif
 	//~End UPCGSettings
 
+	//~Begin UPCGExFactoryProviderSettings
 public:
 	virtual FName GetMainOutputLabel() const override;
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
@@ -45,6 +46,7 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+	//~End UPCGExFactoryProviderSettings
 
 	/** Rule descriptor */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
@@ -60,12 +62,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExModularPartitionByValuesSettings : public UPC
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ModularPartitionByValues, "Partition by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+
+public:
 	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const override;
 };

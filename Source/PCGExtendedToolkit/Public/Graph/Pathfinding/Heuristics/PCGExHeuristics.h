@@ -45,20 +45,37 @@ namespace PCGExHeuristics
 			Feedbacks.Empty();
 		}
 
-		double GetGlobalScore(
+		FORCEINLINE double GetGlobalScore(
 			const PCGExCluster::FNode& From,
 			const PCGExCluster::FNode& Seed,
-			const PCGExCluster::FNode& Goal) const;
+			const PCGExCluster::FNode& Goal) const
+		{
+			double GScore = 0;
+			for (const UPCGExHeuristicFeedback* Feedback : Feedbacks) { GScore += Feedback->GetGlobalScore(From, Seed, Goal); }
+			return GScore;
+		}
 
-		double GetEdgeScore(
+		FORCEINLINE double GetEdgeScore(
 			const PCGExCluster::FNode& From,
 			const PCGExCluster::FNode& To,
 			const PCGExGraph::FIndexedEdge& Edge,
 			const PCGExCluster::FNode& Seed,
-			const PCGExCluster::FNode& Goal) const;
+			const PCGExCluster::FNode& Goal) const
+		{
+			double EScore = 0;
+			for (const UPCGExHeuristicFeedback* Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal); }
+			return EScore;
+		}
 
-		void FeedbackPointScore(const PCGExCluster::FNode& Node);
-		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
+		FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node)
+		{
+			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackPointScore(Node); }
+		}
+
+		FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge)
+		{
+			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
+		}
 	};
 
 	class PCGEXTENDEDTOOLKIT_API THeuristicsHandler
@@ -91,7 +108,14 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& From,
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
-			const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
+			const FLocalFeedbackHandler* LocalFeedback = nullptr) const
+		{
+			//TODO : Account for custom weight here
+			double GScore = 0;
+			for (const UPCGExHeuristicOperation* Op : Operations) { GScore += Op->GetGlobalScore(From, Seed, Goal); }
+			if (LocalFeedback) { return (GScore + LocalFeedback->GetGlobalScore(From, Seed, Goal)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
+			return GScore / TotalStaticWeight;
+		}
 
 		FORCEINLINE double GetEdgeScore(
 			const PCGExCluster::FNode& From,
@@ -99,10 +123,36 @@ namespace PCGExHeuristics
 			const PCGExGraph::FIndexedEdge& Edge,
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
-			const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
+			const FLocalFeedbackHandler* LocalFeedback = nullptr) const
+		{
+			//TODO : Account for custom weight here
+			double EScore = 0;
+			if (!bUseDynamicWeight)
+			{
+				for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal); }
+				if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
+				return EScore / TotalStaticWeight;
+			}
 
-		FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node);
-		FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
+			double DynamicWeight = 0;
+			for (const UPCGExHeuristicOperation* Op : Operations)
+			{
+				EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal);
+				DynamicWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.NodeIndex, Edge.PointIndex));
+			}
+			if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (DynamicWeight + LocalFeedback->TotalWeight); }
+			return EScore / DynamicWeight;
+		}
+
+		FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node)
+		{
+			for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackPointScore(Node); }
+		}
+
+		FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge)
+		{
+			for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
+		}
 
 		FLocalFeedbackHandler* MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster);
 	};

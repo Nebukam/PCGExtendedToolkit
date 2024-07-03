@@ -79,7 +79,7 @@ namespace PCGExPointsFilter
 		PCGExData::FCache<double>* OperandB = nullptr;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
+		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TNumericComparisonFilter() override
 		{
@@ -96,7 +96,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNumericCompareFilterProviderSettings : public
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		CompareFilterFactory, "Filter : Numeric Compare", "Creates a filter definition that compares two attribute values.",

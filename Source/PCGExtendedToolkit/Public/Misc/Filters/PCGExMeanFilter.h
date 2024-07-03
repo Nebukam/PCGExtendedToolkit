@@ -91,7 +91,7 @@ namespace PCGExPointsFilter
 		double ReferenceMax = 0;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
+		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual void PostInit() override;
 
@@ -110,7 +110,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterProviderSettings : public UPCGExFil
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		MeanFilterFactory, "Filter : Mean", "Creates a filter definition that compares values against their mean.",

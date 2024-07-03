@@ -40,7 +40,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitonRuleDescriptor : public FPCGExInputD
 		if (bEnabled) { return FPCGExInputDescriptor::GetDisplayName(); }
 		return "(Disabled) " + FPCGExInputDescriptor::GetDisplayName();
 	}
-
 #endif
 
 	/** Enable or disable this partition. */

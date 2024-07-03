@@ -12,6 +12,7 @@
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExNeighborSampleFactoryProvider.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "PCGExNeighborSampleAttribute.generated.h"
 
@@ -35,10 +36,28 @@ public:
 
 	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
 
-	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override;
-	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override;
-	FORCEINLINE virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override;
-	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override;
+	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override
+	{
+		Blender->PrepareForBlending(TargetNode.PointIndex);
+	}
+
+	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override
+	{
+		const int32 PrimaryIndex = TargetNode.PointIndex;
+		Blender->Blend(PrimaryIndex, Neighbor.Node->PointIndex, PrimaryIndex, Weight);
+	}
+
+	FORCEINLINE virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override
+	{
+		const int32 PrimaryIndex = TargetNode.PointIndex;
+		Blender->Blend(PrimaryIndex, Neighbor.Edge->PointIndex, PrimaryIndex, Weight);
+	}
+
+	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override
+	{
+		const int32 PrimaryIndex = TargetNode.PointIndex;
+		Blender->CompleteBlending(PrimaryIndex, Count, TotalWeight);
+	}
 
 	virtual void FinalizeOperation() override;
 
@@ -83,7 +102,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleAttributeSettings : public UPCG
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NeighborSamplerAttribute, "Sampler : Vtx Attributes", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",

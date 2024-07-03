@@ -6,13 +6,6 @@
 #define LOCTEXT_NAMESPACE "PCGExWritePathExtrasElement"
 #define PCGEX_NAMESPACE WritePathExtras
 
-#if WITH_EDITOR
-void UPCGExWritePathExtrasSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 PCGExData::EInit UPCGExWritePathExtrasSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(WritePathExtras)

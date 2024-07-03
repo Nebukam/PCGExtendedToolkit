@@ -297,14 +297,13 @@ namespace PCGExGraph
 
 		TArray<uint64> Adjacency;
 
-		void SetAdjacency(const TSet<uint64>& InAdjacency);
+		FORCEINLINE void SetAdjacency(const TSet<uint64>& InAdjacency) { Adjacency = InAdjacency.Array(); }
+		FORCEINLINE void Add(const int32 EdgeIndex) { Adjacency.AddUnique(EdgeIndex); }
 
 		~FNode()
 		{
 			Adjacency.Empty();
 		}
-
-		FORCEINLINE void Add(const int32 EdgeIndex);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSubGraph
@@ -332,9 +331,14 @@ namespace PCGExGraph
 			EdgesIO = nullptr;
 		}
 
-		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph);
+		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph)
+		{
+			Nodes.Add(Edge.Start);
+			Nodes.Add(Edge.End);
+			Edges.Add(Edge.EdgeIndex);
+			if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
+		}
 
-		void LockOrder();
 		void Invalidate(FGraph* InGraph);
 		PCGExCluster::FCluster* CreateCluster() const;
 		int32 GetFirstInIOIndex();

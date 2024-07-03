@@ -7,11 +7,6 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
 #define PCGEX_NAMESPACE CreateHeuristics
 
-PCGExFactories::EType UPCGExHeuristicsFactoryBase::GetFactoryType() const
-{
-	return PCGExFactories::EType::Heuristics;
-}
-
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryBase::CreateOperation() const
 {
 	return nullptr; // Create heuristic operation

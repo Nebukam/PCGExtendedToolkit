@@ -42,57 +42,6 @@ namespace PCGExDiscardByOverlap
 	PCGEX_ASYNC_STATE(State_PreciseOverlap)
 	PCGEX_ASYNC_STATE(State_ProcessFastOverlap)
 	PCGEX_ASYNC_STATE(State_ProcessPreciseOverlap)
-
-	static void SortOverlapCount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
-	                             const EPCGExSortDirection Order)
-	{
-		IOBounds.Sort(
-			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
-			{
-				const bool bEqual = A.Overlaps.Num() == B.Overlaps.Num();
-				return Order == EPCGExSortDirection::Ascending ?
-					       bEqual ? A.FastOverlapAmount < B.FastOverlapAmount : A.Overlaps.Num() < B.Overlaps.Num() :
-					       bEqual ? A.FastOverlapAmount > B.FastOverlapAmount : A.Overlaps.Num() > B.Overlaps.Num();
-			});
-	}
-
-	static void SortFastAmount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
-	                           const EPCGExSortDirection Order)
-	{
-		IOBounds.Sort(
-			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
-			{
-				const bool bEqual = A.FastOverlapAmount == B.FastOverlapAmount;
-				return Order == EPCGExSortDirection::Ascending ?
-					       bEqual ? A.Overlaps.Num() < B.Overlaps.Num() : A.FastOverlapAmount < B.FastOverlapAmount :
-					       bEqual ? A.Overlaps.Num() > B.Overlaps.Num() : A.FastOverlapAmount > B.FastOverlapAmount;
-			});
-	}
-
-	static void SortPreciseCount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
-	                             const EPCGExSortDirection Order)
-	{
-		IOBounds.Sort(
-			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
-			{
-				const bool bEqual = A.TotalPreciseOverlapCount == B.TotalPreciseOverlapCount;
-				return Order == EPCGExSortDirection::Ascending ?
-					       bEqual ? A.TotalPreciseOverlapAmount < B.TotalPreciseOverlapAmount : A.TotalPreciseOverlapCount < B.TotalPreciseOverlapCount :
-					       bEqual ? A.TotalPreciseOverlapAmount > B.TotalPreciseOverlapAmount : A.TotalPreciseOverlapCount > B.TotalPreciseOverlapCount;
-			});
-	}
-
-	static void SortPreciseAmount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds, const EPCGExSortDirection Order)
-	{
-		IOBounds.Sort(
-			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
-			{
-				const bool bEqual = A.TotalPreciseOverlapAmount == B.TotalPreciseOverlapAmount;
-				return Order == EPCGExSortDirection::Ascending ?
-					       bEqual ? A.TotalPreciseOverlapCount < B.TotalPreciseOverlapCount : A.TotalPreciseOverlapAmount < B.TotalPreciseOverlapAmount :
-					       bEqual ? A.TotalPreciseOverlapCount > B.TotalPreciseOverlapCount : A.TotalPreciseOverlapAmount > B.TotalPreciseOverlapAmount;
-			});
-	}
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -101,7 +50,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDiscardByOverlapSettings : public UPCGExPoint
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DiscardByOverlap, "Discard By Overlap", "Discard entire datasets based on how they overlap with each other.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscRemove; }
@@ -109,7 +58,7 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UObject interface
 #if WITH_EDITOR
@@ -119,10 +68,10 @@ public:
 #endif
 	//~End UObject interface
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Overlap overlap test mode */

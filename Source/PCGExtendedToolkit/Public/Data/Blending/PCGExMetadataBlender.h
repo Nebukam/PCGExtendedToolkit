@@ -37,14 +37,52 @@ namespace PCGExDataBlending
 			const bool bInitFirstOperation = false,
 			const TSet<FName>* IgnoreAttributeSet = nullptr);
 
-		FORCEINLINE void PrepareForBlending(const PCGEx::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const;
-		FORCEINLINE void PrepareForBlending(const int32 PrimaryIndex, const FPCGPoint* Defaults = nullptr) const;
+		FORCEINLINE void PrepareForBlending(const PCGEx::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const
+		{
+			for (const FDataBlendingOperationBase* Op : OperationsToBePrepared) { Op->PrepareOperation(Target.Index); }
+			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
+			PropertiesBlender->PrepareBlending(Target.MutablePoint(), Defaults ? *Defaults : *Target.Point);
+		}
 
-		FORCEINLINE void Blend(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const PCGEx::FPointRef& Target, const double Weight);
-		FORCEINLINE void Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight);
+		FORCEINLINE void PrepareForBlending(const int32 PrimaryIndex, const FPCGPoint* Defaults = nullptr) const
+		{
+			for (const FDataBlendingOperationBase* Op : OperationsToBePrepared) { Op->PrepareOperation(PrimaryIndex); }
+			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
+			PropertiesBlender->PrepareBlending((*PrimaryPoints)[PrimaryIndex], Defaults ? *Defaults : (*PrimaryPoints)[PrimaryIndex]);
+		}
 
-		FORCEINLINE void CompleteBlending(const PCGEx::FPointRef& Target, const int32 Count, double TotalWeight) const;
-		FORCEINLINE void CompleteBlending(const int32 PrimaryIndex, const int32 Count, double TotalWeight) const;
+		FORCEINLINE void Blend(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const PCGEx::FPointRef& Target, const double Weight)
+		{
+			const bool IsFirstOperation = FirstPointOperation[A.Index];
+			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(A.Index, B.Index, Target.Index, Weight, IsFirstOperation); }
+			FirstPointOperation[A.Index] = false;
+			if (bSkipProperties) { return; }
+			PropertiesBlender->Blend(*A.Point, *B.Point, Target.MutablePoint(), Weight);
+		}
+
+		FORCEINLINE void Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight)
+		{
+			const bool IsFirstOperation = FirstPointOperation[PrimaryIndex];
+			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(PrimaryIndex, SecondaryIndex, TargetIndex, Weight, IsFirstOperation); }
+			FirstPointOperation[PrimaryIndex] = false;
+			if (bSkipProperties) { return; }
+			PropertiesBlender->Blend((*PrimaryPoints)[PrimaryIndex], (*SecondaryPoints)[SecondaryIndex], (*PrimaryPoints)[TargetIndex], Weight);
+		}
+
+		FORCEINLINE void CompleteBlending(const PCGEx::FPointRef& Target, const int32 Count, double TotalWeight) const
+		{
+			for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(Target.Index, Count, TotalWeight); }
+			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
+			PropertiesBlender->CompleteBlending(Target.MutablePoint(), Count, TotalWeight);
+		}
+
+		FORCEINLINE void CompleteBlending(const int32 PrimaryIndex, const int32 Count, double TotalWeight) const
+		{
+			//check(Count > 0) // Ugh, there's a check missing in a blender user...
+			for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(PrimaryIndex, Count, TotalWeight); }
+			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
+			PropertiesBlender->CompleteBlending((*PrimaryPoints)[PrimaryIndex], Count, TotalWeight);
+		}
 
 		void PrepareRangeForBlending(const int32 StartIndex, const int32 Range) const;
 		void BlendRange(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const int32 StartIndex, const int32 Range, const TArrayView<double>& Weights);

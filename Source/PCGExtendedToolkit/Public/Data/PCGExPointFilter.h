@@ -45,7 +45,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryBase : public UPCGExParamFactory
 	GENERATED_BODY()
 
 public:
-	FORCEINLINE virtual PCGExFactories::EType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterPoint; }
 
 	virtual void Init();
 
@@ -79,15 +79,15 @@ namespace PCGExPointFilter
 
 		int32 FilterIndex = 0;
 
-		FORCEINLINE virtual PCGExFilters::EType GetFilterType() const;
+		virtual PCGExFilters::EType GetFilterType() const;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade);
 
 		virtual void PostInit();
 
-		FORCEINLINE virtual bool Test(const int32 Index) const;
-		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const;
-		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const;
+		virtual bool Test(const int32 Index) const;
+		virtual bool Test(const PCGExCluster::FNode& Node) const;
+		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const;
 
 		virtual ~TFilter()
 		{

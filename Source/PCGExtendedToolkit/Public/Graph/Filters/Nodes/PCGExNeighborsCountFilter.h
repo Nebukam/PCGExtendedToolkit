@@ -90,7 +90,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborsCountFilterProviderSettings : public
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeNeighborsCountFilterFactory, "Cluster Filter : Neighbors Count", "Check against the node' neighbor count.",

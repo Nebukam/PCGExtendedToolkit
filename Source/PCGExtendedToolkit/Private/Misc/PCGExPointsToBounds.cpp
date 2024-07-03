@@ -15,13 +15,6 @@ FPCGExPointsToBoundsContext::~FPCGExPointsToBoundsContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-#if WITH_EDITOR
-void UPCGExPointsToBoundsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 
 bool FPCGExPointsToBoundsElement::Boot(FPCGContext* InContext) const

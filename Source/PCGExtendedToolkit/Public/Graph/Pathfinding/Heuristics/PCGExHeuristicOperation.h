@@ -33,22 +33,36 @@ public:
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const;
+		const PCGExCluster::FNode& Goal) const
+	{
+		return 0;
+	}
 
 	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const;
+		const PCGExCluster::FNode& Goal) const
+	{
+		return 0;
+	}
+
+	FORCEINLINE double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const
+	{
+		//TODO Rewrite this
+		if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
+		return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? PointIndex : EdgeIndex]);
+	}
 
 	virtual void Cleanup() override;
-
-	FORCEINLINE double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const;
 
 protected:
 	const PCGExCluster::FCluster* Cluster = nullptr;
 	TArray<double> LocalWeightMultiplier;
 
-	FORCEINLINE virtual double SampleCurve(const double InTime) const;
+	FORCEINLINE virtual double SampleCurve(const double InTime) const
+	{
+		return FMath::Max(0, ScoreCurveObj->GetFloatValue(bInvert ? 1 - InTime : InTime));
+	}
 };

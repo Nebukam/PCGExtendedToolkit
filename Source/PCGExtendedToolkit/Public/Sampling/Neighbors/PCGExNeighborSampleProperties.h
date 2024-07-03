@@ -12,15 +12,11 @@
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExNeighborSampleFactoryProvider.h"
+#include "Data/Blending/PCGExPropertiesBlender.h"
 
 #include "PCGExNeighborSampleProperties.generated.h"
 
 ///
-
-namespace PCGExDataBlending
-{
-	struct FPropertiesBlender;
-}
 
 /**
  * 
@@ -37,10 +33,31 @@ public:
 
 	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
 
-	virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override;
-	virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override;
-	virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override;
-	virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override;
+	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override
+	{
+		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+		Blender->PrepareBlending(A, A);
+	}
+
+	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override
+	{
+		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+		const FPCGPoint& B = Cluster->VtxIO->GetInPoint(Neighbor.Node->PointIndex);
+		Blender->Blend(A, B, A, Weight);
+	}
+
+	FORCEINLINE virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override
+	{
+		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+		const FPCGPoint& B = Cluster->EdgesIO->GetInPoint(Neighbor.Edge->PointIndex);
+		Blender->Blend(A, B, A, Weight);
+	}
+
+	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override
+	{
+		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+		Blender->CompleteBlending(A, Count, TotalWeight);
+	}
 
 	virtual void Cleanup() override;
 
@@ -79,7 +96,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplePropertiesSettings : public UPC
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NeighborSamplerProperties, "Sampler : Vtx Properties", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",
@@ -88,12 +105,14 @@ public:
 #endif
 	//~End UPCGSettings
 
+	//~Begin UPCGExNeighborSampleProviderSettings
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+	//~End UPCGExNeighborSampleProviderSettings
 
 	/** Sampler Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))

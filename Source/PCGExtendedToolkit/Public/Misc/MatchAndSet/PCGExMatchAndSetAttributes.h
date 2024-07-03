@@ -54,12 +54,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetAttributesProviderSettings : publi
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(MatchAndSetAttributesAttribute, "MatchAndSet : Attributes", "Forward attributes based on the match result.")
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 #endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
 public:

@@ -93,7 +93,7 @@ namespace PCGExNodeAdjacency
 
 		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
 
-		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override;
+		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
 		virtual ~FAdjacencyFilter() override
 		{
@@ -110,7 +110,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyFilterProviderSettings : public UPCG
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeAdjacencyFilterFactory, "Cluster Filter : Adjacency", "Numeric comparison of adjacent values, testing either adjacent nodes or connected edges.",

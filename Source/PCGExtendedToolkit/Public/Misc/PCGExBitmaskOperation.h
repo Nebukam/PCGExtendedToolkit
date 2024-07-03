@@ -10,66 +10,13 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExBitmaskOperation.generated.h"
 
-namespace PCGExBitmask
-{
-	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const int64 Mask)
-	{
-		switch (Op)
-		{
-		default: ;
-		case EPCGExBitOp::Set:
-			Flags = Mask;
-			break;
-		case EPCGExBitOp::AND:
-			Flags &= Mask;
-			break;
-		case EPCGExBitOp::OR:
-			Flags |= Mask;
-			break;
-		case EPCGExBitOp::NOT:
-			Flags &= ~Mask;
-			break;
-		case EPCGExBitOp::XOR:
-			Flags ^= Mask;
-			break;
-		}
-	}
-
-	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const TArray<FClampedBit>& Mask)
-	{
-		switch (Op)
-		{
-		default: ;
-		case EPCGExBitOp::Set:
-			for (const FClampedBit& Bit : Mask)
-			{
-				if (Bit.bValue) { Flags |= Bit.Get(); } // Set the bit
-				else { Flags &= ~Bit.Get(); }           // Clear the bit
-			}
-			break;
-		case EPCGExBitOp::AND:
-			for (const FClampedBit& Bit : Mask) { Flags &= Bit.Get(); }
-			break;
-		case EPCGExBitOp::OR:
-			for (const FClampedBit& Bit : Mask) { Flags |= Bit.Get(); }
-			break;
-		case EPCGExBitOp::NOT:
-			for (const FClampedBit& Bit : Mask) { Flags &= ~Bit.Get(); }
-			break;
-		case EPCGExBitOp::XOR:
-			for (const FClampedBit& Bit : Mask) { Flags ^= Bit.Get(); }
-			break;
-		}
-	}
-}
-
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskOperationSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BitmaskOperation, "Bitmask Operation", "Do a Bitmask operation on an attribute.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
@@ -77,12 +24,12 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Target attribute */

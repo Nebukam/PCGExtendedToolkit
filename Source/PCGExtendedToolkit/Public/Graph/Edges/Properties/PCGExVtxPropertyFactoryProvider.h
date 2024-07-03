@@ -188,7 +188,7 @@ public:
 
 	virtual bool IsOperationValid();
 
-	FORCEINLINE virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
+	virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency);
 
 	virtual void Cleanup() override;
 
@@ -202,7 +202,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyFactoryBase : public UPCGExParamFa
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::VtxProperty; }
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const;
 };
 
@@ -212,13 +212,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyProviderSettings : public UPCGExFa
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(VtxPropertyAttribute, "Vtx : Abstract", "Abstract vtx extra settings.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 #endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
 public:

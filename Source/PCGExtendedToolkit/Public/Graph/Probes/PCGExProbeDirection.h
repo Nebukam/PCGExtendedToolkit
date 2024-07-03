@@ -101,7 +101,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeDirectionProviderSettings : public UPCGE
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		ProbeDirection, "Probe : Direction", "Probe in a given direction.",

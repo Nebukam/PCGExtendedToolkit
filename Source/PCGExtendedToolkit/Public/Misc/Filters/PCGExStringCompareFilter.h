@@ -75,7 +75,7 @@ namespace PCGExPointsFilter
 		PCGEx::TFAttributeReader<FString>* OperandB = nullptr;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
+		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TStringCompareFilter() override
 		{
@@ -92,7 +92,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExStringCompareFilterProviderSettings : public 
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		CompareFilterFactory, "Filter : String Compare", "Creates a filter definition that compares two attribute values.",

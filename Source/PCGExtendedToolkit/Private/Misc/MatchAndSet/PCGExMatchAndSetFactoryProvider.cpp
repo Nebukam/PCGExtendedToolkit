@@ -55,8 +55,6 @@ void UPCGExMatchAndSetOperation::Cleanup()
 FString UPCGExMatchAndSetProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-PCGExFactories::EType UPCGExMatchAndSetFactoryBase::GetFactoryType() const { return PCGExFactories::EType::MatchAndSet; }
-
 UPCGExMatchAndSetOperation* UPCGExMatchAndSetFactoryBase::CreateOperation() const
 {
 	UPCGExMatchAndSetOperation* NewOperation = NewObject<UPCGExMatchAndSetOperation>();

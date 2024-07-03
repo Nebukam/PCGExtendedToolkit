@@ -9,8 +9,6 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-PCGExFactories::EType UPCGExPartitionRule::GetFactoryType() const { return PCGExFactories::EType::RulePartition; }
-
 FName UPCGExPartitionRuleProviderSettings::GetMainOutputLabel() const { return FName(TEXT("PartitionRule")); }
 
 UPCGExParamFactoryBase* UPCGExPartitionRuleProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
@@ -20,10 +18,9 @@ UPCGExParamFactoryBase* UPCGExPartitionRuleProviderSettings::CreateFactory(FPCGC
 	return NewFactory;
 }
 
-FString UPCGExPartitionRuleProviderSettings::GetDisplayName() const
-{
-	return Descriptor.GetDisplayName();
-}
+#if WITH_EDITOR
+FString UPCGExPartitionRuleProviderSettings::GetDisplayName() const { return Descriptor.GetDisplayName(); }
+#endif
 
 TArray<FPCGPinProperties> UPCGExModularPartitionByValuesSettings::InputPinProperties() const
 {

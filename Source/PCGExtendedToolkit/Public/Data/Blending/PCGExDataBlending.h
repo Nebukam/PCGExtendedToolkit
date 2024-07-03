@@ -289,31 +289,45 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationBase
 	{
 	public:
-		virtual ~FDataBlendingOperationBase();
+		virtual ~FDataBlendingOperationBase()
+		{
+		}
 
 		virtual EPCGExDataBlendingType GetBlendingType() const = 0;
 
 		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
-		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		{
+		}
 
-		FORCEINLINE virtual bool GetIsInterpolation() const;
-		FORCEINLINE virtual bool GetRequiresPreparation() const;
-		FORCEINLINE virtual bool GetRequiresFinalization() const;
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		{
+		}
 
-		FORCEINLINE virtual void PrepareOperation(const int32 WriteIndex) const;
-		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const;
+		FORCEINLINE virtual bool GetIsInterpolation() const { return false; }
+		FORCEINLINE virtual bool GetRequiresPreparation() const { return false; }
+		FORCEINLINE virtual bool GetRequiresFinalization() const { return false; }
+
+		FORCEINLINE virtual void PrepareOperation(const int32 WriteIndex) const { PrepareRangeOperation(WriteIndex, 1); }
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const
+		{
+			TArray<double> Weights = {Weight};
+			DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, WriteIndex, Weights, bFirstOperation);
+		}
+
 		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const = 0;
-		FORCEINLINE virtual void FinalizeOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const;
+		FORCEINLINE virtual void FinalizeOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const
+		{
+			TArray<double> Weights = {TotalWeight};
+			TArray<int32> Counts = {Count};
+			FinalizeRangeOperation(WriteIndex, Counts, Weights);
+		}
 
 		FORCEINLINE virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const = 0;
 		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const bool bFirstOperation) const = 0;
 		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
-
-		virtual void ResetToDefault(int32 WriteIndex) const;
-		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
 
 	protected:
 		bool bDoInterpolation = true;
@@ -425,14 +439,6 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const
 		{
 		};
-
-		FORCEINLINE virtual void ResetToDefault(const int32 WriteIndex) const override { ResetRangeToDefault(WriteIndex, 1); }
-
-		virtual void ResetRangeToDefault(const int32 StartIndex, const int32 Count) const override
-		{
-			const T DefaultValue = Writer->GetDefaultValue();
-			for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = DefaultValue; }
-		}
 
 	protected:
 		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;

@@ -143,22 +143,6 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 	PCGEX_DELETE(B)
 }
 
-void UPCGExNeighborSampleOperation::PrepareNode(const PCGExCluster::FNode& TargetNode) const
-{
-}
-
-void UPCGExNeighborSampleOperation::BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
-{
-}
-
-void UPCGExNeighborSampleOperation::BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
-{
-}
-
-void UPCGExNeighborSampleOperation::FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
-{
-}
-
 void UPCGExNeighborSampleOperation::FinalizeOperation()
 {
 }
@@ -170,19 +154,12 @@ void UPCGExNeighborSampleOperation::Cleanup()
 	PCGEX_DELETE(ValueFilters)
 }
 
-double UPCGExNeighborSampleOperation::SampleCurve(const double InTime) const { return WeightCurveObj->GetFloatValue(InTime); }
-
 #if WITH_EDITOR
 FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 {
 	return TEXT("");
 }
 #endif
-
-PCGExFactories::EType UPCGExNeighborSamplerFactoryBase::GetFactoryType() const
-{
-	return PCGExFactories::EType::Sampler;
-}
 
 UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryBase::CreateOperation() const
 {

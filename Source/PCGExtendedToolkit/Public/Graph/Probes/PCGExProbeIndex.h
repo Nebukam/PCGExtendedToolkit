@@ -88,7 +88,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeIndexProviderSettings : public UPCGExPro
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		ProbeIndex, "Probe : Index", "Connects to a specific index, ignoring search radius.",

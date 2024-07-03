@@ -9,23 +9,6 @@
 
 namespace PCGExGraph
 {
-	void FNode::SetAdjacency(const TSet<uint64>& InAdjacency) { Adjacency = InAdjacency.Array(); }
-
-	void FNode::Add(const int32 EdgeIndex) { Adjacency.AddUnique(EdgeIndex); }
-
-	void FSubGraph::Add(const FIndexedEdge& Edge, FGraph* InGraph)
-	{
-		Nodes.Add(Edge.Start);
-		Nodes.Add(Edge.End);
-
-		Edges.Add(Edge.EdgeIndex);
-		if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
-	}
-
-	void FSubGraph::LockOrder()
-	{
-	}
-
 	void FSubGraph::Invalidate(FGraph* InGraph)
 	{
 		for (const int32 EdgeIndex : Edges) { InGraph->Edges[EdgeIndex].bValid = false; }
@@ -236,7 +219,6 @@ namespace PCGExGraph
 			}
 			else
 			{
-				SubGraph->LockOrder();
 				SubGraphs.Add(SubGraph);
 			}
 		}

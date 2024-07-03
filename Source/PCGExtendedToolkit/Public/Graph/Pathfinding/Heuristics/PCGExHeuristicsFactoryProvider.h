@@ -65,7 +65,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryBase : public UPCGExParamFac
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Heuristics; }
 	virtual UPCGExHeuristicOperation* CreateOperation() const;
 	double WeightFactor = 1;
 };
@@ -76,7 +76,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryProviderSettings : public UP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(NodeFilter, "Heuristics Definition", "Creates a single heuristic computational node, to be used with pathfinding nodes.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorHeuristics; }

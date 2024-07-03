@@ -23,23 +23,12 @@ UPCGExPathToClustersSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-#if WITH_EDITOR
-void
-UPCGExPathToClustersSettings::PostEditChangeProperty(
-	FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
-PCGExData::EInit
-UPCGExPathToClustersSettings::GetMainOutputInitMode() const
+PCGExData::EInit UPCGExPathToClustersSettings::GetMainOutputInitMode() const
 {
 	return PCGExData::EInit::NoOutput;
 }
 
-FName
-UPCGExPathToClustersSettings::GetMainOutputLabel() const
+FName UPCGExPathToClustersSettings::GetMainOutputLabel() const
 {
 	return PCGExGraph::OutputVerticesLabel;
 }
@@ -58,8 +47,7 @@ FPCGExPathToClustersContext::~FPCGExPathToClustersContext()
 	PCGEX_DELETE(CompoundProcessor)
 }
 
-bool
-FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext))
 	{
@@ -96,8 +84,7 @@ FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool
-FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathToClustersElement::Execute);
 
@@ -105,10 +92,7 @@ FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Boot(Context))
-		{
-			return true;
-		}
+		if (!Boot(Context)) { return true; }
 
 		if (Settings->bFusePaths)
 		{
@@ -222,8 +206,7 @@ namespace PCGExPathToClusters
 		PCGEX_DELETE(GraphBuilder)
 	}
 
-	bool
-	FNonFusingProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FNonFusingProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToClusters)
 
@@ -266,8 +249,7 @@ namespace PCGExPathToClusters
 		return true;
 	}
 
-	void
-	FNonFusingProcessor::CompleteWork()
+	void FNonFusingProcessor::CompleteWork()
 	{
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
@@ -286,8 +268,7 @@ namespace PCGExPathToClusters
 	{
 	}
 
-	bool
-	FFusingProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FFusingProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToClusters)
 
@@ -312,9 +293,7 @@ namespace PCGExPathToClusters
 
 			if (const int32 PrevIndex = i - 1; InPoints.IsValidIndex(PrevIndex))
 			{
-				PCGExGraph::FCompoundNode* OtherVtx =
-					CompoundGraph->InsertPoint(
-						InPoints[PrevIndex], IOIndex, PrevIndex);
+				PCGExGraph::FCompoundNode* OtherVtx = CompoundGraph->InsertPoint(InPoints[PrevIndex], IOIndex, PrevIndex);
 
 				CurrentVtx->Adjacency.Add(OtherVtx->Index);
 				OtherVtx->Adjacency.Add(CurrentVtx->Index);
@@ -322,9 +301,7 @@ namespace PCGExPathToClusters
 
 			if (const int32 NextIndex = i + 1; InPoints.IsValidIndex(NextIndex))
 			{
-				PCGExGraph::FCompoundNode* OtherVtx =
-					CompoundGraph->InsertPoint(
-						InPoints[NextIndex], IOIndex, NextIndex);
+				PCGExGraph::FCompoundNode* OtherVtx = CompoundGraph->InsertPoint(InPoints[NextIndex], IOIndex, NextIndex);
 
 				CurrentVtx->Adjacency.Add(OtherVtx->Index);
 				OtherVtx->Adjacency.Add(CurrentVtx->Index);
@@ -358,18 +335,14 @@ namespace PCGExPathToClusters
 		CompoundPoints = nullptr;
 	}
 
-	void
-	FFusingProcessorBatch::Process(PCGExMT::FTaskManager* AsyncManager)
+	void FFusingProcessorBatch::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToClusters)
 
 		MainPoints = TypedContext->MainPoints;
 
 		FBox Bounds = FBox(ForceInit);
-		for (const PCGExData::FPointIO* IO : PointsCollection)
-		{
-			Bounds += IO->GetIn()->GetBounds().ExpandBy(10);
-		}
+		for (const PCGExData::FPointIO* IO : PointsCollection) { Bounds += IO->GetIn()->GetBounds().ExpandBy(10); }
 
 		CompoundGraph = new PCGExGraph::FCompoundGraph(
 			Settings->PointPointIntersectionSettings.FuseSettings,
@@ -385,18 +358,14 @@ namespace PCGExPathToClusters
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToClusters)
 
-		if (!TBatch<FFusingProcessor>::PrepareSingle(PointsProcessor))
-		{
-			return false;
-		}
+		if (!TBatch<FFusingProcessor>::PrepareSingle(PointsProcessor)) { return false; }
 
 		PointsProcessor->CompoundGraph = CompoundGraph;
 
 		return true;
 	}
 
-	void
-	FFusingProcessorBatch::CompleteWork()
+	void FFusingProcessorBatch::CompleteWork()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToClusters)
 
@@ -417,8 +386,7 @@ namespace PCGExPathToClusters
 		TBatch<FFusingProcessor>::CompleteWork();
 	}
 
-	void
-	FFusingProcessorBatch::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
+	void FFusingProcessorBatch::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
 		// Update center
 		CompoundPoints->GetMutablePoint(Iteration).Transform.SetLocation(

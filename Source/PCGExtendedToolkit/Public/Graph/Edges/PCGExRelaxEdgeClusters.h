@@ -17,7 +17,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRelaxEdgeClustersSettings : public UPCGExEdge
 public:
 	//~End UObject interface
 
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(RelaxEdgeClusters, "Cluster : Relax", "Relax point positions using edges connecting them.");
 #endif
@@ -26,7 +26,7 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 public:
 	/** */

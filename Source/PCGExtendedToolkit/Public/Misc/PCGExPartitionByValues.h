@@ -38,7 +38,12 @@ namespace PCGExPartition
 		int32 GetSubPartitionsNum();
 
 		FKPartition* GetPartition(int64 Key, FPCGExFilter::FRule* InRule);
-		FORCEINLINE void Add(const int64 Index);
+		FORCEINLINE void Add(const int64 Index)
+		{
+			FWriteScopeLock WriteLock(PointLock);
+			Points.Add(Index);
+		}
+
 		void Register(TArray<FKPartition*>& Partitions);
 
 		void SortPartitions();
@@ -55,7 +60,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesBaseSettings : public UPCGEx
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PartitionByValuesStatic, "Partition by Values (Static)", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
@@ -63,13 +68,13 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual bool GetMainAcceptMultipleData() const override;
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** If false, will only write partition identifier values instead of splitting partitions into new point datasets. */
@@ -96,7 +101,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPart
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PartitionByValuesStatic, "Partition by Values (Static)", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
 #endif

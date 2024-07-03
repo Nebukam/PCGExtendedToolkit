@@ -27,20 +27,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathProcessorSettings : public UPCGExPointsPr
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPath; }
 #endif
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	virtual FString GetPointFilterTooltip() const override;
-
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual FName GetMainInputLabel() const override;
+	virtual FString GetPointFilterTooltip() const override;
 	virtual FName GetMainOutputLabel() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
