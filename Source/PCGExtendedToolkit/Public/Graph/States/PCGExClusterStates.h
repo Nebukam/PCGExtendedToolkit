@@ -10,6 +10,12 @@
 #include "Misc/PCGExBitmaskOperation.h"
 #include "PCGExClusterStates.generated.h"
 
+namespace PCGExNodeFlags
+{
+	const FName OutputOnPassBitmaskLabel = TEXT("BitmaskPass");
+	const FName OutputOnFailBitmaskLabel = TEXT("BitmaskFail");
+}
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateDescriptorBase : public FPCGExStateDescriptorBase
 {
@@ -102,6 +108,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings
 
 public:
@@ -110,7 +117,7 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName Name = FName("Node State");
+	FName Name = FName("Node Flag");
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Priority = 0;

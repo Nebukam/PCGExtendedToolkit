@@ -14,7 +14,7 @@
 TArray<FPCGPinProperties> UPCGExWriteVtxPropertiesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExVtxProperty::SourceExtrasLabel, "Extra attribute handlers.", Normal, {})
+	PCGEX_PIN_PARAMS(PCGExVtxProperty::SourcePropertyLabel, "Extra attribute handlers.", Normal, {})
 	return PinProperties;
 }
 
@@ -36,7 +36,7 @@ bool FPCGExWriteVtxPropertiesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories(InContext, PCGExVtxProperty::SourceExtrasLabel, Context->ExtraFactories, {PCGExFactories::EType::VtxProperty}, false);
+	PCGExFactories::GetInputFactories(InContext, PCGExVtxProperty::SourcePropertyLabel, Context->ExtraFactories, {PCGExFactories::EType::VtxProperty}, false);
 
 	return true;
 }

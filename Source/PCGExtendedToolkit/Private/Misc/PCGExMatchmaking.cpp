@@ -1,70 +1,70 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExMatchAndSet.h"
+#include "Misc/PCGExMatchmaking.h"
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
-#include "Misc/MatchAndSet/PCGExMatchAndSetFactoryProvider.h"
+#include "Misc/Matchmakers/PCGExMatchToFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE MatchAndSet
+#define PCGEX_NAMESPACE Matchmaking
 
-int32 UPCGExMatchAndSetSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
+int32 UPCGExMatchmakingSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EInit UPCGExMatchAndSetSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExMatchmakingSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-TArray<FPCGPinProperties> UPCGExMatchAndSetSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExMatchmakingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExMatchAndSet::SourceMatchAndSetsLabel, "Node states.", Required, {})
-	PCGEX_PIN_ANY(PCGExMatchAndSet::SourceDefaultsLabel, "Default values that match transmuted attributes when creating new attributes.", Normal, {})
+	PCGEX_PIN_PARAMS(PCGExMatchmaking::SourceMatchmakersLabel, "Matchmakers nodes.", Required, {})
+	PCGEX_PIN_ANY(PCGExMatchmaking::SourceDefaultsLabel, "Default values that match attributes when creating new attributes through matchmaking.", Normal, {})
 	return PinProperties;
 }
 
-FPCGExMatchAndSetContext::~FPCGExMatchAndSetContext()
+FPCGExMatchmakingContext::~FPCGExMatchmakingContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	MatchAndSetsFactories.Empty();
+	MatchmakingsFactories.Empty();
 
 	PCGEX_DELETE(DefaultAttributes)
 }
 
-PCGEX_INITIALIZE_ELEMENT(MatchAndSet)
+PCGEX_INITIALIZE_ELEMENT(Matchmaking)
 
-bool FPCGExMatchAndSetElement::Boot(FPCGContext* InContext) const
+bool FPCGExMatchmakingElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	// Grab all param set attributes
 
-	PCGEX_CONTEXT_AND_SETTINGS(MatchAndSet)
+	PCGEX_CONTEXT_AND_SETTINGS(Matchmaking)
 
 	if (!PCGExFactories::GetInputFactories(
-		Context, PCGExMatchAndSet::SourceMatchAndSetsLabel,
-		Context->MatchAndSetsFactories, {PCGExFactories::EType::MatchAndSet}, true))
+		Context, PCGExMatchmaking::SourceMatchmakersLabel,
+		Context->MatchmakingsFactories, {PCGExFactories::EType::Matchmaking}, true))
 	{
 		return false;
 	}
 
 	FString Message = TEXT("An unspecified error occured.");
-	bool bIsMatchAndSetValid = true;
+	bool bIsMatchmakingValid = true;
 	PCGEx::FAttributesInfos* ValidationInfos = new PCGEx::FAttributesInfos();
-	for (UPCGExMatchAndSetFactoryBase* Factory : Context->MatchAndSetsFactories)
+	for (UPCGExMatchToFactoryBase* Factory : Context->MatchmakingsFactories)
 	{
 		if (!Factory->AppendAndValidate(ValidationInfos, Message))
 		{
 			PCGE_LOG(Error, GraphAndLog, FText::FromString(Message));
-			bIsMatchAndSetValid = false;
+			bIsMatchmakingValid = false;
 			break;
 		}
 	}
 
 	PCGEX_DELETE(ValidationInfos)
 
-	if (!bIsMatchAndSetValid) { return false; }
+	if (!bIsMatchmakingValid) { return false; }
 
 	Context->DefaultAttributes = new PCGEx::FAttributesInfos();
 
@@ -73,20 +73,20 @@ bool FPCGExMatchAndSetElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExMatchAndSetElement::ExecuteInternal(
+bool FPCGExMatchmakingElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMatchAndSetElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMatchmakingElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(MatchAndSet)
+	PCGEX_CONTEXT_AND_SETTINGS(Matchmaking)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExMatchAndSet::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExMatchmaking::FProcessor>>(
 			[](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExMatchAndSet::FProcessor>* NewBatch)
+			[&](PCGExPointsMT::TBatch<PCGExMatchmaking::FProcessor>* NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -104,7 +104,7 @@ bool FPCGExMatchAndSetElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-namespace PCGExMatchAndSet
+namespace PCGExMatchmaking
 {
 	FProcessor::~FProcessor()
 	{
@@ -112,7 +112,7 @@ namespace PCGExMatchAndSet
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MatchAndSet)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Matchmaking)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -125,7 +125,7 @@ namespace PCGExMatchAndSet
 
 	void FProcessor::Write()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MatchAndSet)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Matchmaking)
 
 		UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
 

@@ -33,7 +33,7 @@ namespace PCGExFactories
 		Sampler,
 		Heuristics,
 		VtxProperty,
-		MatchAndSet
+		Matchmaking
 	};
 
 	static inline TSet<EType> ClusterNodeFilters = {EType::FilterPoint, EType::FilterNode};

@@ -128,13 +128,13 @@ namespace PCGExBuildVoronoi
 		ActivePositions.Empty();
 
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
-			const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 			TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
 
-			int32 NumSites = Voronoi->Centroids.Num();
+			const int32 NumSites = Voronoi->Centroids.Num();
 			TArray<int32> RemappedIndices;
 			RemappedIndices.SetNumUninitialized(NumSites);
 			Centroids.Reserve(NumSites);
@@ -179,15 +179,36 @@ namespace PCGExBuildVoronoi
 			const int32 NumSites = Voronoi->Centroids.Num();
 			Centroids.SetNum(NumSites);
 
-			for (int i = 0; i < NumSites; i++)
+			if (Settings->Method == EPCGExCellCenter::Circumcenter)
 			{
-				Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center);
-				PCGExMath::RandomizeSeed(Centroids[i]);
+				for (int i = 0; i < NumSites; i++)
+				{
+					Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center);
+					PCGExMath::RandomizeSeed(Centroids[i]);
+				}
+			}
+			else if (Settings->Method == EPCGExCellCenter::Centroid)
+			{
+				for (int i = 0; i < NumSites; i++)
+				{
+					Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]);
+					PCGExMath::RandomizeSeed(Centroids[i]);
+				}
+			}
+			else if (Settings->Method == EPCGExCellCenter::Balanced)
+			{
+				for (int i = 0; i < NumSites; i++)
+				{
+					FVector Target = Voronoi->Circumspheres[i].Center;
+					if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
+					else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+					PCGExMath::RandomizeSeed(Centroids[i]);
+				}
 			}
 
 			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
-			
+
 			PCGEX_DELETE(Voronoi)
 		}
 

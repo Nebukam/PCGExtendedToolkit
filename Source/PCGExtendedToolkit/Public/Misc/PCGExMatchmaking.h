@@ -7,21 +7,21 @@
 
 #include "PCGExPointsProcessor.h"
 
-#include "PCGExMatchAndSet.generated.h"
+#include "PCGExMatchmaking.generated.h"
 
-class UPCGExMatchAndSetFactoryBase;
+class UPCGExMatchToFactoryBase;
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchmakingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MatchAndSet, "Match And Set", "TBD.");
+	PCGEX_NODE_INFOS(Matchmaking, "Matchmaking", "TBD.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
 #endif
 
@@ -47,20 +47,20 @@ public:
 	FPCGExNameFiltersSettings ConsumeProcessedAttributes;
 
 private:
-	friend class FPCGExMatchAndSetElement;
+	friend class FPCGExMatchmakingElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMatchAndSetContext final : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExMatchmakingContext final : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExMatchAndSetElement;
+	friend class FPCGExMatchmakingElement;
 
-	virtual ~FPCGExMatchAndSetContext() override;
+	virtual ~FPCGExMatchmakingContext() override;
 
 	PCGEx::FAttributesInfos* DefaultAttributes = nullptr;
-	TArray<UPCGExMatchAndSetFactoryBase*> MatchAndSetsFactories;
+	TArray<UPCGExMatchToFactoryBase*> MatchmakingsFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMatchAndSetElement final : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExMatchmakingElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -73,7 +73,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExMatchAndSet
+namespace PCGExMatchmaking
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{

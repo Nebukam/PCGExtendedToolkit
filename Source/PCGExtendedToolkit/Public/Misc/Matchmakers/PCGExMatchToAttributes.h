@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMatchAndSetFactoryProvider.h"
+#include "PCGExMatchToFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
@@ -12,9 +12,9 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
 
-#include "PCGExMatchAndSetAttributes.generated.h"
+#include "PCGExMatchToAttributes.generated.h"
 
-namespace PCGExMatchAndSetAttribute
+namespace PCGExMatchToAttribute
 {
 	const FName SourceForwardSuccess = TEXT("MatchSuccess");
 	const FName SourceForwardFail = TEXT("MatchFail");
@@ -24,7 +24,7 @@ namespace PCGExMatchAndSetAttribute
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetAttributesOperation : public UPCGExMatchAndSetOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchToAttributesOperation : public UPCGExMatchToOperation
 {
 	GENERATED_BODY()
 
@@ -39,24 +39,24 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetAttributesFactory : public UPCGExMatchAndSetFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchToAttributesFactory : public UPCGExMatchToFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	virtual UPCGExMatchAndSetOperation* CreateOperation() const override;
+	virtual UPCGExMatchToOperation* CreateOperation() const override;
 	virtual bool Boot(FPCGContext* InContext) override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|MatchAndSetAttributes")
-class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetAttributesProviderSettings : public UPCGExMatchAndSetProviderSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|MatchToAttributes")
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchToAttributesProviderSettings : public UPCGExMatchToProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MatchAndSetAttributesAttribute, "MatchAndSet : Attributes", "Forward attributes based on the match result.")
+	PCGEX_NODE_INFOS(MatchToAttributesAttribute, "Match To : Attributes", "Forward attributes based on the match result.")
 #endif
 
 protected:

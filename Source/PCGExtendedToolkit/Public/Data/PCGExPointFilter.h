@@ -61,7 +61,7 @@ namespace PCGExPointFilter
 	const FName SourceFiltersLabel = TEXT("Filters");
 	const FName OutputInsideFiltersLabel = TEXT("Inside");
 	const FName OutputOutsideFiltersLabel = TEXT("Outside");
-
+	
 	class PCGEXTENDEDTOOLKIT_API TFilter
 	{
 	public:

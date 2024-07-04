@@ -53,13 +53,35 @@ PCGEX_CREATE_FILTER_FACTORY(Bitmask)
 #if WITH_EDITOR
 FString UPCGExBitmaskFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Descriptor.Value.ToString() + PCGExCompare::ToString(Descriptor.Comparison);
+	FString A = Descriptor.MaskType == EPCGExFetchType::Attribute ? Descriptor.MaskAttribute.ToString() : TEXT("(Const)");
+	FString B = Descriptor.Value.ToString();
+	FString DisplayName;
 
-	if (Descriptor.MaskType == EPCGExFetchType::Attribute) { DisplayName += Descriptor.MaskAttribute.ToString(); }
-	else
+	switch (Descriptor.Comparison)
 	{
-		//DisplayName += FString::Printf(TEXT("%lld"), (Descriptor.Mask));
-		DisplayName += TEXT("Const");
+	case EPCGExBitflagComparison::ContainsAny:
+		DisplayName = TEXT("A & B != 0");
+		//DisplayName = A + " & " + B + TEXT(" != 0");
+		break;
+	case EPCGExBitflagComparison::ContainsAll:
+		//DisplayName = A + " Any " + B + TEXT(" == B");
+		DisplayName = TEXT("A & B == B");
+		break;
+	case EPCGExBitflagComparison::IsExactly:
+		//DisplayName = A + " == " + B;
+		DisplayName = TEXT("A == B");
+		break;
+	case EPCGExBitflagComparison::NotContainsAny:
+		//DisplayName = A + " & " + B + TEXT(" == 0");
+		DisplayName = TEXT("A & B == 0");
+		break;
+	case EPCGExBitflagComparison::NotContainsAll:
+		//DisplayName = A + " & " + B + TEXT(" != B");
+		DisplayName = TEXT("A & B != B");
+		break;
+	default:
+		DisplayName = " ?? ";
+		break;
 	}
 
 	return DisplayName;

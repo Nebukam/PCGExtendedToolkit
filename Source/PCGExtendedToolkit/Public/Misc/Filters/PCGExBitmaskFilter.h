@@ -22,7 +22,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterDescriptor
 	{
 	}
 
-	/** Source value. */
+	/** Source value. (Operand A) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName Value;
 
@@ -34,11 +34,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterDescriptor
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFetchType MaskType = EPCGExFetchType::Constant;
 
-	/** Mask for testing -- Must be int64. */
+	/** Mask for testing -- Must be int64. (Operand B) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Attribute", DisplayName="Mask", EditConditionHides))
-	FName MaskAttribute;
+	FName MaskAttribute = FName("Flags");
 
-	/** */
+	/** (Operand B) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Constant", DisplayName="Mask", EditConditionHides))
 	FPCGExBitmask BitMask;
 };

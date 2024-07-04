@@ -18,8 +18,8 @@
 
 namespace PCGExVtxProperty
 {
-	const FName SourceExtrasLabel = TEXT("Extras");
-	const FName OutputExtraLabel = TEXT("Extra");
+	const FName SourcePropertyLabel = TEXT("Properties");
+	const FName OutputPropertyLabel = TEXT("Property");
 }
 
 USTRUCT(BlueprintType)

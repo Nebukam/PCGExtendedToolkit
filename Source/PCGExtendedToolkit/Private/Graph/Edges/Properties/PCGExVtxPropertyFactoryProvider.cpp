@@ -59,7 +59,7 @@ TArray<FPCGPinProperties> UPCGExVtxPropertyProviderSettings::InputPinProperties(
 	return PinProperties;
 }
 
-FName UPCGExVtxPropertyProviderSettings::GetMainOutputLabel() const { return PCGExVtxProperty::OutputExtraLabel; }
+FName UPCGExVtxPropertyProviderSettings::GetMainOutputLabel() const { return PCGExVtxProperty::OutputPropertyLabel; }
 
 UPCGExParamFactoryBase* UPCGExVtxPropertyProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {

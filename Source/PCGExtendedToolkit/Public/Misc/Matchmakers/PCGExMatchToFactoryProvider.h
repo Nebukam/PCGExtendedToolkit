@@ -7,43 +7,41 @@
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
-#include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
 #include "Data/PCGExPointFilter.h"
 
-#include "PCGExMatchAndSetFactoryProvider.generated.h"
+#include "PCGExMatchToFactoryProvider.generated.h"
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_FACTORY(_NAME, _BODY) \
 	UPCGExParamFactoryBase* UPCGEx##_NAME##ProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const{ \
 	UPCGEx##_NAME##Factory* NewFactory = NewObject<UPCGEx##_NAME##Factory>(); _BODY Super::CreateFactory(InContext, NewFactory); return NewFactory; }
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_OPERATION(_NAME, _BODY) \
-UPCGExMatchAndSetOperation* UPCGEx##_NAME##Factory::CreateOperation() const{ \
+UPCGExMatchToOperation* UPCGEx##_NAME##Factory::CreateOperation() const{ \
 	UPCGEx##_NAME##Operation* NewOperation = NewObject<UPCGEx##_NAME##Operation>(); \
 	NewOperation->Factory = const_cast<UPCGEx##_NAME##Factory*>(this); _BODY \
 	return NewOperation;}
 
 class UPCGExFilterFactoryBase;
 
-namespace PCGExMatchAndSet
+namespace PCGExMatchmaking
 {
 	const FName SourceMatchFilterLabel = TEXT("MatchFilters");
-	const FName SourceMatchAndSetsLabel = TEXT("MatchAndSets");
+	const FName SourceMatchmakersLabel = TEXT("Matchmakers");
 	const FName SourceDefaultsLabel = TEXT("Default values");
-	const FName OutputMatchAndSetLabel = TEXT("MatchAndSet");
+	const FName OutputMatchmakerLabel = TEXT("Matchmaker");
 }
 
 /**
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetOperation : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchToOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExMatchAndSetFactoryBase* Factory = nullptr;
+	UPCGExMatchToFactoryBase* Factory = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
@@ -60,7 +58,7 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetFactoryBase : public UPCGExParamFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchToFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
@@ -72,8 +70,8 @@ public:
 
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 
-	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::MatchAndSet; }
-	virtual UPCGExMatchAndSetOperation* CreateOperation() const;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Matchmaking; }
+	virtual UPCGExMatchToOperation* CreateOperation() const;
 
 	virtual bool Boot(FPCGContext* InContext);
 	virtual bool AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage);
@@ -81,15 +79,15 @@ public:
 	virtual void BeginDestroy() override;
 };
 
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|MatchAndSet")
-class PCGEXTENDEDTOOLKIT_API UPCGExMatchAndSetProviderSettings : public UPCGExFactoryProviderSettings
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|MatchTo")
+class PCGEXTENDEDTOOLKIT_API UPCGExMatchToProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MatchAndSetAbstract, "MatchAndSet : Abstract", "Abstract MatchAndSet Module.")
+	PCGEX_NODE_INFOS(MatchToAbstract, "Match To : Abstract", "Abstract Match To Module.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
 #endif
 

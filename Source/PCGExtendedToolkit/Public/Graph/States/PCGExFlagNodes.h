@@ -109,6 +109,5 @@ namespace PCGExFindNodeState
 
 		virtual bool PrepareProcessing() override;
 		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
-		virtual void Write() override;
 	};
 }

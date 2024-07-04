@@ -55,6 +55,7 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 			[&](PCGExFindNodeState::FProcessorBatch* NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
+				NewBatch->bWriteVtxDataFacade = true;
 			},
 			PCGExMT::State_Done))
 		{
@@ -153,10 +154,6 @@ namespace PCGExFindNodeState
 		return true;
 	}
 
-	void FProcessorBatch::Write()
-	{
-		VtxDataFacade->Write(AsyncManagerPtr, true);
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

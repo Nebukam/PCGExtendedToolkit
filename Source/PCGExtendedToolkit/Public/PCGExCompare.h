@@ -99,9 +99,9 @@ namespace PCGExCompare
 		switch (Comparison)
 		{
 		case EPCGExBitflagComparison::ContainsAny:
-			return " Any From ";
+			return " Any ";
 		case EPCGExBitflagComparison::ContainsAll:
-			return " All From ";
+			return " All ";
 		case EPCGExBitflagComparison::IsExactly:
 			return " Exactly ";
 		case EPCGExBitflagComparison::NotContainsAny:
@@ -597,6 +597,14 @@ enum class EPCGExBitOp : uint8
 	XOR UMETA(DisplayName = "XOR", ToolTip="(Flags ^= Mask) Invert the flag bit where the mask == 1."),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bitmask Source"))
+enum class EPCGExBitmaskMode : uint8
+{
+	Direct UMETA(DisplayName = "Direct", ToolTip="Used for easy override mostly"),
+	Individual UMETA(DisplayName = "Individual", ToolTip="Use an array to manually set the bits"),
+	Composite UMETA(DisplayName = "Composite", ToolTip="Use a ton of dropdown to set the bits"),
+};
+
 #pragma region Bitmasks
 
 
@@ -866,40 +874,45 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bIndividualBits = true;
+	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Individual;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bIndividualBits", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExBitmaskMode::Direct", EditConditionHides))
+	int64 Bitmask = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExBitmaskMode::Individual", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
 	TArray<FClampedBit> Bits;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_00_08", DisplayName="0-8 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_00_08", DisplayName="0-8 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_00_08 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_08_16", DisplayName="8-16 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_08_16", DisplayName="8-16 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_08_16 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_16_24", DisplayName="16-24 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_16_24", DisplayName="16-24 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_16_24 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_24_32", DisplayName="24-32 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_24_32", DisplayName="24-32 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_24_32 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_32_40", DisplayName="32-40 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_32_40", DisplayName="32-40 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_32_40 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_40_48", DisplayName="40-48 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_40_48", DisplayName="40-48 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_40_48 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_48_56", DisplayName="48-56 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_48_56", DisplayName="48-56 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_48_56 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_56_64", DisplayName="56-64 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_56_64", DisplayName="56-64 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_56_64 = 0;
 
 	int64 Get() const
 	{
 		int64 Mask = 0;
 
-		if (bIndividualBits)
+		if (Mode == EPCGExBitmaskMode::Direct) { return Bitmask; }
+
+		if (Mode == EPCGExBitmaskMode::Individual)
 		{
 			for (const FClampedBit& Bit : Bits) { if (Bit.bValue) { Mask |= (1LL << Bit.BitIndex); } }
 		}
@@ -953,48 +966,54 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bIndividualBits = true;
+	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Individual;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bIndividualBits", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExBitmaskMode::Direct", EditConditionHides))
+	int64 Bitmask = 0;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExBitmaskMode::Individual", TitleProperty="Bit # {BitIndex} = {bValue}", EditConditionHides))
 	TArray<FClampedBitOp> Bits;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(PCG_NotOverridable, EditCondition="Mode!=EPCGExBitmaskMode::Individual", EditConditionHides))
 	EPCGExBitOp Op = EPCGExBitOp::OR;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_00_08", DisplayName="0-8 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_00_08", DisplayName="0-8 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_00_08 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_08_16", DisplayName="8-16 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_08_16", DisplayName="8-16 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_08_16 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_16_24", DisplayName="16-24 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_16_24", DisplayName="16-24 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_16_24 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_24_32", DisplayName="24-32 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_24_32", DisplayName="24-32 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_24_32 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_32_40", DisplayName="32-40 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_32_40", DisplayName="32-40 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_32_40 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_40_48", DisplayName="40-48 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_40_48", DisplayName="40-48 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_40_48 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_48_56", DisplayName="48-56 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_48_56", DisplayName="48-56 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_48_56 = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_56_64", DisplayName="56-64 Bits", EditCondition="!bIndividualBits", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitmask8_56_64", DisplayName="56-64 Bits", EditCondition="Mode==EPCGExBitmaskMode::Composite", EditConditionHides))
 	uint8 Range_56_64 = 0;
 
 	int64 Get() const
 	{
 		int64 Mask = 0;
 
-		if (bIndividualBits)
+		switch (Mode)
 		{
+		case EPCGExBitmaskMode::Direct:
+			Mask = Bitmask;
+			break;
+		case EPCGExBitmaskMode::Individual:
 			for (const FClampedBitOp& Bit : Bits) { if (Bit.bValue) { Mask |= (1LL << Bit.BitIndex); } }
-		}
-		else
-		{
+			break;
+		case EPCGExBitmaskMode::Composite:
 			Mask |= static_cast<int64>(Range_00_08) << 0;
 			Mask |= static_cast<int64>(Range_08_16) << 8;
 			Mask |= static_cast<int64>(Range_16_24) << 16;
@@ -1003,6 +1022,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 			Mask |= static_cast<int64>(Range_40_48) << 40;
 			Mask |= static_cast<int64>(Range_48_56) << 48;
 			Mask |= static_cast<int64>(Range_56_64) << 56;
+			break;
+		default: ;
 		}
 
 		return Mask;
@@ -1010,7 +1031,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 
 	void DoOperation(int64& Flags) const
 	{
-		if (bIndividualBits)
+		if (Mode == EPCGExBitmaskMode::Individual)
 		{
 			for (const FClampedBitOp& BitOp : Bits)
 			{
@@ -1036,10 +1057,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 				default: ;
 				}
 			}
+			return;
 		}
-		else
+
+		int64 Mask = 0;
+		if (Mode == EPCGExBitmaskMode::Composite)
 		{
-			int64 Mask = 0;
 			Mask |= static_cast<int64>(Range_00_08) << 0;
 			Mask |= static_cast<int64>(Range_08_16) << 8;
 			Mask |= static_cast<int64>(Range_16_24) << 16;
@@ -1048,26 +1071,30 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 			Mask |= static_cast<int64>(Range_40_48) << 40;
 			Mask |= static_cast<int64>(Range_48_56) << 48;
 			Mask |= static_cast<int64>(Range_56_64) << 56;
+		}
+		else
+		{
+			Mask = Bitmask;
+		}
 
-			switch (Op)
-			{
-			case EPCGExBitOp::Set:
-				Flags = Mask;
-				break;
-			case EPCGExBitOp::AND:
-				Flags &= Mask;
-				break;
-			case EPCGExBitOp::OR:
-				Flags |= Mask;
-				break;
-			case EPCGExBitOp::NOT:
-				Flags &= ~Mask;
-				break;
-			case EPCGExBitOp::XOR:
-				Flags ^= Mask;
-				break;
-			default: ;
-			}
+		switch (Op)
+		{
+		case EPCGExBitOp::Set:
+			Flags = Mask;
+			break;
+		case EPCGExBitOp::AND:
+			Flags &= Mask;
+			break;
+		case EPCGExBitOp::OR:
+			Flags |= Mask;
+			break;
+		case EPCGExBitOp::NOT:
+			Flags &= ~Mask;
+			break;
+		case EPCGExBitOp::XOR:
+			Flags ^= Mask;
+			break;
+		default: ;
 		}
 	}
 };

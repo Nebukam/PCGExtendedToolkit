@@ -120,6 +120,14 @@ TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::InputPinPro
 	return PinProperties;
 }
 
+TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	if (Descriptor.bOnTestPass) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnPassBitmaskLabel, TEXT("On Pass Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced, {}) }
+	if (Descriptor.bOnTestFail) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnFailBitmaskLabel, TEXT("On Fail Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced, {}) }
+	return PinProperties;
+}
+
 FName UPCGExClusterStateFactoryProviderSettings::GetMainOutputLabel() const { return PCGExCluster::OutputNodeFlagLabel; }
 
 UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
@@ -132,6 +140,26 @@ UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory
 	{
 		PCGEX_DELETE_UOBJECT(NewFactory)
 		return nullptr;
+	}
+
+	if (Descriptor.bOnTestPass)
+	{
+		UPCGParamData* Bitmask = NewObject<UPCGParamData>();
+		Bitmask->Metadata->CreateAttribute(FName("OnPassBitmask"), Descriptor.PassStateFlags.Get(), false, true);
+		Bitmask->Metadata->AddEntry();
+		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
+		OutData.Pin = PCGExNodeFlags::OutputOnPassBitmaskLabel;
+		OutData.Data = Bitmask;
+	}
+
+	if (Descriptor.bOnTestFail)
+	{
+		UPCGParamData* Bitmask = NewObject<UPCGParamData>();
+		Bitmask->Metadata->CreateAttribute(FName("OnFailBitmask"), Descriptor.FailStateFlags.Get(), false, true);
+		Bitmask->Metadata->AddEntry();
+		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
+		OutData.Pin = PCGExNodeFlags::OutputOnFailBitmaskLabel;
+		OutData.Data = Bitmask;
 	}
 
 	return NewFactory;
