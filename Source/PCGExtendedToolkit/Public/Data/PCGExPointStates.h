@@ -31,7 +31,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateDescriptorBase
 	bool bOnTestPass = true;
 
 	/** Operations executed on the flag if all filters pass */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bOnTestPass"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOnTestPass"))
 	FPCGExBitmaskWithOperation PassStateFlags;
 
 	/** Flags */
@@ -39,7 +39,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateDescriptorBase
 	bool bOnTestFail = true;
 
 	/** Operations executed on the flag if any filters fail */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="bOnTestFail"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOnTestFail"))
 	FPCGExBitmaskWithOperation FailStateFlags;
 
 	void Init()

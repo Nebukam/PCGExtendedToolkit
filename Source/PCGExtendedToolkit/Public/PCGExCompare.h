@@ -873,7 +873,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 	{
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Individual;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExBitmaskMode::Direct", EditConditionHides))
@@ -965,7 +965,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 	{
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Individual;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExBitmaskMode::Direct", EditConditionHides))
