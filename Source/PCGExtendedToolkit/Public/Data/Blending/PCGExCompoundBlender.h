@@ -62,8 +62,8 @@ namespace PCGExDataBlending
 		void SetNum(const int32 InNum)
 		{
 			const int32 Diff = InNum - Attributes.Num();
-			Attributes.SetNum(InNum);
-			BlendOps.SetNum(InNum);
+			PCGEX_SET_NUM(Attributes, InNum)
+			PCGEX_SET_NUM(BlendOps, InNum)
 
 			for (int i = 0; i < Diff; i++)
 			{

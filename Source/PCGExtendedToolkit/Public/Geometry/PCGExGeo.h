@@ -119,7 +119,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		OutPositions.SetNumUninitialized(NumVectors);
+		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
 
 		if (NormalGetter)
 		{
@@ -142,14 +142,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		OutPositions.SetNumUninitialized(NumVectors);
+		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
 		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]); }
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		OutPositions.SetNumUninitialized(NumVectors);
+		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
 
 		if (NormalGetter)
 		{
@@ -173,14 +173,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		OutPositions.SetNumUninitialized(NumVectors);
+		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
 		for (int i = 0; i < NumVectors; i++) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
 	}
 
 	void Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPoints.Num();
-		OutPositions.SetNumUninitialized(NumVectors);
+		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
 
 		if (NormalGetter)
 		{
@@ -405,7 +405,7 @@ namespace PCGExGeo
 	FORCEINLINE static void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions)
 	{
 		const int32 NumPoints = Points.Num();
-		OutPositions.SetNumUninitialized(NumPoints);
+		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumPoints)
 		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Points[i].Transform.GetLocation(); }
 	}
 }

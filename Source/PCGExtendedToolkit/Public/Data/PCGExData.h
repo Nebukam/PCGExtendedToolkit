@@ -424,7 +424,7 @@ namespace PCGExData
 	static void GetCollectionFacades(const FPointIOCollection* InCollection, TArray<FFacade*>& OutFacades)
 	{
 		OutFacades.Empty();
-		OutFacades.SetNumUninitialized(InCollection->Num());
+		PCGEX_SET_NUM_UNINITIALIZED(OutFacades, InCollection->Num())
 		for (int i = 0; OutFacades.Num(); i++) { OutFacades[i] = new FFacade(InCollection->Pairs[i]); }
 	}
 

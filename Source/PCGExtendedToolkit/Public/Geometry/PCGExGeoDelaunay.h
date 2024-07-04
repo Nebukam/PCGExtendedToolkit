@@ -90,7 +90,7 @@ namespace PCGExGeo
 
 			DelaunayEdges.Reserve(NumReserve);
 
-			Sites.SetNumUninitialized(NumSites);
+			PCGEX_SET_NUM_UNINITIALIZED(Sites, NumSites)
 
 			for (int i = 0; i < NumSites; i++)
 			{
@@ -236,7 +236,7 @@ namespace PCGExGeo
 			TMap<uint64, int32> Faces;
 			if (bComputeFaces) { Faces.Reserve(NumSites); }
 
-			Sites.SetNumUninitialized(NumSites);
+			PCGEX_SET_NUM_UNINITIALIZED(Sites, NumSites)
 
 			for (int i = 0; i < NumSites; i++)
 			{

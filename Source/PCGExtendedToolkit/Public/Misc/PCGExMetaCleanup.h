@@ -8,22 +8,21 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataFilter.h"
-#include "PCGExMetaFilter.generated.h"
+#include "PCGExMetaCleanup.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExMetaFilterSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExMetaCleanupSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MetaFilter, "Meta Filter", "Keep/Remove tags & attributes using string queries.");
+	PCGEX_NODE_INFOS(MetaCleanup, "Meta Cleanup", "Keep/Remove tags & attributes using string queries.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscRemove; }
 #endif
 
 protected:
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -36,25 +35,18 @@ public:
 	/** List of attributes to delete. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExCarryOverSettings Filters;
-
-	/** Swap Inside & Outside data */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bSwap = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMetaFilterContext final : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExMetaCleanupContext final : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExMetaFilterElement;
+	friend class FPCGExMetaCleanupElement;
 
-	virtual ~FPCGExMetaFilterContext() override;
-	
 	FPCGExCarryOverSettings Filters;
 
-	PCGExData::FPointIOCollection* Inside = nullptr;
-	PCGExData::FPointIOCollection* Outside = nullptr;
+	virtual ~FPCGExMetaCleanupContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMetaFilterElement final : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExMetaCleanupElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

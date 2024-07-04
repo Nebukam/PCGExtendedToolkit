@@ -40,11 +40,20 @@ bool FPCGExUberFilterElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
 
-	Context->Inside = new PCGExData::FPointIOCollection();
-	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 
+	Context->Inside = new PCGExData::FPointIOCollection();
 	Context->Outside = new PCGExData::FPointIOCollection();
-	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
+
+	if (Settings->bSwap)
+	{
+		Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
+		Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
+	}
+	else
+	{
+		Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
+		Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
+	}
 
 	return true;
 }
@@ -93,8 +102,8 @@ namespace PCGExUberFilter
 			else { NumOutside++; }
 		}
 
-		InCollection = Settings->bSwap ? TypedContext->Outside : TypedContext->Inside;
-		OutCollection = Settings->bSwap ? TypedContext->Inside : TypedContext->Outside;
+		InCollection = TypedContext->Inside;
+		OutCollection = TypedContext->Outside;
 
 		if (NumInside == 0 || NumOutside == 0)
 		{

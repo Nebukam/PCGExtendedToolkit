@@ -85,7 +85,7 @@ private:
 	friend class FPCGExSortPointsBaseElement;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGExSortPointsBaseSettings
 {
 	GENERATED_BODY()

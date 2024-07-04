@@ -126,7 +126,8 @@ namespace PCGExGeo
 			Octree = new PointBoxCloudOctree(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length());
 			const TArray<FPCGPoint>& Points = PointData->GetPoints();
 
-			Boxes.SetNumUninitialized(Points.Num());
+			PCGEX_SET_NUM_UNINITIALIZED(Boxes, Points.Num())
+			
 			for (int i = 0; i < Points.Num(); i++)
 			{
 				FPointBox* NewPointBox = new FPointBox(Points[i], i);

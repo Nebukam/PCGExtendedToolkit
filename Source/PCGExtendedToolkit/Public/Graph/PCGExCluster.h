@@ -284,31 +284,27 @@ namespace PCGExCluster
 		template <typename T, class MakeFunc>
 		void GrabNeighbors(const int32 NodeIndex, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
 		{
-			TArray<FNode>& NodesRef = (*Nodes);
-			TArray<PCGExGraph::FIndexedEdge>& EdgesRef = (*Edges);
-			FNode& Node = NodesRef[NodeIndex];
-			OutNeighbors.SetNumUninitialized(Node.Adjacency.Num());
-			for (int i = 0; i < Node.Adjacency.Num(); i++)
+			FNode* Node = (Nodes->GetData() + NodeIndex);
+			PCGEX_SET_NUM_UNINITIALIZED(OutNeighbors, Node->Adjacency.Num())
+			for (int i = 0; i < Node->Adjacency.Num(); i++)
 			{
 				uint32 OtherNodeIndex;
 				uint32 EdgeIndex;
-				PCGEx::H64(Node.Adjacency[i], OtherNodeIndex, EdgeIndex);
-				OutNeighbors[i] = Make(Node, NodesRef[OtherNodeIndex], EdgesRef[EdgeIndex]);
+				PCGEx::H64(Node->Adjacency[i], OtherNodeIndex, EdgeIndex);
+				OutNeighbors[i] = Make(Node, (Nodes->GetData() + OtherNodeIndex), (Edges->GetData() + EdgeIndex));
 			}
 		}
 
 		template <typename T, class MakeFunc>
 		void GrabNeighbors(const FNode& Node, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
 		{
-			TArray<FNode>& NodesRef = (*Nodes);
-			TArray<PCGExGraph::FIndexedEdge>& EdgesRef = (*Edges);
-			OutNeighbors.SetNumUninitialized(Node.Adjacency.Num());
+			PCGEX_SET_NUM_UNINITIALIZED(OutNeighbors, Node.Adjacency.Num())
 			for (int i = 0; i < Node.Adjacency.Num(); i++)
 			{
 				uint32 OtherNodeIndex;
 				uint32 EdgeIndex;
 				PCGEx::H64(Node.Adjacency[i], OtherNodeIndex, EdgeIndex);
-				OutNeighbors[i] = Make(NodesRef[OtherNodeIndex], EdgesRef[EdgeIndex]);
+				OutNeighbors[i] = Make((Nodes->GetData() + OtherNodeIndex), (Edges->GetData() + EdgeIndex));
 			}
 		}
 
@@ -323,7 +319,7 @@ namespace PCGExCluster
 				return Nodes->Emplace_GetRef(Nodes->Num(), PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
 			}
 
-			return (*Nodes)[*NodeIndex];
+			return *(Nodes->GetData() + *NodeIndex);
 		}
 
 		void CreateVtxPointIndices();
@@ -339,8 +335,7 @@ namespace PCGExCluster
 			Node(Cluster->Nodes->GetData() + InNodeIndex)
 		{
 			const int32 NumNeighbors = Node->Adjacency.Num();
-			Neighbors.Reserve(NumNeighbors);
-			Neighbors.SetNumUninitialized(NumNeighbors);
+			PCGEX_SET_NUM_UNINITIALIZED(Neighbors, NumNeighbors)
 			for (int i = 0; i < Neighbors.Num(); i++)
 			{
 				uint32 NodeIndex;
@@ -442,12 +437,12 @@ namespace PCGExCluster
 
 			PCGEx::H64(InNode.Adjacency[i], NIndex, EIndex);
 
-			const FNode& OtherNode = (*InCluster->Nodes)[NIndex];
-			const FVector OtherPosition = OtherNode.Position;
+			const FNode* OtherNode = InCluster->Nodes->GetData() + NIndex;
+			const FVector OtherPosition = OtherNode->Position;
 
 			FAdjacencyData& Data = OutData.Emplace_GetRef();
 			Data.NodeIndex = NIndex;
-			Data.NodePointIndex = OtherNode.PointIndex;
+			Data.NodePointIndex = OtherNode->PointIndex;
 			Data.EdgeIndex = EIndex;
 			Data.Direction = (NodePosition - OtherPosition).GetSafeNormal();
 			Data.Length = FVector::Dist(NodePosition, OtherPosition);
@@ -552,7 +547,7 @@ namespace PCGExClusterTask
 		while (NextIndex != -1)
 		{
 			const PCGExCluster::FNode& NextNode = Nodes[NextIndex];
-			if ((*Breakpoints)[NextIndex] || NextNode.IsComplex() || NextNode.IsDeadEnd())
+			if ((*(Breakpoints->GetData() + NextIndex)) || NextNode.IsComplex() || NextNode.IsDeadEnd())
 			{
 				LastIndex = NextIndex;
 				break;

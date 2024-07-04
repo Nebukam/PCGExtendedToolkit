@@ -42,7 +42,7 @@ namespace PCGExGeo
 			if (Triangles.IsEmpty()) { return; }
 
 			TArray<FVector> DualPositions;
-			DualPositions.SetNumUninitialized(Triangles.Num());
+			PCGEX_SET_NUM_UNINITIALIZED(DualPositions, Triangles.Num())
 
 			Edges.Empty();
 
@@ -71,8 +71,8 @@ namespace PCGExGeo
 
 			const int32 StartIndex = Vertices.Num();
 			TArray<FVector> DualPositions;
-			DualPositions.SetNumUninitialized(Triangles.Num());
-			Vertices.SetNumUninitialized(StartIndex + Triangles.Num());
+			PCGEX_SET_NUM_UNINITIALIZED(DualPositions, Triangles.Num())
+			PCGEX_SET_NUM_UNINITIALIZED(Vertices, StartIndex + Triangles.Num())
 
 			Edges.Empty();
 
@@ -159,11 +159,11 @@ namespace PCGExGeo
 				Edges.Add(PCGEx::H64U(C, A));
 			}
 
-			Vertices.SetNum(IndexedUniquePositions.Num());
+			PCGEX_SET_NUM_UNINITIALIZED(Vertices, IndexedUniquePositions.Num())
 
 			TArray<FVector> Keys;
 			IndexedUniquePositions.GetKeys(Keys);
-			for (FVector Key : Keys) { Vertices[*IndexedUniquePositions.Find(Key)] = Key; }
+			for (FVector Key : Keys) { Vertices[IndexedUniquePositions[Key]] = Key; }
 
 			IndexedUniquePositions.Empty();
 
@@ -187,7 +187,7 @@ namespace PCGExGeo
 			int32 Idx = 0;
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 
-			Triangles.SetNumUninitialized(Indices.Num() / 3);
+			PCGEX_SET_NUM_UNINITIALIZED(Triangles, Indices.Num() / 3)
 			int32 TriangleIndex = 0;
 
 			for (int i = 0; i < Indices.Num(); i += 3)
@@ -235,7 +235,7 @@ namespace PCGExGeo
 			}
 
 			int32 ENum = EdgeAdjacency.Num();
-			Adjacencies.SetNumUninitialized(Triangles.Num());
+			PCGEX_SET_NUM_UNINITIALIZED(Adjacencies, Triangles.Num())
 
 			for (int j = 0; j < Triangles.Num(); j++)
 			{
@@ -253,11 +253,11 @@ namespace PCGExGeo
 
 			EdgeAdjacency.Empty();
 
-			Vertices.SetNum(IndexedUniquePositions.Num());
+			PCGEX_SET_NUM_UNINITIALIZED(Vertices, IndexedUniquePositions.Num())
 
 			TArray<FVector> Keys;
 			IndexedUniquePositions.GetKeys(Keys);
-			for (FVector Key : Keys) { Vertices[*IndexedUniquePositions.Find(Key)] = Key; }
+			for (FVector Key : Keys) { Vertices[IndexedUniquePositions[Key]] = Key; }
 
 			IndexedUniquePositions.Empty();
 

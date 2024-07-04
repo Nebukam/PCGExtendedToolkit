@@ -230,7 +230,7 @@ namespace PCGExClusterMT
 
 			if (VtxFilterFactories)
 			{
-				VtxFilterCache.SetNumUninitialized(VtxPointIndicesCache->Num());
+				PCGEX_SET_NUM_UNINITIALIZED(VtxFilterCache, VtxPointIndicesCache->Num())
 
 				for (int i = 0; i < VtxPointIndicesCache->Num(); i++) { VtxFilterCache[i] = DefaultVtxFilterValue; }
 
@@ -244,7 +244,7 @@ namespace PCGExClusterMT
 			}
 			else
 			{
-				VtxFilterCache.SetNumUninitialized(Cluster->Nodes->Num());
+				PCGEX_SET_NUM_UNINITIALIZED(VtxFilterCache, Cluster->Nodes->Num())
 				for (int i = 0; i < VtxFilterCache.Num(); i++) { VtxFilterCache[i] = DefaultVtxFilterValue; }
 			}
 
@@ -273,7 +273,6 @@ namespace PCGExClusterMT
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(PerLoopIterations);
-
 			if (bInlineProcessNodes)
 			{
 				AsyncManagerPtr->Start<FAsyncProcessNodeRangeInline<FClusterProcessor>>(
@@ -281,13 +280,13 @@ namespace PCGExClusterMT
 				return;
 			}
 
-			int32 CurrentCount = 0;
-			while (CurrentCount < NumNodes)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessNodeRange<FClusterProcessor>>(
-					CurrentCount, nullptr, this, FMath::Min(NumNodes - CurrentCount, PLI));
-				CurrentCount += PLI;
-			}
+			PCGExMT::SubRanges(
+				NumNodes, PLI,
+				[&](const int32 Index, const int32 Count)
+				{
+					AsyncManagerPtr->Start<FAsyncProcessNodeRange<FClusterProcessor>>(
+						Index, nullptr, this, Count);
+				});
 		}
 
 		void StartParallelLoopForEdges(const int32 PerLoopIterations = -1)
@@ -307,13 +306,13 @@ namespace PCGExClusterMT
 				return;
 			}
 
-			int32 CurrentCount = 0;
-			while (CurrentCount < NumEdges)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessEdgeRange<FClusterProcessor>>(
-					CurrentCount, nullptr, this, FMath::Min(NumEdges - CurrentCount, PLI));
-				CurrentCount += PLI;
-			}
+			PCGExMT::SubRanges(
+				NumEdges, PLI,
+				[&](const int32 Index, const int32 Count)
+				{
+					AsyncManagerPtr->Start<FAsyncProcessEdgeRange<FClusterProcessor>>(
+						Index, nullptr, this, Count);
+				});
 		}
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
@@ -332,18 +331,21 @@ namespace PCGExClusterMT
 				return;
 			}
 
-			int32 CurrentCount = 0;
-			while (CurrentCount < NumIterations)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessor>>(
-					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PLI));
-				CurrentCount += PLI;
-			}
+			PCGExMT::SubRanges(
+				NumIterations, PLI,
+				[&](const int32 Index, const int32 Count)
+				{
+					AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessor>>(Index, nullptr, this, Count);
+				});
 		}
 
 		virtual void ProcessView(int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
 		{
-			for (int i = 0; i < NodeView.Num(); i++) { ProcessSingleNode(StartIndex + i, NodeView[i]); }
+			for (int i = 0; i < NodeView.Num(); i++)
+			{
+				const int32 Index = StartIndex + i;
+				ProcessSingleNode(Index, *(Cluster->Nodes->GetData() + Index));
+			}
 		}
 
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
@@ -377,7 +379,6 @@ namespace PCGExClusterMT
 			}
 
 			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(-1);
-			int32 CurrentCount = 0;
 
 			TArray<uint64> Scopes;
 			Scopes.Reserve(PLI);
@@ -525,14 +526,12 @@ namespace PCGExClusterMT
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
-			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
-			int32 CurrentCount = 0;
-			while (CurrentCount < NumIterations)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessorBatchBase>>(
-					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PLI));
-				CurrentCount += PLI;
-			}
+			PCGExMT::SubRanges(
+				NumIterations, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations),
+				[&](const int32 Index, const int32 Count)
+				{
+					AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessorBatchBase>>(Index, nullptr, this, Count);
+				});
 		}
 
 		void ProcessRange(const int32 StartIndex, const int32 Iterations)
@@ -723,14 +722,12 @@ namespace PCGExClusterMT
 			const int32 NumTrivial = ClosedBatchProcessors.Num();
 			if (NumTrivial > 0)
 			{
-				int32 CurrentCount = 0;
-				const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration();
-				while (CurrentCount < NumTrivial)
-				{
-					AsyncManagerPtr->Start<FAsyncBatchProcessClosedRange<FClusterProcessorBatchBase>>(
-						CurrentCount, nullptr, this, FMath::Min(NumTrivial - CurrentCount, PerIterationsNum));
-					CurrentCount += PerIterationsNum;
-				}
+				PCGExMT::SubRanges(
+					NumTrivial, GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(),
+					[&](const int32 Index, const int32 Count)
+					{
+						AsyncManagerPtr->Start<FAsyncBatchProcessClosedRange<FClusterProcessorBatchBase>>(Index, nullptr, this, Count);
+					});
 			}
 		}
 	};

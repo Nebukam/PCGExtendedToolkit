@@ -51,7 +51,6 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE(InputDictionary)
 	PCGEX_DELETE(MainEdges)
 	PCGEX_DELETE(CurrentCluster)
-	PCGEX_DELETE(ClusterProjection)
 
 	PCGEX_DELETE_TARRAY(Batches)
 
@@ -64,7 +63,6 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
 	PCGEX_DELETE(CurrentCluster)
-	PCGEX_DELETE(ClusterProjection)
 
 	CurrentEdgesIndex = -1;
 	EndpointsLookup.Empty();
@@ -101,7 +99,6 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys)
 {
 	PCGEX_DELETE(CurrentCluster)
-	PCGEX_DELETE(ClusterProjection)
 
 	if (bCleanupKeys && CurrentEdges) { CurrentEdges->CleanupKeys(); }
 

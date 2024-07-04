@@ -139,7 +139,7 @@ namespace PCGExPointsMT
 
 			if (FilterFactories)
 			{
-				PointFilterCache.SetNumUninitialized(PointIO->GetNum());
+				PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
 
 				if (FilterFactories->IsEmpty())
 				{
@@ -186,13 +186,10 @@ namespace PCGExPointsMT
 				return;
 			}
 
-			int32 CurrentCount = 0;
 			TArray<uint64> Loops;
-			while (CurrentCount < NumPoints)
-			{
-				Loops.Add(PCGEx::H64(CurrentCount, FMath::Min(NumPoints - CurrentCount, PLI)));
-				CurrentCount += PLI;
-			}
+			PCGExMT::SubRanges(
+				NumPoints, PLI,
+				[&](const int32 Index, const int32 Count) { Loops.Add(PCGEx::H64(Index, Count)); });
 
 			PrepareParallelLoopForPoints(Loops);
 
@@ -226,13 +223,10 @@ namespace PCGExPointsMT
 				return;
 			}
 
-			int32 CurrentCount = 0;
 			TArray<uint64> Loops;
-			while (CurrentCount < NumIterations)
-			{
-				Loops.Add(PCGEx::H64(CurrentCount, FMath::Min(NumIterations - CurrentCount, PLI)));
-				CurrentCount += PLI;
-			}
+			PCGExMT::SubRanges(
+				NumIterations, PLI,
+				[&](const int32 Index, const int32 Count) { Loops.Add(PCGEx::H64(Index, Count)); });
 
 			PrepareParallelLoopForRange(Loops);
 
@@ -337,14 +331,13 @@ namespace PCGExPointsMT
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
-			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
-			int32 CurrentCount = 0;
-			while (CurrentCount < NumIterations)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessRange<FPointsProcessorBatchBase>>(
-					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PLI));
-				CurrentCount += PLI;
-			}
+			PCGExMT::SubRanges(
+				NumIterations, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations),
+				[&](const int32 Index, const int32 Count)
+				{
+					AsyncManagerPtr->Start<FAsyncProcessRange<FPointsProcessorBatchBase>>(
+						Index, nullptr, this, Count);
+				});
 		}
 
 		void ProcessRange(const int32 StartIndex, const int32 Iterations, const int32 LoopIdx)
@@ -516,15 +509,11 @@ namespace PCGExPointsMT
 			const int32 NumTrivial = ClosedBatchProcessors.Num();
 			if (NumTrivial > 0)
 			{
-				const int32 PLI = GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchIterations;
-				int32 NumTotal = ClosedBatchProcessors.Num();
-				int32 CurrentCount = 0;
 				TArray<uint64> Loops;
-				while (CurrentCount < NumTotal)
-				{
-					Loops.Add(PCGEx::H64(CurrentCount, FMath::Min(NumTotal - CurrentCount, PLI)));
-					CurrentCount += PLI;
-				}
+
+				PCGExMT::SubRanges(
+					ClosedBatchProcessors.Num(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchIterations,
+					[&](const int32 Index, const int32 Count) { Loops.Add(PCGEx::H64(Index, Count)); });
 
 				for (int i = 0; i < Loops.Num(); i++)
 				{

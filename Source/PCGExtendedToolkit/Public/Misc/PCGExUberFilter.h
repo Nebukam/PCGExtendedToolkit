@@ -43,7 +43,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
-	/** Swap Insider & Outside data */
+	/** Swap Inside & Outside data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSwap = false;
 

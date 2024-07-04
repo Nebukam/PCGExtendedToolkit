@@ -95,7 +95,7 @@ public:
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPartitionByValuesBaseSettings
 {
 	GENERATED_BODY()

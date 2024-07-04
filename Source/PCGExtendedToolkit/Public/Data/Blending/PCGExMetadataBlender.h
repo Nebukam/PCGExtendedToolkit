@@ -48,7 +48,7 @@ namespace PCGExDataBlending
 		{
 			for (const FDataBlendingOperationBase* Op : OperationsToBePrepared) { Op->PrepareOperation(PrimaryIndex); }
 			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
-			PropertiesBlender->PrepareBlending((*PrimaryPoints)[PrimaryIndex], Defaults ? *Defaults : (*PrimaryPoints)[PrimaryIndex]);
+			PropertiesBlender->PrepareBlending(*(PrimaryPoints->GetData() + PrimaryIndex), Defaults ? *Defaults : *(PrimaryPoints->GetData() + PrimaryIndex));
 		}
 
 		FORCEINLINE void Blend(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const PCGEx::FPointRef& Target, const double Weight)
@@ -66,7 +66,7 @@ namespace PCGExDataBlending
 			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(PrimaryIndex, SecondaryIndex, TargetIndex, Weight, IsFirstOperation); }
 			FirstPointOperation[PrimaryIndex] = false;
 			if (bSkipProperties) { return; }
-			PropertiesBlender->Blend((*PrimaryPoints)[PrimaryIndex], (*SecondaryPoints)[SecondaryIndex], (*PrimaryPoints)[TargetIndex], Weight);
+			PropertiesBlender->Blend(*(PrimaryPoints->GetData() + PrimaryIndex), *(SecondaryPoints->GetData() +SecondaryIndex), (*PrimaryPoints)[TargetIndex], Weight);
 		}
 
 		FORCEINLINE void CompleteBlending(const PCGEx::FPointRef& Target, const int32 Count, double TotalWeight) const
@@ -81,7 +81,7 @@ namespace PCGExDataBlending
 			//check(Count > 0) // Ugh, there's a check missing in a blender user...
 			for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(PrimaryIndex, Count, TotalWeight); }
 			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
-			PropertiesBlender->CompleteBlending((*PrimaryPoints)[PrimaryIndex], Count, TotalWeight);
+			PropertiesBlender->CompleteBlending(*(PrimaryPoints->GetData() + PrimaryIndex), Count, TotalWeight);
 		}
 
 		void PrepareRangeForBlending(const int32 StartIndex, const int32 Range) const;

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDataSettings.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -75,11 +76,8 @@ namespace PCGExLloydRelax2D
 	{
 		friend class FLloydRelaxTask;
 
-		double ConstantInfluence = 1;
-
-		PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
+		FPCGExInfluenceSettings InfluenceSettings;
 		TArray<FVector> ActivePositions;
-		bool bProgressiveInfluence = false;
 
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
 

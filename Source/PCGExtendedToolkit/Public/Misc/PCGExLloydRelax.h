@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDataSettings.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
@@ -71,11 +72,8 @@ namespace PCGExLloydRelax
 	{
 		friend class FLloydRelaxTask;
 
-		double ConstantInfluence = 1;
-
-		PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
+		FPCGExInfluenceSettings InfluenceSettings;
 		TArray<FVector> ActivePositions;
-		bool bProgressiveInfluence = false;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

@@ -174,7 +174,7 @@ namespace PCGExGraph
 		bool bValid = true;
 		const int32 NumEdges = EdgeIO->GetNum();
 
-		OutEdges.SetNum(NumEdges);
+		PCGEX_SET_NUM_UNINITIALIZED(OutEdges, NumEdges)
 
 		if (!bStopOnError)
 		{
@@ -195,7 +195,7 @@ namespace PCGExGraph
 				EdgeIndex++;
 			}
 
-			OutEdges.SetNum(EdgeIndex);
+			PCGEX_SET_NUM_UNINITIALIZED(OutEdges, EdgeIndex)
 		}
 		else
 		{
@@ -244,7 +244,7 @@ namespace PCGExGraph
 		bool bValid = true;
 		const int32 NumEdges = EdgeIO->GetNum();
 
-		OutEdges.SetNumUninitialized(NumEdges);
+		PCGEX_SET_NUM_UNINITIALIZED(OutEdges, NumEdges)
 
 		if (!bStopOnError)
 		{

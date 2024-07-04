@@ -259,7 +259,7 @@ namespace PCGEx
 
 		bool GetRange(TArray<T>& OutValues, const int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr, int32 Count = -1) const
 		{
-			OutValues.SetNumUninitialized(Count == -1 ? NumEntries - Index : Count, true);
+			PCGEX_SET_NUM_UNINITIALIZED(OutValues, Count == -1 ? NumEntries - Index : Count)
 			TArrayView<T> View(OutValues);
 			return Accessor->GetRange(View, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
@@ -408,7 +408,7 @@ namespace PCGEx
 		FORCEINLINE T GetZeroedValue() const { return T{}; }
 		FORCEINLINE bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
 
-		FORCEINLINE void SetNum(int32 Num) { Values.SetNumZeroed(Num); }
+		FORCEINLINE void SetNum(int32 Num) { Values.Reserve(Num); Values.SetNumZeroed(Num); }
 		virtual bool Bind(PCGExData::FPointIO* PointIO) = 0;
 
 		FORCEINLINE T operator[](int32 Index) const { return this->Values[Index]; }
@@ -479,7 +479,7 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				this->Values.SetNumUninitialized(PointIO->GetOutNum());
+				PCGEX_SET_NUM_UNINITIALIZED(this->Values, PointIO->GetOutNum())
 				return true;
 			}
 			return false;
@@ -633,8 +633,8 @@ namespace PCGEx
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;
 
-						RawValues.SetNumUninitialized(NumPoints);
-						Dump.SetNumUninitialized(NumPoints);
+						PCGEX_SET_NUM_UNINITIALIZED(RawValues, NumPoints)
+						PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints)
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
 						FPCGAttributeAccessor<RawT>* Accessor = new FPCGAttributeAccessor<RawT>(TypedAttribute, InData->Metadata);
@@ -667,7 +667,7 @@ namespace PCGEx
 			{
 				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-				Dump.SetNumUninitialized(NumPoints);
+				PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints)
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
 				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) {\
 						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExMath::Min(V, OutMin); OutMax = PCGExMath::Max(V, OutMax); Dump[i] = V;\

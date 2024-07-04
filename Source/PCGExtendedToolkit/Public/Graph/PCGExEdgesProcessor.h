@@ -70,7 +70,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	virtual bool AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys = true); // Advance edges within current points
 
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
-	PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
 
 	void OutputPointsAndEdges();
 

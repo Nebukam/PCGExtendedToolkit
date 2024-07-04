@@ -78,7 +78,6 @@ namespace PCGExLloydRelax
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(InfluenceGetter)
 		ActivePositions.Empty();
 	}
 
@@ -88,16 +87,11 @@ namespace PCGExLloydRelax
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		InfluenceGetter = new PCGEx::FLocalSingleFieldGetter();
-		InfluenceGetter->Capture(Settings->InfluenceSettings.LocalInfluence);
+		InfluenceSettings = Settings->InfluenceSettings;
+		if (!InfluenceSettings.Init(Context, PointDataFacade)) { return false; }
 
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
-
-		bProgressiveInfluence = Settings->InfluenceSettings.bProgressiveInfluence;
-		ConstantInfluence = Settings->InfluenceSettings.Influence;
-
-		if (Settings->InfluenceSettings.bUseLocalInfluence) { InfluenceGetter->Grab(PointIO); }
 
 		AsyncManagerPtr->Start<FLloydRelaxTask>(0, PointIO, this, &Settings->InfluenceSettings, Settings->Iterations);
 
@@ -106,17 +100,10 @@ namespace PCGExLloydRelax
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		if (bProgressiveInfluence)
-		{
-			Point.Transform.SetLocation(ActivePositions[Index]);
-			return;
-		}
-
 		Point.Transform.SetLocation(
-			FMath::Lerp(
-				Point.Transform.GetLocation(),
-				ActivePositions[Index],
-				InfluenceGetter->SafeGet(Index, ConstantInfluence)));
+			InfluenceSettings.bProgressiveInfluence ?
+				ActivePositions[Index] :
+				FMath::Lerp(Point.Transform.GetLocation(), ActivePositions[Index], InfluenceSettings.GetInfluence(Index)));
 	}
 
 	void FProcessor::CompleteWork()
@@ -155,13 +142,9 @@ namespace PCGExLloydRelax
 			}
 		}
 
-		if (InfluenceSettings->bProgressiveInfluence && Processor->InfluenceGetter)
+		if (InfluenceSettings->bProgressiveInfluence)
 		{
-			for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], Processor->InfluenceGetter->SafeGet(i, InfluenceSettings->Influence)); }
-		}
-		else
-		{
-			for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->Influence); }
+			for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i)); }
 		}
 
 		PCGEX_DELETE(Delaunay)

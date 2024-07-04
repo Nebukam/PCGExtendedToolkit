@@ -36,7 +36,7 @@ namespace PCGExSearch
 
 		TScoredQueue(const int32 Size, const int32& Item, const double Score)
 		{
-			Scores.SetNum(Size);
+			PCGEX_SET_NUM_UNINITIALIZED(Scores, Size)
 			Enqueue(Item, Score);
 		}
 

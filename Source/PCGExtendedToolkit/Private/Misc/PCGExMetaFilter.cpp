@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Misc\PCGExMetaFilter.h"
+#include "Misc/PCGExMetaFilter.h"
 
 #include "Helpers/PCGHelpers.h"
 
@@ -10,10 +10,22 @@
 
 PCGExData::EInit UPCGExMetaFilterSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
+TArray<FPCGPinProperties> UPCGExMetaFilterSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties;
+	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Collections that passed the tests.", Required, {})
+	PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Collections that didn't pass the tests.", Required, {})
+	return PinProperties;
+}
+
 PCGEX_INITIALIZE_ELEMENT(MetaFilter)
 
 FPCGExMetaFilterContext::~FPCGExMetaFilterContext()
 {
+	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(Inside)
+	PCGEX_DELETE(Outside)
 }
 
 bool FPCGExMetaFilterElement::Boot(FPCGContext* InContext) const
@@ -24,6 +36,20 @@ bool FPCGExMetaFilterElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(Filters)
 	Context->Filters.Init();
+
+	Context->Inside = new PCGExData::FPointIOCollection();
+	Context->Outside = new PCGExData::FPointIOCollection();
+
+	if (Settings->bSwap)
+	{
+		Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
+		Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
+	}
+	else
+	{
+		Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
+		Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
+	}
 
 	return true;
 }
@@ -40,21 +66,21 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		while (Context->AdvancePointsIO())
 		{
-			Context->CurrentIO->InitializeOutput(PCGExData::EInit::Forward);
-			Context->Filters.Filter(Context->CurrentIO->Tags);
+			PCGExData::FPointIOCollection* Target = Context->Filters.Test(Context->CurrentIO->Tags) ? Context->Inside : Context->Outside;
+			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::Forward);
 		}
 	}
 	else
 	{
 		while (Context->AdvancePointsIO())
 		{
-			// TODO : Check if any attribute is affected first, and forward instead of duplicate if not.
-			Context->CurrentIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-			Context->Filters.Filter(Context->CurrentIO);
+			PCGExData::FPointIOCollection* Target = Context->Filters.Test(Context->CurrentIO) ? Context->Inside : Context->Outside;
+			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::Forward);
 		}
 	}
 
-	Context->OutputMainPoints();
+	Context->Inside->OutputTo(Context);
+	Context->Outside->OutputTo(Context);
 	Context->Done();
 
 	return Context->TryComplete();

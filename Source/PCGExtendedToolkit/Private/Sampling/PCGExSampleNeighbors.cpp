@@ -89,6 +89,7 @@ namespace PCGExSampleNeighbors
 	FProcessor::~FProcessor()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_OPERATION(Op) }
+		if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) }
 		SamplingOperations.Empty();
 	}
 

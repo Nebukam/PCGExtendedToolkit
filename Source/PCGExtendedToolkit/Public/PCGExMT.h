@@ -49,6 +49,30 @@ namespace PCGExMT
 	PCGEX_ASYNC_STATE(State_MetaWriting)
 	PCGEX_ASYNC_STATE(State_MetaWriting2)
 
+	template<class ChunkFunc>
+	static void SubRanges(const int32 MaxItems, const int32 RangeSize, ChunkFunc&& Func)
+	{
+		int32 CurrentCount = 0;
+		while (CurrentCount < MaxItems)
+		{
+			Func(CurrentCount, FMath::Min(MaxItems - CurrentCount, RangeSize));
+			CurrentCount += RangeSize;
+		}
+	}
+
+	template<class ChunkFunc>
+	static void SubRanges(const int32 MaxItems, const int32 RangeSize, ChunkFunc&& Func, int32& OutNumSubRanges)
+	{
+		OutNumSubRanges = 0;
+		int32 CurrentCount = 0;
+		while (CurrentCount < MaxItems)
+		{
+			OutNumSubRanges++;
+			Func(CurrentCount, FMath::Min(MaxItems - CurrentCount, RangeSize));
+			CurrentCount += RangeSize;
+		}
+	}
+
 	struct PCGEXTENDEDTOOLKIT_API FAsyncParallelLoop
 	{
 		FAsyncParallelLoop()
