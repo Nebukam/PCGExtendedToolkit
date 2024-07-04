@@ -187,9 +187,7 @@ namespace PCGExPointsMT
 			}
 
 			TArray<uint64> Loops;
-			PCGExMT::SubRanges(
-				NumPoints, PLI,
-				[&](const int32 Index, const int32 Count) { Loops.Add(PCGEx::H64(Index, Count)); });
+			PCGExMT::SubRanges(Loops, NumPoints, PLI);
 
 			PrepareParallelLoopForPoints(Loops);
 
@@ -224,9 +222,7 @@ namespace PCGExPointsMT
 			}
 
 			TArray<uint64> Loops;
-			PCGExMT::SubRanges(
-				NumIterations, PLI,
-				[&](const int32 Index, const int32 Count) { Loops.Add(PCGEx::H64(Index, Count)); });
+			PCGExMT::SubRanges(Loops, NumIterations, PLI);
 
 			PrepareParallelLoopForRange(Loops);
 
@@ -510,10 +506,7 @@ namespace PCGExPointsMT
 			if (NumTrivial > 0)
 			{
 				TArray<uint64> Loops;
-
-				PCGExMT::SubRanges(
-					ClosedBatchProcessors.Num(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchIterations,
-					[&](const int32 Index, const int32 Count) { Loops.Add(PCGEx::H64(Index, Count)); });
+				PCGExMT::SubRanges(Loops, ClosedBatchProcessors.Num(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchIterations);
 
 				for (int i = 0; i < Loops.Num(); i++)
 				{

@@ -74,8 +74,8 @@ namespace PCGExRelaxClusters
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		mutable FRWLock RangeCompleteLock;
-		bool bPreparingNextIteration = false;
 		int32 NumSubranges = 0;
+		int32 NumSubrangesComplete = 0;
 		int32 Iterations = 10;
 
 		PCGExData::FCache<double>* InfluenceCache = nullptr;

@@ -723,7 +723,8 @@ namespace PCGExClusterMT
 			if (NumTrivial > 0)
 			{
 				PCGExMT::SubRanges(
-					NumTrivial, GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(),
+					NumTrivial,
+					GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(),
 					[&](const int32 Index, const int32 Count)
 					{
 						AsyncManagerPtr->Start<FAsyncBatchProcessClosedRange<FClusterProcessorBatchBase>>(Index, nullptr, this, Count);

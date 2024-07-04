@@ -125,31 +125,25 @@ namespace PCGExRelaxClusters
 		if (Iterations <= 0) { return; }
 
 		Iterations--;
+		NumSubrangesComplete = 0;
 
 		std::swap(PrimaryBuffer, SecondaryBuffer);
 
 		RelaxOperation->ReadBuffer = PrimaryBuffer;
 		RelaxOperation->WriteBuffer = SecondaryBuffer;
 
-		bPreparingNextIteration = true; // Ooof :[
+		TArray<uint64> Loops;
+		NumSubranges = PCGExMT::SubRanges(Loops, NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
 
-		PCGExMT::SubRanges(
-			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
-			[&](const int32 Index, const int32 Count)
-			{
-				AsyncManagerPtr->Start<FRelaxRangeTask>(Index, nullptr, this, Count);
-			}, NumSubranges);
-
-		bPreparingNextIteration = false;
-		if (NumSubranges <= 0) { StartRelaxIteration(); }
+		for (const uint64 H : Loops) { AsyncManagerPtr->Start<FRelaxRangeTask>(PCGEx::H64A(H), nullptr, this, PCGEx::H64B(H)); }
 	}
 
 	void FProcessor::OnRelaxSubrangeComplete()
 	{
 		{
 			FWriteScopeLock WriteScopeLock(RangeCompleteLock);
-			NumSubranges--;
-			if (bPreparingNextIteration || NumSubranges > 0) { return; }
+			NumSubrangesComplete++;
+			if (NumSubranges != NumSubrangesComplete) { return; }
 		}
 
 		StartRelaxIteration();
