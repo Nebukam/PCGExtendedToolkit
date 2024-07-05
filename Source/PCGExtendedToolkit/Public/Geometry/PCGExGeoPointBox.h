@@ -127,7 +127,7 @@ namespace PCGExGeo
 			const TArray<FPCGPoint>& Points = PointData->GetPoints();
 
 			PCGEX_SET_NUM_UNINITIALIZED(Boxes, Points.Num())
-			
+
 			for (int i = 0; i < Points.Num(); i++)
 			{
 				FPointBox* NewPointBox = new FPointBox(Points[i], i);

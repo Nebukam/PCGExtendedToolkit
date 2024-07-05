@@ -408,7 +408,12 @@ namespace PCGEx
 		FORCEINLINE T GetZeroedValue() const { return T{}; }
 		FORCEINLINE bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
 
-		FORCEINLINE void SetNum(int32 Num) { Values.Reserve(Num); Values.SetNumZeroed(Num); }
+		FORCEINLINE void SetNum(int32 Num)
+		{
+			Values.Reserve(Num);
+			Values.SetNumZeroed(Num);
+		}
+
 		virtual bool Bind(PCGExData::FPointIO* PointIO) = 0;
 
 		FORCEINLINE T operator[](int32 Index) const { return this->Values[Index]; }

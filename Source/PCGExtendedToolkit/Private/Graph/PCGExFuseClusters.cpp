@@ -51,11 +51,11 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseClusters)
 
-    PCGEX_FWD(VtxCarryOver)
-    Context->VtxCarryOver.Init();
-    
-    PCGEX_FWD(EdgesCarryOver)
-    Context->EdgesCarryOver.Init();
+	PCGEX_FWD(VtxCarryOver)
+	Context->VtxCarryOver.Init();
+
+	PCGEX_FWD(EdgesCarryOver)
+	Context->EdgesCarryOver.Init();
 
 	const_cast<UPCGExFuseClustersSettings*>(Settings)
 		->EdgeEdgeIntersectionSettings.ComputeDot();

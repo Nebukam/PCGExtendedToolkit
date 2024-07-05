@@ -154,7 +154,6 @@ namespace PCGExNodeAdjacency
 
 	bool FEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	{
-		
 		const int32 PointIndex = Node.PointIndex;
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 

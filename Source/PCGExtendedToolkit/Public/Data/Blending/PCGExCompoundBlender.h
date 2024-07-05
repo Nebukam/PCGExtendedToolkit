@@ -80,7 +80,7 @@ namespace PCGExDataBlending
 
 	public:
 		const FPCGExCarryOverSettings* CarryOver;
-		
+
 		explicit FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings, const FPCGExCarryOverSettings* InCarryOver);
 		~FCompoundBlender();
 

@@ -57,9 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterDescriptor
 
 	void Sanitize()
 	{
-		
 	}
-	
 };
 
 /**
@@ -72,7 +70,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterFactory : public UPCGExFilterFactory
 
 public:
 	FPCGExDotFilterDescriptor Descriptor;
-void Init() override;
+	virtual void Init() override;
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 

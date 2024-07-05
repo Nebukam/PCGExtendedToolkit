@@ -60,7 +60,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 	{
 		DirectionConstant = DirectionConstant.GetSafeNormal();
 	}
-	
 };
 
 /**

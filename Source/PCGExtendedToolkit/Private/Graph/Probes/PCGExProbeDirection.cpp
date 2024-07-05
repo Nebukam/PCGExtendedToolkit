@@ -45,7 +45,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index].GetSafeNormal() : Direction;
 	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
-	
+
 	for (int i = 0; i < Candidates.Num(); i++)
 	{
 		const PCGExProbing::FCandidate& C = Candidates[i];

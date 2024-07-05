@@ -123,7 +123,7 @@ UPCGExParamFactoryBase* UPCGExMatchToProviderSettings::CreateFactory(FPCGContext
 
 	if (TypedFactory)
 	{
-		if (!PCGExFactories::GetInputFactories(
+		if (!GetInputFactories(
 			InContext, PCGExMatchmaking::SourceMatchFilterLabel, TypedFactory->FilterFactories,
 			PCGExFactories::PointFilters, true))
 		{

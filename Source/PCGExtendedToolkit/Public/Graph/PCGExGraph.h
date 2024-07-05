@@ -373,7 +373,7 @@ namespace PCGExGraph
 			: NumEdgesReserve(InNumEdgesReserve)
 		{
 			PCGEX_SET_NUM(Nodes, InNumNodes)
-			
+
 			for (int i = 0; i < InNumNodes; i++)
 			{
 				FNode& Node = Nodes[i];

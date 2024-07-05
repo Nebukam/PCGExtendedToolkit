@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExPointStates.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "..\..\Misc\PCGExBitmaskMerge.h"
+#include "../../Misc/PCGExBitmaskMerge.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExClusterStates.generated.h"
 

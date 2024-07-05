@@ -87,7 +87,7 @@ public:
 	/** Tags to be processed or ignored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNameFiltersSettings TagFilters;
-	
+
 	/** Which tag has merging authority over another. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TArray<FString> ResolutionPriorities;
@@ -95,7 +95,6 @@ public:
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverSettings CarryOver;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExMergePointsByTagContext final : public FPCGExPointsProcessorContext
@@ -106,7 +105,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMergePointsByTagContext final : public FPCGE
 
 	FPCGExNameFiltersSettings TagFilters;
 	FPCGExCarryOverSettings CarryOver;
-	
+
 	TArray<PCPGExMergePointsByTag::FMergeList*> MergeLists;
 };
 

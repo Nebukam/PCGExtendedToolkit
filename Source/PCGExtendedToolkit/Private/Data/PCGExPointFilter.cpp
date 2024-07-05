@@ -17,7 +17,6 @@ void UPCGExFilterFactoryBase::Init()
 
 namespace PCGExPointFilter
 {
-
 	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 	{
 		PointDataFacade = InPointDataFacade;

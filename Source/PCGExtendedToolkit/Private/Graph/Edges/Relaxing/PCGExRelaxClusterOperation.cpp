@@ -9,7 +9,6 @@ void UPCGExRelaxClusterOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	Super::CopySettingsFrom(Other);
 	if (const UPCGExRelaxClusterOperation* TypedOther = Cast<UPCGExRelaxClusterOperation>(Other))
 	{
-		
 	}
 }
 

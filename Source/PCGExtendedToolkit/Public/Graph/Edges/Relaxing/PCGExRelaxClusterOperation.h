@@ -38,6 +38,4 @@ public:
 	TArray<FVector>* WriteBuffer = nullptr;
 
 	virtual void Cleanup() override;
-	
-
 };

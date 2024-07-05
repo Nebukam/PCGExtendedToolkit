@@ -85,7 +85,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskSettings : public UPCGSettings
 
 	friend class FPCGExBitmaskElement;
 
-public:    
+public:
 	bool bCacheResult = false;
 	//~Begin UPCGSettings
 #if WITH_EDITOR

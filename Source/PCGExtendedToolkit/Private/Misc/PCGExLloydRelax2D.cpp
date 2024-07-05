@@ -109,8 +109,8 @@ namespace PCGExLloydRelax2D
 
 		Point.Transform.SetLocation(
 			InfluenceSettings.bProgressiveInfluence ?
-			TargetPosition :
-			FMath::Lerp(Point.Transform.GetLocation(), TargetPosition, InfluenceSettings.GetInfluence(Index)));
+				TargetPosition :
+				FMath::Lerp(Point.Transform.GetLocation(), TargetPosition, InfluenceSettings.GetInfluence(Index)));
 	}
 
 	void FProcessor::CompleteWork()

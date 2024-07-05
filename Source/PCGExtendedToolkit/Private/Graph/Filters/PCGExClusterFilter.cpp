@@ -11,7 +11,7 @@ namespace PCGExClusterFilter
 
 	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 	{
-		if(!bInitForCluster)
+		if (!bInitForCluster)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Using a Cluster filter without cluster data"));
 			return false;

@@ -140,7 +140,7 @@ namespace PCGExBridgeClusters
 	void FProcessorBatch::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
-		
+
 		TBatch<FProcessor>::Process(AsyncManager);
 
 		// Start merging right away

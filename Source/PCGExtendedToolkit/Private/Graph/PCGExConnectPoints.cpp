@@ -61,10 +61,10 @@ bool FPCGExConnectPointsElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	PCGExFactories::GetInputFactories(
+	GetInputFactories(
 		Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
 		PCGExFactories::PointFilters, false);
-	PCGExFactories::GetInputFactories(
+	GetInputFactories(
 		Context, PCGExGraph::SourceFilterConnectables, Context->ConnetablesFiltersFactories,
 		PCGExFactories::PointFilters, false);
 

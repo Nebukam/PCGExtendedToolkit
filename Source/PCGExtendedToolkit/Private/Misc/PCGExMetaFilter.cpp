@@ -42,7 +42,7 @@ bool FPCGExMetaFilterElement::Boot(FPCGContext* InContext) const
 
 	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
-	
+
 	if (Settings->bSwap)
 	{
 		Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;

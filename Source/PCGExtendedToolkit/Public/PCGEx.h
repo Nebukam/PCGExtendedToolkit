@@ -8,7 +8,6 @@
 #include "PCGContext.h"
 #include "MatchAndSet/PCGMatchAndSetWeighted.h"
 #include "Metadata/PCGMetadataAttribute.h"
-#include "PCGExMacros.h"
 
 #include "PCGEx.generated.h"
 
@@ -169,7 +168,11 @@ namespace PCGEx
 
 	static void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum)
 	{
-		{ const int32 _num_ = InNum; OutArray.Reserve(_num_); OutArray.SetNum(_num_); }
+		{
+			const int32 _num_ = InNum;
+			OutArray.Reserve(_num_);
+			OutArray.SetNum(_num_);
+		}
 		for (int i = 0; i < InNum; i++) { OutArray[i] = i; }
 	}
 

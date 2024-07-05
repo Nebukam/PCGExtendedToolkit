@@ -66,7 +66,7 @@ namespace PCGExDataBlending
 			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(PrimaryIndex, SecondaryIndex, TargetIndex, Weight, IsFirstOperation); }
 			FirstPointOperation[PrimaryIndex] = false;
 			if (bSkipProperties) { return; }
-			PropertiesBlender->Blend(*(PrimaryPoints->GetData() + PrimaryIndex), *(SecondaryPoints->GetData() +SecondaryIndex), (*PrimaryPoints)[TargetIndex], Weight);
+			PropertiesBlender->Blend(*(PrimaryPoints->GetData() + PrimaryIndex), *(SecondaryPoints->GetData() + SecondaryIndex), (*PrimaryPoints)[TargetIndex], Weight);
 		}
 
 		FORCEINLINE void CompleteBlending(const PCGEx::FPointRef& Target, const int32 Count, double TotalWeight) const

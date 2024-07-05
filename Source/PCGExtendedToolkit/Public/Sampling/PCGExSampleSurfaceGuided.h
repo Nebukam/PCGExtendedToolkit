@@ -114,7 +114,7 @@ public:
 	/** Name of the 'string' attribute to write actor reference to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, EditCondition="bWritePhysMat"))
 	FName PhysMatAttributeName = FName("PhysMat");
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	bool bTraceComplex = false;
 
@@ -144,7 +144,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
