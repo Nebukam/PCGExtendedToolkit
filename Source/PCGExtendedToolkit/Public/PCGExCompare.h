@@ -61,11 +61,11 @@ enum class EPCGExStringComparison : uint8
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bitflag Comparison"))
 enum class EPCGExBitflagComparison : uint8
 {
-	ContainsAny UMETA(DisplayName = "Contains Any", Tooltip="Value & Mask != 0"),
-	ContainsAll UMETA(DisplayName = "Contains All", Tooltip="Value & Mask == Mask"),
-	IsExactly UMETA(DisplayName = "Is Exactly", Tooltip="Value == Mask"),
-	NotContainsAny UMETA(DisplayName = "Not Contains Any", Tooltip="Value & Mask == 0"),
-	NotContainsAll UMETA(DisplayName = "Not Contains All", Tooltip="Value & Mask != Mask"),
+	MatchPartial UMETA(DisplayName = "Match (any)", Tooltip="Value & Mask != 0 (At least some flags in the mask are set)"),
+	MatchFull UMETA(DisplayName = "Match (all)", Tooltip="Value & Mask == Mask (All the flags in the mask are set)"),
+	MatchStrict UMETA(DisplayName = "Match (strict)", Tooltip="Value == Mask (Flags strictly equals mask)"),
+	NoMatchPartial UMETA(DisplayName = "No match (any)", Tooltip="Value & Mask == 0 (Flags does not contains any from mask)"),
+	NoMatchFull UMETA(DisplayName = "No match (all)", Tooltip="Value & Mask != Mask (Flags does not contains the mask)"),
 };
 
 namespace PCGExCompare
@@ -98,15 +98,15 @@ namespace PCGExCompare
 	{
 		switch (Comparison)
 		{
-		case EPCGExBitflagComparison::ContainsAny:
+		case EPCGExBitflagComparison::MatchPartial:
 			return " Any ";
-		case EPCGExBitflagComparison::ContainsAll:
+		case EPCGExBitflagComparison::MatchFull:
 			return " All ";
-		case EPCGExBitflagComparison::IsExactly:
+		case EPCGExBitflagComparison::MatchStrict:
 			return " Exactly ";
-		case EPCGExBitflagComparison::NotContainsAny:
+		case EPCGExBitflagComparison::NoMatchPartial:
 			return " Not Any ";
-		case EPCGExBitflagComparison::NotContainsAll:
+		case EPCGExBitflagComparison::NoMatchFull:
 			return " Not All ";
 		default:
 			return " ?? ";
@@ -384,20 +384,20 @@ namespace PCGExCompare
 		}
 	}
 
-	FORCEINLINE static bool Compare(const EPCGExBitflagComparison Method, const int64& Value, const int64& Mask)
+	FORCEINLINE static bool Compare(const EPCGExBitflagComparison Method, const int64& Flags, const int64& Mask)
 	{
 		switch (Method)
 		{
-		case EPCGExBitflagComparison::ContainsAny:
-			return ((Value & Mask) != 0);
-		case EPCGExBitflagComparison::ContainsAll:
-			return ((Value & Mask) == Mask);
-		case EPCGExBitflagComparison::IsExactly:
-			return (Value == Mask);
-		case EPCGExBitflagComparison::NotContainsAny:
-			return ((Value & Mask) == 0);
-		case EPCGExBitflagComparison::NotContainsAll:
-			return ((Value & Mask) != Mask);
+		case EPCGExBitflagComparison::MatchPartial:
+			return ((Flags & Mask) != 0);
+		case EPCGExBitflagComparison::MatchFull:
+			return ((Flags & Mask) == Mask);
+		case EPCGExBitflagComparison::MatchStrict:
+			return (Flags == Mask);
+		case EPCGExBitflagComparison::NoMatchPartial:
+			return ((Flags & Mask) == 0);
+		case EPCGExBitflagComparison::NoMatchFull:
+			return ((Flags & Mask) != Mask);
 		default: return false;
 		}
 	}

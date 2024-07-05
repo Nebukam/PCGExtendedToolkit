@@ -2,25 +2,25 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExBitmask.h"
-#include "Misc/PCGExBitmaskOperation.h"
+#include "Misc/PCGExBitwiseOperation.h"
 
-#define LOCTEXT_NAMESPACE "PCGExBitmaskOperationElement"
-#define PCGEX_NAMESPACE BitmaskOperation
+#define LOCTEXT_NAMESPACE "PCGExBitwiseOperationElement"
+#define PCGEX_NAMESPACE BitwiseOperation
 
-PCGExData::EInit UPCGExBitmaskOperationSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBitwiseOperationSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-PCGEX_INITIALIZE_ELEMENT(BitmaskOperation)
+PCGEX_INITIALIZE_ELEMENT(BitwiseOperation)
 
-FPCGExBitmaskOperationContext::~FPCGExBitmaskOperationContext()
+FPCGExBitwiseOperationContext::~FPCGExBitwiseOperationContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExBitmaskOperationElement::Boot(FPCGContext* InContext) const
+bool FPCGExBitwiseOperationElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(BitmaskOperation)
+	PCGEX_CONTEXT_AND_SETTINGS(BitwiseOperation)
 
 	PCGEX_VALIDATE_NAME(Settings->FlagAttribute)
 
@@ -32,18 +32,18 @@ bool FPCGExBitmaskOperationElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExBitmaskOperationElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBitmaskOperationElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBitwiseOperationElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(BitmaskOperation)
+	PCGEX_CONTEXT_AND_SETTINGS(BitwiseOperation)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		bool bInvalidInputs = false;
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBitmaskOperation::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry)
 			{
 				if (Settings->MaskType == EPCGExFetchType::Attribute && !Entry->GetOut()->Metadata->HasAttribute(Settings->MaskAttribute))
@@ -53,7 +53,7 @@ bool FPCGExBitmaskOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExBitmaskOperation::FProcessor>* NewBatch)
+			[&](PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>* NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -75,11 +75,11 @@ bool FPCGExBitmaskOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 	return Context->TryComplete();
 }
 
-namespace PCGExBitmaskOperation
+namespace PCGExBitwiseOperation
 {
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BitmaskOperation)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BitwiseOperation)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -92,7 +92,7 @@ namespace PCGExBitmaskOperation
 		}
 		else
 		{
-			Mask = Settings->BitMask.Get();
+			Mask = Settings->Bitmask;
 		}
 
 		Op = Settings->Operation;

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -24,23 +25,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterDescriptor
 
 	/** Source value. (Operand A) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName Value = FName("Flags");
+	FName FlagsAttribute = FName("Flags");
 
 	/** Type of flag comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag64", DisplayName="Mask"))
-	EPCGExBitflagComparison Comparison = EPCGExBitflagComparison::ContainsAll;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExBitflag64"))
+	EPCGExBitflagComparison Comparison = EPCGExBitflagComparison::MatchPartial;
 
 	/** Type of Mask */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExFetchType MaskType = EPCGExFetchType::Constant;
 
 	/** Mask for testing -- Must be int64. (Operand B) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Attribute", DisplayName="Mask", EditConditionHides))
-	FName MaskAttribute = FName("Mask");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Attribute", EditConditionHides))
+	FName BitmaskAttribute = FName("Mask");
 
 	/** (Operand B) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Constant", DisplayName="Mask", EditConditionHides))
-	FPCGExBitmask BitMask;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Constant", EditConditionHides))
+	int64 Bitmask = 0;
 };
 
 
@@ -64,16 +65,16 @@ namespace PCGExPointsFilter
 	{
 	public:
 		explicit TBitmaskFilter(const UPCGExBitmaskFilterFactory* InDefinition)
-			: TFilter(InDefinition), TypedFilterFactory(InDefinition), CompositeMask(InDefinition->Descriptor.BitMask.Get())
+			: TFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Descriptor.Bitmask)
 		{
 		}
 
 		const UPCGExBitmaskFilterFactory* TypedFilterFactory;
 
-		PCGEx::FAttributeIOBase<int64>* ValueReader = nullptr;
+		PCGEx::FAttributeIOBase<int64>* FlagsReader = nullptr;
 		PCGEx::FAttributeIOBase<int64>* MaskReader = nullptr;
 
-		int64 CompositeMask;
+		int64 Bitmask;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 

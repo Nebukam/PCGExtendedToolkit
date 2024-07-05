@@ -124,7 +124,7 @@ UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory
 	if (Descriptor.bOnTestPass)
 	{
 		UPCGParamData* Bitmask = NewObject<UPCGParamData>();
-		Bitmask->Metadata->CreateAttribute(FName("OnPassBitmask"), Descriptor.PassStateFlags.Get(), false, true);
+		Bitmask->Metadata->CreateAttribute<int64>(FName("OnPassBitmask"), Descriptor.PassStateFlags.Get(), false, true);
 		Bitmask->Metadata->AddEntry();
 		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
 		OutData.Pin = PCGExNodeFlags::OutputOnPassBitmaskLabel;
@@ -134,7 +134,7 @@ UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory
 	if (Descriptor.bOnTestFail)
 	{
 		UPCGParamData* Bitmask = NewObject<UPCGParamData>();
-		Bitmask->Metadata->CreateAttribute(FName("OnFailBitmask"), Descriptor.FailStateFlags.Get(), false, true);
+		Bitmask->Metadata->CreateAttribute<int64>(FName("OnFailBitmask"), Descriptor.FailStateFlags.Get(), false, true);
 		Bitmask->Metadata->AddEntry();
 		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
 		OutData.Pin = PCGExNodeFlags::OutputOnFailBitmaskLabel;

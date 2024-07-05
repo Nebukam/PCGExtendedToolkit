@@ -8,17 +8,17 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExBitmaskOperation.generated.h"
+#include "PCGExBitwiseOperation.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskOperationSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBitwiseOperationSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BitmaskOperation, "Bitmask Operation", "Do a Bitmask operation on an attribute.");
+	PCGEX_NODE_INFOS(BitwiseOperation, "Bitmask Operation", "Do a Bitmask operation on an attribute.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
 #endif
 
@@ -50,17 +50,17 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Constant", DisplayName="Mask", EditConditionHides))
-	FPCGExBitmask BitMask;
+	int64 Bitmask;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskOperationContext final : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBitwiseOperationContext final : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExBitmaskOperationElement;
+	friend class FPCGExBitwiseOperationElement;
 
-	virtual ~FPCGExBitmaskOperationContext() override;
+	virtual ~FPCGExBitwiseOperationContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBitmaskOperationElement final : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBitwiseOperationElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -73,7 +73,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExBitmaskOperation
+namespace PCGExBitwiseOperation
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{

@@ -44,7 +44,7 @@ public:
 
 	/** Initial flags */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExBitmask InitialFlags;
+	int64 InitialFlags;
 
 private:
 	friend class FPCGExFlagNodesElement;

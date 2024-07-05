@@ -40,12 +40,10 @@ bool FPCGExMetaFilterElement::Boot(FPCGContext* InContext) const
 	Context->Inside = new PCGExData::FPointIOCollection();
 	Context->Outside = new PCGExData::FPointIOCollection();
 
+	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
+	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
+	
 	if (Settings->bSwap)
-	{
-		Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
-		Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
-	}
-	else
 	{
 		Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
 		Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;

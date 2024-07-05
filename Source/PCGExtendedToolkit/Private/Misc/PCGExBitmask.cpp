@@ -47,7 +47,7 @@ bool FPCGExBitmaskElement::ExecuteInternal(FPCGContext* Context) const
 	PCGEX_SETTINGS(Bitmask)
 
 	UPCGParamData* Bitmask = NewObject<UPCGParamData>();
-	Bitmask->Metadata->CreateAttribute(FName("Bitmask"), Settings->Bitmask.Get(), false, true);
+	Bitmask->Metadata->CreateAttribute<int64>(FName("Bitmask"), Settings->Bitmask.Get(), false, true);
 	Bitmask->Metadata->AddEntry();
 	FPCGTaggedData& OutData = Context->OutputData.TaggedData.Emplace_GetRef();
 	OutData.Pin = FName("Bitmask");

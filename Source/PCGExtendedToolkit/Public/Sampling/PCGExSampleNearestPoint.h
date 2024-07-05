@@ -138,7 +138,7 @@ public:
 	double RangeMax = 300;
 
 	/** Use a per-point minimum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMin = false;
 
 	/** Attribute or property to read the minimum range from. */
@@ -146,7 +146,7 @@ public:
 	FPCGAttributePropertyInputSelector LocalRangeMin;
 
 	/** Use a per-point maximum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMax = false;
 
 	/** Attribute or property to read the maximum range from. */
