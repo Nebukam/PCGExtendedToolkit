@@ -58,9 +58,9 @@ namespace PCGExNodeAdjacency
 		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
 		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(Node.PointIndex);
 
-		const FVector RefDir = TypedFilterFactory->Descriptor.bTransformDirection ?
-			                       Point.Transform.TransformVectorNoScale(OperandDirection->Values[Node.PointIndex].GetSafeNormal()) :
-			                       OperandDirection->Values[Node.PointIndex].GetSafeNormal();
+		FVector RefDir = OperandDirection ? OperandDirection->Values[Node.PointIndex] : TypedFilterFactory->Descriptor.DirectionConstant;
+		if (TypedFilterFactory->Descriptor.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
+
 		const double A = DotComparison.GetDot(Node.PointIndex);
 		double B = 0;
 
@@ -159,9 +159,8 @@ namespace PCGExNodeAdjacency
 		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
 		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(Node.PointIndex);
 
-		const FVector RefDir = TypedFilterFactory->Descriptor.bTransformDirection ?
-			                       Point.Transform.TransformVectorNoScale(OperandDirection->Values[Node.PointIndex].GetSafeNormal()) :
-			                       OperandDirection->Values[Node.PointIndex].GetSafeNormal();
+		FVector RefDir = OperandDirection ? OperandDirection->Values[Node.PointIndex] : TypedFilterFactory->Descriptor.DirectionConstant;
+		if (TypedFilterFactory->Descriptor.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
 		const FVector CWTolerance = HashComparison.GetCWTolerance(Node.PointIndex);
 		const uint64 A = PCGEx::GH(RefDir, CWTolerance);
@@ -213,6 +212,9 @@ PCGEX_CREATE_FILTER_FACTORY(EdgeDirection)
 FString UPCGExEdgeDirectionFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = TEXT("Edge Direction ") + PCGExCompare::ToString(Descriptor.DotComparisonSettings.Comparison);
+
+	UPCGExEdgeDirectionFilterProviderSettings* MutableSelf = const_cast<UPCGExEdgeDirectionFilterProviderSettings*>(this);
+	MutableSelf->Descriptor.DirectionConstant = Descriptor.DirectionConstant.GetSafeNormal();
 
 	DisplayName += Descriptor.Direction.GetName().ToString();
 	DisplayName += TEXT(" (");

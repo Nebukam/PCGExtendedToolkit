@@ -18,8 +18,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMetaFilterSettings : public UPCGExPointsProce
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MetaFilter, "Meta Filter", "Keep/Remove tags & attributes using string queries.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscRemove; }
+	PCGEX_NODE_INFOS(MetaFilter, "Meta Filter", "Filter point collections based on tags & attributes using string queries");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub; }
 #endif
 
 protected:

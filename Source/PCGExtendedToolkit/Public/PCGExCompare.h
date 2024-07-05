@@ -702,14 +702,14 @@ UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", D
 enum class EPCGExBitmask8_08_16 : uint8
 {
 	None    = 0,
-	Flag_9  = 1 << 0 UMETA(DisplayName = "(9) Iota"),
-	Flag_10 = 1 << 1 UMETA(DisplayName = "(10) Kappa"),
-	Flag_11 = 1 << 2 UMETA(DisplayName = "(11) Lambda"),
-	Flag_12 = 1 << 3 UMETA(DisplayName = "(12) Mu"),
-	Flag_13 = 1 << 4 UMETA(DisplayName = "(13) Nu"),
-	Flag_14 = 1 << 5 UMETA(DisplayName = "(14) Xi"),
-	Flag_15 = 1 << 6 UMETA(DisplayName = "(15) Omicron"),
-	Flag_16 = 1 << 7 UMETA(DisplayName = "(16) Pi"),
+	Flag_9  = 1 << 0 UMETA(DisplayName = "(8) Iota"),
+	Flag_10 = 1 << 1 UMETA(DisplayName = "(9) Kappa"),
+	Flag_11 = 1 << 2 UMETA(DisplayName = "(10) Lambda"),
+	Flag_12 = 1 << 3 UMETA(DisplayName = "(11) Mu"),
+	Flag_13 = 1 << 4 UMETA(DisplayName = "(12) Nu"),
+	Flag_14 = 1 << 5 UMETA(DisplayName = "(13) Xi"),
+	Flag_15 = 1 << 6 UMETA(DisplayName = "(14) Omicron"),
+	Flag_16 = 1 << 7 UMETA(DisplayName = "(15) Pi"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_08_16)
@@ -719,14 +719,14 @@ UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", D
 enum class EPCGExBitmask8_16_24 : uint8
 {
 	None    = 0,
-	Flag_17 = 1 << 0 UMETA(DisplayName = "(17) Rho"),
-	Flag_18 = 1 << 1 UMETA(DisplayName = "(18) Sigma"),
-	Flag_19 = 1 << 2 UMETA(DisplayName = "(19) Tau"),
-	Flag_20 = 1 << 3 UMETA(DisplayName = "(20) Upsilon"),
-	Flag_21 = 1 << 4 UMETA(DisplayName = "(21) Phi"),
-	Flag_22 = 1 << 5 UMETA(DisplayName = "(22) Chi"),
-	Flag_23 = 1 << 6 UMETA(DisplayName = "(23) Psi"),
-	Flag_24 = 1 << 7 UMETA(DisplayName = "(24) Omega"),
+	Flag_17 = 1 << 0 UMETA(DisplayName = "(16) Rho"),
+	Flag_18 = 1 << 1 UMETA(DisplayName = "(17) Sigma"),
+	Flag_19 = 1 << 2 UMETA(DisplayName = "(18) Tau"),
+	Flag_20 = 1 << 3 UMETA(DisplayName = "(19) Upsilon"),
+	Flag_21 = 1 << 4 UMETA(DisplayName = "(20) Phi"),
+	Flag_22 = 1 << 5 UMETA(DisplayName = "(21) Chi"),
+	Flag_23 = 1 << 6 UMETA(DisplayName = "(22) Psi"),
+	Flag_24 = 1 << 7 UMETA(DisplayName = "(23) Omega"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_16_24)
@@ -736,14 +736,14 @@ UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", D
 enum class EPCGExBitmask8_24_32 : uint8
 {
 	None    = 0,
-	Flag_25 = 1 << 0 UMETA(DisplayName = "(25) Ares"),
-	Flag_26 = 1 << 1 UMETA(DisplayName = "(26) Zeus"),
-	Flag_27 = 1 << 2 UMETA(DisplayName = "(27) Hera"),
-	Flag_28 = 1 << 3 UMETA(DisplayName = "(28) Apollo"),
-	Flag_29 = 1 << 4 UMETA(DisplayName = "(29) Hermes"),
-	Flag_30 = 1 << 5 UMETA(DisplayName = "(30) Athena"),
-	Flag_31 = 1 << 6 UMETA(DisplayName = "(31) Artemis"),
-	Flag_32 = 1 << 7 UMETA(DisplayName = "(32) Demeter"),
+	Flag_25 = 1 << 0 UMETA(DisplayName = "(24) Ares"),
+	Flag_26 = 1 << 1 UMETA(DisplayName = "(25) Zeus"),
+	Flag_27 = 1 << 2 UMETA(DisplayName = "(26) Hera"),
+	Flag_28 = 1 << 3 UMETA(DisplayName = "(27) Apollo"),
+	Flag_29 = 1 << 4 UMETA(DisplayName = "(28) Hermes"),
+	Flag_30 = 1 << 5 UMETA(DisplayName = "(29) Athena"),
+	Flag_31 = 1 << 6 UMETA(DisplayName = "(30) Artemis"),
+	Flag_32 = 1 << 7 UMETA(DisplayName = "(31) Demeter"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_24_32)
@@ -753,14 +753,14 @@ UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", D
 enum class EPCGExBitmask8_32_40 : uint8
 {
 	None    = 0,
-	Flag_33 = 1 << 0 UMETA(DisplayName = "(33) Dionysus"),
-	Flag_34 = 1 << 1 UMETA(DisplayName = "(34) Hades"),
-	Flag_35 = 1 << 2 UMETA(DisplayName = "(35) Hephaestus"),
-	Flag_36 = 1 << 3 UMETA(DisplayName = "(36) Hera"),
-	Flag_37 = 1 << 4 UMETA(DisplayName = "(37) Hestia"),
-	Flag_38 = 1 << 5 UMETA(DisplayName = "(38) Poseidon"),
-	Flag_39 = 1 << 6 UMETA(DisplayName = "(39) Janus"),
-	Flag_40 = 1 << 7 UMETA(DisplayName = "(40) Mars"),
+	Flag_33 = 1 << 0 UMETA(DisplayName = "(32) Dionysus"),
+	Flag_34 = 1 << 1 UMETA(DisplayName = "(33) Hades"),
+	Flag_35 = 1 << 2 UMETA(DisplayName = "(34) Hephaestus"),
+	Flag_36 = 1 << 3 UMETA(DisplayName = "(35) Hera"),
+	Flag_37 = 1 << 4 UMETA(DisplayName = "(36) Hestia"),
+	Flag_38 = 1 << 5 UMETA(DisplayName = "(37) Poseidon"),
+	Flag_39 = 1 << 6 UMETA(DisplayName = "(38) Janus"),
+	Flag_40 = 1 << 7 UMETA(DisplayName = "(39) Mars"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_32_40)
@@ -770,14 +770,14 @@ UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", D
 enum class EPCGExBitmask8_40_48 : uint8
 {
 	None    = 0,
-	Flag_41 = 1 << 0 UMETA(DisplayName = "(41) Venus"),
-	Flag_42 = 1 << 1 UMETA(DisplayName = "(42) Jupiter"),
-	Flag_43 = 1 << 2 UMETA(DisplayName = "(43) Saturn"),
-	Flag_44 = 1 << 3 UMETA(DisplayName = "(44) Neptune"),
-	Flag_45 = 1 << 4 UMETA(DisplayName = "(45) Pluto"),
-	Flag_46 = 1 << 5 UMETA(DisplayName = "(46) Vesta"),
-	Flag_47 = 1 << 6 UMETA(DisplayName = "(47) Mercury"),
-	Flag_48 = 1 << 7 UMETA(DisplayName = "(48) Sol"),
+	Flag_41 = 1 << 0 UMETA(DisplayName = "(40) Venus"),
+	Flag_42 = 1 << 1 UMETA(DisplayName = "(41) Jupiter"),
+	Flag_43 = 1 << 2 UMETA(DisplayName = "(42) Saturn"),
+	Flag_44 = 1 << 3 UMETA(DisplayName = "(43) Neptune"),
+	Flag_45 = 1 << 4 UMETA(DisplayName = "(44) Pluto"),
+	Flag_46 = 1 << 5 UMETA(DisplayName = "(45) Vesta"),
+	Flag_47 = 1 << 6 UMETA(DisplayName = "(46) Mercury"),
+	Flag_48 = 1 << 7 UMETA(DisplayName = "(47) Sol"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_40_48)
@@ -787,14 +787,14 @@ UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", D
 enum class EPCGExBitmask8_48_56 : uint8
 {
 	None    = 0,
-	Flag_49 = 1 << 0 UMETA(DisplayName = "(49) Luna"),
-	Flag_50 = 1 << 1 UMETA(DisplayName = "(50) Terra"),
-	Flag_51 = 1 << 2 UMETA(DisplayName = "(51) Vulcan"),
-	Flag_52 = 1 << 3 UMETA(DisplayName = "(52) Juno"),
-	Flag_53 = 1 << 4 UMETA(DisplayName = "(53) Ceres"),
-	Flag_54 = 1 << 5 UMETA(DisplayName = "(54) Minerva"),
-	Flag_55 = 1 << 6 UMETA(DisplayName = "(55) Bacchus"),
-	Flag_56 = 1 << 7 UMETA(DisplayName = "(56) Aurora"),
+	Flag_49 = 1 << 0 UMETA(DisplayName = "(48) Luna"),
+	Flag_50 = 1 << 1 UMETA(DisplayName = "(49) Terra"),
+	Flag_51 = 1 << 2 UMETA(DisplayName = "(50) Vulcan"),
+	Flag_52 = 1 << 3 UMETA(DisplayName = "(51) Juno"),
+	Flag_53 = 1 << 4 UMETA(DisplayName = "(52) Ceres"),
+	Flag_54 = 1 << 5 UMETA(DisplayName = "(53) Minerva"),
+	Flag_55 = 1 << 6 UMETA(DisplayName = "(54) Bacchus"),
+	Flag_56 = 1 << 7 UMETA(DisplayName = "(55) Aurora"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_48_56)
@@ -804,14 +804,14 @@ UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", D
 enum class EPCGExBitmask8_56_64 : uint8
 {
 	None    = 0,
-	Flag_57 = 1 << 0 UMETA(DisplayName = "(57) Flora"),
-	Flag_58 = 1 << 1 UMETA(DisplayName = "(58) Faunus"),
-	Flag_59 = 1 << 2 UMETA(DisplayName = "(59) Iris"),
-	Flag_60 = 1 << 3 UMETA(DisplayName = "(60) Mithras"),
-	Flag_61 = 1 << 4 UMETA(DisplayName = "(61) Fortuna"),
-	Flag_62 = 1 << 5 UMETA(DisplayName = "(62) Bellona"),
-	Flag_63 = 1 << 6 UMETA(DisplayName = "(63) Fides"),
-	Flag_64 = 1 << 7 UMETA(DisplayName = "(64) Pax"),
+	Flag_57 = 1 << 0 UMETA(DisplayName = "(56) Flora"),
+	Flag_58 = 1 << 1 UMETA(DisplayName = "(57) Faunus"),
+	Flag_59 = 1 << 2 UMETA(DisplayName = "(58) Iris"),
+	Flag_60 = 1 << 3 UMETA(DisplayName = "(59) Mithras"),
+	Flag_61 = 1 << 4 UMETA(DisplayName = "(60) Fortuna"),
+	Flag_62 = 1 << 5 UMETA(DisplayName = "(61) Bellona"),
+	Flag_63 = 1 << 6 UMETA(DisplayName = "(62) Fides"),
+	Flag_64 = 1 << 7 UMETA(DisplayName = "(63) Pax"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExBitmask8_56_64)

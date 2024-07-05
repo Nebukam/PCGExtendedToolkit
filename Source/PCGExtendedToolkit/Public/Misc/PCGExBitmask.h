@@ -12,6 +12,59 @@
 
 #include "PCGExBitmask.generated.h"
 
+namespace PCGExBitmask
+{
+	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const int64 Mask)
+	{
+		switch (Op)
+		{
+		default: ;
+		case EPCGExBitOp::Set:
+			Flags = Mask;
+			break;
+		case EPCGExBitOp::AND:
+			Flags &= Mask;
+			break;
+		case EPCGExBitOp::OR:
+			Flags |= Mask;
+			break;
+		case EPCGExBitOp::NOT:
+			Flags &= ~Mask;
+			break;
+		case EPCGExBitOp::XOR:
+			Flags ^= Mask;
+			break;
+		}
+	}
+
+	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const TArray<FClampedBit>& Mask)
+	{
+		switch (Op)
+		{
+		default: ;
+		case EPCGExBitOp::Set:
+			for (const FClampedBit& Bit : Mask)
+			{
+				if (Bit.bValue) { Flags |= Bit.Get(); } // Set the bit
+				else { Flags &= ~Bit.Get(); }           // Clear the bit
+			}
+			break;
+		case EPCGExBitOp::AND:
+			for (const FClampedBit& Bit : Mask) { Flags &= Bit.Get(); }
+			break;
+		case EPCGExBitOp::OR:
+			for (const FClampedBit& Bit : Mask) { Flags |= Bit.Get(); }
+			break;
+		case EPCGExBitOp::NOT:
+			for (const FClampedBit& Bit : Mask) { Flags &= ~Bit.Get(); }
+			break;
+		case EPCGExBitOp::XOR:
+			for (const FClampedBit& Bit : Mask) { Flags ^= Bit.Get(); }
+			break;
+		}
+	}
+}
+
 UCLASS(BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskSettings : public UPCGSettings
 {
@@ -38,7 +91,7 @@ protected:
 	FPCGExBitmask Bitmask;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBitmaskElement final : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBitmaskElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

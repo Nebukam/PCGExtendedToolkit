@@ -20,12 +20,7 @@ TArray<FPCGPinProperties> UPCGExBitmaskSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExBitmaskSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(FName("Bitmask"), EPCGDataType::Param);
-
-#if WITH_EDITOR
-	PinPointsOutput.Tooltip = FTEXT("Bitmask.");
-#endif
-
+	PCGEX_PIN_PARAM(FName("Bitmask"), TEXT("Bitmask."), Required, {})
 	return PinProperties;
 }
 

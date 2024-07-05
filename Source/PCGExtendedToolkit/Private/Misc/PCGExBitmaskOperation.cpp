@@ -1,63 +1,11 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
+#include "Misc/PCGExBitmask.h"
 #include "Misc/PCGExBitmaskOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBitmaskOperationElement"
 #define PCGEX_NAMESPACE BitmaskOperation
-
-namespace PCGExBitmask
-{
-	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const int64 Mask)
-	{
-		switch (Op)
-		{
-		default: ;
-		case EPCGExBitOp::Set:
-			Flags = Mask;
-			break;
-		case EPCGExBitOp::AND:
-			Flags &= Mask;
-			break;
-		case EPCGExBitOp::OR:
-			Flags |= Mask;
-			break;
-		case EPCGExBitOp::NOT:
-			Flags &= ~Mask;
-			break;
-		case EPCGExBitOp::XOR:
-			Flags ^= Mask;
-			break;
-		}
-	}
-
-	FORCEINLINE static void Do(const EPCGExBitOp Op, int64& Flags, const TArray<FClampedBit>& Mask)
-	{
-		switch (Op)
-		{
-		default: ;
-		case EPCGExBitOp::Set:
-			for (const FClampedBit& Bit : Mask)
-			{
-				if (Bit.bValue) { Flags |= Bit.Get(); } // Set the bit
-				else { Flags &= ~Bit.Get(); }           // Clear the bit
-			}
-			break;
-		case EPCGExBitOp::AND:
-			for (const FClampedBit& Bit : Mask) { Flags &= Bit.Get(); }
-			break;
-		case EPCGExBitOp::OR:
-			for (const FClampedBit& Bit : Mask) { Flags |= Bit.Get(); }
-			break;
-		case EPCGExBitOp::NOT:
-			for (const FClampedBit& Bit : Mask) { Flags &= ~Bit.Get(); }
-			break;
-		case EPCGExBitOp::XOR:
-			for (const FClampedBit& Bit : Mask) { Flags ^= Bit.Get(); }
-			break;
-		}
-	}
-}
 
 PCGExData::EInit UPCGExBitmaskOperationSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
