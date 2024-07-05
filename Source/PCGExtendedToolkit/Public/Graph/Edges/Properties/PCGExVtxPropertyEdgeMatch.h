@@ -111,7 +111,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NeighborSamplerAttribute, "Vtx : Edge Match", "Find the edge that matches the closest provided direction.",
+		VtxEdgeMatch, "Vtx : Edge Match", "Find the edge that matches the closest provided direction.",
 		FName(GetDisplayName()))
 #endif
 

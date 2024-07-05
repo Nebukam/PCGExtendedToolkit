@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCompare.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"
@@ -11,57 +12,69 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
-#include "PCGExVtxPropertySpecialNeighbors.generated.h"
+#include "PCGExVtxPropertyOrient.generated.h"
+
+///
+
+class UPCGExFilterFactoryBase;
+
+namespace PCGExPointFilter
+{
+	class TManager;
+}
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialNeighborsSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExOrientSettings
 {
 	GENERATED_BODY()
 
-	/** Shortest edge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExEdgeOutputWithIndexSettings LargestNeighbor = FPCGExEdgeOutputWithIndexSettings(TEXT("Largest"));
+	/** Direction orientation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExAdjacencyDirectionOrigin Origin = EPCGExAdjacencyDirectionOrigin::FromNode;
 
-	/** Longest edge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExEdgeOutputWithIndexSettings SmallestNeighbor = FPCGExEdgeOutputWithIndexSettings(TEXT("Smallest"));
 };
 
 /**
- * ó
+ * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialNeighbors : public UPCGExVtxPropertyOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOrient : public UPCGExVtxPropertyOperation
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExSpecialNeighborsSettings Descriptor;
+	FPCGExOrientSettings Descriptor;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataFacade, PCGExData::FFacade* EdgeDataFacade) override;
 	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade) override;
 	virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
+	virtual void Cleanup() override;
+
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialNeighborsFactory : public UPCGExVtxPropertyFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOrientFactory : public UPCGExVtxPropertyFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExSpecialNeighborsSettings Descriptor;
+	FPCGExOrientSettings Descriptor;
+	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialNeighborsSettings : public UPCGExVtxPropertyProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOrientSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(VtxSpecialNeighbors, "Vtx : Special Neighbors", "Fetch data from neighbors")
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		VtxOrient, "Vtx : Orient", "Compute a transform based on edges.",
+		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
@@ -74,5 +87,5 @@ public:
 
 	/** Direction Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSpecialNeighborsSettings Descriptor;
+	FPCGExOrientSettings Descriptor;
 };

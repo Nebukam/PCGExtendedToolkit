@@ -65,7 +65,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialEdgesSettings : public UPCG
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NeighborSamplerAttribute, "Vtx : Special Edges", "Edge' edge cases (pun not intended)")
+	PCGEX_NODE_INFOS(VtxSpecialEdges, "Vtx : Special Edges", "Edge' edge cases (pun not intended)")
 #endif
 	//~End UPCGSettings
 
