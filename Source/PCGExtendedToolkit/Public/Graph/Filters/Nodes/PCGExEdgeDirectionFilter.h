@@ -103,8 +103,8 @@ namespace PCGExNodeAdjacency
 		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
-		bool TestDot(const int32 PointIndex) const;
-		bool TestHash(const int32 PointIndex) const;
+		bool TestDot(const PCGExCluster::FNode& Node) const;
+		bool TestHash(const PCGExCluster::FNode& Node) const;
 
 		virtual ~FEdgeDirectionFilter() override
 		{

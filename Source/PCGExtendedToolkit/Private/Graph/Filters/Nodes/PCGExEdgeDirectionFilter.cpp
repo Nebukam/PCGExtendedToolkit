@@ -48,20 +48,20 @@ namespace PCGExNodeAdjacency
 
 	bool FEdgeDirectionFilter::Test(const PCGExCluster::FNode& Node) const
 	{
-		return bUseDot ? TestDot(Node.PointIndex) : TestHash(Node.NodeIndex);
+		return bUseDot ? TestDot(Node) : TestHash(Node);
 	}
 
-	bool FEdgeDirectionFilter::TestDot(const int32 PointIndex) const
+	bool FEdgeDirectionFilter::TestDot(const PCGExCluster::FNode& Node) const
 	{
+		const int32 PointIndex = Node.PointIndex;
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
-		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
-		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(Node.PointIndex);
+		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
 
-		FVector RefDir = OperandDirection ? OperandDirection->Values[Node.PointIndex] : TypedFilterFactory->Descriptor.DirectionConstant;
+		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Descriptor.DirectionConstant;
 		if (TypedFilterFactory->Descriptor.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
-		const double A = DotComparison.GetDot(Node.PointIndex);
+		const double A = DotComparison.GetDot(PointIndex);
 		double B = 0;
 
 		TArray<double> Dots;
@@ -152,17 +152,18 @@ namespace PCGExNodeAdjacency
 		return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold);
 	}
 
-	bool FEdgeDirectionFilter::TestHash(const int32 PointIndex) const
+	bool FEdgeDirectionFilter::TestHash(const PCGExCluster::FNode& Node) const
 	{
+		
+		const int32 PointIndex = Node.PointIndex;
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
-		const PCGExCluster::FNode& Node = NodesRef[PointIndex];
-		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(Node.PointIndex);
+		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
 
-		FVector RefDir = OperandDirection ? OperandDirection->Values[Node.PointIndex] : TypedFilterFactory->Descriptor.DirectionConstant;
+		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Descriptor.DirectionConstant;
 		if (TypedFilterFactory->Descriptor.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
-		const FVector CWTolerance = HashComparison.GetCWTolerance(Node.PointIndex);
+		const FVector CWTolerance = HashComparison.GetCWTolerance(PointIndex);
 		const uint64 A = PCGEx::GH(RefDir, CWTolerance);
 
 		TArray<uint64> Hashes;

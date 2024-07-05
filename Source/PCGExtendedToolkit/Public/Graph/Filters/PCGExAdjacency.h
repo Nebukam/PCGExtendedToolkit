@@ -126,15 +126,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 			switch (ThresholdComparison)
 			{
 			case EPCGExComparison::StrictlyEqual:
-				return Value < Node.Adjacency.Num() ? -1 : Value;
+				return Node.Adjacency.Num() < Value ? -1 : Value;
 			case EPCGExComparison::StrictlyNotEqual:
 				return Value;
 			case EPCGExComparison::EqualOrGreater:
-				return Value < Node.Adjacency.Num() ? -1 : Value;
+				return Node.Adjacency.Num() < Value ? -1 : Value;
 			case EPCGExComparison::EqualOrSmaller:
 				return Value;
 			case EPCGExComparison::StrictlyGreater:
-				return Value <= Node.Adjacency.Num() ? -1 : Value;
+				return Node.Adjacency.Num() <= Value ? -1 : Value;
 			case EPCGExComparison::StrictlySmaller:
 				return Value;
 			case EPCGExComparison::NearlyEqual:
