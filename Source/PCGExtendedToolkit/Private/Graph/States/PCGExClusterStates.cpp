@@ -80,27 +80,6 @@ namespace PCGExClusterStates
 		States.Empty();
 	}
 
-	bool FStateManager::Test(const int32 Index)
-	{
-		int64& Flags = (*FlagsCache)[Index];
-		for (const FState* State : States) { State->ProcessFlags(State->Test(Index), Flags); }
-		return true;
-	}
-
-	bool FStateManager::Test(const PCGExCluster::FNode& Node)
-	{
-		int64& Flags = (*FlagsCache)[Node.PointIndex];
-		for (const FState* State : States) { State->ProcessFlags(State->Test(Node), Flags); }
-		return true;
-	}
-
-	bool FStateManager::Test(const PCGExGraph::FIndexedEdge& Edge)
-	{
-		int64& Flags = (*FlagsCache)[Edge.PointIndex];
-		for (const FState* State : States) { State->ProcessFlags(State->Test(Edge), Flags); }
-		return true;
-	}
-
 	void FStateManager::PostInitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter)
 	{
 		FState* State = static_cast<FState*>(InFilter);

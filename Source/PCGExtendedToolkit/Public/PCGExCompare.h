@@ -458,7 +458,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonSettings
 	EPCGExFetchType HashToleranceValue = EPCGExFetchType::Constant;
 
 	/** Tolerance value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionValue==EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="HashToleranceValue==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector HashToleranceAttribute;
 
 	/** Tolerance value use for comparison */
@@ -559,7 +559,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 		if (DotUnits == EPCGExDotUnits::Degrees)
 		{
 			DotTolerance = PCGExMath::DegreesToDot(DegreesTolerance * 0.5);
-			DotConstant = PCGExMath::DegreesToDot(DegreesConstant * 0.5);
+			DotConstant = PCGExMath::DegreesToDotForComparison(DegreesConstant * 0.5);
 		}
 
 		return true;
@@ -575,10 +575,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 			case EPCGExDotUnits::Raw:
 				return LocalOperand->Values[PointIndex];
 			case EPCGExDotUnits::Degrees:
-				return PCGExMath::DegreesToDot(LocalOperand->Values[PointIndex] * 0.5);
+				return PCGExMath::DegreesToDotForComparison(LocalOperand->Values[PointIndex] * 0.5);
 			}
 		}
-		return DotTolerance;
+		return DotConstant;
 	}
 
 	bool Test(const double A, const double B) const
@@ -1060,22 +1060,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 			return;
 		}
 
-		int64 Mask = 0;
-		if (Mode == EPCGExBitmaskMode::Composite)
-		{
-			Mask |= static_cast<int64>(Range_00_08) << 0;
-			Mask |= static_cast<int64>(Range_08_16) << 8;
-			Mask |= static_cast<int64>(Range_16_24) << 16;
-			Mask |= static_cast<int64>(Range_24_32) << 24;
-			Mask |= static_cast<int64>(Range_32_40) << 32;
-			Mask |= static_cast<int64>(Range_40_48) << 40;
-			Mask |= static_cast<int64>(Range_48_56) << 48;
-			Mask |= static_cast<int64>(Range_56_64) << 56;
-		}
-		else
-		{
-			Mask = Bitmask;
-		}
+		const int64 Mask = Get();
 
 		switch (Op)
 		{

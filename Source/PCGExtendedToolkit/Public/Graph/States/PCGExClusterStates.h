@@ -8,6 +8,7 @@
 #include "Data/PCGExPointStates.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "..\..\Misc\PCGExBitmaskMerge.h"
+#include "Graph/PCGExCluster.h"
 #include "PCGExClusterStates.generated.h"
 
 namespace PCGExNodeFlags
@@ -83,9 +84,26 @@ namespace PCGExClusterStates
 		explicit FStateManager(TArray<int64>* InFlags, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache);
 		virtual ~FStateManager() override;
 
-		virtual bool Test(const int32 Index) override;
-		virtual bool Test(const PCGExCluster::FNode& Node) override;
-		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) override;
+		FORCEINLINE virtual bool Test(const int32 Index) override
+		{
+			int64& Flags = *(FlagsCache->GetData() + Index);
+			for (const FState* State : States) { State->ProcessFlags(State->Test(Index), Flags); }
+			return true;
+		}
+
+		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) override
+		{
+			int64& Flags = *(FlagsCache->GetData() + Node.PointIndex);
+			for (const FState* State : States) { State->ProcessFlags(State->Test(Node), Flags); }
+			return true;
+		}
+
+		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) override
+		{
+			int64& Flags = *(FlagsCache->GetData() + Edge.PointIndex);
+			for (const FState* State : States) { State->ProcessFlags(State->Test(Edge), Flags); }
+			return true;
+		}
 
 	protected:
 		virtual void PostInitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter) override;
@@ -124,9 +142,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExClusterStateDescriptorBase Descriptor;
-	
+
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-	
 };

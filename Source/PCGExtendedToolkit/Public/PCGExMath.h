@@ -203,6 +203,11 @@ namespace PCGExMath
 		return FMath::Cos(FMath::Clamp(FMath::Abs(Angle), 0, 180.0) * (PI / 180.0));
 	}
 
+	FORCEINLINE static double DegreesToDotForComparison(const double Angle)
+	{
+		return FMath::Cos((180 - FMath::Clamp(FMath::Abs(Angle), 0, 180.0)) * (PI / 180.0));
+	}
+
 	FORCEINLINE static double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;
