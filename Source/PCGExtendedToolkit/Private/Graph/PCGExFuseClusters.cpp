@@ -121,7 +121,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				NewBatch->bInlineProcessing = Context->CompoundGraph->Octree ? true : false;
 			},
-			PCGExMT::State_ProcessingPoints,
+			PCGExGraph::State_ProcessingCompound,
 			true)) //Context->CompoundGraph->Octree ? true : false))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -131,7 +131,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	if (Context->IsState(PCGExGraph::State_ProcessingCompound))
 	{
 		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
 		if (NumCompoundNodes == 0)

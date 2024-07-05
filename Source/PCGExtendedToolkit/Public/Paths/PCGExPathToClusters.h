@@ -114,11 +114,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToClustersContext final : public FPCGExP
 
 	virtual ~FPCGExPathToClustersContext() override;
 
+	TArray<PCGExData::FFacade*> PathsFacades;
+	
 	FPCGExCarryOverSettings CarryOver;
 
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FFacade* CompoundFacade = nullptr;
 
+	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
+	
 	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
 };
 
@@ -173,27 +177,6 @@ namespace PCGExPathToClusters
 		virtual ~FFusingProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-	};
-
-	class FFusingProcessorBatch final : public PCGExPointsMT::TBatch<FFusingProcessor>
-	{
-	public:
-		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-		PCGExData::FPointIO* CompoundPoints = nullptr;
-		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
-
-		PCGExData::FPointIOCollection* MainPoints = nullptr;
-
-		FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
-
-		FFusingProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection);
-		virtual ~FFusingProcessorBatch() override;
-
-		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual bool PrepareSingle(FFusingProcessor* PointsProcessor) override;
-		virtual void CompleteWork() override;
-
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 	};
 
 #pragma endregion
