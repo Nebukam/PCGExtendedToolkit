@@ -15,21 +15,15 @@ bool UPCGExEdgeRemoveShortest::RequiresIndividualNodeProcessing()
 void UPCGExEdgeRemoveShortest::ProcessNode(PCGExCluster::FNode& Node, PCGExCluster::FCluster* InCluster, FRWLock& EdgeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
 	int32 BestIndex = -1;
-	double ShortestDist = TNumericLimits<double>::Min();
-
-	TArray<PCGExCluster::FNode>& NodesRef = (*InCluster->Nodes);
+	double ShortestDist = TNumericLimits<double>::Max();
 
 	for (const uint64 AdjacencyHash : Node.Adjacency)
 	{
-		uint32 OtherNodeIndex;
-		uint32 EdgeIndex;
-		PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
-
-		const double Dist = FVector::DistSquared(Node.Position, NodesRef[OtherNodeIndex].Position);
-		if (ShortestDist > Dist)
+		const double Dist = FVector::DistSquared(Node.Position, (InCluster->Nodes->GetData() + PCGEx::H64A(AdjacencyHash))->Position);
+		if (Dist < ShortestDist)
 		{
 			ShortestDist = Dist;
-			BestIndex = EdgeIndex;
+			BestIndex = PCGEx::H64B(AdjacencyHash);
 		}
 	}
 
@@ -37,6 +31,6 @@ void UPCGExEdgeRemoveShortest::ProcessNode(PCGExCluster::FNode& Node, PCGExClust
 
 	{
 		FWriteScopeLock WriteScopeLock(EdgeLock);
-		(*InCluster->Edges)[BestIndex].bValid = false;
+		(InCluster->Edges->GetData() + BestIndex)->bValid = false;
 	}
 }

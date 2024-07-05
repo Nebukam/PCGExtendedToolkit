@@ -52,7 +52,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 
 		if (C.Distance > R) { break; }
 		if (ConnectedSet && ConnectedSet->Contains(C.GH)) { continue; }
-		//if (OutEdges->Contains(PCGEx::H64(Index, C.PointIndex))) { continue; }
+		//if (OutEdges->Contains(PCGEx::H64U(Index, C.PointIndex))) { continue; }
 
 		const double Dot = FVector::DotProduct(Dir, C.Direction);
 
@@ -88,7 +88,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 			if (bIsAlreadyConnected) { return; }
 		}
 
-		OutEdges->Add(PCGEx::H64(Index, C.PointIndex));
+		OutEdges->Add(PCGEx::H64U(Index, C.PointIndex));
 	}
 }
 
@@ -144,7 +144,7 @@ void UPCGExProbeDirection::ProcessBestCandidate(const int32 Index, const FPCGPoi
 		if (bIsAlreadyConnected) { return; }
 	}
 
-	OutEdges->Add(PCGEx::H64(Index, C.PointIndex));
+	OutEdges->Add(PCGEx::H64U(Index, C.PointIndex));
 }
 
 #if WITH_EDITOR

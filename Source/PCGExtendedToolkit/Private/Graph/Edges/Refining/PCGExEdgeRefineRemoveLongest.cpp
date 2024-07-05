@@ -15,28 +15,22 @@ bool UPCGExEdgeRemoveLongest::RequiresIndividualNodeProcessing()
 void UPCGExEdgeRemoveLongest::ProcessNode(PCGExCluster::FNode& Node, PCGExCluster::FCluster* InCluster, FRWLock& EdgeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
 	int32 BestIndex = -1;
-	double LongestDist = TNumericLimits<double>::Max();
-
-	TArray<PCGExCluster::FNode>& NodesRef = (*InCluster->Nodes);
+	double LongestDist = TNumericLimits<double>::Min();
 
 	for (const uint64 AdjacencyHash : Node.Adjacency)
 	{
-		uint32 OtherNodeIndex;
-		uint32 EdgeIndex;
-		PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
-
-		const double Dist = FVector::DistSquared(Node.Position, NodesRef[OtherNodeIndex].Position);
-		if (LongestDist < Dist)
+		const double Dist = FVector::DistSquared(Node.Position, (InCluster->Nodes->GetData() + PCGEx::H64A(AdjacencyHash))->Position);
+		if (Dist > LongestDist)
 		{
 			LongestDist = Dist;
-			BestIndex = EdgeIndex;
+			BestIndex = PCGEx::H64B(AdjacencyHash);
 		}
 	}
 
 	if (BestIndex == -1) { return; }
 
 	{
-		FWriteScopeLock WriteScopeLock(EdgeLock);
-		(*InCluster->Edges)[BestIndex].bValid = false;
+		//FWriteScopeLock WriteScopeLock(EdgeLock);
+		(InCluster->Edges->GetData() + BestIndex)->bValid = false;
 	}
 }

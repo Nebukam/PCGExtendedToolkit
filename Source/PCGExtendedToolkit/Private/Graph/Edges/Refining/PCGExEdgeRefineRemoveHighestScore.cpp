@@ -20,10 +20,7 @@ bool UPCGExEdgeRemoveHighestScore::RequiresIndividualNodeProcessing()
 void UPCGExEdgeRemoveHighestScore::ProcessNode(PCGExCluster::FNode& Node, PCGExCluster::FCluster* InCluster, FRWLock& EdgeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
 	int32 BestIndex = -1;
-	double HighestScore = TNumericLimits<double>::Max();
-
-	TArray<PCGExCluster::FNode>& NodesRef = (*InCluster->Nodes);
-	TArray<PCGExGraph::FIndexedEdge>& EdgesRef = (*InCluster->Edges);
+	double HighestScore = TNumericLimits<double>::Min();
 
 	for (const uint64 AdjacencyHash : Node.Adjacency)
 	{
@@ -31,8 +28,8 @@ void UPCGExEdgeRemoveHighestScore::ProcessNode(PCGExCluster::FNode& Node, PCGExC
 		uint32 EdgeIndex;
 		PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
 
-		const double Score = InHeuristics->GetEdgeScore(Node, NodesRef[OtherNodeIndex], EdgesRef[EdgeIndex], Node, NodesRef[OtherNodeIndex]);
-		if (HighestScore < Score)
+		const double Score = InHeuristics->GetEdgeScore(Node, *(InCluster->Nodes->GetData() + OtherNodeIndex), *(InCluster->Edges->GetData() + EdgeIndex), Node, *(InCluster->Nodes->GetData() + OtherNodeIndex));
+		if (Score > HighestScore)
 		{
 			HighestScore = Score;
 			BestIndex = EdgeIndex;
@@ -43,6 +40,6 @@ void UPCGExEdgeRemoveHighestScore::ProcessNode(PCGExCluster::FNode& Node, PCGExC
 
 	{
 		FWriteScopeLock WriteScopeLock(EdgeLock);
-		(*InCluster->Edges)[BestIndex].bValid = false;
+		(InCluster->Edges->GetData() + BestIndex)->bValid = false;
 	}
 }

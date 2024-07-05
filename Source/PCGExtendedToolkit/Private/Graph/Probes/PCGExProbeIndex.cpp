@@ -40,7 +40,7 @@ void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TS
 	{
 		Value = PCGExMath::SanitizeIndex(Value, MaxIndex, Descriptor.IndexSafety);
 		if (Value == -1) { return; }
-		OutEdges->Add(PCGEx::H64(Index, Value));
+		OutEdges->Add(PCGEx::H64U(Index, Value));
 		return;
 	}
 
@@ -48,17 +48,17 @@ void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TS
 	{
 		Value = PCGExMath::SanitizeIndex(Index + Value, MaxIndex, Descriptor.IndexSafety);
 		if (Value == -1) { return; }
-		OutEdges->Add(PCGEx::H64(Index, Value));
+		OutEdges->Add(PCGEx::H64U(Index, Value));
 		return;
 	}
 
 	if (Descriptor.Mode == EPCGExProbeTargetMode::TwoWayOffset)
 	{
 		int32 OIdx = PCGExMath::SanitizeIndex(Index + Value, MaxIndex, Descriptor.IndexSafety);
-		if (OIdx != -1) { OutEdges->Add(PCGEx::H64(Index, OIdx)); }
+		if (OIdx != -1) { OutEdges->Add(PCGEx::H64U(Index, OIdx)); }
 
 		OIdx = PCGExMath::SanitizeIndex(Index - Value, MaxIndex, Descriptor.IndexSafety);
-		if (OIdx != -1) { OutEdges->Add(PCGEx::H64(Index, OIdx)); }
+		if (OIdx != -1) { OutEdges->Add(PCGEx::H64U(Index, OIdx)); }
 	}
 }
 

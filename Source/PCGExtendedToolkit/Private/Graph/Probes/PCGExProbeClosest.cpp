@@ -64,7 +64,7 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 		}
 
 		//bool bEdgeAlreadyExists;
-		OutEdges->Add(PCGEx::H64(Index, C.PointIndex));
+		OutEdges->Add(PCGEx::H64U(Index, C.PointIndex));
 		//if (bEdgeAlreadyExists) { continue; }
 
 		Additions++;

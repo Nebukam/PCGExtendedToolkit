@@ -89,7 +89,6 @@ namespace PCGExRefineEdges
 	protected:
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 		mutable FRWLock NodeLock;
-		mutable FRWLock EdgeLock;
 
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
@@ -108,13 +107,4 @@ namespace PCGExRefineEdges
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
 	};
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
-	{
-	public:
-		UPCGExEdgeRefineOperation* Refinement = nullptr;
-
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
-
-		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
-	};
 }

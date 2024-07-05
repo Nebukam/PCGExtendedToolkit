@@ -62,12 +62,12 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExRefineEdges::FProcessorBatch* NewBatch)
+			[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>* NewBatch)
 			{
-				NewBatch->Refinement = Context->Refinement;
-				if (NewBatch->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
+				NewBatch->GraphBuilderSettings = Context->GraphBuilderSettings;
+				if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 			},
 			PCGExMT::State_Done))
 		{
@@ -101,8 +101,11 @@ namespace PCGExRefineEdges
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
+		Refinement = TypedContext->Refinement;
 
 		if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
 		else if (Refinement->RequiresIndividualEdgeProcessing()) { StartParallelLoopForEdges(); }
@@ -112,7 +115,7 @@ namespace PCGExRefineEdges
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
-		Refinement->ProcessNode(Node, Cluster, EdgeLock, HeuristicsHandler);
+		Refinement->ProcessNode(Node, Cluster, NodeLock, HeuristicsHandler);
 	}
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
@@ -127,17 +130,6 @@ namespace PCGExRefineEdges
 		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
 		Cluster->GetValidEdges(ValidEdges);
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
-	}
-
-	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges)
-		: TBatchWithGraphBuilder<FProcessor>(InContext, InVtx, InEdges)
-	{
-	}
-
-	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
-	{
-		ClusterProcessor->Refinement = Refinement;
-		return true;
 	}
 }
 

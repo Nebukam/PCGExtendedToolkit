@@ -17,10 +17,8 @@ void UPCGExEdgeRefinePrimMST::Process(
 	PCGExCluster::FCluster* InCluster,
 	PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
-	TArray<PCGExCluster::FNode>& NodesRef = *InCluster->Nodes;
-	TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *InCluster->Edges;
 	const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
-	const int32 NumNodes = NodesRef.Num();
+	const int32 NumNodes = InCluster->Nodes->Num();
 
 	TSet<int32> Visited;
 	Visited.Reserve(NumNodes);
@@ -42,7 +40,7 @@ void UPCGExEdgeRefinePrimMST::Process(
 	double CurrentNodeScore;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentNodeScore))
 	{
-		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
+		const PCGExCluster::FNode& Current = *(InCluster->Nodes->GetData() + CurrentNodeIndex);
 		Visited.Add(CurrentNodeIndex);
 
 		for (const uint64 AdjacencyHash : Current.Adjacency)
@@ -53,8 +51,8 @@ void UPCGExEdgeRefinePrimMST::Process(
 
 			if (Visited.Contains(NeighborIndex)) { continue; } // Exit early
 
-			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
-			PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
+			const PCGExCluster::FNode& AdjacentNode = *(InCluster->Nodes->GetData() + NeighborIndex);
+			PCGExGraph::FIndexedEdge& Edge = *(InCluster->Edges->GetData() + EdgeIndex);
 			Edge.bValid = false; // Invalidate edge 
 
 			const double Score = InHeuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
@@ -77,7 +75,7 @@ void UPCGExEdgeRefinePrimMST::Process(
 
 		if (NeighborIndex == i) { continue; }
 
-		EdgesRef[EdgeIndex].bValid = true;
+		(InCluster->Edges->GetData() + EdgeIndex)->bValid = true;
 	}
 
 	Visited.Empty();

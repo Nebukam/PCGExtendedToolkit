@@ -22,17 +22,14 @@ void UPCGExEdgeRemoveLowestScore::ProcessNode(PCGExCluster::FNode& Node, PCGExCl
 	int32 BestIndex = -1;
 	double LowestScore = TNumericLimits<double>::Max();
 
-	TArray<PCGExCluster::FNode>& NodesRef = (*InCluster->Nodes);
-	TArray<PCGExGraph::FIndexedEdge>& EdgesRef = (*InCluster->Edges);
-
 	for (const uint64 AdjacencyHash : Node.Adjacency)
 	{
 		uint32 OtherNodeIndex;
 		uint32 EdgeIndex;
 		PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
 
-		const double Score = InHeuristics->GetEdgeScore(Node, NodesRef[OtherNodeIndex], EdgesRef[EdgeIndex], Node, NodesRef[OtherNodeIndex]);
-		if (LowestScore > Score)
+		const double Score = InHeuristics->GetEdgeScore(Node, *(InCluster->Nodes->GetData() + OtherNodeIndex), *(InCluster->Edges->GetData() + EdgeIndex), Node, *(InCluster->Nodes->GetData() + OtherNodeIndex));
+		if (Score < LowestScore)
 		{
 			LowestScore = Score;
 			BestIndex = EdgeIndex;
@@ -43,6 +40,6 @@ void UPCGExEdgeRemoveLowestScore::ProcessNode(PCGExCluster::FNode& Node, PCGExCl
 
 	{
 		FWriteScopeLock WriteScopeLock(EdgeLock);
-		(*InCluster->Edges)[BestIndex].bValid = false;
+		(InCluster->Edges->GetData() + BestIndex)->bValid = false;
 	}
 }
