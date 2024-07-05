@@ -54,13 +54,19 @@ bool FPCGExConnectPointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectPoints)
 
-	if (!PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceProbesLabel, Context->ProbeFactories, {PCGExFactories::EType::Probe}, true))
+	if (!PCGExFactories::GetInputFactories(
+		Context, PCGExGraph::SourceProbesLabel, Context->ProbeFactories,
+		{PCGExFactories::EType::Probe}, true))
 	{
 		return false;
 	}
 
-	PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories, {PCGExFactories::EType::FilterPoint}, false);
-	PCGExFactories::GetInputFactories(Context, PCGExGraph::SourceFilterConnectables, Context->ConnetablesFiltersFactories, {PCGExFactories::EType::FilterPoint}, false);
+	PCGExFactories::GetInputFactories(
+		Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
+		PCGExFactories::PointFilters, false);
+	PCGExFactories::GetInputFactories(
+		Context, PCGExGraph::SourceFilterConnectables, Context->ConnetablesFiltersFactories,
+		PCGExFactories::PointFilters, false);
 
 	Context->CWStackingTolerance = FVector(1 / Settings->StackingPreventionTolerance);
 
@@ -153,8 +159,8 @@ namespace PCGExConnectPoints
 				continue;
 			}
 
-			if (NewOperation->SearchRadiusSquared == -1) { bUseVariableRadius = true; }
-			MaxRadiusSquared = FMath::Max(NewOperation->SearchRadiusSquared, MaxRadiusSquared);
+			if (NewOperation->SearchRadius == -1) { bUseVariableRadius = true; }
+			SharedSearchRadius = FMath::Max(SharedSearchRadius, NewOperation->SearchRadius);
 
 			if (NewOperation->RequiresChainProcessing()) { ChainProbeOperations.Add(NewOperation); }
 			else { SharedProbeOperations.Add(NewOperation); }
@@ -275,8 +281,11 @@ namespace PCGExConnectPoints
 		if (!ProbeOperations.IsEmpty())
 		{
 			double MaxRadius = TNumericLimits<double>::Min();
-			if (!bUseVariableRadius) { MaxRadius = MaxRadiusSquared; }
-			else { for (UPCGExProbeOperation* Op : ProbeOperations) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Values[Index] : Op->SearchRadiusSquared); } }
+			if (!bUseVariableRadius) { MaxRadius = SharedSearchRadius; }
+			else
+			{
+				for (UPCGExProbeOperation* Op : ProbeOperations) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Values[Index] : Op->SearchRadius); }
+			}
 
 			const FVector Origin = CachedTransforms[Index].GetLocation();
 
@@ -298,7 +307,7 @@ namespace PCGExConnectPoints
 				if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessCandidateChained(i, PointCopy, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i]); } }
 			};
 
-			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(MaxRadius))), ProcessPoint);
+			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(MaxRadius)), ProcessPoint);
 
 			if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; i++) { ChainProbeOperations[i]->ProcessBestCandidate(Index, PointCopy, BestCandidates[i], Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); } }
 

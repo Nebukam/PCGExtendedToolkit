@@ -189,8 +189,12 @@ UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCG
 	SamplerFactory->Priority = Priority;
 	SamplerFactory->SamplingSettings = SamplingSettings;
 
-	GetInputFactories(InContext, PCGEx::SourcePointFilters, SamplerFactory->PointFilterFactories, PCGExFactories::ClusterNodeFilters, false);
-	GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(
+		InContext, PCGEx::SourcePointFilters, SamplerFactory->PointFilterFactories,
+		PCGExFactories::ClusterNodeFilters, false);
+	GetInputFactories(
+		InContext, PCGEx::SourceUseValueIfFilters, SamplerFactory->ValueFilterFactories,
+		PCGExFactories::ClusterNodeFilters, false);
 
 	return InFactory;
 }

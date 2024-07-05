@@ -187,6 +187,7 @@ namespace PCGExWritePathExtras
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
+		FVector Loc = Point.Transform.GetLocation();
 		FVector Next;
 		FVector Prev;
 
@@ -206,7 +207,7 @@ namespace PCGExWritePathExtras
 			Next = Positions[Index + 1];
 		}
 
-		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Prev, Next));
+		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct((Prev - Loc).GetSafeNormal(), (Loc - Next).GetSafeNormal()));
 	}
 
 	void FProcessor::CompleteWork()

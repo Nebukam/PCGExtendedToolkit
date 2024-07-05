@@ -18,7 +18,7 @@ bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 
 	if (Descriptor.DirectionSource == EPCGExFetchType::Constant)
 	{
-		Direction = Descriptor.DirectionConstant;
+		Direction = Descriptor.DirectionConstant.GetSafeNormal();
 		bUseConstantDir = true;
 	}
 	else
@@ -43,9 +43,9 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 	double BestDist = TNumericLimits<double>::Max();
 	int32 BestCandidateIndex = -1;
 
-	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
+	FVector Dir = DirectionCache ? DirectionCache->Values[Index].GetSafeNormal() : Direction;
 	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
-
+	
 	for (int i = 0; i < Candidates.Num(); i++)
 	{
 		const PCGExProbing::FCandidate& C = Candidates[i];
@@ -102,7 +102,7 @@ void UPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FPCGPoi
 void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
 {
 	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
-	FVector Dir = DirectionCache ? DirectionCache->Values[Index] : Direction;
+	FVector Dir = DirectionCache ? DirectionCache->Values[Index].GetSafeNormal() : Direction;
 	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
 
 	if (Candidate.Distance > R) { return; }

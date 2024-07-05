@@ -17,7 +17,6 @@ void UPCGExFilterFactoryBase::Init()
 
 namespace PCGExPointFilter
 {
-	PCGExFilters::EType TFilter::GetFilterType() const { return PCGExFilters::EType::Point; }
 
 	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 	{

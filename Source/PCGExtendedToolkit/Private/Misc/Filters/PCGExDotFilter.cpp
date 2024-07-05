@@ -3,6 +3,12 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
+void UPCGExDotFilterFactory::Init()
+{
+	Super::Init();
+	Descriptor.Sanitize();
+}
+
 PCGExPointFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TDotFilter(this);
@@ -40,7 +46,7 @@ bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 		                  OperandA->Values[PointIndex] :
 		                  Point.Transform.TransformVectorNoScale(OperandA->Values[PointIndex]);
 
-	FVector B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
+	FVector B = OperandB ? OperandB->Values[PointIndex].GetSafeNormal() : TypedFilterFactory->Descriptor.OperandBConstant;
 	if (TypedFilterFactory->Descriptor.bTransformOperandB) { B = Point.Transform.TransformVectorNoScale(B); }
 
 	const double Dot = DotComparison.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);

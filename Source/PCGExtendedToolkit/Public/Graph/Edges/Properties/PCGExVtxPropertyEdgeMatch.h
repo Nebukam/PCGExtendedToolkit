@@ -55,6 +55,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 	/** Matching edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Output"))
 	FPCGExEdgeOutputWithIndexSettings MatchingEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Matching"));
+
+	void Sanitize()
+	{
+		DirectionConstant = DirectionConstant.GetSafeNormal();
+	}
+	
 };
 
 /**

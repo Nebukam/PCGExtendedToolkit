@@ -43,8 +43,8 @@ bool FPCGExMatchmakingElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(Matchmaking)
 
 	if (!PCGExFactories::GetInputFactories(
-		Context, PCGExMatchmaking::SourceMatchmakersLabel,
-		Context->MatchmakingsFactories, {PCGExFactories::EType::Matchmaking}, true))
+		Context, PCGExMatchmaking::SourceMatchmakersLabel, Context->MatchmakingsFactories,
+		{PCGExFactories::EType::Matchmaking}, true))
 	{
 		return false;
 	}

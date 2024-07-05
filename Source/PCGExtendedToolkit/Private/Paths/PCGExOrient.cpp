@@ -138,14 +138,14 @@ namespace PCGExOrient
 			const PCGEx::FPointRef Previous = Index == 0 ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index - 1);
 			const PCGEx::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(0) : PointIO->GetInPointRef(Index + 1);
 			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
-			if (Settings->bOutputDot) { DotWriter->Values[Index] = FVector::DotProduct(Previous.Point->Transform.GetLocation(), Next.Point->Transform.GetLocation()); }
+			if (Settings->bOutputDot) { DotWriter->Values[Index] = DotProduct(Current, Previous, Next); }
 		}
 		else
 		{
 			const PCGEx::FPointRef Previous = Index == 0 ? Current : PointIO->GetInPointRef(Index - 1);
 			const PCGEx::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index + 1);
 			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
-			if (Settings->bOutputDot) { DotWriter->Values[Index] = FVector::DotProduct(Previous.Point->Transform.GetLocation(), Next.Point->Transform.GetLocation()); }
+			if (Settings->bOutputDot) { DotWriter->Values[Index] = DotProduct(Current, Previous, Next); }
 		}
 
 		if (TransformWriter) { TransformWriter->Values[Index] = OutT; }

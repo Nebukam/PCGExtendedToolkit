@@ -155,7 +155,7 @@ namespace PCGExConnectPoints
 		TArray<UPCGExProbeOperation*> SharedProbeOperations;
 		bool bUseVariableRadius = false;
 		int32 NumChainedOps = 0;
-		double MaxRadiusSquared = TNumericLimits<double>::Min();
+		double SharedSearchRadius = TNumericLimits<double>::Min();
 
 		TArray<bool> CanGenerate;
 		PositionOctree* Octree = nullptr;

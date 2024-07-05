@@ -42,6 +42,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterDescriptor
 	/** (Operand B) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MaskType==EPCGExFetchType::Constant", EditConditionHides))
 	int64 Bitmask = 0;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bInvertResult = false;
 };
 
 

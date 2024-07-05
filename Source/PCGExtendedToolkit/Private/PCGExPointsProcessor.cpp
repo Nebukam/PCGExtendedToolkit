@@ -128,7 +128,7 @@ FName UPCGExPointsProcessorSettings::GetPointFilterLabel() const { return NAME_N
 
 FString UPCGExPointsProcessorSettings::GetPointFilterTooltip() const { return TEXT("Filters"); }
 
-TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes() const { return {PCGExFactories::EType::FilterPoint}; }
+TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes() const { return PCGExFactories::PointFilters; }
 
 bool UPCGExPointsProcessorSettings::SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
 bool UPCGExPointsProcessorSettings::RequiresPointFilters() const { return false; }
@@ -366,7 +366,9 @@ bool FPCGExPointsProcessorElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->SupportsPointFilters())
 	{
-		GetInputFactories(InContext, Settings->GetPointFilterLabel(), Context->FilterFactories, Settings->GetPointFilterTypes(), false);
+		GetInputFactories(
+			InContext, Settings->GetPointFilterLabel(), Context->FilterFactories,
+			Settings->GetPointFilterTypes(), false);
 		if (Settings->RequiresPointFilters() && Context->FilterFactories.IsEmpty())
 		{
 			PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(Settings->GetPointFilterLabel())));

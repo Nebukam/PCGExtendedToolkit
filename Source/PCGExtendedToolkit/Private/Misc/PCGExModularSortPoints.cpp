@@ -35,8 +35,8 @@ bool UPCGExModularSortPointsSettings::GetSortingRules(const FPCGContext* InConte
 {
 	TArray<UPCGExSortingRule*> Factories;
 	if (!PCGExFactories::GetInputFactories(
-		InContext, TEXT("SortRules"),
-		Factories, {PCGExFactories::EType::RuleSort}, false))
+		InContext, TEXT("SortRules"), Factories,
+		{PCGExFactories::EType::RuleSort}, false))
 	{
 		return false;
 	}

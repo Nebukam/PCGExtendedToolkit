@@ -68,6 +68,7 @@ public:
 
 	virtual void Cleanup() override;
 
+	double SearchRadius = -1;
 	double SearchRadiusSquared = -1;
 	PCGExData::FCache<double>* SearchRadiusCache = nullptr;
 	FPCGExProbeDescriptorBase* BaseDescriptor = nullptr;

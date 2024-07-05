@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertyEdgeMatch.h"
 
+#include "PCGPin.h"
 #include "Data/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"
@@ -76,7 +77,7 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 	int32 IBest = -1;
 	const double DotB = Descriptor.DotComparisonSettings.GetDot(Node.PointIndex);
 
-	FVector NodeDirection = DirCache ? DirCache->Values[Node.PointIndex] : Descriptor.DirectionConstant;
+	FVector NodeDirection = DirCache ? DirCache->Values[Node.PointIndex].GetSafeNormal() : Descriptor.DirectionConstant;
 	if (Descriptor.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
 
 	for (int i = 0; i < Adjacency.Num(); i++)
@@ -153,7 +154,10 @@ UPCGExParamFactoryBase* UPCGExVtxPropertyEdgeMatchSettings::CreateFactory(FPCGCo
 {
 	UPCGExVtxPropertyEdgeMatchFactory* NewFactory = NewObject<UPCGExVtxPropertyEdgeMatchFactory>();
 	NewFactory->Descriptor = Descriptor;
-	GetInputFactories(InContext, PCGEx::SourceAdditionalReq, NewFactory->FilterFactories, PCGExFactories::ClusterEdgeFilters, false);
+	NewFactory->Descriptor.Sanitize();
+	GetInputFactories(
+		InContext, PCGEx::SourceAdditionalReq, NewFactory->FilterFactories,
+		PCGExFactories::ClusterEdgeFilters, false);
 	return Super::CreateFactory(InContext, NewFactory);
 }
 

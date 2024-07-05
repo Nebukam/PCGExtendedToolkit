@@ -35,10 +35,12 @@ bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGEx
 
 bool PCGExPointsFilter::TBitmaskFilter::Test(const int32 PointIndex) const
 {
-	return PCGExCompare::Compare(
+	const bool Result = PCGExCompare::Compare(
 		TypedFilterFactory->Descriptor.Comparison,
 		FlagsReader->Values[PointIndex],
 		MaskReader ? MaskReader->Values[PointIndex] : Bitmask);
+
+	return TypedFilterFactory->Descriptor.bInvertResult ? !Result : Result;
 }
 
 namespace PCGExCompareFilter
@@ -61,28 +63,28 @@ FString UPCGExBitmaskFilterProviderSettings::GetDisplayName() const
 	{
 	case EPCGExBitflagComparison::MatchPartial:
 		DisplayName = TEXT("Contains Any");
-		//DisplayName = TEXT("A & B != 0");
-		//DisplayName = A + " & " + B + TEXT(" != 0");
+	//DisplayName = TEXT("A & B != 0");
+	//DisplayName = A + " & " + B + TEXT(" != 0");
 		break;
 	case EPCGExBitflagComparison::MatchFull:
 		DisplayName = TEXT("Contains All");
-		//DisplayName = TEXT("A & B == B");
-		//DisplayName = A + " Any " + B + TEXT(" == B");
+	//DisplayName = TEXT("A & B == B");
+	//DisplayName = A + " Any " + B + TEXT(" == B");
 		break;
 	case EPCGExBitflagComparison::MatchStrict:
 		DisplayName = TEXT("Is Exactly");
-		//DisplayName = TEXT("A == B");
-		//DisplayName = A + " == " + B;
+	//DisplayName = TEXT("A == B");
+	//DisplayName = A + " == " + B;
 		break;
 	case EPCGExBitflagComparison::NoMatchPartial:
 		DisplayName = TEXT("Not Contains Any");
-		//DisplayName = TEXT("A & B == 0");
-		//DisplayName = A + " & " + B + TEXT(" == 0");
+	//DisplayName = TEXT("A & B == 0");
+	//DisplayName = A + " & " + B + TEXT(" == 0");
 		break;
 	case EPCGExBitflagComparison::NoMatchFull:
 		DisplayName = TEXT("Not Contains All");
-		//DisplayName = TEXT("A & B != B");
-		//DisplayName = A + " & " + B + TEXT(" != B");
+	//DisplayName = TEXT("A & B != B");
+	//DisplayName = A + " & " + B + TEXT(" != B");
 		break;
 	default:
 		DisplayName = " ?? ";

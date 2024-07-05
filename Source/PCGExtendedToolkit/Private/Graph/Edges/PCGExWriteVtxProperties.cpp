@@ -36,7 +36,9 @@ bool FPCGExWriteVtxPropertiesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories(InContext, PCGExVtxProperty::SourcePropertyLabel, Context->ExtraFactories, {PCGExFactories::EType::VtxProperty}, false);
+	PCGExFactories::GetInputFactories(
+		InContext, PCGExVtxProperty::SourcePropertyLabel, Context->ExtraFactories,
+		{PCGExFactories::EType::VtxProperty}, false);
 
 	return true;
 }

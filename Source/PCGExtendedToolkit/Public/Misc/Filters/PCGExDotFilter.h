@@ -54,6 +54,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterDescriptor
 #if WITH_EDITOR
 	FString GetDisplayName() const;
 #endif
+
+	void Sanitize()
+	{
+		
+	}
+	
 };
 
 /**
@@ -66,7 +72,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterFactory : public UPCGExFilterFactory
 
 public:
 	FPCGExDotFilterDescriptor Descriptor;
-
+void Init() override;
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 

@@ -11,11 +11,17 @@ namespace PCGExClusterFilter
 
 	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 	{
+		if(!bInitForCluster)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Using a Cluster filter without cluster data"));
+			return false;
+		}
 		return PCGExPointFilter::TFilter::Init(InContext, InPointDataFacade);
 	}
 
 	bool TFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 	{
+		bInitForCluster = true;
 		Cluster = InCluster;
 		EdgeDataFacade = InEdgeDataFacade;
 		if (!PCGExPointFilter::TFilter::Init(InContext, InPointDataFacade)) { return false; }

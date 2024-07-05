@@ -1,8 +1,9 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExBitmask.h"
 #include "Misc/PCGExBitwiseOperation.h"
+
+#include "Misc/PCGExBitmask.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBitwiseOperationElement"
 #define PCGEX_NAMESPACE BitwiseOperation

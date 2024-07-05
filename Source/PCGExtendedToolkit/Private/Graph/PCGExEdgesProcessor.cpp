@@ -240,7 +240,9 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 bool FPCGExEdgesProcessorContext::HasValidHeuristics() const
 {
 	TArray<UPCGExParamFactoryBase*> InputFactories;
-	const bool bFoundAny = PCGExFactories::GetInputFactories(this, PCGExGraph::SourceHeuristicsLabel, InputFactories, {PCGExFactories::EType::Heuristics}, false);
+	const bool bFoundAny = PCGExFactories::GetInputFactories(
+		this, PCGExGraph::SourceHeuristicsLabel, InputFactories,
+		{PCGExFactories::EType::Heuristics}, false);
 	InputFactories.Empty();
 	return bFoundAny;
 }
@@ -300,12 +302,16 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->SupportsVtxFilters())
 	{
-		GetInputFactories(InContext, Settings->GetVtxFilterLabel(), Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+		GetInputFactories(
+			InContext, Settings->GetVtxFilterLabel(), Context->VtxFilterFactories,
+			PCGExFactories::ClusterNodeFilters, false);
 	}
 
 	if (Settings->SupportsEdgesFilters())
 	{
-		GetInputFactories(InContext, Settings->GetEdgesFilterLabel(), Context->EdgeFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+		GetInputFactories(
+			InContext, Settings->GetEdgesFilterLabel(), Context->EdgeFilterFactories,
+			PCGExFactories::ClusterNodeFilters, false);
 	}
 
 	return true;

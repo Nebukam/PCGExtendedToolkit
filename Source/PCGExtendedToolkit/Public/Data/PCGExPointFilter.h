@@ -31,6 +31,7 @@ namespace PCGExFilters
 	{
 		None = 0,
 		Point,
+		Group,
 		Node,
 		ClusterEdge,
 	};
@@ -61,7 +62,7 @@ namespace PCGExPointFilter
 	const FName SourceFiltersLabel = TEXT("Filters");
 	const FName OutputInsideFiltersLabel = TEXT("Inside");
 	const FName OutputOutsideFiltersLabel = TEXT("Outside");
-	
+
 	class PCGEXTENDEDTOOLKIT_API TFilter
 	{
 	public:
@@ -79,7 +80,7 @@ namespace PCGExPointFilter
 
 		int32 FilterIndex = 0;
 
-		virtual PCGExFilters::EType GetFilterType() const;
+		virtual PCGExFilters::EType GetFilterType() const { return PCGExFilters::EType::Point; }
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade);
 

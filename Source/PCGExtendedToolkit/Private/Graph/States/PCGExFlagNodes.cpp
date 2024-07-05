@@ -36,7 +36,9 @@ bool FPCGExFlagNodesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FlagNodes)
 
-	return PCGExFactories::GetInputFactories(Context, PCGExCluster::SourceNodeFlagLabel, Context->StateFactories, {PCGExFactories::EType::StateNode}, true);
+	return PCGExFactories::GetInputFactories(
+		Context, PCGExCluster::SourceNodeFlagLabel, Context->StateFactories,
+		{PCGExFactories::EType::StateNode}, true);
 }
 
 bool FPCGExFlagNodesElement::ExecuteInternal(
@@ -153,7 +155,6 @@ namespace PCGExFindNodeState
 		ClusterProcessor->StateFlags = StateFlags;
 		return true;
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

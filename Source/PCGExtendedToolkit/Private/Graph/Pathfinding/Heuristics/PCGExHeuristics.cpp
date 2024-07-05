@@ -13,7 +13,9 @@ namespace PCGExHeuristics
 		: VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
 	{
 		TArray<UPCGExHeuristicsFactoryBase*> ContextFactories;
-		PCGExFactories::GetInputFactories(InContext, PCGExGraph::SourceHeuristicsLabel, ContextFactories, {PCGExFactories::EType::Heuristics}, false);
+		PCGExFactories::GetInputFactories(
+			InContext, PCGExGraph::SourceHeuristicsLabel, ContextFactories,
+			{PCGExFactories::EType::Heuristics}, false);
 		BuildFrom(InContext, ContextFactories);
 	}
 

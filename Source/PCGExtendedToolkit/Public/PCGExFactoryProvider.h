@@ -12,7 +12,7 @@
 
 #include "PCGExFactoryProvider.generated.h"
 
-#define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("#%03d "), Priority) +  GetDisplayName())
+#define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("(%02d) "), Priority) +  GetDisplayName())
 
 
 ///
@@ -22,6 +22,7 @@ namespace PCGExFactories
 	enum class EType : uint8
 	{
 		None = 0,
+		FilterGroup,
 		FilterPoint,
 		FilterNode,
 		FilterEdge,
@@ -36,8 +37,10 @@ namespace PCGExFactories
 		Matchmaking
 	};
 
-	static inline TSet<EType> ClusterNodeFilters = {EType::FilterPoint, EType::FilterNode};
-	static inline TSet<EType> ClusterEdgeFilters = {EType::FilterPoint, EType::FilterEdge};
+	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup};
+	static inline TSet<EType> PointFilters = {EType::FilterPoint, EType::FilterGroup};
+	static inline TSet<EType> ClusterNodeFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterGroup};
+	static inline TSet<EType> ClusterEdgeFilters = {EType::FilterPoint, EType::FilterEdge, EType::FilterGroup};
 }
 
 /**

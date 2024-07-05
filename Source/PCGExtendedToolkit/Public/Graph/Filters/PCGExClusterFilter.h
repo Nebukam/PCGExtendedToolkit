@@ -70,6 +70,7 @@ namespace PCGExClusterFilter
 		{
 		}
 
+		bool bInitForCluster = false;
 		PCGExCluster::FCluster* Cluster = nullptr;
 		PCGExData::FFacade* EdgeDataFacade = nullptr;
 

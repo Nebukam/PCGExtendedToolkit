@@ -17,6 +17,15 @@ enum class EPCGExOrientUsage : uint8
 	OutputToAttribute UMETA(DisplayName = "Output to attribute", ToolTip="Output the orientation transform to an attribute"),
 };
 
+namespace PCGExOrient
+{
+	static double DotProduct(const PCGEx::FPointRef& CurrentPt, const PCGEx::FPointRef& PreviousPt, const PCGEx::FPointRef& NextPt)
+	{
+		const FVector Mid = CurrentPt.Point->Transform.GetLocation();
+		return FVector::DotProduct((PreviousPt.Point->Transform.GetLocation() - Mid).GetSafeNormal(), (Mid - NextPt.Point->Transform.GetLocation()).GetSafeNormal());
+	}
+}
+
 /**
  * 
  */
