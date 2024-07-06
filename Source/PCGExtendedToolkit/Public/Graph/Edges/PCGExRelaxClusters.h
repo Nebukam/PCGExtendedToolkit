@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataSettings.h"
+#include "PCGExDataDetails.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Relaxing/PCGExForceDirectedRelax.h"
 #include "PCGExRelaxClusters.generated.h"
@@ -37,7 +37,7 @@ public:
 
 	/** Influence Settings*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExInfluenceSettings InfluenceSettings;
+	FPCGExInfluenceDetails InfluenceDetails;
 
 	/** Relaxing arithmetics */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
@@ -85,7 +85,7 @@ namespace PCGExRelaxClusters
 		TArray<FVector>* PrimaryBuffer = nullptr;
 		TArray<FVector>* SecondaryBuffer = nullptr;
 
-		FPCGExInfluenceSettings InfluenceSettings;
+		FPCGExInfluenceDetails InfluenceDetails;
 
 		bool bBuildExpandedNodes = false;
 		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;

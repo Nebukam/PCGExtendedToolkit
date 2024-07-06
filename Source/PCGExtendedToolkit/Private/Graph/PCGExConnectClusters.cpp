@@ -27,11 +27,11 @@ bool FPCGExConnectClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectClusters)
 
-	PCGEX_FWD(CarryOver)
-	Context->CarryOver.Init();
+	PCGEX_FWD(CarryOverDetails)
+	Context->CarryOverDetails.Init();
 
-	PCGEX_FWD(ProjectionSettings)
-	PCGEX_FWD(GraphBuilderSettings)
+	PCGEX_FWD(ProjectionDetails)
+	PCGEX_FWD(GraphBuilderDetails)
 
 	return true;
 }
@@ -148,7 +148,7 @@ namespace PCGExBridgeClusters
 
 		Merger = new FPCGExPointIOMerger(ConsolidatedEdges);
 		Merger->Append(Edges);
-		Merger->Merge(AsyncManagerPtr, &TypedContext->CarryOver);
+		Merger->Merge(AsyncManagerPtr, &TypedContext->CarryOverDetails);
 	}
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
@@ -218,7 +218,7 @@ namespace PCGExBridgeClusters
 
 			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
-			if (Delaunay->Process(Positions, InContext->ProjectionSettings)) { Bridges.Append(Delaunay->DelaunayEdges); }
+			if (Delaunay->Process(Positions, InContext->ProjectionDetails)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Delaunay 2D failed.")); }
 
 			Positions.Empty();

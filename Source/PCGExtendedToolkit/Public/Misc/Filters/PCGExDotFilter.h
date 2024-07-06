@@ -15,11 +15,11 @@
 #include "PCGExDotFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExDotFilterDescriptor()
+	FPCGExDotFilterConfig()
 	{
 	}
 
@@ -49,7 +49,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterDescriptor
 
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExDotComparisonSettings DotComparisonSettings;
+	FPCGExDotComparisonDetails DotComparisonDetails;
 
 #if WITH_EDITOR
 	FString GetDisplayName() const;
@@ -69,7 +69,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterFactory : public UPCGExFilterFactory
 	GENERATED_BODY()
 
 public:
-	FPCGExDotFilterDescriptor Descriptor;
+	FPCGExDotFilterConfig Config;
 	virtual void Init() override;
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
@@ -82,12 +82,12 @@ namespace PCGExPointsFilter
 		explicit TDotFilter(const UPCGExDotFilterFactory* InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			DotComparison = TypedFilterFactory->Descriptor.DotComparisonSettings;
+			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 		}
 
 		const UPCGExDotFilterFactory* TypedFilterFactory;
 
-		FPCGExDotComparisonSettings DotComparison;
+		FPCGExDotComparisonDetails DotComparison;
 
 		PCGExData::FCache<FVector>* OperandA = nullptr;
 		PCGExData::FCache<FVector>* OperandB = nullptr;
@@ -119,9 +119,9 @@ public:
 	//~End UPCGSettings
 
 public:
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExDotFilterDescriptor Descriptor;
+	FPCGExDotFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

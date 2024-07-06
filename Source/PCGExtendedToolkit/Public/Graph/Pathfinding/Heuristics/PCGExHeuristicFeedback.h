@@ -12,12 +12,12 @@
 #include "PCGExHeuristicFeedback.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorFeedback : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorFeedback() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicConfigFeedback() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 
@@ -100,9 +100,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryFeedback : public UPCGExHeuris
 	GENERATED_BODY()
 
 public:
-	virtual bool IsGlobal() const { return Descriptor.bGlobalFeedback; }
+	virtual bool IsGlobal() const { return Config.bGlobalFeedback; }
 
-	FPCGExHeuristicDescriptorFeedback Descriptor;
+	FPCGExHeuristicConfigFeedback Config;
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
@@ -120,9 +120,9 @@ public:
 #endif
 	//~End UPCGSettings
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicDescriptorFeedback Descriptor;
+	FPCGExHeuristicConfigFeedback Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

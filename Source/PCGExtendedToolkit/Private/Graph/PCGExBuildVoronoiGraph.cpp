@@ -168,7 +168,7 @@ namespace PCGExBuildVoronoi
 			RemappedIndices.Empty();
 			PCGEX_DELETE(Voronoi)
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 
 			ValidEdges.Empty();
@@ -206,7 +206,7 @@ namespace PCGExBuildVoronoi
 				}
 			}
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 			PCGEX_DELETE(Voronoi)

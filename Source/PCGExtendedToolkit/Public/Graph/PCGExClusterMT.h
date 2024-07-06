@@ -463,7 +463,7 @@ namespace PCGExClusterMT
 		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-		FPCGExGraphBuilderSettings GraphBuilderSettings;
+		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 		TArray<PCGExCluster::FCluster*> ValidClusters;
 
@@ -509,7 +509,7 @@ namespace PCGExClusterMT
 
 			if (RequiresGraphBuilder())
 			{
-				GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderSettings, 6, EdgeCollection);
+				GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderDetails, 6, EdgeCollection);
 			}
 
 			return true;

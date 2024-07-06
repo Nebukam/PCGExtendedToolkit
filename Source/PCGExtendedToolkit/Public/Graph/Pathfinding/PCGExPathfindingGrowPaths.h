@@ -225,7 +225,7 @@ public:
 
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Heuristics", meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings SeedPicking = FPCGExNodeSelectionSettings(200);
+	FPCGExNodeSelectionDetails SeedPicking = FPCGExNodeSelectionDetails(200);
 
 	/** Visited weight threshold over which the growth is stopped if that's the only available option. -1 ignores.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
@@ -233,11 +233,11 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardSettings SeedForwardAttributes;
+	FPCGExForwardDetails SeedForwardAttributes;
 
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
@@ -264,7 +264,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 	PCGExData::FCache<FVector>* GrowthDirection = nullptr;
 	PCGExData::FCache<double>* GrowthMaxDistance = nullptr;
 
-	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 };
 

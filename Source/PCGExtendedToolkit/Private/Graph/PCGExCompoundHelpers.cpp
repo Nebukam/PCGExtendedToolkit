@@ -15,13 +15,13 @@ namespace PCGExGraph
 
 	FCompoundProcessor::FCompoundProcessor(
 		FPCGExPointsProcessorContext* InContext,
-		FPCGExPointPointIntersectionSettings InPointPointIntersectionSettings,
-		FPCGExBlendingSettings InDefaultPointsBlending,
-		FPCGExBlendingSettings InDefaultEdgesBlending):
+		FPCGExPointPointIntersectionDetails InPointPointIntersectionSettings,
+		FPCGExBlendingDetails InDefaultPointsBlending,
+		FPCGExBlendingDetails InDefaultEdgesBlending):
 		Context(InContext),
-		PointPointIntersectionSettings(InPointPointIntersectionSettings),
-		DefaultPointsBlendingSettings(InDefaultPointsBlending),
-		DefaultEdgesBlendingSettings(InDefaultEdgesBlending)
+		PointPointIntersectionDetails(InPointPointIntersectionSettings),
+		DefaultPointsBlendingDetails(InDefaultPointsBlending),
+		DefaultEdgesBlendingDetails(InDefaultEdgesBlending)
 	{
 	}
 
@@ -34,25 +34,25 @@ namespace PCGExGraph
 	}
 
 	void FCompoundProcessor::InitPointEdge(
-		const FPCGExPointEdgeIntersectionSettings& InSettings,
+		const FPCGExPointEdgeIntersectionDetails& InDetails,
 		const bool bUseCustom,
-		const FPCGExBlendingSettings* InOverride)
+		const FPCGExBlendingDetails* InOverride)
 	{
 		bDoPointEdge = true;
-		PointEdgeIntersectionSettings = InSettings;
+		PointEdgeIntersectionDetails = InDetails;
 		bUseCustomPointEdgeBlending = bUseCustom;
-		if (InOverride) { CustomPointEdgeBlendingSettings = *InOverride; }
+		if (InOverride) { CustomPointEdgeBlendingDetails = *InOverride; }
 	}
 
 	void FCompoundProcessor::InitEdgeEdge(
-		const FPCGExEdgeEdgeIntersectionSettings& InSettings,
+		const FPCGExEdgeEdgeIntersectionDetails& InDetails,
 		const bool bUseCustom,
-		const FPCGExBlendingSettings* InOverride)
+		const FPCGExBlendingDetails* InOverride)
 	{
 		bDoEdgeEdge = true;
-		EdgeEdgeIntersectionSettings = InSettings;
+		EdgeEdgeIntersectionDetails = InDetails;
 		bUseCustomEdgeEdgeBlending = bUseCustom;
-		if (InOverride) { CustomEdgeEdgeBlendingSettings = *InOverride; }
+		if (InOverride) { CustomEdgeEdgeBlendingDetails = *InOverride; }
 	}
 
 	bool FCompoundProcessor::Execute()
@@ -80,8 +80,8 @@ namespace PCGExGraph
 		{
 			auto Initialize = [&]()
 			{
-				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomPointEdgeBlendingSettings); }
-				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingSettings); }
+				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomPointEdgeBlendingDetails); }
+				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingDetails); }
 
 				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out, true);
 			};
@@ -129,8 +129,8 @@ namespace PCGExGraph
 		{
 			auto Initialize = [&]()
 			{
-				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomEdgeEdgeBlendingSettings); }
-				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingSettings); }
+				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomEdgeEdgeBlendingDetails); }
+				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingDetails); }
 
 				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out, true);
 			};
@@ -155,7 +155,7 @@ namespace PCGExGraph
 
 		if (Context->IsState(State_WritingClusters))
 		{
-			GraphBuilder->CompileAsync(Context->GetAsyncManager(), &GraphMetadataSettings);
+			GraphBuilder->CompileAsync(Context->GetAsyncManager(), &GraphMetadataDetails);
 			Context->SetAsyncState(State_Compiling);
 			return false;
 		}
@@ -187,7 +187,7 @@ namespace PCGExGraph
 	void FCompoundProcessor::FindPointEdgeIntersections()
 	{
 		PointEdgeIntersections = new FPointEdgeIntersections(
-			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, PointEdgeIntersectionSettings);
+			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, &PointEdgeIntersectionDetails);
 
 		Context->SetState(State_FindingPointEdgeIntersections);
 	}
@@ -195,7 +195,7 @@ namespace PCGExGraph
 	void FCompoundProcessor::FindEdgeEdgeIntersections()
 	{
 		EdgeEdgeIntersections = new FEdgeEdgeIntersections(
-			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, EdgeEdgeIntersectionSettings);
+			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, &EdgeEdgeIntersectionDetails);
 
 		Context->SetState(State_FindingEdgeEdgeIntersections);
 	}

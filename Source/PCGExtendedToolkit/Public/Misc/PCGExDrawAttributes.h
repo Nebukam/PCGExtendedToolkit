@@ -23,11 +23,11 @@ enum class EPCGExDebugExpression : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeDebugDrawDescriptor()
+	FPCGExAttributeDebugDrawConfig()
 	{
 		LocalColorAttribute.Update(TEXT("$Color"));
 	}
@@ -102,11 +102,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDraw
 
 	FPCGExAttributeDebugDraw()
 	{
-		Descriptor = nullptr;
+		Config = nullptr;
 	}
 
 public:
-	FPCGExAttributeDebugDrawDescriptor* Descriptor;
+	FPCGExAttributeDebugDrawConfig* Config;
 
 	PCGEx::FLocalVectorGetter VectorGetter;
 	PCGEx::FLocalSingleFieldGetter IndexGetter;
@@ -172,7 +172,7 @@ public:
 public:
 	/** Attributes to draw.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName} as {ExpressedAs}"))
-	TArray<FPCGExAttributeDebugDrawDescriptor> DebugList;
+	TArray<FPCGExAttributeDebugDrawConfig> DebugList;
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))

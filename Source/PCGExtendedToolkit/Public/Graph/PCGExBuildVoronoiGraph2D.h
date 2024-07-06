@@ -69,11 +69,11 @@ public:
 
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(false);
+	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails(false);
 
 private:
 	friend class FPCGExBuildVoronoiGraph2DElement;
@@ -105,7 +105,7 @@ namespace PCGExBuildVoronoi2D
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	protected:
-		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		PCGExGeo::TVoronoi2* Voronoi = nullptr;
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;

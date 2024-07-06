@@ -169,7 +169,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 
 		auto ProjectSeed = [&](const int32 Index)
 		{
-			Context->ProjectedSeeds[Index] = Settings->ProjectionSettings.Project(Seeds[Index].Transform.GetLocation());
+			Context->ProjectedSeeds[Index] = Settings->ProjectionDetails.Project(Seeds[Index].Transform.GetLocation());
 		};
 
 		if (!Context->Process(Initialize, ProjectSeed, Seeds.Num())) { return false; }
@@ -212,9 +212,9 @@ namespace PCGExFindContours
 
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 
-		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, VtxDataFacade);
-		ClusterProjection = new PCGExCluster::FClusterProjection(Cluster, &ProjectionSettings);
+		ProjectionDetails = Settings->ProjectionDetails;
+		ProjectionDetails.Init(Context, VtxDataFacade);
+		ClusterProjection = new PCGExCluster::FClusterProjection(Cluster, &ProjectionDetails);
 
 		StartParallelLoopForNodes();
 
@@ -243,7 +243,7 @@ namespace PCGExFindContours
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
-		ClusterProjection->Nodes[Node.NodeIndex].Project(Cluster, &ProjectionSettings);
+		ClusterProjection->Nodes[Node.NodeIndex].Project(Cluster, &ProjectionDetails);
 	}
 
 	bool FPCGExFindContourTask::ExecuteTask()

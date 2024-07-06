@@ -18,11 +18,11 @@ namespace PCGExNodeFlags
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateDescriptorBase : public FPCGExStateDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateConfigBase : public FPCGExStateConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExClusterStateDescriptorBase()
+	FPCGExClusterStateConfigBase()
 	{
 	}
 };
@@ -41,7 +41,7 @@ public:
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 
-	FPCGExClusterStateDescriptorBase Descriptor;
+	FPCGExClusterStateConfigBase Config;
 
 	virtual void BeginDestroy() override;
 };
@@ -51,8 +51,8 @@ namespace PCGExClusterStates
 	class PCGEXTENDEDTOOLKIT_API FState : public PCGExClusterFilter::TFilter
 	{
 	public:
-		FPCGExClusterStateDescriptorBase Descriptor;
-		FPCGExStateDescriptorBase* BaseDescriptor = nullptr;
+		FPCGExClusterStateConfigBase Config;
+		FPCGExStateConfigBase* BaseConfig = nullptr;
 		const UPCGExClusterStateFactoryBase* StateFactory = nullptr;
 
 		explicit FState(const UPCGExClusterStateFactoryBase* InFactory):
@@ -141,7 +141,7 @@ public:
 	int32 Priority = 0;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExClusterStateDescriptorBase Descriptor;
+	FPCGExClusterStateConfigBase Config;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

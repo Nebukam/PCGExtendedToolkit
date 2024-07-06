@@ -10,7 +10,7 @@
 #if WITH_EDITOR
 void UPCGExSortPointsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	for (FPCGExSortRuleDescriptor& Descriptor : Rules) { Descriptor.UpdateUserFacingInfos(); }
+	for (FPCGExSortRuleConfig& Config : Rules) { Config.UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -19,15 +19,15 @@ FPCGElementPtr UPCGExSortPointsBaseSettings::CreateElement() const { return Make
 
 PCGExData::EInit UPCGExSortPointsBaseSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-bool UPCGExSortPointsBaseSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const
+bool UPCGExSortPointsBaseSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	return true;
 }
 
-bool UPCGExSortPointsSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const
+bool UPCGExSortPointsSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	if (Rules.IsEmpty()) { return false; }
-	for (const FPCGExSortRuleDescriptor& Descriptor : Rules) { OutRules.Add(Descriptor); }
+	for (const FPCGExSortRuleConfig& Config : Rules) { OutRules.Add(Config); }
 	return true;
 }
 
@@ -42,8 +42,8 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Boot(Context)) { return true; }
 
-		TArray<FPCGExSortRuleDescriptor> RuleDescriptors;
-		if (!Settings->GetSortingRules(Context, RuleDescriptors))
+		TArray<FPCGExSortRuleConfig> RuleConfigs;
+		if (!Settings->GetSortingRules(Context, RuleConfigs))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("No attributes to sort over."));
 			return true;
@@ -76,19 +76,19 @@ namespace PCGExSortPoints
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		TArray<FPCGExSortRuleDescriptor> RuleDescriptors;
-		Settings->GetSortingRules(Context, RuleDescriptors);
+		TArray<FPCGExSortRuleConfig> RuleConfigs;
+		Settings->GetSortingRules(Context, RuleConfigs);
 
 		TArray<FPCGExSortRule*> Rules;
-		Rules.Reserve(RuleDescriptors.Num());
+		Rules.Reserve(RuleConfigs.Num());
 
 		TMap<PCGMetadataEntryKey, int32> PointIndices;
 		PointIO->PrintOutKeysMap(PointIndices, true);
 
-		for (const FPCGExSortRuleDescriptor& RuleDescriptor : RuleDescriptors)
+		for (const FPCGExSortRuleConfig& RuleConfig : RuleConfigs)
 		{
 			FPCGExSortRule* NewRule = new FPCGExSortRule();
-			PCGExData::FCache<double>* Cache = PointDataFacade->GetOrCreateGetter<double>(RuleDescriptor.Selector);
+			PCGExData::FCache<double>* Cache = PointDataFacade->GetOrCreateGetter<double>(RuleConfig.Selector);
 
 			if (!Cache)
 			{
@@ -98,8 +98,8 @@ namespace PCGExSortPoints
 			}
 
 			NewRule->Cache = Cache;
-			NewRule->Tolerance = RuleDescriptor.Tolerance;
-			NewRule->bInvertRule = RuleDescriptor.bInvertRule;
+			NewRule->Tolerance = RuleConfig.Tolerance;
+			NewRule->bInvertRule = RuleConfig.bInvertRule;
 			Rules.Add(NewRule);
 		}
 

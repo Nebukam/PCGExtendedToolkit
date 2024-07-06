@@ -62,9 +62,9 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 	Context->TargetsFacade = new PCGExData::FFacade(Targets);
 
 	TSet<FName> MissingTargetAttributes;
-	PCGExDataBlending::AssembleBlendingSettings(
-		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None),
-		Settings->TargetAttributes, Context->TargetsFacade->Source, Context->BlendingSettings, MissingTargetAttributes);
+	PCGExDataBlending::AssembleBlendingDetails(
+		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None),
+		Settings->TargetAttributes, Context->TargetsFacade->Source, Context->BlendingDetails, MissingTargetAttributes);
 
 	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on targets: {0}."), FText::FromName(Id))); }
 
@@ -133,10 +133,10 @@ namespace PCGExSampleNearestPoints
 			PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_INIT)
 		}
 
-		if (!TypedContext->BlendingSettings.FilteredAttributes.IsEmpty() ||
-			!TypedContext->BlendingSettings.GetPropertiesBlendingSettings().HasNoBlending())
+		if (!TypedContext->BlendingDetails.FilteredAttributes.IsEmpty() ||
+			!TypedContext->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
-			Blender = new PCGExDataBlending::FMetadataBlender(&TypedContext->BlendingSettings);
+			Blender = new PCGExDataBlending::FMetadataBlender(&TypedContext->BlendingDetails);
 			Blender->PrepareForData(PointDataFacade, TypedContext->TargetsFacade);
 		}
 
@@ -208,7 +208,7 @@ namespace PCGExSampleNearestPoints
 			FVector A;
 			FVector B;
 
-			Settings->DistanceSettings.GetCenters(Point, Target, A, B);
+			Settings->DistanceDetails.GetCenters(Point, Target, A, B);
 
 			const double Dist = FVector::DistSquared(A, B);
 

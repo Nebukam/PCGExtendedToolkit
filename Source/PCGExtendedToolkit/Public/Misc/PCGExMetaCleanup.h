@@ -34,14 +34,14 @@ public:
 public:
 	/** List of attributes to delete. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExCarryOverSettings Filters;
+	FPCGExCarryOverDetails Filters;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExMetaCleanupContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMetaCleanupElement;
 
-	FPCGExCarryOverSettings Filters;
+	FPCGExCarryOverDetails Filters;
 
 	virtual ~FPCGExMetaCleanupContext() override;
 };

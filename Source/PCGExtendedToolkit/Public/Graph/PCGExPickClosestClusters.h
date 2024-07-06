@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"
 
@@ -57,7 +57,7 @@ public:
 
 	/** What to do with the selection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
-	FPCGExPointFilterActionSettings FilterActions;
+	FPCGExPointFilterActionDetails FilterActions;
 
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or slightly slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

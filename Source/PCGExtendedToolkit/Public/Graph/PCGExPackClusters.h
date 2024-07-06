@@ -34,7 +34,7 @@ public:
 
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
-	FPCGExCarryOverSettings CarryOver;
+	FPCGExCarryOverDetails CarryOverDetails;
 
 private:
 	friend class FPCGExPackClustersElement;
@@ -48,7 +48,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext final : public FPCGExEdg
 	virtual ~FPCGExPackClustersContext() override;
 
 	PCGExData::FPointIOCollection* PackedClusters = nullptr;
-	FPCGExCarryOverSettings CarryOver;
+	FPCGExCarryOverDetails CarryOverDetails;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPackClustersElement final : public FPCGExEdgesProcessorElement

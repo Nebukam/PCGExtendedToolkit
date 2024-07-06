@@ -16,12 +16,12 @@
 class UPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicAttributeDescriptor : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicAttributeDescriptor() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicAttributeConfig() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 
@@ -80,7 +80,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryAttribute : public UPCGExHeuri
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicAttributeDescriptor Descriptor;
+	FPCGExHeuristicAttributeConfig Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
@@ -105,7 +105,7 @@ public:
 
 	/** Modifier properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicAttributeDescriptor Descriptor;
+	FPCGExHeuristicAttributeConfig Config;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

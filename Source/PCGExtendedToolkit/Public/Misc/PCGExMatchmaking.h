@@ -38,13 +38,13 @@ public:
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExAttributeGatherSettings DefaultAttributesFilter;
+	FPCGExAttributeGatherDetails DefaultAttributesFilter;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bDoConsumeProcessedAttributes = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoConsumeProcessedAttributes"))
-	FPCGExNameFiltersSettings ConsumeProcessedAttributes;
+	FPCGExNameFiltersDetails ConsumeProcessedAttributes;
 
 private:
 	friend class FPCGExMatchmakingElement;

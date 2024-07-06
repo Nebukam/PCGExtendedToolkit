@@ -60,8 +60,8 @@ bool FPCGExMeshToClustersElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	PCGEX_FWD(GraphBuilderSettings)
-	PCGEX_FWD(TransformSettings)
+	PCGEX_FWD(GraphBuilderDetails)
+	PCGEX_FWD(TransformDetails)
 
 	if (Settings->StaticMeshSource == EPCGExFetchType::Attribute)
 	{
@@ -233,7 +233,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 			Context->GetAsyncManager()->Start<PCGExGraphTask::FCopyGraphToPoint>(
 				TargetIndex, Context->CurrentIO, Context->GraphBuilders[MeshIdx],
-				Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformSettings);
+				Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails);
 		};
 
 		if (!Context->Process(ProcessTarget, Context->CurrentIO->GetNum())) { return false; }
@@ -283,7 +283,7 @@ namespace PCGExMeshToCluster
 		RootVtx->InitializeNum(Mesh->Vertices.Num());
 		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtx, &Context->GraphBuilderSettings);
+		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtx, &Context->GraphBuilderDetails);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
 		for (int i = 0; i < VtxPoints.Num(); i++)

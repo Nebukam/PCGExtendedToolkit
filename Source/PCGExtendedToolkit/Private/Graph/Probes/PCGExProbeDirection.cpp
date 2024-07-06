@@ -7,27 +7,27 @@
 
 PCGEX_CREATE_PROBE_FACTORY(Direction, {}, {})
 
-bool UPCGExProbeDirection::RequiresChainProcessing() { return Descriptor.bDoChainedProcessing; }
+bool UPCGExProbeDirection::RequiresChainProcessing() { return Config.bDoChainedProcessing; }
 
 bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
-	bUseBestDot = Descriptor.Favor == EPCGExProbeDirectionPriorization::Dot;
-	MaxDot = PCGExMath::DegreesToDot(Descriptor.MaxAngle * 0.5);
+	bUseBestDot = Config.Favor == EPCGExProbeDirectionPriorization::Dot;
+	MaxDot = PCGExMath::DegreesToDot(Config.MaxAngle * 0.5);
 
-	if (Descriptor.DirectionSource == EPCGExFetchType::Constant)
+	if (Config.DirectionSource == EPCGExFetchType::Constant)
 	{
-		Direction = Descriptor.DirectionConstant.GetSafeNormal();
+		Direction = Config.DirectionConstant.GetSafeNormal();
 		bUseConstantDir = true;
 	}
 	else
 	{
-		DirectionCache = PrimaryDataFacade->GetOrCreateGetter<FVector>(Descriptor.DirectionAttribute);
+		DirectionCache = PrimaryDataFacade->GetOrCreateGetter<FVector>(Config.DirectionAttribute);
 
 		if (!DirectionCache)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Direction attribute: {0}")), FText::FromName(Descriptor.DirectionAttribute.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Direction attribute: {0}")), FText::FromName(Config.DirectionAttribute.GetName())));
 			return false;
 		}
 	}
@@ -44,7 +44,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 	int32 BestCandidateIndex = -1;
 
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index].GetSafeNormal() : Direction;
-	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
+	if (Config.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
 
 	for (int i = 0; i < Candidates.Num(); i++)
 	{
@@ -103,7 +103,7 @@ void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 {
 	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
 	FVector Dir = DirectionCache ? DirectionCache->Values[Index].GetSafeNormal() : Direction;
-	if (Descriptor.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
+	if (Config.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
 
 	if (Candidate.Distance > R) { return; }
 
@@ -154,7 +154,7 @@ FString UPCGExProbeDirectionProviderSettings::GetDisplayName() const
 	/*
 	return GetDefaultNodeName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 		*/
 }
 #endif

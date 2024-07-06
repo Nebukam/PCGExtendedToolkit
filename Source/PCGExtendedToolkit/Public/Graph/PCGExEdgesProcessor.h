@@ -85,7 +85,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	template <class LoopBodyFunc>
 	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes->Num(), bForceSync); }
 
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 	bool bWaitingOnClusterProjection = false;
 
@@ -158,7 +158,7 @@ protected:
 			if (NewBatch->RequiresGraphBuilder())
 			{
 				bDoClusterBatchGraphBuilding = true;
-				NewBatch->GraphBuilderSettings = GraphBuilderSettings;
+				NewBatch->GraphBuilderDetails = GraphBuilderDetails;
 			}
 
 			Batches.Add(NewBatch);

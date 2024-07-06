@@ -15,11 +15,11 @@
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNumericCompareFilterDescriptor()
+	FPCGExNumericCompareFilterConfig()
 	{
 	}
 
@@ -58,7 +58,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNumericCompareFilterFactory : public UPCGExFi
 	GENERATED_BODY()
 
 public:
-	FPCGExNumericCompareFilterDescriptor Descriptor;
+	FPCGExNumericCompareFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
@@ -105,9 +105,9 @@ public:
 	//~End UPCGSettings
 
 public:
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExNumericCompareFilterDescriptor Descriptor;
+	FPCGExNumericCompareFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

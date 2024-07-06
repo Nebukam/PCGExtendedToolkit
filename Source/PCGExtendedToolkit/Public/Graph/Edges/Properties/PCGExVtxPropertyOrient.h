@@ -24,7 +24,7 @@ namespace PCGExPointFilter
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExOrientSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExOrientConfig
 {
 	GENERATED_BODY()
 
@@ -43,7 +43,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOrient : public UPCGExVtxPropertyO
 	GENERATED_BODY()
 
 public:
-	FPCGExOrientSettings Descriptor;
+	FPCGExOrientConfig Config;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataFacade, PCGExData::FFacade* EdgeDataFacade) override;
@@ -59,7 +59,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOrientFactory : public UPCGExVtxPr
 	GENERATED_BODY()
 
 public:
-	FPCGExOrientSettings Descriptor;
+	FPCGExOrientConfig Config;
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
@@ -87,5 +87,5 @@ public:
 
 	/** Direction Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExOrientSettings Descriptor;
+	FPCGExOrientConfig Config;
 };

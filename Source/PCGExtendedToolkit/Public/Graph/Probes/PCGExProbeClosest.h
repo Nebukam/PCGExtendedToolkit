@@ -17,12 +17,12 @@ namespace PCGExProbing
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorClosest : public FPCGExProbeDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeDescriptorClosest() :
-		FPCGExProbeDescriptorBase()
+	FPCGExProbeConfigClosest() :
+		FPCGExProbeConfigBase()
 	{
 	}
 
@@ -62,7 +62,7 @@ public:
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges) override;
 	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges) override;
 
-	FPCGExProbeDescriptorClosest Descriptor;
+	FPCGExProbeConfigClosest Config;
 
 	int32 MaxConnections = 1;
 	PCGExData::FCache<int32>* MaxConnectionsCache = nullptr;
@@ -79,7 +79,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryClosest : public UPCGExProbeFacto
 	GENERATED_BODY()
 
 public:
-	FPCGExProbeDescriptorClosest Descriptor;
+	FPCGExProbeConfigClosest Config;
 	virtual UPCGExProbeOperation* CreateOperation() const override;
 };
 
@@ -99,9 +99,9 @@ public:
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExProbeDescriptorClosest Descriptor;
+	FPCGExProbeConfigClosest Config;
 
 
 #if WITH_EDITOR

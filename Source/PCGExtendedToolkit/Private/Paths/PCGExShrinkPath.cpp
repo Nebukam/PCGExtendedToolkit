@@ -19,13 +19,13 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 	PCGEX_SETTINGS_LOCAL(ShrinkPath)
 
 
-	StartCut = Settings->PrimaryDistanceSettings.CutType;
-	EndCut = Settings->PrimaryDistanceSettings.CutType;
+	StartCut = Settings->PrimaryDistanceDetails.CutType;
+	EndCut = Settings->PrimaryDistanceDetails.CutType;
 
-	if (Settings->PrimaryDistanceSettings.ValueSource == EPCGExFetchType::Attribute)
+	if (Settings->PrimaryDistanceDetails.ValueSource == EPCGExFetchType::Attribute)
 	{
 		PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
-		Getter->Capture(Settings->PrimaryDistanceSettings.DistanceAttribute);
+		Getter->Capture(Settings->PrimaryDistanceDetails.DistanceAttribute);
 		if (!Getter->SoftGrab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read primary Distance value attribute on some inputs.")); }
 		Start = Getter->SoftGet(PointIO->GetInPoint(0), 0);
 		End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
@@ -33,24 +33,24 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 	}
 	else
 	{
-		Start = End = Settings->PrimaryDistanceSettings.Distance;
+		Start = End = Settings->PrimaryDistanceDetails.Distance;
 	}
 
 	if (Settings->SettingsMode == EPCGExShrinkConstantMode::Separate)
 	{
-		EndCut = Settings->SecondaryDistanceSettings.CutType;
+		EndCut = Settings->SecondaryDistanceDetails.CutType;
 
-		if (Settings->SecondaryDistanceSettings.ValueSource == EPCGExFetchType::Attribute)
+		if (Settings->SecondaryDistanceDetails.ValueSource == EPCGExFetchType::Attribute)
 		{
 			PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
-			Getter->Capture(Settings->SecondaryDistanceSettings.DistanceAttribute);
+			Getter->Capture(Settings->SecondaryDistanceDetails.DistanceAttribute);
 			if (!Getter->SoftGrab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read secondary Distance attribute on some inputs.")); }
 			End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
 			PCGEX_DELETE(Getter);
 		}
 		else
 		{
-			End = Settings->SecondaryDistanceSettings.Distance;
+			End = Settings->SecondaryDistanceDetails.Distance;
 		}
 	}
 }
@@ -59,10 +59,10 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 {
 	PCGEX_SETTINGS_LOCAL(ShrinkPath)
 
-	if (Settings->PrimaryCountSettings.ValueSource == EPCGExFetchType::Attribute)
+	if (Settings->PrimaryCountDetails.ValueSource == EPCGExFetchType::Attribute)
 	{
 		PCGEx::FLocalIntegerGetter* Getter = new PCGEx::FLocalIntegerGetter();
-		Getter->Capture(Settings->PrimaryCountSettings.CountAttribute);
+		Getter->Capture(Settings->PrimaryCountDetails.CountAttribute);
 		if (!Getter->SoftGrab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read primary Distance value attribute on some inputs.")); }
 		Start = Getter->SoftGet(PointIO->GetInPoint(0), 0);
 		End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
@@ -70,22 +70,22 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 	}
 	else
 	{
-		Start = End = Settings->PrimaryCountSettings.Count;
+		Start = End = Settings->PrimaryCountDetails.Count;
 	}
 
 	if (Settings->SettingsMode == EPCGExShrinkConstantMode::Separate)
 	{
-		if (Settings->SecondaryCountSettings.ValueSource == EPCGExFetchType::Attribute)
+		if (Settings->SecondaryCountDetails.ValueSource == EPCGExFetchType::Attribute)
 		{
 			PCGEx::FLocalIntegerGetter* Getter = new PCGEx::FLocalIntegerGetter();
-			Getter->Capture(Settings->PrimaryCountSettings.CountAttribute);
+			Getter->Capture(Settings->PrimaryCountDetails.CountAttribute);
 			if (!Getter->SoftGrab(PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read secondary Distance attribute on some inputs.")); }
 			End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
 			PCGEX_DELETE(Getter);
 		}
 		else
 		{
-			End = Settings->SecondaryCountSettings.Count;
+			End = Settings->SecondaryCountDetails.Count;
 		}
 	}
 }
@@ -103,18 +103,18 @@ bool FPCGExShrinkPathElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->ShrinkMode == EPCGExPathShrinkMode::Count)
 	{
-		if (!Settings->PrimaryCountSettings.SanityCheck(Context)) { return false; }
+		if (!Settings->PrimaryCountDetails.SanityCheck(Context)) { return false; }
 		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Both && Settings->SettingsMode == EPCGExShrinkConstantMode::Separate)
 		{
-			if (!Settings->SecondaryCountSettings.SanityCheck(Context)) { return false; }
+			if (!Settings->SecondaryCountDetails.SanityCheck(Context)) { return false; }
 		}
 	}
 	else
 	{
-		if (!Settings->PrimaryDistanceSettings.SanityCheck(Context)) { return false; }
+		if (!Settings->PrimaryDistanceDetails.SanityCheck(Context)) { return false; }
 		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Both && Settings->SettingsMode == EPCGExShrinkConstantMode::Separate)
 		{
-			if (!Settings->SecondaryDistanceSettings.SanityCheck(Context)) { return false; }
+			if (!Settings->SecondaryDistanceDetails.SanityCheck(Context)) { return false; }
 		}
 	}
 

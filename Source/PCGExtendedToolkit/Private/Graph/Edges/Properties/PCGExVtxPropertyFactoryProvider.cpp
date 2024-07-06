@@ -10,8 +10,7 @@
 void UPCGExVtxPropertyOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExVtxPropertyOperation* TypedOther = Cast<UPCGExVtxPropertyOperation>(Other);
-	if (TypedOther)
+	if (const UPCGExVtxPropertyOperation* TypedOther = Cast<UPCGExVtxPropertyOperation>(Other))
 	{
 	}
 }

@@ -17,7 +17,7 @@ void UPCGExVtxPropertySpecialEdges::CopySettingsFrom(const UPCGExOperation* Othe
 	const UPCGExVtxPropertySpecialEdges* TypedOther = Cast<UPCGExVtxPropertySpecialEdges>(Other);
 	if (TypedOther)
 	{
-		Descriptor = TypedOther->Descriptor;
+		Config = TypedOther->Config;
 	}
 }
 
@@ -25,17 +25,17 @@ bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, 
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
-	if (!Descriptor.ShortestEdge.Validate(InContext) ||
-		!Descriptor.LongestEdge.Validate(InContext) ||
-		!Descriptor.AverageEdge.Validate(InContext))
+	if (!Config.ShortestEdge.Validate(InContext) ||
+		!Config.LongestEdge.Validate(InContext) ||
+		!Config.AverageEdge.Validate(InContext))
 	{
 		bIsValidOperation = false;
 		return false;
 	}
 
-	Descriptor.ShortestEdge.Init(InVtxDataFacade);
-	Descriptor.LongestEdge.Init(InVtxDataFacade);
-	Descriptor.AverageEdge.Init(InVtxDataFacade);
+	Config.ShortestEdge.Init(InVtxDataFacade);
+	Config.LongestEdge.Init(InVtxDataFacade);
+	Config.AverageEdge.Init(InVtxDataFacade);
 
 	return bIsValidOperation;
 }
@@ -74,13 +74,13 @@ void UPCGExVtxPropertySpecialEdges::ProcessNode(const int32 ClusterIdx, const PC
 	LAverage /= Adjacency.Num();
 	VAverage /= Adjacency.Num();
 
-	Descriptor.AverageEdge.Set(Node.PointIndex, LAverage, VAverage);
+	Config.AverageEdge.Set(Node.PointIndex, LAverage, VAverage);
 
-	if (ILongest != -1) { Descriptor.LongestEdge.Set(Node.PointIndex, Adjacency[IShortest], (*Cluster->Nodes)[Adjacency[IShortest].NodeIndex].Adjacency.Num()); }
-	else { Descriptor.LongestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
+	if (ILongest != -1) { Config.LongestEdge.Set(Node.PointIndex, Adjacency[IShortest], (*Cluster->Nodes)[Adjacency[IShortest].NodeIndex].Adjacency.Num()); }
+	else { Config.LongestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 
-	if (IShortest != -1) { Descriptor.ShortestEdge.Set(Node.PointIndex, Adjacency[ILongest], (*Cluster->Nodes)[Adjacency[ILongest].NodeIndex].Adjacency.Num()); }
-	else { Descriptor.ShortestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
+	if (IShortest != -1) { Config.ShortestEdge.Set(Node.PointIndex, Adjacency[ILongest], (*Cluster->Nodes)[Adjacency[ILongest].NodeIndex].Adjacency.Num()); }
+	else { Config.ShortestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
 #if WITH_EDITOR
@@ -100,7 +100,7 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertySpecialEdgesFactory::CreateOperatio
 UPCGExParamFactoryBase* UPCGExVtxPropertySpecialEdgesSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExVtxPropertySpecialEdgesFactory* NewFactory = NewObject<UPCGExVtxPropertySpecialEdgesFactory>();
-	NewFactory->Descriptor = Descriptor;
+	NewFactory->Config = Config;
 	return Super::CreateFactory(InContext, NewFactory);
 }
 

@@ -20,14 +20,14 @@ namespace PCPGExMergePointsByTag
 		PCGEX_DELETE(Merger)
 	}
 
-	void FMergeList::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverSettings* CarryOver)
+	void FMergeList::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
 	{
 		CompositeIO = IOs[0];
 		CompositeIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		Merger = new FPCGExPointIOMerger(CompositeIO);
 		Merger->Append(IOs);
-		Merger->Merge(AsyncManager, CarryOver);
+		Merger->Merge(AsyncManager, InCarryOverDetails);
 	}
 
 	void FMergeList::Write(PCGExMT::FTaskManager* AsyncManager) const
@@ -64,7 +64,7 @@ namespace PCPGExMergePointsByTag
 		ReverseBucketsMap.Empty();
 	}
 
-	void FTagBuckets::Distribute(PCGExData::FPointIO* IO, const FPCGExNameFiltersSettings& Filters)
+	void FTagBuckets::Distribute(PCGExData::FPointIO* IO, const FPCGExNameFiltersDetails& Filters)
 	{
 		bool bDistributed = false;
 		if (!IO->Tags->IsEmpty())
@@ -221,8 +221,8 @@ bool FPCGExMergePointsByTagElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(TagFilters)
 	Context->TagFilters.Init();
 
-	PCGEX_FWD(CarryOver)
-	Context->CarryOver.Init();
+	PCGEX_FWD(CarryOverDetails)
+	Context->CarryOverDetails.Init();
 
 	PCPGExMergePointsByTag::FTagBuckets* Buckets = new PCPGExMergePointsByTag::FTagBuckets();
 	for (PCGExData::FPointIO* IO : Context->MainPoints->Pairs) { Buckets->Distribute(IO, Context->TagFilters); }
@@ -241,7 +241,7 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		for (PCPGExMergePointsByTag::FMergeList* List : Context->MergeLists) { List->Merge(Context->GetAsyncManager(), &Context->CarryOver); }
+		for (PCPGExMergePointsByTag::FMergeList* List : Context->MergeLists) { List->Merge(Context->GetAsyncManager(), &Context->CarryOverDetails); }
 		Context->SetAsyncState(PCGExData::State_MergingData);
 	}
 

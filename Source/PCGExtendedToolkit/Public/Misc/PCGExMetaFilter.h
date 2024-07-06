@@ -35,7 +35,7 @@ public:
 public:
 	/** List of attributes to delete. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExCarryOverSettings Filters;
+	FPCGExCarryOverDetails Filters;
 
 	/** Swap Inside & Outside data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -48,7 +48,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMetaFilterContext final : public FPCGExPoint
 
 	virtual ~FPCGExMetaFilterContext() override;
 
-	FPCGExCarryOverSettings Filters;
+	FPCGExCarryOverDetails Filters;
 
 	PCGExData::FPointIOCollection* Inside = nullptr;
 	PCGExData::FPointIOCollection* Outside = nullptr;

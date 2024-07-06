@@ -32,15 +32,15 @@ enum class EPCGExStringMatchMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 {
 	GENERATED_BODY()
 
-	FPCGExNameFiltersSettings()
+	FPCGExNameFiltersDetails()
 	{
 	}
 
-	explicit FPCGExNameFiltersSettings(bool FilterToRemove)
+	explicit FPCGExNameFiltersDetails(bool FilterToRemove)
 		: bFilterToRemove(FilterToRemove)
 	{
 	}
@@ -134,21 +134,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersSettings
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 {
 	GENERATED_BODY()
 
-	FPCGExCarryOverSettings()
+	FPCGExCarryOverDetails()
 	{
 	}
 
 	/** Attributes to carry over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExNameFiltersSettings Attributes = FPCGExNameFiltersSettings(false);
+	FPCGExNameFiltersDetails Attributes = FPCGExNameFiltersDetails(false);
 
 	/** Tags to carry over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExNameFiltersSettings Tags = FPCGExNameFiltersSettings(false);
+	FPCGExNameFiltersDetails Tags = FPCGExNameFiltersDetails(false);
 
 	void Init()
 	{

@@ -24,8 +24,8 @@ bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
-	PCGEX_FWD(CarryOver)
-	Context->CarryOver.Init();
+	PCGEX_FWD(CarryOverDetails)
+	Context->CarryOverDetails.Init();
 
 	return true;
 }
@@ -44,7 +44,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExFusePoints::FProcessor>* NewBatch)
 			{
-				NewBatch->bInlineProcessing = Settings->PointPointIntersectionSettings.FuseMethod == EPCGExFuseMethod::Octree;
+				NewBatch->bInlineProcessing = Settings->PointPointIntersectionDetails.FuseMethod == EPCGExFuseMethod::Octree;
 				NewBatch->bRequiresWriteStep = true;
 			},
 			PCGExMT::State_Done))
@@ -81,9 +81,9 @@ namespace PCGExFusePoints
 		PointIO->CreateInKeys();
 
 		CompoundGraph = new PCGExGraph::FCompoundGraph(
-			Settings->PointPointIntersectionSettings.FuseSettings,
+			Settings->PointPointIntersectionDetails.FuseDetails,
 			PointIO->GetIn()->GetBounds().ExpandBy(10), true,
-			Settings->PointPointIntersectionSettings.FuseMethod);
+			Settings->PointPointIntersectionDetails.FuseMethod);
 
 		const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
 		for (int i = 0; i < Points.Num(); i++) { CompoundGraph->InsertPointUnsafe(Points[i], PointIO->IOIndex, i); }
@@ -105,7 +105,7 @@ namespace PCGExFusePoints
 		Point.MetadataEntry = Key; // Restore key
 
 		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, TypedContext->MainPoints));
-		CompoundPointsBlender->MergeSingle(Iteration, PCGExSettings::GetDistanceSettings(Settings->PointPointIntersectionSettings));
+		CompoundPointsBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
 	}
 
 	void FProcessor::CompleteWork()
@@ -115,7 +115,7 @@ namespace PCGExFusePoints
 		const int32 NumCompoundNodes = CompoundGraph->Nodes.Num();
 		PointIO->InitializeNum(NumCompoundNodes);
 
-		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings), &TypedContext->CarryOver);
+		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &TypedContext->CarryOverDetails);
 		CompoundPointsBlender->AddSource(PointDataFacade);
 		CompoundPointsBlender->PrepareMerge(PointDataFacade, CompoundGraph->PointsCompounds);
 

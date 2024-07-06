@@ -15,7 +15,7 @@ void UPCGExVtxPropertyEdgeMatch::CopySettingsFrom(const UPCGExOperation* Other)
 	const UPCGExVtxPropertyEdgeMatch* TypedOther = Cast<UPCGExVtxPropertyEdgeMatch>(Other);
 	if (TypedOther)
 	{
-		Descriptor = TypedOther->Descriptor;
+		Config = TypedOther->Config;
 	}
 }
 
@@ -39,21 +39,21 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCG
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
-	if (!Descriptor.MatchingEdge.Validate(InContext))
+	if (!Config.MatchingEdge.Validate(InContext))
 	{
 		bIsValidOperation = false;
 		return false;
 	}
 
-	if (!Descriptor.DotComparisonSettings.Init(InContext, InVtxDataFacade))
+	if (!Config.DotComparisonDetails.Init(InContext, InVtxDataFacade))
 	{
 		bIsValidOperation = false;
 		return false;
 	}
 
-	if (Descriptor.DirectionSource == EPCGExFetchType::Attribute)
+	if (Config.DirectionSource == EPCGExFetchType::Attribute)
 	{
-		DirCache = PrimaryDataFacade->GetOrCreateGetter<FVector>(Descriptor.Direction);
+		DirCache = PrimaryDataFacade->GetOrCreateGetter<FVector>(Config.Direction);
 		if (!DirCache)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Direction attribute is invalid"));
@@ -62,7 +62,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCG
 		}
 	}
 
-	Descriptor.MatchingEdge.Init(InVtxDataFacade);
+	Config.MatchingEdge.Init(InVtxDataFacade);
 
 	return bIsValidOperation;
 }
@@ -75,17 +75,17 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 
 	double BestDot = TNumericLimits<double>::Min();
 	int32 IBest = -1;
-	const double DotB = Descriptor.DotComparisonSettings.GetDot(Node.PointIndex);
+	const double DotB = Config.DotComparisonDetails.GetDot(Node.PointIndex);
 
-	FVector NodeDirection = DirCache ? DirCache->Values[Node.PointIndex].GetSafeNormal() : Descriptor.DirectionConstant;
-	if (Descriptor.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
+	FVector NodeDirection = DirCache ? DirCache->Values[Node.PointIndex].GetSafeNormal() : Config.DirectionConstant;
+	if (Config.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
 
 	for (int i = 0; i < Adjacency.Num(); i++)
 	{
 		const PCGExCluster::FAdjacencyData& A = Adjacency[i];
 		const double DotA = FVector::DotProduct(NodeDirection, A.Direction);
 
-		if (Descriptor.DotComparisonSettings.Test(DotA, DotB))
+		if (Config.DotComparisonDetails.Test(DotA, DotB))
 		{
 			if (DotA > BestDot)
 			{
@@ -95,8 +95,8 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 		}
 	}
 
-	if (IBest != -1) { Descriptor.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], (*Cluster->Nodes)[Adjacency[IBest].NodeIndex].Adjacency.Num()); }
-	else { Descriptor.MatchingEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
+	if (IBest != -1) { Config.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], (*Cluster->Nodes)[Adjacency[IBest].NodeIndex].Adjacency.Num()); }
+	else { Config.MatchingEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
 void UPCGExVtxPropertyEdgeMatch::Cleanup()
@@ -118,8 +118,8 @@ void UPCGExVtxPropertyEdgeMatch::InitEdgeFilters()
 FString UPCGExVtxPropertyEdgeMatchSettings::GetDisplayName() const
 {
 	/*
-	if (Descriptor.SourceAttributes.IsEmpty()) { return TEXT(""); }
-	TArray<FName> Names = Descriptor.SourceAttributes.Array();
+	if (Config.SourceAttributes.IsEmpty()) { return TEXT(""); }
+	TArray<FName> Names = Config.SourceAttributes.Array();
 
 	if (Names.Num() == 1) { return Names[0].ToString(); }
 	if (Names.Num() == 2) { return Names[0].ToString() + TEXT(" (+1 other)"); }
@@ -153,8 +153,8 @@ TArray<FPCGPinProperties> UPCGExVtxPropertyEdgeMatchSettings::InputPinProperties
 UPCGExParamFactoryBase* UPCGExVtxPropertyEdgeMatchSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExVtxPropertyEdgeMatchFactory* NewFactory = NewObject<UPCGExVtxPropertyEdgeMatchFactory>();
-	NewFactory->Descriptor = Descriptor;
-	NewFactory->Descriptor.Sanitize();
+	NewFactory->Config = Config;
+	NewFactory->Config.Sanitize();
 	GetInputFactories(
 		InContext, PCGEx::SourceAdditionalReq, NewFactory->FilterFactories,
 		PCGExFactories::ClusterEdgeFilters, false);

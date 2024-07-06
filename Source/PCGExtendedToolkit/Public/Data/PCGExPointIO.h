@@ -137,18 +137,18 @@ namespace PCGExData
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 
-		FORCEINLINE const FPCGPoint& GetInPoint(const int32 Index) const { return In->GetPoints()[Index]; }
-		FORCEINLINE const FPCGPoint& GetOutPoint(const int32 Index) const { return Out->GetPoints()[Index]; }
-		FORCEINLINE FPCGPoint& GetMutablePoint(const int32 Index) const { return Out->GetMutablePoints()[Index]; }
+		FORCEINLINE const FPCGPoint& GetInPoint(const int32 Index) const { return *(In->GetPoints().GetData() + Index); }
+		FORCEINLINE const FPCGPoint& GetOutPoint(const int32 Index) const { return *(Out->GetPoints().GetData() + Index); }
+		FORCEINLINE FPCGPoint& GetMutablePoint(const int32 Index) const { return *(Out->GetMutablePoints().GetData() + Index); }
 
-		FORCEINLINE PCGEx::FPointRef GetInPointRef(const int32 Index) const { return PCGEx::FPointRef(In->GetPoints()[Index], Index); }
-		FORCEINLINE PCGEx::FPointRef GetOutPointRef(const int32 Index) const { return PCGEx::FPointRef(Out->GetPoints()[Index], Index); }
+		FORCEINLINE PCGEx::FPointRef GetInPointRef(const int32 Index) const { return PCGEx::FPointRef(In->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE PCGEx::FPointRef GetOutPointRef(const int32 Index) const { return PCGEx::FPointRef(Out->GetPoints().GetData() + Index, Index); }
 
-		FORCEINLINE PCGEx::FPointRef* GetInPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(In->GetPoints()[Index], Index); }
-		FORCEINLINE PCGEx::FPointRef* GetOutPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(Out->GetPoints()[Index], Index); }
+		FORCEINLINE PCGEx::FPointRef* GetInPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(In->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE PCGEx::FPointRef* GetOutPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(Out->GetPoints().GetData() + Index, Index); }
 
-		FORCEINLINE const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
-		FORCEINLINE const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
+		FORCEINLINE const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? (In->GetPoints().GetData() + Index) : nullptr; }
+		FORCEINLINE const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? (Out->GetPoints().GetData() + Index) : nullptr; }
 
 		FORCEINLINE void InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata); }
 		FORCEINLINE void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const { Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata); }

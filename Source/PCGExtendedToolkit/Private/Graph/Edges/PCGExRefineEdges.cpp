@@ -14,10 +14,11 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	if (Refinement && Refinement->RequiresHeuristics()) { PCGEX_PIN_PARAMS(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, {}) }
+	PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceProtectEdgeFilters, "Filters used to preserve specific edges.", Advanced, {})
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return GraphBuilderSettings.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return GraphBuilderDetails.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
@@ -40,13 +41,15 @@ bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 	}
 
 	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefinePrimMST)
-	PCGEX_FWD(GraphBuilderSettings)
+	PCGEX_FWD(GraphBuilderDetails)
 
 	if (Context->Refinement->RequiresHeuristics() && !Context->bHasValidHeuristics)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("The selected refinement requires heuristics to be connected, but none can be found."));
 		return false;
 	}
+
+	PCGExFactories::GetInputFactories(Context, PCGExRefineEdges::SourceProtectEdgeFilters, Context->PreserveEdgeFilterFactories, PCGExFactories::PointFilters, false);
 
 	return true;
 }
@@ -66,7 +69,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>* NewBatch)
 			{
-				NewBatch->GraphBuilderSettings = Context->GraphBuilderSettings;
+				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 				if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 			},
 			PCGExMT::State_Done))
@@ -97,6 +100,7 @@ namespace PCGExRefineEdges
 
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE_OPERATION(Refinement)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -105,27 +109,30 @@ namespace PCGExRefineEdges
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		Refinement = TypedContext->Refinement;
+		Refinement = TypedContext->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
+		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
 
 		if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
 		else if (Refinement->RequiresIndividualEdgeProcessing()) { StartParallelLoopForEdges(); }
-		else { Refinement->Process(Cluster, HeuristicsHandler); }
+		else { Refinement->Process(); }
 		return true;
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
-	{
-		Refinement->ProcessNode(Node, Cluster, NodeLock, HeuristicsHandler);
-	}
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) { Refinement->ProcessNode(Node); }
 
-	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
-	{
-		Refinement->ProcessEdge(Edge, Cluster, NodeLock, HeuristicsHandler);
-	}
+	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) { Refinement->ProcessEdge(Edge); }
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_SETTINGS(RefineEdges)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+
+		if (!TypedContext->PreserveEdgeFilterFactories.IsEmpty())
+		{
+			PCGExPointFilter::TManager* FilterManager = new PCGExPointFilter::TManager(EdgeDataFacade);
+			FilterManager->Init(Context, TypedContext->PreserveEdgeFilterFactories);
+			for (PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges) { if (!Edge.bValid) { Edge.bValid = FilterManager->Test(Edge.EdgeIndex); } }
+			PCGEX_DELETE(FilterManager);
+		}
 
 		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
 		Cluster->GetValidEdges(ValidEdges);

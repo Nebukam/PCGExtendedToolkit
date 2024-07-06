@@ -8,7 +8,7 @@
 #include "PCGExMT.h"
 #include "UObject/Object.h"
 
-struct FPCGExCarryOverSettings;
+struct FPCGExCarryOverDetails;
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointIOMerger final
 {
@@ -27,7 +27,7 @@ public:
 	void Append(PCGExData::FPointIO* InData);
 	void Append(const TArray<PCGExData::FPointIO*>& InData);
 	void Append(PCGExData::FPointIOCollection* InCollection);
-	void Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverSettings* CarryOver);
+	void Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
 	void Write();
 	void Write(PCGExMT::FTaskManager* AsyncManager);
 

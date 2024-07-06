@@ -9,7 +9,7 @@
 #include "PCGExMT.h"
 #include "PCGExEdge.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExData.h"
 
@@ -41,15 +41,15 @@ enum class EPCGExIntersectionType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 {
 	GENERATED_BODY()
 
-	FPCGExGraphBuilderSettings()
+	FPCGExGraphBuilderDetails()
 	{
 	}
 
-	explicit FPCGExGraphBuilderSettings(const bool PrunePoints)
+	explicit FPCGExGraphBuilderDetails(const bool PrunePoints)
 		: bPruneIsolatedPoints(PrunePoints)
 	{
 	}
@@ -172,7 +172,7 @@ namespace PCGExGraph
 
 #pragma region Graph
 
-	struct PCGEXTENDEDTOOLKIT_API FGraphMetadataSettings
+	struct PCGEXTENDEDTOOLKIT_API FGraphMetadataDetails
 	{
 		bool bWriteCompounded = false;
 		FName CompoundedAttributeName = "bCompounded";
@@ -190,30 +190,30 @@ namespace PCGExGraph
 		FName FlagA = NAME_None;
 		FName FlagB = NAME_None;
 
-		void Grab(const FPCGContext* Context, const FPCGExPointPointIntersectionSettings& Settings)
+		void Grab(const FPCGContext* Context, const FPCGExPointPointIntersectionDetails& InDetails)
 		{
-			bWriteCompounded = Settings.bWriteCompounded;
-			CompoundedAttributeName = Settings.CompoundedAttributeName;
+			bWriteCompounded = InDetails.bWriteCompounded;
+			CompoundedAttributeName = InDetails.CompoundedAttributeName;
 			PCGEX_SOFT_VALIDATE_NAME(bWriteCompounded, CompoundedAttributeName, Context)
 
-			bWriteCompoundSize = Settings.bWriteCompoundSize;
-			CompoundSizeAttributeName = Settings.CompoundSizeAttributeName;
+			bWriteCompoundSize = InDetails.bWriteCompoundSize;
+			CompoundSizeAttributeName = InDetails.CompoundSizeAttributeName;
 			PCGEX_SOFT_VALIDATE_NAME(bWriteCompoundSize, CompoundSizeAttributeName, Context)
 		}
 
-		void Grab(const FPCGContext* Context, const FPCGExEdgeEdgeIntersectionSettings& Settings)
+		void Grab(const FPCGContext* Context, const FPCGExEdgeEdgeIntersectionDetails& InDetails)
 		{
-			bWriteCrossing = Settings.bWriteCrossing;
-			CrossingAttributeName = Settings.CrossingAttributeName;
-			bFlagCrossing = Settings.bFlagCrossing;
+			bWriteCrossing = InDetails.bWriteCrossing;
+			CrossingAttributeName = InDetails.CrossingAttributeName;
+			bFlagCrossing = InDetails.bFlagCrossing;
 			PCGEX_SOFT_VALIDATE_NAME(bFlagCrossing, FlagA, Context)
 			PCGEX_SOFT_VALIDATE_NAME(bFlagCrossing, FlagB, Context)
 		}
 
-		void Grab(const FPCGContext* Context, const FPCGExPointEdgeIntersectionSettings& Settings)
+		void Grab(const FPCGContext* Context, const FPCGExPointEdgeIntersectionDetails& InDetails)
 		{
-			bWriteIntersector = Settings.bWriteIntersector;
-			IntersectorAttributeName = Settings.IntersectorAttributeName;
+			bWriteIntersector = InDetails.bWriteIntersector;
+			IntersectorAttributeName = InDetails.IntersectorAttributeName;
 			PCGEX_SOFT_VALIDATE_NAME(bWriteIntersector, IntersectorAttributeName, Context)
 		}
 	};
@@ -340,7 +340,7 @@ namespace PCGExGraph
 		}
 
 		void Invalidate(FGraph* InGraph);
-		PCGExCluster::FCluster* CreateCluster() const;
+		PCGExCluster::FCluster* CreateCluster(PCGExMT::FTaskManager* AsyncManager) const;
 		int32 GetFirstInIOIndex();
 	};
 
@@ -423,7 +423,7 @@ namespace PCGExGraph
 	class PCGEXTENDEDTOOLKIT_API FGraphBuilder
 	{
 	public:
-		const FPCGExGraphBuilderSettings* OutputSettings = nullptr;
+		const FPCGExGraphBuilderDetails* OutputDetails = nullptr;
 
 		bool bPrunePoints = false;
 		int64 PairId;
@@ -440,8 +440,8 @@ namespace PCGExGraph
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(PCGExData::FPointIO* InPointIO, const FPCGExGraphBuilderSettings* InSettings, const int32 NumEdgeReserve = 6, PCGExData::FPointIOCollection* InSourceEdges = nullptr)
-			: OutputSettings(InSettings), SourceEdgesIO(InSourceEdges)
+		FGraphBuilder(PCGExData::FPointIO* InPointIO, const FPCGExGraphBuilderDetails* InDetails, const int32 NumEdgeReserve = 6, PCGExData::FPointIOCollection* InSourceEdges = nullptr)
+			: OutputDetails(InDetails), SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = InPointIO;
 			PairId = PointIO->GetOutIn()->UID;
@@ -451,20 +451,20 @@ namespace PCGExGraph
 			VtxDataFacade = new PCGExData::FFacade(PointIO);
 
 			Graph = new FGraph(NumNodes, NumEdgeReserve);
-			Graph->bBuildClusters = InSettings->bBuildAndCacheClusters;
-			Graph->bExpandClusters = InSettings->bExpandClusters;
-			Graph->bWriteEdgePosition = OutputSettings->bWriteEdgePosition;
-			Graph->EdgePosition = OutputSettings->EdgePosition;
-			Graph->bRefreshEdgeSeed = OutputSettings->bRefreshEdgeSeed;
+			Graph->bBuildClusters = InDetails->bBuildAndCacheClusters;
+			Graph->bExpandClusters = InDetails->bExpandClusters;
+			Graph->bWriteEdgePosition = OutputDetails->bWriteEdgePosition;
+			Graph->EdgePosition = OutputDetails->EdgePosition;
+			Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
 			EdgesIO = new PCGExData::FPointIOCollection();
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
 
-			bPrunePoints = OutputSettings->bPruneIsolatedPoints;
+			bPrunePoints = OutputDetails->bPruneIsolatedPoints;
 		}
 
-		void CompileAsync(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataSettings* MetadataSettings = nullptr);
-		void Compile(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataSettings* MetadataSettings = nullptr);
+		void CompileAsync(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataDetails* MetadataDetails = nullptr);
+		void Compile(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataDetails* MetadataDetails = nullptr);
 
 		void Write(FPCGContext* InContext) const;
 
@@ -593,22 +593,22 @@ namespace PCGExGraphTask
 	static void WriteSubGraphEdges(
 		PCGExMT::FTaskManager* AsyncManager,
 		const TArray<FPCGPoint>& Vertices,
-		PCGExGraph::FSubGraph* SubGraph, const PCGExGraph::FGraphMetadataSettings* MetadataSettings);
+		PCGExGraph::FSubGraph* SubGraph, const PCGExGraph::FGraphMetadataDetails* MetadataDetails);
 
 	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteSubGraphEdges(PCGExData::FPointIO* InPointIO,
 		                    PCGExGraph::FSubGraph* InSubGraph,
-		                    PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
+		                    PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
 			: FPCGExTask(InPointIO),
 			  SubGraph(InSubGraph),
-			  MetadataSettings(InMetadataSettings)
+			  MetadataDetails(InMetadataDetails)
 		{
 		}
 
 		PCGExGraph::FSubGraph* SubGraph = nullptr;
-		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
+		PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};
@@ -619,10 +619,10 @@ namespace PCGExGraphTask
 		FWriteSmallSubGraphEdges(
 			PCGExData::FPointIO* InPointIO,
 			const TArray<PCGExGraph::FSubGraph*>& InSubGraphs,
-			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
+			PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
 			: FPCGExTask(InPointIO),
 			  SubGraphs(InSubGraphs),
-			  MetadataSettings(InMetadataSettings)
+			  MetadataDetails(InMetadataDetails)
 		{
 		}
 
@@ -633,7 +633,7 @@ namespace PCGExGraphTask
 
 		TArray<PCGExGraph::FSubGraph*> SubGraphs;
 
-		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
+		PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};
@@ -658,15 +658,15 @@ namespace PCGExGraphTask
 		FCompileGraph(
 			PCGExData::FPointIO* InPointIO,
 			PCGExGraph::FGraphBuilder* InGraphBuilder,
-			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
+			PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
 			: FPCGExTask(InPointIO),
 			  Builder(InGraphBuilder),
-			  MetadataSettings(InMetadataSettings)
+			  MetadataDetails(InMetadataDetails)
 		{
 		}
 
 		PCGExGraph::FGraphBuilder* Builder = nullptr;
-		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
+		PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};
@@ -678,12 +678,12 @@ namespace PCGExGraphTask
 		                  PCGExGraph::FGraphBuilder* InGraphBuilder,
 		                  PCGExData::FPointIOCollection* InVtxCollection,
 		                  PCGExData::FPointIOCollection* InEdgeCollection,
-		                  FPCGExTransformSettings* InTransformSettings) :
+		                  FPCGExTransformDetails* InTransformDetails) :
 			FPCGExTask(InPointIO),
 			GraphBuilder(InGraphBuilder),
 			VtxCollection(InVtxCollection),
 			EdgeCollection(InEdgeCollection),
-			TransformSettings(InTransformSettings)
+			TransformDetails(InTransformDetails)
 		{
 		}
 
@@ -692,7 +692,7 @@ namespace PCGExGraphTask
 		PCGExData::FPointIOCollection* VtxCollection = nullptr;
 		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
 
-		FPCGExTransformSettings* TransformSettings = nullptr;
+		FPCGExTransformDetails* TransformDetails = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

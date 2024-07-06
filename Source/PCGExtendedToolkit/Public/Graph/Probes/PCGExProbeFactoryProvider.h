@@ -11,11 +11,11 @@
 #define PCGEX_CREATE_PROBE_FACTORY(_NAME, _EXTRA_FACTORY, _EXTRA_OPERATION) \
 UPCGExParamFactoryBase* UPCGExProbe##_NAME##ProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const{\
 	UPCGExProbeFactory##_NAME* NewFactory = NewObject<UPCGExProbeFactory##_NAME>(); \
-	NewFactory->Descriptor = Descriptor; _EXTRA_FACTORY \
+	NewFactory->Config = Config; _EXTRA_FACTORY \
 	return Super::CreateFactory(InContext, NewFactory); } \
 UPCGExProbeOperation* UPCGExProbeFactory##_NAME::CreateOperation() const{\
 	UPCGExProbe##_NAME* NewOperation = NewObject<UPCGExProbe##_NAME>();\
-	NewOperation->Descriptor = Descriptor; NewOperation->BaseDescriptor = &NewOperation->Descriptor; _EXTRA_OPERATION return NewOperation;}
+	NewOperation->Config = Config; NewOperation->BaseConfig = &NewOperation->Config; _EXTRA_OPERATION return NewOperation;}
 
 class UPCGExProbeOperation;
 

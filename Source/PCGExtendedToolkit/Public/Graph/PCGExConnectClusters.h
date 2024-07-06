@@ -47,15 +47,15 @@ public:
 
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BridgeMethod==EPCGExBridgeClusterMethod::Delaunay2D", EditConditionHides))
-	FPCGExGeo2DProjectionSettings ProjectionSettings = FPCGExGeo2DProjectionSettings(false);
+	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
 
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
-	FPCGExCarryOverSettings CarryOver;
+	FPCGExCarryOverDetails CarryOverDetails;
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 private:
 	friend class FPCGExConnectClustersElement;
@@ -68,8 +68,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersContext final : public FPCGEx
 
 	virtual ~FPCGExConnectClustersContext() override;
 
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
-	FPCGExCarryOverSettings CarryOver;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
+	FPCGExCarryOverDetails CarryOverDetails;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement

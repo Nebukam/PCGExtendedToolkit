@@ -20,9 +20,9 @@ void UPCGExHeuristicFeedback::Cleanup()
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryFeedback::CreateOperation() const
 {
 	UPCGExHeuristicFeedback* NewOperation = NewObject<UPCGExHeuristicFeedback>();
-	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
-	NewOperation->NodeScale = Descriptor.VisitedPointsWeightFactor;
-	NewOperation->EdgeScale = Descriptor.VisitedEdgesWeightFactor;
+	PCGEX_FORWARD_HEURISTIC_CONFIG
+	NewOperation->NodeScale = Config.VisitedPointsWeightFactor;
+	NewOperation->EdgeScale = Config.VisitedEdgesWeightFactor;
 	return NewOperation;
 }
 
@@ -38,6 +38,6 @@ FString UPCGExHeuristicFeedbackProviderSettings::GetDisplayName() const
 {
 	return GetDefaultNodeName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif

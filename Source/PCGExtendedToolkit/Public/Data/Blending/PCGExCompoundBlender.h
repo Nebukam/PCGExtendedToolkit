@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "PCGExMT.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -79,20 +79,20 @@ namespace PCGExDataBlending
 		friend class FPCGExCompoundedPointBlendTask;
 
 	public:
-		const FPCGExCarryOverSettings* CarryOver;
+		const FPCGExCarryOverDetails* CarryOverDetails;
 
-		explicit FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings, const FPCGExCarryOverSettings* InCarryOver);
+		explicit FCompoundBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails);
 		~FCompoundBlender();
 
 		void AddSource(PCGExData::FFacade* InFacade);
 		void AddSources(const TArray<PCGExData::FFacade*>& InFacades);
 
 		void PrepareMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList);
-		void Merge(PCGExMT::FTaskManager* AsyncManager, PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList, const FPCGExDistanceSettings& DistSettings);
-		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceSettings& DistSettings);
+		//void Merge(PCGExMT::FTaskManager* AsyncManager, PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList, const FPCGExDistanceDetails& InDistDetails);
+		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
 
 	protected:
-		const FPCGExBlendingSettings* BlendingSettings = nullptr;
+		const FPCGExBlendingDetails* BlendingDetails = nullptr;
 
 		TArray<FAttributeSourceMap*> AttributeSourceMaps;
 		TMap<uint32, int32> IOIndices;

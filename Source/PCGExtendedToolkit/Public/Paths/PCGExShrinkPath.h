@@ -44,7 +44,7 @@ enum class EPCGExShrinkConstantMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointDistanceSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointDistanceDetails
 {
 	GENERATED_BODY()
 
@@ -72,7 +72,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointDistanceSettings
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointCountSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointCountDetails
 {
 	GENERATED_BODY()
 
@@ -139,20 +139,20 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance", EditConditionHides))
-	FPCGExShrinkPathEndpointDistanceSettings PrimaryDistanceSettings;
+	FPCGExShrinkPathEndpointDistanceDetails PrimaryDistanceDetails;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ShrinkEndpoint==EPCGExShrinkEndpoint::Both && SettingsMode==EPCGExShrinkConstantMode::Separate", EditConditionHides))
-	FPCGExShrinkPathEndpointDistanceSettings SecondaryDistanceSettings;
+	FPCGExShrinkPathEndpointDistanceDetails SecondaryDistanceDetails;
 
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count", EditConditionHides))
-	FPCGExShrinkPathEndpointCountSettings PrimaryCountSettings;
+	FPCGExShrinkPathEndpointCountDetails PrimaryCountDetails;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count && ShrinkEndpoint==EPCGExShrinkEndpoint::Both && SettingsMode==EPCGExShrinkConstantMode::Separate", EditConditionHides))
-	FPCGExShrinkPathEndpointCountSettings SecondaryCountSettings;
+	FPCGExShrinkPathEndpointCountDetails SecondaryCountDetails;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

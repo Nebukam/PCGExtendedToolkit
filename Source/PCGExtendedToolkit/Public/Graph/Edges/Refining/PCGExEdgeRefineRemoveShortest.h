@@ -12,7 +12,6 @@ class UPCGExHeuristicDistance;
 
 namespace PCGExCluster
 {
-	struct FScoredNode;
 	struct FNode;
 }
 
@@ -25,6 +24,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRemoveShortest : public UPCGExEdgeRefineO
 	GENERATED_BODY()
 
 public:
-	virtual bool RequiresIndividualNodeProcessing() override;
-	virtual void ProcessNode(PCGExCluster::FNode& Node, PCGExCluster::FCluster* InCluster, FRWLock& EdgeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics) override;
+	virtual bool RequiresIndividualNodeProcessing() override { return true; }
+	virtual void ProcessNode(PCGExCluster::FNode& Node) override;
 };

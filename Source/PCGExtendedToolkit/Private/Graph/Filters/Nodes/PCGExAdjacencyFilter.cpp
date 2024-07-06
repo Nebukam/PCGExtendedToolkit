@@ -19,14 +19,14 @@ namespace PCGExNodeAdjacency
 	{
 		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		bCaptureFromNodes = TypedFilterFactory->Descriptor.OperandBSource != EPCGExGraphValueSource::Edge;
+		bCaptureFromNodes = TypedFilterFactory->Config.OperandBSource != EPCGExGraphValueSource::Edge;
 
-		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
+		if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			OperandA = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandA);
+			OperandA = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandA);
 			if (!OperandA)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
 				return false;
 			}
 		}
@@ -35,19 +35,19 @@ namespace PCGExNodeAdjacency
 
 		if (bCaptureFromNodes)
 		{
-			OperandB = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+			OperandB = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandB);
 			if (!OperandB)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
 				return false;
 			}
 		}
 		else
 		{
-			OperandB = EdgeDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+			OperandB = EdgeDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandB);
 			if (!OperandB)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
 				return false;
 			}
 		}
@@ -73,7 +73,7 @@ namespace PCGExNodeAdjacency
 					for (const uint64 AdjacencyHash : Node.Adjacency)
 					{
 						B = OperandA->Values[NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex];
-						if (!PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance)) { return false; }
+						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
 					}
 				}
 				else
@@ -81,7 +81,7 @@ namespace PCGExNodeAdjacency
 					for (const uint64 AdjacencyHash : Node.Adjacency)
 					{
 						B = OperandA->Values[PCGEx::H64B(AdjacencyHash)];
-						if (!PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance)) { return false; }
+						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
 					}
 				}
 
@@ -136,7 +136,7 @@ namespace PCGExNodeAdjacency
 				break;
 			}
 
-			return PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance);
+			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 		}
 
 		// Only some adjacent samples must pass the comparison
@@ -154,7 +154,7 @@ namespace PCGExNodeAdjacency
 			for (const uint64 AdjacencyHash : Node.Adjacency)
 			{
 				B = OperandA->Values[NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex];
-				if (PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance)) { LocalSuccessCount++; }
+				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
 			}
 		}
 		else
@@ -162,7 +162,7 @@ namespace PCGExNodeAdjacency
 			for (const uint64 AdjacencyHash : Node.Adjacency)
 			{
 				B = OperandA->Values[PCGEx::H64B(AdjacencyHash)];
-				if (PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance)) { LocalSuccessCount++; }
+				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
 			}
 		}
 
@@ -175,12 +175,12 @@ PCGEX_CREATE_FILTER_FACTORY(Adjacency)
 #if WITH_EDITOR
 FString UPCGExAdjacencyFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Descriptor.OperandA.GetName().ToString() + PCGExCompare::ToString(Descriptor.Comparison);
+	FString DisplayName = Config.OperandA.GetName().ToString() + PCGExCompare::ToString(Config.Comparison);
 
-	DisplayName += Descriptor.OperandB.GetName().ToString();
+	DisplayName += Config.OperandB.GetName().ToString();
 	DisplayName += TEXT(" (");
 
-	switch (Descriptor.Adjacency.Mode)
+	switch (Config.Adjacency.Mode)
 	{
 	case EPCGExAdjacencyTestMode::All:
 		DisplayName += TEXT("All");

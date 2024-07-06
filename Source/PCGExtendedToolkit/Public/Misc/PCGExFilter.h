@@ -11,16 +11,16 @@
 struct FPCGPoint;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitonRuleDescriptor : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitonRuleConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
-	FPCGExPartitonRuleDescriptor()
+	FPCGExPartitonRuleConfig()
 	{
 	}
 
-	FPCGExPartitonRuleDescriptor(const FPCGExPartitonRuleDescriptor& Other)
-		: FPCGExInputDescriptor(Other),
+	FPCGExPartitonRuleConfig(const FPCGExPartitonRuleConfig& Other)
+		: FPCGExInputConfig(Other),
 		  bEnabled(Other.bEnabled),
 		  FilterSize(Other.FilterSize),
 		  Upscale(Other.Upscale),
@@ -37,8 +37,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitonRuleDescriptor : public FPCGExInputD
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override
 	{
-		if (bEnabled) { return FPCGExInputDescriptor::GetDisplayName(); }
-		return "(Disabled) " + FPCGExInputDescriptor::GetDisplayName();
+		if (bEnabled) { return FPCGExInputConfig::GetDisplayName(); }
+		return "(Disabled) " + FPCGExInputConfig::GetDisplayName();
 	}
 #endif
 
@@ -88,23 +88,23 @@ namespace FPCGExFilter
 {
 	struct PCGEXTENDEDTOOLKIT_API FRule final : public PCGEx::FLocalSingleFieldGetter
 	{
-		explicit FRule(FPCGExPartitonRuleDescriptor& InRule)
+		explicit FRule(FPCGExPartitonRuleConfig& InRule)
 			: FLocalSingleFieldGetter(),
-			  RuleDescriptor(&InRule),
+			  RuleConfig(&InRule),
 			  FilterSize(InRule.FilterSize),
 			  Upscale(InRule.Upscale),
 			  Offset(InRule.Offset)
 		{
-			Descriptor = static_cast<FPCGExInputDescriptor>(InRule);
+			Config = static_cast<FPCGExInputConfig>(InRule);
 		}
 
 		virtual ~FRule() override
 		{
 			FRule::Cleanup();
-			RuleDescriptor = nullptr;
+			RuleConfig = nullptr;
 		}
 
-		FPCGExPartitonRuleDescriptor* RuleDescriptor;
+		FPCGExPartitonRuleConfig* RuleConfig;
 		TArray<int64> FilteredValues;
 		double FilterSize = 1.0;
 		double Upscale = 1.0;

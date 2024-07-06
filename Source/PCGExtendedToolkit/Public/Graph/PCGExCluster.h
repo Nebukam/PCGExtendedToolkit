@@ -15,6 +15,7 @@
 namespace PCGExCluster
 {
 	struct FExpandedNode;
+	struct FExpandedEdge;
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Search Mode"))
@@ -26,20 +27,20 @@ enum class EPCGExClusterClosestSearchMode : uint8
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionDetails
 {
 	GENERATED_BODY()
 
-	FPCGExNodeSelectionSettings()
+	FPCGExNodeSelectionDetails()
 	{
 	}
 
-	explicit FPCGExNodeSelectionSettings(const double InMaxDistance):
+	explicit FPCGExNodeSelectionDetails(const double InMaxDistance):
 		MaxDistance(InMaxDistance)
 	{
 	}
 
-	~FPCGExNodeSelectionSettings()
+	~FPCGExNodeSelectionDetails()
 	{
 	}
 
@@ -185,6 +186,7 @@ namespace PCGExCluster
 		bool bOwnsLengths = true;
 		bool bOwnsVtxPointIndices = true;
 		bool bOwnsExpandedNodes = true;
+		bool bOwnsExpandedEdges = true;
 
 		bool bEdgeLengthsDirty = true;
 		bool bIsCopyCluster = false;
@@ -205,6 +207,7 @@ namespace PCGExCluster
 		//TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
 		TArray<FNode>* Nodes = nullptr;
 		TArray<FExpandedNode*>* ExpandedNodes = nullptr;
+		TArray<FExpandedEdge*>* ExpandedEdges = nullptr;
 		TArray<PCGExGraph::FIndexedEdge>* Edges = nullptr;
 		TArray<double>* EdgeLengths = nullptr;
 
@@ -281,6 +284,9 @@ namespace PCGExCluster
 		TArray<FExpandedNode*>* GetExpandedNodes(const bool bBuild);
 		void ExpandNodes(PCGExMT::FTaskManager* AsyncManager);
 
+		TArray<FExpandedEdge*>* GetExpandedEdges(const bool bBuild);
+		void ExpandEdges(PCGExMT::FTaskManager* AsyncManager);
+
 		template <typename T, class MakeFunc>
 		void GrabNeighbors(const int32 NodeIndex, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
 		{
@@ -354,6 +360,32 @@ namespace PCGExCluster
 		}
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FExpandedEdge
+	{
+		const int32 Index;
+		const FNode* Start = nullptr;
+		const FNode* End = nullptr;
+		const FBoxSphereBounds Bounds;
+
+		FExpandedEdge(const FCluster* Cluster, const int32 InEdgeIndex):
+			Index(InEdgeIndex),
+			Start(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[(Cluster->Edges->GetData() + InEdgeIndex)->Start]),
+			End(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[(Cluster->Edges->GetData() + InEdgeIndex)->End]),
+			Bounds(FBoxSphereBounds(FSphere(FMath::Lerp(Start->Position, End->Position, 0.5), FVector::Dist(Start->Position, End->Position) * 0.5)))
+		{
+		}
+
+		~FExpandedEdge()
+		{
+			Start = nullptr;
+			End = nullptr;
+		}
+
+		FORCEINLINE double GetEdgeLength() const { return FVector::Dist(Start->Position, End->Position); }
+		FORCEINLINE double GetEdgeLengthSquared() const { return FVector::DistSquared(Start->Position, End->Position); }
+		FORCEINLINE FVector GetCenter() const { return Bounds.Origin; }
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FNodeProjection
 	{
 		FNode* Node = nullptr;
@@ -362,7 +394,7 @@ namespace PCGExCluster
 
 		explicit FNodeProjection(FNode* InNode);
 
-		void Project(const FCluster* InCluster, const FPCGExGeo2DProjectionSettings* ProjectionSettings);
+		void Project(const FCluster* InCluster, const FPCGExGeo2DProjectionDetails* ProjectionDetails);
 		void ComputeNormal(const FCluster* InCluster);
 		FORCEINLINE int32 GetAdjacencyIndex(int32 NodeIndex) const
 		{
@@ -376,10 +408,10 @@ namespace PCGExCluster
 	struct PCGEXTENDEDTOOLKIT_API FClusterProjection
 	{
 		FCluster* Cluster = nullptr;
-		FPCGExGeo2DProjectionSettings* ProjectionSettings = nullptr;
+		FPCGExGeo2DProjectionDetails* ProjectionDetails = nullptr;
 		TArray<FNodeProjection> Nodes;
 
-		FClusterProjection(FCluster* InCluster, FPCGExGeo2DProjectionSettings* InProjectionSettings);
+		FClusterProjection(FCluster* InCluster, FPCGExGeo2DProjectionDetails* InProjectionDetails);
 
 		~FClusterProjection();
 
@@ -614,13 +646,13 @@ namespace PCGExClusterTask
 		                     const TArray<PCGExData::FPointIO*>& InEdges,
 		                     PCGExData::FPointIOCollection* InVtxCollection,
 		                     PCGExData::FPointIOCollection* InEdgeCollection,
-		                     FPCGExTransformSettings* InTransformSettings) :
+		                     FPCGExTransformDetails* InTransformDetails) :
 			FPCGExTask(InPointIO),
 			Vtx(InVtx),
 			Edges(InEdges),
 			VtxCollection(InVtxCollection),
 			EdgeCollection(InEdgeCollection),
-			TransformSettings(InTransformSettings)
+			TransformDetails(InTransformDetails)
 		{
 		}
 
@@ -632,15 +664,29 @@ namespace PCGExClusterTask
 		PCGExData::FPointIOCollection* VtxCollection = nullptr;
 		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
 
-		FPCGExTransformSettings* TransformSettings = nullptr;
+		FPCGExTransformDetails* TransformDetails = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FExpandCluster final : public PCGExMT::FPCGExTask
+	class PCGEXTENDEDTOOLKIT_API FExpandClusterNodes final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FExpandCluster(PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
+		FExpandClusterNodes(PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
+			FPCGExTask(InPointIO), Cluster(InCluster), NumIterations(InNumIterations)
+		{
+		}
+
+		PCGExCluster::FCluster* Cluster = nullptr;
+		int32 NumIterations = 0;
+
+		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FExpandClusterEdges final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FExpandClusterEdges(PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
 			FPCGExTask(InPointIO), Cluster(InCluster), NumIterations(InNumIterations)
 		{
 		}

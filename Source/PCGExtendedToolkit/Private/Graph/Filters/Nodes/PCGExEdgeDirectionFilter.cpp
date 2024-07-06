@@ -19,21 +19,21 @@ namespace PCGExNodeAdjacency
 	{
 		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		bFromNode = TypedFilterFactory->Descriptor.DirectionOrder == EPCGExAdjacencyDirectionOrigin::FromNode;
+		bFromNode = TypedFilterFactory->Config.DirectionOrder == EPCGExAdjacencyDirectionOrigin::FromNode;
 
-		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
+		if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			OperandDirection = PointDataFacade->GetOrCreateGetter<FVector>(TypedFilterFactory->Descriptor.Direction);
+			OperandDirection = PointDataFacade->GetOrCreateGetter<FVector>(TypedFilterFactory->Config.Direction);
 			if (!OperandDirection)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.Direction.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: {0}."), FText::FromName(TypedFilterFactory->Config.Direction.GetName())));
 				return false;
 			}
 		}
 
 		if (!Adjacency.Init(InContext, PointDataFacade)) { return false; }
 
-		if (TypedFilterFactory->Descriptor.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
+		if (TypedFilterFactory->Config.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
 		{
 			if (!DotComparison.Init(InContext, PointDataFacade)) { return false; }
 		}
@@ -58,8 +58,8 @@ namespace PCGExNodeAdjacency
 
 		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
 
-		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Descriptor.DirectionConstant;
-		if (TypedFilterFactory->Descriptor.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
+		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Config.DirectionConstant;
+		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
 		const double A = DotComparison.GetDot(PointIndex);
 		double B = 0;
@@ -159,8 +159,8 @@ namespace PCGExNodeAdjacency
 
 		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
 
-		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Descriptor.DirectionConstant;
-		if (TypedFilterFactory->Descriptor.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
+		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Config.DirectionConstant;
+		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
 		const FVector CWTolerance = HashComparison.GetCWTolerance(PointIndex);
 		const uint64 A = PCGEx::GH(RefDir, CWTolerance);
@@ -211,15 +211,15 @@ PCGEX_CREATE_FILTER_FACTORY(EdgeDirection)
 #if WITH_EDITOR
 FString UPCGExEdgeDirectionFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = TEXT("Edge Direction ") + PCGExCompare::ToString(Descriptor.DotComparisonSettings.Comparison);
+	FString DisplayName = TEXT("Edge Direction ") + PCGExCompare::ToString(Config.DotComparisonDetails.Comparison);
 
 	UPCGExEdgeDirectionFilterProviderSettings* MutableSelf = const_cast<UPCGExEdgeDirectionFilterProviderSettings*>(this);
-	MutableSelf->Descriptor.DirectionConstant = Descriptor.DirectionConstant.GetSafeNormal();
+	MutableSelf->Config.DirectionConstant = Config.DirectionConstant.GetSafeNormal();
 
-	DisplayName += Descriptor.Direction.GetName().ToString();
+	DisplayName += Config.Direction.GetName().ToString();
 	DisplayName += TEXT(" (");
 
-	switch (Descriptor.Adjacency.Mode)
+	switch (Config.Adjacency.Mode)
 	{
 	case EPCGExAdjacencyTestMode::All:
 		DisplayName += TEXT("All");

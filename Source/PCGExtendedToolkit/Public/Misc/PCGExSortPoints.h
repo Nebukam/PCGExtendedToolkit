@@ -19,16 +19,16 @@ enum class EPCGExSortDirection : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleDescriptor : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSortRuleDescriptor()
+	FPCGExSortRuleConfig()
 	{
 	}
 
-	FPCGExSortRuleDescriptor(const FPCGExSortRuleDescriptor& Other)
-		: FPCGExInputDescriptor(Other),
+	FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
+		: FPCGExInputConfig(Other),
 		  Tolerance(Other.Tolerance)
 	{
 	}
@@ -79,7 +79,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
-	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const;
+	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 
 private:
 	friend class FPCGExSortPointsBaseElement;
@@ -107,9 +107,9 @@ public:
 
 	/** Ordered list of attribute to check to sort over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, TitleProperty="{TitlePropertyName}"))
-	TArray<FPCGExSortRuleDescriptor> Rules = {FPCGExSortRuleDescriptor{}};
+	TArray<FPCGExSortRuleConfig> Rules = {FPCGExSortRuleConfig{}};
 
-	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const override;
+	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const override;
 
 private:
 	friend class FPCGExSortPointsBaseElement;

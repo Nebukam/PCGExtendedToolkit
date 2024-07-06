@@ -35,7 +35,7 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
-	PCGEX_FWD(TransformSettings)
+	PCGEX_FWD(TransformDetails)
 
 	Context->Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, true);
 	if (!Context->Targets) { return false; }
@@ -69,7 +69,7 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 					i, Context->Targets,
 					Context->CurrentIO, Context->TaggedEdges->Entries,
 					Context->MainPoints, Context->MainEdges,
-					&Context->TransformSettings);
+					&Context->TransformDetails);
 			}
 		}
 

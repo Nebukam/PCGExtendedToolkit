@@ -15,13 +15,16 @@ namespace PCGExGraph
 		for (const int32 NodeIndex : Nodes) { InGraph->Nodes[NodeIndex].bValid = false; }
 	}
 
-	PCGExCluster::FCluster* FSubGraph::CreateCluster() const
+	PCGExCluster::FCluster* FSubGraph::CreateCluster(PCGExMT::FTaskManager* AsyncManager) const
 	{
 		PCGExCluster::FCluster* NewCluster = new PCGExCluster::FCluster();
 		NewCluster->VtxIO = VtxIO;
 		NewCluster->EdgesIO = EdgesIO;
 
 		NewCluster->BuildFrom(this);
+		// Look into the cost of this
+		if (AsyncManager) { NewCluster->ExpandEdges(AsyncManager); }
+		else { NewCluster->GetExpandedEdges(true); }
 
 		return NewCluster;
 	}
@@ -242,24 +245,24 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraphBuilder::CompileAsync(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataSettings* MetadataSettings)
+	void FGraphBuilder::CompileAsync(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataDetails* MetadataDetails)
 	{
 		if (Graph->Nodes.Num() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 		{
-			Compile(AsyncManager, MetadataSettings);
+			Compile(AsyncManager, MetadataDetails);
 		}
 		else
 		{
 			AsyncManager->Start<PCGExGraphTask::FCompileGraph>(
-				-1, PointIO, this, MetadataSettings);
+				-1, PointIO, this, MetadataDetails);
 		}
 	}
 
-	void FGraphBuilder::Compile(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataSettings* MetadataSettings)
+	void FGraphBuilder::Compile(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataDetails* MetadataDetails)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraphBuilder::Compile);
 
-		Graph->BuildSubGraphs(OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize());
+		Graph->BuildSubGraphs(OutputDetails->GetMinClusterSize(), OutputDetails->GetMaxClusterSize());
 
 		if (Graph->SubGraphs.IsEmpty())
 		{
@@ -330,11 +333,11 @@ namespace PCGExGraph
 
 		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, VtxEndpointWriter)
 
-		if (MetadataSettings && !Graph->NodeMetadata.IsEmpty())
+		if (MetadataDetails && !Graph->NodeMetadata.IsEmpty())
 		{
 #define PCGEX_METADATA(_NAME, _TYPE, _DEFAULT, _ACCESSOR)\
-{if(MetadataSettings->bWrite##_NAME){\
-PCGEx::TFAttributeWriter<_TYPE>* Writer = MetadataSettings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(MetadataSettings->_NAME##AttributeName, _DEFAULT, false) : nullptr;\
+{if(MetadataDetails->bWrite##_NAME){\
+PCGEx::TFAttributeWriter<_TYPE>* Writer = MetadataDetails->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, false) : nullptr;\
 Writer->BindAndSetNumUninitialized(PointIO);\
 		for(const int32 NodeIndex : ValidNodes){\
 		PCGExGraph::FGraphNodeMetadata** NodeMeta = Graph->NodeMetadata.Find(NodeIndex);\
@@ -386,16 +389,16 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 				SmallSubGraphs.Add(SubGraph);
 				if (SmallSubGraphs.Num() >= 256)
 				{
-					AsyncManager->Start<PCGExGraphTask::FWriteSmallSubGraphEdges>(-1, PointIO, SmallSubGraphs, MetadataSettings);
+					AsyncManager->Start<PCGExGraphTask::FWriteSmallSubGraphEdges>(-1, PointIO, SmallSubGraphs, MetadataDetails);
 					SmallSubGraphs.Reset();
 				}
 			}
 			else
 			{
-				AsyncManager->Start<PCGExGraphTask::FWriteSubGraphEdges>(SubGraphIndex++, PointIO, SubGraph, MetadataSettings);
+				AsyncManager->Start<PCGExGraphTask::FWriteSubGraphEdges>(SubGraphIndex++, PointIO, SubGraph, MetadataDetails);
 			}
 
-			//PCGExGraphTask::WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
+			//PCGExGraphTask::WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataDetails);
 
 			for (const int32 EdgeIndex : SubGraph->Edges)
 			{
@@ -407,7 +410,7 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 
 		if (!SmallSubGraphs.IsEmpty())
 		{
-			AsyncManager->Start<PCGExGraphTask::FWriteSmallSubGraphEdges>(-1, PointIO, SmallSubGraphs, MetadataSettings);
+			AsyncManager->Start<PCGExGraphTask::FWriteSmallSubGraphEdges>(-1, PointIO, SmallSubGraphs, MetadataDetails);
 			SmallSubGraphs.Reset();
 		}
 
@@ -427,7 +430,7 @@ namespace PCGExGraphTask
 		PCGExMT::FTaskManager* AsyncManager,
 		const TArray<FPCGPoint>& Vertices,
 		PCGExGraph::FSubGraph* SubGraph,
-		const PCGExGraph::FGraphMetadataSettings* MetadataSettings)
+		const PCGExGraph::FGraphMetadataDetails* MetadataDetails)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
 
@@ -506,11 +509,11 @@ namespace PCGExGraphTask
 
 		/*
 		//TODO : Implement
-		if (MetadataSettings &&
+		if (MetadataDetails &&
 			!Graph->EdgeMetadata.IsEmpty() &&
 			!Graph->NodeMetadata.IsEmpty())
 		{
-			if (MetadataSettings->bFlagCrossing)
+			if (MetadataDetails->bFlagCrossing)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::FlagCrossing);
 
@@ -534,9 +537,10 @@ namespace PCGExGraphTask
 			{
 				if (NumEdges < 100)
 				{
-					PCGExCluster::FCluster* Cluster = SubGraph->CreateCluster();
-					ClusterEdgesData->SetBoundCluster(Cluster, true);
+					PCGExCluster::FCluster* Cluster = SubGraph->CreateCluster(nullptr);
 					if (Graph->bExpandClusters) { Cluster->GetExpandedNodes(true); }
+
+					ClusterEdgesData->SetBoundCluster(Cluster, true);
 				}
 				else { AsyncManager->Start<FWriteSubGraphCluster>(-1, nullptr, SubGraph); }
 			}
@@ -545,7 +549,7 @@ namespace PCGExGraphTask
 
 	bool FWriteSubGraphEdges::ExecuteTask()
 	{
-		WriteSubGraphEdges(Manager, PointIO->GetOut()->GetPoints(), SubGraph, MetadataSettings);
+		WriteSubGraphEdges(Manager, PointIO->GetOut()->GetPoints(), SubGraph, MetadataDetails);
 		return true;
 	}
 
@@ -553,7 +557,7 @@ namespace PCGExGraphTask
 	{
 		for (PCGExGraph::FSubGraph* SubGraph : SubGraphs)
 		{
-			WriteSubGraphEdges(Manager, PointIO->GetOut()->GetPoints(), SubGraph, MetadataSettings);
+			WriteSubGraphEdges(Manager, PointIO->GetOut()->GetPoints(), SubGraph, MetadataDetails);
 		}
 
 		return true;
@@ -562,9 +566,10 @@ namespace PCGExGraphTask
 	bool FWriteSubGraphCluster::ExecuteTask()
 	{
 		UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesIO->GetOut());
-		PCGExCluster::FCluster* Cluster = SubGraph->CreateCluster();
-		ClusterEdgesData->SetBoundCluster(Cluster, true);
+		PCGExCluster::FCluster* Cluster = SubGraph->CreateCluster(Manager);
 		if (SubGraph->ParentGraph->bExpandClusters) { Cluster->ExpandNodes(Manager); }
+
+		ClusterEdgesData->SetBoundCluster(Cluster, true);
 		return true;
 	}
 
@@ -572,7 +577,7 @@ namespace PCGExGraphTask
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
 
-		Builder->Compile(Manager, MetadataSettings);
+		Builder->Compile(Manager, MetadataDetails);
 		return true;
 	}
 
@@ -586,7 +591,7 @@ namespace PCGExGraphTask
 		FString OutId;
 		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
 
-		InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, VtxDupe, TransformSettings);
+		InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, VtxDupe, TransformDetails);
 
 		for (const PCGExData::FPointIO* Edges : GraphBuilder->EdgesIO->Pairs)
 		{
@@ -594,7 +599,7 @@ namespace PCGExGraphTask
 			EdgeDupe->IOIndex = TaskIndex;
 			PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
 
-			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, EdgeDupe, TransformSettings);
+			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, EdgeDupe, TransformDetails);
 		}
 
 		return true;

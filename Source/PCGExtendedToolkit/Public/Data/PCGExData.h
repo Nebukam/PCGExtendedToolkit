@@ -8,17 +8,17 @@
 #include "PCGExAttributeHelpers.h"
 #include "PCGExDataFilter.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 #include "PCGExData.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherSettings : public FPCGExNameFiltersSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeGatherSettings()
+	FPCGExAttributeGatherDetails()
 	{
 	}
 
@@ -26,11 +26,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherSettings : public FPCGExNameF
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExForwardSettings : public FPCGExNameFiltersSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDetails
 {
 	GENERATED_BODY()
 
-	FPCGExForwardSettings()
+	FPCGExForwardDetails()
 	{
 	}
 
@@ -447,7 +447,7 @@ namespace PCGExData
 
 		int32 Num() const { return CompoundedHashSet.Num(); }
 
-		void ComputeWeights(const TArray<FFacade*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings, TArray<uint64>& OutCompoundHashes, TArray<double>& OutWeights);
+		void ComputeWeights(const TArray<FFacade*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target, const FPCGExDistanceDetails& InDistanceDetails, TArray<uint64>& OutCompoundHashes, TArray<double>& OutWeights);
 
 		uint64 Add(const int32 IOIndex, const int32 PointIndex);
 	};
@@ -536,23 +536,23 @@ namespace PCGExData
 
 	class PCGEXTENDEDTOOLKIT_API FDataForwardHandler
 	{
-		FPCGExForwardSettings Filters;
+		FPCGExForwardDetails Details;
 		const FPointIO* SourceIO = nullptr;
 		TArray<PCGEx::FAttributeIdentity> Identities;
 
 	public:
 		~FDataForwardHandler();
-		explicit FDataForwardHandler(const FPCGExForwardSettings& InFilters, const FPointIO* InSourceIO);
+		explicit FDataForwardHandler(const FPCGExForwardDetails& InDetails, const FPointIO* InSourceIO);
 		void Forward(int32 SourceIndex, const FPointIO* Target);
 	};
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagDetails
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeToTagSettings()
+	FPCGExAttributeToTagDetails()
 	{
 	}
 
@@ -611,37 +611,3 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagSettings
 		PCGEX_DELETE_TARRAY(Getters);
 	}
 };
-
-namespace PCGExDataCachingTask
-{
-	/*
-	class PCGEXTENDEDTOOLKIT_API FBlendCompoundedIO final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FBlendCompoundedIO(PCGExData::FPointIO* InPointIO,
-		                   PCGExData::FPointIO* InTargetIO,
-		                   FPCGExBlendingSettings* InBlendingSettings,
-		                   PCGExData::FIdxCompoundList* InCompoundList,
-		                   const FPCGExDistanceSettings& InDistSettings,
-		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr) :
-			FPCGExTask(InPointIO),
-			TargetIO(InTargetIO),
-			BlendingSettings(InBlendingSettings),
-			CompoundList(InCompoundList),
-			DistSettings(InDistSettings),
-			MetadataSettings(InMetadataSettings)
-		{
-		}
-
-		PCGExData::FPointIO* TargetIO = nullptr;
-		FPCGExBlendingSettings* BlendingSettings = nullptr;
-		PCGExData::FIdxCompoundList* CompoundList = nullptr;
-		FPCGExDistanceSettings DistSettings;
-		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-	*/
-
-#pragma endregion
-}

@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProperties : public UPCGExNeigh
 	GENERATED_BODY()
 
 public:
-	FPCGExPropertiesBlendingSettings BlendingSettings;
+	FPCGExPropertiesBlendingDetails BlendingDetails;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
@@ -67,17 +67,17 @@ protected:
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesSamplerDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesSamplerConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExPropertiesSamplerDescriptorBase()
+	FPCGExPropertiesSamplerConfigBase()
 	{
 	}
 
 	/** Properties blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExPropertiesBlendingSettings Blending = FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None);
+	FPCGExPropertiesBlendingDetails Blending = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -86,7 +86,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryProperties : public UPC
 	GENERATED_BODY()
 
 public:
-	FPCGExPropertiesSamplerDescriptorBase Descriptor;
+	FPCGExPropertiesSamplerConfigBase Config;
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const override;
 };
 
@@ -116,5 +116,5 @@ public:
 
 	/** Sampler Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExPropertiesSamplerDescriptorBase Descriptor;
+	FPCGExPropertiesSamplerConfigBase Config;
 };

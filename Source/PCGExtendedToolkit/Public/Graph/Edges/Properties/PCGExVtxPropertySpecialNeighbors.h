@@ -14,7 +14,7 @@
 #include "PCGExVtxPropertySpecialNeighbors.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialNeighborsSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialNeighborsConfig
 {
 	GENERATED_BODY()
 
@@ -36,7 +36,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialNeighbors : public UPCGExVt
 	GENERATED_BODY()
 
 public:
-	FPCGExSpecialNeighborsSettings Descriptor;
+	FPCGExSpecialNeighborsConfig Config;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade) override;
@@ -49,7 +49,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialNeighborsFactory : public U
 	GENERATED_BODY()
 
 public:
-	FPCGExSpecialNeighborsSettings Descriptor;
+	FPCGExSpecialNeighborsConfig Config;
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
@@ -74,5 +74,5 @@ public:
 
 	/** Direction Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSpecialNeighborsSettings Descriptor;
+	FPCGExSpecialNeighborsConfig Config;
 };

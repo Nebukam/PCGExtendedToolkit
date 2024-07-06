@@ -14,7 +14,7 @@
 #include "PCGExVtxPropertySpecialEdges.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialEdgesSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialEdgesConfig
 {
 	GENERATED_BODY()
 
@@ -40,7 +40,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialEdges : public UPCGExVtxPro
 	GENERATED_BODY()
 
 public:
-	FPCGExSpecialEdgesSettings Descriptor;
+	FPCGExSpecialEdgesConfig Config;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade) override;
@@ -53,7 +53,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialEdgesFactory : public UPCGE
 	GENERATED_BODY()
 
 public:
-	FPCGExSpecialEdgesSettings Descriptor;
+	FPCGExSpecialEdgesConfig Config;
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
@@ -78,5 +78,5 @@ public:
 
 	/** Direction Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSpecialEdgesSettings Descriptor;
+	FPCGExSpecialEdgesConfig Config;
 };

@@ -7,7 +7,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Graph/PCGExClusterMT.h"
@@ -87,7 +87,7 @@ public:
 public:
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
-	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
+	FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
 
 	/** Preserve the order of input points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -95,11 +95,11 @@ public:
 
 	/** Defines how fused point properties and attributes are merged together. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExBlendingSettings BlendingSettings;
+	FPCGExBlendingDetails BlendingDetails;
 
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
-	FPCGExCarryOverSettings CarryOver;
+	FPCGExCarryOverDetails CarryOverDetails;
 
 private:
 	friend class FPCGExFusePointsElement;
@@ -109,7 +109,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext final : public FPCGExPoint
 {
 	friend class FPCGExFusePointsElement;
 	virtual ~FPCGExFusePointsContext() override;
-	FPCGExCarryOverSettings CarryOver;
+	FPCGExCarryOverDetails CarryOverDetails;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement final : public FPCGExPointsProcessorElement
@@ -128,7 +128,7 @@ namespace PCGExFusePoints
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
+		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 

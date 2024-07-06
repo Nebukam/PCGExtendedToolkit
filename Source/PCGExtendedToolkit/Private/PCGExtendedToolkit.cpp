@@ -15,8 +15,8 @@ void FPCGExtendedToolkitModule::StartupModule()
 	{
 		SettingsModule->RegisterSettings(
 				"Project", "Plugins", "PCGEx",
-				LOCTEXT("PCGExSettingsName", "PCGEx"),
-				LOCTEXT("PCGExSettingsDescription", "Configure PCG Extended Toolkit settings"),
+				LOCTEXT("PCGExDetailsName", "PCGEx"),
+				LOCTEXT("PCGExDetailsDescription", "Configure PCG Extended Toolkit settings"),
 				GetMutableDefault<UPCGExGlobalSettings>()
 			);
 	}

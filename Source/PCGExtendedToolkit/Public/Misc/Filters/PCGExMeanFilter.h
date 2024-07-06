@@ -13,11 +13,11 @@
 #include "PCGExMeanFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExMeanFilterDescriptor()
+	FPCGExMeanFilterConfig()
 	{
 	}
 
@@ -67,7 +67,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterFactory : public UPCGExFilterFactor
 	GENERATED_BODY()
 
 public:
-	FPCGExMeanFilterDescriptor Descriptor;
+	FPCGExMeanFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
@@ -119,9 +119,9 @@ public:
 	//~End UPCGSettings
 
 public:
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExMeanFilterDescriptor Descriptor;
+	FPCGExMeanFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

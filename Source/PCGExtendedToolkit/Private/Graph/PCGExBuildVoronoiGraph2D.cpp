@@ -106,8 +106,8 @@ namespace PCGExBuildVoronoi2D
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, PointDataFacade);
+		ProjectionDetails = Settings->ProjectionDetails;
+		ProjectionDetails.Init(Context, PointDataFacade);
 
 		// Build voronoi
 
@@ -116,7 +116,7 @@ namespace PCGExBuildVoronoi2D
 
 		Voronoi = new PCGExGeo::TVoronoi2();
 
-		if (!Voronoi->Process(ActivePositions, ProjectionSettings))
+		if (!Voronoi->Process(ActivePositions, ProjectionDetails))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results."));
 			PCGEX_DELETE(Voronoi)
@@ -166,7 +166,7 @@ namespace PCGExBuildVoronoi2D
 			RemappedIndices.Empty();
 			PCGEX_DELETE(Voronoi)
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 
 			ValidEdges.Empty();
@@ -205,7 +205,7 @@ namespace PCGExBuildVoronoi2D
 				}
 			}
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 			PCGEX_DELETE(Voronoi)

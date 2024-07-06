@@ -9,29 +9,29 @@ PCGEX_CREATE_PROBE_FACTORY(Closest, {}, {})
 
 bool UPCGExProbeClosest::RequiresDirectProcessing()
 {
-	return Descriptor.bUnbounded;
+	return Config.bUnbounded;
 }
 
 bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
-	if (Descriptor.MaxConnectionsSource == EPCGExFetchType::Constant)
+	if (Config.MaxConnectionsSource == EPCGExFetchType::Constant)
 	{
-		MaxConnections = Descriptor.MaxConnectionsConstant;
+		MaxConnections = Config.MaxConnectionsConstant;
 	}
 	else
 	{
-		MaxConnectionsCache = PrimaryDataFacade->GetOrCreateGetter<int32>(Descriptor.MaxConnectionsAttribute);
+		MaxConnectionsCache = PrimaryDataFacade->GetOrCreateGetter<int32>(Config.MaxConnectionsAttribute);
 
 		if (!MaxConnectionsCache)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Max Connections attribute: {0}")), FText::FromName(Descriptor.MaxConnectionsAttribute.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Max Connections attribute: {0}")), FText::FromName(Config.MaxConnectionsAttribute.GetName())));
 			return false;
 		}
 	}
 
-	CWStackingTolerance = FVector(1 / Descriptor.StackingPreventionTolerance);
+	CWStackingTolerance = FVector(1 / Config.StackingPreventionTolerance);
 
 	return true;
 }
@@ -57,7 +57,7 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 			if (bIsAlreadyConnected) { continue; }
 		}
 
-		if (Descriptor.bPreventStacking)
+		if (Config.bPreventStacking)
 		{
 			LocalConnectedSet.Add(PCGEx::GH(C.Direction, CWStackingTolerance), &bIsAlreadyConnected);
 			if (bIsAlreadyConnected) { continue; }
@@ -84,7 +84,7 @@ FString UPCGExProbeClosestProviderSettings::GetDisplayName() const
 	/*
 	return GetDefaultNodeName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 		*/
 }
 #endif

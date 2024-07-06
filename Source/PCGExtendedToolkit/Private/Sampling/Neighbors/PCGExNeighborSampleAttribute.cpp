@@ -33,21 +33,21 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 	}
 
 	TSet<FName> MissingAttributes;
-	PCGExDataBlending::AssembleBlendingSettings(Blending, SourceAttributes, GetSourceIO(), MetadataBlendingSettings, MissingAttributes);
+	PCGExDataBlending::AssembleBlendingDetails(Blending, SourceAttributes, GetSourceIO(), MetadataBlendingDetails, MissingAttributes);
 
 	for (const FName& Id : MissingAttributes)
 	{
-		if (BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on vtx: {0}."), FText::FromName(Id))); }
+		if (SamplingConfig.NeighborSource == EPCGExGraphValueSource::Vtx) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on vtx: {0}."), FText::FromName(Id))); }
 		else { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on edges: {0}."), FText::FromName(Id))); }
 	}
 
-	if (MetadataBlendingSettings.FilteredAttributes.IsEmpty())
+	if (MetadataBlendingDetails.FilteredAttributes.IsEmpty())
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing all source attribute(s) on Sampler {0}."), FText::FromString(GetClass()->GetName())));
 		return;
 	}
 
-	Blender = new PCGExDataBlending::FMetadataBlender(&MetadataBlendingSettings);
+	Blender = new PCGExDataBlending::FMetadataBlender(&MetadataBlendingDetails);
 	Blender->bBlendProperties = false;
 	Blender->PrepareForData(InVtxDataFacade, GetSourceDataFacade(), PCGExData::ESource::In, true);
 
@@ -69,8 +69,8 @@ void UPCGExNeighborSampleAttribute::Cleanup()
 #if WITH_EDITOR
 FString UPCGExNeighborSampleAttributeSettings::GetDisplayName() const
 {
-	if (Descriptor.SourceAttributes.IsEmpty()) { return TEXT(""); }
-	TArray<FName> Names = Descriptor.SourceAttributes.Array();
+	if (Config.SourceAttributes.IsEmpty()) { return TEXT(""); }
+	TArray<FName> Names = Config.SourceAttributes.Array();
 
 	if (Names.Num() == 1) { return Names[0].ToString(); }
 	if (Names.Num() == 2) { return Names[0].ToString() + TEXT(" (+1 other)"); }
@@ -85,8 +85,8 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOper
 
 	PCGEX_SAMPLER_CREATE
 
-	NewOperation->SourceAttributes = Descriptor.SourceAttributes;
-	NewOperation->Blending = Descriptor.Blending;
+	NewOperation->SourceAttributes = Config.SourceAttributes;
+	NewOperation->Blending = Config.Blending;
 
 	return NewOperation;
 }
@@ -94,7 +94,7 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOper
 UPCGExParamFactoryBase* UPCGExNeighborSampleAttributeSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExNeighborSamplerFactoryAttribute* SamplerFactory = NewObject<UPCGExNeighborSamplerFactoryAttribute>();
-	SamplerFactory->Descriptor = Descriptor;
+	SamplerFactory->Config = Config;
 
 	return Super::CreateFactory(InContext, SamplerFactory);
 }

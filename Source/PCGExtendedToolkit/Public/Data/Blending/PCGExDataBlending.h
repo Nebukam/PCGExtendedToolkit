@@ -5,7 +5,7 @@
 
 #include "PCGEx.h"
 #include "PCGExMT.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
@@ -44,11 +44,11 @@ enum class EPCGExBlendOver : uint8
 
 namespace PCGExGraph
 {
-	struct FGraphMetadataSettings;
+	struct FGraphMetadataDetails;
 }
 
-struct FPCGExDistanceSettings;
-struct FPCGExPointPointIntersectionSettings;
+struct FPCGExDistanceDetails;
+struct FPCGExPointPointIntersectionDetails;
 
 namespace PCGExData
 {
@@ -134,15 +134,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPropertyBlendingOverrides
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingDetails
 {
 	GENERATED_BODY()
 
-	FPCGExPropertiesBlendingSettings()
+	FPCGExPropertiesBlendingDetails()
 	{
 	}
 
-	explicit FPCGExPropertiesBlendingSettings(const EPCGExDataBlendingType InDefaultBlending):
+	explicit FPCGExPropertiesBlendingDetails(const EPCGExDataBlendingType InDefaultBlending):
 		DefaultBlending(InDefaultBlending)
 	{
 #define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) _NAME##Blending = InDefaultBlending;
@@ -206,15 +206,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingSettings
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
 {
 	GENERATED_BODY()
 
-	FPCGExBlendingSettings()
+	FPCGExBlendingDetails()
 	{
 	}
 
-	explicit FPCGExBlendingSettings(const EPCGExDataBlendingType InDefaultBlending):
+	explicit FPCGExBlendingDetails(const EPCGExDataBlendingType InDefaultBlending):
 		DefaultBlending(InDefaultBlending)
 	{
 #define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
@@ -222,10 +222,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
 	}
 
-	explicit FPCGExBlendingSettings(const FPCGExPropertiesBlendingSettings& InPropertiesBlendingSettings):
-		DefaultBlending(InPropertiesBlendingSettings.DefaultBlending)
+	explicit FPCGExBlendingDetails(const FPCGExPropertiesBlendingDetails& InDetails):
+		DefaultBlending(InDetails.DefaultBlending)
 	{
-#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides.bOverride##_NAME = InPropertiesBlendingSettings._NAME##Blending != EPCGExDataBlendingType::None; PropertiesOverrides._NAME##Blending = InPropertiesBlendingSettings._NAME##Blending;
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides.bOverride##_NAME = InDetails._NAME##Blending != EPCGExDataBlendingType::None; PropertiesOverrides._NAME##Blending = InDetails._NAME##Blending;
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
 	}
@@ -245,13 +245,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TMap<FName, EPCGExDataBlendingType> AttributesOverrides;
 
-	FPCGExPropertiesBlendingSettings GetPropertiesBlendingSettings() const
+	FPCGExPropertiesBlendingDetails GetPropertiesBlendingDetails() const
 	{
-		FPCGExPropertiesBlendingSettings OutSettings;
-#define PCGEX_SET_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) OutSettings._NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;
+		FPCGExPropertiesBlendingDetails OutDetails;
+#define PCGEX_SET_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) OutDetails._NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_POINTPROPERTY)
 #undef PCGEX_SET_POINTPROPERTY
-		return OutSettings;
+		return OutDetails;
 	}
 
 	bool CanBlend(const FName AttributeName) const
@@ -480,16 +480,16 @@ namespace PCGExDataBlending
 		}
 	};
 
-	static void AssembleBlendingSettings(
-		const FPCGExPropertiesBlendingSettings& PropertiesBlending,
+	static void AssembleBlendingDetails(
+		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
 		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
 		const PCGExData::FPointIO* SourceIO,
-		FPCGExBlendingSettings& OutSettings,
+		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
 	{
 		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
-		OutSettings = FPCGExBlendingSettings(PropertiesBlending);
-		OutSettings.BlendingFilter = EPCGExAttributeFilter::Include;
+		OutDetails = FPCGExBlendingDetails(PropertiesBlending);
+		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
 
 		TArray<FName> SourceAttributesList;
 		PerAttributeBlending.GetKeys(SourceAttributesList);
@@ -500,23 +500,23 @@ namespace PCGExDataBlending
 		{
 			if (OutMissingAttributes.Contains(Id)) { continue; }
 
-			OutSettings.AttributesOverrides.Add(Id, *PerAttributeBlending.Find(Id));
-			OutSettings.FilteredAttributes.Add(Id);
+			OutDetails.AttributesOverrides.Add(Id, *PerAttributeBlending.Find(Id));
+			OutDetails.FilteredAttributes.Add(Id);
 		}
 
 		PCGEX_DELETE(AttributesInfos)
 	}
 
-	static void AssembleBlendingSettings(
+	static void AssembleBlendingDetails(
 		const EPCGExDataBlendingType& DefaultBlending,
 		const TSet<FName>& Attributes,
 		const PCGExData::FPointIO* SourceIO,
-		FPCGExBlendingSettings& OutSettings,
+		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
 	{
 		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
-		OutSettings = FPCGExBlendingSettings(FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None));
-		OutSettings.BlendingFilter = EPCGExAttributeFilter::Include;
+		OutDetails = FPCGExBlendingDetails(FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None));
+		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
 
 		AttributesInfos->FindMissing(Attributes, OutMissingAttributes);
 
@@ -524,8 +524,8 @@ namespace PCGExDataBlending
 		{
 			if (OutMissingAttributes.Contains(Id)) { continue; }
 
-			OutSettings.AttributesOverrides.Add(Id, DefaultBlending);
-			OutSettings.FilteredAttributes.Add(Id);
+			OutDetails.AttributesOverrides.Add(Id, DefaultBlending);
+			OutDetails.FilteredAttributes.Add(Id);
 		}
 
 		PCGEX_DELETE(AttributesInfos)

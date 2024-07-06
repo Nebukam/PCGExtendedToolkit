@@ -10,7 +10,7 @@
 #include "PCGExEdge.h"
 #include "PCGExIntersections.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
@@ -21,19 +21,19 @@ namespace PCGExGraph
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 
-		FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
+		FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
 
 		bool bDoPointEdge = false;
-		FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
+		FPCGExPointEdgeIntersectionDetails PointEdgeIntersectionDetails;
 		bool bUseCustomPointEdgeBlending = false;
-		FPCGExBlendingSettings CustomPointEdgeBlendingSettings;
+		FPCGExBlendingDetails CustomPointEdgeBlendingDetails;
 
 		bool bDoEdgeEdge = false;
-		FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
+		FPCGExEdgeEdgeIntersectionDetails EdgeEdgeIntersectionDetails;
 		bool bUseCustomEdgeEdgeBlending = false;
-		FPCGExBlendingSettings CustomEdgeEdgeBlendingSettings;
+		FPCGExBlendingDetails CustomEdgeEdgeBlendingDetails;
 
-		FPCGExGraphBuilderSettings GraphBuilderSettings;
+		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 		FCompoundGraph* CompoundGraph = nullptr;
 		PCGExData::FFacade* CompoundFacade = nullptr;
@@ -41,39 +41,39 @@ namespace PCGExGraph
 
 		explicit FCompoundProcessor(
 			FPCGExPointsProcessorContext* InContext,
-			FPCGExPointPointIntersectionSettings PointPointIntersectionSettings,
-			FPCGExBlendingSettings InDefaultPointsBlending,
-			FPCGExBlendingSettings InDefaultEdgesBlending);
+			FPCGExPointPointIntersectionDetails PointPointIntersectionDetails,
+			FPCGExBlendingDetails InDefaultPointsBlending,
+			FPCGExBlendingDetails InDefaultEdgesBlending);
 
 		~FCompoundProcessor();
 
 		void InitPointEdge(
-			const FPCGExPointEdgeIntersectionSettings& InSettings,
+			const FPCGExPointEdgeIntersectionDetails& InDetails,
 			const bool bUseCustom = false,
-			const FPCGExBlendingSettings* InOverride = nullptr);
+			const FPCGExBlendingDetails* InOverride = nullptr);
 
 		void InitEdgeEdge(
-			const FPCGExEdgeEdgeIntersectionSettings& InSettings,
+			const FPCGExEdgeEdgeIntersectionDetails& InDetails,
 			const bool bUseCustom = false,
-			const FPCGExBlendingSettings* InOverride = nullptr);
+			const FPCGExBlendingDetails* InOverride = nullptr);
 
 		template <class BuildGraphFunc>
 		void StartProcessing(
 			FCompoundGraph* InCompoundGraph,
 			PCGExData::FFacade* InCompoundFacade,
-			const FPCGExGraphBuilderSettings& InBuilderSettings,
+			const FPCGExGraphBuilderDetails& InBuilderDetails,
 			BuildGraphFunc&& BuildGraph)
 		{
 			bRunning = true;
 
-			GraphMetadataSettings.Grab(Context, PointPointIntersectionSettings);
-			GraphMetadataSettings.Grab(Context, PointEdgeIntersectionSettings);
-			GraphMetadataSettings.Grab(Context, EdgeEdgeIntersectionSettings);
+			GraphMetadataDetails.Grab(Context, PointPointIntersectionDetails);
+			GraphMetadataDetails.Grab(Context, PointEdgeIntersectionDetails);
+			GraphMetadataDetails.Grab(Context, EdgeEdgeIntersectionDetails);
 
 			CompoundGraph = InCompoundGraph;
 			CompoundFacade = InCompoundFacade;
 
-			GraphBuilder = new FGraphBuilder(CompoundFacade->Source, &InBuilderSettings, 4);
+			GraphBuilder = new FGraphBuilder(CompoundFacade->Source, &InBuilderDetails, 4);
 
 			BuildGraph(GraphBuilder);
 
@@ -97,12 +97,12 @@ namespace PCGExGraph
 	protected:
 		bool bRunning = false;
 
-		FPCGExBlendingSettings DefaultPointsBlendingSettings;
-		FPCGExBlendingSettings DefaultEdgesBlendingSettings;
+		FPCGExBlendingDetails DefaultPointsBlendingDetails;
+		FPCGExBlendingDetails DefaultEdgesBlendingDetails;
 
 		FGraphBuilder* GraphBuilder = nullptr;
 
-		FGraphMetadataSettings GraphMetadataSettings;
+		FGraphMetadataDetails GraphMetadataDetails;
 		FPointEdgeIntersections* PointEdgeIntersections = nullptr;
 		FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;

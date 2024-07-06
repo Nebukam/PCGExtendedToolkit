@@ -14,8 +14,8 @@
 
 namespace PCGExDataBlending
 {
-	FCompoundBlender::FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings, const FPCGExCarryOverSettings* InCarryOver):
-		CarryOver(InCarryOver), BlendingSettings(InBlendingSettings)
+	FCompoundBlender::FCompoundBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails):
+		CarryOverDetails(InCarryOverDetails), BlendingDetails(InBlendingDetails)
 	{
 		Sources.Empty();
 		IOIndices.Empty();
@@ -39,8 +39,8 @@ namespace PCGExDataBlending
 
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
 		PCGEx::FAttributeIdentity::Get(InFacade->GetIn()->Metadata, SourceAttributes);
-		CarryOver->Filter(SourceAttributes);
-		BlendingSettings->Filter(SourceAttributes);
+		CarryOverDetails->Filter(SourceAttributes);
+		BlendingDetails->Filter(SourceAttributes);
 
 		UPCGMetadata* SourceMetadata = InFacade->GetIn()->Metadata;
 
@@ -50,7 +50,7 @@ namespace PCGExDataBlending
 			if (!SourceAttribute) { continue; }
 
 			FAttributeSourceMap* Map = nullptr;
-			const EPCGExDataBlendingType* BlendTypePtr = BlendingSettings->AttributesOverrides.Find(Identity.Name);
+			const EPCGExDataBlendingType* BlendTypePtr = BlendingDetails->AttributesOverrides.Find(Identity.Name);
 
 			// Search for an existing attribute map
 
@@ -78,13 +78,13 @@ namespace PCGExDataBlending
 				Map->SetNum(NumSources);
 
 				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
-				else { Map->TargetBlendOp = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingSettings->DefaultBlending, Identity); }
+				else { Map->TargetBlendOp = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingDetails->DefaultBlending, Identity); }
 
 				AttributeSourceMaps.Add(Map);
 			}
 
 			Map->Attributes[SourceIdx] = SourceAttribute;
-			Map->BlendOps[SourceIdx] = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingSettings->DefaultBlending, Identity);
+			Map->BlendOps[SourceIdx] = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingDetails->DefaultBlending, Identity);
 
 			if (!SourceAttribute->AllowsInterpolation()) { Map->AllowsInterpolation = false; }
 		}
@@ -105,7 +105,7 @@ namespace PCGExDataBlending
 		CurrentTargetData = TargetData;
 
 		PCGEX_DELETE(PropertiesBlender)
-		PropertiesBlender = new FPropertiesBlender(BlendingSettings->GetPropertiesBlendingSettings());
+		PropertiesBlender = new FPropertiesBlender(BlendingDetails->GetPropertiesBlendingDetails());
 
 		CurrentTargetData->Source->CreateOutKeys();
 
@@ -141,7 +141,7 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FCompoundBlender::MergeSingle(const int32 CompoundIndex, const FPCGExDistanceSettings& DistSettings)
+	void FCompoundBlender::MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails)
 	{
 		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
 
@@ -150,7 +150,7 @@ namespace PCGExDataBlending
 
 		Compound->ComputeWeights(
 			Sources, IOIndices,
-			CurrentTargetData->Source->GetOutPoint(CompoundIndex), DistSettings,
+			CurrentTargetData->Source->GetOutPoint(CompoundIndex), InDistanceDetails,
 			CompoundHashes, Weights);
 
 		const int32 NumCompounded = CompoundHashes.Num();

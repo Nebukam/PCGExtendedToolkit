@@ -15,11 +15,11 @@
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNeighborsCountFilterDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExNeighborsCountFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNeighborsCountFilterDescriptor()
+	FPCGExNeighborsCountFilterConfig()
 	{
 	}
 
@@ -53,7 +53,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborsCountFilterFactory : public UPCGExCl
 	GENERATED_BODY()
 
 public:
-	FPCGExNeighborsCountFilterDescriptor Descriptor;
+	FPCGExNeighborsCountFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
@@ -100,9 +100,9 @@ public:
 	//~End UPCGSettings
 
 public:
-	/** Test Descriptor.*/
+	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExNeighborsCountFilterDescriptor Descriptor;
+	FPCGExNeighborsCountFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

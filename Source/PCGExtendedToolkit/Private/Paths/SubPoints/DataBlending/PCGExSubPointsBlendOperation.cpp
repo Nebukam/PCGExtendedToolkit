@@ -18,7 +18,7 @@ void UPCGExSubPointsBlendOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	const UPCGExSubPointsBlendOperation* TypedOther = Cast<UPCGExSubPointsBlendOperation>(Other);
 	if (TypedOther)
 	{
-		BlendingSettings = TypedOther->BlendingSettings;
+		BlendingDetails = TypedOther->BlendingDetails;
 	}
 }
 
@@ -91,8 +91,8 @@ PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlende
 	PCGExData::FFacade* InSecondaryFacade,
 	const PCGExData::ESource SecondarySource)
 {
-	BlendingSettings.DefaultBlending = GetDefaultBlending();
-	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
+	BlendingDetails.DefaultBlending = GetDefaultBlending();
+	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingDetails);
 	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 
 	return NewBlender;

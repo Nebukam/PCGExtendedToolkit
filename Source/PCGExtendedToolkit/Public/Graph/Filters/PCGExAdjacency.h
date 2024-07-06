@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 

@@ -40,12 +40,33 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
-public:
-	virtual bool RequiresHeuristics();
-	virtual bool RequiresIndividualNodeProcessing();
-	virtual bool RequiresIndividualEdgeProcessing();
-	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
-	virtual void ProcessNode(PCGExCluster::FNode& Node, PCGExCluster::FCluster* InCluster, FRWLock& EdgeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
-	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge, PCGExCluster::FCluster* InCluster, FRWLock& NodeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
+public:	
+	virtual bool RequiresNodeOctree() { return false; }
+	virtual bool RequiresEdgeOctree() { return false; }
+	virtual bool RequiresHeuristics() { return false; }
+	virtual bool RequiresIndividualNodeProcessing() { return false; }
+	virtual bool RequiresIndividualEdgeProcessing() { return false; }
+
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
+
+	virtual void Process()
+	{
+	}
+
+	virtual void ProcessNode(PCGExCluster::FNode& Node)
+	{
+	}
+
+	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge)
+	{
+	}
+
 	virtual void Cleanup() override;
+
+protected:
+	PCGExCluster::FCluster* Cluster = nullptr;
+	PCGExHeuristics::THeuristicsHandler* Heuristics = nullptr;
+	mutable FRWLock EdgeLock;
+	mutable FRWLock NodeLock;
+	
 };

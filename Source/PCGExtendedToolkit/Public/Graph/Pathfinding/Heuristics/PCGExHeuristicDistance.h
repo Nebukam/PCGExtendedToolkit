@@ -11,12 +11,12 @@
 #include "PCGExHeuristicDistance.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorShortestDistance : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigShortestDistance : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorShortestDistance() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicConfigShortestDistance() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 };
@@ -62,7 +62,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryShortestDistance : public UPCG
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicDescriptorShortestDistance Descriptor;
+	FPCGExHeuristicConfigShortestDistance Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
@@ -81,9 +81,9 @@ public:
 #endif
 	//~End UPCGSettings
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicDescriptorShortestDistance Descriptor;
+	FPCGExHeuristicConfigShortestDistance Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

@@ -11,12 +11,12 @@
 #include "PCGExHeuristicNodeCount.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorLeastNodes : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorLeastNodes() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicConfigLeastNodes() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 };
@@ -49,7 +49,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryLeastNodes : public UPCGExHeur
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicDescriptorLeastNodes Descriptor;
+	FPCGExHeuristicConfigLeastNodes Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
@@ -68,9 +68,9 @@ public:
 #endif
 	//~End UPCGSettings
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicDescriptorLeastNodes Descriptor;
+	FPCGExHeuristicConfigLeastNodes Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

@@ -16,12 +16,12 @@ UPCGExParamFactoryBase* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGCon
 {
 	UPCGExSortingRule* NewFactory = NewObject<UPCGExSortingRule>();
 	NewFactory->Priority = Priority;
-	NewFactory->Descriptor = Descriptor;
+	NewFactory->Config = Config;
 	return NewFactory;
 }
 
 #if WITH_EDITOR
-FString UPCGExSortingRuleProviderSettings::GetDisplayName() const { return Descriptor.GetDisplayName(); }
+FString UPCGExSortingRuleProviderSettings::GetDisplayName() const { return Config.GetDisplayName(); }
 #endif
 
 TArray<FPCGPinProperties> UPCGExModularSortPointsSettings::InputPinProperties() const
@@ -31,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExModularSortPointsSettings::InputPinProperties() 
 	return PinProperties;
 }
 
-bool UPCGExModularSortPointsSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const
+bool UPCGExModularSortPointsSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
 	TArray<UPCGExSortingRule*> Factories;
 	if (!PCGExFactories::GetInputFactories(
@@ -42,7 +42,7 @@ bool UPCGExModularSortPointsSettings::GetSortingRules(const FPCGContext* InConte
 	}
 
 	Factories.Sort([](const UPCGExSortingRule& A, const UPCGExSortingRule& B) { return A.Priority < B.Priority; });
-	for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Descriptor); }
+	for (const UPCGExSortingRule* Factory : Factories) { OutRules.Add(Factory->Config); }
 
 	return true;
 }

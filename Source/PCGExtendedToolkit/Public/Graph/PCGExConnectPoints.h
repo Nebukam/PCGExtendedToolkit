@@ -65,11 +65,11 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bProjectPoints", DisplayName="Project Points"))
-	FPCGExGeo2DProjectionSettings ProjectionSettings = FPCGExGeo2DProjectionSettings(false);
+	FPCGExGeo2DProjectionDetails ProjectionDetails = FPCGExGeo2DProjectionDetails(false);
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsContext final : public FPCGExPointsProcessorContext
@@ -164,7 +164,7 @@ namespace PCGExConnectPoints
 		TArray<FTransform> CachedTransforms;
 
 		TArray<TSet<uint64>*> DistributedEdgesSet;
-		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		bool bPreventStacking = false;
 		bool bUseProjection = false;

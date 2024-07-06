@@ -103,7 +103,7 @@ public:
 
 	/** Defines how fused point properties and attributes are merged together. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bEndpointsBlending"))
-	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 
 
 	/** Update Edge position as a lerp between endpoints (according to the direction method selected above) */

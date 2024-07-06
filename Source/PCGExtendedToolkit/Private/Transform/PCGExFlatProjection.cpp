@@ -95,8 +95,8 @@ namespace PCGExFlatProjection
 		}
 		else if (bWriteAttribute)
 		{
-			ProjectionSettings = Settings->ProjectionSettings;
-			ProjectionSettings.Init(Context, PointDataFacade);
+			ProjectionDetails = Settings->ProjectionDetails;
+			ProjectionDetails.Init(Context, PointDataFacade);
 			TransformWriter = PointDataFacade->GetOrCreateWriter<FTransform>(TypedContext->CachedTransformAttributeName, true);
 		}
 
@@ -117,11 +117,11 @@ namespace PCGExFlatProjection
 
 			if (bProjectLocalTransform)
 			{
-				Point.Transform = ProjectionSettings.ProjectFlat(Point.Transform);
+				Point.Transform = ProjectionDetails.ProjectFlat(Point.Transform);
 			}
 			else
 			{
-				Point.Transform.SetLocation(ProjectionSettings.ProjectFlat(Point.Transform.GetLocation(), Index));
+				Point.Transform.SetLocation(ProjectionDetails.ProjectFlat(Point.Transform.GetLocation(), Index));
 			}
 		}
 	}

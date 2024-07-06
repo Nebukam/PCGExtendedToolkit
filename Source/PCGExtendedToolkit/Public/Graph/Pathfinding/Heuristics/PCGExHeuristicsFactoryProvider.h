@@ -9,26 +9,26 @@
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 
 #define PCGEX_FORWARD_HEURISTIC_FACTORY \
-	NewFactory->WeightFactor = Descriptor.WeightFactor; \
-	NewFactory->Descriptor = Descriptor; \
-	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewFactory->Descriptor.ScoreCurve, NewFactory->Descriptor.ScoreCurveObj, PCGEx::WeightDistributionLinear)
+	NewFactory->WeightFactor = Config.WeightFactor; \
+	NewFactory->Config = Config; \
+	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewFactory->Config.ScoreCurve, NewFactory->Config.ScoreCurveObj, PCGEx::WeightDistributionLinear)
 
-#define PCGEX_FORWARD_HEURISTIC_DESCRIPTOR \
-	NewOperation->WeightFactor = Descriptor.WeightFactor; \
-	NewOperation->bInvert = Descriptor.bInvert; \
-	NewOperation->ScoreCurveObj = Descriptor.ScoreCurveObj; \
-	NewOperation->bUseLocalWeightMultiplier = Descriptor.bUseLocalWeightMultiplier; \
-	NewOperation->LocalWeightMultiplierSource = Descriptor.LocalWeightMultiplierSource; \
-	NewOperation->WeightMultiplierAttribute = Descriptor.WeightMultiplierAttribute;
+#define PCGEX_FORWARD_HEURISTIC_CONFIG \
+	NewOperation->WeightFactor = Config.WeightFactor; \
+	NewOperation->bInvert = Config.bInvert; \
+	NewOperation->ScoreCurveObj = Config.ScoreCurveObj; \
+	NewOperation->bUseLocalWeightMultiplier = Config.bUseLocalWeightMultiplier; \
+	NewOperation->LocalWeightMultiplierSource = Config.LocalWeightMultiplierSource; \
+	NewOperation->WeightMultiplierAttribute = Config.WeightMultiplierAttribute;
 
 class UPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorBase():
+	FPCGExHeuristicConfigBase():
 		ScoreCurve(PCGEx::WeightDistributionLinear)
 	{
 	}

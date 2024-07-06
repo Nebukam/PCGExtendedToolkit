@@ -79,19 +79,19 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardSettings SeedForwardAttributes;
+	FPCGExForwardDetails SeedForwardAttributes;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExAttributeToTagSettings GoalAttributesToPathTags;
+	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
 
 	/** Which Goal attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardSettings GoalForwardAttributes;
+	FPCGExForwardDetails GoalForwardAttributes;
 
 
 	/** Pathfinding mode */
@@ -126,8 +126,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPC
 	EPCGExPathfindingNavmeshMode PathfindingMode;
 	double FuseDistance = 10;
 
-	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
-	FPCGExAttributeToTagSettings GoalAttributesToPathTags;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
+	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
 
 	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;

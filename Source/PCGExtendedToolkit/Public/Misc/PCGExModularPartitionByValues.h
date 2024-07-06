@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionRule : public UPCGExParamFactoryBase
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RulePartition; }
-	FPCGExPartitonRuleDescriptor Descriptor;
+	FPCGExPartitonRuleConfig Config;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -48,9 +48,9 @@ public:
 #endif
 	//~End UPCGExFactoryProviderSettings
 
-	/** Rule descriptor */
+	/** Rule Config */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExPartitonRuleDescriptor Descriptor;
+	FPCGExPartitonRuleConfig Config;
 };
 
 /**
@@ -72,5 +72,5 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 public:
-	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const override;
+	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const override;
 };

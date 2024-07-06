@@ -12,20 +12,20 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandA.GetName());
+	OperandA = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Config.OperandA.GetName());
 	if (!OperandA->Bind(InPointDataFacade->Source))
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
 		PCGEX_DELETE(OperandA)
 		return false;
 	}
 
-	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandB.GetName());
+		OperandB = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Config.OperandB.GetName());
 		if (!OperandB->Bind(InPointDataFacade->Source))
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
 			PCGEX_DELETE(OperandA)
 			PCGEX_DELETE(OperandB)
 			return false;
@@ -38,9 +38,9 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 bool PCGExPointsFilter::TStringCompareFilter::Test(const int32 PointIndex) const
 {
 	const FString A = OperandA->Values[PointIndex];
-	const FString B = TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
+	const FString B = TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
 
-	switch (TypedFilterFactory->Descriptor.Comparison)
+	switch (TypedFilterFactory->Config.Comparison)
 	{
 	case EPCGExStringComparison::StrictlyEqual:
 		return A == B;
@@ -85,9 +85,9 @@ PCGEX_CREATE_FILTER_FACTORY(StringCompare)
 #if WITH_EDITOR
 FString UPCGExStringCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Descriptor.OperandA.GetName().ToString();
+	FString DisplayName = Config.OperandA.GetName().ToString();
 
-	switch (Descriptor.Comparison)
+	switch (Config.Comparison)
 	{
 	case EPCGExStringComparison::StrictlyEqual:
 		DisplayName += " == ";
@@ -122,7 +122,7 @@ FString UPCGExStringCompareFilterProviderSettings::GetDisplayName() const
 	default: ;
 	}
 
-	DisplayName += Descriptor.OperandB.GetName().ToString();
+	DisplayName += Config.OperandB.GetName().ToString();
 	return DisplayName;
 }
 #endif

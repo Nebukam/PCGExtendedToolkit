@@ -35,12 +35,12 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings)
+		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails)
 		{
 			Clear();
 
 			Delaunay = new TDelaunay2();
-			if (!Delaunay->Process(Positions, ProjectionSettings))
+			if (!Delaunay->Process(Positions, ProjectionDetails))
 			{
 				Clear();
 				return IsValid;

@@ -51,7 +51,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bGeneratePerPointData"))
-	FPCGExAttributeToTagSettings PointAttributesToOutputTags;
+	FPCGExAttributeToTagDetails PointAttributesToOutputTags;
 
 private:
 	friend class FPCGExBoundsToPointsElement;
@@ -86,7 +86,7 @@ namespace PCGExBoundsToPoints
 		EPCGExMinimalAxis Axis = EPCGExMinimalAxis::None;
 
 		FPCGExUVW UVW;
-		FPCGExAttributeToTagSettings PointAttributesToOutputTags;
+		FPCGExAttributeToTagDetails PointAttributesToOutputTags;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

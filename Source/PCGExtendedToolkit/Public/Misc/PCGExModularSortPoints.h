@@ -23,7 +23,7 @@ public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RuleSort; }
 
 	int32 Priority;
-	FPCGExSortRuleDescriptor Descriptor;
+	FPCGExSortRuleConfig Config;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -55,9 +55,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	int32 Priority;
 
-	/** Rule descriptor */
+	/** Rule Config */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSortRuleDescriptor Descriptor;
+	FPCGExSortRuleConfig Config;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -75,5 +75,5 @@ protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 public:
-	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const override;
+	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const override;
 };

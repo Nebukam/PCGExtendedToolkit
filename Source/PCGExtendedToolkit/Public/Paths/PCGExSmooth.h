@@ -78,7 +78,7 @@ public:
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext final : public FPCGExPathProcessorContext

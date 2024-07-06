@@ -56,32 +56,32 @@ bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathToClusters)
 
-	PCGEX_FWD(CarryOver)
-	Context->CarryOver.Init();
+	PCGEX_FWD(CarryOverDetails)
+	Context->CarryOverDetails.Init();
 
 	const_cast<UPCGExPathToClustersSettings*>(Settings)
-		->EdgeEdgeIntersectionSettings.ComputeDot();
+		->EdgeEdgeIntersectionDetails.ComputeDot();
 
 	Context->CompoundProcessor = new PCGExGraph::FCompoundProcessor(
 		Context,
-		Settings->PointPointIntersectionSettings,
-		Settings->DefaultPointsBlendingSettings,
-		Settings->DefaultEdgesBlendingSettings);
+		Settings->PointPointIntersectionDetails,
+		Settings->DefaultPointsBlendingDetails,
+		Settings->DefaultEdgesBlendingDetails);
 
 	if (Settings->bFindPointEdgeIntersections)
 	{
 		Context->CompoundProcessor->InitPointEdge(
-			Settings->PointEdgeIntersectionSettings,
+			Settings->PointEdgeIntersectionDetails,
 			Settings->bUseCustomPointEdgeBlending,
-			&Settings->CustomPointEdgeBlendingSettings);
+			&Settings->CustomPointEdgeBlendingDetails);
 	}
 
 	if (Settings->bFindEdgeEdgeIntersections)
 	{
 		Context->CompoundProcessor->InitEdgeEdge(
-			Settings->EdgeEdgeIntersectionSettings,
+			Settings->EdgeEdgeIntersectionDetails,
 			Settings->bUseCustomPointEdgeBlending,
-			&Settings->CustomEdgeEdgeBlendingSettings);
+			&Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
 	if (Settings->bFusePaths)
@@ -94,13 +94,13 @@ bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 		Context->CompoundFacade = new PCGExData::FFacade(CompoundPoints);
 
 		Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
-			Settings->PointPointIntersectionSettings.FuseSettings,
+			Settings->PointPointIntersectionDetails.FuseDetails,
 			Context->MainPoints->GetInBounds().ExpandBy(10),
 			true,
-			Settings->PointPointIntersectionSettings.FuseMethod);
+			Settings->PointPointIntersectionDetails.FuseMethod);
 
 		Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(
-			&Settings->DefaultPointsBlendingSettings, &Context->CarryOver);
+			&Settings->DefaultPointsBlendingDetails, &Context->CarryOverDetails);
 	}
 
 	return true;
@@ -214,8 +214,8 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 						Context->CompoundGraph->PointsCompounds, Context->MainPoints));
 				Context->CompoundPointsBlender->MergeSingle(
 					Index,
-					PCGExSettings::GetDistanceSettings(
-						Settings->PointPointIntersectionSettings));
+					PCGExDetails::GetDistanceDetails(
+						Settings->PointPointIntersectionDetails));
 			};
 
 			if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes))
@@ -236,7 +236,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->CompoundProcessor->StartProcessing(
 				Context->CompoundGraph,
 				Context->CompoundFacade,
-				Settings->GraphBuilderSettings,
+				Settings->GraphBuilderDetails,
 				[&](PCGExGraph::FGraphBuilder* GraphBuilder)
 				{
 					TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
@@ -283,7 +283,7 @@ namespace PCGExPathToClusters
 		}
 
 		GraphBuilder = new PCGExGraph::FGraphBuilder(
-			PointIO, &Settings->GraphBuilderSettings, 2);
+			PointIO, &Settings->GraphBuilderDetails, 2);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();

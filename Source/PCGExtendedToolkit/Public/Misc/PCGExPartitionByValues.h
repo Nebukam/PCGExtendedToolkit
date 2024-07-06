@@ -89,7 +89,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteKeySum"))
 	FName KeySumAttributeName = "KeySum";
 
-	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const;
+	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const;
 };
 
 /**
@@ -116,9 +116,9 @@ public:
 
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName}"))
-	TArray<FPCGExPartitonRuleDescriptor> PartitionRules;
+	TArray<FPCGExPartitonRuleConfig> PartitionRules;
 
-	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const override;
+	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const override;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext final : public FPCGExPointsProcessorContext
@@ -127,7 +127,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext final : public 
 
 	virtual ~FPCGExPartitionByValuesBaseContext() override;
 
-	TArray<FPCGExPartitonRuleDescriptor> RulesDescriptors;
+	TArray<FPCGExPartitonRuleConfig> RulesConfigs;
 	TArray<FPCGExFilter::FRule> Rules;
 	mutable FRWLock RulesLock;
 

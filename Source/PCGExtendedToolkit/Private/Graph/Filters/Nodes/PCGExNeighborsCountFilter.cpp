@@ -19,13 +19,13 @@ namespace PCGExNodeNeighborsCount
 	{
 		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
+		if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			LocalCount = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.LocalCount);
+			LocalCount = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.LocalCount);
 
 			if (!LocalCount)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid LocalCount attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.LocalCount.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid LocalCount attribute: {0}."), FText::FromName(TypedFilterFactory->Config.LocalCount.GetName())));
 				return false;
 			}
 		}
@@ -36,8 +36,8 @@ namespace PCGExNodeNeighborsCount
 	bool FNeighborsCountFilter::Test(const PCGExCluster::FNode& Node) const
 	{
 		const double A = Node.Adjacency.Num();
-		const double B = LocalCount ? LocalCount->Values[Node.PointIndex] : TypedFilterFactory->Descriptor.Count;
-		return PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance);
+		const double B = LocalCount ? LocalCount->Values[Node.PointIndex] : TypedFilterFactory->Config.Count;
+		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 	}
 }
 
@@ -46,10 +46,10 @@ PCGEX_CREATE_FILTER_FACTORY(NeighborsCount)
 #if WITH_EDITOR
 FString UPCGExNeighborsCountFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = "Neighbors Count" + PCGExCompare::ToString(Descriptor.Comparison);
+	FString DisplayName = "Neighbors Count" + PCGExCompare::ToString(Config.Comparison);
 
-	if (Descriptor.CompareAgainst == EPCGExFetchType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Descriptor.Count); }
-	else { DisplayName += Descriptor.LocalCount.GetName().ToString(); }
+	if (Config.CompareAgainst == EPCGExFetchType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Config.Count); }
+	else { DisplayName += Config.LocalCount.GetName().ToString(); }
 
 	return DisplayName;
 }

@@ -30,7 +30,7 @@ namespace PCPGExMergePointsByTag
 		FMergeList();
 		~FMergeList();
 
-		void Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverSettings* CarryOver);
+		void Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
 		void Write(PCGExMT::FTaskManager* AsyncManager) const;
 	};
 
@@ -52,7 +52,7 @@ namespace PCPGExMergePointsByTag
 		explicit FTagBuckets();
 		~FTagBuckets();
 
-		void Distribute(PCGExData::FPointIO* IO, const FPCGExNameFiltersSettings& Filters);
+		void Distribute(PCGExData::FPointIO* IO, const FPCGExNameFiltersDetails& Filters);
 		void AddToReverseMap(PCGExData::FPointIO* IO, FTagBucket* Bucket);
 		void BuildMergeLists(EPCGExMergeByTagOverlapResolutionMode Mode, TArray<FMergeList*>& OutLists, const TArray<FString>& Priorities);
 	};
@@ -86,7 +86,7 @@ public:
 
 	/** Tags to be processed or ignored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExNameFiltersSettings TagFilters;
+	FPCGExNameFiltersDetails TagFilters;
 
 	/** Which tag has merging authority over another. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -94,7 +94,7 @@ public:
 
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
-	FPCGExCarryOverSettings CarryOver;
+	FPCGExCarryOverDetails CarryOverDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExMergePointsByTagContext final : public FPCGExPointsProcessorContext
@@ -103,8 +103,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMergePointsByTagContext final : public FPCGE
 
 	virtual ~FPCGExMergePointsByTagContext() override;
 
-	FPCGExNameFiltersSettings TagFilters;
-	FPCGExCarryOverSettings CarryOver;
+	FPCGExNameFiltersDetails TagFilters;
+	FPCGExCarryOverDetails CarryOverDetails;
 
 	TArray<PCPGExMergePointsByTag::FMergeList*> MergeLists;
 };

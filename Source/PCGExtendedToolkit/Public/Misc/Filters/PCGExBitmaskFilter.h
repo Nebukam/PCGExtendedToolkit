@@ -15,11 +15,11 @@
 #include "PCGExBitmaskFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExBitmaskFilterDescriptor()
+	FPCGExBitmaskFilterConfig()
 	{
 	}
 
@@ -58,7 +58,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskFilterFactory : public UPCGExFilterFac
 	GENERATED_BODY()
 
 public:
-	FPCGExBitmaskFilterDescriptor Descriptor;
+	FPCGExBitmaskFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
@@ -69,7 +69,7 @@ namespace PCGExPointsFilter
 	{
 	public:
 		explicit TBitmaskFilter(const UPCGExBitmaskFilterFactory* InDefinition)
-			: TFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Descriptor.Bitmask)
+			: TFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Config.Bitmask)
 		{
 		}
 
@@ -108,9 +108,9 @@ public:
 	//~End UPCGSettings
 
 public:
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBitmaskFilterDescriptor Descriptor;
+	FPCGExBitmaskFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

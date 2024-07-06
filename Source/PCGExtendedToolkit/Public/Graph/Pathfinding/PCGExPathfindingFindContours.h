@@ -41,7 +41,7 @@ public:
 
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings SeedPicking;
+	FPCGExNodeSelectionDetails SeedPicking;
 
 	/** Drives how the seed nodes are selected within the graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -49,15 +49,15 @@ public:
 
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardSettings SeedForwardAttributes;
+	FPCGExForwardDetails SeedForwardAttributes;
 
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
@@ -79,7 +79,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 
 	PCGExData::FPointIOCollection* Paths;
 
-	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler;
 
 	bool TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, const PCGExFindContours::FProcessor* ClusterProcessor);
@@ -105,7 +105,7 @@ namespace PCGExFindContours
 		friend struct FPCGExFindContoursContext;
 
 	protected:
-		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
 
 	public:

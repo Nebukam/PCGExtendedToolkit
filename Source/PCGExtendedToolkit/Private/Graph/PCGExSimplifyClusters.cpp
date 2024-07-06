@@ -28,8 +28,8 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
-	PCGEX_FWD(GraphBuilderSettings)
-	Context->GraphBuilderSettings.bPruneIsolatedPoints = true;
+	PCGEX_FWD(GraphBuilderDetails)
+	Context->GraphBuilderDetails.bPruneIsolatedPoints = true;
 
 	return true;
 }

@@ -98,7 +98,7 @@ namespace PCGExWriteVtxProperties
 
 		if (VtxNormalWriter)
 		{
-			ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionSettings);
+			ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionDetails);
 			StartParallelLoopForRange(Cluster->Nodes->Num());
 			//ProjectedCluster->Build();
 		}
@@ -108,7 +108,7 @@ namespace PCGExWriteVtxProperties
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
-		ProjectedCluster->Nodes[Iteration].Project(Cluster, ProjectionSettings);
+		ProjectedCluster->Nodes[Iteration].Project(Cluster, ProjectionDetails);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
@@ -159,8 +159,8 @@ namespace PCGExWriteVtxProperties
 			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
-		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, VtxDataFacade);
+		ProjectionDetails = Settings->ProjectionDetails;
+		ProjectionDetails.Init(Context, VtxDataFacade);
 
 		for (const UPCGExVtxPropertyFactoryBase* Factory : TypedContext->ExtraFactories)
 		{
@@ -181,7 +181,7 @@ namespace PCGExWriteVtxProperties
 	{
 		PCGEX_SETTINGS(WriteVtxProperties)
 
-		ClusterProcessor->ProjectionSettings = &ProjectionSettings;
+		ClusterProcessor->ProjectionDetails = &ProjectionDetails;
 		ClusterProcessor->ExtraOperations = &ExtraOperations;
 
 #define PCGEX_FWD_VTX(_NAME, _TYPE) ClusterProcessor->_NAME##Writer = _NAME##Writer;

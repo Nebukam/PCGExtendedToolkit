@@ -60,7 +60,7 @@ public:
 
 	/** Projection settings used for normal calculations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, DisplayName="Normal Projection", EditCondition="bWriteVtxNormal"))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 private:
 	friend class FPCGExWriteVtxPropertiesElement;
@@ -114,12 +114,12 @@ namespace PCGExWriteVtxProperties
 
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 
-		FPCGExGeo2DProjectionSettings* ProjectionSettings = nullptr;
+		FPCGExGeo2DProjectionDetails* ProjectionDetails = nullptr;
 	};
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		TArray<UPCGExVtxPropertyOperation*> ExtraOperations;
 

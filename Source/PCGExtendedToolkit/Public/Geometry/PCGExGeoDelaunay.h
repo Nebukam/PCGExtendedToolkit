@@ -57,14 +57,14 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings)
+		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionDetails& ProjectionDetails)
 		{
 			Clear();
 
 			if (const int32 NumPositions = Positions.Num(); Positions.IsEmpty() || NumPositions <= 2) { return false; }
 
 			TArray<FVector2D> Positions2D;
-			ProjectionSettings.Project(Positions, Positions2D);
+			ProjectionDetails.Project(Positions, Positions2D);
 
 			TArray<UE::Geometry::FIndex3i> Triangles;
 			TArray<UE::Geometry::FIndex3i> Adjacencies;

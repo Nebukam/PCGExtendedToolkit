@@ -12,7 +12,6 @@ class UPCGExHeuristicDistance;
 
 namespace PCGExCluster
 {
-	struct FScoredNode;
 	struct FNode;
 }
 
@@ -25,6 +24,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOp
 	GENERATED_BODY()
 
 public:
-	virtual bool RequiresHeuristics() override;
-	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics) override;
+	virtual bool RequiresHeuristics() override { return true; }
+	virtual void Process() override;
 };

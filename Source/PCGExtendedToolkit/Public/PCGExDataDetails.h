@@ -3,7 +3,7 @@
 
 #pragma once
 
-#define PCGEX_SOFT_VALIDATE_NAME_SETTINGS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
+#define PCGEX_SOFT_VALIDATE_NAME_DETAILS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 
 #include "CoreMinimal.h"
 #include "PCGExMacros.h"
@@ -11,14 +11,14 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExDataSettings.generated.h"
+#include "PCGExDataDetails.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceDetails
 {
 	GENERATED_BODY()
 
-	FPCGExInfluenceSettings()
+	FPCGExInfluenceDetails()
 	{
 	}
 
@@ -61,4 +61,4 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceSettings
 };
 
 
-#undef PCGEX_SOFT_VALIDATE_NAME_SETTINGS
+#undef PCGEX_SOFT_VALIDATE_NAME_DETAILS

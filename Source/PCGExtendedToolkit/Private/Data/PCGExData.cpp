@@ -38,7 +38,7 @@ namespace PCGExData
 
 	void FIdxCompound::ComputeWeights(
 		const TArray<FFacade*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
-		const FPCGExDistanceSettings& DistSettings, TArray<uint64>& OutCompoundHashes, TArray<double>& OutWeights)
+		const FPCGExDistanceDetails& InDistanceDetails, TArray<uint64>& OutCompoundHashes, TArray<double>& OutWeights)
 	{
 		OutCompoundHashes.SetNumUninitialized(CompoundedHashSet.Num());
 		OutWeights.SetNumUninitialized(CompoundedHashSet.Num());
@@ -56,7 +56,7 @@ namespace PCGExData
 
 			OutCompoundHashes[Index] = Hash;
 
-			const double Weight = DistSettings.GetDistance(Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target);
+			const double Weight = InDistanceDetails.GetDistance(Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target);
 			OutWeights[Index] = Weight;
 			TotalWeight += Weight;
 
@@ -90,14 +90,14 @@ namespace PCGExData
 	{
 	}
 
-	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardSettings& InFilters, const FPointIO* InSourceIO):
-		Filters(InFilters), SourceIO(InSourceIO)
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const FPointIO* InSourceIO):
+		Details(InDetails), SourceIO(InSourceIO)
 	{
-		if (!Filters.bEnabled) { return; }
+		if (!Details.bEnabled) { return; }
 
-		Filters.Init();
+		Details.Init();
 		PCGEx::FAttributeIdentity::Get(InSourceIO->GetIn()->Metadata, Identities);
-		Filters.Filter(Identities);
+		Details.Filter(Identities);
 	}
 
 	void FDataForwardHandler::Forward(const int32 SourceIndex, const FPointIO* Target)

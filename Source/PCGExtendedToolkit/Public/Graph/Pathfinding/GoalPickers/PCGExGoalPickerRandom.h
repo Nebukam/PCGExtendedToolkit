@@ -10,7 +10,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExGoalPickerRandom.generated.h"
 
-struct FPCGExInputDescriptor;
+struct FPCGExInputConfig;
 struct FPCGPoint;
 class UPCGPointData;
 

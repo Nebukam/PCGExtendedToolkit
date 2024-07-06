@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataSettings.h"
+#include "PCGExDataDetails.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Geometry/PCGExGeo.h"
 #include "PCGExLloydRelax.generated.h"
 
@@ -43,7 +43,7 @@ public:
 
 	/** Influence Settings*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInfluenceSettings InfluenceSettings;
+	FPCGExInfluenceDetails InfluenceDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxContext final : public FPCGExPointsProcessorContext
@@ -72,7 +72,7 @@ namespace PCGExLloydRelax
 	{
 		friend class FLloydRelaxTask;
 
-		FPCGExInfluenceSettings InfluenceSettings;
+		FPCGExInfluenceDetails InfluenceDetails;
 		TArray<FVector> ActivePositions;
 
 	public:
@@ -93,7 +93,7 @@ namespace PCGExLloydRelax
 	public:
 		FLloydRelaxTask(PCGExData::FPointIO* InPointIO,
 		                FProcessor* InProcessor,
-		                const FPCGExInfluenceSettings* InInfluenceSettings,
+		                const FPCGExInfluenceDetails* InInfluenceSettings,
 		                const int32 InNumIterations) :
 			FPCGExTask(InPointIO),
 			Processor(InProcessor),
@@ -103,7 +103,7 @@ namespace PCGExLloydRelax
 		}
 
 		FProcessor* Processor = nullptr;
-		const FPCGExInfluenceSettings* InfluenceSettings = nullptr;
+		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
 		int32 NumIterations = 0;
 
 		virtual bool ExecuteTask() override;

@@ -63,7 +63,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMatchToFactoryBase : public UPCGExParamFactor
 	GENERATED_BODY()
 
 public:
-	FPCGExAttributeGatherSettings InputAttributesFilter;
+	FPCGExAttributeGatherDetails InputAttributesFilter;
 
 	PCGEx::FAttributesInfos* CheckSuccessInfos = nullptr;
 	PCGEx::FAttributesInfos* CheckFailInfos = nullptr;
@@ -108,5 +108,5 @@ public:
 	int32 Priority = 0;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExAttributeGatherSettings InputAttributesFilter;
+	FPCGExAttributeGatherDetails InputAttributesFilter;
 };

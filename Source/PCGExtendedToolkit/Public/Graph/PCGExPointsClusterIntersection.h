@@ -18,7 +18,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsClusterIntersectionSettings : public UP
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PointsClusterIntersection, "Cluster : Sanitize", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
+	PCGEX_NODE_INFOS(PointsClusterIntersection, "Cluster : Points Intersection", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
@@ -34,7 +34,7 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBoxIntersectionSettings IntersectionSettings;
+	FPCGExBoxIntersectionDetails IntersectionDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionContext final : public FPCGExEdgesProcessorContext

@@ -16,9 +16,9 @@ void UPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 
 bool UPCGExSearchOperation::FindPath(
 	const FVector& SeedPosition,
-	const FPCGExNodeSelectionSettings* SeedSelection,
+	const FPCGExNodeSelectionDetails* SeedSelection,
 	const FVector& GoalPosition,
-	const FPCGExNodeSelectionSettings* GoalSelection,
+	const FPCGExNodeSelectionDetails* GoalSelection,
 	PCGExHeuristics::THeuristicsHandler* Heuristics,
 	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) const
 {

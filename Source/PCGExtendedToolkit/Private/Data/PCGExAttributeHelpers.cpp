@@ -6,12 +6,12 @@
 #include "Helpers/PCGHelpers.h"
 
 #if WITH_EDITOR
-FString FPCGExInputDescriptor::GetDisplayName() const { return GetName().ToString(); }
+FString FPCGExInputConfig::GetDisplayName() const { return GetName().ToString(); }
 
-void FPCGExInputDescriptor::UpdateUserFacingInfos() { TitlePropertyName = GetDisplayName(); }
+void FPCGExInputConfig::UpdateUserFacingInfos() { TitlePropertyName = GetDisplayName(); }
 #endif
 
-bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
+bool FPCGExInputConfig::Validate(const UPCGPointData* InData)
 {
 	Selector = Selector.CopyAndFixLast(InData);
 	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
@@ -106,7 +106,7 @@ namespace PCGEx
 		return bAnyMissing;
 	}
 
-	void FAttributesInfos::Append(FAttributesInfos* Other, const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& OutTypeMismatch)
+	void FAttributesInfos::Append(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
 	{
 		for (int i = 0; i < Other->Identities.Num(); i++)
 		{
@@ -130,7 +130,7 @@ namespace PCGEx
 		}
 	}
 
-	void FAttributesInfos::Update(FAttributesInfos* Other, const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& OutTypeMismatch)
+	void FAttributesInfos::Update(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
 	{
 		// TODO : Update types and attributes according to input settings?
 	}

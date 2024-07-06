@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExTransform.generated.h"

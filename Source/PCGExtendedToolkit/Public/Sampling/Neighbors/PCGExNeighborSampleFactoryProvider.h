@@ -17,8 +17,8 @@
 
 /// 
 #define PCGEX_SAMPLER_CREATE\
-	NewOperation->BaseSettings = SamplingSettings; \
-	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewOperation->BaseSettings.WeightCurve, NewOperation->WeightCurveObj, PCGEx::WeightDistributionLinear) \
+	NewOperation->SamplingConfig = SamplingConfig; \
+	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewOperation->SamplingConfig.WeightCurve, NewOperation->WeightCurveObj, PCGEx::WeightDistributionLinear) \
 	NewOperation->PointFilterFactories.Append(PointFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
 
@@ -34,20 +34,20 @@ namespace PCGExNeighborSample
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSamplingSettings : public FPCGExDistanceSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSamplingDetails : public FPCGExDistanceDetails
 {
 	GENERATED_BODY()
 
-	FPCGExDistanceSamplingSettings()
+	FPCGExDistanceSamplingDetails()
 	{
 	}
 
-	explicit FPCGExDistanceSamplingSettings(const double InMaxDistance):
+	explicit FPCGExDistanceSamplingDetails(const double InMaxDistance):
 		MaxDistance(InMaxDistance)
 	{
 	}
 
-	~FPCGExDistanceSamplingSettings()
+	~FPCGExDistanceSamplingDetails()
 	{
 	}
 
@@ -70,11 +70,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSamplingSettings : public FPCGExDist
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSamplingSettings():
+	FPCGExSamplingConfig():
 		WeightCurve(PCGEx::WeightDistributionLinear)
 	{
 	}
@@ -124,7 +124,7 @@ public:
 	PCGExData::FFacade* VtxDataFacade = nullptr;
 	PCGExData::FFacade* EdgeDataFacade = nullptr;
 
-	FPCGExSamplingSettings BaseSettings;
+	FPCGExSamplingConfig SamplingConfig;
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
@@ -175,7 +175,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryBase : public UPCGExPar
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Sampler; }
 
-	FPCGExSamplingSettings SamplingSettings;
+	FPCGExSamplingConfig SamplingConfig;
 
 	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
 	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
@@ -217,5 +217,5 @@ public:
 
 	/** Priority for sampling order. Higher values are processed last. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ShowOnlyInnerProperties))
-	FPCGExSamplingSettings SamplingSettings;
+	FPCGExSamplingConfig SamplingConfig;
 };

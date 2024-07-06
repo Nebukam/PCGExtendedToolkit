@@ -14,18 +14,18 @@ bool UPCGExProbeOperation::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 {
 	PointIO = InPointIO;
 
-	if (BaseDescriptor->SearchRadiusSource == EPCGExFetchType::Constant)
+	if (BaseConfig->SearchRadiusSource == EPCGExFetchType::Constant)
 	{
-		SearchRadius = BaseDescriptor->SearchRadiusConstant;
+		SearchRadius = BaseConfig->SearchRadiusConstant;
 		SearchRadiusSquared = SearchRadius * SearchRadius;
 	}
 	else
 	{
-		SearchRadiusCache = PrimaryDataFacade->GetOrCreateGetter<double>(BaseDescriptor->SearchRadiusAttribute);
+		SearchRadiusCache = PrimaryDataFacade->GetOrCreateGetter<double>(BaseConfig->SearchRadiusAttribute);
 
 		if (!SearchRadiusCache)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Radius attribute: {0}")), FText::FromName(BaseDescriptor->SearchRadiusAttribute.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Radius attribute: {0}")), FText::FromName(BaseConfig->SearchRadiusAttribute.GetName())));
 			return false;
 		}
 	}

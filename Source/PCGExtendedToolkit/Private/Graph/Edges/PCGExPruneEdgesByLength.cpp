@@ -10,7 +10,7 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetMainOutputInitMode() const { return GraphBuilderSettings.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetMainOutputInitMode() const { return GraphBuilderDetails.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 #pragma endregion
@@ -29,7 +29,7 @@ bool FPCGExPruneEdgesByLengthElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PruneEdgesByLength)
 	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_C(Mean, double)
 
-	PCGEX_FWD(GraphBuilderSettings)
+	PCGEX_FWD(GraphBuilderDetails)
 
 	return true;
 }

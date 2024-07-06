@@ -12,11 +12,11 @@ bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExDat
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	Target = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.Target, true);
+	Target = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.Target, true);
 
 	if (!Target)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Target attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.Target.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Target attribute: {0}."), FText::FromName(TypedFilterFactory->Config.Target.GetName())));
 		return false;
 	}
 
@@ -41,7 +41,7 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 		SumValue += Target->Values[i];
 	}
 
-	if (TypedFilterFactory->Descriptor.Measure == EPCGExMeanMeasure::Relative)
+	if (TypedFilterFactory->Config.Measure == EPCGExMeanMeasure::Relative)
 	{
 		double RelativeMinEdgeLength = TNumericLimits<double>::Max();
 		double RelativeMaxEdgeLength = TNumericLimits<double>::Min();
@@ -57,7 +57,7 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 		Target->Max = 1;
 	}
 
-	switch (TypedFilterFactory->Descriptor.MeanMethod)
+	switch (TypedFilterFactory->Config.MeanMethod)
 	{
 	default:
 	case EPCGExMeanMethod::Average:
@@ -67,21 +67,21 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 		ReferenceValue = PCGExMath::GetMedian(Target->Values);
 		break;
 	case EPCGExMeanMethod::Fixed:
-		ReferenceValue = TypedFilterFactory->Descriptor.MeanValue;
+		ReferenceValue = TypedFilterFactory->Config.MeanValue;
 		break;
 	case EPCGExMeanMethod::ModeMin:
-		ReferenceValue = PCGExMath::GetMode(Target->Values, false, TypedFilterFactory->Descriptor.ModeTolerance);
+		ReferenceValue = PCGExMath::GetMode(Target->Values, false, TypedFilterFactory->Config.ModeTolerance);
 		break;
 	case EPCGExMeanMethod::ModeMax:
-		ReferenceValue = PCGExMath::GetMode(Target->Values, true, TypedFilterFactory->Descriptor.ModeTolerance);
+		ReferenceValue = PCGExMath::GetMode(Target->Values, true, TypedFilterFactory->Config.ModeTolerance);
 		break;
 	case EPCGExMeanMethod::Central:
 		ReferenceValue = Target->Min + (Target->Max - Target->Min) * 0.5;
 		break;
 	}
 
-	const double RMin = TypedFilterFactory->Descriptor.bDoExcludeBelowMean ? ReferenceValue - TypedFilterFactory->Descriptor.ExcludeBelow : 0;
-	const double RMax = TypedFilterFactory->Descriptor.bDoExcludeAboveMean ? ReferenceValue + TypedFilterFactory->Descriptor.ExcludeAbove : TNumericLimits<double>::Max();
+	const double RMin = TypedFilterFactory->Config.bDoExcludeBelowMean ? ReferenceValue - TypedFilterFactory->Config.ExcludeBelow : 0;
+	const double RMax = TypedFilterFactory->Config.bDoExcludeAboveMean ? ReferenceValue + TypedFilterFactory->Config.ExcludeAbove : TNumericLimits<double>::Max();
 
 	ReferenceMin = FMath::Min(RMin, RMax);
 	ReferenceMax = FMath::Max(RMin, RMax);
@@ -97,13 +97,13 @@ FString UPCGExMeanFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = "";
 
-	if (Descriptor.bDoExcludeBelowMean) { DisplayName += FString::Printf(TEXT("< %.3f "), (static_cast<int32>(1000 * Descriptor.ExcludeBelow) / 1000.0)); }
-	if (Descriptor.bDoExcludeBelowMean && Descriptor.bDoExcludeAboveMean) { DisplayName += "&& "; }
-	if (Descriptor.bDoExcludeAboveMean) { DisplayName += FString::Printf(TEXT("> %.3f "), (static_cast<int32>(1000 * Descriptor.ExcludeAbove) / 1000.0)); }
+	if (Config.bDoExcludeBelowMean) { DisplayName += FString::Printf(TEXT("< %.3f "), (static_cast<int32>(1000 * Config.ExcludeBelow) / 1000.0)); }
+	if (Config.bDoExcludeBelowMean && Config.bDoExcludeAboveMean) { DisplayName += "&& "; }
+	if (Config.bDoExcludeAboveMean) { DisplayName += FString::Printf(TEXT("> %.3f "), (static_cast<int32>(1000 * Config.ExcludeAbove) / 1000.0)); }
 
-	DisplayName += Descriptor.Target.GetName().ToString() + "' ";
+	DisplayName += Config.Target.GetName().ToString() + "' ";
 
-	switch (Descriptor.MeanMethod)
+	switch (Config.MeanMethod)
 	{
 	case EPCGExMeanMethod::Average:
 		DisplayName += "' Average";
@@ -121,7 +121,7 @@ FString UPCGExMeanFilterProviderSettings::GetDisplayName() const
 		DisplayName += "' Central";
 		break;
 	case EPCGExMeanMethod::Fixed:
-		DisplayName += FString::Printf(TEXT(" %.3f"), (static_cast<int32>(1000 * Descriptor.MeanValue) / 1000.0));
+		DisplayName += FString::Printf(TEXT(" %.3f"), (static_cast<int32>(1000 * Config.MeanValue) / 1000.0));
 		break;
 	default: ;
 	}

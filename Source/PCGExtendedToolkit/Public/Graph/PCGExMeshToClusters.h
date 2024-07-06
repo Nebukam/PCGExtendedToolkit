@@ -91,7 +91,7 @@ public:
 
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExTransformSettings TransformSettings;
+	FPCGExTransformDetails TransformDetails;
 
 	/** Skip invalid meshes & do not throw warning about them. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -99,7 +99,7 @@ public:
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 private:
 	friend class FPCGExMeshToClustersElement;
@@ -109,8 +109,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext final : public FPCGExP
 {
 	friend class FPCGExMeshToClustersElement;
 
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	FPCGExTransformSettings TransformSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
+	FPCGExTransformDetails TransformDetails;
 
 	PCGExGeo::FGeoStaticMeshMap* StaticMeshMap = nullptr;
 	TArray<int32> MeshIdx;
@@ -119,10 +119,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext final : public FPCGExP
 	PCGExData::FPointIOCollection* VtxChildCollection = nullptr;
 	PCGExData::FPointIOCollection* EdgeChildCollection = nullptr;
 
-
 	TArray<PCGExGraph::FGraphBuilder*> GraphBuilders;
-
-	FPCGExGraphBuilderSettings BuilderSettings;
 
 	virtual ~FPCGExMeshToClustersContext() override;
 };

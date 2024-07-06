@@ -19,37 +19,37 @@
 
 #include "PCGExAttributeHelpers.generated.h"
 
-#pragma region Input Descriptors
+#pragma region Input Configs
 
-struct FPCGExAttributeGatherSettings;
+struct FPCGExAttributeGatherDetails;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
 {
 	GENERATED_BODY()
 
-	FPCGExInputDescriptor()
+	FPCGExInputConfig()
 	{
 	}
 
-	explicit FPCGExInputDescriptor(const FPCGAttributePropertyInputSelector& InSelector)
+	explicit FPCGExInputConfig(const FPCGAttributePropertyInputSelector& InSelector)
 	{
 		Selector.ImportFromOtherSelector(InSelector);
 	}
 
-	explicit FPCGExInputDescriptor(const FPCGExInputDescriptor& Other)
+	explicit FPCGExInputConfig(const FPCGExInputConfig& Other)
 		: Attribute(Other.Attribute)
 	{
 		Selector.ImportFromOtherSelector(Other.Selector);
 	}
 
-	explicit FPCGExInputDescriptor(const FName InName)
+	explicit FPCGExInputConfig(const FName InName)
 	{
 		Selector.Update(InName.ToString());
 	}
 
 public:
-	virtual ~FPCGExInputDescriptor()
+	virtual ~FPCGExInputConfig()
 	{
 		Attribute = nullptr;
 	};
@@ -149,8 +149,8 @@ namespace PCGEx
 		bool FindMissing(const TSet<FName>& Checklist, TSet<FName>& OutMissing);
 		bool FindMissing(const TArray<FName>& Checklist, TSet<FName>& OutMissing);
 
-		void Append(FAttributesInfos* Other, const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& OutTypeMismatch);
-		void Update(FAttributesInfos* Other, const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& OutTypeMismatch);
+		void Append(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
+		void Update(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
 
 		~FAttributesInfos()
 		{
@@ -164,7 +164,7 @@ namespace PCGEx
 
 	static void GatherAttributes(
 		FAttributesInfos* OutInfos, const FPCGContext* InContext, FName InputLabel,
-		const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& Mismatches)
+		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
 	{
 		TArray<FPCGTaggedData> InputData = InContext->InputData.GetInputsByPin(InputLabel);
 		for (const FPCGTaggedData& TaggedData : InputData)
@@ -172,7 +172,7 @@ namespace PCGEx
 			if (const UPCGParamData* AsParamData = Cast<UPCGParamData>(TaggedData.Data))
 			{
 				FAttributesInfos* Infos = FAttributesInfos::Get(AsParamData->Metadata);
-				OutInfos->Append(Infos, InSettings, Mismatches);
+				OutInfos->Append(Infos, InDetails, Mismatches);
 				PCGEX_DELETE(Infos);
 				continue;
 			}
@@ -180,7 +180,7 @@ namespace PCGEx
 			if (const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(TaggedData.Data))
 			{
 				FAttributesInfos* Infos = FAttributesInfos::Get(AsSpatialData->Metadata);
-				OutInfos->Append(Infos, InSettings, Mismatches);
+				OutInfos->Append(Infos, InDetails, Mismatches);
 				PCGEX_DELETE(Infos);
 			}
 		}
@@ -188,10 +188,10 @@ namespace PCGEx
 
 	static FAttributesInfos* GatherAttributes(
 		const FPCGContext* InContext, FName InputLabel,
-		const FPCGExAttributeGatherSettings& InSettings, TSet<FName>& Mismatches)
+		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
 	{
 		FAttributesInfos* OutInfos = new FAttributesInfos();
-		GatherAttributes(OutInfos, InContext, InputLabel, InSettings, Mismatches);
+		GatherAttributes(OutInfos, InContext, InputLabel, InDetails, Mismatches);
 		return OutInfos;
 	}
 
@@ -589,7 +589,7 @@ namespace PCGEx
 
 		bool IsUsable(int32 NumEntries) { return bEnabled && bValid && Values.Num() >= NumEntries; }
 
-		FPCGExInputDescriptor Descriptor;
+		FPCGExInputConfig Config;
 
 		virtual void Cleanup()
 		{
@@ -619,7 +619,7 @@ namespace PCGEx
 			const UPCGPointData* InData = PointIO->GetIn();
 
 			TArray<FString> ExtraNames;
-			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Descriptor.Selector, InData, ExtraNames);
+			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Config.Selector, InData, ExtraNames);
 			if (!Selector.IsValid()) { return false; }
 
 			ProcessExtraNames(Selector.GetName(), ExtraNames);
@@ -678,7 +678,7 @@ namespace PCGEx
 						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExMath::Min(V, OutMin); OutMax = PCGExMath::Max(V, OutMax); Dump[i] = V;\
 					} } else { for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } } break;
 
-				switch (Descriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+				switch (Config.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 				bValid = true;
 			}
@@ -711,10 +711,10 @@ namespace PCGEx
 			const UPCGPointData* InData = PointIO->GetIn();
 
 			TArray<FString> ExtraNames;
-			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Descriptor.Selector, InData, ExtraNames);
+			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Config.Selector, InData, ExtraNames);
 			if (!Selector.IsValid()) { return false; }
 
-			ProcessExtraNames(Descriptor.Selector.GetName(), ExtraNames);
+			ProcessExtraNames(Config.Selector.GetName(), ExtraNames);
 
 			Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)
@@ -785,8 +785,8 @@ namespace PCGEx
 		FORCEINLINE T SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
 		FORCEINLINE T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
-		virtual void Capture(const FPCGExInputDescriptor& InDescriptor) { Descriptor = InDescriptor; }
-		virtual void Capture(const FPCGAttributePropertyInputSelector& InDescriptor) { Capture(FPCGExInputDescriptor(InDescriptor)); }
+		virtual void Capture(const FPCGExInputConfig& InConfig) { Config = InConfig; }
+		virtual void Capture(const FPCGAttributePropertyInputSelector& InConfig) { Capture(FPCGExInputConfig(InConfig)); }
 
 	protected:
 		virtual void ProcessExtraNames(const FName BaseName, const TArray<FString>& ExtraNames)

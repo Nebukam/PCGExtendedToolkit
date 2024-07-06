@@ -78,7 +78,7 @@ public:
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext final : public FPCGExEdgesProcessorContext

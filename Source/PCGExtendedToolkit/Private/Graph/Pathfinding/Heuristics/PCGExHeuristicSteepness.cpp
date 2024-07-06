@@ -13,7 +13,7 @@ void UPCGExHeuristicSteepness::PrepareForCluster(const PCGExCluster::FCluster* I
 UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() const
 {
 	UPCGExHeuristicSteepness* NewOperation = NewObject<UPCGExHeuristicSteepness>();
-	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
+	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }
 
@@ -29,6 +29,6 @@ FString UPCGExHeuristicsSteepnessProviderSettings::GetDisplayName() const
 {
 	return GetDefaultNodeName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif

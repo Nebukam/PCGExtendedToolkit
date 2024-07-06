@@ -17,7 +17,7 @@ void UPCGExVtxPropertySpecialNeighbors::CopySettingsFrom(const UPCGExOperation* 
 	const UPCGExVtxPropertySpecialNeighbors* TypedOther = Cast<UPCGExVtxPropertySpecialNeighbors>(Other);
 	if (TypedOther)
 	{
-		Descriptor = TypedOther->Descriptor;
+		Config = TypedOther->Config;
 	}
 }
 
@@ -25,15 +25,15 @@ bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InConte
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
-	if (!Descriptor.LargestNeighbor.Validate(InContext) ||
-		!Descriptor.SmallestNeighbor.Validate(InContext))
+	if (!Config.LargestNeighbor.Validate(InContext) ||
+		!Config.SmallestNeighbor.Validate(InContext))
 	{
 		bIsValidOperation = false;
 		return false;
 	}
 
-	Descriptor.LargestNeighbor.Init(InVtxDataFacade);
-	Descriptor.SmallestNeighbor.Init(InVtxDataFacade);
+	Config.LargestNeighbor.Init(InVtxDataFacade);
+	Config.SmallestNeighbor.Init(InVtxDataFacade);
 
 	return bIsValidOperation;
 }
@@ -63,11 +63,11 @@ void UPCGExVtxPropertySpecialNeighbors::ProcessNode(const int32 ClusterIdx, cons
 		}
 	}
 
-	if (ILargest != -1) { Descriptor.LargestNeighbor.Set(Node.PointIndex, Adjacency[ISmallest], (*Cluster->Nodes)[Adjacency[ISmallest].NodeIndex].Adjacency.Num()); }
-	else { Descriptor.LargestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
+	if (ILargest != -1) { Config.LargestNeighbor.Set(Node.PointIndex, Adjacency[ISmallest], (*Cluster->Nodes)[Adjacency[ISmallest].NodeIndex].Adjacency.Num()); }
+	else { Config.LargestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 
-	if (ISmallest != -1) { Descriptor.SmallestNeighbor.Set(Node.PointIndex, Adjacency[ILargest], (*Cluster->Nodes)[Adjacency[ILargest].NodeIndex].Adjacency.Num()); }
-	else { Descriptor.SmallestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
+	if (ISmallest != -1) { Config.SmallestNeighbor.Set(Node.PointIndex, Adjacency[ILargest], (*Cluster->Nodes)[Adjacency[ILargest].NodeIndex].Adjacency.Num()); }
+	else { Config.SmallestNeighbor.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
 #if WITH_EDITOR
@@ -87,7 +87,7 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertySpecialNeighborsFactory::CreateOper
 UPCGExParamFactoryBase* UPCGExVtxPropertySpecialNeighborsSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExVtxPropertySpecialNeighborsFactory* NewFactory = NewObject<UPCGExVtxPropertySpecialNeighborsFactory>();
-	NewFactory->Descriptor = Descriptor;
+	NewFactory->Config = Config;
 	return Super::CreateFactory(InContext, NewFactory);
 }
 

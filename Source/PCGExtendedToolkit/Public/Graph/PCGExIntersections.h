@@ -9,7 +9,7 @@
 #include "PCGExGraph.h"
 #include "PCGExEdge.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Geometry/PCGExGeoPrimtives.h"
@@ -87,7 +87,7 @@ namespace PCGExGraph
 		TArray<FCompoundNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 
-		const FPCGExFuseSettings FuseSettings;
+		const FPCGExFuseDetails FuseDetails;
 		EPCGExFuseMethod Precision;
 
 		FBox Bounds;
@@ -99,8 +99,8 @@ namespace PCGExGraph
 		mutable FRWLock OctreeLock;
 		mutable FRWLock EdgesLock;
 
-		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, const FBox& InBounds, const bool FusePoints = true, const EPCGExFuseMethod InPrecision = EPCGExFuseMethod::Voxel)
-			: FuseSettings(InFuseSettings),
+		explicit FCompoundGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds, const bool FusePoints = true, const EPCGExFuseMethod InPrecision = EPCGExFuseMethod::Voxel)
+			: FuseDetails(InFuseDetails),
 			  Precision(InPrecision),
 			  Bounds(InBounds),
 			  bFusePoints(FusePoints)
@@ -108,8 +108,8 @@ namespace PCGExGraph
 			Nodes.Empty();
 			Edges.Empty();
 
-			if (InFuseSettings.bComponentWiseTolerance) { FVector(1 / (InFuseSettings.Tolerances.X * 2), 1 / (InFuseSettings.Tolerances.Y * 2), 1 / (InFuseSettings.Tolerances.Z * 2)); }
-			else { CWTolerance = FVector(1 / (InFuseSettings.Tolerance * 2)); }
+			if (InFuseDetails.bComponentWiseTolerance) { FVector(1 / (InFuseDetails.Tolerances.X * 2), 1 / (InFuseDetails.Tolerances.Y * 2), 1 / (InFuseDetails.Tolerances.Z * 2)); }
+			else { CWTolerance = FVector(1 / (InFuseDetails.Tolerance * 2)); }
 
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
@@ -226,14 +226,14 @@ namespace PCGExGraph
 		FGraph* Graph = nullptr;
 		FCompoundGraph* CompoundGraph = nullptr;
 
-		const FPCGExPointEdgeIntersectionSettings Settings;
+		const FPCGExPointEdgeIntersectionDetails* Details;
 		TArray<FPointEdgeProxy> Edges;
 
 		FPointEdgeIntersections(
 			FGraph* InGraph,
 			FCompoundGraph* InCompoundGraph,
 			PCGExData::FPointIO* InPointIO,
-			const FPCGExPointEdgeIntersectionSettings& InSettings);
+			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
 		void FindIntersections(FPCGExPointsProcessorContext* InContext);
 
@@ -264,7 +264,7 @@ namespace PCGExGraph
 		const FIndexedEdge& IEdge = InIntersections->Graph->Edges[EdgeIndex];
 		FPESplit Split = FPESplit{};
 
-		if (!InIntersections->Settings.bEnableSelfIntersection)
+		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
 			const int32 RootIndex = FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata);
 			const TSet<int32>& RootIOIndices = InIntersections->CompoundGraph->EdgesCompounds->Compounds[RootIndex]->IOIndices;
@@ -461,7 +461,7 @@ namespace PCGExGraph
 		FGraph* Graph = nullptr;
 		FCompoundGraph* CompoundGraph = nullptr;
 
-		const FPCGExEdgeEdgeIntersectionSettings& Settings;
+		const FPCGExEdgeEdgeIntersectionDetails* Details;
 
 		TArray<FEECrossing*> Crossings;
 		TArray<FEdgeEdgeProxy> Edges;
@@ -474,7 +474,7 @@ namespace PCGExGraph
 			FGraph* InGraph,
 			FCompoundGraph* InCompoundGraph,
 			PCGExData::FPointIO* InPointIO,
-			const FPCGExEdgeEdgeIntersectionSettings& InSettings);
+			const FPCGExEdgeEdgeIntersectionDetails* InDetails);
 
 		void FindIntersections(FPCGExPointsProcessorContext* InContext);
 
@@ -515,7 +515,7 @@ namespace PCGExGraph
 		const FEdgeEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
 		FEESplit Split = FEESplit{};
 
-		if (!InIntersections->Settings.bEnableSelfIntersection)
+		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
 			const int32 RootIndex = FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata);
 			const TSet<int32>& RootIOIndices = InIntersections->CompoundGraph->EdgesCompounds->Compounds[RootIndex]->IOIndices;

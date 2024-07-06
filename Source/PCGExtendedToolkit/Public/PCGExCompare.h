@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExCompare.generated.h"
@@ -404,15 +404,15 @@ namespace PCGExCompare
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExComparisonSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExComparisonDetails
 {
 	GENERATED_BODY()
 
-	FPCGExComparisonSettings()
+	FPCGExComparisonDetails()
 	{
 	}
 
-	FPCGExComparisonSettings(const FPCGExComparisonSettings& Other):
+	FPCGExComparisonDetails(const FPCGExComparisonDetails& Other):
 		Comparison(Other.Comparison),
 		Tolerance(Other.Tolerance)
 	{
@@ -445,11 +445,11 @@ enum class EPCGExDirectionCheckMode : uint8
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonDetails
 {
 	GENERATED_BODY()
 
-	FPCGExVectorHashComparisonSettings()
+	FPCGExVectorHashComparisonDetails()
 	{
 	}
 
@@ -495,11 +495,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExVectorHashComparisonSettings
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonDetails
 {
 	GENERATED_BODY()
 
-	FPCGExDotComparisonSettings()
+	FPCGExDotComparisonDetails()
 	{
 	}
 

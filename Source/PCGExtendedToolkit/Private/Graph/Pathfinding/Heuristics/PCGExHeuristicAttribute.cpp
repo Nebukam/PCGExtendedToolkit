@@ -66,8 +66,8 @@ void UPCGExHeuristicAttribute::Cleanup()
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryAttribute::CreateOperation() const
 {
 	UPCGExHeuristicAttribute* NewOperation = NewObject<UPCGExHeuristicAttribute>();
-	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
-	NewOperation->Attribute = Descriptor.Attribute;
+	PCGEX_FORWARD_HEURISTIC_CONFIG
+	NewOperation->Attribute = Config.Attribute;
 	return NewOperation;
 }
 
@@ -81,9 +81,9 @@ UPCGExParamFactoryBase* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FP
 #if WITH_EDITOR
 FString UPCGExCreateHeuristicAttributeSettings::GetDisplayName() const
 {
-	return Descriptor.Attribute.GetName().ToString()
+	return Config.Attribute.GetName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif
 

@@ -15,11 +15,11 @@
 #include "PCGExPointStates.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExStateDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExStateConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExStateDescriptorBase()
+	FPCGExStateConfigBase()
 	{
 	}
 
@@ -67,7 +67,7 @@ namespace PCGExPointStates
 	class PCGEXTENDEDTOOLKIT_API FState : public PCGExPointFilter::TFilter
 	{
 	public:
-		FPCGExStateDescriptorBase* BaseDescriptor = nullptr;
+		FPCGExStateConfigBase* BaseConfig = nullptr;
 		const UPCGExPointStateFactoryBase* StateFactory = nullptr;
 
 		explicit FState(const UPCGExPointStateFactoryBase* InFactory):

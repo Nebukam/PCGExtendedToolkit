@@ -130,7 +130,7 @@ namespace PCGExWriteEdgeProperties
 
 		if (Settings->bEndpointsBlending)
 		{
-			MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
+			MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingSettings));
 			MetadataBlender->PrepareForData(EdgeDataFacade, VtxDataFacade, PCGExData::ESource::In, true);
 		}
 

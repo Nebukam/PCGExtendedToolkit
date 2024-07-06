@@ -13,7 +13,7 @@ void UPCGExHeuristicDistance::PrepareForCluster(const PCGExCluster::FCluster* In
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation() const
 {
 	UPCGExHeuristicDistance* NewOperation = NewObject<UPCGExHeuristicDistance>();
-	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
+	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }
 
@@ -29,6 +29,6 @@ FString UPCGExHeuristicsShortestDistanceProviderSettings::GetDisplayName() const
 {
 	return GetDefaultNodeName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif

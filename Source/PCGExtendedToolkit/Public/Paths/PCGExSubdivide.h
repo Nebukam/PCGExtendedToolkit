@@ -7,7 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Graph/PCGExGraph.h"
 #include "Paths/SubPoints/PCGExSubPointsOperation.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"

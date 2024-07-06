@@ -7,17 +7,7 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
-bool UPCGExEdgeRemoveLowestScore::RequiresHeuristics()
-{
-	return true;
-}
-
-bool UPCGExEdgeRemoveLowestScore::RequiresIndividualNodeProcessing()
-{
-	return true;
-}
-
-void UPCGExEdgeRemoveLowestScore::ProcessNode(PCGExCluster::FNode& Node, PCGExCluster::FCluster* InCluster, FRWLock& EdgeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics)
+void UPCGExEdgeRemoveLowestScore::ProcessNode(PCGExCluster::FNode& Node)
 {
 	int32 BestIndex = -1;
 	double LowestScore = TNumericLimits<double>::Max();
@@ -28,7 +18,7 @@ void UPCGExEdgeRemoveLowestScore::ProcessNode(PCGExCluster::FNode& Node, PCGExCl
 		uint32 EdgeIndex;
 		PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
 
-		const double Score = InHeuristics->GetEdgeScore(Node, *(InCluster->Nodes->GetData() + OtherNodeIndex), *(InCluster->Edges->GetData() + EdgeIndex), Node, *(InCluster->Nodes->GetData() + OtherNodeIndex));
+		const double Score = Heuristics->GetEdgeScore(Node, *(Cluster->Nodes->GetData() + OtherNodeIndex), *(Cluster->Edges->GetData() + EdgeIndex), Node, *(Cluster->Nodes->GetData() + OtherNodeIndex));
 		if (Score < LowestScore)
 		{
 			LowestScore = Score;
@@ -40,6 +30,6 @@ void UPCGExEdgeRemoveLowestScore::ProcessNode(PCGExCluster::FNode& Node, PCGExCl
 
 	{
 		FWriteScopeLock WriteScopeLock(EdgeLock);
-		(InCluster->Edges->GetData() + BestIndex)->bValid = false;
+		(Cluster->Edges->GetData() + BestIndex)->bValid = false;
 	}
 }

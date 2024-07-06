@@ -8,7 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExPolyLineIO.h"
 
 #include "PCGExSampleNearestPolyline.generated.h"

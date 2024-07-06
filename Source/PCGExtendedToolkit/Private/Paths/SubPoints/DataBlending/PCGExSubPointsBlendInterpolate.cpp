@@ -82,7 +82,7 @@ PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendInterpolate::CreateBlen
 	PCGExData::FFacade* InSecondaryFacade,
 	const PCGExData::ESource SecondarySource)
 {
-	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
+	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingDetails);
 	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 	return NewBlender;
 }

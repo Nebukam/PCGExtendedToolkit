@@ -86,8 +86,8 @@ namespace PCGExRelaxClusters
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		InfluenceSettings = Settings->InfluenceSettings;
-		if (!InfluenceSettings.Init(Context, VtxDataFacade)) { return false; }
+		InfluenceDetails = Settings->InfluenceDetails;
+		if (!InfluenceDetails.Init(Context, VtxDataFacade)) { return false; }
 
 		RelaxOperation = TypedContext->Relaxing->CopyOperation<UPCGExRelaxClusterOperation>();
 		RelaxOperation->PrepareForCluster(Cluster);
@@ -158,12 +158,12 @@ namespace PCGExRelaxClusters
 	{
 		RelaxOperation->ProcessExpandedNode(*(ExpandedNodes->GetData() + Index));
 
-		if (!InfluenceSettings.bProgressiveInfluence) { return; }
+		if (!InfluenceDetails.bProgressiveInfluence) { return; }
 
 		(*RelaxOperation->WriteBuffer)[Index] = FMath::Lerp(
 			*(RelaxOperation->ReadBuffer->GetData() + Index),
 			*(RelaxOperation->WriteBuffer->GetData() + Index),
-			InfluenceSettings.GetInfluence(Index));
+			InfluenceDetails.GetInfluence(Index));
 	}
 
 	void FProcessor::CompleteWork()
@@ -179,7 +179,7 @@ namespace PCGExRelaxClusters
 		FClusterProcessor::Write();
 
 		TArray<FPCGPoint>& MutablePoints = VtxIO->GetOut()->GetMutablePoints();
-		if (!InfluenceSettings.bProgressiveInfluence)
+		if (!InfluenceDetails.bProgressiveInfluence)
 		{
 			const TArray<FPCGPoint>& OriginalPoints = VtxIO->GetIn()->GetPoints();
 			for (PCGExCluster::FNode& Node : *Cluster->Nodes)
@@ -187,7 +187,7 @@ namespace PCGExRelaxClusters
 				FVector Position = FMath::Lerp(
 					OriginalPoints[Node.PointIndex].Transform.GetLocation(),
 					*(RelaxOperation->WriteBuffer->GetData() + Node.NodeIndex),
-					InfluenceSettings.GetInfluence(Node.PointIndex));
+					InfluenceDetails.GetInfluence(Node.PointIndex));
 				MutablePoints[Node.PointIndex].Transform.SetLocation(Position);
 				Node.Position = Position;
 			}

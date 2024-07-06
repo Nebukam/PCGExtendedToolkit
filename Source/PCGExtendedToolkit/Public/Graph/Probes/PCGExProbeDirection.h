@@ -19,12 +19,12 @@ enum class EPCGExProbeDirectionPriorization : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorDirection : public FPCGExProbeDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeDescriptorDirection() :
-		FPCGExProbeDescriptorBase()
+	FPCGExProbeConfigDirection() :
+		FPCGExProbeConfigBase()
 	{
 	}
 
@@ -48,7 +48,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorDirection : public FPCGExProb
 	bool bTransformDirection = true;
 
 	/** What matters more? */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExProbeDirectionPriorization Favor = EPCGExProbeDirectionPriorization::Dist;
 
 	/** This probe will sample candidates after the other. Can yield different results. */
@@ -73,7 +73,7 @@ public:
 	virtual void ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate) override;
 	virtual void ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges) override;
 
-	FPCGExProbeDescriptorDirection Descriptor;
+	FPCGExProbeConfigDirection Config;
 
 protected:
 	bool bUseConstantDir = false;
@@ -91,7 +91,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryDirection : public UPCGExProbeFac
 	GENERATED_BODY()
 
 public:
-	FPCGExProbeDescriptorDirection Descriptor;
+	FPCGExProbeConfigDirection Config;
 	virtual UPCGExProbeOperation* CreateOperation() const override;
 };
 
@@ -111,9 +111,9 @@ public:
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExProbeDescriptorDirection Descriptor;
+	FPCGExProbeConfigDirection Config;
 
 
 #if WITH_EDITOR

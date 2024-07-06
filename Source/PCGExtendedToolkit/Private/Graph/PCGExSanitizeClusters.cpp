@@ -29,7 +29,7 @@ bool FPCGExSanitizeClustersElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(SanitizeClusters)
-	PCGEX_FWD(GraphBuilderSettings)
+	PCGEX_FWD(GraphBuilderDetails)
 
 	return true;
 }
@@ -98,7 +98,7 @@ bool FPCGExSanitizeClusterTask::ExecuteTask()
 	FPCGExSanitizeClustersContext* Context = Manager->GetContext<FPCGExSanitizeClustersContext>();
 	PCGEX_SETTINGS(SanitizeClusters)
 
-	Context->Builders[TaskIndex] = new PCGExGraph::FGraphBuilder(PointIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
+	Context->Builders[TaskIndex] = new PCGExGraph::FGraphBuilder(PointIO, &Context->GraphBuilderDetails, 6, Context->MainEdges);
 
 	TMap<uint32, int32>& Map = Context->EndpointsLookups[TaskIndex];
 	TArray<int32> Adjacency;

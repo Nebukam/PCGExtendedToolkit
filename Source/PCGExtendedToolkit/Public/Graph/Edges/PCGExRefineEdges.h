@@ -13,6 +13,7 @@
 namespace PCGExRefineEdges
 {
 	class FProcessorBatch;
+	const FName SourceProtectEdgeFilters = FName("PreserveFilters");
 }
 
 namespace PCGExHeuristics
@@ -54,7 +55,7 @@ public:
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 private:
 	friend class FPCGExRefineEdgesElement;
@@ -66,6 +67,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext final : public FPCGExEdge
 
 	virtual ~FPCGExRefineEdgesContext() override;
 
+	TArray<UPCGExFilterFactoryBase*> PreserveEdgeFilterFactories;
+	
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
 };
 

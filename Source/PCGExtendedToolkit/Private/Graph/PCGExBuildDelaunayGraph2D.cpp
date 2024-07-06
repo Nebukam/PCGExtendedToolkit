@@ -111,8 +111,8 @@ namespace PCGExBuildDelaunay2D
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, PointDataFacade);
+		ProjectionDetails = Settings->ProjectionDetails;
+		ProjectionDetails.Init(Context, PointDataFacade);
 
 		// Build delaunay
 
@@ -121,7 +121,7 @@ namespace PCGExBuildDelaunay2D
 
 		Delaunay = new PCGExGeo::TDelaunay2();
 
-		if (!Delaunay->Process(ActivePositions, ProjectionSettings))
+		if (!Delaunay->Process(ActivePositions, ProjectionDetails))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results."));
 			PCGEX_DELETE(Delaunay)
@@ -135,7 +135,7 @@ namespace PCGExBuildDelaunay2D
 
 		ActivePositions.Empty();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr);

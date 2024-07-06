@@ -43,11 +43,11 @@ void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
 	for (const PCGExData::FPointIO* PointIO : InCollection->Pairs) { Append(const_cast<PCGExData::FPointIO*>(PointIO)); }
 }
 
-void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverSettings* CarryOver)
+void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
 {
 	CompositeIO->InitializeNum(NumCompositePoints);
 	TArray<FPCGPoint>& MutablePoints = CompositeIO->GetOut()->GetMutablePoints();
-	CarryOver->Filter(CompositeIO);
+	InCarryOverDetails->Filter(CompositeIO);
 
 	TMap<FName, EPCGMetadataTypes> ExpectedTypes;
 
@@ -78,7 +78,7 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 		for (PCGEx::FAttributeIdentity SourceAtt : SourceAttributes)
 		{
 			FString StrName = SourceAtt.Name.ToString();
-			if (!CarryOver->Attributes.Test(StrName)) { continue; }
+			if (!InCarryOverDetails->Attributes.Test(StrName)) { continue; }
 
 			const EPCGMetadataTypes* ExpectedType = ExpectedTypes.Find(SourceAtt.Name);
 			if (!ExpectedType)
@@ -104,7 +104,7 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 		}
 	}
 
-	CarryOver->Filter(CompositeIO);
+	InCarryOverDetails->Filter(CompositeIO);
 	CompositeIO->CreateOutKeys();
 
 	for (int i = 0; i < UniqueIdentities.Num(); i++) { AsyncManager->Start<PCGExPointIOMerger::FWriteAttributeTask>(i, CompositeIO, this); }

@@ -4,11 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataSettings.h"
+#include "PCGExDataDetails.h"
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Geometry/PCGExGeo.h"
 #include "PCGExLloydRelax2D.generated.h"
 
@@ -43,11 +43,11 @@ public:
 
 	/** Influence Settings*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInfluenceSettings InfluenceSettings;
+	FPCGExInfluenceDetails InfluenceDetails;
 
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2DContext final : public FPCGExPointsProcessorContext
@@ -76,10 +76,10 @@ namespace PCGExLloydRelax2D
 	{
 		friend class FLloydRelaxTask;
 
-		FPCGExInfluenceSettings InfluenceSettings;
+		FPCGExInfluenceDetails InfluenceDetails;
 		TArray<FVector> ActivePositions;
 
-		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
@@ -99,7 +99,7 @@ namespace PCGExLloydRelax2D
 	public:
 		FLloydRelaxTask(PCGExData::FPointIO* InPointIO,
 		                FProcessor* InProcessor,
-		                const FPCGExInfluenceSettings* InInfluenceSettings,
+		                const FPCGExInfluenceDetails* InInfluenceSettings,
 		                const int32 InNumIterations) :
 			FPCGExTask(InPointIO),
 			Processor(InProcessor),
@@ -109,7 +109,7 @@ namespace PCGExLloydRelax2D
 		}
 
 		FProcessor* Processor = nullptr;
-		const FPCGExInfluenceSettings* InfluenceSettings = nullptr;
+		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
 		int32 NumIterations = 0;
 
 		virtual bool ExecuteTask() override;

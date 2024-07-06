@@ -64,16 +64,16 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	FPCGExBlendingSettings MetadataBlendingSettings;
+	FPCGExBlendingDetails MetadataBlendingDetails;
 };
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSamplerDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSamplerConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExSamplerDescriptorBase()
+	FPCGExAttributeSamplerConfigBase()
 	{
 	}
 
@@ -92,7 +92,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryAttribute : public UPCG
 	GENERATED_BODY()
 
 public:
-	FPCGExSamplerDescriptorBase Descriptor;
+	FPCGExAttributeSamplerConfigBase Config;
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const override;
 };
 
@@ -120,5 +120,5 @@ public:
 
 	/** Sampler Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSamplerDescriptorBase Descriptor;
+	FPCGExAttributeSamplerConfigBase Config;
 };

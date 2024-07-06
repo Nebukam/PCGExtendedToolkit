@@ -34,7 +34,7 @@ public:
 
 	/** Graph & Edges output properties. Note that pruning isolated points is ignored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext final : public FPCGExEdgesProcessorContext

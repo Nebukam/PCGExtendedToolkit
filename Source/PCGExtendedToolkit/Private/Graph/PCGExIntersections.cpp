@@ -67,14 +67,14 @@ namespace PCGExGraph
 
 		int32 Index = -1;
 
-		if (FuseSettings.bComponentWiseTolerance)
+		if (FuseDetails.bComponentWiseTolerance)
 		{
 			FReadScopeLock ReadLock(OctreeLock);
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseSettings.Tolerances);
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseDetails.Tolerances);
 			Octree->FindFirstElementWithBoundsTest(
 				Box, [&](const FCompoundNode* ExistingNode)
 				{
-					if (FuseSettings.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
 						Index = ExistingNode->Index;
 						return false;
@@ -85,11 +85,11 @@ namespace PCGExGraph
 		else
 		{
 			FReadScopeLock ReadLock(OctreeLock);
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseSettings.Tolerance));
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseDetails.Tolerance));
 			Octree->FindFirstElementWithBoundsTest(
 				Box, [&](const FCompoundNode* ExistingNode)
 				{
-					if (FuseSettings.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
 						Index = ExistingNode->Index;
 						return false;
@@ -153,13 +153,13 @@ namespace PCGExGraph
 
 		int32 Index = -1;
 
-		if (FuseSettings.bComponentWiseTolerance)
+		if (FuseDetails.bComponentWiseTolerance)
 		{
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseSettings.Tolerances);
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseDetails.Tolerances);
 			Octree->FindFirstElementWithBoundsTest(
 				Box, [&](const FCompoundNode* ExistingNode)
 				{
-					if (FuseSettings.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
 						Index = ExistingNode->Index;
 						return false;
@@ -169,11 +169,11 @@ namespace PCGExGraph
 		}
 		else
 		{
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseSettings.Tolerance));
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseDetails.Tolerance));
 			Octree->FindFirstElementWithBoundsTest(
 				Box, [&](const FCompoundNode* ExistingNode)
 				{
-					if (FuseSettings.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
 						Index = ExistingNode->Index;
 						return false;
@@ -307,8 +307,8 @@ namespace PCGExGraph
 		FGraph* InGraph,
 		FCompoundGraph* InCompoundGraph,
 		PCGExData::FPointIO* InPointIO,
-		const FPCGExPointEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Settings(InSettings)
+		const FPCGExPointEdgeIntersectionDetails* InDetails)
+		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
@@ -322,7 +322,7 @@ namespace PCGExGraph
 				Edge.EdgeIndex,
 				Points[Edge.Start].Transform.GetLocation(),
 				Points[Edge.End].Transform.GetLocation(),
-				Settings.FuseSettings.Tolerance);
+				Details->FuseDetails.Tolerance);
 		}
 	}
 
@@ -366,7 +366,7 @@ namespace PCGExGraph
 				FGraphEdgeMetadata* EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(NewEdge.EdgeIndex, SplitEdge.EdgeIndex, Graph->EdgeMetadata);
 				EdgeMetadata->Type = EPCGExIntersectionType::PointEdge;
 
-				if (Settings.bSnapOnEdge)
+				if (Details->bSnapOnEdge)
 				{
 					PointIO->GetMutablePoint(Graph->Nodes[Split.NodeIndex].PointIndex).Transform.SetLocation(Split.ClosestPoint);
 				}
@@ -406,15 +406,15 @@ namespace PCGExGraph
 		FGraph* InGraph,
 		FCompoundGraph* InCompoundGraph,
 		PCGExData::FPointIO* InPointIO,
-		const FPCGExEdgeEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Settings(InSettings)
+		const FPCGExEdgeEdgeIntersectionDetails* InDetails)
+		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
 		const int32 NumEdges = InGraph->Edges.Num();
 		Edges.SetNum(NumEdges);
 
-		Octree = TEdgeOctree(InCompoundGraph->Bounds.GetCenter(), InCompoundGraph->Bounds.GetExtent().Length() + (Settings.Tolerance * 2));
+		Octree = TEdgeOctree(InCompoundGraph->Bounds.GetCenter(), InCompoundGraph->Bounds.GetExtent().Length() + (Details->Tolerance * 2));
 
 		for (const FIndexedEdge& Edge : InGraph->Edges)
 		{
@@ -423,7 +423,7 @@ namespace PCGExGraph
 				Edge.EdgeIndex,
 				Points[Edge.Start].Transform.GetLocation(),
 				Points[Edge.End].Transform.GetLocation(),
-				Settings.Tolerance);
+				Details->Tolerance);
 
 			Octree.AddElement(&Edges[Edge.EdgeIndex]);
 		}

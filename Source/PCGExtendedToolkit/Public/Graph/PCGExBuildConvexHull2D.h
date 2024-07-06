@@ -51,11 +51,11 @@ public:
 
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(true);
+	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails(true);
 
 private:
 	friend class FPCGExBuildConvexHull2DElement;
@@ -91,7 +91,7 @@ namespace PCGExConvexHull2D
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	protected:
-		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		PCGExGeo::TDelaunay2* Delaunay = nullptr;
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;

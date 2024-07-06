@@ -63,11 +63,11 @@ public:
 
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Node Picking", meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings SeedPicking;
+	FPCGExNodeSelectionDetails SeedPicking;
 
 	/** Drive how a goal selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Node Picking", meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings GoalPicking;
+	FPCGExNodeSelectionDetails GoalPicking;
 
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))

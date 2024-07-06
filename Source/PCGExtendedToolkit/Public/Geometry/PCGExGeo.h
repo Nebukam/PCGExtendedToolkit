@@ -6,20 +6,20 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "PCGExGeo.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 {
 	GENERATED_BODY()
 
-	FPCGExGeo2DProjectionSettings()
+	FPCGExGeo2DProjectionDetails()
 	{
 	}
 
-	explicit FPCGExGeo2DProjectionSettings(const FPCGExGeo2DProjectionSettings& Other)
+	explicit FPCGExGeo2DProjectionDetails(const FPCGExGeo2DProjectionDetails& Other)
 		: bSupportLocalNormal(Other.bLocalProjectionNormal),
 		  ProjectionNormal(Other.ProjectionNormal),
 		  bLocalProjectionNormal(Other.bLocalProjectionNormal),
@@ -27,7 +27,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	{
 	}
 
-	explicit FPCGExGeo2DProjectionSettings(const bool InSupportLocalNormal)
+	explicit FPCGExGeo2DProjectionDetails(const bool InSupportLocalNormal)
 		: bSupportLocalNormal(InSupportLocalNormal)
 	{
 	}
@@ -65,7 +65,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 		}
 	}
 
-	~FPCGExGeo2DProjectionSettings()
+	~FPCGExGeo2DProjectionDetails()
 	{
 	}
 
@@ -418,15 +418,15 @@ namespace PCGExGeoTasks
 		FTransformPointIO(
 			PCGExData::FPointIO* InPointIO,
 			PCGExData::FPointIO* InTargetIO,
-			FPCGExTransformSettings* InTransformSettings) :
+			FPCGExTransformDetails* InTransformDetails) :
 			FPCGExTask(InPointIO),
 			TargetIO(InTargetIO),
-			TransformSettings(InTransformSettings)
+			TransformDetails(InTransformDetails)
 		{
 		}
 
 		PCGExData::FPointIO* TargetIO = nullptr;
-		FPCGExTransformSettings* TransformSettings = nullptr;
+		FPCGExTransformDetails* TransformDetails = nullptr;
 
 		virtual bool ExecuteTask() override
 		{
@@ -435,7 +435,7 @@ namespace PCGExGeoTasks
 
 			for (FPCGPoint& InPoint : MutableTargets)
 			{
-				if (TransformSettings->bInheritRotation && TransformSettings->bInheritScale)
+				if (TransformDetails->bInheritRotation && TransformDetails->bInheritScale)
 				{
 					InPoint.Transform *= TargetPoint.Transform;
 					continue;
@@ -443,11 +443,11 @@ namespace PCGExGeoTasks
 
 				InPoint.Transform.SetLocation(TargetPoint.Transform.TransformPosition(InPoint.Transform.GetLocation()));
 
-				if (TransformSettings->bInheritRotation)
+				if (TransformDetails->bInheritRotation)
 				{
 					InPoint.Transform.SetRotation(TargetPoint.Transform.TransformRotation(InPoint.Transform.GetRotation()));
 				}
-				else if (TransformSettings->bInheritScale)
+				else if (TransformDetails->bInheritScale)
 				{
 					InPoint.Transform.SetScale3D(TargetPoint.Transform.GetScale3D() * InPoint.Transform.GetScale3D());
 				}

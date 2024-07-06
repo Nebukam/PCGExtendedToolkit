@@ -8,7 +8,7 @@
 #include "PCGEx.h"
 #include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExAttributeRemap.generated.h"
@@ -23,20 +23,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 	}
 
 	FPCGExComponentRemapRule(const FPCGExComponentRemapRule& Other):
-		InputClampSettings(Other.InputClampSettings),
-		RemapSettings(Other.RemapSettings),
-		OutputClampSettings(Other.OutputClampSettings)
+		InputClampDetails(Other.InputClampDetails),
+		RemapDetails(Other.RemapDetails),
+		OutputClampDetails(Other.OutputClampDetails)
 	{
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExClampSettings InputClampSettings;
+	FPCGExClampDetails InputClampDetails;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExRemapSettings RemapSettings;
+	FPCGExRemapDetails RemapDetails;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExClampSettings OutputClampSettings;
+	FPCGExClampDetails OutputClampDetails;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")

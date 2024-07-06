@@ -20,15 +20,15 @@ namespace PCGExProbing
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeDescriptorBase()
+	FPCGExProbeConfigBase()
 	{
 	}
 
-	explicit FPCGExProbeDescriptorBase(const bool SupportsRadius)
+	explicit FPCGExProbeConfigBase(const bool SupportsRadius)
 		: bSupportRadius(SupportsRadius)
 	{
 	}
@@ -71,7 +71,7 @@ public:
 	double SearchRadius = -1;
 	double SearchRadiusSquared = -1;
 	PCGExData::FCache<double>* SearchRadiusCache = nullptr;
-	FPCGExProbeDescriptorBase* BaseDescriptor = nullptr;
+	FPCGExProbeConfigBase* BaseConfig = nullptr;
 
 protected:
 	const PCGExData::FPointIO* PointIO = nullptr;

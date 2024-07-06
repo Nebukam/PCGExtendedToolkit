@@ -7,19 +7,14 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
-bool UPCGExEdgeRemoveShortest::RequiresIndividualNodeProcessing()
-{
-	return true;
-}
-
-void UPCGExEdgeRemoveShortest::ProcessNode(PCGExCluster::FNode& Node, PCGExCluster::FCluster* InCluster, FRWLock& EdgeLock, PCGExHeuristics::THeuristicsHandler* InHeuristics)
+void UPCGExEdgeRemoveShortest::ProcessNode(PCGExCluster::FNode& Node)
 {
 	int32 BestIndex = -1;
 	double ShortestDist = TNumericLimits<double>::Max();
 
 	for (const uint64 AdjacencyHash : Node.Adjacency)
 	{
-		const double Dist = FVector::DistSquared(Node.Position, (InCluster->Nodes->GetData() + PCGEx::H64A(AdjacencyHash))->Position);
+		const double Dist = FVector::DistSquared(Node.Position, (Cluster->Nodes->GetData() + PCGEx::H64A(AdjacencyHash))->Position);
 		if (Dist < ShortestDist)
 		{
 			ShortestDist = Dist;
@@ -31,6 +26,6 @@ void UPCGExEdgeRemoveShortest::ProcessNode(PCGExCluster::FNode& Node, PCGExClust
 
 	{
 		FWriteScopeLock WriteScopeLock(EdgeLock);
-		(InCluster->Edges->GetData() + BestIndex)->bValid = false;
+		(Cluster->Edges->GetData() + BestIndex)->bValid = false;
 	}
 }

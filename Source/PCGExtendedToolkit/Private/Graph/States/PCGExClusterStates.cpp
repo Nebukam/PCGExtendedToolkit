@@ -9,8 +9,8 @@
 PCGExPointFilter::TFilter* UPCGExClusterStateFactoryBase::CreateFilter() const
 {
 	PCGExClusterStates::FState* NewState = new PCGExClusterStates::FState(this);
-	NewState->Descriptor = Descriptor;
-	NewState->BaseDescriptor = &NewState->Descriptor;
+	NewState->Config = Config;
+	NewState->BaseConfig = &NewState->Config;
 	return NewState;
 }
 
@@ -28,7 +28,7 @@ namespace PCGExClusterStates
 
 	bool FState::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 	{
-		Descriptor.Init();
+		Config.Init();
 
 		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -65,8 +65,8 @@ namespace PCGExClusterStates
 
 	void FState::ProcessFlags(const bool bSuccess, int64& InFlags) const
 	{
-		if (Descriptor.bOnTestPass && bSuccess) { Descriptor.PassStateFlags.DoOperation(InFlags); }
-		else if (Descriptor.bOnTestFail && !bSuccess) { Descriptor.FailStateFlags.DoOperation(InFlags); }
+		if (Config.bOnTestPass && bSuccess) { Config.PassStateFlags.DoOperation(InFlags); }
+		else if (Config.bOnTestFail && !bSuccess) { Config.FailStateFlags.DoOperation(InFlags); }
 	}
 
 	FStateManager::FStateManager(TArray<int64>* InFlags, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
@@ -102,8 +102,8 @@ TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::InputPinPro
 TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (Descriptor.bOnTestPass) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnPassBitmaskLabel, TEXT("On Pass Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced, {}) }
-	if (Descriptor.bOnTestFail) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnFailBitmaskLabel, TEXT("On Fail Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced, {}) }
+	if (Config.bOnTestPass) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnPassBitmaskLabel, TEXT("On Pass Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced, {}) }
+	if (Config.bOnTestFail) { PCGEX_PIN_PARAMS(PCGExNodeFlags::OutputOnFailBitmaskLabel, TEXT("On Fail Bitmask. Note that based on the selected operation, this value may not be useful."), Advanced, {}) }
 	return PinProperties;
 }
 
@@ -113,7 +113,7 @@ UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory
 {
 	UPCGExClusterStateFactoryBase* NewFactory = NewObject<UPCGExClusterStateFactoryBase>();
 	NewFactory->Priority = Priority;
-	NewFactory->Descriptor = Descriptor;
+	NewFactory->Config = Config;
 
 	if (!GetInputFactories(
 		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
@@ -123,20 +123,20 @@ UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory
 		return nullptr;
 	}
 
-	if (Descriptor.bOnTestPass)
+	if (Config.bOnTestPass)
 	{
 		UPCGParamData* Bitmask = NewObject<UPCGParamData>();
-		Bitmask->Metadata->CreateAttribute<int64>(FName("OnPassBitmask"), Descriptor.PassStateFlags.Get(), false, true);
+		Bitmask->Metadata->CreateAttribute<int64>(FName("OnPassBitmask"), Config.PassStateFlags.Get(), false, true);
 		Bitmask->Metadata->AddEntry();
 		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
 		OutData.Pin = PCGExNodeFlags::OutputOnPassBitmaskLabel;
 		OutData.Data = Bitmask;
 	}
 
-	if (Descriptor.bOnTestFail)
+	if (Config.bOnTestFail)
 	{
 		UPCGParamData* Bitmask = NewObject<UPCGParamData>();
-		Bitmask->Metadata->CreateAttribute<int64>(FName("OnFailBitmask"), Descriptor.FailStateFlags.Get(), false, true);
+		Bitmask->Metadata->CreateAttribute<int64>(FName("OnFailBitmask"), Config.FailStateFlags.Get(), false, true);
 		Bitmask->Metadata->AddEntry();
 		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
 		OutData.Pin = PCGExNodeFlags::OutputOnFailBitmaskLabel;

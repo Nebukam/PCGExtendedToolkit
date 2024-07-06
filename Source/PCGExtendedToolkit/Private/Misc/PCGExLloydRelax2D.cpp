@@ -87,16 +87,16 @@ namespace PCGExLloydRelax2D
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, PointDataFacade);
+		ProjectionDetails = Settings->ProjectionDetails;
+		ProjectionDetails.Init(Context, PointDataFacade);
 
-		InfluenceSettings = Settings->InfluenceSettings;
-		if (!InfluenceSettings.Init(Context, PointDataFacade)) { return false; }
+		InfluenceDetails = Settings->InfluenceDetails;
+		if (!InfluenceDetails.Init(Context, PointDataFacade)) { return false; }
 
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
 
-		AsyncManagerPtr->Start<FLloydRelaxTask>(0, PointIO, this, &Settings->InfluenceSettings, Settings->Iterations);
+		AsyncManagerPtr->Start<FLloydRelaxTask>(0, PointIO, this, &Settings->InfluenceDetails, Settings->Iterations);
 
 		return true;
 	}
@@ -108,9 +108,9 @@ namespace PCGExLloydRelax2D
 		TargetPosition.Y = ActivePositions[Index].Y;
 
 		Point.Transform.SetLocation(
-			InfluenceSettings.bProgressiveInfluence ?
+			InfluenceDetails.bProgressiveInfluence ?
 				TargetPosition :
-				FMath::Lerp(Point.Transform.GetLocation(), TargetPosition, InfluenceSettings.GetInfluence(Index)));
+				FMath::Lerp(Point.Transform.GetLocation(), TargetPosition, InfluenceDetails.GetInfluence(Index)));
 	}
 
 	void FProcessor::CompleteWork()
@@ -128,7 +128,7 @@ namespace PCGExLloydRelax2D
 		FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
 
 		const TArrayView<FVector> View = MakeArrayView(Positions);
-		if (!Delaunay->Process(View, Processor->ProjectionSettings)) { return false; }
+		if (!Delaunay->Process(View, Processor->ProjectionDetails)) { return false; }
 
 		const int32 NumPoints = Positions.Num();
 

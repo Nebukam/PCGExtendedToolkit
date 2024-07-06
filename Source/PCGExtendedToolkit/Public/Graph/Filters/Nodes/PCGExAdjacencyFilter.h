@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 
 
 #include "Graph/PCGExCluster.h"
@@ -15,11 +15,11 @@
 #include "PCGExAdjacencyFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExAdjacencyFilterDescriptor()
+	FPCGExAdjacencyFilterConfig()
 	{
 	}
 
@@ -65,7 +65,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyFilterFactory : public UPCGExCluster
 	GENERATED_BODY()
 
 public:
-	FPCGExAdjacencyFilterDescriptor Descriptor;
+	FPCGExAdjacencyFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
@@ -78,7 +78,7 @@ namespace PCGExNodeAdjacency
 		explicit FAdjacencyFilter(const UPCGExAdjacencyFilterFactory* InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Adjacency = InFactory->Descriptor.Adjacency;
+			Adjacency = InFactory->Config.Adjacency;
 		}
 
 		const UPCGExAdjacencyFilterFactory* TypedFilterFactory;
@@ -119,9 +119,9 @@ public:
 #endif
 
 public:
-	/** Test Descriptor.*/
+	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExAdjacencyFilterDescriptor Descriptor;
+	FPCGExAdjacencyFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Graph/Filters/PCGExAdjacency.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 
 
 #include "Graph/PCGExCluster.h"
@@ -16,11 +16,11 @@
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExEdgeDirectionFilterDescriptor()
+	FPCGExEdgeDirectionFilterConfig()
 	{
 	}
 
@@ -54,11 +54,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterDescriptor
 
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ComparisonQuality==EPCGExDirectionCheckMode::Dot", EditConditionHides))
-	FPCGExDotComparisonSettings DotComparisonSettings;
+	FPCGExDotComparisonDetails DotComparisonDetails;
 
 	/** Hash comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ComparisonQuality==EPCGExDirectionCheckMode::Hash", EditConditionHides))
-	FPCGExVectorHashComparisonSettings HashComparisonSettings;
+	FPCGExVectorHashComparisonDetails HashComparisonDetails;
 };
 
 /**
@@ -70,7 +70,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeDirectionFilterFactory : public UPCGExClu
 	GENERATED_BODY()
 
 public:
-	FPCGExEdgeDirectionFilterDescriptor Descriptor;
+	FPCGExEdgeDirectionFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
@@ -83,9 +83,9 @@ namespace PCGExNodeAdjacency
 		explicit FEdgeDirectionFilter(const UPCGExEdgeDirectionFilterFactory* InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Adjacency = InFactory->Descriptor.Adjacency;
-			DotComparison = InFactory->Descriptor.DotComparisonSettings;
-			HashComparison = InFactory->Descriptor.HashComparisonSettings;
+			Adjacency = InFactory->Config.Adjacency;
+			DotComparison = InFactory->Config.DotComparisonDetails;
+			HashComparison = InFactory->Config.HashComparisonDetails;
 		}
 
 		const UPCGExEdgeDirectionFilterFactory* TypedFilterFactory;
@@ -95,8 +95,8 @@ namespace PCGExNodeAdjacency
 
 		TArray<double> CachedThreshold;
 		FPCGExAdjacencySettings Adjacency;
-		FPCGExDotComparisonSettings DotComparison;
-		FPCGExVectorHashComparisonSettings HashComparison;
+		FPCGExDotComparisonDetails DotComparison;
+		FPCGExVectorHashComparisonDetails HashComparison;
 
 		PCGExData::FCache<FVector>* OperandDirection = nullptr;
 
@@ -130,9 +130,9 @@ public:
 #endif
 
 public:
-	/** Test Descriptor.*/
+	/** Test Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExEdgeDirectionFilterDescriptor Descriptor;
+	FPCGExEdgeDirectionFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

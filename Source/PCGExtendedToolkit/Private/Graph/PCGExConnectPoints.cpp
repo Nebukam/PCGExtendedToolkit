@@ -138,8 +138,8 @@ namespace PCGExConnectPoints
 
 		if (Settings->bProjectPoints)
 		{
-			ProjectionSettings = Settings->ProjectionSettings;
-			ProjectionSettings.Init(Context, PointDataFacade);
+			ProjectionDetails = Settings->ProjectionDetails;
+			ProjectionDetails.Init(Context, PointDataFacade);
 		}
 
 		for (const UPCGExProbeFactoryBase* Factory : TypedContext->ProbeFactories)
@@ -172,7 +172,7 @@ namespace PCGExConnectPoints
 
 		if (ProbeOperations.IsEmpty() && DirectProbeOperations.IsEmpty()) { return false; }
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings, 2);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails, 2);
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		InPoints = &PointIO->GetIn()->GetPoints();
@@ -206,12 +206,12 @@ namespace PCGExConnectPoints
 			if (Settings->bProjectPoints)
 			{
 				bUseProjection = true;
-				const FVector ProjectedOctreeCenter = ProjectionSettings.ProjectFlat(B.GetCenter());
+				const FVector ProjectedOctreeCenter = ProjectionDetails.ProjectFlat(B.GetCenter());
 				Octree = new PositionOctree(ProjectedOctreeCenter, B.GetExtent().Length());
 
 				for (int i = 0; i < NumPoints; i++)
 				{
-					CachedTransforms[i] = ProjectionSettings.ProjectFlat(InPointsRef[i].Transform, i);
+					CachedTransforms[i] = ProjectionDetails.ProjectFlat(InPointsRef[i].Transform, i);
 					if (ConnectableFilter && ConnectableFilter->Test(i)) { continue; }
 					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(CachedTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
 				}

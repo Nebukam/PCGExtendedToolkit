@@ -51,35 +51,35 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseClusters)
 
-	PCGEX_FWD(VtxCarryOver)
-	Context->VtxCarryOver.Init();
+	PCGEX_FWD(VtxCarryOverDetails)
+	Context->VtxCarryOverDetails.Init();
 
-	PCGEX_FWD(EdgesCarryOver)
-	Context->EdgesCarryOver.Init();
+	PCGEX_FWD(EdgesCarryOverDetails)
+	Context->EdgesCarryOverDetails.Init();
 
 	const_cast<UPCGExFuseClustersSettings*>(Settings)
-		->EdgeEdgeIntersectionSettings.ComputeDot();
+		->EdgeEdgeIntersectionDetails.ComputeDot();
 
 	Context->CompoundProcessor = new PCGExGraph::FCompoundProcessor(
 		Context,
-		Settings->PointPointIntersectionSettings,
-		Settings->DefaultPointsBlendingSettings,
-		Settings->DefaultEdgesBlendingSettings);
+		Settings->PointPointIntersectionDetails,
+		Settings->DefaultPointsBlendingDetails,
+		Settings->DefaultEdgesBlendingDetails);
 
 	if (Settings->bFindPointEdgeIntersections)
 	{
 		Context->CompoundProcessor->InitPointEdge(
-			Settings->PointEdgeIntersectionSettings,
+			Settings->PointEdgeIntersectionDetails,
 			Settings->bUseCustomPointEdgeBlending,
-			&Settings->CustomPointEdgeBlendingSettings);
+			&Settings->CustomPointEdgeBlendingDetails);
 	}
 
 	if (Settings->bFindEdgeEdgeIntersections)
 	{
 		Context->CompoundProcessor->InitEdgeEdge(
-			Settings->EdgeEdgeIntersectionSettings,
+			Settings->EdgeEdgeIntersectionDetails,
 			Settings->bUseCustomPointEdgeBlending,
-			&Settings->CustomEdgeEdgeBlendingSettings);
+			&Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
 	PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(nullptr);
@@ -90,13 +90,13 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 	Context->CompoundFacade = new PCGExData::FFacade(CompoundPoints);
 
 	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
-		Settings->PointPointIntersectionSettings.FuseSettings,
+		Settings->PointPointIntersectionDetails.FuseDetails,
 		Context->MainPoints->GetInBounds().ExpandBy(10),
 		true,
-		Settings->PointPointIntersectionSettings.FuseMethod);
+		Settings->PointPointIntersectionDetails.FuseMethod);
 
 	Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(
-		&Settings->DefaultPointsBlendingSettings, &Context->VtxCarryOver);
+		&Settings->DefaultPointsBlendingDetails, &Context->VtxCarryOverDetails);
 
 	return true;
 }
@@ -179,8 +179,8 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 					Context->CompoundGraph->PointsCompounds, Context->MainPoints));
 			Context->CompoundPointsBlender->MergeSingle(
 				Index,
-				PCGExSettings::GetDistanceSettings(
-					Settings->PointPointIntersectionSettings));
+				PCGExDetails::GetDistanceDetails(
+					Settings->PointPointIntersectionDetails));
 		};
 
 		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes))
@@ -201,7 +201,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->CompoundProcessor->StartProcessing(
 			Context->CompoundGraph,
 			Context->CompoundFacade,
-			Settings->GraphBuilderSettings,
+			Settings->GraphBuilderDetails,
 			[&](PCGExGraph::FGraphBuilder* GraphBuilder)
 			{
 				TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;

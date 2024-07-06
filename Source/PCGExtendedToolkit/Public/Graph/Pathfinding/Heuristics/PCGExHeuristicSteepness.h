@@ -11,12 +11,12 @@
 #include "PCGExHeuristicSteepness.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorSteepness : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigSteepness : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorSteepness() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicConfigSteepness() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 
@@ -73,7 +73,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactorySteepness : public UPCGExHeuri
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicDescriptorSteepness Descriptor;
+	FPCGExHeuristicConfigSteepness Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
@@ -92,9 +92,9 @@ public:
 #endif
 	//~End UPCGSettings
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicDescriptorSteepness Descriptor;
+	FPCGExHeuristicConfigSteepness Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

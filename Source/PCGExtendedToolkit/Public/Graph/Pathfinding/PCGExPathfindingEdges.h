@@ -60,11 +60,11 @@ public:
 
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Node Picking", meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings SeedPicking;
+	FPCGExNodeSelectionDetails SeedPicking;
 
 	/** Drive how a goal selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Node Picking", meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings GoalPicking;
+	FPCGExNodeSelectionDetails GoalPicking;
 
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
@@ -72,19 +72,19 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardSettings SeedForwardAttributes;
+	FPCGExForwardDetails SeedForwardAttributes;
 
 	/** Which Goal attribute to use as tag. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExAttributeToTagSettings GoalAttributesToPathTags;
+	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardSettings GoalForwardAttributes;
+	FPCGExForwardDetails GoalForwardAttributes;
 
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
@@ -110,8 +110,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext final : public FPCGE
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
 
-	FPCGExAttributeToTagSettings SeedAttributesToPathTags;
-	FPCGExAttributeToTagSettings GoalAttributesToPathTags;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
+	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
 
 	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;

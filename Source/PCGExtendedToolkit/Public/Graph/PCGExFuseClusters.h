@@ -45,7 +45,7 @@ public:
 
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
-	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
+	FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
 
 	/** Find Point-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -53,7 +53,7 @@ public:
 
 	/** Point-Edge intersection settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Edge Settings", EditCondition="bFindPointEdgeIntersections"))
-	FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
+	FPCGExPointEdgeIntersectionDetails PointEdgeIntersectionDetails;
 
 	/** Find Edge-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -61,15 +61,15 @@ public:
 
 	/** Edge-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge/Edge Settings", EditCondition="bFindEdgeEdgeIntersections"))
-	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
+	FPCGExEdgeEdgeIntersectionDetails EdgeEdgeIntersectionDetails;
 
 	/** Defines how fused point properties and attributes are merged together for fused points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable))
-	FPCGExBlendingSettings DefaultPointsBlendingSettings;
+	FPCGExBlendingDetails DefaultPointsBlendingDetails;
 
 	/** Defines how fused point properties and attributes are merged together for fused edges. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable))
-	FPCGExBlendingSettings DefaultEdgesBlendingSettings;
+	FPCGExBlendingDetails DefaultEdgesBlendingDetails;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable))
@@ -77,7 +77,7 @@ public:
 
 	/** Defines how fused point properties and attributes are merged together for Point/Edge intersections. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable, EditCondition="bUseCustomPointEdgeBlending"))
-	FPCGExBlendingSettings CustomPointEdgeBlendingSettings;
+	FPCGExBlendingDetails CustomPointEdgeBlendingDetails;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable))
@@ -85,20 +85,20 @@ public:
 
 	/** Defines how fused point properties and attributes are merged together for Edge/Edge intersections (Crossings). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Data Blending", meta=(PCG_Overridable, EditCondition="bUseCustomEdgeEdgeBlending"))
-	FPCGExBlendingSettings CustomEdgeEdgeBlendingSettings;
+	FPCGExBlendingDetails CustomEdgeEdgeBlendingDetails;
 
 
 	/** Meta filter settings for Vtx. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Meta Filters", meta = (PCG_Overridable, DisplayName="Carry Over Settings - Vtx"))
-	FPCGExCarryOverSettings VtxCarryOver;
+	FPCGExCarryOverDetails VtxCarryOverDetails;
 
 	/** Meta filter settings for Edges. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Meta Filters", meta = (PCG_Overridable, DisplayName="Carry Over Settings - Edges"))
-	FPCGExCarryOverSettings EdgesCarryOver;
+	FPCGExCarryOverDetails EdgesCarryOverDetails;
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext final : public FPCGExEdgesProcessorContext
@@ -112,8 +112,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext final : public FPCGExEdg
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FFacade* CompoundFacade = nullptr;
 
-	FPCGExCarryOverSettings VtxCarryOver;
-	FPCGExCarryOverSettings EdgesCarryOver;
+	FPCGExCarryOverDetails VtxCarryOverDetails;
+	FPCGExCarryOverDetails EdgesCarryOverDetails;
 
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;

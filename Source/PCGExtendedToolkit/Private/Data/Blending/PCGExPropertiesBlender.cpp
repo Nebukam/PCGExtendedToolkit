@@ -6,24 +6,24 @@
 
 namespace PCGExDataBlending
 {
-	FPropertiesBlender::FPropertiesBlender(const FPCGExPropertiesBlendingSettings& Settings)
+	FPropertiesBlender::FPropertiesBlender(const FPCGExPropertiesBlendingDetails& InDetails)
 	{
-		Init(Settings);
+		Init(InDetails);
 	}
 
-	void FPropertiesBlender::Init(const FPCGExPropertiesBlendingSettings& Settings)
+	void FPropertiesBlender::Init(const FPCGExPropertiesBlendingDetails& InDetails)
 	{
 		bRequiresPrepare = false;
 
 #define PCGEX_BLEND_FUNCASSIGN(_TYPE, _NAME, _FUNC)\
 bReset##_NAME = false;\
-_NAME##Blending = Settings._NAME##Blending;\
+_NAME##Blending = InDetails._NAME##Blending;\
 if(ResetBlend.Contains(_NAME##Blending)){ bReset##_NAME=true; bRequiresPrepare = true; }
 
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCASSIGN)
 #undef PCGEX_BLEND_FUNCASSIGN
 
-		bHasNoBlending = Settings.HasNoBlending();
+		bHasNoBlending = InDetails.HasNoBlending();
 	}
 
 	void FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const

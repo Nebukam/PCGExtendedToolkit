@@ -15,7 +15,7 @@ void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	const UPCGExNeighborSampleOperation* TypedOther = Cast<UPCGExNeighborSampleOperation>(Other);
 	if (TypedOther)
 	{
-		BaseSettings = TypedOther->BaseSettings;
+		SamplingConfig = TypedOther->SamplingConfig;
 		WeightCurveObj = TypedOther->WeightCurveObj;
 	}
 }
@@ -46,7 +46,7 @@ PCGExData::FPointIO* UPCGExNeighborSampleOperation::GetSourceIO() const { return
 
 PCGExData::FFacade* UPCGExNeighborSampleOperation::GetSourceDataFacade() const
 {
-	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx ? VtxDataFacade : EdgeDataFacade;
+	return SamplingConfig.NeighborSource == EPCGExGraphValueSource::Vtx ? VtxDataFacade : EdgeDataFacade;
 }
 
 void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
@@ -74,7 +74,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 	PrepareNode(Node);
 
 
-	while (CurrentDepth <= BaseSettings.MaxDepth)
+	while (CurrentDepth <= SamplingConfig.MaxDepth)
 	{
 		if (CurrentNeighbors->IsEmpty()) { break; }
 		CurrentDepth++;
@@ -84,27 +84,27 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 			VisitedNodes.Add(Neighbor.Node->NodeIndex);
 			double LocalWeight;
 
-			if (BaseSettings.BlendOver == EPCGExBlendOver::Distance)
+			if (SamplingConfig.BlendOver == EPCGExBlendOver::Distance)
 			{
 				const double Dist = FVector::Dist(Node.Position, Neighbor.Node->Position); // Use Neighbor.FromNode to accumulate per-path distance 
-				if (Dist > BaseSettings.MaxDistance) { continue; }
-				LocalWeight = 1 - (Dist / BaseSettings.MaxDistance);
+				if (Dist > SamplingConfig.MaxDistance) { continue; }
+				LocalWeight = 1 - (Dist / SamplingConfig.MaxDistance);
 			}
 			else
 			{
-				LocalWeight = BaseSettings.BlendOver == EPCGExBlendOver::Index ? 1 - (CurrentDepth / (BaseSettings.MaxDepth)) : BaseSettings.FixedBlend;
+				LocalWeight = SamplingConfig.BlendOver == EPCGExBlendOver::Index ? 1 - (CurrentDepth / (SamplingConfig.MaxDepth)) : SamplingConfig.FixedBlend;
 			}
 
 			LocalWeight = SampleCurve(LocalWeight);
 
-			if (BaseSettings.NeighborSource == EPCGExGraphValueSource::Vtx) { BlendNodePoint(Node, Neighbor, LocalWeight); }
+			if (SamplingConfig.NeighborSource == EPCGExGraphValueSource::Vtx) { BlendNodePoint(Node, Neighbor, LocalWeight); }
 			else { BlendNodeEdge(Node, Neighbor, LocalWeight); }
 
 			Count++;
 			TotalWeight += LocalWeight;
 		}
 
-		if (CurrentDepth >= BaseSettings.MaxDepth) { break; }
+		if (CurrentDepth >= SamplingConfig.MaxDepth) { break; }
 
 		// Gather next depth
 
@@ -187,7 +187,7 @@ UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCG
 	UPCGExNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGExNeighborSamplerFactoryBase>(InFactory);
 
 	SamplerFactory->Priority = Priority;
-	SamplerFactory->SamplingSettings = SamplingSettings;
+	SamplerFactory->SamplingConfig = SamplingConfig;
 
 	GetInputFactories(
 		InContext, PCGEx::SourcePointFilters, SamplerFactory->PointFilterFactories,

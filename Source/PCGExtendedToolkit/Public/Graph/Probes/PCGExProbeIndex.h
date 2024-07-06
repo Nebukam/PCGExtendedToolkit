@@ -25,12 +25,12 @@ enum class EPCGExProbeTargetMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeDescriptorIndex : public FPCGExProbeDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExProbeDescriptorIndex() :
-		FPCGExProbeDescriptorBase(false)
+	FPCGExProbeConfigIndex() :
+		FPCGExProbeConfigBase(false)
 	{
 	}
 
@@ -63,7 +63,7 @@ public:
 	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
 	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges) override;
 
-	FPCGExProbeDescriptorIndex Descriptor;
+	FPCGExProbeConfigIndex Config;
 	PCGExData::FCache<int32>* TargetCache;
 
 protected:
@@ -78,7 +78,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryIndex : public UPCGExProbeFactory
 	GENERATED_BODY()
 
 public:
-	FPCGExProbeDescriptorIndex Descriptor;
+	FPCGExProbeConfigIndex Config;
 	virtual UPCGExProbeOperation* CreateOperation() const override;
 };
 
@@ -98,9 +98,9 @@ public:
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExProbeDescriptorIndex Descriptor;
+	FPCGExProbeConfigIndex Config;
 
 
 #if WITH_EDITOR

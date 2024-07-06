@@ -12,21 +12,21 @@ bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InCont
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandA);
+	OperandA = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandA);
 
 	if (!OperandA)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
 		return false;
 	}
 
-	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Descriptor.OperandB);
+		OperandB = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandB);
 
 		if (!OperandB)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
 			return false;
 		}
 	}
@@ -37,8 +37,8 @@ bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InCont
 bool PCGExPointsFilter::TNumericComparisonFilter::Test(const int32 PointIndex) const
 {
 	const double A = OperandA->Values[PointIndex];
-	const double B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
-	return PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance);
+	const double B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
+	return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 }
 
 namespace PCGExCompareFilter
@@ -53,10 +53,10 @@ PCGEX_CREATE_FILTER_FACTORY(NumericCompare)
 #if WITH_EDITOR
 FString UPCGExNumericCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Descriptor.OperandA.GetName().ToString() + PCGExCompare::ToString(Descriptor.Comparison);
+	FString DisplayName = Config.OperandA.GetName().ToString() + PCGExCompare::ToString(Config.Comparison);
 
-	if (Descriptor.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Descriptor.OperandB.GetName().ToString(); }
-	else { DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.OperandBConstant) / 1000.0)); }
+	if (Config.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
+	else { DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.OperandBConstant) / 1000.0)); }
 
 	return DisplayName;
 }

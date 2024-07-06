@@ -14,14 +14,14 @@ void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Oth
 	const UPCGExNeighborSampleProperties* TypedOther = Cast<UPCGExNeighborSampleProperties>(Other);
 	if (TypedOther)
 	{
-		BlendingSettings = TypedOther->BlendingSettings;
+		BlendingDetails = TypedOther->BlendingDetails;
 	}
 }
 
 void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 {
 	PCGEX_DELETE(Blender)
-	Blender = new PCGExDataBlending::FPropertiesBlender(BlendingSettings);
+	Blender = new PCGExDataBlending::FPropertiesBlender(BlendingDetails);
 	return Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 }
 
@@ -34,9 +34,9 @@ void UPCGExNeighborSampleProperties::Cleanup()
 #if WITH_EDITOR
 FString UPCGExNeighborSamplePropertiesSettings::GetDisplayName() const
 {
-	if (Descriptor.Blending.HasNoBlending()) { return TEXT("(None)"); }
+	if (Config.Blending.HasNoBlending()) { return TEXT("(None)"); }
 	TArray<FName> Names;
-	Descriptor.Blending.GetNonNoneBlendings(Names);
+	Config.Blending.GetNonNoneBlendings(Names);
 
 	if (Names.Num() == 1) { return Names[0].ToString(); }
 	if (Names.Num() == 2) { return Names[0].ToString() + TEXT(" (+1 other)"); }
@@ -51,7 +51,7 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryProperties::CreateOpe
 
 	PCGEX_SAMPLER_CREATE
 
-	NewOperation->BlendingSettings = Descriptor.Blending;
+	NewOperation->BlendingDetails = Config.Blending;
 
 	return NewOperation;
 }
@@ -59,7 +59,7 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryProperties::CreateOpe
 UPCGExParamFactoryBase* UPCGExNeighborSamplePropertiesSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExNeighborSamplerFactoryProperties* SamplerFactory = NewObject<UPCGExNeighborSamplerFactoryProperties>();
-	SamplerFactory->Descriptor = Descriptor;
+	SamplerFactory->Config = Config;
 
 	return Super::CreateFactory(InContext, SamplerFactory);
 }

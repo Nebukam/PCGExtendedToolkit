@@ -14,7 +14,7 @@
 #include "PCGExVtxPropertyFactoryProvider.generated.h"
 
 #define PCGEX_VTX_EXTRA_CREATE \
-	NewOperation->Descriptor = Descriptor;
+	NewOperation->Config = Config;
 
 namespace PCGExVtxProperty
 {

@@ -87,13 +87,13 @@ namespace PCGExLloydRelax
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		InfluenceSettings = Settings->InfluenceSettings;
-		if (!InfluenceSettings.Init(Context, PointDataFacade)) { return false; }
+		InfluenceDetails = Settings->InfluenceDetails;
+		if (!InfluenceDetails.Init(Context, PointDataFacade)) { return false; }
 
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
 
-		AsyncManagerPtr->Start<FLloydRelaxTask>(0, PointIO, this, &Settings->InfluenceSettings, Settings->Iterations);
+		AsyncManagerPtr->Start<FLloydRelaxTask>(0, PointIO, this, &Settings->InfluenceDetails, Settings->Iterations);
 
 		return true;
 	}
@@ -101,9 +101,9 @@ namespace PCGExLloydRelax
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		Point.Transform.SetLocation(
-			InfluenceSettings.bProgressiveInfluence ?
+			InfluenceDetails.bProgressiveInfluence ?
 				ActivePositions[Index] :
-				FMath::Lerp(Point.Transform.GetLocation(), ActivePositions[Index], InfluenceSettings.GetInfluence(Index)));
+				FMath::Lerp(Point.Transform.GetLocation(), ActivePositions[Index], InfluenceDetails.GetInfluence(Index)));
 	}
 
 	void FProcessor::CompleteWork()

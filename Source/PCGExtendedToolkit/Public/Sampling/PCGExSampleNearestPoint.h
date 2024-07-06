@@ -8,7 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExSampleNearestPoint.generated.h"
@@ -155,7 +155,7 @@ public:
 
 	/** Distance method to be used for source & target points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	FPCGExDistanceSettings DistanceSettings;
+	FPCGExDistanceDetails DistanceDetails;
 
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
@@ -175,7 +175,7 @@ public:
 
 	/** The constant to use as Up vector for the look at transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
-	FPCGExPropertiesBlendingSettings PointPropertiesBlendingSettings = FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None);
+	FPCGExPropertiesBlendingDetails PointPropertiesBlendingSettings = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -271,7 +271,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext final : public FPC
 
 	PCGExData::FFacade* TargetsFacade = nullptr;
 
-	FPCGExBlendingSettings BlendingSettings;
+	FPCGExBlendingDetails BlendingDetails;
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 

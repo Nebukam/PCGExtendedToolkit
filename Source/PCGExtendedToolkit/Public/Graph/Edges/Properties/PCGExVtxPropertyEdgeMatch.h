@@ -24,7 +24,7 @@ namespace PCGExPointFilter
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchConfig
 {
 	GENERATED_BODY()
 
@@ -50,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 
 	/** Dot comparison settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExDotComparisonSettings DotComparisonSettings;
+	FPCGExDotComparisonDetails DotComparisonDetails;
 
 	/** Matching edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Output"))
@@ -71,7 +71,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyEdgeMatch : public UPCGExVtxProper
 	GENERATED_BODY()
 
 public:
-	FPCGExEdgeMatchSettings Descriptor;
+	FPCGExEdgeMatchConfig Config;
 	TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
@@ -97,7 +97,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVt
 	GENERATED_BODY()
 
 public:
-	FPCGExEdgeMatchSettings Descriptor;
+	FPCGExEdgeMatchConfig Config;
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
@@ -128,5 +128,5 @@ public:
 
 	/** Direction Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExEdgeMatchSettings Descriptor;
+	FPCGExEdgeMatchConfig Config;
 };

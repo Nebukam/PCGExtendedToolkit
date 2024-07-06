@@ -14,7 +14,7 @@ void UPCGExVtxPropertyOrient::CopySettingsFrom(const UPCGExOperation* Other)
 	const UPCGExVtxPropertyOrient* TypedOther = Cast<UPCGExVtxPropertyOrient>(Other);
 	if (TypedOther)
 	{
-		Descriptor = TypedOther->Descriptor;
+		Config = TypedOther->Config;
 	}
 }
 
@@ -44,8 +44,8 @@ void UPCGExVtxPropertyOrient::Cleanup()
 FString UPCGExVtxPropertyOrientSettings::GetDisplayName() const
 {
 	/*
-	if (Descriptor.SourceAttributes.IsEmpty()) { return TEXT(""); }
-	TArray<FName> Names = Descriptor.SourceAttributes.Array();
+	if (Config.SourceAttributes.IsEmpty()) { return TEXT(""); }
+	TArray<FName> Names = Config.SourceAttributes.Array();
 
 	if (Names.Num() == 1) { return Names[0].ToString(); }
 	if (Names.Num() == 2) { return Names[0].ToString() + TEXT(" (+1 other)"); }
@@ -66,7 +66,7 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertyOrientFactory::CreateOperation() co
 UPCGExParamFactoryBase* UPCGExVtxPropertyOrientSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExVtxPropertyOrientFactory* NewFactory = NewObject<UPCGExVtxPropertyOrientFactory>();
-	NewFactory->Descriptor = Descriptor;
+	NewFactory->Config = Config;
 	GetInputFactories(
 		InContext, PCGEx::SourceAdditionalReq, NewFactory->FilterFactories,
 		PCGExFactories::ClusterEdgeFilters, false);

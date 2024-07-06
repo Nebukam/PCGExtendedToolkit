@@ -39,7 +39,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	if (!Settings->GraphBuilderSettings.bPruneIsolatedPoints) { PCGEX_VALIDATE_NAME(Settings->HullAttributeName) }
+	if (!Settings->GraphBuilderDetails.bPruneIsolatedPoints) { PCGEX_VALIDATE_NAME(Settings->HullAttributeName) }
 
 	Context->PathsIO = new PCGExData::FPointIOCollection();
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
@@ -165,8 +165,8 @@ namespace PCGExConvexHull2D
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		ProjectionSettings = Settings->ProjectionSettings;
-		ProjectionSettings.Init(Context, PointDataFacade);
+		ProjectionDetails = Settings->ProjectionDetails;
+		ProjectionDetails.Init(Context, PointDataFacade);
 
 		// Build delaunay
 
@@ -175,7 +175,7 @@ namespace PCGExConvexHull2D
 
 		Delaunay = new PCGExGeo::TDelaunay2();
 
-		if (!Delaunay->Process(ActivePositions, ProjectionSettings))
+		if (!Delaunay->Process(ActivePositions, ProjectionDetails))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
 			PCGEX_DELETE(Delaunay)
@@ -187,14 +187,14 @@ namespace PCGExConvexHull2D
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		if (!Settings->GraphBuilderSettings.bPruneIsolatedPoints && Settings->bMarkHull)
+		if (!Settings->GraphBuilderDetails.bPruneIsolatedPoints && Settings->bMarkHull)
 		{
 			HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
 			HullMarkPointWriter->BindAndSetNumUninitialized(PointIO);
 			StartParallelLoopForPoints();
 		}
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderSettings);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;

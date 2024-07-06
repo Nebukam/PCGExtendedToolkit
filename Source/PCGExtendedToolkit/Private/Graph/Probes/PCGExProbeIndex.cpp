@@ -18,12 +18,12 @@ bool UPCGExProbeIndex::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 
 	MaxIndex = PointIO->GetNum() - 1;
 
-	if (Descriptor.TargetIndex == EPCGExFetchType::Attribute)
+	if (Config.TargetIndex == EPCGExFetchType::Attribute)
 	{
-		TargetCache = PrimaryDataFacade->GetOrCreateGetter<int32>(Descriptor.TargetAttribute);
+		TargetCache = PrimaryDataFacade->GetOrCreateGetter<int32>(Config.TargetAttribute);
 		if (!TargetCache)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Target attribute: {0}")), FText::FromName(Descriptor.TargetAttribute.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Target attribute: {0}")), FText::FromName(Config.TargetAttribute.GetName())));
 			return false;
 		}
 	}
@@ -34,30 +34,30 @@ bool UPCGExProbeIndex::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	// TODO : Implement Stacking mngmt
-	int32 Value = TargetCache ? TargetCache->Values[Index] : Descriptor.TargetConstant;
+	int32 Value = TargetCache ? TargetCache->Values[Index] : Config.TargetConstant;
 
-	if (Descriptor.Mode == EPCGExProbeTargetMode::Target)
+	if (Config.Mode == EPCGExProbeTargetMode::Target)
 	{
-		Value = PCGExMath::SanitizeIndex(Value, MaxIndex, Descriptor.IndexSafety);
+		Value = PCGExMath::SanitizeIndex(Value, MaxIndex, Config.IndexSafety);
 		if (Value == -1) { return; }
 		OutEdges->Add(PCGEx::H64U(Index, Value));
 		return;
 	}
 
-	if (Descriptor.Mode == EPCGExProbeTargetMode::OneWayOffset)
+	if (Config.Mode == EPCGExProbeTargetMode::OneWayOffset)
 	{
-		Value = PCGExMath::SanitizeIndex(Index + Value, MaxIndex, Descriptor.IndexSafety);
+		Value = PCGExMath::SanitizeIndex(Index + Value, MaxIndex, Config.IndexSafety);
 		if (Value == -1) { return; }
 		OutEdges->Add(PCGEx::H64U(Index, Value));
 		return;
 	}
 
-	if (Descriptor.Mode == EPCGExProbeTargetMode::TwoWayOffset)
+	if (Config.Mode == EPCGExProbeTargetMode::TwoWayOffset)
 	{
-		int32 OIdx = PCGExMath::SanitizeIndex(Index + Value, MaxIndex, Descriptor.IndexSafety);
+		int32 OIdx = PCGExMath::SanitizeIndex(Index + Value, MaxIndex, Config.IndexSafety);
 		if (OIdx != -1) { OutEdges->Add(PCGEx::H64U(Index, OIdx)); }
 
-		OIdx = PCGExMath::SanitizeIndex(Index - Value, MaxIndex, Descriptor.IndexSafety);
+		OIdx = PCGExMath::SanitizeIndex(Index - Value, MaxIndex, Config.IndexSafety);
 		if (OIdx != -1) { OutEdges->Add(PCGEx::H64U(Index, OIdx)); }
 	}
 }
@@ -69,7 +69,7 @@ FString UPCGExProbeIndexProviderSettings::GetDisplayName() const
 	/*
 	return GetDefaultNodeName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 		*/
 }
 #endif

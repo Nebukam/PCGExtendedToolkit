@@ -16,14 +16,14 @@ namespace PCGExDataBlending
 		Cleanup();
 	}
 
-	FMetadataBlender::FMetadataBlender(const FPCGExBlendingSettings* InBlendingSettings)
+	FMetadataBlender::FMetadataBlender(const FPCGExBlendingDetails* InBlendingDetails)
 	{
-		BlendingSettings = InBlendingSettings;
+		BlendingDetails = InBlendingDetails;
 	}
 
 	FMetadataBlender::FMetadataBlender(const FMetadataBlender* ReferenceBlender)
 	{
-		BlendingSettings = ReferenceBlender->BlendingSettings;
+		BlendingDetails = ReferenceBlender->BlendingDetails;
 	}
 
 	void FMetadataBlender::PrepareForData(
@@ -150,7 +150,7 @@ namespace PCGExDataBlending
 		bSkipProperties = !bBlendProperties;
 		if (!bSkipProperties)
 		{
-			PropertiesBlender = new FPropertiesBlender(BlendingSettings->GetPropertiesBlendingSettings());
+			PropertiesBlender = new FPropertiesBlender(BlendingDetails->GetPropertiesBlendingDetails());
 			if (PropertiesBlender->bHasNoBlending)
 			{
 				bSkipProperties = true;
@@ -166,7 +166,7 @@ namespace PCGExDataBlending
 
 		TArray<PCGEx::FAttributeIdentity> Identities;
 		PCGEx::FAttributeIdentity::Get(InPrimaryFacade->Source->GetOut()->Metadata, Identities);
-		BlendingSettings->Filter(Identities);
+		BlendingDetails->Filter(Identities);
 
 		if (InSecondaryFacade != InPrimaryFacade)
 		{
@@ -198,7 +198,7 @@ namespace PCGExDataBlending
 						Identities.Remove(*PrimaryIdentityPtr);
 					}
 				}
-				else if (BlendingSettings->CanBlend(SecondaryIdentity.Name))
+				else if (BlendingDetails->CanBlend(SecondaryIdentity.Name))
 				{
 					//Operation will handle missing attribute creation.
 					Identities.Add(SecondaryIdentity);
@@ -214,11 +214,11 @@ namespace PCGExDataBlending
 		{
 			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(Identity.Name)) { continue; }
 
-			const EPCGExDataBlendingType* TypePtr = BlendingSettings->AttributesOverrides.Find(Identity.Name);
+			const EPCGExDataBlendingType* TypePtr = BlendingDetails->AttributesOverrides.Find(Identity.Name);
 
 			FDataBlendingOperationBase* Op;
 			if (PCGEx::IsPCGExAttribute(Identity.Name)) { Op = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
-			else { Op = CreateOperation(TypePtr ? *TypePtr : BlendingSettings->DefaultBlending, Identity); }
+			else { Op = CreateOperation(TypePtr ? *TypePtr : BlendingDetails->DefaultBlending, Identity); }
 
 			if (!Op) { continue; }
 

@@ -61,11 +61,11 @@ public:
 
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(false);
+	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails(false);
 
 private:
 	friend class FPCGExBuildDelaunayGraph2DElement;
@@ -100,7 +100,7 @@ namespace PCGExBuildDelaunay2D
 		PCGExGeo::TDelaunay2* Delaunay = nullptr;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
 

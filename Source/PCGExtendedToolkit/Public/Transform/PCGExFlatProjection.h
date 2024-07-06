@@ -50,7 +50,7 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bInverseExistingProjection", DisplayName="Projection"))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExFlatProjectionContext final : public FPCGExPointsProcessorContext
@@ -82,7 +82,7 @@ namespace PCGExFlatProjection
 		bool bWriteAttribute = false;
 		bool bInverseExistingProjection = false;
 		bool bProjectLocalTransform = false;
-		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		PCGEx::TFAttributeWriter<FTransform>* TransformWriter = nullptr;
 		PCGEx::FAttributeIOBase<FTransform>* TransformReader = nullptr;

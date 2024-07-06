@@ -41,7 +41,7 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBoxIntersectionSettings IntersectionSettings;
+	FPCGExBoxIntersectionDetails IntersectionDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionContext final : public FPCGExPathProcessorContext

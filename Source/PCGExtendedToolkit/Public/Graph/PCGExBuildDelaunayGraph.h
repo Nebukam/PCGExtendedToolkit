@@ -61,7 +61,7 @@ public:
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(false);
+	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails(false);
 
 private:
 	friend class FPCGExBuildDelaunayGraphElement;

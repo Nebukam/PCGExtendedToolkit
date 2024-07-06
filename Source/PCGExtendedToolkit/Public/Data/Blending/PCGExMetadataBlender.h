@@ -21,7 +21,7 @@ namespace PCGExDataBlending
 
 		~FMetadataBlender();
 
-		explicit FMetadataBlender(const FPCGExBlendingSettings* InBlendingSettings);
+		explicit FMetadataBlender(const FPCGExBlendingDetails* InBlendingDetails);
 		explicit FMetadataBlender(const FMetadataBlender* ReferenceBlender);
 
 		void PrepareForData(
@@ -93,7 +93,7 @@ namespace PCGExDataBlending
 		void Cleanup();
 
 	protected:
-		const FPCGExBlendingSettings* BlendingSettings = nullptr;
+		const FPCGExBlendingDetails* BlendingDetails = nullptr;
 		const FPropertiesBlender* PropertiesBlender = nullptr;
 		bool bSkipProperties = false;
 		TArray<FDataBlendingOperationBase*> Operations;
