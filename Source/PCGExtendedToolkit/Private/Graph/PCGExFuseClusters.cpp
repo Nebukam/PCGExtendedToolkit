@@ -235,10 +235,7 @@ namespace PCGExFuseClusters
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseClusters)
 
-		if (!FClusterProcessor::Process(AsyncManager))
-		{
-			return false;
-		}
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		// Prepare insertion
 		bDeleteCluster = false;
@@ -256,6 +253,7 @@ namespace PCGExFuseClusters
 			NumEdges = Cluster->Edges->Num();
 		}
 
+		const TArray<FPCGPoint>& InPointsRef = VtxIO->GetIn()->GetPoints();
 		InPoints = &VtxIO->GetIn()->GetPoints();
 
 		bInvalidEdges = false;
@@ -263,8 +261,28 @@ namespace PCGExFuseClusters
 
 		bInlineProcessRange = bInlineProcessEdges = true; // TypedContext->CompoundGraph->Octree ? true : false;
 
-		if (Cluster) { StartParallelLoopForEdges(); }
-		else { StartParallelLoopForRange(IndexedEdges.Num()); }
+		if (Cluster)
+		{
+			//StartParallelLoopForEdges();
+			for (const PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges)
+			{
+				CompoundGraph->InsertEdge(
+					InPointsRef[Edge.Start], VtxIO->IOIndex, Edge.Start,
+					InPointsRef[Edge.End], VtxIO->IOIndex, Edge.End,
+					EdgesIO->IOIndex, Edge.PointIndex);
+			}
+		}
+		else
+		{
+			//StartParallelLoopForRange(IndexedEdges.Num());
+			for (const PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges)
+			{
+				CompoundGraph->InsertEdge(
+					InPointsRef[Edge.Start], VtxIO->IOIndex, Edge.Start,
+					InPointsRef[Edge.End], VtxIO->IOIndex, Edge.End,
+					EdgesIO->IOIndex, Edge.PointIndex);
+			}
+		}
 
 		return true;
 	}
@@ -293,6 +311,7 @@ namespace PCGExFuseClusters
 
 	void FProcessor::CompleteWork()
 	{
+		FClusterProcessor::CompleteWork()
 		if (bInvalidEdges)
 		{
 		}
