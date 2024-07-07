@@ -119,7 +119,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>* NewBatch)
 			{
-				NewBatch->bInlineProcessing = Context->CompoundGraph->Octree ? true : false;
+				NewBatch->bInlineProcessing = true; //Context->CompoundGraph->Octree ? true : false;
 			},
 			PCGExGraph::State_ProcessingCompound,
 			true)) //Context->CompoundGraph->Octree ? true : false))
@@ -261,28 +261,8 @@ namespace PCGExFuseClusters
 
 		bInlineProcessRange = bInlineProcessEdges = true; // TypedContext->CompoundGraph->Octree ? true : false;
 
-		if (Cluster)
-		{
-			//StartParallelLoopForEdges();
-			for (const PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges)
-			{
-				CompoundGraph->InsertEdge(
-					InPointsRef[Edge.Start], VtxIO->IOIndex, Edge.Start,
-					InPointsRef[Edge.End], VtxIO->IOIndex, Edge.End,
-					EdgesIO->IOIndex, Edge.PointIndex);
-			}
-		}
-		else
-		{
-			//StartParallelLoopForRange(IndexedEdges.Num());
-			for (const PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges)
-			{
-				CompoundGraph->InsertEdge(
-					InPointsRef[Edge.Start], VtxIO->IOIndex, Edge.Start,
-					InPointsRef[Edge.End], VtxIO->IOIndex, Edge.End,
-					EdgesIO->IOIndex, Edge.PointIndex);
-			}
-		}
+		if (Cluster) { StartParallelLoopForEdges(); }
+		else { StartParallelLoopForRange(IndexedEdges.Num()); }
 
 		return true;
 	}
@@ -293,7 +273,7 @@ namespace PCGExFuseClusters
 
 		const PCGExGraph::FIndexedEdge& Edge = IndexedEdges[Iteration];
 
-		CompoundGraph->InsertEdgeUnsafe(
+		CompoundGraph->InsertEdge(
 			(*InPoints)[Edge.Start], VtxIO->IOIndex, Edge.Start,
 			(*InPoints)[Edge.End], VtxIO->IOIndex, Edge.End,
 			EdgesIO->IOIndex, Edge.PointIndex);
@@ -303,7 +283,7 @@ namespace PCGExFuseClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
 
-		CompoundGraph->InsertEdgeUnsafe(
+		CompoundGraph->InsertEdge(
 			(*InPoints)[Edge.Start], VtxIO->IOIndex, Edge.Start,
 			(*InPoints)[Edge.End], VtxIO->IOIndex, Edge.End,
 			EdgesIO->IOIndex, Edge.PointIndex);
