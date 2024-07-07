@@ -220,6 +220,8 @@ namespace PCGExCluster
 		NodeIndexLookup->Shrink();
 		Nodes->Shrink();
 
+		Bounds = Bounds.ExpandBy(10);
+
 		return true;
 	}
 
@@ -244,9 +246,6 @@ namespace PCGExCluster
 		{
 			FNode& StartNode = GetOrCreateNodeUnsafe(VtxPoints, E.Start);
 			FNode& EndNode = GetOrCreateNodeUnsafe(VtxPoints, E.End);
-
-			Bounds += StartNode.Position;
-			Bounds += EndNode.Position;
 
 			StartNode.Add(EndNode, E.EdgeIndex);
 			EndNode.Add(StartNode, E.EdgeIndex);
@@ -305,17 +304,9 @@ namespace PCGExCluster
 		return MakeArrayView(VtxPointScopes->GetData(), VtxPointScopes->Num());
 	}
 
-
-	void FCluster::RebuildBounds()
-	{
-		for (const FNode& Node : (*Nodes)) { Bounds += Node.Position; }
-	}
-
 	void FCluster::RebuildNodeOctree()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCluster::RebuildNodeOctree);
-
-		check(Bounds.GetExtent().Length() != 0)
 		
 		PCGEX_DELETE(NodeOctree)
 		const FPCGPoint* StartPtr = VtxIO->GetIn()->GetPoints().GetData();

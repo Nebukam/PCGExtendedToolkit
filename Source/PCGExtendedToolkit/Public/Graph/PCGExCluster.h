@@ -244,7 +244,6 @@ namespace PCGExCluster
 		const TArray<uint64>& GetVtxPointScopes();
 		TArrayView<const uint64> GetVtxPointScopesView();
 
-		void RebuildBounds();
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
 		void RebuildOctree(EPCGExClusterClosestSearchMode Mode);
@@ -322,7 +321,9 @@ namespace PCGExCluster
 			if (!NodeIndex)
 			{
 				NodeIndexLookup->Add(PointIndex, Nodes->Num());
-				return Nodes->Emplace_GetRef(Nodes->Num(), PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
+				FNode& NewNode = Nodes->Emplace_GetRef(Nodes->Num(), PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
+				Bounds += NewNode.Position;
+				return NewNode;
 			}
 
 			return *(Nodes->GetData() + *NodeIndex);

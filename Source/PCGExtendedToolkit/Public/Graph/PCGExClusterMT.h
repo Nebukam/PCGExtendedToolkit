@@ -214,8 +214,6 @@ namespace PCGExClusterMT
 					PCGEX_DELETE(Cluster)
 					return false;
 				}
-
-				Cluster->RebuildBounds();
 			}
 
 			NumNodes = Cluster->Nodes->Num();
