@@ -1,45 +1,45 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Paths/PCGExWritePathExtras.h"
+#include "Paths/PCGExWritePathProperties.h"
 
-#define LOCTEXT_NAMESPACE "PCGExWritePathExtrasElement"
-#define PCGEX_NAMESPACE WritePathExtras
+#define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
+#define PCGEX_NAMESPACE WritePathProperties
 
-PCGExData::EInit UPCGExWritePathExtrasSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExWritePathPropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-PCGEX_INITIALIZE_ELEMENT(WritePathExtras)
+PCGEX_INITIALIZE_ELEMENT(WritePathProperties)
 
-FPCGExWritePathExtrasContext::~FPCGExWritePathExtrasContext()
+FPCGExWritePathPropertiesContext::~FPCGExWritePathPropertiesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExWritePathExtrasElement::Boot(FPCGContext* InContext) const
+bool FPCGExWritePathPropertiesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(WritePathExtras)
+	PCGEX_CONTEXT_AND_SETTINGS(WritePathProperties)
 
-	PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
-	PCGEX_FOREACH_FIELD_PATHEXTRAS_MARKS(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_PATH_MARKS(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
 }
 
-bool FPCGExWritePathExtrasElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWritePathExtrasElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWritePathPropertiesElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(WritePathExtras)
+	PCGEX_CONTEXT_AND_SETTINGS(WritePathProperties)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWritePathExtras::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWritePathProperties::FProcessor>>(
 			[](PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
-			[&](PCGExPointsMT::TBatch<PCGExWritePathExtras::FProcessor>* NewBatch)
+			[&](PCGExPointsMT::TBatch<PCGExWritePathProperties::FProcessor>* NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -59,7 +59,7 @@ bool FPCGExWritePathExtrasElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-namespace PCGExWritePathExtras
+namespace PCGExWritePathProperties
 {
 	FProcessor::~FProcessor()
 	{
@@ -68,7 +68,7 @@ namespace PCGExWritePathExtras
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathExtras)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathProperties)
 
 		bClosedPath = Settings->bClosedPath;
 
@@ -76,7 +76,7 @@ namespace PCGExWritePathExtras
 
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade;
-			PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_INIT)
+			PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_INIT)
 		}
 
 		///
@@ -96,6 +96,9 @@ namespace PCGExWritePathExtras
 
 		Positions.SetNum(NumPoints);
 		Normals.SetNum(NumPoints);
+
+		bool bIsConvex = true;
+		int32 Sign = 0;
 
 		for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
 
@@ -124,16 +127,31 @@ namespace PCGExWritePathExtras
 
 		for (int i = 1; i < LastIndex; i++)
 		{
+			FVector DirToNext = (Positions[i] - Positions[i + 1]).GetSafeNormal();
+			FVector DirToPrev = (Positions[i - 1] - Positions[i]).GetSafeNormal();
+
 			const double TraversedDistance = Metrics.Add(Positions[i]);
 			PCGEX_OUTPUT_VALUE(PointNormal, i, NRM(i - 1, i, i + 1));
-			PCGEX_OUTPUT_VALUE(DirectionToNext, i, (Positions[i] - Positions[i+1]).GetSafeNormal());
-			PCGEX_OUTPUT_VALUE(DirectionToPrev, i, (Positions[i-1] - Positions[i]).GetSafeNormal());
+			PCGEX_OUTPUT_VALUE(DirectionToNext, i, DirToNext);
+			PCGEX_OUTPUT_VALUE(DirectionToPrev, i, DirToPrev);
 			PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
 
 			PCGEX_OUTPUT_VALUE(DistanceToNext, i, FVector::Dist(Positions[i],Positions[i+1]));
 			PCGEX_OUTPUT_VALUE(DistanceToPrev, i, FVector::Dist(Positions[i-1],Positions[i]));
 
 			PathDir += (Positions[i] - Positions[i + 1]);
+
+			if (!bIsConvex) { continue; }
+
+			// Determine the sign of the cross product relative to the polygon normal
+			const double DP = FVector::DotProduct(FVector::CrossProduct(DirToNext, DirToPrev), FVector::UpVector);
+			const int32 CurrentSign = (DP > 0.0f) ? 1 : (DP < 0.0f) ? -1 : 0;
+
+			if (CurrentSign != 0)
+			{
+				if (Sign == 0) { Sign = CurrentSign; }
+				else if (Sign != CurrentSign) { bIsConvex = false; }
+			}
 		}
 
 		Metrics.Add(Positions[LastIndex]);
@@ -181,6 +199,9 @@ namespace PCGExWritePathExtras
 		///
 
 		if (Settings->bWriteDot) { StartParallelLoopForPoints(); }
+
+		if (Settings->bTagConcave && !bIsConvex) { PointIO->Tags->RawTags.Add(Settings->ConcaveTag); }
+		if (Settings->bTagConvex && bIsConvex) { PointIO->Tags->RawTags.Add(Settings->ConvexTag); }
 
 		return true;
 	}

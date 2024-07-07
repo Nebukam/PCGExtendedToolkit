@@ -30,16 +30,21 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	PCGEX_SETTINGS_LOCAL(FindContours)
 
 	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster;
+
+	TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = ClusterProcessor->ExpandedNodes;
+	TArray<PCGExCluster::FExpandedEdge*>* ExpandedEdges = ClusterProcessor->ExpandedEdges;
+
+	const TArray<FVector>& Positions = *ClusterProcessor->ProjectedPositions;
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
-	PCGExCluster::FClusterProjection* Projection = ClusterProcessor->ClusterProjection;
-
 	const FVector Guide = ProjectedSeeds[SeedIndex];
-	const int32 StartNodeIndex = Cluster->FindClosestNode(Guide, Settings->SeedPicking.PickingMethod, 2);
+	int32 StartNodeIndex = Cluster->FindClosestNode(Guide, Settings->SeedPicking.PickingMethod, 2);
+	int32 NextEdge = Cluster->FindClosestEdge(StartNodeIndex, Guide);
 
-	if (StartNodeIndex == -1)
+	if (StartNodeIndex == -1 || NextEdge == -1 ||
+		(Cluster->Nodes->GetData() + StartNodeIndex)->Adjacency.Num() <= 1)
 	{
-		// Fail. Either single-node or single-edge cluster
+		// Fail. Either single-node or single-edge cluster, or no connected edge
 		return false;
 	}
 
@@ -50,45 +55,65 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		return false;
 	}
 
-	const FVector InitialDir = PCGExMath::GetNormal(SeedPosition, Guide, Guide + FVector::UpVector);
-	const int32 NextToStartIndex = Cluster->FindClosestNeighborInDirection(StartNodeIndex, InitialDir, 2);
+	int32 PrevIndex = StartNodeIndex;
+	int32 NextIndex = (*(ExpandedEdges->GetData() + NextEdge))->OtherNodeIndex(PrevIndex);
 
-	if (NextToStartIndex == -1)
+
+	const FVector A = (*(ExpandedNodes->GetData() + PrevIndex))->Node->Position;
+	const FVector B = (*(ExpandedNodes->GetData() + NextIndex))->Node->Position;
+
+	const double SanityAngle = PCGExMath::GetDegreesBetweenVectors((B - A).GetSafeNormal(), (B - Guide).GetSafeNormal());
+
+	if (SanityAngle > 180)
 	{
-		// Fail. Either single-node or single-edge cluster
-		return false;
+		// Swap search orientation
+		PrevIndex = NextIndex;
+		NextIndex = StartNodeIndex;
+		StartNodeIndex = PrevIndex;
 	}
-
+	
 	TArray<int32> Path;
-	TSet<int32> Visited;
+	Path.Add(PrevIndex);
+	Path.Add(NextIndex);
 
-	int32 PreviousIndex = StartNodeIndex;
-	int32 NextIndex = NextToStartIndex;
-
-	Path.Add(StartNodeIndex);
-	Path.Add(NextToStartIndex);
-	Visited.Add(NextToStartIndex);
-
-	TSet<int32> Exclusion = {PreviousIndex, NextIndex};
-	PreviousIndex = NextToStartIndex;
-	NextIndex = Projection->FindNextAdjacentNode(Settings->OrientationMode, NextToStartIndex, StartNodeIndex, Exclusion, 2);
-
-	while (NextIndex != -1)
+	while (NextEdge != -1)
 	{
-		if (NextIndex == StartNodeIndex) { break; } // Contour closed gracefully
+		const FVector GuideDir = (Positions[(Cluster->Nodes->GetData() + NextIndex)->PointIndex] - Positions[(Cluster->Nodes->GetData() + PrevIndex)->PointIndex]).GetSafeNormal();
+		// Loop through next index' neighbors
+		PCGExCluster::FExpandedNode* ENode = *(ExpandedNodes->GetData() + NextIndex);
 
-		const PCGExCluster::FNode& CurrentNode = NodesRef[NextIndex];
+		double BestAngle = 0;
+		NextEdge = -1;
 
-		Path.Add(NextIndex);
+		for (const PCGExCluster::FExpandedNeighbor& N : ENode->Neighbors)
+		{
+			if (N.Node->NodeIndex == PrevIndex)
+			{
+				//Do not reconnect to previous unless it's our only option
+				if (ENode->Neighbors.Num() > 1) { continue; }
+			}
 
-		if (CurrentNode.IsAdjacentTo(StartNodeIndex)) { break; } // End is in the immediate vicinity
+			if (PrevIndex != StartNodeIndex && N.Node->NodeIndex == StartNodeIndex)
+			{
+				// Gracefully closed contour
+				NextEdge = -1;
+				break;
+			}
 
-		Exclusion.Empty();
-		if (CurrentNode.Adjacency.Num() > 1) { Exclusion.Add(PreviousIndex); }
+			const double Angle = PCGExMath::GetDegreesBetweenVectors(GuideDir, N.Direction);
+			if (Angle > BestAngle)
+			{
+				BestAngle = Angle;
+				NextEdge = N.Edge->EdgeIndex;
+			}
+		}
 
-		const int32 FromIndex = PreviousIndex;
-		PreviousIndex = NextIndex;
-		NextIndex = Projection->FindNextAdjacentNode(Settings->OrientationMode, NextIndex, FromIndex, Exclusion, 1);
+		if (NextEdge != -1)
+		{
+			PrevIndex = NextIndex;
+			NextIndex = (*(ExpandedEdges->GetData() + NextEdge))->OtherNodeIndex(PrevIndex);
+			Path.Add(NextIndex);
+		}
 	}
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
@@ -103,6 +128,8 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 	const FPCGExFindContoursContext* TypedContext = static_cast<FPCGExFindContoursContext*>(ClusterProcessor->Context);
 	TypedContext->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
+
+	TypedContext->SeedForwardHandler->Forward(SeedIndex, PathIO);
 
 	return true;
 }
@@ -131,9 +158,13 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
 
+	PCGEX_FWD(ProjectionDetails)
+
 	PCGExData::FPointIO* SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
 	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
+
+	if (!Context->ProjectionDetails.Init(Context, Context->SeedsDataFacade)) { return false; }
 
 	PCGEX_FWD(SeedAttributesToPathTags)
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
@@ -169,14 +200,14 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 
 		auto ProjectSeed = [&](const int32 Index)
 		{
-			Context->ProjectedSeeds[Index] = Settings->ProjectionDetails.Project(Seeds[Index].Transform.GetLocation());
+			Context->ProjectedSeeds[Index] = Context->ProjectionDetails.Project(Seeds[Index].Transform.GetLocation(), Index);
 		};
 
 		if (!Context->Process(Initialize, ProjectSeed, Seeds.Num())) { return false; }
 
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExFindContours::FProcessor>>(
+		if (!Context->StartProcessingClusters<PCGExFindContours::FBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatch<PCGExFindContours::FProcessor>* NewBatch)
+			[&](PCGExFindContours::FBatch* NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -201,7 +232,7 @@ namespace PCGExFindContours
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(ClusterProjection)
+		if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) }
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -211,14 +242,24 @@ namespace PCGExFindContours
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
+		Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); // We need edge octree anyway
 
-		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(Context, VtxDataFacade);
-		ClusterProjection = new PCGExCluster::FClusterProjection(Cluster, &ProjectionDetails);
+		ExpandedNodes = Cluster->ExpandedNodes;
+		ExpandedEdges = Cluster->GetExpandedEdges(true);
 
-		StartParallelLoopForNodes();
+		if (!ExpandedNodes)
+		{
+			ExpandedNodes = Cluster->GetExpandedNodes(false);
+			bBuildExpandedNodes = true;
+			StartParallelLoopForRange(NumNodes);
+		}
 
 		return true;
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	{
+		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration);
 	}
 
 	void FProcessor::CompleteWork()
@@ -241,9 +282,42 @@ namespace PCGExFindContours
 		}
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
+	void FBatch::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		ClusterProjection->Nodes[Node.NodeIndex].Project(Cluster, &ProjectionDetails);
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindContours)
+
+		// Project positions
+		ProjectionDetails = Settings->ProjectionDetails;
+		if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
+
+		PCGEX_SET_NUM_UNINITIALIZED(ProjectedPositions, VtxIO->GetNum())
+
+		ProjectionTaskGroup = AsyncManager->CreateGroup();
+		ProjectionTaskGroup->StartRanges(
+			[&](const int32 Index)
+			{
+				ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxIO->GetInPoint(Index).Transform.GetLocation(), Index);
+			},
+			VtxIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+
+		TBatch<FProcessor>::Process(AsyncManager);
+	}
+
+	bool FBatch::PrepareSingle(FProcessor* ClusterProcessor)
+	{
+		ClusterProcessor->ProjectedPositions = &ProjectedPositions;
+		TBatch<FProcessor>::PrepareSingle(ClusterProcessor);
+		return true;
+	}
+
+	bool FProjectRangeTask::ExecuteTask()
+	{
+		for (int i = 0; i < NumIterations; i++)
+		{
+			const int32 Index = TaskIndex + i;
+			Batch->ProjectedPositions[Index] = Batch->ProjectionDetails.ProjectFlat(Batch->VtxIO->GetInPoint(Index).Transform.GetLocation(), Index);
+		}
+		return true;
 	}
 
 	bool FPCGExFindContourTask::ExecuteTask()

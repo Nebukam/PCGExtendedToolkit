@@ -246,12 +246,14 @@ namespace PCGExCluster
 
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
-		void RebuildOctree(EPCGExClusterClosestSearchMode Mode);
+		void RebuildOctree(EPCGExClusterClosestSearchMode Mode, const bool bForceRebuild = false);
 
 		int32 FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNode(const FVector& Position, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNodeFromEdge(const FVector& Position, const int32 MinNeighbors = 0) const;
 
+		int32 FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition) const;
+		
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, int32 MinNeighborCount = 1) const;
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const TSet<int32>& Exclusion, int32 MinNeighborCount = 1) const;
 
@@ -385,6 +387,11 @@ namespace PCGExCluster
 		FORCEINLINE double GetEdgeLength() const { return FVector::Dist(Start->Position, End->Position); }
 		FORCEINLINE double GetEdgeLengthSquared() const { return FVector::DistSquared(Start->Position, End->Position); }
 		FORCEINLINE FVector GetCenter() const { return Bounds.Origin; }
+		FORCEINLINE int32 OtherNodeIndex(int32 NodeIndex) const
+		{
+			check(NodeIndex == Start->NodeIndex || NodeIndex == End->NodeIndex)
+			return NodeIndex == Start->NodeIndex ? End->NodeIndex : Start->NodeIndex;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeProjection

@@ -132,7 +132,7 @@ namespace PCGExRelaxClusters
 		RelaxOperation->ReadBuffer = PrimaryBuffer;
 		RelaxOperation->WriteBuffer = SecondaryBuffer;
 
-		IterationGroup->RegisterCallback([&]() { StartRelaxIteration(); });
+		IterationGroup->SetOnCompleteCallback([&]() { StartRelaxIteration(); });
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
 			nullptr, this);

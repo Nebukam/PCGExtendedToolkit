@@ -139,7 +139,7 @@ namespace PCGExRefineEdges
 		if (!TypedContext->PreserveEdgeFilterFactories.IsEmpty())
 		{
 			FilterTaskGroup = AsyncManagerPtr->CreateGroup();
-			FilterTaskGroup->RegisterCallback(
+			FilterTaskGroup->SetOnCompleteCallback(
 				[&]()
 				{
 					if (Settings->Sanitization == EPCGExRefineSanitization::None)
@@ -151,7 +151,7 @@ namespace PCGExRefineEdges
 					Cluster->GetExpandedEdges(true); //Oof
 
 					SanitizeTaskGroup = AsyncManagerPtr->CreateGroup();
-					SanitizeTaskGroup->RegisterCallback([&]() { InsertEdges(); });
+					SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
 					SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
 						NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
 						nullptr, this);

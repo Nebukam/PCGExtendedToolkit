@@ -359,14 +359,16 @@ namespace PCGExCluster
 		}
 	}
 
-	void FCluster::RebuildOctree(const EPCGExClusterClosestSearchMode Mode)
+	void FCluster::RebuildOctree(const EPCGExClusterClosestSearchMode Mode, const bool bForceRebuild)
 	{
 		switch (Mode)
 		{
 		case EPCGExClusterClosestSearchMode::Node:
+			if (NodeOctree && !bForceRebuild) { return; }
 			RebuildNodeOctree();
 			break;
 		case EPCGExClusterClosestSearchMode::Edge:
+			if (EdgeOctree && !bForceRebuild) { return; }
 			RebuildEdgeOctree();
 			break;
 		default: ;
@@ -485,6 +487,46 @@ namespace PCGExCluster
 		ClosestIndex = FVector::DistSquared(Position, Start.Position) < FVector::DistSquared(Position, End.Position) ? Start.NodeIndex : End.NodeIndex;
 
 		return ClosestIndex;
+	}
+
+	int32 FCluster::FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition) const
+	{
+		if (!Nodes->IsValidIndex(InNodeIndex) || (Nodes->GetData() + InNodeIndex)->Adjacency.IsEmpty()) { return -1; }
+		const FNode& Node = *(Nodes->GetData() + InNodeIndex);
+
+		double MinDist = TNumericLimits<double>::Max();
+		int32 BestIndex = -1;
+
+		if (ExpandedNodes)
+		{
+			const FExpandedNode* ENode = *(ExpandedNodes->GetData() + Node.NodeIndex);
+			for (const FExpandedNeighbor& N : ENode->Neighbors)
+			{
+				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Node.Position, N.Node->Position);
+				if (Dist < MinDist)
+				{
+					MinDist = Dist;
+					BestIndex = N.Edge->EdgeIndex;
+				}
+			}
+		}
+		else
+		{
+			for (const int64 H : Node.Adjacency)
+			{
+				uint32 OtherNodeIndex;
+				uint32 OtherEdgeIndex;
+				PCGEx::H64(H, OtherNodeIndex, OtherEdgeIndex);
+				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Node.Position, (Nodes->GetData() + OtherNodeIndex)->Position);
+				if (Dist < MinDist)
+				{
+					MinDist = Dist;
+					BestIndex = OtherEdgeIndex;
+				}
+			}
+		}
+
+		return BestIndex;
 	}
 
 	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const int32 MinNeighborCount) const

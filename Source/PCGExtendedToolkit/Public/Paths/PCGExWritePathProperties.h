@@ -6,9 +6,9 @@
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
 #include "Sampling/PCGExSampling.h"
-#include "PCGExWritePathExtras.generated.h"
+#include "PCGExWritePathProperties.generated.h"
 
-#define PCGEX_FOREACH_FIELD_PATHEXTRAS(MACRO)\
+#define PCGEX_FOREACH_FIELD_PATH(MACRO)\
 MACRO(Dot, double)\
 MACRO(DistanceToNext, double)\
 MACRO(DistanceToPrev, double)\
@@ -19,7 +19,7 @@ MACRO(PointNormal, FVector)\
 MACRO(DirectionToNext, FVector)\
 MACRO(DirectionToPrev, FVector)
 
-#define PCGEX_FOREACH_FIELD_PATHEXTRAS_MARKS(MACRO)\
+#define PCGEX_FOREACH_FIELD_PATH_MARKS(MACRO)\
 MACRO(PathLength, double)\
 MACRO(PathDirection, FVector)\
 MACRO(PathCentroid, FVector)
@@ -28,14 +28,14 @@ MACRO(PathCentroid, FVector)
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExWritePathExtrasSettings : public UPCGExPathProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WritePathExtras, "Path : Write Extras", "Extract & write extra path informations to the path.");
+	PCGEX_NODE_INFOS(WritePathProperties, "Path : Properties", "Extract & write extra path informations to the path.");
 #endif
 
 protected:
@@ -170,19 +170,36 @@ public:
 	/** Name of the 'FVector' attribute to write direction to prev point to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, EditCondition="bWriteDirectionToPrev"))
 	FName DirectionToPrevAttributeName = FName("DirectionToPrev");
+
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(InlineEditConditionToggle))
+	bool bTagConcave = true;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(EditCondition="bTagConcave"))
+	FString ConcaveTag = TEXT("Concave");
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(InlineEditConditionToggle))
+	bool bTagConvex = true;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(EditCondition="bTagConvex"))
+	FString ConvexTag = TEXT("Convex");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasContext final : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExWritePathPropertiesContext final : public FPCGExPathProcessorContext
 {
-	friend class FPCGExWritePathExtrasElement;
+	friend class FPCGExWritePathPropertiesElement;
 
-	virtual ~FPCGExWritePathExtrasContext() override;
+	virtual ~FPCGExWritePathPropertiesContext() override;
 
-	PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
-	PCGEX_FOREACH_FIELD_PATHEXTRAS_MARKS(PCGEX_OUTPUT_DECL_TOGGLE)
+	PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_DECL_TOGGLE)
+	PCGEX_FOREACH_FIELD_PATH_MARKS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasElement final : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExWritePathPropertiesElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -195,11 +212,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExWritePathExtras
+namespace PCGExWritePathProperties
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DECL)
+		PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_DECL)
 
 		TArray<FVector> Positions;
 		bool bClosedPath = false;

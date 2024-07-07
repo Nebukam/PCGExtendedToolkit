@@ -22,12 +22,15 @@ PCGExData::EInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const 
 FPCGExBuildVoronoiGraphContext::~FPCGExBuildVoronoiGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(SitesOutput)
 }
 
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
+	//PCGEX_PIN_POINTS(PCGExGraph::OutputSitesLabel, "Complete delaunay sites.", Required, {})
 	return PinProperties;
 }
 
@@ -42,6 +45,9 @@ bool FPCGExBuildVoronoiGraphElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph)
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
+
+	Context->SitesOutput = new PCGExData::FPointIOCollection();
+	Context->SitesOutput->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
 
 	return true;
 }
@@ -67,6 +73,8 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 					bInvalidInputs = true;
 					return false;
 				}
+
+				Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EInit::NewOutput);
 				return true;
 			},
 			[&](PCGExPointsMT::TBatch<PCGExBuildVoronoi::FProcessor>* NewBatch)
@@ -90,6 +98,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
+		//Context->SitesOutput->OutputTo(Context);
 	}
 
 	return Context->TryComplete();
@@ -117,6 +126,18 @@ namespace PCGExBuildVoronoi
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
 
 		Voronoi = new PCGExGeo::TVoronoi3();
+
+		auto ExtractValidSites = [&]()
+		{
+			const PCGExData::FPointIO* SitesIO = TypedContext->SitesOutput->Pairs[BatchIndex];
+			const TArray<FPCGPoint>& OriginalSites = PointIO->GetIn()->GetPoints();
+			TArray<FPCGPoint>& MutableSites = SitesIO->GetOut()->GetMutablePoints();
+			for (int i = 0; i < OriginalSites.Num(); i++)
+			{
+				if (Voronoi->Delaunay->DelaunayHull.Contains(i)) { continue; }
+				MutableSites.Add(OriginalSites[i]);
+			}
+		};
 
 		if (!Voronoi->Process(ActivePositions))
 		{
@@ -166,6 +187,7 @@ namespace PCGExBuildVoronoi
 			}
 
 			RemappedIndices.Empty();
+			//ExtractValidSites();
 			PCGEX_DELETE(Voronoi)
 
 			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
@@ -209,6 +231,7 @@ namespace PCGExBuildVoronoi
 			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
+			//ExtractValidSites();
 			PCGEX_DELETE(Voronoi)
 		}
 

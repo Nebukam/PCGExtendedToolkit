@@ -58,7 +58,7 @@ public:
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExForwardDetails SeedForwardAttributes;
-
+	
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bUseOctreeSearch = false;
@@ -74,6 +74,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 
 	virtual ~FPCGExFindContoursContext() override;
 
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	PCGExData::FFacade* SeedsDataFacade = nullptr;
 	TArray<FVector> ProjectedSeeds;
 
@@ -103,10 +104,14 @@ namespace PCGExFindContours
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		friend struct FPCGExFindContoursContext;
+		friend class FBatch;
 
 	protected:
-		FPCGExGeo2DProjectionDetails ProjectionDetails;
-		PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
+		TArray<FVector>* ProjectedPositions = nullptr;
+		
+		bool bBuildExpandedNodes = false;
+		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
+		TArray<PCGExCluster::FExpandedEdge*>* ExpandedEdges = nullptr;
 
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
@@ -117,13 +122,47 @@ namespace PCGExFindContours
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSingleRangeIteration(int32 Iteration) override;
 		virtual void CompleteWork() override;
-
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
 
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+		friend class FProjectRangeTask;
+		
+	protected:
+		PCGExMT::FTaskGroup* ProjectionTaskGroup = nullptr;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+		TArray<FVector> ProjectedPositions;
+		
+	public:
+		FBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+			TBatch(InContext, InVtx, InEdges)
+		{
+			
+		}
+
+		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+	};
+
+	class FProjectRangeTask : public PCGExMT::FPCGExTask
+	{
+	public:
+		FProjectRangeTask(PCGExData::FPointIO* InPointIO,
+						FBatch* InBatch):
+			FPCGExTask(InPointIO),
+			Batch(InBatch)
+		{
+		}
+
+		FBatch* Batch = nullptr;
+		int32 NumIterations = 0;
+		virtual bool ExecuteTask() override;
+	};
+	
 	class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public PCGExMT::FPCGExTask
 	{
 	public:
@@ -138,4 +177,5 @@ namespace PCGExFindContours
 
 		virtual bool ExecuteTask() override;
 	};
+	
 }

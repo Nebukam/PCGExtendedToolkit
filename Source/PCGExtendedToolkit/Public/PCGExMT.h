@@ -256,9 +256,11 @@ namespace PCGExMT
 	class PCGEXTENDEDTOOLKIT_API FTaskGroup
 	{
 		friend class FTaskManager;
+		friend class FGroupRangeIterationTask;
 
 	public:
 		using CompletionCallback = std::function<void()>;
+		using IterationCallback = std::function<void(const int32)>;
 
 		explicit FTaskGroup(FTaskManager* InManager):
 			Manager(InManager)
@@ -278,8 +280,10 @@ namespace PCGExMT
 			{
 				NumCompleted = 0;
 				NumStarted = 0;
-
-				OnCompleteCallback();
+				if (bHasOnCompleteCallback)
+				{
+					OnCompleteCallback();
+				}
 			}
 		}
 
@@ -320,12 +324,20 @@ namespace PCGExMT
 			}
 		}
 
-		void RegisterCallback(const CompletionCallback& Callback) { OnCompleteCallback = Callback; }
+		void StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize);
+
+		void SetOnCompleteCallback(const CompletionCallback& Callback)
+		{
+			bHasOnCompleteCallback = true;
+			OnCompleteCallback = Callback;
+		}
 
 	protected:
 		FTaskManager* Manager;
 		mutable FRWLock GroupLock;
+		bool bHasOnCompleteCallback = false;
 		CompletionCallback OnCompleteCallback;
+		IterationCallback OnIterationCallback;
 		bool bFlushing = false;
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
@@ -399,6 +411,18 @@ namespace PCGExMT
 	{
 	public:
 		FGroupRangeCallbackTask(PCGExData::FPointIO* InPointIO):
+			FPCGExTask(InPointIO)
+		{
+		}
+
+		int32 NumIterations = 0;
+		virtual bool ExecuteTask() override;
+	};
+
+	class FGroupRangeIterationTask : public PCGExMT::FPCGExTask
+	{
+	public:
+		FGroupRangeIterationTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}

@@ -51,7 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 	FQuat ProjectionQuat = FQuat::Identity;
 	FQuat ProjectionInverseQuat = FQuat::Identity;
 
-	void Init(const FPCGContext* InContext, PCGExData::FFacade* PointDataFacade = nullptr)
+	bool Init(const FPCGContext* InContext, PCGExData::FFacade* PointDataFacade = nullptr)
 	{
 		ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
 		ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::UpVector);
@@ -61,8 +61,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 		if (bLocalProjectionNormal && PointDataFacade)
 		{
 			NormalGetter = PointDataFacade->GetOrCreateGetter<FVector>(LocalNormal);
-			if (!NormalGetter) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing normal attribute for projection.")); }
+			if (!NormalGetter)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing normal attribute for projection."));
+				return false;
+			}
 		}
+
+		return true;
 	}
 
 	~FPCGExGeo2DProjectionDetails()
@@ -196,6 +202,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 			for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPoints[i].Transform.GetLocation()); }
 		}
 	}
+
 };
 
 USTRUCT(BlueprintType)

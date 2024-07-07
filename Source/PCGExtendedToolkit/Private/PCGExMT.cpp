@@ -50,4 +50,16 @@ namespace PCGExMT
 		NumStarted = 0;
 		NumCompleted = 0;
 	}
+
+	void FTaskGroup::StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize)
+	{
+		OnIterationCallback = Callback;
+		StartRanges<FGroupRangeIterationTask>(MaxItems, ChunkSize, nullptr);
+	}
+
+	bool FGroupRangeIterationTask::ExecuteTask()
+	{
+		for (int i = 0; i < NumIterations; i++) { Group->OnIterationCallback(TaskIndex + i); }
+		return true;
+	}
 }

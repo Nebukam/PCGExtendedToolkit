@@ -80,6 +80,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext final : public FPCG
 	friend class FPCGExBuildVoronoiGraphElement;
 
 	virtual ~FPCGExBuildVoronoiGraphContext() override;
+
+	PCGExData::FPointIOCollection* SitesOutput = nullptr;
+	
 };
 
 
