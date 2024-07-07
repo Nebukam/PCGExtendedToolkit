@@ -311,7 +311,6 @@ namespace PCGExFuseClusters
 
 	void FProcessor::CompleteWork()
 	{
-		FClusterProcessor::CompleteWork()
 		if (bInvalidEdges)
 		{
 		}
