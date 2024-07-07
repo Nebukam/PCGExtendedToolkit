@@ -163,7 +163,7 @@ namespace PCGExRelaxClusters
 		(*RelaxOperation->WriteBuffer)[Index] = FMath::Lerp(
 			*(RelaxOperation->ReadBuffer->GetData() + Index),
 			*(RelaxOperation->WriteBuffer->GetData() + Index),
-			InfluenceDetails.GetInfluence(Index));
+			InfluenceDetails.GetInfluence(Node.PointIndex));
 	}
 
 	void FProcessor::CompleteWork()
