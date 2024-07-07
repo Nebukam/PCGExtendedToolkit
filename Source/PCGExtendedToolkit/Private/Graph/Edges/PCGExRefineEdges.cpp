@@ -49,7 +49,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	PCGExFactories::GetInputFactories(Context, PCGExRefineEdges::SourceProtectEdgeFilters, Context->PreserveEdgeFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExRefineEdges::SourceProtectEdgeFilters, Context->PreserveEdgeFilterFactories, PCGExFactories::PointFilters, false);
 
 	return true;
 }
@@ -101,6 +101,7 @@ namespace PCGExRefineEdges
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE_OPERATION(Refinement)
+		PCGEX_DELETE(FilterManager);
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -108,6 +109,8 @@ namespace PCGExRefineEdges
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+
+		Sanitization = Settings->Sanitization;
 
 		Refinement = TypedContext->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
 		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
@@ -122,21 +125,119 @@ namespace PCGExRefineEdges
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) { Refinement->ProcessEdge(Edge); }
 
+	void FProcessor::InsertEdges()
+	{
+		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
+		Cluster->GetValidEdges(ValidEdges);
+		GraphBuilder->Graph->InsertEdges(ValidEdges);
+	}
+
 	void FProcessor::CompleteWork()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 
 		if (!TypedContext->PreserveEdgeFilterFactories.IsEmpty())
 		{
-			PCGExPointFilter::TManager* FilterManager = new PCGExPointFilter::TManager(EdgeDataFacade);
+			FilterTaskGroup = AsyncManagerPtr->CreateGroup();
+			FilterTaskGroup->RegisterCallback(
+				[&]()
+				{
+					if (Settings->Sanitization == EPCGExRefineSanitization::None)
+					{
+						InsertEdges();
+						return;
+					}
+
+					Cluster->GetExpandedEdges(true); //Oof
+
+					SanitizeTaskGroup = AsyncManagerPtr->CreateGroup();
+					SanitizeTaskGroup->RegisterCallback([&]() { InsertEdges(); });
+					SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
+						NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
+						nullptr, this);
+				});
+
+			FilterManager = new PCGExPointFilter::TManager(EdgeDataFacade);
 			FilterManager->Init(Context, TypedContext->PreserveEdgeFilterFactories);
-			for (PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges) { if (!Edge.bValid) { Edge.bValid = FilterManager->Test(Edge.EdgeIndex); } }
-			PCGEX_DELETE(FilterManager);
+			FilterTaskGroup->StartRanges<FFilterRangeTask>(
+				NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
+				nullptr, this);
+		}
+		else
+		{
+			InsertEdges();
+		}
+	}
+
+	bool FFilterRangeTask::ExecuteTask()
+	{
+		for (int i = 0; i < NumIterations; i++)
+		{
+			PCGExGraph::FIndexedEdge& Edge = *(Processor->Cluster->Edges->GetData() + TaskIndex + i);
+			if (!Edge.bValid) { Edge.bValid = Processor->FilterManager->Test(Edge.EdgeIndex); }
 		}
 
-		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
-		Cluster->GetValidEdges(ValidEdges);
-		GraphBuilder->Graph->InsertEdges(ValidEdges);
+		return true;
+	}
+
+	bool FSanitizeRangeTask::ExecuteTask()
+	{
+		for (int i = 0; i < NumIterations; i++)
+		{
+			const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + TaskIndex + i);
+			const int32 NumNeighbors = Node.Adjacency.Num();
+
+			if (Processor->Sanitization == EPCGExRefineSanitization::Longest)
+			{
+				int32 LongestEdge = -1;
+				double LongestLength = TNumericLimits<double>::Min();
+
+				for (int h = 0; h < NumNeighbors; h++)
+				{
+					const PCGExCluster::FExpandedEdge* EEdge = *(Processor->Cluster->ExpandedEdges->GetData() + PCGEx::H64B(Node.Adjacency[h]));
+					if (((Processor->Cluster->Edges->GetData() + EEdge->Index))->bValid)
+					{
+						LongestEdge = -1;
+						break;
+					}
+
+					const double ELengthSqr = EEdge->GetEdgeLengthSquared();
+					if (LongestLength < ELengthSqr)
+					{
+						LongestLength = ELengthSqr;
+						LongestEdge = EEdge->Index;
+					}
+				}
+
+				if (LongestEdge != -1) { ((Processor->Cluster->Edges->GetData() + LongestEdge))->bValid = true; }
+			}
+			else
+			{
+				int32 ShortestEdge = -1;
+				double ShortestLength = TNumericLimits<double>::Max();
+
+				for (int h = 0; h < NumNeighbors; h++)
+				{
+					const PCGExCluster::FExpandedEdge* EEdge = *(Processor->Cluster->ExpandedEdges->GetData() + PCGEx::H64B(Node.Adjacency[h]));
+					if (((Processor->Cluster->Edges->GetData() + EEdge->Index))->bValid)
+					{
+						ShortestEdge = -1;
+						break;
+					}
+
+					const double ELengthSqr = EEdge->GetEdgeLengthSquared();
+					if (ShortestLength > ELengthSqr)
+					{
+						ShortestLength = ELengthSqr;
+						ShortestEdge = EEdge->Index;
+					}
+				}
+
+				if (ShortestEdge != -1) { ((Processor->Cluster->Edges->GetData() + ShortestEdge))->bValid = true; }
+			}
+		}
+
+		return true;
 	}
 }
 

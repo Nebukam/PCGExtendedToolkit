@@ -40,7 +40,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	virtual bool RequiresNodeOctree() { return false; }
 	virtual bool RequiresEdgeOctree() { return false; }
 	virtual bool RequiresHeuristics() { return false; }
@@ -68,5 +68,4 @@ protected:
 	PCGExHeuristics::THeuristicsHandler* Heuristics = nullptr;
 	mutable FRWLock EdgeLock;
 	mutable FRWLock NodeLock;
-	
 };

@@ -9,7 +9,16 @@ namespace PCGExMT
 	FTaskManager::~FTaskManager()
 	{
 		bStopped = true;
+		PCGEX_DELETE_TARRAY(Groups)
 		Reset();
+	}
+
+	FTaskGroup* FTaskManager::CreateGroup()
+	{
+		FWriteScopeLock WriteScopeLock(ManagerLock);
+		FTaskGroup* NewGroup = new FTaskGroup(this);
+		Groups.Add(NewGroup);
+		return NewGroup;
 	}
 
 	void FTaskManager::OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess)

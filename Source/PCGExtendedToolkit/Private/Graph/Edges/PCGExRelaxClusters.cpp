@@ -106,6 +106,8 @@ namespace PCGExRelaxClusters
 		ExpandedNodes = Cluster->ExpandedNodes;
 		Iterations = Settings->Iterations;
 
+		IterationGroup = AsyncManagerPtr->CreateGroup();
+
 		if (!ExpandedNodes)
 		{
 			ExpandedNodes = Cluster->GetExpandedNodes(false);
@@ -125,28 +127,15 @@ namespace PCGExRelaxClusters
 		if (Iterations <= 0) { return; }
 
 		Iterations--;
-		NumSubrangesComplete = 0;
-
 		std::swap(PrimaryBuffer, SecondaryBuffer);
 
 		RelaxOperation->ReadBuffer = PrimaryBuffer;
 		RelaxOperation->WriteBuffer = SecondaryBuffer;
 
-		TArray<uint64> Loops;
-		NumSubranges = PCGExMT::SubRanges(Loops, NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
-
-		for (const uint64 H : Loops) { AsyncManagerPtr->Start<FRelaxRangeTask>(PCGEx::H64A(H), nullptr, this, PCGEx::H64B(H)); }
-	}
-
-	void FProcessor::OnRelaxSubrangeComplete()
-	{
-		{
-			FWriteScopeLock WriteScopeLock(RangeCompleteLock);
-			NumSubrangesComplete++;
-			if (NumSubranges != NumSubrangesComplete) { return; }
-		}
-
-		StartRelaxIteration();
+		IterationGroup->RegisterCallback([&]() { StartRelaxIteration(); });
+		IterationGroup->StartRanges<FRelaxRangeTask>(
+			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
+			nullptr, this);
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
@@ -213,7 +202,6 @@ namespace PCGExRelaxClusters
 			Processor->ProcessSingleNode(Index, *(Processor->Cluster->Nodes->GetData() + Index));
 		}
 
-		Processor->OnRelaxSubrangeComplete();
 		return true;
 	}
 }

@@ -11,7 +11,7 @@ void UPCGExEdgeRefineOperation::PrepareForCluster(PCGExCluster::FCluster* InClus
 {
 	Cluster = InCluster;
 	Heuristics = InHeuristics;
-	
+
 	if (RequiresNodeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node); }
 	if (RequiresEdgeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); }
 }

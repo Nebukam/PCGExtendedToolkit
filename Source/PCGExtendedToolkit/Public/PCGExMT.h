@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "PCGContext.h"
 #include "PCGExMacros.h"
 #include "Data/PCGExPointIO.h"
@@ -156,10 +158,13 @@ namespace PCGExMT
 	};
 
 	class FPCGExTask;
+	class FTaskGroup;
+	class FGroupRangeCallbackTask;
 
 	class PCGEXTENDEDTOOLKIT_API FTaskManager
 	{
 		friend class FPCGExTask;
+		friend class FTaskGroup;
 
 	public:
 		~FTaskManager();
@@ -168,6 +173,8 @@ namespace PCGExMT
 		FPCGContext* Context;
 		bool bStopped = false;
 		bool bForceSync = false;
+
+		FTaskGroup* CreateGroup();
 
 		template <typename T, typename... Args>
 		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
@@ -203,7 +210,7 @@ namespace PCGExMT
 			}
 
 			T& Task = AsyncTask->GetTask();
-			Task.TaskPtr = AsyncTask;
+			//Task.TaskPtr = AsyncTask;
 			Task.Manager = this;
 			Task.TaskIndex = TaskIndex;
 
@@ -219,7 +226,7 @@ namespace PCGExMT
 			}
 
 			T& Task = AsyncTask->GetTask();
-			Task.TaskPtr = AsyncTask;
+			//Task.TaskPtr = AsyncTask;
 			Task.Manager = this;
 			Task.TaskIndex = TaskIndex;
 			Task.bIsAsync = false;
@@ -227,7 +234,6 @@ namespace PCGExMT
 			Task.ExecuteTask();
 			delete AsyncTask;
 		}
-
 
 		void Reserve(const int32 NumTasks) { QueuedTasks.Reserve(NumTasks); }
 
@@ -244,20 +250,106 @@ namespace PCGExMT
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
 		TSet<FAsyncTaskBase*> QueuedTasks;
+		TArray<FTaskGroup*> Groups;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FTaskGroup
+	{
+		friend class FTaskManager;
+
+	public:
+		using CompletionCallback = std::function<void()>;
+
+		explicit FTaskGroup(FTaskManager* InManager):
+			Manager(InManager)
+		{
+		}
+
+		~FTaskGroup()
+		{
+		}
+
+		void OnTaskCompleted()
+		{
+			FWriteScopeLock WriteScopeLock(GroupLock);
+			NumCompleted++;
+
+			if (NumCompleted == NumStarted)
+			{
+				NumCompleted = 0;
+				NumStarted = 0;
+
+				OnCompleteCallback();
+			}
+		}
+
+		template <typename T, typename... Args>
+		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+		{
+			{
+				FReadScopeLock ReadScopeLock(Manager->ManagerLock);
+				if (Manager->bStopped || Manager->bFlushing) { return; }
+			}
+
+			NumStarted++;
+			FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
+			ATask->GetTask().Group = this;
+			if (Manager->bForceSync) { Manager->StartSynchronousTask<T>(ATask, TaskIndex); }
+			else { Manager->StartBackgroundTask<T>(ATask, TaskIndex); }
+		}
+
+		template <typename T, typename... Args>
+		void StartRanges(const int32 MaxItems, const int32 ChunkSize, PCGExData::FPointIO* InPointsIO, Args... args)
+		{
+			{
+				FReadScopeLock ReadScopeLock(Manager->ManagerLock);
+				if (Manager->bStopped || Manager->bFlushing) { return; }
+			}
+
+			TArray<uint64> Loops;
+			NumStarted += SubRanges(Loops, MaxItems, ChunkSize);
+
+			for (const uint64 H : Loops)
+			{
+				FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
+				ATask->GetTask().Group = this;
+				ATask->GetTask().NumIterations = PCGEx::H64B(H);
+
+				if (Manager->bForceSync) { Manager->StartSynchronousTask<T>(ATask, PCGEx::H64A(H)); }
+				else { Manager->StartBackgroundTask<T>(ATask, PCGEx::H64A(H)); }
+			}
+		}
+
+		void RegisterCallback(const CompletionCallback& Callback) { OnCompleteCallback = Callback; }
+
+	protected:
+		FTaskManager* Manager;
+		mutable FRWLock GroupLock;
+		CompletionCallback OnCompleteCallback;
+		bool bFlushing = false;
+		int32 NumStarted = 0;
+		int32 NumCompleted = 0;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API PCGExMT::FPCGExTask : public FNonAbandonableTask
 	{
 		friend class FTaskManager;
+		friend class FTaskGroup;
 
 	protected:
 		bool bIsAsync = true;
 
 	public:
-		virtual ~FPCGExTask() = default;
+		virtual ~FPCGExTask()
+		{
+			Manager = nullptr;
+			Group = nullptr;
+		}
+
 		FTaskManager* Manager = nullptr;
+		FTaskGroup* Group = nullptr;
 		int32 TaskIndex = -1;
-		FAsyncTaskBase* TaskPtr = nullptr;
+		//FAsyncTaskBase* TaskPtr = nullptr;
 		PCGExData::FPointIO* PointIO = nullptr;
 
 #define PCGEX_ASYNC_CHECKPOINT_VOID  if (!Checkpoint()) { return; }
@@ -277,6 +369,7 @@ namespace PCGExMT
 			if (bWorkDone) { return; }
 			PCGEX_ASYNC_CHECKPOINT_VOID
 			bWorkDone = true;
+			if (Group) { Group->OnTaskCompleted(); }
 			Manager->OnAsyncTaskExecutionComplete(this, ExecuteTask());
 		}
 
@@ -300,6 +393,18 @@ namespace PCGExMT
 			PCGEX_ASYNC_CHECKPOINT_VOID
 			Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...);
 		}
+	};
+
+	class FGroupRangeCallbackTask : public FPCGExTask
+	{
+	public:
+		FGroupRangeCallbackTask(PCGExData::FPointIO* InPointIO):
+			FPCGExTask(InPointIO)
+		{
+		}
+
+		int32 NumIterations = 0;
+		virtual bool ExecuteTask() override;
 	};
 
 	template <typename T>

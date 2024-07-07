@@ -115,14 +115,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToClustersContext final : public FPCGExP
 	virtual ~FPCGExPathToClustersContext() override;
 
 	TArray<PCGExData::FFacade*> PathsFacades;
-	
+
 	FPCGExCarryOverDetails CarryOverDetails;
 
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FFacade* CompoundFacade = nullptr;
 
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
-	
+
 	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
 };
 

@@ -307,7 +307,7 @@ namespace PCGExCluster
 	void FCluster::RebuildNodeOctree()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCluster::RebuildNodeOctree);
-		
+
 		PCGEX_DELETE(NodeOctree)
 		const FPCGPoint* StartPtr = VtxIO->GetIn()->GetPoints().GetData();
 		NodeOctree = new ClusterItemOctree(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
@@ -324,7 +324,7 @@ namespace PCGExCluster
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCluster::RebuildEdgeOctree);
 
 		check(Bounds.GetExtent().Length() != 0)
-		
+
 		PCGEX_DELETE(EdgeOctree)
 
 		const TArray<FNode>& NodesRef = *Nodes;
@@ -767,7 +767,7 @@ namespace PCGExCluster
 	void FCluster::ExpandEdges(PCGExMT::FTaskManager* AsyncManager)
 	{
 		if (ExpandedEdges) { return; }
-		
+
 		bOwnsExpandedEdges = true;
 		ExpandedEdges = new TArray<FExpandedEdge*>();
 		PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num())

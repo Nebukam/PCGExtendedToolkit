@@ -73,9 +73,7 @@ namespace PCGExRelaxClusters
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-		mutable FRWLock RangeCompleteLock;
-		int32 NumSubranges = 0;
-		int32 NumSubrangesComplete = 0;
+		PCGExMT::FTaskGroup* IterationGroup = nullptr;
 		int32 Iterations = 10;
 
 		PCGExData::FCache<double>* InfluenceCache = nullptr;
@@ -101,7 +99,6 @@ namespace PCGExRelaxClusters
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		void StartRelaxIteration();
-		void OnRelaxSubrangeComplete();
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void CompleteWork() override;
@@ -112,11 +109,9 @@ namespace PCGExRelaxClusters
 	{
 	public:
 		FRelaxRangeTask(PCGExData::FPointIO* InPointIO,
-		                FProcessor* InProcessor,
-		                const int32 InNumIterations):
+		                FProcessor* InProcessor):
 			FPCGExTask(InPointIO),
-			Processor(InProcessor),
-			NumIterations(InNumIterations)
+			Processor(InProcessor)
 		{
 		}
 
