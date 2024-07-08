@@ -76,21 +76,24 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	Path.Add(PrevIndex);
 	TSet<int32> Exclusions = {PrevIndex, NextIndex};
 
+	bool bIsConvex = true;
+	int32 Sign = 0;
+
 	bool bGracefullyClosed = false;
 	while (NextIndex != -1)
 	{
 		Path.Add(NextIndex);
 
 		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
-	//	if (Current->Neighbors.Num() <= 1) { break; }
+		//	if (Current->Neighbors.Num() <= 1) { break; }
 
 		const FVector Origin = Positions[(Cluster->Nodes->GetData() + NextIndex)->PointIndex];
 		const FVector GuideDir = (Origin - Positions[(Cluster->Nodes->GetData() + PrevIndex)->PointIndex]).GetSafeNormal();
 
-		double BestAngle = 0;
+		double BestAngle = -1;
 		int32 NextBest = -1;
 
-		if(Current->Neighbors.Num() > 1){ Exclusions.Add(PrevIndex); }
+		if (Current->Neighbors.Num() > 1) { Exclusions.Add(PrevIndex); }
 
 		for (const PCGExCluster::FExpandedNeighbor& N : Current->Neighbors)
 		{
@@ -117,6 +120,17 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 		if (NextBest != -1)
 		{
+			if (Settings->OutputType != EPCGExContourShapeTypeOutput::Both && Path.Num() > 2)
+			{
+				PCGExMath::CheckConvex(
+					(Cluster->Nodes->GetData() + Path.Last(2))->Position,
+					(Cluster->Nodes->GetData() + Path.Last(1))->Position,
+					(Cluster->Nodes->GetData() + Path.Last())->Position,
+					bIsConvex, Sign);
+
+				if (!bIsConvex && Settings->OutputType == EPCGExContourShapeTypeOutput::ConvexOnly) { return false; }
+			}
+
 			PrevIndex = NextIndex;
 			NextIndex = NextBest;
 		}
@@ -126,7 +140,11 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		}
 	}
 
-	if (Settings->bKeepOnlyGracefulContours && !bGracefullyClosed) { return false; }
+	if ((Settings->bKeepOnlyGracefulContours && !bGracefullyClosed) ||
+		(bIsConvex && Settings->OutputType == EPCGExContourShapeTypeOutput::ConcaveOnly))
+	{
+		return false;
+	}
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);
@@ -142,6 +160,12 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	TypedContext->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
 
 	TypedContext->SeedForwardHandler->Forward(SeedIndex, PathIO);
+
+	if (Sign != 0)
+	{
+		if (Settings->bTagConcave && !bIsConvex) { PathIO->Tags->RawTags.Add(Settings->ConcaveTag); }
+		if (Settings->bTagConvex && bIsConvex) { PathIO->Tags->RawTags.Add(Settings->ConvexTag); }
+	}
 
 	return true;
 }

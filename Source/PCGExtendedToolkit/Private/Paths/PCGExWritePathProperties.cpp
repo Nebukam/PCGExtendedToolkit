@@ -102,26 +102,10 @@ namespace PCGExWritePathProperties
 
 		auto CheckConvex = [&](const int32 A, const int32 B, const int32 C)
 		{
-			if (!bIsConvex) { return; }
-
-			const FVector VA = Positions[A];
-			const FVector VB = Positions[B];
-			const FVector VC = Positions[C];
-
-			if(VA == VC)
-			{
-				bIsConvex = false;
-				return;
-			}
-			
-			const double DP = FVector::DotProduct(FVector::CrossProduct((VA - VB), (VC - VA)), FVector::UpVector);
-			const int32 CurrentSign = (DP > 0.0f) ? 1 : (DP < 0.0f) ? -1 : 0;
-
-			if (CurrentSign != 0)
-			{
-				if (Sign == 0) { Sign = CurrentSign; }
-				else if (Sign != CurrentSign) { bIsConvex = false; }
-			}
+			if (!Settings->bTagConcave && !Settings->bTagConvex) { return; }
+			PCGExMath::CheckConvex(
+				Positions[A], Positions[B], Positions[C],
+				bIsConvex, Sign);
 		};
 
 		for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
@@ -177,7 +161,7 @@ namespace PCGExWritePathProperties
 		if (bClosedPath)
 		{
 			CheckConvex(LastIndex, 0, 1);
-			
+
 			PCGEX_OUTPUT_VALUE(DirectionToPrev, 0, (Positions[0] - Positions[LastIndex]).GetSafeNormal());
 			PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex] - Positions[0]).GetSafeNormal());
 

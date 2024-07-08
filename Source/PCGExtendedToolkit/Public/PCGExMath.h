@@ -1127,6 +1127,26 @@ namespace PCGExMath
 		return FVector::DotProduct(FVector::CrossProduct(A, B), UpVector) < 0 ? 360 - D : D;
 	}
 
+	FORCEINLINE void CheckConvex(const FVector& A, const FVector& B, const FVector& C, bool& bIsConvex, int32& OutSign, const FVector& UpVector = FVector::UpVector)
+	{
+		if (!bIsConvex) { return; }
+
+		if(A == C)
+		{
+			bIsConvex = false;
+			return;
+		}
+			
+		const double DP = FVector::DotProduct(FVector::CrossProduct((A - B), (C - A)), UpVector);
+		const int32 CurrentSign = (DP > 0.0f) ? 1 : (DP < 0.0f) ? -1 : 0;
+
+		if (CurrentSign != 0)
+		{
+			if (OutSign == 0) { OutSign = CurrentSign; }
+			else if (OutSign != CurrentSign) { bIsConvex = false; }
+		}
+	};
+
 #pragma region Spatialized distances
 
 	// Stolen from PCGDistance

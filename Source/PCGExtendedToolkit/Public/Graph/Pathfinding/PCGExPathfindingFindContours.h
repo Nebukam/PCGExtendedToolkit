@@ -14,6 +14,14 @@ namespace PCGExFindContours
 	class FProcessor;
 }
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output"))
+enum class EPCGExContourShapeTypeOutput : uint8
+{
+	Both UMETA(DisplayName = "Convex & Concave", ToolTip="Output both convex and concave paths"),
+	ConvexOnly UMETA(DisplayName = "Convex Only", ToolTip="Output only convex paths"),
+	ConcaveOnly UMETA(DisplayName = "Concave Only", ToolTip="Output only concave paths")
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class PCGEXTENDEDTOOLKIT_API UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
 {
@@ -39,9 +47,13 @@ public:
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
-	/**  */
+	/** Keep only contours that closed gracefully; i.e connect to their start node */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bKeepOnlyGracefulContours = true;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExContourShapeTypeOutput OutputType = EPCGExContourShapeTypeOutput::Both;
 	
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -62,6 +74,22 @@ public:
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExForwardDetails SeedForwardAttributes;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	bool bTagConcave = false;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagConcave"))
+	FString ConcaveTag = TEXT("Concave");
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	bool bTagConvex = false;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagConvex"))
+	FString ConvexTag = TEXT("Convex");
 	
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")

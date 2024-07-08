@@ -174,7 +174,7 @@ public:
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(InlineEditConditionToggle))
-	bool bTagConcave = true;
+	bool bTagConcave = false;
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(EditCondition="bTagConcave"))
@@ -182,7 +182,7 @@ public:
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(InlineEditConditionToggle))
-	bool bTagConvex = true;
+	bool bTagConvex = false;
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tags", meta=(EditCondition="bTagConvex"))
