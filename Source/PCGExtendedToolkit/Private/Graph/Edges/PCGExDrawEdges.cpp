@@ -115,7 +115,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 
 	return Context->IsDone();
 
-#elif
+#else
 
 	DisabledPassThroughData(Context);
 	return true;
