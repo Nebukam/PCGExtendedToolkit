@@ -853,63 +853,33 @@ namespace PCGExCluster
 	{
 	}
 
-	void FNodeProjection::Project(const FCluster* InCluster, const FPCGExGeo2DProjectionDetails* ProjectionDetails)
-	{
-		const TArray<FNode>& NodesRef = *InCluster->Nodes;
-
-		Normal = FVector::UpVector;
-
-		const int32 NumNodes = Node->Adjacency.Num();
-		SortedAdjacency.SetNum(NumNodes);
-
-		TArray<int32> Sort;
-		TArray<double> Angles;
-
-		Sort.SetNum(NumNodes);
-		Angles.SetNum(NumNodes);
-
-		for (int i = 0; i < NumNodes; i++)
-		{
-			Sort[i] = i;
-			FVector Direction = ProjectionDetails->Project((Node->Position - NodesRef[PCGEx::H64A(Node->Adjacency[i])].Position), Node->PointIndex);
-			Direction.Z = 0;
-			Angles[i] = PCGExMath::GetAngle(FVector::ForwardVector, Direction.GetSafeNormal());
-		}
-
-		Sort.Sort([&](const int32& A, const int32& B) { return Angles[A] > Angles[B]; });
-		for (int i = 0; i < NumNodes; i++) { SortedAdjacency[i] = Node->Adjacency[Sort[i]]; }
-
-		Sort.Empty();
-		Angles.Empty();
-	}
-
 	void FNodeProjection::ComputeNormal(const FCluster* InCluster)
 	{
 		const TArray<FNode>& NodesRef = *InCluster->Nodes;
+		const int32 NumNeighbors = Node->Adjacency.Num();
 
 		Normal = FVector::ZeroVector;
 
-		if (SortedAdjacency.IsEmpty())
+		if (Node->Adjacency.IsEmpty())
 		{
 			Normal = FVector::UpVector;
 			return;
 		}
 
-		Normal = PCGExMath::GetNormal(NodesRef[PCGEx::H64A(SortedAdjacency.Last())].Position, Node->Position, NodesRef[PCGEx::H64A(SortedAdjacency[0])].Position);
+		Normal = PCGExMath::GetNormal(NodesRef[PCGEx::H64A(Node->Adjacency.Last())].Position, Node->Position, NodesRef[PCGEx::H64A(Node->Adjacency[0])].Position);
 
-		if (SortedAdjacency.Num() < 2) { return; }
+		if (NumNeighbors < 2) { return; }
 
-		for (int i = 0; i < SortedAdjacency.Num() - 1; i++)
+		for (int i = 0; i < NumNeighbors - 1; i++)
 		{
-			Normal += PCGExMath::GetNormal(NodesRef[PCGEx::H64A(SortedAdjacency[i])].Position, Node->Position, NodesRef[PCGEx::H64A(SortedAdjacency[i + 1])].Position);
+			Normal += PCGExMath::GetNormal(NodesRef[PCGEx::H64A(Node->Adjacency[i])].Position, Node->Position, NodesRef[PCGEx::H64A(Node->Adjacency[i + 1])].Position);
 		}
 
-		Normal /= SortedAdjacency.Num();
+		Normal /= NumNeighbors;
 	}
 
 	FNodeProjection::~FNodeProjection()
 	{
-		SortedAdjacency.Empty();
 	}
 
 #pragma endregion
@@ -926,64 +896,6 @@ namespace PCGExCluster
 	FClusterProjection::~FClusterProjection()
 	{
 		Nodes.Empty();
-	}
-
-	void FClusterProjection::Build()
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProjection::Build);
-		for (FNodeProjection& PNode
-
-
-		     :
-		     Nodes
-		)
-		{
-			PNode.Project(Cluster, ProjectionDetails);
-		}
-	}
-
-	int32 FClusterProjection::FindNextAdjacentNodeCCW(const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
-	{
-		const TArray<FNode>& NodesRef = *Cluster->Nodes;
-
-		const FNodeProjection& Project = Nodes[NodeIndex];
-		const int32 StartIndex = Project.GetAdjacencyIndex(From);
-		if (StartIndex == -1) { return -1; }
-
-		const int32 NumNodes = Project.SortedAdjacency.Num();
-		for (int i = 0; i < NumNodes; i++)
-		{
-			const int32 NextIndex = PCGEx::H64A(Project.SortedAdjacency[PCGExMath::Tile(StartIndex + i + 1, 0, NumNodes - 1)]);
-			if ((NextIndex == From && NumNodes > 1) ||
-				Exclusion.Contains(NextIndex) ||
-				NodesRef[NextIndex].Adjacency.Num() < MinNeighbors) { continue; }
-
-			return NextIndex;
-		}
-
-		return -1;
-	}
-
-	int32 FClusterProjection::FindNextAdjacentNodeCW(const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
-	{
-		const TArray<FNode>& NodesRef = *Cluster->Nodes;
-
-		const FNodeProjection& Project = Nodes[NodeIndex];
-		const int32 StartIndex = Project.GetAdjacencyIndex(From);
-		if (StartIndex == -1) { return -1; }
-
-		const int32 NumNodes = Project.SortedAdjacency.Num();
-		for (int i = 0; i < NumNodes; i++)
-		{
-			const int32 NextIndex = PCGEx::H64A(Project.SortedAdjacency[PCGExMath::Tile(StartIndex - i - 1, 0, NumNodes - 1)]);
-			if ((NextIndex == From && NumNodes > 1) ||
-				Exclusion.Contains(NextIndex) ||
-				NodesRef[NextIndex].Adjacency.Num() < MinNeighbors) { continue; }
-
-			return NextIndex;
-		}
-
-		return -1;
 	}
 
 #pragma endregion

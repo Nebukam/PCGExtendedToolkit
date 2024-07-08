@@ -398,17 +398,9 @@ namespace PCGExCluster
 	{
 		FNode* Node = nullptr;
 		FVector Normal = FVector::UpVector;
-		TArray<uint64> SortedAdjacency;
 
 		explicit FNodeProjection(FNode* InNode);
-
-		void Project(const FCluster* InCluster, const FPCGExGeo2DProjectionDetails* ProjectionDetails);
 		void ComputeNormal(const FCluster* InCluster);
-		FORCEINLINE int32 GetAdjacencyIndex(int32 NodeIndex) const
-		{
-			for (int i = 0; i < SortedAdjacency.Num(); i++) { if (PCGEx::H64A(SortedAdjacency[i]) == NodeIndex) { return i; } }
-			return -1;
-		}
 
 		~FNodeProjection();
 	};
@@ -420,18 +412,8 @@ namespace PCGExCluster
 		TArray<FNodeProjection> Nodes;
 
 		FClusterProjection(FCluster* InCluster, FPCGExGeo2DProjectionDetails* InProjectionDetails);
-
 		~FClusterProjection();
 
-		void Build();
-		FORCEINLINE int32 FindNextAdjacentNode(const EPCGExClusterSearchOrientationMode Orient, const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
-		{
-			if (Orient == EPCGExClusterSearchOrientationMode::CW) { return FindNextAdjacentNodeCW(NodeIndex, From, Exclusion, MinNeighbors); }
-			return FindNextAdjacentNodeCCW(NodeIndex, From, Exclusion, MinNeighbors);
-		}
-
-		int32 FindNextAdjacentNodeCCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
-		int32 FindNextAdjacentNodeCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeChain

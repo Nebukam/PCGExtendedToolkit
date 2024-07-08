@@ -108,7 +108,7 @@ namespace PCGExWriteVtxProperties
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
-		ProjectedCluster->Nodes[Iteration].Project(Cluster, ProjectionDetails);
+		//ProjectedCluster->Nodes[Iteration].Project(Cluster, ProjectionDetails);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)

@@ -108,7 +108,6 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 			if (Angle > BestAngle)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Angle = %f"), Angle)
 				BestAngle = Angle;
 				NextBest = NeighborIndex;
 			}
