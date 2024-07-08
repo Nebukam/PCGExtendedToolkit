@@ -71,50 +71,63 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		NextIndex = StartNodeIndex;
 		StartNodeIndex = PrevIndex;
 	}
-	
+
 	TArray<int32> Path;
 	Path.Add(PrevIndex);
-	Path.Add(NextIndex);
+	TSet<int32> Exclusions = {PrevIndex, NextIndex};
 
-	while (NextEdge != -1)
+	bool bGracefullyClosed = false;
+	while (NextIndex != -1)
 	{
-		const FVector GuideDir = (Positions[(Cluster->Nodes->GetData() + NextIndex)->PointIndex] - Positions[(Cluster->Nodes->GetData() + PrevIndex)->PointIndex]).GetSafeNormal();
-		// Loop through next index' neighbors
-		PCGExCluster::FExpandedNode* ENode = *(ExpandedNodes->GetData() + NextIndex);
+		Path.Add(NextIndex);
+
+		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
+		if (Current->Neighbors.Num() <= 1) { break; }
+
+		const FVector Origin = Positions[(Cluster->Nodes->GetData() + NextIndex)->PointIndex];
+		const FVector GuideDir = (Origin - Positions[(Cluster->Nodes->GetData() + PrevIndex)->PointIndex]).GetSafeNormal();
 
 		double BestAngle = 0;
-		NextEdge = -1;
+		int32 NextBest = -1;
 
-		for (const PCGExCluster::FExpandedNeighbor& N : ENode->Neighbors)
+		Exclusions.Add(PrevIndex);
+
+		for (const PCGExCluster::FExpandedNeighbor& N : Current->Neighbors)
 		{
-			if (N.Node->NodeIndex == PrevIndex)
+			const int32 NeighborIndex = N.Node->NodeIndex;
+			if (Exclusions.Contains(NeighborIndex)) { continue; }
+			if (NeighborIndex == StartNodeIndex)
 			{
-				//Do not reconnect to previous unless it's our only option
-				if (ENode->Neighbors.Num() > 1) { continue; }
-			}
-
-			if (PrevIndex != StartNodeIndex && N.Node->NodeIndex == StartNodeIndex)
-			{
-				// Gracefully closed contour
-				NextEdge = -1;
+				bGracefullyClosed = true;
+				NextBest = -1;
 				break;
 			}
 
-			const double Angle = PCGExMath::GetDegreesBetweenVectors(GuideDir, N.Direction);
+			const FVector OtherDir = (Origin - Positions[(Cluster->Nodes->GetData() + NeighborIndex)->PointIndex]).GetSafeNormal();
+			const double Angle = PCGExMath::GetDegreesBetweenVectors(OtherDir, GuideDir);
+
 			if (Angle > BestAngle)
 			{
+				UE_LOG(LogTemp, Warning, TEXT("Angle = %f"), Angle)
 				BestAngle = Angle;
-				NextEdge = N.Edge->EdgeIndex;
+				NextBest = NeighborIndex;
 			}
 		}
 
-		if (NextEdge != -1)
+		Exclusions.Empty();
+
+		if (NextBest != -1)
 		{
 			PrevIndex = NextIndex;
-			NextIndex = (*(ExpandedEdges->GetData() + NextEdge))->OtherNodeIndex(PrevIndex);
-			Path.Add(NextIndex);
+			NextIndex = NextBest;
+		}
+		else
+		{
+			NextIndex = -1;
 		}
 	}
+
+	if (Settings->bKeepOnlyGracefulContours && !bGracefullyClosed) { return false; }
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);

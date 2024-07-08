@@ -100,6 +100,30 @@ namespace PCGExWritePathProperties
 		bool bIsConvex = true;
 		int32 Sign = 0;
 
+		auto CheckConvex = [&](const int32 A, const int32 B, const int32 C)
+		{
+			if (!bIsConvex) { return; }
+
+			const FVector VA = Positions[A];
+			const FVector VB = Positions[B];
+			const FVector VC = Positions[C];
+
+			if(VA == VC)
+			{
+				bIsConvex = false;
+				return;
+			}
+			
+			const double DP = FVector::DotProduct(FVector::CrossProduct((VA - VB), (VC - VA)), FVector::UpVector);
+			const int32 CurrentSign = (DP > 0.0f) ? 1 : (DP < 0.0f) ? -1 : 0;
+
+			if (CurrentSign != 0)
+			{
+				if (Sign == 0) { Sign = CurrentSign; }
+				else if (Sign != CurrentSign) { bIsConvex = false; }
+			}
+		};
+
 		for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
 
 		auto NRM = [&](const int32 A, const int32 B, const int32 C)-> FVector
@@ -123,41 +147,28 @@ namespace PCGExWritePathProperties
 		PCGEX_OUTPUT_VALUE(DistanceToNext, 0, FVector::Dist(Positions[0], Positions[1]));
 		PCGEX_OUTPUT_VALUE(DistanceToPrev, 0, 0);
 
+
 		FVector PathDir = (Positions[0] - Positions[1]);
 
 		for (int i = 1; i < LastIndex; i++)
 		{
-			FVector DirToNext = (Positions[i] - Positions[i + 1]).GetSafeNormal();
-			FVector DirToPrev = (Positions[i - 1] - Positions[i]).GetSafeNormal();
-
+			CheckConvex(i - 1, i, i + 1);
 			const double TraversedDistance = Metrics.Add(Positions[i]);
 			PCGEX_OUTPUT_VALUE(PointNormal, i, NRM(i - 1, i, i + 1));
-			PCGEX_OUTPUT_VALUE(DirectionToNext, i, DirToNext);
-			PCGEX_OUTPUT_VALUE(DirectionToPrev, i, DirToPrev);
+			PCGEX_OUTPUT_VALUE(DirectionToNext, i, (Positions[i] - Positions[i + 1]).GetSafeNormal());
+			PCGEX_OUTPUT_VALUE(DirectionToPrev, i, (Positions[i - 1] - Positions[i]).GetSafeNormal());
 			PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
 
 			PCGEX_OUTPUT_VALUE(DistanceToNext, i, FVector::Dist(Positions[i],Positions[i+1]));
 			PCGEX_OUTPUT_VALUE(DistanceToPrev, i, FVector::Dist(Positions[i-1],Positions[i]));
 
 			PathDir += (Positions[i] - Positions[i + 1]);
-
-			if (!bIsConvex) { continue; }
-
-			// Determine the sign of the cross product relative to the polygon normal
-			const double DP = FVector::DotProduct(FVector::CrossProduct(DirToNext, DirToPrev), FVector::UpVector);
-			const int32 CurrentSign = (DP > 0.0f) ? 1 : (DP < 0.0f) ? -1 : 0;
-
-			if (CurrentSign != 0)
-			{
-				if (Sign == 0) { Sign = CurrentSign; }
-				else if (Sign != CurrentSign) { bIsConvex = false; }
-			}
 		}
 
 		Metrics.Add(Positions[LastIndex]);
 
-		PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex-1] - Positions[LastIndex]).GetSafeNormal());
-		PCGEX_OUTPUT_VALUE(DirectionToPrev, LastIndex, (Positions[LastIndex] - Positions[LastIndex-1]).GetSafeNormal());
+		PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex - 1] - Positions[LastIndex]).GetSafeNormal());
+		PCGEX_OUTPUT_VALUE(DirectionToPrev, LastIndex, (Positions[LastIndex] - Positions[LastIndex - 1]).GetSafeNormal());
 		PCGEX_OUTPUT_VALUE(DistanceToStart, LastIndex, Metrics.Length);
 
 		PCGEX_OUTPUT_VALUE(DistanceToNext, LastIndex, 0);
@@ -165,6 +176,8 @@ namespace PCGExWritePathProperties
 
 		if (bClosedPath)
 		{
+			CheckConvex(LastIndex, 0, 1);
+			
 			PCGEX_OUTPUT_VALUE(DirectionToPrev, 0, (Positions[0] - Positions[LastIndex]).GetSafeNormal());
 			PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex] - Positions[0]).GetSafeNormal());
 
@@ -200,8 +213,11 @@ namespace PCGExWritePathProperties
 
 		if (Settings->bWriteDot) { StartParallelLoopForPoints(); }
 
-		if (Settings->bTagConcave && !bIsConvex) { PointIO->Tags->RawTags.Add(Settings->ConcaveTag); }
-		if (Settings->bTagConvex && bIsConvex) { PointIO->Tags->RawTags.Add(Settings->ConvexTag); }
+		if (Sign != 0)
+		{
+			if (Settings->bTagConcave && !bIsConvex) { PointIO->Tags->RawTags.Add(Settings->ConcaveTag); }
+			if (Settings->bTagConvex && bIsConvex) { PointIO->Tags->RawTags.Add(Settings->ConvexTag); }
+		}
 
 		return true;
 	}

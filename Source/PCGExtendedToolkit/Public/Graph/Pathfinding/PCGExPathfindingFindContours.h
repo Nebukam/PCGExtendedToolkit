@@ -39,6 +39,10 @@ public:
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bKeepOnlyGracefulContours = true;
+	
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;
