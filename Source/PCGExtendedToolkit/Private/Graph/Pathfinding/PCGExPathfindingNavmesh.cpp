@@ -40,9 +40,6 @@ void UPCGExPathfindingNavmeshSettings::PostEditChangeProperty(FPropertyChangedEv
 
 PCGExData::EInit UPCGExPathfindingNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExPathfindingNavmeshSettings::GetMainInputLabel() const { return PCGExGraph::SourceSeedsLabel; }
-FName UPCGExPathfindingNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(PathfindingNavmesh)
 
 FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()

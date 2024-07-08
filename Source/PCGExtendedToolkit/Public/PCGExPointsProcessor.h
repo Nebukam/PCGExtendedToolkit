@@ -95,21 +95,21 @@ public:
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	virtual bool OnlyPassThroughOneEdgeWhenDisabled() const override;
+	virtual bool OnlyPassThroughOneEdgeWhenDisabled() const override { return false; }
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainInputLabel() const;
-	virtual FName GetMainOutputLabel() const;
-	virtual bool GetMainAcceptMultipleData() const;
+	virtual FName GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
+	virtual FName GetMainOutputLabel() const { return PCGEx::OutputPointsLabel; }
+	virtual bool GetMainAcceptMultipleData() const { return true; }
 	virtual PCGExData::EInit GetMainOutputInitMode() const;
 
-	virtual FName GetPointFilterLabel() const;
-	virtual FString GetPointFilterTooltip() const;
-	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const;
-	bool SupportsPointFilters() const;
-	virtual bool RequiresPointFilters() const;
+	virtual FName GetPointFilterLabel() const { return NAME_None; }
+	virtual FString GetPointFilterTooltip() const { return TEXT("Filters"); }
+	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const { return PCGExFactories::PointFilters; }
+	bool SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
+	virtual bool RequiresPointFilters() const { return false; }
 
 	/** Forces execution on main thread. Work is still chunked. Turning this off ensure linear order of operations, and, in most case, determinism.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
@@ -128,7 +128,7 @@ public:
 	bool bFlattenOutput = false;
 
 protected:
-	virtual int32 GetPreferredChunkSize() const;
+	virtual int32 GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 	//~End UPCGExPointsProcessorSettings
 };
 

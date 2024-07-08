@@ -24,8 +24,6 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() c
 	return PinProperties;
 }
 
-FName UPCGExBuildConvexHullSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull)
 
 bool FPCGExBuildConvexHullElement::Boot(FPCGContext* InContext) const

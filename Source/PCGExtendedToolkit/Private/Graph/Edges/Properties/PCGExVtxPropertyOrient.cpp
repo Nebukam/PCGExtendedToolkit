@@ -32,7 +32,7 @@ bool UPCGExVtxPropertyOrient::PrepareForVtx(const FPCGContext* InContext, PCGExD
 
 void UPCGExVtxPropertyOrient::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	const FPCGPoint& Point = PrimaryDataFacade->Source->GetInPoint(Node.PointIndex);
+	//const FPCGPoint& Point = PrimaryDataFacade->Source->GetInPoint(Node.PointIndex);
 }
 
 void UPCGExVtxPropertyOrient::Cleanup()

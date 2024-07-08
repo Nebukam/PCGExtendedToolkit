@@ -23,8 +23,6 @@ TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::OutputPinProperties() 
 
 PCGExData::EInit UPCGExFindClustersDataSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExFindClustersDataSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(FindClustersData)
 
 FPCGExFindClustersDataContext::~FPCGExFindClustersDataContext()
@@ -126,7 +124,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		if (!Vtx->IsEnabled()) { continue; }
 
-		PCGExData::FPointIOTaggedEntries* EdgesEntries = nullptr;
+		PCGExData::FPointIOTaggedEntries* EdgesEntries;
 
 		if (FString CurrentPairId;
 			Vtx->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, CurrentPairId))

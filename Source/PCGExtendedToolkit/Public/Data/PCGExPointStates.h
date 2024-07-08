@@ -11,6 +11,7 @@
 #include "PCGExData.h"
 #include "PCGExPointFilter.h"
 #include "../Misc/PCGExBitmaskMerge.h"
+#include "Graph/PCGExCluster.h"
 
 #include "PCGExPointStates.generated.h"
 
@@ -117,6 +118,6 @@ public:
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainOutputLabel() const override { return PCGExCluster::OutputNodeFlagLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 };

@@ -11,8 +11,6 @@ UPCGExProbeOperation* UPCGExProbeFactoryBase::CreateOperation() const
 	return nullptr; // Create probe operation
 }
 
-FName UPCGExProbeFactoryProviderSettings::GetMainOutputLabel() const { return PCGExGraph::OutputProbeLabel; }
-
 UPCGExParamFactoryBase* UPCGExProbeFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	return InFactory;

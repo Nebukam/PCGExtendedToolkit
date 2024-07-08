@@ -1131,12 +1131,12 @@ namespace PCGExMath
 	{
 		if (!bIsConvex) { return; }
 
-		if(A == C)
+		if (A == C)
 		{
 			bIsConvex = false;
 			return;
 		}
-			
+
 		const double DP = FVector::DotProduct(FVector::CrossProduct((A - B), (C - A)), UpVector);
 		const int32 CurrentSign = (DP > 0.0f) ? 1 : (DP < 0.0f) ? -1 : 0;
 

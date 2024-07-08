@@ -10,8 +10,6 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-FName UPCGExSortingRuleProviderSettings::GetMainOutputLabel() const { return FName(TEXT("SortingRule")); }
-
 UPCGExParamFactoryBase* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExSortingRule* NewFactory = NewObject<UPCGExSortingRule>();

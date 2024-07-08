@@ -253,7 +253,6 @@ namespace PCGExFuseClusters
 			NumEdges = Cluster->Edges->Num();
 		}
 
-		const TArray<FPCGPoint>& InPointsRef = VtxIO->GetIn()->GetPoints();
 		InPoints = &VtxIO->GetIn()->GetPoints();
 
 		bInvalidEdges = false;

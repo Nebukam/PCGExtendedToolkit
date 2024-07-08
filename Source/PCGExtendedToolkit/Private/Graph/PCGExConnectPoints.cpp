@@ -33,8 +33,6 @@ TArray<FPCGPinProperties> UPCGExConnectPointsSettings::OutputPinProperties() con
 
 PCGExData::EInit UPCGExConnectPointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExConnectPointsSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(ConnectPoints)
 
 FPCGExConnectPointsContext::~FPCGExConnectPointsContext()

@@ -8,12 +8,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
 
-FString UPCGExPathProcessorSettings::GetPointFilterTooltip() const { return TEXT("Path points processing filters"); }
-
 PCGExData::EInit UPCGExPathProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-
-FName UPCGExPathProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
-FName UPCGExPathProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
 FPCGExPathProcessorContext::~FPCGExPathProcessorContext()
 {

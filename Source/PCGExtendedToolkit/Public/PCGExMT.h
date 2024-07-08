@@ -419,7 +419,7 @@ namespace PCGExMT
 		virtual bool ExecuteTask() override;
 	};
 
-	class FGroupRangeIterationTask : public PCGExMT::FPCGExTask
+	class FGroupRangeIterationTask : public FPCGExTask
 	{
 	public:
 		FGroupRangeIterationTask(PCGExData::FPointIO* InPointIO):

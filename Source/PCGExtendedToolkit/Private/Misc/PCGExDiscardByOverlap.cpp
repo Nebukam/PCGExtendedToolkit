@@ -294,7 +294,7 @@ bool FPCGExComputePreciseOverlap::ExecuteTask()
 
 	const TArray<FPCGPoint>& LocalPoints = Bounds->PointIO->GetIn()->GetPoints();
 
-	const double StaticExpansion = Settings->ExpansionMode == EPCGExExpandPointsBoundsMode::Static ? Settings->ExpansionValue : 0;
+	//const double StaticExpansion = Settings->ExpansionMode == EPCGExExpandPointsBoundsMode::Static ? Settings->ExpansionValue : 0;
 
 	PCGEx::FLocalSingleFieldGetter* BoundsExpansion = new PCGEx::FLocalSingleFieldGetter();
 	BoundsExpansion->Capture(Settings->ExpansionLocalValue);

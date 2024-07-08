@@ -128,7 +128,7 @@ namespace PCGExBridgeClusters
 	bool FProcessorBatch::PrepareProcessing()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
-		const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(Context);
+		//const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(Context);
 
 		ConsolidatedEdges = TypedContext->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
 
@@ -265,13 +265,13 @@ namespace PCGExBridgeClusters
 
 	void FProcessorBatch::Write()
 	{
-		TArray<FPCGPoint>& MutableEdges = ConsolidatedEdges->GetOut()->GetMutablePoints();
-		UPCGMetadata* Metadata = ConsolidatedEdges->GetOut()->Metadata;
+		//TArray<FPCGPoint>& MutableEdges = ConsolidatedEdges->GetOut()->GetMutablePoints();
+		//UPCGMetadata* Metadata = ConsolidatedEdges->GetOut()->Metadata;
 
 		for (const uint64 Bridge : Bridges)
 		{
 			int32 EdgePointIndex;
-			FPCGPoint& EdgePoint = ConsolidatedEdges->NewPoint(EdgePointIndex);
+			ConsolidatedEdges->NewPoint(EdgePointIndex);
 
 			uint32 Start;
 			uint32 End;

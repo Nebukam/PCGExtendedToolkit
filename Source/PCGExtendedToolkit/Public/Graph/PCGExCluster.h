@@ -14,6 +14,7 @@
 
 namespace PCGExCluster
 {
+	struct FAdjacencyData;
 	struct FExpandedNode;
 	struct FExpandedEdge;
 }
@@ -61,20 +62,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionDetails
 	}
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] CLuster Search Orientation Mode"))
-enum class EPCGExClusterSearchOrientationMode : uint8
-{
-	CCW UMETA(DisplayName = "Counter Clockwise"),
-	CW UMETA(DisplayName = "Clockwise"),
-};
-
 namespace PCGExCluster
 {
 	const FName OutputNodeFlagLabel = TEXT("Flag");
 	const FName SourceNodeFlagLabel = TEXT("Node Flags");
 
 	PCGEX_ASYNC_STATE(State_ProcessingCluster)
-	PCGEX_ASYNC_STATE(State_ProjectingCluster)
 
 	struct PCGEXTENDEDTOOLKIT_API FClusterItemRef
 	{
@@ -157,6 +150,8 @@ namespace PCGExCluster
 			for (const uint64 AdjacencyHash : Adjacency) { if (PCGEx::H64A(AdjacencyHash) == AdjacentNodeIndex) { return PCGEx::H64B(AdjacencyHash); } }
 			return -1;
 		}
+
+		void ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData, FVector& OutNormal) const;
 
 		void ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const;
 		FORCEINLINE void Add(const FNode& Neighbor, int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
@@ -253,7 +248,7 @@ namespace PCGExCluster
 		int32 FindClosestNodeFromEdge(const FVector& Position, const int32 MinNeighbors = 0) const;
 
 		int32 FindClosestEdge(const int32 InNodeIndex, const FVector& InPosition) const;
-		
+
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, int32 MinNeighborCount = 1) const;
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const TSet<int32>& Exclusion, int32 MinNeighborCount = 1) const;
 
@@ -392,28 +387,6 @@ namespace PCGExCluster
 			check(NodeIndex == Start->NodeIndex || NodeIndex == End->NodeIndex)
 			return NodeIndex == Start->NodeIndex ? End->NodeIndex : Start->NodeIndex;
 		}
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FNodeProjection
-	{
-		FNode* Node = nullptr;
-		FVector Normal = FVector::UpVector;
-
-		explicit FNodeProjection(FNode* InNode);
-		void ComputeNormal(const FCluster* InCluster);
-
-		~FNodeProjection();
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FClusterProjection
-	{
-		FCluster* Cluster = nullptr;
-		FPCGExGeo2DProjectionDetails* ProjectionDetails = nullptr;
-		TArray<FNodeProjection> Nodes;
-
-		FClusterProjection(FCluster* InCluster, FPCGExGeo2DProjectionDetails* InProjectionDetails);
-		~FClusterProjection();
-
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeChain
@@ -610,23 +583,6 @@ namespace PCGExClusterTask
 			}
 		}
 	}
-
-	class PCGEXTENDEDTOOLKIT_API FProjectCluster final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FProjectCluster(PCGExData::FPointIO* InPointIO,
-		                PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection) :
-			FPCGExTask(InPointIO),
-			Cluster(InCluster),
-			Projection(InProjection)
-		{
-		}
-
-		PCGExCluster::FCluster* Cluster = nullptr;
-		PCGExCluster::FClusterProjection* Projection = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
 
 	class PCGEXTENDEDTOOLKIT_API FCopyClustersToPoint final : public PCGExMT::FPCGExTask
 	{

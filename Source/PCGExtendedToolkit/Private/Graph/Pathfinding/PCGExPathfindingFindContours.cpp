@@ -83,9 +83,10 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	while (NextIndex != -1)
 	{
 		Path.Add(NextIndex);
-
 		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
-		//	if (Current->Neighbors.Num() <= 1) { break; }
+
+		//if (Current->Neighbors.Num() <= 1) { break; }
+		if (Current->Neighbors.Num() == 1 && Settings->bDuplicateDeadEndPoints) { Path.Add(NextIndex); }
 
 		const FVector Origin = Positions[(Cluster->Nodes->GetData() + NextIndex)->PointIndex];
 		const FVector GuideDir = (Origin - Positions[(Cluster->Nodes->GetData() + PrevIndex)->PointIndex]).GetSafeNormal();
@@ -158,8 +159,16 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 	const FPCGExFindContoursContext* TypedContext = static_cast<FPCGExFindContoursContext*>(ClusterProcessor->Context);
 	TypedContext->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
-
 	TypedContext->SeedForwardHandler->Forward(SeedIndex, PathIO);
+
+	if (Settings->bFlagDeadEnds)
+	{
+		PathIO->CreateOutKeys();
+		PCGEx::TFAttributeWriter<bool>* DeadEndWriter = new PCGEx::TFAttributeWriter<bool>(Settings->DeadEndAttributeName, false, false, true);
+		DeadEndWriter->BindAndSetNumUninitialized(PathIO);
+		for (int i = 0; i < Path.Num(); i++) { DeadEndWriter->Values[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
+		PCGEX_ASYNC_WRITE_DELETE(ClusterProcessor->AsyncManagerPtr, DeadEndWriter)
+	}
 
 	if (Sign != 0)
 	{
@@ -195,6 +204,8 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
 
 	PCGEX_FWD(ProjectionDetails)
+
+	if (Settings->bFlagDeadEnds) { PCGEX_VALIDATE_NAME(Settings->DeadEndAttributeName); }
 
 	PCGExData::FPointIO* SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
@@ -245,6 +256,11 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExFindContours::FBatch* NewBatch)
 			{
+				if (Settings->bFlagDeadEnds)
+				{
+					NewBatch->bRequiresWriteStep = true;
+					NewBatch->bWriteVtxDataFacade = true;
+				}
 			},
 			PCGExMT::State_Done))
 		{

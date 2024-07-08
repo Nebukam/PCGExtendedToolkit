@@ -26,8 +26,6 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 	return MakeShared<FPCGExFactoryProviderElement>();
 }
 
-FName UPCGExFactoryProviderSettings::GetMainOutputLabel() const { return TEXT(""); }
-
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif

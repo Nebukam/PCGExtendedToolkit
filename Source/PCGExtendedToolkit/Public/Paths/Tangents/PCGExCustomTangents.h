@@ -45,13 +45,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 		else { ScaleGetter.bEnabled = false; }
 	}
 
-	FVector GetDirection(const int32 Index) const { return DirectionGetter[Index]; }
-	FVector GetTangent(const int32 Index) const { return DirectionGetter[Index] * ScaleGetter.SafeGet(Index, DefaultScale); }
+	FORCEINLINE FVector GetDirection(const int32 Index) const
+	{
+		return DirectionGetter[Index];
+	}
+
+	FORCEINLINE FVector GetTangent(const int32 Index) const
+	{
+		return DirectionGetter[Index] * ScaleGetter.SafeGet(Index, DefaultScale);
+	}
 
 	void Cleanup()
 	{
-		PCGEX_CLEANUP(DirectionGetter)
-		PCGEX_CLEANUP(ScaleGetter)
+		DirectionGetter.Cleanup();
+		ScaleGetter.Cleanup();
 	}
 };
 

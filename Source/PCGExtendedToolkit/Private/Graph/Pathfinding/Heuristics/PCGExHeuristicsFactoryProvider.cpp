@@ -12,8 +12,6 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryBase::CreateOperation() const
 	return nullptr; // Create heuristic operation
 }
 
-FName UPCGExHeuristicsFactoryProviderSettings::GetMainOutputLabel() const { return PCGExGraph::OutputHeuristicsLabel; }
-
 UPCGExParamFactoryBase* UPCGExHeuristicsFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	return InFactory;

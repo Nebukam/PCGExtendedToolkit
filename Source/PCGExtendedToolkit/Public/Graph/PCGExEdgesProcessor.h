@@ -32,11 +32,11 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
 
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourceVerticesLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
 
-	virtual FName GetVtxFilterLabel() const;
-	virtual FName GetEdgesFilterLabel() const;
+	virtual FName GetVtxFilterLabel() const { return NAME_None; }
+	virtual FName GetEdgesFilterLabel() const { return NAME_None; }
 
 	bool SupportsVtxFilters() const;
 	bool SupportsEdgesFilters() const;

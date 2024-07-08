@@ -134,6 +134,9 @@ namespace PCGExNodeAdjacency
 					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Values[PCGEx::H64B(AdjacencyHash)]); }
 				}
 				break;
+			default:
+			case EPCGExAdjacencyGatherMode::Individual:
+				break;
 			}
 
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);

@@ -8,10 +8,6 @@
 
 PCGExData::EInit UPCGExUnpackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExUnpackClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourcePackedClustersLabel; }
-
-FName UPCGExUnpackClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
 TArray<FPCGPinProperties> UPCGExUnpackClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;

@@ -32,7 +32,7 @@ namespace PCGExGraph
 	FCompoundNode* FCompoundGraph::InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
 		const FVector Origin = Point.Transform.GetLocation();
-		FCompoundNode* Node = nullptr;
+		FCompoundNode* Node;
 
 		if (!bFusePoints)
 		{
@@ -121,7 +121,7 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundGraph::InsertPointUnsafe);
 
 		const FVector Origin = Point.Transform.GetLocation();
-		FCompoundNode* Node = nullptr;
+		FCompoundNode* Node;
 
 		if (!bFusePoints)
 		{
@@ -200,8 +200,8 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundGraph::InsertEdge);
 
-		FCompoundNode* StartVtx = nullptr;
-		FCompoundNode* EndVtx = nullptr;
+		FCompoundNode* StartVtx;
+		FCompoundNode* EndVtx;
 
 		{
 			FWriteScopeLock WriteLockOctree(OctreeLock);
@@ -443,7 +443,7 @@ namespace PCGExGraph
 		FIndexedEdge NewEdge = FIndexedEdge{};
 
 		// Insert new nodes
-		const TArrayView<FNode> NewNodes = Graph->AddNodes(Crossings.Num());
+		Graph->AddNodes(Crossings.Num()); //const TArrayView<FNode> NewNodes = 
 
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(Graph->Nodes.Num());

@@ -221,6 +221,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 		case EPCGExTruncateMode::Floor:
 			OutValue = FMath::FloorToDouble(OutValue) * PostTruncateScale;
 			break;
+		default:
+		case EPCGExTruncateMode::None:
+			return OutValue;
 		}
 		return OutValue;
 	}

@@ -8,8 +8,8 @@
 
 #pragma region PCGEX MACROS
 
-#define PCGEX_LOG_CTR(_NAME) if(false){ UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Constructor")) }
-#define PCGEX_LOG_DTR(_NAME) if(false){ UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Destructor")) }
+#define PCGEX_LOG_CTR(_NAME) // if(false){ UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Constructor")) }
+#define PCGEX_LOG_DTR(_NAME) // if(false){ UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Destructor")) }
 
 #define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
 #define FSTRING(_TEXT) FString(_TEXT)
@@ -20,8 +20,6 @@
 #define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
 #define PCGEX_DELETE_TARRAY_FULL(_VALUE) if(_VALUE){ for(const auto* Item : (*_VALUE)){ delete Item; } PCGEX_DELETE(_VALUE); }
 #define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
-#define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
-#define PCGEX_TRIM(_VALUE) _VALUE.SetNum(_VALUE.Num());
 
 #define PCGEX_FOREACH_XYZ(MACRO)\
 MACRO(X)\

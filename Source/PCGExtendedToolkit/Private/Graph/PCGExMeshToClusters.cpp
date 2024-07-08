@@ -40,13 +40,7 @@ TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-FName UPCGExMeshToClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
-bool UPCGExMeshToClustersSettings::GetMainAcceptMultipleData() const { return false; }
-
 PCGEX_INITIALIZE_ELEMENT(MeshToClusters)
-
-FName UPCGExMeshToClustersSettings::GetMainInputLabel() const { return PCGEx::SourceTargetsLabel; }
 
 bool FPCGExMeshToClustersElement::Boot(FPCGContext* InContext) const
 {

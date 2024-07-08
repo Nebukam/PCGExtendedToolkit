@@ -130,7 +130,7 @@ protected:
 	//~End UPCGSettings
 
 public:
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainOutputLabel() const override { return PCGExCluster::OutputNodeFlagLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 	/** */

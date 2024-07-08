@@ -118,7 +118,7 @@ namespace PCGExLloydRelax
 		PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
 		TArray<FVector>& Positions = Processor->ActivePositions;
 
-		FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
+		//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
 
 		const TArrayView<FVector> View = MakeArrayView(Positions);
 		if (!Delaunay->Process(View, false)) { return false; }

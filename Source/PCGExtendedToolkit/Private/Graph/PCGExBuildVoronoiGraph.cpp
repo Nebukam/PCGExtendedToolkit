@@ -34,8 +34,6 @@ TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties()
 	return PinProperties;
 }
 
-FName UPCGExBuildVoronoiGraphSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(BuildVoronoiGraph)
 
 bool FPCGExBuildVoronoiGraphElement::Boot(FPCGContext* InContext) const
@@ -127,6 +125,7 @@ namespace PCGExBuildVoronoi
 
 		Voronoi = new PCGExGeo::TVoronoi3();
 
+		/*
 		auto ExtractValidSites = [&]()
 		{
 			const PCGExData::FPointIO* SitesIO = TypedContext->SitesOutput->Pairs[BatchIndex];
@@ -138,6 +137,7 @@ namespace PCGExBuildVoronoi
 				MutableSites.Add(OriginalSites[i]);
 			}
 		};
+		*/
 
 		if (!Voronoi->Process(ActivePositions))
 		{

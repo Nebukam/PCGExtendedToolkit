@@ -27,8 +27,6 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties()
 	return PinProperties;
 }
 
-FName UPCGExBuildConvexHull2DSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull2D)
 
 bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const

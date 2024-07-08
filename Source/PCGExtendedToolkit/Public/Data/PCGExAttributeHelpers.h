@@ -604,7 +604,6 @@ namespace PCGEx
 		 * @param OutMin
 		 * @param OutMax
 		 */
-		template <typename T>
 		bool GrabAndDump(const PCGExData::FPointIO* PointIO, TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax)
 		{
 			Cleanup();

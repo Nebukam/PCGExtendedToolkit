@@ -111,29 +111,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 	return PinProperties;
 }
 
-bool UPCGExPointsProcessorSettings::OnlyPassThroughOneEdgeWhenDisabled() const
-{
-	return false;
-	//return Super::OnlyPassThroughOneEdgeWhenDisabled();
-}
-
-FName UPCGExPointsProcessorSettings::GetMainOutputLabel() const { return PCGEx::OutputPointsLabel; }
-FName UPCGExPointsProcessorSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
-
-bool UPCGExPointsProcessorSettings::GetMainAcceptMultipleData() const { return true; }
-
 PCGExData::EInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
-
-FName UPCGExPointsProcessorSettings::GetPointFilterLabel() const { return NAME_None; }
-
-FString UPCGExPointsProcessorSettings::GetPointFilterTooltip() const { return TEXT("Filters"); }
-
-TSet<PCGExFactories::EType> UPCGExPointsProcessorSettings::GetPointFilterTypes() const { return PCGExFactories::PointFilters; }
-
-bool UPCGExPointsProcessorSettings::SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
-bool UPCGExPointsProcessorSettings::RequiresPointFilters() const { return false; }
-
-int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {

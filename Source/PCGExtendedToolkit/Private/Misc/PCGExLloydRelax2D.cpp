@@ -125,7 +125,7 @@ namespace PCGExLloydRelax2D
 		PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
 		TArray<FVector>& Positions = Processor->ActivePositions;
 
-		FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
+		//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
 
 		const TArrayView<FVector> View = MakeArrayView(Positions);
 		if (!Delaunay->Process(View, Processor->ProjectionDetails)) { return false; }

@@ -62,9 +62,9 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
-	virtual bool GetMainAcceptMultipleData() const override;
+	virtual FName GetMainInputLabel() const override { return PCGEx::SourceTargetsLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual bool GetMainAcceptMultipleData() const override { return false; }
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 

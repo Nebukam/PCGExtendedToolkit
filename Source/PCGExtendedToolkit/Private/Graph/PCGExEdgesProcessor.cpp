@@ -13,12 +13,6 @@
 
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-FName UPCGExEdgesProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourceVerticesLabel; }
-FName UPCGExEdgesProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
-FName UPCGExEdgesProcessorSettings::GetVtxFilterLabel() const { return NAME_None; }
-FName UPCGExEdgesProcessorSettings::GetEdgesFilterLabel() const { return NAME_None; }
-
 bool UPCGExEdgesProcessorSettings::SupportsVtxFilters() const { return !GetVtxFilterLabel().IsNone(); }
 bool UPCGExEdgesProcessorSettings::SupportsEdgesFilters() const { return !GetEdgesFilterLabel().IsNone(); }
 

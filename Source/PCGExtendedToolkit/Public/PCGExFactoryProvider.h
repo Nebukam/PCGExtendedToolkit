@@ -92,7 +92,7 @@ protected:
 
 	//~Begin UPCGExFactoryProviderSettings
 public:
-	virtual FName GetMainOutputLabel() const;
+	virtual FName GetMainOutputLabel() const { return TEXT(""); }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory = nullptr) const;
 
 #if WITH_EDITOR

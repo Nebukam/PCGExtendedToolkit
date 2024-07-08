@@ -31,9 +31,6 @@ void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChang
 
 PCGExData::EInit UPCGExPathfindingPlotNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExPathfindingPlotNavmeshSettings::GetMainInputLabel() const { return PCGExGraph::SourcePlotsLabel; }
-FName UPCGExPathfindingPlotNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
 
 FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
@@ -119,7 +116,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	PathLocations.Emplace_GetRef(0, FirstPoint.Transform.GetLocation(), FirstPoint.MetadataEntry);
 	FVector LastPosition = FVector::ZeroVector;
 
-	int32 MaxIterations = Settings->bClosedPath ? NumPlots : NumPlots - 1;
+	//int32 MaxIterations = Settings->bClosedPath ? NumPlots : NumPlots - 1;
 	for (int i = 0; i < NumPlots - 1; i++)
 	{
 		FPCGPoint SeedPoint;

@@ -38,7 +38,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
@@ -82,7 +82,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext final : public FPCG
 	virtual ~FPCGExBuildVoronoiGraphContext() override;
 
 	PCGExData::FPointIOCollection* SitesOutput = nullptr;
-	
 };
 
 

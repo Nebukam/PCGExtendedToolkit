@@ -12,6 +12,23 @@
 
 class UPCGExEdgeRefineOperation;
 
+namespace PCGExSplitPath
+{
+	const FName SourceSplitFilters = TEXT("SplitConditions");
+	const FName SourceRemoveFilters = TEXT("RemoveConditions");
+
+	struct PCGEXTENDEDTOOLKIT_API FPath
+	{
+		int32 Start = -1;
+		int32 End = -1;
+		int32 Count = 0;
+
+		FPath()
+		{
+		}
+	};
+}
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
 enum class EPCGExPathSplitAction : uint8
 {
@@ -41,9 +58,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-
-	virtual FName GetPointFilterLabel() const override;
-	virtual bool RequiresPointFilters() const override;
 	//~End UPCGExPointsProcessorSettings
 
 public:
@@ -51,9 +65,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
+	/** If both split and remove are true, the selected behavior takes priority */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExPathSplitAction Prioritize = EPCGExPathSplitAction::Split;
+
+	/** Whether to output single-point data or not */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bOmitSinglePointOutputs = true;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathProcessorContext
@@ -61,6 +79,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathPr
 	friend class FPCGExSplitPathElement;
 
 	virtual ~FPCGExSplitPathContext() override;
+
+	TArray<UPCGExFilterFactoryBase*> SplitFilterFactories;
+	TArray<UPCGExFilterFactoryBase*> RemoveFilterFactories;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathElement final : public FPCGExPathProcessorElement
@@ -80,6 +101,15 @@ namespace PCGExSplitPath
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		TArray<bool> DoSplit;
+		TArray<bool> DoRemove;
+		TArray<FPath> Paths;
+
+		int32 LastValidIndex = -1;
+		int32 CurrentPath = -1;
+		
+		bool bPriorityToSplit = true;
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)
 			: FPointsProcessor(InPoints)
@@ -90,6 +120,8 @@ namespace PCGExSplitPath
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 
 		UPCGExEdgeRefineOperation* Refinement = nullptr;

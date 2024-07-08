@@ -100,15 +100,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
 
 namespace PCGExGraph
 {
-	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
 	const FName SourceProbesLabel = TEXT("Probes");
 	const FName OutputProbeLabel = TEXT("Probe");
 
 	const FName SourceFilterGenerators = TEXT("Generator Filters");
 	const FName SourceFilterConnectables = TEXT("Connectable Filters");
-
-	const FName SourceSingleGraphLabel = TEXT("Graph");
-	const FName OutputForwardGraphsLabel = TEXT("➜");
 
 	const FName SourceGraphsLabel = TEXT("In");
 	const FName OutputGraphsLabel = TEXT("Out");
@@ -513,7 +509,7 @@ namespace PCGExGraph
 	static bool IsPointDataVtxReady(const UPCGMetadata* Metadata)
 	{
 		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
-		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
+		//constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
 		const FPCGMetadataAttributeBase* EndpointAttribute = Metadata->GetConstAttribute(Tag_VtxEndpoint);
 		if (!EndpointAttribute || EndpointAttribute->GetTypeId() != I64) { return false; }

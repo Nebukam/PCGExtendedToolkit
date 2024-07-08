@@ -27,8 +27,8 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePackedClustersLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 

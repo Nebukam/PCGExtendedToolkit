@@ -222,7 +222,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 
-	PCGExData::FPointIO* SeedsPoints = nullptr;
+	PCGExData::FPointIO* SeedsPoints;
 
 	SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
@@ -339,10 +339,10 @@ namespace PCGExGrowPaths
 			if (!Settings->SeedPicking.WithinDistance(Node.Position, SeedPosition) ||
 				Node.Adjacency.IsEmpty()) { continue; }
 
-			double StartNumIterations = 0;
-			double StartGrowthNumBranches = 0;
+			double StartNumIterations;
+			double StartGrowthNumBranches;
 			FVector StartGrowthDirection = FVector::UpVector;
-			double StartGrowthMaxDistance = 0;
+			double StartGrowthMaxDistance;
 
 			switch (Settings->SeedNumBranches)
 			{

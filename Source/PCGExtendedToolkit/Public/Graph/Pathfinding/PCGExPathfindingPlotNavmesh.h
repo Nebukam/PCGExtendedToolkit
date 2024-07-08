@@ -43,8 +43,8 @@ public:
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePlotsLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputPathsLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 

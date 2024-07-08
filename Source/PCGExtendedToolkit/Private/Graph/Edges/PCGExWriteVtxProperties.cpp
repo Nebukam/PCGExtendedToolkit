@@ -81,7 +81,6 @@ namespace PCGExWriteVtxProperties
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(ProjectedCluster)
 		ExtraOperations->Empty();
 	}
 
@@ -96,30 +95,13 @@ namespace PCGExWriteVtxProperties
 			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster, VtxDataFacade, EdgeDataFacade); }
 		}
 
-		if (VtxNormalWriter)
-		{
-			ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionDetails);
-			StartParallelLoopForRange(Cluster->Nodes->Num());
-			//ProjectedCluster->Build();
-		}
+		StartParallelLoopForNodes();
 
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
-	{
-		//ProjectedCluster->Nodes[Iteration].Project(Cluster, ProjectionDetails);
-	}
-
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
-		if (VtxNormalWriter)
-		{
-			PCGExCluster::FNodeProjection& VtxPt = ProjectedCluster->Nodes[Node.NodeIndex];
-			VtxPt.ComputeNormal(Cluster);
-			VtxNormalWriter->Values[VtxPt.Node->NodeIndex] = VtxPt.Normal;
-		}
-
 		if (VtxEdgeCountWriter) { VtxEdgeCountWriter->Values[Node.PointIndex] = Node.Adjacency.Num(); }
 
 		if (ExtraOperations->IsEmpty()) { return; }
@@ -127,12 +109,13 @@ namespace PCGExWriteVtxProperties
 		TArray<PCGExCluster::FAdjacencyData> Adjacency;
 		GetAdjacencyData(Cluster, Node, Adjacency);
 
+		if (VtxNormalWriter) { Node.ComputeNormal(Cluster, Adjacency, VtxNormalWriter->Values[Node.PointIndex]); }
+
 		for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->ProcessNode(BatchIndex, Cluster, Node, Adjacency); }
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		StartParallelLoopForNodes();
 	}
 
 	//////// BATCH
@@ -159,9 +142,6 @@ namespace PCGExWriteVtxProperties
 			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
-		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(Context, VtxDataFacade);
-
 		for (const UPCGExVtxPropertyFactoryBase* Factory : TypedContext->ExtraFactories)
 		{
 			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation();
@@ -181,7 +161,6 @@ namespace PCGExWriteVtxProperties
 	{
 		PCGEX_SETTINGS(WriteVtxProperties)
 
-		ClusterProcessor->ProjectionDetails = &ProjectionDetails;
 		ClusterProcessor->ExtraOperations = &ExtraOperations;
 
 #define PCGEX_FWD_VTX(_NAME, _TYPE) ClusterProcessor->_NAME##Writer = _NAME##Writer;

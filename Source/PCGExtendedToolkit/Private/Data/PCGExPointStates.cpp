@@ -77,9 +77,6 @@ namespace PCGExPointStates
 	}
 }
 
-
-FName UPCGExPointStateFactoryProviderSettings::GetMainOutputLabel() const { return PCGExCluster::OutputNodeFlagLabel; }
-
 UPCGExParamFactoryBase* UPCGExPointStateFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	return nullptr;

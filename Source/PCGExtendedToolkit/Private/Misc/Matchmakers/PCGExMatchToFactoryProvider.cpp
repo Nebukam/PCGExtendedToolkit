@@ -108,8 +108,6 @@ TArray<FPCGPinProperties> UPCGExMatchToProviderSettings::InputPinProperties() co
 	return PinProperties;
 }
 
-FName UPCGExMatchToProviderSettings::GetMainOutputLabel() const { return PCGExMatchmaking::OutputMatchmakerLabel; }
-
 UPCGExParamFactoryBase* UPCGExMatchToProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExMatchToFactoryBase* TypedFactory = Cast<UPCGExMatchToFactoryBase>(InFactory);

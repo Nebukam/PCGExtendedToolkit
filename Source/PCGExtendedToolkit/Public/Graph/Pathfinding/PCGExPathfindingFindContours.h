@@ -59,9 +59,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;
 
-	/** Drives how the seed nodes are selected within the graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExClusterSearchOrientationMode OrientationMode = EPCGExClusterSearchOrientationMode::CW;
+	
+	/** Whether or not to duplicate dead end points. Useful if you plan on offsetting the generated contours. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bDuplicateDeadEndPoints = false;
 
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -90,7 +91,15 @@ public:
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagConvex"))
 	FString ConvexTag = TEXT("Convex");
-	
+
+	/** Whether to flag path points generated from "dead ends" */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	bool bFlagDeadEnds = false;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bFlagDeadEnds"))
+	FName DeadEndAttributeName = TEXT("IsDeadEnd");
+
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bUseOctreeSearch = false;
@@ -140,7 +149,7 @@ namespace PCGExFindContours
 
 	protected:
 		TArray<FVector>* ProjectedPositions = nullptr;
-		
+
 		bool bBuildExpandedNodes = false;
 		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
 		TArray<PCGExCluster::FExpandedEdge*>* ExpandedEdges = nullptr;
@@ -149,6 +158,7 @@ namespace PCGExFindContours
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
+			
 		}
 
 		virtual ~FProcessor() override;
@@ -163,17 +173,16 @@ namespace PCGExFindContours
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		friend class FProjectRangeTask;
-		
+
 	protected:
 		PCGExMT::FTaskGroup* ProjectionTaskGroup = nullptr;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		TArray<FVector> ProjectedPositions;
-		
+
 	public:
 		FBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
 			TBatch(InContext, InVtx, InEdges)
 		{
-			
 		}
 
 		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
@@ -184,7 +193,7 @@ namespace PCGExFindContours
 	{
 	public:
 		FProjectRangeTask(PCGExData::FPointIO* InPointIO,
-						FBatch* InBatch):
+		                  FBatch* InBatch):
 			FPCGExTask(InPointIO),
 			Batch(InBatch)
 		{
@@ -194,7 +203,7 @@ namespace PCGExFindContours
 		int32 NumIterations = 0;
 		virtual bool ExecuteTask() override;
 	};
-	
+
 	class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public PCGExMT::FPCGExTask
 	{
 	public:
@@ -209,5 +218,4 @@ namespace PCGExFindContours
 
 		virtual bool ExecuteTask() override;
 	};
-	
 }

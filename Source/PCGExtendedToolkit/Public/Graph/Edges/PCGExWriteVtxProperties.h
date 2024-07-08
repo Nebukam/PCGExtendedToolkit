@@ -58,10 +58,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteVtxNormal"))
 	FName VtxNormalAttributeName = FName("Normal");
 
-	/** Projection settings used for normal calculations. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, DisplayName="Normal Projection", EditCondition="bWriteVtxNormal"))
-	FPCGExGeo2DProjectionDetails ProjectionDetails;
-
 private:
 	friend class FPCGExWriteVtxPropertiesElement;
 };
@@ -96,7 +92,6 @@ namespace PCGExWriteVtxProperties
 	{
 		friend class FProcessorBatch;
 
-		PCGExCluster::FClusterProjection* ProjectedCluster = nullptr;
 		TArray<UPCGExVtxPropertyOperation*>* ExtraOperations = nullptr;
 
 	public:
@@ -108,19 +103,14 @@ namespace PCGExWriteVtxProperties
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void CompleteWork() override;
 
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
-
-		FPCGExGeo2DProjectionDetails* ProjectionDetails = nullptr;
 	};
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-		FPCGExGeo2DProjectionDetails ProjectionDetails;
-
 		TArray<UPCGExVtxPropertyOperation*> ExtraOperations;
 
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)

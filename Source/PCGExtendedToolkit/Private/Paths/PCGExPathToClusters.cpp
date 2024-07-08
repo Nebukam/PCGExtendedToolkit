@@ -28,11 +28,6 @@ PCGExData::EInit UPCGExPathToClustersSettings::GetMainOutputInitMode() const
 	return PCGExData::EInit::NoOutput;
 }
 
-FName UPCGExPathToClustersSettings::GetMainOutputLabel() const
-{
-	return PCGExGraph::OutputVerticesLabel;
-}
-
 PCGEX_INITIALIZE_ELEMENT(PathToClusters)
 
 FPCGExPathToClustersContext::~FPCGExPathToClustersContext()

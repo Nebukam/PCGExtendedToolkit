@@ -9,8 +9,6 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-FName UPCGExPartitionRuleProviderSettings::GetMainOutputLabel() const { return FName(TEXT("PartitionRule")); }
-
 UPCGExParamFactoryBase* UPCGExPartitionRuleProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExPartitionRule* NewFactory = NewObject<UPCGExPartitionRule>();

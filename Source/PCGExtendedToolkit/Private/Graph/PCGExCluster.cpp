@@ -40,6 +40,26 @@ namespace PCGExCluster
 		return Centroid;
 	}
 
+	void FNode::ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData, FVector& OutNormal) const
+	{
+		const int32 NumNeighbors = AdjacencyData.Num();
+
+		OutNormal = FVector::ZeroVector;
+
+		if (AdjacencyData.IsEmpty())
+		{
+			OutNormal = FVector::UpVector;
+			return;
+		}
+
+		for (const FAdjacencyData& A : AdjacencyData)
+		{
+			OutNormal += PCGExMath::GetNormal((InCluster->Nodes->GetData() + A.NodeIndex)->Position, Position, Position + FVector::ForwardVector);
+		}
+
+		OutNormal /= NumNeighbors;
+	}
+
 	void FNode::ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const
 	{
 		const int32 NumAdjacency = Adjacency.Num();
@@ -326,9 +346,6 @@ namespace PCGExCluster
 		check(Bounds.GetExtent().Length() != 0)
 
 		PCGEX_DELETE(EdgeOctree)
-
-		const TArray<FNode>& NodesRef = *Nodes;
-		const TMap<int32, int32>& NodeIndexLookupRef = *NodeIndexLookup;
 
 		EdgeOctree = new ClusterItemOctree(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 
@@ -845,60 +862,6 @@ namespace PCGExCluster
 	}
 
 #pragma endregion
-
-#pragma region FNodeProjection
-
-	FNodeProjection::FNodeProjection(FNode* InNode)
-		: Node(InNode)
-	{
-	}
-
-	void FNodeProjection::ComputeNormal(const FCluster* InCluster)
-	{
-		const TArray<FNode>& NodesRef = *InCluster->Nodes;
-		const int32 NumNeighbors = Node->Adjacency.Num();
-
-		Normal = FVector::ZeroVector;
-
-		if (Node->Adjacency.IsEmpty())
-		{
-			Normal = FVector::UpVector;
-			return;
-		}
-
-		Normal = PCGExMath::GetNormal(NodesRef[PCGEx::H64A(Node->Adjacency.Last())].Position, Node->Position, NodesRef[PCGEx::H64A(Node->Adjacency[0])].Position);
-
-		if (NumNeighbors < 2) { return; }
-
-		for (int i = 0; i < NumNeighbors - 1; i++)
-		{
-			Normal += PCGExMath::GetNormal(NodesRef[PCGEx::H64A(Node->Adjacency[i])].Position, Node->Position, NodesRef[PCGEx::H64A(Node->Adjacency[i + 1])].Position);
-		}
-
-		Normal /= NumNeighbors;
-	}
-
-	FNodeProjection::~FNodeProjection()
-	{
-	}
-
-#pragma endregion
-
-#pragma region FClusterProjection
-
-	FClusterProjection::FClusterProjection(FCluster* InCluster, FPCGExGeo2DProjectionDetails* InProjectionDetails)
-		: Cluster(InCluster), ProjectionDetails(InProjectionDetails)
-	{
-		Nodes.Reserve(Cluster->Nodes->Num());
-		for (FNode& Node : (*Cluster->Nodes)) { Nodes.Emplace(&Node); }
-	}
-
-	FClusterProjection::~FClusterProjection()
-	{
-		Nodes.Empty();
-	}
-
-#pragma endregion
 }
 
 namespace PCGExClusterTask
@@ -989,11 +952,6 @@ namespace PCGExClusterTask
 		BuildChain(NewChain, Breakpoints, Cluster);
 		(*Chains)[TaskIndex] = NewChain;
 
-		return true;
-	}
-
-	bool FProjectCluster::ExecuteTask()
-	{
 		return true;
 	}
 

@@ -25,8 +25,6 @@ TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties(
 	return PinProperties;
 }
 
-FName UPCGExBuildDelaunayGraphSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(BuildDelaunayGraph)
 
 bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const

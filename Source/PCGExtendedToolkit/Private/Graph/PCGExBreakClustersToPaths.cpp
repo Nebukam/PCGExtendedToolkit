@@ -86,7 +86,7 @@ namespace PCGExBreakClustersToPaths
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		PCGEX_SETTINGS(BreakClustersToPaths)
-		FPCGExBreakClustersToPathsContext* InContext = static_cast<FPCGExBreakClustersToPathsContext*>(Context);
+		//FPCGExBreakClustersToPathsContext* InContext = static_cast<FPCGExBreakClustersToPathsContext*>(Context);
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 

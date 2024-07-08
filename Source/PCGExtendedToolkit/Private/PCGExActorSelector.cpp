@@ -322,10 +322,10 @@ bool FPCGExSelectionKey::IsMatching(const UObject* InObject, const TSet<FName>& 
 			InActor->GetAllChildActors(ActorsToCheck, /*bIncludeDescendants=*/ActorFilter == EPCGExActorFilter::Root);
 			ActorsToCheck.Add(const_cast<AActor*>(InActor));
 			TArray<UActorComponent*, TInlineAllocator<64>> TempActorComponents;
-			for (AActor* Current : ActorsToCheck)
+			for (const AActor* Current : ActorsToCheck)
 			{
 				// TempActorComponents is reset in GetComponents
-				InActor->GetComponents(UPCGComponent::StaticClass(), TempActorComponents);
+				Current->GetComponents(UPCGComponent::StaticClass(), TempActorComponents);
 				ActorComponents.Append(TempActorComponents);
 			}
 		}
@@ -352,7 +352,7 @@ bool FPCGExSelectionKey::IsMatching(const UObject* InObject, const TSet<FName>& 
 		return bFoundMatch;
 	}
 
-	bool bIsMatched = false;
+	bool bIsMatched;
 	switch (Selection)
 	{
 	case EPCGExActorSelection::ByTag:

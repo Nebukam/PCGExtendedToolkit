@@ -202,7 +202,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 			for (int i = 0; i < NumVectors; i++) { OutPositions[i] = ProjectionQuat.RotateVector(InPoints[i].Transform.GetLocation()); }
 		}
 	}
-
 };
 
 USTRUCT(BlueprintType)
@@ -326,7 +325,7 @@ namespace PCGExGeo
 
 		// this is the vector from a TO the circumsphere center
 		const FVector ToCircumsphereCenter = (ABxAC.Cross(AB) * AC.SquaredLength() + AC.Cross(ABxAC) * AB.SquaredLength()) / (2 * ABxAC.SquaredLength());
-		float Radius = ToCircumsphereCenter.Length();
+		//float Radius = ToCircumsphereCenter.Length();
 
 		// The 3 space coords of the circumsphere center then:
 		OutCircumcenter = A + ToCircumsphereCenter;
