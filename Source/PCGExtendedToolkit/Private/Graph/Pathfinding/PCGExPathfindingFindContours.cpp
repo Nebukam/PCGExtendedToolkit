@@ -82,7 +82,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		Path.Add(NextIndex);
 
 		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
-		if (Current->Neighbors.Num() <= 1) { break; }
+	//	if (Current->Neighbors.Num() <= 1) { break; }
 
 		const FVector Origin = Positions[(Cluster->Nodes->GetData() + NextIndex)->PointIndex];
 		const FVector GuideDir = (Origin - Positions[(Cluster->Nodes->GetData() + PrevIndex)->PointIndex]).GetSafeNormal();
@@ -90,7 +90,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		double BestAngle = 0;
 		int32 NextBest = -1;
 
-		Exclusions.Add(PrevIndex);
+		if(Current->Neighbors.Num() > 1){ Exclusions.Add(PrevIndex); }
 
 		for (const PCGExCluster::FExpandedNeighbor& N : Current->Neighbors)
 		{
