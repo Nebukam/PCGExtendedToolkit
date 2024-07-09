@@ -141,18 +141,22 @@ namespace PCGExBuildDelaunay
 			if (Settings->bOutputSites && Settings->bMergeUrquhartSites) { Delaunay->RemoveLongestEdges(ActivePositions, UrquhartEdges); }
 			else { Delaunay->RemoveLongestEdges(ActivePositions); }
 		}
+		
 		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
 
 		ActivePositions.Empty();
 
+		if (Settings->bOutputSites)
+		{
+			if (Settings->bMergeUrquhartSites) { AsyncManagerPtr->Start<FOutputDelaunayUrquhartSites>(BatchIndex, PointIO, this); }
+			else { AsyncManagerPtr->Start<FOutputDelaunaySites>(BatchIndex, PointIO, this); }
+		}
+
 		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
-
-		if (Settings->bMergeUrquhartSites) { AsyncManagerPtr->Start<FOutputDelaunayUrquhartSites>(BatchIndex, PointIO, this); }
-		else { AsyncManagerPtr->Start<FOutputDelaunaySites>(BatchIndex, PointIO, this); }
 		GraphBuilder->CompileAsync(AsyncManagerPtr);
 
-		if (!Settings->bMarkHull) { PCGEX_DELETE(Delaunay) }
+		if (!Settings->bMarkHull && !Settings->bOutputSites) { PCGEX_DELETE(Delaunay) }
 
 		return true;
 	}
