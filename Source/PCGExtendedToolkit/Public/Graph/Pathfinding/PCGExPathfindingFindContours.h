@@ -154,6 +154,7 @@ namespace PCGExFindContours
 
 		mutable FRWLock ExistingPathsLock;
 		TArray<TSet<int32>> ExistingPaths;
+		TSet<uint64> ExistingStartPairs;
 		
 	protected:
 		TArray<FVector>* ProjectedPositions = nullptr;

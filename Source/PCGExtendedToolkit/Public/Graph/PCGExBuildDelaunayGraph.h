@@ -60,7 +60,7 @@ public:
 	FName SiteHullAttributeName = "bIsOnHull";
 	
 	/** Merge adjacent sites into a single point */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, EditCondition="bUrquhart && bOutputSites", EditConditionHides))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, EditCondition="bUrquhart && bOutputSites", EditConditionHides))
 	bool bMergeUrquhartSites = false;
 
 	/** Mark points & edges that lie on the hull */
@@ -116,6 +116,7 @@ namespace PCGExBuildDelaunay
 
 	protected:
 		PCGExGeo::TDelaunay3* Delaunay = nullptr;
+		TSet<uint64> UrquhartEdges;
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;

@@ -101,10 +101,9 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
+	Context->OutputMainPoints();
+	if (Context->MainSites) { Context->MainSites->OutputTo(Context); }
+	Context->Done();
 
 	return Context->TryComplete();
 }
@@ -118,6 +117,8 @@ namespace PCGExBuildDelaunay2D
 		PCGEX_DELETE(GraphBuilder)
 
 		PCGEX_DELETE(HullMarkPointWriter)
+
+		UrquhartEdges.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -145,7 +146,11 @@ namespace PCGExBuildDelaunay2D
 
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::DuplicateInput);
 
-		if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(ActivePositions); }
+		if (Settings->bUrquhart)
+		{
+			if (Settings->bOutputSites && Settings->bMergeUrquhartSites) { Delaunay->RemoveLongestEdges(ActivePositions, UrquhartEdges); }
+			else { Delaunay->RemoveLongestEdges(ActivePositions); }
+		}
 		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
 
 		ActivePositions.Empty();
@@ -201,6 +206,8 @@ namespace PCGExBuildDelaunay2D
 
 	bool FOutputDelaunaySites2D::ExecuteTask()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunaySites2D::ExecuteTask);
+		
 		FPCGExBuildDelaunayGraph2DContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
@@ -239,6 +246,8 @@ namespace PCGExBuildDelaunay2D
 
 	bool FOutputDelaunayUrquhartSites2D::ExecuteTask()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunayUrquhartSites2D::ExecuteTask);
+		
 		FPCGExBuildDelaunayGraph2DContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
@@ -249,37 +258,53 @@ namespace PCGExBuildDelaunay2D
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
 		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay;
 		const int32 NumSites = Delaunay->Sites.Num();
-
-		/*
-		int32 NumSites = 0;
-		for(PCGExGeo::FDelaunaySite2& Site : Delaunay->Sites)
-		{
-			const uint64 EdgeA = PCGEx::H64U(Site.Vtx[0], Site.Vtx[1]); 
-			const uint64 EdgeB = PCGEx::H64U(Site.Vtx[1], Site.Vtx[2]); 
-			const uint64 EdgeC = PCGEx::H64U(Site.Vtx[0], Site.Vtx[2]);
-			
-		}
-		*/
-
 		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumSites)
+
+		TSet<int32> VisitedSites;
+		TArray<bool> Hull;
+		TArray<int32> FinalSites;
+		FinalSites.Reserve(NumSites);
+		Hull.Reserve(NumSites);
+
 		for (int i = 0; i < NumSites; i++)
 		{
+			bool bAlreadyVisited;
+			VisitedSites.Add(i, &bAlreadyVisited);
+
+			if (bAlreadyVisited) { continue; }
+
 			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
+			
+			TSet<int32> Queue;
+			Delaunay->GetMergedSites(i, Processor->UrquhartEdges, Queue);
+			VisitedSites.Append(Queue);
 
-			FVector Centroid = OriginalPoints[Site.Vtx[0]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[1]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[2]].Transform.GetLocation();
-			Centroid /= 3;
+			FVector Centroid = FVector::ZeroVector;
+			bool bOnHull = Site.bOnHull;
 
-			MutablePoints[i] = OriginalPoints[Site.Vtx[0]];
-			MutablePoints[i].Transform.SetLocation(Centroid);
+			for (const int32 MergeSiteIndex : Queue)
+			{
+				const PCGExGeo::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
+				for (int j = 0; j < 3; j++) { Centroid += OriginalPoints[MSite.Vtx[j]].Transform.GetLocation(); }
+
+				if (!bOnHull && Settings->bMarkSiteHull && MSite.bOnHull) { bOnHull = true; }
+			}
+
+			Centroid /= (Queue.Num() * 3);
+
+			const int32 VIndex = FinalSites.Add(Site.Vtx[0]);
+			Hull.Add(bOnHull);
+			MutablePoints[VIndex] = OriginalPoints[Site.Vtx[0]];
+			MutablePoints[VIndex].Transform.SetLocation(Centroid);
 		}
+
+		MutablePoints.SetNum(FinalSites.Num());
 
 		if (Settings->bMarkSiteHull)
 		{
 			PCGEx::TFAttributeWriter<bool>* HullWriter = new PCGEx::TFAttributeWriter<bool>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
-			for (int i = 0; i < NumSites; i++) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
+			for (int i = 0; i < Hull.Num(); i++) { HullWriter->Values[i] = Hull[i]; }
 			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);
 		}
 

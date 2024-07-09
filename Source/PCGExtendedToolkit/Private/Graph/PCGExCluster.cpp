@@ -60,22 +60,6 @@ namespace PCGExCluster
 		OutNormal /= NumNeighbors;
 	}
 
-	void FNode::ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const
-	{
-		const int32 NumAdjacency = Adjacency.Num();
-		OutNodes.SetNumUninitialized(NumAdjacency);
-		OutEdges.SetNumUninitialized(NumAdjacency);
-
-		for (int i = 0; i < NumAdjacency; i++)
-		{
-			uint32 AdjacentNode;
-			uint32 AdjacentEdge;
-			PCGEx::H64(Adjacency[i], AdjacentNode, AdjacentEdge);
-			OutNodes[i] = AdjacentNode;
-			OutEdges[i] = AdjacentEdge;
-		}
-	}
-
 #pragma endregion
 
 #pragma region FCluster

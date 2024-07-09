@@ -13,9 +13,9 @@ namespace PCGExGeo
 	struct FDelaunaySite2
 	{
 	public:
-		int32 Id = -1;
 		int32 Vtx[3];
 		int32 Neighbors[3];
+		int32 Id = -1;
 		bool bOnHull = false;
 
 		FDelaunaySite2(const UE::Geometry::FIndex3i& InVtx, const UE::Geometry::FIndex3i& InAdjacency, const int32 InId = -1) : Id(InId)
@@ -25,6 +25,22 @@ namespace PCGExGeo
 				Vtx[i] = InVtx[i];
 				Neighbors[i] = InAdjacency[i];
 			}
+		}
+
+		FORCEINLINE bool ContainsEdge(const uint64 Edge) const
+		{
+			return
+				Edge == PCGEx::H64U(Vtx[0], Vtx[1]) ||
+				Edge == PCGEx::H64U(Vtx[0], Vtx[2]) ||
+				Edge == PCGEx::H64U(Vtx[1], Vtx[2]);
+		}
+
+		FORCEINLINE uint64 GetSharedEdge(const FDelaunaySite2& Other) const
+		{
+			return
+				Other.ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[1])) ? PCGEx::H64U(Vtx[0], Vtx[1]) :
+					Other.ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[2])) ? PCGEx::H64U(Vtx[0], Vtx[2]) :
+					PCGEx::H64U(Vtx[1], Vtx[2]);
 		}
 	};
 
@@ -106,6 +122,7 @@ namespace PCGExGeo
 						if (Site.Neighbors[b] == -1)
 						{
 							Site.bOnHull = true;
+							DelaunayHull.Add(Site.Vtx[b]);
 						}
 					}
 
@@ -113,7 +130,7 @@ namespace PCGExGeo
 					{
 						Site.bOnHull = true;
 						DelaunayHull.Add(Site.Vtx[a]);
-						DelaunayHull.Add(Site.Vtx[PCGExMath::Tile(a + 1, 0, 2)]);
+						//DelaunayHull.Add(Site.Vtx[PCGExMath::Tile(a + 1, 0, 2)]);
 					}
 				}
 			}
@@ -124,30 +141,6 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
-		void GetNonHullSites(TArray<int32>& OutSiteIndices)
-		{
-			OutSiteIndices.Empty();
-			OutSiteIndices.Reserve(Sites.Num());
-			for (const FDelaunaySite2& Site : Sites)
-			{
-				if (Site.bOnHull) { continue; }
-				OutSiteIndices.Add(Site.Id);
-			}
-			OutSiteIndices.Shrink();
-		}
-
-		void GetHullSites(TArray<int32>& OutSiteIndices)
-		{
-			OutSiteIndices.Empty();
-			OutSiteIndices.Reserve(Sites.Num() / 2);
-			for (const FDelaunaySite2& Site : Sites)
-			{
-				if (!Site.bOnHull) { continue; }
-				OutSiteIndices.Add(Site.Id);
-			}
-			OutSiteIndices.Shrink();
-		}
-
 		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
 		{
 			uint64 Edge;
@@ -155,6 +148,45 @@ namespace PCGExGeo
 			{
 				GetLongestEdge(Positions, Site.Vtx, Edge);
 				DelaunayEdges.Remove(Edge);
+			}
+		}
+
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions, TSet<uint64>& LongestEdges)
+		{
+			uint64 Edge;
+			for (const FDelaunaySite2& Site : Sites)
+			{
+				GetLongestEdge(Positions, Site.Vtx, Edge);
+				DelaunayEdges.Remove(Edge);
+				LongestEdges.Add(Edge);
+			}
+		}
+
+		void GetMergedSites(const int32 SiteIndex, const TSet<uint64>& EdgeConnectors, TSet<int32>& OutMerged)
+		{
+			TArray<int32> Stack;
+			Stack.Add(SiteIndex);
+
+			while (!Stack.IsEmpty())
+			{
+				const int32 NextIndex = Stack.Pop(false);
+
+				bool bAlreadyProcessed;
+				OutMerged.Add(NextIndex, &bAlreadyProcessed);
+				if (bAlreadyProcessed) { continue; }
+
+				const FDelaunaySite2& Site = Sites[NextIndex];
+
+				for (int i = 0; i < 3; i++)
+				{
+					const int32 OtherIndex = Site.Neighbors[i];
+					if (OtherIndex == -1 || OutMerged.Contains(OtherIndex)) { continue; }
+					const FDelaunaySite2& NeighborSite = Sites[OtherIndex];
+					if (const uint64 SharedEdge = Site.GetSharedEdge(NeighborSite); EdgeConnectors.Contains(SharedEdge))
+					{
+						Stack.Add(OtherIndex);
+					}
+				}
 			}
 		}
 	};
@@ -169,10 +201,10 @@ namespace PCGExGeo
 	struct FDelaunaySite3
 	{
 	public:
-		int32 Id = -1;
+		uint64 Faces[4];
 		int32 Vtx[4];
 		int32 Neighbors[4];
-		uint64 Faces[4];
+		int32 Id = -1;
 		bool bOnHull = false;
 
 		explicit FDelaunaySite3(const FIntVector4& InVtx, const int32 InId = -1) : Id(InId)
@@ -313,31 +345,7 @@ namespace PCGExGeo
 
 			return IsValid;
 		}
-		
-		void GetNonHullSites(TArray<int32>& OutSiteIndices)
-		{
-			OutSiteIndices.Empty();
-			OutSiteIndices.Reserve(Sites.Num());
-			for (const FDelaunaySite3& Site : Sites)
-			{
-				if (Site.bOnHull) { continue; }
-				OutSiteIndices.Add(Site.Id);
-			}
-			OutSiteIndices.Shrink();
-		}
 
-		void GetHullSites(TArray<int32>& OutSiteIndices)
-		{
-			OutSiteIndices.Empty();
-			OutSiteIndices.Reserve(Sites.Num() / 2);
-			for (const FDelaunaySite3& Site : Sites)
-			{
-				if (!Site.bOnHull) { continue; }
-				OutSiteIndices.Add(Site.Id);
-			}
-			OutSiteIndices.Shrink();
-		}
-		
 		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
 		{
 			uint64 Edge;
@@ -345,6 +353,17 @@ namespace PCGExGeo
 			{
 				GetLongestEdge(Positions, Site.Vtx, Edge);
 				DelaunayEdges.Remove(Edge);
+			}
+		}
+
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions, TSet<uint64>& LongestEdges)
+		{
+			uint64 Edge;
+			for (const FDelaunaySite3& Site : Sites)
+			{
+				GetLongestEdge(Positions, Site.Vtx, Edge);
+				DelaunayEdges.Remove(Edge);
+				LongestEdges.Add(Edge);
 			}
 		}
 	};

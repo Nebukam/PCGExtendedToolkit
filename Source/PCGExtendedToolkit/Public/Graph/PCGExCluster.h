@@ -153,7 +153,6 @@ namespace PCGExCluster
 
 		void ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData, FVector& OutNormal) const;
 
-		void ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const;
 		FORCEINLINE void Add(const FNode& Neighbor, int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
 	};
 

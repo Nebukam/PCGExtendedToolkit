@@ -95,10 +95,9 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
+	Context->OutputMainPoints();
+	if (Context->MainSites) { Context->MainSites->OutputTo(Context); }
+	Context->Done();
 
 	return Context->TryComplete();
 }
@@ -111,6 +110,8 @@ namespace PCGExBuildDelaunay
 
 		PCGEX_DELETE(GraphBuilder)
 		PCGEX_DELETE(HullMarkPointWriter)
+
+		UrquhartEdges.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -135,7 +136,11 @@ namespace PCGExBuildDelaunay
 
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::DuplicateInput);
 
-		if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(ActivePositions); }
+		if (Settings->bUrquhart)
+		{
+			if (Settings->bOutputSites && Settings->bMergeUrquhartSites) { Delaunay->RemoveLongestEdges(ActivePositions, UrquhartEdges); }
+			else { Delaunay->RemoveLongestEdges(ActivePositions); }
+		}
 		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
 
 		ActivePositions.Empty();
@@ -212,7 +217,7 @@ namespace PCGExBuildDelaunay
 			MutablePoints[i].Transform.SetLocation(Centroid);
 		}
 
-		if(Settings->bMarkSiteHull)
+		if (Settings->bMarkSiteHull)
 		{
 			PCGEx::TFAttributeWriter<bool>* HullWriter = new PCGEx::TFAttributeWriter<bool>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
@@ -251,14 +256,14 @@ namespace PCGExBuildDelaunay
 			MutablePoints[i].Transform.SetLocation(Centroid);
 		}
 
-		if(Settings->bMarkSiteHull)
+		if (Settings->bMarkSiteHull)
 		{
 			PCGEx::TFAttributeWriter<bool>* HullWriter = new PCGEx::TFAttributeWriter<bool>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; i++) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
 			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);
 		}
-		
+
 		return true;
 	}
 }

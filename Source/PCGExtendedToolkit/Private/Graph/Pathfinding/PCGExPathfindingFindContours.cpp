@@ -72,6 +72,17 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		StartNodeIndex = PrevIndex;
 	}
 
+	if (Settings->bDedupePaths)
+	{
+		uint64 StartHash = PCGEx::H64(PrevIndex, NextIndex);
+		bool bAlreadyExists;
+		{
+			FWriteScopeLock WriteScopeLock(ClusterProcessor->ExistingPathsLock);
+			ClusterProcessor->ExistingStartPairs.Add(StartHash, &bAlreadyExists);
+		}
+		if (bAlreadyExists) { return false; }
+	}
+
 	TArray<int32> Path;
 	TSet<int32> PathUniqueSet;
 	Path.Add(PrevIndex);
