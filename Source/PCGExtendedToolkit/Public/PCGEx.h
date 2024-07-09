@@ -494,7 +494,8 @@ namespace PCGEx
 	static bool SameSet(const TSet<T>& A, const TSet<T>& B)
 	{
 		if (A.Num() != B.Num()) { return false; }
-		return A.Difference(B).Num() == 0 && B.Difference(A).Num() == 0;
+		for (const T& Entry : A) { if (!B.Contains(Entry)) { return false; } }
+		return true;
 	}
 
 #pragma region Metadata Type
