@@ -65,8 +65,9 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	const FVector B = (*(ExpandedNodes->GetData() + NextIndex))->Node->Position;
 
 	const double SanityAngle = PCGExMath::GetDegreesBetweenVectors((B - A).GetSafeNormal(), (B - Guide).GetSafeNormal());
+	const bool bStartIsDeadEnd = (Cluster->Nodes->GetData() + StartNodeIndex)->Adjacency.Num() == 1;
 
-	if (SanityAngle > 180)
+	if (SanityAngle > 180 && !bStartIsDeadEnd)
 	{
 		// Swap search orientation
 		PrevIndex = NextIndex;
