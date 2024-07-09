@@ -41,8 +41,10 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	int32 StartNodeIndex = Cluster->FindClosestNode(Guide, Settings->SeedPicking.PickingMethod, 2);
 	int32 NextEdge = Cluster->FindClosestEdge(StartNodeIndex, Guide);
 
-	if (StartNodeIndex == -1 || NextEdge == -1 ||
-		(Cluster->Nodes->GetData() + StartNodeIndex)->Adjacency.Num() <= 1)
+	if (StartNodeIndex == -1
+		|| NextEdge == -1
+		// || (Cluster->Nodes->GetData() + StartNodeIndex)->Adjacency.Num() <= 1
+	)
 	{
 		// Fail. Either single-node or single-edge cluster, or no connected edge
 		return false;
