@@ -113,9 +113,7 @@ namespace PCGExBuildDelaunay2D
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Delaunay)
-
 		PCGEX_DELETE(GraphBuilder)
-
 		PCGEX_DELETE(HullMarkPointWriter)
 
 		UrquhartEdges.Empty();
@@ -165,7 +163,7 @@ namespace PCGExBuildDelaunay2D
 		}
 		GraphBuilder->CompileAsync(AsyncManagerPtr);
 
-		if (!Settings->bMarkHull) { PCGEX_DELETE(Delaunay) }
+		if (!Settings->bMarkHull && !Settings->bOutputSites) { PCGEX_DELETE(Delaunay) }
 
 		return true;
 	}
