@@ -101,13 +101,13 @@ namespace PCGExGeo
 			IntersectionsMap.GetKeys(Keys);
 
 			PCGEX_SET_NUM_UNINITIALIZED(IntersectionsList, Keys.Num())
-			
+
 			int32 Index = 0;
 			for (const uint64 Key : Keys) { IntersectionsList[Index++] = IntersectionsMap[Key]; }
 			Keys.Empty();
 			IntersectionsMap.Empty();
 		}
-		
+
 		FORCEINLINE FIntersections* Find(const uint64 Key)
 		{
 			{
@@ -186,7 +186,10 @@ namespace PCGExGeo
 
 			if (bIsStartInside && bIsEndInside) { return false; }
 
-			if (!LineIntersection(LocalStart, LocalEnd, OutIntersection1, OutIntersection2)) { return false; }
+			FVector HitNormal;
+			FVector OneOverDirection;
+
+			if (!FMath::LineBoxIntersection(Box, LocalStart, LocalEnd, HitNormal, OneOverDirection)) { return false; }
 
 			if (bIsStartInside)
 			{
