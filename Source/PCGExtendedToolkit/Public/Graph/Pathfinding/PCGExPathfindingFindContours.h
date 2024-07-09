@@ -152,9 +152,9 @@ namespace PCGExFindContours
 		friend struct FPCGExFindContoursContext;
 		friend class FBatch;
 
-		mutable FRWLock ExistingPathsLock;
-		TArray<TSet<int32>> ExistingPaths;
-		TSet<uint64> ExistingStartPairs;
+		mutable FRWLock UniquePathsLock;
+		TSet<uint32> UniquePathsBounds;
+		TSet<uint64> UniquePathsStartPairs;
 		
 	protected:
 		TArray<FVector>* ProjectedPositions = nullptr;

@@ -35,11 +35,11 @@ namespace PCGExGeo
 				Edge == PCGEx::H64U(Vtx[1], Vtx[2]);
 		}
 
-		FORCEINLINE uint64 GetSharedEdge(const FDelaunaySite2& Other) const
+		FORCEINLINE uint64 GetSharedEdge(const FDelaunaySite2* Other) const
 		{
 			return
-				Other.ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[1])) ? PCGEx::H64U(Vtx[0], Vtx[1]) :
-					Other.ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[2])) ? PCGEx::H64U(Vtx[0], Vtx[2]) :
+				Other->ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[1])) ? PCGEx::H64U(Vtx[0], Vtx[1]) :
+					Other->ContainsEdge(PCGEx::H64U(Vtx[0], Vtx[2])) ? PCGEx::H64U(Vtx[0], Vtx[2]) :
 					PCGEx::H64U(Vtx[1], Vtx[2]);
 		}
 	};
@@ -175,14 +175,14 @@ namespace PCGExGeo
 				OutMerged.Add(NextIndex, &bAlreadyProcessed);
 				if (bAlreadyProcessed) { continue; }
 
-				const FDelaunaySite2& Site = Sites[NextIndex];
+				const FDelaunaySite2* Site = (Sites.GetData() + NextIndex);
 
 				for (int i = 0; i < 3; i++)
 				{
-					const int32 OtherIndex = Site.Neighbors[i];
+					const int32 OtherIndex = Site->Neighbors[i];
 					if (OtherIndex == -1 || OutMerged.Contains(OtherIndex)) { continue; }
-					const FDelaunaySite2& NeighborSite = Sites[OtherIndex];
-					if (const uint64 SharedEdge = Site.GetSharedEdge(NeighborSite); EdgeConnectors.Contains(SharedEdge))
+					const FDelaunaySite2* NeighborSite = Sites.GetData() + OtherIndex;
+					if (const uint64 SharedEdge = Site->GetSharedEdge(NeighborSite); EdgeConnectors.Contains(SharedEdge))
 					{
 						Stack.Add(OtherIndex);
 					}

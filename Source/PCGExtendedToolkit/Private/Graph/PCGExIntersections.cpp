@@ -47,7 +47,7 @@ namespace PCGExGraph
 		{
 			FWriteScopeLock WriteLock(OctreeLock);
 
-			const int64 GridKey = PCGEx::GH(Origin, CWTolerance);
+			const uint64 GridKey = PCGEx::GH(Origin, CWTolerance);
 
 			if (FCompoundNode** NodePtr = GridTree.Find(GridKey))
 			{
@@ -133,7 +133,7 @@ namespace PCGExGraph
 
 		if (!Octree)
 		{
-			const int64 GridKey = PCGEx::GH(Origin, CWTolerance);
+			const uint64 GridKey = PCGEx::GH(Origin, CWTolerance);
 
 			if (FCompoundNode** NodePtr = GridTree.Find(GridKey))
 			{

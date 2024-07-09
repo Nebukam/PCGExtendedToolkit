@@ -3,8 +3,6 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
-#include "Graph/Pathfinding/PCGExPathfinding.h"
-
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
 
@@ -40,6 +38,8 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	const FVector Guide = ProjectedSeeds[SeedIndex];
 	int32 StartNodeIndex = Cluster->FindClosestNode(Guide, Settings->SeedPicking.PickingMethod, 2);
 	int32 NextEdge = Cluster->FindClosestEdge(StartNodeIndex, Guide);
+
+	FBox PathBox = FBox(ForceInit);
 
 	if (StartNodeIndex == -1
 		|| NextEdge == -1
@@ -80,27 +80,27 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		uint64 StartHash = PCGEx::H64(PrevIndex, NextIndex);
 		bool bAlreadyExists;
 		{
-			FWriteScopeLock WriteScopeLock(ClusterProcessor->ExistingPathsLock);
-			ClusterProcessor->ExistingStartPairs.Add(StartHash, &bAlreadyExists);
+			FWriteScopeLock WriteScopeLock(ClusterProcessor->UniquePathsLock);
+			ClusterProcessor->UniquePathsStartPairs.Add(StartHash, &bAlreadyExists);
 		}
 		if (bAlreadyExists) { return false; }
 	}
 
 	TArray<int32> Path;
-	TSet<int32> PathUniqueSet;
 	Path.Add(PrevIndex);
-	PathUniqueSet.Add(PrevIndex);
 	TSet<int32> Exclusions = {PrevIndex, NextIndex};
 
 	bool bIsConvex = true;
 	int32 Sign = 0;
 
+	PathBox += (*(ExpandedNodes->GetData() + PrevIndex))->Node->Position;
+
 	bool bGracefullyClosed = false;
 	while (NextIndex != -1)
 	{
 		Path.Add(NextIndex);
-		PathUniqueSet.Add(NextIndex);
 		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
+		PathBox += Current->Node->Position;
 
 		//if (Current->Neighbors.Num() <= 1) { break; }
 		if (Current->Neighbors.Num() == 1 && Settings->bDuplicateDeadEndPoints) { Path.Add(NextIndex); }
@@ -166,18 +166,13 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 	if (Settings->bDedupePaths)
 	{
+		uint32 BoxHash = HashCombineFast(GetTypeHash(PathBox.Min), GetTypeHash(PathBox.Max));
+		bool bAlreadyExists;
 		{
-			FReadScopeLock ReadScopeLock(ClusterProcessor->ExistingPathsLock);
-			for (const TSet<int32>& ExistingPathSet : ClusterProcessor->ExistingPaths)
-			{
-				if (PCGEx::SameSet(PathUniqueSet, ExistingPathSet)) { return false; }
-			}
+			FWriteScopeLock WriteScopeLock(ClusterProcessor->UniquePathsLock);
+			ClusterProcessor->UniquePathsBounds.Add(BoxHash, &bAlreadyExists);
 		}
-
-		{
-			FWriteScopeLock WriteScopeLock(ClusterProcessor->ExistingPathsLock);
-			ClusterProcessor->ExistingPaths.Add(PathUniqueSet);
-		}
+		if (bAlreadyExists) { return false; }
 	}
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
@@ -318,7 +313,7 @@ namespace PCGExFindContours
 	FProcessor::~FProcessor()
 	{
 		if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) }
-		ExistingPaths.Empty();
+		UniquePathsBounds.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)

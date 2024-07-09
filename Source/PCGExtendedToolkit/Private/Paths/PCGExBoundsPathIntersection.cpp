@@ -1,23 +1,23 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Paths/PCGExPointsPathIntersection.h"
+#include "Paths/PCGExBoundsPathIntersection.h"
 
-#define LOCTEXT_NAMESPACE "PCGExPointsPathIntersectionElement"
-#define PCGEX_NAMESPACE PointsPathIntersection
+#define LOCTEXT_NAMESPACE "PCGExBoundsPathIntersectionElement"
+#define PCGEX_NAMESPACE BoundsPathIntersection
 
-TArray<FPCGPinProperties> UPCGExPointsPathIntersectionSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Intersection targets", Required, {})
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExPointsPathIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExBoundsPathIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-PCGEX_INITIALIZE_ELEMENT(PointsPathIntersection)
+PCGEX_INITIALIZE_ELEMENT(BoundsPathIntersection)
 
-FPCGExPointsPathIntersectionContext::~FPCGExPointsPathIntersectionContext()
+FPCGExBoundsPathIntersectionContext::~FPCGExBoundsPathIntersectionContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
@@ -25,11 +25,11 @@ FPCGExPointsPathIntersectionContext::~FPCGExPointsPathIntersectionContext()
 	PCGEX_DELETE(BoundsDataFacade)
 }
 
-bool FPCGExPointsPathIntersectionElement::Boot(FPCGContext* InContext) const
+bool FPCGExBoundsPathIntersectionElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(PointsPathIntersection)
+	PCGEX_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
 	PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true);
 	if (!BoundsIO) { return false; }
@@ -39,11 +39,11 @@ bool FPCGExPointsPathIntersectionElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExPointsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsPathIntersectionElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBoundsPathIntersectionElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(PointsPathIntersection)
+	PCGEX_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
 	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
 	return true;
@@ -58,7 +58,7 @@ namespace PCGExPathIntersections
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PointsPathIntersection)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

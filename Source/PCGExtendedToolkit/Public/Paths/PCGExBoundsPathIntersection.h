@@ -8,21 +8,20 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Geometry/PCGExGeo.h"
-#include "Graph/PCGExPruneClusters.h"
-#include "PCGExPointsPathIntersection.generated.h"
+#include "PCGExBoundsPathIntersection.generated.h"
 
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExPointsPathIntersectionSettings : public UPCGExPathProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBoundsPathIntersectionSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PointsPathIntersection, "Path : Points Intersection", "Find intersection with target input points.");
+	PCGEX_NODE_INFOS(BoundsPathIntersection, "Path × Bounds Intersection", "Find intersection with target input points.");
 #endif
 
 protected:
@@ -45,16 +44,16 @@ public:
 	FPCGExBoxIntersectionDetails IntersectionDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionContext final : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionContext final : public FPCGExPathProcessorContext
 {
-	friend class FPCGExPointsPathIntersectionElement;
+	friend class FPCGExBoundsPathIntersectionElement;
 
-	virtual ~FPCGExPointsPathIntersectionContext() override;
+	virtual ~FPCGExBoundsPathIntersectionContext() override;
 
 	PCGExData::FFacade* BoundsDataFacade = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionElement final : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

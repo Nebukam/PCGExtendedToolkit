@@ -121,7 +121,6 @@ namespace PCGExBuildDelaunay2D
 	protected:
 		PCGExGeo::TDelaunay2* Delaunay = nullptr;
 		TSet<uint64> UrquhartEdges;
-
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 

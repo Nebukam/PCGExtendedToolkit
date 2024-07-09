@@ -149,11 +149,11 @@ namespace PCGExBuildDelaunay2D
 			if (Settings->bOutputSites && Settings->bMergeUrquhartSites) { Delaunay->RemoveLongestEdges(ActivePositions, UrquhartEdges); }
 			else { Delaunay->RemoveLongestEdges(ActivePositions); }
 		}
-		
+
 		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
 
 		ActivePositions.Empty();
-		
+
 		if (Settings->bOutputSites)
 		{
 			if (Settings->bMergeUrquhartSites) { AsyncManagerPtr->Start<FOutputDelaunayUrquhartSites2D>(BatchIndex, PointIO, this); }
@@ -206,7 +206,7 @@ namespace PCGExBuildDelaunay2D
 	bool FOutputDelaunaySites2D::ExecuteTask()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunaySites2D::ExecuteTask);
-		
+
 		FPCGExBuildDelaunayGraph2DContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
@@ -223,12 +223,11 @@ namespace PCGExBuildDelaunay2D
 		{
 			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
 
-			FVector Centroid = OriginalPoints[Site.Vtx[0]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[1]].Transform.GetLocation();
-			Centroid += OriginalPoints[Site.Vtx[2]].Transform.GetLocation();
+			FVector Centroid = FVector::ZeroVector;
+			for (int j = 0; j < 3; j++) { Centroid += (OriginalPoints.GetData() + Site.Vtx[j])->Transform.GetLocation(); }
 			Centroid /= 3;
 
-			MutablePoints[i] = OriginalPoints[Site.Vtx[0]];
+			MutablePoints[i] = *(OriginalPoints.GetData() + Site.Vtx[0]);
 			MutablePoints[i].Transform.SetLocation(Centroid);
 		}
 
@@ -246,7 +245,7 @@ namespace PCGExBuildDelaunay2D
 	bool FOutputDelaunayUrquhartSites2D::ExecuteTask()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FOutputDelaunayUrquhartSites2D::ExecuteTask);
-		
+
 		FPCGExBuildDelaunayGraph2DContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
@@ -273,7 +272,7 @@ namespace PCGExBuildDelaunay2D
 			if (bAlreadyVisited) { continue; }
 
 			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
-			
+
 			TSet<int32> Queue;
 			Delaunay->GetMergedSites(i, Processor->UrquhartEdges, Queue);
 			VisitedSites.Append(Queue);
@@ -284,7 +283,7 @@ namespace PCGExBuildDelaunay2D
 			for (const int32 MergeSiteIndex : Queue)
 			{
 				const PCGExGeo::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
-				for (int j = 0; j < 3; j++) { Centroid += OriginalPoints[MSite.Vtx[j]].Transform.GetLocation(); }
+				for (int j = 0; j < 3; j++) { Centroid += (OriginalPoints.GetData() + MSite.Vtx[j])->Transform.GetLocation(); }
 
 				if (!bOnHull && Settings->bMarkSiteHull && MSite.bOnHull) { bOnHull = true; }
 			}

@@ -268,15 +268,22 @@ namespace PCGEx
 
 	FORCEINLINE static uint64 GH(const FInt64Vector3& Seed)
 	{
+		return GetTypeHash(Seed);
+		/*
 		uint64 Seed64 = 0;
 		HC64(Seed64, std::hash<int64>()(Seed.X));
 		HC64(Seed64, std::hash<int64>()(Seed.Y));
 		HC64(Seed64, std::hash<int64>()(Seed.Z));
 		return Seed64;
+		*/
 	}
 
 	FORCEINLINE static uint64 GH(const FVector& Seed, const FInt64Vector3& Tolerance)
 	{
+		return GetTypeHash(FInt64Vector3(
+				FMath::FloorToInt64(Seed.X * Tolerance.X),
+				FMath::FloorToInt64(Seed.Y * Tolerance.Y),
+				FMath::FloorToInt64(Seed.Z * Tolerance.Z)));
 		return GH(
 			FInt64Vector3(
 				FMath::FloorToInt64(Seed.X * Tolerance.X),
@@ -286,7 +293,7 @@ namespace PCGEx
 
 	FORCEINLINE static uint64 GH(const FVector& Seed, const FVector& Tolerance)
 	{
-		return GH(
+		return GetTypeHash(
 			FInt64Vector3(
 				FMath::FloorToInt64(Seed.X * Tolerance.X),
 				FMath::FloorToInt64(Seed.Y * Tolerance.Y),

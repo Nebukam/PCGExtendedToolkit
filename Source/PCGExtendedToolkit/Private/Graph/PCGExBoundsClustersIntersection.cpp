@@ -1,41 +1,41 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExPointsClusterIntersection.h"
+#include "Graph/PCGExBoundsClustersIntersection.h"
 
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExPointsClusterIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExPointsClusterIntersectionSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBoundsClustersIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBoundsClustersIntersectionSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 #pragma endregion
 
-FPCGExPointsClusterIntersectionContext::~FPCGExPointsClusterIntersectionContext()
+FPCGExBoundsClustersIntersectionContext::~FPCGExBoundsClustersIntersectionContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
 	IndexedEdges.Empty();
 }
 
-PCGEX_INITIALIZE_ELEMENT(PointsClusterIntersection)
+PCGEX_INITIALIZE_ELEMENT(BoundsClustersIntersection)
 
-bool FPCGExPointsClusterIntersectionElement::Boot(FPCGContext* InContext) const
+bool FPCGExBoundsClustersIntersectionElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(PointsClusterIntersection)
+	PCGEX_CONTEXT_AND_SETTINGS(BoundsClustersIntersection)
 
 	return true;
 }
 
-bool FPCGExPointsClusterIntersectionElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExBoundsClustersIntersectionElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsClusterIntersectionElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBoundsClustersIntersectionElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(PointsClusterIntersection)
+	PCGEX_CONTEXT_AND_SETTINGS(BoundsClustersIntersection)
 
 	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
 	return true;

@@ -7,18 +7,18 @@
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
 
-#include "PCGExPointsClusterIntersection.generated.h"
+#include "PCGExBoundsClustersIntersection.generated.h"
 
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExPointsClusterIntersectionSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBoundsClustersIntersectionSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PointsClusterIntersection, "Cluster : Points Intersection", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
+	PCGEX_NODE_INFOS(PointsClusterIntersection, "Clusters × Bounds Intersection", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
@@ -37,17 +37,17 @@ public:
 	FPCGExBoxIntersectionDetails IntersectionDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionContext final : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsClustersIntersectionContext final : public FPCGExEdgesProcessorContext
 {
-	friend class UPCGExPointsClusterIntersectionSettings;
-	friend class FPCGExPointsClusterIntersectionElement;
+	friend class UPCGExBoundsClustersIntersectionSettings;
+	friend class FPCGExBoundsClustersIntersectionElement;
 
-	virtual ~FPCGExPointsClusterIntersectionContext() override;
+	virtual ~FPCGExBoundsClustersIntersectionContext() override;
 
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionElement final : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBoundsClustersIntersectionElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
