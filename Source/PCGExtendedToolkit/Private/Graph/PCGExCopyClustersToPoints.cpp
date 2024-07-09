@@ -37,7 +37,7 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(TransformDetails)
 
-	Context->Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, true);
+	Context->Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
 	if (!Context->Targets) { return false; }
 
 	return true;

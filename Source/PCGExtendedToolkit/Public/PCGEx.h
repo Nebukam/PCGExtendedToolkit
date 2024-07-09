@@ -490,6 +490,13 @@ namespace PCGEx
 		OutScopes.Emplace(H64(StartIndex, Count));
 	}
 
+	template <typename T>
+	static bool SameSet(const TSet<T>& A, const TSet<T>& B)
+	{
+		if (A.Num() != B.Num()) { return false; }
+		return A.Difference(B).Num() == 0 && B.Difference(A).Num() == 0;
+	}
+
 #pragma region Metadata Type
 
 	template <typename T, typename CompilerSafety = void>

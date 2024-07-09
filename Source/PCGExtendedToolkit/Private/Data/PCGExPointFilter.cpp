@@ -11,8 +11,9 @@ PCGExPointFilter::TFilter* UPCGExFilterFactoryBase::CreateFilter() const
 }
 
 
-void UPCGExFilterFactoryBase::Init()
+bool UPCGExFilterFactoryBase::Init(const FPCGContext* InContext)
 {
+	return true;
 }
 
 namespace PCGExPointFilter

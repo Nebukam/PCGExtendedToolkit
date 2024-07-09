@@ -224,7 +224,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 
 	PCGExData::FPointIO* SeedsPoints;
 
-	SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
+	SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
 
 	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);

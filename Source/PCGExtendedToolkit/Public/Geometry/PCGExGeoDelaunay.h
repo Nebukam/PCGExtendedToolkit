@@ -124,6 +124,30 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
+		void GetNonHullSites(TArray<int32>& OutSiteIndices)
+		{
+			OutSiteIndices.Empty();
+			OutSiteIndices.Reserve(Sites.Num());
+			for (const FDelaunaySite2& Site : Sites)
+			{
+				if (Site.bOnHull) { continue; }
+				OutSiteIndices.Add(Site.Id);
+			}
+			OutSiteIndices.Shrink();
+		}
+
+		void GetHullSites(TArray<int32>& OutSiteIndices)
+		{
+			OutSiteIndices.Empty();
+			OutSiteIndices.Reserve(Sites.Num() / 2);
+			for (const FDelaunaySite2& Site : Sites)
+			{
+				if (!Site.bOnHull) { continue; }
+				OutSiteIndices.Add(Site.Id);
+			}
+			OutSiteIndices.Shrink();
+		}
+
 		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
 		{
 			uint64 Edge;
@@ -289,7 +313,31 @@ namespace PCGExGeo
 
 			return IsValid;
 		}
+		
+		void GetNonHullSites(TArray<int32>& OutSiteIndices)
+		{
+			OutSiteIndices.Empty();
+			OutSiteIndices.Reserve(Sites.Num());
+			for (const FDelaunaySite3& Site : Sites)
+			{
+				if (Site.bOnHull) { continue; }
+				OutSiteIndices.Add(Site.Id);
+			}
+			OutSiteIndices.Shrink();
+		}
 
+		void GetHullSites(TArray<int32>& OutSiteIndices)
+		{
+			OutSiteIndices.Empty();
+			OutSiteIndices.Reserve(Sites.Num() / 2);
+			for (const FDelaunaySite3& Site : Sites)
+			{
+				if (!Site.bOnHull) { continue; }
+				OutSiteIndices.Add(Site.Id);
+			}
+			OutSiteIndices.Shrink();
+		}
+		
 		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
 		{
 			uint64 Edge;

@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
-#include "PCGExEdgeRefinePrimMST.generated.h"
+#include "PCGExEdgeRefineKeepLongest.generated.h"
 
 class UPCGExHeuristicLocalDistance;
 class UPCGExHeuristicDistance;
@@ -18,13 +18,13 @@ namespace PCGExCluster
 /**
  * 
  */
-UCLASS(BlueprintType, meta=(DisplayName="MST (Prim)"))
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOperation
+UCLASS(BlueprintType, meta=(DisplayName="Keep Longest"))
+class PCGEXTENDEDTOOLKIT_API UPCGExEdgeKeepLongest : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 
 public:
 	virtual bool InvalidateAllEdgesBeforeProcessing() override { return true; }
-	virtual bool RequiresHeuristics() override { return true; }
-	virtual void Process() override;
+	virtual bool RequiresIndividualNodeProcessing() override { return true; }
+	virtual void ProcessNode(PCGExCluster::FNode& Node) override;
 };

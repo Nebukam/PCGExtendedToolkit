@@ -43,7 +43,7 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PickClosestClusters)
 
-	Context->Targets = Context->TryGetSingleInput(PCGExGraph::SourcePickersLabel, true);
+	Context->Targets = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourcePickersLabel, true);
 	if (!Context->Targets) { return false; }
 
 	const TArray<FPCGPoint>& InTargetPoints = Context->Targets->GetIn()->GetPoints();

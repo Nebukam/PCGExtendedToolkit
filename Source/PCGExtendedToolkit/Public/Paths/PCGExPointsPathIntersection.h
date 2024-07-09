@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Geometry/PCGExGeo.h"
+#include "Graph/PCGExPruneClusters.h"
 #include "PCGExPointsPathIntersection.generated.h"
 
 /**
@@ -49,6 +50,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionContext final : public
 	friend class FPCGExPointsPathIntersectionElement;
 
 	virtual ~FPCGExPointsPathIntersectionContext() override;
+
+	PCGExData::FFacade* BoundsDataFacade = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionElement final : public FPCGExPathProcessorElement
@@ -64,13 +67,26 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionTask final : public PCGExMT::FPCGExTask
+namespace PCGExPathIntersections
 {
-public:
-	FPCGExPointsPathIntersectionTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		int32 LastIndex = 0;
+		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
+		PCGExGeo::FSegmentation* Segmentation = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints)
+			: FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+	};
+}

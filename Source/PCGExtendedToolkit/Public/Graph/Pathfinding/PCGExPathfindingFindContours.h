@@ -51,6 +51,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bKeepOnlyGracefulContours = true;
 
+	/** Ensure the node doesn't output duplicate path. Can be expensive. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bDedupePaths = true;
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExContourShapeTypeOutput OutputType = EPCGExContourShapeTypeOutput::Both;
@@ -119,12 +123,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 	PCGExData::FFacade* SeedsDataFacade = nullptr;
 	TArray<FVector> ProjectedSeeds;
 
+
 	PCGExData::FPointIOCollection* Paths;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler;
 
-	bool TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, const PCGExFindContours::FProcessor* ClusterProcessor);
+	bool TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
@@ -147,6 +152,9 @@ namespace PCGExFindContours
 		friend struct FPCGExFindContoursContext;
 		friend class FBatch;
 
+		mutable FRWLock ExistingPathsLock;
+		TArray<TSet<int32>> ExistingPaths;
+		
 	protected:
 		TArray<FVector>* ProjectedPositions = nullptr;
 

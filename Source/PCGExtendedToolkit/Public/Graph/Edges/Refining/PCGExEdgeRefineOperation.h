@@ -41,6 +41,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
+	virtual bool InvalidateAllEdgesBeforeProcessing() { return false; }
 	virtual bool RequiresNodeOctree() { return false; }
 	virtual bool RequiresEdgeOctree() { return false; }
 	virtual bool RequiresHeuristics() { return false; }

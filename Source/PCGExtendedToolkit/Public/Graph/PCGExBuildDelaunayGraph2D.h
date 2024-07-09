@@ -47,6 +47,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bUrquhart = false;
 
+	/** Output delaunay sites */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable))
+	bool bOutputSites = false;
+
+	/** Mark points & edges that lie on the hull */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bMarkSiteHull = true;
+
+	/** Name of the attribute to output the Hull boolean to. True if point is on the hull, otherwise false. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, EditCondition="bMarkSiteHull"))
+	FName SiteHullAttributeName = "bIsOnHull";
+	
+	/** Merge adjacent sites into a single point */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, EditCondition="bUrquhart && bOutputSites", EditConditionHides))
+	bool bMergeUrquhartSites = false;
+
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
@@ -76,6 +92,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext final : public F
 	friend class FPCGExBuildDelaunayGraph2DElement;
 
 	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
+
+	TMap<PCGExData::FPointIO*, PCGExData::FPointIO*> SitesIOMap;
+	PCGExData::FPointIOCollection* MainSites = nullptr;
 };
 
 
@@ -96,6 +115,9 @@ namespace PCGExBuildDelaunay2D
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		friend class FOutputDelaunaySites2D;
+		friend class FOutputDelaunayUrquhartSites2D;
+		
 	protected:
 		PCGExGeo::TDelaunay2* Delaunay = nullptr;
 
@@ -116,5 +138,35 @@ namespace PCGExBuildDelaunay2D
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FOutputDelaunaySites2D final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FOutputDelaunaySites2D(PCGExData::FPointIO* InPointIO,
+		                       FProcessor* InProcessor) :
+			FPCGExTask(InPointIO),
+			Processor(InProcessor)
+		{
+		}
+
+		FProcessor* Processor = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+	
+	class PCGEXTENDEDTOOLKIT_API FOutputDelaunayUrquhartSites2D final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FOutputDelaunayUrquhartSites2D(PCGExData::FPointIO* InPointIO,
+							   FProcessor* InProcessor) :
+			FPCGExTask(InPointIO),
+			Processor(InProcessor)
+		{
+		}
+
+		FProcessor* Processor = nullptr;
+
+		virtual bool ExecuteTask() override;
 	};
 }

@@ -3,10 +3,11 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
-void UPCGExDotFilterFactory::Init()
+bool UPCGExDotFilterFactory::Init(const FPCGContext* InContext)
 {
-	Super::Init();
+	if (!Super::Init(InContext)) { return false; }
 	Config.Sanitize();
+	return true;
 }
 
 PCGExPointFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const

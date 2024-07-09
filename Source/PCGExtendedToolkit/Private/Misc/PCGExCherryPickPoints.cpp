@@ -29,7 +29,7 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->IndicesSource == EPCGExCherryPickSource::Target)
 	{
-		PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, true);
+		PCGExData::FPointIO* Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
 		if (!Targets) { return false; }
 
 		TSet<int32> UniqueIndices;

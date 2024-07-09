@@ -138,12 +138,12 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 		return false;
 	};
 
-	SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
+	SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return Exit(); }
 
 	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
 
-	GoalsPoints = Context->TryGetSingleInput(PCGExGraph::SourceGoalsLabel, true);
+	GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
 	if (!GoalsPoints) { return Exit(); }
 
 	Context->GoalsDataFacade = new PCGExData::FFacade(GoalsPoints);

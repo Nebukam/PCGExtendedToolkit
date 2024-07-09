@@ -49,6 +49,7 @@ public:
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -62,10 +63,13 @@ public:
 	TObjectPtr<UPCGExEdgeRefineOperation> Refinement;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	bool bOutputOnlyEdgesAsPoints = false;
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bOutputOnlyEdgesAsPoints", EditConditionHides))
 	EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
-
+	
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="bOutputOnlyEdgesAsPoints", EditConditionHides))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 private:
@@ -125,7 +129,7 @@ namespace PCGExRefineEdges
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
-		void InsertEdges();
+		void InsertEdges() const;
 		virtual void CompleteWork() override;
 
 		UPCGExEdgeRefineOperation* Refinement = nullptr;

@@ -18,7 +18,15 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return GraphBuilderDetails.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::OutputPinProperties() const
+{
+	if (!bOutputOnlyEdgesAsPoints) { return Super::OutputPinProperties(); }
+	TArray<FPCGPinProperties> PinProperties;
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges but as simple points.", Required, {})
+	return PinProperties;
+}
+
+PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bOutputOnlyEdgesAsPoints ? PCGExData::EInit::NoOutput : GraphBuilderDetails.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
@@ -65,26 +73,41 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>* NewBatch)
-			{
-				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
-				if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
-			},
-			PCGExMT::State_Done))
+		if (Settings->bOutputOnlyEdgesAsPoints)
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>(
+				[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+				[&](PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>* NewBatch)
+				{
+					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
+				},
+				PCGExMT::State_Done))
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+				return true;
+			}
+		}
+		else
+		{
+			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>>(
+				[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+				[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>* NewBatch)
+				{
+					NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
+					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
+				},
+				PCGExMT::State_Done))
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+				return true;
+			}
 		}
 	}
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
+	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->OutputMainPoints(); }
+	else { Context->MainEdges->OutputTo(Context); }
 
 	return Context->TryComplete();
 }
@@ -115,6 +138,11 @@ namespace PCGExRefineEdges
 		Refinement = TypedContext->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
 		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
 
+		if (Refinement->InvalidateAllEdgesBeforeProcessing())
+		{
+			for (PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges) { Edge.bValid = false; }
+		}
+
 		if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
 		else if (Refinement->RequiresIndividualEdgeProcessing()) { StartParallelLoopForEdges(); }
 		else { Refinement->Process(); }
@@ -125,11 +153,24 @@ namespace PCGExRefineEdges
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) { Refinement->ProcessEdge(Edge); }
 
-	void FProcessor::InsertEdges()
+	void FProcessor::InsertEdges() const
 	{
 		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
 		Cluster->GetValidEdges(ValidEdges);
-		GraphBuilder->Graph->InsertEdges(ValidEdges);
+
+		if (ValidEdges.IsEmpty()) { return; }
+		
+		if (GraphBuilder)
+		{
+			GraphBuilder->Graph->InsertEdges(ValidEdges);
+			return;
+		}
+
+		EdgesIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::NewOutput); // Downgrade to regular data
+		const TArray<FPCGPoint>& OriginalEdges = EdgesIO->GetIn()->GetPoints();
+		TArray<FPCGPoint>& MutableEdges = EdgesIO->GetOut()->GetMutablePoints();
+		PCGEX_SET_NUM_UNINITIALIZED(MutableEdges, ValidEdges.Num())
+		for (int i = 0; i < ValidEdges.Num(); i++) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
 	}
 
 	void FProcessor::CompleteWork()

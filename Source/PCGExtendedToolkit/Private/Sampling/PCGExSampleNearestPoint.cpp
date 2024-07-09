@@ -52,7 +52,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPoint)
 
-	PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, true);
+	PCGExData::FPointIO* Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
 	if (!Targets)
 	{
 		PCGEX_DELETE(Targets)

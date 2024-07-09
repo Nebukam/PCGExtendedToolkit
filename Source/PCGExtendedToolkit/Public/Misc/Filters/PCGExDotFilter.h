@@ -51,10 +51,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExDotComparisonDetails DotComparisonDetails;
 
-#if WITH_EDITOR
-	FString GetDisplayName() const;
-#endif
-
 	void Sanitize()
 	{
 	}
@@ -70,7 +66,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterFactory : public UPCGExFilterFactory
 
 public:
 	FPCGExDotFilterConfig Config;
-	virtual void Init() override;
+	virtual bool Init(const FPCGContext* InContext) override;
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 

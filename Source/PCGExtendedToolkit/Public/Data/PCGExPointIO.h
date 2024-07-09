@@ -356,4 +356,26 @@ namespace PCGExData
 			return nullptr;
 		}
 	}
+
+	static PCGExData::FPointIO* TryGetSingleInput(const FPCGContext* InContext, const FName InputPinLabel, const bool bThrowError)
+	{
+		PCGExData::FPointIO* SingleIO = nullptr;
+		const PCGExData::FPointIOCollection* Collection = new PCGExData::FPointIOCollection(InContext, InputPinLabel);
+		if (!Collection->Pairs.IsEmpty())
+		{
+			const PCGExData::FPointIO* Data = Collection->Pairs[0];
+			SingleIO = new PCGExData::FPointIO(Data->GetIn());
+
+			TSet<FString> TagDump;
+			Data->Tags->Dump(TagDump);
+			SingleIO->SetInfos(-1, InputPinLabel, &TagDump);
+		}
+		else if (bThrowError)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FText::FromString(TEXT("Missing {0} inputs")), FText::FromName(InputPinLabel)));
+		}
+
+		PCGEX_DELETE(Collection)
+		return SingleIO;
+	}
 }

@@ -13,13 +13,16 @@ TArray<FPCGPinProperties> UPCGExPointsPathIntersectionSettings::InputPinProperti
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExPointsPathIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EInit UPCGExPointsPathIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(PointsPathIntersection)
 
 FPCGExPointsPathIntersectionContext::~FPCGExPointsPathIntersectionContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	if (BoundsDataFacade) { PCGEX_DELETE(BoundsDataFacade->Source) }
+	PCGEX_DELETE(BoundsDataFacade)
 }
 
 bool FPCGExPointsPathIntersectionElement::Boot(FPCGContext* InContext) const
@@ -27,6 +30,11 @@ bool FPCGExPointsPathIntersectionElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PointsPathIntersection)
+
+	PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true);
+	if (!BoundsIO) { return false; }
+
+	Context->BoundsDataFacade = new PCGExData::FFacade(BoundsIO);
 
 	return true;
 }
@@ -39,38 +47,102 @@ bool FPCGExPointsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 
 	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
 	return true;
+}
 
-	/*
-	if (Context->IsSetup())
+namespace PCGExPathIntersections
+{
+	FProcessor::~FProcessor()
 	{
-		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		PCGEX_DELETE(Segmentation)
 	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		if (!Context->AdvancePointsIO())
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PointsPathIntersection)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		LastIndex = PointIO->GetNum() - 1;
+		Segmentation = new PCGExGeo::FSegmentation();
+		Cloud = TypedContext->BoundsDataFacade->GetCloud();
+
+		StartParallelLoopForPoints();
+
+		return true;
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	{
+		if (Index == LastIndex) { return; }
+
+		const int32 NextIndex = Index + 1;
+		const FVector StartPosition = PointIO->GetInPoint(Index).Transform.GetLocation();
+		const FVector EndPosition = PointIO->GetInPoint(NextIndex).Transform.GetLocation();
+
+		PCGExGeo::FIntersections* Intersections = new PCGExGeo::FIntersections(
+			StartPosition, EndPosition, Index, NextIndex);
+
+		if (Cloud->FindIntersections(Intersections)) { Segmentation->Insert(Intersections); }
+		else { PCGEX_DELETE(Intersections) }
+
+		FPointsProcessor::ProcessSinglePoint(Index, Point, LoopIdx, LoopCount);
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
+	{
+		PCGExGeo::FIntersections* Intersections = Segmentation->IntersectionsList[Iteration];
+		Intersections->Sort();
+
+		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		for (int i = 0; i < Intersections->Cuts.Num(); i++)
 		{
-			Context->Done();
-			return false;
+			FPCGPoint& Point = MutablePoints[Intersections->Start + i];
+			PCGExGeo::FCut& Cut = Intersections->Cuts[i];
+			Point.Transform.SetLocation(Cut.Position);
 		}
 	}
 
-	if (Context->IsDone())
+	void FProcessor::CompleteWork()
 	{
-		Context->OutputMainPoints();
+		const int32 NumCuts = Segmentation->GetNumCuts();
+		if (NumCuts == 0)
+		{
+			// TODO : Add bool flags for intersect/inside as marks OR forward
+			PointIO->InitializeOutput(PCGExData::EInit::Forward);
+			return;
+		}
+
+		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
+		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+
+		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, OriginalPoints.Num() + NumCuts);
+
+		int32 Index = 1;
+		MutablePoints[0] = OriginalPoints[0];
+		for (int i = 1; i < OriginalPoints.Num() - 1; i++)
+		{
+			if (const PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(i - 1, i)))
+			{
+				Index += Intersections->Cuts.Num();
+				for (int j = 0; j < Intersections->Cuts.Num(); j++) { MutablePoints[Index++] = OriginalPoints[i]; }
+			}
+
+			MutablePoints[Index++] = OriginalPoints[i];
+		}
+
+		Segmentation->ReduceToArray();
+
+
+		StartParallelLoopForRange(Segmentation->IntersectionsList.Num());
+
+		FPointsProcessor::CompleteWork();
 	}
 
-	return Context->CompleteTaskExecution();
-	*/
-}
-
-bool FPCGExPointsPathIntersectionTask::ExecuteTask()
-{
-	const FPCGExPointsPathIntersectionContext* Context = Manager->GetContext<FPCGExPointsPathIntersectionContext>();
-	PCGEX_SETTINGS(PointsPathIntersection)
-
-	return true;
+	void FProcessor::Write()
+	{
+		FPointsProcessor::Write();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -25,7 +25,7 @@ TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() cons
 PCGExData::EInit UPCGExFindContoursSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, const PCGExFindContours::FProcessor* ClusterProcessor)
+bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor)
 {
 	PCGEX_SETTINGS_LOCAL(FindContours)
 
@@ -73,7 +73,9 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	}
 
 	TArray<int32> Path;
+	TSet<int32> PathUniqueSet;
 	Path.Add(PrevIndex);
+	PathUniqueSet.Add(PrevIndex);
 	TSet<int32> Exclusions = {PrevIndex, NextIndex};
 
 	bool bIsConvex = true;
@@ -83,6 +85,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	while (NextIndex != -1)
 	{
 		Path.Add(NextIndex);
+		PathUniqueSet.Add(NextIndex);
 		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
 
 		//if (Current->Neighbors.Num() <= 1) { break; }
@@ -147,6 +150,22 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		return false;
 	}
 
+	if (Settings->bDedupePaths)
+	{
+		{
+			FReadScopeLock ReadScopeLock(ClusterProcessor->ExistingPathsLock);
+			for (const TSet<int32>& ExistingPathSet : ClusterProcessor->ExistingPaths)
+			{
+				if (PCGEx::SameSet(PathUniqueSet, ExistingPathSet)) { return false; }
+			}
+		}
+
+		{
+			FWriteScopeLock WriteScopeLock(ClusterProcessor->ExistingPathsLock);
+			ClusterProcessor->ExistingPaths.Add(PathUniqueSet);
+		}
+	}
+
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);
 
@@ -207,7 +226,7 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->bFlagDeadEnds) { PCGEX_VALIDATE_NAME(Settings->DeadEndAttributeName); }
 
-	PCGExData::FPointIO* SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
+	PCGExData::FPointIO* SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
 	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
 
@@ -285,6 +304,7 @@ namespace PCGExFindContours
 	FProcessor::~FProcessor()
 	{
 		if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) }
+		ExistingPaths.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)

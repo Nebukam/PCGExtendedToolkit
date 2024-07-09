@@ -26,6 +26,7 @@ namespace PCGExData
 	void FPointIO::InitializeOutput(const EInit InitOut)
 	{
 		if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
+		PCGEX_DELETE(OutKeys)
 
 		if (InitOut == EInit::NoOutput)
 		{
@@ -380,4 +381,5 @@ namespace PCGExData
 	}
 
 #pragma endregion
+	
 }

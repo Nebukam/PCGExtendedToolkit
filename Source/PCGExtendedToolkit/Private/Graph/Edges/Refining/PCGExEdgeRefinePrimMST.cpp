@@ -46,7 +46,6 @@ void UPCGExEdgeRefinePrimMST::Process()
 
 			const PCGExCluster::FNode& AdjacentNode = *(Cluster->Nodes->GetData() + NeighborIndex);
 			PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + EdgeIndex);
-			Edge.bValid = false; // Invalidate edge 
 
 			const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
 

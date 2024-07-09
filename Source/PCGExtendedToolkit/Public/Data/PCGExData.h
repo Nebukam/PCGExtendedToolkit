@@ -10,6 +10,7 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExDetails.h"
 #include "Data/PCGPointData.h"
+#include "Geometry/PCGExGeoPointBox.h"
 #include "UObject/Object.h"
 #include "PCGExData.generated.h"
 
@@ -239,11 +240,13 @@ namespace PCGExData
 	class PCGEXTENDEDTOOLKIT_API FFacade
 	{
 		mutable FRWLock PoolLock;
+		mutable FRWLock CloudLock;
 
 	public:
 		FPointIO* Source = nullptr;
 		TArray<FCacheBase*> Caches;
 		TMap<uint64, FCacheBase*> CacheMap;
+		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
 
 		FCacheBase* TryGetCache(const uint64 UID);
 
@@ -398,14 +401,30 @@ namespace PCGExData
 			return Data->Metadata->GetConstTypedAttribute<T>(InName);
 		}
 
+		PCGExGeo::FPointBoxCloud* GetCloud()
+		{
+			{
+				FReadScopeLock ReadScopeLock(CloudLock);
+				if(Cloud){return Cloud;}
+			}
+			
+			{
+				FWriteScopeLock WriteScopeLock(CloudLock);
+				Cloud = new PCGExGeo::FPointBoxCloud(GetIn());
+			}
+			
+			return Cloud;
+		}
+
 		const UPCGPointData* GetData(ESource InSource) const { return Source->GetData(InSource); }
 		const UPCGPointData* GetIn() const { return Source->GetIn(); }
 		UPCGPointData* GetOut() const { return Source->GetOut(); }
-
+		
 		~FFacade()
 		{
 			Flush();
 			Source = nullptr;
+			PCGEX_DELETE(Cloud)
 		}
 
 		void Flush()
