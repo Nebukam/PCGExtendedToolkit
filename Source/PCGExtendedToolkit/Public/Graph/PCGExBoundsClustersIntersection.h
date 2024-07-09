@@ -23,6 +23,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -44,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsClustersIntersectionContext final : pu
 
 	virtual ~FPCGExBoundsClustersIntersectionContext() override;
 
-	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+	PCGExData::FFacade* BoundsDataFacade = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBoundsClustersIntersectionElement final : public FPCGExEdgesProcessorElement

@@ -8,6 +8,13 @@
 
 #pragma region UPCGSettings interface
 
+TArray<FPCGPinProperties> UPCGExBoundsClustersIntersectionSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "Intersection points (bounds)", Required, {})
+	return PinProperties;
+}
+
 PCGExData::EInit UPCGExBoundsClustersIntersectionSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExBoundsClustersIntersectionSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
@@ -17,7 +24,9 @@ FPCGExBoundsClustersIntersectionContext::~FPCGExBoundsClustersIntersectionContex
 {
 	PCGEX_TERMINATE_ASYNC
 
-	IndexedEdges.Empty();
+	if (BoundsDataFacade) { PCGEX_DELETE(BoundsDataFacade->Source) }
+	PCGEX_DELETE(BoundsDataFacade)
+	
 }
 
 PCGEX_INITIALIZE_ELEMENT(BoundsClustersIntersection)
@@ -28,6 +37,11 @@ bool FPCGExBoundsClustersIntersectionElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsClustersIntersection)
 
+	PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
+	if (!BoundsIO) { return false; }
+
+	Context->BoundsDataFacade = new PCGExData::FFacade(BoundsIO);
+	
 	return true;
 }
 

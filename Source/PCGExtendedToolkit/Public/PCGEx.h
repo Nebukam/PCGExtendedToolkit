@@ -142,7 +142,8 @@ namespace PCGEx
 {
 	const FString PCGExPrefix = TEXT("PCGEx/");
 	const FName SourcePointsLabel = TEXT("In");
-	const FName SourceTargetsLabel = TEXT("InTargets");
+	const FName SourceTargetsLabel = TEXT("Targets");
+	const FName SourceBoundsLabel = TEXT("Bounds");
 	const FName OutputPointsLabel = TEXT("Out");
 
 	const FName SourceAdditionalReq = TEXT("AdditionalRequirementsFilters");

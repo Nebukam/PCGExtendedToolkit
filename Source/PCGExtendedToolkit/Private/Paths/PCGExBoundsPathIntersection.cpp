@@ -9,7 +9,7 @@
 TArray<FPCGPinProperties> UPCGExBoundsPathIntersectionSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Intersection targets", Required, {})
+	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "Intersection points (bounds)", Required, {})
 	return PinProperties;
 }
 
@@ -31,7 +31,7 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
-	PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true);
+	PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
 	if (!BoundsIO) { return false; }
 
 	Context->BoundsDataFacade = new PCGExData::FFacade(BoundsIO);
@@ -45,8 +45,44 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
-	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
-	return true;
+	if (Context->IsSetup())
+	{
+		if (!Boot(Context)) { return true; }
+
+		bool bHasInvalildInputs = false;
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(PCGExData::EInit::Forward); }
+					else { bHasInvalildInputs = true; }
+					return false;
+				}
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>* NewBatch)
+			{
+				NewBatch->SetPointsFilterData(&Context->FilterFactories);
+			},
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to intersect with."));
+			return true;
+		}
+
+		if (bHasInvalildInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
+		}
+	}
+
+	if (!Context->ProcessPointsBatch()) { return false; }
+
+	Context->OutputMainPoints();
+	Context->Done();
+
+	return Context->TryComplete();
 }
 
 namespace PCGExPathIntersections
@@ -66,7 +102,7 @@ namespace PCGExPathIntersections
 		Segmentation = new PCGExGeo::FSegmentation();
 		Cloud = TypedContext->BoundsDataFacade->GetCloud();
 
-		StartParallelLoopForPoints();
+		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;
 	}
@@ -118,22 +154,22 @@ namespace PCGExPathIntersections
 
 		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, OriginalPoints.Num() + NumCuts);
 
-		int32 Index = 1;
-		MutablePoints[0] = OriginalPoints[0];
-		for (int i = 1; i < OriginalPoints.Num() - 1; i++)
+		int32 Index = 0;
+		MutablePoints[Index++] = OriginalPoints[0];
+		for (int i = 1; i < OriginalPoints.Num(); i++)
 		{
+			const FPCGPoint& OriginalPoint = OriginalPoints[i];
 			if (const PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(i - 1, i)))
 			{
-				Index += Intersections->Cuts.Num();
-				for (int j = 0; j < Intersections->Cuts.Num(); j++) { MutablePoints[Index++] = OriginalPoints[i]; }
+				for (int j = 0; j < Intersections->Cuts.Num(); j++) { MutablePoints[Index++] = OriginalPoint; }
 			}
 
-			MutablePoints[Index++] = OriginalPoints[i];
+			MutablePoints[Index++] = OriginalPoint;
 		}
 
+		//PointIO->InitializeNum(MutablePoints.Num(), true); // TODO : Embed in initial point loop
+
 		Segmentation->ReduceToArray();
-
-
 		StartParallelLoopForRange(Segmentation->IntersectionsList.Num());
 
 		FPointsProcessor::CompleteWork();
