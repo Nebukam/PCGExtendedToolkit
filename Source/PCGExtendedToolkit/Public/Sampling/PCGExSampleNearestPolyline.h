@@ -80,7 +80,7 @@ namespace PCGExPolyLine
 
 		FORCEINLINE double GetRangeRatio(const double Distance) const
 		{
-			return (Distance - SampledRangeMin) / SampledRangeWidth;
+			return FMath::Clamp(Distance - SampledRangeMin, 0, SampledRangeWidth) / SampledRangeWidth;
 		}
 
 		bool IsValid() const { return UpdateCount > 0; }
