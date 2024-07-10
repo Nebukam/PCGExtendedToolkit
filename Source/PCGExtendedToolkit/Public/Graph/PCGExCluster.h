@@ -406,8 +406,14 @@ namespace PCGExCluster
 			Edges.Empty();
 		}
 
-		uint64 GetNHash() const { return PCGEx::NH64(First, Last); }
-		uint64 GetNHashU() const { return PCGEx::NH64U(First, Last); }
+		uint64 GetUniqueHash() const
+		{
+			const uint32 BaseHash = First > Last ? HashCombineFast(GetTypeHash(Last), GetTypeHash(First)) : HashCombineFast(GetTypeHash(First), GetTypeHash(Last));
+			if (SingleEdge != -1) { return BaseHash; }
+			if (Nodes.Num() == 1) { return HashCombineFast(BaseHash, GetTypeHash(Nodes[0])); }
+			const uint32 NodeBaseHash = Nodes[0] > Nodes[1] ? HashCombineFast(GetTypeHash(Nodes[1]), GetTypeHash(Nodes[0])) : HashCombineFast(GetTypeHash(Nodes[0]), GetTypeHash(Nodes[1]));
+			return HashCombineFast(BaseHash, NodeBaseHash);
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FAdjacencyData
@@ -574,7 +580,7 @@ namespace PCGExClusterTask
 			if (!Chain) { continue; }
 
 			bool bAlreadyExists = false;
-			Chains.Add(PCGEx::H64U(Chain->First, Chain->Last), &bAlreadyExists);
+			Chains.Add(Chain->GetUniqueHash(), &bAlreadyExists);
 			if (bAlreadyExists)
 			{
 				PCGEX_DELETE(Chain)

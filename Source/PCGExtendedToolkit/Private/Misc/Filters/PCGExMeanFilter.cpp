@@ -23,11 +23,6 @@ bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExDat
 	return true;
 }
 
-bool PCGExPointsFilter::TMeanFilter::Test(const int32 PointIndex) const
-{
-	return FMath::IsWithin(Target->Values[PointIndex], ReferenceMin, ReferenceMax);
-}
-
 void PCGExPointsFilter::TMeanFilter::PostInit()
 {
 	const int32 NumPoints = PointDataFacade->Source->GetNum();

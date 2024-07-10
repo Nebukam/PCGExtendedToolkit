@@ -498,9 +498,13 @@ namespace PCGExCluster
 		double MinDist = TNumericLimits<double>::Max();
 		int32 BestIndex = -1;
 
+		double BestDot = -1;
+		const FVector SearchDirection = (Node.Position - InPosition).GetSafeNormal();
+
 		if (ExpandedNodes)
 		{
 			const FExpandedNode* ENode = *(ExpandedNodes->GetData() + Node.NodeIndex);
+
 			for (const FExpandedNeighbor& N : ENode->Neighbors)
 			{
 				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Node.Position, N.Node->Position);
@@ -508,6 +512,15 @@ namespace PCGExCluster
 				{
 					MinDist = Dist;
 					BestIndex = N.Edge->EdgeIndex;
+				}
+				else if (Dist == MinDist)
+				{
+					if (const double Dot = FVector::DotProduct(SearchDirection, (N.Node->Position - Node.Position).GetSafeNormal());
+						Dot > BestDot)
+					{
+						BestDot = Dot;
+						BestIndex = N.Edge->EdgeIndex;
+					}
 				}
 			}
 		}
@@ -518,11 +531,21 @@ namespace PCGExCluster
 				uint32 OtherNodeIndex;
 				uint32 OtherEdgeIndex;
 				PCGEx::H64(H, OtherNodeIndex, OtherEdgeIndex);
-				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Node.Position, (Nodes->GetData() + OtherNodeIndex)->Position);
+				FVector NPos = (Nodes->GetData() + OtherNodeIndex)->Position;
+				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Node.Position, NPos);
 				if (Dist < MinDist)
 				{
 					MinDist = Dist;
 					BestIndex = OtherEdgeIndex;
+				}
+				else if (Dist == MinDist)
+				{
+					if (const double Dot = FVector::DotProduct(SearchDirection, (NPos - Node.Position).GetSafeNormal());
+						Dot > BestDot)
+					{
+						BestDot = Dot;
+						BestIndex = OtherEdgeIndex;
+					}
 				}
 			}
 		}

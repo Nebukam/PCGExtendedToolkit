@@ -101,13 +101,16 @@ namespace PCGExSplitPath
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		FPCGExSplitPathContext* LocalTypedContext = nullptr;
+		const UPCGExSplitPathSettings* LocalSettings = nullptr;
+
 		TArray<bool> DoSplit;
 		TArray<bool> DoRemove;
 		TArray<FPath> Paths;
 
 		int32 LastValidIndex = -1;
 		int32 CurrentPath = -1;
-		
+
 		bool bPriorityToSplit = true;
 
 	public:

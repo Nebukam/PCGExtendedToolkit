@@ -39,21 +39,6 @@ bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData
 	return true;
 }
 
-bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
-{
-	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
-
-	const FVector A = TypedFilterFactory->Config.bTransformOperandA ?
-		                  OperandA->Values[PointIndex] :
-		                  Point.Transform.TransformVectorNoScale(OperandA->Values[PointIndex]);
-
-	FVector B = OperandB ? OperandB->Values[PointIndex].GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
-	if (TypedFilterFactory->Config.bTransformOperandB) { B = Point.Transform.TransformVectorNoScale(B); }
-
-	const double Dot = DotComparison.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
-	return DotComparison.Test(Dot, DotComparison.GetDot(PointIndex));
-}
-
 #define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"
 #define PCGEX_NAMESPACE PCGExDotFilterDefinition
 

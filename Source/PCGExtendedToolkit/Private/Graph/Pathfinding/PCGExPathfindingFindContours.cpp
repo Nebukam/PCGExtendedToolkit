@@ -25,7 +25,7 @@ PCGExData::EInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { ret
 
 bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor)
 {
-	PCGEX_SETTINGS_LOCAL(FindContours)
+	const UPCGExFindContoursSettings* Settings = ClusterProcessor->LocalSettings;
 
 	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster;
 
@@ -89,6 +89,8 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	TArray<int32> Path;
 	Path.Add(PrevIndex);
 	TSet<int32> Exclusions = {PrevIndex, NextIndex};
+	TSet<int32> Visited = {PrevIndex};
+	bool bComesFromDeadEnd = bStartIsDeadEnd;
 
 	bool bIsConvex = true;
 	int32 Sign = 0;
@@ -99,6 +101,10 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	while (NextIndex != -1)
 	{
 		Path.Add(NextIndex);
+
+		bool bAlreadyVisited;
+		Visited.Add(NextIndex, &bAlreadyVisited);
+
 		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
 		PathBox += Current->Node->Position;
 
@@ -119,7 +125,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 			if (Exclusions.Contains(NeighborIndex)) { continue; }
 			if (NeighborIndex == StartNodeIndex)
 			{
-				bGracefullyClosed = true;
+				bGracefullyClosed = (!bAlreadyVisited || (bAlreadyVisited && bStartIsDeadEnd)); // Only graceful if closed from a "fresh" node
 				NextBest = -1;
 				break;
 			}
@@ -148,6 +154,9 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 				if (!bIsConvex && Settings->OutputType == EPCGExContourShapeTypeOutput::ConvexOnly) { return false; }
 			}
+
+			if (Current->Neighbors.Num() == 1) { bComesFromDeadEnd = true; }
+			else if (Current->Neighbors.Num() > 2) { bComesFromDeadEnd = false; }
 
 			PrevIndex = NextIndex;
 			NextIndex = NextBest;
@@ -319,6 +328,8 @@ namespace PCGExFindContours
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindContours)
+
+		LocalSettings = Settings;
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 

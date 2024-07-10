@@ -33,15 +33,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterConfig
 
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType CompareAgainst = EPCGExFetchType::Attribute;
+	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandB;
 
-	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	/** Operand B for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
-	FString OperandBConstant = TEXT("PCGEx");
+	FString OperandBConstant = TEXT("MyString");
 };
 
 
@@ -75,7 +75,43 @@ namespace PCGExPointsFilter
 		PCGEx::TFAttributeReader<FString>* OperandB = nullptr;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
+		{
+			const FString A = OperandA->Values[PointIndex];
+			const FString B = TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
+
+			switch (TypedFilterFactory->Config.Comparison)
+			{
+			case EPCGExStringComparison::StrictlyEqual:
+				return A == B;
+			case EPCGExStringComparison::StrictlyNotEqual:
+				return A != B;
+			case EPCGExStringComparison::LengthStrictlyEqual:
+				return A.Len() == B.Len();
+			case EPCGExStringComparison::LengthStrictlyUnequal:
+				return A.Len() != B.Len();
+			case EPCGExStringComparison::LengthEqualOrGreater:
+				return A.Len() >= B.Len();
+			case EPCGExStringComparison::LengthEqualOrSmaller:
+				return A.Len() <= B.Len();
+			case EPCGExStringComparison::StrictlyGreater:
+				return A.Len() > B.Len();
+			case EPCGExStringComparison::StrictlySmaller:
+				return A.Len() < B.Len();
+			case EPCGExStringComparison::LocaleStrictlyGreater:
+				return A > B;
+			case EPCGExStringComparison::LocaleStrictlySmaller:
+				return A < B;
+			case EPCGExStringComparison::Contains:
+				return A.Contains(B);
+			case EPCGExStringComparison::StartsWith:
+				return A.StartsWith(B);
+			case EPCGExStringComparison::EndsWith:
+				return A.EndsWith(B);
+			default:
+				return false;
+			}
+		}
 
 		virtual ~TStringCompareFilter() override
 		{

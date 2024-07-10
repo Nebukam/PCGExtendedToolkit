@@ -82,7 +82,15 @@ namespace PCGExPointsFilter
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
+		{
+			const bool Result = PCGExCompare::Compare(
+				TypedFilterFactory->Config.Comparison,
+				FlagsReader->Values[PointIndex],
+				MaskReader ? MaskReader->Values[PointIndex] : Bitmask);
+
+			return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
+		}
 
 		virtual ~TBitmaskFilter() override
 		{

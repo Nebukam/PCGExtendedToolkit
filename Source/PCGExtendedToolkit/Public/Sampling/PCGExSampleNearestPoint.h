@@ -295,6 +295,9 @@ namespace PCGExSampleNearestPoints
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		FPCGExSampleNearestPointContext* LocalTypedContext = nullptr;
+		const UPCGExSampleNearestPointSettings* LocalSettings = nullptr;
+		
 		PCGExData::FCache<double>* RangeMinGetter = nullptr;
 		PCGExData::FCache<double>* RangeMaxGetter = nullptr;
 		PCGExData::FCache<FVector>* LookAtUpGetter = nullptr;

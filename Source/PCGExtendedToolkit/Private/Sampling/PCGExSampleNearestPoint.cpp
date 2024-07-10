@@ -126,6 +126,9 @@ namespace PCGExSampleNearestPoints
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestPoint)
 
+		LocalTypedContext = TypedContext;
+		LocalSettings = Settings;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
@@ -166,11 +169,9 @@ namespace PCGExSampleNearestPoints
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestPoint)
-
 		auto SamplingFailed = [&]()
 		{
-			const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Values[Index]) : Settings->RangeMax;
+			const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Values[Index]) : LocalSettings->RangeMax;
 			PCGEX_OUTPUT_VALUE(Success, Index, false)
 			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
 			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
@@ -185,14 +186,14 @@ namespace PCGExSampleNearestPoints
 			return;
 		}
 
-		const bool bSingleSample = (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget || Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget);
+		const bool bSingleSample = (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget || LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget);
 
-		const TArray<FPCGPoint>& TargetPoints = TypedContext->TargetsFacade->Source->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& TargetPoints = LocalTypedContext->TargetsFacade->Source->GetIn()->GetPoints();
 		const int32 NumTargets = TargetPoints.Num();
 		const FVector SourceCenter = Point.Transform.GetLocation();
 
-		double RangeMin = FMath::Pow(RangeMaxGetter ? RangeMinGetter->Values[Index] : Settings->RangeMin, 2);
-		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Values[Index] : Settings->RangeMax, 2);
+		double RangeMin = FMath::Pow(RangeMaxGetter ? RangeMinGetter->Values[Index] : LocalSettings->RangeMin, 2);
+		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Values[Index] : LocalSettings->RangeMax, 2);
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
@@ -208,14 +209,14 @@ namespace PCGExSampleNearestPoints
 			FVector A;
 			FVector B;
 
-			Settings->DistanceDetails.GetCenters(Point, Target, A, B);
+			LocalSettings->DistanceDetails.GetCenters(Point, Target, A, B);
 
 			const double Dist = FVector::DistSquared(A, B);
 
 			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
 
-			if (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
-				Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
+				LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
 				TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(PointIndex, Dist));
 			}
@@ -237,7 +238,7 @@ namespace PCGExSampleNearestPoints
 				ProcessTarget(PointIndex, TargetPoints[PointIndex]);
 			};
 
-			const UPCGPointData::PointOctree& Octree = TypedContext->TargetsFacade->Source->GetIn()->GetOctree();
+			const UPCGPointData::PointOctree& Octree = LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree();
 			Octree.FindElementsWithBoundsTest(Box, ProcessNeighbor);
 		}
 		else
@@ -254,7 +255,7 @@ namespace PCGExSampleNearestPoints
 		}
 
 		// Compute individual target weight
-		if (Settings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0)
+		if (LocalSettings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0)
 		{
 			// Reset compounded infos to full range
 			TargetsCompoundInfos.SampledRangeMin = RangeMin;
@@ -265,7 +266,7 @@ namespace PCGExSampleNearestPoints
 		FTransform WeightedTransform = FTransform::Identity;
 		WeightedTransform.SetScale3D(FVector::ZeroVector);
 		FVector WeightedUp = SafeUpVector;
-		if (Settings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Values[Index]; }
+		if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Values[Index]; }
 
 		FVector WeightedSignAxis = FVector::Zero();
 		FVector WeightedAngleAxis = FVector::Zero();
@@ -275,7 +276,7 @@ namespace PCGExSampleNearestPoints
 		auto ProcessTargetInfos = [&]
 			(const PCGExNearestPoint::FTargetInfos& TargetInfos, const double Weight)
 		{
-			const FPCGPoint& Target = TypedContext->TargetsFacade->Source->GetInPoint(TargetInfos.Index);
+			const FPCGPoint& Target = LocalTypedContext->TargetsFacade->Source->GetInPoint(TargetInfos.Index);
 
 			const FTransform TargetTransform = Target.Transform;
 			const FQuat TargetRotation = TargetTransform.GetRotation();
@@ -284,10 +285,10 @@ namespace PCGExSampleNearestPoints
 			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (TargetTransform.GetScale3D() * Weight));
 			WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (TargetTransform.GetLocation() * Weight));
 
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Values[TargetInfos.Index] : SafeUpVector) * Weight; }
+			if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Values[TargetInfos.Index] : SafeUpVector) * Weight; }
 
-			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
-			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
+			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, LocalSettings->SignAxis) * Weight;
+			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, LocalSettings->AngleAxis) * Weight;
 
 			TotalWeight += Weight;
 			TotalSamples++;
@@ -299,15 +300,15 @@ namespace PCGExSampleNearestPoints
 
 		if (bSingleSample)
 		{
-			const PCGExNearestPoint::FTargetInfos& TargetInfos = Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
-			const double Weight = TypedContext->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+			const PCGExNearestPoint::FTargetInfos& TargetInfos = LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
+			const double Weight = LocalTypedContext->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
 			ProcessTargetInfos(TargetInfos, Weight);
 		}
 		else
 		{
 			for (PCGExNearestPoint::FTargetInfos& TargetInfos : TargetsInfos)
 			{
-				const double Weight = TypedContext->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+				const double Weight = LocalTypedContext->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
 				if (Weight == 0) { continue; }
 				ProcessTargetInfos(TargetInfos, Weight);
 			}
@@ -331,10 +332,10 @@ namespace PCGExSampleNearestPoints
 
 		PCGEX_OUTPUT_VALUE(Success, Index, TargetsCompoundInfos.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
-		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
+		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, LocalSettings->LookAtAxisAlign))
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
-		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
+		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
 	}
 

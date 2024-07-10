@@ -162,7 +162,7 @@ namespace PCGExGeo
 			}
 		}
 
-		void GetMergedSites(const int32 SiteIndex, const TSet<uint64>& EdgeConnectors, TSet<int32>& OutMerged)
+		void GetMergedSites(const int32 SiteIndex, const TSet<uint64>& EdgeConnectors, TSet<int32>& OutMerged, TSet<uint64>& OutUEdges)
 		{
 			TArray<int32> Stack;
 			Stack.Add(SiteIndex);
@@ -184,6 +184,7 @@ namespace PCGExGeo
 					const FDelaunaySite2* NeighborSite = Sites.GetData() + OtherIndex;
 					if (const uint64 SharedEdge = Site->GetSharedEdge(NeighborSite); EdgeConnectors.Contains(SharedEdge))
 					{
+						OutUEdges.Add(SharedEdge);
 						Stack.Add(OtherIndex);
 					}
 				}

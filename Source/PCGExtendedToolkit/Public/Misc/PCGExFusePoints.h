@@ -128,6 +128,9 @@ namespace PCGExFusePoints
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		FPCGExFusePointsContext* LocalTypedContext = nullptr;
+		const UPCGExFusePointsSettings* LocalSettings = nullptr;
+		
 		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;

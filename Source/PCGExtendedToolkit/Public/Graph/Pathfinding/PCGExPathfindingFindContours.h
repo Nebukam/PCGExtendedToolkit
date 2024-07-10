@@ -54,16 +54,16 @@ public:
 	/** Ensure the node doesn't output duplicate path. Can be expensive. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bDedupePaths = true;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExContourShapeTypeOutput OutputType = EPCGExContourShapeTypeOutput::Both;
-	
+
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;
 
-	
+
 	/** Whether or not to duplicate dead end points. Useful if you plan on offsetting the generated contours. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bDuplicateDeadEndPoints = false;
@@ -155,8 +155,10 @@ namespace PCGExFindContours
 		mutable FRWLock UniquePathsLock;
 		TSet<uint32> UniquePathsBounds;
 		TSet<uint64> UniquePathsStartPairs;
-		
+
 	protected:
+		const UPCGExFindContoursSettings* LocalSettings = nullptr;
+
 		TArray<FVector>* ProjectedPositions = nullptr;
 
 		bool bBuildExpandedNodes = false;
@@ -167,7 +169,6 @@ namespace PCGExFindContours
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
-			
 		}
 
 		virtual ~FProcessor() override;

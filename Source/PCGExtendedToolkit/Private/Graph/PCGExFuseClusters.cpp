@@ -82,7 +82,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 			&Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
-	PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(nullptr);
+	PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO();
 	CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
 	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(
 		PCGExData::EInit::NewOutput);

@@ -35,44 +35,6 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 	return true;
 }
 
-bool PCGExPointsFilter::TStringCompareFilter::Test(const int32 PointIndex) const
-{
-	const FString A = OperandA->Values[PointIndex];
-	const FString B = TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
-
-	switch (TypedFilterFactory->Config.Comparison)
-	{
-	case EPCGExStringComparison::StrictlyEqual:
-		return A == B;
-	case EPCGExStringComparison::StrictlyNotEqual:
-		return A != B;
-	case EPCGExStringComparison::LengthStrictlyEqual:
-		return A.Len() == B.Len();
-	case EPCGExStringComparison::LengthStrictlyUnequal:
-		return A.Len() != B.Len();
-	case EPCGExStringComparison::LengthEqualOrGreater:
-		return A.Len() >= B.Len();
-	case EPCGExStringComparison::LengthEqualOrSmaller:
-		return A.Len() <= B.Len();
-	case EPCGExStringComparison::StrictlyGreater:
-		return A.Len() > B.Len();
-	case EPCGExStringComparison::StrictlySmaller:
-		return A.Len() < B.Len();
-	case EPCGExStringComparison::LocaleStrictlyGreater:
-		return A > B;
-	case EPCGExStringComparison::LocaleStrictlySmaller:
-		return A < B;
-	case EPCGExStringComparison::Contains:
-		return A.Contains(B);
-	case EPCGExStringComparison::StartsWith:
-		return A.StartsWith(B);
-	case EPCGExStringComparison::EndsWith:
-		return A.EndsWith(B);
-	default:
-		return false;
-	}
-}
-
 namespace PCGExCompareFilter
 {
 }

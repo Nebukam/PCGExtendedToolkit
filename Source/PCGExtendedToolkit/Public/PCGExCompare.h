@@ -40,6 +40,13 @@ enum class EPCGExComparison : uint8
 	NearlyNotEqual UMETA(DisplayName = " !~= ", Tooltip="Operand A Nearly Not Equal to Operand B"),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Equality"))
+enum class EPCGExEquality : uint8
+{
+	Equal UMETA(DisplayName = " == ", Tooltip="Operand A Equal to Operand B"),
+	NotEqual UMETA(DisplayName = " != ", Tooltip="Operand A Not Equal to Operand B"),
+};
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] String Comparison"))
 enum class EPCGExStringComparison : uint8
 {

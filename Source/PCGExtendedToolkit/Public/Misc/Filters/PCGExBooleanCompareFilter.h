@@ -5,21 +5,22 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
-#include "PCGExNumericCompareFilter.generated.h"
+#include "PCGExBooleanCompareFilter.generated.h"
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterConfig
+struct PCGEXTENDEDTOOLKIT_API FPCGExBooleanCompareFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNumericCompareFilterConfig()
+	FPCGExBooleanCompareFilterConfig()
 	{
 	}
 
@@ -29,23 +30,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterConfig
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
+	EPCGExEquality Comparison = EPCGExEquality::Equal;
 
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
 
-	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	/** Operand B for testing -- Will be translated to `bool` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandB;
 
 	/** Operand B for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
-	double OperandBConstant = 0;
-
-	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
-	double Tolerance = 0.001;
+	bool OperandBConstant = true;
 };
 
 
@@ -53,40 +50,40 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterConfig
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExNumericCompareFilterFactory : public UPCGExFilterFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExBooleanCompareFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExNumericCompareFilterConfig Config;
+	FPCGExBooleanCompareFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TNumericComparisonFilter final : public PCGExPointFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TBooleanComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TNumericComparisonFilter(const UPCGExNumericCompareFilterFactory* InDefinition)
+		explicit TBooleanComparisonFilter(const UPCGExBooleanCompareFilterFactory* InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExNumericCompareFilterFactory* TypedFilterFactory;
+		const UPCGExBooleanCompareFilterFactory* TypedFilterFactory;
 
-		PCGExData::FCache<double>* OperandA = nullptr;
-		PCGExData::FCache<double>* OperandB = nullptr;
+		PCGExData::FCache<bool>* OperandA = nullptr;
+		PCGExData::FCache<bool>* OperandB = nullptr;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
 			const double A = OperandA->Values[PointIndex];
 			const double B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
-			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
+			return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 		}
 
-		virtual ~TNumericComparisonFilter() override
+		virtual ~TBooleanComparisonFilter() override
 		{
 			TypedFilterFactory = nullptr;
 		}
@@ -96,7 +93,7 @@ namespace PCGExPointsFilter
 ///
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExNumericCompareFilterProviderSettings : public UPCGExFilterProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBooleanCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -104,7 +101,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CompareFilterFactory, "Filter : Numeric Compare", "Creates a filter definition that compares two attribute values.",
+		CompareFilterFactory, "Filter : Bool Compare", "Creates a filter definition that compares two boolean values.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
@@ -112,7 +109,7 @@ public:
 public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExNumericCompareFilterConfig Config;
+	FPCGExBooleanCompareFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

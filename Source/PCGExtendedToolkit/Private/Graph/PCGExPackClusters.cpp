@@ -27,6 +27,7 @@ FPCGExPackClustersContext::~FPCGExPackClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	PackedClusterList.Empty();
 	PCGEX_DELETE(PackedClusters)
 }
 
@@ -61,13 +62,16 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		int32 IOIndex = 0;
 		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges) { continue; }
 
+			Context->PackedClusterList.SetNum(Context->PackedClusterList.Num() + Context->TaggedEdges->Entries.Num());
+
 			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
 			{
-				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(-1, Context->CurrentIO, EdgeIO, Context->EndpointsLookup);
+				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(IOIndex++, Context->CurrentIO, EdgeIO, Context->EndpointsLookup);
 			}
 		}
 
@@ -82,6 +86,13 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
+		Context->PackedClusters->Pairs.Reserve(Context->PackedClusterList.Num());
+		for (PCGExData::FPointIO* PackedIO : Context->PackedClusterList)
+		{
+			if (!PackedIO) { continue; }
+			Context->PackedClusters->AddUnsafe(PackedIO);
+		}
+
 		Context->PackedClusters->OutputTo(Context);
 	}
 
@@ -90,13 +101,15 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 bool FPCGExPackClusterTask::ExecuteTask()
 {
-	const FPCGExPackClustersContext* Context = Manager->GetContext<FPCGExPackClustersContext>();
+	FPCGExPackClustersContext* Context = Manager->GetContext<FPCGExPackClustersContext>();
 	PCGEX_SETTINGS(PackClusters)
 
 	PCGEx::FAttributesInfos* VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
 
 	InEdges->CreateInKeys();
-	PCGExData::FPointIO* PackedIO = Context->PackedClusters->Emplace_GetRef(InEdges, PCGExData::EInit::DuplicateInput);
+	PCGExData::FPointIO* PackedIO = new PCGExData::FPointIO(InEdges);
+	PackedIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::DuplicateInput);
+	Context->PackedClusterList[TaskIndex] = PackedIO;
 
 	int32 NumEdges = 0;
 	TArray<int32> ReducedVtxIndices;

@@ -91,6 +91,9 @@ namespace PCGExSampleSurfaceGuided
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
+		LocalTypedContext = TypedContext;
+		LocalSettings = Settings;
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		DirectionGetter = PointDataFacade->GetOrCreateGetter<FVector>(Settings->Direction);
@@ -119,9 +122,7 @@ namespace PCGExSampleSurfaceGuided
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
-
-		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : Settings->MaxDistance;
+		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : LocalSettings->MaxDistance;
 		const FVector Direction = DirectionGetter->Values[Index].GetSafeNormal();
 
 		auto SamplingFailed = [&]()
@@ -144,8 +145,8 @@ namespace PCGExSampleSurfaceGuided
 		const FVector Origin = Point.Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;
-		CollisionParams.bTraceComplex = Settings->bTraceComplex;
-		CollisionParams.AddIgnoredActors(TypedContext->IgnoredActors);
+		CollisionParams.bTraceComplex = LocalSettings->bTraceComplex;
+		CollisionParams.AddIgnoredActors(LocalTypedContext->IgnoredActors);
 
 		const FVector Trace = Direction * MaxDistance;
 		const FVector End = Origin + Trace;
@@ -167,22 +168,22 @@ namespace PCGExSampleSurfaceGuided
 			bSuccess = true;
 		};
 
-		switch (Settings->CollisionType)
+		switch (LocalSettings->CollisionType)
 		{
 		case EPCGExCollisionFilterType::Channel:
-			if (TypedContext->World->LineTraceSingleByChannel(HitResult, Origin, End, Settings->CollisionChannel, CollisionParams))
+			if (LocalTypedContext->World->LineTraceSingleByChannel(HitResult, Origin, End, LocalSettings->CollisionChannel, CollisionParams))
 			{
 				ProcessTraceResult();
 			}
 			break;
 		case EPCGExCollisionFilterType::ObjectType:
-			if (TypedContext->World->LineTraceSingleByObjectType(HitResult, Origin, End, FCollisionObjectQueryParams(Settings->CollisionObjectType), CollisionParams))
+			if (LocalTypedContext->World->LineTraceSingleByObjectType(HitResult, Origin, End, FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionParams))
 			{
 				ProcessTraceResult();
 			}
 			break;
 		case EPCGExCollisionFilterType::Profile:
-			if (TypedContext->World->LineTraceSingleByProfile(HitResult, Origin, End, Settings->CollisionProfileName, CollisionParams))
+			if (LocalTypedContext->World->LineTraceSingleByProfile(HitResult, Origin, End, LocalSettings->CollisionProfileName, CollisionParams))
 			{
 				ProcessTraceResult();
 			}

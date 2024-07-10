@@ -290,6 +290,9 @@ namespace PCGExSampleNearestPolyline
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		FPCGExSampleNearestPolylineContext* LocalTypedContext = nullptr;
+		const UPCGExSampleNearestPolylineSettings* LocalSettings = nullptr;
+		
 		PCGExData::FCache<double>* RangeMinGetter = nullptr;
 		PCGExData::FCache<double>* RangeMaxGetter = nullptr;
 		PCGExData::FCache<FVector>* LookAtUpGetter = nullptr;

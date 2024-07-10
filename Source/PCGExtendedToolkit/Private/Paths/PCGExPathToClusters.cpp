@@ -81,7 +81,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->bFusePaths)
 	{
-		PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(nullptr);
+		PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO();
 		CompoundPoints->SetInfos(-1, Settings->GetMainOutputLabel());
 		CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(
 			PCGExData::EInit::NewOutput);

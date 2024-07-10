@@ -1,18 +1,18 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/Filters/PCGExNumericCompareFilter.h"
+#include "Misc/Filters/PCGExBooleanCompareFilter.h"
 
-PCGExPointFilter::TFilter* UPCGExNumericCompareFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExBooleanCompareFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TNumericComparisonFilter(this);
+	return new PCGExPointsFilter::TBooleanComparisonFilter(this);
 }
 
-bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TBooleanComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandA);
+	OperandA = PointDataFacade->GetOrCreateGetter<bool>(TypedFilterFactory->Config.OperandA);
 
 	if (!OperandA)
 	{
@@ -22,7 +22,7 @@ bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InCont
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandB);
+		OperandB = PointDataFacade->GetOrCreateGetter<bool>(TypedFilterFactory->Config.OperandB);
 
 		if (!OperandB)
 		{
@@ -41,15 +41,15 @@ namespace PCGExCompareFilter
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGEX_CREATE_FILTER_FACTORY(NumericCompare)
+PCGEX_CREATE_FILTER_FACTORY(BooleanCompare)
 
 #if WITH_EDITOR
-FString UPCGExNumericCompareFilterProviderSettings::GetDisplayName() const
+FString UPCGExBooleanCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Config.OperandA.GetName().ToString() + PCGExCompare::ToString(Config.Comparison);
+	FString DisplayName = Config.OperandA.GetName().ToString() + (Config.Comparison == EPCGExEquality::Equal ? TEXT(" == ") : TEXT(" != "));
 
 	if (Config.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
-	else { DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.OperandBConstant) / 1000.0)); }
+	else { DisplayName += FString::Printf(TEXT("%s"), Config.OperandBConstant ? TEXT("true") : TEXT("false")); }
 
 	return DisplayName;
 }

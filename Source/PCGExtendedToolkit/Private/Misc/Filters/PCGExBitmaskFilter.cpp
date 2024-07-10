@@ -33,16 +33,6 @@ bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGEx
 	return true;
 }
 
-bool PCGExPointsFilter::TBitmaskFilter::Test(const int32 PointIndex) const
-{
-	const bool Result = PCGExCompare::Compare(
-		TypedFilterFactory->Config.Comparison,
-		FlagsReader->Values[PointIndex],
-		MaskReader ? MaskReader->Values[PointIndex] : Bitmask);
-
-	return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
-}
-
 namespace PCGExCompareFilter
 {
 }

@@ -66,10 +66,11 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->Paths->OutputTo(Context);
-	}
+	Context->Paths->Pairs.Reserve(Context->Paths->Pairs.Num() + Context->GetTotalNumProcessors());
+	Context->OutputBatches();
+	
+	Context->Paths->OutputTo(Context);
+	Context->Done();
 
 	return Context->TryComplete();
 }
@@ -79,14 +80,17 @@ namespace PCGExBreakClustersToPaths
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE_TARRAY(Chains)
+		Paths.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-		PCGEX_SETTINGS(BreakClustersToPaths)
-		//FPCGExBreakClustersToPathsContext* InContext = static_cast<FPCGExBreakClustersToPathsContext*>(Context);
+		LocalTypedContext = TypedContext;
+		LocalSettings = Settings;
+
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
@@ -113,28 +117,30 @@ namespace PCGExBreakClustersToPaths
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
 			PCGExClusterTask::DedupeChains(Chains);
+			PCGEX_SET_NUM_UNINITIALIZED_NULL(Paths, Chains.Num())
 			StartParallelLoopForRange(Chains.Num());
 		}
 		else
 		{
+			PCGEX_SET_NUM_UNINITIALIZED_NULL(Paths, EdgesIO->GetNum())
 			StartParallelLoopForEdges();
 		}
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
-		PCGEX_SETTINGS(BreakClustersToPaths)
-		const FPCGExBreakClustersToPathsContext* InContext = static_cast<FPCGExBreakClustersToPathsContext*>(Context);
-
 		PCGExCluster::FNodeChain* Chain = Chains[Iteration];
 		if (!Chain) { return; }
 
 		const int32 ChainSize = Chain->Nodes.Num() + 2;
 
-		if (ChainSize < Settings->MinPointCount) { return; }
-		if (Settings->bOmitAbovePointCount && ChainSize > Settings->MaxPointCount) { return; }
+		if (ChainSize < LocalSettings->MinPointCount) { return; }
+		if (LocalSettings->bOmitAbovePointCount && ChainSize > LocalSettings->MaxPointCount) { return; }
 
-		const PCGExData::FPointIO* PathIO = InContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(VtxIO);
+		PathIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::NewOutput);
+		Paths[Iteration] = PathIO;
+
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(ChainSize);
 		int32 PointCount = 0;
@@ -150,18 +156,28 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
 	{
-		PCGEX_SETTINGS(BreakClustersToPaths)
 		const FPCGExBreakClustersToPathsContext* InContext = static_cast<FPCGExBreakClustersToPathsContext*>(Context);
 
-		const PCGExData::FPointIO* PathIO = InContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(VtxIO);
+		PathIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::NewOutput);
+		Paths[Edge.EdgeIndex] = PathIO;
+
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 
 		MutablePoints[0] = PathIO->GetInPoint(Edge.Start);
 		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
 
-
 		PathIO->InitializeNum(2, true);
+	}
+
+	void FProcessor::Output()
+	{
+		for (PCGExData::FPointIO* PathIO : Paths)
+		{
+			if (!PathIO) { continue; }
+			LocalTypedContext->Paths->AddUnsafe(PathIO);
+		}
 	}
 }
 

@@ -183,6 +183,9 @@ namespace PCGExSampleNearestSurface
 	{
 		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
 
+		FPCGExSampleNearestSurfaceContext* LocalTypedContext = nullptr;
+		const UPCGExSampleNearestSurfaceSettings* LocalSettings = nullptr;
+		
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
 
 	public:

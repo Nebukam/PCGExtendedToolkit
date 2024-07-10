@@ -95,6 +95,9 @@ namespace PCGExSampleNearestSurface
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
+		LocalTypedContext = TypedContext;
+		LocalSettings = Settings;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
@@ -115,9 +118,7 @@ namespace PCGExSampleNearestSurface
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSurface)
-
-		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : Settings->MaxDistance;
+		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : LocalSettings->MaxDistance;
 
 		auto SamplingFailed = [&]()
 		{
@@ -142,7 +143,7 @@ namespace PCGExSampleNearestSurface
 
 		FCollisionQueryParams CollisionParams;
 		CollisionParams.bTraceComplex = false;
-		CollisionParams.AddIgnoredActors(TypedContext->IgnoredActors);
+		CollisionParams.AddIgnoredActors(LocalTypedContext->IgnoredActors);
 
 		const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(MaxDistance);
 
@@ -202,22 +203,22 @@ namespace PCGExSampleNearestSurface
 		};
 
 
-		switch (Settings->CollisionType)
+		switch (LocalSettings->CollisionType)
 		{
 		case EPCGExCollisionFilterType::Channel:
-			if (TypedContext->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Settings->CollisionChannel, CollisionShape, CollisionParams))
+			if (LocalTypedContext->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, LocalSettings->CollisionChannel, CollisionShape, CollisionParams))
 			{
 				ProcessOverlapResults();
 			}
 			break;
 		case EPCGExCollisionFilterType::ObjectType:
-			if (TypedContext->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(Settings->CollisionObjectType), CollisionShape, CollisionParams))
+			if (LocalTypedContext->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionShape, CollisionParams))
 			{
 				ProcessOverlapResults();
 			}
 			break;
 		case EPCGExCollisionFilterType::Profile:
-			if (TypedContext->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Settings->CollisionProfileName, CollisionShape, CollisionParams))
+			if (LocalTypedContext->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, LocalSettings->CollisionProfileName, CollisionShape, CollisionParams))
 			{
 				ProcessOverlapResults();
 			}

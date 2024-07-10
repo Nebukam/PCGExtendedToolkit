@@ -177,6 +177,9 @@ namespace PCGExSampleSurfaceGuided
 		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
 		PCGExData::FCache<FVector>* DirectionGetter = nullptr;
 
+		FPCGExSampleSurfaceGuidedContext* LocalTypedContext = nullptr;
+		const UPCGExSampleSurfaceGuidedSettings* LocalSettings = nullptr;
+
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 
 	public:

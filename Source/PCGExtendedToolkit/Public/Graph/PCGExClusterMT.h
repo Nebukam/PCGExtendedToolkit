@@ -430,6 +430,10 @@ namespace PCGExClusterMT
 		virtual void Write()
 		{
 		}
+
+		virtual void Output()
+		{
+		}
 	};
 
 	class FClusterProcessorBatchBase
@@ -464,6 +468,8 @@ namespace PCGExClusterMT
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 		TArray<PCGExCluster::FCluster*> ValidClusters;
+
+		virtual int32 GetNumProcessors() const { return -1; }
 
 		void SetVtxFilterFactories(const TArray<UPCGExFilterFactoryBase*>* InVtxFilterFactories)
 		{
@@ -549,6 +555,10 @@ namespace PCGExClusterMT
 		{
 			if (bWriteVtxDataFacade) { VtxDataFacade->Write(AsyncManagerPtr, true); }
 		}
+
+		virtual void Output()
+		{
+		}
 	};
 
 	template <typename T>
@@ -559,6 +569,8 @@ namespace PCGExClusterMT
 		TArray<T*> ClosedBatchProcessors;
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
+
+		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
 		TBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
 			FClusterProcessorBatchBase(InContext, InVtx, InEdges)
@@ -711,6 +723,15 @@ namespace PCGExClusterMT
 					if (!Processor->bIsProcessorValid) { continue; }
 					Processor->Write();
 				}
+			}
+		}
+
+		virtual void Output() override
+		{
+			for (T* Processor : Processors)
+			{
+				if (!Processor->bIsProcessorValid) { continue; }
+				Processor->Output();
 			}
 		}
 

@@ -77,9 +77,12 @@ namespace PCGExSimplifyClusters
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::Process);
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
-		PCGEX_SETTINGS(SimplifyClusters)
+		LocalTypedContext = TypedContext;
+		LocalSettings = Settings;
+
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
@@ -114,8 +117,6 @@ namespace PCGExSimplifyClusters
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
-		PCGEX_SETTINGS(SimplifyClusters)
-
 		PCGExCluster::FNodeChain* Chain = Chains[Iteration];
 		if (!Chain) { return; }
 
@@ -124,9 +125,9 @@ namespace PCGExSimplifyClusters
 
 		const bool bIsDeadEnd = NodesRef[Chain->First].Adjacency.Num() == 1 || NodesRef[Chain->Last].Adjacency.Num() == 1;
 
-		if (Settings->bPruneDeadEnds && bIsDeadEnd) { return; }
+		if (LocalSettings->bPruneDeadEnds && bIsDeadEnd) { return; }
 
-		if (Settings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
+		if (LocalSettings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
 		{
 			// Dump edges
 			if (Chain->SingleEdge != -1) { GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]); }
@@ -135,10 +136,10 @@ namespace PCGExSimplifyClusters
 		}
 
 		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
-		const double FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold * 0.5);
+		const double FixedDotThreshold = PCGExMath::DegreesToDot(LocalSettings->AngularThreshold * 0.5);
 		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 
-		if (!Settings->bMergeAboveAngularThreshold)
+		if (!LocalSettings->bMergeAboveAngularThreshold)
 		{
 			GraphBuilder->Graph->InsertEdge(
 				NodesRef[Chain->First].PointIndex,
@@ -171,7 +172,7 @@ namespace PCGExSimplifyClusters
 			const FVector A = (PrevNode.Position - CurrentNode.Position).GetSafeNormal();
 			const FVector B = (CurrentNode.Position - NextNode.Position).GetSafeNormal();
 
-			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > FixedDotThreshold) { continue; } }
+			if (!LocalSettings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > FixedDotThreshold) { continue; } }
 			else { if (FVector::DotProduct(A, B) < FixedDotThreshold) { continue; } }
 
 			NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[CurrentIndex].PointIndex));

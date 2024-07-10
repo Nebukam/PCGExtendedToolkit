@@ -89,7 +89,11 @@ namespace PCGExBreakClustersToPaths
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		TArray<PCGExCluster::FNodeChain*> Chains;
+		const FPCGExBreakClustersToPathsContext* LocalTypedContext = nullptr;
+		const UPCGExBreakClustersToPathsSettings* LocalSettings = nullptr;
 
+		TArray<PCGExData::FPointIO*> Paths;
+		
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
@@ -106,6 +110,8 @@ namespace PCGExBreakClustersToPaths
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 
+		virtual void Output() override;
+		
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
 }

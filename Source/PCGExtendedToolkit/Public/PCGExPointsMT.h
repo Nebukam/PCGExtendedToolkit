@@ -269,6 +269,10 @@ namespace PCGExPointsMT
 		virtual void Write()
 		{
 		}
+
+		virtual void Output()
+		{
+		}
 	};
 
 	class FPointsProcessorBatchBase
@@ -292,6 +296,8 @@ namespace PCGExPointsMT
 		TArray<PCGExData::FPointIO*> PointsCollection;
 
 		UPCGExOperation* PrimaryOperation = nullptr;
+
+		virtual int32 GetNumProcessors() const { return -1; }
 
 		FPointsProcessorBatchBase(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
 			Context(InContext), PointsCollection(InPointsCollection)
@@ -344,6 +350,10 @@ namespace PCGExPointsMT
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 		{
 		}
+
+		virtual void Output()
+		{
+		}
 	};
 
 	template <typename T>
@@ -352,6 +362,8 @@ namespace PCGExPointsMT
 	public:
 		TArray<T*> Processors;
 		TArray<T*> ClosedBatchProcessors;
+
+		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
@@ -499,12 +511,23 @@ namespace PCGExPointsMT
 			}
 		}
 
+		virtual void Output() override
+		{
+			for (T* Processor : Processors)
+			{
+				if (!Processor->bIsProcessorValid) { continue; }
+				Processor->Output();
+			}
+		}
+
 	protected:
 		void StartClosedBatchProcessing()
 		{
 			const int32 NumTrivial = ClosedBatchProcessors.Num();
 			if (NumTrivial > 0)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(FPointsBatch::TrivialBatchProcessing);
+
 				TArray<uint64> Loops;
 				PCGExMT::SubRanges(Loops, ClosedBatchProcessors.Num(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchIterations);
 

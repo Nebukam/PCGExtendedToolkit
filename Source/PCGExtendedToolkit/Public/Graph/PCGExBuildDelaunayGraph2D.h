@@ -16,6 +16,14 @@ namespace PCGExGeo
 	class TDelaunay2;
 }
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Urquhart Site Merge Mode"))
+enum class EPCGExUrquhartSiteMergeMode : uint8
+{
+	None UMETA(DisplayName = "None", ToolTip="Do not merge sites."),
+	MergeSites UMETA(DisplayName = "Merge Sites", ToolTip="Merge site is the average of the merge."),
+	MergeEdges UMETA(DisplayName = "Merge Edges", ToolTip="Merge site is the averge of the removed edges."),
+};
+
 /**
  * 
  */
@@ -61,7 +69,7 @@ public:
 	
 	/** Merge adjacent sites into a single point */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, EditCondition="bUrquhart && bOutputSites", EditConditionHides))
-	bool bMergeUrquhartSites = false;
+	EPCGExUrquhartSiteMergeMode UrquhartSitesMerge = EPCGExUrquhartSiteMergeMode::None;
 
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))

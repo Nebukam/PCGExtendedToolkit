@@ -89,6 +89,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	bool bWaitingOnClusterProjection = false;
 
+	int32 GetTotalNumProcessors() const
+	{
+		int32 Num = 0;
+		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Num += Batch->GetNumProcessors(); }
+		return Num;
+	}
+
+	void OutputBatches() const
+	{
+		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->Output(); }
+	}
+
 protected:
 	virtual bool ProcessClusters();
 

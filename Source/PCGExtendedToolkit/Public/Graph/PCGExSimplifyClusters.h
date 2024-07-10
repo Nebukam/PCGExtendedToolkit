@@ -86,6 +86,9 @@ namespace PCGExSimplifyClusters
 	{
 		TArray<PCGExCluster::FNodeChain*> Chains;
 
+		FPCGExSimplifyClustersContext* LocalTypedContext = nullptr;
+		const UPCGExSimplifyClustersSettings* LocalSettings = nullptr;
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
@@ -100,5 +103,6 @@ namespace PCGExSimplifyClusters
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		
 	};
 }

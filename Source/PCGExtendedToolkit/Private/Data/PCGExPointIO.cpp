@@ -20,7 +20,7 @@ namespace PCGExData
 		IOIndex = InIndex;
 		DefaultOutputLabel = InDefaultOutputLabel;
 		NumInPoints = In ? In->GetPoints().Num() : 0;
-		Tags = InTags ? new FTags(*InTags) : new FTags();
+		Tags = InTags ? new FTags(*InTags) : Tags ? Tags : new FTags();
 	}
 
 	void FPointIO::InitializeOutput(const EInit InitOut)
@@ -268,7 +268,7 @@ namespace PCGExData
 	FPointIO* FPointIOCollection::Emplace_GetRef(const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		FPointIO* NewIO = new FPointIO(nullptr);
+		FPointIO* NewIO = new FPointIO();
 		NewIO->SetInfos(Pairs.Add(NewIO), DefaultOutputLabel);
 		NewIO->InitializeOutput(InitOut);
 		return NewIO;
@@ -280,6 +280,12 @@ namespace PCGExData
 		Branch->Tags->Reset(*PointIO->Tags);
 		Branch->RootIO = const_cast<FPointIO*>(PointIO);
 		return Branch;
+	}
+
+	FPointIO* FPointIOCollection::AddUnsafe(FPointIO* PointIO)
+	{
+		PointIO->SetInfos(Pairs.Add(PointIO), DefaultOutputLabel);
+		return PointIO;
 	}
 
 	/**

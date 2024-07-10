@@ -190,6 +190,15 @@ namespace PCGExWriteEdgeProperties
 
 		FPCGPoint& MutableTarget = EdgesIO->GetMutablePoint(Edge.PointIndex);
 
+		auto MetadataBlend = [&]()
+		{
+			const PCGEx::FPointRef Target = EdgesIO->GetOutPointRef(Edge.PointIndex);
+			MetadataBlender->PrepareForBlending(Target);
+			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(EdgeStartPtIndex), Target, BlendWeightStart);
+			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(EdgeEndPtIndex), Target, BlendWeightEnd);
+			MetadataBlender->CompleteBlending(Target, 2, BlendWeightStart + BlendWeightEnd);
+		};
+
 		if (bSolidify)
 		{
 			FRotator EdgeRot;
@@ -218,9 +227,6 @@ namespace PCGExWriteEdgeProperties
 			PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
 #undef PCGEX_SOLIDIFY_DIMENSION
 
-			MutableTarget.BoundsMin = TargetBoundsMin;
-			MutableTarget.BoundsMax = TargetBoundsMax;
-
 			switch (Settings->SolidificationAxis)
 			{
 			default:
@@ -235,25 +241,25 @@ namespace PCGExWriteEdgeProperties
 				break;
 			}
 
-			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(DirTo, DirFrom, EdgeLerp), MutableTarget.Transform.GetScale3D());
 
 			BlendWeightStart = EdgeLerp;
 			BlendWeightEnd = 1 - EdgeLerp;
+
+			if (MetadataBlender) { MetadataBlend(); } // Blend first THEN apply bounds otherwise it gets overwritten
+
+			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(DirTo, DirFrom, EdgeLerp), MutableTarget.Transform.GetScale3D());
+			
+			MutableTarget.BoundsMin = TargetBoundsMin;
+			MutableTarget.BoundsMax = TargetBoundsMax;
+			
 		}
 		else if (Settings->bWriteEdgePosition)
 		{
 			MutableTarget.Transform.SetLocation(FMath::Lerp(DirTo, DirFrom, Settings->EdgePositionLerp));
 			BlendWeightStart = Settings->EdgePositionLerp;
 			BlendWeightEnd = 1 - Settings->EdgePositionLerp;
-		}
 
-		if (MetadataBlender)
-		{
-			const PCGEx::FPointRef Target = EdgesIO->GetOutPointRef(Edge.PointIndex);
-			MetadataBlender->PrepareForBlending(Target);
-			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(EdgeStartPtIndex), Target, BlendWeightStart);
-			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(EdgeEndPtIndex), Target, BlendWeightEnd);
-			MetadataBlender->CompleteBlending(Target, 2, BlendWeightStart + BlendWeightEnd);
+			if (MetadataBlender) { MetadataBlend(); }
 		}
 	}
 

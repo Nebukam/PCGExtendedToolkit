@@ -146,7 +146,10 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bUrquhart)
 		{
-			if (Settings->bOutputSites && Settings->bMergeUrquhartSites) { Delaunay->RemoveLongestEdges(ActivePositions, UrquhartEdges); }
+			if (Settings->bOutputSites && Settings->UrquhartSitesMerge != EPCGExUrquhartSiteMergeMode::None)
+			{
+				Delaunay->RemoveLongestEdges(ActivePositions, UrquhartEdges);
+			}
 			else { Delaunay->RemoveLongestEdges(ActivePositions); }
 		}
 
@@ -156,7 +159,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bOutputSites)
 		{
-			if (Settings->bMergeUrquhartSites) { AsyncManagerPtr->Start<FOutputDelaunayUrquhartSites2D>(BatchIndex, PointIO, this); }
+			if (Settings->UrquhartSitesMerge != EPCGExUrquhartSiteMergeMode::None) { AsyncManagerPtr->Start<FOutputDelaunayUrquhartSites2D>(BatchIndex, PointIO, this); }
 			else { AsyncManagerPtr->Start<FOutputDelaunaySites2D>(BatchIndex, PointIO, this); }
 		}
 
@@ -274,21 +277,48 @@ namespace PCGExBuildDelaunay2D
 			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
 
 			TSet<int32> Queue;
-			Delaunay->GetMergedSites(i, Processor->UrquhartEdges, Queue);
+			TSet<uint64> QueuedEdges;
+			Delaunay->GetMergedSites(i, Processor->UrquhartEdges, Queue, QueuedEdges);
 			VisitedSites.Append(Queue);
 
 			FVector Centroid = FVector::ZeroVector;
 			bool bOnHull = Site.bOnHull;
 
-			for (const int32 MergeSiteIndex : Queue)
+			if (Settings->UrquhartSitesMerge == EPCGExUrquhartSiteMergeMode::MergeSites)
 			{
-				const PCGExGeo::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
-				for (int j = 0; j < 3; j++) { Centroid += (OriginalPoints.GetData() + MSite.Vtx[j])->Transform.GetLocation(); }
+				for (const int32 MergeSiteIndex : Queue)
+				{
+					const PCGExGeo::FDelaunaySite2& MSite = Delaunay->Sites[MergeSiteIndex];
+					for (int j = 0; j < 3; j++) { Centroid += (OriginalPoints.GetData() + MSite.Vtx[j])->Transform.GetLocation(); }
 
-				if (!bOnHull && Settings->bMarkSiteHull && MSite.bOnHull) { bOnHull = true; }
+					if (!bOnHull && Settings->bMarkSiteHull && MSite.bOnHull) { bOnHull = true; }
+				}
+
+				Centroid /= (Queue.Num() * 3);
 			}
+			else
+			{
+				if (Settings->bMarkSiteHull)
+				{
+					for (const int32 MergeSiteIndex : Queue)
+					{
+						if (!bOnHull && Delaunay->Sites[MergeSiteIndex].bOnHull)
+						{
+							bOnHull = true;
+							break;
+						}
+					}
+				}
 
-			Centroid /= (Queue.Num() * 3);
+				for (const uint64 EdgeHash : QueuedEdges)
+				{
+					Centroid += FMath::Lerp(
+						(OriginalPoints.GetData() + PCGEx::H64A(EdgeHash))->Transform.GetLocation(),
+						(OriginalPoints.GetData() + PCGEx::H64B(EdgeHash))->Transform.GetLocation(), 0.5);
+				}
+
+				Centroid /= (QueuedEdges.Num());
+			}
 
 			const int32 VIndex = FinalSites.Add(Site.Vtx[0]);
 			Hull.Add(bOnHull);

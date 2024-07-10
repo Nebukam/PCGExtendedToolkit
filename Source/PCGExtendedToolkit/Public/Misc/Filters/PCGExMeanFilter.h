@@ -91,7 +91,11 @@ namespace PCGExPointsFilter
 		double ReferenceMax = 0;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
+		{
+			return FMath::IsWithin(Target->Values[PointIndex], ReferenceMin, ReferenceMax);
+		}
+
 
 		virtual void PostInit() override;
 

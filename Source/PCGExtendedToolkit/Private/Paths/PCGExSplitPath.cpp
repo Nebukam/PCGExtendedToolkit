@@ -108,6 +108,9 @@ namespace PCGExSplitPath
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
 
+		LocalTypedContext = TypedContext;
+		LocalSettings = Settings;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		bInlineProcessPoints = true;
@@ -170,7 +173,7 @@ namespace PCGExSplitPath
 		}
 
 		if (bSplit && bRemove) { bSplit = bPriorityToSplit; }
-		
+
 		if (bSplit)
 		{
 			if (CurrentPath != -1)
@@ -199,15 +202,13 @@ namespace PCGExSplitPath
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
-
 		const FPath& PathInfos = Paths[Iteration];
 		if (PathInfos.Count < 1 || PathInfos.Start == -1) { return; }
-		if (PathInfos.Count == 1 && Settings->bOmitSinglePointOutputs) { return; }
+		if (PathInfos.Count == 1 && LocalSettings->bOmitSinglePointOutputs) { return; }
 		if (PathInfos.End == -1 && (PathInfos.Start + PathInfos.Count) != PointIO->GetNum()) { return; }
 
 
-		const PCGExData::FPointIO* PathIO = TypedContext->MainPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+		const PCGExData::FPointIO* PathIO = LocalTypedContext->MainPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 
 		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();

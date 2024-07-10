@@ -76,6 +76,9 @@ namespace PCGExFusePoints
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FusePoints)
 
+		LocalTypedContext = TypedContext;
+		LocalSettings = Settings;
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		PointIO->CreateInKeys();
@@ -93,8 +96,6 @@ namespace PCGExFusePoints
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FusePoints)
-
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 		PCGExGraph::FCompoundNode* CompoundNode = CompoundGraph->Nodes[Iteration];
@@ -104,8 +105,8 @@ namespace PCGExFusePoints
 		FPCGPoint& Point = MutablePoints[Iteration];
 		Point.MetadataEntry = Key; // Restore key
 
-		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, TypedContext->MainPoints));
-		CompoundPointsBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
+		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, LocalTypedContext->MainPoints));
+		CompoundPointsBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(LocalSettings->PointPointIntersectionDetails));
 	}
 
 	void FProcessor::CompleteWork()
