@@ -405,21 +405,21 @@ namespace PCGExData
 		{
 			{
 				FReadScopeLock ReadScopeLock(CloudLock);
-				if(Cloud){return Cloud;}
+				if (Cloud) { return Cloud; }
 			}
-			
+
 			{
 				FWriteScopeLock WriteScopeLock(CloudLock);
 				Cloud = new PCGExGeo::FPointBoxCloud(GetIn());
 			}
-			
+
 			return Cloud;
 		}
 
 		const UPCGPointData* GetData(ESource InSource) const { return Source->GetData(InSource); }
 		const UPCGPointData* GetIn() const { return Source->GetIn(); }
 		UPCGPointData* GetOut() const { return Source->GetOut(); }
-		
+
 		~FFacade()
 		{
 			Flush();

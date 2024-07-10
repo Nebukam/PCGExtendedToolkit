@@ -564,28 +564,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTransformDetails
 	bool bInheritRotation = false;
 };
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
-{
-	GENERATED_BODY()
-
-	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bMarkPointsIntersections = true;
-
-	/** Name of the attribute to write point intersection boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkPointsIntersections" ))
-	FName IsIntersectionAttributeName = NAME_None;
-
-	/** If enabled, mark points inside the volume with a boolean value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bMarkPointsInside = true;
-
-	/** Name of the attribute to write inside boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkPointsInside" ))
-	FName IsInsideAttributeName = NAME_None;
-};
-
 namespace PCGExDetails
 {
 #pragma region Distance Settings

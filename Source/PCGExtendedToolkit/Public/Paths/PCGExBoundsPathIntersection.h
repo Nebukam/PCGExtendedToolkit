@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDataDetails.h"
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
@@ -39,9 +40,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
-	/** Consider paths to be closed -- processing will wrap between first and last points. */
+	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bOmitSinglePointOutputs = false;
+	bool bOmitSinglePointOutputs = true;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
@@ -55,6 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionContext final : public
 	virtual ~FPCGExBoundsPathIntersectionContext() override;
 
 	PCGExData::FFacade* BoundsDataFacade = nullptr;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
@@ -74,14 +76,20 @@ namespace PCGExPathIntersections
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		bool bClosedPath = false;
 		int32 LastIndex = 0;
 		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
 		PCGExGeo::FSegmentation* Segmentation = nullptr;
 
+		PCGEx::TFAttributeWriter<bool>* IsIntersectionWriter = nullptr;
+		PCGEx::TFAttributeWriter<int32>* BoundIndexWriter = nullptr;
+		PCGEx::TFAttributeWriter<bool>* IsInsideWriter = nullptr;
+		
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)
 			: FPointsProcessor(InPoints)
 		{
+			
 		}
 
 		virtual ~FProcessor() override;

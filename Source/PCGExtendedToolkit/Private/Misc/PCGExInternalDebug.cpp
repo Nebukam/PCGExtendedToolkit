@@ -46,7 +46,7 @@ bool FPCGExInternalDebugElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			TArray<FPCGPoint>& OutPoints = Context->CurrentIO->GetOut()->GetMutablePoints();
 
-			PCGEX_W(GH64, int64)
+			PCGEX_W(GH64, int32)
 
 			for (int i = 0; i < OutPoints.Num(); i++)
 			{

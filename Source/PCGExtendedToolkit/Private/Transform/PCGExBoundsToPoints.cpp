@@ -72,6 +72,12 @@ namespace PCGExBoundsToPoints
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		bSetExtents = Settings->bSetExtents;
+		Extents = Settings->Extents;
+
+		bSetScale = Settings->bSetScale;
+		Scale = Settings->Scale;
+
 		Axis = Settings->SymmetryAxis;
 		UVW = Settings->UVW;
 		if (!UVW.Init(Context, PointDataFacade)) { return false; }
@@ -122,18 +128,26 @@ namespace PCGExBoundsToPoints
 			PCGExData::FPointIO* NewOutput = NewOutputs[Index];
 
 			FPCGPoint& A = NewOutput->CopyPoint(Point, OutIndex);
-			A.SetLocalCenter(FVector::Zero());
-			A.SetExtents(FVector(0.5));
+			if (bSetExtents)
+			{
+				A.BoundsMin = -Extents;
+				A.BoundsMax = Extents;
+			}
 
 			A.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index)));
+			if (bSetScale) { A.Transform.SetScale3D(Scale); }
 
 			if (bSymmetry)
 			{
 				FPCGPoint& B = NewOutput->CopyPoint(Point, OutIndex);
-				B.SetLocalCenter(FVector::Zero());
-				B.SetExtents(FVector(0.5));
+				if (bSetExtents)
+				{
+					B.BoundsMin = -Extents;
+					B.BoundsMax = Extents;
+				}
 
 				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));
+				if (bSetScale) { B.Transform.SetScale3D(Scale); }
 			}
 
 			PointAttributesToOutputTags.Tag(Index, NewOutput);
@@ -143,19 +157,27 @@ namespace PCGExBoundsToPoints
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 			FPCGPoint& A = MutablePoints[Index];
-			A.SetLocalCenter(FVector::Zero());
-			A.SetExtents(FVector(0.5));
+			if (bSetExtents)
+			{
+				A.BoundsMin = -Extents;
+				A.BoundsMax = Extents;
+			}
 
 			A.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index)));
+			if (bSetScale) { A.Transform.SetScale3D(Scale); }
 
 			if (bSymmetry)
 			{
 				MutablePoints[NumPoints + Index] = Point;
 				FPCGPoint& B = MutablePoints[NumPoints + Index];
-				B.SetLocalCenter(FVector::Zero());
-				B.SetExtents(FVector(0.5));
+				if (bSetExtents)
+				{
+					B.BoundsMin = -Extents;
+					B.BoundsMax = Extents;
+				}
 
 				B.Transform.SetLocation(UVW.GetPosition(PointIO->GetInPointRef(Index), Axis, true));
+				if (bSetScale) { B.Transform.SetScale3D(Scale); }
 			}
 		}
 	}

@@ -122,9 +122,9 @@ namespace PCGExPointsToBounds
 		default: ;
 		case EPCGExPointBoundsSource::DensityBounds:
 			return Point.GetDensityBounds().GetBox();
-		case EPCGExPointBoundsSource::ScaledExtents:
+		case EPCGExPointBoundsSource::ScaledBounds:
 			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()).GetBox();
-		case EPCGExPointBoundsSource::Extents:
+		case EPCGExPointBoundsSource::Bounds:
 			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetExtents()).GetBox();
 		}
 	}
@@ -155,7 +155,7 @@ public:
 public:
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
 	/** Bound point is the result of its contents */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
@@ -208,7 +208,7 @@ namespace PCGExPointsToBounds
 		{
 		}
 
-		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
+		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 		FBounds* Bounds = nullptr;
 
 		virtual bool ExecuteTask() override;

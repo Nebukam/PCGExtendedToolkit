@@ -264,35 +264,18 @@ namespace PCGEx
 
 	FORCEINLINE static uint64 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
 
-	FORCEINLINE static void HC(std::size_t& Seed, const std::size_t Value) { Seed ^= Value + 0x9e3779b9 + (Seed << 6) + (Seed >> 2); }
-	FORCEINLINE static void HC64(uint64& Seed, const uint64 Value) { Seed ^= Value + 0x9e3779b9 + (Seed << 6) + (Seed >> 2); }
+	FORCEINLINE static uint32 GH(const FInt64Vector3& Seed) { return GetTypeHash(Seed); }
 
-	FORCEINLINE static uint64 GH(const FInt64Vector3& Seed)
+	FORCEINLINE static uint32 GH(const FVector& Seed, const FInt64Vector3& Tolerance)
 	{
-		return GetTypeHash(Seed);
-		/*
-		uint64 Seed64 = 0;
-		HC64(Seed64, std::hash<int64>()(Seed.X));
-		HC64(Seed64, std::hash<int64>()(Seed.Y));
-		HC64(Seed64, std::hash<int64>()(Seed.Z));
-		return Seed64;
-		*/
-	}
-
-	FORCEINLINE static uint64 GH(const FVector& Seed, const FInt64Vector3& Tolerance)
-	{
-		return GetTypeHash(FInt64Vector3(
-				FMath::FloorToInt64(Seed.X * Tolerance.X),
-				FMath::FloorToInt64(Seed.Y * Tolerance.Y),
-				FMath::FloorToInt64(Seed.Z * Tolerance.Z)));
-		return GH(
+		return GetTypeHash(
 			FInt64Vector3(
 				FMath::FloorToInt64(Seed.X * Tolerance.X),
 				FMath::FloorToInt64(Seed.Y * Tolerance.Y),
 				FMath::FloorToInt64(Seed.Z * Tolerance.Z)));
 	}
 
-	FORCEINLINE static uint64 GH(const FVector& Seed, const FVector& Tolerance)
+	FORCEINLINE static uint32 GH(const FVector& Seed, const FVector& Tolerance)
 	{
 		return GetTypeHash(
 			FInt64Vector3(

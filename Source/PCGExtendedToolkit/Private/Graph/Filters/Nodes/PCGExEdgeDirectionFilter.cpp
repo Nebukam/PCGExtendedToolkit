@@ -163,9 +163,9 @@ namespace PCGExNodeAdjacency
 		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
 		const FVector CWTolerance = HashComparison.GetCWTolerance(PointIndex);
-		const uint64 A = PCGEx::GH(RefDir, CWTolerance);
+		const uint32 A = PCGEx::GH(RefDir, CWTolerance);
 
-		TArray<uint64> Hashes;
+		TArray<uint32> Hashes;
 		Hashes.SetNumUninitialized(Node.Adjacency.Num());
 
 		// Precompute all dot products

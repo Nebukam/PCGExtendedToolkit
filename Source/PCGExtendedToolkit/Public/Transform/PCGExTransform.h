@@ -4,37 +4,7 @@
 #pragma once
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
-
 #include "PCGExTransform.generated.h"
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source"))
-enum class EPCGExPointBoundsSource : uint8
-{
-	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="TBD"),
-	ScaledExtents UMETA(DisplayName = "Scaled Extents", ToolTip="TBD"),
-	Extents UMETA(DisplayName = "Extents", ToolTip="TBD")
-};
-
-namespace PCGExTransform
-{
-	FORCEINLINE static void GetBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source, FBox& OutBounds)
-	{
-		FVector S = Point.Transform.GetScale3D();
-		switch (Source)
-		{
-		case EPCGExPointBoundsSource::DensityBounds:
-			OutBounds = Point.GetLocalDensityBounds();
-			break;
-		case EPCGExPointBoundsSource::ScaledExtents:
-			OutBounds = FBox(Point.BoundsMin * S, Point.BoundsMax * S);
-			break;
-		default: ;
-		case EPCGExPointBoundsSource::Extents:
-			OutBounds = FBox(Point.BoundsMin, Point.BoundsMax);
-			break;
-		}
-	}
-}
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
@@ -52,7 +22,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExPointBoundsSource BoundsReference = EPCGExPointBoundsSource::ScaledExtents;
+	EPCGExPointBoundsSource BoundsReference = EPCGExPointBoundsSource::ScaledBounds;
 
 	/** U Source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
@@ -141,16 +111,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 	FVector GetPosition(const PCGEx::FPointRef& PointRef) const
 	{
-		FBox Bounds;
-		PCGExTransform::GetBounds(*PointRef.Point, BoundsReference, Bounds);
+		const FBox Bounds = PCGExMath::GetLocalBounds(*PointRef.Point, BoundsReference);
 		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointRef.Index));
 		return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
 	}
 
 	FVector GetPosition(const PCGEx::FPointRef& PointRef, FVector& OutOffset) const
 	{
-		FBox Bounds;
-		PCGExTransform::GetBounds(*PointRef.Point, BoundsReference, Bounds);
+		const FBox Bounds = PCGExMath::GetLocalBounds(*PointRef.Point, BoundsReference);
 		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointRef.Index));
 		OutOffset = PointRef.Point->Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());
 		return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
@@ -184,16 +152,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 	FVector GetPosition(const PCGEx::FPointRef& PointRef, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const
 	{
-		FBox Bounds;
-		PCGExTransform::GetBounds(*PointRef.Point, BoundsReference, Bounds);
+		const FBox Bounds = PCGExMath::GetLocalBounds(*PointRef.Point, BoundsReference);
 		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointRef.Index, Axis, bMirrorAxis));
 		return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);
 	}
 
 	FVector GetPosition(const PCGEx::FPointRef& PointRef, FVector& OutOffset, const EPCGExMinimalAxis Axis, const bool bMirrorAxis = false) const
 	{
-		FBox Bounds;
-		PCGExTransform::GetBounds(*PointRef.Point, BoundsReference, Bounds);
+		const FBox Bounds = PCGExMath::GetLocalBounds(*PointRef.Point, BoundsReference);
 		const FVector LocalPosition = Bounds.GetCenter() + (Bounds.GetExtent() * GetUVW(PointRef.Index, Axis, bMirrorAxis));
 		OutOffset = PointRef.Point->Transform.TransformVectorNoScale(LocalPosition - Bounds.GetCenter());
 		return PointRef.Point->Transform.TransformPositionNoScale(LocalPosition);

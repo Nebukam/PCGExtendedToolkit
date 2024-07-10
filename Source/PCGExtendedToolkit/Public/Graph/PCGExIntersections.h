@@ -80,7 +80,7 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FCompoundGraph
 	{
 		FVector CWTolerance;
-		TMap<int64, FCompoundNode*> GridTree;
+		TMap<uint32, FCompoundNode*> GridTree;
 
 		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
 		PCGExData::FIdxCompoundList* EdgesCompounds = nullptr;

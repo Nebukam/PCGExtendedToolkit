@@ -49,6 +49,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExUVW UVW;
 
+	/** Generates a point collections per generated point */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bSetExtents = true;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetExtents"))
+	FVector Extents = FVector(0.5);
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bSetScale = true;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetScale"))
+	FVector Scale = FVector::OneVector;
+	
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bGeneratePerPointData"))
 	FPCGExAttributeToTagDetails PointAttributesToOutputTags;
@@ -83,6 +99,13 @@ namespace PCGExBoundsToPoints
 		int32 NumPoints = 0;
 		bool bGeneratePerPointData = false;
 		bool bSymmetry = false;
+		
+		bool bSetExtents = false;
+		FVector Extents = FVector::OneVector;
+		
+		bool bSetScale = false;
+		FVector Scale = FVector::OneVector;
+		
 		EPCGExMinimalAxis Axis = EPCGExMinimalAxis::None;
 
 		FPCGExUVW UVW;

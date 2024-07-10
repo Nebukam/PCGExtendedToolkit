@@ -33,8 +33,28 @@ enum class EPCGExMeanMethod : uint8
 	Fixed UMETA(DisplayName = "Fixed", ToolTip="Fixed threshold"),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source"))
+enum class EPCGExPointBoundsSource : uint8
+{
+	ScaledBounds UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
+	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
+	Bounds UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds")
+};
+
 namespace PCGExMath
 {
+
+	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
+	{
+		FVector Extents;
+
+		if (Source == EPCGExPointBoundsSource::ScaledBounds) { Extents = Point.GetScaledExtents(); }
+		else if (Source == EPCGExPointBoundsSource::Bounds) { Extents = Point.GetExtents(); }
+		else if (Source == EPCGExPointBoundsSource::DensityBounds) { Extents = Point.GetDensityBounds().BoxExtent; }
+
+		return FBox(-Extents, Extents);
+	}
+	
 #pragma region basics
 
 	/**
@@ -1146,6 +1166,12 @@ namespace PCGExMath
 			else if (OutSign != CurrentSign) { bIsConvex = false; }
 		}
 	};
+
+	FORCEINLINE FBox ScaledBox(const FBox& InBox, const FVector& InScale)
+	{
+		const FVector Extents = InBox.GetExtent() * InScale;
+		return FBox(-Extents, Extents);
+	}
 
 #pragma region Spatialized distances
 

@@ -51,12 +51,32 @@ namespace PCGExGeo
 				});
 		}
 
+		void SortAndDedupe()
+		{
+			Sort();
+
+			if (Cuts.IsEmpty() || Cuts.Num() < 2) { return; }
+
+			FVector LastPos = Cuts[0].Position;
+
+			for (int i = 1; i < Cuts.Num(); i++)
+			{
+				FVector Pos = (Cuts.GetData() + i)->Position;
+				if (Pos == LastPos)
+				{
+					Cuts.RemoveAt(i);
+					i--;
+				}
+				LastPos = Pos;
+			}
+		}
+
 		FBoxCenterAndExtent GetBoxCenterAndExtent() const
 		{
 			FBox Box = FBox(ForceInit);
 			Box += StartPosition;
 			Box += EndPosition;
-			return FBoxCenterAndExtent(FMath::Lerp(StartPosition, EndPosition, 0.5), Box.GetExtent());
+			return FBoxCenterAndExtent(Box);
 		}
 
 		void Insert(const FVector& Position, const int32 Index)
@@ -139,28 +159,50 @@ namespace PCGExGeo
 	struct PCGEXTENDEDTOOLKIT_API FPointBox
 	{
 		FTransform Transform;
-		FBox Box;
 		FBoxSphereBounds Sphere;
-		FVector LocalCenter;
+		FBox Box;
 		int32 Index;
 
 		explicit FPointBox(const FPCGPoint& InPoint, const int32 InIndex):
 			Transform(FTransform(InPoint.Transform.GetRotation(), InPoint.Transform.GetLocation(), FVector::One())),
-			Box(FBox(InPoint.BoundsMin * InPoint.Transform.GetScale3D(), InPoint.BoundsMax * InPoint.Transform.GetScale3D())),
-			Sphere(FBoxSphereBounds(Box)),
-			LocalCenter(Box.GetCenter()),
 			Index(InIndex)
 		{
+			const FBox PointBox = InPoint.GetLocalBounds();
+			const FVector Extents = PointBox.GetExtent() * InPoint.Transform.GetScale3D();
+			const double Len = Extents.Length();
+
+			Box = FBox(Extents * -1, Extents);
+			Sphere = FBoxSphereBounds(InPoint.Transform.GetLocation(), FVector(Len), Len);
 		}
 
-		bool Contains(const FVector& Position) const { return Box.IsInside(Transform.InverseTransformPositionNoScale(Position)); }
+		bool Contains(const FVector& Position) const { return Box.IsInside(Transform.InverseTransformPosition(Position)); }
 
-		bool FindIntersections(FIntersections* InIntersections) const
+		bool Intersect(const FPCGPoint& Point, EPCGExPointBoundsSource BoundsSource) const
+		{
+			const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource).TransformBy(Point.Transform).InverseTransformBy(Transform);
+			return Box.Intersect(LocalBox);
+		}
+
+		bool Contains(const FPCGPoint& Point, EPCGExPointBoundsSource BoundsSource) const
+		{
+			const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource).TransformBy(Point.Transform).InverseTransformBy(Transform);
+			return Box.IsInside(LocalBox);
+		}
+
+		bool ContainsOrIntersect(const FPCGPoint& Point, EPCGExPointBoundsSource BoundsSource, bool& bContains, bool& bIntersects) const
+		{
+			const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource).TransformBy(Point.Transform).InverseTransformBy(Transform);
+			bContains = Box.IsInside(LocalBox);
+			bIntersects = Box.Intersect(LocalBox);
+			return bContains || bIntersects;
+		}
+
+		bool ProcessIntersections(FIntersections* InIntersections) const
 		{
 			FVector OutIntersection1 = FVector::ZeroVector;
 			FVector OutIntersection2 = FVector::ZeroVector;
 			bool bIsIntersection2Valid = false;
-			if (FindSegmentIntersections(InIntersections->StartPosition, InIntersections->EndPosition, OutIntersection1, OutIntersection2, bIsIntersection2Valid))
+			if (SegmentIntersection(InIntersections->StartPosition, InIntersections->EndPosition, OutIntersection1, OutIntersection2, bIsIntersection2Valid))
 			{
 				InIntersections->Insert(OutIntersection1, Index);
 				if (bIsIntersection2Valid) { InIntersections->Insert(OutIntersection2, Index); }
@@ -169,85 +211,74 @@ namespace PCGExGeo
 			return false;
 		}
 
-		bool FindSegmentIntersections(
+		bool SegmentIntersection(
 			const FVector& Start,
 			const FVector& End,
-			FVector& OutIntersection1,
-			FVector& OutIntersection2,
-			bool& bIsIntersection2Valid) const
+			FVector& OutI1,
+			FVector& OutI2,
+			bool& bIsI2Valid) const
 		{
-			const FVector LocalStart = Transform.InverseTransformPositionNoScale(Start);
-			const FVector LocalEnd = Transform.InverseTransformPositionNoScale(End);
+			const FVector LocalStart = Transform.InverseTransformPosition(Start);
+			const FVector LocalEnd = Transform.InverseTransformPosition(End);
 
 			const bool bIsStartInside = Box.IsInside(LocalStart);
 			const bool bIsEndInside = Box.IsInside(LocalEnd);
 
-			bIsIntersection2Valid = false;
+			bIsI2Valid = false;
 
 			if (bIsStartInside && bIsEndInside) { return false; }
 
+			FVector HitLocation;
 			FVector HitNormal;
-			FVector OneOverDirection;
+			float HitTime;
 
-			if (!FMath::LineBoxIntersection(Box, LocalStart, LocalEnd, HitNormal, OneOverDirection)) { return false; }
-
-			if (bIsStartInside)
-			{
-				OutIntersection1 = Transform.TransformPositionNoScale(OutIntersection1);
-				return true;
-			}
+			bool bHasValidIntersection = false;
 
 			if (bIsEndInside)
 			{
-				OutIntersection1 = Transform.TransformPositionNoScale(OutIntersection1);
-				return true;
+				if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
+				{
+					OutI1 = Transform.TransformPosition(HitLocation);
+					return OutI1 != Start && OutI1 != End;
+				}
+
+				return false;
 			}
 
-			bIsIntersection2Valid = true;
-			OutIntersection1 = Transform.TransformPositionNoScale(OutIntersection1);
-			OutIntersection2 = Transform.TransformPositionNoScale(OutIntersection2);
-
-			return true;
-		}
-
-	protected:
-		bool LineIntersection(const FVector& Start, const FVector& End, FVector& I1, FVector& I2) const
-		{
-			FVector Direction = (End - Start).GetSafeNormal();
-
-			double T0 = 0.0f;
-			double T1 = 1.0f;
-
-			FVector BoxMin = Box.Min;
-			FVector BoxMax = Box.Max;
-
-			for (int i = 0; i < 3; i++)
+			if (bIsStartInside)
 			{
-				if (FMath::Abs(Direction[i]) < KINDA_SMALL_NUMBER)
+				if (FMath::LineExtentBoxIntersection(Box, LocalEnd, LocalStart, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
 				{
-					if (Start[i] < BoxMin[i] || Start[i] > BoxMax[i])
-					{
-						return false;
-					}
+					OutI1 = Transform.TransformPosition(HitLocation);
+					return OutI1 != Start && OutI1 != End;
+				}
+
+				return false;
+			}
+
+			if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
+			{
+				OutI1 = Transform.TransformPosition(HitLocation);
+				bHasValidIntersection = OutI1 != Start && OutI1 != End;
+			}
+
+			if (FMath::LineExtentBoxIntersection(Box, LocalEnd, LocalStart, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
+			{
+				if (!bHasValidIntersection)
+				{
+					OutI1 = Transform.TransformPosition(HitLocation);
+					bHasValidIntersection = OutI1 != Start && OutI1 != End;
 				}
 				else
 				{
-					const double InvD = 1.0f / Direction[i];
-					double TMin = (BoxMin[i] - Start[i]) * InvD;
-					double TMax = (BoxMax[i] - Start[i]) * InvD;
-
-					if (TMin > TMax) { Swap(TMin, TMax); }
-
-					T0 = FMath::Max(T0, TMin);
-					T1 = FMath::Min(T1, TMax);
-
-					if (T0 > T1) { return false; }
+					OutI2 = Transform.TransformPosition(HitLocation);
+					bIsI2Valid = OutI1 != OutI2 && (OutI2 != Start && OutI2 != End);
 				}
+
+				bHasValidIntersection = bHasValidIntersection || bIsI2Valid;
 			}
 
-			I1 = Start + T0 * Direction;
-			I2 = Start + T1 * Direction;
-			return true;
+			return bHasValidIntersection;
 		}
 	};
 
@@ -292,7 +323,7 @@ namespace PCGExGeo
 		explicit FPointBoxCloud(const UPCGPointData* PointData)
 		{
 			CloudBounds = PointData->GetBounds();
-			Octree = new PointBoxCloudOctree(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length());
+			Octree = new PointBoxCloudOctree(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length() * 1.5);
 			const TArray<FPCGPoint>& Points = PointData->GetPoints();
 
 			PCGEX_SET_NUM_UNINITIALIZED(Boxes, Points.Num())
@@ -313,7 +344,7 @@ namespace PCGExGeo
 		bool FindIntersections(FIntersections* InIntersections) const
 		{
 			const FBoxCenterAndExtent BCAE = InIntersections->GetBoxCenterAndExtent();
-			Octree->FindElementsWithBoundsTest(BCAE, [&](const FPointBox* NearbyBox) { NearbyBox->FindIntersections(InIntersections); });
+			Octree->FindElementsWithBoundsTest(BCAE, [&](const FPointBox* NearbyBox) { NearbyBox->ProcessIntersections(InIntersections); });
 			return !InIntersections->Cuts.IsEmpty();
 		}
 

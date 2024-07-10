@@ -44,7 +44,7 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 
 	if (MaxIterations <= 0) { return; }
 
-	TSet<uint64> LocalConnectedSet;
+	TSet<uint32> LocalConnectedSet;
 	int32 Additions = 0;
 
 	for (PCGExProbing::FCandidate& C : Candidates)

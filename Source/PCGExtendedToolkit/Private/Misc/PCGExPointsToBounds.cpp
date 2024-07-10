@@ -96,7 +96,7 @@ namespace PCGExPointsToBounds
 				Bounds->FastVolume += Box.GetExtent().Length();
 			}
 			break;
-		case EPCGExPointBoundsSource::ScaledExtents:
+		case EPCGExPointBoundsSource::ScaledBounds:
 			for (const FPCGPoint& Pt : InPoints)
 			{
 				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox();
@@ -104,7 +104,7 @@ namespace PCGExPointsToBounds
 				Bounds->FastVolume += Box.GetExtent().Length();
 			}
 			break;
-		case EPCGExPointBoundsSource::Extents:
+		case EPCGExPointBoundsSource::Bounds:
 			for (const FPCGPoint& Pt : InPoints)
 			{
 				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();
@@ -182,7 +182,7 @@ namespace PCGExPointsToBounds
 				Bounds->FastVolume += Box.GetExtent().Length();
 			}
 			break;
-		case EPCGExPointBoundsSource::ScaledExtents:
+		case EPCGExPointBoundsSource::ScaledBounds:
 			for (const FPCGPoint& Pt : InPoints)
 			{
 				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox();
@@ -190,7 +190,7 @@ namespace PCGExPointsToBounds
 				Bounds->FastVolume += Box.GetExtent().Length();
 			}
 			break;
-		case EPCGExPointBoundsSource::Extents:
+		case EPCGExPointBoundsSource::Bounds:
 			for (const FPCGPoint& Pt : InPoints)
 			{
 				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();
