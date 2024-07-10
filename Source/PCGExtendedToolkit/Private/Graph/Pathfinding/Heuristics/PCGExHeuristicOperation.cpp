@@ -4,55 +4,39 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 
-void UPCGExHeuristicOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
-	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, ScoreCurve, ScoreCurveObj, PCGEx::WeightDistributionLinear)
-
 	LocalWeightMultiplier.Empty();
 
 	bHasCustomLocalWeightMultiplier = false;
 	if (bUseLocalWeightMultiplier)
 	{
-		const PCGExData::FPointIO* PointIO = LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? InCluster->PointsIO : InCluster->EdgesIO;
+		const PCGExData::FPointIO* PointIO = LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
+		PCGExData::FFacade* DataFacade = LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
+
 		const int32 NumPoints = PointIO->GetNum();
-		PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
+		PCGExData::FCache<double>* LocalWeightCache = DataFacade->GetOrCreateGetter<double>(WeightMultiplierAttribute);
 
-		Getter->Capture(WeightMultiplierAttribute);
-
-		if (Getter->Grab(*PointIO))
+		if (!LocalWeightCache)
 		{
-			LocalWeightMultiplier.SetNumZeroed(NumPoints);
-			for (int i = 0; i < NumPoints; i++) { LocalWeightMultiplier[i] = Getter->Values[i]; }
-			bHasCustomLocalWeightMultiplier = true;
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Invalid Heuristic attribute: {0}."), FText::FromName(WeightMultiplierAttribute.GetName())));
+			return;
 		}
 
-		PCGEX_DELETE(Getter)
+		if (LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx)
+		{
+			LocalWeightMultiplier.SetNumZeroed(InCluster->Nodes->Num());
+			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.NodeIndex] = LocalWeightCache->Values[Node.PointIndex]; }
+		}
+		else
+		{
+			LocalWeightMultiplier.SetNumZeroed(NumPoints);
+			for (int i = 0; i < NumPoints; i++) { LocalWeightMultiplier[i] = LocalWeightCache->Values[i]; }
+		}
+
+		bHasCustomLocalWeightMultiplier = true;
 	}
-}
-
-double UPCGExHeuristicOperation::GetGlobalScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	return 0;
-}
-
-double UPCGExHeuristicOperation::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FIndexedEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	return 0;
-}
-
-double UPCGExHeuristicOperation::GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const
-{
-	if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
-	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? PointIndex : EdgeIndex]);
 }
 
 void UPCGExHeuristicOperation::Cleanup()
@@ -60,9 +44,4 @@ void UPCGExHeuristicOperation::Cleanup()
 	Cluster = nullptr;
 	LocalWeightMultiplier.Empty();
 	Super::Cleanup();
-}
-
-double UPCGExHeuristicOperation::SampleCurve(const double InTime) const
-{
-	return FMath::Max(0, ScoreCurveObj->GetFloatValue(bInvert ? 1 - InTime : InTime));
 }

@@ -5,9 +5,21 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 
 #include "PCGExMath.h"
-#include "Data/PCGPointData.h"
 
-void UPCGExGoalPickerRandom::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
+void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExGoalPickerRandom* TypedOther = Cast<UPCGExGoalPickerRandom>(Other);
+	if (TypedOther)
+	{
+		GoalCount = TypedOther->GoalCount;
+		NumGoals = TypedOther->NumGoals;
+		bUseLocalNumGoals = TypedOther->bUseLocalNumGoals;
+		LocalNumGoalAttribute = TypedOther->LocalNumGoalAttribute;
+	}
+}
+
+void UPCGExGoalPickerRandom::PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals)
 {
 	if (bUseLocalNumGoals && !NumGoalsGetter)
 	{

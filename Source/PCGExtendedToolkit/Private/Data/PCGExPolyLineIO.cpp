@@ -4,7 +4,9 @@
 #include "Data/PCGExPolyLineIO.h"
 
 #include "PCGContext.h"
-#include "PCGEx.h"
+
+#include "PCGExMacros.h"
+
 #include "Data/PCGIntersectionData.h"
 #include "Data/PCGSplineData.h"
 

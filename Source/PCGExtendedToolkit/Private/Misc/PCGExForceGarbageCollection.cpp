@@ -9,11 +9,6 @@
 
 #pragma region UPCGSettings interface
 
-UPCGExForceGarbageCollectionSettings::UPCGExForceGarbageCollectionSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 TArray<FPCGPinProperties> UPCGExForceGarbageCollectionSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;

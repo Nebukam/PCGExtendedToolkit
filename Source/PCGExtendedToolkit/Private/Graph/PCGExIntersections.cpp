@@ -3,21 +3,12 @@
 
 #include "Graph/PCGExIntersections.h"
 
+#include "IntVectorTypes.h"
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExGraph
 {
-	bool FCompoundNode::Add(FCompoundNode* OtherNode)
-	{
-		if (OtherNode->Index == Index) { return false; }
-		if (Neighbors.Contains(OtherNode->Index)) { return true; }
-
-		Neighbors.Add(OtherNode->Index);
-		OtherNode->Add(this);
-		return true;
-	}
-
 	FVector FCompoundNode::UpdateCenter(const PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup)
 	{
 		Center = FVector::ZeroVector;
@@ -27,7 +18,7 @@ namespace PCGExGraph
 		uint32 PointIndex = 0;
 
 		PCGExData::FIdxCompound* Compound = (*PointsCompounds)[Index];
-		for (const uint64 FuseHash : Compound->CompoundedPoints)
+		for (const uint64 FuseHash : Compound->CompoundedHashSet)
 		{
 			Divider++;
 			PCGEx::H64(FuseHash, IOIndex, PointIndex);
@@ -38,79 +29,99 @@ namespace PCGExGraph
 		return Center;
 	}
 
-	FCompoundNode* FCompoundGraph::GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
+	FCompoundNode* FCompoundGraph::InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
 		const FVector Origin = Point.Transform.GetLocation();
+		FCompoundNode* Node;
 
 		if (!bFusePoints)
 		{
 			FWriteScopeLock WriteLock(OctreeLock);
-			FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
-			Nodes.Add(NewNode);
+			Node = new FCompoundNode(Point, Origin, Nodes.Num());
+			Nodes.Add(Node);
 			PointsCompounds->New()->Add(IOIndex, PointIndex);
-			return NewNode;
+			return Node;
+		}
+
+		if (!Octree)
+		{
+			FWriteScopeLock WriteLock(OctreeLock);
+
+			const uint32 GridKey = PCGEx::GH(Origin, CWTolerance);
+
+			if (FCompoundNode** NodePtr = GridTree.Find(GridKey))
+			{
+				Node = *NodePtr;
+				PointsCompounds->Add(Node->Index, IOIndex, PointIndex);
+			}
+			else
+			{
+				Node = new FCompoundNode(Point, Origin, Nodes.Num());
+				Nodes.Add(Node);
+				PointsCompounds->New()->Add(IOIndex, PointIndex);
+				GridTree.Add(GridKey, Node);
+			}
+
+			return Node;
 		}
 
 		int32 Index = -1;
-		if (FuseSettings.bComponentWiseTolerance)
+
+		if (FuseDetails.bComponentWiseTolerance)
 		{
 			FReadScopeLock ReadLock(OctreeLock);
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseSettings.Tolerances);
-			Octree.FindFirstElementWithBoundsTest(
-				Box, [&](const FCompoundNode* Node)
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseDetails.Tolerances);
+			Octree->FindFirstElementWithBoundsTest(
+				Box, [&](const FCompoundNode* ExistingNode)
 				{
-					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
-						Index = Node->Index;
+						Index = ExistingNode->Index;
 						return false;
 					}
 					return true;
 				});
-
-			if (Index != -1)
-			{
-				PointsCompounds->Add(Index, IOIndex, PointIndex);
-				return Nodes[Index];
-			}
 		}
 		else
 		{
 			FReadScopeLock ReadLock(OctreeLock);
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseSettings.Tolerance));
-			Octree.FindFirstElementWithBoundsTest(
-				Box, [&](const FCompoundNode* Node)
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseDetails.Tolerance));
+			Octree->FindFirstElementWithBoundsTest(
+				Box, [&](const FCompoundNode* ExistingNode)
 				{
-					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
-						Index = Node->Index;
+						Index = ExistingNode->Index;
 						return false;
 					}
 					return true;
 				});
+		}
+
+		{
+			FWriteScopeLock WriteLock(OctreeLock);
 
 			if (Index != -1)
 			{
 				PointsCompounds->Add(Index, IOIndex, PointIndex);
 				return Nodes[Index];
 			}
-		}
 
-		FCompoundNode* NewNode;
-
-		{
-			FWriteScopeLock WriteLock(OctreeLock);
-			NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
-			Nodes.Add(NewNode);
-			Octree.AddElement(NewNode);
+			Node = new FCompoundNode(Point, Origin, Nodes.Num());
+			Nodes.Add(Node);
+			Octree->AddElement(Node);
 			PointsCompounds->New()->Add(IOIndex, PointIndex);
 		}
 
-		return NewNode;
+		return Node;
 	}
 
-	FCompoundNode* FCompoundGraph::GetOrCreateNodeUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
+	FCompoundNode* FCompoundGraph::InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundGraph::InsertPointUnsafe);
+
 		const FVector Origin = Point.Transform.GetLocation();
+		FCompoundNode* Node;
 
 		if (!bFusePoints)
 		{
@@ -120,93 +131,130 @@ namespace PCGExGraph
 			return NewNode;
 		}
 
-		int32 Index = -1;
-		if (FuseSettings.bComponentWiseTolerance)
+		if (!Octree)
 		{
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseSettings.Tolerances);
-			Octree.FindFirstElementWithBoundsTest(
-				Box, [&](const FCompoundNode* Node)
+			const uint32 GridKey = PCGEx::GH(Origin, CWTolerance);
+
+			if (FCompoundNode** NodePtr = GridTree.Find(GridKey))
+			{
+				Node = *NodePtr;
+				PointsCompounds->Add(Node->Index, IOIndex, PointIndex);
+			}
+			else
+			{
+				Node = new FCompoundNode(Point, Origin, Nodes.Num());
+				Nodes.Add(Node);
+				PointsCompounds->New()->Add(IOIndex, PointIndex);
+				GridTree.Add(GridKey, Node);
+			}
+
+			return Node;
+		}
+
+		int32 Index = -1;
+
+		if (FuseDetails.bComponentWiseTolerance)
+		{
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseDetails.Tolerances);
+			Octree->FindFirstElementWithBoundsTest(
+				Box, [&](const FCompoundNode* ExistingNode)
 				{
-					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
-						Index = Node->Index;
+						Index = ExistingNode->Index;
 						return false;
 					}
 					return true;
 				});
-
-			if (Index != -1)
-			{
-				PointsCompounds->Add(Index, IOIndex, PointIndex);
-				return Nodes[Index];
-			}
 		}
 		else
 		{
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseSettings.Tolerance));
-			Octree.FindFirstElementWithBoundsTest(
-				Box, [&](const FCompoundNode* Node)
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseDetails.Tolerance));
+			Octree->FindFirstElementWithBoundsTest(
+				Box, [&](const FCompoundNode* ExistingNode)
 				{
-					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
-						Index = Node->Index;
+						Index = ExistingNode->Index;
 						return false;
 					}
 					return true;
 				});
+		}
 
-			if (Index != -1)
-			{
-				PointsCompounds->Add(Index, IOIndex, PointIndex);
-				return Nodes[Index];
-			}
+		if (Index != -1)
+		{
+			PointsCompounds->Add(Index, IOIndex, PointIndex);
+			return Nodes[Index];
 		}
 
 		FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
 		Nodes.Add(NewNode);
-		Octree.AddElement(NewNode);
+		Octree->AddElement(NewNode);
 		PointsCompounds->New()->Add(IOIndex, PointIndex);
 
 		return NewNode;
 	}
 
-	PCGExData::FIdxCompound* FCompoundGraph::CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
+	PCGExData::FIdxCompound* FCompoundGraph::InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
 	{
-		FCompoundNode* StartVtx = GetOrCreateNode(From, FromIOIndex, FromPointIndex);
-		FCompoundNode* EndVtx = GetOrCreateNode(To, ToIOIndex, ToPointIndex);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundGraph::InsertEdge);
+
+		FCompoundNode* StartVtx;
+		FCompoundNode* EndVtx;
+
+		{
+			FWriteScopeLock WriteLockOctree(OctreeLock);
+
+			StartVtx = InsertPointUnsafe(From, FromIOIndex, FromPointIndex);
+			EndVtx = InsertPointUnsafe(To, ToIOIndex, ToPointIndex);
+
+
+			if (StartVtx == EndVtx) { return nullptr; } // Edge got fused entirely
+
+			StartVtx->Adjacency.Add(EndVtx->Index);
+			EndVtx->Adjacency.Add(StartVtx->Index);
+		}
+
 		PCGExData::FIdxCompound* EdgeIdx = nullptr;
-
-
-		StartVtx->Add(EndVtx);
-		EndVtx->Add(StartVtx);
 
 		if (EdgeIOIndex == -1) { return EdgeIdx; } // Skip edge management
 
 		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
-		if (const FIndexedEdge* Edge = Edges.Find(H))
+
 		{
-			EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex];
-			EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+			FReadScopeLock ReadLockEdges(EdgesLock);
+			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex]; }
 		}
-		else
+
 		{
-			EdgeIdx = EdgesCompounds->New();
-			Edges.Add(H, FIndexedEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
-			EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+			FWriteScopeLock WriteLockEdges(EdgesLock);
+			if (!EdgeIdx)
+			{
+				EdgeIdx = EdgesCompounds->New();
+				Edges.Add(H, FIndexedEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
+				EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+			}
+			else
+			{
+				EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+			}
 		}
 
 		return EdgeIdx;
 	}
 
-	PCGExData::FIdxCompound* FCompoundGraph::CreateBridgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
+	PCGExData::FIdxCompound* FCompoundGraph::InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
 	{
-		FCompoundNode* StartVtx = GetOrCreateNodeUnsafe(From, FromIOIndex, FromPointIndex);
-		FCompoundNode* EndVtx = GetOrCreateNodeUnsafe(To, ToIOIndex, ToPointIndex);
+		FCompoundNode* StartVtx = InsertPointUnsafe(From, FromIOIndex, FromPointIndex);
+		FCompoundNode* EndVtx = InsertPointUnsafe(To, ToIOIndex, ToPointIndex);
+
+		if (StartVtx == EndVtx) { return nullptr; } // Edge got fused entirely
+
+		StartVtx->Adjacency.Add(EndVtx->Index);
+		EndVtx->Adjacency.Add(StartVtx->Index);
+
 		PCGExData::FIdxCompound* EdgeIdx = nullptr;
-
-		StartVtx->Add(EndVtx);
-		EndVtx->Add(StartVtx);
-
 		if (EdgeIOIndex == -1) { return EdgeIdx; } // Skip edge management
 
 		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
@@ -229,13 +277,16 @@ namespace PCGExGraph
 	{
 		OutEdges.Empty(Nodes.Num() * 4);
 		TSet<uint64> UniqueEdges;
+		bool bIsAlreadyPresent;
 		for (const FCompoundNode* Node : Nodes)
 		{
-			for (const int32 OtherNodeIndex : Node->Neighbors)
+			for (const int32 OtherNodeIndex : Node->Adjacency)
 			{
 				const uint64 Hash = PCGEx::H64U(Node->Index, OtherNodeIndex);
-				if (UniqueEdges.Contains(Hash)) { continue; }
-				UniqueEdges.Add(Hash);
+				UniqueEdges.Add(Hash, &bIsAlreadyPresent);
+
+				if (bIsAlreadyPresent) { continue; }
+
 				OutEdges.Emplace(Node->Index, OtherNodeIndex);
 			}
 		}
@@ -247,29 +298,17 @@ namespace PCGExGraph
 		for (const FCompoundNode* Node : Nodes)
 		{
 			FGraphNodeMetadata* NodeMeta = FGraphNodeMetadata::GetOrCreate(Node->Index, OutMetadata);
-			NodeMeta->CompoundSize = Node->Neighbors.Num();
+			NodeMeta->CompoundSize = Node->Adjacency.Num();
 			NodeMeta->bCompounded = NodeMeta->CompoundSize > 1;
 		}
-	}
-
-	bool FPointEdgeProxy::FindSplit(const FVector& Position, FPESplit& OutSplit) const
-	{
-		const FVector ClosestPoint = FMath::ClosestPointOnSegment(Position, Start, End);
-
-		if ((ClosestPoint - Start).IsNearlyZero() || (ClosestPoint - End).IsNearlyZero()) { return false; } // Overlap endpoint
-		if (FVector::DistSquared(ClosestPoint, Position) >= ToleranceSquared) { return false; }             // Too far
-
-		OutSplit.ClosestPoint = ClosestPoint;
-		OutSplit.Time = (FVector::DistSquared(Start, ClosestPoint) / LengthSquared);
-		return true;
 	}
 
 	FPointEdgeIntersections::FPointEdgeIntersections(
 		FGraph* InGraph,
 		FCompoundGraph* InCompoundGraph,
 		PCGExData::FPointIO* InPointIO,
-		const FPCGExPointEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Settings(InSettings)
+		const FPCGExPointEdgeIntersectionDetails* InDetails)
+		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
@@ -283,7 +322,7 @@ namespace PCGExGraph
 				Edge.EdgeIndex,
 				Points[Edge.Start].Transform.GetLocation(),
 				Points[Edge.End].Transform.GetLocation(),
-				Settings.FuseSettings.Tolerance);
+				Details->FuseDetails.Tolerance);
 		}
 	}
 
@@ -294,12 +333,6 @@ namespace PCGExGraph
 			if (!Edge.bValid) { continue; }
 			InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindPointEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
 		}
-	}
-
-	void FPointEdgeIntersections::Add(const int32 EdgeIndex, const FPESplit& Split)
-	{
-		FWriteScopeLock WriteLock(InsertionLock);
-		Edges[EdgeIndex].CollinearPoints.AddUnique(Split);
 	}
 
 	void FPointEdgeIntersections::Insert()
@@ -333,7 +366,7 @@ namespace PCGExGraph
 				FGraphEdgeMetadata* EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(NewEdge.EdgeIndex, SplitEdge.EdgeIndex, Graph->EdgeMetadata);
 				EdgeMetadata->Type = EPCGExIntersectionType::PointEdge;
 
-				if (Settings.bSnapOnEdge)
+				if (Details->bSnapOnEdge)
 				{
 					PointIO->GetMutablePoint(Graph->Nodes[Split.NodeIndex].PointIndex).Transform.SetLocation(Split.ClosestPoint);
 				}
@@ -369,42 +402,19 @@ namespace PCGExGraph
 		}
 	}
 
-	bool FEdgeEdgeProxy::FindSplit(const FEdgeEdgeProxy& OtherEdge, FEESplit& OutSplit) const
-	{
-		if (!Box.Intersect(OtherEdge.Box) || Start == OtherEdge.Start || Start == OtherEdge.End ||
-			End == OtherEdge.End || End == OtherEdge.Start) { return false; }
-
-		// TODO: Check directions/dot
-
-		FVector A;
-		FVector B;
-		FMath::SegmentDistToSegment(
-			Start, End,
-			OtherEdge.Start, OtherEdge.End,
-			A, B);
-
-		if (FVector::DistSquared(A, B) >= ToleranceSquared) { return false; }
-
-		OutSplit.Center = FMath::Lerp(A, B, 0.5);
-		OutSplit.TimeA = FVector::DistSquared(Start, A) / LengthSquared;
-		OutSplit.TimeB = FVector::DistSquared(OtherEdge.Start, B) / OtherEdge.LengthSquared;
-
-		return true;
-	}
-
 	FEdgeEdgeIntersections::FEdgeEdgeIntersections(
 		FGraph* InGraph,
 		FCompoundGraph* InCompoundGraph,
 		PCGExData::FPointIO* InPointIO,
-		const FPCGExEdgeEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Settings(InSettings)
+		const FPCGExEdgeEdgeIntersectionDetails* InDetails)
+		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
 		const int32 NumEdges = InGraph->Edges.Num();
 		Edges.SetNum(NumEdges);
 
-		Octree = TEdgeOctree(InCompoundGraph->Bounds.GetCenter(), InCompoundGraph->Bounds.GetExtent().Length() + (Settings.Tolerance * 2));
+		Octree = TEdgeOctree(InCompoundGraph->Bounds.GetCenter(), InCompoundGraph->Bounds.GetExtent().Length() + (Details->Tolerance * 2));
 
 		for (const FIndexedEdge& Edge : InGraph->Edges)
 		{
@@ -413,7 +423,7 @@ namespace PCGExGraph
 				Edge.EdgeIndex,
 				Points[Edge.Start].Transform.GetLocation(),
 				Points[Edge.End].Transform.GetLocation(),
-				Settings.Tolerance);
+				Details->Tolerance);
 
 			Octree.AddElement(&Edges[Edge.EdgeIndex]);
 		}
@@ -428,28 +438,12 @@ namespace PCGExGraph
 		}
 	}
 
-	void FEdgeEdgeIntersections::Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split)
-	{
-		FWriteScopeLock WriteLock(InsertionLock);
-
-		CheckedPairs.Add(PCGEx::H64U(EdgeIndex, OtherEdgeIndex));
-
-		FEECrossing* OutSplit = new FEECrossing(Split);
-
-		OutSplit->NodeIndex = Crossings.Add(OutSplit) + Graph->Nodes.Num();
-		OutSplit->EdgeA = FMath::Min(EdgeIndex, OtherEdgeIndex);
-		OutSplit->EdgeB = FMath::Max(EdgeIndex, OtherEdgeIndex);
-
-		Edges[EdgeIndex].Intersections.AddUnique(OutSplit);
-		Edges[OtherEdgeIndex].Intersections.AddUnique(OutSplit);
-	}
-
 	void FEdgeEdgeIntersections::Insert()
 	{
 		FIndexedEdge NewEdge = FIndexedEdge{};
 
 		// Insert new nodes
-		const TArrayView<FNode> NewNodes = Graph->AddNodes(Crossings.Num());
+		Graph->AddNodes(Crossings.Num()); //const TArrayView<FNode> NewNodes = 
 
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(Graph->Nodes.Num());
@@ -461,8 +455,8 @@ namespace PCGExGraph
 		{
 			if (EdgeProxy.Intersections.IsEmpty()) { continue; }
 
-			FIndexedEdge& SplitEdge = Graph->Edges[EdgeProxy.EdgeIndex];
-			SplitEdge.bValid = false; // Invalidate existing edge
+			Graph->Edges[EdgeProxy.EdgeIndex].bValid = false; // Invalidate existing edge
+			const FIndexedEdge SplitEdge = Graph->Edges[EdgeProxy.EdgeIndex];
 
 			EdgeProxy.Intersections.Sort(
 				[&](const FEECrossing& A, const FEECrossing& B)
@@ -539,81 +533,6 @@ namespace PCGExGraphTask
 	bool FInsertEdgeEdgeIntersections::ExecuteTask()
 	{
 		IntersectionList->Insert();
-		return true;
-	}
-
-	bool FCompoundGraphInsertPoints::ExecuteTask()
-	{
-		PointIO->CreateInKeys();
-
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-
-		TArray<int32> InSorted;
-		InSorted.SetNum(InPoints.Num());
-		for (int i = 0; i < InSorted.Num(); i++) { InSorted[i] = i; }
-
-		/*
-		InSorted.Sort(
-			[&](const int32 A, const int32 B)
-			{
-				const FVector V = InPoints[A].Transform.GetLocation() - InPoints[B].Transform.GetLocation();
-				return FMath::IsNearlyZero(V.X) ? FMath::IsNearlyZero(V.Y) ? V.Z > 0 : V.Y > 0 : V.X > 0;
-			});
-		*/
-
-		for (const int32 PointIndex : InSorted) { Graph->GetOrCreateNode(InPoints[PointIndex], PointIO->IOIndex, PointIndex); }
-
-		/*
-		if (Context->bPreserveOrder)
-		{
-			FusedPoints.Sort([&](const PCGExFuse::FFusedPoint& A, const PCGExFuse::FFusedPoint& B) { return A.Index > B.Index; });
-		}
-		*/
-		return true;
-	}
-
-	bool FCompoundGraphInsertEdges::ExecuteTask()
-	{
-		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-		if (!BuildIndexedEdges(*EdgeIO, *EndpointsLookup, IndexedEdges, true) ||
-			IndexedEdges.IsEmpty()) { return false; }
-
-		IndexedEdges.Sort(
-			[&](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
-			{
-				const FVector AStart = PointIO->GetInPoint(A.Start).Transform.GetLocation();
-				const FVector BStart = PointIO->GetInPoint(B.Start).Transform.GetLocation();
-
-				int32 Result = AStart.X == BStart.X ? 0 : AStart.X < BStart.X ? 1 : -1;
-				if (Result != 0) { return Result == 1; }
-
-				Result = AStart.Y == BStart.Y ? 0 : AStart.Y < BStart.Y ? 1 : -1;
-				if (Result != 0) { return Result == 1; }
-
-				Result = AStart.Z == BStart.Z ? 0 : AStart.Z < BStart.Z ? 1 : -1;
-				if (Result != 0) { return Result == 1; }
-
-				const FVector AEnd = PointIO->GetInPoint(A.End).Transform.GetLocation();
-				const FVector BEnd = PointIO->GetInPoint(B.End).Transform.GetLocation();
-
-				Result = AEnd.X == BEnd.X ? 0 : AEnd.X < BEnd.X ? 1 : -1;
-				if (Result != 0) { return Result == 1; }
-
-				Result = AEnd.Y == BEnd.Y ? 0 : AEnd.Y < BEnd.Y ? 1 : -1;
-				if (Result != 0) { return Result == 1; }
-
-				Result = AEnd.Z == BEnd.Z ? 0 : AEnd.Z < BEnd.Z ? 1 : -1;
-				return Result == 1;
-			});
-
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		for (const PCGExGraph::FIndexedEdge& Edge : IndexedEdges)
-		{
-			Graph->CreateBridgeUnsafe(
-				InPoints[Edge.Start], TaskIndex, Edge.Start,
-				InPoints[Edge.End], TaskIndex, Edge.End, EdgeIO->IOIndex, Edge.PointIndex);
-		}
-
 		return true;
 	}
 }

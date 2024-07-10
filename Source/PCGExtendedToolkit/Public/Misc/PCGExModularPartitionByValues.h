@@ -7,7 +7,6 @@
 #include "PCGExFilter.h"
 #include "PCGExPartitionByValues.h"
 
-#include "Graph/PCGExCustomGraphProcessor.h"
 
 #include "PCGExModularPartitionByValues.generated.h"
 
@@ -20,8 +19,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionRule : public UPCGExParamFactoryBase
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override;
-	FPCGExPartitonRuleDescriptor Descriptor;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::RulePartition; }
+	FPCGExPartitonRuleConfig Config;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -30,30 +29,32 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionRuleProviderSettings : public UPCGEx
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		PartitionFactory, "Rule : Partition", "Creates an single partition rule to be used with the Partition by Values node.",
 		FName(GetDisplayName()))
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMisc; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
 #endif
 	//~End UPCGSettings
 
+	//~Begin UPCGExFactoryProviderSettings
 public:
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainOutputLabel() const override { return FName("PartitionRule"); }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+	//~End UPCGExFactoryProviderSettings
 
-	/** Rule descriptor */
+	/** Rule Config */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExPartitonRuleDescriptor Descriptor;
+	FPCGExPartitonRuleConfig Config;
 };
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExModularPartitionByValuesSettings : public UPCGExPartitionByValuesBaseSettings
@@ -61,13 +62,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExModularPartitionByValuesSettings : public UPC
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ModularPartitionByValues, "Partition by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscAdd; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const override;
 
+public:
+	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const override;
 };

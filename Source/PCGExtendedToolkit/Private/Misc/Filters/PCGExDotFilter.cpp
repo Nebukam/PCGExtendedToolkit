@@ -3,53 +3,55 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
-PCGExDataFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
+bool UPCGExDotFilterFactory::Init(const FPCGContext* InContext)
+{
+	if (!Super::Init(InContext)) { return false; }
+	Config.Sanitize();
+	return true;
+}
+
+PCGExPointFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TDotFilter(this);
 }
 
-void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 {
-	bValid = true;
+	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = new PCGEx::FLocalVectorGetter();
-	OperandA->Capture(TypedFilterFactory->OperandA);
-	OperandA->Grab(*PointIO, false);
-	bValid = OperandA->IsUsable(PointIO->GetNum());
-
-	if (!bValid)
+	OperandA = PointDataFacade->GetOrCreateGetter<FVector>(TypedFilterFactory->Config.OperandA);
+	if (!OperandA)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->OperandA.GetName())));
-		PCGEX_DELETE(OperandA)
-		return;
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
+		return false;
 	}
 
-	if (TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute)
+	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = new PCGEx::FLocalVectorGetter();
-		OperandB->Capture(TypedFilterFactory->OperandB);
-		OperandB->Grab(*PointIO, false);
-		bValid = OperandB->IsUsable(PointIO->GetNum());
-
-		if (!bValid)
+		OperandB = PointDataFacade->GetOrCreateGetter<FVector>(TypedFilterFactory->Config.OperandB);
+		if (!OperandB)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->OperandB.GetName())));
-			PCGEX_DELETE(OperandB)
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
+			return false;
 		}
 	}
+
+	return true;
 }
 
 bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 {
-	const FVector A = OperandA->Values[PointIndex];
-	const FVector B = TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->OperandBConstant;
+	const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
-	const double Dot = TypedFilterFactory->bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
+	const FVector A = TypedFilterFactory->Config.bTransformOperandA ?
+		                  OperandA->Values[PointIndex] :
+		                  Point.Transform.TransformVectorNoScale(OperandA->Values[PointIndex]);
 
-	if (TypedFilterFactory->bExcludeAboveDot && Dot > TypedFilterFactory->ExcludeAbove) { return false; }
-	if (TypedFilterFactory->bExcludeBelowDot && Dot < TypedFilterFactory->ExcludeBelow) { return false; }
+	FVector B = OperandB ? OperandB->Values[PointIndex].GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
+	if (TypedFilterFactory->Config.bTransformOperandB) { B = Point.Transform.TransformVectorNoScale(B); }
 
-	return true;
+	const double Dot = DotComparison.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
+	return DotComparison.Test(Dot, DotComparison.GetDot(PointIndex));
 }
 
 #define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"
@@ -57,15 +59,17 @@ bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 
 PCGEX_CREATE_FILTER_FACTORY(Dot)
 
+#if WITH_EDITOR
 FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Descriptor.OperandA.GetName().ToString() + " . ";
+	FString DisplayName = Config.OperandA.GetName().ToString() + " . ";
 
-	if (Descriptor.CompareAgainst == EPCGExOperandType::Attribute) { DisplayName += Descriptor.OperandB.GetName().ToString(); }
+	if (Config.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Config.OperandB.GetName().ToString(); }
 	else { DisplayName += " (Constant)"; }
 
 	return DisplayName;
 }
+#endif
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

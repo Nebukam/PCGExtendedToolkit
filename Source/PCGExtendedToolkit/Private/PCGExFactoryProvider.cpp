@@ -2,14 +2,11 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExFactoryProvider.h"
+#include "PCGExContext.h"
+#include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"
 #define PCGEX_NAMESPACE PCGExFactoryProvider
-
-PCGExFactories::EType UPCGExParamFactoryBase::GetFactoryType() const
-{
-	return PCGExFactories::EType::Default;
-}
 
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() const
 {
@@ -29,8 +26,6 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 	return MakeShared<FPCGExFactoryProviderElement>();
 }
 
-FName UPCGExFactoryProviderSettings::GetMainOutputLabel() const { return TEXT(""); }
-
 #if WITH_EDITOR
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
@@ -48,16 +43,20 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	UPCGExParamFactoryBase* OutFactory = Settings->CreateFactory(Context, nullptr);
 
-	FPCGTaggedData& Output = Context->OutputData.TaggedData.Emplace_GetRef();
-	Output.Data = OutFactory;
-	Output.Pin = Settings->GetMainOutputLabel();
+	if (!OutFactory) { return true; }
+
+	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
+	check(PCGExContext);
+
+	PCGExContext->FutureOutput(Settings->GetMainOutputLabel(), OutFactory);
+	PCGExContext->OnComplete();
 
 	return true;
 }
 
 FPCGContext* FPCGExFactoryProviderElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGContext* Context = new FPCGContext();
+	FPCGExContext* Context = new FPCGExContext();
 	Context->InputData = InputData;
 	Context->SourceComponent = SourceComponent;
 	Context->Node = Node;

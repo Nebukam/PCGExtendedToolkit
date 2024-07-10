@@ -9,11 +9,13 @@
 #include "PCGExGraph.h"
 #include "PCGExEdge.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Geometry/PCGExGeoPrimtives.h"
 
 //#include "PCGExIntersections.generated.h"
+
 
 namespace PCGExGraph
 {
@@ -26,23 +28,21 @@ namespace PCGExGraph
 		FBoxSphereBounds Bounds;
 		int32 Index;
 
-		TArray<int32> Neighbors; // PointIO Index >> Edge Index
+		TSet<int32> Adjacency;
 
 		FCompoundNode(const FPCGPoint& InPoint, const FVector& InCenter, const int32 InIndex)
 			: Point(InPoint),
 			  Center(InCenter),
 			  Index(InIndex)
 		{
-			Neighbors.Empty();
+			Adjacency.Empty();
 			Bounds = FBoxSphereBounds(InPoint.GetLocalBounds().TransformBy(InPoint.Transform));
 		}
 
 		~FCompoundNode()
 		{
-			Neighbors.Empty();
+			Adjacency.Empty();
 		}
-
-		bool Add(FCompoundNode* OtherNode);
 
 		FVector UpdateCenter(const PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup);
 	};
@@ -79,27 +79,42 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FCompoundGraph
 	{
+		FVector CWTolerance;
+		TMap<uint32, FCompoundNode*> GridTree;
+
 		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
 		PCGExData::FIdxCompoundList* EdgesCompounds = nullptr;
 		TArray<FCompoundNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
-		const FPCGExFuseSettings FuseSettings;
-		
+
+		const FPCGExFuseDetails FuseDetails;
+		EPCGExFuseMethod Precision;
+
 		FBox Bounds;
 		const bool bFusePoints = true;
-		
-		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
-		mutable NodeOctree Octree;
-		mutable FRWLock OctreeLock;
 
-		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, const FBox& InBounds, const bool FusePoints = true)
-			: FuseSettings(InFuseSettings), Bounds(InBounds), bFusePoints(FusePoints)
+		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
+		NodeOctree* Octree = nullptr;
+
+		mutable FRWLock OctreeLock;
+		mutable FRWLock EdgesLock;
+
+		explicit FCompoundGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds, const bool FusePoints = true, const EPCGExFuseMethod InPrecision = EPCGExFuseMethod::Voxel)
+			: FuseDetails(InFuseDetails),
+			  Precision(InPrecision),
+			  Bounds(InBounds),
+			  bFusePoints(FusePoints)
 		{
 			Nodes.Empty();
 			Edges.Empty();
+
+			if (InFuseDetails.bComponentWiseTolerance) { FVector(1 / (InFuseDetails.Tolerances.X * 2), 1 / (InFuseDetails.Tolerances.Y * 2), 1 / (InFuseDetails.Tolerances.Z * 2)); }
+			else { CWTolerance = FVector(1 / (InFuseDetails.Tolerance * 2)); }
+
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
-			Octree = NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
+
+			if (InPrecision == EPCGExFuseMethod::Octree) { Octree = new NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
 		}
 
 		~FCompoundGraph()
@@ -107,20 +122,21 @@ namespace PCGExGraph
 			PCGEX_DELETE_TARRAY(Nodes)
 			PCGEX_DELETE(PointsCompounds)
 			PCGEX_DELETE(EdgesCompounds)
+			PCGEX_DELETE(Octree)
 			Edges.Empty();
 		}
 
 		int32 NumNodes() const { return PointsCompounds->Num(); }
 		int32 NumEdges() const { return EdgesCompounds->Num(); }
 
-		FORCEINLINE FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		FORCEINLINE FCompoundNode* GetOrCreateNodeUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		FORCEINLINE PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                                  const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
-		FORCEINLINE PCGExData::FIdxCompound* CreateBridgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		FCompoundNode* InsertPoint(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		FCompoundNode* InsertPointUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		PCGExData::FIdxCompound* InsertEdge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                    const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                    const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		PCGExData::FIdxCompound* InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                          const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                          const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
 		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
 	};
@@ -190,7 +206,17 @@ namespace PCGExGraph
 			CollinearPoints.Empty();
 		}
 
-		FORCEINLINE bool FindSplit(const FVector& Position, FPESplit& OutSplit) const;
+		FORCEINLINE bool FindSplit(const FVector& Position, FPESplit& OutSplit) const
+		{
+			const FVector ClosestPoint = FMath::ClosestPointOnSegment(Position, Start, End);
+
+			if ((ClosestPoint - Start).IsNearlyZero() || (ClosestPoint - End).IsNearlyZero()) { return false; } // Overlap endpoint
+			if (FVector::DistSquared(ClosestPoint, Position) >= ToleranceSquared) { return false; }             // Too far
+
+			OutSplit.ClosestPoint = ClosestPoint;
+			OutSplit.Time = (FVector::DistSquared(Start, ClosestPoint) / LengthSquared);
+			return true;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FPointEdgeIntersections
@@ -200,18 +226,23 @@ namespace PCGExGraph
 		FGraph* Graph = nullptr;
 		FCompoundGraph* CompoundGraph = nullptr;
 
-		const FPCGExPointEdgeIntersectionSettings Settings;
+		const FPCGExPointEdgeIntersectionDetails* Details;
 		TArray<FPointEdgeProxy> Edges;
 
 		FPointEdgeIntersections(
 			FGraph* InGraph,
 			FCompoundGraph* InCompoundGraph,
 			PCGExData::FPointIO* InPointIO,
-			const FPCGExPointEdgeIntersectionSettings& InSettings);
+			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
 		void FindIntersections(FPCGExPointsProcessorContext* InContext);
 
-		FORCEINLINE void Add(const int32 EdgeIndex, const FPESplit& Split);
+		FORCEINLINE void Add(const int32 EdgeIndex, const FPESplit& Split)
+		{
+			FWriteScopeLock WriteLock(InsertionLock);
+			Edges[EdgeIndex].CollinearPoints.AddUnique(Split);
+		}
+
 		void Insert();
 
 		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
@@ -233,11 +264,10 @@ namespace PCGExGraph
 		const FIndexedEdge& IEdge = InIntersections->Graph->Edges[EdgeIndex];
 		FPESplit Split = FPESplit{};
 
-		if (!InIntersections->Settings.bEnableSelfIntersection)
+		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			TArray<int32> IOIndices;
-			InIntersections->CompoundGraph->EdgesCompounds->GetIOIndices(
-				FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata), IOIndices);
+			const int32 RootIndex = FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata);
+			const TSet<int32>& RootIOIndices = InIntersections->CompoundGraph->EdgesCompounds->Compounds[RootIndex]->IOIndices;
 
 			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
 			{
@@ -254,8 +284,7 @@ namespace PCGExGraph
 				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { return; }
 				if (!Edge.FindSplit(Position, Split)) { return; }
 
-				// Check overlap last as it's the most expensive op
-				if (InIntersections->CompoundGraph->PointsCompounds->HasIOIndexOverlap(Node.NodeIndex, IOIndices)) { return; }
+				if (InIntersections->CompoundGraph->PointsCompounds->IOIndexOverlap(Node.NodeIndex, RootIOIndices)) { return; }
 
 				Split.NodeIndex = Node.NodeIndex;
 				InIntersections->Add(EdgeIndex, Split);
@@ -371,7 +400,28 @@ namespace PCGExGraph
 			Intersections.Empty();
 		}
 
-		FORCEINLINE bool FindSplit(const FEdgeEdgeProxy& OtherEdge, FEESplit& OutSplit) const;
+		FORCEINLINE bool FindSplit(const FEdgeEdgeProxy& OtherEdge, FEESplit& OutSplit) const
+		{
+			if (!Box.Intersect(OtherEdge.Box) || Start == OtherEdge.Start || Start == OtherEdge.End ||
+				End == OtherEdge.End || End == OtherEdge.Start) { return false; }
+
+			// TODO: Check directions/dot
+
+			FVector A;
+			FVector B;
+			FMath::SegmentDistToSegment(
+				Start, End,
+				OtherEdge.Start, OtherEdge.End,
+				A, B);
+
+			if (FVector::DistSquared(A, B) >= ToleranceSquared) { return false; }
+
+			OutSplit.Center = FMath::Lerp(A, B, 0.5);
+			OutSplit.TimeA = FVector::DistSquared(Start, A) / LengthSquared;
+			OutSplit.TimeB = FVector::DistSquared(OtherEdge.Start, B) / OtherEdge.LengthSquared;
+
+			return true;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeProxySemantics
@@ -411,7 +461,7 @@ namespace PCGExGraph
 		FGraph* Graph = nullptr;
 		FCompoundGraph* CompoundGraph = nullptr;
 
-		const FPCGExEdgeEdgeIntersectionSettings& Settings;
+		const FPCGExEdgeEdgeIntersectionDetails* Details;
 
 		TArray<FEECrossing*> Crossings;
 		TArray<FEdgeEdgeProxy> Edges;
@@ -424,11 +474,26 @@ namespace PCGExGraph
 			FGraph* InGraph,
 			FCompoundGraph* InCompoundGraph,
 			PCGExData::FPointIO* InPointIO,
-			const FPCGExEdgeEdgeIntersectionSettings& InSettings);
+			const FPCGExEdgeEdgeIntersectionDetails* InDetails);
 
 		void FindIntersections(FPCGExPointsProcessorContext* InContext);
 
-		FORCEINLINE void Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split);
+		FORCEINLINE void Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split)
+		{
+			FWriteScopeLock WriteLock(InsertionLock);
+
+			CheckedPairs.Add(PCGEx::H64U(EdgeIndex, OtherEdgeIndex));
+
+			FEECrossing* OutSplit = new FEECrossing(Split);
+
+			OutSplit->NodeIndex = Crossings.Add(OutSplit) + Graph->Nodes.Num();
+			OutSplit->EdgeA = FMath::Min(EdgeIndex, OtherEdgeIndex);
+			OutSplit->EdgeB = FMath::Max(EdgeIndex, OtherEdgeIndex);
+
+			Edges[EdgeIndex].Intersections.AddUnique(OutSplit);
+			Edges[OtherEdgeIndex].Intersections.AddUnique(OutSplit);
+		}
+
 		void Insert();
 
 		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
@@ -450,11 +515,10 @@ namespace PCGExGraph
 		const FEdgeEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
 		FEESplit Split = FEESplit{};
 
-		if (!InIntersections->Settings.bEnableSelfIntersection)
+		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			TArray<int32> IOIndices;
-			InIntersections->CompoundGraph->EdgesCompounds->GetIOIndices(
-				FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata), IOIndices);
+			const int32 RootIndex = FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata);
+			const TSet<int32>& RootIOIndices = InIntersections->CompoundGraph->EdgesCompounds->Compounds[RootIndex]->IOIndices;
 
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
 			{
@@ -471,9 +535,9 @@ namespace PCGExGraph
 				if (!Edge.FindSplit(OtherEdge, Split)) { return; }
 
 				// Check overlap last as it's the most expensive op
-				if (InIntersections->CompoundGraph->EdgesCompounds->HasIOIndexOverlap(
+				if (InIntersections->CompoundGraph->PointsCompounds->IOIndexOverlap(
 					FGraphEdgeMetadata::GetRootIndex(OtherEdge.EdgeIndex, InIntersections->Graph->EdgeMetadata),
-					IOIndices)) { return; }
+					RootIOIndices)) { return; }
 
 				InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
 			};
@@ -511,12 +575,12 @@ namespace PCGExGraphTask
 {
 #pragma region Intersections tasks
 
-	class PCGEXTENDEDTOOLKIT_API FFindPointEdgeIntersections : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FFindPointEdgeIntersections final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FFindPointEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FFindPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                            PCGExGraph::FPointEdgeIntersections* InIntersectionList)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -525,12 +589,12 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FInsertPointEdgeIntersections : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FInsertPointEdgeIntersections final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FInsertPointEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FInsertPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                              PCGExGraph::FPointEdgeIntersections* InIntersectionList)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -540,12 +604,12 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FFindEdgeEdgeIntersections : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FFindEdgeEdgeIntersections final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FFindEdgeEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FFindEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                           PCGExGraph::FEdgeEdgeIntersections* InIntersectionList)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -554,58 +618,18 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FInsertEdgeEdgeIntersections : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FInsertEdgeEdgeIntersections final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FInsertEdgeEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FInsertEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                             PCGExGraph::FEdgeEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
 
 		PCGExGraph::FEdgeEdgeIntersections* IntersectionList = nullptr;
 		TMap<int32, PCGExGraph::FGraphNodeMetadata*>* OutMetadata = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-
-#pragma endregion
-
-#pragma region Compound Graph tasks
-
-	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertPoints : public FPCGExNonAbandonableTask
-	{
-	public:
-		FCompoundGraphInsertPoints(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                           PCGExGraph::FCompoundGraph* InGraph)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			  Graph(InGraph)
-		{
-		}
-
-		PCGExGraph::FCompoundGraph* Graph = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertEdges : public FPCGExNonAbandonableTask
-	{
-	public:
-		FCompoundGraphInsertEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                          PCGExGraph::FCompoundGraph* InGraph,
-		                          PCGExData::FPointIO* InEdgeIO,
-		                          TMap<int64, int32>* InEndpointsLookup)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			  Graph(InGraph),
-			  EdgeIO(InEdgeIO),
-			  EndpointsLookup(InEndpointsLookup)
-		{
-		}
-
-		PCGExGraph::FCompoundGraph* Graph = nullptr;
-		PCGExData::FPointIO* EdgeIO = nullptr;
-		TMap<int64, int32>* EndpointsLookup = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

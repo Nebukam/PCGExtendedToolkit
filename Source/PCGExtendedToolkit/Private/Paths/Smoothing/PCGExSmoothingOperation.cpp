@@ -7,6 +7,12 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO, const TArray<double>* Smoothing, const TArray<double>* Influence, const bool bClosedPath, const FPCGExBlendingSettings* BlendingSettings)
+void UPCGExSmoothingOperation::SmoothSingle(
+	PCGExData::FPointIO* Path,
+	PCGEx::FPointRef& Target,
+	const double Smoothing,
+	const double Influence,
+	PCGExDataBlending::FMetadataBlender* MetadataBlender,
+	const bool bClosedPath)
 {
 }

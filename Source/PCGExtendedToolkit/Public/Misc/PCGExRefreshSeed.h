@@ -4,12 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExRefreshSeed.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExRefreshSeedSettings : public UPCGExPointsProcessorSettings
@@ -17,20 +18,20 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRefreshSeedSettings : public UPCGExPointsProc
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(RefreshSeed, "Refresh Seed", "Refresh point seed based on position.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscWrite; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Base seed.*/
@@ -38,12 +39,12 @@ public:
 	int32 Base = 0;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExRefreshSeedElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -54,4 +55,15 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedTask final : public PCGExMT::FPCGExTask
+{
+public:
+	FPCGExRefreshSeedTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExTask(InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
 };

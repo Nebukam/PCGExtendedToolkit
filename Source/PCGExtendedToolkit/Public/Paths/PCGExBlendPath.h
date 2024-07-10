@@ -7,11 +7,12 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExDetails.h"
 #include "PCGExBlendPath.generated.h"
 
 class UPCGExSubPointsBlendOperation;
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExBlendPathSettings : public UPCGExPathProcessorSettings
@@ -19,18 +20,17 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendPathSettings : public UPCGExPathProcesso
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BlendPath, "Path : Blend", "Blend path individual points between its start and end points.");
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UObject interface
 public:
-	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 
 public:
@@ -38,10 +38,10 @@ public:
 #endif
 	//~End UObject interface
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
@@ -52,7 +52,7 @@ public:
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBlendPathContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBlendPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExBlendPathElement;
 
@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendPathContext : public FPCGExPathProcesso
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -75,11 +75,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathTask final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExBlendPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExBlendPathTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExTask(InPointIO)
 	{
 	}
 

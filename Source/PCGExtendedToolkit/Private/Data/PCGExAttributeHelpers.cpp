@@ -3,13 +3,15 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 
-#if WITH_EDITOR
-FString FPCGExInputDescriptor::GetDisplayName() const { return GetName().ToString(); }
+#include "Helpers/PCGHelpers.h"
 
-void FPCGExInputDescriptor::UpdateUserFacingInfos() { TitlePropertyName = GetDisplayName(); }
+#if WITH_EDITOR
+FString FPCGExInputConfig::GetDisplayName() const { return GetName().ToString(); }
+
+void FPCGExInputConfig::UpdateUserFacingInfos() { TitlePropertyName = GetDisplayName(); }
 #endif
 
-bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
+bool FPCGExInputConfig::Validate(const UPCGPointData* InData)
 {
 	Selector = Selector.CopyAndFixLast(InData);
 	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
@@ -38,7 +40,10 @@ namespace PCGEx
 		TArray<EPCGMetadataTypes> Types;
 		InMetadata->GetAttributes(Names, Types);
 		const int32 NumAttributes = Names.Num();
-		for (int i = 0; i < NumAttributes; i++) { OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i])); }
+		for (int i = 0; i < NumAttributes; i++)
+		{
+			OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i], InMetadata->GetConstAttribute(Names[i])->AllowsInterpolation()));
+		}
 	}
 
 	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
@@ -47,10 +52,11 @@ namespace PCGEx
 		TArray<EPCGMetadataTypes> Types;
 		InMetadata->GetAttributes(OutNames, Types);
 		const int32 NumAttributes = OutNames.Num();
+
 		for (int i = 0; i < NumAttributes; i++)
 		{
 			FName Name = OutNames[i];
-			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i]));
+			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i], InMetadata->GetConstAttribute(Name)->AllowsInterpolation()));
 		}
 	}
 
@@ -100,18 +106,48 @@ namespace PCGEx
 		return bAnyMissing;
 	}
 
+	void FAttributesInfos::Append(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
+	{
+		for (int i = 0; i < Other->Identities.Num(); i++)
+		{
+			const FAttributeIdentity& OtherId = Other->Identities[i];
+			if (const int32* Index = Map.Find(OtherId.Name))
+			{
+				const FAttributeIdentity& Id = Identities[*Index];
+				if (Id.UnderlyingType != OtherId.UnderlyingType)
+				{
+					OutTypeMismatch.Add(Id.Name);
+					// TODO : Update existing based on settings
+				}
+
+				continue;
+			}
+
+			FPCGMetadataAttributeBase* Attribute = Other->Attributes[i];
+			int32 AppendIndex = Identities.Add(OtherId);
+			Attributes.Add(Attribute);
+			Map.Add(OtherId.Name, AppendIndex);
+		}
+	}
+
+	void FAttributesInfos::Update(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
+	{
+		// TODO : Update types and attributes according to input settings?
+	}
+
 	FAttributesInfos* FAttributesInfos::Get(const UPCGMetadata* InMetadata)
 	{
 		FAttributesInfos* NewInfos = new FAttributesInfos();
 		FAttributeIdentity::Get(InMetadata, NewInfos->Identities);
-		if (InMetadata)
+
+		UPCGMetadata* MutableData = const_cast<UPCGMetadata*>(InMetadata);
+		for (int i = 0; i < NewInfos->Identities.Num(); i++)
 		{
-			UPCGMetadata* MutableData = const_cast<UPCGMetadata*>(InMetadata);
-			for (const FAttributeIdentity& Identity : NewInfos->Identities)
-			{
-				NewInfos->Attributes.Add(MutableData->GetMutableAttribute(Identity.Name));
-			}
+			const FAttributeIdentity& Identity = NewInfos->Identities[i];
+			NewInfos->Map.Add(Identity.Name, i);
+			NewInfos->Attributes.Add(MutableData->GetMutableAttribute(Identity.Name));
 		}
+
 		return NewInfos;
 	}
 }

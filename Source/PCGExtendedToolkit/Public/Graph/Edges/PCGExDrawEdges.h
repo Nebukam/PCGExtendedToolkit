@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEditorSettings.h"
+#include "PCGExGlobalSettings.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExDrawEdges.generated.h"
 
@@ -23,18 +23,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDrawEdgesSettings : public UPCGExEdgesProcess
 	GENERATED_BODY()
 
 public:
-	UPCGExDrawEdgesSettings(const FObjectInitializer& ObjectInitializer);
-
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DrawEdges, "Draw Edges", "Draws debug edges");
+	PCGEX_NODE_INFOS(DrawEdges, "Cluster : Draw Edges", "Draws debug edges");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorDebug; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorDebug; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin IPCGExDebug interface
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
@@ -69,7 +67,7 @@ private:
 	friend class FPCGExDrawEdgesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExDrawEdgesElement;
 
@@ -79,7 +77,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesContext : public FPCGExEdgesProcess
 	virtual ~FPCGExDrawEdgesContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

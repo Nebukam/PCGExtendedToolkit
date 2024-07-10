@@ -13,32 +13,34 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPackClustersSettings : public UPCGExEdgesProc
 	GENERATED_BODY()
 
 public:
-	UPCGExPackClustersSettings(const FObjectInitializer& ObjectInitializer);
-
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PackClusters, "Graph : Pack Clusters", "Pack each cluster into an single point data object containing both vtx and edges.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(PackClusters, "Cluster : Pack", "Pack each cluster into an single point data object containing both vtx and edges.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+
+	/** Meta filter settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverDetails CarryOverDetails;
 
 private:
 	friend class FPCGExPackClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPackClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -46,9 +48,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext : public FPCGExEdgesProc
 	virtual ~FPCGExPackClustersContext() override;
 
 	PCGExData::FPointIOCollection* PackedClusters = nullptr;
+	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPackClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPackClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -61,13 +64,13 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExPackClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExPackClusterTask(PCGExData::FPointIO* InPointIO,
 	                      PCGExData::FPointIO* InInEdges,
-	                      const TMap<int64, int32>& InEndpointsLookup) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+	                      const TMap<uint32, int32>& InEndpointsLookup) :
+		FPCGExTask(InPointIO),
 		InEdges(InInEdges),
 		EndpointsLookup(InEndpointsLookup)
 	{
@@ -79,7 +82,7 @@ public:
 	}
 
 	PCGExData::FPointIO* InEdges = nullptr;
-	TMap<int64, int32> EndpointsLookup;
+	TMap<uint32, int32> EndpointsLookup;
 
 	virtual bool ExecuteTask() override;
 };

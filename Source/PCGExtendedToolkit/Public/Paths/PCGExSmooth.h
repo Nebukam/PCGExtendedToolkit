@@ -11,7 +11,7 @@
 #include "PCGExSmooth.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExSmoothSettings : public UPCGExPathProcessorSettings
@@ -19,29 +19,20 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSmoothSettings : public UPCGExPathProcessorSe
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Smooth, "Path : Smooth", "Smooth paths points.");
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UObject interface
-public:
-	virtual void PostInitProperties() override;
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	virtual FName GetPointFilterLabel() const override;
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
@@ -87,10 +78,10 @@ public:
 
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSmoothElement;
 
@@ -99,7 +90,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext : public FPCGExPathProcessorCo
 	UPCGExSmoothingOperation* SmoothingMethod = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSmoothElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExSmoothElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -112,13 +103,29 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSmoothTask : public FPCGExNonAbandonableTask
+namespace PCGExSmooth
 {
-public:
-	FPCGExSmoothTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		int32 NumPoints = 0;
 
-	virtual bool ExecuteTask() override;
-};
+		TArray<double> Smoothing;
+		TArray<double> Influence;
+
+		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		UPCGExSmoothingOperation* TypedOperation = nullptr;
+		bool bClosedPath = false;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints): FPointsProcessor(InPoints)
+		{
+			DefaultPointFilterValue = true;
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void CompleteWork() override;
+	};
+}

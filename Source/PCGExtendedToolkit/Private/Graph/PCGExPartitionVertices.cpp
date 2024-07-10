@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExPartitionVertices.h"
 
-#include "Data/PCGExGraphDefinition.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -46,62 +45,98 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
-		{
-			if (!Context->TaggedEdges) { return false; }
-
-			for (int i = 0; i < Context->TaggedEdges->Entries.Num(); i++)
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExPartitionVertices::FProcessor>>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExClusterMT::TBatch<PCGExPartitionVertices::FProcessor>* NewBatch)
 			{
-				PCGExData::FPointIO& PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput);
-				PCGExData::FPointIO* EdgeIO = Context->TaggedEdges->Entries[i];
-
-				FString OutId;
-				PointPartitionIO.Tags->Set(PCGExGraph::TagStr_ClusterPair, PointPartitionIO.GetOut()->UID, OutId);
-				EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId);
-
-				EdgeIO->CreateInKeys();
-				Context->GetAsyncManager()->Start<FPCGExCreateVtxPartitionTask>(i, &PointPartitionIO, EdgeIO, &Context->EndpointsLookup);
-			}
-
-			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+			},
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+			return true;
 		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
-	{
-		PCGEX_WAIT_ASYNC
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
+	if (!Context->ProcessClusters()) { return false; }
 
 	if (Context->IsDone())
 	{
 		Context->VtxPartitions->OutputTo(Context);
 		Context->MainEdges->OutputTo(Context);
-		Context->ExecutionComplete();
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
-bool FPCGExCreateVtxPartitionTask::ExecuteTask()
+namespace PCGExPartitionVertices
 {
-	TArray<int32> ReducedVtxIndices;
+	PCGExCluster::FCluster* FProcessor::HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
+	{
+		// Create a heavy copy we'll update and forward
+		return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, true, true, true);
+	}
 
-	int32 NumEdges = 0;
-	if (!PCGExGraph::GetReducedVtxIndices(*EdgeIO, EndpointsLookup, ReducedVtxIndices, NumEdges)) { return false; }
+	FProcessor::~FProcessor()
+	{
+		Remapping.Empty();
+		KeptIndices.Empty();
+	}
 
-	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionVertices)
 
-	PointIO->GetOut()->GetMutablePoints().SetNum(View.Num());
-	PCGEx::CopyPoints(*PointIO, *PointIO, View, 0, true);
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-	return true;
+		Cluster->NodeIndexLookup->Empty();
+
+		PointPartitionIO = TypedContext->VtxPartitions->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput);
+		TArray<FPCGPoint>& MutablePoints = PointPartitionIO->GetOut()->GetMutablePoints();
+
+		MutablePoints.SetNumUninitialized(NumNodes);
+		KeptIndices.SetNumUninitialized(NumNodes);
+		Remapping.Reserve(NumNodes);
+
+		Cluster->NodeIndexLookup->Reserve(NumNodes);
+		Cluster->NumRawVtx = NumNodes;
+
+		for (PCGExCluster::FNode& Node : (*Cluster->Nodes))
+		{
+			int32 i = Node.NodeIndex;
+
+			KeptIndices[i] = Node.PointIndex;
+			Remapping.Add(Node.PointIndex, i);
+			Cluster->NodeIndexLookup->Add(i, i); // most useless lookup in history of lookups
+
+			Node.PointIndex = i;
+		}
+
+		StartParallelLoopForNodes();
+		StartParallelLoopForEdges();
+
+		return true;
+	}
+
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
+	{
+		PointPartitionIO->GetOut()->GetMutablePoints()[Node.NodeIndex] = VtxIO->GetInPoint(KeptIndices[Node.NodeIndex]);
+	}
+
+	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
+	{
+		Edge.Start = Remapping[Edge.Start];
+		Edge.End = Remapping[Edge.End];
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		FString OutId;
+		PCGExGraph::SetClusterVtx(PointPartitionIO, OutId);
+		PCGExGraph::MarkClusterEdges(EdgesIO, OutId);
+
+		ForwardCluster(true);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

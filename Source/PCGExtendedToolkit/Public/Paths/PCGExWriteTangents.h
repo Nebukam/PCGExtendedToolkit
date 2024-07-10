@@ -12,7 +12,7 @@
 #include "PCGExWriteTangents.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExWriteTangentsSettings : public UPCGExPathProcessorSettings
@@ -20,24 +20,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExWriteTangentsSettings : public UPCGExPathProc
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(WriteTangents, "Path : Write Tangents", "Computes & writes points tangents.");
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
-
-	//~Begin UObject interface
-public:
-	virtual void PostInitProperties() override;
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
+	//~End UPCGSettings
 
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
@@ -54,7 +44,7 @@ public:
 	TObjectPtr<UPCGExTangentsOperation> Tangents;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExWriteTangentsElement;
 
@@ -71,7 +61,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProc
 	void WriteTangents();
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

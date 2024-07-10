@@ -11,12 +11,6 @@
 
 #pragma region UPCGSettings interface
 
-UPCGExDebugSettings::UPCGExDebugSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 TArray<FPCGPinProperties> UPCGExDebugSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -48,7 +42,7 @@ FPCGElementPtr UPCGExDebugSettings::CreateElement() const { return MakeShared<FP
 
 FPCGContext* FPCGExDebugElement::Initialize(
 	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
+	const TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node)
 {
 	FPCGExDebugContext* Context = new FPCGExDebugContext();

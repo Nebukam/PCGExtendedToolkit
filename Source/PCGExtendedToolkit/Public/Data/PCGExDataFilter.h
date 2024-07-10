@@ -1,178 +1,225 @@
-// Copyright Timothé Lapetite 2024
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blending/PCGExDataBlending.h"
 #include "UObject/Object.h"
-#include "PCGExData.h"
-#include "PCGExFactoryProvider.h"
 
+#include "Helpers/PCGHelpers.h"
+
+#include "PCGExPointIO.h"
 #include "PCGExDataFilter.generated.h"
 
-namespace PCGExDataFilter
-{
-	class TFilter;
-}
+class UPCGMetadata;
+enum class EPCGMetadataTypes : uint8;
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Operand Type"))
-enum class EPCGExOperandType : uint8
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Attribute Filter"))
+enum class EPCGExAttributeFilter : uint8
 {
-	Attribute UMETA(DisplayName = "Attribute", ToolTip="Use a local attribute value."),
-	Constant UMETA(DisplayName = "Constant", ToolTip="Use a constant, static value."),
+	All UMETA(DisplayName = "All", ToolTip="All attributes"),
+	Exclude UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
+	Include UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
 };
 
-namespace PCGExDataFilter
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] String Match Mode"))
+enum class EPCGExStringMatchMode : uint8
 {
-	enum class EType : uint8
-	{
-		Default = 0,
-		Cluster
-	};
-}
+	Equals UMETA(DisplayName = "Equals", ToolTip=""),
+	Contains UMETA(DisplayName = "Contains", ToolTip=""),
+	StartsWith UMETA(DisplayName = "Starts with", ToolTip=""),
+	EndsWith UMETA(DisplayName = "Ends with", ToolTip=""),
+};
 
-/**
- * 
- */
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryBase : public UPCGExParamFactoryBase
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 {
 	GENERATED_BODY()
 
-public:
-	FORCEINLINE virtual PCGExFactories::EType GetFactoryType() const override;
+	FPCGExNameFiltersDetails()
+	{
+	}
 
-	int32 Priority = 0;
-	virtual PCGExDataFilter::TFilter* CreateFilter() const;
+	explicit FPCGExNameFiltersDetails(bool FilterToRemove)
+		: bFilterToRemove(FilterToRemove)
+	{
+	}
+
+	bool bFilterToRemove = false;
+
+	/** How the names are processed. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExAttributeFilter FilterMode = EPCGExAttributeFilter::All;
+
+	/** List of matches that will be checked. Any success is a pass. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="FilterMode!=EPCGExAttributeFilter::All", EditConditionHides))
+	TMap<FString, EPCGExStringMatchMode> Matches;
+
+	/** A list of names separated by a comma, for easy overrides. The limitation is that they all use the same shared filter mode. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FString CommaSeparatedNames;
+
+	/** Unique filter mode applied to comma separated names */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="FilterMode!=EPCGExAttributeFilter::All", EditConditionHides))
+	EPCGExStringMatchMode CommaSeparatedNameFilter = EPCGExStringMatchMode::Equals;
+
+	/** If enabled, PCGEx attributes & tags won't be affected. \n Cluster-related nodes rely on these to work! */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	bool bPreservePCGExData = true;
+
+	void Init()
+	{
+		const TArray<FString> Names = PCGHelpers::GetStringArrayFromCommaSeparatedString(CommaSeparatedNames);
+		for (const FString& Name : Names) { Matches.Add(Name, CommaSeparatedNameFilter); }
+	}
+
+	bool Test(const FString& Name) const
+	{
+		if (bPreservePCGExData && Name.StartsWith(TEXT("PCGEx/"))) { return !bFilterToRemove; }
+
+		switch (FilterMode)
+		{
+		default: ;
+		case EPCGExAttributeFilter::All:
+			return true;
+		case EPCGExAttributeFilter::Exclude:
+			for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
+			{
+				switch (Filter.Value)
+				{
+				case EPCGExStringMatchMode::Equals:
+					if (Filter.Key == Name) { return false; }
+					break;
+				case EPCGExStringMatchMode::Contains:
+					if (Name.Contains(Filter.Key)) { return false; }
+					break;
+				case EPCGExStringMatchMode::StartsWith:
+					if (Name.StartsWith(Filter.Key)) { return false; }
+					break;
+				case EPCGExStringMatchMode::EndsWith:
+					if (Name.EndsWith(Filter.Key)) { return false; }
+					break;
+				default: ;
+				}
+			}
+			return true;
+		case EPCGExAttributeFilter::Include:
+			for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
+			{
+				switch (Filter.Value)
+				{
+				case EPCGExStringMatchMode::Equals:
+					if (Filter.Key == Name) { return true; }
+					break;
+				case EPCGExStringMatchMode::Contains:
+					if (Name.Contains(Filter.Key)) { return true; }
+					break;
+				case EPCGExStringMatchMode::StartsWith:
+					if (Name.StartsWith(Filter.Key)) { return true; }
+					break;
+				case EPCGExStringMatchMode::EndsWith:
+					if (Name.EndsWith(Filter.Key)) { return true; }
+					break;
+				default: ;
+				}
+			}
+			return false;
+		}
+	}
+
+	bool Test(const FPCGMetadataAttributeBase* InAttribute) const
+	{
+		return Test(InAttribute->Name.ToString());
+	}
 };
 
-namespace PCGExDataFilter
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 {
-	constexpr PCGExMT::AsyncState State_PreparingFilters = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_FilteringPoints = __COUNTER__;
+	GENERATED_BODY()
 
-	const FName OutputFilterLabel = TEXT("Filter");
-	const FName SourceFiltersLabel = TEXT("Filters");
-	const FName OutputInsideFiltersLabel = TEXT("Inside");
-	const FName OutputOutsideFiltersLabel = TEXT("Outside");
-
-	class PCGEXTENDEDTOOLKIT_API TFilter
+	FPCGExCarryOverDetails()
 	{
-	public:
-		explicit TFilter(const UPCGExFilterFactoryBase* InFactory):
-			Factory(InFactory)
-		{
-		}
+	}
 
-		bool bCacheResults = true;
-		const UPCGExFilterFactoryBase* Factory;
-		TArray<bool> Results;
+	/** Attributes to carry over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExNameFiltersDetails Attributes = FPCGExNameFiltersDetails(false);
 
-		int32 Index = 0;
-		bool bValid = true;
+	/** Tags to carry over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExNameFiltersDetails Tags = FPCGExNameFiltersDetails(false);
 
-		FORCEINLINE virtual EType GetFilterType() const;
-
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
-
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO);
-		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices);
-
-		virtual void PrepareSingle(const int32 PointIndex);
-		virtual void PreparationComplete();
-		
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const = 0;
-		
-		virtual ~TFilter()
-		{
-			Results.Empty();
-		}
-	};
-
-	class PCGEXTENDEDTOOLKIT_API TFilterManager
+	void Init()
 	{
-	public:
-		explicit TFilterManager(const PCGExData::FPointIO* InPointIO);
+		Attributes.Init();
+		Tags.Init();
+	}
 
-		TArray<TFilter*> Handlers;
-		TArray<TFilter*> HeavyHandlers;
+	void Filter(const PCGExData::FPointIO* PointIO) const
+	{
+		Filter(PointIO->GetOut()->Metadata);
+		Filter(PointIO->Tags);
+	}
 
-		bool bCacheResults = true;
-		bool bValid = false;
+	bool Test(const PCGExData::FPointIO* PointIO) const
+	{
+		if (!Test(PointIO->GetOut()->Metadata)) { return false; }
+		if (!Test(PointIO->Tags)) { return false; }
+		return true;
+	}
 
-		const PCGExData::FPointIO* PointIO = nullptr;
+	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
+	{
+		if (Attributes.FilterMode == EPCGExAttributeFilter::All) { return; }
 
-		template <typename T_DEF>
-		void Register(const FPCGContext* InContext, const TArray<T_DEF*>& InDefinitions, const PCGExData::FPointIO* InPointIO)
+		for (int i = 0; i < Identities.Num(); i++)
 		{
-			RegisterAndCapture(InContext, InDefinitions, [&](TFilter* Handler) { Handler->Capture(InContext, InPointIO); });
-		}
-
-		template <typename T_DEF, class CaptureFunc>
-		void RegisterAndCapture(const FPCGContext* InContext, const TArray<T_DEF*>& InFactories, CaptureFunc&& InCaptureFn)
-		{
-			for (T_DEF* Factory : InFactories)
+			if (!Attributes.Test(Identities[i].Name.ToString()))
 			{
-				TFilter* Handler = Factory->CreateFilter();
-				Handler->bCacheResults = bCacheResults;
-				
-				InCaptureFn(Handler);
-
-				if (!Handler->bValid)
-				{
-					delete Handler;
-					continue;
-				}
-
-				Handlers.Add(Handler);
-			}
-
-			bValid = !Handlers.IsEmpty();
-
-			if (!bValid) { return; }
-
-			// Sort mappings so higher priorities come last, as they have to potential to override values.
-			Handlers.Sort([&](const TFilter& A, const TFilter& B) { return A.Factory->Priority < B.Factory->Priority; });
-
-			// Update index & partials
-			for (int i = 0; i < Handlers.Num(); i++)
-			{
-				Handlers[i]->Index = i;
-				PostProcessHandler(Handlers[i]);
+				Identities.RemoveAt(i);
+				i--;
 			}
 		}
+	}
 
-		virtual bool PrepareForTesting();
-		virtual bool PrepareForTesting(const TArrayView<int32>& PointIndices);
-
-		virtual void PrepareSingle(const int32 PointIndex);
-		virtual void PreparationComplete();
-		
-		virtual void Test(const int32 PointIndex);
-
-		virtual bool RequiresPerPointPreparation() const;
-		
-		virtual ~TFilterManager()
-		{
-			PCGEX_DELETE_TARRAY(Handlers)
-			HeavyHandlers.Empty();
-		}
-
-	protected:
-		virtual void PostProcessHandler(TFilter* Handler);
-	};
-
-	class PCGEXTENDEDTOOLKIT_API TEarlyExitFilterManager : public TFilterManager
+	void Filter(PCGExData::FTags* InTags) const
 	{
-	public:
-		explicit TEarlyExitFilterManager(const PCGExData::FPointIO* InPointIO);
+		if (Tags.FilterMode == EPCGExAttributeFilter::All) { return; }
 
-		TArray<bool> Results;
+		TSet<FString> ToBeRemoved;
+		for (const FString& Tag : InTags->RawTags) { if (!Tags.Test(Tag)) { ToBeRemoved.Add(Tag); } }
+		for (const TPair<FString, FString>& Pair : InTags->Tags) { if (!Tags.Test((Pair.Key + PCGExData::TagSeparator + Pair.Value))) { ToBeRemoved.Add(Pair.Key); } }
+		InTags->Remove(ToBeRemoved);
+	}
 
-		virtual void Test(const int32 PointIndex) override;
-		
-		virtual bool PrepareForTesting() override;
-		virtual bool PrepareForTesting(const TArrayView<int32>& PointIndices) override;
-	};
-}
+	bool Test(PCGExData::FTags* InTags) const
+	{
+		if (Tags.FilterMode == EPCGExAttributeFilter::All) { return true; }
+
+		for (const FString& Tag : InTags->RawTags) { if (!Tags.Test(Tag)) { return false; } }
+		for (const TPair<FString, FString>& Pair : InTags->Tags) { if (!Tags.Test((Pair.Key + PCGExData::TagSeparator + Pair.Value))) { return false; } }
+		return true;
+	}
+
+	void Filter(UPCGMetadata* Metadata) const
+	{
+		if (Attributes.FilterMode == EPCGExAttributeFilter::All) { return; }
+
+		TArray<FName> Names;
+		TArray<EPCGMetadataTypes> Types;
+		Metadata->GetAttributes(Names, Types);
+		for (FName Name : Names) { if (!Attributes.Test(Name.ToString())) { Metadata->DeleteAttribute(Name); } }
+	}
+
+	bool Test(const UPCGMetadata* Metadata) const
+	{
+		if (Tags.FilterMode == EPCGExAttributeFilter::All) { return true; }
+
+		TArray<FName> Names;
+		TArray<EPCGMetadataTypes> Types;
+		Metadata->GetAttributes(Names, Types);
+		for (FName Name : Names) { if (!Attributes.Test(Name.ToString())) { return false; } }
+		return true;
+	}
+};

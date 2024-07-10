@@ -4,10 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExSampleNearestPoint.generated.h"
@@ -32,11 +33,6 @@ namespace PCGExDataBlending
 }
 
 class UPCGExFilterFactoryBase;
-
-namespace PCGExDataFilter
-{
-	class TEarlyExitFilterManager;
-}
 
 class UPCGExNodeStateFactory;
 
@@ -109,22 +105,24 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPoi
 public:
 	UPCGExSampleNearestPointSettings(const FObjectInitializer& ObjectInitializer);
 
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample : Nearest Point", "Sample nearest target points.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
 #endif
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
-	//~End UPCGExPointsProcessorSettings interface
+
+	virtual FName GetPointFilterLabel() const override;
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Sampling method.*/
@@ -140,7 +138,7 @@ public:
 	double RangeMax = 300;
 
 	/** Use a per-point minimum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMin = false;
 
 	/** Attribute or property to read the minimum range from. */
@@ -148,7 +146,7 @@ public:
 	FPCGAttributePropertyInputSelector LocalRangeMin;
 
 	/** Use a per-point maximum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMax = false;
 
 	/** Attribute or property to read the maximum range from. */
@@ -157,7 +155,7 @@ public:
 
 	/** Distance method to be used for source & target points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	FPCGExDistanceSettings DistanceSettings;
+	FPCGExDistanceDetails DistanceDetails;
 
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
@@ -177,7 +175,7 @@ public:
 
 	/** The constant to use as Up vector for the look at transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
-	FPCGExPropertiesBlendingSettings PointPropertiesBlendingSettings = FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None);
+	FPCGExPropertiesBlendingDetails PointPropertiesBlendingSettings = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -205,19 +203,19 @@ public:
 	FName LookAtTransformAttributeName = FName("WeightedLookAt");
 
 	/** The axis to align transform the look at vector to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Align", EditCondition="bWriteLookAtTransform", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Align", EditCondition="bWriteLookAtTransform", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxisAlign LookAtAxisAlign = EPCGExAxisAlign::Forward;
 
 	/** Up vector source.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Use Up from...", EditCondition="bWriteLookAtTransform", EditConditionHides))
-	EPCGExSampleSource LookAtUpSelection;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Use Up from...", EditCondition="bWriteLookAtTransform", EditConditionHides, HideEditConditionToggle))
+	EPCGExSampleSource LookAtUpSelection = EPCGExSampleSource::Constant;
 
 	/** The attribute or property on selected source to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection!=EPCGExSampleSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection!=EPCGExSampleSource::Constant", EditConditionHides, HideEditConditionToggle))
 	FPCGAttributePropertyInputSelector LookAtUpSource;
 
 	/** The constant to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides, HideEditConditionToggle))
 	FVector LookAtUpConstant = FVector::UpVector;
 
 	/** Write the sampled distance. */
@@ -237,7 +235,7 @@ public:
 	FName SignedDistanceAttributeName = FName("WeightedSignedDistance");
 
 	/** Axis to use to calculate the distance' sign*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxis SignAxis = EPCGExAxis::Forward;
 
 	/** Write the sampled angle. */
@@ -249,11 +247,11 @@ public:
 	FName AngleAttributeName = FName("WeightedAngle");
 
 	/** Axis to use to calculate the angle*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteAngle", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteAngle", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxis AngleAxis = EPCGExAxis::Forward;
 
 	/** Unit/range to output the angle to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle", EditConditionHides, HideEditConditionToggle))
 	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
 
 	/** Write the sampled distance. */
@@ -265,35 +263,22 @@ public:
 	FName NumSamplesAttributeName = FName("NumSamples");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestPointElement;
 
 	virtual ~FPCGExSampleNearestPointContext() override;
 
-	PCGExData::FPointIO* Targets = nullptr;
+	PCGExData::FFacade* TargetsFacade = nullptr;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
-
-	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
-	PCGExDataFilter::TEarlyExitFilterManager* ValueFilterManager = nullptr;
-
-	PCGEx::FLocalSingleFieldGetter* RangeMinGetter;
-	PCGEx::FLocalSingleFieldGetter* RangeMaxGetter;
-	PCGEx::FLocalVectorGetter* LookAtUpGetter;
-
-	FVector SafeUpVector = FVector::UpVector;
+	FPCGExBlendingDetails BlendingDetails;
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
-	FPCGExBlendingSettings BlendingSettings;
-	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
-
-	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
+	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -306,29 +291,31 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExSampleNearestPointTasks
+namespace PCGExSampleNearestPoints
 {
-	class PCGEXTENDEDTOOLKIT_API FSamplePoint : public FPCGExLoopChunkTask
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		PCGExData::FCache<double>* RangeMinGetter = nullptr;
+		PCGExData::FCache<double>* RangeMaxGetter = nullptr;
+		PCGExData::FCache<FVector>* LookAtUpGetter = nullptr;
+
+		FVector SafeUpVector = FVector::UpVector;
+
+		PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+
+		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
+
 	public:
-		FSamplePoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 NumIterations) :
-			FPCGExLoopChunkTask(InManager, InTaskIndex, InPointIO, NumIterations)
+		explicit FProcessor(PCGExData::FPointIO* InPoints)
+			: FPointsProcessor(InPoints)
 		{
+			DefaultPointFilterValue = true;
 		}
 
-		virtual void LoopBody(const int32 Iteration) override;
-	};
+		virtual ~FProcessor() override;
 
-	class PCGEXTENDEDTOOLKIT_API FPointLoop : public FPCGExParallelLoopTask<FSamplePoint>
-	{
-	public:
-		FPointLoop(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			const int32 InNumIterations, const int32 InChunkSize) :
-			FPCGExParallelLoopTask(InManager, InTaskIndex, InPointIO, InNumIterations, InChunkSize)
-		{
-		}
-
-		virtual bool LoopInit() override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void CompleteWork() override;
 	};
 }

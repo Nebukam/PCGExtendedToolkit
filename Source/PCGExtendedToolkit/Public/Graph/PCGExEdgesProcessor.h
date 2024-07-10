@@ -5,11 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
+#include "PCGExClusterMT.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExEdgesProcessor.generated.h"
-
-#define PCGEX_INVALID_CLUSTER_LOG PCGE_LOG(Warning, GraphAndLog, FTEXT("Some clusters are corrupted and will be ignored. If you modified vtx/edges manually, make sure to use Sanitize Cluster first."));
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
@@ -17,28 +16,33 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(EdgesProcessorSettings, "Edges Processor Settings", "TOOLTIP_TEXT");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorEdge; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorEdge; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
 
-	virtual bool RequiresDeterministicClusters() const;
+	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourceVerticesLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
 
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetVtxFilterLabel() const { return NAME_None; }
+	virtual FName GetEdgesFilterLabel() const { return NAME_None; }
+
+	bool SupportsVtxFilters() const;
+	bool SupportsEdgesFilters() const;
 
 	virtual bool GetMainAcceptMultipleData() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
@@ -48,24 +52,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	virtual ~FPCGExEdgesProcessorContext() override;
 
-	bool bDeterministicClusters = false;
+	TArray<UPCGExFilterFactoryBase*> VtxFilterFactories;
+	TArray<UPCGExFilterFactoryBase*> EdgeFilterFactories;
 
+	bool bDeterministicClusters = false;
+	bool bBuildEndpointsLookup = true;
 
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
 
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
-	TMap<int64, int32> EndpointsLookup;
+	TMap<uint32, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;
 
-	virtual bool AdvancePointsIO() override;
-	bool AdvanceEdges(bool bBuildCluster); // Advance edges within current points
+	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;
+	virtual bool AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys = true); // Advance edges within current points
 
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
-	PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
-
-	bool ProjectCluster();
 
 	void OutputPointsAndEdges();
 
@@ -76,18 +80,106 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	bool ProcessCurrentEdges(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentEdges->GetNum(), bForceSync); }
 
 	template <class InitializeFunc, class LoopBodyFunc>
-	bool ProcessCurrentCluster(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentCluster->Nodes.Num(), bForceSync); }
+	bool ProcessCurrentCluster(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentCluster->Nodes->Num(), bForceSync); }
 
 	template <class LoopBodyFunc>
-	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes.Num(), bForceSync); }
+	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes->Num(), bForceSync); }
 
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
+
+	bool bWaitingOnClusterProjection = false;
 
 protected:
+	virtual bool ProcessClusters();
+
+	TArray<PCGExClusterMT::FClusterProcessorBatchBase*> Batches;
+
+	bool bHasValidHeuristics = false;
+
+	PCGExMT::AsyncState TargetState_ClusterProcessingDone;
+	bool bDoClusterBatchGraphBuilding = false;
+	bool bDoClusterBatchWritingStep = false;
+
+	bool bClusterRequiresHeuristics = false;
+	bool bClusterBatchInlined = false;
+	int32 CurrentBatchIndex = -1;
+	PCGExClusterMT::FClusterProcessorBatchBase* CurrentBatch = nullptr;
+
+
+	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
+	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState, bool bInlined = false)
+	{
+		ResetAsyncWork();
+
+		PCGEX_DELETE_TARRAY(Batches)
+
+		bClusterBatchInlined = bInlined;
+		CurrentBatchIndex = -1;
+		TargetState_ClusterProcessingDone = InState;
+
+		bClusterRequiresHeuristics = true;
+		bDoClusterBatchGraphBuilding = false;
+		bDoClusterBatchWritingStep = false;
+		bBuildEndpointsLookup = false;
+
+		while (AdvancePointsIO(false))
+		{
+			if (!TaggedEdges)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some input points have no bound edges."));
+				continue;
+			}
+
+			if (!ValidateEntries(TaggedEdges)) { continue; }
+
+			T* NewBatch = new T(this, CurrentIO, TaggedEdges->Entries);
+			InitBatch(NewBatch);
+
+			if (NewBatch->RequiresHeuristics())
+			{
+				bClusterRequiresHeuristics = true;
+
+				if (!bHasValidHeuristics)
+				{
+					PCGEX_DELETE(NewBatch)
+					continue;
+				}
+			}
+
+			if (NewBatch->bRequiresWriteStep)
+			{
+				bDoClusterBatchWritingStep = true;
+			}
+
+			NewBatch->EdgeCollection = MainEdges;
+			// TODO : If required, won't init filter data properly.
+			if (!VtxFilterFactories.IsEmpty()) { NewBatch->SetVtxFilterFactories(&VtxFilterFactories); }
+
+			if (NewBatch->RequiresGraphBuilder())
+			{
+				bDoClusterBatchGraphBuilding = true;
+				NewBatch->GraphBuilderDetails = GraphBuilderDetails;
+			}
+
+			Batches.Add(NewBatch);
+			if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch); }
+		}
+
+		if (Batches.IsEmpty()) { return false; }
+
+		if (bClusterBatchInlined) { AdvanceBatch(); }
+		else { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
+		return true;
+	}
+
+	bool HasValidHeuristics() const;
+
+	void AdvanceBatch();
+
 	int32 CurrentEdgesIndex = -1;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

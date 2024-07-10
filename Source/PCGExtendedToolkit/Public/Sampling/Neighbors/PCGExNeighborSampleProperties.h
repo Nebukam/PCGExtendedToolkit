@@ -12,6 +12,7 @@
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExNeighborSampleFactoryProvider.h"
+#include "Data/Blending/PCGExPropertiesBlender.h"
 
 #include "PCGExNeighborSampleProperties.generated.h"
 
@@ -26,14 +27,37 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProperties : public UPCGExNeigh
 	GENERATED_BODY()
 
 public:
-	FPCGExPropertiesBlendingSettings BlendingSettings;
+	FPCGExPropertiesBlendingDetails BlendingDetails;
 
-	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareNode(PCGExCluster::FNode& TargetNode) const override;
-	virtual void BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const override;
-	virtual void BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const override;
-	virtual void FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override;
+	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
+
+	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override
+	{
+		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+		Blender->PrepareBlending(A, Cluster->VtxIO->GetInPoint(TargetNode.PointIndex));
+	}
+
+	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override
+	{
+		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+		const FPCGPoint& B = Cluster->VtxIO->GetInPoint(Neighbor.Node->PointIndex);
+		Blender->Blend(A, B, A, Weight);
+	}
+
+	FORCEINLINE virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override
+	{
+		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+		const FPCGPoint& B = Cluster->EdgesIO->GetInPoint(Neighbor.Edge->PointIndex);
+		Blender->Blend(A, B, A, Weight);
+	}
+
+	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override
+	{
+		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+		Blender->CompleteBlending(A, Count, TotalWeight);
+	}
 
 	virtual void Cleanup() override;
 
@@ -43,26 +67,26 @@ protected:
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesSamplerDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesSamplerConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExPropertiesSamplerDescriptorBase()
+	FPCGExPropertiesSamplerConfigBase()
 	{
 	}
 
 	/** Properties blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExPropertiesBlendingSettings Blending = FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None);
+	FPCGExPropertiesBlendingDetails Blending = FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None);
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGNeighborSamplerFactoryProperties : public UPCGNeighborSamplerFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryProperties : public UPCGExNeighborSamplerFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExPropertiesSamplerDescriptorBase Descriptor;
+	FPCGExPropertiesSamplerConfigBase Config;
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const override;
 };
 
@@ -72,23 +96,25 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplePropertiesSettings : public UPC
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NeighborSamplerProperties, "Sampler : Properties", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",
+		NeighborSamplerProperties, "Sampler : Vtx Properties", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 
 #endif
 	//~End UPCGSettings
 
+	//~Begin UPCGExNeighborSampleProviderSettings
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+	//~End UPCGExNeighborSampleProviderSettings
 
 	/** Sampler Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExPropertiesSamplerDescriptorBase Descriptor;
+	FPCGExPropertiesSamplerConfigBase Config;
 };

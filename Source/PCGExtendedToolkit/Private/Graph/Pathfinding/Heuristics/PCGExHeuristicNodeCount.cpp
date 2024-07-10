@@ -4,15 +4,10 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicNodeCount.h"
 
-double UPCGExHeuristicNodeCount::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
-{
-	return ReferenceWeight;
-}
-
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryLeastNodes::CreateOperation() const
 {
 	UPCGExHeuristicNodeCount* NewOperation = NewObject<UPCGExHeuristicNodeCount>();
-	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
+	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }
 
@@ -28,6 +23,6 @@ FString UPCGExHeuristicsLeastNodesProviderSettings::GetDisplayName() const
 {
 	return GetDefaultNodeName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif

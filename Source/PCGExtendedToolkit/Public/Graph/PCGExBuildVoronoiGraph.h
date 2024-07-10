@@ -4,25 +4,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPointsProcessor.h"
 
-#include "PCGExCustomGraphProcessor.h"
+
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildVoronoiGraph.generated.h"
 
 namespace PCGExGeo
 {
-	class TVoronoiMesh3;
-}
-
-namespace PCGExGeo
-{
-	class TConvexHull3;
-	class TDelaunayTriangulation3;
+	class TVoronoi3;
 }
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExBuildVoronoiGraphSettings : public UPCGExPointsProcessorSettings
@@ -30,31 +25,35 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildVoronoiGraphSettings : public UPCGExPoin
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Graph : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraphGen; }
+	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Cluster : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Method used to find Voronoi cell location */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellCenter Method = EPCGExCellCenter::Centroid;
 
-	/** Prune points and cell outside bounds (computed based on input vertices + optional extension)*/
+	/** Bounds used for point pruning & balanced centroid. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double ExpandBounds = 100;
+
+	/** Prune points outside bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Method==EPCGExCellCenter::Circumcenter"))
+	bool bPruneOutOfBounds = false;
 
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -69,29 +68,24 @@ public:
 	bool bMarkEdgeOnTouch = false;
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, DisplayName="Graph Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
+	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails(false);
 
 private:
 	friend class FPCGExBuildVoronoiGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildVoronoiGraphElement;
 
 	virtual ~FPCGExBuildVoronoiGraphContext() override;
 
-	TArray<FVector> ActivePositions;
-
-	TSet<int32> HullIndices;
-
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	PCGExData::FPointIOCollection* SitesOutput = nullptr;
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -104,14 +98,27 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExVoronoi3Task : public FPCGExNonAbandonableTask
+namespace PCGExBuildVoronoi
 {
-public:
-	FPCGExVoronoi3Task(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+	protected:
+		PCGExGeo::TVoronoi3* Voronoi = nullptr;
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+	};
+}

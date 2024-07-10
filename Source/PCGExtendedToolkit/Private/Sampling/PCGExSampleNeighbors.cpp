@@ -3,18 +3,11 @@
 
 #include "Sampling/PCGExSampleNeighbors.h"
 
-#include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleAttribute.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNeighbors"
 #define PCGEX_NAMESPACE SampleNeighbors
-
-UPCGExSampleNeighborsSettings::UPCGExSampleNeighborsSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
 
 TArray<FPCGPinProperties> UPCGExSampleNeighborsSettings::InputPinProperties() const
 {
@@ -32,13 +25,8 @@ FPCGExSampleNeighborsContext::~FPCGExSampleNeighborsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	for (UPCGExNeighborSampleOperation* Operation : SamplingOperations)
-	{
-		Operation->Cleanup();
-		PCGEX_DELETE_UOBJECT(Operation)
-	}
-
-	SamplingOperations.Empty();
+	//for (UPCGExNeighborSamplerFactoryBase* Factory : SamplerFactories) { PCGEX_DELETE_UOBJECT(Factory) }
+	SamplerFactories.Empty();
 }
 
 bool FPCGExSampleNeighborsElement::Boot(FPCGContext* InContext) const
@@ -47,29 +35,14 @@ bool FPCGExSampleNeighborsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
-	TArray<UPCGNeighborSamplerFactoryBase*> SamplerFactories;
-
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExNeighborSample::SourceSamplersLabel, SamplerFactories, {PCGExFactories::EType::Sampler}, false))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExNeighborSample::SourceSamplersLabel, Context->SamplerFactories, {PCGExFactories::EType::Sampler}, false))
 	{
 		PCGE_LOG(Warning, GraphAndLog, FTEXT("No valid sampler found."));
 		return false;
 	}
 
 	// Sort samplers so higher priorities come last, as they have to potential to override values.
-	SamplerFactories.Sort([&](const UPCGNeighborSamplerFactoryBase& A, const UPCGNeighborSamplerFactoryBase& B) { return A.Priority < B.Priority; });
-
-	for (const UPCGNeighborSamplerFactoryBase* OperationFactory : SamplerFactories)
-	{
-		UPCGExNeighborSampleOperation* Operation = OperationFactory->CreateOperation();
-		Context->SamplingOperations.Add(Operation);
-		Context->RegisterOperation<UPCGExNeighborSampleOperation>(Operation);
-	}
-
-	if (Context->SamplingOperations.IsEmpty())
-	{
-		PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any valid samplers."));
-		return false;
-	}
+	Context->SamplerFactories.Sort([&](const UPCGExNeighborSamplerFactoryBase& A, const UPCGExNeighborSamplerFactoryBase& B) { return A.Priority < B.Priority; });
 
 	return true;
 }
@@ -84,106 +57,100 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
-		{
-			if (!Context->TaggedEdges)
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>* NewBatch)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				return false;
-			}
-
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+				NewBatch->bRequiresWriteStep = true;
+				NewBatch->bWriteVtxDataFacade = true;
+			},
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+			return true;
 		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
-	{
-		if (!Context->AdvanceEdges(true))
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
-		}
+	if (!Context->ProcessClusters()) { return false; }
 
-		if (!Context->CurrentCluster) { return false; } // Corrupted or invalid cluster
-
-		Context->SetState(PCGExSampleNeighbors::State_ReadyForNextOperation);
-	}
-
-	if (Context->IsState(PCGExSampleNeighbors::State_ReadyForNextOperation))
-	{
-		const int32 NextIndex = Context->CurrentOperation ? Context->SamplingOperations.Find(Context->CurrentOperation) + 1 : 0;
-
-		if (Context->SamplingOperations.IsValidIndex(NextIndex))
-		{
-			Context->CurrentOperation = Context->SamplingOperations[NextIndex];
-			const bool bRequiresPerPointPreparation = Context->CurrentOperation->PrepareForCluster(Context, Context->CurrentCluster);
-
-			if (!Context->CurrentOperation->IsOperationValid()) { return false; }
-
-			if (bRequiresPerPointPreparation) { Context->SetState(PCGExDataFilter::State_PreparingFilters); }
-			else { Context->SetState(PCGExSampleNeighbors::State_Sampling); }
-		}
-		else
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-		}
-	}
-
-	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
-	{
-		auto PreparePoint = [&](const int32 Index)
-		{
-			if (Context->CurrentOperation->PointState && Context->CurrentOperation->PointState->RequiresPerPointPreparation())
-			{
-				Context->CurrentOperation->PointState->PrepareSingle(Index);
-			}
-
-			if (Context->CurrentOperation->ValueState && Context->CurrentOperation->ValueState->RequiresPerPointPreparation())
-			{
-				Context->CurrentOperation->ValueState->PrepareSingle(Index);
-			}
-		};
-
-		if (!Context->Process(PreparePoint, Context->CurrentCluster->Nodes.Num())) { return false; }
-
-		if (Context->CurrentOperation->PointState && Context->CurrentOperation->PointState->RequiresPerPointPreparation()) { Context->CurrentOperation->PointState->PreparationComplete(); }
-		if (Context->CurrentOperation->ValueState && Context->CurrentOperation->ValueState->RequiresPerPointPreparation()) { Context->CurrentOperation->ValueState->PreparationComplete(); }
-
-		Context->SetState(PCGExSampleNeighbors::State_Sampling);
-	}
-
-	if (Context->IsState(PCGExSampleNeighbors::State_Sampling))
-	{
-		auto ProcessNodePoints = [&](const int32 NodeIndex) { Context->CurrentOperation->ProcessNodeForPoints(NodeIndex); };
-		auto ProcessNodeEdges = [&](const int32 NodeIndex) { Context->CurrentOperation->ProcessNodeForEdges(NodeIndex); };
-
-		if (Context->CurrentOperation->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point)
-		{
-			if (!Context->Process(ProcessNodePoints, Context->CurrentCluster->Nodes.Num())) { return false; }
-		}
-		else
-		{
-			if (!Context->Process(ProcessNodeEdges, Context->CurrentCluster->Nodes.Num())) { return false; }
-		}
-
-		Context->CurrentOperation->FinalizeOperation();
-		Context->SetState(PCGExSampleNeighbors::State_ReadyForNextOperation);
-	}
 
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndEdges();
-		Context->ExecutionComplete();
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
+}
+
+
+namespace PCGExSampleNeighbors
+{
+	FProcessor::~FProcessor()
+	{
+		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_OPERATION(Op) }
+		if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) }
+		SamplingOperations.Empty();
+	}
+
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
+
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+
+		for (const UPCGExNeighborSamplerFactoryBase* OperationFactory : TypedContext->SamplerFactories)
+		{
+			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation();
+			SamplingOperation->BindContext(TypedContext);
+			SamplingOperation->PrepareForCluster(Context, Cluster, VtxDataFacade, EdgeDataFacade);
+
+			if (!SamplingOperation->IsOperationValid())
+			{
+				PCGEX_DELETE_OPERATION(SamplingOperation)
+				continue;
+			}
+
+			SamplingOperations.Add(SamplingOperation);
+			if (SamplingOperation->ValueFilters) { OpsWithValueTest.Add(SamplingOperation); }
+		}
+
+		ExpandedNodes = Cluster->ExpandedNodes;
+
+		if (!ExpandedNodes)
+		{
+			ExpandedNodes = Cluster->GetExpandedNodes(false);
+			bBuildExpandedNodes = true;
+		}
+
+		Cluster->ComputeEdgeLengths();
+
+		StartParallelLoopForRange(NumNodes);
+
+		return true;
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	{
+		if (bBuildExpandedNodes) { (*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration); }
+		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*(Cluster->Nodes->GetData() + Iteration)); }
+	}
+
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
+	{
+		for (const UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->ProcessNode(Index); }
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		StartParallelLoopForNodes();
+	}
+
+	void FProcessor::Write()
+	{
+		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
+		EdgeDataFacade->Write(AsyncManagerPtr, true);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

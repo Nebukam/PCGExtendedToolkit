@@ -5,94 +5,118 @@
 
 namespace PCGExData
 {
-#pragma region FIdxCompound
+#pragma region Pools & cache
 
-	bool FIdxCompound::ContainsIOIndex(const int32 InIOIndex)
+	void FCacheBase::IncrementWriteReadyNum()
 	{
-		for (const uint64 H : CompoundedPoints)
-		{
-			uint32 A;
-			uint32 B;
-			PCGEx::H64(H, A, B);
-			if (A == InIOIndex) { return true; }
-		}
-		return false;
+		FWriteScopeLock WriteScopeLock(WriteLock);
+		ReadyNum++;
 	}
 
-	void FIdxCompound::ComputeWeights(const TArray<FPointIO*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
+	void FCacheBase::ReadyWrite(PCGExMT::FTaskManager* AsyncManager)
 	{
-		Weights.SetNumUninitialized(CompoundedPoints.Num());
-
-		double DistSum = 0;
-		for (int i = 0; i < CompoundedPoints.Num(); i++)
-		{
-			uint32 IOIndex;
-			uint32 PtIndex;
-			PCGEx::H64(CompoundedPoints[i], IOIndex, PtIndex);
-
-			Weights[i] = DistSettings.GetDistance(Sources[IOIndex]->GetInPoint(PtIndex), Target);
-			DistSum += Weights[i];
-		}
-
-		if (DistSum == 0)
-		{
-			const double StaticWeight = 1 / static_cast<double>(CompoundedPoints.Num());
-			for (double& Weight : Weights) { Weight = StaticWeight; }
-			return;
-		}
-
-		for (double& Weight : Weights) { Weight = 1 - (Weight / DistSum); }
+		FWriteScopeLock WriteScopeLock(WriteLock);
+		ReadyNum--;
+		if (ReadyNum <= 0) { Write(AsyncManager); }
 	}
 
-	void FIdxCompound::ComputeWeights(const TArray<FPCGPoint>& SourcePoints, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
+	void FCacheBase::Write(PCGExMT::FTaskManager* AsyncManager)
 	{
-		Weights.SetNumUninitialized(CompoundedPoints.Num());
-
-		double DistSum = 0;
-		for (int i = 0; i < CompoundedPoints.Num(); i++)
-		{
-			Weights[i] = DistSettings.GetDistance(Target, SourcePoints[PCGEx::H64B(CompoundedPoints[i])]);
-			DistSum += Weights[i];
-		}
-
-		for (double& Weight : Weights) { Weight = 1 - (Weight / DistSum); }
 	}
 
-	uint64 FIdxCompound::Add(const int32 IOIndex, const int32 PointIndex)
+	FCacheBase* FFacade::TryGetCache(const uint64 UID)
 	{
-		const uint64 H = PCGEx::H64(IOIndex, PointIndex);
-		CompoundedPoints.AddUnique(H);
-		return H;
+		FReadScopeLock ReadScopeLock(PoolLock);
+		FCacheBase** Found = CacheMap.Find(UID);
+		if (!Found) { return nullptr; }
+		return *Found;
 	}
 
 #pragma endregion
 
-#pragma region FIdxCompoundList
+#pragma region FIdxCompound
 
-	FIdxCompound* FIdxCompoundList::New()
+	void FIdxCompound::ComputeWeights(
+		const TArray<FFacade*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
+		const FPCGExDistanceDetails& InDistanceDetails, TArray<uint64>& OutCompoundHashes, TArray<double>& OutWeights)
 	{
-		FIdxCompound* NewPointCompound = new FIdxCompound();
-		Compounds.Add(NewPointCompound);
-		return NewPointCompound;
+		OutCompoundHashes.SetNumUninitialized(CompoundedHashSet.Num());
+		OutWeights.SetNumUninitialized(CompoundedHashSet.Num());
+
+		double TotalWeight = 0;
+		int32 Index = 0;
+		for (const uint64 Hash : CompoundedHashSet)
+		{
+			uint32 IOIndex;
+			uint32 PtIndex;
+			PCGEx::H64(Hash, IOIndex, PtIndex);
+
+			const int32* IOIdx = SourcesIdx.Find(IOIndex);
+			if (!IOIdx) { continue; }
+
+			OutCompoundHashes[Index] = Hash;
+
+			const double Weight = InDistanceDetails.GetDistance(Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target);
+			OutWeights[Index] = Weight;
+			TotalWeight += Weight;
+
+			Index++;
+		}
+
+		if (TotalWeight == 0)
+		{
+			const double StaticWeight = 1 / static_cast<double>(CompoundedHashSet.Num());
+			for (double& Weight : OutWeights) { Weight = StaticWeight; }
+			return;
+		}
+
+		for (double& Weight : OutWeights) { Weight = 1 - (Weight / TotalWeight); }
 	}
 
-	uint64 FIdxCompoundList::Add(const int32 Index, const int32 IOIndex, const int32 PointIndex)
+	uint64 FIdxCompound::Add(const int32 IOIndex, const int32 PointIndex)
 	{
-		return Compounds[Index]->Add(IOIndex, PointIndex);
+		IOIndices.Add(IOIndex);
+		const uint64 H = PCGEx::H64(IOIndex, PointIndex);
+		CompoundedHashSet.Add(H);
+		return H;
 	}
 
-	void FIdxCompoundList::GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices)
+
+#pragma endregion
+
+#pragma region Data forwarding
+
+	FDataForwardHandler::~FDataForwardHandler()
 	{
-		FIdxCompound* Compound = Compounds[Index];
-		OutIOIndices.SetNumUninitialized(Compound->Num());
-		for (int i = 0; i < OutIOIndices.Num(); i++) { OutIOIndices[i] = PCGEx::H64A(Compound->CompoundedPoints[i]); }
 	}
 
-	bool FIdxCompoundList::HasIOIndexOverlap(const int32 InIdx, const TArray<int32>& InIndices)
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const FPointIO* InSourceIO):
+		Details(InDetails), SourceIO(InSourceIO)
 	{
-		FIdxCompound* OtherComp = Compounds[InIdx];
-		for (const int32 IOIndex : InIndices) { if (OtherComp->ContainsIOIndex(IOIndex)) { return true; } }
-		return false;
+		if (!Details.bEnabled) { return; }
+
+		Details.Init();
+		PCGEx::FAttributeIdentity::Get(InSourceIO->GetIn()->Metadata, Identities);
+		Details.Filter(Identities);
+	}
+
+	void FDataForwardHandler::Forward(const int32 SourceIndex, const FPointIO* Target)
+	{
+		if (Identities.IsEmpty()) { return; }
+		for (const PCGEx::FAttributeIdentity& Identity : Identities)
+		{
+			PCGMetadataAttribute::CallbackWithRightType(
+				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					const FPCGMetadataAttribute<T>* SourceAtt = SourceIO->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
+					Target->GetOut()->Metadata->DeleteAttribute(Identity.Name);
+					FPCGMetadataAttribute<T>* Mark = Target->GetOut()->Metadata->FindOrCreateAttribute<T>(
+						Identity.Name,
+						SourceAtt->GetValueFromItemKey(SourceIO->GetInPoint(SourceIndex).MetadataEntry),
+						SourceAtt->AllowsInterpolation(), true, true);
+				});
+		}
 	}
 
 #pragma endregion

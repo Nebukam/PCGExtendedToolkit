@@ -32,26 +32,33 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double DefaultScale = 10;
 
-	void PrepareForData(const PCGExData::FPointIO& InData)
+	void PrepareForData(const PCGExData::FPointIO* InPointIO)
 	{
 		DirectionGetter.Capture(Direction);
-		DirectionGetter.Grab(InData);
+		DirectionGetter.Grab(InPointIO);
 		if (bUseLocalScale)
 		{
 			ScaleGetter.bEnabled = true;
 			ScaleGetter.Capture(LocalScale);
-			ScaleGetter.Grab(InData);
+			ScaleGetter.Grab(InPointIO);
 		}
 		else { ScaleGetter.bEnabled = false; }
 	}
 
-	FVector GetDirection(const int32 Index) const { return DirectionGetter[Index]; }
-	FVector GetTangent(const int32 Index) const { return DirectionGetter[Index] * ScaleGetter.SafeGet(Index, DefaultScale); }
+	FORCEINLINE FVector GetDirection(const int32 Index) const
+	{
+		return DirectionGetter[Index];
+	}
+
+	FORCEINLINE FVector GetTangent(const int32 Index) const
+	{
+		return DirectionGetter[Index] * ScaleGetter.SafeGet(Index, DefaultScale);
+	}
 
 	void Cleanup()
 	{
-		PCGEX_CLEANUP(DirectionGetter)
-		PCGEX_CLEANUP(ScaleGetter)
+		DirectionGetter.Cleanup();
+		ScaleGetter.Cleanup();
 	}
 };
 
@@ -73,7 +80,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bMirror"))
 	FPCGExSingleTangentParams Leave;
 
-	virtual void PrepareForData(PCGExData::FPointIO& InPointIO) override;
+	virtual void PrepareForData(PCGExData::FPointIO* InPointIO) override;
 	virtual void ProcessFirstPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const override;
 	virtual void ProcessLastPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const override;
 	virtual void ProcessPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const override;

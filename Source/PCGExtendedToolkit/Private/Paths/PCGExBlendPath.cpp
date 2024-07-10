@@ -20,12 +20,6 @@ PCGExData::EInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
 
-void UPCGExBlendPathSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
-}
-
 FPCGExBlendPathContext::~FPCGExBlendPathContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -55,31 +49,31 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
+
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		int32 Index = 0;
-		Context->MainPoints->ForEach(
-			[&](PCGExData::FPointIO& PointIO, const int32)
+		while (Context->AdvancePointsIO())
+		{
+			if (Context->CurrentIO->GetNum() > 2)
 			{
-				if (PointIO.GetNum() > 2)
-				{
-					PointIO.CreateInKeys();
-					PointIO.CreateOutKeys();
-					Context->GetAsyncManager()->Start<FPCGExBlendPathTask>(Index++, &PointIO);
-				}
-			});
+				Context->CurrentIO->CreateInKeys();
+				Context->CurrentIO->CreateOutKeys();
+				Context->GetAsyncManager()->Start<FPCGExBlendPathTask>(Index++, Context->CurrentIO);
+			}
+		}
+
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 		Context->OutputMainPoints();
 		Context->Done();
-		Context->ExecutionComplete();
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
 bool FPCGExBlendPathTask::ExecuteTask()
@@ -89,7 +83,9 @@ bool FPCGExBlendPathTask::ExecuteTask()
 
 	if (PathPoints.IsEmpty()) { return false; }
 
-	PCGExDataBlending::FMetadataBlender* Blender = Context->Blending->CreateBlender(*PointIO, *PointIO);
+	PCGExData::FFacade* PathFacade = new PCGExData::FFacade(PointIO);
+
+	PCGExDataBlending::FMetadataBlender* Blender = Context->Blending->CreateBlender(PathFacade, PathFacade);
 
 	const PCGEx::FPointRef StartPoint = PointIO->GetOutPointRef(0);
 	const PCGEx::FPointRef EndPoint = PointIO->GetOutPointRef(PathPoints.Num() - 1);
@@ -98,6 +94,7 @@ bool FPCGExBlendPathTask::ExecuteTask()
 	Context->Blending->BlendSubPoints(StartPoint, EndPoint, PathPoints, *Metrics, Blender);
 
 	PCGEX_DELETE(Blender);
+	PCGEX_DELETE(PathFacade);
 	PCGEX_DELETE(Metrics);
 
 	return true;

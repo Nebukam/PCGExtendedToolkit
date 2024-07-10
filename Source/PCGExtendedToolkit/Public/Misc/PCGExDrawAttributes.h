@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -22,11 +23,11 @@ enum class EPCGExDebugExpression : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeDebugDrawDescriptor()
+	FPCGExAttributeDebugDrawConfig()
 	{
 		LocalColorAttribute.Update(TEXT("$Color"));
 	}
@@ -101,11 +102,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDraw
 
 	FPCGExAttributeDebugDraw()
 	{
-		Descriptor = nullptr;
+		Config = nullptr;
 	}
 
 public:
-	FPCGExAttributeDebugDrawDescriptor* Descriptor;
+	FPCGExAttributeDebugDrawConfig* Config;
 
 	PCGEx::FLocalVectorGetter VectorGetter;
 	PCGEx::FLocalSingleFieldGetter IndexGetter;
@@ -116,7 +117,7 @@ public:
 
 	bool bValid = false;
 
-	bool Bind(const PCGExData::FPointIO& PointIO);
+	bool Bind(const PCGExData::FPointIO* PointIO);
 
 	double GetSize(const PCGEx::FPointRef& Point) const;
 	FColor GetColor(const PCGEx::FPointRef& Point) const;
@@ -149,16 +150,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDrawAttributesSettings : public UPCGExPointsP
 public:
 	UPCGExDrawAttributesSettings(const FObjectInitializer& ObjectInitializer);
 
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DrawAttributes, "Draw Attributes", "Draw debug attributes. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorDebug; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorDebug; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UObject interface
 #if WITH_EDITOR
@@ -171,7 +172,7 @@ public:
 public:
 	/** Attributes to draw.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName} as {ExpressedAs}"))
-	TArray<FPCGExAttributeDebugDrawDescriptor> DebugList;
+	TArray<FPCGExAttributeDebugDrawConfig> DebugList;
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
@@ -184,7 +185,7 @@ private:
 	friend class FPCGExDrawAttributesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
 
@@ -194,7 +195,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesContext : public FPCGExPointsP
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

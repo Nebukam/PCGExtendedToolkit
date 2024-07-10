@@ -12,19 +12,29 @@ EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 	return EPCGExDataBlendingType::Lerp;
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
+void UPCGExSubPointsBlendOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
-	Super::PrepareForData(InPointIO);
-	PrepareForData(InPointIO, InPointIO, PCGExData::ESource::In);
+	Super::CopySettingsFrom(Other);
+	const UPCGExSubPointsBlendOperation* TypedOther = Cast<UPCGExSubPointsBlendOperation>(Other);
+	if (TypedOther)
+	{
+		BlendingDetails = TypedOther->BlendingDetails;
+	}
+}
+
+void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FFacade* InPrimaryFacade)
+{
+	Super::PrepareForData(InPrimaryFacade);
+	PrepareForData(InPrimaryFacade, InPrimaryFacade, PCGExData::ESource::In);
 }
 
 void UPCGExSubPointsBlendOperation::PrepareForData(
-	PCGExData::FPointIO& InPrimaryData,
-	const PCGExData::FPointIO& InSecondaryData,
+	PCGExData::FFacade* InPrimaryFacade,
+	PCGExData::FFacade* InSecondaryFacade,
 	const PCGExData::ESource SecondarySource)
 {
 	PCGEX_DELETE(InternalBlender)
-	InternalBlender = CreateBlender(InPrimaryData, InSecondaryData, SecondarySource);
+	InternalBlender = CreateBlender(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 }
 
 void UPCGExSubPointsBlendOperation::ProcessSubPoints(
@@ -70,12 +80,6 @@ void UPCGExSubPointsBlendOperation::BlendSubPoints(const TArrayView<FPCGPoint>& 
 	BlendSubPoints(PCGEx::FPointRef(Start, Offset), PCGEx::FPointRef(End, Offset + LastIndex), SubPoints, Metrics, InBlender);
 }
 
-void UPCGExSubPointsBlendOperation::Write()
-{
-	if (InternalBlender) { InternalBlender->Write(); }
-	Super::Write();
-}
-
 void UPCGExSubPointsBlendOperation::Cleanup()
 {
 	PCGEX_DELETE(InternalBlender)
@@ -83,13 +87,13 @@ void UPCGExSubPointsBlendOperation::Cleanup()
 }
 
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(
-	PCGExData::FPointIO& InPrimaryIO,
-	const PCGExData::FPointIO& InSecondaryIO,
+	PCGExData::FFacade* InPrimaryFacade,
+	PCGExData::FFacade* InSecondaryFacade,
 	const PCGExData::ESource SecondarySource)
 {
-	BlendingSettings.DefaultBlending = GetDefaultBlending();
-	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
-	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, SecondarySource);
+	BlendingDetails.DefaultBlending = GetDefaultBlending();
+	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingDetails);
+	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 
 	return NewBlender;
 }

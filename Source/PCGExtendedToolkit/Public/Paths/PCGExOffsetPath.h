@@ -11,7 +11,7 @@
 #include "PCGExOffsetPath.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExOffsetPathSettings : public UPCGExPathProcessorSettings
@@ -19,29 +19,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOffsetPathSettings : public UPCGExPathProcess
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(OffsetPath, "Path : Offset", "Offset paths points.");
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UObject interface
-public:
-	virtual void PostInitProperties() override;
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
@@ -73,14 +63,14 @@ public:
 	FPCGAttributePropertyInputSelector UpVectorAttribute;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExOffsetPathElement;
 
 	virtual ~FPCGExOffsetPathContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -93,13 +83,35 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathTask : public FPCGExNonAbandonableTask
+namespace PCGExOffsetPath
 {
-public:
-	FPCGExOffsetPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		int32 NumPoints = 0;
 
-	virtual bool ExecuteTask() override;
-};
+		double OffsetConstant = 0;
+		FVector UpVector = FVector::UpVector;
+
+		TArray<FVector> Positions;
+		TArray<FVector> Normals;
+
+		PCGEx::FLocalSingleFieldGetter* OffsetGetter = nullptr;
+		PCGEx::FLocalVectorGetter* UpGetter = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void CompleteWork() override;
+
+	protected:
+		FVector NRM(const int32 A, const int32 B, const int32 C) const;
+	};
+}

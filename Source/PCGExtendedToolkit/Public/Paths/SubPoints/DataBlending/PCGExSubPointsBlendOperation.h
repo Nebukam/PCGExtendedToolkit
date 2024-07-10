@@ -24,10 +24,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendOperation : public UPCGExSubPoi
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Lerp);
+	FPCGExBlendingDetails BlendingDetails = FPCGExBlendingDetails(EPCGExDataBlendingType::Lerp);
 
-	virtual void PrepareForData(PCGExData::FPointIO& InPointIO) override;
-	virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource);
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+
+	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade) override;
+	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource);
 
 	virtual void ProcessSubPoints(
 		const PCGEx::FPointRef& Start,
@@ -59,12 +61,11 @@ public:
 		PCGExDataBlending::FMetadataBlender* InBlender,
 		const int32 Offset = 0) const;
 
-	virtual void Write() override;
 	virtual void Cleanup() override;
 
 	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(
-		PCGExData::FPointIO& InPrimaryIO,
-		const PCGExData::FPointIO& InSecondaryIO,
+		PCGExData::FFacade* InPrimaryFacade,
+		PCGExData::FFacade* InSecondaryFacade,
 		const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
 
 protected:

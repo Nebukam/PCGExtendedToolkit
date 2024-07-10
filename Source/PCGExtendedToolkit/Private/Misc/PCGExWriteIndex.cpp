@@ -12,22 +12,16 @@ PCGEX_INITIALIZE_ELEMENT(WriteIndex)
 
 FPCGExWriteIndexContext::~FPCGExWriteIndexContext()
 {
-	IndicesBuffer.Empty();
-	NormalizedIndicesBuffer.Empty();
-	PCGEX_DELETE(NormalizedIndexAccessor)
-	PCGEX_DELETE(IndexAccessor)
+	PCGEX_TERMINATE_ASYNC
 }
 
 bool FPCGExWriteIndexElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteIndex)
 
-	PCGEX_FWD(bOutputNormalizedIndex)
-	PCGEX_FWD(OutputAttributeName)
-
-	PCGEX_VALIDATE_NAME(Context->OutputAttributeName)
+	PCGEX_VALIDATE_NAME(Settings->OutputAttributeName)
 
 	return true;
 }
@@ -41,70 +35,58 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
-	}
-
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		if (Context->bOutputNormalizedIndex)
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWriteIndex::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](PCGExPointsMT::TBatch<PCGExWriteIndex::FProcessor>* NewBatch)
+			{
+			},
+			PCGExMT::State_Done))
 		{
-			auto Initialize = [&](PCGExData::FPointIO& PointIO)
-			{
-				Context->NormalizedIndicesBuffer.Reset(PointIO.GetNum());
-				Context->NormalizedIndexAccessor = PCGEx::FAttributeAccessor<double>::FindOrCreate(PointIO, Context->OutputAttributeName, -1, false);
-				Context->NormalizedIndexAccessor->GetRange(Context->NormalizedIndicesBuffer, 0);
-			};
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to process."));
+			return true;
+		}
+	}
 
-			if (!Context->ProcessCurrentPoints(
-				Initialize, [&](const int32 Index, const PCGExData::FPointIO& PointIO)
-				{
-					Context->NormalizedIndicesBuffer[Index] = static_cast<double>(Index) / static_cast<double>(Context->NormalizedIndicesBuffer.Num());
-				}))
-			{
-				return false;
-			}
+	if (!Context->ProcessPointsBatch()) { return false; }
 
-			Context->NormalizedIndexAccessor->SetRange(Context->NormalizedIndicesBuffer);
-			PCGEX_DELETE(Context->NormalizedIndexAccessor)
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+	Context->OutputMainPoints();
+
+	return Context->TryComplete();
+}
+
+namespace PCGExWriteIndex
+{
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteIndex)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		NumPoints = PointIO->GetNum();
+
+		if (Settings->bOutputNormalizedIndex)
+		{
+			DoubleWriter = PointDataFacade->GetOrCreateWriter<double>(Settings->OutputAttributeName, false);
 		}
 		else
 		{
-			auto Initialize = [&](PCGExData::FPointIO& PointIO)
-			{
-				Context->IndicesBuffer.Reset(PointIO.GetNum());
-				Context->IndexAccessor = PCGEx::FAttributeAccessor<int32>::FindOrCreate(PointIO, Context->OutputAttributeName, -1, false);
-				Context->IndexAccessor->GetRange(Context->IndicesBuffer, 0);
-			};
-
-			if (!Context->ProcessCurrentPoints(
-				Initialize, [&](const int32 Index, const PCGExData::FPointIO& PointIO)
-				{
-					Context->IndicesBuffer[Index] = Index;
-				}))
-			{
-				return false;
-			}
-
-			Context->IndexAccessor->SetRange(Context->IndicesBuffer);
-			PCGEX_DELETE(Context->IndexAccessor)
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			IntWriter = PointDataFacade->GetOrCreateWriter<int32>(Settings->OutputAttributeName, false);
 		}
+
+		return true;
 	}
 
-	if (Context->IsDone())
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		if (DoubleWriter) { DoubleWriter->Values[Index] = static_cast<double>(Index) / NumPoints; }
+		else { IntWriter->Values[Index] = Index; }
 	}
 
-	return Context->IsDone();
+	void FProcessor::CompleteWork()
+	{
+		PointDataFacade->Write(AsyncManagerPtr, true);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

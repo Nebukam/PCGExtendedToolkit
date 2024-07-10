@@ -3,7 +3,7 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDirection.h"
 
-void UPCGExHeuristicDirection::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicDirection::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
 {
 	if (bInvert)
 	{
@@ -18,31 +18,10 @@ void UPCGExHeuristicDirection::PrepareForCluster(PCGExCluster::FCluster* InClust
 	Super::PrepareForCluster(InCluster);
 }
 
-double UPCGExHeuristicDirection::GetGlobalScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	const FVector Dir = (Seed.Position - Goal.Position).GetSafeNormal();
-	const double Dot = FVector::DotProduct(Dir, (From.Position - Goal.Position).GetSafeNormal()) * -1;
-	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
-}
-
-double UPCGExHeuristicDirection::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FIndexedEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	const double Dot = (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1);
-	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
-}
-
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() const
 {
 	UPCGExHeuristicDirection* NewOperation = NewObject<UPCGExHeuristicDirection>();
-	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
+	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }
 
@@ -58,6 +37,6 @@ FString UPCGExHeuristicsDirectionProviderSettings::GetDisplayName() const
 {
 	return GetDefaultNodeName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif

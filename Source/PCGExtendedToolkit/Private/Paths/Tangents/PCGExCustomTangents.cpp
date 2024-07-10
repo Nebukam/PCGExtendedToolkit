@@ -6,7 +6,7 @@
 
 #include "Data/PCGExPointIO.h"
 
-void UPCGExCustomTangents::PrepareForData(PCGExData::FPointIO& InPointIO)
+void UPCGExCustomTangents::PrepareForData(PCGExData::FPointIO* InPointIO)
 {
 	Super::PrepareForData(InPointIO);
 	Arrive.PrepareForData(InPointIO);
@@ -36,7 +36,7 @@ void UPCGExCustomTangents::ProcessPoint(const PCGEx::FPointRef& MainPoint, const
 
 void UPCGExCustomTangents::Cleanup()
 {
-	PCGEX_CLEANUP(Arrive)
-	PCGEX_CLEANUP(Leave)
+	Arrive.Cleanup();
+	Leave.Cleanup();
 	Super::Cleanup();
 }

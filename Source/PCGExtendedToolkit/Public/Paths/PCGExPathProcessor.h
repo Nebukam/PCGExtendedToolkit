@@ -4,21 +4,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEditorSettings.h"
-
+#include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
-#include "Graph/PCGExGraph.h"
+
 #include "PCGExPathProcessor.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Subdivide Mode"))
-enum class EPCGExSubdivideMode : uint8
+class UPCGExFilterFactoryBase;
+
+class UPCGExNodeStateFactory;
+
+namespace PCGExCluster
 {
-	Distance UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on segment' length"),
-	Count UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is static"),
-};
+	class FNodeStateHandler;
+}
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExPathProcessorSettings : public UPCGExPointsProcessorSettings
@@ -26,28 +27,31 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathProcessorSettings : public UPCGExPointsPr
 	GENERATED_BODY()
 
 public:
-	UPCGExPathProcessorSettings(const FObjectInitializer& ObjectInitializer);
-
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPath; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPath; }
 #endif
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePathsLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputPathsLabel; }
+	virtual FString GetPointFilterTooltip() const override { return TEXT("Path points processing filters"); }
+	//~End UPCGExPointsProcessorSettings
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathProcessorElement;
+
+	virtual ~FPCGExPathProcessorContext() override;
+
+	PCGExData::FPointIOCollection* MainPaths = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

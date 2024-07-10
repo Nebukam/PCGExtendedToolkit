@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExActorSelector.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
@@ -18,14 +19,11 @@ MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
-MACRO(Distance, double)
+MACRO(Distance, double)\
+MACRO(ActorReference, FString)\
+MACRO(PhysMat, FString)
 
 class UPCGExFilterFactoryBase;
-
-namespace PCGExDataFilter
-{
-	class TEarlyExitFilterManager;
-}
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
@@ -37,23 +35,24 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestSurfaceSettings : public UPCGExP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample : Nearest Surface", "Find the closest point on the nearest collidable surface.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
 #endif
 
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
-	//~End UPCGExPointsProcessorSettings interface
+
+	virtual FName GetPointFilterLabel() const override;
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Search max distance */
@@ -110,6 +109,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("NearestDistance");
 
+	/** Write the actor reference hit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteActorReference = false;
+
+	/** Name of the 'string' attribute to write actor reference to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, EditCondition="bWriteActorReference"))
+	FName ActorReferenceAttributeName = FName("ActorReference");
+
+	/** Write the actor reference hit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWritePhysMat = false;
+
+	/** Name of the 'string' attribute to write actor reference to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, EditCondition="bWritePhysMat"))
+	FName PhysMatAttributeName = FName("PhysMat");
+
 	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
@@ -138,25 +153,18 @@ public:
 	FPCGExActorSelectorSettings IgnoredActorSelector;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestSurfaceElement;
 
 	virtual ~FPCGExSampleNearestSurfaceContext() override;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
-	bool bHasHeavyPointFilters = false;
-
-	bool bUseLocalMaxDistance = false;
-	PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
-
 	TArray<AActor*> IgnoredActors;
 
-	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
+	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -169,14 +177,24 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-
-class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPCGExPCGExCollisionTask
+namespace PCGExSampleNearestSurface
 {
-public:
-	FSweepSphereTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExPCGExCollisionTask(InManager, InTaskIndex, InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void CompleteWork() override;
+	};
+}

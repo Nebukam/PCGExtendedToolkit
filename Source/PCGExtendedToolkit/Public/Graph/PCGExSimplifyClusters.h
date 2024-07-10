@@ -5,10 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
+#include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
 
 #include "PCGExSimplifyClusters.generated.h"
-
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
@@ -16,15 +16,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSimplifyClustersSettings : public UPCGExEdges
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SimplifyClusters, "Graph : Simplify Clusters", "Simplify connections by operating on isolated chains of nodes (only two neighbors).");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(SimplifyClusters, "Cluster : Simplify", "Simplify connections by operating on isolated chains of nodes (only two neighbors).");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UPCGExEdgesProcessorSettings interface
 public:
@@ -32,41 +32,31 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
+	virtual FName GetVtxFilterLabel() const override;
+
 	/** If enabled, only check for dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOperateOnDeadEndsOnly = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bFixBelowThreshold = false;
+	bool bMergeAboveAngularThreshold = false;
 
 	/** If enabled, uses an angular threshold below which nodes are merged. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFixBelowThreshold", Units="Degrees", ClampMin=0, ClampMax=180))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMergeAboveAngularThreshold", Units="Degrees", ClampMin=0, ClampMax=180))
 	double AngularThreshold = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalNodeMark = false;
-
-	/** If enabled, fetches a local node property or attribute as boolean. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalNodeMark"))
-	FPCGAttributePropertyInputSelector NodeFixAttribute;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalNodeMark"))
-	bool bInvertNodeFixAttribute = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalEdgeMark = false;
-
-	/** If enabled, fetches a local edge property or attribute as boolean. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalEdgeMark"))
-	FPCGAttributePropertyInputSelector EdgeFixAttribute;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalEdgeMark"))
-	bool bInvertEdgeFixAttribute = false;
+	/** Removes hard angles instead of collinear ones. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMergeAboveAngularThreshold"))
+	bool bInvertAngularThreshold = false;
 
 	/** If enabled, prune dead ends. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bOperateOnDeadEndsOnly"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPruneDeadEnds = false;
+
+	/** Graph & Edges output properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdgesProcessorContext
@@ -75,21 +65,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdges
 	friend class FPCGExSimplifyClustersElement;
 
 	virtual ~FPCGExSimplifyClustersContext() override;
-
-	double FixedDotThreshold = 0;
-
-	PCGEx::FLocalBoolGetter* IsPointFixtureGetter = nullptr;
-	PCGEx::FLocalBoolGetter* IsEdgeFixtureGetter = nullptr;
-
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
-	TArray<PCGExCluster::FNodeChain*> Chains;
-
-	//PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -102,13 +80,25 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindClusterChainsTask : public FPCGExNonAbandonableTask
+namespace PCGExSimplifyClusters
 {
-public:
-	FPCGExFindClusterChainsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-	}
+		TArray<PCGExCluster::FNodeChain*> Chains;
 
-	virtual bool ExecuteTask() override;
-};
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	};
+}

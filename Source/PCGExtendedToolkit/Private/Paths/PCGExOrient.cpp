@@ -3,26 +3,14 @@
 
 #include "Paths/PCGExOrient.h"
 
-#include "Paths/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
+#include "Paths/Orient/PCGExOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOrientElement"
 #define PCGEX_NAMESPACE Orient
 
-#if WITH_EDITOR
-void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	if (Orientation) { Orientation->UpdateUserFacingInfos(); }
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 PCGEX_INITIALIZE_ELEMENT(Orient)
 
-void UPCGExOrientSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Orientation, UPCGExSubPointsOrientAverage)
-}
+FName UPCGExOrientSettings::GetPointFilterLabel() const { return FName("FlipOrientationConditions"); }
 
 bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 {
@@ -30,8 +18,26 @@ bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(Orient)
 
-	PCGEX_OPERATION_BIND(Orientation, UPCGExSubPointsOrientAverage)
+	if (!Settings->Orientation)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Please select an orientation module in the detail panel."));
+		return false;
+	}
+
+	if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
+	{
+		PCGEX_VALIDATE_NAME(Settings->OutputAttribute);
+	}
+
+	if (Settings->bOutputDot)
+	{
+		PCGEX_VALIDATE_NAME(Settings->DotAttribute);
+	}
+
+	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientAverage)
 	Context->Orientation->bClosedPath = Settings->bClosedPath;
+	Context->Orientation->OrientAxis = Settings->OrientAxis;
+	Context->Orientation->UpAxis = Settings->UpAxis;
 
 	return true;
 }
@@ -45,20 +51,112 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+
+		bool bInvalidInputs = false;
+
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExOrient::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bInvalidInputs = true;
+					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					return false;
+				}
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExOrient::FProcessor>* NewBatch)
+			{
+				NewBatch->PrimaryOperation = Context->Orientation;
+			},
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to orient."));
+			return true;
+		}
+
+		if (bInvalidInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
+		}
 	}
 
-	Context->MainPoints->ForEach(
-		[&](PCGExData::FPointIO& PointIO, int32)
-		{
-			if (PointIO.GetNum() <= 1) { return; }
-			Context->Orientation->PrepareForData(PointIO);
-			Context->Orientation->ProcessPoints(PointIO.GetOut());
-		});
+	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->OutputMainPoints();
+	Context->Done();
 
-	return true;
+	return Context->TryComplete();
+}
+
+namespace PCGExOrient
+{
+	FProcessor::~FProcessor()
+	{
+		PCGEX_DELETE(TransformWriter)
+		PCGEX_DELETE(DotWriter)
+	}
+
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Orient)
+
+		DefaultPointFilterValue = Settings->bFlipDirection;
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		LastIndex = PointIO->GetNum() - 1;
+		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
+		Orient->PrepareForData(PointIO);
+
+		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
+		{
+			TransformWriter = new PCGEx::TFAttributeWriter<FTransform>(Settings->OutputAttribute);
+			TransformWriter->BindAndSetNumUninitialized(PointIO);
+		}
+
+		if (Settings->bOutputDot)
+		{
+			DotWriter = new PCGEx::TFAttributeWriter<double>(Settings->DotAttribute);
+			DotWriter->BindAndSetNumUninitialized(PointIO);
+		}
+
+		StartParallelLoopForPoints();
+
+		return true;
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	{
+		PCGEX_SETTINGS(Orient)
+
+		FTransform OutT;
+
+		PCGEx::FPointRef Current = PointIO->GetOutPointRef(Index);
+		if (Orient->bClosedPath)
+		{
+			const PCGEx::FPointRef Previous = Index == 0 ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index - 1);
+			const PCGEx::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(0) : PointIO->GetInPointRef(Index + 1);
+			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
+			if (Settings->bOutputDot) { DotWriter->Values[Index] = DotProduct(Current, Previous, Next); }
+		}
+		else
+		{
+			const PCGEx::FPointRef Previous = Index == 0 ? Current : PointIO->GetInPointRef(Index - 1);
+			const PCGEx::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index + 1);
+			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
+			if (Settings->bOutputDot) { DotWriter->Values[Index] = DotProduct(Current, Previous, Next); }
+		}
+
+		if (TransformWriter) { TransformWriter->Values[Index] = OutT; }
+		else { Point.Transform = OutT; }
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, TransformWriter)
+		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, DotWriter)
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

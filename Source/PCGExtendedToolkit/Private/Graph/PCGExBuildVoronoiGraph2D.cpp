@@ -7,6 +7,7 @@
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/Data/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildVoronoiGraph2D
@@ -17,34 +18,29 @@ FPCGExBuildVoronoiGraph2DContext::~FPCGExBuildVoronoiGraph2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(GraphBuilder)
-
-	HullIndices.Empty();
-
-	ProjectionSettings.Cleanup();
+	PCGEX_DELETE(SitesOutput)
 }
 
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
+	//PCGEX_PIN_POINTS(PCGExGraph::OutputSitesLabel, "Complete delaunay sites.", Required, {})
 	return PinProperties;
 }
-
-FName UPCGExBuildVoronoiGraph2DSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(BuildVoronoiGraph2D)
 
 bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
-	PCGEX_FWD(GraphBuilderSettings)
 
-	PCGEX_FWD(ProjectionSettings)
+	Context->SitesOutput = new PCGExData::FPointIOCollection();
+	Context->SitesOutput->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
 
 	return true;
 }
@@ -59,113 +55,212 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		PCGEX_DELETE(Context->GraphBuilder)
-		Context->HullIndices.Empty();
+		bool bInvalidInputs = false;
 
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
-		{
-			if (Context->CurrentIO->GetNum() <= 3)
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
 			{
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 3)."));
-				return false;
-			}
+				if (Entry->GetNum() < 3)
+				{
+					bInvalidInputs = true;
+					return false;
+				}
 
-			Context->ProjectionSettings.Init(Context->CurrentIO);
-
-			Context->GetAsyncManager()->Start<FPCGExVoronoi2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO);
-			Context->SetAsyncState(PCGExGeo::State_ProcessingVoronoi);
-		}
-	}
-
-	if (Context->IsState(PCGExGeo::State_ProcessingVoronoi))
-	{
-		PCGEX_WAIT_ASYNC
-
-		if (!Context->GraphBuilder || Context->GraphBuilder->Graph->Edges.IsEmpty())
+				Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EInit::NewOutput);
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>* NewBatch)
+			{
+				//NewBatch->bRequiresWriteStep = true;
+			},
+			PCGExMT::State_Done))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
+			return true;
 		}
 
-		Context->GraphBuilder->Compile(Context);
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
+		if (bInvalidInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 3 points and won't be processed."));
+		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_WritingClusters))
-	{
-		PCGEX_WAIT_ASYNC
-
-		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
+	if (!Context->ProcessPointsBatch()) { return false; }
 
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		//Context->SitesOutput->OutputTo(Context);
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
-bool FPCGExVoronoi2Task::ExecuteTask()
+namespace PCGExBuildVoronoi2D
 {
-	FPCGExBuildVoronoiGraph2DContext* Context = static_cast<FPCGExBuildVoronoiGraph2DContext*>(Manager->Context);
-	PCGEX_SETTINGS(BuildVoronoiGraph2D)
-
-	PCGExGeo::TVoronoi2* Voronoi = new PCGExGeo::TVoronoi2();
-
-	TArray<FVector> ActivePositions;
-	PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), ActivePositions);
-
-	if (const TArrayView<FVector> View = MakeArrayView(ActivePositions);
-		!Voronoi->Process(View, Context->ProjectionSettings))
+	FProcessor::~FProcessor()
 	{
-		ActivePositions.Empty();
 		PCGEX_DELETE(Voronoi)
-		return false;
+
+		PCGEX_DELETE(GraphBuilder)
+		PCGEX_DELETE(HullMarkPointWriter)
 	}
 
-	ActivePositions.Empty();
-
-	TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
-
-	const int32 NumSites = Voronoi->Centroids.Num();
-	Centroids.SetNum(NumSites);
-
-	if (Settings->Method == EPCGExCellCenter::Circumcenter)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Circumcenters[i]); }
-	}
-	else if (Settings->Method == EPCGExCellCenter::Centroid)
-	{
-		for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
-	}
-	else if (Settings->Method == EPCGExCellCenter::Balanced)
-	{
-		const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
-		for (int i = 0; i < NumSites; i++)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		ProjectionDetails = Settings->ProjectionDetails;
+		ProjectionDetails.Init(Context, PointDataFacade);
+
+		// Build voronoi
+
+		TArray<FVector> ActivePositions;
+		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+
+		Voronoi = new PCGExGeo::TVoronoi2();
+
+		/*
+		auto ExtractValidSites = [&]()
 		{
-			FVector Target = Voronoi->Circumcenters[i];
-			if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
-			else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+			const PCGExData::FPointIO* SitesIO = TypedContext->SitesOutput->Pairs[BatchIndex];
+			const TArray<FPCGPoint>& OriginalSites = PointIO->GetIn()->GetPoints();
+			TArray<FPCGPoint>& MutableSites = SitesIO->GetOut()->GetMutablePoints();
+			for (int i = 0; i < OriginalSites.Num(); i++)
+			{
+				if (Voronoi->Delaunay->DelaunayHull.Contains(i)) { continue; }
+				MutableSites.Add(OriginalSites[i]);
+			}
+		};
+		*/
+
+		if (!Voronoi->Process(ActivePositions, ProjectionDetails))
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results."));
+			PCGEX_DELETE(Voronoi)
+			return false;
 		}
+
+		ActivePositions.Empty();
+
+		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+
+		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
+		{
+			const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
+			TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
+
+			int32 NumSites = Voronoi->Centroids.Num();
+			TArray<int32> RemappedIndices;
+			RemappedIndices.SetNumUninitialized(NumSites);
+			Centroids.Reserve(NumSites);
+
+			for (int i = 0; i < NumSites; i++)
+			{
+				const FVector Centroid = Voronoi->Circumcenters[i];
+				if (!Bounds.IsInside(Centroid))
+				{
+					RemappedIndices[i] = -1;
+					continue;
+				}
+
+				RemappedIndices[i] = Centroids.Num();
+				FPCGPoint& NewPoint = Centroids.Emplace_GetRef();
+				NewPoint.Transform.SetLocation(Centroid);
+				PCGExMath::RandomizeSeed(NewPoint);
+			}
+
+			TArray<uint64> ValidEdges;
+			ValidEdges.Reserve(Voronoi->VoronoiEdges.Num());
+
+			for (const uint64 Hash : Voronoi->VoronoiEdges)
+			{
+				const int32 A = RemappedIndices[PCGEx::H64A(Hash)];
+				const int32 B = RemappedIndices[PCGEx::H64B(Hash)];
+				if (A == -1 || B == -1) { continue; }
+				ValidEdges.Add(PCGEx::H64(A, B));
+			}
+
+			RemappedIndices.Empty();
+			//ExtractValidSites();
+			PCGEX_DELETE(Voronoi)
+
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
+			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
+
+			ValidEdges.Empty();
+		}
+		else
+		{
+			TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
+			const int32 NumSites = Voronoi->Centroids.Num();
+			Centroids.SetNum(NumSites);
+
+			if (Settings->Method == EPCGExCellCenter::Circumcenter)
+			{
+				for (int i = 0; i < NumSites; i++)
+				{
+					Centroids[i].Transform.SetLocation(Voronoi->Circumcenters[i]);
+					PCGExMath::RandomizeSeed(Centroids[i]);
+				}
+			}
+			else if (Settings->Method == EPCGExCellCenter::Centroid)
+			{
+				for (int i = 0; i < NumSites; i++)
+				{
+					Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]);
+					PCGExMath::RandomizeSeed(Centroids[i]);
+				}
+			}
+			else if (Settings->Method == EPCGExCellCenter::Balanced)
+			{
+				const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
+				for (int i = 0; i < NumSites; i++)
+				{
+					FVector Target = Voronoi->Circumcenters[i];
+					if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
+					else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+					PCGExMath::RandomizeSeed(Centroids[i]);
+				}
+			}
+
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
+			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
+
+			//ExtractValidSites();
+			PCGEX_DELETE(Voronoi)
+		}
+
+		GraphBuilder->CompileAsync(AsyncManagerPtr);
+
+		return true;
 	}
 
-	//if (Settings->bMarkHull) { Context->HullIndices.Append(Voronoi->DelaunayHull); }
-	Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &Context->GraphBuilderSettings, 6);
-	Context->GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	{
+		//HullMarkPointWriter->Values[Index] = Voronoi->Delaunay->DelaunayHull.Contains(Index);
+	}
 
-	PCGEX_DELETE(Voronoi)
-	return true;
+	void FProcessor::CompleteWork()
+	{
+		if (!GraphBuilder) { return; }
+
+		if (!GraphBuilder->bCompiledSuccessfully)
+		{
+			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			return;
+		}
+
+		GraphBuilder->Write(Context);
+		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
+	}
+
+	void FProcessor::Write()
+	{
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

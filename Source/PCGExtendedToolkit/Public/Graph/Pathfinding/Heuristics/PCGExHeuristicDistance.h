@@ -11,12 +11,12 @@
 #include "PCGExHeuristicDistance.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorShortestDistance : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigShortestDistance : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorShortestDistance() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicConfigShortestDistance() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 };
@@ -30,19 +30,25 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDistance : public UPCGExHeuristicOpe
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return SampleCurve(FVector::DistSquared(From.Position, Goal.Position) / MaxDistSquared) * ReferenceWeight;
+	}
 
 	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return SampleCurve((*Cluster->EdgeLengths)[Edge.EdgeIndex]) * ReferenceWeight;
+	}
 
 protected:
 	double MaxDistSquared = 0;
@@ -51,12 +57,12 @@ protected:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryShortestDistance : public UPCGHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryShortestDistance : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicDescriptorShortestDistance Descriptor;
+	FPCGExHeuristicConfigShortestDistance Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
@@ -67,7 +73,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsShortestDistanceProviderSettings : 
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsDistance, "Heuristics : Shortest Distance", "Heuristics based on distance.",
@@ -75,9 +81,9 @@ public:
 #endif
 	//~End UPCGSettings
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicDescriptorShortestDistance Descriptor;
+	FPCGExHeuristicConfigShortestDistance Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

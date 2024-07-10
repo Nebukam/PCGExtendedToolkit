@@ -15,7 +15,6 @@ namespace PCGExPathfinding
 	struct FExtraWeights;
 }
 
-struct FPCGExHeuristicModifiersSettings;
 class UPCGExHeuristicOperation;
 
 namespace PCGExCluster
@@ -33,16 +32,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExOperation
 
 public:
 	PCGExCluster::FCluster* Cluster = nullptr;
-	PCGExCluster::FClusterProjection* Projection = nullptr;
 
-	virtual bool GetRequiresProjection();
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection = nullptr);
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 	virtual bool FindPath(
 		const FVector& SeedPosition,
-		const FPCGExNodeSelectionSettings* SeedSelection,
+		const FPCGExNodeSelectionDetails* SeedSelection,
 		const FVector& GoalPosition,
-		const FPCGExNodeSelectionSettings* GoalSelection,
+		const FPCGExNodeSelectionDetails* GoalSelection,
 		PCGExHeuristics::THeuristicsHandler* Heuristics,
 		TArray<int32>& OutPath,
-		PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback = nullptr);
+		PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback = nullptr) const;
 };

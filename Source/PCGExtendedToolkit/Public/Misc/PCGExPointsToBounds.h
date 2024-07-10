@@ -4,26 +4,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
 
 #include "PCGExPointsToBounds.generated.h"
 
 class FPCGExComputeIOBounds;
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source"))
-enum class EPCGExPointBoundsSource : uint8
-{
-	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="TBD"),
-	ScaledExtents UMETA(DisplayName = "Scaled Extents", ToolTip="TBD"),
-	Extents UMETA(DisplayName = "Extents", ToolTip="TBD")
-};
-
 namespace PCGExPointsToBounds
 {
-	constexpr PCGExMT::AsyncState State_ComputeBounds = __COUNTER__;
+	class FComputeIOBoundsTask;
+
+	PCGEX_ASYNC_STATE(State_ComputeBounds)
 
 	struct PCGEXTENDEDTOOLKIT_API FBounds
 	{
@@ -106,7 +102,7 @@ namespace PCGExPointsToBounds
 	};
 
 	static void ComputeBounds(
-		FPCGExAsyncManager* Manager,
+		PCGExMT::FTaskManager* Manager,
 		PCGExData::FPointIOCollection* IOGroup,
 		TArray<FBounds*>& OutBounds,
 		const EPCGExPointBoundsSource BoundsSource)
@@ -115,7 +111,7 @@ namespace PCGExPointsToBounds
 		{
 			FBounds* Bounds = new FBounds(PointIO);
 			OutBounds.Add(Bounds);
-			Manager->Start<FPCGExComputeIOBounds>(PointIO->IOIndex, PointIO, BoundsSource, Bounds);
+			Manager->Start<FComputeIOBoundsTask>(PointIO->IOIndex, PointIO, BoundsSource, Bounds);
 		}
 	}
 
@@ -126,13 +122,10 @@ namespace PCGExPointsToBounds
 		default: ;
 		case EPCGExPointBoundsSource::DensityBounds:
 			return Point.GetDensityBounds().GetBox();
-			break;
-		case EPCGExPointBoundsSource::ScaledExtents:
+		case EPCGExPointBoundsSource::ScaledBounds:
 			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()).GetBox();
-			break;
-		case EPCGExPointBoundsSource::Extents:
+		case EPCGExPointBoundsSource::Bounds:
 			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetExtents()).GetBox();
-			break;
 		}
 	}
 }
@@ -144,35 +137,25 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsToBoundsSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
-	UPCGExPointsToBoundsSettings(const FObjectInitializer& ObjectInitializer);
-
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PointsToBounds, "Points to Bounds", "Merge points group to a single point representing their bounds.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscAdd; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UObject interface
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
 	/** Bound point is the result of its contents */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
@@ -180,7 +163,7 @@ public:
 
 	/** Defines how fused point properties and attributes are merged into the final point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bBlendProperties"))
-	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::None);
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::None);
 
 	/** Write point counts */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
@@ -194,22 +177,14 @@ private:
 	friend class FPCGExPointsToBoundsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPointsToBoundsElement;
 
 	virtual ~FPCGExPointsToBoundsContext() override;
-
-	TArray<PCGExPointsToBounds::FBounds*> IOBounds;
-
-	bool bWritePointsCount;
-
-	PCGExDataBlending::FMetadataBlender* MetadataBlender;
-
-	TArray<FPCGPoint>* OutPoints;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
@@ -221,18 +196,38 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExComputeIOBounds : public FPCGExNonAbandonableTask
+namespace PCGExPointsToBounds
 {
-public:
-	FPCGExComputeIOBounds(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                      const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		BoundsSource(InBoundsSource), Bounds(InBounds)
+	class PCGEXTENDEDTOOLKIT_API FComputeIOBoundsTask final : public PCGExMT::FPCGExTask
 	{
-	}
+	public:
+		FComputeIOBoundsTask(PCGExData::FPointIO* InPointIO,
+		                     const EPCGExPointBoundsSource InBoundsSource, FBounds* InBounds) :
+			FPCGExTask(InPointIO),
+			BoundsSource(InBoundsSource), Bounds(InBounds)
+		{
+		}
 
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
-	PCGExPointsToBounds::FBounds* Bounds = nullptr;
+		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
+		FBounds* Bounds = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
+
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		FBounds* Bounds = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+	};
+}

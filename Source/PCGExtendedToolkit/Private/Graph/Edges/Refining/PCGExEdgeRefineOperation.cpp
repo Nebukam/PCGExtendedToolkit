@@ -3,24 +3,20 @@
 
 
 #include "Graph/Edges/Refining/PCGExEdgeRefineOperation.h"
+#include "Graph/PCGExCluster.h"
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
-void UPCGExEdgeRefineOperation::PrepareForPointIO(PCGExData::FPointIO* InPointIO)
+void UPCGExEdgeRefineOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
-	PointIO = InPointIO;
-}
+	Cluster = InCluster;
+	Heuristics = InHeuristics;
 
-void UPCGExEdgeRefineOperation::PreProcess(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
-{
-}
-
-void UPCGExEdgeRefineOperation::Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO, PCGExHeuristics::THeuristicsHandler* InHeuristics)
-{
+	if (RequiresNodeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node); }
+	if (RequiresEdgeOctree()) { Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); }
 }
 
 void UPCGExEdgeRefineOperation::Cleanup()
 {
-	PointIO = nullptr;
 	Super::Cleanup();
 }

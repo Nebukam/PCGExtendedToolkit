@@ -15,15 +15,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMakeClustersUniqueSettings : public UPCGExEdg
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MakeClustersUnique, "Graph : Make Clusters Unique", "Outputs a new, unique data pointer for the input clusters; to avoid overlap and unexpected behaviors.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(MakeClustersUnique, "Cluster : Make Unique", "Outputs a new, unique data pointer for the input clusters; to avoid overlap and unexpected behaviors.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UPCGExEdgesProcessorSettings interface
 public:
@@ -32,7 +32,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExMakeClustersUniqueSettings;
 	friend class FPCGExMakeClustersUniqueElement;
@@ -40,7 +40,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueContext : public FPCGExEdg
 	virtual ~FPCGExMakeClustersUniqueContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

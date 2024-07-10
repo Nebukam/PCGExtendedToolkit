@@ -8,36 +8,22 @@
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
-#include "Data/PCGExDataFilter.h"
+#include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExStringCompareFilter.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] String Comparison"))
-enum class EPCGExStringComparison : uint8
-{
-	StrictlyEqual UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),
-	StrictlyNotEqual UMETA(DisplayName = " != ", Tooltip="Operand A Strictly Not Equal to Operand B"),
-	LengthStrictlyEqual UMETA(DisplayName = " == (Length) ", Tooltip="Operand A Strictly Equal to Operand B"),
-	LengthStrictlyUnequal UMETA(DisplayName = " != (Length) ", Tooltip="Operand A Strictly Not Equal to Operand B"),
-	LengthEqualOrGreater UMETA(DisplayName = " >= (Length)", Tooltip="Operand A Equal or Greater to Operand B"),
-	LengthEqualOrSmaller UMETA(DisplayName = " <= (Length)", Tooltip="Operand A Equal or Smaller to Operand B"),
-	StrictlyGreater UMETA(DisplayName = " > (Length)", Tooltip="Operand A Strictly Greater to Operand B"),
-	StrictlySmaller UMETA(DisplayName = " < (Length)", Tooltip="Operand A Strictly Smaller to Operand B"),
-	LocaleStrictlyGreater UMETA(DisplayName = " > (Locale)", Tooltip="Operand A Locale Strictly Greater to Operand B Locale"),
-	LocaleStrictlySmaller UMETA(DisplayName = " < (Locale)", Tooltip="Operand A Locale Strictly Smaller to Operand B Locale"),
-};
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExStringCompareFilterDescriptor()
+	FPCGExStringCompareFilterConfig()
 	{
 	}
 
-	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
+	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
 
@@ -47,14 +33,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterDescriptor
 
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
+	EPCGExFetchType CompareAgainst = EPCGExFetchType::Attribute;
 
-	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Attribute", EditConditionHides))
+	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandB;
 
-	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Constant", EditConditionHides))
+	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
 	FString OperandBConstant = TEXT("PCGEx");
 };
 
@@ -68,27 +54,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExStringCompareFilterFactory : public UPCGExFil
 	GENERATED_BODY()
 
 public:
-	FPCGExInputDescriptor OperandA;
-	EPCGExStringComparison Comparison = EPCGExStringComparison::StrictlyEqual;
-	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
-	FPCGExInputDescriptor OperandB;
-	FString OperandBConstant;
+	FPCGExStringCompareFilterConfig Config;
 
-	void ApplyDescriptor(const FPCGExStringCompareFilterDescriptor& Descriptor)
-	{
-		OperandA = FPCGExInputDescriptor(Descriptor.OperandA);
-		Comparison = Descriptor.Comparison;
-		CompareAgainst = Descriptor.CompareAgainst;
-		OperandB = FPCGExInputDescriptor(Descriptor.OperandB);
-		OperandBConstant = Descriptor.OperandBConstant;
-	}
-
-	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
+	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TStringCompareFilter : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TStringCompareFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TStringCompareFilter(const UPCGExStringCompareFilterFactory* InFactory)
@@ -101,14 +74,12 @@ namespace PCGExPointsFilter
 		PCGEx::TFAttributeReader<FString>* OperandA = nullptr;
 		PCGEx::TFAttributeReader<FString>* OperandB = nullptr;
 
-		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
+		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TStringCompareFilter() override
 		{
 			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
 		}
 	};
 }
@@ -121,7 +92,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExStringCompareFilterProviderSettings : public 
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		CompareFilterFactory, "Filter : String Compare", "Creates a filter definition that compares two attribute values.",
@@ -132,7 +103,7 @@ public:
 public:
 	/** State name.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExStringCompareFilterDescriptor Descriptor;
+	FPCGExStringCompareFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

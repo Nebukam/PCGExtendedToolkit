@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExWriteIndex.generated.h"
@@ -14,20 +15,20 @@ class PCGEXTENDEDTOOLKIT_API UPCGExWriteIndexSettings : public UPCGExPointsProce
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(WriteIndex, "Write Index", "Write the current point index to an attribute.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscWrite; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** The name of the attribute to write its index to.*/
@@ -39,24 +40,14 @@ public:
 	FName OutputAttributeName = "CurrentIndex";
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
 
 	virtual ~FPCGExWriteIndexContext() override;
-
-	mutable FRWLock MapLock;
-	bool bOutputNormalizedIndex;
-	FName OutputAttributeName = NAME_None;
-
-	TArray<int32> IndicesBuffer;
-	PCGEx::FAttributeAccessor<int32>* IndexAccessor = nullptr;
-
-	TArray<double> NormalizedIndicesBuffer;
-	PCGEx::FAttributeAccessor<double>* NormalizedIndexAccessor = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -68,3 +59,27 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExWriteIndex
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		double NumPoints = 0;
+		PCGEx::TFAttributeWriter<int32>* IntWriter = nullptr;
+		PCGEx::TFAttributeWriter<double>* DoubleWriter = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override
+		{
+		}
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void CompleteWork() override;
+	};
+}

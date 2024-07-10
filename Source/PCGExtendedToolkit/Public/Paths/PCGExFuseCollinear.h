@@ -9,7 +9,7 @@
 #include "PCGExFuseCollinear.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExFuseCollinearSettings : public UPCGExPathProcessorSettings
@@ -17,34 +17,31 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFuseCollinearSettings : public UPCGExPathProc
 	GENERATED_BODY()
 
 public:
-	UPCGExFuseCollinearSettings(const FObjectInitializer& ObjectInitializer);
-
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FuseCollinear, "Path : Fuse Collinear", "FuseCollinear paths points.");
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UObject interface
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
+
+
+	virtual FName GetPointFilterLabel() const override;
 
 public:
 	/** Angular threshold for collinearity. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Units="Degrees", ClampMin=0, ClampMax=180))
 	double Threshold = 10;
+
+	/** Fuse points that are not collinear (Smooth-like). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvertThreshold = false;
 
 	/** Distance used to consider point to be overlapping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ClampMin=0.001))
@@ -57,19 +54,17 @@ public:
 	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExFuseCollinearElement;
 
 	virtual ~FPCGExFuseCollinearContext() override;
 
-	double Threshold;
-	double FuseDistance;
 	//bool bDoBlend;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -82,13 +77,20 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearTask : public FPCGExNonAbandonableTask
+namespace PCGExFuseCollinear
 {
-public:
-	FPCGExFuseCollinearTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		bool bClosedPath = false;
 
-	virtual bool ExecuteTask() override;
-};
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+	};
+}

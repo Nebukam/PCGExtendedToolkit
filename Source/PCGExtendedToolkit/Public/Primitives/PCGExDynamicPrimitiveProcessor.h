@@ -4,13 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExDynamicPrimitiveProcessor.generated.h"
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExDynamicPrimitiveProcessorSettings : public UPCGExPointsProcessorSettings
@@ -18,25 +19,25 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDynamicPrimitiveProcessorSettings : public UP
 	GENERATED_BODY()
 
 public:
-	UPCGExDynamicPrimitiveProcessorSettings(const FObjectInitializer& ObjectInitializer);
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DynamicPrimitiveProcessor, "DynamicPrimitiveProcessor", "TOOLTIP");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPrimitives; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPrimitives; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDynamicPrimitiveProcessorContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDynamicPrimitiveProcessorContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExDynamicPrimitiveProcessorElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDynamicPrimitiveProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDynamicPrimitiveProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

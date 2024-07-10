@@ -74,10 +74,10 @@ namespace PCGExData
 		double TotalLength = 0;
 		double TotalClosedLength = 0;
 
-		FORCEINLINE PolyLine::FSegment* NearestSegment(const FVector& Location);
-		FORCEINLINE PolyLine::FSegment* NearestSegment(const FVector& Location, const double Range);
-		FORCEINLINE FTransform SampleNearestTransform(const FVector& Location, double& OutTime);
-		FORCEINLINE bool SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime);
+		PolyLine::FSegment* NearestSegment(const FVector& Location);
+		PolyLine::FSegment* NearestSegment(const FVector& Location, const double Range);
+		FTransform SampleNearestTransform(const FVector& Location, double& OutTime);
+		bool SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime);
 
 	protected:
 		void BuildCache();
@@ -104,8 +104,8 @@ namespace PCGExData
 		int32 Num() const { return Lines.Num(); }
 		bool IsEmpty() const { return Lines.IsEmpty(); }
 
-		FORCEINLINE bool SampleNearestTransform(const FVector& Location, FTransform& OutTransform, double& OutTime);
-		FORCEINLINE bool SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime);
+		bool SampleNearestTransform(const FVector& Location, FTransform& OutTransform, double& OutTime);
+		bool SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime);
 
 	protected:
 		mutable FRWLock PairsLock;

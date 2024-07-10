@@ -24,23 +24,20 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingPlotEdgesSettings : public UPCGExE
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingPlotEdges, "Pathfinding : Plot Edges", "Extract a single path from edges clusters, going through every seed points in order.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPathfinding; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UObject interface
 public:
-	virtual void PostInitProperties() override;
-
 #if WITH_EDITOR
 
 public:
@@ -51,23 +48,26 @@ public:
 public:
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bAddSeedToPath = true;
+	bool bAddSeedToPath = false;
 
 	/** Add goal point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bAddGoalToPath = true;
+	bool bAddGoalToPath = false;
 
 	/** Insert plot points inside the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddPlotPointsToPath = true;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bClosedPath = false;
+
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Node Picking", meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings SeedPicking;
+	FPCGExNodeSelectionDetails SeedPicking;
 
 	/** Drive how a goal selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Node Picking", meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings GoalPicking;
+	FPCGExNodeSelectionDetails GoalPicking;
 
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
@@ -77,17 +77,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExPathStatistics Statistics;
 
-	/** Projection settings, used by some algorithms. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
-
-	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or slightly slower. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bUseOctreeSearch = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bOmitCompletePathOnFailedPlot = false;
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingPlotEdgesElement;
 
@@ -97,16 +96,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExE
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
-	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
-	int32 CurrentPlotIndex = -1;
-
-	bool bAddSeedToPath = true;
-	bool bAddGoalToPath = true;
-	bool bAddPlotPointsToPath = true;
+	void TryFindPath(
+		const UPCGExSearchOperation* SearchOperation,
+		const PCGExData::FPointIO* InPlotPoints, PCGExHeuristics::THeuristicsHandler* HeuristicsHandler) const;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -119,20 +115,44 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-
-class PCGEXTENDEDTOOLKIT_API FPCGExPlotClusterPathTask : public FPCGExNonAbandonableTask
+namespace PCGExPathfindingPlotEdge
 {
-public:
-	FPCGExPlotClusterPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExPathfinding::FExtraWeights* InGlobalExtraWeights = nullptr) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		GlobalExtraWeights(InGlobalExtraWeights)
-
+	class PCGEXTENDEDTOOLKIT_API FPCGExPlotClusterPathTask final : public FPCGExPathfindingTask
 	{
-	}
+	public:
+		FPCGExPlotClusterPathTask(PCGExData::FPointIO* InPointIO,
+		                          const UPCGExSearchOperation* InSearchOperation,
+		                          const PCGExData::FPointIOCollection* InPlots,
+		                          PCGExHeuristics::THeuristicsHandler* InHeuristics,
+		                          const bool Inlined = false) :
+			FPCGExPathfindingTask(InPointIO, nullptr),
+			SearchOperation(InSearchOperation),
+			Plots(InPlots),
+			Heuristics(InHeuristics),
+			bInlined(Inlined)
+		{
+		}
 
-	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
+		const UPCGExSearchOperation* SearchOperation = nullptr;
+		const PCGExData::FPointIOCollection* Plots = nullptr;
+		PCGExHeuristics::THeuristicsHandler* Heuristics = nullptr;
+		bool bInlined = false;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
+
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		UPCGExSearchOperation* SearchOperation = nullptr;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+	};
+}

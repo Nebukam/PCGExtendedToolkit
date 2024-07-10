@@ -10,6 +10,11 @@
 
 #include "PCGExPathfinding.generated.h"
 
+namespace PCGExHeuristics
+{
+	class THeuristicsHandler;
+}
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Navmesh Mode"))
 enum class EPCGExPathfindingNavmeshMode : uint8
 {
@@ -69,12 +74,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
-	constexpr PCGExMT::AsyncState State_ProcessingHeuristics = __COUNTER__;
-
-	const FName SourceHeuristicsLabel = TEXT("Heuristics");
-	const FName OutputHeuristicsLabel = TEXT("Heuristics");
-	const FName OutputModifiersLabel = TEXT("Modifiers");
-
 	struct PCGEXTENDEDTOOLKIT_API FExtraWeights //TODO: Deprecate
 	{
 		TArray<double> NodeExtraWeight;
@@ -86,8 +85,8 @@ namespace PCGExPathfinding
 		FExtraWeights(const PCGExCluster::FCluster* InCluster, const double InNodeScale, const double InEdgeScale)
 			: NodeScale(InNodeScale), EdgeScale(InEdgeScale)
 		{
-			NodeExtraWeight.SetNumZeroed(InCluster->Nodes.Num());
-			EdgeExtraWeight.SetNumZeroed(InCluster->Edges.Num());
+			NodeExtraWeight.SetNumZeroed(InCluster->Nodes->Num());
+			EdgeExtraWeight.SetNumZeroed(InCluster->Edges->Num());
 		}
 
 		~FExtraWeights()
@@ -123,14 +122,6 @@ namespace PCGExPathfinding
 		{
 		}
 	};
-
-	const FName SourceSeedsLabel = TEXT("Seeds");
-	const FName SourceGoalsLabel = TEXT("Goals");
-	const FName SourcePlotsLabel = TEXT("Plots");
-
-	constexpr PCGExMT::AsyncState State_ProcessingHeuristicModifiers = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
 
 	struct PCGEXTENDEDTOOLKIT_API FPathQuery
 	{
@@ -176,15 +167,15 @@ namespace PCGExPathfinding
 	}
 }
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExPathfindingTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                      PCGExPathfinding::FPathQuery* InQuery) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Query(InQuery)
+	FPCGExPathfindingTask(PCGExData::FPointIO* InPointIO,
+	                      const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
+		FPCGExTask(InPointIO),
+		Queries(InQueries)
 	{
 	}
 
-	PCGExPathfinding::FPathQuery* Query = nullptr;
+	const TArray<PCGExPathfinding::FPathQuery*>* Queries = nullptr;
 };

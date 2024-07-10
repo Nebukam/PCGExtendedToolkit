@@ -19,21 +19,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingPlotNavmeshSettings : public UPCGE
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PCGExPathfindingPlotNavmesh, "Pathfinding : Plot Navmesh", "Extract a single paths from navmesh, going through each seed points in order.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPathfinding; }
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UObject interface
-public:
-	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 
 public:
@@ -41,13 +39,13 @@ public:
 #endif
 	//~End UObject interface
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePlotsLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputPathsLabel; }
+	//~End UPCGExPointsProcessorSettings
 
 
 public:
@@ -62,6 +60,9 @@ public:
 	/** Insert plot points inside the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddPlotPointsToPath = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bClosedPath = false;
 
 	/** Whether the pathfinding requires a naviguable end location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -82,10 +83,12 @@ public:
 	/** Nav agent to be used by the nav system. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FNavAgentProperties NavAgentProperties;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bOmitCompletePathOnFailedPlot = false;
 };
 
-
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathfindingPlotNavmeshElement;
 
@@ -105,7 +108,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext : public FPCGE
 	double FuseDistance = 10;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -119,12 +122,12 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPlotNavmeshTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPlotNavmeshTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExPlotNavmeshTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+		PCGExData::FPointIO* InPointIO) :
+		FPCGExTask(InPointIO)
 	{
 	}
 

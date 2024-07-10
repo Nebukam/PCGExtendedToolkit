@@ -3,40 +3,26 @@
 
 #include "Sampling/Neighbors/PCGExNeighborSampleProperties.h"
 
+#include "Data/Blending/PCGExPropertiesBlender.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-bool UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
+void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExNeighborSampleProperties* TypedOther = Cast<UPCGExNeighborSampleProperties>(Other);
+	if (TypedOther)
+	{
+		BlendingDetails = TypedOther->BlendingDetails;
+	}
+}
+
+void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade)
 {
 	PCGEX_DELETE(Blender)
-	Blender = new PCGExDataBlending::FPropertiesBlender(BlendingSettings);
-	return Super::PrepareForCluster(InContext, InCluster);
-}
-
-void UPCGExNeighborSampleProperties::PrepareNode(PCGExCluster::FNode& TargetNode) const
-{
-	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
-	Blender->PrepareBlending(A, A);
-}
-
-void UPCGExNeighborSampleProperties::BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
-{
-	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
-	const FPCGPoint& B = Cluster->PointsIO->GetInPoint(OtherNode.PointIndex);
-	Blender->Blend(A, B, A, Weight);
-}
-
-void UPCGExNeighborSampleProperties::BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
-{
-	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
-	const FPCGPoint& B = Cluster->EdgesIO->GetInPoint(InEdgeIndex);
-	Blender->Blend(A, B, A, Weight);
-}
-
-void UPCGExNeighborSampleProperties::FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
-{
-	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
-	Blender->CompleteBlending(A, Count, TotalWeight);
+	Blender = new PCGExDataBlending::FPropertiesBlender(BlendingDetails);
+	return Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 }
 
 void UPCGExNeighborSampleProperties::Cleanup()
@@ -48,9 +34,9 @@ void UPCGExNeighborSampleProperties::Cleanup()
 #if WITH_EDITOR
 FString UPCGExNeighborSamplePropertiesSettings::GetDisplayName() const
 {
-	if (Descriptor.Blending.HasNoBlending()) { return TEXT("(None)"); }
+	if (Config.Blending.HasNoBlending()) { return TEXT("(None)"); }
 	TArray<FName> Names;
-	Descriptor.Blending.GetNonNoneBlendings(Names);
+	Config.Blending.GetNonNoneBlendings(Names);
 
 	if (Names.Num() == 1) { return Names[0].ToString(); }
 	if (Names.Num() == 2) { return Names[0].ToString() + TEXT(" (+1 other)"); }
@@ -59,21 +45,21 @@ FString UPCGExNeighborSamplePropertiesSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryProperties::CreateOperation() const
+UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryProperties::CreateOperation() const
 {
 	UPCGExNeighborSampleProperties* NewOperation = NewObject<UPCGExNeighborSampleProperties>();
 
 	PCGEX_SAMPLER_CREATE
 
-	NewOperation->BlendingSettings = Descriptor.Blending;
+	NewOperation->BlendingDetails = Config.Blending;
 
 	return NewOperation;
 }
 
 UPCGExParamFactoryBase* UPCGExNeighborSamplePropertiesSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGNeighborSamplerFactoryProperties* SamplerFactory = NewObject<UPCGNeighborSamplerFactoryProperties>();
-	SamplerFactory->Descriptor = Descriptor;
+	UPCGExNeighborSamplerFactoryProperties* SamplerFactory = NewObject<UPCGExNeighborSamplerFactoryProperties>();
+	SamplerFactory->Config = Config;
 
 	return Super::CreateFactory(InContext, SamplerFactory);
 }

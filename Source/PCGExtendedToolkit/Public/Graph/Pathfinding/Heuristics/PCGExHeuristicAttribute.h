@@ -8,7 +8,7 @@
 #include "PCGExHeuristicsFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExHeuristicAttribute.generated.h"
@@ -16,18 +16,18 @@
 class UPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicAttributeDescriptor : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicAttributeDescriptor() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicAttributeConfig() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 
 	/** Read the data from either vertices or edges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Point;
+	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Vtx;
 
 	/** Attribute to read modifier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -43,23 +43,29 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicAttribute : public UPCGExHeuristicOp
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return 0;
+	}
 
 	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return CachedScores[Source == EPCGExGraphValueSource::Edge ? Edge.PointIndex : To.NodeIndex];
+	}
 
 	virtual void Cleanup() override;
 
-	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Point;
+	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;
 
 protected:
@@ -69,12 +75,12 @@ protected:
 
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryAttribute : public UPCGHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryAttribute : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicAttributeDescriptor Descriptor;
+	FPCGExHeuristicAttributeConfig Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
@@ -85,12 +91,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCreateHeuristicAttributeSettings : public UPC
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsAttribute, "Heuristics : Attribute", "Read a vtx or edge attribute as an heuristic value.",
 		FName(GetDisplayName()))
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorHeuristicsAtt; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorHeuristicsAtt; }
 
 #endif
 	//~End UPCGSettings
@@ -99,7 +105,7 @@ public:
 
 	/** Modifier properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicAttributeDescriptor Descriptor;
+	FPCGExHeuristicAttributeConfig Config;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

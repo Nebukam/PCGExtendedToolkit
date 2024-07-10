@@ -5,8 +5,17 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
-#include "Data/PCGExPointIO.h"
 #include "PCGExEdgeRefineOperation.generated.h"
+
+namespace PCGExGraph
+{
+	struct FIndexedEdge;
+}
+
+namespace PCGExCluster
+{
+	struct FNode;
+}
 
 namespace PCGExHeuristics
 {
@@ -32,12 +41,32 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForPointIO(PCGExData::FPointIO* InPointIO);
-	virtual void PreProcess(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO);
-	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO, PCGExHeuristics::THeuristicsHandler* InHeuristics);
+	virtual bool InvalidateAllEdgesBeforeProcessing() { return false; }
+	virtual bool RequiresNodeOctree() { return false; }
+	virtual bool RequiresEdgeOctree() { return false; }
+	virtual bool RequiresHeuristics() { return false; }
+	virtual bool RequiresIndividualNodeProcessing() { return false; }
+	virtual bool RequiresIndividualEdgeProcessing() { return false; }
+
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
+
+	virtual void Process()
+	{
+	}
+
+	virtual void ProcessNode(PCGExCluster::FNode& Node)
+	{
+	}
+
+	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge)
+	{
+	}
 
 	virtual void Cleanup() override;
 
 protected:
-	PCGExData::FPointIO* PointIO;
+	PCGExCluster::FCluster* Cluster = nullptr;
+	PCGExHeuristics::THeuristicsHandler* Heuristics = nullptr;
+	mutable FRWLock EdgeLock;
+	mutable FRWLock NodeLock;
 };

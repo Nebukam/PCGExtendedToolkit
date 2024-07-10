@@ -1,28 +1,29 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
 
 
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 namespace PCGExDataBlending
 {
-	FPropertiesBlender::FPropertiesBlender(const FPCGExPropertiesBlendingSettings& Settings)
+	FPropertiesBlender::FPropertiesBlender(const FPCGExPropertiesBlendingDetails& InDetails)
 	{
-		Init(Settings);
+		Init(InDetails);
 	}
 
-	void FPropertiesBlender::Init(const FPCGExPropertiesBlendingSettings& Settings)
+	void FPropertiesBlender::Init(const FPCGExPropertiesBlendingDetails& InDetails)
 	{
 		bRequiresPrepare = false;
 
 #define PCGEX_BLEND_FUNCASSIGN(_TYPE, _NAME, _FUNC)\
 bReset##_NAME = false;\
-_NAME##Blending = Settings._NAME##Blending;\
+_NAME##Blending = InDetails._NAME##Blending;\
 if(ResetBlend.Contains(_NAME##Blending)){ bReset##_NAME=true; bRequiresPrepare = true; }
 
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCASSIGN)
 #undef PCGEX_BLEND_FUNCASSIGN
 
-		bHasNoBlending = Settings.HasNoBlending();
+		bHasNoBlending = InDetails.HasNoBlending();
 	}
 
 	void FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const
@@ -129,7 +130,7 @@ if (_NAME##Blending != EPCGExDataBlendingType::None){ Target._ACCESSOR = Source.
 		for (int i = 0; i < Targets.Num(); i++) { Blend(From, To, Targets[i], Weights[i]); }
 	}
 
-	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const
+	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const
 	{
 		for (int i = 0; i < Targets.Num(); i++) { CompleteBlending(Targets[i], Counts[i], TotalWeights[i]); }
 	}

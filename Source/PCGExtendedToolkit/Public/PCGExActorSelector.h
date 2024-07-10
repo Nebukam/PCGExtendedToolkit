@@ -18,7 +18,8 @@ enum class EPCGExActorSelection : uint8
 	// Deprecated - actor labels are unavailable in shipping builds
 	ByName UMETA(Hidden),
 	ByClass,
-	ByPath UMETA(Hidden), // Hidden because actors are not tracked by paths.
+	ByPath UMETA(Hidden),
+	// Hidden because actors are not tracked by paths.
 	Unknown UMETA(Hidden)
 };
 
@@ -150,7 +151,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorSelectorSettings
 	UPROPERTY(Transient, meta = (EditCondition = false, EditConditionHides))
 	bool bShowIgnoreSelfAndChildren = true;
 
-#if WITH_EDITOR	
+#if WITH_EDITOR
 	FText GetTaskNameSuffix() const;
 	FName GetTaskName(const FText& Prefix) const;
 #endif
@@ -162,5 +163,5 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorSelectorSettings
 namespace PCGExActorSelector
 {
 	PCGEXTENDEDTOOLKIT_API TArray<AActor*> FindActors(const FPCGExActorSelectorSettings& Settings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
-	PCGEXTENDEDTOOLKIT_API AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);	
+	PCGEXTENDEDTOOLKIT_API AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
 }

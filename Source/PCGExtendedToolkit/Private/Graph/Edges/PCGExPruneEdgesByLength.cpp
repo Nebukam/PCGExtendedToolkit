@@ -3,14 +3,14 @@
 
 #include "Graph/Edges/PCGExPruneEdgesByLength.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
 #include "Sampling/PCGExSampling.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetMainOutputInitMode() const { return GraphBuilderSettings.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetMainOutputInitMode() const { return GraphBuilderDetails.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 #pragma endregion
@@ -18,11 +18,6 @@ PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetEdgeOutputInitMode() const
 FPCGExPruneEdgesByLengthContext::~FPCGExPruneEdgesByLengthContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(GraphBuilder)
-
-	IndexedEdges.Empty();
-	EdgeLength.Empty();
 }
 
 PCGEX_INITIALIZE_ELEMENT(PruneEdgesByLength)
@@ -32,9 +27,9 @@ bool FPCGExPruneEdgesByLengthElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneEdgesByLength)
-	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER(Mean)
+	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_C(Mean, double)
 
-	PCGEX_FWD(GraphBuilderSettings)
+	PCGEX_FWD(GraphBuilderDetails)
 
 	return true;
 }
@@ -48,45 +43,59 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExPruneEdges::FProcessor>>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExPruneEdges::FProcessor>* NewBatch)
+			{
+			},
+			PCGExMT::State_Done))
 		{
-			if (!Context->TaggedEdges) { return false; }
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any vtx/edge pairs."));
+			return true;
 		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
+	if (!Context->ProcessClusters()) { return false; }
+
+	if (Context->IsDone())
 	{
-		PCGEX_DELETE(Context->GraphBuilder)
+		Context->OutputPointsAndEdges();
+	}
 
-		if (!Context->AdvanceEdges(false))
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
-		}
+	return Context->TryComplete();
+}
 
-		Context->CurrentEdges->CreateInKeys();
+namespace PCGExPruneEdges
+{
+	FProcessor::~FProcessor()
+	{
+		IndexedEdges.Empty();
+		EdgeLengths.Empty();
+	}
+
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_SETTINGS(PruneEdgesByLength)
+
+		AsyncManagerPtr = AsyncManager;
+
+		//return FClusterProcessor::Process(AsyncManager); // Skip the cluster building process
 
 		double MinEdgeLength = TNumericLimits<double>::Max();
 		double MaxEdgeLength = TNumericLimits<double>::Min();
 		double SumEdgeLength = 0;
 
-		BuildIndexedEdges(*Context->CurrentEdges, Context->EndpointsLookup, Context->IndexedEdges);
+		BuildIndexedEdges(EdgesIO, *EndpointsLookup, IndexedEdges);
 
-		const TArray<FPCGPoint>& InNodePoints = Context->GetCurrentIn()->GetPoints();
+		const TArray<FPCGPoint>& InNodePoints = VtxIO->GetIn()->GetPoints();
 
-		Context->EdgeLength.SetNum(Context->IndexedEdges.Num());
+		EdgeLengths.SetNum(IndexedEdges.Num());
 
-		for (const PCGExGraph::FIndexedEdge& Edge : Context->IndexedEdges)
+		for (const PCGExGraph::FIndexedEdge& Edge : IndexedEdges)
 		{
 			const double EdgeLength = FVector::Dist(InNodePoints[Edge.Start].Transform.GetLocation(), InNodePoints[Edge.End].Transform.GetLocation());
-			Context->EdgeLength[Edge.EdgeIndex] = EdgeLength;
+			EdgeLengths[Edge.EdgeIndex] = EdgeLength;
 
 			MinEdgeLength = FMath::Min(MinEdgeLength, EdgeLength);
 			MaxEdgeLength = FMath::Max(MaxEdgeLength, EdgeLength);
@@ -98,9 +107,9 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 			double RelativeMinEdgeLength = TNumericLimits<double>::Max();
 			double RelativeMaxEdgeLength = TNumericLimits<double>::Min();
 			SumEdgeLength = 0;
-			for (int i = 0; i < Context->EdgeLength.Num(); i++)
+			for (int i = 0; i < EdgeLengths.Num(); i++)
 			{
-				const double Normalized = (Context->EdgeLength[i] /= MaxEdgeLength);
+				const double Normalized = (EdgeLengths[i] /= MaxEdgeLength);
 				RelativeMinEdgeLength = FMath::Min(Normalized, RelativeMinEdgeLength);
 				RelativeMaxEdgeLength = FMath::Max(Normalized, RelativeMaxEdgeLength);
 				SumEdgeLength += Normalized;
@@ -113,75 +122,49 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 		{
 		default:
 		case EPCGExMeanMethod::Average:
-			Context->ReferenceValue = SumEdgeLength / Context->EdgeLength.Num();
+			ReferenceValue = SumEdgeLength / EdgeLengths.Num();
 			break;
 		case EPCGExMeanMethod::Median:
-			Context->ReferenceValue = PCGExMath::GetMedian(Context->EdgeLength);
+			ReferenceValue = PCGExMath::GetMedian(EdgeLengths);
 			break;
 		case EPCGExMeanMethod::Fixed:
-			Context->ReferenceValue = Settings->MeanValue;
+			ReferenceValue = Settings->MeanValue;
 			break;
 		case EPCGExMeanMethod::ModeMin:
-			Context->ReferenceValue = PCGExMath::GetMode(Context->EdgeLength, false, Settings->ModeTolerance);
+			ReferenceValue = PCGExMath::GetMode(EdgeLengths, false, Settings->ModeTolerance);
 			break;
 		case EPCGExMeanMethod::ModeMax:
-			Context->ReferenceValue = PCGExMath::GetMode(Context->EdgeLength, true, Settings->ModeTolerance);
+			ReferenceValue = PCGExMath::GetMode(EdgeLengths, true, Settings->ModeTolerance);
 			break;
 		case EPCGExMeanMethod::Central:
-			Context->ReferenceValue = MinEdgeLength + (MaxEdgeLength - MinEdgeLength) * 0.5;
+			ReferenceValue = MinEdgeLength + (MaxEdgeLength - MinEdgeLength) * 0.5;
 			break;
 		}
 
-		const double RMin = Settings->bPruneBelowMean ? Context->ReferenceValue - Settings->PruneBelow : 0;
-		const double RMax = Settings->bPruneAboveMean ? Context->ReferenceValue + Settings->PruneAbove : TNumericLimits<double>::Max();
+		const double RMin = Settings->bPruneBelowMean ? ReferenceValue - Settings->PruneBelow : 0;
+		const double RMax = Settings->bPruneAboveMean ? ReferenceValue + Settings->PruneAbove : TNumericLimits<double>::Max();
 
-		Context->ReferenceMin = FMath::Min(RMin, RMax);
-		Context->ReferenceMax = FMath::Max(RMin, RMax);
+		ReferenceMin = FMath::Min(RMin, RMax);
+		ReferenceMax = FMath::Max(RMin, RMax);
 
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
-		Context->SetState(PCGExGraph::State_ProcessingEdges);
+		StartParallelLoopForRange(IndexedEdges.Num());
+
+		return true;
 	}
 
-	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
+	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
 	{
-		auto ProcessEdge = [&](const int32 EdgeIndex)
-		{
-			PCGExGraph::FIndexedEdge& Edge = Context->IndexedEdges[EdgeIndex];
-			Edge.bValid = FMath::IsWithin(Context->EdgeLength[Edge.EdgeIndex], Context->ReferenceMin, Context->ReferenceMax);
-		};
-
-		if (!Context->Process(ProcessEdge, Context->IndexedEdges.Num())) { return false; }
-
-		Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges);
-		Context->GraphBuilder->Compile(Context);
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
+		Edge.bValid = FMath::IsWithin(EdgeLengths[Edge.EdgeIndex], ReferenceMin, ReferenceMax);
 	}
 
-	if (Context->IsState(PCGExGraph::State_WritingClusters))
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration) { ProcessSingleEdge(IndexedEdges[Iteration]); }
+
+	void FProcessor::CompleteWork()
 	{
-		PCGEX_WAIT_ASYNC
-		if (Context->GraphBuilder->bCompiledSuccessfully)
-		{
-			if (Settings->bWriteMean)
-			{
-				Context->GraphBuilder->EdgesIO->ForEach(
-					[&](const PCGExData::FPointIO& PointIO, int32 Index)
-					{
-						PCGExData::WriteMark(PointIO.GetOut()->Metadata, Settings->MeanAttributeName, Context->ReferenceValue);
-					});
-			}
-			Context->GraphBuilder->Write(Context);
-		}
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
+		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
+		for (PCGExGraph::FIndexedEdge& Edge : IndexedEdges) { if (Edge.bValid) { ValidEdges.Add(Edge); } }
 
-	if (Context->IsDone())
-	{
-		Context->OutputPointsAndEdges();
-		Context->ExecutionComplete();
+		GraphBuilder->Graph->InsertEdges(ValidEdges);
 	}
-
-	return Context->IsDone();
 }
-
 #undef LOCTEXT_NAMESPACE

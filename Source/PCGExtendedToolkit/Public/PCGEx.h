@@ -11,113 +11,6 @@
 
 #include "PCGEx.generated.h"
 
-#pragma region MACROS
-
-#define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
-#define FSTRING(_TEXT) FString(_TEXT)
-
-#define PCGEX_DELETE(_VALUE) if(_VALUE){ delete _VALUE; _VALUE = nullptr; }
-#define PCGEX_DELETE_UOBJECT(_VALUE) if(_VALUE){ if (_VALUE->IsRooted()){_VALUE->RemoveFromRoot();} _VALUE->MarkAsGarbage(); _VALUE = nullptr; } // ConditionalBeginDestroy
-#define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
-#define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
-#define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
-#define PCGEX_TRIM(_VALUE) _VALUE.SetNum(_VALUE.Num());
-
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
-enum class EPCGPinStatus : uint8
-{
-	Normal = 0,
-	Required,
-	Advanced
-};
-#endif
-
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
-#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
-MACRO(bool, Boolean, __VA_ARGS__)       \
-MACRO(int32, Integer32, __VA_ARGS__)      \
-MACRO(int64, Integer64, __VA_ARGS__)      \
-MACRO(float, Float, __VA_ARGS__)      \
-MACRO(double, Double, __VA_ARGS__)     \
-MACRO(FVector2D, Vector2, __VA_ARGS__)  \
-MACRO(FVector, Vector, __VA_ARGS__)    \
-MACRO(FVector4, Vector4, __VA_ARGS__)   \
-MACRO(FQuat, Quaternion, __VA_ARGS__)      \
-MACRO(FRotator, Rotator, __VA_ARGS__)   \
-MACRO(FTransform, Transform, __VA_ARGS__) \
-MACRO(FString, String, __VA_ARGS__)    \
-MACRO(FName, Name, __VA_ARGS__)
-#else
-#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
-MACRO(bool, Boolean, __VA_ARGS__)       \
-MACRO(int32, Integer32, __VA_ARGS__)      \
-MACRO(int64, Integer64, __VA_ARGS__)      \
-MACRO(float, Float, __VA_ARGS__)      \
-MACRO(double, Double, __VA_ARGS__)     \
-MACRO(FVector2D, Vector2, __VA_ARGS__)  \
-MACRO(FVector, Vector, __VA_ARGS__)    \
-MACRO(FVector4, Vector4, __VA_ARGS__)   \
-MACRO(FQuat, Quaternion, __VA_ARGS__)      \
-MACRO(FRotator, Rotator, __VA_ARGS__)   \
-MACRO(FTransform, Transform, __VA_ARGS__) \
-MACRO(FString, String, __VA_ARGS__)    \
-MACRO(FName, Name, __VA_ARGS__)\
-MACRO(FSoftObjectPath, SoftObjectPath, __VA_ARGS__)\
-MACRO(FSoftClassPath, SoftClassPath, __VA_ARGS__)
-#endif
-
-/**
- * Enum, Point.[Getter]
- * @param MACRO 
- */
-#define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
-MACRO(EPCGPointProperties::Density, Density) \
-MACRO(EPCGPointProperties::BoundsMin, BoundsMin) \
-MACRO(EPCGPointProperties::BoundsMax, BoundsMax) \
-MACRO(EPCGPointProperties::Extents, GetExtents()) \
-MACRO(EPCGPointProperties::Color, Color) \
-MACRO(EPCGPointProperties::Position, Transform.GetLocation()) \
-MACRO(EPCGPointProperties::Rotation, Transform.Rotator()) \
-MACRO(EPCGPointProperties::Scale, Transform.GetScale3D()) \
-MACRO(EPCGPointProperties::Transform, Transform) \
-MACRO(EPCGPointProperties::Steepness, Steepness) \
-MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter()) \
-MACRO(EPCGPointProperties::Seed, Seed)
-
-#define PCGEX_FOREACH_POINTPROPERTY_LEAN(MACRO)\
-MACRO(Density) \
-MACRO(BoundsMin) \
-MACRO(BoundsMax) \
-MACRO(Color) \
-MACRO(Position) \
-MACRO(Rotation) \
-MACRO(Scale) \
-MACRO(Steepness) \
-MACRO(Seed)
-
-/**
- * Name
- * @param MACRO 
- */
-#define PCGEX_FOREACH_GETSET_POINTPROPERTY(MACRO)\
-MACRO(Density) \
-MACRO(BoundsMin) \
-MACRO(BoundsMax) \
-MACRO(Color) \
-MACRO(Transform) \
-MACRO(Steepness) \
-MACRO(Seed)
-
-#define PCGEX_FOREACH_POINTEXTRAPROPERTY(MACRO)\
-MACRO(EPCGExtraProperties::Index, MetadataEntry)
-
-#define PCGEX_LOAD_SOFTOBJECT(_TYPE, _SOURCE, _TARGET, _DEFAULT)\
-if (!_SOURCE.ToSoftObjectPath().IsValid()) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }\
-else { _TARGET = _SOURCE.LoadSynchronous(); }\
-if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
-
-#pragma endregion
-
 namespace PCGExData
 {
 	struct FPointIO;
@@ -229,7 +122,6 @@ enum class EPCGExSelectorType : uint8
 	Direction UMETA(DisplayName = "Direction", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
 };
 
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Range Type"))
 enum class EPCGExRangeType : uint8
 {
@@ -248,43 +140,16 @@ enum class EPCGExTruncateMode : uint8
 
 namespace PCGEx
 {
+	const FString PCGExPrefix = TEXT("PCGEx/");
 	const FName SourcePointsLabel = TEXT("In");
-	const FName SourceTargetsLabel = TEXT("InTargets");
+	const FName SourceTargetsLabel = TEXT("Targets");
+	const FName SourceBoundsLabel = TEXT("Bounds");
 	const FName OutputPointsLabel = TEXT("Out");
+
+	const FName SourceAdditionalReq = TEXT("AdditionalRequirementsFilters");
 
 	const FName SourcePointFilters = TEXT("PointFilters");
 	const FName SourceUseValueIfFilters = TEXT("UsableValueFilters");
-
-
-	constexpr FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	constexpr FLinearColor NodeColorMisc = FLinearColor(0.958333, 0.961800, 1.000000, 1.000000);
-	constexpr FLinearColor NodeColorMiscWrite = FLinearColor(1.000000, 0.316174, 0.000000, 1.000000);
-	constexpr FLinearColor NodeColorMiscAdd = FLinearColor(0.000000, 1.000000, 0.298310, 1.000000);
-	constexpr FLinearColor NodeColorMiscRemove = FLinearColor(0.05, 0.01, 0.01, 1.000000);
-
-	constexpr FLinearColor NodeColorSampler = FLinearColor(1.000000, 0.000000, 0.147106, 1.000000);
-	constexpr FLinearColor NodeColorSamplerNeighbor = FLinearColor(0.447917, 0.000000, 0.065891, 1.000000);
-
-	constexpr FLinearColor NodeColorGraphGen = FLinearColor(0.000000, 0.318537, 1.000000, 1.000000);
-	constexpr FLinearColor NodeColorGraph = FLinearColor(0.000000, 0.615363, 1.000000, 1.000000);
-	constexpr FLinearColor NodeColorSocket = FLinearColor(0.171875, 0.681472, 1.000000, 1.000000);
-	constexpr FLinearColor NodeColorSocketState = FLinearColor(0.000000, 0.249991, 0.406250, 1.000000);
-
-	constexpr FLinearColor NodeColorPathfinding = FLinearColor(0.000000, 1.000000, 0.670588, 1.000000);
-	constexpr FLinearColor NodeColorHeuristics = FLinearColor(0.243896, 0.578125, 0.371500, 1.000000);
-	constexpr FLinearColor NodeColorHeuristicsAtt = FLinearColor(0.497929, 0.515625, 0.246587, 1.000000);
-	constexpr FLinearColor NodeColorClusterFilter = FLinearColor(0.351486, 0.744792, 0.647392, 1.000000);
-
-	constexpr FLinearColor NodeColorEdge = FLinearColor(0.000000, 0.670117, 0.760417, 1.000000);
-	constexpr FLinearColor NodeColorClusterState = FLinearColor(0.000000, 0.249991, 0.406250, 1.000000);
-	constexpr FLinearColor NodeColorPath = FLinearColor(0.000000, 0.239583, 0.160662, 1.000000);
-
-	constexpr FLinearColor NodeColorFilterHub = FLinearColor(0.226841, 1.000000, 0.000000, 1.000000);
-	constexpr FLinearColor NodeColorFilter = FLinearColor(0.312910, 0.744792, 0.186198, 1.000000);
-
-
-	constexpr FLinearColor NodeColorPrimitives = FLinearColor(35.0f / 255.0f, 253.0f / 255.0f, 113.0f / 255.0f, 1.0f);
-
 
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
 	const FSoftObjectPath WeightDistributionLinearInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Linear_Inv.FC_PCGExWeightDistribution_Linear_Inv"));
@@ -293,11 +158,22 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
 	const FSoftObjectPath SteepnessWeightCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExSteepness_Default.FC_PCGExSteepness_Default"));
 
+	static bool IsPCGExAttribute(const FString& InStr) { return InStr.StartsWith(PCGExPrefix); }
+	static bool IsPCGExAttribute(const FName InName) { return IsPCGExAttribute(InName.ToString()); }
+	static bool IsPCGExAttribute(const FText& InText) { return IsPCGExAttribute(InText.ToString()); }
+
+	static FName MakePCGExAttributeName(const FString& Str0) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}")), FText::FromString(PCGExPrefix), FText::FromString(Str0)).ToString()); }
+	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
+
 	static bool IsValidName(const FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
 
 	static void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum)
 	{
-		OutArray.SetNum(InNum);
+		{
+			const int32 _num_ = InNum;
+			OutArray.Reserve(_num_);
+			OutArray.SetNum(_num_);
+		}
 		for (int i = 0; i < InNum; i++) { OutArray[i] = i; }
 	}
 
@@ -326,6 +202,7 @@ namespace PCGEx
 	// Signed uint64 hash
 	FORCEINLINE static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
 	FORCEINLINE static uint64 NH64(const int32 A, const int32 B) { return H64(A + 1, B + 1); }
+	FORCEINLINE static uint64 NH64U(const int32 A, const int32 B) { return H64U(A + 1, B + 1); }
 
 	// Expand uint64 hash
 	FORCEINLINE static uint32 H64A(const uint64 Hash) { return static_cast<uint32>(Hash >> 32); }
@@ -386,6 +263,27 @@ namespace PCGEx
 	}
 
 	FORCEINLINE static uint64 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
+
+	FORCEINLINE static uint32 GH(const FInt64Vector3& Seed) { return GetTypeHash(Seed); }
+
+	FORCEINLINE static uint32 GH(const FVector& Seed, const FInt64Vector3& Tolerance)
+	{
+		return GetTypeHash(
+			FInt64Vector3(
+				FMath::FloorToInt64(Seed.X * Tolerance.X),
+				FMath::FloorToInt64(Seed.Y * Tolerance.Y),
+				FMath::FloorToInt64(Seed.Z * Tolerance.Z)));
+	}
+
+	FORCEINLINE static uint32 GH(const FVector& Seed, const FVector& Tolerance)
+	{
+		return GetTypeHash(
+			FInt64Vector3(
+				FMath::FloorToInt64(Seed.X * Tolerance.X),
+				FMath::FloorToInt64(Seed.Y * Tolerance.Y),
+				FMath::FloorToInt64(Seed.Z * Tolerance.Z)));
+	}
+
 
 #pragma region Field Helpers
 
@@ -539,7 +437,7 @@ namespace PCGEx
 		const FPCGPoint* Point = nullptr;
 		const int32 Index = -1;
 
-		FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
+		FORCEINLINE FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
 	};
 
 	static UWorld* GetWorld(const FPCGContext* Context)
@@ -555,4 +453,95 @@ namespace PCGEx
 		T* Ptr2 = &Array[SecondIndex];
 		std::swap(*Ptr1, *Ptr2);
 	}
+
+	static void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes)
+	{
+		TArray<int32> InIndicesCopy = InIndices;
+		InIndicesCopy.Sort();
+
+		int32 StartIndex = InIndicesCopy[0];
+		int32 LastIndex = StartIndex;
+		int32 Count = 1;
+
+		for (int i = 1; i < InIndicesCopy.Num(); i++)
+		{
+			const int32 NextIndex = InIndicesCopy[i];
+			if (NextIndex == (LastIndex + 1))
+			{
+				Count++;
+				LastIndex = NextIndex;
+				continue;
+			}
+
+			OutScopes.Emplace(H64(StartIndex, Count));
+			LastIndex = StartIndex = NextIndex;
+			Count = 0;
+		}
+
+		OutScopes.Emplace(H64(StartIndex, Count));
+	}
+
+	template <typename T>
+	static bool SameSet(const TSet<T>& A, const TSet<T>& B)
+	{
+		if (A.Num() != B.Num()) { return false; }
+		for (const T& Entry : A) { if (!B.Contains(Entry)) { return false; } }
+		return true;
+	}
+
+#pragma region Metadata Type
+
+	template <typename T, typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const T Dummy) { return EPCGMetadataTypes::Unknown; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const bool Dummy) { return EPCGMetadataTypes::Boolean; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const int32 Dummy) { return EPCGMetadataTypes::Integer32; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const int64 Dummy) { return EPCGMetadataTypes::Integer64; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const float Dummy) { return EPCGMetadataTypes::Float; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const double Dummy) { return EPCGMetadataTypes::Double; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FVector2D Dummy) { return EPCGMetadataTypes::Vector2; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FVector Dummy) { return EPCGMetadataTypes::Vector; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FVector4 Dummy) { return EPCGMetadataTypes::Vector4; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FQuat Dummy) { return EPCGMetadataTypes::Quaternion; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FRotator Dummy) { return EPCGMetadataTypes::Rotator; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FTransform Dummy) { return EPCGMetadataTypes::Transform; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FString Dummy) { return EPCGMetadataTypes::String; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FName Dummy) { return EPCGMetadataTypes::Name; }
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FSoftClassPath Dummy) { return EPCGMetadataTypes::Unknown; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FSoftObjectPath Dummy) { return EPCGMetadataTypes::Unknown; }
+
+#endif
+
+#pragma endregion
 }

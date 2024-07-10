@@ -10,6 +10,7 @@
 #include "PCGExSortPoints.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
 
 #include "PCGExDiscardByOverlap.generated.h"
 
@@ -37,61 +38,10 @@ enum class EPCGExExpandPointsBoundsMode : uint8
 
 namespace PCGExDiscardByOverlap
 {
-	constexpr PCGExMT::AsyncState State_InitialOverlap = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_PreciseOverlap = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_ProcessFastOverlap = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_ProcessPreciseOverlap = __COUNTER__;
-
-	static void SortOverlapCount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
-	                             const EPCGExSortDirection Order)
-	{
-		IOBounds.Sort(
-			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
-			{
-				const bool bEqual = A.Overlaps.Num() == B.Overlaps.Num();
-				return Order == EPCGExSortDirection::Ascending ?
-					       bEqual ? A.FastOverlapAmount < B.FastOverlapAmount : A.Overlaps.Num() < B.Overlaps.Num() :
-					       bEqual ? A.FastOverlapAmount > B.FastOverlapAmount : A.Overlaps.Num() > B.Overlaps.Num();
-			});
-	}
-
-	static void SortFastAmount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
-	                           const EPCGExSortDirection Order)
-	{
-		IOBounds.Sort(
-			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
-			{
-				const bool bEqual = A.FastOverlapAmount == B.FastOverlapAmount;
-				return Order == EPCGExSortDirection::Ascending ?
-					       bEqual ? A.Overlaps.Num() < B.Overlaps.Num() : A.FastOverlapAmount < B.FastOverlapAmount :
-					       bEqual ? A.Overlaps.Num() > B.Overlaps.Num() : A.FastOverlapAmount > B.FastOverlapAmount;
-			});
-	}
-
-	static void SortPreciseCount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
-	                             const EPCGExSortDirection Order)
-	{
-		IOBounds.Sort(
-			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
-			{
-				const bool bEqual = A.TotalPreciseOverlapCount == B.TotalPreciseOverlapCount;
-				return Order == EPCGExSortDirection::Ascending ?
-					       bEqual ? A.TotalPreciseOverlapAmount < B.TotalPreciseOverlapAmount : A.TotalPreciseOverlapCount < B.TotalPreciseOverlapCount :
-					       bEqual ? A.TotalPreciseOverlapAmount > B.TotalPreciseOverlapAmount : A.TotalPreciseOverlapCount > B.TotalPreciseOverlapCount;
-			});
-	}
-
-	static void SortPreciseAmount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds, const EPCGExSortDirection Order)
-	{
-		IOBounds.Sort(
-			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
-			{
-				const bool bEqual = A.TotalPreciseOverlapAmount == B.TotalPreciseOverlapAmount;
-				return Order == EPCGExSortDirection::Ascending ?
-					       bEqual ? A.TotalPreciseOverlapCount < B.TotalPreciseOverlapCount : A.TotalPreciseOverlapAmount < B.TotalPreciseOverlapAmount :
-					       bEqual ? A.TotalPreciseOverlapCount > B.TotalPreciseOverlapCount : A.TotalPreciseOverlapAmount > B.TotalPreciseOverlapAmount;
-			});
-	}
+	PCGEX_ASYNC_STATE(State_InitialOverlap)
+	PCGEX_ASYNC_STATE(State_PreciseOverlap)
+	PCGEX_ASYNC_STATE(State_ProcessFastOverlap)
+	PCGEX_ASYNC_STATE(State_ProcessPreciseOverlap)
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -100,17 +50,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDiscardByOverlapSettings : public UPCGExPoint
 	GENERATED_BODY()
 
 public:
-	UPCGExDiscardByOverlapSettings(const FObjectInitializer& ObjectInitializer);
-
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DiscardByOverlap, "Discard By Overlap", "Discard entire datasets based on how they overlap with each other.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscRemove; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscRemove; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UObject interface
 #if WITH_EDITOR
@@ -120,10 +68,10 @@ public:
 #endif
 	//~End UObject interface
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Overlap overlap test mode */
@@ -132,7 +80,7 @@ public:
 
 	/** Point bounds to be used to compute overlaps */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
 	/** Pruning order & prioritization */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -166,7 +114,7 @@ private:
 	friend class FPCGExDiscardByOverlapElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExDiscardByOverlapElement;
 	virtual ~FPCGExDiscardByOverlapContext() override;
@@ -177,7 +125,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext : public FPCGExPoint
 	static void RemoveFBounds(const PCGExPointsToBounds::FBounds* Bounds, TArray<PCGExPointsToBounds::FBounds*>& OutAffectedBounds);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
@@ -189,17 +137,17 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExComputePreciseOverlap : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExComputePreciseOverlap final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExComputePreciseOverlap(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExComputePreciseOverlap(PCGExData::FPointIO* InPointIO,
 	                            const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExTask(InPointIO),
 		BoundsSource(InBoundsSource), Bounds(InBounds)
 	{
 	}
 
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 	PCGExPointsToBounds::FBounds* Bounds = nullptr;
 
 	virtual bool ExecuteTask() override;

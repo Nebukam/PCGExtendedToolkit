@@ -12,6 +12,8 @@
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 
+class UPCGExVtxPropertyOperation;
+
 namespace PCGExHeuristics
 {
 	class THeuristicsHandler;
@@ -43,11 +45,14 @@ enum class EPCGExGrowthUpdateMode : uint8
 	AddEachIteration UMETA(DisplayName = "Add Each Iteration", ToolTip="Add to the remaning number of iterations after each iteration."),
 };
 
-namespace PCGExGrow
+namespace PCGExGrowPaths
 {
+	class FProcessor;
+
 	class PCGEXTENDEDTOOLKIT_API FGrowth
 	{
 	public:
+		const FProcessor* Processor = nullptr;
 		const FPCGExPathfindingGrowPathsContext* Context = nullptr;
 		const UPCGExPathfindingGrowPathsSettings* Settings = nullptr;
 		const PCGExCluster::FNode* SeedNode = nullptr;
@@ -68,22 +73,11 @@ namespace PCGExGrow
 		TArray<int32> Path;
 
 		FGrowth(
-			const FPCGExPathfindingGrowPathsContext* InContext,
+			const FProcessor* InProcessor,
 			const UPCGExPathfindingGrowPathsSettings* InSettings,
 			const int32 InMaxIterations,
 			const int32 InLastGrowthIndex,
-			const FVector& InGrowthDirection) :
-			Context(InContext),
-			Settings(InSettings),
-			MaxIterations(InMaxIterations),
-			LastGrowthIndex(InLastGrowthIndex),
-			GrowthDirection(InGrowthDirection)
-		{
-			SoftMaxIterations = InMaxIterations;
-			Path.Reserve(MaxIterations);
-			Path.Add(InLastGrowthIndex);
-			Init();
-		}
+			const FVector& InGrowthDirection);
 
 		int32 FindNextGrowthNodeIndex();
 		bool Grow(); // return false if too far or couldn't connect for [reasons]
@@ -116,23 +110,20 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingGrowPathsSettings : public UPCGExE
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingGrowPaths, "Pathfinding : Grow Paths", "Grow paths from seeds.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPathfinding; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UObject interface
 public:
-	virtual void PostInitProperties() override;
-
 #if WITH_EDITOR
 
 public:
@@ -149,7 +140,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthValueSource NumIterations = EPCGExGrowthValueSource::Constant;
 
-	/** Num iteration attribute name. (will be broadcasted to int32) */
+	/** Num iteration attribute name. (will be translated to int32) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="NumIterations != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector NumIterationsAttribute;
 
@@ -168,13 +159,13 @@ public:
 
 	/** How the NumBranches value is to be interpreted against the actual number of neighbors. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
-	EPCGExMeanMeasure SeedNumBranchesMean = EPCGExMeanMeasure::Absolute;
+	EPCGExMeanMeasure SeedNumBranchesMean = EPCGExMeanMeasure::Discrete;
 
 	/** Num branches constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	int32 NumBranchesConstant = 1;
 
-	/** Num branches attribute name. (will be broadcasted to int32) */
+	/** Num branches attribute name. (will be translated to int32) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector NumBranchesAttribute;
 
@@ -183,7 +174,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthValueSource GrowthDirection = EPCGExGrowthValueSource::Constant;
 
-	/** Growth direction attribute name. (will be broadcasted to a FVector) */
+	/** Growth direction attribute name. (will be translated to a FVector) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthDirection != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector GrowthDirectionAttribute;
 
@@ -200,7 +191,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthValueSource GrowthMaxDistance = EPCGExGrowthValueSource::Constant;
 
-	/** Max growth distance attribute name. (will be broadcasted to a FVector) */
+	/** Max growth distance attribute name. (will be translated to a FVector) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthMaxDistance != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector GrowthMaxDistanceAttribute;
 
@@ -234,23 +225,19 @@ public:
 
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Heuristics", meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings SeedPicking = FPCGExNodeSelectionSettings(200);
+	FPCGExNodeSelectionDetails SeedPicking = FPCGExNodeSelectionDetails(200);
 
 	/** Visited weight threshold over which the growth is stopped if that's the only available option. -1 ignores.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
 	double VisitedStopThreshold = -1;
 
-	/** Use a Seed attribute value to tag output paths. */
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	bool bUseSeedAttributeToTagPath;
-
-	/** Which Seed attribute to use as tag. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseSeedAttributeToTagPath"))
-	FPCGAttributePropertyInputSelector SeedTagAttribute;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardSettings SeedForwardAttributes;
+	FPCGExForwardDetails SeedForwardAttributes;
 
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
@@ -262,36 +249,26 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingGrowPathsElement;
 
 	virtual ~FPCGExPathfindingGrowPathsContext() override;
 
-	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
-	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
+	PCGExData::FFacade* SeedsDataFacade = nullptr;
 
-	PCGEx::FLocalSingleFieldGetter* NumBranchesGetter = nullptr;
-	PCGEx::FLocalSingleFieldGetter* NumIterationsGetter = nullptr;
-	PCGEx::FLocalVectorGetter* GrowthDirectionGetter = nullptr;
-	PCGEx::FLocalSingleFieldGetter* GrowthMaxDistanceGetter = nullptr;
+	PCGExData::FCache<int32>* NumIterations = nullptr;
+	PCGExData::FCache<int32>* NumBranches = nullptr;
+	PCGExData::FCache<FVector>* GrowthDirection = nullptr;
+	PCGExData::FCache<double>* GrowthMaxDistance = nullptr;
 
-
-	PCGEx::FLocalBoolGetter* GrowthStopGetter = nullptr;
-	PCGEx::FLocalBoolGetter* NoGrowthGetter = nullptr;
-
-	int32 CurrentPlotIndex = -1;
-
-	TArray<PCGExGrow::FGrowth*> Growths;
-	TArray<PCGExGrow::FGrowth*> QueuedGrowths;
-
-	PCGEx::FLocalToStringGetter* TagValueGetter = nullptr;
-	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
+	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -303,3 +280,51 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExGrowPaths
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		friend class FGrowth;
+		friend class FProcessorBatch;
+
+		PCGExData::FCache<int32>* NumIterations = nullptr;
+		PCGExData::FCache<int32>* NumBranches = nullptr;
+		PCGExData::FCache<FVector>* GrowthDirection = nullptr;
+		PCGExData::FCache<double>* GrowthMaxDistance = nullptr;
+
+		PCGExData::FCache<bool>* GrowthStop = nullptr;
+		PCGExData::FCache<bool>* NoGrowth = nullptr;
+
+	public:
+		TArray<FGrowth*> Growths;
+		TArray<FGrowth*> QueuedGrowths;
+
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+		}
+
+		virtual ~FProcessor() override
+		{
+			Growths.Empty();
+			QueuedGrowths.Empty();
+		}
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+		void Grow();
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FGrowTask final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FGrowTask(PCGExData::FPointIO* InPointIO, FProcessor* InProcessor) :
+			FPCGExTask(InPointIO), Processor(InProcessor)
+		{
+		}
+
+		FProcessor* Processor = nullptr;
+		virtual bool ExecuteTask() override;
+	};
+}

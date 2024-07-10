@@ -8,64 +8,53 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristicAttribute"
 #define PCGEX_NAMESPACE CreateHeuristicAttribute
 
-void UPCGExHeuristicAttribute::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
 {
 	Super::PrepareForCluster(InCluster);
 
-	PCGExData::FPointIO& InPoints = Source == EPCGExGraphValueSource::Point ? *InCluster->PointsIO : *InCluster->EdgesIO;
+	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
+	PCGExData::FFacade* DataFacade = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
-	if (LastPoints == &InPoints) { return; }
+	if (LastPoints == InPoints) { return; }
 
-	const int32 NumPoints = InPoints.GetNum();
+	const int32 NumPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->Nodes->Num() : InPoints->GetNum();
 
-	LastPoints = &InPoints;
-	InPoints.CreateInKeys();
+	LastPoints = InPoints;
+	InPoints->CreateInKeys();
 	CachedScores.SetNumZeroed(NumPoints);
 
-	PCGEx::FLocalSingleFieldGetter* ModifierGetter = new PCGEx::FLocalSingleFieldGetter();
-	ModifierGetter->Capture(Attribute);
+	PCGExData::FCache<double>* ModifiersCache = DataFacade->GetOrCreateGetter<double>(Attribute, true);
 
-	const bool bModifierGrabbed = ModifierGetter->Grab(InPoints, true);
-	if (!bModifierGrabbed || !ModifierGetter->bValid || !ModifierGetter->bEnabled)
+	if (!ModifiersCache)
 	{
-		PCGEX_DELETE(ModifierGetter)
 		PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Invalid Heuristic attribute: {0}."), FText::FromName(Attribute.GetName())));
 		return;
 	}
 
-	const double MinValue = ModifierGetter->Min;
-	const double MaxValue = ModifierGetter->Max;
+	const double MinValue = ModifiersCache->Min;
+	const double MaxValue = ModifiersCache->Max;
 
 	const double OutMin = bInvert ? 1 : 0;
 	const double OutMax = bInvert ? 0 : 1;
 
 	const double Factor = ReferenceWeight * WeightFactor;
 
-	for (int i = 0; i < NumPoints; i++)
+	if (Source == EPCGExGraphValueSource::Vtx)
 	{
-		const double NormalizedValue = PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, OutMin, OutMax);
-		CachedScores[i] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
+		for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
+		{
+			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Values[Node.PointIndex], MinValue, MaxValue, OutMin, OutMax);
+			CachedScores[Node.NodeIndex] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
+		}
 	}
-
-	PCGEX_DELETE(ModifierGetter)
-}
-
-double UPCGExHeuristicAttribute::GetGlobalScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	return 0;
-}
-
-double UPCGExHeuristicAttribute::GetEdgeScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FIndexedEdge& Edge,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal) const
-{
-	return CachedScores[Source == EPCGExGraphValueSource::Edge ? Edge.PointIndex : To.PointIndex];
+	else
+	{
+		for (int i = 0; i < NumPoints; i++)
+		{
+			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Values[i], MinValue, MaxValue, OutMin, OutMax);
+			CachedScores[i] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
+		}
+	}
 }
 
 void UPCGExHeuristicAttribute::Cleanup()
@@ -77,8 +66,8 @@ void UPCGExHeuristicAttribute::Cleanup()
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryAttribute::CreateOperation() const
 {
 	UPCGExHeuristicAttribute* NewOperation = NewObject<UPCGExHeuristicAttribute>();
-	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
-	NewOperation->Attribute = Descriptor.Attribute;
+	PCGEX_FORWARD_HEURISTIC_CONFIG
+	NewOperation->Attribute = Config.Attribute;
 	return NewOperation;
 }
 
@@ -92,9 +81,9 @@ UPCGExParamFactoryBase* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FP
 #if WITH_EDITOR
 FString UPCGExCreateHeuristicAttributeSettings::GetDisplayName() const
 {
-	return Descriptor.Attribute.GetName().ToString()
+	return Config.Attribute.GetName().ToString()
 		+ TEXT(" @ ")
-		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.WeightFactor) / 1000.0));
 }
 #endif
 

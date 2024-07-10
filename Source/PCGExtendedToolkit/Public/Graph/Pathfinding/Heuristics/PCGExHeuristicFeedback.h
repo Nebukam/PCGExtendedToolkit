@@ -12,12 +12,12 @@
 #include "PCGExHeuristicFeedback.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorFeedback : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorFeedback() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicConfigFeedback() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 
@@ -52,22 +52,42 @@ public:
 	double NodeScale = 1;
 	double EdgeScale = 1;
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return NodeExtraWeight[From.NodeIndex];
+	}
 
 	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		const double* NodePtr = NodeExtraWeight.Find(To.NodeIndex);
+		const double* EdgePtr = EdgeExtraWeight.Find(Edge.EdgeIndex);
 
-	FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node);
-	FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
+		return ((NodePtr ? SampleCurve(*NodePtr / MaxNodeWeight) * ReferenceWeight : 0) + (EdgePtr ? SampleCurve(*EdgePtr / MaxEdgeWeight) * ReferenceWeight : 0));
+	}
+
+	FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node)
+	{
+		double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
+		MaxNodeWeight = FMath::Max(MaxNodeWeight, NodeWeight += ReferenceWeight * NodeScale);
+	}
+
+	FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge)
+	{
+		double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
+		double& EdgeWeight = NodeExtraWeight.FindOrAdd(Edge.EdgeIndex);
+		MaxNodeWeight = FMath::Max(MaxNodeWeight, NodeWeight += ReferenceWeight * NodeScale);
+		MaxEdgeWeight = FMath::Max(MaxEdgeWeight, EdgeWeight += ReferenceWeight * EdgeScale);
+	}
 
 	virtual void Cleanup() override;
 };
@@ -75,14 +95,14 @@ public:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryFeedback : public UPCGHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryFeedback : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	virtual bool IsGlobal() const { return Descriptor.bGlobalFeedback; }
+	virtual bool IsGlobal() const { return Config.bGlobalFeedback; }
 
-	FPCGExHeuristicDescriptorFeedback Descriptor;
+	FPCGExHeuristicConfigFeedback Config;
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
@@ -92,7 +112,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicFeedbackProviderSettings : public UP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsFeedback, "Heuristics : Feedback", "Heuristics based on visited score feedback.",
@@ -100,9 +120,9 @@ public:
 #endif
 	//~End UPCGSettings
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicDescriptorFeedback Descriptor;
+	FPCGExHeuristicConfigFeedback Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

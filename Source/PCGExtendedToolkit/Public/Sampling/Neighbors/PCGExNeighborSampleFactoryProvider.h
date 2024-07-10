@@ -10,15 +10,22 @@
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
+#include "PCGExOperation.h"
+#include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
 
 /// 
 #define PCGEX_SAMPLER_CREATE\
-	NewOperation->BaseSettings = SamplingSettings;\
-	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewOperation->BaseSettings.WeightCurve, NewOperation->WeightCurveObj, PCGEx::WeightDistributionLinear)\
-	if (!FilterFactories.IsEmpty()) { NewOperation->PointState = new PCGExCluster::FNodeStateHandler(this); }\
-	if (ValueStateFactory) { NewOperation->ValueState = new PCGExCluster::FNodeStateHandler(ValueStateFactory); }
+	NewOperation->SamplingConfig = SamplingConfig; \
+	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewOperation->SamplingConfig.WeightCurve, NewOperation->WeightCurveObj, PCGEx::WeightDistributionLinear) \
+	NewOperation->PointFilterFactories.Append(PointFilterFactories); \
+	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
+
+namespace PCGExDataBlending
+{
+	class FMetadataBlender;
+}
 
 namespace PCGExNeighborSample
 {
@@ -27,20 +34,20 @@ namespace PCGExNeighborSample
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSamplingSettings : public FPCGExDistanceSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSamplingDetails : public FPCGExDistanceDetails
 {
 	GENERATED_BODY()
 
-	FPCGExDistanceSamplingSettings()
+	FPCGExDistanceSamplingDetails()
 	{
 	}
 
-	explicit FPCGExDistanceSamplingSettings(const double InMaxDistance):
+	explicit FPCGExDistanceSamplingDetails(const double InMaxDistance):
 		MaxDistance(InMaxDistance)
 	{
 	}
 
-	~FPCGExDistanceSamplingSettings()
+	~FPCGExDistanceSamplingDetails()
 	{
 	}
 
@@ -63,11 +70,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSamplingSettings : public FPCGExDist
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSamplingSettings():
+	FPCGExSamplingConfig():
 		WeightCurve(PCGEx::WeightDistributionLinear)
 	{
 	}
@@ -98,7 +105,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingSettings
 
 	/** Which type of neighbor to sample */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExGraphValueSource NeighborSource = EPCGExGraphValueSource::Point;
+	EPCGExGraphValueSource NeighborSource = EPCGExGraphValueSource::Vtx;
 };
 
 
@@ -111,48 +118,68 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleOperation : public UPCGExOperat
 	GENERATED_BODY()
 
 public:
-	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+	PCGExClusterFilter::TManager* PointFilters = nullptr;
+	PCGExClusterFilter::TManager* ValueFilters = nullptr;
 
-	PCGExCluster::FNodeStateHandler* PointState = nullptr;
-	PCGExCluster::FNodeStateHandler* ValueState = nullptr;
+	PCGExData::FFacade* VtxDataFacade = nullptr;
+	PCGExData::FFacade* EdgeDataFacade = nullptr;
 
-	FPCGExSamplingSettings BaseSettings;
+	FPCGExSamplingConfig SamplingConfig;
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
 
-	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster);
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+
+	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
-	PCGExData::FPointIO& GetSourceIO() const;
+	PCGExData::FPointIO* GetSourceIO() const;
+	PCGExData::FFacade* GetSourceDataFacade() const;
 
-	FORCEINLINE virtual void ProcessNodeForPoints(const int32 InNodeIndex) const;
-	FORCEINLINE virtual void ProcessNodeForEdges(const int32 InNodeIndex) const;
+	virtual void ProcessNode(const int32 NodeIndex) const;
 
-	FORCEINLINE virtual void PrepareNode(PCGExCluster::FNode& TargetNode) const;
-	FORCEINLINE virtual void BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const;
-	FORCEINLINE virtual void BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const;
-	FORCEINLINE virtual void FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const;
+	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const
+	{
+	}
+
+	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
+	{
+	}
+
+	FORCEINLINE virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const
+	{
+	}
+
+	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
+	{
+	}
 
 	virtual void FinalizeOperation();
 
 	virtual void Cleanup() override;
 
+	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
+	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
+
 protected:
 	bool bIsValidOperation = true;
 	PCGExCluster::FCluster* Cluster = nullptr;
 
-	FORCEINLINE virtual double SampleCurve(const double InTime) const;
+	FORCEINLINE virtual double SampleCurve(const double InTime) const { return WeightCurveObj->GetFloatValue(InTime); }
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGNeighborSamplerFactoryBase : public UPCGExNodeStateFactory
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Sampler; }
 
-	FPCGExSamplingSettings SamplingSettings;
-	UPCGExNodeStateFactory* ValueStateFactory = nullptr;
+	FPCGExSamplingConfig SamplingConfig;
+
+	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
+	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
+
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const;
 };
 
@@ -162,24 +189,27 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProviderSettings : public UPCGE
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NeighborSamplerAttribute, "Sampler : Abstract", "Abstract sampler settings.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSamplerNeighbor; }
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
 #endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
+	//~Begin UPCGExFactoryProviderSettings
 public:
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainOutputLabel() const override { return PCGExNeighborSample::OutputSamplerLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+	//~End UPCGExFactoryProviderSettings
 
 	/** Priority for sampling order. Higher values are processed last. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
@@ -187,5 +217,5 @@ public:
 
 	/** Priority for sampling order. Higher values are processed last. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ShowOnlyInnerProperties))
-	FPCGExSamplingSettings SamplingSettings;
+	FPCGExSamplingConfig SamplingConfig;
 };

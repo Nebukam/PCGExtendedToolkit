@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExMakeClustersUnique.h"
 
-#include "Data/PCGExGraphDefinition.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -42,21 +41,19 @@ bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) co
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	while (Context->AdvancePointsIO())
+	while (Context->AdvancePointsIO(false))
 	{
 		FString OutId;
-		Context->CurrentIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Context->GetCurrentOut()->UID, OutId);
+		PCGExGraph::SetClusterVtx(Context->CurrentIO, OutId);
 
 		if (!Context->TaggedEdges) { continue; }
 
-		for (const PCGExData::FPointIO* Entry : Context->TaggedEdges->Entries) { Entry->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId); }
+		PCGExGraph::MarkClusterEdges(Context->TaggedEdges->Entries, OutId);
 	}
 
 	Context->OutputPointsAndEdges();
-	Context->Done();
-	Context->ExecutionComplete();
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

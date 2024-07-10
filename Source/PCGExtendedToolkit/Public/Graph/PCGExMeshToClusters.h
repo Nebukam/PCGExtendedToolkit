@@ -4,8 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPointsProcessor.h"
 
-#include "PCGExCustomGraphProcessor.h"
+
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoMesh.h"
 
@@ -40,7 +41,7 @@ enum class EPCGExMeshAttributeHandling : uint8
 };
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExMeshToClustersSettings : public UPCGExPointsProcessorSettings
@@ -48,31 +49,30 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeshToClustersSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MeshToClusters, "Graph : Mesh To Clusters", "Creates clusters from mesh topology.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraphGen; }
+	PCGEX_NODE_INFOS(MeshToClusters, "Mesh to Clusters", "Creates clusters from mesh topology.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
-	virtual bool GetMainAcceptMultipleData() const override;
+	virtual FName GetMainInputLabel() const override { return PCGEx::SourceTargetsLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
+	virtual bool GetMainAcceptMultipleData() const override { return false; }
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
-	
 	/** Triangulation type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTriangulationType GraphOutputType = EPCGExTriangulationType::Raw;
-	
+
 	/** Mesh source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExFetchType StaticMeshSource = EPCGExFetchType::Constant;
@@ -84,33 +84,33 @@ public:
 	/** Static mesh path attribute -- Either FString, FName or FSoftObjectPath*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))
 	FName StaticMeshAttribute;
-	
+
 	/** Static mesh path attribute type*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))
 	EPCGExMeshAttributeHandling AttributeHandling;
 
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExTransformSettings TransformSettings;
-	
+	FPCGExTransformDetails TransformDetails;
+
 	/** Skip invalid meshes & do not throw warning about them. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bIgnoreMeshWarnings = false;
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, DisplayName="Graph Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 private:
 	friend class FPCGExMeshToClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMeshToClustersElement;
 
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	FPCGExTransformSettings TransformSettings;
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
+	FPCGExTransformDetails TransformDetails;
 
 	PCGExGeo::FGeoStaticMeshMap* StaticMeshMap = nullptr;
 	TArray<int32> MeshIdx;
@@ -118,17 +118,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext : public FPCGExPointsP
 	PCGExData::FPointIOCollection* RootVtx = nullptr;
 	PCGExData::FPointIOCollection* VtxChildCollection = nullptr;
 	PCGExData::FPointIOCollection* EdgeChildCollection = nullptr;
-	
 
 	TArray<PCGExGraph::FGraphBuilder*> GraphBuilders;
-
-	FPCGExGraphBuilderSettings BuilderSettings;
 
 	virtual ~FPCGExMeshToClustersContext() override;
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -143,13 +140,13 @@ protected:
 
 namespace PCGExMeshToCluster
 {
-	class PCGEXTENDEDTOOLKIT_API FExtractMeshAndBuildGraph : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FExtractMeshAndBuildGraph(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+			PCGExData::FPointIO* InPointIO,
 			PCGExGeo::FGeoStaticMesh* InMesh) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExTask(InPointIO),
 			Mesh(InMesh)
 		{
 		}

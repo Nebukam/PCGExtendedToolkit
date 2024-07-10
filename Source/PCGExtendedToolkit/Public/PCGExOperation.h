@@ -4,14 +4,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "UObject/Object.h"
+
+#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
+
 #include "PCGExOperation.generated.h"
 
 #define PCGEX_OVERRIDE_OP_PROPERTY(_ACCESSOR, _NAME, _TYPE) _ACCESSOR = this->GetOverrideValue(_NAME, _ACCESSOR, _TYPE);
 
+namespace PCGExMT
+{
+	class FTaskManager;
+}
+
 class FPCGMetadataAttributeBase;
-struct FPCGExPointsProcessorContext;
 /**
  * 
  */
@@ -21,19 +28,40 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject
 	GENERATED_BODY()
 	//~Begin UPCGExOperation interface
 public:
-	void BindContext(FPCGExPointsProcessorContext* InContext);
+	void BindContext(FPCGContext* InContext);
 
 #if WITH_EDITOR
 	virtual void UpdateUserFacingInfos();
 #endif
 
 	virtual void Cleanup();
-	virtual void Write();
+	virtual void CopySettingsFrom(const UPCGExOperation* Other);
+
+	PCGExData::FFacade* PrimaryDataFacade = nullptr;
+	PCGExData::FFacade* SecondaryDataFacade = nullptr;
+
+	template <typename T>
+	T* CopyOperation() const
+	{
+		UObject* GenericInstance = NewObject<UObject>(this->GetOuter(), this->GetClass());
+		T* TypedInstance = Cast<T>(GenericInstance);
+
+		if (!TypedInstance)
+		{
+			UPCGExOperation* Operation = Cast<UPCGExOperation>(GenericInstance);
+			if (Operation) { PCGEX_DELETE_OPERATION(Operation) }
+			else { PCGEX_DELETE_UOBJECT(GenericInstance) }
+			return nullptr;
+		}
+
+		TypedInstance->CopySettingsFrom(this);
+		return TypedInstance;
+	}
 
 	virtual void BeginDestroy() override;
 
 protected:
-	FPCGExPointsProcessorContext* Context = nullptr;
+	FPCGContext* Context = nullptr;
 	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
 
 	virtual void ApplyOverrides();

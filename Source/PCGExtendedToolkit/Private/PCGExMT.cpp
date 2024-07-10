@@ -4,38 +4,62 @@
 
 #include "PCGExMT.h"
 
-FPCGExAsyncManager::~FPCGExAsyncManager()
+namespace PCGExMT
 {
-	bStopped = true;
-	Reset();
-}
-
-void FPCGExAsyncManager::OnAsyncTaskExecutionComplete(FPCGExNonAbandonableTask* AsyncTask, bool bSuccess)
-{
-	if (bFlushing) { return; }
-	FWriteScopeLock WriteLock(ManagerLock);
-	NumCompleted++;
-}
-
-bool FPCGExAsyncManager::IsAsyncWorkComplete() const
-{
-	FReadScopeLock ReadLock(ManagerLock);
-	return NumCompleted == NumStarted;
-}
-
-void FPCGExAsyncManager::Reset()
-{
-	FWriteScopeLock WriteLock(ManagerLock);
-
-	bFlushing = true;
-	for (FAsyncTaskBase* Task : QueuedTasks)
+	FTaskManager::~FTaskManager()
 	{
-		if (Task && !Task->Cancel()) { Task->EnsureCompletion(); }
-		delete Task;
+		bStopped = true;
+		PCGEX_DELETE_TARRAY(Groups)
+		Reset();
 	}
-	bFlushing = false;
 
-	QueuedTasks.Empty();
-	NumStarted = 0;
-	NumCompleted = 0;
+	FTaskGroup* FTaskManager::CreateGroup()
+	{
+		FWriteScopeLock WriteScopeLock(ManagerLock);
+		FTaskGroup* NewGroup = new FTaskGroup(this);
+		Groups.Add(NewGroup);
+		return NewGroup;
+	}
+
+	void FTaskManager::OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess)
+	{
+		if (bFlushing) { return; }
+		FWriteScopeLock WriteLock(ManagerLock);
+		NumCompleted++;
+	}
+
+	bool FTaskManager::IsAsyncWorkComplete() const
+	{
+		FReadScopeLock ReadLock(ManagerLock);
+		return NumCompleted == NumStarted;
+	}
+
+	void FTaskManager::Reset()
+	{
+		FWriteScopeLock WriteLock(ManagerLock);
+
+		bFlushing = true;
+		for (FAsyncTaskBase* Task : QueuedTasks)
+		{
+			if (Task && !Task->Cancel()) { Task->EnsureCompletion(); }
+			delete Task;
+		}
+		bFlushing = false;
+
+		QueuedTasks.Empty();
+		NumStarted = 0;
+		NumCompleted = 0;
+	}
+
+	void FTaskGroup::StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize)
+	{
+		OnIterationCallback = Callback;
+		StartRanges<FGroupRangeIterationTask>(MaxItems, ChunkSize, nullptr);
+	}
+
+	bool FGroupRangeIterationTask::ExecuteTask()
+	{
+		for (int i = 0; i < NumIterations; i++) { Group->OnIterationCallback(TaskIndex + i); }
+		return true;
+	}
 }

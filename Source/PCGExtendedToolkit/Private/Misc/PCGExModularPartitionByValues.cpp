@@ -9,21 +9,16 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-PCGExFactories::EType UPCGExPartitionRule::GetFactoryType() const { return PCGExFactories::EType::PartitionRule; }
-
-FName UPCGExPartitionRuleProviderSettings::GetMainOutputLabel() const { return FName(TEXT("PartitionRule")); }
-
 UPCGExParamFactoryBase* UPCGExPartitionRuleProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExPartitionRule* NewFactory = NewObject<UPCGExPartitionRule>();
-	NewFactory->Descriptor = Descriptor;
+	NewFactory->Config = Config;
 	return NewFactory;
 }
 
-FString UPCGExPartitionRuleProviderSettings::GetDisplayName() const
-{
-	return Descriptor.GetDisplayName();
-}
+#if WITH_EDITOR
+FString UPCGExPartitionRuleProviderSettings::GetDisplayName() const { return Config.GetDisplayName(); }
+#endif
 
 TArray<FPCGPinProperties> UPCGExModularPartitionByValuesSettings::InputPinProperties() const
 {
@@ -32,17 +27,17 @@ TArray<FPCGPinProperties> UPCGExModularPartitionByValuesSettings::InputPinProper
 	return PinProperties;
 }
 
-bool UPCGExModularPartitionByValuesSettings::GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const
+bool UPCGExModularPartitionByValuesSettings::GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const
 {
 	TArray<UPCGExPartitionRule*> Factories;
 	if (!PCGExFactories::GetInputFactories(
-		InContext, TEXT("PartitionRules"),
-		Factories, {PCGExFactories::EType::PartitionRule}, false))
+		InContext, TEXT("PartitionRules"), Factories,
+		{PCGExFactories::EType::RulePartition}, false))
 	{
 		return false;
 	}
 
-	for (const UPCGExPartitionRule* Factory : Factories) { OutRules.Add(Factory->Descriptor); }
+	for (const UPCGExPartitionRule* Factory : Factories) { OutRules.Add(Factory->Config); }
 
 	return true;
 }

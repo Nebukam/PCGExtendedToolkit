@@ -19,7 +19,7 @@ UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExMeanMeasure : uint8
 {
 	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1"),
-	Absolute UMETA(DisplayName = "Absolute", ToolTip="Raw value will be used."),
+	Discrete UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Method"))
@@ -33,8 +33,28 @@ enum class EPCGExMeanMethod : uint8
 	Fixed UMETA(DisplayName = "Fixed", ToolTip="Fixed threshold"),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source"))
+enum class EPCGExPointBoundsSource : uint8
+{
+	ScaledBounds UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
+	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
+	Bounds UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds")
+};
+
 namespace PCGExMath
 {
+
+	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
+	{
+		FVector Extents;
+
+		if (Source == EPCGExPointBoundsSource::ScaledBounds) { Extents = Point.GetScaledExtents(); }
+		else if (Source == EPCGExPointBoundsSource::Bounds) { Extents = Point.GetExtents(); }
+		else if (Source == EPCGExPointBoundsSource::DensityBounds) { Extents = Point.GetDensityBounds().BoxExtent; }
+
+		return FBox(-Extents, Extents);
+	}
+	
 #pragma region basics
 
 	/**
@@ -201,6 +221,11 @@ namespace PCGExMath
 	FORCEINLINE static double DegreesToDot(const double Angle)
 	{
 		return FMath::Cos(FMath::Clamp(FMath::Abs(Angle), 0, 180.0) * (PI / 180.0));
+	}
+
+	FORCEINLINE static double DegreesToDotForComparison(const double Angle)
+	{
+		return FMath::Cos((180 - FMath::Clamp(FMath::Abs(Angle), 0, 180.0)) * (PI / 180.0));
 	}
 
 	FORCEINLINE static double ConvertStringToDouble(const FString& StringToConvert)
@@ -957,9 +982,10 @@ namespace PCGExMath
 
 	FORCEINLINE static FVector Round10(const FVector& A) { return FVector(Round10(A.X), Round10(A.Y), Round10(A.Z)); }
 
-	
-#pragma endregion 
-	
+
+#pragma endregion
+
+
 	template <typename T>
 	FORCEINLINE static T SanitizeIndex(const T& Index, const T& Limit, const EPCGExIndexSafety Method)
 	{
@@ -1106,6 +1132,45 @@ namespace PCGExMath
 		const FVector Cross = FVector::CrossProduct(A, B);
 		const double Atan2 = FMath::Atan2(Cross.Size(), A.Dot(B));
 		return Cross.Z < 0 ? (PI * 2) - Atan2 : Atan2;
+	}
+
+	// Expects normalized vectors
+	FORCEINLINE static double GetRadiansBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector)
+	{
+		const double Angle = FMath::Acos(FMath::Clamp(FVector::DotProduct(A, B), -1.0f, 1.0f));
+		return FVector::DotProduct(FVector::CrossProduct(A, B), UpVector) < 0.0f ? -Angle : Angle;
+	}
+
+	FORCEINLINE static double GetDegreesBetweenVectors(const FVector& A, const FVector& B, const FVector& UpVector = FVector::UpVector)
+	{
+		const double D = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(A, B)));
+		return FVector::DotProduct(FVector::CrossProduct(A, B), UpVector) < 0 ? 360 - D : D;
+	}
+
+	FORCEINLINE void CheckConvex(const FVector& A, const FVector& B, const FVector& C, bool& bIsConvex, int32& OutSign, const FVector& UpVector = FVector::UpVector)
+	{
+		if (!bIsConvex) { return; }
+
+		if (A == C)
+		{
+			bIsConvex = false;
+			return;
+		}
+
+		const double DP = FVector::DotProduct(FVector::CrossProduct((A - B), (C - A)), UpVector);
+		const int32 CurrentSign = (DP > 0.0f) ? 1 : (DP < 0.0f) ? -1 : 0;
+
+		if (CurrentSign != 0)
+		{
+			if (OutSign == 0) { OutSign = CurrentSign; }
+			else if (OutSign != CurrentSign) { bIsConvex = false; }
+		}
+	};
+
+	FORCEINLINE FBox ScaledBox(const FBox& InBox, const FVector& InScale)
+	{
+		const FVector Extents = InBox.GetExtent() * InScale;
+		return FBox(-Extents, Extents);
 	}
 
 #pragma region Spatialized distances

@@ -31,16 +31,7 @@ void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChang
 
 PCGExData::EInit UPCGExPathfindingPlotNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExPathfindingPlotNavmeshSettings::GetMainInputLabel() const { return PCGExPathfinding::SourcePlotsLabel; }
-FName UPCGExPathfindingPlotNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
-
-void UPCGExPathfindingPlotNavmeshSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
-}
 
 FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
 {
@@ -52,7 +43,7 @@ FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
 
 bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotNavmesh)
 
@@ -87,7 +78,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			if (Context->CurrentIO->GetNum() < 2) { continue; }
 			Context->GetAsyncManager()->Start<FPCGExPlotNavmeshTask>(-1, Context->CurrentIO);
@@ -97,23 +88,22 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 		Context->Done();
 	}
 
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context);
-		Context->ExecutionComplete();
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
 bool FPCGExPlotNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingPlotNavmeshContext* Context = static_cast<FPCGExPathfindingPlotNavmeshContext*>(Manager->Context);
-
+	PCGEX_SETTINGS(PathfindingPlotNavmesh)
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
@@ -126,10 +116,22 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	PathLocations.Emplace_GetRef(0, FirstPoint.Transform.GetLocation(), FirstPoint.MetadataEntry);
 	FVector LastPosition = FVector::ZeroVector;
 
+	//int32 MaxIterations = Settings->bClosedPath ? NumPlots : NumPlots - 1;
 	for (int i = 0; i < NumPlots - 1; i++)
 	{
-		const FPCGPoint& SeedPoint = PointIO->GetInPoint(i);
-		const FPCGPoint& GoalPoint = PointIO->GetInPoint(i + 1);
+		FPCGPoint SeedPoint;
+		FPCGPoint GoalPoint;
+
+		if (Settings->bClosedPath && i == NumPlots - 1)
+		{
+			SeedPoint = PointIO->GetInPoint(i);
+			GoalPoint = PointIO->GetInPoint(0);
+		}
+		else
+		{
+			SeedPoint = PointIO->GetInPoint(i);
+			GoalPoint = PointIO->GetInPoint(i + 1);
+		}
 
 		FVector SeedPosition = SeedPoint.Transform.GetLocation();
 		FVector GoalPosition = GoalPoint.Transform.GetLocation();
@@ -163,6 +165,10 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 			PathLocations.Last().MetadataEntryKey = GoalPoint.MetadataEntry;
 		}
+		else if (Settings->bOmitCompletePathOnFailedPlot)
+		{
+			return false;
+		}
 		else if (bAddGoal)
 		{
 			PathLocations.Emplace_GetRef(i, GoalPosition, GoalPoint.MetadataEntry);
@@ -171,8 +177,17 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 		PathLocations.Last().PlotIndex = i + 1;
 	}
 
-	const FPCGPoint& LastPoint = PointIO->GetInPoint(NumPlots - 1);
-	PathLocations.Emplace_GetRef(NumPlots - 1, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
+	if (Settings->bClosedPath)
+	{
+		const FPCGPoint& LastPoint = PointIO->GetInPoint(0);
+		PathLocations.Emplace_GetRef(0, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
+	}
+	else
+	{
+		const FPCGPoint& LastPoint = PointIO->GetInPoint(NumPlots - 1);
+		PathLocations.Emplace_GetRef(NumPlots - 1, LastPoint.Transform.GetLocation(), LastPoint.MetadataEntry);
+	}
+
 
 	int32 LastPlotIndex = -1;
 	TArray<int32> Milestones;
@@ -208,12 +223,14 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	}
 
 	if (PathLocations.Num() <= PointIO->GetNum()) { return false; } //
-
+	if (PathLocations.Num() < 2) { return false; }
 
 	const int32 NumPositions = PathLocations.Num();
 
-	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(*PointIO, PCGExData::EInit::NewOutput);
-	UPCGPointData* OutData = PathPoints.GetOut();
+	PCGExData::FPointIO* PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+	PCGExData::FFacade* PathDataFacade = new PCGExData::FFacade(PathIO);
+
+	UPCGPointData* OutData = PathIO->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 
 	MutablePoints.SetNumUninitialized(NumPositions);
@@ -228,7 +245,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	PathLocations.Empty();
 
 	PCGExDataBlending::FMetadataBlender* TempBlender =
-		Context->Blending->CreateBlender(PathPoints, PathPoints, PCGExData::ESource::Out);
+		Context->Blending->CreateBlender(PathDataFacade, PathDataFacade, PCGExData::ESource::Out);
 
 	for (int i = 0; i < Milestones.Num() - 1; i++)
 	{
@@ -236,10 +253,10 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 		int32 EndIndex = Milestones[i + 1] + 1;
 		int32 Range = EndIndex - StartIndex - 1;
 
-		const FPCGPoint* EndPoint = PathPoints.TryGetOutPoint(EndIndex);
+		const FPCGPoint* EndPoint = PathIO->TryGetOutPoint(EndIndex);
 		if (!EndPoint) { continue; }
 
-		const FPCGPoint& StartPoint = PathPoints.GetOutPoint(StartIndex);
+		const FPCGPoint& StartPoint = PathIO->GetOutPoint(StartIndex);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
 		Context->Blending->BlendSubPoints(
@@ -247,9 +264,11 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 			View, MilestonesMetrics[i], TempBlender);
 	}
 
-	TempBlender->Write();
-
 	PCGEX_DELETE(TempBlender)
+
+	PathDataFacade->Write(Manager, true);
+	PCGEX_DELETE(PathDataFacade)
+
 	MilestonesMetrics.Empty();
 
 	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }

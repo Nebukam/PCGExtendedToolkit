@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExActorSelector.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
@@ -15,14 +16,11 @@
 MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(Normal, FVector)\
-MACRO(Distance, double)
+MACRO(Distance, double)\
+MACRO(ActorReference, FString)\
+MACRO(PhysMat, FString)
 
 class UPCGExFilterFactoryBase;
-
-namespace PCGExDataFilter
-{
-	class TEarlyExitFilterManager;
-}
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
@@ -34,23 +32,23 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleSurfaceGuidedSettings : public UPCGExPo
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample : Guided Trace", "Find the collision point on the nearest collidable surface in a given direction.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
 #endif
 
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	virtual FName GetPointFilterLabel() const override;
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** The direction to use for the trace */
@@ -93,7 +91,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNormal"))
 	FName NormalAttributeName = FName("TracedNormal");
 
-
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;
@@ -101,6 +98,25 @@ public:
 	/** Name of the 'double' attribute to write sampled distance to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("TracedDistance");
+
+	/** Write the actor reference hit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteActorReference = false;
+
+	/** Name of the 'string' attribute to write actor reference to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, EditCondition="bWriteActorReference"))
+	FName ActorReferenceAttributeName = FName("ActorReference");
+
+	/** Write the actor reference hit. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWritePhysMat = false;
+
+	/** Name of the 'string' attribute to write actor reference to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, EditCondition="bWritePhysMat"))
+	FName PhysMatAttributeName = FName("PhysMat");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
+	bool bTraceComplex = false;
 
 	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
@@ -130,25 +146,18 @@ public:
 	FPCGExActorSelectorSettings IgnoredActorSelector;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleSurfaceGuidedElement;
 
 	virtual ~FPCGExSampleSurfaceGuidedContext() override;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
-	bool bHasHeavyPointFilters = false;
-
 	TArray<AActor*> IgnoredActors;
 
-	PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
-	PCGEx::FLocalVectorGetter* DirectionGetter = nullptr;
-
-	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -161,13 +170,25 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FTraceTask : public FPCGExPCGExCollisionTask
+namespace PCGExSampleSurfaceGuided
 {
-public:
-	FTraceTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExPCGExCollisionTask(InManager, InTaskIndex, InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
+		PCGExData::FCache<FVector>* DirectionGetter = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void CompleteWork() override;
+	};
+}

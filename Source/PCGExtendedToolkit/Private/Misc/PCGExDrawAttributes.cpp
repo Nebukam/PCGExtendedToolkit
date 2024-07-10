@@ -14,36 +14,36 @@ FPCGExDrawAttributesContext::~FPCGExDrawAttributesContext()
 }
 
 #if WITH_EDITOR
-FString FPCGExAttributeDebugDrawDescriptor::GetDisplayName() const
+FString FPCGExAttributeDebugDrawConfig::GetDisplayName() const
 {
-	if (bEnabled) { return FPCGExInputDescriptor::GetDisplayName(); }
-	return "(Disabled) " + FPCGExInputDescriptor::GetDisplayName();
+	if (bEnabled) { return FPCGExInputConfig::GetDisplayName(); }
+	return "(Disabled) " + FPCGExInputConfig::GetDisplayName();
 }
 #endif
 
-bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO& PointIO)
+bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO* PointIO)
 {
 	bValid = false;
 
-	switch (Descriptor->ExpressedAs)
+	switch (Config->ExpressedAs)
 	{
 	case EPCGExDebugExpression::Direction:
 	case EPCGExDebugExpression::Point:
 	case EPCGExDebugExpression::ConnectionToPosition:
-		VectorGetter.Capture(*Descriptor);
+		VectorGetter.Capture(*Config);
 		bValid = VectorGetter.Grab(PointIO);
 		break;
 	case EPCGExDebugExpression::ConnectionToIndex:
-		IndexGetter.Capture(*Descriptor);
+		IndexGetter.Capture(*Config);
 		bValid = IndexGetter.Grab(PointIO);
 		break;
 	case EPCGExDebugExpression::Label:
-		//TextGetter.Capture(*Descriptor);
+		//TextGetter.Capture(*Config);
 		//bValid = TextGetter.Grab(PointIO);
 		bValid = false;
 		break;
 	case EPCGExDebugExpression::Boolean:
-		SingleGetter.Capture(*Descriptor);
+		SingleGetter.Capture(*Config);
 		bValid = SingleGetter.Grab(PointIO);
 		break;
 	default: ;
@@ -51,9 +51,9 @@ bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO& PointIO)
 
 	if (bValid)
 	{
-		if (Descriptor->bSizeFromAttribute)
+		if (Config->bSizeFromAttribute)
 		{
-			SizeGetter.Capture(Descriptor->LocalSizeAttribute);
+			SizeGetter.Capture(Config->LocalSizeAttribute);
 			SizeGetter.Grab(PointIO);
 		}
 		else
@@ -61,9 +61,9 @@ bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO& PointIO)
 			SizeGetter.bValid = false;
 		}
 
-		if (Descriptor->bColorFromAttribute)
+		if (Config->bColorFromAttribute)
 		{
-			ColorGetter.Capture(Descriptor->LocalColorAttribute);
+			ColorGetter.Capture(Config->LocalColorAttribute);
 			ColorGetter.Grab(PointIO);
 		}
 		else
@@ -82,19 +82,19 @@ bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO& PointIO)
 
 double FPCGExAttributeDebugDraw::GetSize(const PCGEx::FPointRef& Point) const
 {
-	double Value = Descriptor->Size;
-	if (Descriptor->bSizeFromAttribute && SizeGetter.bValid) { Value = SizeGetter[Point.Index] * Descriptor->Size; }
+	double Value = Config->Size;
+	if (Config->bSizeFromAttribute && SizeGetter.bValid) { Value = SizeGetter[Point.Index] * Config->Size; }
 	return Value;
 }
 
 FColor FPCGExAttributeDebugDraw::GetColor(const PCGEx::FPointRef& Point) const
 {
-	if (Descriptor->bColorFromAttribute && ColorGetter.bValid)
+	if (Config->bColorFromAttribute && ColorGetter.bValid)
 	{
 		const FVector Value = ColorGetter[Point.Index];
-		return Descriptor->bColorIsLinear ? FColor(Value.X * 255.0f, Value.Y * 255.0f, Value.Z * 255.0f) : FColor(Value.X, Value.Y, Value.Z);
+		return Config->bColorIsLinear ? FColor(Value.X * 255.0f, Value.Y * 255.0f, Value.Z * 255.0f) : FColor(Value.X, Value.Y, Value.Z);
 	}
-	return Descriptor->Color;
+	return Config->Color;
 }
 
 double FPCGExAttributeDebugDraw::GetSingle(const PCGEx::FPointRef& Point) const
@@ -105,7 +105,7 @@ double FPCGExAttributeDebugDraw::GetSingle(const PCGEx::FPointRef& Point) const
 FVector FPCGExAttributeDebugDraw::GetVector(const PCGEx::FPointRef& Point) const
 {
 	FVector OutVector = VectorGetter[Point.Index];
-	if (Descriptor->ExpressedAs == EPCGExDebugExpression::Direction && Descriptor->bNormalizeBeforeSizing) { OutVector.Normalize(); }
+	if (Config->ExpressedAs == EPCGExDebugExpression::Direction && Config->bNormalizeBeforeSizing) { OutVector.Normalize(); }
 	return OutVector;
 }
 
@@ -119,7 +119,7 @@ FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGEx::FPointRef& Poi
 
 void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const
 {
-	switch (Descriptor->ExpressedAs)
+	switch (Config->ExpressedAs)
 	{
 	case EPCGExDebugExpression::Direction:
 		DrawDirection(World, Start, Point);
@@ -147,14 +147,14 @@ void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector&
 {
 #if WITH_EDITOR
 	const FVector Dir = GetVector(Point) * GetSize(Point);
-	DrawDebugDirectionalArrow(World, Start, Start + Dir, Dir.Length() * 0.05f, GetColor(Point), true, -1, Descriptor->DepthPriority, Descriptor->Thickness);
+	DrawDebugDirectionalArrow(World, Start, Start + Dir, Dir.Length() * 0.05f, GetColor(Point), true, -1, Config->DepthPriority, Config->Thickness);
 #endif
 }
 
 void FPCGExAttributeDebugDraw::DrawConnection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const FVector& End) const
 {
 #if WITH_EDITOR
-	DrawDebugLine(World, Start, Descriptor->bAsOffset ? Start + End : End, GetColor(Point), true, -1, Descriptor->DepthPriority, Descriptor->Thickness);
+	DrawDebugLine(World, Start, Config->bAsOffset ? Start + End : End, GetColor(Point), true, -1, Config->DepthPriority, Config->Thickness);
 #endif
 }
 
@@ -162,7 +162,7 @@ void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Sta
 {
 #if WITH_EDITOR
 	const FVector End = GetVector(Point);
-	DrawDebugPoint(World, Descriptor->bAsOffset ? Start + End : End, GetSize(Point), GetColor(Point), true, -1, Descriptor->DepthPriority);
+	DrawDebugPoint(World, Config->bAsOffset ? Start + End : End, GetSize(Point), GetColor(Point), true, -1, Config->DepthPriority);
 #endif
 }
 
@@ -170,7 +170,7 @@ void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& St
 {
 #if WITH_EDITOR
 	const double End = GetSingle(Point);
-	DrawDebugPoint(World, Start, GetSize(Point), End <= 0 ? Descriptor->SecondaryColor : GetColor(Point), true, -1, Descriptor->DepthPriority);
+	DrawDebugPoint(World, Start, GetSize(Point), End <= 0 ? Config->SecondaryColor : GetColor(Point), true, -1, Config->DepthPriority);
 #endif
 }
 
@@ -190,17 +190,17 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	DebugSettings.PointScale = 0.0f;
 	if (DebugList.IsEmpty())
 	{
-		FPCGExAttributeDebugDrawDescriptor& Forward = DebugList.Emplace_GetRef();
+		FPCGExAttributeDebugDrawConfig& Forward = DebugList.Emplace_GetRef();
 		Forward.Selector.Update(TEXT("$transform.Forward"));
 		Forward.Color = FColor::Red;
 		Forward.Size = 50;
 
-		FPCGExAttributeDebugDrawDescriptor& Right = DebugList.Emplace_GetRef();
+		FPCGExAttributeDebugDrawConfig& Right = DebugList.Emplace_GetRef();
 		Right.Selector.Update(TEXT("$transform.Right"));
 		Right.Color = FColor::Green;
 		Right.Size = 50;
 
-		FPCGExAttributeDebugDrawDescriptor& Up = DebugList.Emplace_GetRef();
+		FPCGExAttributeDebugDrawConfig& Up = DebugList.Emplace_GetRef();
 		Up.Selector.Update(TEXT("$transform.Up"));
 		Up.Color = FColor::Blue;
 		Up.Size = 50;
@@ -212,7 +212,7 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	DebugSettings.PointScale = 0.0f;
-	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.UpdateUserFacingInfos(); }
+	for (FPCGExAttributeDebugDrawConfig& Config : DebugList) { Config.UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -221,7 +221,7 @@ PCGEX_INITIALIZE_ELEMENT(DrawAttributes)
 
 bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 #if WITH_EDITOR
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
@@ -229,15 +229,15 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 	if (!Settings->bPCGExDebug) { return false; }
 
 	Context->DebugList.Empty();
-	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
+	for (const FPCGExAttributeDebugDrawConfig& Config : Settings->DebugList)
 	{
-		FPCGExAttributeDebugDrawDescriptor& MutableDescriptor = (const_cast<FPCGExAttributeDebugDrawDescriptor&>(Descriptor));
-		//if (ExtraAttributes) { ExtraAttributes->PushToDescriptor(MutableDescriptor); }
+		FPCGExAttributeDebugDrawConfig& MutableConfig = (const_cast<FPCGExAttributeDebugDrawConfig&>(Config));
+		//if (ExtraAttributes) { ExtraAttributes->PushToConfig(MutableConfig); }
 
-		if (!Descriptor.bEnabled) { continue; }
+		if (!Config.bEnabled) { continue; }
 
 		FPCGExAttributeDebugDraw& Drawer = Context->DebugList.Emplace_GetRef();
-		Drawer.Descriptor = &MutableDescriptor;
+		Drawer.Config = &MutableConfig;
 	}
 
 	if (Context->DebugList.IsEmpty())
@@ -278,7 +278,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		Context->CurrentIO->CreateInKeys();
-		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Bind(*Context->CurrentIO); }
+		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Bind(Context->CurrentIO); }
 
 		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
 		{
@@ -288,7 +288,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 			for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
 			{
 				if (!Drawer.bValid) { continue; }
-				Drawer.Draw(Context->World, Start, Point, Context->GetCurrentIn());
+				Drawer.Draw(Context->World, Start, Point, Context->CurrentIO->GetIn());
 			}
 		}
 
@@ -300,10 +300,13 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	return Context->IsDone();
 
-#endif
+#else 
 
 	DisabledPassThroughData(Context);
 	return true;
+
+#endif
+	
 }
 
 #undef LOCTEXT_NAMESPACE

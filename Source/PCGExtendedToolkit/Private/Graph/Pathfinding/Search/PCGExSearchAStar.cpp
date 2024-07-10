@@ -10,21 +10,24 @@
 
 bool UPCGExSearchAStar::FindPath(
 	const FVector& SeedPosition,
-	const FPCGExNodeSelectionSettings* SeedSelection,
+	const FPCGExNodeSelectionDetails* SeedSelection,
 	const FVector& GoalPosition,
-	const FPCGExNodeSelectionSettings* GoalSelection,
+	const FPCGExNodeSelectionDetails* GoalSelection,
 	PCGExHeuristics::THeuristicsHandler* Heuristics,
-	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback)
+	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) const
 {
-	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 1)];
+	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
+
+	const PCGExCluster::FNode& SeedNode = NodesRef[Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 1)];
 	if (!SeedSelection->WithinDistance(SeedNode.Position, SeedPosition)) { return false; }
 
-	const PCGExCluster::FNode& GoalNode = Cluster->Nodes[Cluster->FindClosestNode(GoalPosition, GoalSelection->PickingMethod, 1)];
+	const PCGExCluster::FNode& GoalNode = NodesRef[Cluster->FindClosestNode(GoalPosition, GoalSelection->PickingMethod, 1)];
 	if (!GoalSelection->WithinDistance(GoalNode.Position, GoalPosition)) { return false; }
 
 	if (SeedNode.NodeIndex == GoalNode.NodeIndex) { return false; }
 
-	const int32 NumNodes = Cluster->Nodes.Num();
+	const int32 NumNodes = NodesRef.Num();
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchAStar::FindPath);
 
@@ -45,9 +48,9 @@ bool UPCGExSearchAStar::FindPath(
 	double MinGScore = TNumericLimits<double>::Max();
 	double MaxGScore = TNumericLimits<double>::Min();
 
-	for (int i = 0; i < Cluster->Nodes.Num(); i++)
+	for (int i = 0; i < NodesRef.Num(); i++)
 	{
-		const double GS = Heuristics->GetGlobalScore(Cluster->Nodes[i], SeedNode, GoalNode);
+		const double GS = Heuristics->GetGlobalScore(NodesRef[i], SeedNode, GoalNode);
 		MinGScore = FMath::Min(MinGScore, GS);
 		MaxGScore = FMath::Max(MaxGScore, GS);
 	}
@@ -60,13 +63,16 @@ bool UPCGExSearchAStar::FindPath(
 
 	int32 CurrentNodeIndex;
 	double CurrentFScore;
+	bool bAlreadyVisited;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentFScore))
 	{
 		if (CurrentNodeIndex == GoalNode.NodeIndex) { break; } // Exit early
 
 		const double CurrentGScore = GScore[CurrentNodeIndex];
-		const PCGExCluster::FNode& Current = Cluster->Nodes[CurrentNodeIndex];
-		Visited.Add(CurrentNodeIndex);
+		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
+
+		Visited.Add(CurrentNodeIndex, &bAlreadyVisited);
+		if (bAlreadyVisited) { continue; }
 
 		for (const uint64 AdjacencyHash : Current.Adjacency)
 		{
@@ -76,8 +82,8 @@ bool UPCGExSearchAStar::FindPath(
 
 			if (Visited.Contains(NeighborIndex)) { continue; }
 
-			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[NeighborIndex];
-			const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
+			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
+			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 
 			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback);
 			const double TentativeGScore = CurrentGScore + EScore;
@@ -113,10 +119,10 @@ bool UPCGExSearchAStar::FindPath(
 			PathHash = Previous[PathNodeIndex];
 			PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
 
-			const PCGExCluster::FNode& N = Cluster->Nodes[CurrentIndex];
+			const PCGExCluster::FNode& N = NodesRef[CurrentIndex];
 			if (PathNodeIndex != -1)
 			{
-				const PCGExGraph::FIndexedEdge& E = Cluster->Edges[PathEdgeIndex];
+				const PCGExGraph::FIndexedEdge& E = EdgesRef[PathEdgeIndex];
 				Heuristics->FeedbackScore(N, E);
 				if (LocalFeedback) { Heuristics->FeedbackScore(N, E); }
 			}

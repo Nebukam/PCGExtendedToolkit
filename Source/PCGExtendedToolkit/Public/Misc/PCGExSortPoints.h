@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -18,16 +19,16 @@ enum class EPCGExSortDirection : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleDescriptor : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSortRuleDescriptor()
+	FPCGExSortRuleConfig()
 	{
 	}
 
-	FPCGExSortRuleDescriptor(const FPCGExSortRuleDescriptor& Other)
-		: FPCGExInputDescriptor(Other),
+	FPCGExSortRuleConfig(const FPCGExSortRuleConfig& Other)
+		: FPCGExInputConfig(Other),
 		  Tolerance(Other.Tolerance)
 	{
 	}
@@ -45,16 +46,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleDescriptor : public FPCGExInputDescr
 	//bool bAbsolute = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public PCGEx::FLocalSingleFieldGetter
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule
 {
 	FPCGExSortRule()
 	{
 	}
 
-	FPCGExSortRule(const FPCGExSortRule& Other)
-		: FLocalSingleFieldGetter(Other)
-	{
-	}
+	PCGExData::FCache<double>* Cache = nullptr;
 
 	double Tolerance = 0.0001f;
 	bool bInvertRule = false;
@@ -66,36 +64,37 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsBaseSettings : public UPCGExPointsP
 {
 	GENERATED_BODY()
 
+	//~Begin UPCGSettings
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Controls the order in which points will be ordered. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
-	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const;
+	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const;
 
 private:
 	friend class FPCGExSortPointsBaseElement;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGExSortPointsBaseSettings
 {
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SortPointsStatic, "Sort Points (Static)", "Sort the source points according to specific rules.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscWrite; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
 #endif
 
 	//~Begin UObject interface
@@ -108,27 +107,35 @@ public:
 
 	/** Ordered list of attribute to check to sort over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, TitleProperty="{TitlePropertyName}"))
-	TArray<FPCGExSortRuleDescriptor> Rules = {FPCGExSortRuleDescriptor{}};
+	TArray<FPCGExSortRuleConfig> Rules = {FPCGExSortRuleConfig{}};
 
-	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const override;
+	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const override;
 
 private:
 	friend class FPCGExSortPointsBaseElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsBaseElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsBaseElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointIO : public FPCGExNonAbandonableTask
+namespace PCGExSortPoints
 {
-public:
-	FPCGExSortPointIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
 
-	virtual bool ExecuteTask() override;
-};
+		virtual ~FProcessor() override
+		{
+		}
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+	};
+}

@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
+#include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
 
 #include "PCGExPartitionVertices.generated.h"
@@ -16,15 +17,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionVerticesSettings : public UPCGExEdge
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PartitionVertices, "Graph : Partition Vertices", "Split Vtx into per-cluster groups.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(PartitionVertices, "Cluster : Partition Vtx", "Split Vtx into per-cluster groups.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UPCGExEdgesProcessorSettings interface
 public:
@@ -33,7 +34,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPartitionVerticesSettings;
 	friend class FPCGExPartitionVerticesElement;
@@ -44,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesContext : public FPCGExEdge
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -57,20 +58,30 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateVtxPartitionTask : public FPCGExNonAbandonableTask
+namespace PCGExPartitionVertices
 {
-public:
-	FPCGExCreateVtxPartitionTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                             PCGExData::FPointIO* InEdgeIO,
-	                             TMap<int64, int32>* InEndpointsLookup) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		EdgeIO(InEdgeIO),
-		EndpointsLookup(InEndpointsLookup)
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-	}
+		friend class FProcessorBatch;
 
-	PCGExData::FPointIO* EdgeIO = nullptr;
-	TMap<int64, int32>* EndpointsLookup = nullptr;
+	protected:
+		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 
-	virtual bool ExecuteTask() override;
-};
+		PCGExData::FPointIO* PointPartitionIO = nullptr;
+		TMap<int32, int32> Remapping;
+		TArray<int32> KeptIndices;
+
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		virtual void CompleteWork() override;
+	};
+}

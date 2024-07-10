@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
+#include "PCGExMacros.h"
 #include "Kismet/KismetStringLibrary.h"
 
 namespace PCGExData
@@ -16,6 +17,8 @@ namespace PCGExData
 	{
 		TSet<FString> RawTags;       // Contains all data tag
 		TMap<FString, FString> Tags; // PCGEx Tags Name::Value
+
+		bool IsEmpty() const { return RawTags.IsEmpty() && Tags.IsEmpty(); }
 
 		FTags()
 		{
@@ -74,6 +77,14 @@ namespace PCGExData
 			for (const TPair<FString, FString>& Tag : Tags) { InTags.Add((Tag.Key + TagSeparator + Tag.Value)); }
 		}
 
+		TSet<FString> ToSet()
+		{
+			TSet<FString> Flattened;
+			Flattened.Append(RawTags);
+			for (const TPair<FString, FString>& Tag : Tags) { Flattened.Add((Tag.Key + TagSeparator + Tag.Value)); }
+			return Flattened;
+		}
+
 		~FTags()
 		{
 			RawTags.Empty();
@@ -95,6 +106,15 @@ namespace PCGExData
 		{
 			Tags.Remove(Key);
 			RawTags.Remove(Key);
+		}
+
+		void Remove(const TSet<FString>& InSet)
+		{
+			for (const FString& Tag : InSet)
+			{
+				Tags.Remove(Tag);
+				RawTags.Remove(Tag);
+			}
 		}
 
 		bool GetValue(const FString& Key, FString& OutValue)

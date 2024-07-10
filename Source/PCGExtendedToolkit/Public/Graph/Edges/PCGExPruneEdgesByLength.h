@@ -9,21 +9,26 @@
 
 #include "PCGExPruneEdgesByLength.generated.h"
 
+namespace PCGExCluster
+{
+	struct FCluster;
+}
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PruneEdgesByLength, "Edges : Prune by Length", "Prune edges by length safely based on edges metrics. For more advanced/involved operations, prune edges yourself and use Sanitize Clusters.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorEdge; }
+	PCGEX_NODE_INFOS(PruneEdgesByLength, "Cluster : Prune edges by Length", "Prune edges by length safely based on edges metrics. For more advanced/involved operations, prune edges yourself and use Sanitize Clusters.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorEdge; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UPCGExEdgesProcessorSettings interface
 public:
@@ -72,29 +77,19 @@ public:
 	FName MeanAttributeName = "Mean";
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPruneEdgesByLengthSettings;
 	friend class FPCGExPruneEdgesByLengthElement;
 
 	virtual ~FPCGExPruneEdgesByLengthContext() override;
-
-	double ReferenceValue;
-	double ReferenceMin;
-	double ReferenceMax;
-
-	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-	TArray<double> EdgeLength;
-
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -106,3 +101,29 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExPruneEdges
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		double ReferenceValue = 0;
+		double ReferenceMin = 0;
+		double ReferenceMax = 0;
+
+		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+		TArray<double> EdgeLengths;
+
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void CompleteWork() override;
+	};
+}

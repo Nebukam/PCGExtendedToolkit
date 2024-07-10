@@ -9,15 +9,10 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 #include "Algo/Reverse.h"
+#include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges
-
-UPCGExPathfindingEdgesSettings::UPCGExPathfindingEdgesSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
 
 #if WITH_EDITOR
 void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -27,23 +22,156 @@ void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEven
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
+void FPCGExPathfindingEdgesContext::TryFindPath(
+	const UPCGExSearchOperation* SearchOperation,
+	const PCGExPathfinding::FPathQuery* Query,
+	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler) const
+{
+	// TODO : Vtx OR/AND edge points
+
+	PCGEX_SETTINGS_LOCAL(PathfindingEdges)
+
+	const FPCGPoint& Seed = SeedsDataFacade->Source->GetInPoint(Query->SeedIndex);
+	const FPCGPoint& Goal = GoalsDataFacade->Source->GetInPoint(Query->GoalIndex);
+
+	PCGExCluster::FCluster* Cluster = SearchOperation->Cluster;
+	const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
+
+	TArray<int32> Path;
+
+	//Note: Can silently fail
+	if (!SearchOperation->FindPath(
+		Query->SeedPosition, &Settings->SeedPicking,
+		Query->GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path))
+	{
+		// Failed
+		return;
+	}
+
+	if (Path.Num() < 2 && !Settings->bAddSeedToPath && !Settings->bAddGoalToPath)
+	{
+		// Omit
+		return;
+	}
+
+	PCGExData::FPointIO* PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+	UPCGPointData* OutData = PathIO->GetOut();
+
+	PCGExGraph::CleanupClusterTags(PathIO, true);
+	PCGExGraph::CleanupVtxData(PathIO);
+
+	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
+	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO->GetIn()->GetPoints();
+
+	MutablePoints.Reserve(Path.Num() + 2);
+
+	if (Settings->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
+	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]); }
+	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
+
+	SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO);
+	GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO);
+
+	SeedForwardHandler->Forward(Query->SeedIndex, PathIO);
+	GoalForwardHandler->Forward(Query->GoalIndex, PathIO);
+}
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
 
+TArray<FPCGPinProperties> UPCGExPathfindingEdgesSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seeds points for pathfinding.", Required, {})
+	PCGEX_PIN_POINT(PCGExGraph::SourceGoalsLabel, "Goals points for pathfinding.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Normal, {})
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExPathfindingEdgesSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties;
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", Required, {})
+	return PinProperties;
+}
+
+PCGExData::EInit UPCGExPathfindingEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExPathfindingEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE_TARRAY(PathBuffer)
+
+	PCGEX_DELETE_TARRAY(PathQueries)
+
+	if (SeedsDataFacade) { PCGEX_DELETE(SeedsDataFacade->Source) }
+	PCGEX_DELETE(SeedsDataFacade)
+
+	if (GoalsDataFacade) { PCGEX_DELETE(GoalsDataFacade->Source) }
+	PCGEX_DELETE(GoalsDataFacade)
+
+	PCGEX_DELETE(OutputPaths)
+
+	SeedAttributesToPathTags.Cleanup();
+	GoalAttributesToPathTags.Cleanup();
+
+	PCGEX_DELETE(SeedForwardHandler)
+	PCGEX_DELETE(GoalForwardHandler)
 }
 
 
 bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPathfindingProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingEdges)
+
+	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
+
+	PCGExData::FPointIO* SeedsPoints = nullptr;
+	PCGExData::FPointIO* GoalsPoints = nullptr;
+
+	auto Exit = [&]()
+	{
+		PCGEX_DELETE(SeedsPoints)
+		PCGEX_DELETE(GoalsPoints)
+		return false;
+	};
+
+	SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
+	if (!SeedsPoints) { return Exit(); }
+
+	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
+
+	GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
+	if (!GoalsPoints) { return Exit(); }
+
+	Context->GoalsDataFacade = new PCGExData::FFacade(GoalsPoints);
+
+	PCGEX_FWD(SeedAttributesToPathTags)
+	PCGEX_FWD(GoalAttributesToPathTags)
+
+	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
+	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade)) { return false; }
+
+	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(Settings->SeedForwardAttributes, SeedsPoints);
+	Context->GoalForwardHandler = new PCGExData::FDataForwardHandler(Settings->GoalForwardAttributes, GoalsPoints);
+
+	Context->OutputPaths = new PCGExData::FPointIOCollection();
+	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
+
+	// Prepare path queries
+
+	Context->GoalPicker->PrepareForData(SeedsPoints, GoalsPoints);
+	PCGExPathfinding::ProcessGoals(
+		SeedsPoints, Context->GoalPicker,
+		[&](const int32 SeedIndex, const int32 GoalIndex)
+		{
+			Context->PathQueries.Add(
+				new PCGExPathfinding::FPathQuery(
+					SeedIndex, SeedsPoints->GetInPoint(SeedIndex).Transform.GetLocation(),
+					GoalIndex, GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
+		});
 
 	return true;
 }
@@ -57,188 +185,106 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingEdge::FProcessor>>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingEdge::FProcessor>* NewBatch)
+			{
+			},
+			PCGExMT::State_Done))
 		{
-			if (!Context->TaggedEdges)
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			}
-			else
-			{
-				PCGEX_DELETE_TARRAY(Context->PathBuffer)
-
-				Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
-				Context->SetState(PCGExMT::State_ProcessingPoints);
-			}
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+			return true;
 		}
 	}
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		PCGExPathfinding::ProcessGoals(
-			Context->SeedsPoints, Context->GoalPicker,
-			[&](const int32 SeedIndex, const int32 GoalIndex)
-			{
-				Context->PathBuffer.Add(
-					new PCGExPathfinding::FPathQuery(
-						SeedIndex, Context->SeedsPoints->GetInPoint(SeedIndex).Transform.GetLocation(),
-						GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
-			});
+	if (!Context->ProcessClusters()) { return false; }
 
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+	if (Context->IsDone())
+	{
+		Context->OutputPaths->OutputTo(Context);
 	}
 
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
+	return Context->TryComplete();
+}
+
+
+namespace PCGExPathfindingEdge
+{
+	bool FSampleClusterPathTask::ExecuteTask()
 	{
-		if (!Context->AdvanceEdges(true))
+		const FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
+		PCGEX_SETTINGS(PathfindingEdges)
+
+		Context->TryFindPath(SearchOperation, (*Queries)[TaskIndex], Heuristics);
+
+		if (bInlined && Queries->IsValidIndex(TaskIndex + 1))
 		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
+			// -> Inline next query
+			Manager->Start<FSampleClusterPathTask>(TaskIndex + 1, nullptr, SearchOperation, Queries, Heuristics, true);
 		}
 
-		if (!Context->CurrentCluster)
-		{
-			PCGEX_INVALID_CLUSTER_LOG
-			return false;
-		}
+		return true;
+	}
+
+	FProcessor::~FProcessor()
+	{
+		PCGEX_DELETE_OPERATION(SearchOperation)
+	}
+
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingEdge::FClusterProcessor::Process);
+
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathfindingEdges)
+
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		if (Settings->bUseOctreeSearch)
 		{
 			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node ||
 				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node)
 			{
-				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node);
+				Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node);
 			}
 
 			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
 				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge)
 			{
-				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
+				Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
 			}
 		}
 
-		Context->SetState(PCGExCluster::State_ProjectingCluster);
-	}
+		SearchOperation = TypedContext->SearchAlgorithm->CopyOperation<UPCGExSearchOperation>(); // Create a local copy
+		SearchOperation->PrepareForCluster(Cluster);
 
-	if (Context->IsState(PCGExCluster::State_ProjectingCluster))
-	{		
-		if (Context->SearchAlgorithm->GetRequiresProjection()) { if (!Context->ProjectCluster()) { return false; } }
-
-		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
-		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);
-		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
-	}
-
-	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
-	{
-		PCGEX_WAIT_ASYNC
-
-		Context->HeuristicsHandler->CompleteClusterPreparation();
-
-		if (Context->HeuristicsHandler->HasGlobalFeedback())
+		if (IsTrivial())
 		{
-			Context->CurrentPathBufferIndex = -1;
-			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
+			// Naturally accounts for global heuristics
+			for (const PCGExPathfinding::FPathQuery* Query : TypedContext->PathQueries)
+			{
+				TypedContext->TryFindPath(SearchOperation, Query, HeuristicsHandler);
+			}
+
+			return true;
+		}
+
+		if (HeuristicsHandler->HasGlobalFeedback())
+		{
+			AsyncManagerPtr->Start<FSampleClusterPathTask>(0, VtxIO, SearchOperation, &TypedContext->PathQueries, HeuristicsHandler, true);
 		}
 		else
 		{
-			for (int i = 0; i < Context->PathBuffer.Num(); i++)
+			for (int i = 0; i < TypedContext->PathQueries.Num(); i++)
 			{
-				Context->GetAsyncManager()->Start<FSampleClusterPathTask>(i, Context->CurrentIO, Context->PathBuffer[i]);
+				AsyncManagerPtr->Start<FSampleClusterPathTask>(i, VtxIO, SearchOperation, &TypedContext->PathQueries, HeuristicsHandler, false);
 			}
-
-			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-		}
-	}
-
-	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
-	{
-		// Advance to next plot
-		Context->CurrentPathBufferIndex++;
-		if (!Context->PathBuffer.IsValidIndex(Context->CurrentPathBufferIndex))
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-			return false;
 		}
 
-		Context->GetAsyncManager()->Start<FSampleClusterPathTask>(
-			Context->CurrentPathBufferIndex, Context->CurrentIO,
-			Context->PathBuffer[Context->CurrentPathBufferIndex]);
-
-		Context->SetAsyncState(PCGExPathfinding::State_WaitingPathfinding);
+		return true;
 	}
-
-	if (Context->IsState(PCGExPathfinding::State_WaitingPathfinding))
-	{
-		PCGEX_WAIT_ASYNC
-		Context->SetState(PCGExPathfinding::State_Pathfinding);
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-	}
-
-	if (Context->IsDone())
-	{
-		Context->OutputPaths->OutputTo(Context);
-		Context->ExecutionComplete();
-	}
-
-	return Context->IsDone();
 }
 
-bool FSampleClusterPathTask::ExecuteTask()
-{
-	const FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
-	PCGEX_SETTINGS(PathfindingEdges)
-
-	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
-	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);
-
-	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
-
-	TArray<int32> Path;
-
-	//Note: Can silently fail
-	if (!Context->SearchAlgorithm->FindPath(
-		Query->SeedPosition, &Settings->SeedPicking,
-		Query->GoalPosition, &Settings->GoalPicking, Context->HeuristicsHandler, Path))
-	{
-		// Failed
-		return false;
-	}
-
-	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
-	UPCGPointData* OutData = PathPoints.GetOut();
-
-	PCGExGraph::CleanupVtxData(&PathPoints);
-
-	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
-
-	MutablePoints.Reserve(Path.Num() + 2);
-
-	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
-	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]); }
-	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
-
-	if (Settings->bUseSeedAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->SeedTagValueGetter->SoftGet(Seed, TEXT(""))); }
-	if (Settings->bUseGoalAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->GoalTagValueGetter->SoftGet(Goal, TEXT(""))); }
-
-	Context->SeedForwardHandler->Forward(Query->SeedIndex, &PathPoints);
-	Context->GoalForwardHandler->Forward(Query->GoalIndex, &PathPoints);
-
-	return true;
-}
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

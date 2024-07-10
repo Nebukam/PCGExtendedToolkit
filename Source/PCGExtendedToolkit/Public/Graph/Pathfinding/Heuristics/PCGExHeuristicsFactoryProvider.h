@@ -6,30 +6,29 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Data/PCGExGraphDefinition.h"
-
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 
 #define PCGEX_FORWARD_HEURISTIC_FACTORY \
-	NewFactory->WeightFactor = Descriptor.WeightFactor; \
-	NewFactory->Descriptor = Descriptor;
+	NewFactory->WeightFactor = Config.WeightFactor; \
+	NewFactory->Config = Config; \
+	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewFactory->Config.ScoreCurve, NewFactory->Config.ScoreCurveObj, PCGEx::WeightDistributionLinear)
 
-#define PCGEX_FORWARD_HEURISTIC_DESCRIPTOR \
-	NewOperation->WeightFactor = Descriptor.WeightFactor; \
-	NewOperation->bInvert = Descriptor.bInvert; \
-	NewOperation->ScoreCurve = Descriptor.ScoreCurve; \
-	NewOperation->bUseLocalWeightMultiplier = Descriptor.bUseLocalWeightMultiplier; \
-	NewOperation->LocalWeightMultiplierSource = Descriptor.LocalWeightMultiplierSource; \
-	NewOperation->WeightMultiplierAttribute = Descriptor.WeightMultiplierAttribute;
+#define PCGEX_FORWARD_HEURISTIC_CONFIG \
+	NewOperation->WeightFactor = Config.WeightFactor; \
+	NewOperation->bInvert = Config.bInvert; \
+	NewOperation->ScoreCurveObj = Config.ScoreCurveObj; \
+	NewOperation->bUseLocalWeightMultiplier = Config.bUseLocalWeightMultiplier; \
+	NewOperation->LocalWeightMultiplierSource = Config.LocalWeightMultiplierSource; \
+	NewOperation->WeightMultiplierAttribute = Config.WeightMultiplierAttribute;
 
 class UPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorBase():
+	FPCGExHeuristicConfigBase():
 		ScoreCurve(PCGEx::WeightDistributionLinear)
 	{
 	}
@@ -53,7 +52,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 
 	/** Local multiplier attribute source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
-	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Point;
+	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Vtx;
 
 	/** Attribute to read multiplier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
@@ -61,12 +60,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryBase : public UPCGExParamFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Heuristics; }
 	virtual UPCGExHeuristicOperation* CreateOperation() const;
 	double WeightFactor = 1;
 };
@@ -77,13 +76,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryProviderSettings : public UP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(NodeFilter, "Heuristics Definition", "Creates a single heuristic computational node, to be used with pathfinding nodes.")
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorHeuristics; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorHeuristics; }
 #endif
 	//~End UPCGSettings
 
-	virtual FName GetMainOutputLabel() const override;
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputHeuristicsLabel; }
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 };

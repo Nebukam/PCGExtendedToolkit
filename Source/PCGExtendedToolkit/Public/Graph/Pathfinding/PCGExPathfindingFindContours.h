@@ -9,20 +9,18 @@
 
 #include "PCGExPathfindingFindContours.generated.h"
 
-namespace PCGExContours
+namespace PCGExFindContours
 {
-	struct PCGEXTENDEDTOOLKIT_API FCandidate
-	{
-		explicit FCandidate(const int32 InNodeIndex)
-			: NodeIndex(InNodeIndex)
-		{
-		}
-
-		int32 NodeIndex;
-		double Distance = TNumericLimits<double>::Max();
-		double Dot = -1;
-	};
+	class FProcessor;
 }
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output"))
+enum class EPCGExContourShapeTypeOutput : uint8
+{
+	Both UMETA(DisplayName = "Convex & Concave", ToolTip="Output both convex and concave paths"),
+	ConvexOnly UMETA(DisplayName = "Convex Only", ToolTip="Output only convex paths"),
+	ConcaveOnly UMETA(DisplayName = "Concave Only", ToolTip="Output only concave paths")
+};
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class PCGEXTENDEDTOOLKIT_API UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
@@ -30,73 +28,111 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFindContoursSettings : public UPCGExEdgesProc
 	GENERATED_BODY()
 
 public:
-	UPCGExFindContoursSettings(const FObjectInitializer& ObjectInitializer);
-
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FindContours, "Pathfinding : Find Contours", "Attempts to find a closed contour of connected edges around seed points.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPathfinding; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
+	/** Keep only contours that closed gracefully; i.e connect to their start node */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bKeepOnlyGracefulContours = true;
+
+	/** Ensure the node doesn't output duplicate path. Can be expensive. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bDedupePaths = true;
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExContourShapeTypeOutput OutputType = EPCGExContourShapeTypeOutput::Both;
+	
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExNodeSelectionSettings SeedPicking;
+	FPCGExNodeSelectionDetails SeedPicking;
 
-	/** Drives how the seed nodes are selected within the graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExClusterSearchOrientationMode OrientationMode = EPCGExClusterSearchOrientationMode::CW;
+	
+	/** Whether or not to duplicate dead end points. Useful if you plan on offsetting the generated contours. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bDuplicateDeadEndPoints = false;
 
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-	/** Use a seed attribute value to tag output paths. */
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	bool bUseSeedAttributeToTagPath;
-
-	/** Which Seed attribute to use as tag. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseSeedAttributeToTagPath"))
-	FPCGAttributePropertyInputSelector SeedTagAttribute;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardSettings SeedForwardAttributes;
+	FPCGExForwardDetails SeedForwardAttributes;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	bool bTagConcave = false;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagConcave"))
+	FString ConcaveTag = TEXT("Concave");
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	bool bTagConvex = false;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bTagConvex"))
+	FString ConvexTag = TEXT("Convex");
+
+	/** Whether to flag path points generated from "dead ends" */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
+	bool bFlagDeadEnds = false;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bFlagDeadEnds"))
+	FName DeadEndAttributeName = TEXT("IsDeadEnd");
+
+	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
+	bool bUseOctreeSearch = false;
 
 private:
 	friend class FPCGExFindContoursElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFindContoursElement;
 	friend class FPCGExCreateBridgeTask;
 
 	virtual ~FPCGExFindContoursContext() override;
 
-	PCGExData::FPointIOCollection* Seeds;
+	FPCGExGeo2DProjectionDetails ProjectionDetails;
+	PCGExData::FFacade* SeedsDataFacade = nullptr;
+	TArray<FVector> ProjectedSeeds;
+
+
 	PCGExData::FPointIOCollection* Paths;
 
-	TArray<PCGEx::FLocalToStringGetter*> SeedTagGetters;
-	TArray<PCGExDataBlending::FDataForwardHandler*> SeedForwardHandlers;
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
+	PCGExData::FDataForwardHandler* SeedForwardHandler;
 
-	TArray<TArray<FVector>*> ProjectedSeeds;
+	bool TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindContoursElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -109,17 +145,86 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask : public FPCGExNonAbandonableTask
+namespace PCGExFindContours
 {
-public:
-	FPCGExFindContourTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                      PCGExCluster::FCluster* InCluster) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Cluster(InCluster)
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-	}
+		friend struct FPCGExFindContoursContext;
+		friend class FBatch;
 
-	PCGExCluster::FCluster* Cluster = nullptr;
+		mutable FRWLock UniquePathsLock;
+		TSet<uint32> UniquePathsBounds;
+		TSet<uint64> UniquePathsStartPairs;
+		
+	protected:
+		TArray<FVector>* ProjectedPositions = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		bool bBuildExpandedNodes = false;
+		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
+		TArray<PCGExCluster::FExpandedEdge*>* ExpandedEdges = nullptr;
+
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+			
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSingleRangeIteration(int32 Iteration) override;
+		virtual void CompleteWork() override;
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	};
+
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+		friend class FProjectRangeTask;
+
+	protected:
+		PCGExMT::FTaskGroup* ProjectionTaskGroup = nullptr;
+		FPCGExGeo2DProjectionDetails ProjectionDetails;
+		TArray<FVector> ProjectedPositions;
+
+	public:
+		FBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+			TBatch(InContext, InVtx, InEdges)
+		{
+		}
+
+		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+	};
+
+	class FProjectRangeTask : public PCGExMT::FPCGExTask
+	{
+	public:
+		FProjectRangeTask(PCGExData::FPointIO* InPointIO,
+		                  FBatch* InBatch):
+			FPCGExTask(InPointIO),
+			Batch(InBatch)
+		{
+		}
+
+		FBatch* Batch = nullptr;
+		int32 NumIterations = 0;
+		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,
+		                      FProcessor* InClusterProcessor) :
+			FPCGExTask(InPointIO),
+			ClusterProcessor(InClusterProcessor)
+		{
+		}
+
+		FProcessor* ClusterProcessor = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+}

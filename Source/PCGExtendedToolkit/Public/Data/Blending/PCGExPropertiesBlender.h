@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
@@ -32,7 +33,7 @@ namespace PCGExDataBlending
 		{
 		}
 
-		explicit FPropertiesBlender(const FPCGExPropertiesBlendingSettings& Settings);
+		explicit FPropertiesBlender(const FPCGExPropertiesBlendingDetails& InDetails);
 
 		FPropertiesBlender(const FPropertiesBlender& Other):
 #define PCGEX_BLEND_COPY(_TYPE, _NAME, ...) bReset##_NAME(Other.bReset##_NAME), _NAME##Blending(Other._NAME##Blending),
@@ -43,7 +44,7 @@ namespace PCGExDataBlending
 		{
 		}
 
-		void Init(const FPCGExPropertiesBlendingSettings& Settings);
+		void Init(const FPCGExPropertiesBlendingDetails& InDetails);
 
 		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const;
 		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const;
@@ -53,7 +54,7 @@ namespace PCGExDataBlending
 
 		void PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const FPCGPoint& Default) const;
 		void BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
-		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const;
+		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const;
 
 		void BlendRangeFromTo(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
 

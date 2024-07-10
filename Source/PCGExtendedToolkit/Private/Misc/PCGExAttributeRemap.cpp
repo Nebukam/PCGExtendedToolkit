@@ -19,7 +19,7 @@ PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 
 bool FPCGExAttributeRemapElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeRemap)
 
@@ -31,7 +31,7 @@ bool FPCGExAttributeRemapElement::Boot(FPCGContext* InContext) const
 	Context->RemapSettings[2] = Settings->Component3RemapOverride;
 	Context->RemapSettings[3] = Settings->Component4RemapOverride;
 
-	for (int i = 0; i < 4; i++) { Context->RemapSettings[i].RemapSettings.LoadCurve(); }
+	for (int i = 0; i < 4; i++) { Context->RemapSettings[i].RemapDetails.LoadCurve(); }
 
 	Context->RemapIndices[0] = 0;
 	Context->RemapIndices[1] = Settings->bOverrideComponent2 ? 1 : 0;
@@ -56,9 +56,9 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		int32 IOIndex = 0;
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
-			PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(Context->GetCurrentIn()->Metadata);
+			PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(Context->CurrentIO->GetIn()->Metadata);
 			const PCGEx::FAttributeIdentity* AttIdentity = Infos->Find(Settings->SourceAttributeName);
 
 			if (!AttIdentity)
@@ -124,14 +124,13 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->OutputMainPoints();
 		Context->Done();
-		Context->ExecutionComplete();
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
 bool FPCGExRemapPointIO::ExecuteTask()
@@ -162,37 +161,37 @@ bool FPCGExRemapPointIO::ExecuteTask()
 		{
 			FPCGExComponentRemapRule Rule = FPCGExComponentRemapRule(Context->RemapSettings[Context->RemapIndices[i]]);
 
-			const double CachedRMin = Rule.RemapSettings.InMin;
-			const double CachedRMax = Rule.RemapSettings.InMax;
+			const double CachedRMin = Rule.RemapDetails.InMin;
+			const double CachedRMax = Rule.RemapDetails.InMax;
 
-			Rule.RemapSettings.InMin = TNumericLimits<double>::Max();
-			Rule.RemapSettings.InMax = TNumericLimits<double>::Min();
+			Rule.RemapDetails.InMin = TNumericLimits<double>::Max();
+			Rule.RemapDetails.InMax = TNumericLimits<double>::Min();
 
 			double VAL;
 
-			if (Rule.RemapSettings.bUseAbsoluteRange)
+			if (Rule.RemapDetails.bUseAbsoluteRange)
 			{
 				for (RawT& V : RawValues)
 				{
-					VAL = Rule.InputClampSettings.GetClampedValue(PCGExMath::GetComponent(V, i));
+					VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, i));
 					PCGExMath::SetComponent(V, i, VAL);
 
-					Rule.RemapSettings.InMin = FMath::Min(Rule.RemapSettings.InMin, FMath::Abs(VAL));
-					Rule.RemapSettings.InMax = FMath::Max(Rule.RemapSettings.InMax, FMath::Abs(VAL));
+					Rule.RemapDetails.InMin = FMath::Min(Rule.RemapDetails.InMin, FMath::Abs(VAL));
+					Rule.RemapDetails.InMax = FMath::Max(Rule.RemapDetails.InMax, FMath::Abs(VAL));
 				}
 
-				if (Rule.RemapSettings.bUseInMin) { Rule.RemapSettings.InMin = CachedRMin; }
-				if (Rule.RemapSettings.bUseInMax) { Rule.RemapSettings.InMax = CachedRMax; }
+				if (Rule.RemapDetails.bUseInMin) { Rule.RemapDetails.InMin = CachedRMin; }
+				if (Rule.RemapDetails.bUseInMax) { Rule.RemapDetails.InMax = CachedRMax; }
 
-				if (Rule.RemapSettings.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapSettings.InMin = 0; }
+				if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapDetails.InMin = 0; }
 
-				if (Rule.RemapSettings.bPreserveSign)
+				if (Rule.RemapDetails.bPreserveSign)
 				{
 					for (RawT& V : RawValues)
 					{
 						VAL = PCGExMath::GetComponent(V, i);
-						VAL = Rule.RemapSettings.GetRemappedValue(FMath::Abs(VAL)) * PCGExMath::SignPlus(VAL);
-						VAL = Rule.OutputClampSettings.GetClampedValue(VAL);
+						VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL)) * PCGExMath::SignPlus(VAL);
+						VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
 
 						PCGExMath::SetComponent(V, i, VAL);
 					}
@@ -202,8 +201,8 @@ bool FPCGExRemapPointIO::ExecuteTask()
 					for (RawT& V : RawValues)
 					{
 						VAL = PCGExMath::GetComponent(V, i);
-						VAL = Rule.RemapSettings.GetRemappedValue(FMath::Abs(VAL));
-						VAL = Rule.OutputClampSettings.GetClampedValue(VAL);
+						VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL));
+						VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
 
 						PCGExMath::SetComponent(V, i, VAL);
 					}
@@ -213,25 +212,25 @@ bool FPCGExRemapPointIO::ExecuteTask()
 			{
 				for (RawT& V : RawValues)
 				{
-					VAL = Rule.InputClampSettings.GetClampedValue(PCGExMath::GetComponent(V, i));
+					VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, i));
 					PCGExMath::SetComponent(V, i, VAL);
 
-					Rule.RemapSettings.InMin = FMath::Min(Rule.RemapSettings.InMin, VAL);
-					Rule.RemapSettings.InMax = FMath::Max(Rule.RemapSettings.InMax, VAL);
+					Rule.RemapDetails.InMin = FMath::Min(Rule.RemapDetails.InMin, VAL);
+					Rule.RemapDetails.InMax = FMath::Max(Rule.RemapDetails.InMax, VAL);
 				}
 
-				if (Rule.RemapSettings.bUseInMin) { Rule.RemapSettings.InMin = CachedRMin; }
-				if (Rule.RemapSettings.bUseInMax) { Rule.RemapSettings.InMax = CachedRMax; }
+				if (Rule.RemapDetails.bUseInMin) { Rule.RemapDetails.InMin = CachedRMin; }
+				if (Rule.RemapDetails.bUseInMax) { Rule.RemapDetails.InMax = CachedRMax; }
 
-				if (Rule.RemapSettings.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapSettings.InMin = 0; }
+				if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapDetails.InMin = 0; }
 
-				if (Rule.RemapSettings.bPreserveSign)
+				if (Rule.RemapDetails.bPreserveSign)
 				{
 					for (RawT& V : RawValues)
 					{
 						VAL = PCGExMath::GetComponent(V, i);
-						VAL = Rule.RemapSettings.GetRemappedValue(VAL);
-						VAL = Rule.OutputClampSettings.GetClampedValue(VAL);
+						VAL = Rule.RemapDetails.GetRemappedValue(VAL);
+						VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
 
 						PCGExMath::SetComponent(V, i, VAL);
 					}
@@ -241,8 +240,8 @@ bool FPCGExRemapPointIO::ExecuteTask()
 					for (RawT& V : RawValues)
 					{
 						VAL = PCGExMath::GetComponent(V, i);
-						VAL = Rule.RemapSettings.GetRemappedValue(FMath::Abs(VAL));
-						VAL = Rule.OutputClampSettings.GetClampedValue(VAL);
+						VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL));
+						VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
 
 						PCGExMath::SetComponent(V, i, VAL);
 					}

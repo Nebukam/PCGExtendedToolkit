@@ -6,22 +6,9 @@
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 
-#if WITH_EDITOR
-void UPCGExOffsetPathSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
-
 PCGExData::EInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
-
-void UPCGExOffsetPathSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(OffsetPathing, UPCGExMovingAverageOffsetPathing)
-}
 
 FPCGExOffsetPathContext::~FPCGExOffsetPathContext()
 {
@@ -46,125 +33,141 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		int32 Index = 0;
-		Context->MainPoints->ForEach(
-			[&](PCGExData::FPointIO& PointIO, const int32)
+		bool bInvalidInputs = false;
+
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
 			{
-				if (PointIO.GetNum() > 2)
+				if (Entry->GetNum() < 2)
 				{
-					PointIO.CreateInKeys();
-					Context->GetAsyncManager()->Start<FPCGExOffsetPathTask>(Index++, &PointIO);
+					bInvalidInputs = true;
+					return false;
 				}
-			});
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>* NewBatch)
+			{
+				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
+			},
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to shrink."));
+			return true;
+		}
+
+		if (bInvalidInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be affected."));
+		}
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	if (!Context->ProcessPointsBatch()) { return false; }
+
+	if (Context->IsDone())
 	{
-		PCGEX_WAIT_ASYNC
 		Context->OutputMainPoints();
-		Context->Done();
-		Context->ExecutionComplete();
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
-bool FPCGExOffsetPathTask::ExecuteTask()
+namespace PCGExOffsetPath
 {
-	const FPCGExOffsetPathContext* Context = Manager->GetContext<FPCGExOffsetPathContext>();
-	PCGEX_SETTINGS(OffsetPath)
-
-	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-	const int32 NumPoints = InPoints.Num();
-	TArray<FVector> Positions;
-	TArray<FVector> Normals;
-	TArray<double> OffsetSize;
-	TArray<FVector> Up;
-
-	OffsetSize.SetNum(InPoints.Num());
-	Up.SetNum(InPoints.Num());
-
-	if (Settings->OffsetType == EPCGExFetchType::Attribute)
+	FProcessor::~FProcessor()
 	{
-		PCGEx::FLocalSingleFieldGetter* OffsetGetter = new PCGEx::FLocalSingleFieldGetter();
-		OffsetGetter->Capture(Settings->OffsetAttribute);
-		if (!OffsetGetter->Grab(*PointIO))
-		{
-			PCGEX_DELETE(OffsetGetter)
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing offset size attribute: {0}."), FText::FromName(Settings->OffsetAttribute.GetName())));
-			return false;
-		}
-
-		for (int i = 0; i < OffsetSize.Num(); i++) { OffsetSize[i] = OffsetGetter->Values[i]; }
 		PCGEX_DELETE(OffsetGetter)
-	}
-	else
-	{
-		for (int i = 0; i < OffsetSize.Num(); i++) { OffsetSize[i] = Settings->OffsetConstant; }
+		PCGEX_DELETE(UpGetter)
+
+		Positions.Empty();
+		Normals.Empty();
 	}
 
-	if (Settings->UpVectorType == EPCGExFetchType::Attribute)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		PCGEx::FLocalVectorGetter* UpGetter = new PCGEx::FLocalVectorGetter();
-		UpGetter->Capture(Settings->UpVectorAttribute);
-		if (!UpGetter->Grab(*PointIO))
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(OffsetPath)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		UpVector = Settings->UpVectorConstant;
+		OffsetConstant = Settings->OffsetConstant;
+
+		OffsetGetter = new PCGEx::FLocalSingleFieldGetter();
+
+		if (Settings->OffsetType == EPCGExFetchType::Attribute)
 		{
-			PCGEX_DELETE(UpGetter)
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing UpVector attribute: {0}."), FText::FromName(Settings->UpVectorAttribute.GetName())));
-			return false;
+			OffsetGetter->Capture(Settings->OffsetAttribute);
+			if (!OffsetGetter->Grab(PointIO))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing offset size attribute: {0}."), FText::FromName(Settings->OffsetAttribute.GetName())));
+				return false;
+			}
 		}
 
-		for (int i = 0; i < Up.Num(); i++) { Up[i] = UpGetter->Values[i]; }
-		PCGEX_DELETE(UpGetter)
+		UpGetter = new PCGEx::FLocalVectorGetter();
+
+		if (Settings->UpVectorType == EPCGExFetchType::Attribute)
+		{
+			UpGetter->Capture(Settings->UpVectorAttribute);
+			if (!UpGetter->Grab(PointIO))
+			{
+				PCGEX_DELETE(UpGetter)
+				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing UpVector attribute: {0}."), FText::FromName(Settings->UpVectorAttribute.GetName())));
+				return false;
+			}
+		}
+
+		const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
+		NumPoints = Points.Num();
+
+		Positions.SetNumUninitialized(NumPoints);
+		Normals.SetNumUninitialized(NumPoints);
+
+		for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
+
+		StartParallelLoopForRange(NumPoints - 2); // Compute all normals
+
+		return true;
 	}
-	else
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		for (int i = 0; i < Up.Num(); i++) { Up[i] = Settings->UpVectorConstant; }
+		Point.Transform.SetLocation(Positions[Index] + (Normals[Index].GetSafeNormal() * OffsetGetter->SafeGet(Index, OffsetConstant)));
 	}
 
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
+	{
+		Normals[Iteration + 1] = NRM(Iteration, Iteration + 1, Iteration + 2); // Offset by 1 because loop should be -1 / 0 / +1
+	}
 
-	Positions.SetNum(NumPoints);
-	Normals.SetNum(NumPoints);
+	void FProcessor::CompleteWork()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(OffsetPath)
+		const int32 LastIndex = NumPoints - 1;
 
-	for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
+		// Update first & last Normals
+		if (Settings->bClosedPath)
+		{
+			Normals[0] = NRM(LastIndex, 0, 1);
+			Normals[LastIndex] = NRM(NumPoints - 2, LastIndex, 0);
+		}
+		else
+		{
+			Normals[0] = NRM(0, 0, 1);
+			Normals[LastIndex] = NRM(NumPoints - 2, LastIndex, LastIndex);
+		}
 
-	auto NRM = [&](const int32 A, const int32 B, const int32 C)-> FVector
+		StartParallelLoopForPoints();
+	}
+
+	FVector FProcessor::NRM(const int32 A, const int32 B, const int32 C) const
 	{
 		const FVector VA = Positions[A];
 		const FVector VB = Positions[B];
 		const FVector VC = Positions[C];
-		const FVector UpAverage = ((Up[A] + Up[B] + Up[C]) / 3).GetSafeNormal();
+		const FVector UpAverage = ((UpGetter->SafeGet(A, UpVector) + UpGetter->SafeGet(B, UpVector) + UpGetter->SafeGet(C, UpVector)) / 3).GetSafeNormal();
 		return FMath::Lerp(PCGExMath::GetNormal(VA, VB, VB + UpAverage), PCGExMath::GetNormal(VB, VC, VC + UpAverage), 0.5).GetSafeNormal();
-	};
-
-	const int32 LastIndex = NumPoints - 1;
-
-	for (int i = 1; i < LastIndex; i++) { Normals[i] = NRM(i - 1, i, i + 1); }
-
-	if (Settings->bClosedPath)
-	{
-		Normals[0] = NRM(LastIndex, 0, 1);
-		Normals[LastIndex] = NRM(NumPoints - 2, LastIndex, 0);
 	}
-	else
-	{
-		Normals[0] = NRM(0, 0, 1);
-		Normals[LastIndex] = NRM(NumPoints - 2, LastIndex, LastIndex);
-	}
-
-	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-	for (int i = 0; i < NumPoints; i++)
-	{
-		MutablePoints[i].Transform.SetLocation(Positions[i] + (Normals[i].GetSafeNormal() * OffsetSize[i]));
-	}
-
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

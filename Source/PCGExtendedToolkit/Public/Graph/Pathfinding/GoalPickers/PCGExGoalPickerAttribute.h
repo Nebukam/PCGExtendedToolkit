@@ -39,7 +39,9 @@ public:
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
 	TArray<PCGEx::FLocalSingleFieldGetter> AttributeGetters;
 
-	virtual void PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+
+	virtual void PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals) override;
 	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const override;
 	virtual void GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const override;
 	virtual bool OutputMultipleGoals() const override;

@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExDetails.h"
 #include "Graph/PCGExGraph.h"
 #include "Paths/SubPoints/PCGExSubPointsOperation.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
@@ -14,11 +15,11 @@
 
 namespace PCGExSubdivide
 {
-	constexpr PCGExMT::AsyncState State_BlendingPoints = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_BlendingPoints)
 }
 
 /**
- * Calculates the distance between two points (inherently a n*n operation)
+ * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubdivideSettings : public UPCGExPathProcessorSettings
@@ -26,30 +27,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubdivideSettings : public UPCGExPathProcesso
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Subdivide, "Path : Subdivide", "Subdivide paths segments.");
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UObject interface
-public:
-	virtual void PostInitProperties() override;
-
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. (TODO:Not implemented) */
@@ -76,27 +66,16 @@ public:
 	FName FlagName = "IsSubPoint";
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSubdivideElement;
 
 	virtual ~FPCGExSubdivideContext() override;
 
-	EPCGExSubdivideMode SubdivideMethod;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
-
-	double Distance;
-	int32 Count;
-	bool bFlagSubPoints;
-
-	FName FlagName;
-	FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
-
-	TArray<int32> Milestones;
-	TArray<PCGExMath::FPathMetricsSquared> MilestonesMetrics;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -108,3 +87,30 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExSubdivide
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
+
+		TArray<int32> Milestones;
+		TArray<PCGExMath::FPathMetricsSquared> MilestonesMetrics;
+
+		UPCGExSubPointsBlendOperation* Blending = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		void ProcessPathPoint(int32 Index);
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+	};
+}

@@ -16,15 +16,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSanitizeClustersSettings : public UPCGExEdges
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SanitizeClusters, "Graph : Sanitize Clusters", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	PCGEX_NODE_INFOS(SanitizeClusters, "Cluster : Sanitize", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UPCGExEdgesProcessorSettings interface
 public:
@@ -33,24 +33,22 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 
 	/** Graph & Edges output properties. Note that pruning isolated points is ignored. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, DisplayName="Graph Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, DisplayName="Cluster Output Settings"))
+	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSanitizeClustersSettings;
 	friend class FPCGExSanitizeClustersElement;
 
 	virtual ~FPCGExSanitizeClustersContext() override;
 
-	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	TArray<PCGExGraph::FGraphBuilder*> Builders;
+	TArray<TMap<uint32, int32>> EndpointsLookups;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -61,4 +59,34 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClusterTask final : public PCGExMT::FPCGExTask
+{
+public:
+	FPCGExSanitizeClusterTask(PCGExData::FPointIO* InPointIO,
+	                          PCGExData::FPointIOTaggedEntries* InTaggedEdges) :
+		FPCGExTask(InPointIO),
+		TaggedEdges(InTaggedEdges)
+	{
+	}
+
+	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
+
+	virtual bool ExecuteTask() override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeInsertTask final : public PCGExMT::FPCGExTask
+{
+public:
+	FPCGExSanitizeInsertTask(PCGExData::FPointIO* InPointIO,
+	                         PCGExData::FPointIO* InEdgeIO) :
+		FPCGExTask(InPointIO),
+		EdgeIO(InEdgeIO)
+	{
+	}
+
+	PCGExData::FPointIO* EdgeIO = nullptr;
+
+	virtual bool ExecuteTask() override;
 };

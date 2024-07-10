@@ -3,7 +3,8 @@
 
 #include "Graph/PCGExEdgesProcessor.h"
 
-#include "Data/PCGExGraphDefinition.h"
+
+#include "Graph/PCGExClusterMT.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -12,12 +13,10 @@
 
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-FName UPCGExEdgesProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourceVerticesLabel; }
-FName UPCGExEdgesProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+bool UPCGExEdgesProcessorSettings::SupportsVtxFilters() const { return !GetVtxFilterLabel().IsNone(); }
+bool UPCGExEdgesProcessorSettings::SupportsEdgesFilters() const { return !GetEdgesFilterLabel().IsNone(); }
 
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
-
-bool UPCGExEdgesProcessorSettings::RequiresDeterministicClusters() const { return false; }
 
 bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }
 
@@ -25,6 +24,8 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() con
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", Required, {})
+	if (SupportsVtxFilters()) { PCGEX_PIN_PARAMS(GetVtxFilterLabel(), "Vtx filters", Advanced, {}) }
+	if (SupportsEdgesFilters()) { PCGEX_PIN_PARAMS(GetEdgesFilterLabel(), "Edges filters", Advanced, {}) }
 	return PinProperties;
 }
 
@@ -44,35 +45,33 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE(InputDictionary)
 	PCGEX_DELETE(MainEdges)
 	PCGEX_DELETE(CurrentCluster)
-	PCGEX_DELETE(ClusterProjection)
+
+	PCGEX_DELETE_TARRAY(Batches)
+
+	VtxFilterFactories.Empty();
+	EdgeFilterFactories.Empty();
 
 	EndpointsLookup.Empty();
-	ProjectionSettings.Cleanup();
 }
 
-
-bool FPCGExEdgesProcessorContext::AdvancePointsIO()
+bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
 	PCGEX_DELETE(CurrentCluster)
-	PCGEX_DELETE(ClusterProjection)
 
 	CurrentEdgesIndex = -1;
 	EndpointsLookup.Empty();
 	EndpointsAdjacency.Empty();
 
-	if (!FPCGExPointsProcessorContext::AdvancePointsIO()) { return false; }
+	if (!FPCGExPointsProcessorContext::AdvancePointsIO(bCleanupKeys)) { return false; }
 
 	if (FString CurrentPairId;
 		CurrentIO->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, CurrentPairId))
 	{
 		FString OutId;
-		CurrentIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, CurrentIO->GetOutIn()->UID, OutId);
+		PCGExGraph::SetClusterVtx(CurrentIO, OutId);
 
 		TaggedEdges = InputDictionary->GetEntries(CurrentPairId);
-		if (TaggedEdges && !TaggedEdges->Entries.IsEmpty())
-		{
-			for (const PCGExData::FPointIO* EdgeIO : TaggedEdges->Entries) { EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId); }
-		}
+		if (TaggedEdges && !TaggedEdges->Entries.IsEmpty()) { PCGExGraph::MarkClusterEdges(TaggedEdges->Entries, OutId); }
 		else { TaggedEdges = nullptr; }
 	}
 	else { TaggedEdges = nullptr; }
@@ -80,19 +79,22 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 	if (TaggedEdges)
 	{
 		CurrentIO->CreateInKeys();
-		ProjectionSettings.Init(CurrentIO);
-		PCGExGraph::BuildEndpointsLookup(*CurrentIO, EndpointsLookup, EndpointsAdjacency);
+		//ProjectionSettings.Init(CurrentIO); // TODO : Move to FClusterProcessor?
+		if (bBuildEndpointsLookup) { PCGExGraph::BuildEndpointsLookup(CurrentIO, EndpointsLookup, EndpointsAdjacency); }
+	}
+	else
+	{
+		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some input vtx have no associated edges."));
 	}
 
 	return true;
 }
 
-bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
+bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys)
 {
 	PCGEX_DELETE(CurrentCluster)
-	PCGEX_DELETE(ClusterProjection)
 
-	if (bBuildCluster && CurrentEdges) { CurrentEdges->CleanupKeys(); }
+	if (bCleanupKeys && CurrentEdges) { CurrentEdges->CleanupKeys(); }
 
 	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
 	{
@@ -101,19 +103,31 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 		if (!bBuildCluster) { return true; }
 
 		CurrentEdges->CreateInKeys();
-		CurrentCluster = new PCGExCluster::FCluster();
 
-		if (!CurrentCluster->BuildFrom(
-			*CurrentEdges, GetCurrentIn()->GetPoints(),
-			EndpointsLookup, &EndpointsAdjacency))
+		if (const PCGExCluster::FCluster* CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO, CurrentEdges))
 		{
-			// Bad cluster/edges.
-			PCGEX_DELETE(CurrentCluster)
+			CurrentCluster = new PCGExCluster::FCluster(
+				CachedCluster, CurrentIO, CurrentEdges,
+				false, false, false);
 		}
-		else
+
+		if (!CurrentCluster)
 		{
-			CurrentCluster->PointsIO = CurrentIO;
-			CurrentCluster->EdgesIO = CurrentEdges;
+			CurrentCluster = new PCGExCluster::FCluster();
+			CurrentCluster->bIsOneToOne = (TaggedEdges->Entries.Num() == 1);
+
+			if (!CurrentCluster->BuildFrom(
+				CurrentEdges, CurrentIO->GetIn()->GetPoints(),
+				EndpointsLookup, &EndpointsAdjacency))
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed. \n If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
+				PCGEX_DELETE(CurrentCluster)
+			}
+			else
+			{
+				CurrentCluster->VtxIO = CurrentIO;
+				CurrentCluster->EdgesIO = CurrentEdges;
+			}
 		}
 
 		return true;
@@ -123,19 +137,124 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 	return false;
 }
 
-bool FPCGExEdgesProcessorContext::ProjectCluster()
+bool FPCGExEdgesProcessorContext::ProcessClusters()
 {
-	const int32 NumNodes = CurrentCluster->Nodes.Num();
+	if (Batches.IsEmpty()) { return true; }
 
-	auto Initialize = [&]()
+	if (bClusterBatchInlined)
 	{
-		PCGEX_DELETE(ClusterProjection)
-		ClusterProjection = new PCGExCluster::FClusterProjection(CurrentCluster, &ProjectionSettings);
-	};
+		if (!CurrentBatch) { return true; }
 
-	auto ProjectSinglePoint = [&](const int32 Index) { ClusterProjection->Nodes[Index].Project(CurrentCluster, &ProjectionSettings); };
+		if (IsState(PCGExClusterMT::MTState_ClusterProcessing))
+		{
+			if (!IsAsyncWorkComplete()) { return false; }
 
-	return Process(Initialize, ProjectSinglePoint, NumNodes);
+			CompleteBatch(GetAsyncManager(), CurrentBatch);
+			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
+		}
+
+		if (IsState(PCGExClusterMT::MTState_ClusterCompletingWork))
+		{
+			if (!IsAsyncWorkComplete()) { return false; }
+
+			// TODO : This is a mess, look into it
+
+			if (!bDoClusterBatchGraphBuilding) { AdvanceBatch(); }
+			else
+			{
+				bClusterBatchInlined = false;
+				for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
+				{
+					Batch->GraphBuilder->CompileAsync(GetAsyncManager());
+				}
+				SetAsyncState(PCGExGraph::State_Compiling);
+			}
+		}
+	}
+	else
+	{
+		if (IsState(PCGExClusterMT::MTState_ClusterProcessing))
+		{
+			if (!IsAsyncWorkComplete()) { return false; }
+
+			CompleteBatches(GetAsyncManager(), Batches);
+			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
+		}
+
+		if (IsState(PCGExClusterMT::MTState_ClusterCompletingWork))
+		{
+			if (!IsAsyncWorkComplete()) { return false; }
+
+			if (!bDoClusterBatchGraphBuilding)
+			{
+				if (bDoClusterBatchWritingStep)
+				{
+					WriteBatches(GetAsyncManager(), Batches);
+					SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
+				}
+				else { SetState(TargetState_ClusterProcessingDone); }
+			}
+			else
+			{
+				for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
+				{
+					Batch->GraphBuilder->CompileAsync(GetAsyncManager());
+				}
+				SetAsyncState(PCGExGraph::State_Compiling);
+			}
+		}
+
+		if (IsState(PCGExGraph::State_Compiling))
+		{
+			if (!IsAsyncWorkComplete()) { return false; }
+
+			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
+			{
+				if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(this); }
+			}
+
+			if (bDoClusterBatchWritingStep)
+			{
+				WriteBatches(GetAsyncManager(), Batches);
+				SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
+			}
+			else { SetState(TargetState_ClusterProcessingDone); }
+		}
+
+		if (IsState(PCGExClusterMT::MTState_ClusterWriting))
+		{
+			if (!IsAsyncWorkComplete()) { return false; }
+			SetState(TargetState_ClusterProcessingDone);
+		}
+	}
+
+	return true;
+}
+
+bool FPCGExEdgesProcessorContext::HasValidHeuristics() const
+{
+	TArray<UPCGExParamFactoryBase*> InputFactories;
+	const bool bFoundAny = PCGExFactories::GetInputFactories(
+		this, PCGExGraph::SourceHeuristicsLabel, InputFactories,
+		{PCGExFactories::EType::Heuristics}, false);
+	InputFactories.Empty();
+	return bFoundAny;
+}
+
+void FPCGExEdgesProcessorContext::AdvanceBatch()
+{
+	CurrentBatchIndex++;
+	if (!Batches.IsValidIndex(CurrentBatchIndex))
+	{
+		CurrentBatch = nullptr;
+		SetState(TargetState_ClusterProcessingDone);
+	}
+	else
+	{
+		CurrentBatch = Batches[CurrentBatchIndex];
+		ScheduleBatch(GetAsyncManager(), CurrentBatch);
+		SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing);
+	}
 }
 
 void FPCGExEdgesProcessorContext::OutputPointsAndEdges()
@@ -148,7 +267,7 @@ PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
 
 void FPCGExEdgesProcessorElement::DisabledPassThroughData(FPCGContext* Context) const
 {
-	FPCGExPointsProcessorElementBase::DisabledPassThroughData(Context);
+	FPCGExPointsProcessorElement::DisabledPassThroughData(Context);
 
 	//Forward main edges
 	TArray<FPCGTaggedData> EdgesSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
@@ -163,16 +282,30 @@ void FPCGExEdgesProcessorElement::DisabledPassThroughData(FPCGContext* Context) 
 
 bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
-	Context->bDeterministicClusters = Settings->RequiresDeterministicClusters();
+	Context->bHasValidHeuristics = Context->HasValidHeuristics();
 
 	if (Context->MainEdges->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
 		return false;
+	}
+
+	if (Settings->SupportsVtxFilters())
+	{
+		GetInputFactories(
+			InContext, Settings->GetVtxFilterLabel(), Context->VtxFilterFactories,
+			PCGExFactories::ClusterNodeFilters, false);
+	}
+
+	if (Settings->SupportsEdgesFilters())
+	{
+		GetInputFactories(
+			InContext, Settings->GetEdgesFilterLabel(), Context->EdgeFilterFactories,
+			PCGExFactories::ClusterNodeFilters, false);
 	}
 
 	return true;
@@ -184,45 +317,113 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
+	FPCGExPointsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
 	if (!Settings->bEnabled) { return Context; }
 
 	Context->InputDictionary = new PCGExData::FPointIOTaggedDictionary(PCGExGraph::TagStr_ClusterPair);
-	Context->MainPoints->ForEach(
-		[&](PCGExData::FPointIO& PointIO, int32)
-		{
-			if (!PCGExGraph::IsPointDataVtxReady(PointIO.GetIn()))
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("A Vtx input has no metadata and will be discarded."));
-				PointIO.Disable();
-				return;
-			}
-			if (!Context->InputDictionary->CreateKey(PointIO))
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed."));
-				PointIO.Disable();
-			}
-		});
+
+	TArray<PCGExData::FPointIO*> TaggedVtx;
+	TArray<PCGExData::FPointIO*> TaggedEdges;
 
 	Context->MainEdges = new PCGExData::FPointIOCollection();
 	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
 	Context->MainEdges->Initialize(Context, Sources, Settings->GetEdgeOutputInitMode());
 
-	Context->MainEdges->ForEach(
-		[&](PCGExData::FPointIO& PointIO, int32)
+	// Gather Vtx inputs
+	for (PCGExData::FPointIO* MainIO : Context->MainPoints->Pairs)
+	{
+		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
 		{
-			if (!PCGExGraph::IsPointDataEdgeReady(PointIO.GetIn()))
+			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("An Edges input has no edge metadata and will be discarded."));
-				PointIO.Disable();
-				return;
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges -- it will be ignored for safety."));
+				continue;
 			}
-			Context->InputDictionary->TryAddEntry(PointIO);
-		});
+
+			TaggedVtx.Add(MainIO);
+			continue;
+		}
+
+		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+		{
+			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges. It will be ignored."));
+				continue;
+			}
+
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, some Edge data made its way to the vtx input. It will be ignored."));
+			continue;
+		}
+
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("A data pluggued into Vtx is neither tagged Vtx or Edges and will be ignored."));
+	}
+
+	// Gather Edge inputs
+	for (PCGExData::FPointIO* MainIO : Context->MainEdges->Pairs)
+	{
+		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+		{
+			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges. It will be ignored."));
+				continue;
+			}
+
+			TaggedEdges.Add(MainIO);
+			continue;
+		}
+
+		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+		{
+			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges. It will be ignored."));
+				continue;
+			}
+
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, some Edge data made its way to the vtx input. It will be ignored."));
+			continue;
+		}
+
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("A data pluggued into Edges is neither tagged Edges or Vtx and will be ignored."));
+	}
+
+
+	for (PCGExData::FPointIO* Vtx : TaggedVtx)
+	{
+		if (!PCGExGraph::IsPointDataVtxReady(Vtx->GetIn()->Metadata))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("A Vtx input has no metadata and will be discarded."));
+			Vtx->Disable();
+			continue;
+		}
+
+		if (!Context->InputDictionary->CreateKey(*Vtx))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed."));
+			Vtx->Disable();
+		}
+	}
+
+	for (PCGExData::FPointIO* Edges : TaggedEdges)
+	{
+		if (!PCGExGraph::IsPointDataEdgeReady(Edges->GetIn()->Metadata))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("An Edges input has no edge metadata and will be discarded."));
+			Edges->Disable();
+			continue;
+		}
+
+		if (!Context->InputDictionary->TryAddEntry(*Edges))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges have no associated vtx."));
+		}
+	}
 
 	return Context;
 }

@@ -11,12 +11,12 @@
 #include "PCGExHeuristicNodeCount.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorLeastNodes : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorLeastNodes() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicConfigLeastNodes() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 };
@@ -35,18 +35,21 @@ public:
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		return ReferenceWeight;
+	}
 };
 
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryLeastNodes : public UPCGHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryLeastNodes : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicDescriptorLeastNodes Descriptor;
+	FPCGExHeuristicConfigLeastNodes Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
@@ -57,7 +60,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsLeastNodesProviderSettings : public
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsLeastNodes, "Heuristics : Least Nodes", "Heuristics based on node count.",
@@ -65,9 +68,9 @@ public:
 #endif
 	//~End UPCGSettings
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicDescriptorLeastNodes Descriptor;
+	FPCGExHeuristicConfigLeastNodes Config;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 

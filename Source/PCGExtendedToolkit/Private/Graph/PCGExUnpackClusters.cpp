@@ -6,17 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExUnpackClusters"
 #define PCGEX_NAMESPACE UnpackClusters
 
-UPCGExUnpackClustersSettings::UPCGExUnpackClustersSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
-
 PCGExData::EInit UPCGExUnpackClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-
-FName UPCGExUnpackClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourcePackedClustersLabel; }
-
-FName UPCGExUnpackClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
 TArray<FPCGPinProperties> UPCGExUnpackClustersSettings::InputPinProperties() const
 {
@@ -45,7 +35,7 @@ FPCGExUnpackClustersContext::~FPCGExUnpackClustersContext()
 
 bool FPCGExUnpackClustersElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(UnpackClusters)
 
@@ -73,22 +63,21 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO()) { Context->GetAsyncManager()->Start<FPCGExUnpackClusterTask>(-1, Context->CurrentIO); }
+		while (Context->AdvancePointsIO(false)) { Context->GetAsyncManager()->Start<FPCGExUnpackClusterTask>(-1, Context->CurrentIO); }
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->OutPoints->OutputTo(Context);
 		Context->OutEdges->OutputTo(Context);
 
 		Context->Done();
-		Context->ExecutionComplete();
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
 bool FPCGExUnpackClusterTask::ExecuteTask()
@@ -96,9 +85,7 @@ bool FPCGExUnpackClusterTask::ExecuteTask()
 	const FPCGExUnpackClustersContext* Context = Manager->GetContext<FPCGExUnpackClustersContext>();
 	PCGEX_SETTINGS(UnpackClusters)
 
-	PCGExData::FPointIO& PackedIO = *PointIO;
-
-	const FPCGMetadataAttribute<int32>* EdgeCount = PackedIO.GetIn()->Metadata->GetConstTypedAttribute<int32>(PCGExGraph::Tag_PackedClusterEdgeCount);
+	const FPCGMetadataAttribute<int32>* EdgeCount = PointIO->GetIn()->Metadata->GetConstTypedAttribute<int32>(PCGExGraph::Tag_PackedClusterEdgeCount);
 	if (!EdgeCount)
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some input points have no packing metadata."));
@@ -106,36 +93,41 @@ bool FPCGExUnpackClusterTask::ExecuteTask()
 	}
 
 	const int32 NumEdges = EdgeCount->GetValueFromItemKey(PCGInvalidEntryKey);
-	const int32 NumVtx = PackedIO.GetNum() - NumEdges;
+	const int32 NumVtx = PointIO->GetNum() - NumEdges;
 
-	if (NumEdges > PackedIO.GetNum() || NumVtx <= 0)
+	if (NumEdges > PointIO->GetNum() || NumVtx <= 0)
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some input points have could not be unpacked correctly (wrong number of vtx or edges)."));
 		return false;
 	}
 
-	PCGExData::FPointIO& NewEdges = Context->OutEdges->Emplace_GetRef(PackedIO, PCGExData::EInit::DuplicateInput);
-	TArray<FPCGPoint> MutableEdgePoints = NewEdges.GetOut()->GetMutablePoints();
-	MutableEdgePoints.Append(MakeArrayView(PackedIO.GetIn()->GetPoints().GetData(), NumEdges));
+	const TArray<FPCGPoint>& PackedPoints = PointIO->GetIn()->GetPoints();
 
-	UPCGMetadata* Metadata = NewEdges.GetOut()->Metadata;
+	PCGExData::FPointIO* NewEdges = Context->OutEdges->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+	TArray<FPCGPoint> MutableEdgePoints = NewEdges->GetOut()->GetMutablePoints();
+	MutableEdgePoints.Append(&PackedPoints[0], NumEdges);
+	NewEdges->GetOut()->SetPoints(MutableEdgePoints);
+
+	UPCGMetadata* Metadata = NewEdges->GetOut()->Metadata;
 	Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);
 	Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 	Metadata->DeleteAttribute(PCGExGraph::Tag_VtxEndpoint);
 
-	PCGExData::FPointIO& NewVtx = Context->OutPoints->Emplace_GetRef(PackedIO, PCGExData::EInit::DuplicateInput);
-	TArray<FPCGPoint> MutableVtxPoints = NewVtx.GetOut()->GetMutablePoints();
-	MutableVtxPoints.Append(MakeArrayView(PackedIO.GetIn()->GetPoints().GetData() + NumEdges, NumVtx));
+	PCGExData::FPointIO* NewVtx = Context->OutPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+	TArray<FPCGPoint> MutableVtxPoints = NewVtx->GetOut()->GetMutablePoints();
+	MutableVtxPoints.Append(&PackedPoints[NumEdges], NumVtx);
+	NewVtx->GetOut()->SetPoints(MutableVtxPoints);
 
-	Metadata = NewVtx.GetOut()->Metadata;
+	Metadata = NewVtx->GetOut()->Metadata;
 	Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);
 	Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 	Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeEndpoints);
 
 	FString OutPairId;
-	PackedIO.Tags->GetValue(PCGExGraph::TagStr_ClusterPair, OutPairId);
-	NewEdges.Tags->Set(PCGExGraph::TagStr_ClusterPair, OutPairId);
-	NewVtx.Tags->Set(PCGExGraph::TagStr_ClusterPair, OutPairId);
+	PointIO->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, OutPairId);
+
+	PCGExGraph::MarkClusterVtx(NewVtx, OutPairId);
+	PCGExGraph::MarkClusterEdges(NewEdges, OutPairId);
 
 	return true;
 }

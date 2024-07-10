@@ -6,7 +6,7 @@
 
 #include "Data/PCGExPointIO.h"
 
-void UPCGExTangentsOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
+void UPCGExTangentsOperation::PrepareForData(PCGExData::FPointIO* InPointIO)
 {
 }
 

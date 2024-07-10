@@ -12,7 +12,7 @@ PCGEX_INITIALIZE_ELEMENT(RefreshSeed)
 
 bool FPCGExRefreshSeedElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(RefreshSeed)
 
@@ -33,24 +33,33 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+		while (Context->AdvancePointsIO(false))
+		{
+			Context->GetAsyncManager()->Start<FPCGExRefreshSeedTask>(Settings->Base + Context->CurrentIO->IOIndex, Context->CurrentIO);
+		}
+
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		const FVector BaseOffset = FVector(Settings->Base + Context->CurrentPointIOIndex) * 0.001;
-		for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { PCGExMath::RandomizeSeed(Context->CurrentIO->GetMutablePoint(i), BaseOffset); }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		PCGEX_ASYNC_WAIT
+
+		Context->Done();
+		Context->OutputMainPoints();
 	}
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints(false);
-		Context->ExecutionComplete();
-	}
+	return Context->TryComplete();
+}
 
-	return Context->IsDone();
+bool FPCGExRefreshSeedTask::ExecuteTask()
+{
+	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+
+	const FVector BaseOffset = FVector(TaskIndex) * 0.001;
+	for (int i = 0; i < PointIO->GetNum(); i++) { PCGExMath::RandomizeSeed(MutablePoints[i], BaseOffset); }
+
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

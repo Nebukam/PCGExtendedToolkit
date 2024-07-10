@@ -8,46 +8,39 @@
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-
-void UPCGExRadiusSmoothing::DoSmooth(PCGExData::FPointIO& InPointIO, const TArray<double>* Smoothing, const TArray<double>* Influence, const bool bClosedPath, const FPCGExBlendingSettings* BlendingSettings)
+void UPCGExRadiusSmoothing::SmoothSingle(
+	PCGExData::FPointIO* Path,
+	PCGEx::FPointRef& Target,
+	const double Smoothing,
+	const double Influence,
+	PCGExDataBlending::FMetadataBlender* MetadataBlender,
+	const bool bClosedPath)
 {
-	const TArray<FPCGPoint>& InPoints = InPointIO.GetIn()->GetPoints();
+	const double RadiusSquared = Smoothing * Smoothing;
+	const double SmoothingInfluence = Influence;
 
-	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(BlendingSettings));
-	MetadataBlender->PrepareForData(InPointIO);
+	if (SmoothingInfluence == 0) { return; }
 
-	const int32 MaxPointIndex = InPoints.Num() - 1;
+	const int32 MaxPointIndex = Path->GetNum() - 1;
+
+	const FVector Origin = Target.Point->Transform.GetLocation();
+	int32 Count = 0;
+
+	MetadataBlender->PrepareForBlending(Target);
+
+	double TotalWeight = 0;
 	for (int i = 0; i <= MaxPointIndex; i++)
 	{
-		const double RadiusSquared = (*Smoothing)[i] * (*Smoothing)[i];
-		const double SmoothingInfluence = (*Influence)[i];
-
-		if (SmoothingInfluence == 0) { continue; }
-
-		FVector Origin = InPoints[i].Transform.GetLocation();
-		int32 Count = 0;
-
-		PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
-		MetadataBlender->PrepareForBlending(Target);
-
-		double TotalWeight = 0;
-		for (int j = 0; j <= MaxPointIndex; j++)
+		const FPCGPoint& InPoint = Path->GetOutPoint(i);
+		const double Dist = FVector::DistSquared(Origin, InPoint.Transform.GetLocation());
+		if (Dist <= RadiusSquared)
 		{
-			const FPCGPoint& InPoint = InPoints[j];
-			const double Dist = FVector::DistSquared(Origin, InPoint.Transform.GetLocation());
-			if (Dist <= RadiusSquared)
-			{
-				const double Weight = (1 - (Dist / RadiusSquared)) * SmoothingInfluence;
-				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(j), Target, Weight);
-				Count++;
-				TotalWeight += Weight;
-			}
+			const double Weight = (1 - (Dist / RadiusSquared)) * SmoothingInfluence;
+			MetadataBlender->Blend(Target, Path->GetInPointRef(i), Target, Weight);
+			Count++;
+			TotalWeight += Weight;
 		}
-
-		MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 	}
 
-	MetadataBlender->Write();
-
-	PCGEX_DELETE(MetadataBlender)
+	MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 }

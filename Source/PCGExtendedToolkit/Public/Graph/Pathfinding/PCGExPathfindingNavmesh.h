@@ -22,23 +22,20 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingNavmeshSettings : public UPCGExPoi
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingNavmesh, "Pathfinding : Navmesh", "Extract paths from navmesh.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPathfinding; }
 #endif
 
+protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
 	//~Begin UObject interface
 public:
-	virtual void PostInitProperties() override;
-
 #if WITH_EDITOR
 
 public:
@@ -46,13 +43,13 @@ public:
 #endif
 	//~End UObject interface
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourceSeedsLabel; }
+	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputPathsLabel; }
+	//~End UPCGExPointsProcessorSettings
 
 
 public:
@@ -77,44 +74,66 @@ public:
 	double FuseDistance = 10;
 
 	/** Controls how path points blend from seed to goal. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Blending", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
+
+	/** Which Seed attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardDetails SeedForwardAttributes;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
+
+	/** Which Goal attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardDetails GoalForwardAttributes;
+
+
 	/** Pathfinding mode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
 	EPCGExPathfindingNavmeshMode PathfindingMode = EPCGExPathfindingNavmeshMode::Regular;
 
 	/** Nav agent to be used by the nav system. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
 	FNavAgentProperties NavAgentProperties;
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathfindingNavmeshElement;
 
 	virtual ~FPCGExPathfindingNavmeshContext() override;
 
-	PCGExData::FPointIO* GoalsPoints = nullptr;
+	PCGExData::FFacade* SeedsDataFacade = nullptr;
+	PCGExData::FFacade* GoalsDataFacade = nullptr;
+
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
-	bool bAddSeedToPath = true;
-	bool bAddGoalToPath = true;
-
-	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
+	TArray<PCGExPathfinding::FPathQuery*> PathQueries;
 
 	FNavAgentProperties NavAgentProperties;
 
 	bool bRequireNavigableEndLocation = true;
 	EPCGExPathfindingNavmeshMode PathfindingMode;
 	double FuseDistance = 10;
+
+	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
+	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
+
+	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
+	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -128,12 +147,12 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask : public FPCGExPathfindingTask
+class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask final : public FPCGExPathfindingTask
 {
 public:
 	FSampleNavmeshTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
-		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
+		PCGExData::FPointIO* InPointIO, const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
+		FPCGExPathfindingTask(InPointIO, InQueries)
 	{
 	}
 

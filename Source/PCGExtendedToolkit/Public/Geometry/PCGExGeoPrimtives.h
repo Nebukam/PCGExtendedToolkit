@@ -25,7 +25,7 @@ namespace PCGExGeo
 		{
 		}
 
-		FORCEINLINE void Set(const int ABC[3])
+		FORCEINLINE void Set(const int (&ABC)[3])
 		{
 			Vtx[0] = ABC[0];
 			Vtx[1] = ABC[1];
@@ -82,9 +82,42 @@ namespace PCGExGeo
 			else { Edge = PCGEx::H64U(L[1], L[2]); }
 		}
 
+		FORCEINLINE void GetBounds(const TArrayView<FVector>& Positions, FBox& Bounds) const
+		{
+			Bounds = FBox(ForceInit);
+			Bounds += Positions[Vtx[0]];
+			Bounds += Positions[Vtx[1]];
+			Bounds += Positions[Vtx[2]];
+		}
+
+		FORCEINLINE void GetBounds(const TArrayView<FVector2D>& Positions, FBox& Bounds) const
+		{
+			Bounds = FBox(ForceInit);
+			Bounds += FVector(Positions[Vtx[0]], 0);
+			Bounds += FVector(Positions[Vtx[1]], 0);
+			Bounds += FVector(Positions[Vtx[2]], 0);
+		}
+
 		bool operator==(const FTriangle& Other) const
 		{
 			return Vtx[0] == Vtx[0] && Vtx[1] == Vtx[1] && Vtx[2] == Vtx[2];
 		}
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FBoundedTriangle : public FTriangle
+	{
+		FBox Bounds;
+
+		explicit FBoundedTriangle(const int32 A, const int32 B, const int32 C): FTriangle(A, B, C)
+		{
+		}
+
+		explicit FBoundedTriangle(const int (&ABC)[3])
+			: FTriangle(ABC[0], ABC[1], ABC[2])
+		{
+		}
+
+		FORCEINLINE void ComputeBounds(const TArrayView<FVector>& Positions) { GetBounds(Positions, Bounds); }
+		FORCEINLINE void ComputeBounds(const TArrayView<FVector2D>& Positions) { GetBounds(Positions, Bounds); }
 	};
 }

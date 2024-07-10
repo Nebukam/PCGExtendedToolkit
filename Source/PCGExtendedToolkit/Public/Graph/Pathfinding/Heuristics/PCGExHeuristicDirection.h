@@ -11,12 +11,12 @@
 #include "PCGExHeuristicDirection.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorDirection : public FPCGExHeuristicDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigDirection : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorDirection() :
-		FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicConfigDirection() :
+		FPCGExHeuristicConfigBase()
 	{
 	}
 };
@@ -30,19 +30,28 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOp
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		const FVector Dir = (Seed.Position - Goal.Position).GetSafeNormal();
+		const double Dot = FVector::DotProduct(Dir, (From.Position - Goal.Position).GetSafeNormal()) * -1;
+		return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
+	}
 
 	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
+		const PCGExCluster::FNode& Goal) const override
+	{
+		const double Dot = (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1);
+		return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
+	}
 
 protected:
 	double OutMin = 0;
@@ -52,12 +61,12 @@ protected:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryDirection : public UPCGHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryDirection : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicDescriptorDirection Descriptor;
+	FPCGExHeuristicConfigDirection Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
@@ -68,7 +77,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsDirectionProviderSettings : public 
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsDirection, "Heuristics : Direction", "Heuristics based on direction.",
@@ -78,9 +87,9 @@ public:
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
-	/** Filter Descriptor.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicDescriptorDirection Descriptor;
+	FPCGExHeuristicConfigDirection Config;
 
 
 #if WITH_EDITOR

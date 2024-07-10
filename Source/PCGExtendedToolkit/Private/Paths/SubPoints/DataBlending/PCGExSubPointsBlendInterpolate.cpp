@@ -15,6 +15,17 @@ void UPCGExSubPointsBlendInterpolate::ApplyOverrides()
 	PCGEX_OVERRIDE_OP_PROPERTY(Weight, FName(TEXT("Blending/Weight")), EPCGMetadataTypes::Double);
 }
 
+void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExSubPointsBlendInterpolate* TypedOther = Cast<UPCGExSubPointsBlendInterpolate>(Other);
+	if (TypedOther)
+	{
+		BlendOver = TypedOther->BlendOver;
+		Weight = TypedOther->Weight;
+	}
+}
+
 void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	const PCGEx::FPointRef& StartPoint,
 	const PCGEx::FPointRef& EndPoint,
@@ -67,11 +78,11 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 }
 
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendInterpolate::CreateBlender(
-	PCGExData::FPointIO& InPrimaryIO,
-	const PCGExData::FPointIO& InSecondaryIO,
+	PCGExData::FFacade* InPrimaryFacade,
+	PCGExData::FFacade* InSecondaryFacade,
 	const PCGExData::ESource SecondarySource)
 {
-	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
-	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, SecondarySource);
+	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingDetails);
+	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 	return NewBlender;
 }

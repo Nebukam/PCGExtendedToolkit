@@ -10,20 +10,23 @@
 #define LOCTEXT_NAMESPACE "PCGExRefineEdges"
 #define PCGEX_NAMESPACE RefineEdges
 
-void UPCGExRefineEdgesSettings::PostInitProperties()
-{
-	Super::PostInitProperties();
-	PCGEX_OPERATION_DEFAULT(Refinement, UPCGExEdgeRefinePrimMST)
-}
-
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics may be used by some refinements, such as MST.", Normal, {})
+	if (Refinement && Refinement->RequiresHeuristics()) { PCGEX_PIN_PARAMS(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, {}) }
+	PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceProtectEdgeFilters, "Filters used to preserve specific edges.", Advanced, {})
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return GraphBuilderSettings.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::OutputPinProperties() const
+{
+	if (!bOutputOnlyEdgesAsPoints) { return Super::OutputPinProperties(); }
+	TArray<FPCGPinProperties> PinProperties;
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges but as simple points.", Required, {})
+	return PinProperties;
+}
+
+PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bOutputOnlyEdgesAsPoints ? PCGExData::EInit::NoOutput : GraphBuilderDetails.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
@@ -31,9 +34,6 @@ PCGEX_INITIALIZE_ELEMENT(RefineEdges)
 FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(HeuristicsHandler)
-	PCGEX_DELETE(GraphBuilder)
 }
 
 bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
@@ -42,10 +42,22 @@ bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(RefineEdges)
 
-	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefinePrimMST)
-	PCGEX_FWD(GraphBuilderSettings)
+	if (!Settings->Refinement)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No refinement selected."));
+		return false;
+	}
 
-	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
+	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefinePrimMST)
+	PCGEX_FWD(GraphBuilderDetails)
+
+	if (Context->Refinement->RequiresHeuristics() && !Context->bHasValidHeuristics)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("The selected refinement requires heuristics to be connected, but none can be found."));
+		return false;
+	}
+
+	GetInputFactories(Context, PCGExRefineEdges::SourceProtectEdgeFilters, Context->PreserveEdgeFilterFactories, PCGExFactories::PointFilters, false);
 
 	return true;
 }
@@ -60,95 +72,214 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		PCGEX_DELETE(Context->GraphBuilder)
-
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+		if (Settings->bOutputOnlyEdgesAsPoints)
 		{
-			if (!Context->TaggedEdges) { return false; }
-
-			Context->Refinement->PrepareForPointIO(Context->CurrentIO);
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 8, Context->MainEdges);
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-		}
-	}
-
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
-	{
-		if (!Context->AdvanceEdges(true))
-		{
-			Context->GraphBuilder->Compile(Context);
-			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
-		}
-		else
-		{
-			if (!Context->CurrentCluster)
+			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>(
+				[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+				[&](PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>* NewBatch)
+				{
+					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
+				},
+				PCGExMT::State_Done))
 			{
-				PCGEX_INVALID_CLUSTER_LOG
-				return false;
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+				return true;
 			}
-
-			Context->Refinement->PreProcess(Context->CurrentCluster, Context->GraphBuilder->Graph, Context->CurrentEdges);
-
-			if (!Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster))
+		}
+		else
+		{
+			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>>(
+				[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+				[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>* NewBatch)
+				{
+					NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
+					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
+				},
+				PCGExMT::State_Done))
 			{
-				Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
-				Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+				return true;
+			}
+		}
+	}
+
+	if (!Context->ProcessClusters()) { return false; }
+
+	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->OutputMainPoints(); }
+	else { Context->MainEdges->OutputTo(Context); }
+
+	return Context->TryComplete();
+}
+
+namespace PCGExRefineEdges
+{
+	PCGExCluster::FCluster* FProcessor::HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
+	{
+		// Create a light working copy with edges only, will be deleted.
+		bDeleteCluster = true;
+		return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, false, true, false);
+	}
+
+	FProcessor::~FProcessor()
+	{
+		PCGEX_DELETE_OPERATION(Refinement)
+		PCGEX_DELETE(FilterManager);
+	}
+
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+
+		Sanitization = Settings->Sanitization;
+
+		Refinement = TypedContext->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
+		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
+
+		if (Refinement->InvalidateAllEdgesBeforeProcessing())
+		{
+			for (PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges) { Edge.bValid = false; }
+		}
+
+		if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
+		else if (Refinement->RequiresIndividualEdgeProcessing()) { StartParallelLoopForEdges(); }
+		else { Refinement->Process(); }
+		return true;
+	}
+
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) { Refinement->ProcessNode(Node); }
+
+	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) { Refinement->ProcessEdge(Edge); }
+
+	void FProcessor::InsertEdges() const
+	{
+		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
+		Cluster->GetValidEdges(ValidEdges);
+
+		if (ValidEdges.IsEmpty()) { return; }
+		
+		if (GraphBuilder)
+		{
+			GraphBuilder->Graph->InsertEdges(ValidEdges);
+			return;
+		}
+
+		EdgesIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::NewOutput); // Downgrade to regular data
+		const TArray<FPCGPoint>& OriginalEdges = EdgesIO->GetIn()->GetPoints();
+		TArray<FPCGPoint>& MutableEdges = EdgesIO->GetOut()->GetMutablePoints();
+		PCGEX_SET_NUM_UNINITIALIZED(MutableEdges, ValidEdges.Num())
+		for (int i = 0; i < ValidEdges.Num(); i++) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
+
+		if (!TypedContext->PreserveEdgeFilterFactories.IsEmpty())
+		{
+			FilterTaskGroup = AsyncManagerPtr->CreateGroup();
+			FilterTaskGroup->SetOnCompleteCallback(
+				[&]()
+				{
+					if (Settings->Sanitization == EPCGExRefineSanitization::None)
+					{
+						InsertEdges();
+						return;
+					}
+
+					Cluster->GetExpandedEdges(true); //Oof
+
+					SanitizeTaskGroup = AsyncManagerPtr->CreateGroup();
+					SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
+					SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
+						NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
+						nullptr, this);
+				});
+
+			FilterManager = new PCGExPointFilter::TManager(EdgeDataFacade);
+			FilterManager->Init(Context, TypedContext->PreserveEdgeFilterFactories);
+			FilterTaskGroup->StartRanges<FFilterRangeTask>(
+				NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
+				nullptr, this);
+		}
+		else
+		{
+			InsertEdges();
+		}
+	}
+
+	bool FFilterRangeTask::ExecuteTask()
+	{
+		for (int i = 0; i < NumIterations; i++)
+		{
+			PCGExGraph::FIndexedEdge& Edge = *(Processor->Cluster->Edges->GetData() + TaskIndex + i);
+			if (!Edge.bValid) { Edge.bValid = Processor->FilterManager->Test(Edge.EdgeIndex); }
+		}
+
+		return true;
+	}
+
+	bool FSanitizeRangeTask::ExecuteTask()
+	{
+		for (int i = 0; i < NumIterations; i++)
+		{
+			const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + TaskIndex + i);
+			const int32 NumNeighbors = Node.Adjacency.Num();
+
+			if (Processor->Sanitization == EPCGExRefineSanitization::Longest)
+			{
+				int32 LongestEdge = -1;
+				double LongestLength = TNumericLimits<double>::Min();
+
+				for (int h = 0; h < NumNeighbors; h++)
+				{
+					const PCGExCluster::FExpandedEdge* EEdge = *(Processor->Cluster->ExpandedEdges->GetData() + PCGEx::H64B(Node.Adjacency[h]));
+					if (((Processor->Cluster->Edges->GetData() + EEdge->Index))->bValid)
+					{
+						LongestEdge = -1;
+						break;
+					}
+
+					const double ELengthSqr = EEdge->GetEdgeLengthSquared();
+					if (LongestLength < ELengthSqr)
+					{
+						LongestLength = ELengthSqr;
+						LongestEdge = EEdge->Index;
+					}
+				}
+
+				if (LongestEdge != -1) { ((Processor->Cluster->Edges->GetData() + LongestEdge))->bValid = true; }
 			}
 			else
 			{
-				Context->SetAsyncState(PCGExPathfinding::State_ProcessingHeuristics);
+				int32 ShortestEdge = -1;
+				double ShortestLength = TNumericLimits<double>::Max();
+
+				for (int h = 0; h < NumNeighbors; h++)
+				{
+					const PCGExCluster::FExpandedEdge* EEdge = *(Processor->Cluster->ExpandedEdges->GetData() + PCGEx::H64B(Node.Adjacency[h]));
+					if (((Processor->Cluster->Edges->GetData() + EEdge->Index))->bValid)
+					{
+						ShortestEdge = -1;
+						break;
+					}
+
+					const double ELengthSqr = EEdge->GetEdgeLengthSquared();
+					if (ShortestLength > ELengthSqr)
+					{
+						ShortestLength = ELengthSqr;
+						ShortestEdge = EEdge->Index;
+					}
+				}
+
+				if (ShortestEdge != -1) { ((Processor->Cluster->Edges->GetData() + ShortestEdge))->bValid = true; }
 			}
 		}
+
+		return true;
 	}
-
-	if (Context->IsState(PCGExPathfinding::State_ProcessingHeuristics))
-	{
-		PCGEX_WAIT_ASYNC
-
-		Context->HeuristicsHandler->CompleteClusterPreparation();
-
-		Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
-		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
-
-		return false;
-	}
-
-	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
-	{
-		PCGEX_WAIT_ASYNC
-
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-		return false;
-	}
-
-	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
-	{
-		PCGEX_WAIT_ASYNC
-
-		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
-
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-		Context->ExecutionComplete();
-	}
-
-	return Context->IsDone();
-}
-
-bool FPCGExRefineEdgesTask::ExecuteTask()
-{
-	const FPCGExRefineEdgesContext* Context = Manager->GetContext<FPCGExRefineEdgesContext>();
-	Context->Refinement->Process(Cluster, Context->GraphBuilder->Graph, EdgeIO, Context->HeuristicsHandler);
-	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

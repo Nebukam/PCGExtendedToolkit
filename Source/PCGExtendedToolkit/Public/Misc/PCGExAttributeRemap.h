@@ -6,9 +6,9 @@
 #include "CoreMinimal.h"
 
 #include "PCGEx.h"
-#include "PCGExMath.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExSettings.h"
+#include "PCGExDetails.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExAttributeRemap.generated.h"
@@ -23,20 +23,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 	}
 
 	FPCGExComponentRemapRule(const FPCGExComponentRemapRule& Other):
-		InputClampSettings(Other.InputClampSettings),
-		RemapSettings(Other.RemapSettings),
-		OutputClampSettings(Other.OutputClampSettings)
+		InputClampDetails(Other.InputClampDetails),
+		RemapDetails(Other.RemapDetails),
+		OutputClampDetails(Other.OutputClampDetails)
 	{
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExClampSettings InputClampSettings;
+	FPCGExClampDetails InputClampDetails;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExRemapSettings RemapSettings;
+	FPCGExRemapDetails RemapDetails;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExClampSettings OutputClampSettings;
+	FPCGExClampDetails OutputClampDetails;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -45,20 +45,20 @@ class PCGEXTENDEDTOOLKIT_API UPCGExAttributeRemapSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
-	//~Begin UPCGSettings interface
+	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AttributeRemap, "Attribute Remap", "Remap a single property or attribute.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscWrite; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
+	//~End UPCGSettings
 
-	//~Begin UPCGExPointsProcessorSettings interface
+	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
+	//~End UPCGExPointsProcessorSettings
 
 public:
 	/** Source attribute to remap */
@@ -98,7 +98,7 @@ private:
 	friend class FPCGExAttributeRemapElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeRemapElement;
 
@@ -108,7 +108,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext : public FPCGExPointsP
 	int32 RemapIndices[4];
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -121,13 +121,13 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRemapPointIO : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExRemapPointIO final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExRemapPointIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExRemapPointIO(PCGExData::FPointIO* InPointIO,
 	                   const EPCGMetadataTypes InDataType,
 	                   const int32 InDimensions) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExTask(InPointIO),
 		DataType(InDataType),
 		Dimensions(InDimensions)
 	{

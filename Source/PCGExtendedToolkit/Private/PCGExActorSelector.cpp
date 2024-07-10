@@ -97,7 +97,7 @@ namespace PCGExActorSelector
 
 		// We pass FoundActor ref, that will be captured by the FilteringFunction
 		// It will modify the FoundActor pointer to the found actor, if found.
-		TFunction<bool(AActor*)> FilteringFunction = PCGExActorSelector::GetFilteringFunction(Settings, BoundsCheck, SelfIgnoreCheck, FoundActors);
+		TFunction<bool(AActor*)> FilteringFunction = GetFilteringFunction(Settings, BoundsCheck, SelfIgnoreCheck, FoundActors);
 
 		if (!FilteringFunction)
 		{
@@ -191,7 +191,7 @@ namespace PCGExActorSelector
 		return FoundActors;
 	}
 
-	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck)
+	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck)
 	{
 		// In order to make sure we don't try to select multiple, we'll do a copy of the settings here.
 		FPCGExActorSelectorSettings Settings = InSettings;
@@ -200,23 +200,22 @@ namespace PCGExActorSelector
 		TArray<AActor*> Actors = FindActors(Settings, InComponent, BoundsCheck, SelfIgnoreCheck);
 		return Actors.IsEmpty() ? nullptr : Actors[0];
 	}
-
 }
 
-FPCGExSelectionKey::FPCGExSelectionKey(EPCGExActorFilter InFilter)
+FPCGExSelectionKey::FPCGExSelectionKey(const EPCGExActorFilter InFilter)
 {
 	check(InFilter != EPCGExActorFilter::AllWorldActors);
 	ActorFilter = InFilter;
 }
 
-FPCGExSelectionKey::FPCGExSelectionKey(FName InTag)
+FPCGExSelectionKey::FPCGExSelectionKey(const FName InTag)
 {
 	Selection = EPCGExActorSelection::ByTag;
 	Tag = InTag;
 	ActorFilter = EPCGExActorFilter::AllWorldActors;
 }
 
-FPCGExSelectionKey::FPCGExSelectionKey(TSubclassOf<UObject> InSelectionClass)
+FPCGExSelectionKey::FPCGExSelectionKey(const TSubclassOf<UObject> InSelectionClass)
 {
 	Selection = EPCGExActorSelection::ByClass;
 	SelectionClass = InSelectionClass;
@@ -323,10 +322,10 @@ bool FPCGExSelectionKey::IsMatching(const UObject* InObject, const TSet<FName>& 
 			InActor->GetAllChildActors(ActorsToCheck, /*bIncludeDescendants=*/ActorFilter == EPCGExActorFilter::Root);
 			ActorsToCheck.Add(const_cast<AActor*>(InActor));
 			TArray<UActorComponent*, TInlineAllocator<64>> TempActorComponents;
-			for (AActor* Current : ActorsToCheck)
+			for (const AActor* Current : ActorsToCheck)
 			{
 				// TempActorComponents is reset in GetComponents
-				InActor->GetComponents(UPCGComponent::StaticClass(), TempActorComponents);
+				Current->GetComponents(UPCGComponent::StaticClass(), TempActorComponents);
 				ActorComponents.Append(TempActorComponents);
 			}
 		}
@@ -353,7 +352,7 @@ bool FPCGExSelectionKey::IsMatching(const UObject* InObject, const TSet<FName>& 
 		return bFoundMatch;
 	}
 
-	bool bIsMatched = false;
+	bool bIsMatched;
 	switch (Selection)
 	{
 	case EPCGExActorSelection::ByTag:
@@ -441,7 +440,7 @@ FText FPCGExActorSelectorSettings::GetTaskNameSuffix() const
 		{
 			return FText::Format(FText::FromString(TEXT("Class: {0}")), (ActorSelectionClass.Get() ? ActorSelectionClass->GetDisplayNameText() : FText::FromName(NAME_None)));
 		}
-		else if (ActorSelection == EPCGExActorSelection::ByTag)
+		if (ActorSelection == EPCGExActorSelection::ByTag)
 		{
 			return FText::Format(FText::FromString(TEXT("Tag: {0}")), FText::FromName(ActorSelectionTag));
 		}

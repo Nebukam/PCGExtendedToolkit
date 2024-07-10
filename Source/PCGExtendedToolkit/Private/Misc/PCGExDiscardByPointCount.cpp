@@ -27,15 +27,16 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 	const int32 Min = Settings->bRemoveBelow ? FMath::Max(1, Settings->MinPointCount) : 1;
 	const int32 Max = Settings->bRemoveAbove ? FMath::Max(1, Settings->MaxPointCount) : TNumericLimits<int32>::Max();
 
-	auto ProcessInput = [&](PCGExData::FPointIO& PointIO, int32)
+	for (PCGExData::FPointIO* PointIO : Context->MainPoints->Pairs)
 	{
-		if (!FMath::IsWithin(PointIO.GetNum(), Min, Max)) { return; }
-		PointIO.InitializeOutput(PCGExData::EInit::Forward);
-	};
+		if (!FMath::IsWithin(PointIO->GetNum(), Min, Max)) { continue; }
+		PointIO->InitializeOutput(PCGExData::EInit::Forward);
+	}
 
-	Context->MainPoints->ForEach(ProcessInput);
 	Context->OutputMainPoints();
-	return true;
+	Context->Done();
+
+	return Context->TryComplete();
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -6,8 +6,8 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoMesh.h"
-#include "Geometry/PCGExGeoVoronoi.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/Data/PCGExClusterData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE MeshToClusters
@@ -40,17 +40,11 @@ TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-FName UPCGExMeshToClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
-bool UPCGExMeshToClustersSettings::GetMainAcceptMultipleData() const { return false; }
-
 PCGEX_INITIALIZE_ELEMENT(MeshToClusters)
-
-FName UPCGExMeshToClustersSettings::GetMainInputLabel() const { return PCGEx::SourceTargetsLabel; }
 
 bool FPCGExMeshToClustersElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(MeshToClusters)
 
@@ -60,8 +54,8 @@ bool FPCGExMeshToClustersElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	PCGEX_FWD(GraphBuilderSettings)
-	PCGEX_FWD(TransformSettings)
+	PCGEX_FWD(GraphBuilderDetails)
+	PCGEX_FWD(TransformDetails)
 
 	if (Settings->StaticMeshSource == EPCGExFetchType::Attribute)
 	{
@@ -128,13 +122,13 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 				PCGEx::FLocalToStringGetter* PathGetter = new PCGEx::FLocalToStringGetter();
 				PathGetter->Capture(Selector);
-				if (!PathGetter->SoftGrab(*Context->MainPoints->Pairs[0]))
+				if (!PathGetter->SoftGrab(Context->MainPoints->Pairs[0]))
 				{
 					PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh attribute does not exists on targets."));
 					return false;
 				}
 
-				const TArray<FPCGPoint>& TargetPoints = Context->GetCurrentIn()->GetPoints();
+				const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
 				for (int i = 0; i < TargetPoints.Num(); i++)
 				{
 					FSoftObjectPath Path = PathGetter->SoftGet(TargetPoints[i], TEXT(""));
@@ -218,14 +212,14 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ExtractingMesh))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto ProcessTarget = [&](const int32 TargetIndex, const PCGExData::FPointIO& PointIO)
+		auto ProcessTarget = [&](const int32 TargetIndex)
 		{
 			const int32 MeshIdx = Context->MeshIdx[TargetIndex];
 
@@ -233,36 +227,36 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 			Context->GetAsyncManager()->Start<PCGExGraphTask::FCopyGraphToPoint>(
 				TargetIndex, Context->CurrentIO, Context->GraphBuilders[MeshIdx],
-				Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformSettings);
+				Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails);
 		};
 
-		if (!Context->ProcessCurrentPoints(ProcessTarget)) { return false; }
+		if (!Context->Process(ProcessTarget, Context->CurrentIO->GetNum())) { return false; }
 
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		PCGEX_WAIT_ASYNC
+		PCGEX_ASYNC_WAIT
 
 		Context->VtxChildCollection->OutputTo(Context);
 		Context->EdgeChildCollection->OutputTo(Context);
 
 		Context->Done();
-		Context->ExecutionComplete();
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
 namespace PCGExMeshToCluster
 {
-	bool PCGExMeshToCluster::FExtractMeshAndBuildGraph::ExecuteTask()
+	bool FExtractMeshAndBuildGraph::ExecuteTask()
 	{
 		FPCGExMeshToClustersContext* Context = static_cast<FPCGExMeshToClustersContext*>(Manager->Context);
 		PCGEX_SETTINGS(MeshToClusters)
 
-		switch (Mesh->DesiredTriangulationType) {
+		switch (Mesh->DesiredTriangulationType)
+		{
 		default: ;
 		case EPCGExTriangulationType::Raw:
 			Mesh->ExtractMeshSynchronous();
@@ -276,14 +270,14 @@ namespace PCGExMeshToCluster
 			Mesh->MakeHollowDual();
 			break;
 		}
-		
 
-		PCGExData::FPointIO& RootVtx = Context->RootVtx->Emplace_GetRef();
-		RootVtx.IOIndex = TaskIndex;
-		RootVtx.SetNumInitialized(Mesh->Vertices.Num());
-		TArray<FPCGPoint>& VtxPoints = RootVtx.GetOut()->GetMutablePoints();
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtx, &Context->GraphBuilderSettings);
+		PCGExData::FPointIO* RootVtx = Context->RootVtx->Emplace_GetRef<UPCGExClusterNodesData>();
+		RootVtx->IOIndex = TaskIndex;
+		RootVtx->InitializeNum(Mesh->Vertices.Num());
+		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtx, &Context->GraphBuilderDetails);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
 		for (int i = 0; i < VtxPoints.Num(); i++)
@@ -293,7 +287,7 @@ namespace PCGExMeshToCluster
 		}
 
 		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
-		GraphBuilder->Compile(Context);
+		GraphBuilder->CompileAsync(Context->GetAsyncManager());
 
 		return true;
 	}

@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExSimplifyClusters.h"
 
-#include "Data/PCGExGraphDefinition.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -12,18 +11,13 @@
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
+FName UPCGExSimplifyClustersSettings::GetVtxFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
+
 #pragma endregion
 
 FPCGExSimplifyClustersContext::~FPCGExSimplifyClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(GraphBuilder)
-
-	PCGEX_DELETE(IsPointFixtureGetter)
-	PCGEX_DELETE(IsEdgeFixtureGetter)
-
-	PCGEX_DELETE_TARRAY(Chains)
 }
 
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
@@ -34,21 +28,8 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
-	Context->GraphBuilderSettings.bPruneIsolatedPoints = true;
-
-	if (Settings->bUseLocalNodeMark)
-	{
-		Context->IsPointFixtureGetter = new PCGEx::FLocalBoolGetter();
-		Context->IsPointFixtureGetter->Capture(Settings->NodeFixAttribute);
-	}
-
-	if (Settings->bUseLocalEdgeMark)
-	{
-		Context->IsEdgeFixtureGetter = new PCGEx::FLocalBoolGetter();
-		Context->IsEdgeFixtureGetter->Capture(Settings->EdgeFixAttribute);
-	}
-
-	Context->FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
+	PCGEX_FWD(GraphBuilderDetails)
+	Context->GraphBuilderDetails.bPruneIsolatedPoints = true;
 
 	return true;
 }
@@ -62,238 +43,146 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		PCGEX_DELETE(Context->GraphBuilder)
-
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>* NewBatch)
+			{
+			},
+			PCGExMT::State_Done))
 		{
-			if (!Context->TaggedEdges) { return false; }
-
-			if (Context->IsPointFixtureGetter) { Context->IsPointFixtureGetter->Grab(*Context->CurrentIO); }
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+			return true;
 		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
-	{
-		PCGEX_DELETE_TARRAY(Context->Chains)
-
-		if (!Context->AdvanceEdges(true))
-		{
-			Context->SetState(PCGExGraph::State_WritingClusters);
-			return false;
-		}
-
-		if (!Context->CurrentCluster) { return false; }
-
-		// Insert current cluster into loose graph
-		Context->GetAsyncManager()->Start<FPCGExFindClusterChainsTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
-		Context->SetAsyncState(PCGExGraph::State_ProcessingGraph);
-	}
-
-	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
-	{
-		PCGEX_WAIT_ASYNC
-
-		for (const PCGExGraph::FIndexedEdge& Edge : Context->CurrentCluster->Edges)
-		{
-			if (!Edge.bValid) { continue; }
-			Context->GraphBuilder->Graph->InsertEdge(Edge);
-		}
-
-		const int32 IOIndex = Context->CurrentCluster->EdgesIO->IOIndex;
-
-		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
-		for (const PCGExCluster::FNodeChain* Chain : Context->Chains)
-		{
-			Context->GraphBuilder->Graph->InsertEdge(
-				Context->CurrentCluster->Nodes[Chain->First].PointIndex,
-				Context->CurrentCluster->Nodes[Chain->Last].PointIndex, NewEdge, IOIndex);
-		}
-
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-	}
-
-	if (Context->IsState(PCGExGraph::State_WritingClusters))
-	{
-		Context->GraphBuilder->Compile(Context);
-		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
-		return false;
-	}
-
-	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
-	{
-		PCGEX_WAIT_ASYNC
-		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
-
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
+	if (!Context->ProcessClusters()) { return false; }
 
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
 	}
 
-	return Context->IsDone();
+	return Context->TryComplete();
 }
 
-bool FPCGExFindClusterChainsTask::ExecuteTask()
+namespace PCGExSimplifyClusters
 {
-	FPCGExSimplifyClustersContext* Context = static_cast<FPCGExSimplifyClustersContext*>(Manager->Context);
-	PCGEX_SETTINGS(SimplifyClusters)
-
-	const TArray<PCGExCluster::FNode>& ClusterNodes = Context->CurrentCluster->Nodes;
-	TArray<PCGExGraph::FNode>& GraphNodes = Context->GraphBuilder->Graph->Nodes;
-
-	if (ClusterNodes.IsEmpty()) { return false; }
-
-	TSet<int32> NodeFixtures;
-	TSet<int32> VisitedNodes;
-	TArray<int32> Candidates;
-
-	bool bPruneDeadEnds = Settings->bOperateOnDeadEndsOnly || Settings->bPruneDeadEnds;
-	TSet<int32> DeadEnds;
-
-	if (bPruneDeadEnds) { DeadEnds.Reserve(ClusterNodes.Num() / 2); }
-
-	// Find fixtures
-	const PCGExCluster::FCluster& Cluster = *Context->CurrentCluster;
-
-	if (Context->IsEdgeFixtureGetter &&
-		Context->IsEdgeFixtureGetter->IsUsable(Cluster.Edges.Num()))
+	FProcessor::~FProcessor()
 	{
-		Context->IsEdgeFixtureGetter->Grab(*Context->CurrentEdges);
-		const TArray<bool> FixedEdges = Context->IsEdgeFixtureGetter->Values;
-		for (int i = 0; i < FixedEdges.Num(); i++)
+		PCGEX_DELETE_TARRAY(Chains)
+	}
+
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::Process);
+
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+
+		PCGEX_SETTINGS(SimplifyClusters)
+
+		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+
+		for (int i = 0; i < NodesRef.Num(); i++) { if (NodesRef[i].IsComplex()) { VtxFilterCache[i] = true; } }
+
+		if (IsTrivial())
 		{
-			if (bool bFix = FixedEdges[i]; !bFix || (bFix && Settings->bInvertEdgeFixAttribute)) { continue; }
-
-			const PCGExGraph::FIndexedEdge& E = Cluster.Edges[i];
-
-			NodeFixtures.Add(*Cluster.NodeIndexLookup.Find(E.Start));
-			NodeFixtures.Add(*Cluster.NodeIndexLookup.Find(E.End));
+			AsyncManagerPtr->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
+				EdgesIO->IOIndex, nullptr, Cluster,
+				&VtxFilterCache, &Chains, false, false);
 		}
+		else
+		{
+			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
+				EdgesIO->IOIndex, nullptr, Cluster,
+				&VtxFilterCache, &Chains, false, false);
+		}
+
+		return true;
 	}
 
 
-	for (const PCGExCluster::FNode& Node : ClusterNodes)
+	void FProcessor::CompleteWork()
 	{
-		if (Context->IsPointFixtureGetter)
-		{
-			if (bool bFix = Context->IsPointFixtureGetter->SafeGet(Node.PointIndex, false); !bFix || (bFix && Settings->bInvertEdgeFixAttribute))
-			{
-				NodeFixtures.Add(Node.NodeIndex);
-				continue;
-			}
-		}
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::CompleteWork);
 
-		if (const int32 NumNeighbors = Node.Adjacency.Num();
-			NumNeighbors <= 1 || NumNeighbors > 2)
-		{
-			if (NumNeighbors == 1 && bPruneDeadEnds)
-			{
-				DeadEnds.Add(Node.NodeIndex);
-				GraphNodes[Node.PointIndex].bValid = false;
-				continue;
-			}
+		PCGEX_SETTINGS(SimplifyClusters)
 
-			if (NumNeighbors == 0) { GraphNodes[Node.PointIndex].bValid = false; }
-			NodeFixtures.Add(Node.NodeIndex);
-
-			continue;
-		}
-
-		if (Settings->bFixBelowThreshold)
-		{
-			const FVector A = (Cluster.Nodes[PCGEx::H64A(Node.Adjacency[0])].Position - Node.Position).GetSafeNormal();
-			const FVector B = (Node.Position - Cluster.Nodes[PCGEx::H64A(Node.Adjacency[1])].Position).GetSafeNormal();
-			if (FVector::DotProduct(A, B) < Context->FixedDotThreshold)
-			{
-				NodeFixtures.Add(Node.NodeIndex);
-			}
-		}
+		PCGExClusterTask::DedupeChains(Chains);
+		StartParallelLoopForRange(Chains.Num());
 	}
 
-	// Find starting search points
-	for (const PCGExCluster::FNode& Node : ClusterNodes)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
-		if (!NodeFixtures.Contains(Node.NodeIndex)) { continue; }
+		PCGEX_SETTINGS(SimplifyClusters)
 
-		for (const uint64 AdjacencyHash : Node.Adjacency)
-		{
-			const int32 AdjacentNode = PCGEx::H64A(AdjacencyHash);
-			if (NodeFixtures.Contains(AdjacentNode)) { continue; }
-			Candidates.AddUnique(AdjacentNode);
-		}
-	}
+		PCGExCluster::FNodeChain* Chain = Chains[Iteration];
+		if (!Chain) { return; }
 
-	for (const int32 CandidateIndex : Candidates)
-	{
-		const PCGExCluster::FNode& Node = ClusterNodes[CandidateIndex];
+		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+		const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
 
-		if (VisitedNodes.Contains(Node.NodeIndex)) { continue; }
-		VisitedNodes.Add(Node.NodeIndex);
+		const bool bIsDeadEnd = NodesRef[Chain->First].Adjacency.Num() == 1 || NodesRef[Chain->Last].Adjacency.Num() == 1;
 
-		if (NodeFixtures.Contains(Node.NodeIndex)) { continue; } // Skip
+		if (Settings->bPruneDeadEnds && bIsDeadEnd) { return; }
 
-		PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
-
-		int32 NextNodeIndex = Node.NodeIndex;
-		int32 PrevNodeIndex = NodeFixtures.Contains(PCGEx::H64A(Node.Adjacency[0])) ? PCGEx::H64A(Node.Adjacency[0]) : PCGEx::H64A(Node.Adjacency[1]);
-
-		NewChain->First = PrevNodeIndex;
-		while (NextNodeIndex != -1)
-		{
-			const int32 CurrentNodeIndex = NextNodeIndex;
-			VisitedNodes.Add(CurrentNodeIndex);
-
-			const PCGExCluster::FNode& NextNode = ClusterNodes[CurrentNodeIndex];
-
-			NewChain->Edges.Add(NextNode.GetEdgeIndex(PrevNodeIndex));
-
-			if (NodeFixtures.Contains(NextNodeIndex))
-			{
-				NewChain->Last = NextNodeIndex;
-				break;
-			}
-
-			NewChain->Nodes.Add(CurrentNodeIndex);
-
-			NextNodeIndex = PCGEx::H64A(NextNode.Adjacency[0]) == PrevNodeIndex ? NextNode.Adjacency.Num() == 1 ? -1 : PCGEx::H64A(NextNode.Adjacency[1]) : PCGEx::H64A(NextNode.Adjacency[0]);
-			PrevNodeIndex = CurrentNodeIndex;
-
-			if (NextNodeIndex == -1) { NewChain->Last = PrevNodeIndex; }
-		}
-
-		bool bIsDeadEnd = (DeadEnds.Contains(NewChain->First) || DeadEnds.Contains(NewChain->Last));
 		if (Settings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
 		{
-			delete NewChain;
-			continue;
+			// Dump edges
+			if (Chain->SingleEdge != -1) { GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]); }
+			else { for (const int32 EdgeIndex : Chain->Edges) { GraphBuilder->Graph->InsertEdge(EdgesRef[EdgeIndex]); } }
+			return;
 		}
 
-		if (NewChain)
+		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
+		const double FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold * 0.5);
+		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
+
+		if (!Settings->bMergeAboveAngularThreshold)
 		{
-			for (const int32 Edge : NewChain->Edges) { Context->CurrentCluster->Edges[Edge].bValid = false; }
-			for (const int32 NodeIndex : NewChain->Nodes) { GraphNodes[ClusterNodes[NodeIndex].PointIndex].bValid = false; }
+			GraphBuilder->Graph->InsertEdge(
+				NodesRef[Chain->First].PointIndex,
+				NodesRef[Chain->Last].PointIndex,
+				NewEdge, IOIndex);
+
+			return;
 		}
 
-		if (bIsDeadEnd) { delete NewChain; }
-		else { Context->Chains.Add(NewChain); }
+		if (Chain->SingleEdge != -1)
+		{
+			GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]);
+			return;
+		}
+
+
+		int32 StartIndex = Chain->First;
+		const int32 LastIndex = Chain->Nodes.Num() - 1;
+
+		TSet<uint64> NewEdges;
+
+		for (int i = 0; i < Chain->Nodes.Num(); i++)
+		{
+			const int32 CurrentIndex = Chain->Nodes[i];
+
+			const PCGExCluster::FNode& CurrentNode = NodesRef[CurrentIndex];
+			const PCGExCluster::FNode& PrevNode = i == 0 ? NodesRef[Chain->First] : NodesRef[Chain->Nodes[i - 1]];
+			const PCGExCluster::FNode& NextNode = i == LastIndex ? NodesRef[Chain->Last] : NodesRef[Chain->Nodes[i + 1]];
+
+			const FVector A = (PrevNode.Position - CurrentNode.Position).GetSafeNormal();
+			const FVector B = (CurrentNode.Position - NextNode.Position).GetSafeNormal();
+
+			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > FixedDotThreshold) { continue; } }
+			else { if (FVector::DotProduct(A, B) < FixedDotThreshold) { continue; } }
+
+			NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[CurrentIndex].PointIndex));
+			StartIndex = CurrentIndex;
+		}
+
+		NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[Chain->Last].PointIndex)); // Wrap
+
+		GraphBuilder->Graph->InsertEdges(NewEdges, IOIndex);
 	}
-
-	NodeFixtures.Empty();
-	VisitedNodes.Empty();
-	Candidates.Empty();
-
-	return true;
 }
+
 
 #undef LOCTEXT_NAMESPACE
