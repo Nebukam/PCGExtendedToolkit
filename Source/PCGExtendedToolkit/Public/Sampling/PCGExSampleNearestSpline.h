@@ -8,10 +8,9 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-#include "PCGExDetails.h"
-#include "Data/PCGExPolyLineIO.h"
+#include "Data/PCGSplineData.h"
 
-#include "PCGExSampleNearestPolyline.generated.h"
+#include "PCGExSampleNearestSpline.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(MACRO)\
 MACRO(Success, bool)\
@@ -92,16 +91,16 @@ namespace PCGExPolyLine
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPolylineSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestSplineSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExSampleNearestPolylineSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExSampleNearestSplineSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNearestPolyline, "Sample : Nearest Polyline", "Find the closest transform on nearest polylines.");
+	PCGEX_NODE_INFOS(SampleNearestSpline, "Sample : Nearest Spline", "Find the closest transform on nearest polylines.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
 #endif
 
@@ -258,13 +257,13 @@ public:
 	FName NumSamplesAttributeName = FName("NumSamples");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext final : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSplineContext final : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExSampleNearestPolylineElement;
+	friend class FPCGExSampleNearestSplineElement;
 
-	virtual ~FPCGExSampleNearestPolylineContext() override;
+	virtual ~FPCGExSampleNearestSplineContext() override;
 
-	PCGExData::FPolyLineIOGroup* Targets = nullptr;
+	TArray<UPCGSplineData*> Targets;
 
 	int64 NumTargets = 0;
 
@@ -273,7 +272,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext final : public 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineElement final : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -286,12 +285,12 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExSampleNearestPolyline
+namespace PCGExSampleNearestSpline
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		FPCGExSampleNearestPolylineContext* LocalTypedContext = nullptr;
-		const UPCGExSampleNearestPolylineSettings* LocalSettings = nullptr;
+		FPCGExSampleNearestSplineContext* LocalTypedContext = nullptr;
+		const UPCGExSampleNearestSplineSettings* LocalSettings = nullptr;
 		
 		PCGExData::FCache<double>* RangeMinGetter = nullptr;
 		PCGExData::FCache<double>* RangeMaxGetter = nullptr;
