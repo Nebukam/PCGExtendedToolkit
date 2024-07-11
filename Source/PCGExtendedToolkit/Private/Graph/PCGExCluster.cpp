@@ -498,7 +498,7 @@ namespace PCGExCluster
 		double MinDist = TNumericLimits<double>::Max();
 		int32 BestIndex = -1;
 
-		double BestDot = -1;
+		double BestDot = 1;
 		const FVector SearchDirection = (Node.Position - InPosition).GetSafeNormal();
 
 		if (ExpandedNodes)
@@ -516,7 +516,7 @@ namespace PCGExCluster
 				else if (Dist == MinDist)
 				{
 					if (const double Dot = FVector::DotProduct(SearchDirection, (N.Node->Position - Node.Position).GetSafeNormal());
-						Dot > BestDot)
+						Dot < BestDot)
 					{
 						BestDot = Dot;
 						BestIndex = N.Edge->EdgeIndex;
@@ -541,7 +541,7 @@ namespace PCGExCluster
 				else if (Dist == MinDist)
 				{
 					if (const double Dot = FVector::DotProduct(SearchDirection, (NPos - Node.Position).GetSafeNormal());
-						Dot > BestDot)
+						Dot < BestDot)
 					{
 						BestDot = Dot;
 						BestIndex = OtherEdgeIndex;

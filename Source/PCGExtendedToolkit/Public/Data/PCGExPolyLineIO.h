@@ -13,13 +13,22 @@ namespace PCGExData
 	{
 		struct PCGEXTENDEDTOOLKIT_API FSegment
 		{
+			const UPCGPolyLineData* PolyLine;
+			int32 Segment = -1;
+			double Length = 0;
+			FVector Start;
+			FVector End;
+			FBox Bounds;
+			double AccumulatedLength = 0;
+			
 			FSegment(const UPCGPolyLineData& InData, const int32 SegmentIndex)
 				: PolyLine(&InData),
 				  Segment(SegmentIndex),
 				  Length(InData.GetSegmentLength(Segment)),
-				  Start(InData.GetLocationAtDistance(Segment, 0))
+				  Start(InData.GetLocationAtDistance(Segment, 0)),
+				  End(InData.GetLocationAtDistance(Segment, Length))
 			{
-				End = InData.GetLocationAtDistance(Segment, Length);
+				Bounds = FBox(ForceInit);
 				Bounds += Start;
 				Bounds += End;
 			}
@@ -28,14 +37,6 @@ namespace PCGExData
 			{
 				PolyLine = nullptr;
 			}
-
-			const UPCGPolyLineData* PolyLine;
-			int32 Segment = -1;
-			double Length = 0;
-			FVector Start;
-			FVector End;
-			double AccumulatedLength = 0;
-			FBox Bounds = FBox(ForceInit);
 
 			FORCEINLINE FVector NearestLocation(const FVector& Location) const { return FMath::ClosestPointOnSegment(Location, Start, End); }
 

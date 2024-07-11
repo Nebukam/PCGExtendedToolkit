@@ -101,11 +101,11 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	while (NextIndex != -1)
 	{
 		Path.Add(NextIndex);
-
-		bool bAlreadyVisited;
-		Visited.Add(NextIndex, &bAlreadyVisited);
-
 		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
+
+		bool bAlreadyVisited = false;
+		if (Current->Neighbors.Num() > 2) { Visited.Add(NextIndex, &bAlreadyVisited); } // Mark only hubs as visited
+
 		PathBox += Current->Node->Position;
 
 		//if (Current->Neighbors.Num() <= 1) { break; }
@@ -119,16 +119,14 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 		if (Current->Neighbors.Num() > 1) { Exclusions.Add(PrevIndex); }
 
+		bool bHasAdjacencyToStart = false;
 		for (const PCGExCluster::FExpandedNeighbor& N : Current->Neighbors)
 		{
 			const int32 NeighborIndex = N.Node->NodeIndex;
+
+			if (NeighborIndex == StartNodeIndex) { bHasAdjacencyToStart = true; }
+			if (!bComesFromDeadEnd && bAlreadyVisited) { continue; } // Skip visited nodes if we still come from a dead end (avoid infinite loops)
 			if (Exclusions.Contains(NeighborIndex)) { continue; }
-			if (NeighborIndex == StartNodeIndex)
-			{
-				bGracefullyClosed = (!bAlreadyVisited || (bAlreadyVisited && bStartIsDeadEnd)); // Only graceful if closed from a "fresh" node
-				NextBest = -1;
-				break;
-			}
 
 			const FVector OtherDir = (Origin - Positions[(Cluster->Nodes->GetData() + NeighborIndex)->PointIndex]).GetSafeNormal();
 			const double Angle = PCGExMath::GetDegreesBetweenVectors(OtherDir, GuideDir);
@@ -141,6 +139,12 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		}
 
 		Exclusions.Empty();
+
+		if (NextBest == StartNodeIndex)
+		{
+			bGracefullyClosed = true;
+			NextBest = -1;
+		}
 
 		if (NextBest != -1)
 		{
@@ -163,6 +167,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		}
 		else
 		{
+			if (bHasAdjacencyToStart) { bGracefullyClosed = true; }
 			NextIndex = -1;
 		}
 	}
