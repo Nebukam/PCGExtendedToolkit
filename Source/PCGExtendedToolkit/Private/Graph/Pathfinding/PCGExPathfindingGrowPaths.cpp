@@ -155,6 +155,8 @@ namespace PCGExGrowPaths
 	{
 		const PCGExData::FPointIO* VtxIO = Processor->Cluster->VtxIO;
 		PCGExData::FPointIO* PathIO = Context->OutputPaths->Emplace_GetRef<UPCGPointData>(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+		PCGExData::FFacade* PathDataFacade = new PCGExData::FFacade(PathIO);
+
 		UPCGPointData* OutData = PathIO->GetOut();
 
 		PCGExGraph::CleanupVtxData(PathIO);
@@ -170,7 +172,10 @@ namespace PCGExGrowPaths
 		PathIO->Tags->Append(VtxIO->Tags);
 
 		Context->SeedAttributesToPathTags.Tag(SeedPointIndex, PathIO);
-		Context->SeedForwardHandler->Forward(SeedPointIndex, PathIO);
+		Context->SeedForwardHandler->Forward(SeedPointIndex, PathDataFacade);
+
+		PathDataFacade->Write(Processor->AsyncManagerPtr, true);
+		PCGEX_DELETE(PathDataFacade)
 	}
 
 	void FGrowth::Init()
@@ -254,7 +259,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(SeedAttributesToPathTags)
 
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
-	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(Settings->SeedForwardAttributes, SeedsPoints);
+	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
 
 	return true;
 }

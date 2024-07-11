@@ -68,7 +68,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 	Context->Paths->Pairs.Reserve(Context->Paths->Pairs.Num() + Context->GetTotalNumProcessors());
 	Context->OutputBatches();
-	
+
 	Context->Paths->OutputTo(Context);
 	Context->Done();
 

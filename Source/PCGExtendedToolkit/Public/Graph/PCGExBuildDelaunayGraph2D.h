@@ -66,7 +66,7 @@ public:
 	/** Name of the attribute to output the Hull boolean to. True if point is on the hull, otherwise false. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, EditCondition="bMarkSiteHull"))
 	FName SiteHullAttributeName = "bIsOnHull";
-	
+
 	/** Merge adjacent sites into a single point */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sites", meta = (PCG_Overridable, EditCondition="bUrquhart && bOutputSites", EditConditionHides))
 	EPCGExUrquhartSiteMergeMode UrquhartSitesMerge = EPCGExUrquhartSiteMergeMode::None;
@@ -125,7 +125,7 @@ namespace PCGExBuildDelaunay2D
 	{
 		friend class FOutputDelaunaySites2D;
 		friend class FOutputDelaunayUrquhartSites2D;
-		
+
 	protected:
 		PCGExGeo::TDelaunay2* Delaunay = nullptr;
 		TSet<uint64> UrquhartEdges;
@@ -162,12 +162,12 @@ namespace PCGExBuildDelaunay2D
 
 		virtual bool ExecuteTask() override;
 	};
-	
+
 	class PCGEXTENDEDTOOLKIT_API FOutputDelaunayUrquhartSites2D final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FOutputDelaunayUrquhartSites2D(PCGExData::FPointIO* InPointIO,
-							   FProcessor* InProcessor) :
+		                               FProcessor* InProcessor) :
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
 		{

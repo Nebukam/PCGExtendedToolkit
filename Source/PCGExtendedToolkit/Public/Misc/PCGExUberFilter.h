@@ -11,6 +11,13 @@
 
 #include "PCGExUberFilter.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode"))
+enum class EPCGExUberFilterMode : uint8
+{
+	Partition UMETA(DisplayName = "Partition points", ToolTip="Create inside/outside dataset from the filter results."),
+	Write UMETA(DisplayName = "Write result", ToolTip="Simply write filter result to an attribute but doesn't change point structure."),
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExUberFilterSettings : public UPCGExPointsProcessorSettings
 {
@@ -42,7 +49,15 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
-	/** Swap Inside & Outside data */
+	/** Write result to point instead of split outputs */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExUberFilterMode Mode = EPCGExUberFilterMode::Partition;
+
+	/** Name of the attribute to write result to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterMode::Write", EditConditionHides))
+	FName ResultAttributeName = FName("PassFilter");
+
+	/** Invert the filter result */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSwap = false;
 
@@ -81,10 +96,14 @@ namespace PCGExUberFilter
 		PCGExPointFilter::TManager* FilterManager = nullptr;
 		FPCGExUberFilterContext* LocalTypedContext = nullptr;
 
+		PCGExMT::FTaskGroup* TestTaskGroup = nullptr;
+
+		PCGEx::TFAttributeWriter<bool>* Results = nullptr;
+
 	public:
 		PCGExData::FPointIO* Inside = nullptr;
 		PCGExData::FPointIO* Outside = nullptr;
-		
+
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
 		{
@@ -93,11 +112,6 @@ namespace PCGExUberFilter
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		FORCEINLINE virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override
-		{
-			PointFilterCache[Index] = FilterManager->Test(Index);
-		}
-
 		virtual void CompleteWork() override;
 		virtual void Output() override;
 	};

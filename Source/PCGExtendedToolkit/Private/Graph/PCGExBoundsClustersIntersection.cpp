@@ -26,7 +26,6 @@ FPCGExBoundsClustersIntersectionContext::~FPCGExBoundsClustersIntersectionContex
 
 	if (BoundsDataFacade) { PCGEX_DELETE(BoundsDataFacade->Source) }
 	PCGEX_DELETE(BoundsDataFacade)
-	
 }
 
 PCGEX_INITIALIZE_ELEMENT(BoundsClustersIntersection)
@@ -41,7 +40,7 @@ bool FPCGExBoundsClustersIntersectionElement::Boot(FPCGContext* InContext) const
 	if (!BoundsIO) { return false; }
 
 	Context->BoundsDataFacade = new PCGExData::FFacade(BoundsIO);
-	
+
 	return true;
 }
 

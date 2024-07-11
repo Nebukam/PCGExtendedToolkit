@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExDataForward.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "PCGExPathfindingNavmesh.generated.h"
 
@@ -83,7 +84,7 @@ public:
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardDetails SeedForwardAttributes;
+	FPCGExForwardDetails SeedForwarding;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -91,7 +92,7 @@ public:
 
 	/** Which Goal attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardDetails GoalForwardAttributes;
+	FPCGExForwardDetails GoalForwarding;
 
 
 	/** Pathfinding mode */

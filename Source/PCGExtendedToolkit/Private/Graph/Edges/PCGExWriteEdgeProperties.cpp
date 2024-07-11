@@ -248,10 +248,9 @@ namespace PCGExWriteEdgeProperties
 			if (MetadataBlender) { MetadataBlend(); } // Blend first THEN apply bounds otherwise it gets overwritten
 
 			MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(DirTo, DirFrom, EdgeLerp), MutableTarget.Transform.GetScale3D());
-			
+
 			MutableTarget.BoundsMin = TargetBoundsMin;
 			MutableTarget.BoundsMax = TargetBoundsMax;
-			
 		}
 		else if (Settings->bWriteEdgePosition)
 		{

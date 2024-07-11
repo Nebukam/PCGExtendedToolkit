@@ -43,7 +43,6 @@ enum class EPCGExPointBoundsSource : uint8
 
 namespace PCGExMath
 {
-
 	FORCEINLINE static FBox GetLocalBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
 	{
 		FVector Extents;
@@ -54,7 +53,7 @@ namespace PCGExMath
 
 		return FBox(-Extents, Extents);
 	}
-	
+
 #pragma region basics
 
 	/**

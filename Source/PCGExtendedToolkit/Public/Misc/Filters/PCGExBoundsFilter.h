@@ -26,7 +26,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsFilterConfig
 	/** Transform OperandA with the local point' transform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bCheckIfInside = true;
-	
 };
 
 /**
@@ -54,7 +53,7 @@ namespace PCGExPointsFilter
 		explicit TBoundsFilter(const UPCGExBoundsFilterFactory* InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
-			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud() : nullptr; 
+			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud() : nullptr;
 		}
 
 		const UPCGExBoundsFilterFactory* TypedFilterFactory;
@@ -85,6 +84,7 @@ public:
 		BoundsFilterFactory, "Filter : Dot", "Creates a filter definition that compares dot value of two vectors.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
+
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings

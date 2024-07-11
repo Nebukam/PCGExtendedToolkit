@@ -291,7 +291,7 @@ namespace PCGExSampleNearestSpline
 	{
 		FPCGExSampleNearestSplineContext* LocalTypedContext = nullptr;
 		const UPCGExSampleNearestSplineSettings* LocalSettings = nullptr;
-		
+
 		PCGExData::FCache<double>* RangeMinGetter = nullptr;
 		PCGExData::FCache<double>* RangeMaxGetter = nullptr;
 		PCGExData::FCache<FVector>* LookAtUpGetter = nullptr;

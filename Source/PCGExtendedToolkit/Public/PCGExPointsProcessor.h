@@ -112,19 +112,19 @@ public:
 	virtual bool RequiresPointFilters() const { return false; }
 
 	/** Forces execution on main thread. Work is still chunked. Turning this off ensure linear order of operations, and, in most case, determinism.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bDoAsyncProcessing = true;
 
 	/** Chunk size for parallel processing. <1 switches to preferred node value.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(ClampMin=-1, ClampMax=8196))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay, ClampMin=-1, ClampMax=8196))
 	int32 ChunkSize = -1;
 
 	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bCacheResult = false;
 
 	/** Flatten the output of this node.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bFlattenOutput = false;
 
 protected:

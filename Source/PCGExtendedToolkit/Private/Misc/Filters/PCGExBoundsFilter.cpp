@@ -38,7 +38,7 @@ bool PCGExPointsFilter::TBoundsFilter::Init(const FPCGContext* InContext, PCGExD
 
 bool PCGExPointsFilter::TBoundsFilter::Test(const int32 PointIndex) const
 {
-	return Cloud->Overlaps(PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation()) ? TypedFilterFactory->Config.bCheckIfInside : !TypedFilterFactory->Config.bCheckIfInside;
+	return Cloud->Contains(PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation()) ? TypedFilterFactory->Config.bCheckIfInside : !TypedFilterFactory->Config.bCheckIfInside;
 }
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"

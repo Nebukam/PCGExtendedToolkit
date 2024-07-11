@@ -7,6 +7,7 @@
 
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExDataForward.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Heuristics/PCGExHeuristics.h"
 
@@ -237,7 +238,7 @@ public:
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardDetails SeedForwardAttributes;
+	FPCGExForwardDetails SeedForwarding;
 
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")

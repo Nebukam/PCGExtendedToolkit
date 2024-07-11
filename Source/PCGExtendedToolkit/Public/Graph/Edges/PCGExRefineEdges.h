@@ -64,10 +64,10 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bOutputOnlyEdgesAsPoints = false;
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bOutputOnlyEdgesAsPoints", EditConditionHides))
 	EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
-	
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings", EditCondition="bOutputOnlyEdgesAsPoints", EditConditionHides))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;

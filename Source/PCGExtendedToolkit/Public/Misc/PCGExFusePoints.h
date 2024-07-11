@@ -130,7 +130,7 @@ namespace PCGExFusePoints
 	{
 		FPCGExFusePointsContext* LocalTypedContext = nullptr;
 		const UPCGExFusePointsSettings* LocalSettings = nullptr;
-		
+
 		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;

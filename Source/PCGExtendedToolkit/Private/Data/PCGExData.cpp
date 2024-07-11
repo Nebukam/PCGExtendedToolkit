@@ -83,41 +83,4 @@ namespace PCGExData
 
 
 #pragma endregion
-
-#pragma region Data forwarding
-
-	FDataForwardHandler::~FDataForwardHandler()
-	{
-	}
-
-	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const FPointIO* InSourceIO):
-		Details(InDetails), SourceIO(InSourceIO)
-	{
-		if (!Details.bEnabled) { return; }
-
-		Details.Init();
-		PCGEx::FAttributeIdentity::Get(InSourceIO->GetIn()->Metadata, Identities);
-		Details.Filter(Identities);
-	}
-
-	void FDataForwardHandler::Forward(const int32 SourceIndex, const FPointIO* Target)
-	{
-		if (Identities.IsEmpty()) { return; }
-		for (const PCGEx::FAttributeIdentity& Identity : Identities)
-		{
-			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					const FPCGMetadataAttribute<T>* SourceAtt = SourceIO->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
-					Target->GetOut()->Metadata->DeleteAttribute(Identity.Name);
-					FPCGMetadataAttribute<T>* Mark = Target->GetOut()->Metadata->FindOrCreateAttribute<T>(
-						Identity.Name,
-						SourceAtt->GetValueFromItemKey(SourceIO->GetInPoint(SourceIndex).MetadataEntry),
-						SourceAtt->AllowsInterpolation(), true, true);
-				});
-		}
-	}
-
-#pragma endregion
 }

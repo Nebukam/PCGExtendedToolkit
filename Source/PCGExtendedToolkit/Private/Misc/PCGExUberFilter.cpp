@@ -22,13 +22,15 @@ TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
 
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 {
+	if (Mode == EPCGExUberFilterMode::Write) { return Super::OutputPinProperties(); }
+
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_POINTS(PCGExPointFilter::OutputInsideFiltersLabel, "Points that passed the filters.", Required, {})
 	PCGEX_PIN_POINTS(PCGExPointFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", Required, {})
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { return Mode == EPCGExUberFilterMode::Write ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::NoOutput; }
 
 FPCGExUberFilterContext::~FPCGExUberFilterContext()
 {
@@ -46,12 +48,18 @@ bool FPCGExUberFilterElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
 
-	if (!PCGExFactories::GetInputFactories(
+	if (!GetInputFactories(
 		InContext, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories,
 		PCGExFactories::PointFilters, true))
 	{
 		PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(PCGExPointFilter::SourceFiltersLabel)));
 		return false;
+	}
+
+	if (Settings->Mode == EPCGExUberFilterMode::Write)
+	{
+		PCGEX_VALIDATE_NAME(Settings->ResultAttributeName)
+		return true;
 	}
 
 	Context->Inside = new PCGExData::FPointIOCollection();
@@ -93,13 +101,20 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	const int32 Reserve = Context->MainBatch->GetNumProcessors();
-	Context->Inside->Pairs.Reserve(Context->Inside->Pairs.Num() + Reserve);
-	Context->Outside->Pairs.Reserve(Context->Outside->Pairs.Num() + Reserve);
-	Context->MainBatch->Output();
+	if (Settings->Mode == EPCGExUberFilterMode::Write)
+	{
+		Context->OutputMainPoints();
+	}
+	else
+	{
+		const int32 Reserve = Context->MainBatch->GetNumProcessors();
+		Context->Inside->Pairs.Reserve(Context->Inside->Pairs.Num() + Reserve);
+		Context->Outside->Pairs.Reserve(Context->Outside->Pairs.Num() + Reserve);
+		Context->MainBatch->Output();
 
-	Context->Inside->OutputTo(Context);
-	Context->Outside->OutputTo(Context);
+		Context->Inside->OutputTo(Context);
+		Context->Outside->OutputTo(Context);
+	}
 
 	return Context->TryComplete();
 }
@@ -124,8 +139,29 @@ namespace PCGExUberFilter
 		FilterManager = new PCGExPointFilter::TManager(PointDataFacade);
 		if (!FilterManager->Init(Context, TypedContext->FilterFactories)) { return false; }
 
-		PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		if (Settings->Mode == EPCGExUberFilterMode::Write)
+		{
+			Results = PointDataFacade->GetOrCreateWriter<bool>(Settings->ResultAttributeName, false, false, true);
+		}
+		else
+		{
+			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
+		}
+
+		TestTaskGroup = AsyncManager->CreateGroup();
+
+		if (Results)
+		{
+			TestTaskGroup->StartRanges(
+				[&](const int32 Index) { Results->Values[Index] = FilterManager->Test(Index); },
+				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+		}
+		else
+		{
+			TestTaskGroup->StartRanges(
+				[&](const int32 Index) { PointFilterCache[Index] = FilterManager->Test(Index); },
+				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+		}
 
 		return true;
 	}
@@ -138,6 +174,13 @@ namespace PCGExUberFilter
 
 		PCGEX_DELETE(FilterManager)
 
+		if (Settings->Mode == EPCGExUberFilterMode::Write)
+		{
+			if (Settings->bSwap) { for (bool& Result : Results->Values) { Result = !Result; } }
+			PointDataFacade->Write(AsyncManagerPtr, true);
+			return;
+		}
+
 		const int32 NumPoints = PointIO->GetNum();
 		TArray<int32> Indices;
 		PCGEX_SET_NUM_UNINITIALIZED(Indices, NumPoints)
@@ -145,7 +188,7 @@ namespace PCGExUberFilter
 		for (int i = 0; i < NumPoints; i++)
 		{
 			if (PointFilterCache[i]) { Indices[i] = NumInside++; }
-			else { Indices[i] = NumOutside++;; }
+			else { Indices[i] = NumOutside++; }
 		}
 
 		if (NumInside == 0 || NumOutside == 0)

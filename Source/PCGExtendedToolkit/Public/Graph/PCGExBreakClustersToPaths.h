@@ -93,7 +93,7 @@ namespace PCGExBreakClustersToPaths
 		const UPCGExBreakClustersToPathsSettings* LocalSettings = nullptr;
 
 		TArray<PCGExData::FPointIO*> Paths;
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
@@ -111,7 +111,7 @@ namespace PCGExBreakClustersToPaths
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 
 		virtual void Output() override;
-		
+
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
 }

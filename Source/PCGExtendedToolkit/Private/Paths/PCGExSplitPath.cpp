@@ -36,8 +36,8 @@ bool FPCGExSplitPathElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplitPath)
 
-	PCGExFactories::GetInputFactories(Context, PCGExSplitPath::SourceSplitFilters, Context->SplitFilterFactories, PCGExFactories::PointFilters, false);
-	PCGExFactories::GetInputFactories(Context, PCGExSplitPath::SourceRemoveFilters, Context->RemoveFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExSplitPath::SourceSplitFilters, Context->SplitFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExSplitPath::SourceRemoveFilters, Context->RemoveFilterFactories, PCGExFactories::PointFilters, false);
 
 	if (Context->SplitFilterFactories.IsEmpty() && Context->RemoveFilterFactories.IsEmpty())
 	{

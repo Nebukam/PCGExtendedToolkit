@@ -103,6 +103,5 @@ namespace PCGExSimplifyClusters
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-		
 	};
 }

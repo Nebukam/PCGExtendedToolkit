@@ -159,7 +159,7 @@ namespace PCGExRefineEdges
 		Cluster->GetValidEdges(ValidEdges);
 
 		if (ValidEdges.IsEmpty()) { return; }
-		
+
 		if (GraphBuilder)
 		{
 			GraphBuilder->Graph->InsertEdges(ValidEdges);

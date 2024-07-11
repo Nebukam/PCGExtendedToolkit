@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/PCGExDataForward.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
 
@@ -78,7 +79,7 @@ public:
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
-	FPCGExForwardDetails SeedForwardAttributes;
+	FPCGExForwardDetails SeedForwarding;
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(InlineEditConditionToggle))
@@ -105,7 +106,7 @@ public:
 	FName DeadEndAttributeName = TEXT("IsDeadEnd");
 
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or much slower. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bUseOctreeSearch = false;
 
 private:

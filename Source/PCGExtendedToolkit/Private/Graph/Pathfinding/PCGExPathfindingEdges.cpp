@@ -25,7 +25,7 @@ void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEven
 void FPCGExPathfindingEdgesContext::TryFindPath(
 	const UPCGExSearchOperation* SearchOperation,
 	const PCGExPathfinding::FPathQuery* Query,
-	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler) const
+	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler)
 {
 	// TODO : Vtx OR/AND edge points
 
@@ -56,6 +56,7 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 
 	PCGExData::FPointIO* PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathIO->GetOut();
+	PCGExData::FFacade* PathDataFacade = new PCGExData::FFacade(PathIO);
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);
@@ -72,8 +73,11 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO);
 	GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO);
 
-	SeedForwardHandler->Forward(Query->SeedIndex, PathIO);
-	GoalForwardHandler->Forward(Query->GoalIndex, PathIO);
+	SeedForwardHandler->Forward(Query->SeedIndex, PathDataFacade);
+	GoalForwardHandler->Forward(Query->GoalIndex, PathDataFacade);
+
+	PathDataFacade->Write(GetAsyncManager(), true);
+	PCGEX_DELETE(PathDataFacade)
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
@@ -154,8 +158,8 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade)) { return false; }
 
-	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(Settings->SeedForwardAttributes, SeedsPoints);
-	Context->GoalForwardHandler = new PCGExData::FDataForwardHandler(Settings->GoalForwardAttributes, GoalsPoints);
+	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
+	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade);
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection();
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
@@ -213,7 +217,7 @@ namespace PCGExPathfindingEdge
 {
 	bool FSampleClusterPathTask::ExecuteTask()
 	{
-		const FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
+		FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
 		PCGEX_SETTINGS(PathfindingEdges)
 
 		Context->TryFindPath(SearchOperation, (*Queries)[TaskIndex], Heuristics);

@@ -26,33 +26,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherDetails : public FPCGExNameFi
 	// TODO : Expose how to handle overlaps
 };
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDetails
-{
-	GENERATED_BODY()
-
-	FPCGExForwardDetails()
-	{
-	}
-
-	/** Is forwarding enabled. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
-	bool bEnabled = false;
-
-	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
-	{
-		if (FilterMode == EPCGExAttributeFilter::All) { return; }
-		for (int i = 0; i < Identities.Num(); i++)
-		{
-			if (!Test(Identities[i].Name.ToString()))
-			{
-				Identities.RemoveAt(i);
-				i--;
-			}
-		}
-	}
-};
-
 namespace PCGExData
 {
 	PCGEX_ASYNC_STATE(State_MergingData);
@@ -141,6 +114,7 @@ namespace PCGExData
 				bIsPureReader = false;
 				return Reader;
 			}
+
 			FWriteScopeLock WriteScopeLock(CacheLock);
 			bInitialized = true;
 
@@ -165,7 +139,7 @@ namespace PCGExData
 		{
 			{
 				FReadScopeLock ReadScopeLock(CacheLock);
-				if (bInitialized) { return Writer; }
+				if (bInitialized) { return Writer; } // TODO : Handle cases where we already have a reader
 			}
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
@@ -187,7 +161,7 @@ namespace PCGExData
 		{
 			{
 				FReadScopeLock ReadScopeLock(CacheLock);
-				if (bInitialized) { return Writer; }
+				if (bInitialized) { return Writer; } // TODO : Handle cases where we already have a reader
 			}
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
@@ -551,82 +525,4 @@ namespace PCGExData
 	}
 
 #pragma endregion
-
-
-	class PCGEXTENDEDTOOLKIT_API FDataForwardHandler
-	{
-		FPCGExForwardDetails Details;
-		const FPointIO* SourceIO = nullptr;
-		TArray<PCGEx::FAttributeIdentity> Identities;
-
-	public:
-		~FDataForwardHandler();
-		explicit FDataForwardHandler(const FPCGExForwardDetails& InDetails, const FPointIO* InSourceIO);
-		void Forward(int32 SourceIndex, const FPointIO* Target);
-	};
 }
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagDetails
-{
-	GENERATED_BODY()
-
-	FPCGExAttributeToTagDetails()
-	{
-	}
-
-	/** Use attribute value to tag output data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
-	bool bAddIndexTag = false;
-
-	/** Use attribute value to tag output data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bAddIndexTag"))
-	FString IndexTagPrefix = TEXT("IndexTag:");
-
-	/** Attributes which value will be used as tags. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	TArray<FPCGAttributePropertyInputSelector> Attributes;
-
-	PCGExData::FFacade* TagSource = nullptr;
-	TArray<PCGEx::FLocalToStringGetter*> Getters;
-
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* TagSourceFacade)
-	{
-		for (FPCGAttributePropertyInputSelector& Selector : Attributes)
-		{
-			PCGEx::FLocalToStringGetter* Getter = new PCGEx::FLocalToStringGetter();
-			Getter->Capture(Selector);
-			if (!Getter->SoftGrab(TagSourceFacade->Source))
-			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing specified Tag attribute."));
-				Cleanup();
-				return false;
-			}
-			Getters.Add(Getter);
-		}
-
-		TagSource = TagSourceFacade;
-		return true;
-	}
-
-	void Tag(const int32 TagIndex, const PCGExData::FPointIO* PointIO) const
-	{
-		if (bAddIndexTag) { PointIO->Tags->RawTags.Add(IndexTagPrefix + FString::Printf(TEXT("%d"), TagIndex)); }
-
-		if (!Getters.IsEmpty())
-		{
-			const FPCGPoint& Point = TagSource->GetIn()->GetPoint(TagIndex);
-			for (PCGEx::FLocalToStringGetter* Getter : Getters)
-			{
-				FString Tag = Getter->SoftGet(Point, TEXT(""));
-				if (Tag.IsEmpty()) { continue; }
-				PointIO->Tags->RawTags.Add(Tag);
-			}
-		}
-	}
-
-	void Cleanup()
-	{
-		PCGEX_DELETE_TARRAY(Getters);
-	}
-};

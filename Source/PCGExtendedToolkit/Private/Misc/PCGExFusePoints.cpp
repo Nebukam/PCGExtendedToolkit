@@ -78,7 +78,7 @@ namespace PCGExFusePoints
 
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		PointIO->CreateInKeys();

@@ -348,16 +348,19 @@ namespace PCGExGeo
 			return !InIntersections->Cuts.IsEmpty();
 		}
 
-		bool Overlaps(const FVector& InPosition) const
+		bool Contains(const FVector& InPosition) const
 		{
 			if (!CloudBounds.IsInside(InPosition)) { return false; }
 			bool bOverlapFound = false;
 			Octree->FindNearbyElements(
-				InPosition, [&](const FPointBox* NearbyBox) { if (NearbyBox->Contains(InPosition)) { bOverlapFound = true; } });
+				InPosition, [&](const FPointBox* NearbyBox)
+				{
+					if (!bOverlapFound && NearbyBox->Contains(InPosition)) { bOverlapFound = true; }
+				});
 			return bOverlapFound;
 		}
 
-		bool Overlaps(const FVector& InPosition, TArray<FPointBox*>& OutOverlaps) const
+		bool Contains(const FVector& InPosition, TArray<FPointBox*>& OutOverlaps) const
 		{
 			if (!CloudBounds.IsInside(InPosition)) { return false; }
 			Octree->FindNearbyElements(

@@ -226,6 +226,7 @@ namespace PCGEx
 		FAttributeAccessorBase(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
 		{
 			Flush();
+			check(InKeys) // Someone forgot to CreateKeys. Yes, it's you.
 			Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
 			Accessor = MakeUnique<FPCGAttributeAccessor<T>>(Attribute, InData->Metadata);
 			NumEntries = InKeys->GetNum();

@@ -371,14 +371,14 @@ namespace PCGExData
 		}
 	}
 
-	static PCGExData::FPointIO* TryGetSingleInput(const FPCGContext* InContext, const FName InputPinLabel, const bool bThrowError)
+	static FPointIO* TryGetSingleInput(const FPCGContext* InContext, const FName InputPinLabel, const bool bThrowError)
 	{
-		PCGExData::FPointIO* SingleIO = nullptr;
-		const PCGExData::FPointIOCollection* Collection = new PCGExData::FPointIOCollection(InContext, InputPinLabel);
+		FPointIO* SingleIO = nullptr;
+		const FPointIOCollection* Collection = new FPointIOCollection(InContext, InputPinLabel);
 		if (!Collection->Pairs.IsEmpty())
 		{
-			const PCGExData::FPointIO* Data = Collection->Pairs[0];
-			SingleIO = new PCGExData::FPointIO(Data->GetIn());
+			const FPointIO* Data = Collection->Pairs[0];
+			SingleIO = new FPointIO(Data->GetIn());
 
 			TSet<FString> TagDump;
 			Data->Tags->Dump(TagDump);

@@ -11,11 +11,75 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
+#include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Geometry/PCGExGeoPrimtives.h"
 
-//#include "PCGExIntersections.generated.h"
+#include "PCGExIntersections.generated.h"
 
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
+{
+	GENERATED_BODY()
+
+	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bMarkPointsIntersections = true;
+
+	/** Name of the attribute to write point intersection boolean to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkPointsIntersections" ))
+	FName IsIntersectionAttributeName = FName("IsIntersection");
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bMarkIntersectingBoundIndex = true;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkIntersectingBoundIndex" ))
+	FName IntersectionBoundIndexAttributeName = FName("BoundIndex");
+
+	/** If enabled, mark points inside the volume with a boolean value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bMarkPointsInside = false;
+
+	/** Name of the attribute to write inside boolean to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkPointsInside" ))
+	FName IsInsideAttributeName = FName("IsInside");
+
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta=(PCG_Overridable))
+	FPCGExForwardDetails IntersectionForwarding;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta=(PCG_Overridable))
+	FPCGExForwardDetails InsideForwarding;
+
+	bool Validate(const FPCGContext* InContext) const
+	{
+		if (bMarkPointsIntersections) { PCGEX_VALIDATE_NAME_C(InContext, IsIntersectionAttributeName) }
+		if (bMarkIntersectingBoundIndex) { PCGEX_VALIDATE_NAME_C(InContext, IntersectionBoundIndexAttributeName) }
+		if (bMarkPointsInside) { PCGEX_VALIDATE_NAME_C(InContext, IsInsideAttributeName) }
+		return true;
+	}
+
+	bool WillWriteAny() const
+	{
+		return
+			bMarkPointsIntersections ||
+			bMarkPointsInside ||
+			bMarkIntersectingBoundIndex ||
+			IntersectionForwarding.bEnabled ||
+			InsideForwarding.bEnabled;
+	}
+
+	void Mark(UPCGMetadata* Metadata) const
+	{
+		if (bMarkPointsIntersections) { PCGExData::WriteMark(Metadata, IsIntersectionAttributeName, false); }
+		if (bMarkPointsInside) { PCGExData::WriteMark(Metadata, IsInsideAttributeName, false); }
+		if (bMarkIntersectingBoundIndex) { PCGExData::WriteMark(Metadata, IntersectionBoundIndexAttributeName, -1); }
+	}
+};
 
 namespace PCGExGraph
 {

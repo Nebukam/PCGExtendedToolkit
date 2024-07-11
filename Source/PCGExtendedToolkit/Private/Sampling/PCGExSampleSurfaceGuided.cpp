@@ -93,7 +93,7 @@ namespace PCGExSampleSurfaceGuided
 
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		DirectionGetter = PointDataFacade->GetOrCreateGetter<FVector>(Settings->Direction);

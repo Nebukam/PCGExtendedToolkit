@@ -387,5 +387,4 @@ namespace PCGExData
 	}
 
 #pragma endregion
-	
 }

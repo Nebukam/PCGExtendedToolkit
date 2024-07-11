@@ -300,13 +300,12 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	return Context->IsDone();
 
-#else 
+#else
 
 	DisabledPassThroughData(Context);
 	return true;
 
 #endif
-	
 }
 
 #undef LOCTEXT_NAMESPACE

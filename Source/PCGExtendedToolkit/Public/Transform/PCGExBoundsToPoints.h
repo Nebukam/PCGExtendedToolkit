@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
 
@@ -56,7 +57,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetExtents"))
 	FVector Extents = FVector(0.5);
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSetScale = true;
@@ -64,7 +65,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bSetScale"))
 	FVector Scale = FVector::OneVector;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bGeneratePerPointData"))
 	FPCGExAttributeToTagDetails PointAttributesToOutputTags;
@@ -99,13 +100,13 @@ namespace PCGExBoundsToPoints
 		int32 NumPoints = 0;
 		bool bGeneratePerPointData = false;
 		bool bSymmetry = false;
-		
+
 		bool bSetExtents = false;
 		FVector Extents = FVector::OneVector;
-		
+
 		bool bSetScale = false;
 		FVector Scale = FVector::OneVector;
-		
+
 		EPCGExMinimalAxis Axis = EPCGExMinimalAxis::None;
 
 		FPCGExUVW UVW;

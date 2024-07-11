@@ -98,8 +98,8 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade)) { return false; }
 
-	Context->SeedForwardHandler = new PCGExData::FDataForwardHandler(Settings->SeedForwardAttributes, SeedsPoints);
-	Context->GoalForwardHandler = new PCGExData::FDataForwardHandler(Settings->GoalForwardAttributes, GoalsPoints);
+	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
+	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade);
 
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
 
@@ -250,17 +250,17 @@ bool FSampleNavmeshTask::ExecuteTask()
 	Context->Blending->BlendSubPoints(View, Metrics, TempBlender);
 	PCGEX_DELETE(TempBlender)
 
-	PathDataFacade->Write(Manager, true);
-	PCGEX_DELETE(PathDataFacade)
-
 	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Settings->bAddGoalToPath) { MutablePoints.Pop(); }
 
 	Context->SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO);
 	Context->GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO);
 
-	Context->SeedForwardHandler->Forward(Query->SeedIndex, PathIO);
-	Context->GoalForwardHandler->Forward(Query->GoalIndex, PathIO);
+	Context->SeedForwardHandler->Forward(Query->SeedIndex, PathDataFacade);
+	Context->GoalForwardHandler->Forward(Query->GoalIndex, PathDataFacade);
+
+	PathDataFacade->Write(Manager, true);
+	PCGEX_DELETE(PathDataFacade)
 
 	return true;
 }

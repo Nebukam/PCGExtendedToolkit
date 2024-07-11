@@ -390,7 +390,7 @@ namespace PCGExGeo
 			}
 		}
 	}
-	
+
 	FORCEINLINE static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge)
 	{
 		double Dist = TNumericLimits<double>::Min();

@@ -9,6 +9,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Geometry/PCGExGeo.h"
+#include "Graph/PCGExIntersections.h"
 #include "PCGExBoundsPathIntersection.generated.h"
 
 /**
@@ -45,8 +46,8 @@ public:
 	bool bOmitSinglePointOutputs = true;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBoxIntersectionDetails IntersectionDetails;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Output"))
+	FPCGExBoxIntersectionDetails OutputSettings;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionContext final : public FPCGExPathProcessorContext
@@ -56,7 +57,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionContext final : public
 	virtual ~FPCGExBoundsPathIntersectionContext() override;
 
 	PCGExData::FFacade* BoundsDataFacade = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
@@ -81,22 +81,44 @@ namespace PCGExPathIntersections
 		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
 		PCGExGeo::FSegmentation* Segmentation = nullptr;
 
+		PCGExMT::FTaskGroup* FindIntersectionsTaskGroup = nullptr;
+		PCGExMT::FTaskGroup* InsertionTaskGroup = nullptr;
+
 		PCGEx::TFAttributeWriter<bool>* IsIntersectionWriter = nullptr;
 		PCGEx::TFAttributeWriter<int32>* BoundIndexWriter = nullptr;
 		PCGEx::TFAttributeWriter<bool>* IsInsideWriter = nullptr;
-		
+
+		PCGExData::FDataForwardHandler* IntersectionForwardHandler = nullptr;
+		PCGExData::FDataForwardHandler* InsideForwardHandler = nullptr;
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)
 			: FPointsProcessor(InPoints)
 		{
-			
 		}
 
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		void FindIntersections(const int32 Index) const;
+		void InsertIntersections(const int32 Index) const;
+		void OnInsertionComplete();
+
+		FORCEINLINE virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override
+		{
+			if (InsideForwardHandler)
+			{
+				TArray<PCGExGeo::FPointBox*> Overlaps;
+				const bool bContained = Cloud->Contains(Point.Transform.GetLocation(), Overlaps);
+				if (bContained) { InsideForwardHandler->Forward(Index, Overlaps[0]->Index); }
+				if (IsInsideWriter) { IsInsideWriter->Values[Index] = bContained; }
+			}
+			else if (IsInsideWriter)
+			{
+				IsInsideWriter->Values[Index] = Cloud->Contains(Point.Transform.GetLocation());
+			}
+		}
+
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

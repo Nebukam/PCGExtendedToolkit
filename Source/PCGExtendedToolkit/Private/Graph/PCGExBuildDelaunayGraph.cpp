@@ -141,7 +141,7 @@ namespace PCGExBuildDelaunay
 			if (Settings->bOutputSites && Settings->bMergeUrquhartSites) { Delaunay->RemoveLongestEdges(ActivePositions, UrquhartEdges); }
 			else { Delaunay->RemoveLongestEdges(ActivePositions); }
 		}
-		
+
 		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
 
 		ActivePositions.Empty();
