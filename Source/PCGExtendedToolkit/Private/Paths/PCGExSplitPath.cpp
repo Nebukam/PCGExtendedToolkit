@@ -220,6 +220,10 @@ namespace PCGExSplitPath
 	{
 		if (Paths.IsEmpty()) { return; }
 		StartParallelLoopForRange(Paths.Num());
+
+		//TODO : If closed path is enabled, and if the first & last points are not removed after the split
+		//re-order them and join them so as to recreate the "missing" edge
+		
 	}
 }
 

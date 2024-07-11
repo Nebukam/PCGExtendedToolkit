@@ -185,16 +185,35 @@ namespace PCGExPathIntersections
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
+		auto InitSharedData = [&]()
+		{
+			// Stuff we'll process whether there's an intersection or not
+			
+			if (Settings->OutputSettings.bMarkPointsInside)
+			{
+				IsInsideWriter = PointDataFacade->GetOrCreateWriter(
+					Settings->OutputSettings.IsInsideAttributeName,
+					false, false, false);
+			}
+
+			IntersectionForwardHandler = Settings->OutputSettings.IntersectionForwarding.TryGetHandler(TypedContext->BoundsDataFacade, PointDataFacade);
+			InsideForwardHandler = Settings->OutputSettings.InsideForwarding.TryGetHandler(TypedContext->BoundsDataFacade, PointDataFacade);
+			
+		};
+		
 		const int32 NumCuts = Segmentation->GetNumCuts();
 		if (NumCuts == 0)
 		{
 			if (Settings->OutputSettings.WillWriteAny())
-			{
+			{				
 				PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 				Settings->OutputSettings.Mark(PointIO->GetOut()->Metadata);
 
-				IntersectionForwardHandler = Settings->OutputSettings.IntersectionForwarding.TryGetHandler(TypedContext->BoundsDataFacade, PointDataFacade);
-				InsideForwardHandler = Settings->OutputSettings.InsideForwarding.TryGetHandler(TypedContext->BoundsDataFacade, PointDataFacade);
+				PointIO->CreateOutKeys();
+				
+				InitSharedData();
+				
+				StartParallelLoopForPoints();
 			}
 			else
 			{
@@ -246,9 +265,6 @@ namespace PCGExPathIntersections
 			}
 		}
 
-		IntersectionForwardHandler = Settings->OutputSettings.IntersectionForwarding.TryGetHandler(TypedContext->BoundsDataFacade, PointDataFacade);
-		InsideForwardHandler = Settings->OutputSettings.InsideForwarding.TryGetHandler(TypedContext->BoundsDataFacade, PointDataFacade);
-
 		if (Settings->OutputSettings.bMarkPointsIntersections)
 		{
 			IsIntersectionWriter = PointDataFacade->GetOrCreateWriter<bool>(
@@ -263,12 +279,7 @@ namespace PCGExPathIntersections
 				-1, false, false);
 		}
 
-		if (Settings->OutputSettings.bMarkPointsInside)
-		{
-			IsInsideWriter = PointDataFacade->GetOrCreateWriter(
-				Settings->OutputSettings.IsInsideAttributeName,
-				false, false, false);
-		}
+		InitSharedData();
 
 		Segmentation->ReduceToArray();
 

@@ -65,6 +65,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
+	/** When closed path is enabled, paths that aren't closed anymore will be tagged. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClosedPath", EditConditionHides))
+	FString OpenedPathTag = "Opened";
+
 	/** If both split and remove are true, the selected behavior takes priority */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathSplitAction Prioritize = EPCGExPathSplitAction::Split;
