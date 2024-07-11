@@ -51,9 +51,9 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGContext* InContext) const
 	{
 		for (const FPCGTaggedData& TaggedData : Targets)
 		{
-			UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data);
+			const UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data);
 			if (!SplineData) { continue; }
-			Context->Targets.Add(SplineData);
+			Context->Targets.Add(const_cast<UPCGSplineData*>(SplineData));
 		}
 
 		Context->NumTargets = Context->Targets.Num();
