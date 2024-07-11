@@ -1,14 +1,14 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Sampling/PCGExSampleNearestPolyline.h"
+#include "Sampling/PCGExSampleNearestSpline.h"
 
 #include "Data/PCGExPointFilter.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSampleNearestPolylineElement"
+#define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
 
-UPCGExSampleNearestPolylineSettings::UPCGExSampleNearestPolylineSettings(
+UPCGExSampleNearestSplineSettings::UPCGExSampleNearestSplineSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -16,7 +16,7 @@ UPCGExSampleNearestPolylineSettings::UPCGExSampleNearestPolylineSettings(
 	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinearInv; }
 }
 
-TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExSampleNearestSplineSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POLYLINES(PCGEx::SourceTargetsLabel, "The spline data set to check against.", Required, {})
@@ -24,33 +24,39 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinPropertie
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExSampleNearestPolylineSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleNearestSplineSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
+int32 UPCGExSampleNearestSplineSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
-FName UPCGExSampleNearestPolylineSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
+FName UPCGExSampleNearestSplineSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(SampleNearestPolyline)
+PCGEX_INITIALIZE_ELEMENT(SampleNearestSpline)
 
-FPCGExSampleNearestPolylineContext::~FPCGExSampleNearestPolylineContext()
+FPCGExSampleNearestSplineContext::~FPCGExSampleNearestSplineContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(Targets)
+	Targets.Empty();
 }
 
-bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
+bool FPCGExSampleNearestSplineElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPolyline)
+	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSpline)
 
 	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
 
 	if (!Targets.IsEmpty())
 	{
-		Context->Targets = new PCGExData::FPolyLineIOGroup(Targets);
-		Context->NumTargets = Context->Targets->Lines.Num();
+		for (const FPCGTaggedData& TaggedData : Targets)
+		{
+			UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data);
+			if (!SplineData) { continue; }
+			Context->Targets.Add(SplineData);
+		}
+
+		Context->NumTargets = Context->Targets.Num();
 	}
 
 	if (Context->NumTargets <= 0)
@@ -71,19 +77,19 @@ bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleNearestSplineElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestPolylineElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestSplineElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPolyline)
+	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSpline)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestPolyline::FProcessor>>(
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestSpline::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExSampleNearestPolyline::FProcessor>* NewBatch)
+			[&](PCGExPointsMT::TBatch<PCGExSampleNearestSpline::FProcessor>* NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -104,7 +110,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 }
 
 
-namespace PCGExSampleNearestPolyline
+namespace PCGExSampleNearestSpline
 {
 	FProcessor::~FProcessor()
 	{
@@ -112,7 +118,7 @@ namespace PCGExSampleNearestPolyline
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestPolyline)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSpline)
 
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
@@ -203,20 +209,23 @@ namespace PCGExSampleNearestPolyline
 		// First: Sample all possible targets
 		if (RangeMax > 0)
 		{
-			for (PCGExData::FPolyLineIO* Line : LocalTypedContext->Targets->Lines)
+			for (UPCGSplineData* Line : LocalTypedContext->Targets)
 			{
 				FTransform SampledTransform;
-				double Time;
-				if (!Line->SampleNearestTransform(Origin, FMath::Sqrt(RangeMax), SampledTransform, Time)) { continue; }
+				double Time = Line->SplineStruct.FindInputKeyClosestToWorldLocation(Origin);
+				SampledTransform = Line->SplineStruct.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
+				if (FVector::DistSquared(Origin, SampledTransform.GetLocation()) > RangeMax) { continue; }
 				ProcessTarget(SampledTransform, Time);
 			}
 		}
 		else
 		{
-			for (PCGExData::FPolyLineIO* Line : LocalTypedContext->Targets->Lines)
+			for (UPCGSplineData* Line : LocalTypedContext->Targets)
 			{
-				double Time;
-				ProcessTarget(Line->SampleNearestTransform(Origin, Time), Time);
+				FTransform SampledTransform;
+				double Time = Line->SplineStruct.FindInputKeyClosestToWorldLocation(Origin);
+				SampledTransform = Line->SplineStruct.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
+				ProcessTarget(SampledTransform, Time);
 			}
 		}
 
@@ -288,7 +297,8 @@ namespace PCGExSampleNearestPolyline
 			WeightedTransform.SetRotation(WeightedTransform.GetRotation() / TotalWeight);
 			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() / TotalWeight);
 			WeightedTransform.SetLocation(WeightedTransform.GetLocation() / TotalWeight);
-		}else
+		}
+		else
 		{
 			WeightedUp = WeightedUp.GetSafeNormal();
 			WeightedTransform = Point.Transform;
