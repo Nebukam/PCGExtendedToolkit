@@ -66,6 +66,7 @@ namespace PCGExMovePivot
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMovePivot::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MovePivot)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

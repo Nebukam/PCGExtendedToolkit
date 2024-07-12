@@ -439,6 +439,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
 
+	/** Check this box if you're fusing over a very large radius. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel"))
+	bool bParallelInsertion = false;
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCompounded = false;
@@ -454,6 +458,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	/** Name of the attribute to mark the number of fused point held */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCompoundSize"))
 	FName CompoundSizeAttributeName = "CompoundSize";
+
+	bool DoParallelInsert() const { return FuseMethod == EPCGExFuseMethod::Voxel && bParallelInsertion; }
 };
 
 USTRUCT(BlueprintType)

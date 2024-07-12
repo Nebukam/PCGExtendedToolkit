@@ -89,6 +89,7 @@ namespace PCGExSmooth
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSmooth::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Smooth)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

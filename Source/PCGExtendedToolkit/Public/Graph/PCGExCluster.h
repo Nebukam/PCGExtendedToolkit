@@ -218,6 +218,10 @@ namespace PCGExCluster
 		FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO,
 		         bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);
 
+		void ClearInheritedForChanges(const bool bClearOwned = false);
+		void WillModifyVtxIO(const bool bClearOwned = false);
+		void WillModifyVtxPositions(const bool bClearOwned = false);
+
 		~FCluster();
 
 		bool BuildFrom(
@@ -237,7 +241,7 @@ namespace PCGExCluster
 		const TArray<int32>* GetVtxPointIndicesPtr();
 		const TArray<uint64>& GetVtxPointScopes();
 		TArrayView<const uint64> GetVtxPointScopesView();
-
+		
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
 		void RebuildOctree(EPCGExClusterClosestSearchMode Mode, const bool bForceRebuild = false);
@@ -615,6 +619,25 @@ namespace PCGExClusterTask
 		PCGExData::FPointIOCollection* VtxCollection = nullptr;
 		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
 
+		FPCGExTransformDetails* TransformDetails = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FTransformCluster final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FTransformCluster(
+			PCGExData::FPointIO* InPointIO,
+			PCGExCluster::FCluster* InCluster,
+			FPCGExTransformDetails* InTransformDetails) :
+			FPCGExTask(InPointIO),
+			Cluster(InCluster),
+			TransformDetails(InTransformDetails)
+		{
+		}
+
+		PCGExCluster::FCluster* Cluster = nullptr;
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
 		virtual bool ExecuteTask() override;

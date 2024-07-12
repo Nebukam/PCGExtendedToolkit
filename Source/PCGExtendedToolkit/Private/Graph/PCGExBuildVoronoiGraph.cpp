@@ -114,6 +114,7 @@ namespace PCGExBuildVoronoi
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildVoronoiGraph)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

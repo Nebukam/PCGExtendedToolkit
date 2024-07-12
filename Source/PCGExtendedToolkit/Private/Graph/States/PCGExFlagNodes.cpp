@@ -83,6 +83,7 @@ namespace PCGExFindNodeState
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindNodeState::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }

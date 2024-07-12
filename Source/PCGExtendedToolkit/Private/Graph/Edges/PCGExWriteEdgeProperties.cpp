@@ -84,6 +84,7 @@ namespace PCGExWriteEdgeProperties
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteEdgeProperties::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }

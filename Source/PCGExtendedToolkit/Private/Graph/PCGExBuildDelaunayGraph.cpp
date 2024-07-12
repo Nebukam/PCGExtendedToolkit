@@ -116,6 +116,7 @@ namespace PCGExBuildDelaunay
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunay::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

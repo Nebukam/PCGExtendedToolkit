@@ -184,6 +184,22 @@ protected:
 		return true;
 	}
 
+	virtual void OnBatchesProcessingDone()
+	{
+	}
+
+	virtual void OnBatchesCompletingWorkDone()
+	{
+	}
+
+	virtual void OnBatchesCompilationDone(bool bWritten)
+	{
+	}
+
+	virtual void OnBatchesWritingDone()
+	{
+	}
+
 	bool HasValidHeuristics() const;
 
 	void AdvanceBatch();

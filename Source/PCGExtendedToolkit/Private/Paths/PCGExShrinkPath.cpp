@@ -176,6 +176,7 @@ namespace PCGExShrinkPath
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExShrinkPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ShrinkPath)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

@@ -417,17 +417,23 @@ namespace PCGExPointsMT
 
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 
+				if (bInlineProcessing)
+				{
+					NewProcessor->bIsProcessorValid = NewProcessor->Process(AsyncManagerPtr);
+					continue;
+					///////
+				}
+
 				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize)
 				{
 					NewProcessor->bIsSmallPoints = true;
 					ClosedBatchProcessors.Add(NewProcessor);
 				}
 
-				if (bInlineProcessing) { NewProcessor->bIsProcessorValid = NewProcessor->Process(AsyncManagerPtr); }
 				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcessWithUpdate<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
 
-			StartClosedBatchProcessing();
+			if (!bInlineProcessing) { StartClosedBatchProcessing(); }
 		}
 
 		virtual bool PrepareSingle(T* PointsProcessor)

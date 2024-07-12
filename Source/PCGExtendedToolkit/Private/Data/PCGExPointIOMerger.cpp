@@ -4,6 +4,7 @@
 
 #include "Data/PCGExPointIOMerger.h"
 
+#include "PCGExGlobalSettings.h"
 #include "Data/PCGExDataFilter.h"
 
 FPCGExPointIOMerger::FPCGExPointIOMerger(PCGExData::FPointIO* OutMergedData)
@@ -165,7 +166,14 @@ namespace PCGExPointIOMerger
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					Manager->Start<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedWriter);
+					if (SourceIO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize)
+					{
+						ScopeMerge(Merger->Scopes[i], Identity, SourceIO, TypedWriter);
+					}
+					else
+					{
+						Manager->Start<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedWriter);
+					}
 				}
 			});
 

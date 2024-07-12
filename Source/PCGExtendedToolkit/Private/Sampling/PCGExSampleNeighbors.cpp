@@ -95,6 +95,7 @@ namespace PCGExSampleNeighbors
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNeighbors::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }

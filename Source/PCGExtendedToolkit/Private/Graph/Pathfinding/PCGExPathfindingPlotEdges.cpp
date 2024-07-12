@@ -237,6 +237,7 @@ namespace PCGExPathfindingPlotEdge
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingPlotEdge::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }

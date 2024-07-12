@@ -91,9 +91,10 @@ namespace PCGExFuseCollinear
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseCollinear::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseCollinear)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
 

@@ -85,6 +85,7 @@ namespace PCGExOffsetPath
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOffsetPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(OffsetPath)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

@@ -75,8 +75,7 @@ namespace PCGExSimplifyClusters
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::Process);
-
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
 		LocalTypedContext = TypedContext;

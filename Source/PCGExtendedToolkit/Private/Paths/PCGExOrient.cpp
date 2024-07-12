@@ -99,6 +99,7 @@ namespace PCGExOrient
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOrient::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Orient)
 
 		DefaultPointFilterValue = Settings->bFlipDirection;

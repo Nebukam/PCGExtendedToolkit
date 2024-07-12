@@ -124,6 +124,7 @@ namespace PCGExSampleNearestPoints
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPoints::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestPoint)
 
 		LocalTypedContext = TypedContext;

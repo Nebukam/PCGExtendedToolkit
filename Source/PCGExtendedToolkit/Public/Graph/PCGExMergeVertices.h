@@ -7,19 +7,20 @@
 #include "PCGExCluster.h"
 #include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
+#include "Data/PCGExPointIOMerger.h"
 
-#include "PCGExPartitionVertices.generated.h"
+#include "PCGExMergeVertices.generated.h"
 
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExPartitionVerticesSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExMergeVerticesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PartitionVertices, "Cluster : Partition Vtx", "Split Vtx into per-cluster groups.");
+	PCGEX_NODE_INFOS(MergeVertices, "Cluster : Merge Vtx", "Merge Vtx so all edges share the same vtx collection.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
@@ -32,20 +33,31 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
+	
+	/** Meta filter settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
+	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesContext final : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExMergeVerticesContext final : public FPCGExEdgesProcessorContext
 {
-	friend class UPCGExPartitionVerticesSettings;
-	friend class FPCGExPartitionVerticesElement;
+	friend class UPCGExMergeVerticesSettings;
+	friend class FPCGExMergeVerticesElement;
 
-	virtual ~FPCGExPartitionVerticesContext() override;
+	virtual ~FPCGExMergeVerticesContext() override;
 
-	PCGExData::FPointIOCollection* VtxPartitions = nullptr;
-	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+	FPCGExCarryOverDetails CarryOverDetails;
+
+	FString OutVtxId = TEXT("");
+	PCGExData::FPointIO* CompositeIO = nullptr;
+	FPCGExPointIOMerger* Merger = nullptr;
+
+	virtual void OnBatchesProcessingDone() override;
+	virtual void OnBatchesCompletingWorkDone() override;
+	
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesElement final : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExMergeVerticesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -58,7 +70,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExPartitionVertices
+namespace PCGExMergeVertices
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
@@ -67,13 +79,11 @@ namespace PCGExPartitionVertices
 	protected:
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 
-		FPCGExPartitionVerticesContext* LocalTypedContext = nullptr;
-		
-		PCGExData::FPointIO* PointPartitionIO = nullptr;
-		TMap<int32, int32> Remapping;
-		TArray<int32> KeptIndices;
-
+		FPCGExMergeVerticesContext* LocalTypedContext = nullptr;
+	
 	public:
+		int32 StartIndexOffset = 0;
+		
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
@@ -85,6 +95,9 @@ namespace PCGExPartitionVertices
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
-		virtual void Output() override;
+		virtual void Write() override;
 	};
+
+	
+
 }

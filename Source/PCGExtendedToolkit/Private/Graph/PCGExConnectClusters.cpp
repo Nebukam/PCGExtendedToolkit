@@ -94,9 +94,11 @@ namespace PCGExBridgeClusters
 {
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBridgeClusters::Process);
+		PCGEX_SETTINGS(ConnectClusters)
+
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		PCGEX_SETTINGS(ConnectClusters)
 
 		return true;
 	}
@@ -319,7 +321,7 @@ namespace PCGExBridgeClusters
 
 		UPCGMetadata* EdgeMetadata = PointIO->GetOut()->Metadata;
 
-		FPCGMetadataAttribute<int64>* InVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(Batch->VtxIO->GetIn()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
+		const FPCGMetadataAttribute<int64>* InVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(Batch->VtxIO->GetIn()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
 
 		FPCGPoint& EdgePoint = PointIO->GetOut()->GetMutablePoints()[TaskIndex];
 

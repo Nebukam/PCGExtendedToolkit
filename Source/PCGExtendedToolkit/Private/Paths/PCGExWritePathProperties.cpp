@@ -68,6 +68,7 @@ namespace PCGExWritePathProperties
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWritePathProperties::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathProperties)
 
 		bClosedPath = Settings->bClosedPath;

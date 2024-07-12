@@ -119,7 +119,7 @@ namespace PCGExClusterMT
 
 		void ForwardCluster(bool bAsOwner)
 		{
-			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(VtxIO->GetOut()))
+			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(EdgesIO->GetOut()))
 			{
 				EdgesData->SetBoundCluster(Cluster, bAsOwner);
 				bDeleteCluster = false;
@@ -596,7 +596,7 @@ namespace PCGExClusterMT
 
 			ClosedBatchProcessors.Empty();
 		}
-
+		
 		virtual bool PrepareProcessing() override
 		{
 			return FClusterProcessorBatchBase::PrepareProcessing();

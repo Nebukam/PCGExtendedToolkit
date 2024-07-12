@@ -83,6 +83,7 @@ namespace PCGExLloydRelax
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExLloydRelax::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(LloydRelax)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

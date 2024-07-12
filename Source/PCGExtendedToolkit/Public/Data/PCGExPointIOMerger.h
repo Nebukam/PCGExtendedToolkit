@@ -37,6 +37,22 @@ protected:
 
 namespace PCGExPointIOMerger
 {
+	template <typename T>
+	static void ScopeMerge(const uint64 Scope, const PCGEx::FAttributeIdentity& Identity, PCGExData::FPointIO* SourceIO, PCGEx::TFAttributeWriter<T>* Writer)
+	{
+		PCGEx::TFAttributeReader<T>* Reader = new PCGEx::TFAttributeReader<T>(Identity.Name);
+		Reader->Bind(SourceIO);
+
+		uint32 StartIndex;
+		uint32 Range;
+		PCGEx::H64(Scope, StartIndex, Range);
+
+		const int32 Count = static_cast<int>(Range);
+		for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
+
+		PCGEX_DELETE(Reader);
+	}
+	
 	class PCGEXTENDEDTOOLKIT_API FWriteAttributeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
@@ -74,17 +90,7 @@ namespace PCGExPointIOMerger
 
 		virtual bool ExecuteTask() override
 		{
-			PCGEx::TFAttributeReader<T>* Reader = new PCGEx::TFAttributeReader<T>(Identity.Name);
-			Reader->Bind(PointIO);
-
-			uint32 StartIndex;
-			uint32 Range;
-			PCGEx::H64(Scope, StartIndex, Range);
-
-			const int32 Count = static_cast<int>(Range);
-			for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
-
-			PCGEX_DELETE(Reader);
+			ScopeMerge<T>(Scope, Identity, PointIO, Writer);
 			return true;
 		}
 	};

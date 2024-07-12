@@ -118,6 +118,7 @@ namespace PCGExSampleNearestSpline
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestSpline::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSpline)
 
 		LocalTypedContext = TypedContext;

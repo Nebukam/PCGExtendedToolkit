@@ -111,6 +111,7 @@ namespace PCGExPathIntersections
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathIntersections::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

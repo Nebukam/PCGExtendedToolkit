@@ -300,7 +300,7 @@ bool FPCGExComputePreciseOverlap::ExecuteTask()
 	BoundsExpansion->Capture(Settings->ExpansionLocalValue);
 	BoundsExpansion->SoftGrab(Bounds->PointIO);
 
-	for (const TPair<PCGExPointsToBounds::FBounds*, FBox> Overlap : Bounds->FastOverlaps)
+	for (const TPair<PCGExPointsToBounds::FBounds*, FBox>& Overlap : Bounds->FastOverlaps)
 	{
 		PCGExPointsToBounds::FBounds* OtherBounds = Overlap.Key;
 		if (Bounds->OverlapsWith(OtherBounds)) { continue; } // Already processed

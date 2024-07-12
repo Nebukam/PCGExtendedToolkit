@@ -335,6 +335,7 @@ namespace PCGExFindContours
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindContours::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindContours)
 
 		LocalSettings = Settings;

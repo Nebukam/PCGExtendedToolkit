@@ -57,17 +57,13 @@ namespace PCGExGraph
 	PCGEX_ASYNC_STATE(State_ProcessingEdges)
 	PCGEX_ASYNC_STATE(State_BuildingClusters)
 
-	FORCEINLINE static uint32 HCID(const PCGMetadataEntryKey Key)
+	FORCEINLINE static uint32 NodeGUID(const uint64 Base, const int32 Index)
 	{
 		uint32 A;
 		uint32 B;
-		PCGEx::H64(Key, A, B);
-		// Only use the right part if it exist
-		// It's probably safe to assume that metadataEntry busted the left bits, there's no trace of the first ones anymore.
-		return A == 0 ? B : A;
+		PCGEx::H64(Base, A, B);
+		return HashCombineFast(A == 0 ? B : A, Index);
 	}
-
-	FORCEINLINE static uint64 HCID(const PCGMetadataEntryKey A, const PCGMetadataEntryKey B) { return PCGEx::H64(HCID(A), HCID(B)); }
 
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{

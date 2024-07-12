@@ -298,6 +298,7 @@ namespace PCGExGrowPaths
 {
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExGrowPaths::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }

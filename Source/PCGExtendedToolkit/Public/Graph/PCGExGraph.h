@@ -588,7 +588,7 @@ namespace PCGExGraphTask
 
 	static void WriteSubGraphEdges(
 		PCGExMT::FTaskManager* AsyncManager,
-		const TArray<FPCGPoint>& Vertices,
+		const UPCGPointData* VtxIO,
 		PCGExGraph::FSubGraph* SubGraph, const PCGExGraph::FGraphMetadataDetails* MetadataDetails);
 
 	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public PCGExMT::FPCGExTask

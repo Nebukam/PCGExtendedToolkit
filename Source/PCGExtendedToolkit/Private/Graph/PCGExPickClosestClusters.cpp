@@ -24,7 +24,7 @@ FPCGExPickClosestClustersContext::~FPCGExPickClosestClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	for (const TPair<int32, TSet<int32>*> Pair : VtxEdgeMap)
+	for (const TPair<int32, TSet<int32>*>& Pair : VtxEdgeMap)
 	{
 		Pair.Value->Empty();
 		delete Pair.Value;

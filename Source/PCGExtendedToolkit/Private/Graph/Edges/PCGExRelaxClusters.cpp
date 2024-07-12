@@ -82,6 +82,7 @@ namespace PCGExRelaxClusters
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExRelaxClusters::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RelaxClusters)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
@@ -191,6 +192,7 @@ namespace PCGExRelaxClusters
 			}
 		}
 
+		Cluster->WillModifyVtxPositions(true);
 		ForwardCluster(true);
 	}
 

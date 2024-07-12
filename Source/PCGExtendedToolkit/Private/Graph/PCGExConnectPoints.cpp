@@ -130,6 +130,7 @@ namespace PCGExConnectPoints
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConnectPoints::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

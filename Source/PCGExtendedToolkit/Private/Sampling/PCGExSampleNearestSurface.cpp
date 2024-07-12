@@ -93,6 +93,7 @@ namespace PCGExSampleNearestSurface
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestSurface::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
 		LocalTypedContext = TypedContext;

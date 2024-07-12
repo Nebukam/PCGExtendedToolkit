@@ -81,6 +81,7 @@ namespace PCGExFlatProjection
 {
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFlatProjection::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlatProjection)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

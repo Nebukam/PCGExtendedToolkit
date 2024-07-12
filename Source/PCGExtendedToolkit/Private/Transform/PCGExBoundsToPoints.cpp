@@ -68,6 +68,7 @@ namespace PCGExBoundsToPoints
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBoundsToPoints::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsToPoints)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

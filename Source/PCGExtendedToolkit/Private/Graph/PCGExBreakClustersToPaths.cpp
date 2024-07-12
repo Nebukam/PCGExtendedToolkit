@@ -85,6 +85,7 @@ namespace PCGExBreakClustersToPaths
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBreakClustersToPaths::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
 		LocalTypedContext = TypedContext;

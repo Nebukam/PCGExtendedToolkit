@@ -110,6 +110,7 @@ namespace PCGExSplitPath
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
 
 		LocalTypedContext = TypedContext;

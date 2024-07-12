@@ -253,13 +253,7 @@ namespace PCGEx
 
 	FORCEINLINE static uint64 H64S(const uint32 A, const uint32 B, const uint32 C)
 	{
-		uint64 H = (static_cast<uint64>(A) << 32) | (static_cast<uint64>(B) << 16) | C;
-
-		H ^= (H >> 23) ^ (H << 37);
-		H *= 0xc4ceb9fe1a85ec53;
-		H ^= (H >> 32);
-
-		return H;
+		return HashCombineFast(A, HashCombineFast(B, C));
 	}
 
 	FORCEINLINE static uint64 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }

@@ -100,6 +100,7 @@ namespace PCGExConvexHull
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConvexHull::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildConvexHull)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

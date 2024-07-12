@@ -89,6 +89,7 @@ namespace PCGExSampleSurfaceGuided
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleSurfaceGuided::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
 		LocalTypedContext = TypedContext;

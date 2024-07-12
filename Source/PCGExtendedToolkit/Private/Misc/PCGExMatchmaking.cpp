@@ -112,6 +112,7 @@ namespace PCGExMatchmaking
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMatchmaking::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Matchmaking)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

@@ -72,6 +72,7 @@ namespace PCGExSortPoints
 {
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSortPoints::Process);
 		PCGEX_SETTINGS(SortPointsBase)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

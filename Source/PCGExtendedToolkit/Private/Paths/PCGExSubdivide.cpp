@@ -93,6 +93,7 @@ namespace PCGExSubdivide
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSubdivide::Process);
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)

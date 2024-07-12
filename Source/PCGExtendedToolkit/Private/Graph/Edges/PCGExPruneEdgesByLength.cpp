@@ -76,6 +76,7 @@ namespace PCGExPruneEdges
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPruneEdges::Process);
 		PCGEX_SETTINGS(PruneEdgesByLength)
 
 		AsyncManagerPtr = AsyncManager;

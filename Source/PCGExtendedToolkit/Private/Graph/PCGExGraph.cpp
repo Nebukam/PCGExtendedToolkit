@@ -324,11 +324,11 @@ namespace PCGExGraph
 
 		VtxEndpointWriter->BindAndSetNumUninitialized(PointIO);
 
-		const TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetPoints();
+		const uint64 BaseGUID = PointIO->GetOut()->UID;
 		for (const int32 NodeIndex : ValidNodes)
 		{
 			const FNode& Node = Nodes[NodeIndex];
-			VtxEndpointWriter->Values[Node.PointIndex] = PCGEx::H64(HCID(OutPoints[Node.PointIndex].MetadataEntry), Node.NumExportedEdges);
+			VtxEndpointWriter->Values[Node.PointIndex] = PCGEx::H64(NodeGUID(BaseGUID, Node.PointIndex), Node.NumExportedEdges);
 		}
 
 		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, VtxEndpointWriter)
@@ -428,11 +428,13 @@ namespace PCGExGraphTask
 {
 	void WriteSubGraphEdges(
 		PCGExMT::FTaskManager* AsyncManager,
-		const TArray<FPCGPoint>& Vertices,
+		const UPCGPointData* VtxIO,
 		PCGExGraph::FSubGraph* SubGraph,
 		const PCGExGraph::FGraphMetadataDetails* MetadataDetails)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
+
+		const TArray<FPCGPoint>& Vertices = VtxIO->GetPoints();
 
 		PCGExGraph::FGraph* Graph = SubGraph->ParentGraph;
 		TArray<int32> EdgeDump = SubGraph->Edges.Array();
@@ -478,11 +480,12 @@ namespace PCGExGraphTask
 
 		const FVector SeedOffset = FVector(EdgeIO->IOIndex);
 
+		const uint64 BaseGUID = VtxIO->UID;
 		for (const PCGExGraph::FIndexedEdge& E : FlattenedEdges)
 		{
 			FPCGPoint& EdgePt = MutablePoints[E.EdgeIndex];
 
-			EdgeEndpoints->Values[E.EdgeIndex] = PCGExGraph::HCID(Vertices[E.Start].MetadataEntry, Vertices[E.End].MetadataEntry);
+			EdgeEndpoints->Values[E.EdgeIndex] = PCGEx::H64(PCGExGraph::NodeGUID(BaseGUID, E.Start), PCGExGraph::NodeGUID(BaseGUID, E.End));
 
 			/*
 			if (PCGExGraph::FGraphEdgeMetadata** EdgeMetaPtr = Graph->EdgeMetadata.Find(EdgeIndex))
@@ -549,7 +552,7 @@ namespace PCGExGraphTask
 
 	bool FWriteSubGraphEdges::ExecuteTask()
 	{
-		WriteSubGraphEdges(Manager, PointIO->GetOut()->GetPoints(), SubGraph, MetadataDetails);
+		WriteSubGraphEdges(Manager, PointIO->GetOut(), SubGraph, MetadataDetails);
 		return true;
 	}
 
@@ -557,7 +560,7 @@ namespace PCGExGraphTask
 	{
 		for (PCGExGraph::FSubGraph* SubGraph : SubGraphs)
 		{
-			WriteSubGraphEdges(Manager, PointIO->GetOut()->GetPoints(), SubGraph, MetadataDetails);
+			WriteSubGraphEdges(Manager, PointIO->GetOut(), SubGraph, MetadataDetails);
 		}
 
 		return true;

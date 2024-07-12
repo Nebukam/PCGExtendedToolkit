@@ -5,6 +5,7 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 #include "Geometry/PCGExGeo.h"
+#include "Graph/Data/PCGExClusterData.h"
 
 #pragma region UPCGExNodeStateDefinition
 
@@ -95,6 +96,9 @@ namespace PCGExCluster
 			Nodes = new TArray<FNode>();
 			Nodes->Reserve(OtherCluster->Nodes->Num());
 			Nodes->Append(*OtherCluster->Nodes);
+
+			ExpandedNodes = nullptr;
+			bOwnsExpandedNodes = true;
 		}
 		else
 		{
@@ -107,6 +111,9 @@ namespace PCGExCluster
 			Edges = new TArray<PCGExGraph::FIndexedEdge>();
 			Edges->Reserve(OtherCluster->Edges->Num());
 			Edges->Append(*OtherCluster->Edges);
+
+			ExpandedEdges = nullptr;
+			bOwnsExpandedEdges = true;
 		}
 		else
 		{
@@ -142,6 +149,78 @@ namespace PCGExCluster
 
 		EdgeOctree = OtherCluster->EdgeOctree;
 		if (EdgeOctree) { bOwnsEdgeOctree = false; }
+	}
+
+	void FCluster::ClearInheritedForChanges(const bool bClearOwned)
+	{
+		WillModifyVtxIO(bClearOwned);
+		WillModifyVtxPositions(bClearOwned);
+	}
+
+	void FCluster::WillModifyVtxIO(const bool bClearOwned)
+	{
+		if (!bOwnsVtxPointIndices)
+		{
+			VtxPointIndices = nullptr;
+			bOwnsVtxPointIndices = true;
+		}
+		else if (bClearOwned && VtxPointIndices)
+		{
+			PCGEX_DELETE(VtxPointIndices)
+		}
+	}
+
+	void FCluster::WillModifyVtxPositions(const bool bClearOwned)
+	{
+		if (!bOwnsLengths)
+		{
+			EdgeLengths = nullptr;
+			bOwnsLengths = true;
+		}
+		else if (bClearOwned && EdgeLengths)
+		{
+			PCGEX_DELETE(EdgeLengths)
+		}
+
+		if (!bOwnsNodeOctree)
+		{
+			NodeOctree = nullptr;
+			bOwnsNodeOctree = true;
+		}
+		else if (bClearOwned && NodeOctree)
+		{
+			PCGEX_DELETE(NodeOctree)
+		}
+
+		if (!bOwnsEdgeOctree)
+		{
+			EdgeOctree = nullptr;
+			bOwnsEdgeOctree = true;
+		}
+		else if (bClearOwned && EdgeOctree)
+		{
+			PCGEX_DELETE(EdgeOctree)
+		}
+
+		if (!bOwnsExpandedNodes)
+		{
+			ExpandedNodes = nullptr;
+			bOwnsExpandedNodes = true;
+		}
+		else if (bClearOwned && ExpandedNodes)
+		{
+			PCGEX_DELETE_TARRAY_FULL(ExpandedNodes)
+		}
+
+		if (!bOwnsExpandedEdges)
+		{
+			ExpandedEdges = nullptr;
+			bOwnsExpandedEdges = true;
+		}
+		else if (bClearOwned && ExpandedEdges)
+		{
+			PCGEX_DELETE_TARRAY_FULL(ExpandedEdges)
+		}
 	}
 
 	FCluster::~FCluster()
@@ -983,9 +1062,32 @@ namespace PCGExClusterTask
 			EdgeDupe->IOIndex = TaskIndex;
 			PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
 
+			const PCGExCluster::FCluster* CachedCluster = PCGExClusterData::TryGetCachedCluster(PointIO, EdgeIO);
+			UPCGExClusterEdgesData* EdgeDupeTypedData = Cast<UPCGExClusterEdgesData>(EdgeDupe->GetOut());
+			if (CachedCluster && EdgeDupeTypedData)
+			{
+				PCGExCluster::FCluster* ClusterCopy = new PCGExCluster::FCluster(
+					CachedCluster, VtxDupe, EdgeDupe,
+					true, true, false);
+
+				ClusterCopy->WillModifyVtxPositions(true);
+
+				EdgeDupeTypedData->SetBoundCluster(ClusterCopy, true);
+				InternalStart<FTransformCluster>(TaskIndex, PointIO, ClusterCopy, TransformDetails);
+			}
+
 			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, EdgeDupe, TransformDetails);
 		}
 
+		// TODO : Copy & transform cached cluster if they exist
+
+		return true;
+	}
+
+	bool FTransformCluster::ExecuteTask()
+	{
+		const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
+		for (PCGExCluster::FNode& Node : (*Cluster->Nodes)) { Node.Position = TargetPoint.Transform.TransformPosition(Node.Position); }
 		return true;
 	}
 

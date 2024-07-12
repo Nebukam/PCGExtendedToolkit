@@ -56,15 +56,16 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
+
+		Context->VtxPartitions->Pairs.Reserve(Context->GetTotalNumProcessors());
 	}
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->VtxPartitions->OutputTo(Context);
-		Context->MainEdges->OutputTo(Context);
-	}
+	Context->OutputBatches();
+	Context->VtxPartitions->OutputTo(Context);
+	Context->MainEdges->OutputTo(Context);
+	Context->Done();
 
 	return Context->TryComplete();
 }
@@ -74,6 +75,7 @@ namespace PCGExPartitionVertices
 	PCGExCluster::FCluster* FProcessor::HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
+		bDeleteCluster = false;
 		return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, true, true, true);
 	}
 
@@ -85,19 +87,26 @@ namespace PCGExPartitionVertices
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPartitionVertices::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionVertices)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
+		LocalTypedContext = TypedContext;
+
 		Cluster->NodeIndexLookup->Empty();
 
-		PointPartitionIO = TypedContext->VtxPartitions->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput);
+		PointPartitionIO = new PCGExData::FPointIO(VtxIO);
+		PointPartitionIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PointPartitionIO->GetOut()->GetMutablePoints();
 
 		MutablePoints.SetNumUninitialized(NumNodes);
 		KeptIndices.SetNumUninitialized(NumNodes);
 		Remapping.Reserve(NumNodes);
 
+		Cluster->WillModifyVtxIO();
+
+		Cluster->VtxIO = PointPartitionIO;
 		Cluster->NodeIndexLookup->Reserve(NumNodes);
 		Cluster->NumRawVtx = NumNodes;
 
@@ -136,6 +145,11 @@ namespace PCGExPartitionVertices
 		PCGExGraph::MarkClusterEdges(EdgesIO, OutId);
 
 		ForwardCluster(true);
+	}
+
+	void FProcessor::Output()
+	{
+		LocalTypedContext->VtxPartitions->AddUnsafe(PointPartitionIO);
 	}
 }
 

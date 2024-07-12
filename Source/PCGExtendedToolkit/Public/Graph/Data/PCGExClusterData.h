@@ -77,7 +77,7 @@ protected:
 
 namespace PCGExClusterData
 {
-	static const PCGExCluster::FCluster* TryGetCachedCluster(PCGExData::FPointIO* VtxIO, PCGExData::FPointIO* EdgeIO)
+	static const PCGExCluster::FCluster* TryGetCachedCluster(const PCGExData::FPointIO* VtxIO, const PCGExData::FPointIO* EdgeIO)
 	{
 		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
 		{
