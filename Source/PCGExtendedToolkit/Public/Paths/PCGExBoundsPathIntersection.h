@@ -81,15 +81,10 @@ namespace PCGExPathIntersections
 		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
 		PCGExGeo::FSegmentation* Segmentation = nullptr;
 
+		FPCGExBoxIntersectionDetails Details;
+
 		PCGExMT::FTaskGroup* FindIntersectionsTaskGroup = nullptr;
 		PCGExMT::FTaskGroup* InsertionTaskGroup = nullptr;
-
-		PCGEx::TFAttributeWriter<bool>* IsIntersectionWriter = nullptr;
-		PCGEx::TFAttributeWriter<int32>* BoundIndexWriter = nullptr;
-		PCGEx::TFAttributeWriter<bool>* IsInsideWriter = nullptr;
-
-		PCGExData::FDataForwardHandler* IntersectionForwardHandler = nullptr;
-		PCGExData::FDataForwardHandler* InsideForwardHandler = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)
@@ -106,16 +101,15 @@ namespace PCGExPathIntersections
 
 		FORCEINLINE virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override
 		{
-			if (InsideForwardHandler)
+			if (Details.InsideForwardHandler)
 			{
 				TArray<PCGExGeo::FPointBox*> Overlaps;
-				const bool bContained = Cloud->Contains(Point.Transform.GetLocation(), Overlaps);
-				if (bContained) { InsideForwardHandler->Forward(Index, Overlaps[0]->Index); }
-				if (IsInsideWriter) { IsInsideWriter->Values[Index] = bContained; }
+				const bool bContained = Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation(), Overlaps); // Avoid intersections being captured
+				Details.SetIsInside(Index, bContained, Overlaps[0]->Index);
 			}
-			else if (IsInsideWriter)
+			else
 			{
-				IsInsideWriter->Values[Index] = Cloud->Contains(Point.Transform.GetLocation());
+				Details.SetIsInside(Index, Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation()));
 			}
 		}
 

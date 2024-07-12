@@ -24,26 +24,34 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 
 	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bMarkPointsIntersections = true;
+	bool bWriteIsIntersection = true;
 
 	/** Name of the attribute to write point intersection boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkPointsIntersections" ))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteIsIntersection" ))
 	FName IsIntersectionAttributeName = FName("IsIntersection");
+
+	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteIntersectionBias = true;
+
+	/** Name of the attribute to write point intersection boolean to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteIntersectionBias" ))
+	FName IntersectionBiasAttributeName = FName("IntersectionBias");
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bMarkIntersectingBoundIndex = true;
+	bool bWriteIntersectionBoundIndex = true;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkIntersectingBoundIndex" ))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteIntersectionBoundIndex" ))
 	FName IntersectionBoundIndexAttributeName = FName("BoundIndex");
 
 	/** If enabled, mark points inside the volume with a boolean value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bMarkPointsInside = false;
+	bool bWriteIsPointInside = false;
 
 	/** Name of the attribute to write inside boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkPointsInside" ))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteIsPointInside" ))
 	FName IsInsideAttributeName = FName("IsInside");
 
 
@@ -57,27 +65,100 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 
 	bool Validate(const FPCGContext* InContext) const
 	{
-		if (bMarkPointsIntersections) { PCGEX_VALIDATE_NAME_C(InContext, IsIntersectionAttributeName) }
-		if (bMarkIntersectingBoundIndex) { PCGEX_VALIDATE_NAME_C(InContext, IntersectionBoundIndexAttributeName) }
-		if (bMarkPointsInside) { PCGEX_VALIDATE_NAME_C(InContext, IsInsideAttributeName) }
+		if (bWriteIsIntersection) { PCGEX_VALIDATE_NAME_C(InContext, IsIntersectionAttributeName) }
+		if (bWriteIntersectionBias) { PCGEX_VALIDATE_NAME_C(InContext, IntersectionBiasAttributeName) }
+		if (bWriteIntersectionBoundIndex) { PCGEX_VALIDATE_NAME_C(InContext, IntersectionBoundIndexAttributeName) }
+		if (bWriteIsPointInside) { PCGEX_VALIDATE_NAME_C(InContext, IsInsideAttributeName) }
 		return true;
+	}
+
+	PCGEx::TFAttributeWriter<bool>* IsIntersectionWriter = nullptr;
+	PCGEx::TFAttributeWriter<FVector>* BiasWriter = nullptr;
+	PCGEx::TFAttributeWriter<int32>* BoundIndexWriter = nullptr;
+	PCGEx::TFAttributeWriter<bool>* IsInsideWriter = nullptr;
+
+	PCGExData::FDataForwardHandler* IntersectionForwardHandler = nullptr;
+	PCGExData::FDataForwardHandler* InsideForwardHandler = nullptr;
+
+	void Init(PCGExData::FFacade* PointDataFacade, PCGExData::FFacade* BoundsDataFacade)
+	{
+		PointDataFacade->Source->CreateOutKeys();
+		
+		IntersectionForwardHandler = IntersectionForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
+		InsideForwardHandler = InsideForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
+
+		if (bWriteIsPointInside)
+		{
+			IsInsideWriter = PointDataFacade->GetOrCreateWriter(
+				IsInsideAttributeName,
+				false, false, false);
+		}
+
+		if (bWriteIsIntersection)
+		{
+			IsIntersectionWriter = PointDataFacade->GetOrCreateWriter<bool>(
+				IsIntersectionAttributeName,
+				false, false, false);
+		}
+
+		if (bWriteIntersectionBias)
+		{
+			BiasWriter = PointDataFacade->GetOrCreateWriter<FVector>(
+				IntersectionBiasAttributeName,
+				FVector::ZeroVector, true, false);
+		}
+
+		if (bWriteIntersectionBoundIndex)
+		{
+			BoundIndexWriter = PointDataFacade->GetOrCreateWriter<int32>(
+				IntersectionBoundIndexAttributeName,
+				-1, false, false);
+		}
+	}
+
+	void Cleanup()
+	{
+		PCGEX_DELETE(IntersectionForwardHandler)
+		PCGEX_DELETE(InsideForwardHandler)
 	}
 
 	bool WillWriteAny() const
 	{
 		return
-			bMarkPointsIntersections ||
-			bMarkPointsInside ||
-			bMarkIntersectingBoundIndex ||
+			bWriteIsIntersection ||
+			bWriteIntersectionBias ||
+			bWriteIsPointInside ||
+			bWriteIntersectionBoundIndex ||
 			IntersectionForwarding.bEnabled ||
 			InsideForwarding.bEnabled;
 	}
 
 	void Mark(UPCGMetadata* Metadata) const
 	{
-		if (bMarkPointsIntersections) { PCGExData::WriteMark(Metadata, IsIntersectionAttributeName, false); }
-		if (bMarkPointsInside) { PCGExData::WriteMark(Metadata, IsInsideAttributeName, false); }
-		if (bMarkIntersectingBoundIndex) { PCGExData::WriteMark(Metadata, IntersectionBoundIndexAttributeName, -1); }
+		if (bWriteIsIntersection) { PCGExData::WriteMark(Metadata, IsIntersectionAttributeName, false); }
+		if (bWriteIntersectionBias) { PCGExData::WriteMark(Metadata, IntersectionBiasAttributeName, FVector::ZeroVector); }
+		if (bWriteIsPointInside) { PCGExData::WriteMark(Metadata, IsInsideAttributeName, false); }
+		if (bWriteIntersectionBoundIndex) { PCGExData::WriteMark(Metadata, IntersectionBoundIndexAttributeName, -1); }
+	}
+
+	void SetIsInside(const int32 PointIndex, const bool bIsInside, const int32 BoundIndex ) const
+	{
+		if (InsideForwardHandler && bIsInside) { InsideForwardHandler->Forward(PointIndex, BoundIndex); }
+		if (IsInsideWriter) { IsInsideWriter->Values[PointIndex] = bIsInside; }
+	}
+
+	void SetIsInside(const int32 PointIndex, const bool bIsInside) const
+	{
+		if (IsInsideWriter) { IsInsideWriter->Values[PointIndex] = bIsInside; }
+	}
+
+	void SetIntersection(const int32 PointIndex, const FVector& Bias, const int32 BoundIndex) const
+	{
+		if (IntersectionForwardHandler) { IntersectionForwardHandler->Forward(BoundIndex, PointIndex); }
+		
+		if (IsIntersectionWriter) { IsIntersectionWriter->Values[PointIndex] = true; }
+		if (BiasWriter) { BiasWriter->Values[PointIndex] = Bias; }
+		if (BoundIndexWriter) { BoundIndexWriter->Values[PointIndex] = BoundIndex; }
 	}
 };
 

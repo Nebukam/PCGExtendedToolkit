@@ -106,8 +106,7 @@ namespace PCGExPathIntersections
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Segmentation)
-		PCGEX_DELETE(IntersectionForwardHandler)
-		PCGEX_DELETE(InsideForwardHandler)
+		Details.Cleanup();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -120,6 +119,8 @@ namespace PCGExPathIntersections
 		LastIndex = PointIO->GetNum() - 1;
 		Segmentation = new PCGExGeo::FSegmentation();
 		Cloud = TypedContext->BoundsDataFacade->GetCloud();
+
+		Details = Settings->OutputSettings;
 
 		FindIntersectionsTaskGroup = AsyncManagerPtr->CreateGroup();
 		FindIntersectionsTaskGroup->StartRanges(
@@ -169,15 +170,13 @@ namespace PCGExPathIntersections
 
 			PCGExMath::RandomizeSeed(Point);
 
-			if (IsIntersectionWriter) { IsIntersectionWriter->Values[Idx] = true; }
-			if (BoundIndexWriter) { BoundIndexWriter->Values[Idx] = Cut.BoxIndex; }
-			if (IntersectionForwardHandler) { IntersectionForwardHandler->Forward(Cut.BoxIndex, Idx); }
+			Details.SetIntersection(Idx, Cut.Normal, Cut.BoxIndex);
 		}
 	}
 
 	void FProcessor::OnInsertionComplete()
 	{
-		if (!IsInsideWriter && !InsideForwardHandler) { return; }
+		if (!Details.IsInsideWriter && !Details.InsideForwardHandler) { return; }
 		StartParallelLoopForPoints();
 	}
 
@@ -185,34 +184,16 @@ namespace PCGExPathIntersections
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
-		auto InitSharedData = [&]()
-		{
-			// Stuff we'll process whether there's an intersection or not
-			
-			if (Settings->OutputSettings.bMarkPointsInside)
-			{
-				IsInsideWriter = PointDataFacade->GetOrCreateWriter(
-					Settings->OutputSettings.IsInsideAttributeName,
-					false, false, false);
-			}
-
-			IntersectionForwardHandler = Settings->OutputSettings.IntersectionForwarding.TryGetHandler(TypedContext->BoundsDataFacade, PointDataFacade);
-			InsideForwardHandler = Settings->OutputSettings.InsideForwarding.TryGetHandler(TypedContext->BoundsDataFacade, PointDataFacade);
-			
-		};
-		
 		const int32 NumCuts = Segmentation->GetNumCuts();
 		if (NumCuts == 0)
 		{
 			if (Settings->OutputSettings.WillWriteAny())
-			{				
+			{
 				PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-				Settings->OutputSettings.Mark(PointIO->GetOut()->Metadata);
 
-				PointIO->CreateOutKeys();
-				
-				InitSharedData();
-				
+				Details.Mark(PointIO->GetOut()->Metadata);
+				Details.Init(PointDataFacade, TypedContext->BoundsDataFacade);				
+
 				StartParallelLoopForPoints();
 			}
 			else
@@ -265,22 +246,8 @@ namespace PCGExPathIntersections
 			}
 		}
 
-		if (Settings->OutputSettings.bMarkPointsIntersections)
-		{
-			IsIntersectionWriter = PointDataFacade->GetOrCreateWriter<bool>(
-				Settings->OutputSettings.IsIntersectionAttributeName,
-				false, false, false);
-		}
-
-		if (Settings->OutputSettings.bMarkIntersectingBoundIndex)
-		{
-			BoundIndexWriter = PointDataFacade->GetOrCreateWriter<int32>(
-				Settings->OutputSettings.IntersectionBoundIndexAttributeName,
-				-1, false, false);
-		}
-
-		InitSharedData();
-
+		Details.Init(PointDataFacade, TypedContext->BoundsDataFacade);
+		
 		Segmentation->ReduceToArray();
 
 		InsertionTaskGroup = AsyncManagerPtr->CreateGroup();

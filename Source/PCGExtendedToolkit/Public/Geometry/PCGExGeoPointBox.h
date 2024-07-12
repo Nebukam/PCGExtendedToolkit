@@ -13,11 +13,12 @@ namespace PCGExGeo
 	struct PCGEXTENDEDTOOLKIT_API FCut
 	{
 		FVector Position = FVector::ZeroVector;
+		FVector Normal = FVector::ZeroVector;
 		int32 BoxIndex = -1;
 		bool bIsInside = false;
 
-		FCut(const FVector& InPosition, const int32 InBoxIndex):
-			Position(InPosition), BoxIndex(InBoxIndex)
+		FCut(const FVector& InPosition, const FVector& InNormal, const int32 InBoxIndex):
+			Position(InPosition), Normal(InNormal), BoxIndex(InBoxIndex)
 		{
 		}
 	};
@@ -79,9 +80,9 @@ namespace PCGExGeo
 			return FBoxCenterAndExtent(Box);
 		}
 
-		void Insert(const FVector& Position, const int32 Index)
+		void Insert(const FVector& Position, const FVector& Normal, const int32 Index)
 		{
-			Cuts.Emplace(Position, Index);
+			Cuts.Emplace(Position, Normal, Index);
 		}
 	};
 
@@ -161,6 +162,7 @@ namespace PCGExGeo
 		FTransform Transform;
 		FBoxSphereBounds Sphere;
 		FBox Box;
+		FBox EpsilonBox;
 		int32 Index;
 
 		explicit FPointBox(const FPCGPoint& InPoint, const int32 InIndex):
@@ -172,10 +174,12 @@ namespace PCGExGeo
 			const double Len = Extents.Length();
 
 			Box = FBox(Extents * -1, Extents);
+			EpsilonBox = FBox((Extents - PCGExMath::EPSILONV) * -1, (Extents - PCGExMath::EPSILONV));
 			Sphere = FBoxSphereBounds(InPoint.Transform.GetLocation(), FVector(Len), Len);
 		}
 
 		bool Contains(const FVector& Position) const { return Box.IsInside(Transform.InverseTransformPosition(Position)); }
+		bool ContainsMinusEpsilon(const FVector& Position) const { return EpsilonBox.IsInside(Transform.InverseTransformPosition(Position)); }
 
 		bool Intersect(const FPCGPoint& Point, EPCGExPointBoundsSource BoundsSource) const
 		{
@@ -201,11 +205,16 @@ namespace PCGExGeo
 		{
 			FVector OutIntersection1 = FVector::ZeroVector;
 			FVector OutIntersection2 = FVector::ZeroVector;
+			FVector OutNormal1 = FVector::ZeroVector;
+			FVector OutNormal2 = FVector::ZeroVector;
 			bool bIsIntersection2Valid = false;
-			if (SegmentIntersection(InIntersections->StartPosition, InIntersections->EndPosition, OutIntersection1, OutIntersection2, bIsIntersection2Valid))
+			if (SegmentIntersection(
+				InIntersections->StartPosition, InIntersections->EndPosition,
+				OutIntersection1, OutIntersection2, bIsIntersection2Valid,
+				OutNormal1, OutNormal2))
 			{
-				InIntersections->Insert(OutIntersection1, Index);
-				if (bIsIntersection2Valid) { InIntersections->Insert(OutIntersection2, Index); }
+				InIntersections->Insert(OutIntersection1, OutNormal1, Index);
+				if (bIsIntersection2Valid) { InIntersections->Insert(OutIntersection2, OutNormal2, Index); }
 				return true;
 			}
 			return false;
@@ -214,9 +223,11 @@ namespace PCGExGeo
 		bool SegmentIntersection(
 			const FVector& Start,
 			const FVector& End,
-			FVector& OutI1,
-			FVector& OutI2,
-			bool& bIsI2Valid) const
+			FVector& OutIntersection1,
+			FVector& OutIntersection2,
+			bool& bIsI2Valid,
+			FVector& OutHitNormal1,
+			FVector& OutHitNormal2) const
 		{
 			const FVector LocalStart = Transform.InverseTransformPosition(Start);
 			const FVector LocalEnd = Transform.InverseTransformPosition(End);
@@ -238,8 +249,9 @@ namespace PCGExGeo
 			{
 				if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
 				{
-					OutI1 = Transform.TransformPosition(HitLocation);
-					return OutI1 != Start && OutI1 != End;
+					OutIntersection1 = Transform.TransformPosition(HitLocation);
+					OutHitNormal1 = HitNormal;
+					return OutIntersection1 != Start && OutIntersection1 != End;
 				}
 
 				return false;
@@ -249,8 +261,9 @@ namespace PCGExGeo
 			{
 				if (FMath::LineExtentBoxIntersection(Box, LocalEnd, LocalStart, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
 				{
-					OutI1 = Transform.TransformPosition(HitLocation);
-					return OutI1 != Start && OutI1 != End;
+					OutIntersection1 = Transform.TransformPosition(HitLocation);
+					OutHitNormal1 = HitNormal;
+					return OutIntersection1 != Start && OutIntersection1 != End;
 				}
 
 				return false;
@@ -258,21 +271,24 @@ namespace PCGExGeo
 
 			if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
 			{
-				OutI1 = Transform.TransformPosition(HitLocation);
-				bHasValidIntersection = OutI1 != Start && OutI1 != End;
+				OutIntersection1 = Transform.TransformPosition(HitLocation);
+				OutHitNormal1 = HitNormal;
+				bHasValidIntersection = OutIntersection1 != Start && OutIntersection1 != End;
 			}
 
 			if (FMath::LineExtentBoxIntersection(Box, LocalEnd, LocalStart, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
 			{
 				if (!bHasValidIntersection)
 				{
-					OutI1 = Transform.TransformPosition(HitLocation);
-					bHasValidIntersection = OutI1 != Start && OutI1 != End;
+					OutIntersection1 = Transform.TransformPosition(HitLocation);
+					OutHitNormal1 = HitNormal;
+					bHasValidIntersection = OutIntersection1 != Start && OutIntersection1 != End;
 				}
 				else
 				{
-					OutI2 = Transform.TransformPosition(HitLocation);
-					bIsI2Valid = OutI1 != OutI2 && (OutI2 != Start && OutI2 != End);
+					OutIntersection2 = Transform.TransformPosition(HitLocation);
+					OutHitNormal2 = HitNormal;
+					bIsI2Valid = OutIntersection1 != OutIntersection2 && (OutIntersection2 != Start && OutIntersection2 != End);
 				}
 
 				bHasValidIntersection = bHasValidIntersection || bIsI2Valid;
@@ -360,16 +376,36 @@ namespace PCGExGeo
 			return bOverlapFound;
 		}
 
+		bool ContainsMinusEpsilon(const FVector& InPosition) const
+		{
+			if (!CloudBounds.IsInside(InPosition)) { return false; }
+			bool bOverlapFound = false;
+			Octree->FindNearbyElements(
+				InPosition, [&](const FPointBox* NearbyBox)
+				{
+					if (!bOverlapFound && NearbyBox->ContainsMinusEpsilon(InPosition)) { bOverlapFound = true; }
+				});
+			return bOverlapFound;
+		}
+
 		bool Contains(const FVector& InPosition, TArray<FPointBox*>& OutOverlaps) const
 		{
 			if (!CloudBounds.IsInside(InPosition)) { return false; }
 			Octree->FindNearbyElements(
 				InPosition, [&](const FPointBox* NearbyBox)
 				{
-					if (NearbyBox->Contains(InPosition))
-					{
-						OutOverlaps.Add(*(Boxes.GetData() + NearbyBox->Index));
-					}
+					if (NearbyBox->Contains(InPosition)) { OutOverlaps.Add(*(Boxes.GetData() + NearbyBox->Index)); }
+				});
+			return !OutOverlaps.IsEmpty();
+		}
+
+		bool ContainsMinusEpsilon(const FVector& InPosition, TArray<FPointBox*>& OutOverlaps) const
+		{
+			if (!CloudBounds.IsInside(InPosition)) { return false; }
+			Octree->FindNearbyElements(
+				InPosition, [&](const FPointBox* NearbyBox)
+				{
+					if (NearbyBox->Contains(InPosition)) { OutOverlaps.Add(*(Boxes.GetData() + NearbyBox->Index)); }
 				});
 			return !OutOverlaps.IsEmpty();
 		}
