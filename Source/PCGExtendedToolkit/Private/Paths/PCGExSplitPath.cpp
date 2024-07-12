@@ -91,6 +91,9 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
+	Context->MainPaths->Pairs.Reserve(Context->MainPaths->Pairs.Num() + Context->MainBatch->GetNumProcessors());
+	Context->MainBatch->Output();
+
 	Context->MainPaths->OutputTo(Context);
 	Context->Done();
 
@@ -101,6 +104,7 @@ namespace PCGExSplitPath
 {
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE_TARRAY(PathsIOs)
 		Paths.Empty();
 	}
 
@@ -114,6 +118,7 @@ namespace PCGExSplitPath
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		bInlineProcessPoints = true;
+		bClosedPath = Settings->bClosedPath;
 
 		PCGEX_SET_NUM_UNINITIALIZED(DoSplit, PointIO->GetNum())
 		PCGEX_SET_NUM_UNINITIALIZED(DoRemove, PointIO->GetNum())
@@ -203,27 +208,65 @@ namespace PCGExSplitPath
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
 		const FPath& PathInfos = Paths[Iteration];
-		if (PathInfos.Count < 1 || PathInfos.Start == -1) { return; }
-		if (PathInfos.Count == 1 && LocalSettings->bOmitSinglePointOutputs) { return; }
-		if (PathInfos.End == -1 && (PathInfos.Start + PathInfos.Count) != PointIO->GetNum()) { return; }
 
+		//if (PathInfos.Count < 1 || PathInfos.Start == -1) { return; }                                    // This should never happen
+		//if (PathInfos.End == -1 && (PathInfos.Start + PathInfos.Count) != PointIO->GetNum()) { return; } // This should never happen
 
-		const PCGExData::FPointIO* PathIO = LocalTypedContext->MainPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+		if (Iteration == 0 && bWrapLastPath) { return; }
+
+		const bool bWrapWithStart = PathInfos.End == -1 && bWrapLastPath;
+		const int32 NumPathPoints = bWrapWithStart ? PathInfos.Count + Paths[0].Count : PathInfos.Count;
+
+		if (NumPathPoints == 1 && LocalSettings->bOmitSinglePointOutputs) { return; }
+
+		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(PointIO);
+		PathIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		PathsIOs[Iteration] = PathIO;
 
 		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, PathInfos.Count);
+		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumPathPoints);
+
 		for (int i = 0; i < PathInfos.Count; i++) { MutablePoints[i] = OriginalPoints[PathInfos.Start + i]; }
+
+		if (bWrapWithStart) // There was a cut somewhere in the closed path.
+		{
+			const FPath& StartPathInfos = Paths[0];
+			for (int i = 0; i < StartPathInfos.Count; i++) { MutablePoints[PathInfos.Count + i] = OriginalPoints[StartPathInfos.Start + i]; }
+		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
+
 		if (Paths.IsEmpty()) { return; }
+
+		if (bClosedPath)
+		{
+			if (Paths.Num() >= 2) { bWrapLastPath = Paths[0].Start == 0 && Paths.Last().End == -1; }
+			if (Paths.Num() > 1 || Paths[0].End != -1 || Paths[0].Start != 0) { bAddOpenTag = Settings->OpenPathTag.IsEmpty() ? false : true; }
+		}
+
+		PCGEX_SET_NUM_UNINITIALIZED_NULL(PathsIOs, Paths.Num())
 		StartParallelLoopForRange(Paths.Num());
 
 		//TODO : If closed path is enabled, and if the first & last points are not removed after the split
 		//re-order them and join them so as to recreate the "missing" edge
-		
+	}
+
+	void FProcessor::Output()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
+
+		for (PCGExData::FPointIO* PathIO : PathsIOs)
+		{
+			if (!PathIO) { continue; }
+			if (bAddOpenTag) { PathIO->Tags->RawTags.Add(Settings->OpenPathTag); }
+			LocalTypedContext->MainPaths->AddUnsafe(PathIO);
+		}
+
+		PathsIOs.Empty(); // So they don't get deleted
 	}
 }
 

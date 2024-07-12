@@ -66,8 +66,8 @@ public:
 	bool bClosedPath = false;
 
 	/** When closed path is enabled, paths that aren't closed anymore will be tagged. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClosedPath", EditConditionHides))
-	FString OpenedPathTag = "Opened";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClosedPath", EditConditionHides))
+	FString OpenPathTag = "Open";
 
 	/** If both split and remove are true, the selected behavior takes priority */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -108,11 +108,17 @@ namespace PCGExSplitPath
 		FPCGExSplitPathContext* LocalTypedContext = nullptr;
 		const UPCGExSplitPathSettings* LocalSettings = nullptr;
 
+		bool bClosedPath = false;
+
 		TArray<bool> DoSplit;
 		TArray<bool> DoRemove;
 		TArray<FPath> Paths;
+		TArray<PCGExData::FPointIO*> PathsIOs;
 
-		int32 LastValidIndex = -1;
+		bool bWrapLastPath = false;
+		bool bAddOpenTag = false;
+
+		int32 LastIndex = -1;
 		int32 CurrentPath = -1;
 
 		bool bPriorityToSplit = true;
@@ -130,7 +136,6 @@ namespace PCGExSplitPath
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
-
-		UPCGExEdgeRefineOperation* Refinement = nullptr;
+		virtual void Output() override;
 	};
 }
