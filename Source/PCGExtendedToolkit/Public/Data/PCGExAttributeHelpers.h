@@ -641,7 +641,7 @@ namespace PCGEx
 			if (!FetchSelector.IsValid()) { return false; }
 
 			Attribute = InData->Metadata->GetMutableAttribute(FetchSelector.GetName());
-			if(!Attribute){return false;}
+			if (!Attribute) { return false; }
 
 			ProcessExtraNames(FetchSelector.GetName(), ExtraNames);
 

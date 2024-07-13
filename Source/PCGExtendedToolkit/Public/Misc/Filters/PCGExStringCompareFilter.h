@@ -71,8 +71,8 @@ namespace PCGExPointsFilter
 
 		const UPCGExStringCompareFilterFactory* TypedFilterFactory;
 
-		PCGEx::FAAttributeIO<FString>* OperandA = nullptr;
-		PCGEx::FAAttributeIO<FString>* OperandB = nullptr;
+		PCGEx::FAttributeIOBase<FString>* OperandA = nullptr;
+		PCGEx::FAttributeIOBase<FString>* OperandB = nullptr;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
