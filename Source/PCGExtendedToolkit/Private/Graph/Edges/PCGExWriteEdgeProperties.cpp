@@ -96,9 +96,13 @@ namespace PCGExWriteEdgeProperties
 
 		if (bSolidify)
 		{
+#define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){Rad##_AXIS##Constant = Settings->Radius##_AXIS##Constant;}
+			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)
+#undef PCGEX_CREATE_LOCAL_AXIS_SET_CONST
+			
 			// Create edge-scope getters
 #define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
-			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Edge) {\
+			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Type == EPCGExFetchType::Attribute && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Edge){\
 				bOwnSolidificationRad##_AXIS = true;\
 				SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
 				SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
@@ -217,10 +221,11 @@ namespace PCGExWriteEdgeProperties
 					if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
 						TargetBoundsMin._AXIS = -EdgeLength * EdgeLerpInv;\
 						TargetBoundsMax._AXIS = EdgeLength * EdgeLerp;\
-					}else if (SolidificationRad##_AXIS->bEnabled){\
-						double Rad = Extents._AXIS;\
+					}else{\
+						double Rad = Rad##_AXIS##Constant;\
+						if(SolidificationRad##_AXIS){\
 						if (Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->SafeGet(EdgeStartPtIndex, Rad), SolidificationRad##_AXIS->SafeGet(EdgeEndPtIndex, Rad), EdgeLerp); }\
-						else { Rad = SolidificationRad##_AXIS->SafeGet(Edge.PointIndex, Rad); }\
+						else { Rad = SolidificationRad##_AXIS->SafeGet(Edge.PointIndex, Rad); }}\
 						TargetBoundsMin._AXIS = -Rad;\
 						TargetBoundsMax._AXIS = Rad;\
 					}}
@@ -303,7 +308,7 @@ namespace PCGExWriteEdgeProperties
 		{
 			// Prepare vtx-scoped getters
 #define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
-						if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) {\
+						if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Type == EPCGExFetchType::Attribute && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) {\
 						SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
 						SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
 						SolidificationRad##_AXIS->Grab(VtxIO); }

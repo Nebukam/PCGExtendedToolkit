@@ -135,38 +135,65 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	bool bWriteRadiusX = false;
 
-	/** Source from which to fetch the Radius X value */
+	/** Type of Radius X value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	EPCGExFetchType RadiusXType = EPCGExFetchType::Constant;
+	
+	/** Source from which to fetch the Radius X value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXType==EPCGExFetchType::Attribute", EditConditionHides))
 	EPCGExGraphValueSource RadiusXSource = EPCGExGraphValueSource::Vtx;
 
 	/** Attribute read on edge endpoints */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXType!=EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector RadiusXSourceAttribute;
 
+	/** Radius X Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXType==EPCGExFetchType::Constant", EditConditionHides))
+	double RadiusXConstant = 1;
+
+
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	bool bWriteRadiusY = false;
 
-	/** Source from which to fetch the Radius Y value */
+	/** Type of Radius Y value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	EPCGExFetchType RadiusYType = EPCGExFetchType::Constant;
+	
+	/** Source from which to fetch the Radius Y value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZType==EPCGExFetchType::Attribute", EditConditionHides))
 	EPCGExGraphValueSource RadiusYSource = EPCGExGraphValueSource::Vtx;
 
 	/** Attribute read on edge endpoints */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZType==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector RadiusYSourceAttribute;
 
+	/** Radius Y Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None && RadiusYType==EPCGExFetchType::Constant", EditConditionHides))
+	double RadiusYConstant = 1;
+	
+	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	bool bWriteRadiusZ = false;
 
-	/** Source from which to fetch the Radius Z value */
+	/** Type of Radius Z value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	EPCGExFetchType RadiusZType = EPCGExFetchType::Constant;
+	
+	/** Source from which to fetch the Radius Z value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZType==EPCGExFetchType::Attribute", EditConditionHides))
 	EPCGExGraphValueSource RadiusZSource = EPCGExGraphValueSource::Vtx;
 
 	/** Attribute read on edge endpoints */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZType==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector RadiusZSourceAttribute;
 
+	/** Radius Z Constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZType==EPCGExFetchType::Constant", EditConditionHides))
+	double RadiusZConstant = 1;
+	
 private:
 	friend class FPCGExWriteEdgePropertiesElement;
 };
@@ -224,7 +251,7 @@ namespace PCGExWriteEdgeProperties
 		PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
 		PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;
 
-#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGEx::FLocalSingleFieldGetter* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true;
+#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGEx::FLocalSingleFieldGetter* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 	};
