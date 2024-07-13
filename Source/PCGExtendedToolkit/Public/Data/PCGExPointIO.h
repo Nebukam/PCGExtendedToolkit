@@ -135,7 +135,8 @@ namespace PCGExData
 		FORCEINLINE const UPCGPointData* GetInOut() const { return In ? In : Out; }
 
 		FORCEINLINE int32 GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
-		FORCEINLINE int32 GetOutNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
+		FORCEINLINE int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetPoints().Num() : Out->GetPoints().Num(); }
+		FORCEINLINE int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
 
 		FPCGAttributeAccessorKeysPoints* CreateInKeys();
 		FORCEINLINE FPCGAttributeAccessorKeysPoints* GetInKeys() const { return InKeys; }

@@ -213,9 +213,12 @@ namespace PCGExRefineEdges
 
 	bool FFilterRangeTask::ExecuteTask()
 	{
+		const int32 StartIndex = PCGEx::H64A(Scope);
+		const int32 NumIterations = PCGEx::H64B(Scope);
+
 		for (int i = 0; i < NumIterations; i++)
 		{
-			PCGExGraph::FIndexedEdge& Edge = *(Processor->Cluster->Edges->GetData() + TaskIndex + i);
+			PCGExGraph::FIndexedEdge& Edge = *(Processor->Cluster->Edges->GetData() + StartIndex + i);
 			if (!Edge.bValid) { Edge.bValid = Processor->FilterManager->Test(Edge.EdgeIndex); }
 		}
 
@@ -224,9 +227,12 @@ namespace PCGExRefineEdges
 
 	bool FSanitizeRangeTask::ExecuteTask()
 	{
+		const int32 StartIndex = PCGEx::H64A(Scope);
+		const int32 NumIterations = PCGEx::H64B(Scope);
+
 		for (int i = 0; i < NumIterations; i++)
 		{
-			const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + TaskIndex + i);
+			const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
 			const int32 NumNeighbors = Node.Adjacency.Num();
 
 			if (Processor->Sanitization == EPCGExRefineSanitization::Longest)

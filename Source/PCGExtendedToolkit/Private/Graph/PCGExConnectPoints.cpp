@@ -243,11 +243,11 @@ namespace PCGExConnectPoints
 		return true;
 	}
 
-	void FProcessor::PrepareParallelLoopForPoints(const TArray<uint64>& Loops)
+	void FProcessor::PrepareLoopScopesForPoints(const TArray<uint64>& Loops)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
 
-		FPointsProcessor::PrepareParallelLoopForPoints(Loops);
+		FPointsProcessor::PrepareLoopScopesForPoints(Loops);
 		for (int i = 0; i < Loops.Num(); i++) { DistributedEdgesSet.Add(new TSet<uint64>()); }
 	}
 

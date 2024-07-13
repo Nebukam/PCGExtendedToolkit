@@ -256,11 +256,16 @@ namespace PCGExMT
 	class PCGEXTENDEDTOOLKIT_API FTaskGroup
 	{
 		friend class FTaskManager;
+
+		friend class FPCGExTask;
+		friend class FGroupRangeCallbackTask;
 		friend class FGroupRangeIterationTask;
+		friend class FGroupRangeInlineIterationTask;
 
 	public:
 		using CompletionCallback = std::function<void()>;
-		using IterationCallback = std::function<void(const int32)>;
+		using IterationCallback = std::function<void(const int32, const int32, const int32)>;
+		using IterationRangeStartCallback = std::function<void(const int32, const int32, const int32)>;
 
 		explicit FTaskGroup(FTaskManager* InManager):
 			Manager(InManager)
@@ -271,20 +276,16 @@ namespace PCGExMT
 		{
 		}
 
-		void OnTaskCompleted()
+		void SetOnCompleteCallback(const CompletionCallback& Callback)
 		{
-			FWriteScopeLock WriteScopeLock(GroupLock);
-			NumCompleted++;
+			bHasOnCompleteCallback = true;
+			OnCompleteCallback = Callback;
+		}
 
-			if (NumCompleted == NumStarted)
-			{
-				NumCompleted = 0;
-				NumStarted = 0;
-				if (bHasOnCompleteCallback)
-				{
-					OnCompleteCallback();
-				}
-			}
+		void SetOnIterationRangeStartCallback(const IterationRangeStartCallback& Callback)
+		{
+			bHasOnIterationRangeStartCallback = true;
+			OnIterationRangeStartCallback = Callback;
 		}
 
 		template <typename T, typename... Args>
@@ -313,34 +314,52 @@ namespace PCGExMT
 			TArray<uint64> Loops;
 			NumStarted += SubRanges(Loops, MaxItems, ChunkSize);
 
+			int32 LoopIdx = 0;
 			for (const uint64 H : Loops)
 			{
 				FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
 				ATask->GetTask().Group = this;
-				ATask->GetTask().NumIterations = PCGEx::H64B(H);
+				ATask->GetTask().Scope = H;
 
-				if (Manager->bForceSync) { Manager->StartSynchronousTask<T>(ATask, PCGEx::H64A(H)); }
-				else { Manager->StartBackgroundTask<T>(ATask, PCGEx::H64A(H)); }
+				if (Manager->bForceSync) { Manager->StartSynchronousTask<T>(ATask, LoopIdx++); }
+				else { Manager->StartBackgroundTask<T>(ATask, LoopIdx++); }
 			}
 		}
 
-		void StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize);
-
-		void SetOnCompleteCallback(const CompletionCallback& Callback)
-		{
-			bHasOnCompleteCallback = true;
-			OnCompleteCallback = Callback;
-		}
+		void StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false);
 
 	protected:
 		FTaskManager* Manager;
+
 		mutable FRWLock GroupLock;
+
 		bool bHasOnCompleteCallback = false;
 		CompletionCallback OnCompleteCallback;
+
 		IterationCallback OnIterationCallback;
+		bool bHasOnIterationRangeStartCallback = false;
+		IterationRangeStartCallback OnIterationRangeStartCallback;
+
 		bool bFlushing = false;
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
+
+		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
+
+		void OnTaskCompleted()
+		{
+			FWriteScopeLock WriteScopeLock(GroupLock);
+			NumCompleted++;
+
+			if (NumCompleted == NumStarted)
+			{
+				NumCompleted = 0;
+				NumStarted = 0;
+				if (bHasOnCompleteCallback) { OnCompleteCallback(); }
+			}
+		}
+
+		void InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API PCGExMT::FPCGExTask : public FNonAbandonableTask
@@ -427,7 +446,20 @@ namespace PCGExMT
 		{
 		}
 
-		int32 NumIterations = 0;
+		uint64 Scope = 0;
+		virtual bool ExecuteTask() override;
+	};
+
+	class FGroupRangeInlineIterationTask : public FPCGExTask
+	{
+	public:
+		FGroupRangeInlineIterationTask(PCGExData::FPointIO* InPointIO):
+			FPCGExTask(InPointIO)
+		{
+		}
+
+		int32 MaxItems = 0;
+		int32 ChunkSize = 0;
 		virtual bool ExecuteTask() override;
 	};
 

@@ -199,7 +199,7 @@ namespace PCGExData
 		{
 			if (!Writer) { return; }
 
-			if (AsyncManager && !GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(Source->GetOutNum()))
+			if (AsyncManager && !GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(Source->GetNum(ESource::Out)))
 			{
 				PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Writer);
 			}

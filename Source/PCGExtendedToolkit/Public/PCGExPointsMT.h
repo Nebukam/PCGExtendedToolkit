@@ -66,7 +66,7 @@ namespace PCGExPointsMT
 
 	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessPointRange, { Target->ProcessPoints(Source, TaskIndex, Iterations, LoopIdx);})
 
-	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations, LoopIdx);})
+	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessRange, { Target->ProcessRange(TaskIndex, Iterations, LoopIdx);})
 
 	PCGEX_POINTS_MT_TASK_RANGE(FAsyncClosedBatchProcessRange, {Target->ProcessClosedBatchRange(TaskIndex, Iterations, LoopIdx);})
 
@@ -166,15 +166,16 @@ namespace PCGExPointsMT
 			return true;
 		}
 
+#pragma region Simple range loop
+
 		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::Out, const int32 PerLoopIterations = -1)
 		{
-			TArray<FPCGPoint>& Points = PointIO->GetMutableData(Source)->GetMutablePoints();
-			const int32 NumPoints = Points.Num();
+			const int32 NumPoints = PointIO->GetNum(Source);
 
 			if (IsTrivial())
 			{
-				PrepareParallelLoopForPoints({PCGEx::H64(0, NumPoints)});
-				for (int i = 0; i < NumPoints; i++) { ProcessSinglePoint(i, Points[i], 0, NumPoints); }
+				PrepareLoopScopesForPoints({PCGEx::H64(0, NumPoints)});
+				ProcessPoints(Source, 0, NumPoints, 0);
 				return;
 			}
 
@@ -189,58 +190,28 @@ namespace PCGExPointsMT
 			TArray<uint64> Loops;
 			PCGExMT::SubRanges(Loops, NumPoints, PLI);
 
-			PrepareParallelLoopForPoints(Loops);
+			PrepareLoopScopesForPoints(Loops);
 
 			for (int i = 0; i < Loops.Num(); i++)
 			{
 				uint32 StartIndex;
-				uint32 LoopIterations;
-				PCGEx::H64(Loops[i], StartIndex, LoopIterations);
-				AsyncManagerPtr->Start<FAsyncProcessPointRange<FPointsProcessor>>(StartIndex, nullptr, this, LoopIterations, Source, i);
+				uint32 Count;
+				PCGEx::H64(Loops[i], StartIndex, Count);
+				AsyncManagerPtr->Start<FAsyncProcessPointRange<FPointsProcessor>>(StartIndex, nullptr, this, Count, Source, i);
 			}
 		}
 
-		virtual void PrepareParallelLoopForPoints(const TArray<uint64>& Loops)
+		virtual void PrepareLoopScopesForPoints(const TArray<uint64>& Loops)
 		{
 		}
 
-		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
-		{
-			if (IsTrivial())
-			{
-				PrepareParallelLoopForRange({PCGEx::H64(0, NumIterations)});
-				for (int i = 0; i < NumIterations; i++) { ProcessSingleRangeIteration(i, 0, NumIterations); }
-				return;
-			}
-
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
-
-			if (bInlineProcessPoints)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessRangeInline<FPointsProcessor>>(0, nullptr, this, PLI, NumIterations);
-				return;
-			}
-
-			TArray<uint64> Loops;
-			PCGExMT::SubRanges(Loops, NumIterations, PLI);
-
-			PrepareParallelLoopForRange(Loops);
-
-			for (int i = 0; i < Loops.Num(); i++)
-			{
-				uint32 StartIndex;
-				uint32 LoopIterations;
-				PCGEx::H64(Loops[i], StartIndex, LoopIterations);
-				AsyncManagerPtr->Start<FAsyncProcessRange<FPointsProcessor>>(StartIndex, nullptr, this, LoopIterations, PCGExData::ESource::Out, i);
-			}
-		}
-
-		virtual void PrepareParallelLoopForRange(const TArray<uint64>& Loops)
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
 		{
 		}
 
 		virtual void ProcessPoints(const PCGExData::ESource Source, const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
+			PrepareSingleLoopScopeForPoints(StartIndex, Count);
 			TArray<FPCGPoint>& Points = PointIO->GetMutableData(Source)->GetMutablePoints();
 			for (int i = 0; i < Count; i++)
 			{
@@ -253,14 +224,60 @@ namespace PCGExPointsMT
 		{
 		}
 
-		virtual void ProcessRange(const int32 StartIndex, const int32 Iterations, const int32 LoopIdx)
+#pragma endregion
+
+#pragma region Simple range loop
+
+		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
-			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Iterations); }
+			if (IsTrivial())
+			{
+				PrepareLoopScopesForRange({PCGEx::H64(0, NumIterations)});
+				ProcessRange(0, NumIterations, 0);
+				return;
+			}
+
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
+
+			if (bInlineProcessRange)
+			{
+				AsyncManagerPtr->Start<FAsyncProcessRangeInline<FPointsProcessor>>(0, nullptr, this, PLI, NumIterations);
+				return;
+			}
+
+			TArray<uint64> Loops;
+			PCGExMT::SubRanges(Loops, NumIterations, PLI);
+
+			PrepareLoopScopesForRange(Loops);
+
+			for (int i = 0; i < Loops.Num(); i++)
+			{
+				uint32 StartIndex;
+				uint32 Count;
+				PCGEx::H64(Loops[i], StartIndex, Count);
+				AsyncManagerPtr->Start<FAsyncProcessRange<FPointsProcessor>>(StartIndex, nullptr, this, Count, PCGExData::ESource::Out, i);
+			}
+		}
+
+		virtual void PrepareLoopScopesForRange(const TArray<uint64>& Loops)
+		{
+		}
+
+		virtual void PrepareSingleLoopScopeForRange(const uint32 StartIndex, const int32 Count)
+		{
+		}
+
+		virtual void ProcessRange(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		{
+			PrepareSingleLoopScopeForRange(StartIndex, Count);
+			for (int i = 0; i < Count; i++) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
 		}
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 		{
 		}
+
+#pragma endregion
 
 		virtual void CompleteWork()
 		{

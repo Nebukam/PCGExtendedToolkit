@@ -443,7 +443,7 @@ namespace PCGExGraph
 			PairId = PointIO->GetOutIn()->UID;
 			PointIO->Tags->Set(TagStr_ClusterPair, PairId, PairIdStr);
 
-			const int32 NumNodes = PointIO->GetOutNum();
+			const int32 NumNodes = PointIO->GetOutInNum();
 			VtxDataFacade = new PCGExData::FFacade(PointIO);
 
 			Graph = new FGraph(NumNodes, NumEdgeReserve);

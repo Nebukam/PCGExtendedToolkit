@@ -154,13 +154,13 @@ namespace PCGExUberFilter
 		if (Results)
 		{
 			TestTaskGroup->StartRanges(
-				[&](const int32 Index) { Results->Values[Index] = FilterManager->Test(Index); },
+				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { Results->Values[Index] = FilterManager->Test(Index); },
 				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
 		}
 		else
 		{
 			TestTaskGroup->StartRanges(
-				[&](const int32 Index) { PointFilterCache[Index] = FilterManager->Test(Index); },
+				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { PointFilterCache[Index] = FilterManager->Test(Index); },
 				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
 		}
 

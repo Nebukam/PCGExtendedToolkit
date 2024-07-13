@@ -474,7 +474,7 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				this->SetNum(PointIO->GetOutNum());
+				this->SetNum(PointIO->GetNum(PCGExData::ESource::Out));
 				this->Accessor->GetRange(this->Values);
 				return true;
 			}
@@ -485,7 +485,7 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				PCGEX_SET_NUM_UNINITIALIZED(this->Values, PointIO->GetOutNum())
+				PCGEX_SET_NUM_UNINITIALIZED(this->Values, PointIO->GetNum(PCGExData::ESource::Out))
 				return true;
 			}
 			return false;

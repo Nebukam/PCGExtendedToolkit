@@ -149,7 +149,7 @@ namespace PCGExMergeVertices
 	void FProcessor::Write()
 	{
 		Cluster->VtxIO = LocalTypedContext->CompositeIO;
-		Cluster->NumRawVtx = LocalTypedContext->CompositeIO->GetOutNum();
+		Cluster->NumRawVtx = LocalTypedContext->CompositeIO->GetNum(PCGExData::ESource::Out);
 
 		EdgesIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		PCGExGraph::MarkClusterEdges(EdgesIO, LocalTypedContext->OutVtxId);
