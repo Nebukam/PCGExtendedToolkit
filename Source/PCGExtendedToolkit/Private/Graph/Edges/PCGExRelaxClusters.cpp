@@ -198,9 +198,12 @@ namespace PCGExRelaxClusters
 
 	bool FRelaxRangeTask::ExecuteTask()
 	{
+		const int32 StartIndex = PCGEx::H64A(Scope);
+		const int32 NumIterations = PCGEx::H64B(Scope);
+		
 		for (int i = 0; i < NumIterations; i++)
 		{
-			const int32 Index = TaskIndex + i;
+			const int32 Index = StartIndex + i;
 			Processor->ProcessSingleNode(Index, *(Processor->Cluster->Nodes->GetData() + Index));
 		}
 

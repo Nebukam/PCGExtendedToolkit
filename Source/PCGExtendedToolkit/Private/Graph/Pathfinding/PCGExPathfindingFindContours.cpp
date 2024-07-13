@@ -395,7 +395,7 @@ namespace PCGExFindContours
 
 		ProjectionTaskGroup = AsyncManager->CreateGroup();
 		ProjectionTaskGroup->StartRanges(
-			[&](const int32 Index)
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxIO->GetInPoint(Index).Transform.GetLocation(), Index);
 			},

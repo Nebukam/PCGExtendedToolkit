@@ -318,7 +318,7 @@ namespace PCGExGraph
 			for (const FNode& Node : Nodes) { if (Node.bValid) { ValidNodes.Add(Node.NodeIndex); } }
 		}
 
-		PointIO->InitializeNum(PointIO->GetOutNum(), true);
+		PointIO->InitializeNum(PointIO->GetNum(PCGExData::ESource::Out), true);
 
 		PCGEx::TFAttributeWriter<int64>* VtxEndpointWriter = new PCGEx::TFAttributeWriter<int64>(Tag_VtxEndpoint, 0, false);
 

@@ -116,7 +116,7 @@ namespace PCGExRelaxClusters
 		}
 
 		FProcessor* Processor = nullptr;
-		int32 NumIterations = 0;
+		uint64 Scope = 0;
 		virtual bool ExecuteTask() override;
 	};
 }

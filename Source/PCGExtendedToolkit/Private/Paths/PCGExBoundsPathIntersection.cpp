@@ -125,7 +125,7 @@ namespace PCGExPathIntersections
 
 		FindIntersectionsTaskGroup = AsyncManagerPtr->CreateGroup();
 		FindIntersectionsTaskGroup->StartRanges(
-			[&](const int32 Index) { FindIntersections(Index); },
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { FindIntersections(Index); },
 			PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
 
 		//StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -254,7 +254,7 @@ namespace PCGExPathIntersections
 		InsertionTaskGroup = AsyncManagerPtr->CreateGroup();
 		InsertionTaskGroup->SetOnCompleteCallback([&]() { OnInsertionComplete(); });
 		InsertionTaskGroup->StartRanges(
-			[&](const int32 Index) { InsertIntersections(Index); },
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { InsertIntersections(Index); },
 			Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
 
 		FPointsProcessor::CompleteWork();

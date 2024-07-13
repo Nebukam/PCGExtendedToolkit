@@ -146,7 +146,7 @@ namespace PCGExRefineEdges
 		}
 
 		FProcessor* Processor = nullptr;
-		int32 NumIterations = 0;
+		uint64 Scope = 0;
 		virtual bool ExecuteTask() override;
 	};
 
@@ -161,7 +161,7 @@ namespace PCGExRefineEdges
 		}
 
 		FProcessor* Processor = nullptr;
-		int32 NumIterations = 0;
+		uint64 Scope = 0;
 		virtual bool ExecuteTask() override;
 	};
 }

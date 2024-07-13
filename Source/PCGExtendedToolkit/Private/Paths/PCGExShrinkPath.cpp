@@ -188,7 +188,7 @@ namespace PCGExShrinkPath
 
 		auto WrapUp = [&]()
 		{
-			if (PointIO->GetIn() != PointIO->GetOut() && PointIO->GetOutNum() <= 1)
+			if (PointIO->GetIn() != PointIO->GetOut() && PointIO->GetNum(PCGExData::ESource::Out) <= 1)
 			{
 				PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			}

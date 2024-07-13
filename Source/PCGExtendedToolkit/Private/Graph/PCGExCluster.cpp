@@ -314,8 +314,8 @@ namespace PCGExCluster
 
 		Bounds = FBox(ForceInit);
 
-		NumRawVtx = SubGraph->VtxIO->GetOutNum();
-		NumRawEdges = SubGraph->EdgesIO->GetOutNum();
+		NumRawVtx = SubGraph->VtxIO->GetNum(PCGExData::ESource::Out);
+		NumRawEdges = SubGraph->EdgesIO->GetNum(PCGExData::ESource::Out);
 
 		const TArray<FPCGPoint>& VtxPoints = SubGraph->VtxIO->GetOutIn()->GetPoints();
 		Nodes->Reserve(SubGraph->Nodes.Num());
