@@ -42,9 +42,9 @@ bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartProcessingClusters<PCGExWriteEdgeProperties::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExWriteEdgeProperties::FProcessor>>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExWriteEdgeProperties::FProcessorBatch* NewBatch)
+			[&](PCGExClusterMT::TBatch<PCGExWriteEdgeProperties::FProcessor>* NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -70,16 +70,6 @@ namespace PCGExWriteEdgeProperties
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(MetadataBlender)
-
-		PCGEX_DELETE(EdgeDirCompGetter)
-		PCGEX_DELETE(SolidificationLerpGetter)
-
-		PCGEX_DELETE(SolidificationLerpGetter)
-
-		// Delete owned getters
-#define PCGEX_CLEAN_LOCAL_AXIS_GETTER(_AXIS) if (bOwnSolidificationRad##_AXIS) { PCGEX_DELETE(SolidificationRad##_AXIS) }
-		PCGEX_FOREACH_XYZ(PCGEX_CLEAN_LOCAL_AXIS_GETTER)
-#undef PCGEX_CLEAN_LOCAL_AXIS_GETTER
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -94,43 +84,50 @@ namespace PCGExWriteEdgeProperties
 			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
+		bSolidify = Settings->SolidificationAxis != EPCGExMinimalAxis::None;
+
 		if (bSolidify)
 		{
 #define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){Rad##_AXIS##Constant = Settings->Radius##_AXIS##Constant;}
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)
 #undef PCGEX_CREATE_LOCAL_AXIS_SET_CONST
-			
+
 			// Create edge-scope getters
 #define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
-			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Type == EPCGExFetchType::Attribute && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Edge){\
-				bOwnSolidificationRad##_AXIS = true;\
-				SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
-				SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
-				SolidificationRad##_AXIS->Grab(EdgesIO); }
+			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Type == EPCGExFetchType::Attribute){\
+				SolidificationRad##_AXIS = Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Edge ? EdgeDataFacade->GetOrCreateGetter<double>(Settings->Radius##_AXIS##SourceAttribute) : VtxDataFacade->GetOrCreateGetter<double>(Settings->Radius##_AXIS##SourceAttribute);\
+				if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified Radius Attribute {0}."), FText::FromName(Settings->Radius##_AXIS##SourceAttribute.GetName()))); return false; }}
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 
-			SolidificationLerpGetter = new PCGEx::FLocalSingleFieldGetter();
-
 			if (Settings->SolidificationLerpOperand == EPCGExFetchType::Attribute)
 			{
-				SolidificationLerpGetter->Capture(Settings->SolidificationLerpAttribute);
-				if (!SolidificationLerpGetter->Grab(EdgesIO))
+				SolidificationLerpGetter = EdgeDataFacade->GetOrCreateGetter<double>(Settings->SolidificationLerpAttribute);
+				if (!SolidificationLerpGetter)
 				{
 					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified SolidificationEdgeLerp Attribute {0}."), FText::FromName(Settings->SolidificationLerpAttribute.GetName())));
+					return false;
 				}
-			}
-			else
-			{
-				SolidificationLerpGetter->bEnabled = false;
 			}
 		}
 
-		if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
+		if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
 		{
-			EdgeDirCompGetter = new PCGEx::FLocalVectorGetter();
-			EdgeDirCompGetter->Capture(Settings->EdgeSourceAttribute);
-			EdgeDirCompGetter->Grab(EdgesIO);
+			VtxDirCompGetter = VtxDataFacade->GetOrCreateGetter<double>(Settings->DirSourceAttribute);
+			if (!VtxDirCompGetter)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some vtx don't have the specified DirSource Attribute {0}."), FText::FromName(Settings->DirSourceAttribute.GetName())));
+				return false;
+			}
+		}
+		else if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
+		{
+			EdgeDirCompGetter = EdgeDataFacade->GetOrCreateGetter<FVector>(Settings->DirSourceAttribute);
+			if (!EdgeDirCompGetter)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified DirSource Attribute {0}."), FText::FromName(Settings->DirSourceAttribute.GetName())));
+				return false;
+			}
 		}
 
 		if (Settings->bEndpointsBlending)
@@ -167,11 +164,11 @@ namespace PCGExWriteEdgeProperties
 
 		if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
 		{
-			bAscending = VtxDirCompGetter->SafeGet(EdgeStartPtIndex, EdgeStartPtIndex) < VtxDirCompGetter->SafeGet(EdgeEndPtIndex, EdgeEndPtIndex);
+			bAscending = VtxDirCompGetter->Values[EdgeStartPtIndex] < VtxDirCompGetter->Values[EdgeEndPtIndex];
 		}
 		else if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 		{
-			const FVector CounterDir = EdgeDirCompGetter->SafeGet(Edge.EdgeIndex, FVector::UpVector);
+			const FVector CounterDir = EdgeDirCompGetter->Values[Edge.EdgeIndex];
 			const FVector StartEndDir = (EndPoint.Transform.GetLocation() - StartPoint.Transform.GetLocation()).GetSafeNormal();
 			const FVector EndStartDir = (StartPoint.Transform.GetLocation() - EndPoint.Transform.GetLocation()).GetSafeNormal();
 			bAscending = CounterDir.Dot(StartEndDir) < CounterDir.Dot(EndStartDir);
@@ -211,7 +208,7 @@ namespace PCGExWriteEdgeProperties
 			FVector TargetBoundsMin = MutableTarget.BoundsMin;
 			FVector TargetBoundsMax = MutableTarget.BoundsMax;
 
-			const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter->SafeGet(Edge.PointIndex, Settings->SolidificationLerpConstant), 0, 1);
+			const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Values[Edge.PointIndex] : Settings->SolidificationLerpConstant, 0, 1);
 			const double EdgeLerpInv = 1 - EdgeLerp;
 			bool bProcessAxis;
 
@@ -224,8 +221,8 @@ namespace PCGExWriteEdgeProperties
 					}else{\
 						double Rad = Rad##_AXIS##Constant;\
 						if(SolidificationRad##_AXIS){\
-						if (Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->SafeGet(EdgeStartPtIndex, Rad), SolidificationRad##_AXIS->SafeGet(EdgeEndPtIndex, Rad), EdgeLerp); }\
-						else { Rad = SolidificationRad##_AXIS->SafeGet(Edge.PointIndex, Rad); }}\
+						if (Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Values[EdgeStartPtIndex], SolidificationRad##_AXIS->Values[EdgeEndPtIndex], EdgeLerp); }\
+						else { Rad = SolidificationRad##_AXIS->Values[Edge.PointIndex]; }}\
 						TargetBoundsMin._AXIS = -Rad;\
 						TargetBoundsMax._AXIS = Rad;\
 					}}
@@ -271,75 +268,6 @@ namespace PCGExWriteEdgeProperties
 	void FProcessor::CompleteWork()
 	{
 		EdgeDataFacade->Write(AsyncManagerPtr, true);
-	}
-
-	//////// BATCH
-
-	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
-		TBatch(InContext, InVtx, InEdges)
-	{
-	}
-
-	FProcessorBatch::~FProcessorBatch()
-	{
-		PCGEX_SETTINGS(WriteEdgeProperties)
-
-		PCGEX_DELETE(VtxDirCompGetter)
-
-		PCGEX_DELETE(SolidificationRadX);
-		PCGEX_DELETE(SolidificationRadY);
-		PCGEX_DELETE(SolidificationRadZ);
-	}
-
-	bool FProcessorBatch::PrepareProcessing()
-	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
-
-		if (!TBatch::PrepareProcessing()) { return false; }
-
-		if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
-		{
-			VtxDirCompGetter = new PCGEx::FLocalSingleFieldGetter();
-			VtxDirCompGetter->Capture(Settings->VtxSourceAttribute);
-			VtxDirCompGetter->Grab(VtxIO);
-		}
-
-		if (Settings->SolidificationAxis != EPCGExMinimalAxis::None)
-		{
-			// Prepare vtx-scoped getters
-#define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
-						if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Type == EPCGExFetchType::Attribute && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) {\
-						SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
-						SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
-						SolidificationRad##_AXIS->Grab(VtxIO); }
-			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
-#undef PCGEX_CREATE_LOCAL_AXIS_GETTER
-		}
-
-		return true;
-	}
-
-	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
-	{
-		PCGEX_SETTINGS(WriteEdgeProperties)
-
-		const bool bSolidify = Settings->SolidificationAxis != EPCGExMinimalAxis::None;
-
-		if (bSolidify)
-		{
-			// Fwd vtx-scoped getters
-#define PCGEX_ASSIGN_AXIS_GETTER(_AXIS) \
-			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { \
-				ClusterProcessor->bOwnSolidificationRad##_AXIS = false; \
-				ClusterProcessor->SolidificationRad##_AXIS = SolidificationRad##_AXIS; }
-			PCGEX_FOREACH_XYZ(PCGEX_ASSIGN_AXIS_GETTER)
-#undef PCGEX_ASSIGN_AXIS_GETTER
-		}
-
-		ClusterProcessor->bSolidify = bSolidify;
-		ClusterProcessor->VtxDirCompGetter = VtxDirCompGetter;
-
-		return true;
 	}
 }
 

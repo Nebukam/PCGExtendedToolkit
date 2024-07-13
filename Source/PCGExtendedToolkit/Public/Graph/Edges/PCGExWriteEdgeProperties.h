@@ -70,12 +70,8 @@ public:
 	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
 
 	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector VtxSourceAttribute;
-
-	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector EdgeSourceAttribute;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute || DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector DirSourceAttribute;
 
 	/** Output Edge Length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -230,7 +226,7 @@ namespace PCGExWriteEdgeProperties
 
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 
-		PCGEx::FLocalSingleFieldGetter* SolidificationLerpGetter = nullptr;
+		PCGExData::FCache<double>* SolidificationLerpGetter = nullptr;
 
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
 
@@ -248,27 +244,12 @@ namespace PCGExWriteEdgeProperties
 
 		bool bSolidify = false;
 
-		PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
-		PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;
+		PCGExData::FCache<double>* VtxDirCompGetter = nullptr;
+		PCGExData::FCache<FVector>* EdgeDirCompGetter = nullptr;
 
-#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGEx::FLocalSingleFieldGetter* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
+#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGExData::FCache<double>* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 	};
 
-	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
-	{
-		PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
-
-#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGEx::FLocalSingleFieldGetter* SolidificationRad##_AXIS = nullptr;
-		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
-#undef PCGEX_LOCAL_EDGE_GETTER_DECL
-
-	public:
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
-		virtual ~FProcessorBatch() override;
-
-		virtual bool PrepareProcessing() override;
-		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
-	};
 }

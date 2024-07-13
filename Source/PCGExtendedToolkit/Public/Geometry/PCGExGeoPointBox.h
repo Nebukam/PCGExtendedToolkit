@@ -205,16 +205,17 @@ namespace PCGExGeo
 		{
 			FVector OutIntersection1 = FVector::ZeroVector;
 			FVector OutIntersection2 = FVector::ZeroVector;
-			FVector OutNormal1 = FVector::ZeroVector;
-			FVector OutNormal2 = FVector::ZeroVector;
+			FVector OutHitNormal1 = FVector::ZeroVector;
+			FVector OutHitNormal2 = FVector::ZeroVector;
 			bool bIsIntersection2Valid = false;
+			bool bInverseDir = false;
 			if (SegmentIntersection(
 				InIntersections->StartPosition, InIntersections->EndPosition,
 				OutIntersection1, OutIntersection2, bIsIntersection2Valid,
-				OutNormal1, OutNormal2))
+				OutHitNormal1, OutHitNormal2, bInverseDir))
 			{
-				InIntersections->Insert(OutIntersection1, OutNormal1, Index);
-				if (bIsIntersection2Valid) { InIntersections->Insert(OutIntersection2, OutNormal2, Index); }
+				InIntersections->Insert(OutIntersection1, OutHitNormal1, Index);
+				if (bIsIntersection2Valid) { InIntersections->Insert(OutIntersection2, OutHitNormal2, Index); }
 				return true;
 			}
 			return false;
@@ -227,7 +228,8 @@ namespace PCGExGeo
 			FVector& OutIntersection2,
 			bool& bIsI2Valid,
 			FVector& OutHitNormal1,
-			FVector& OutHitNormal2) const
+			FVector& OutHitNormal2,
+			bool& bInverseDir) const
 		{
 			const FVector LocalStart = Transform.InverseTransformPosition(Start);
 			const FVector LocalEnd = Transform.InverseTransformPosition(End);
@@ -236,6 +238,7 @@ namespace PCGExGeo
 			const bool bIsEndInside = Box.IsInside(LocalEnd);
 
 			bIsI2Valid = false;
+			bInverseDir = false;
 
 			if (bIsStartInside && bIsEndInside) { return false; }
 
@@ -250,7 +253,7 @@ namespace PCGExGeo
 				if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
 				{
 					OutIntersection1 = Transform.TransformPosition(HitLocation);
-					OutHitNormal1 = HitNormal;
+					OutHitNormal1 = Transform.TransformVector(HitNormal);
 					return OutIntersection1 != Start && OutIntersection1 != End;
 				}
 
@@ -262,7 +265,8 @@ namespace PCGExGeo
 				if (FMath::LineExtentBoxIntersection(Box, LocalEnd, LocalStart, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
 				{
 					OutIntersection1 = Transform.TransformPosition(HitLocation);
-					OutHitNormal1 = HitNormal;
+					OutHitNormal1 = Transform.TransformVector(HitNormal);
+					bInverseDir = true;
 					return OutIntersection1 != Start && OutIntersection1 != End;
 				}
 
@@ -272,7 +276,7 @@ namespace PCGExGeo
 			if (FMath::LineExtentBoxIntersection(Box, LocalStart, LocalEnd, FVector::ZeroVector, HitLocation, HitNormal, HitTime))
 			{
 				OutIntersection1 = Transform.TransformPosition(HitLocation);
-				OutHitNormal1 = HitNormal;
+				OutHitNormal1 = Transform.TransformVector(HitNormal);
 				bHasValidIntersection = OutIntersection1 != Start && OutIntersection1 != End;
 			}
 
@@ -281,13 +285,14 @@ namespace PCGExGeo
 				if (!bHasValidIntersection)
 				{
 					OutIntersection1 = Transform.TransformPosition(HitLocation);
-					OutHitNormal1 = HitNormal;
+					OutHitNormal1 = Transform.TransformVector(HitNormal);
+					bInverseDir = true;
 					bHasValidIntersection = OutIntersection1 != Start && OutIntersection1 != End;
 				}
 				else
 				{
 					OutIntersection2 = Transform.TransformPosition(HitLocation);
-					OutHitNormal2 = HitNormal;
+					OutHitNormal2 = Transform.TransformVector(HitNormal);
 					bIsI2Valid = OutIntersection1 != OutIntersection2 && (OutIntersection2 != Start && OutIntersection2 != End);
 				}
 
