@@ -7,7 +7,7 @@ subtitle: The **Compare String Filter** compares two strings
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
-preview_img: docs/splash-write-index.png
+preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged: 
     - node

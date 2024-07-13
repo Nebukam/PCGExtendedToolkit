@@ -4,8 +4,8 @@ layout: page
 parent: Paths
 title: Blend
 subtitle: Blend individual points between from paths' start and end points.
+summary: The **Path Blend** node...
 color: white
-#summary: summary_goes_here
 splash: icons/icon_paths-orient.svg
 preview_img: docs/splash-orienting.png
 toc_img: placeholder.jpg

@@ -7,7 +7,7 @@ subtitle: Gather infos from special-case edges
 summary: The **Special Edges** extra ...
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: docs/splash-write-index.png
+preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged: 
     - node

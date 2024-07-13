@@ -7,7 +7,7 @@ subtitle: Combine multiple filters
 summary: The **Uber Filter** node is a one-stop node for all your filtering needs.
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: docs/splash-write-index.png
+preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 has_children: true
 tagged: 

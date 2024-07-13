@@ -7,7 +7,7 @@ subtitle: The **Dot Product Filter** compares the dot product of two direction v
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
-preview_img: docs/splash-write-index.png
+preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged: 
     - node
