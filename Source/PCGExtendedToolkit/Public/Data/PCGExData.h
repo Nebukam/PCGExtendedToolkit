@@ -39,10 +39,13 @@ namespace PCGExData
 
 	class PCGEXTENDEDTOOLKIT_API FCacheBase
 	{
+		friend class FFacade;
+
 	protected:
 		mutable FRWLock CacheLock;
 		mutable FRWLock WriteLock;
 		bool bInitialized = false;
+		bool bDynamicCache = false;
 
 		int32 ReadyNum = 0;
 
@@ -66,6 +69,12 @@ namespace PCGExData
 		void ReadyWrite(PCGExMT::FTaskManager* AsyncManager);
 
 		virtual void Write(PCGExMT::FTaskManager* AsyncManager);
+
+		virtual void Fetch(const int32 StartIndex, const int32 Count)
+		{
+		}
+
+		virtual bool IsDynamic() { return bDynamicCache; }
 	};
 
 	template <typename T>
@@ -79,6 +88,9 @@ namespace PCGExData
 
 		PCGEx::FAttributeIOBase<T>* Reader = nullptr;
 		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
+		PCGEx::FAttributeGetter<T>* FetchGetter = nullptr;
+
+		virtual bool IsDynamic() override { return bDynamicCache || FetchGetter; }
 
 		FCache(const FName InFullName, const EPCGMetadataTypes InType):
 			FCacheBase(InFullName, InType)
@@ -90,9 +102,10 @@ namespace PCGExData
 			Values.Empty();
 			PCGEX_DELETE(Reader)
 			PCGEX_DELETE(Writer)
+			PCGEX_DELETE(FetchGetter)
 		}
 
-		PCGEx::FAttributeIOBase<T>* PrepareReader(const ESource InSource = ESource::In)
+		PCGEx::FAttributeIOBase<T>* PrepareReader(const ESource InSource = ESource::In, const bool bFetch = false)
 		{
 			{
 				FReadScopeLock ReadScopeLock(CacheLock);
@@ -108,8 +121,12 @@ namespace PCGExData
 				check(Writer)
 				FWriteScopeLock WriteScopeLock(CacheLock);
 				PCGEx::TFAttributeReader<T>* TypedReader = new PCGEx::TFAttributeReader<T>(FullName);
-				if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) }
-				else { Attribute = TypedReader->Accessor->GetAttribute(); }
+
+				if (bFetch) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
+				else { if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) } }
+
+				bDynamicCache = bFetch;
+				Attribute = TypedReader->Accessor->GetAttribute();
 				Reader = TypedReader;
 				bIsPureReader = false;
 				return Reader;
@@ -120,16 +137,12 @@ namespace PCGExData
 
 			PCGEx::TFAttributeReader<T>* TypedReader = new PCGEx::TFAttributeReader<T>(FullName);
 
-			if (!TypedReader->Bind(Source))
-			{
-				bInitialized = false;
-				PCGEX_DELETE(TypedReader)
-			}
-			else
-			{
-				Attribute = TypedReader->Accessor->GetAttribute();
-				bIsPureReader = true;
-			}
+			if (bFetch) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
+			else { if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) } }
+
+			bInitialized = TypedReader ? true : false;
+			Attribute = TypedReader->Accessor->GetAttribute();
+			bIsPureReader = true;
 
 			Reader = TypedReader;
 			return Reader;
@@ -195,6 +208,23 @@ namespace PCGExData
 			}
 		}
 
+		void SetFetchGetter(PCGEx::FAttributeGetter<T>* Getter)
+		{
+			{
+				FReadScopeLock ReadScopeLock(CacheLock);
+				if (bInitialized) { return; }
+			}
+			{
+				FWriteScopeLock WriteScopeLock(CacheLock);
+				bInitialized = true;
+				bIsPureReader = true;
+
+				bDynamicCache = true;
+				FetchGetter = Getter;
+				Attribute = Getter->Attribute;
+			}
+		}
+
 		virtual void Write(PCGExMT::FTaskManager* AsyncManager) override
 		{
 			if (!Writer) { return; }
@@ -208,6 +238,13 @@ namespace PCGExData
 				Writer->Write();
 				PCGEX_DELETE(Writer)
 			}
+		}
+
+		virtual void Fetch(const int32 StartIndex, const int32 Count) override
+		{
+			if (!IsDynamic()) { return; }
+			if (FetchGetter) { FetchGetter->Fetch(Source, Values, StartIndex, Count); }
+			else if (Reader) { Reader->Fetch(StartIndex, Count); }
 		}
 	};
 
@@ -305,6 +342,55 @@ namespace PCGExData
 		}
 
 		template <typename T>
+		FCache<T>* GetOrCreateFetchGetter(const FPCGAttributePropertyInputSelector& InSelector)
+		{
+			PCGEx::FAttributeGetter<T>* Getter;
+
+			switch (PCGEx::GetMetadataType(T{}))
+			{
+			default: ;
+			case EPCGMetadataTypes::Integer64:
+			case EPCGMetadataTypes::Float:
+			case EPCGMetadataTypes::Vector2:
+			case EPCGMetadataTypes::Vector4:
+			case EPCGMetadataTypes::Rotator:
+			case EPCGMetadataTypes::Quaternion:
+			case EPCGMetadataTypes::Transform:
+			case EPCGMetadataTypes::String:
+			case EPCGMetadataTypes::Name:
+			case EPCGMetadataTypes::Count:
+			case EPCGMetadataTypes::Unknown:
+				return nullptr;
+			// TODO : Proper implementation, this is cursed
+			case EPCGMetadataTypes::Double:
+				Getter = static_cast<PCGEx::FAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalSingleFieldGetter()));
+				break;
+			case EPCGMetadataTypes::Integer32:
+				Getter = static_cast<PCGEx::FAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalIntegerGetter()));
+				break;
+			case EPCGMetadataTypes::Vector:
+				Getter = static_cast<PCGEx::FAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalVectorGetter()));
+				break;
+			case EPCGMetadataTypes::Boolean:
+				Getter = static_cast<PCGEx::FAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalBoolGetter()));
+				break;
+			}
+
+			Getter->Capture(InSelector);
+			if (!Getter->InitForFetch(Source))
+			{
+				PCGEX_DELETE(Getter)
+				return nullptr;
+			}
+
+			FCache<T>* Cache = GetOrCreateCache<T>(Getter->FullName);
+			Cache->SetFetchGetter(Getter);
+			PCGEX_DELETE(Getter)
+
+			return Cache;
+		}
+
+		template <typename T>
 		PCGEx::TFAttributeWriter<T>* GetOrCreateWriter(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
 		{
 			FCache<T>* Cache = GetOrCreateCache<T>(InAttribute->Name);
@@ -332,7 +418,24 @@ namespace PCGExData
 		PCGEx::FAttributeIOBase<T>* GetOrCreateReader(const FName InName, const ESource InSource = ESource::In)
 		{
 			FCache<T>* Cache = GetOrCreateCache<T>(InName);
-			PCGEx::FAttributeIOBase<T>* Reader = Cache->PrepareReader(InSource);
+			PCGEx::FAttributeIOBase<T>* Reader = Cache->PrepareReader(InSource, false);
+
+			if (!Reader)
+			{
+				FWriteScopeLock WriteScopeLock(PoolLock);
+				Caches.Remove(Cache);
+				CacheMap.Remove(Cache->UID);
+				PCGEX_DELETE(Cache)
+			}
+
+			return Reader;
+		}
+
+		template <typename T>
+		PCGEx::FAttributeIOBase<T>* GetOrCreateFetchReader(const FName InName)
+		{
+			FCache<T>* Cache = GetOrCreateCache<T>(InName);
+			PCGEx::FAttributeIOBase<T>* Reader = Cache->PrepareReader(ESource::In, true);
 
 			if (!Reader)
 			{
@@ -412,6 +515,10 @@ namespace PCGExData
 			for (FCacheBase* Cache : Caches) { Cache->Write(AsyncManager); }
 			if (bFlush) { Flush(); }
 		}
+
+		void Fetch(const int32 StartIndex, const int32 Count) { for (FCacheBase* Cache : Caches) { Cache->Fetch(StartIndex, Count); } }
+
+		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }
 	};
 
 	static void GetCollectionFacades(const FPointIOCollection* InCollection, TArray<FFacade*>& OutFacades)

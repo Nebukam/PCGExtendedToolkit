@@ -12,7 +12,7 @@ bool PCGExPointsFilter::TBooleanComparisonFilter::Init(const FPCGContext* InCont
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = PointDataFacade->GetOrCreateGetter<bool>(TypedFilterFactory->Config.OperandA);
+	OperandA = PointDataFacade->GetOrCreateFetchGetter<bool>(TypedFilterFactory->Config.OperandA);
 
 	if (!OperandA)
 	{
@@ -22,7 +22,7 @@ bool PCGExPointsFilter::TBooleanComparisonFilter::Init(const FPCGContext* InCont
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = PointDataFacade->GetOrCreateGetter<bool>(TypedFilterFactory->Config.OperandB);
+		OperandB = PointDataFacade->GetOrCreateFetchGetter<bool>(TypedFilterFactory->Config.OperandB);
 
 		if (!OperandB)
 		{

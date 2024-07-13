@@ -25,7 +25,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterConfig
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGAttributePropertyInputSelector OperandA;
+	FName OperandA = NAME_None;
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -37,7 +37,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterConfig
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector OperandB;
+	FName OperandB = NAME_None;
 
 	/** Operand B for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
@@ -71,8 +71,8 @@ namespace PCGExPointsFilter
 
 		const UPCGExStringCompareFilterFactory* TypedFilterFactory;
 
-		PCGEx::TFAttributeReader<FString>* OperandA = nullptr;
-		PCGEx::TFAttributeReader<FString>* OperandB = nullptr;
+		PCGEx::FAAttributeIO<FString>* OperandA = nullptr;
+		PCGEx::FAAttributeIO<FString>* OperandB = nullptr;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override

@@ -12,22 +12,19 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Config.OperandA.GetName());
-	if (!OperandA->Bind(InPointDataFacade->Source))
+	OperandA = PointDataFacade->GetOrCreateFetchReader<double>(TypedFilterFactory->Config.OperandA);
+	if (!OperandA)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
-		PCGEX_DELETE(OperandA)
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA)));
 		return false;
 	}
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Config.OperandB.GetName());
-		if (!OperandB->Bind(InPointDataFacade->Source))
+		OperandB = PointDataFacade->GetOrCreateFetchReader<double>(TypedFilterFactory->Config.OperandB);
+		if (!OperandB)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB)));
 			return false;
 		}
 	}
@@ -47,7 +44,7 @@ PCGEX_CREATE_FILTER_FACTORY(StringCompare)
 #if WITH_EDITOR
 FString UPCGExStringCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Config.OperandA.GetName().ToString();
+	FString DisplayName = Config.OperandA.ToString();
 
 	switch (Config.Comparison)
 	{
@@ -81,10 +78,19 @@ FString UPCGExStringCompareFilterProviderSettings::GetDisplayName() const
 	case EPCGExStringComparison::LocaleStrictlySmaller:
 		DisplayName += " < ";
 		break;
+	case EPCGExStringComparison::Contains:
+		DisplayName += " contains ";
+		break;
+	case EPCGExStringComparison::StartsWith:
+		DisplayName += " starts with ";
+		break;
+	case EPCGExStringComparison::EndsWith:
+		DisplayName += " ends with ";
+		break;
 	default: ;
 	}
 
-	DisplayName += Config.OperandB.GetName().ToString();
+	DisplayName += Config.CompareAgainst == EPCGExFetchType::Constant ? Config.OperandBConstant : Config.OperandB.ToString();
 	return DisplayName;
 }
 #endif
