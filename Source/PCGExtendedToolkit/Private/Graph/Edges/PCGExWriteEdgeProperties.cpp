@@ -96,7 +96,7 @@ namespace PCGExWriteEdgeProperties
 #define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
 			if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Type == EPCGExFetchType::Attribute){\
 				SolidificationRad##_AXIS = Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Edge ? EdgeDataFacade->GetOrCreateGetter<double>(Settings->Radius##_AXIS##SourceAttribute) : VtxDataFacade->GetOrCreateGetter<double>(Settings->Radius##_AXIS##SourceAttribute);\
-				if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified Radius Attribute {0}."), FText::FromName(Settings->Radius##_AXIS##SourceAttribute.GetName()))); return false; }}
+				if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified Radius Attribute \"{0}\"."), FText::FromName(Settings->Radius##_AXIS##SourceAttribute.GetName()))); return false; }}
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 
@@ -105,7 +105,7 @@ namespace PCGExWriteEdgeProperties
 				SolidificationLerpGetter = EdgeDataFacade->GetOrCreateGetter<double>(Settings->SolidificationLerpAttribute);
 				if (!SolidificationLerpGetter)
 				{
-					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified SolidificationEdgeLerp Attribute {0}."), FText::FromName(Settings->SolidificationLerpAttribute.GetName())));
+					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified SolidificationEdgeLerp Attribute \"{0}\"."), FText::FromName(Settings->SolidificationLerpAttribute.GetName())));
 					return false;
 				}
 			}
@@ -116,7 +116,7 @@ namespace PCGExWriteEdgeProperties
 			VtxDirCompGetter = VtxDataFacade->GetOrCreateGetter<double>(Settings->DirSourceAttribute);
 			if (!VtxDirCompGetter)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some vtx don't have the specified DirSource Attribute {0}."), FText::FromName(Settings->DirSourceAttribute.GetName())));
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some vtx don't have the specified DirSource Attribute \"{0}\"."), FText::FromName(Settings->DirSourceAttribute.GetName())));
 				return false;
 			}
 		}
@@ -125,7 +125,7 @@ namespace PCGExWriteEdgeProperties
 			EdgeDirCompGetter = EdgeDataFacade->GetOrCreateGetter<FVector>(Settings->DirSourceAttribute);
 			if (!EdgeDirCompGetter)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified DirSource Attribute {0}."), FText::FromName(Settings->DirSourceAttribute.GetName())));
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified DirSource Attribute \"{0}\"."), FText::FromName(Settings->DirSourceAttribute.GetName())));
 				return false;
 			}
 		}

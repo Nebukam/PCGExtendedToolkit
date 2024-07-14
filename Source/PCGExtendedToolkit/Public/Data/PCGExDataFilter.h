@@ -75,14 +75,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 
 	bool Test(const FString& Name) const
 	{
-		if (bPreservePCGExData && Name.StartsWith(TEXT("PCGEx/"))) { return !bFilterToRemove; }
-
 		switch (FilterMode)
 		{
 		default: ;
 		case EPCGExAttributeFilter::All:
 			return true;
 		case EPCGExAttributeFilter::Exclude:
+			if (bPreservePCGExData && Name.StartsWith(TEXT("PCGEx/"))) { return !bFilterToRemove; }
 			for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
 			{
 				switch (Filter.Value)
@@ -104,6 +103,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 			}
 			return true;
 		case EPCGExAttributeFilter::Include:
+			if (bPreservePCGExData && Name.StartsWith(TEXT("PCGEx/"))) { return !bFilterToRemove; }
 			for (const TPair<FString, EPCGExStringMatchMode>& Filter : Matches)
 			{
 				switch (Filter.Value)

@@ -21,6 +21,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherDetails : public FPCGExNameFi
 
 	FPCGExAttributeGatherDetails()
 	{
+		bPreservePCGExData = false;
 	}
 
 	// TODO : Expose how to handle overlaps

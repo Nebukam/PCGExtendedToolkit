@@ -26,7 +26,7 @@ namespace PCGExNodeAdjacency
 			OperandDirection = PointDataFacade->GetOrCreateGetter<FVector>(TypedFilterFactory->Config.Direction);
 			if (!OperandDirection)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: {0}."), FText::FromName(TypedFilterFactory->Config.Direction.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.Direction.GetName())));
 				return false;
 			}
 		}

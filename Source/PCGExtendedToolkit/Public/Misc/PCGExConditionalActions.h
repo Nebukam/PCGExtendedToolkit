@@ -7,21 +7,22 @@
 
 #include "PCGExPointsProcessor.h"
 
-#include "PCGExMatchmaking.generated.h"
+#include "PCGExConditionalActions.generated.h"
 
-class UPCGExMatchToFactoryBase;
+class UPCGExConditionalActionOperation;
+class UPCGExConditionalActionFactoryBase;
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExMatchmakingSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(Matchmaking, "Matchmaking", "TBD.");
+	PCGEX_NODE_INFOS(ConditionalActions, "Conditional Actions", "TBD.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
 #endif
 
@@ -47,20 +48,20 @@ public:
 	FPCGExNameFiltersDetails ConsumeProcessedAttributes;
 
 private:
-	friend class FPCGExMatchmakingElement;
+	friend class FPCGExConditionalActionsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMatchmakingContext final : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExConditionalActionsContext final : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExMatchmakingElement;
+	friend class FPCGExConditionalActionsElement;
 
-	virtual ~FPCGExMatchmakingContext() override;
+	virtual ~FPCGExConditionalActionsContext() override;
 
 	PCGEx::FAttributesInfos* DefaultAttributes = nullptr;
-	TArray<UPCGExMatchToFactoryBase*> MatchmakingsFactories;
+	TArray<UPCGExConditionalActionFactoryBase*> ConditionalActionsFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMatchmakingElement final : public FPCGExPointsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExConditionalActionsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -73,10 +74,13 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExMatchmaking
+namespace PCGExConditionalActions
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+
+		TArray<UPCGExConditionalActionOperation*> Operations;
+		
 	public:
 		FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
@@ -86,7 +90,7 @@ namespace PCGExMatchmaking
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
-		virtual void Write() override;
 	};
 }

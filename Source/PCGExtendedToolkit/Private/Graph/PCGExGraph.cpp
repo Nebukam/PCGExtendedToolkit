@@ -605,6 +605,8 @@ namespace PCGExGraphTask
 			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, EdgeDupe, TransformDetails);
 		}
 
+		// TODO : Copy & Transform cluster as well for a big perf boost
+		
 		return true;
 	}
 }

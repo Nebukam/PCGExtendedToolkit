@@ -20,7 +20,7 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 
 		if (!LocalWeightCache)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Invalid Heuristic attribute: {0}."), FText::FromName(WeightMultiplierAttribute.GetName())));
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Invalid Heuristic attribute: \"{0}\"."), FText::FromName(WeightMultiplierAttribute.GetName())));
 			return;
 		}
 

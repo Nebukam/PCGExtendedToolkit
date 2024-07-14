@@ -10,6 +10,7 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExStringCompareFilter.generated.h"
 

@@ -27,7 +27,7 @@ bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 
 		if (!DirectionCache)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Direction attribute: {0}")), FText::FromName(Config.DirectionAttribute.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Direction attribute: \"{0}\"")), FText::FromName(Config.DirectionAttribute.GetName())));
 			return false;
 		}
 	}

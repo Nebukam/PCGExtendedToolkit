@@ -111,7 +111,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 			LocalThreshold = InPrimaryDataFacade->GetOrCreateGetter<double>(ThresholdAttribute);
 			if (!LocalThreshold)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Threshold attribute: {0}."), FText::FromName(ThresholdAttribute.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Threshold attribute: \"{0}\"."), FText::FromName(ThresholdAttribute.GetName())));
 				return false;
 			}
 		}

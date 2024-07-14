@@ -149,8 +149,8 @@ namespace PCGEx
 		bool FindMissing(const TSet<FName>& Checklist, TSet<FName>& OutMissing);
 		bool FindMissing(const TArray<FName>& Checklist, TSet<FName>& OutMissing);
 
-		void Append(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
-		void Update(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
+		void Append(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
+		void Update(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
 
 		~FAttributesInfos()
 		{
@@ -1401,6 +1401,41 @@ namespace PCGEx
 	};
 
 #pragma endregion
+
+	static FAttributesInfos* GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, bool bThrowError)
+	{
+		FAttributesInfos* OutInfos = new FAttributesInfos();
+		TArray<FPCGTaggedData> TaggedDatas = InContext->InputData.GetInputsByPin(InPinLabel);
+
+		bool bHasErrors = false;
+		
+		for (FPCGTaggedData& TaggedData : TaggedDatas)
+		{
+			const UPCGMetadata* Metadata = nullptr;
+
+			if (const UPCGParamData* ParamData = Cast<UPCGParamData>(TaggedData.Data)) { Metadata = ParamData->Metadata; }
+			else if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(TaggedData.Data)) { Metadata = SpatialData->Metadata; }
+
+			if (!Metadata) { continue; }
+
+			TSet<FName> Mismatch;
+			const FAttributesInfos* Infos = FAttributesInfos::Get(Metadata);
+
+			OutInfos->Append(Infos, InGatherDetails, Mismatch);
+
+			if (bThrowError && !Mismatch.IsEmpty())
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some inputs share the same name but not the same type."));
+				bHasErrors = true;
+				break;
+			}
+
+			PCGEX_DELETE(Infos)
+		}
+
+		if (bHasErrors) { PCGEX_DELETE(OutInfos) }
+		return OutInfos;
+	}
 }
 
 #undef PCGEX_AAFLAG

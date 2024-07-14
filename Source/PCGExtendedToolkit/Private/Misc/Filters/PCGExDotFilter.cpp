@@ -22,7 +22,7 @@ bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData
 	OperandA = PointDataFacade->GetOrCreateFetchGetter<FVector>(TypedFilterFactory->Config.OperandA);
 	if (!OperandA)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
 		return false;
 	}
 
@@ -31,7 +31,7 @@ bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData
 		OperandB = PointDataFacade->GetOrCreateFetchGetter<FVector>(TypedFilterFactory->Config.OperandB);
 		if (!OperandB)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
 			return false;
 		}
 	}
