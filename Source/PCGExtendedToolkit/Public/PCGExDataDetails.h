@@ -47,7 +47,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceDetails
 			InfluenceCache = InPointDataFacade->GetOrCreateGetter<double>(LocalInfluence);
 			if (!InfluenceCache)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Influence attribute: {0}."), FText::FromName(LocalInfluence.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Influence attribute: \"{0}\"."), FText::FromName(LocalInfluence.GetName())));
 				return false;
 			}
 		}

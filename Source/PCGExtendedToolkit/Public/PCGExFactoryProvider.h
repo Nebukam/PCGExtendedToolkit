@@ -34,7 +34,7 @@ namespace PCGExFactories
 		Sampler,
 		Heuristics,
 		VtxProperty,
-		Matchmaking
+		ConditionalActions
 	};
 
 	static inline TSet<EType> AnyFilters = {EType::FilterPoint, EType::FilterNode, EType::FilterEdge, EType::FilterGroup};

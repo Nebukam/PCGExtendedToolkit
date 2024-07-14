@@ -3,6 +3,7 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 
+#include "Data/PCGExData.h"
 #include "Helpers/PCGHelpers.h"
 
 #if WITH_EDITOR
@@ -106,11 +107,14 @@ namespace PCGEx
 		return bAnyMissing;
 	}
 
-	void FAttributesInfos::Append(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
+	void FAttributesInfos::Append(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
 	{
 		for (int i = 0; i < Other->Identities.Num(); i++)
 		{
 			const FAttributeIdentity& OtherId = Other->Identities[i];
+
+			if (!InGatherDetails.Test(OtherId.Name.ToString())) { continue; }
+
 			if (const int32* Index = Map.Find(OtherId.Name))
 			{
 				const FAttributeIdentity& Id = Identities[*Index];
@@ -130,7 +134,7 @@ namespace PCGEx
 		}
 	}
 
-	void FAttributesInfos::Update(FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
+	void FAttributesInfos::Update(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
 	{
 		// TODO : Update types and attributes according to input settings?
 	}

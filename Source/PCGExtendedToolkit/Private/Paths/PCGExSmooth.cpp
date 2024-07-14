@@ -110,7 +110,7 @@ namespace PCGExSmooth
 			if (!InfluenceGetter->Grab(PointIO))
 			{
 				PCGEX_DELETE(InfluenceGetter)
-				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing influence attribute: {0}."), FText::FromName(Settings->InfluenceAttribute.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing influence attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
 				return false;
 			}
 
@@ -129,7 +129,7 @@ namespace PCGExSmooth
 			if (!SmoothingAmountGetter->Grab(PointIO))
 			{
 				PCGEX_DELETE(SmoothingAmountGetter)
-				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing smoothing amount attribute: {0}."), FText::FromName(Settings->InfluenceAttribute.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing smoothing amount attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
 				return false;
 			}
 

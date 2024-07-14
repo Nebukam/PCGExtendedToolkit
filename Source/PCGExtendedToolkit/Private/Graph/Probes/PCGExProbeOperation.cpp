@@ -25,7 +25,7 @@ bool UPCGExProbeOperation::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 
 		if (!SearchRadiusCache)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Radius attribute: {0}")), FText::FromName(BaseConfig->SearchRadiusAttribute.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FText::FromString(TEXT("Invalid Radius attribute: \"{0}\"")), FText::FromName(BaseConfig->SearchRadiusAttribute.GetName())));
 			return false;
 		}
 	}

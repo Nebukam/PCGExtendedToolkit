@@ -15,7 +15,7 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 	OperandA = PointDataFacade->GetOrCreateReader<FString>(TypedFilterFactory->Config.OperandA);
 	if (!OperandA)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA)));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandA)));
 		return false;
 	}
 
@@ -24,7 +24,7 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 		OperandB = PointDataFacade->GetOrCreateReader<FString>(TypedFilterFactory->Config.OperandB);
 		if (!OperandB)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB)));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandB)));
 			return false;
 		}
 	}
