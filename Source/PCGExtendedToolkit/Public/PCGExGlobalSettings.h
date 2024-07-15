@@ -7,6 +7,18 @@
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Async Priority"))
+enum class EPCGExAsyncPriority : uint8
+{
+	Blocking UMETA(DisplayName = "Blocking", ToolTip="Position component."),
+	Highest UMETA(DisplayName = "Highest", ToolTip="Position component."),
+	High UMETA(DisplayName = "High", ToolTip="Position component."),
+	Normal UMETA(DisplayName = "Normal", ToolTip="Position component."),
+	Low UMETA(DisplayName = "Low", ToolTip="Position component."),
+	Lowest UMETA(DisplayName = "Lowest", ToolTip="Position component."),
+};
+
+
 UCLASS(DefaultConfig, config = Editor, defaultconfig)
 class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UObject
 {
@@ -19,7 +31,6 @@ public:
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
 	int32 ClusterDefaultBatchIterations = 64;
 	int32 GetClusterBatchIteration(const int32 In = -1) const { return In <= -1 ? ClusterDefaultBatchIterations : In; }
-
 
 	/** Allow caching of clusters */
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster")
@@ -42,6 +53,9 @@ public:
 	int32 PointsDefaultBatchIterations = 64;
 	int32 GetPointsBatchIteration(const int32 In = -1) const { return In <= -1 ? PointsDefaultBatchIterations : In; }
 
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Async")
+	EPCGExAsyncPriority DefaultWorkPriority = EPCGExAsyncPriority::Normal;
+	
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 

@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "PCGContext.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExMacros.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGAsync.h"
@@ -19,10 +20,33 @@
 
 namespace PCGExMT
 {
-	// Because I can't for the love of whomever add extern EVERYWHERE, it's admin hell
-	// and apparently using __COUNTER__ was a very very very very bad idea
-	// Testing FName at runtime is basically sabotage
-	// So yeah, here you go, have a FName hash instead.
+	
+	static void SetWorkPriority(EPCGExAsyncPriority Selection, EQueuedWorkPriority& Priority)
+	{
+		switch (Selection)
+		{
+		case EPCGExAsyncPriority::Blocking:
+			Priority = EQueuedWorkPriority::Blocking;
+			break;
+		case EPCGExAsyncPriority::Highest:
+			Priority = EQueuedWorkPriority::Highest;
+			break;
+		case EPCGExAsyncPriority::High:
+			Priority = EQueuedWorkPriority::High;
+			break;
+		default:
+		case EPCGExAsyncPriority::Normal:
+			Priority = EQueuedWorkPriority::Normal;
+			break;
+		case EPCGExAsyncPriority::Low:
+			Priority = EQueuedWorkPriority::Low;
+			break;
+		case EPCGExAsyncPriority::Lowest:
+			Priority = EQueuedWorkPriority::Lowest;
+			break;
+		}
+	}
+
 #define PCGEX_ASYNC_STATE(_NAME) const PCGExMT::AsyncState _NAME = GetTypeHash(FName(#_NAME));
 
 	constexpr int32 GAsyncLoop_XS = 32;
@@ -169,6 +193,8 @@ namespace PCGExMT
 	public:
 		~FTaskManager();
 
+		EQueuedWorkPriority WorkPriority = EQueuedWorkPriority::Normal;
+		
 		mutable FRWLock ManagerLock;
 		FPCGContext* Context;
 		bool bStopped = false;
@@ -214,7 +240,7 @@ namespace PCGExMT
 			Task.Manager = this;
 			Task.TaskIndex = TaskIndex;
 
-			AsyncTask->StartBackgroundTask();
+			AsyncTask->StartBackgroundTask(GThreadPool, WorkPriority);
 		}
 
 		template <typename T>

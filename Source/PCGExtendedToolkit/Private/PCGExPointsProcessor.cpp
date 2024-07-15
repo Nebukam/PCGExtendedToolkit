@@ -205,6 +205,9 @@ PCGExMT::FTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
 		AsyncManager = new PCGExMT::FTaskManager();
 		AsyncManager->bForceSync = !bDoAsyncProcessing;
 		AsyncManager->Context = this;
+		
+		PCGEX_SETTINGS_LOCAL(PointsProcessor)
+		PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority);
 	}
 	return AsyncManager;
 }
