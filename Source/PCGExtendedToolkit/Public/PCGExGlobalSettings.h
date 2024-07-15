@@ -16,6 +16,7 @@ enum class EPCGExAsyncPriority : uint8
 	Normal UMETA(DisplayName = "Normal", ToolTip="Position component."),
 	Low UMETA(DisplayName = "Low", ToolTip="Position component."),
 	Lowest UMETA(DisplayName = "Lowest", ToolTip="Position component."),
+	Default UMETA(DisplayName = "Default", ToolTip="Position component."),
 };
 
 
@@ -55,6 +56,7 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Async")
 	EPCGExAsyncPriority DefaultWorkPriority = EPCGExAsyncPriority::Normal;
+	EPCGExAsyncPriority GetDefaultWorkPriority() const { return DefaultWorkPriority == EPCGExAsyncPriority::Default ? EPCGExAsyncPriority::Normal : DefaultWorkPriority; }
 	
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);

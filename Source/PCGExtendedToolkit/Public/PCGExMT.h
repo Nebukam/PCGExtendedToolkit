@@ -20,7 +20,6 @@
 
 namespace PCGExMT
 {
-	
 	static void SetWorkPriority(EPCGExAsyncPriority Selection, EQueuedWorkPriority& Priority)
 	{
 		switch (Selection)
@@ -43,6 +42,9 @@ namespace PCGExMT
 			break;
 		case EPCGExAsyncPriority::Lowest:
 			Priority = EQueuedWorkPriority::Lowest;
+			break;
+		case EPCGExAsyncPriority::Default:
+			SetWorkPriority(GetDefault<UPCGExGlobalSettings>()->GetDefaultWorkPriority(), Priority);
 			break;
 		}
 	}
@@ -194,7 +196,7 @@ namespace PCGExMT
 		~FTaskManager();
 
 		EQueuedWorkPriority WorkPriority = EQueuedWorkPriority::Normal;
-		
+
 		mutable FRWLock ManagerLock;
 		FPCGContext* Context;
 		bool bStopped = false;
@@ -354,7 +356,7 @@ namespace PCGExMT
 		}
 
 		void StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false);
-		
+
 		void PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize);
 
 	protected:

@@ -117,7 +117,7 @@ public:
 
 	/** Async work priority for this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay, EditCondition="bDoAsyncProcessing"))
-	EPCGExAsyncPriority WorkPriority = GetDefault<UPCGExGlobalSettings>()->DefaultWorkPriority;
+	EPCGExAsyncPriority WorkPriority = EPCGExAsyncPriority::Default;
 
 	/** Chunk size for parallel processing. <1 switches to preferred node value.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay, EditCondition="bDoAsyncProcessing", ClampMin=-1, ClampMax=8196))
