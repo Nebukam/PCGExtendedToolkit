@@ -26,6 +26,7 @@ namespace PCGExMT
 		if (bFlushing) { return; }
 		FWriteScopeLock WriteLock(ManagerLock);
 		NumCompleted++;
+		if (NumCompleted == NumStarted) { Context->bIsPaused = false; }
 	}
 
 	bool FTaskManager::IsAsyncWorkComplete() const

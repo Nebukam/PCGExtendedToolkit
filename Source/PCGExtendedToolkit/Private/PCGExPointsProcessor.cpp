@@ -212,7 +212,11 @@ PCGExMT::FTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
 	return AsyncManager;
 }
 
-void FPCGExPointsProcessorContext::ResetAsyncWork() { if (AsyncManager) { AsyncManager->Reset(); } }
+void FPCGExPointsProcessorContext::ResetAsyncWork()
+{
+	bIsPaused = false;
+	if (AsyncManager) { AsyncManager->Reset(); }
+}
 
 bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
 {
