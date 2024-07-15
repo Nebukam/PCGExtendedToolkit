@@ -137,6 +137,8 @@ namespace PCGExUberFilter
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		PointDataFacade->bSupportsDynamic = true;
+		
 		FilterManager = new PCGExPointFilter::TManager(PointDataFacade);
 		if (!FilterManager->Init(Context, TypedContext->FilterFactories)) { return false; }
 
@@ -150,7 +152,11 @@ namespace PCGExUberFilter
 		}
 
 		TestTaskGroup = AsyncManager->CreateGroup();
-
+		TestTaskGroup->SetOnIterationRangeStartCallback([&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		{
+			PointDataFacade->Fetch(StartIndex, Count);
+		});
+		
 		if (Results)
 		{
 			TestTaskGroup->StartRanges(

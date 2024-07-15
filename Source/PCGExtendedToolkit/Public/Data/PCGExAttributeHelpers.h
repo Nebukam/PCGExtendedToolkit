@@ -659,8 +659,6 @@ namespace PCGEx
 		 */
 		bool Fetch(const PCGExData::FPointIO* PointIO, TArray<T>& Dump, const int32 StartIndex, const int32 Count)
 		{
-			Cleanup();
-
 			check(Dump.Num() == PointIO->GetNum(PCGExData::ESource::In)) // Dump target should be initialized at full length before using Fetch
 
 			const UPCGPointData* InData = PointIO->GetIn();
@@ -722,8 +720,6 @@ namespace PCGEx
 		 */
 		bool GrabAndDump(const PCGExData::FPointIO* PointIO, TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax)
 		{
-			Cleanup();
-
 			ResetMinMax();
 			bMinMaxDirty = !bCaptureMinMax;
 			bNormalized = false;
@@ -811,7 +807,8 @@ namespace PCGEx
 		 * @param bCaptureMinMax 
 		 */
 		bool Grab(const PCGExData::FPointIO* PointIO, const bool bCaptureMinMax = false)
-		{
+		{			
+			Cleanup();
 			return GrabAndDump(PointIO, Values, bCaptureMinMax, Min, Max);
 		}
 
