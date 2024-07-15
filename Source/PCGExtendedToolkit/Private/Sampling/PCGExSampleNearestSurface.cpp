@@ -99,6 +99,8 @@ namespace PCGExSampleNearestSurface
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
+		// TODO : Add Scoped Fetch
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
@@ -108,7 +110,7 @@ namespace PCGExSampleNearestSurface
 
 		if (Settings->bUseLocalMaxDistance)
 		{
-			MaxDistanceGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->LocalMaxDistance);
+			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
 			if (!MaxDistanceGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 

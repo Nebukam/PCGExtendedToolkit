@@ -133,6 +133,8 @@ namespace PCGExConnectPoints
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConnectPoints::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
 
+		// TODO : Add Scoped Fetch
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		if (Settings->bProjectPoints)

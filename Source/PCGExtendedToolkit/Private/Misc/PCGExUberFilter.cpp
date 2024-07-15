@@ -142,7 +142,7 @@ namespace PCGExUberFilter
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
-			Results = PointDataFacade->GetOrCreateWriter<bool>(Settings->ResultAttributeName, false, false, true);
+			Results = PointDataFacade->GetWriter<bool>(Settings->ResultAttributeName, false, false, true);
 		}
 		else
 		{

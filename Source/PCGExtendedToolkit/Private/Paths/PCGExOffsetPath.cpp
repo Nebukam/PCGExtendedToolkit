@@ -90,6 +90,8 @@ namespace PCGExOffsetPath
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOffsetPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(OffsetPath)
 
+		// TODO : Add Scoped Fetch
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		UpConstant = Settings->UpVectorConstant.GetSafeNormal();
@@ -97,7 +99,7 @@ namespace PCGExOffsetPath
 
 		if (Settings->OffsetType == EPCGExFetchType::Attribute)
 		{
-			OffsetGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->OffsetAttribute);
+			OffsetGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->OffsetAttribute);
 			if (!OffsetGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing offset size attribute: \"{0}\"."), FText::FromName(Settings->OffsetAttribute.GetName())));
@@ -107,7 +109,7 @@ namespace PCGExOffsetPath
 
 		if (Settings->UpVectorType == EPCGExFetchType::Attribute)
 		{
-			UpGetter = PointDataFacade->GetOrCreateGetter<FVector>(Settings->UpVectorAttribute);
+			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->UpVectorAttribute);
 			if (!UpGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing UpVector attribute: \"{0}\"."), FText::FromName(Settings->UpVectorAttribute.GetName())));

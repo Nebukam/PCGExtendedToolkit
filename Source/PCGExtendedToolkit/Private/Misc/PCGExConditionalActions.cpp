@@ -132,7 +132,7 @@ namespace PCGExConditionalActions
 				{
 					using T = decltype(DummyValue);
 					const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-					PointDataFacade->GetOrCreateWriter<T>(TypedAttribute, false);
+					PointDataFacade->GetWriter<T>(TypedAttribute, false);
 				});
 		}
 

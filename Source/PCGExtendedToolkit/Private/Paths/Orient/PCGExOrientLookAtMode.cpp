@@ -24,7 +24,7 @@ void UPCGExOrientLookAt::PrepareForData(PCGExData::FFacade* InDataFacade)
 
 	if (LookAt == EPCGExOrientLookAtMode::Direction)
 	{
-		LookAtGetter = InDataFacade->GetOrCreateGetter<FVector>(LookAtAttribute);
+		LookAtGetter = InDataFacade->GetScopedBroadcaster<FVector>(LookAtAttribute);
 		if (!LookAtGetter)
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("LookAt Attribute ({0}) is not valid."), FText::FromString(LookAtAttribute.GetName().ToString())));

@@ -89,7 +89,7 @@ namespace PCGExWritePathProperties
 		TArray<FVector> Normals;
 
 		const FVector UpConstant = Settings->UpVector;
-		const PCGExData::FCache<FVector>* UpGetter = Settings->bUseLocalUpVector ? PointDataFacade->GetOrCreateGetter<FVector>(Settings->LocalUpVector) : nullptr;
+		const PCGExData::FCache<FVector>* UpGetter = Settings->bUseLocalUpVector ? PointDataFacade->GetBroadcaster<FVector>(Settings->LocalUpVector) : nullptr;
 
 		Positions.SetNum(NumPoints);
 		Normals.SetNum(NumPoints);

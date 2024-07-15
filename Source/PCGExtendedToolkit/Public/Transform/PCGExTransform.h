@@ -68,7 +68,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	{
 		if (USource == EPCGExFetchType::Attribute)
 		{
-			UGetter = InDataFacade->GetOrCreateGetter<double>(UAttribute);
+			UGetter = InDataFacade->GetScopedBroadcaster<double>(UAttribute);
 			if (!UGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::FromString(TEXT("Invalid attribute for U.")));
@@ -78,7 +78,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 		if (VSource == EPCGExFetchType::Attribute)
 		{
-			VGetter = InDataFacade->GetOrCreateGetter<double>(VAttribute);
+			VGetter = InDataFacade->GetScopedBroadcaster<double>(VAttribute);
 			if (!VGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::FromString(TEXT("Invalid attribute for V.")));
@@ -88,7 +88,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 
 		if (WSource == EPCGExFetchType::Attribute)
 		{
-			WGetter = InDataFacade->GetOrCreateGetter<double>(WAttribute);
+			WGetter = InDataFacade->GetScopedBroadcaster<double>(WAttribute);
 			if (!WGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::FromString(TEXT("Invalid attribute for W.")));

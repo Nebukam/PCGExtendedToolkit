@@ -23,7 +23,7 @@ bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 	}
 	else
 	{
-		DirectionCache = PrimaryDataFacade->GetOrCreateGetter<FVector>(Config.DirectionAttribute);
+		DirectionCache = PrimaryDataFacade->GetScopedBroadcaster<FVector>(Config.DirectionAttribute);
 
 		if (!DirectionCache)
 		{

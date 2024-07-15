@@ -12,7 +12,7 @@ bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExDat
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	Target = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.Target, true);
+	Target = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, true);
 
 	if (!Target)
 	{

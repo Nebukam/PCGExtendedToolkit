@@ -23,7 +23,7 @@ namespace PCGExNodeAdjacency
 
 		if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			OperandDirection = PointDataFacade->GetOrCreateGetter<FVector>(TypedFilterFactory->Config.Direction);
+			OperandDirection = PointDataFacade->GetBroadcaster<FVector>(TypedFilterFactory->Config.Direction);
 			if (!OperandDirection)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Direction attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.Direction.GetName())));

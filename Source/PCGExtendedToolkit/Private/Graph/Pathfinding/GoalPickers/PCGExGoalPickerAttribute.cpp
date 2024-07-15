@@ -24,12 +24,12 @@ void UPCGExGoalPickerAttribute::PrepareForData(PCGExData::FFacade* InSeedsDataFa
 
 	if (GoalCount == EPCGExGoalPickAttributeAmount::Single)
 	{
-		SingleGetter = InSeedsDataFacade->GetOrCreateGetter<double>(SingleSelector);
+		SingleGetter = InSeedsDataFacade->GetBroadcaster<double>(SingleSelector);
 	}
 	else
 	{
 		AttributeGetters.Reset(AttributeSelectors.Num());
-		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors) { AttributeGetters.Add(InSeedsDataFacade->GetOrCreateGetter<double>(Selector)); }
+		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors) { AttributeGetters.Add(InSeedsDataFacade->GetBroadcaster<double>(Selector)); }
 	}
 }
 

@@ -21,7 +21,7 @@ void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 
 void UPCGExGoalPickerRandom::PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade)
 {
-	if (bUseLocalNumGoals) { NumGoalsGetter = InSeedsDataFacade->GetOrCreateGetter<int32>(LocalNumGoalAttribute); }
+	if (bUseLocalNumGoals) { NumGoalsGetter = InSeedsDataFacade->GetBroadcaster<int32>(LocalNumGoalAttribute); }
 	Super::PrepareForData(InSeedsDataFacade, InGoalsDataFacade);
 }
 

@@ -24,7 +24,7 @@ namespace PCGExData
 	{
 	}
 
-	FCacheBase* FFacade::TryGetCache(const uint64 UID)
+	FCacheBase* FFacade::FindCache(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(PoolLock);
 		FCacheBase** Found = CacheMap.Find(UID);

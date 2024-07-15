@@ -160,7 +160,7 @@ namespace PCGExClusterMT
 		{
 			PCGEX_LOG_CTR(FClusterProcessor)
 			EdgeDataFacade = new PCGExData::FFacade(InEdges);
-			EdgeDataFacade->bAllowFetch = bAllowFetchOnEdgesDataFacade;
+			EdgeDataFacade->bSupportsDynamic = bAllowFetchOnEdgesDataFacade;
 		}
 
 		virtual ~FClusterProcessor()
@@ -446,7 +446,7 @@ namespace PCGExClusterMT
 		{
 			Edges.Append(InEdges);
 			VtxDataFacade = new PCGExData::FFacade(InVtx);
-			VtxDataFacade->bAllowFetch = bAllowFetchOnVtxDataFacade;
+			VtxDataFacade->bSupportsDynamic = bAllowFetchOnVtxDataFacade;
 		}
 
 		virtual ~FClusterProcessorBatchBase()

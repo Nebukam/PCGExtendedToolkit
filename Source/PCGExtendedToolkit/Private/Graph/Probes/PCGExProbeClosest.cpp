@@ -22,7 +22,7 @@ bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 	}
 	else
 	{
-		MaxConnectionsCache = PrimaryDataFacade->GetOrCreateGetter<int32>(Config.MaxConnectionsAttribute);
+		MaxConnectionsCache = PrimaryDataFacade->GetScopedBroadcaster<int32>(Config.MaxConnectionsAttribute);
 
 		if (!MaxConnectionsCache)
 		{

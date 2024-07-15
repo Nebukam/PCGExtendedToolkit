@@ -95,9 +95,11 @@ namespace PCGExSampleSurfaceGuided
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
+		// TODO : Add Scoped Fetch
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		DirectionGetter = PointDataFacade->GetOrCreateGetter<FVector>(Settings->Direction);
+		DirectionGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Direction);
 
 		if (!DirectionGetter)
 		{
@@ -112,7 +114,7 @@ namespace PCGExSampleSurfaceGuided
 
 		if (Settings->bUseLocalMaxDistance)
 		{
-			MaxDistanceGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->LocalMaxDistance);
+			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
 			if (MaxDistanceGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 

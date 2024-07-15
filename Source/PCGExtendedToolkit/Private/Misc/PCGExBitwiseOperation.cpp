@@ -83,13 +83,14 @@ namespace PCGExBitwiseOperation
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBitwiseOperation::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BitwiseOperation)
 
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		Writer = PointDataFacade->GetOrCreateWriter<int64>(Settings->FlagAttribute, 0, false, false);
+		Writer = PointDataFacade->GetWriter<int64>(Settings->FlagAttribute, 0, false, false);
 
 		if (Settings->MaskType == EPCGExFetchType::Attribute)
 		{
-			Reader = PointDataFacade->GetOrCreateReader<int64>(Settings->MaskAttribute);
+			Reader = PointDataFacade->GetScopedReader<int64>(Settings->MaskAttribute);
 			if (!Reader) { return false; }
 		}
 		else

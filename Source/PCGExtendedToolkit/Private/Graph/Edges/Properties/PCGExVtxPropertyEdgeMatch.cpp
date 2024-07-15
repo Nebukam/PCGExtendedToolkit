@@ -53,7 +53,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCG
 
 	if (Config.DirectionSource == EPCGExFetchType::Attribute)
 	{
-		DirCache = PrimaryDataFacade->GetOrCreateGetter<FVector>(Config.Direction);
+		DirCache = PrimaryDataFacade->GetBroadcaster<FVector>(Config.Direction);
 		if (!DirCache)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Direction attribute is invalid"));
