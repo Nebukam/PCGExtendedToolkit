@@ -23,6 +23,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -31,8 +32,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
-
-	virtual FName GetVtxFilterLabel() const override;
 
 	/** If enabled, only check for dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -84,6 +83,8 @@ namespace PCGExSimplifyClusters
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
+		TArray<bool> Breakpoints;
+		
 		TArray<PCGExCluster::FNodeChain*> Chains;
 
 		FPCGExSimplifyClustersContext* LocalTypedContext = nullptr;

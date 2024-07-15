@@ -46,6 +46,10 @@ public:
 	/** Attribute to read value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector ReadIndexFromAttribute;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExIndexSafety Safety = EPCGExIndexSafety::Ignore;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExCherryPickPointsContext final : public FPCGExPointsProcessorContext
@@ -54,6 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCherryPickPointsContext final : public FPCGE
 
 	virtual ~FPCGExCherryPickPointsContext() override;
 
+	bool TryGetUniqueIndices(const PCGExData::FPointIO* InSource, TArray<int32>& OutUniqueIndices, int32 MaxIndex = -1) const;
 	TArray<int32> SharedTargetIndices;
 };
 

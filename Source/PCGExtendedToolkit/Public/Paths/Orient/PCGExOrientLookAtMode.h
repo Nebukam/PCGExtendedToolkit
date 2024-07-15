@@ -35,9 +35,9 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(PCGExData::FPointIO* InPointIO) override;
+	virtual void PrepareForData(PCGExData::FFacade* InDataFacade) override;
 
-	virtual FTransform ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const override;
+	virtual FTransform ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const override;
 
 	virtual FTransform LookAtWorldPos(FTransform InT, const FVector& WorldPos, const double DirectionMultiplier) const;
 	virtual FTransform LookAtDirection(FTransform InT, const int32 Index, const double DirectionMultiplier) const;
@@ -46,5 +46,5 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGEx::FLocalVectorGetter* LookAtGetter = nullptr;
+	PCGExData::FCache<FVector>* LookAtGetter = nullptr;
 };

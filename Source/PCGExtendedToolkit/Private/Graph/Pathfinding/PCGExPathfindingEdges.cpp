@@ -107,11 +107,8 @@ FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 
 	PCGEX_DELETE_TARRAY(PathQueries)
 
-	if (SeedsDataFacade) { PCGEX_DELETE(SeedsDataFacade->Source) }
-	PCGEX_DELETE(SeedsDataFacade)
-
-	if (GoalsDataFacade) { PCGEX_DELETE(GoalsDataFacade->Source) }
-	PCGEX_DELETE(GoalsDataFacade)
+	PCGEX_DELETE_FACADE_AND_SOURCE(SeedsDataFacade)
+	PCGEX_DELETE_FACADE_AND_SOURCE(GoalsDataFacade)
 
 	PCGEX_DELETE(OutputPaths)
 
@@ -166,9 +163,9 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 
 	// Prepare path queries
 
-	Context->GoalPicker->PrepareForData(SeedsPoints, GoalsPoints);
+	Context->GoalPicker->PrepareForData(Context->SeedsDataFacade, Context->GoalsDataFacade);
 	PCGExPathfinding::ProcessGoals(
-		SeedsPoints, Context->GoalPicker,
+		Context->SeedsDataFacade, Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
 		{
 			Context->PathQueries.Add(

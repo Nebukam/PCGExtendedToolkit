@@ -32,8 +32,8 @@ public:
 	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource);
 
 	virtual void ProcessSubPoints(
-		const PCGEx::FPointRef& Start,
-		const PCGEx::FPointRef& End,
+		const PCGExData::FPointRef& Start,
+		const PCGExData::FPointRef& End,
 		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& Metrics) const override;
 
@@ -49,8 +49,8 @@ public:
 		const int32 Offset = 0) const;
 
 	virtual void BlendSubPoints(
-		const PCGEx::FPointRef& StartPoint,
-		const PCGEx::FPointRef& EndPoint,
+		const PCGExData::FPointRef& StartPoint,
+		const PCGExData::FPointRef& EndPoint,
 		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& Metrics,
 		PCGExDataBlending::FMetadataBlender* InBlender) const;

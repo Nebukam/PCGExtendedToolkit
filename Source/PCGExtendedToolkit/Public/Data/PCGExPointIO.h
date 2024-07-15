@@ -30,6 +30,32 @@ namespace PCGExData
 		Out
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FPointRef
+	{
+		friend struct FPointIO;
+
+		FPointRef(const FPCGPoint& InPoint, const int32 InIndex):
+			Point(&InPoint), Index(InIndex)
+		{
+		}
+
+		FPointRef(const FPCGPoint* InPoint, const int32 InIndex):
+			Point(InPoint), Index(InIndex)
+		{
+		}
+
+		FPointRef(const FPointRef& Other):
+			Point(Other.Point), Index(Other.Index)
+		{
+		}
+
+		bool IsValid() const { return Point && Index != -1; }
+		const FPCGPoint* Point = nullptr;
+		const int32 Index = -1;
+
+		FORCEINLINE FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
+	};
+
 	/**
 	 * 
 	 */
@@ -155,11 +181,11 @@ namespace PCGExData
 		FORCEINLINE const FPCGPoint& GetOutPoint(const int32 Index) const { return *(Out->GetPoints().GetData() + Index); }
 		FORCEINLINE FPCGPoint& GetMutablePoint(const int32 Index) const { return *(Out->GetMutablePoints().GetData() + Index); }
 
-		FORCEINLINE PCGEx::FPointRef GetInPointRef(const int32 Index) const { return PCGEx::FPointRef(In->GetPoints().GetData() + Index, Index); }
-		FORCEINLINE PCGEx::FPointRef GetOutPointRef(const int32 Index) const { return PCGEx::FPointRef(Out->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE PCGExData::FPointRef GetInPointRef(const int32 Index) const { return PCGExData::FPointRef(In->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE PCGExData::FPointRef GetOutPointRef(const int32 Index) const { return PCGExData::FPointRef(Out->GetPoints().GetData() + Index, Index); }
 
-		FORCEINLINE PCGEx::FPointRef* GetInPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(In->GetPoints().GetData() + Index, Index); }
-		FORCEINLINE PCGEx::FPointRef* GetOutPointRefPtr(const int32 Index) const { return new PCGEx::FPointRef(Out->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE PCGExData::FPointRef* GetInPointRefPtr(const int32 Index) const { return new PCGExData::FPointRef(In->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE PCGExData::FPointRef* GetOutPointRefPtr(const int32 Index) const { return new PCGExData::FPointRef(Out->GetPoints().GetData() + Index, Index); }
 
 		FORCEINLINE const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? (In->GetPoints().GetData() + Index) : nullptr; }
 		FORCEINLINE const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? (Out->GetPoints().GetData() + Index) : nullptr; }

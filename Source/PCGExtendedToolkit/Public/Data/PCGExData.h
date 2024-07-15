@@ -113,7 +113,13 @@ namespace PCGExData
 				if (bInitialized)
 				{
 					if (InSource == ESource::Out && Writer) { return Writer; }
-					if (Reader) { return Reader; }
+					if (Reader)
+					{
+#if WITH_EDITOR
+						if (bDynamicCache) { check(!bFetch) }
+#endif
+						return Reader;
+					}
 				}
 			}
 
@@ -197,7 +203,13 @@ namespace PCGExData
 		{
 			{
 				FReadScopeLock ReadScopeLock(CacheLock);
-				if (bInitialized) { return; }
+				if (bInitialized)
+				{
+#if WITH_EDITOR
+					check(!FetchGetter)
+#endif
+					return;
+				}
 			}
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
@@ -259,6 +271,8 @@ namespace PCGExData
 		TArray<FCacheBase*> Caches;
 		TMap<uint64, FCacheBase*> CacheMap;
 		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
+
+		bool bAllowFetch = false;
 
 		FCacheBase* TryGetCache(const uint64 UID);
 
@@ -345,6 +359,8 @@ namespace PCGExData
 		template <typename T>
 		FCache<T>* GetOrCreateFetchGetter(const FPCGAttributePropertyInputSelector& InSelector)
 		{
+			if (!bAllowFetch) { return GetOrCreateGetter<T>(InSelector); }
+
 			PCGEx::FAttributeGetter<T>* Getter;
 
 			switch (PCGEx::GetMetadataType(T{}))
@@ -435,6 +451,8 @@ namespace PCGExData
 		template <typename T>
 		PCGEx::FAttributeIOBase<T>* GetOrCreateFetchReader(const FName InName)
 		{
+			if (!bAllowFetch) { return GetOrCreateReader<T>(InName); }
+
 			FCache<T>* Cache = GetOrCreateCache<T>(InName);
 			PCGEx::FAttributeIOBase<T>* Reader = Cache->PrepareReader(ESource::In, true);
 

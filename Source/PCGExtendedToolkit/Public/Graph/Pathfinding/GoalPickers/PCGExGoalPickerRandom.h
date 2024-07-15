@@ -45,15 +45,15 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals) override;
+	virtual void PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade) override;
 
-	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const override;
-	virtual void GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const override;
+	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const override;
+	virtual void GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const override;
 	virtual bool OutputMultipleGoals() const override;
 
 	virtual void Cleanup() override;
 
 protected:
-	PCGEx::FLocalIntegerGetter* NumGoalsGetter = nullptr;
+	PCGExData::FCache<int32>* NumGoalsGetter = nullptr;
 	virtual void ApplyOverrides() override;
 };

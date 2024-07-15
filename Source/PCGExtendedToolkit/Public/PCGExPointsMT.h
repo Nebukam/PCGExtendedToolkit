@@ -79,6 +79,7 @@ namespace PCGExPointsMT
 		friend class FPointsProcessorBatchBase;
 
 	protected:
+		PCGExPointFilter::TManager* PrimaryFilters = nullptr;
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 		bool bInlineProcessPoints = false;
 		bool bInlineProcessRange = false;
@@ -117,6 +118,7 @@ namespace PCGExPointsMT
 			PointIO = nullptr;
 			PCGEX_DELETE_OPERATION(PrimaryOperation)
 
+			PCGEX_DELETE(PrimaryFilters)
 			PointFilterCache.Empty();
 			PCGEX_DELETE(PointDataFacade)
 		}
@@ -137,23 +139,7 @@ namespace PCGExPointsMT
 
 #pragma region Path filter data
 
-			if (FilterFactories)
-			{
-				PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
-
-				if (FilterFactories->IsEmpty())
-				{
-					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
-				}
-				else
-				{
-					PCGExPointFilter::TManager* FilterManager = new PCGExPointFilter::TManager(PointDataFacade);
-					FilterManager->Init(Context, *FilterFactories);
-
-					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = FilterManager->Test(i); }
-					PCGEX_DELETE(FilterManager)
-				}
-			}
+			if (FilterFactories) { InitPrimaryFilters(FilterFactories); }
 
 #pragma endregion
 
@@ -290,6 +276,30 @@ namespace PCGExPointsMT
 		virtual void Output()
 		{
 		}
+
+	protected:
+		virtual void InitPrimaryFilters(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
+		{
+			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
+			if (InFilterFactories->IsEmpty())
+			{
+				for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
+			}
+			else
+			{
+				PrimaryFilters = new PCGExPointFilter::TManager(PointDataFacade);
+				PrimaryFilters->Init(Context, *InFilterFactories);
+			}
+		}
+
+		virtual void FilterScope(const int32 StartIndex, const int32 Count)
+		{
+			const int32 MaxIndex = StartIndex + Count;
+			if (PrimaryFilters) { for (int i = StartIndex; i < MaxIndex; i++) { PointFilterCache[i] = PrimaryFilters->Test(i); } }
+			else { for (int i = StartIndex; i < MaxIndex; i++) { PointFilterCache[i] = DefaultPointFilterValue; } }
+		}
+
+		virtual void FilterAll() { FilterScope(0, PointIO->GetNum()); }
 	};
 
 	class FPointsProcessorBatchBase

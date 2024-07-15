@@ -82,7 +82,7 @@ namespace PCGExMovePivot
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
 		FVector Offset;
-		Point.Transform.SetLocation(UVW.GetPosition(PCGEx::FPointRef(Point, Index), Offset));
+		Point.Transform.SetLocation(UVW.GetPosition(PCGExData::FPointRef(Point, Index), Offset));
 		Point.BoundsMin += Offset;
 		Point.BoundsMax += Offset;
 	}

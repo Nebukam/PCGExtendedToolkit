@@ -19,7 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRadiusSmoothing : public UPCGExSmoothingOpera
 public:
 	virtual void SmoothSingle(
 		PCGExData::FPointIO* Path,
-		PCGEx::FPointRef& Target,
+		PCGExData::FPointRef& Target,
 		const double Smoothing,
 		const double Influence,
 		PCGExDataBlending::FMetadataBlender* MetadataBlender,

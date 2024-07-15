@@ -17,8 +17,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInheritEnd : public UPCGExSubPo
 
 public:
 	virtual void BlendSubPoints(
-		const PCGEx::FPointRef& StartPoint,
-		const PCGEx::FPointRef& EndPoint,
+		const PCGExData::FPointRef& StartPoint,
+		const PCGExData::FPointRef& EndPoint,
 		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& Metrics,
 		PCGExDataBlending::FMetadataBlender* InBlender) const override;

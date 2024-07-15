@@ -20,9 +20,7 @@ PCGEX_INITIALIZE_ELEMENT(BoundsPathIntersection)
 FPCGExBoundsPathIntersectionContext::~FPCGExBoundsPathIntersectionContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	if (BoundsDataFacade) { PCGEX_DELETE(BoundsDataFacade->Source) }
-	PCGEX_DELETE(BoundsDataFacade)
+	PCGEX_DELETE_FACADE_AND_SOURCE(BoundsDataFacade)
 }
 
 bool FPCGExBoundsPathIntersectionElement::Boot(FPCGContext* InContext) const

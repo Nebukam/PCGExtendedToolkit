@@ -23,9 +23,7 @@ PCGExData::EInit UPCGExBoundsClustersIntersectionSettings::GetEdgeOutputInitMode
 FPCGExBoundsClustersIntersectionContext::~FPCGExBoundsClustersIntersectionContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	if (BoundsDataFacade) { PCGEX_DELETE(BoundsDataFacade->Source) }
-	PCGEX_DELETE(BoundsDataFacade)
+	PCGEX_DELETE_FACADE_AND_SOURCE(BoundsDataFacade)
 }
 
 PCGEX_INITIALIZE_ELEMENT(BoundsClustersIntersection)

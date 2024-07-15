@@ -13,21 +13,21 @@ void UPCGExCustomTangents::PrepareForData(PCGExData::FPointIO* InPointIO)
 	Leave.PrepareForData(InPointIO);
 }
 
-void UPCGExCustomTangents::ProcessFirstPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExCustomTangents::ProcessFirstPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
 {
 	const int32 Index = MainPoint.Index;
 	OutArrive = Arrive.GetTangent(Index);
 	OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
 }
 
-void UPCGExCustomTangents::ProcessLastPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExCustomTangents::ProcessLastPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const
 {
 	const int32 Index = MainPoint.Index;
 	OutArrive = Arrive.GetTangent(Index);
 	OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
 }
 
-void UPCGExCustomTangents::ProcessPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExCustomTangents::ProcessPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
 {
 	const int32 Index = MainPoint.Index;
 	OutArrive = Arrive.GetTangent(Index);

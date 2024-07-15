@@ -119,20 +119,20 @@ public:
 
 	bool Bind(const PCGExData::FPointIO* PointIO);
 
-	double GetSize(const PCGEx::FPointRef& Point) const;
-	FColor GetColor(const PCGEx::FPointRef& Point) const;
-	double GetSingle(const PCGEx::FPointRef& Point) const;
-	FVector GetVector(const PCGEx::FPointRef& Point) const;
-	FVector GetIndexedPosition(const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const;
+	double GetSize(const PCGExData::FPointRef& Point) const;
+	FColor GetColor(const PCGExData::FPointRef& Point) const;
+	double GetSingle(const PCGExData::FPointRef& Point) const;
+	FVector GetVector(const PCGExData::FPointRef& Point) const;
+	FVector GetIndexedPosition(const PCGExData::FPointRef& Point, const UPCGPointData* PointData) const;
 
-	void Draw(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const;
+	void Draw(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const UPCGPointData* PointData) const;
 
 protected:
-	void DrawDirection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
-	void DrawConnection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const FVector& End) const;
-	void DrawPoint(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
-	void DrawSingle(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
-	void DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
+	void DrawDirection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
+	void DrawConnection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const FVector& End) const;
+	void DrawPoint(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
+	void DrawSingle(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
+	void DrawLabel(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
 
 	template <typename T, typename CompilerSafety = void>
 	static FString AsString(const T& InValue) { return InValue.ToString(); }

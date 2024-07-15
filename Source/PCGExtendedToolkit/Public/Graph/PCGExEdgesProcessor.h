@@ -35,12 +35,6 @@ public:
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourceVerticesLabel; }
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
 
-	virtual FName GetVtxFilterLabel() const { return NAME_None; }
-	virtual FName GetEdgesFilterLabel() const { return NAME_None; }
-
-	bool SupportsVtxFilters() const;
-	bool SupportsEdgesFilters() const;
-
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings
 };
@@ -51,9 +45,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	friend class FPCGExEdgesProcessorElement;
 
 	virtual ~FPCGExEdgesProcessorContext() override;
-
-	TArray<UPCGExFilterFactoryBase*> VtxFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> EdgeFilterFactories;
 
 	bool bDeterministicClusters = false;
 	bool bBuildEndpointsLookup = true;
@@ -164,8 +155,6 @@ protected:
 			}
 
 			NewBatch->EdgeCollection = MainEdges;
-			// TODO : If required, won't init filter data properly.
-			if (!VtxFilterFactories.IsEmpty()) { NewBatch->SetVtxFilterFactories(&VtxFilterFactories); }
 
 			if (NewBatch->RequiresGraphBuilder())
 			{

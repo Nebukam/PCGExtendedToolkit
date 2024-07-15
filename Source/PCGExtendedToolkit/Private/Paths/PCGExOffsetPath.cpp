@@ -3,6 +3,8 @@
 
 #include "Paths/PCGExOffsetPath.h"
 
+#include "PCGExDataMath.h"
+
 #define LOCTEXT_NAMESPACE "PCGExOffsetPathElement"
 #define PCGEX_NAMESPACE OffsetPath
 
@@ -90,29 +92,24 @@ namespace PCGExOffsetPath
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		UpVector = Settings->UpVectorConstant;
+		UpConstant = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
-
-		OffsetGetter = new PCGEx::FLocalSingleFieldGetter();
 
 		if (Settings->OffsetType == EPCGExFetchType::Attribute)
 		{
-			OffsetGetter->Capture(Settings->OffsetAttribute);
-			if (!OffsetGetter->Grab(PointIO))
+			OffsetGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->OffsetAttribute);
+			if (!OffsetGetter)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing offset size attribute: \"{0}\"."), FText::FromName(Settings->OffsetAttribute.GetName())));
 				return false;
 			}
 		}
 
-		UpGetter = new PCGEx::FLocalVectorGetter();
-
 		if (Settings->UpVectorType == EPCGExFetchType::Attribute)
 		{
-			UpGetter->Capture(Settings->UpVectorAttribute);
-			if (!UpGetter->Grab(PointIO))
+			UpGetter = PointDataFacade->GetOrCreateGetter<FVector>(Settings->UpVectorAttribute);
+			if (!UpGetter)
 			{
-				PCGEX_DELETE(UpGetter)
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing UpVector attribute: \"{0}\"."), FText::FromName(Settings->UpVectorAttribute.GetName())));
 				return false;
 			}
@@ -133,12 +130,12 @@ namespace PCGExOffsetPath
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		Point.Transform.SetLocation(Positions[Index] + (Normals[Index].GetSafeNormal() * OffsetGetter->SafeGet(Index, OffsetConstant)));
+		Point.Transform.SetLocation(Positions[Index] + (Normals[Index].GetSafeNormal() * (OffsetGetter ? OffsetGetter->Values[Index] : OffsetConstant)));
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		Normals[Iteration + 1] = NRM(Iteration, Iteration + 1, Iteration + 2); // Offset by 1 because loop should be -1 / 0 / +1
+		Normals[Iteration + 1] = PCGExMath::NRM(Iteration, Iteration + 1, Iteration + 2, Positions, UpGetter, UpConstant); // Offset by 1 because loop should be -1 / 0 / +1
 	}
 
 	void FProcessor::CompleteWork()
@@ -149,26 +146,18 @@ namespace PCGExOffsetPath
 		// Update first & last Normals
 		if (Settings->bClosedPath)
 		{
-			Normals[0] = NRM(LastIndex, 0, 1);
-			Normals[LastIndex] = NRM(NumPoints - 2, LastIndex, 0);
+			Normals[0] = PCGExMath::NRM(LastIndex, 0, 1, Positions, UpGetter, UpConstant);
+			Normals[LastIndex] = PCGExMath::NRM(NumPoints - 2, LastIndex, 0, Positions, UpGetter, UpConstant);
 		}
 		else
 		{
-			Normals[0] = NRM(0, 0, 1);
-			Normals[LastIndex] = NRM(NumPoints - 2, LastIndex, LastIndex);
+			Normals[0] = PCGExMath::NRM(0, 0, 1, Positions, UpGetter, UpConstant);
+			Normals[LastIndex] = PCGExMath::NRM(NumPoints - 2, LastIndex, LastIndex, Positions, UpGetter, UpConstant);
 		}
 
 		StartParallelLoopForPoints();
 	}
 
-	FVector FProcessor::NRM(const int32 A, const int32 B, const int32 C) const
-	{
-		const FVector VA = Positions[A];
-		const FVector VB = Positions[B];
-		const FVector VC = Positions[C];
-		const FVector UpAverage = ((UpGetter->SafeGet(A, UpVector) + UpGetter->SafeGet(B, UpVector) + UpGetter->SafeGet(C, UpVector)) / 3).GetSafeNormal();
-		return FMath::Lerp(PCGExMath::GetNormal(VA, VB, VB + UpAverage), PCGExMath::GetNormal(VB, VC, VC + UpAverage), 0.5).GetSafeNormal();
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -14,7 +14,7 @@ void UPCGExOrientWeighted::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-FTransform UPCGExOrientWeighted::ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const
+FTransform UPCGExOrientWeighted::ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const
 {
 	FTransform OutT = Point.MutablePoint().Transform;
 	const FVector Current = OutT.GetLocation();

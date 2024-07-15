@@ -194,7 +194,7 @@ namespace PCGExWriteEdgeProperties
 
 		auto MetadataBlend = [&]()
 		{
-			const PCGEx::FPointRef Target = EdgesIO->GetOutPointRef(Edge.PointIndex);
+			const PCGExData::FPointRef Target = EdgesIO->GetOutPointRef(Edge.PointIndex);
 			MetadataBlender->PrepareForBlending(Target);
 			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(EdgeStartPtIndex), Target, BlendWeightStart);
 			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(EdgeEndPtIndex), Target, BlendWeightEnd);

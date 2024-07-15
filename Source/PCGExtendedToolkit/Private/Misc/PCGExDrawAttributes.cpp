@@ -80,14 +80,14 @@ bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO* PointIO)
 	return bValid;
 }
 
-double FPCGExAttributeDebugDraw::GetSize(const PCGEx::FPointRef& Point) const
+double FPCGExAttributeDebugDraw::GetSize(const PCGExData::FPointRef& Point) const
 {
 	double Value = Config->Size;
 	if (Config->bSizeFromAttribute && SizeGetter.bValid) { Value = SizeGetter[Point.Index] * Config->Size; }
 	return Value;
 }
 
-FColor FPCGExAttributeDebugDraw::GetColor(const PCGEx::FPointRef& Point) const
+FColor FPCGExAttributeDebugDraw::GetColor(const PCGExData::FPointRef& Point) const
 {
 	if (Config->bColorFromAttribute && ColorGetter.bValid)
 	{
@@ -97,19 +97,19 @@ FColor FPCGExAttributeDebugDraw::GetColor(const PCGEx::FPointRef& Point) const
 	return Config->Color;
 }
 
-double FPCGExAttributeDebugDraw::GetSingle(const PCGEx::FPointRef& Point) const
+double FPCGExAttributeDebugDraw::GetSingle(const PCGExData::FPointRef& Point) const
 {
 	return SingleGetter[Point.Index];
 }
 
-FVector FPCGExAttributeDebugDraw::GetVector(const PCGEx::FPointRef& Point) const
+FVector FPCGExAttributeDebugDraw::GetVector(const PCGExData::FPointRef& Point) const
 {
 	FVector OutVector = VectorGetter[Point.Index];
 	if (Config->ExpressedAs == EPCGExDebugExpression::Direction && Config->bNormalizeBeforeSizing) { OutVector.Normalize(); }
 	return OutVector;
 }
 
-FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const
+FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGExData::FPointRef& Point, const UPCGPointData* PointData) const
 {
 	const TArray<FPCGPoint> Points = PointData->GetPoints();
 	const int64 OutIndex = IndexGetter.SafeGet(Point.Index, -1);
@@ -117,7 +117,7 @@ FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGEx::FPointRef& Poi
 	return Point.Point->Transform.GetLocation();
 }
 
-void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const
+void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const UPCGPointData* PointData) const
 {
 	switch (Config->ExpressedAs)
 	{
@@ -143,7 +143,7 @@ void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, c
 	}
 }
 
-void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
+void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const
 {
 #if WITH_EDITOR
 	const FVector Dir = GetVector(Point) * GetSize(Point);
@@ -151,14 +151,14 @@ void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector&
 #endif
 }
 
-void FPCGExAttributeDebugDraw::DrawConnection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const FVector& End) const
+void FPCGExAttributeDebugDraw::DrawConnection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const FVector& End) const
 {
 #if WITH_EDITOR
 	DrawDebugLine(World, Start, Config->bAsOffset ? Start + End : End, GetColor(Point), true, -1, Config->DepthPriority, Config->Thickness);
 #endif
 }
 
-void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
+void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const
 {
 #if WITH_EDITOR
 	const FVector End = GetVector(Point);
@@ -166,7 +166,7 @@ void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Sta
 #endif
 }
 
-void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
+void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const
 {
 #if WITH_EDITOR
 	const double End = GetSingle(Point);
@@ -174,7 +174,7 @@ void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& St
 #endif
 }
 
-void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
+void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const
 {
 #if WITH_EDITOR
 	const FString Text = TextGetter.SafeGet(Point.Index, ".");
@@ -282,7 +282,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
 		{
-			const PCGEx::FPointRef& Point = Context->CurrentIO->GetInPointRef(PointIndex);
+			const PCGExData::FPointRef& Point = Context->CurrentIO->GetInPointRef(PointIndex);
 			const FVector Start = Point.Point->Transform.GetLocation();
 			DrawDebugPoint(Context->World, Start, 1.0f, FColor::White, true);
 			for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
