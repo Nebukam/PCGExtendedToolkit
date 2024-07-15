@@ -152,7 +152,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 	virtual bool ExecuteAutomation();
 
-	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
+	void SetAsyncState(const PCGExMT::AsyncState WaitState)
+	{
+		bIsPaused = true;
+		SetState(WaitState, false);
+	}
 
 	void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true)
 	{
