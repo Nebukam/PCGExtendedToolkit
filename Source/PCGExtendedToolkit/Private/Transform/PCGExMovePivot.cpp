@@ -53,7 +53,6 @@ bool FPCGExMovePivotElement::ExecuteInternal(FPCGContext* InContext) const
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->OutputMainPoints();
-	Context->Done();
 
 	return Context->TryComplete();
 }

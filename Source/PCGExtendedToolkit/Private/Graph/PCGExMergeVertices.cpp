@@ -90,7 +90,6 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	Context->CompositeIO->OutputTo(Context);
 	Context->MainEdges->OutputTo(Context);
-	Context->Done();
 
 	return Context->TryComplete();
 }

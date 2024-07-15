@@ -14,10 +14,17 @@ protected:
 	mutable FRWLock ContextOutputLock;
 	TArray<FPCGTaggedData> FutureOutputs;
 	bool bFlattenOutput = false;
+	bool bUseLock = true;
+
+	int32 LastReserve = 0;
+	int32 AdditionsSinceLastReserve = 0;
 
 	void WriteFutureOutputs();
 
 public:
+	~FPCGExContext();
+	
+	void FutureReserve(const int32 NumAdditions);
 	void FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
 	void FutureOutput(const FName Pin, UPCGData* InData);
 

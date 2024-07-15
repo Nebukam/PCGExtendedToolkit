@@ -78,7 +78,6 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	Context->OutputBatches();
 
 	Context->Paths->OutputTo(Context);
-	Context->Done();
 
 	return Context->TryComplete();
 }

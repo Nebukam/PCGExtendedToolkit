@@ -183,10 +183,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 					Settings->PointPointIntersectionDetails));
 		};
 
-		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes))
-		{
-			return false;
-		}
+		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
 
 		PCGEX_DELETE(Context->CompoundPointsBlender)
 

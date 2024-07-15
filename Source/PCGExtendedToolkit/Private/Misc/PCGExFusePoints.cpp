@@ -56,10 +56,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
+	Context->OutputMainPoints();
 
 	return Context->TryComplete();
 }
@@ -90,7 +87,7 @@ namespace PCGExFusePoints
 			Settings->PointPointIntersectionDetails.FuseMethod);
 
 		const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
-		
+
 		if (Settings->PointPointIntersectionDetails.DoParallelInsert()) { StartParallelLoopForPoints(PCGExData::ESource::In); }
 		else { for (int i = 0; i < Points.Num(); i++) { CompoundGraph->InsertPointUnsafe(Points[i], PointIO->IOIndex, i); } }
 

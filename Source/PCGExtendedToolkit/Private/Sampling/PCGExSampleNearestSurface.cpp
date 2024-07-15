@@ -77,10 +77,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
+	Context->OutputMainPoints();
 
 	return Context->TryComplete();
 }
@@ -100,7 +97,7 @@ namespace PCGExSampleNearestSurface
 		LocalSettings = Settings;
 
 		// TODO : Add Scoped Fetch
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{

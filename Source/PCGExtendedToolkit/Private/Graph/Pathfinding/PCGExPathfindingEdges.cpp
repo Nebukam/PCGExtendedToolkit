@@ -201,10 +201,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputPaths->OutputTo(Context);
-	}
+	Context->OutputPaths->OutputTo(Context);
 
 	return Context->TryComplete();
 }

@@ -69,7 +69,6 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 	if (!Context->ProcessClusters()) { return false; }
 
 	Context->OutputPointsAndEdges();
-	Context->Done();
 
 	return Context->TryComplete();
 }

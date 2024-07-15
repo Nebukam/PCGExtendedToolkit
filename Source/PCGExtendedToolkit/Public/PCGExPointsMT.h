@@ -97,7 +97,7 @@ namespace PCGExPointsMT
 
 		TArray<bool> PointFilterCache;
 
-		FPCGContext* Context = nullptr;
+		FPCGExContext* Context = nullptr;
 
 		PCGExData::FPointIO* PointIO = nullptr;
 		int32 BatchIndex = -1;
@@ -318,7 +318,7 @@ namespace PCGExPointsMT
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
-		FPCGContext* Context = nullptr;
+		FPCGExContext* Context = nullptr;
 
 		TArray<PCGExData::FPointIO*> PointsCollection;
 
@@ -326,7 +326,7 @@ namespace PCGExPointsMT
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
-		FPointsProcessorBatchBase(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
+		FPointsProcessorBatchBase(FPCGExContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
 			Context(InContext), PointsCollection(InPointsCollection)
 		{
 		}
@@ -394,7 +394,7 @@ namespace PCGExPointsMT
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
-		TBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
+		TBatch(FPCGExContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
 			FPointsProcessorBatchBase(InContext, InPointsCollection)
 		{
 		}
@@ -562,7 +562,7 @@ namespace PCGExPointsMT
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPointsBatch::TrivialBatchProcessing);
 
 				TArray<uint64> Loops;
-				PCGExMT::SubRanges(Loops, TrivialProcessors.Num(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchIterations);
+				PCGExMT::SubRanges(Loops, TrivialProcessors.Num(), 64);
 
 				for (int i = 0; i < Loops.Num(); i++)
 				{

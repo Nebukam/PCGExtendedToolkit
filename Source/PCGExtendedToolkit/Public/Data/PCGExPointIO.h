@@ -242,8 +242,8 @@ namespace PCGExData
 		 * Write valid outputs to Context' tagged data
 		 * @param Context 
 		 */
-		bool OutputTo(FPCGContext* Context);
-		bool OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
+		bool OutputTo(FPCGExContext* Context);
+		bool OutputTo(FPCGExContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
 	};
 
 	/**
@@ -314,8 +314,8 @@ namespace PCGExData
 
 		FPointIO& operator[](const int32 Index) const { return *Pairs[Index]; }
 
-		void OutputTo(FPCGContext* Context);
-		void OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
+		void OutputTo(FPCGExContext* Context);
+		void OutputTo(FPCGExContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
 
 		void Sort();
 

@@ -151,10 +151,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch())
-	{
-		return false;
-	}
+	if (!Context->ProcessPointsBatch()) { return false; }
 
 #pragma region Intersection management
 
@@ -250,11 +247,8 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 #pragma endregion
 
-	if (Context->IsDone())
-	{
-		if (Settings->bFusePaths) { Context->CompoundFacade->Source->OutputTo(Context); }
-		else { Context->OutputMainPoints(); }
-	}
+	if (Settings->bFusePaths) { Context->CompoundFacade->Source->OutputTo(Context); }
+	else { Context->OutputMainPoints(); }
 
 	return Context->TryComplete();
 }

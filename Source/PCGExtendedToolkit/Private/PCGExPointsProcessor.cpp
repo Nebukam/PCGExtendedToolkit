@@ -184,14 +184,19 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 			WriteBatch(GetAsyncManager(), MainBatch);
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
 		}
-		else { SetState(TargetState_PointsProcessingDone); }
+		else
+		{
+			if (TargetState_PointsProcessingDone == PCGExMT::State_Done) { Done(); }
+			else { SetState(TargetState_PointsProcessingDone); }
+		}
 	}
 
 	if (IsState(PCGExPointsMT::MTState_PointsWriting))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
-		SetState(TargetState_PointsProcessingDone);
+		if (TargetState_PointsProcessingDone == PCGExMT::State_Done) { Done(); }
+		else { SetState(TargetState_PointsProcessingDone); }
 	}
 
 	return true;
@@ -205,7 +210,7 @@ PCGExMT::FTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
 		AsyncManager = new PCGExMT::FTaskManager();
 		AsyncManager->bForceSync = !bDoAsyncProcessing;
 		AsyncManager->Context = this;
-		
+
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 		PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority);
 	}
@@ -226,6 +231,8 @@ bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
 		ResetAsyncWork();
 		return true;
 	}
+
+	bIsPaused = true;
 	return false;
 }
 

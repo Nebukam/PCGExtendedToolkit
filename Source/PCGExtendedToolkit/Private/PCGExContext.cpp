@@ -3,31 +3,62 @@
 
 #include "PCGExContext.h"
 
+#include "PCGExMacros.h"
 #include "Data/PCGSpatialData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
 void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags)
 {
-	FWriteScopeLock WriteScopeLock(ContextOutputLock);
+	if (bUseLock) { ContextOutputLock.WriteLock(); }
+
+	AdditionsSinceLastReserve++;
+
 	FPCGTaggedData& Output = FutureOutputs.Emplace_GetRef();
 	Output.Pin = Pin;
 	Output.Data = InData;
 	Output.Tags.Append(InTags);
+
+	if (bUseLock) { ContextOutputLock.WriteUnlock(); }
 }
 
 void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData)
 {
-	FWriteScopeLock WriteScopeLock(ContextOutputLock);
+	if (bUseLock) { ContextOutputLock.WriteLock(); }
+
+	AdditionsSinceLastReserve++;
+
 	FPCGTaggedData& Output = FutureOutputs.Emplace_GetRef();
 	Output.Pin = Pin;
 	Output.Data = InData;
+
+	if (bUseLock) { ContextOutputLock.WriteUnlock(); }
 }
 
 void FPCGExContext::WriteFutureOutputs()
 {
-	for (FPCGTaggedData FutureData : FutureOutputs) { OutputData.TaggedData.Add(FutureData); }
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::WriteFutureOutputs);
+	
+	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + FutureOutputs.Num());
+	for (const FPCGTaggedData& FData : FutureOutputs) { OutputData.TaggedData.Add(FData); }
+
 	FutureOutputs.Empty();
+}
+
+FPCGExContext::~FPCGExContext()
+{
+	FutureOutputs.Empty();
+}
+
+void FPCGExContext::FutureReserve(const int32 NumAdditions)
+{
+	if (bUseLock) { ContextOutputLock.WriteLock(); }
+
+	const int32 ConservativeAdditions = NumAdditions - FMath::Min(0, LastReserve - AdditionsSinceLastReserve);
+	LastReserve = ConservativeAdditions;
+	FutureOutputs.Reserve(FutureOutputs.Num() + ConservativeAdditions);
+
+	if (bUseLock) { ContextOutputLock.WriteUnlock(); }
 }
 
 void FPCGExContext::OnComplete()

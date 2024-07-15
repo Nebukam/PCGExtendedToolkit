@@ -175,14 +175,11 @@ namespace PCGExData
 		Out = nullptr;
 	}
 
-	bool FPointIO::OutputTo(FPCGContext* Context)
+	bool FPointIO::OutputTo(FPCGExContext* Context)
 	{
-		FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
-		check(PCGExContext);
-
 		if (bEnabled && Out && Out->GetPoints().Num() > 0)
 		{
-			PCGExContext->FutureOutput(DefaultOutputLabel, Out, Tags->ToSet());
+			Context->FutureOutput(DefaultOutputLabel, Out, Tags->ToSet());
 			bWritten = true;
 			return true;
 		}
@@ -190,7 +187,7 @@ namespace PCGExData
 		return false;
 	}
 
-	bool FPointIO::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
+	bool FPointIO::OutputTo(FPCGExContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		if (Out)
 		{
@@ -292,9 +289,10 @@ namespace PCGExData
 	 * Write valid outputs to Context' tagged data
 	 * @param Context
 	 */
-	void FPointIOCollection::OutputTo(FPCGContext* Context)
+	void FPointIOCollection::OutputTo(FPCGExContext* Context)
 	{
 		Sort();
+		Context->FutureReserve(Pairs.Num());
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context); }
 	}
 
@@ -304,14 +302,16 @@ namespace PCGExData
 	 * @param MinPointCount
 	 * @param MaxPointCount
 	 */
-	void FPointIOCollection::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
+	void FPointIOCollection::OutputTo(FPCGExContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		Sort();
+		Context->FutureReserve(Pairs.Num());
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOCollection::Sort()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::Sort);
 		Pairs.Sort([](const FPointIO& A, const FPointIO& B) { return A.IOIndex < B.IOIndex; });
 	}
 

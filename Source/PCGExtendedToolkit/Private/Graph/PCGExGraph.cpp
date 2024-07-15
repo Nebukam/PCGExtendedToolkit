@@ -418,7 +418,7 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, NumClusterIdWriter)
 	}
 
-	void FGraphBuilder::Write(FPCGContext* InContext) const
+	void FGraphBuilder::Write(FPCGExContext* InContext) const
 	{
 		EdgesIO->OutputTo(InContext);
 	}

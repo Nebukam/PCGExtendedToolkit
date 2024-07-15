@@ -57,7 +57,6 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	if (!Context->ProcessClusters()) { return false; }
 
 	Context->OutputPointsAndEdges();
-	Context->Done();
 
 	return Context->TryComplete();
 }

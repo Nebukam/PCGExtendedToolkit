@@ -39,7 +39,7 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGContext* InContext) const
 	GetInputFactories(
 		InContext, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories,
 		PCGExFactories::ClusterNodeFilters, false);
-	
+
 	return true;
 }
 
@@ -67,10 +67,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
+	Context->OutputMainPoints();
 
 	return Context->TryComplete();
 }

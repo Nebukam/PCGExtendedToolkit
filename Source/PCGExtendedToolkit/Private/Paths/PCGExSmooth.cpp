@@ -70,10 +70,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
+	Context->OutputMainPoints();
 
 	return Context->TryComplete();
 }
@@ -136,7 +133,7 @@ namespace PCGExSmooth
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing smoothing amount attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
 				return false;
 			}
-			
+
 			PCGEX_DELETE(SmoothingAmountGetter)
 
 			for (double& Amount : Smoothing) { Amount = FMath::Clamp(Amount, 0, TNumericLimits<double>::Max()) * Settings->ScaleSmoothingAmountAttribute; }

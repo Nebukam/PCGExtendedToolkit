@@ -65,7 +65,6 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 	Context->OutputBatches();
 	Context->VtxPartitions->OutputTo(Context);
 	Context->MainEdges->OutputTo(Context);
-	Context->Done();
 
 	return Context->TryComplete();
 }

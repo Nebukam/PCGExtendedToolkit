@@ -56,10 +56,7 @@ bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputPointsAndEdges();
-	}
+	Context->OutputPointsAndEdges();
 
 	return Context->TryComplete();
 }

@@ -462,7 +462,7 @@ namespace PCGExGraph
 		void CompileAsync(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataDetails* MetadataDetails = nullptr);
 		void Compile(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataDetails* MetadataDetails = nullptr);
 
-		void Write(FPCGContext* InContext) const;
+		void Write(FPCGExContext* InContext) const;
 
 		~FGraphBuilder()
 		{

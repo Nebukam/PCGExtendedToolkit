@@ -95,7 +95,6 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->MainBatch->Output();
 
 	Context->MainPaths->OutputTo(Context);
-	Context->Done();
 
 	return Context->TryComplete();
 }

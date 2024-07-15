@@ -88,11 +88,8 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-		//Context->SitesOutput->OutputTo(Context);
-	}
+	Context->OutputMainPoints();
+	//Context->SitesOutput->OutputTo(Context);
 
 	return Context->TryComplete();
 }

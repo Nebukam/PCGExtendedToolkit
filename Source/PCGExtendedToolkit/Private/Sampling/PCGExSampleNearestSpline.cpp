@@ -101,10 +101,7 @@ bool FPCGExSampleNearestSplineElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
+	Context->OutputMainPoints();
 
 	return Context->TryComplete();
 }
@@ -125,7 +122,7 @@ namespace PCGExSampleNearestSpline
 		LocalSettings = Settings;
 
 		// TODO : Add Scoped Fetch
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{

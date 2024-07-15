@@ -94,7 +94,6 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->OutputMainPoints();
-	Context->Done();
 
 	return Context->TryComplete();
 }

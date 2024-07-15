@@ -86,11 +86,8 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-		Context->PathsIO->OutputTo(Context);
-	}
+	Context->OutputMainPoints();
+	Context->PathsIO->OutputTo(Context);
 
 	return Context->TryComplete();
 }

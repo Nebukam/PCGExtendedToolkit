@@ -97,7 +97,6 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 	Context->OutputMainPoints();
 	if (Context->MainSites) { Context->MainSites->OutputTo(Context); }
-	Context->Done();
 
 	return Context->TryComplete();
 }

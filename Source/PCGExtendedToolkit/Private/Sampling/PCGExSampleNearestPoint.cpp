@@ -107,11 +107,8 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
-
+	Context->OutputMainPoints();
+	
 	return Context->TryComplete();
 }
 
@@ -131,7 +128,7 @@ namespace PCGExSampleNearestPoints
 		LocalSettings = Settings;
 
 		// TODO : Add Scoped Fetch
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{

@@ -169,7 +169,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
-	void Done() { SetState(PCGExMT::State_Done); }
+	void Done()
+	{
+		bUseLock = false;
+		SetState(PCGExMT::State_Done);
+	}
 
 	bool TryComplete(const bool bForce = false);
 

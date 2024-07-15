@@ -104,7 +104,6 @@ bool FPCGExConditionalActionsElement::ExecuteInternal(
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->OutputMainPoints();
-	Context->Done();
 
 	return Context->TryComplete();
 }
@@ -125,7 +124,7 @@ namespace PCGExConditionalActions
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		PointDataFacade->bSupportsDynamic = true;
-		
+
 		// Initialize writers with provided default value
 		for (FPCGMetadataAttributeBase* AttributeBase : TypedContext->DefaultAttributes->Attributes)
 		{

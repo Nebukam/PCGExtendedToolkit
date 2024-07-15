@@ -315,10 +315,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->Paths->OutputTo(Context);
-	}
+	Context->Paths->OutputTo(Context);
 
 	return Context->TryComplete();
 }

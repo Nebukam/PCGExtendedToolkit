@@ -66,10 +66,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsDone())
-	{
-		Context->OutputMainPoints();
-	}
+	Context->OutputMainPoints();
 
 	return Context->TryComplete();
 }
@@ -91,7 +88,7 @@ namespace PCGExOffsetPath
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(OffsetPath)
 
 		// TODO : Add Scoped Fetch
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		UpConstant = Settings->UpVectorConstant.GetSafeNormal();
@@ -159,7 +156,6 @@ namespace PCGExOffsetPath
 
 		StartParallelLoopForPoints();
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE
