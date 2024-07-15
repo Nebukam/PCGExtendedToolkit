@@ -79,6 +79,7 @@ namespace PCGExPointsMT
 		friend class FPointsProcessorBatchBase;
 
 	protected:
+		PCGExPointFilter::TManager* PrimaryFilters = nullptr;
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 		bool bInlineProcessPoints = false;
 		bool bInlineProcessRange = false;
@@ -117,6 +118,7 @@ namespace PCGExPointsMT
 			PointIO = nullptr;
 			PCGEX_DELETE_OPERATION(PrimaryOperation)
 
+			PCGEX_DELETE(PrimaryFilters)
 			PointFilterCache.Empty();
 			PCGEX_DELETE(PointDataFacade)
 		}
@@ -137,23 +139,7 @@ namespace PCGExPointsMT
 
 #pragma region Path filter data
 
-			if (FilterFactories)
-			{
-				PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
-
-				if (FilterFactories->IsEmpty())
-				{
-					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
-				}
-				else
-				{
-					PCGExPointFilter::TManager* FilterManager = new PCGExPointFilter::TManager(PointDataFacade);
-					FilterManager->Init(Context, *FilterFactories);
-
-					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = FilterManager->Test(i); }
-					PCGEX_DELETE(FilterManager)
-				}
-			}
+			if (FilterFactories) { InitPrimaryFilters(FilterFactories); }
 
 #pragma endregion
 
@@ -290,6 +276,30 @@ namespace PCGExPointsMT
 		virtual void Output()
 		{
 		}
+
+	protected:
+		virtual bool InitPrimaryFilters(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
+		{
+			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
+			
+			if (InFilterFactories->IsEmpty())
+			{
+				for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
+				return true;
+			}
+
+			PrimaryFilters = new PCGExPointFilter::TManager(PointDataFacade);
+			return PrimaryFilters->Init(Context, *InFilterFactories);
+		}
+
+		virtual void FilterScope(const int32 StartIndex, const int32 Count)
+		{
+			const int32 MaxIndex = StartIndex + Count;
+			if (PrimaryFilters) { for (int i = StartIndex; i < MaxIndex; i++) { PointFilterCache[i] = PrimaryFilters->Test(i); } }
+			else { for (int i = StartIndex; i < MaxIndex; i++) { PointFilterCache[i] = DefaultPointFilterValue; } }
+		}
+
+		virtual void FilterAll() { FilterScope(0, PointIO->GetNum()); }
 	};
 
 	class FPointsProcessorBatchBase
@@ -378,7 +388,7 @@ namespace PCGExPointsMT
 	{
 	public:
 		TArray<T*> Processors;
-		TArray<T*> ClosedBatchProcessors;
+		TArray<T*> TrivialProcessors;
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
@@ -391,7 +401,7 @@ namespace PCGExPointsMT
 
 		virtual ~TBatch() override
 		{
-			ClosedBatchProcessors.Empty();
+			TrivialProcessors.Empty();
 			PCGEX_DELETE_TARRAY(Processors)
 		}
 
@@ -444,10 +454,10 @@ namespace PCGExPointsMT
 				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize)
 				{
 					NewProcessor->bIsSmallPoints = true;
-					ClosedBatchProcessors.Add(NewProcessor);
+					TrivialProcessors.Add(NewProcessor);
 				}
 
-				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcessWithUpdate<T>>(IO->IOIndex, IO, NewProcessor); }
+				if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcessWithUpdate<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
 
 			if (!bInlineProcessing) { StartClosedBatchProcessing(); }
@@ -510,7 +520,7 @@ namespace PCGExPointsMT
 			{
 				for (int i = 0; i < Iterations; i++)
 				{
-					T* Processor = ClosedBatchProcessors[StartIndex + i];
+					T* Processor = TrivialProcessors[StartIndex + i];
 					Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr);
 				}
 			}
@@ -518,7 +528,7 @@ namespace PCGExPointsMT
 			{
 				for (int i = 0; i < Iterations; i++)
 				{
-					T* Processor = ClosedBatchProcessors[StartIndex + i];
+					T* Processor = TrivialProcessors[StartIndex + i];
 					if (!Processor->bIsProcessorValid) { continue; }
 					Processor->CompleteWork();
 				}
@@ -527,7 +537,7 @@ namespace PCGExPointsMT
 			{
 				for (int i = 0; i < Iterations; i++)
 				{
-					T* Processor = ClosedBatchProcessors[StartIndex + i];
+					T* Processor = TrivialProcessors[StartIndex + i];
 					if (!Processor->bIsProcessorValid) { continue; }
 					Processor->Write();
 				}
@@ -546,13 +556,13 @@ namespace PCGExPointsMT
 	protected:
 		void StartClosedBatchProcessing()
 		{
-			const int32 NumTrivial = ClosedBatchProcessors.Num();
+			const int32 NumTrivial = TrivialProcessors.Num();
 			if (NumTrivial > 0)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPointsBatch::TrivialBatchProcessing);
 
 				TArray<uint64> Loops;
-				PCGExMT::SubRanges(Loops, ClosedBatchProcessors.Num(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchIterations);
+				PCGExMT::SubRanges(Loops, TrivialProcessors.Num(), GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchIterations);
 
 				for (int i = 0; i < Loops.Num(); i++)
 				{

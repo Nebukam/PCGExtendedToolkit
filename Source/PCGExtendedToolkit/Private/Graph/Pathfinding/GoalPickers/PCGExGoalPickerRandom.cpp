@@ -19,20 +19,13 @@ void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPickerRandom::PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals)
+void UPCGExGoalPickerRandom::PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade)
 {
-	if (bUseLocalNumGoals && !NumGoalsGetter)
-	{
-		NumGoalsGetter = new PCGEx::FLocalIntegerGetter();
-		NumGoalsGetter->Capture(LocalNumGoalAttribute);
-	}
-
-	if (NumGoalsGetter) { NumGoalsGetter->Grab(InSeeds); }
-
-	Super::PrepareForData(InSeeds, InGoals);
+	if (bUseLocalNumGoals) { NumGoalsGetter = InSeedsDataFacade->GetBroadcaster<int32>(LocalNumGoalAttribute); }
+	Super::PrepareForData(InSeedsDataFacade, InGoalsDataFacade);
 }
 
-int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGEx::FPointRef& Seed) const
+int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FPointRef& Seed) const
 {
 	const int32 Index = static_cast<int32>(PCGExMath::Remap(
 		FMath::PerlinNoise3D(PCGExMath::Tile(Seed.Point->Transform.GetLocation() * 0.001, FVector(-1), FVector(1))),
@@ -40,9 +33,9 @@ int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGEx::FPointRef& Seed) const
 	return PCGExMath::SanitizeIndex(Index, MaxGoalIndex, IndexSafety);
 }
 
-void UPCGExGoalPickerRandom::GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const
+void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
-	int32 Picks = NumGoalsGetter ? NumGoalsGetter->SafeGet(Seed.Index, NumGoals) : NumGoals;
+	int32 Picks = NumGoalsGetter ? NumGoalsGetter->Values[Seed.Index] : NumGoals;
 
 	if (GoalCount == EPCGExGoalPickRandomAmount::Random)
 	{
@@ -66,7 +59,6 @@ bool UPCGExGoalPickerRandom::OutputMultipleGoals() const { return GoalCount != E
 
 void UPCGExGoalPickerRandom::Cleanup()
 {
-	PCGEX_DELETE(NumGoalsGetter)
 	Super::Cleanup();
 }
 

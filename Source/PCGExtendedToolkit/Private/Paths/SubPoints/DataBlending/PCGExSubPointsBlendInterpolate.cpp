@@ -27,8 +27,8 @@ void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExOperation* Ot
 }
 
 void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
-	const PCGEx::FPointRef& StartPoint,
-	const PCGEx::FPointRef& EndPoint,
+	const PCGExData::FPointRef& StartPoint,
+	const PCGExData::FPointRef& EndPoint,
 	const TArrayView<FPCGPoint>& SubPoints,
 	const PCGExMath::FPathMetricsSquared& Metrics,
 	PCGExDataBlending::FMetadataBlender* InBlender) const

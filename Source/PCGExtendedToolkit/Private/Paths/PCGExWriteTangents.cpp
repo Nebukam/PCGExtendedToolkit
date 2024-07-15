@@ -92,9 +92,9 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 			FVector& OutArrive = Context->ArriveTangents[Index];
 			FVector& OutLeave = Context->LeaveTangents[Index];
 
-			const PCGEx::FPointRef MainPoint = PCGEx::FPointRef(Context->CurrentIO->GetOutPoint(Index), Index);
-			const PCGEx::FPointRef PrevPoint = PCGEx::FPointRef(Context->CurrentIO->TryGetOutPoint(Index - 1), Index - 1);
-			const PCGEx::FPointRef NextPoint = PCGEx::FPointRef(Context->CurrentIO->TryGetOutPoint(Index + 1), Index + 1);
+			const PCGExData::FPointRef MainPoint = PCGExData::FPointRef(Context->CurrentIO->GetOutPoint(Index), Index);
+			const PCGExData::FPointRef PrevPoint = PCGExData::FPointRef(Context->CurrentIO->TryGetOutPoint(Index - 1), Index - 1);
+			const PCGExData::FPointRef NextPoint = PCGExData::FPointRef(Context->CurrentIO->TryGetOutPoint(Index + 1), Index + 1);
 
 			if (NextPoint.IsValid() && PrevPoint.IsValid()) { Context->Tangents->ProcessPoint(MainPoint, PrevPoint, NextPoint, OutArrive, OutLeave); }
 			else if (NextPoint.IsValid()) { Context->Tangents->ProcessFirstPoint(MainPoint, NextPoint, OutArrive, OutLeave); }
@@ -110,9 +110,9 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 			const int32 PrevIndex = PCGExMath::Tile(Index - 1, 0, MaxIndex);
 			const int32 NextIndex = PCGExMath::Tile(Index + 1, 0, MaxIndex);
 
-			const PCGEx::FPointRef MainPoint = PCGEx::FPointRef(Context->CurrentIO->GetOutPoint(Index), Index);
-			const PCGEx::FPointRef PrevPoint = PCGEx::FPointRef(Context->CurrentIO->GetOutPoint(PrevIndex), PrevIndex);
-			const PCGEx::FPointRef NextPoint = PCGEx::FPointRef(Context->CurrentIO->GetOutPoint(NextIndex), NextIndex);
+			const PCGExData::FPointRef MainPoint = PCGExData::FPointRef(Context->CurrentIO->GetOutPoint(Index), Index);
+			const PCGExData::FPointRef PrevPoint = PCGExData::FPointRef(Context->CurrentIO->GetOutPoint(PrevIndex), PrevIndex);
+			const PCGExData::FPointRef NextPoint = PCGExData::FPointRef(Context->CurrentIO->GetOutPoint(NextIndex), NextIndex);
 
 			Context->Tangents->ProcessPoint(MainPoint, PrevPoint, NextPoint, OutArrive, OutLeave);
 		};

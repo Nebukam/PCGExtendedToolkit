@@ -285,6 +285,7 @@ namespace PCGExMT
 
 		friend class FPCGExTask;
 		friend class FGroupRangeCallbackTask;
+		friend class FGroupPrepareRangeTask;
 		friend class FGroupRangeIterationTask;
 		friend class FGroupRangeInlineIterationTask;
 
@@ -353,6 +354,8 @@ namespace PCGExMT
 		}
 
 		void StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false);
+		
+		void PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize);
 
 	protected:
 		FTaskManager* Manager;
@@ -371,6 +374,7 @@ namespace PCGExMT
 		int32 NumCompleted = 0;
 
 		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
+		void PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
 
 		void OnTaskCompleted()
 		{
@@ -468,6 +472,18 @@ namespace PCGExMT
 	{
 	public:
 		FGroupRangeIterationTask(PCGExData::FPointIO* InPointIO):
+			FPCGExTask(InPointIO)
+		{
+		}
+
+		uint64 Scope = 0;
+		virtual bool ExecuteTask() override;
+	};
+
+	class FGroupPrepareRangeTask : public FPCGExTask
+	{
+	public:
+		FGroupPrepareRangeTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}

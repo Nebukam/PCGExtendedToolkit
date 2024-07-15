@@ -84,6 +84,8 @@ namespace PCGExFlatProjection
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFlatProjection::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlatProjection)
 
+		// TODO : Add Scoped Fetch
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		bWriteAttribute = Settings->bSaveAttributeForRestore;
@@ -92,13 +94,13 @@ namespace PCGExFlatProjection
 
 		if (bInverseExistingProjection)
 		{
-			TransformReader = PointDataFacade->GetOrCreateReader<FTransform>(TypedContext->CachedTransformAttributeName);
+			TransformReader = PointDataFacade->GetScopedReader<FTransform>(TypedContext->CachedTransformAttributeName);
 		}
 		else if (bWriteAttribute)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
 			ProjectionDetails.Init(Context, PointDataFacade);
-			TransformWriter = PointDataFacade->GetOrCreateWriter<FTransform>(TypedContext->CachedTransformAttributeName, true);
+			TransformWriter = PointDataFacade->GetWriter<FTransform>(TypedContext->CachedTransformAttributeName, true);
 		}
 
 		StartParallelLoopForPoints();

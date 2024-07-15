@@ -65,8 +65,8 @@ namespace PCGExData
 				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					PCGEx::FAttributeIOBase<T>* Reader = SourceDataFacade->GetOrCreateReader<T>(Identity.Name);
-					PCGEx::FAttributeIOBase<T>* Writer = TargetDataFacade->GetOrCreateWriter<T>(Reader->Accessor->GetTypedAttribute(), false);
+					PCGEx::FAttributeIOBase<T>* Reader = SourceDataFacade->GetReader<T>(Identity.Name);
+					PCGEx::FAttributeIOBase<T>* Writer = TargetDataFacade->GetWriter<T>(Reader->Accessor->GetTypedAttribute(), false);
 					Readers[i] = Reader;
 					Writers[i] = Writer;
 				});

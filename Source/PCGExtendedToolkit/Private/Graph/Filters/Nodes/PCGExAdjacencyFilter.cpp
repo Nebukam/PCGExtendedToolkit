@@ -23,7 +23,7 @@ namespace PCGExNodeAdjacency
 
 		if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			OperandA = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandA);
+			OperandA = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandA);
 			if (!OperandA)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
@@ -35,7 +35,7 @@ namespace PCGExNodeAdjacency
 
 		if (bCaptureFromNodes)
 		{
-			OperandB = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandB);
+			OperandB = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandB);
 			if (!OperandB)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));
@@ -44,7 +44,7 @@ namespace PCGExNodeAdjacency
 		}
 		else
 		{
-			OperandB = EdgeDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.OperandB);
+			OperandB = EdgeDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.OperandB);
 			if (!OperandB)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandB.GetName())));

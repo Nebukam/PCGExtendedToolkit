@@ -370,10 +370,10 @@ namespace PCGExDataBlending
 
 			TypedAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
 
-			if (TypedAttribute) { Writer = InPrimaryFacade->GetOrCreateWriter<T>(TypedAttribute, false); }
-			else { Writer = InPrimaryFacade->GetOrCreateWriter<T>(AttributeName, T{}, true, false); }
+			if (TypedAttribute) { Writer = InPrimaryFacade->GetWriter<T>(TypedAttribute, false); }
+			else { Writer = InPrimaryFacade->GetWriter<T>(AttributeName, T{}, true, false); }
 
-			Reader = InSecondaryFacade->GetOrCreateReader<T>(AttributeName, SecondarySource); // Will return writer is sources ==
+			Reader = InSecondaryFacade->GetReader<T>(AttributeName, SecondarySource); // Will return writer is sources ==
 
 			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
 

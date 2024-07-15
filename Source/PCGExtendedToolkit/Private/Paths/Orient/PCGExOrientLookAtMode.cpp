@@ -17,23 +17,22 @@ void UPCGExOrientLookAt::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExOrientLookAt::PrepareForData(PCGExData::FPointIO* InPointIO)
+void UPCGExOrientLookAt::PrepareForData(PCGExData::FFacade* InDataFacade)
 {
 	PCGEX_DELETE(LookAtGetter)
-	Super::PrepareForData(InPointIO);
+	Super::PrepareForData(InDataFacade);
 
 	if (LookAt == EPCGExOrientLookAtMode::Direction)
 	{
-		LookAtGetter = new PCGEx::FLocalVectorGetter();
-		LookAtGetter->Capture(LookAtAttribute);
-		if (!LookAtGetter->Grab(InPointIO))
+		LookAtGetter = InDataFacade->GetScopedBroadcaster<FVector>(LookAtAttribute);
+		if (!LookAtGetter)
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("LookAt Attribute ({0}) is not valid."), FText::FromString(LookAtAttribute.GetName().ToString())));
 		}
 	}
 }
 
-FTransform UPCGExOrientLookAt::ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const
+FTransform UPCGExOrientLookAt::ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const
 {
 	switch (LookAt)
 	{

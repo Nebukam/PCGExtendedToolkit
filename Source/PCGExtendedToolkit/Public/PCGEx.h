@@ -11,11 +11,6 @@
 
 #include "PCGEx.generated.h"
 
-namespace PCGExData
-{
-	struct FPointIO;
-}
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Ordered Field Selection"))
 enum class EPCGExOrderedFieldSelection : uint8
 {
@@ -407,32 +402,6 @@ namespace PCGEx
 	}
 
 #pragma endregion
-
-	struct PCGEXTENDEDTOOLKIT_API FPointRef
-	{
-		friend struct PCGExData::FPointIO;
-
-		FPointRef(const FPCGPoint& InPoint, const int32 InIndex):
-			Point(&InPoint), Index(InIndex)
-		{
-		}
-
-		FPointRef(const FPCGPoint* InPoint, const int32 InIndex):
-			Point(InPoint), Index(InIndex)
-		{
-		}
-
-		FPointRef(const FPointRef& Other):
-			Point(Other.Point), Index(Other.Index)
-		{
-		}
-
-		bool IsValid() const { return Point && Index != -1; }
-		const FPCGPoint* Point = nullptr;
-		const int32 Index = -1;
-
-		FORCEINLINE FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
-	};
 
 	static UWorld* GetWorld(const FPCGContext* Context)
 	{

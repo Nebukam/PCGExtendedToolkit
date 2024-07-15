@@ -124,6 +124,8 @@ namespace PCGExSampleNearestSpline
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
+		// TODO : Add Scoped Fetch
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
@@ -133,13 +135,13 @@ namespace PCGExSampleNearestSpline
 
 		if (Settings->bUseLocalRangeMin)
 		{
-			RangeMinGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->LocalRangeMin);
+			RangeMinGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalRangeMin);
 			if (!RangeMinGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
 		}
 
 		if (Settings->bUseLocalRangeMax)
 		{
-			RangeMaxGetter = PointDataFacade->GetOrCreateGetter<double>(Settings->LocalRangeMax);
+			RangeMaxGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalRangeMax);
 			if (!RangeMaxGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
 		}
 
@@ -148,7 +150,7 @@ namespace PCGExSampleNearestSpline
 			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
 			{
 			} // 
-			else { LookAtUpGetter = PointDataFacade->GetOrCreateGetter<FVector>(Settings->LookAtUpSource); }
+			else { LookAtUpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource); }
 
 			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookAtUp is invalid.")); }
 		}

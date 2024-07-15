@@ -21,7 +21,7 @@ bool UPCGExProbeOperation::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 	}
 	else
 	{
-		SearchRadiusCache = PrimaryDataFacade->GetOrCreateGetter<double>(BaseConfig->SearchRadiusAttribute);
+		SearchRadiusCache = PrimaryDataFacade->GetScopedBroadcaster<double>(BaseConfig->SearchRadiusAttribute);
 
 		if (!SearchRadiusCache)
 		{

@@ -16,17 +16,17 @@ void UPCGExGoalPicker::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPicker::PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals)
+void UPCGExGoalPicker::PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade)
 {
-	MaxGoalIndex = InGoals->GetNum() - 1;
+	MaxGoalIndex = InGoalsDataFacade->Source->GetNum() - 1;
 }
 
-int32 UPCGExGoalPicker::GetGoalIndex(const PCGEx::FPointRef& Seed) const
+int32 UPCGExGoalPicker::GetGoalIndex(const PCGExData::FPointRef& Seed) const
 {
 	return PCGExMath::SanitizeIndex(Seed.Index, MaxGoalIndex, IndexSafety);
 }
 
-void UPCGExGoalPicker::GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const
+void UPCGExGoalPicker::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
 }
 

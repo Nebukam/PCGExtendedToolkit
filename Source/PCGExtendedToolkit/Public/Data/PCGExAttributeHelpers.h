@@ -16,6 +16,7 @@
 #include "PCGExPointIO.h"
 #include "PCGParamData.h"
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
+#include "Metadata/Accessors/PCGCustomAccessor.h"
 
 #include "PCGExAttributeHelpers.generated.h"
 
@@ -265,6 +266,13 @@ namespace PCGEx
 			return Accessor->GetRange(View, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
 
+		bool GetScope(TArray<T>& OutValues, const uint64 Scope, FPCGAttributeAccessorKeysPoints* InKeys = nullptr) const
+		{
+			const int32 StartIndex = PCGEx::H64A(Scope);
+			TArrayView<T> View = MakeArrayView(OutValues.GetData() + StartIndex, H64B(Scope));
+			return Accessor->GetRange(View, StartIndex, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
+		}
+
 		bool Set(const T& InValue, const int32 Index) { return SetRange(TArrayView<const T>(&InValue, 1), Index); }
 
 
@@ -298,8 +306,8 @@ namespace PCGEx
 			: FAttributeAccessorBase<T>()
 		{
 			this->Cleanup();
-			this->Direction = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
-			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Direction, InData->Metadata);
+			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
 
 			const TArrayView<FPCGPoint> View(InData->GetMutablePoints());
 			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(View);
@@ -356,8 +364,8 @@ namespace PCGEx
 		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
 		{
 			this->Cleanup();
-			this->Direction = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
-			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Direction, InData->Metadata);
+			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
 
 			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(InData->GetPoints());
 
@@ -390,6 +398,12 @@ namespace PCGEx
 		virtual ~FAAttributeIO()
 		{
 		}
+
+		virtual void Fetch(const int32 StartIndex, const int32 Count)
+		{
+		}
+
+		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }
 	};
 
 	template <typename T>
@@ -420,6 +434,11 @@ namespace PCGEx
 		FORCEINLINE T operator[](int32 Index) const { return this->Values[Index]; }
 
 		FORCEINLINE bool IsValid() { return Accessor != nullptr; }
+
+		virtual void Fetch(const int32 StartIndex, const int32 Count) override
+		{
+			this->Accessor->GetScope(this->Values, PCGEx::H64(StartIndex, Count));
+		}
 
 		virtual ~FAttributeIOBase() override
 		{
@@ -534,22 +553,34 @@ namespace PCGEx
 			this->UnderlyingType = PointIO->GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
+
+		bool BindForFetch(PCGExData::FPointIO* PointIO)
+		{
+			PCGEX_DELETE(this->Accessor)
+			this->Accessor = FConstAttributeAccessor<T>::Find(PointIO, this->Name);
+			if (!this->Accessor) { return false; }
+			this->SetNum(PointIO->GetNum());
+			this->UnderlyingType = PointIO->GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
+			return true;
+		}
 	};
 
 #pragma endregion
 
 #pragma region Local Attribute Inputs
 
-	struct PCGEXTENDEDTOOLKIT_API FAttributeGetterBase
+	class PCGEXTENDEDTOOLKIT_API FAttributeGetterBase
 	{
 	};
 
 	template <typename T>
-	struct PCGEXTENDEDTOOLKIT_API FAttributeGetter : public FAttributeGetterBase
+	class PCGEXTENDEDTOOLKIT_API FAttributeGetter : public FAttributeGetterBase
 	{
 	protected:
 		bool bMinMaxDirty = true;
 		bool bNormalized = false;
+		FPCGAttributePropertyInputSelector FetchSelector;
+		IPCGAttributeAccessor* FetchAccessor = nullptr;
 
 	public:
 		FAttributeGetter()
@@ -565,6 +596,7 @@ namespace PCGEx
 
 		virtual ~FAttributeGetter()
 		{
+			PCGEX_DELETE(FetchAccessor)
 			FAttributeGetter<T>::Cleanup();
 		}
 
@@ -597,6 +629,98 @@ namespace PCGEx
 			Values.Empty();
 		}
 
+		bool InitForFetch(const PCGExData::FPointIO* PointIO)
+		{
+			ResetMinMax();
+			bMinMaxDirty = true;
+			bNormalized = false;
+
+			bValid = false;
+			const UPCGPointData* InData = PointIO->GetIn();
+
+			TArray<FString> ExtraNames;
+			FetchSelector = CopyAndFixLast(Config.Selector, InData, ExtraNames);
+			if (!FetchSelector.IsValid()) { return false; }
+
+			ProcessExtraNames(FetchSelector.GetName(), ExtraNames);
+			Selection = FetchSelector.GetSelection();
+
+			if (Selection == EPCGAttributePropertySelection::Attribute)
+			{
+				Attribute = InData->Metadata->GetMutableAttribute(FetchSelector.GetName());
+				if (!Attribute) { return false; }
+
+				PCGMetadataAttribute::CallbackWithRightType(
+					Attribute->GetTypeId(),
+					[&](auto DummyValue) -> void
+					{
+						using RawT = decltype(DummyValue);
+						FetchAccessor = new FPCGAttributeAccessor<RawT>(static_cast<FPCGMetadataAttribute<RawT>*>(Attribute), InData->Metadata);
+					});
+			}
+
+			return true;
+		}
+
+		/**
+		 * Build and validate a property/attribute accessor for the selected
+		 * @param PointIO
+		 * @param Dump
+		 * @param StartIndex
+		 * @param Count
+		 */
+		bool Fetch(PCGExData::FPointIO* PointIO, TArray<T>& Dump, const int32 StartIndex, const int32 Count)
+		{
+			check(Dump.Num() == PointIO->GetNum(PCGExData::ESource::In)) // Dump target should be initialized at full length before using Fetch
+
+			const UPCGPointData* InData = PointIO->GetIn();
+
+			if (Selection == EPCGAttributePropertySelection::Attribute)
+			{
+				if (!FetchAccessor || !Attribute) { return false; }
+
+				PCGMetadataAttribute::CallbackWithRightType(
+					Attribute->GetTypeId(),
+					[&](auto DummyValue) -> void
+					{
+						using RawT = decltype(DummyValue);
+						TArray<RawT> RawValues;
+
+						PCGEX_SET_NUM_UNINITIALIZED(RawValues, Count)
+
+						FPCGAttributeAccessor<RawT>* Accessor = static_cast<FPCGAttributeAccessor<RawT>*>(FetchAccessor);
+						IPCGAttributeAccessorKeys* Keys = PointIO->CreateInKeys();
+
+						TArrayView<RawT> RawView(RawValues);
+						Accessor->GetRange(RawView, StartIndex, *Keys, PCGEX_AAFLAG);
+
+						for (int i = 0; i < Count; i++) { Dump[StartIndex + i] = Convert(RawValues[i]); }
+						RawValues.Empty();
+						
+					});
+
+				bValid = true;
+			}
+			else if (Selection == EPCGAttributePropertySelection::PointProperty)
+			{
+				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, FetchSelector);
+				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
+				const int32 LastIndex = StartIndex + Count;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
+
+				switch (Config.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+#undef PCGEX_GET_BY_ACCESSOR
+				bValid = true;
+			}
+			else
+			{
+				//TODO: Support extra properties
+			}
+
+			return bValid;
+		}
+
+
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param PointIO
@@ -607,8 +731,6 @@ namespace PCGEx
 		 */
 		bool GrabAndDump(const PCGExData::FPointIO* PointIO, TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax)
 		{
-			Cleanup();
-
 			ResetMinMax();
 			bMinMaxDirty = !bCaptureMinMax;
 			bNormalized = false;
@@ -624,7 +746,7 @@ namespace PCGEx
 
 			ProcessExtraNames(Selector.GetName(), ExtraNames);
 
-			int32 NumPoints = PointIO->GetNum();
+			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
 			Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)
 			{
@@ -697,6 +819,7 @@ namespace PCGEx
 		 */
 		bool Grab(const PCGExData::FPointIO* PointIO, const bool bCaptureMinMax = false)
 		{
+			Cleanup();
 			return GrabAndDump(PointIO, Values, bCaptureMinMax, Min, Max);
 		}
 
@@ -891,7 +1014,7 @@ namespace PCGEx
 
 #pragma region Local Attribute Getter
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalSingleFieldGetter : public FAttributeGetter<double>
+	class PCGEXTENDEDTOOLKIT_API FLocalSingleFieldGetter : public FAttributeGetter<double>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Double; }
 
@@ -998,7 +1121,7 @@ namespace PCGEx
 		FORCEINLINE virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalIntegerGetter final : public FAttributeGetter<int32>
+	class PCGEXTENDEDTOOLKIT_API FLocalIntegerGetter final : public FAttributeGetter<int32>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Integer32; }
 
@@ -1105,7 +1228,7 @@ namespace PCGEx
 		FORCEINLINE virtual int32 Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalBoolGetter final : public FAttributeGetter<bool>
+	class PCGEXTENDEDTOOLKIT_API FLocalBoolGetter final : public FAttributeGetter<bool>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Boolean; }
 
@@ -1212,7 +1335,7 @@ namespace PCGEx
 		FORCEINLINE virtual bool Convert(const FName Value) const override { return Value.ToString().Len() == 4; }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalVectorGetter final : public FAttributeGetter<FVector>
+	class PCGEXTENDEDTOOLKIT_API FLocalVectorGetter final : public FAttributeGetter<FVector>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Vector; }
 
@@ -1252,7 +1375,7 @@ namespace PCGEx
 		FORCEINLINE virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalToStringGetter final : public FAttributeGetter<FString>
+	class PCGEXTENDEDTOOLKIT_API FLocalToStringGetter final : public FAttributeGetter<FString>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::String; }
 
@@ -1293,7 +1416,7 @@ namespace PCGEx
 		TArray<FPCGTaggedData> TaggedDatas = InContext->InputData.GetInputsByPin(InPinLabel);
 
 		bool bHasErrors = false;
-		
+
 		for (FPCGTaggedData& TaggedData : TaggedDatas)
 		{
 			const UPCGMetadata* Metadata = nullptr;

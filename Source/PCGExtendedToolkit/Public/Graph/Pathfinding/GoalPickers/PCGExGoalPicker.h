@@ -25,9 +25,9 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals);
-	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const;
-	virtual void GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const;
+	virtual void PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade);
+	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const;
+	virtual void GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const;
 	virtual bool OutputMultipleGoals() const;
 
 protected:

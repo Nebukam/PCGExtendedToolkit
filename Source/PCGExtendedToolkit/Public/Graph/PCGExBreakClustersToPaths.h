@@ -27,9 +27,10 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -38,8 +39,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
-
-	virtual FName GetVtxFilterLabel() const override;
 
 	/** Operation target mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -88,7 +87,10 @@ namespace PCGExBreakClustersToPaths
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
+		TArray<bool> Breakpoints;
+		
 		TArray<PCGExCluster::FNodeChain*> Chains;
+		
 		const FPCGExBreakClustersToPathsContext* LocalTypedContext = nullptr;
 		const UPCGExBreakClustersToPathsSettings* LocalSettings = nullptr;
 
@@ -98,7 +100,6 @@ namespace PCGExBreakClustersToPaths
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
-			DefaultVtxFilterValue = false;
 			bCacheVtxPointIndices = true;
 		}
 

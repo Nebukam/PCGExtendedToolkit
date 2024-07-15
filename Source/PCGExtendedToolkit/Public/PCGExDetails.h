@@ -308,9 +308,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalTolerance"))
 	FPCGAttributePropertyInputSelector LocalTolerance;
 
-	PCGEx::FLocalSingleFieldGetter* LocalToleranceGetter = nullptr;
-	PCGEx::FLocalVectorGetter* LocalToleranceVectorGetter = nullptr;
-
 	bool IsWithinTolerance(const double DistSquared) const
 	{
 		return FMath::IsWithin<double, double>(DistSquared, 0, Tolerance * Tolerance);

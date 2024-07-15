@@ -19,7 +19,7 @@ enum class EPCGExOrientUsage : uint8
 
 namespace PCGExOrient
 {
-	static double DotProduct(const PCGEx::FPointRef& CurrentPt, const PCGEx::FPointRef& PreviousPt, const PCGEx::FPointRef& NextPt)
+	static double DotProduct(const PCGExData::FPointRef& CurrentPt, const PCGExData::FPointRef& PreviousPt, const PCGExData::FPointRef& NextPt)
 	{
 		const FVector Mid = CurrentPt.Point->Transform.GetLocation();
 		return FVector::DotProduct((PreviousPt.Point->Transform.GetLocation() - Mid).GetSafeNormal(), (Mid - NextPt.Point->Transform.GetLocation()).GetSafeNormal());

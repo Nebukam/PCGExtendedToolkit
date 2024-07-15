@@ -38,8 +38,8 @@ void UPCGExSubPointsBlendOperation::PrepareForData(
 }
 
 void UPCGExSubPointsBlendOperation::ProcessSubPoints(
-	const PCGEx::FPointRef& Start,
-	const PCGEx::FPointRef& End,
+	const PCGExData::FPointRef& Start,
+	const PCGExData::FPointRef& End,
 	const TArrayView<FPCGPoint>& SubPoints,
 	const PCGExMath::FPathMetricsSquared& Metrics) const
 {
@@ -64,8 +64,8 @@ void UPCGExSubPointsBlendOperation::ProcessSubPoints(
 }
 
 void UPCGExSubPointsBlendOperation::BlendSubPoints(
-	const PCGEx::FPointRef& StartPoint,
-	const PCGEx::FPointRef& EndPoint,
+	const PCGExData::FPointRef& StartPoint,
+	const PCGExData::FPointRef& EndPoint,
 	const TArrayView<FPCGPoint>& SubPoints,
 	const PCGExMath::FPathMetricsSquared& Metrics,
 	PCGExDataBlending::FMetadataBlender* InBlender) const
@@ -77,7 +77,7 @@ void UPCGExSubPointsBlendOperation::BlendSubPoints(const TArrayView<FPCGPoint>& 
 	const FPCGPoint& Start = SubPoints[0];
 	const int32 LastIndex = SubPoints.Num() - 1;
 	const FPCGPoint& End = SubPoints[LastIndex];
-	BlendSubPoints(PCGEx::FPointRef(Start, Offset), PCGEx::FPointRef(End, Offset + LastIndex), SubPoints, Metrics, InBlender);
+	BlendSubPoints(PCGExData::FPointRef(Start, Offset), PCGExData::FPointRef(End, Offset + LastIndex), SubPoints, Metrics, InBlender);
 }
 
 void UPCGExSubPointsBlendOperation::Cleanup()

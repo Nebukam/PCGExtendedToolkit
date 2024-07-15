@@ -3,7 +3,7 @@
 
 #include "Paths/Orient/PCGExOrientAverage.h"
 
-FTransform UPCGExOrientAverage::ComputeOrientation(const PCGEx::FPointRef& Point, const PCGEx::FPointRef& Previous, const PCGEx::FPointRef& Next, const double DirectionMultiplier) const
+FTransform UPCGExOrientAverage::ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const
 {
 	const FVector PrevPos = Previous.Point->Transform.GetLocation();
 	const FVector NextPos = Next.Point->Transform.GetLocation();

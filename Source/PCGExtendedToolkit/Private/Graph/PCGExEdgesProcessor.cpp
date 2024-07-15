@@ -13,9 +13,6 @@
 
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-bool UPCGExEdgesProcessorSettings::SupportsVtxFilters() const { return !GetVtxFilterLabel().IsNone(); }
-bool UPCGExEdgesProcessorSettings::SupportsEdgesFilters() const { return !GetEdgesFilterLabel().IsNone(); }
-
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
 bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }
@@ -24,8 +21,6 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() con
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", Required, {})
-	if (SupportsVtxFilters()) { PCGEX_PIN_PARAMS(GetVtxFilterLabel(), "Vtx filters", Advanced, {}) }
-	if (SupportsEdgesFilters()) { PCGEX_PIN_PARAMS(GetEdgesFilterLabel(), "Edges filters", Advanced, {}) }
 	return PinProperties;
 }
 
@@ -47,9 +42,6 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE(CurrentCluster)
 
 	PCGEX_DELETE_TARRAY(Batches)
-
-	VtxFilterFactories.Empty();
-	EdgeFilterFactories.Empty();
 
 	EndpointsLookup.Empty();
 }
@@ -300,20 +292,6 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
 		return false;
-	}
-
-	if (Settings->SupportsVtxFilters())
-	{
-		GetInputFactories(
-			InContext, Settings->GetVtxFilterLabel(), Context->VtxFilterFactories,
-			PCGExFactories::ClusterNodeFilters, false);
-	}
-
-	if (Settings->SupportsEdgesFilters())
-	{
-		GetInputFactories(
-			InContext, Settings->GetEdgesFilterLabel(), Context->EdgeFilterFactories,
-			PCGExFactories::ClusterNodeFilters, false);
 	}
 
 	return true;
