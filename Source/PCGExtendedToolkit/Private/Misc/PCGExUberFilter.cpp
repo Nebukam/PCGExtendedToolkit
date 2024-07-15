@@ -123,7 +123,6 @@ namespace PCGExUberFilter
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(FilterManager)
 		PCGEX_DELETE(Inside)
 		PCGEX_DELETE(Outside)
 	}
@@ -138,9 +137,8 @@ namespace PCGExUberFilter
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		PointDataFacade->bSupportsDynamic = true;
-		
-		FilterManager = new PCGExPointFilter::TManager(PointDataFacade);
-		if (!FilterManager->Init(Context, TypedContext->FilterFactories)) { return false; }
+
+		if (!InitPrimaryFilters(&TypedContext->FilterFactories)) { return false; }
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
@@ -152,21 +150,22 @@ namespace PCGExUberFilter
 		}
 
 		TestTaskGroup = AsyncManager->CreateGroup();
-		TestTaskGroup->SetOnIterationRangeStartCallback([&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-		{
-			PointDataFacade->Fetch(StartIndex, Count);
-		});
-		
+		TestTaskGroup->SetOnIterationRangeStartCallback(
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				PointDataFacade->Fetch(StartIndex, Count);
+			});
+
 		if (Results)
 		{
 			TestTaskGroup->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { Results->Values[Index] = FilterManager->Test(Index); },
+				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { Results->Values[Index] = PrimaryFilters->Test(Index); },
 				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
 		}
 		else
 		{
 			TestTaskGroup->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { PointFilterCache[Index] = FilterManager->Test(Index); },
+				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { PointFilterCache[Index] = PrimaryFilters->Test(Index); },
 				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
 		}
 
@@ -178,8 +177,6 @@ namespace PCGExUberFilter
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUberFilterProcessor::CompleteWork);
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(UberFilter)
-
-		PCGEX_DELETE(FilterManager)
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{

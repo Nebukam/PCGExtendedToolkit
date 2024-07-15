@@ -93,7 +93,6 @@ namespace PCGExUberFilter
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
 
-		PCGExPointFilter::TManager* FilterManager = nullptr;
 		FPCGExUberFilterContext* LocalTypedContext = nullptr;
 
 		PCGExMT::FTaskGroup* TestTaskGroup = nullptr;

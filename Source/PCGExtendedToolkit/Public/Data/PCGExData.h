@@ -235,6 +235,8 @@ namespace PCGExData
 				bDynamicCache = true;
 				DynamicBroadcaster = Getter;
 				Attribute = Getter->Attribute;
+
+				PCGEX_SET_NUM_UNINITIALIZED(Values, Source->GetNum())
 			}
 		}
 
@@ -403,10 +405,9 @@ namespace PCGExData
 				PCGEX_DELETE(Getter)
 				return nullptr;
 			}
-
+			
 			FCache<T>* Cache = GetCache<T>(Getter->FullName);
 			Cache->SetDynamicGetter(Getter);
-			PCGEX_DELETE(Getter)
 
 			return Cache;
 		}

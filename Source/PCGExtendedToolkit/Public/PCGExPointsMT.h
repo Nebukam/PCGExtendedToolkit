@@ -278,18 +278,18 @@ namespace PCGExPointsMT
 		}
 
 	protected:
-		virtual void InitPrimaryFilters(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
+		virtual bool InitPrimaryFilters(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
 		{
 			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
+			
 			if (InFilterFactories->IsEmpty())
 			{
 				for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
+				return true;
 			}
-			else
-			{
-				PrimaryFilters = new PCGExPointFilter::TManager(PointDataFacade);
-				PrimaryFilters->Init(Context, *InFilterFactories);
-			}
+
+			PrimaryFilters = new PCGExPointFilter::TManager(PointDataFacade);
+			return PrimaryFilters->Init(Context, *InFilterFactories);
 		}
 
 		virtual void FilterScope(const int32 StartIndex, const int32 Count)
