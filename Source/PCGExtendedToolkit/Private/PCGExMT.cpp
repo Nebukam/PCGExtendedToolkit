@@ -66,10 +66,20 @@ namespace PCGExMT
 		}
 	}
 
+	void FTaskGroup::PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize)
+	{
+		StartRanges<FGroupPrepareRangeTask>(MaxItems, ChunkSize, nullptr);
+	}
+
 	void FTaskGroup::DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
 	{
-		if (bHasOnIterationRangeStartCallback) { OnIterationRangeStartCallback(StartIndex, Count, LoopIdx); }
+		PrepareRangeIteration(StartIndex, Count, LoopIdx);
 		for (int i = 0; i < Count; i++) { OnIterationCallback(StartIndex + i, Count, LoopIdx); }
+	}
+
+	void FTaskGroup::PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
+	{
+		if (bHasOnIterationRangeStartCallback) { OnIterationRangeStartCallback(StartIndex, Count, LoopIdx); }
 	}
 
 	void FTaskGroup::InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize)
@@ -87,6 +97,13 @@ namespace PCGExMT
 	{
 		check(Group)
 		Group->DoRangeIteration(PCGEx::H64A(Scope), PCGEx::H64B(Scope), TaskIndex);
+		return true;
+	}
+
+	bool FGroupPrepareRangeTask::ExecuteTask()
+	{
+		check(Group)
+		Group->PrepareRangeIteration(PCGEx::H64A(Scope), PCGEx::H64B(Scope), TaskIndex);
 		return true;
 	}
 

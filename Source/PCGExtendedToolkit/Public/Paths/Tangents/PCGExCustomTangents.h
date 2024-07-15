@@ -9,11 +9,11 @@
 #include "PCGExCustomTangents.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
+struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSingleTangentParams()
+	FPCGExSingleTangentConfig()
 	{
 		Direction.Update("$Transform.Backward");
 	}
@@ -72,18 +72,18 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCustomTangents : public UPCGExTangentsOperati
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExSingleTangentParams Arrive;
+	FPCGExSingleTangentConfig Arrive;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bMirror = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bMirror"))
-	FPCGExSingleTangentParams Leave;
+	FPCGExSingleTangentConfig Leave;
 
 	virtual void PrepareForData(PCGExData::FPointIO* InPointIO) override;
-	virtual void ProcessFirstPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const override;
-	virtual void ProcessLastPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const override;
-	virtual void ProcessPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const override;
+	virtual void ProcessFirstPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const override;
+	virtual void ProcessLastPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const override;
+	virtual void ProcessPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const override;
 
 	virtual void Cleanup() override;
 };

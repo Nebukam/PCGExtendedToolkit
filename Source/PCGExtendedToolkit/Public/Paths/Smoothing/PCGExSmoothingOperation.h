@@ -25,7 +25,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExOperation
 public:
 	virtual void SmoothSingle(
 		PCGExData::FPointIO* Path,
-		PCGEx::FPointRef& Target,
+		PCGExData::FPointRef& Target,
 		const double Smoothing,
 		const double Influence,
 		PCGExDataBlending::FMetadataBlender* MetadataBlender,

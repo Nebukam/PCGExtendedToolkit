@@ -260,7 +260,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
 		Context->Blending->BlendSubPoints(
-			PCGEx::FPointRef(StartPoint, StartIndex), PCGEx::FPointRef(EndPoint, EndIndex),
+			PCGExData::FPointRef(StartPoint, StartIndex), PCGExData::FPointRef(EndPoint, EndIndex),
 			View, MilestonesMetrics[i], TempBlender);
 	}
 

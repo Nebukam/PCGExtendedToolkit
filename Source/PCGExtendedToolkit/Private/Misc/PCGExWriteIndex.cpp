@@ -68,11 +68,11 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputNormalizedIndex)
 		{
-			DoubleWriter = PointDataFacade->GetOrCreateWriter<double>(Settings->OutputAttributeName, false);
+			DoubleWriter = PointDataFacade->GetWriter<double>(Settings->OutputAttributeName, false);
 		}
 		else
 		{
-			IntWriter = PointDataFacade->GetOrCreateWriter<int32>(Settings->OutputAttributeName, false);
+			IntWriter = PointDataFacade->GetWriter<int32>(Settings->OutputAttributeName, false);
 		}
 
 		return true;

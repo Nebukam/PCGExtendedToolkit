@@ -11,7 +11,12 @@
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExSimplifyClustersSettings::GetVtxFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
+TArray<FPCGPinProperties> UPCGExSimplifyClustersSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, "Anchor points (won't be affected by the simplification)", Advanced, {})
+	return PinProperties;
+}
 
 #pragma endregion
 
@@ -31,6 +36,10 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(GraphBuilderDetails)
 	Context->GraphBuilderDetails.bPruneIsolatedPoints = true;
 
+	GetInputFactories(
+		InContext, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories,
+		PCGExFactories::ClusterNodeFilters, false);
+	
 	return true;
 }
 
@@ -83,21 +92,31 @@ namespace PCGExSimplifyClusters
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+		PCGEX_SET_NUM_UNINITIALIZED(Breakpoints, Cluster->Nodes->Num())
 
-		for (int i = 0; i < NodesRef.Num(); i++) { if (NodesRef[i].IsComplex()) { VtxFilterCache[i] = true; } }
+		if (!TypedContext->FilterFactories.IsEmpty())
+		{
+			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster, VtxDataFacade, EdgeDataFacade);
+			FilterManager->Init(Context, TypedContext->FilterFactories);
+			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
+			PCGEX_DELETE(FilterManager)
+		}
+		else
+		{
+			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex(); }
+		}
 
 		if (IsTrivial())
 		{
 			AsyncManagerPtr->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
 				EdgesIO->IOIndex, nullptr, Cluster,
-				&VtxFilterCache, &Chains, false, false);
+				&Breakpoints, &Chains, false, false);
 		}
 		else
 		{
 			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
 				EdgesIO->IOIndex, nullptr, Cluster,
-				&VtxFilterCache, &Chains, false, false);
+				&Breakpoints, &Chains, false, false);
 		}
 
 		return true;

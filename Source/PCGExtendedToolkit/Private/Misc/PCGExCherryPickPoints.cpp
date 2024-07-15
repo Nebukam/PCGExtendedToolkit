@@ -21,6 +21,52 @@ FPCGExCherryPickPointsContext::~FPCGExCherryPickPointsContext()
 {
 }
 
+bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const PCGExData::FPointIO* InSource, TArray<int32>& OutUniqueIndices, int32 MaxIndex) const
+{
+	PCGEX_SETTINGS_LOCAL(CherryPickPoints)
+
+	TArray<int32> SourceIndices;
+	TSet<int32> UniqueIndices;
+	PCGEx::FLocalIntegerGetter* Getter = new PCGEx::FLocalIntegerGetter();
+	Getter->Capture(Settings->ReadIndexFromAttribute);
+
+	int32 Min = 0;
+	int32 Max = 0;
+
+	if (!Getter->GrabAndDump(InSource, SourceIndices, false, Min, Max))
+	{
+		PCGEX_DELETE(Getter)
+		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Index attribute is invalid."));
+		return false;
+	}
+
+	if (MaxIndex == -1)
+	{
+		for (const int32 Value : Getter->Values)
+		{
+			if (Value < 0) { continue; }
+			UniqueIndices.Add(Value);
+		}
+	}
+	else
+	{
+		for (int32& Value : Getter->Values)
+		{
+			Value = PCGExMath::SanitizeIndex(Value, MaxIndex, Settings->Safety);
+			if (Value < 0) { continue; }
+			UniqueIndices.Add(Value);
+		}
+	}
+
+	PCGEX_DELETE(Getter)
+
+	OutUniqueIndices.Reserve(UniqueIndices.Num());
+	OutUniqueIndices.Append(UniqueIndices.Array());
+	OutUniqueIndices.Sort();
+
+	return true;
+}
+
 bool FPCGExCherryPickPointsElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -29,32 +75,16 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->IndicesSource == EPCGExCherryPickSource::Target)
 	{
-		PCGExData::FPointIO* Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
+		const PCGExData::FPointIO* Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
 		if (!Targets) { return false; }
 
-		TSet<int32> UniqueIndices;
-		PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
-		Getter->Capture(Settings->ReadIndexFromAttribute);
-
-		if (!Getter->Grab(Targets))
+		if (!Context->TryGetUniqueIndices(Targets, Context->SharedTargetIndices))
 		{
 			PCGEX_DELETE(Targets)
-			PCGEX_DELETE(Getter)
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Could not find any paths to fuse."));
 			return false;
 		}
 
-		for (const double Value : Getter->Values)
-		{
-			if (Value < 0) { continue; }
-			UniqueIndices.Add(Value);
-		}
-
 		PCGEX_DELETE(Targets)
-		PCGEX_DELETE(Getter)
-
-		Context->SharedTargetIndices.Append(UniqueIndices.Array());
-		Context->SharedTargetIndices.Sort();
 	}
 
 
@@ -99,41 +129,21 @@ namespace PCGExCherryPickPoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCherryPickPoints::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CherryPickPoints)
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		const int32 MaxIndex = PointIO->GetNum() - 1;
 		if (Settings->IndicesSource == EPCGExCherryPickSource::Self)
 		{
-			TSet<int32> UniqueIndices;
-			PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
-			Getter->Capture(Settings->ReadIndexFromAttribute);
-			if (!Getter->Grab(PointIO))
-			{
-				PCGEX_DELETE(Getter)
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Could not find any paths to fuse."));
-				return false;
-			}
-
-			const int32 MaxIndex = PointIO->GetNum();
-			for (const double Value : Getter->Values)
-			{
-				if (!FMath::IsWithin(Value, 0, MaxIndex)) { continue; }
-				UniqueIndices.Add(Value);
-			}
-
-			PCGEX_DELETE(Getter)
-
-			PickedIndices.Reserve(UniqueIndices.Num());
-			PickedIndices.Append(UniqueIndices.Array());
-			PickedIndices.Sort();
+			if (!TypedContext->TryGetUniqueIndices(PointIO, PickedIndices, MaxIndex)) { return false; }
 		}
 		else
 		{
-			const int32 MaxIndex = PointIO->GetNum();
-			for (const double Value : TypedContext->SharedTargetIndices)
+			for (const int32 Value : TypedContext->SharedTargetIndices)
 			{
-				if (Value >= MaxIndex) { continue; }
-				PickedIndices.Add(Value);
+				const int32 SanitizedIndex = PCGExMath::SanitizeIndex(Value, MaxIndex, Settings->Safety);
+				if (SanitizedIndex < 0) { continue; }
+				PickedIndices.Add(SanitizedIndex);
 			}
 		}
 

@@ -3,6 +3,8 @@
 
 #include "Paths/PCGExWritePathProperties.h"
 
+#include "PCGExDataMath.h"
+
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties
 
@@ -86,14 +88,8 @@ namespace PCGExWritePathProperties
 		const int32 NumPoints = InPoints.Num();
 		TArray<FVector> Normals;
 
-		const FVector StaticUp = Settings->UpVector;
-		PCGEx::FLocalVectorGetter* Up = new PCGEx::FLocalVectorGetter();
-
-		if (Settings->bUseLocalUpVector)
-		{
-			Up->Capture(Settings->LocalUpVector);
-			Up->Grab(PointIO);
-		}
+		const FVector UpConstant = Settings->UpVector;
+		const PCGExData::FCache<FVector>* UpGetter = Settings->bUseLocalUpVector ? PointDataFacade->GetBroadcaster<FVector>(Settings->LocalUpVector) : nullptr;
 
 		Positions.SetNum(NumPoints);
 		Normals.SetNum(NumPoints);
@@ -110,15 +106,6 @@ namespace PCGExWritePathProperties
 		};
 
 		for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
-
-		auto NRM = [&](const int32 A, const int32 B, const int32 C)-> FVector
-		{
-			const FVector VA = Positions[A];
-			const FVector VB = Positions[B];
-			const FVector VC = Positions[C];
-			const FVector UpAverage = ((Up->SafeGet(A, StaticUp) + Up->SafeGet(B, StaticUp) + Up->SafeGet(C, StaticUp)) / 3).GetSafeNormal();
-			return FMath::Lerp(PCGExMath::GetNormal(VA, VB, VB + UpAverage), PCGExMath::GetNormal(VB, VC, VC + UpAverage), 0.5).GetSafeNormal();
-		};
 
 		PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(Positions[0]);
 
@@ -139,7 +126,7 @@ namespace PCGExWritePathProperties
 		{
 			CheckConvex(i - 1, i, i + 1);
 			const double TraversedDistance = Metrics.Add(Positions[i]);
-			PCGEX_OUTPUT_VALUE(PointNormal, i, NRM(i - 1, i, i + 1));
+			PCGEX_OUTPUT_VALUE(PointNormal, i, PCGExMath::NRM(i - 1, i, i + 1, Positions, UpGetter, UpConstant));
 			PCGEX_OUTPUT_VALUE(DirectionToNext, i, (Positions[i] - Positions[i + 1]).GetSafeNormal());
 			PCGEX_OUTPUT_VALUE(DirectionToPrev, i, (Positions[i - 1] - Positions[i]).GetSafeNormal());
 			PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
@@ -169,13 +156,13 @@ namespace PCGExWritePathProperties
 			PCGEX_OUTPUT_VALUE(DistanceToNext, LastIndex, FVector::Dist(Positions[LastIndex], Positions[0]));
 			PCGEX_OUTPUT_VALUE(DistanceToPrev, 0, FVector::Dist(Positions[0], Positions[LastIndex]));
 
-			PCGEX_OUTPUT_VALUE(PointNormal, 0, NRM(LastIndex, 0, 1));
-			PCGEX_OUTPUT_VALUE(PointNormal, LastIndex, NRM(NumPoints - 2, LastIndex, 0));
+			PCGEX_OUTPUT_VALUE(PointNormal, 0, PCGExMath::NRM(LastIndex, 0, 1, Positions, UpGetter, UpConstant));
+			PCGEX_OUTPUT_VALUE(PointNormal, LastIndex, PCGExMath::NRM(NumPoints - 2, LastIndex, 0, Positions, UpGetter, UpConstant));
 		}
 		else
 		{
-			PCGEX_OUTPUT_VALUE(PointNormal, 0, NRM(0, 0, 1));
-			PCGEX_OUTPUT_VALUE(PointNormal, LastIndex, NRM(NumPoints - 2, LastIndex, LastIndex));
+			PCGEX_OUTPUT_VALUE(PointNormal, 0, PCGExMath::NRM(0, 0, 1, Positions, UpGetter, UpConstant));
+			PCGEX_OUTPUT_VALUE(PointNormal, LastIndex, PCGExMath::NRM(NumPoints - 2, LastIndex, LastIndex, Positions, UpGetter, UpConstant));
 		}
 
 		PCGExMath::FPathMetrics SecondMetrics = PCGExMath::FPathMetrics(Positions[0]);

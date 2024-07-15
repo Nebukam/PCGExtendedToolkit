@@ -20,6 +20,7 @@
 #define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
 #define PCGEX_DELETE_TARRAY_FULL(_VALUE) if(_VALUE){ for(const auto* Item : (*_VALUE)){ delete Item; } PCGEX_DELETE(_VALUE); }
 #define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
+#define PCGEX_DELETE_FACADE_AND_SOURCE(_VALUE) if(_VALUE){ PCGEX_DELETE(_VALUE->Source) PCGEX_DELETE(_VALUE) }
 
 #define PCGEX_FOREACH_XYZ(MACRO)\
 MACRO(X)\

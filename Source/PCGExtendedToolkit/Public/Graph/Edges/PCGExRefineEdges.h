@@ -121,7 +121,7 @@ namespace PCGExRefineEdges
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
 			: FClusterProcessor(InVtx, InEdges)
 		{
-			DefaultVtxFilterValue = false;
+			
 		}
 
 		virtual ~FProcessor() override;

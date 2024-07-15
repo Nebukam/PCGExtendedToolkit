@@ -6,6 +6,13 @@
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"
 #define PCGEX_NAMESPACE BreakClustersToPaths
 
+TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, "Break points", Advanced, {})
+	return PinProperties;
+}
+
 TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -15,9 +22,6 @@ TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::OutputPinPropertie
 
 PCGExData::EInit UPCGExBreakClustersToPathsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExBreakClustersToPathsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-
-FName UPCGExBreakClustersToPathsSettings::GetVtxFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
-
 
 PCGEX_INITIALIZE_ELEMENT(BreakClustersToPaths)
 
@@ -37,6 +41,10 @@ bool FPCGExBreakClustersToPathsElement::Boot(FPCGContext* InContext) const
 
 	Context->Paths = new PCGExData::FPointIOCollection();
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
+
+	GetInputFactories(
+		InContext, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories,
+		PCGExFactories::ClusterNodeFilters, false);
 
 	return true;
 }
@@ -79,6 +87,7 @@ namespace PCGExBreakClustersToPaths
 {
 	FProcessor::~FProcessor()
 	{
+		Breakpoints.Empty();
 		PCGEX_DELETE_TARRAY(Chains)
 		Paths.Empty();
 	}
@@ -93,15 +102,25 @@ namespace PCGExBreakClustersToPaths
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
+		PCGEX_SET_NUM_UNINITIALIZED(Breakpoints, Cluster->Nodes->Num())
+
+		if (!TypedContext->FilterFactories.IsEmpty())
+		{
+			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster, VtxDataFacade, EdgeDataFacade);
+			FilterManager->Init(Context, TypedContext->FilterFactories);
+			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
+			PCGEX_DELETE(FilterManager)
+		}
+		else
+		{
+			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex(); }
+		}
 
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
-			for (int i = 0; i < NodesRef.Num(); i++) { if (NodesRef[i].IsComplex()) { VtxFilterCache[i] = true; } }
-
 			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
 				EdgesIO->IOIndex, nullptr, Cluster,
-				&VtxFilterCache, &Chains, false);
+				&Breakpoints, &Chains, false);
 		}
 		else
 		{

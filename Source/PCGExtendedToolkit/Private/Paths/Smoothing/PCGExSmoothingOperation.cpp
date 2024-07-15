@@ -9,7 +9,7 @@
 
 void UPCGExSmoothingOperation::SmoothSingle(
 	PCGExData::FPointIO* Path,
-	PCGEx::FPointRef& Target,
+	PCGExData::FPointRef& Target,
 	const double Smoothing,
 	const double Influence,
 	PCGExDataBlending::FMetadataBlender* MetadataBlender,

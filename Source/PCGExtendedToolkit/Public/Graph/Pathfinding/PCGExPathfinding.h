@@ -139,13 +139,13 @@ namespace PCGExPathfinding
 	};
 
 	static void ProcessGoals(
-		const PCGExData::FPointIO* SeedIO,
+		const PCGExData::FFacade* InSeedDataFacade,
 		const UPCGExGoalPicker* GoalPicker,
 		TFunction<void(int32, int32)>&& GoalFunc)
 	{
-		for (int PointIndex = 0; PointIndex < SeedIO->GetNum(); PointIndex++)
+		for (int PointIndex = 0; PointIndex < InSeedDataFacade->Source->GetNum(); PointIndex++)
 		{
-			const PCGEx::FPointRef& Seed = SeedIO->GetInPointRef(PointIndex);
+			const PCGExData::FPointRef& Seed = InSeedDataFacade->Source->GetInPointRef(PointIndex);
 
 			if (GoalPicker->OutputMultipleGoals())
 			{

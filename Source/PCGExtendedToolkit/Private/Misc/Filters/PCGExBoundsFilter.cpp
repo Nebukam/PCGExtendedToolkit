@@ -25,8 +25,7 @@ PCGExPointFilter::TFilter* UPCGExBoundsFilterFactory::CreateFilter() const
 
 void UPCGExBoundsFilterFactory::BeginDestroy()
 {
-	if (BoundsDataFacade) { PCGEX_DELETE(BoundsDataFacade->Source) }
-	PCGEX_DELETE(BoundsDataFacade)
+	PCGEX_DELETE_FACADE_AND_SOURCE(BoundsDataFacade)
 	Super::BeginDestroy();
 }
 

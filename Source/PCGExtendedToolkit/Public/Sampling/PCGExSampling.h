@@ -29,7 +29,7 @@ if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_
 
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){(*_NAME##Writer)[_INDEX] = _VALUE; }
 #define PCGEX_OUTPUT_ACCESSOR_INIT(_NAME, _TYPE) if(_NAME##Writer){_NAME##Writer->BindAndSetNumUninitialized(OutputIO);}
-#define PCGEX_OUTPUT_INIT(_NAME, _TYPE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetOrCreateWriter<_TYPE>(Settings->_NAME##AttributeName, true); }
+#define PCGEX_OUTPUT_INIT(_NAME, _TYPE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWriter<_TYPE>(Settings->_NAME##AttributeName, true); }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))
 enum class EPCGExSampleMethod : uint8

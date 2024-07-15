@@ -109,6 +109,7 @@ namespace PCGExClusterMT
 		bool bInlineProcessEdges = false;
 		bool bInlineProcessRange = false;
 
+
 		int32 NumNodes = 0;
 		int32 NumEdges = 0;
 
@@ -130,17 +131,15 @@ namespace PCGExClusterMT
 		PCGExData::FFacade* VtxDataFacade = nullptr;
 		PCGExData::FFacade* EdgeDataFacade = nullptr;
 
+		bool bAllowFetchOnEdgesDataFacade = false;
+
 		bool bIsProcessorValid = false;
 
 		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
-		const TArray<UPCGExFilterFactoryBase*>* VtxFilterFactories = nullptr;
-		bool DefaultVtxFilterValue = false;
 		bool bIsSmallCluster = false;
 		bool bIsOneToOne = false;
 
-		TArray<bool> VtxFilterCache;
-		TArray<bool> EdgeFilterCache;
 		const TArray<int32>* VtxPointIndicesCache = nullptr;
 
 		FPCGContext* Context = nullptr;
@@ -161,6 +160,7 @@ namespace PCGExClusterMT
 		{
 			PCGEX_LOG_CTR(FClusterProcessor)
 			EdgeDataFacade = new PCGExData::FFacade(InEdges);
+			EdgeDataFacade->bSupportsDynamic = bAllowFetchOnEdgesDataFacade;
 		}
 
 		virtual ~FClusterProcessor()
@@ -173,9 +173,6 @@ namespace PCGExClusterMT
 			VtxIO = nullptr;
 			EdgesIO = nullptr;
 
-			VtxFilterCache.Empty();
-			EdgeFilterCache.Empty();
-
 			PCGEX_DELETE(EdgeDataFacade)
 		}
 
@@ -183,11 +180,6 @@ namespace PCGExClusterMT
 		T* GetContext() { return static_cast<T*>(Context); }
 
 		bool IsTrivial() const { return bIsSmallCluster; }
-
-		void SetVtxFilterFactories(const TArray<UPCGExFilterFactoryBase*>* InFactories)
-		{
-			VtxFilterFactories = InFactories;
-		}
 
 		void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
 
@@ -219,34 +211,7 @@ namespace PCGExClusterMT
 			NumNodes = Cluster->Nodes->Num();
 			NumEdges = Cluster->Edges->Num();
 
-#pragma region Vtx filter data
-
-			if (bCacheVtxPointIndices || VtxFilterFactories)
-			{
-				VtxPointIndicesCache = Cluster->GetVtxPointIndicesPtr();
-			}
-
-			if (VtxFilterFactories)
-			{
-				PCGEX_SET_NUM_UNINITIALIZED(VtxFilterCache, VtxPointIndicesCache->Num())
-
-				for (int i = 0; i < VtxPointIndicesCache->Num(); i++) { VtxFilterCache[i] = DefaultVtxFilterValue; }
-
-				PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster, VtxDataFacade, EdgeDataFacade);
-				FilterManager->Init(Context, *VtxFilterFactories);
-
-				const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-				for (const PCGExCluster::FNode& Node : NodesRef) { VtxFilterCache[Node.NodeIndex] = FilterManager->Test(Node); }
-
-				PCGEX_DELETE(FilterManager)
-			}
-			else
-			{
-				PCGEX_SET_NUM_UNINITIALIZED(VtxFilterCache, Cluster->Nodes->Num())
-				for (int i = 0; i < VtxFilterCache.Num(); i++) { VtxFilterCache[i] = DefaultVtxFilterValue; }
-			}
-
-#pragma endregion
+			if (bCacheVtxPointIndices) { VtxPointIndicesCache = Cluster->GetVtxPointIndicesPtr(); }
 
 			if (bRequiresHeuristics)
 			{
@@ -441,9 +406,6 @@ namespace PCGExClusterMT
 	protected:
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 
-		const TArray<UPCGExFilterFactoryBase*>* VtxFilterFactories = nullptr;
-		const TArray<UPCGExFilterFactoryBase*>* EdgeFilterFactories = nullptr; //TODO
-
 		TMap<uint32, int32> EndpointsLookup;
 		TArray<int32> ExpectedAdjacency;
 
@@ -452,6 +414,7 @@ namespace PCGExClusterMT
 
 	public:
 		PCGExData::FFacade* VtxDataFacade = nullptr;
+		bool bAllowFetchOnVtxDataFacade = false;
 
 		bool bRequiresWriteStep = false;
 		bool bWriteVtxDataFacade = false;
@@ -471,11 +434,6 @@ namespace PCGExClusterMT
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
-		void SetVtxFilterFactories(const TArray<UPCGExFilterFactoryBase*>* InVtxFilterFactories)
-		{
-			VtxFilterFactories = InVtxFilterFactories;
-		}
-
 		bool RequiresGraphBuilder() const { return bRequiresGraphBuilder; }
 		bool RequiresHeuristics() const { return bRequiresHeuristics; }
 		virtual void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
@@ -488,6 +446,7 @@ namespace PCGExClusterMT
 		{
 			Edges.Append(InEdges);
 			VtxDataFacade = new PCGExData::FFacade(InVtx);
+			VtxDataFacade->bSupportsDynamic = bAllowFetchOnVtxDataFacade;
 		}
 
 		virtual ~FClusterProcessorBatchBase()
@@ -596,7 +555,7 @@ namespace PCGExClusterMT
 
 			ClosedBatchProcessors.Empty();
 		}
-		
+
 		virtual bool PrepareProcessing() override
 		{
 			return FClusterProcessorBatchBase::PrepareProcessing();
@@ -629,8 +588,6 @@ namespace PCGExClusterMT
 					PCGEX_DELETE(NewProcessor)
 					continue;
 				}
-
-				if (VtxFilterFactories) { NewProcessor->SetVtxFilterFactories(VtxFilterFactories); }
 
 				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 				{

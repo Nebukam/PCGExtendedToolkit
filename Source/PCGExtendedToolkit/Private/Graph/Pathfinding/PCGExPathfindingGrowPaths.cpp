@@ -14,7 +14,7 @@
 #define PCGEX_NAMESPACE PathfindingGrowPaths
 
 #define PCGEX_GROWTH_GRAB(_CONTEXT, _TARGET, _SOURCE, _TYPE, _ATTRIBUTE) \
-_TARGET = _SOURCE->GetOrCreateGetter<_TYPE>(_ATTRIBUTE); \
+_TARGET = _SOURCE->GetBroadcaster<_TYPE>(_ATTRIBUTE); \
 if (!_TARGET){	PCGE_LOG_C(Error, GraphAndLog, _CONTEXT, FTEXT("Missing specified " #_ATTRIBUTE " attribute."));	return false; }
 
 #if WITH_EDITOR
@@ -213,9 +213,7 @@ FPCGExPathfindingGrowPathsContext::~FPCGExPathfindingGrowPathsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	if (SeedsDataFacade) { PCGEX_DELETE(SeedsDataFacade->Source) }
-	PCGEX_DELETE(SeedsDataFacade)
-
+	PCGEX_DELETE_FACADE_AND_SOURCE(SeedsDataFacade)
 	PCGEX_DELETE(OutputPaths)
 
 	SeedAttributesToPathTags.Cleanup();
@@ -325,8 +323,8 @@ namespace PCGExGrowPaths
 			PCGEX_GROWTH_GRAB(Context, GrowthMaxDistance, VtxDataFacade, double, Settings->GrowthMaxDistanceAttribute)
 		}
 
-		GrowthStop = Settings->bUseGrowthStop ? VtxDataFacade->GetOrCreateGetter<bool>(Settings->GrowthStopAttribute) : nullptr;
-		NoGrowth = Settings->bUseNoGrowth ? VtxDataFacade->GetOrCreateGetter<bool>(Settings->NoGrowthAttribute) : nullptr;
+		GrowthStop = Settings->bUseGrowthStop ? VtxDataFacade->GetBroadcaster<bool>(Settings->GrowthStopAttribute) : nullptr;
+		NoGrowth = Settings->bUseNoGrowth ? VtxDataFacade->GetBroadcaster<bool>(Settings->NoGrowthAttribute) : nullptr;
 
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 

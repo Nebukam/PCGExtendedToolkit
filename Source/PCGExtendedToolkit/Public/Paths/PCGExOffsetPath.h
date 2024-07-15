@@ -90,13 +90,13 @@ namespace PCGExOffsetPath
 		int32 NumPoints = 0;
 
 		double OffsetConstant = 0;
-		FVector UpVector = FVector::UpVector;
+		FVector UpConstant = FVector::UpVector;
 
 		TArray<FVector> Positions;
 		TArray<FVector> Normals;
 
-		PCGEx::FLocalSingleFieldGetter* OffsetGetter = nullptr;
-		PCGEx::FLocalVectorGetter* UpGetter = nullptr;
+		PCGExData::FCache<double>* OffsetGetter = nullptr;
+		PCGExData::FCache<FVector>* UpGetter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

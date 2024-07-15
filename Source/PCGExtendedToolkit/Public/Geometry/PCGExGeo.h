@@ -60,7 +60,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 		if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
 		if (bLocalProjectionNormal && PointDataFacade)
 		{
-			NormalGetter = PointDataFacade->GetOrCreateGetter<FVector>(LocalNormal);
+			NormalGetter = PointDataFacade->GetBroadcaster<FVector>(LocalNormal);
 			if (!NormalGetter)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing normal attribute for projection."));

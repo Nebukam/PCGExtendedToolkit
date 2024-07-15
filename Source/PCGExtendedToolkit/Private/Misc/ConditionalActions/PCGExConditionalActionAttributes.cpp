@@ -28,7 +28,7 @@ bool UPCGExConditionalActionAttributesOperation::PrepareForData(const FPCGContex
 			{
 				using T = decltype(DummyValue);
 				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-				PCGEx::FAttributeIOBase<T>* Writer = InPointDataFacade->GetOrCreateWriter<T>(TypedAttribute, false);
+				PCGEx::FAttributeIOBase<T>* Writer = InPointDataFacade->GetWriter<T>(TypedAttribute, false);
 				SuccessAttributes.Add(AttributeBase);
 				SuccessWriters.Add(Writer);
 			});
@@ -41,7 +41,7 @@ bool UPCGExConditionalActionAttributesOperation::PrepareForData(const FPCGContex
 			{
 				using T = decltype(DummyValue);
 				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-				PCGEx::FAttributeIOBase<T>* Writer = InPointDataFacade->GetOrCreateWriter<T>(TypedAttribute, false);
+				PCGEx::FAttributeIOBase<T>* Writer = InPointDataFacade->GetWriter<T>(TypedAttribute, false);
 				FailAttributes.Add(AttributeBase);
 				FailWriters.Add(Writer);
 			});

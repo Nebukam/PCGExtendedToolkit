@@ -21,7 +21,7 @@ namespace PCGExNodeNeighborsCount
 
 		if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 		{
-			LocalCount = PointDataFacade->GetOrCreateGetter<double>(TypedFilterFactory->Config.LocalCount);
+			LocalCount = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.LocalCount);
 
 			if (!LocalCount)
 			{

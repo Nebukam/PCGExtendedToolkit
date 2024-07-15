@@ -69,8 +69,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 
 	virtual void Init(PCGExData::FFacade* InFacade)
 	{
-		if (bWriteDirection) { DirWriter = InFacade->GetOrCreateWriter<FVector>(DirectionAttribute, true); }
-		if (bWriteLength) { LengthWriter = InFacade->GetOrCreateWriter<double>(LengthAttribute, true); }
+		if (bWriteDirection) { DirWriter = InFacade->GetWriter<FVector>(DirectionAttribute, true); }
+		if (bWriteLength) { LengthWriter = InFacade->GetWriter<double>(LengthAttribute, true); }
 	}
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir)
@@ -143,9 +143,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 	virtual void Init(PCGExData::FFacade* InFacade) override
 	{
 		FPCGExSimpleEdgeOutputSettings::Init(InFacade);
-		if (bWriteEdgeIndex) { EIdxWriter = InFacade->GetOrCreateWriter<int32>(EdgeIndexAttribute, true); }
-		if (bWriteVtxIndex) { VIdxWriter = InFacade->GetOrCreateWriter<int32>(VtxIndexAttribute, true); }
-		if (bWriteNeighborCount) { NCountWriter = InFacade->GetOrCreateWriter<int32>(NeighborCountAttribute, true); }
+		if (bWriteEdgeIndex) { EIdxWriter = InFacade->GetWriter<int32>(EdgeIndexAttribute, true); }
+		if (bWriteVtxIndex) { VIdxWriter = InFacade->GetWriter<int32>(VtxIndexAttribute, true); }
+		if (bWriteNeighborCount) { NCountWriter = InFacade->GetWriter<int32>(NeighborCountAttribute, true); }
 	}
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount)

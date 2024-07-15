@@ -103,18 +103,21 @@ namespace PCGExSmooth
 		Influence.SetNum(NumPoints);
 		Smoothing.SetNum(NumPoints);
 
+		double Min = 0;
+		double Max = 0;
+
 		if (Settings->InfluenceType == EPCGExFetchType::Attribute)
 		{
 			PCGEx::FLocalSingleFieldGetter* InfluenceGetter = new PCGEx::FLocalSingleFieldGetter();
 			InfluenceGetter->Capture(Settings->InfluenceAttribute);
-			if (!InfluenceGetter->Grab(PointIO))
+
+			if (!InfluenceGetter->GrabAndDump(PointIO, Influence, false, Min, Max))
 			{
 				PCGEX_DELETE(InfluenceGetter)
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing influence attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
 				return false;
 			}
 
-			for (int i = 0; i < NumPoints; i++) { Influence[i] = InfluenceGetter->Values[i]; }
 			PCGEX_DELETE(InfluenceGetter)
 		}
 		else
@@ -126,15 +129,17 @@ namespace PCGExSmooth
 		{
 			PCGEx::FLocalSingleFieldGetter* SmoothingAmountGetter = new PCGEx::FLocalSingleFieldGetter();
 			SmoothingAmountGetter->Capture(Settings->InfluenceAttribute);
-			if (!SmoothingAmountGetter->Grab(PointIO))
+
+			if (!SmoothingAmountGetter->GrabAndDump(PointIO, Smoothing, false, Min, Max))
 			{
 				PCGEX_DELETE(SmoothingAmountGetter)
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing smoothing amount attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
 				return false;
 			}
-
-			for (int i = 0; i < NumPoints; i++) { Smoothing[i] = FMath::Clamp(SmoothingAmountGetter->Values[i], 0, TNumericLimits<double>::Max()) * Settings->ScaleSmoothingAmountAttribute; }
+			
 			PCGEX_DELETE(SmoothingAmountGetter)
+
+			for (double& Amount : Smoothing) { Amount = FMath::Clamp(Amount, 0, TNumericLimits<double>::Max()) * Settings->ScaleSmoothingAmountAttribute; }
 		}
 		else
 		{
@@ -155,7 +160,7 @@ namespace PCGExSmooth
 	{
 		if (!PointFilterCache[Index]) { return; }
 
-		PCGEx::FPointRef PtRef = PointIO->GetOutPointRef(Index);
+		PCGExData::FPointRef PtRef = PointIO->GetOutPointRef(Index);
 		TypedOperation->SmoothSingle(
 			PointIO, PtRef,
 			Smoothing[Index], Influence[Index],

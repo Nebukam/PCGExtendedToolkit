@@ -58,8 +58,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::BlendRange(
-		const PCGEx::FPointRef& A,
-		const PCGEx::FPointRef& B,
+		const PCGExData::FPointRef& A,
+		const PCGExData::FPointRef& B,
 		const int32 StartIndex,
 		const int32 Range,
 		const TArrayView<double>& Weights)
@@ -92,8 +92,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::BlendRangeFromTo(
-		const PCGEx::FPointRef& From,
-		const PCGEx::FPointRef& To,
+		const PCGExData::FPointRef& From,
+		const PCGExData::FPointRef& To,
 		const int32 StartIndex,
 		const TArrayView<double>& Weights)
 	{

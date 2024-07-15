@@ -384,12 +384,12 @@ namespace PCGExGraph
 
 		const FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 
-		const PCGEx::FPointRef A = PointIO->GetOutPointRef(SplitEdge.Start);
-		const PCGEx::FPointRef B = PointIO->GetOutPointRef(SplitEdge.End);
+		const PCGExData::FPointRef A = PointIO->GetOutPointRef(SplitEdge.Start);
+		const PCGExData::FPointRef B = PointIO->GetOutPointRef(SplitEdge.End);
 
 		for (const FPESplit Split : PointEdgeProxy.CollinearPoints)
 		{
-			const PCGEx::FPointRef Target = PointIO->GetOutPointRef(Graph->Nodes[Split.NodeIndex].PointIndex);
+			const PCGExData::FPointRef Target = PointIO->GetOutPointRef(Graph->Nodes[Split.NodeIndex].PointIndex);
 			FPCGPoint& Pt = PointIO->GetMutablePoint(Target.Index);
 
 			FVector PreBlendLocation = Pt.Transform.GetLocation();
@@ -491,13 +491,13 @@ namespace PCGExGraph
 	{
 		const FEECrossing* Crossing = Crossings[Index];
 
-		const PCGEx::FPointRef Target = PointIO->GetOutPointRef(Graph->Nodes[Crossing->NodeIndex].PointIndex);
+		const PCGExData::FPointRef Target = PointIO->GetOutPointRef(Graph->Nodes[Crossing->NodeIndex].PointIndex);
 		Blender->PrepareForBlending(Target);
 
-		const PCGEx::FPointRef A1 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeA].Start].PointIndex);
-		const PCGEx::FPointRef A2 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeA].End].PointIndex);
-		const PCGEx::FPointRef B1 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeB].Start].PointIndex);
-		const PCGEx::FPointRef B2 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeB].End].PointIndex);
+		const PCGExData::FPointRef A1 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeA].Start].PointIndex);
+		const PCGExData::FPointRef A2 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeA].End].PointIndex);
+		const PCGExData::FPointRef B1 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeB].Start].PointIndex);
+		const PCGExData::FPointRef B2 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeB].End].PointIndex);
 
 		Blender->Blend(Target, A1, Target, Crossing->Split.TimeA);
 		Blender->Blend(Target, A2, Target, 1 - Crossing->Split.TimeA);

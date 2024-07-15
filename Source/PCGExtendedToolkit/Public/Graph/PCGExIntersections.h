@@ -91,7 +91,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 		IntersectionForwardHandler = IntersectionForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
 		InsideForwardHandler = InsideForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
 
-#define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetOrCreateWriter( _NAME##AttributeName, _DEFAULT, false, false); }
+#define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetWriter( _NAME##AttributeName, _DEFAULT, false, false); }
 		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WRITER)
 #undef PCGEX_LOCAL_DETAIL_WRITER
 	}

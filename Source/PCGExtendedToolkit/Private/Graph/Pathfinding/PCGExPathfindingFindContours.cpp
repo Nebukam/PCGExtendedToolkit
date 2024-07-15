@@ -230,8 +230,7 @@ FPCGExFindContoursContext::~FPCGExFindContoursContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	if (SeedsDataFacade) { PCGEX_DELETE(SeedsDataFacade->Source) }
-	PCGEX_DELETE(SeedsDataFacade)
+	PCGEX_DELETE_FACADE_AND_SOURCE(SeedsDataFacade)
 
 	PCGEX_DELETE(Paths)
 

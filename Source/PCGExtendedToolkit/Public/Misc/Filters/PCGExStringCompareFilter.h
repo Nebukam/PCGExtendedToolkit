@@ -26,7 +26,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterConfig
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName OperandA;
+	FName OperandA = NAME_None;
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -38,7 +38,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterConfig
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
-	FName OperandB;
+	FName OperandB = NAME_None;
 
 	/** Operand B for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))

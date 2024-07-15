@@ -148,6 +148,9 @@ namespace PCGExConnectPoints
 
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		PCGExPointFilter::TManager* GeneratorsFilter = nullptr;
+		PCGExPointFilter::TManager* ConnectableFilter = nullptr;
+		
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		TArray<UPCGExProbeOperation*> ProbeOperations;
 		TArray<UPCGExProbeOperation*> DirectProbeOperations;
@@ -179,6 +182,7 @@ namespace PCGExConnectPoints
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		void OnPreparationComplete();
 		virtual void PrepareLoopScopesForPoints(const TArray<uint64>& Loops) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

@@ -13,48 +13,37 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 	if (TypedOther)
 	{
 		GoalCount = TypedOther->GoalCount;
-		Attribute = TypedOther->Attribute;
-		Attributes = TypedOther->Attributes;
+		SingleSelector = TypedOther->SingleSelector;
+		AttributeSelectors = TypedOther->AttributeSelectors;
 	}
 }
 
-void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO* InSeeds, const PCGExData::FPointIO* InGoals)
+void UPCGExGoalPickerAttribute::PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade)
 {
-	Super::PrepareForData(InSeeds, InGoals);
+	Super::PrepareForData(InSeedsDataFacade, InGoalsDataFacade);
 
 	if (GoalCount == EPCGExGoalPickAttributeAmount::Single)
 	{
-		AttributeGetter.Config = FPCGExInputConfig(Attribute);
-		AttributeGetter.Grab(InSeeds);
+		SingleGetter = InSeedsDataFacade->GetBroadcaster<double>(SingleSelector);
 	}
 	else
 	{
-		AttributeGetters.Reset(Attributes.Num());
-		for (const FPCGAttributePropertyInputSelector& Config : Attributes)
-		{
-			PCGEx::FLocalSingleFieldGetter& Getter = AttributeGetters.Emplace_GetRef();
-			Getter.Config = FPCGExInputConfig(Config);
-			Getter.Grab(InSeeds);
-		}
+		AttributeGetters.Reset(AttributeSelectors.Num());
+		for (const FPCGAttributePropertyInputSelector& Selector : AttributeSelectors) { AttributeGetters.Add(InSeedsDataFacade->GetBroadcaster<double>(Selector)); }
 	}
 }
 
-int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGEx::FPointRef& Seed) const
+int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGExData::FPointRef& Seed) const
 {
-	return PCGExMath::SanitizeIndex(
-		static_cast<int32>(AttributeGetter.SafeGet(Seed.Index, -1)),
-		MaxGoalIndex, IndexSafety);
+	return PCGExMath::SanitizeIndex(static_cast<int32>(SingleGetter ? SingleGetter->Values[Seed.Index] : -1), MaxGoalIndex, IndexSafety);
 }
 
-void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const
+void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
-	for (PCGEx::FLocalSingleFieldGetter Getter : AttributeGetters)
+	for (PCGExData::FCache<double>* Getter : AttributeGetters)
 	{
-		if (!Getter.bValid) { continue; }
-		OutIndices.Add(
-			PCGExMath::SanitizeIndex(
-				static_cast<int32>(Getter.SafeGet(Seed.Index, -1)),
-				MaxGoalIndex, IndexSafety));
+		if (!Getter) { continue; }
+		OutIndices.Add(PCGExMath::SanitizeIndex(static_cast<int32>(Getter->Values[Seed.Index]), MaxGoalIndex, IndexSafety));
 	}
 }
 
