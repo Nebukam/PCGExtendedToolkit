@@ -134,8 +134,13 @@ namespace PCGExConnectPoints
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
 
 		// TODO : Add Scoped Fetch
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		PointDataFacade->bSupportsDynamic = true;
+
+		CWStackingTolerance = TypedContext->CWStackingTolerance;
+		bPreventStacking = Settings->bPreventStacking;
 
 		if (Settings->bProjectPoints)
 		{
@@ -176,26 +181,41 @@ namespace PCGExConnectPoints
 		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails, 2);
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
-		InPoints = &PointIO->GetIn()->GetPoints();
-		const TArray<FPCGPoint>& InPointsRef = *InPoints;
-		const int32 NumPoints = InPointsRef.Num();
+		CanGenerate.SetNumUninitialized(PointIO->GetNum());
+		CachedTransforms.SetNumUninitialized(PointIO->GetNum());
 
-		CanGenerate.SetNumUninitialized(NumPoints);
-		CachedTransforms.SetNumUninitialized(NumPoints);
-
-		PCGExPointFilter::TManager* GeneratorsFilter = nullptr;
 		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
 		{
 			GeneratorsFilter = new PCGExPointFilter::TManager(PointDataFacade);
 			GeneratorsFilter->Init(Context, TypedContext->GeneratorsFiltersFactories);
 		}
 
-		PCGExPointFilter::TManager* ConnectableFilter = nullptr;
 		if (!TypedContext->ConnetablesFiltersFactories.IsEmpty())
 		{
 			ConnectableFilter = new PCGExPointFilter::TManager(PointDataFacade);
 			ConnectableFilter->Init(Context, TypedContext->ConnetablesFiltersFactories);
 		}
+
+		PCGExMT::FTaskGroup* PrepTask = AsyncManager->CreateGroup();
+		PrepTask->SetOnCompleteCallback([&]() { OnPreparationComplete(); });
+		PrepTask->SetOnIterationRangeStartCallback(
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				PointDataFacade->Fetch(StartIndex, Count);
+			});
+
+		PrepTask->PrepareRangesOnly(PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+
+		return true;
+	}
+
+	void FProcessor::OnPreparationComplete()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
+
+		InPoints = &PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InPointsRef = *InPoints;
+		const int32 NumPoints = InPointsRef.Num();
 
 		if (!ProbeOperations.IsEmpty())
 		{
@@ -213,6 +233,8 @@ namespace PCGExConnectPoints
 				for (int i = 0; i < NumPoints; i++)
 				{
 					CachedTransforms[i] = ProjectionDetails.ProjectFlat(InPointsRef[i].Transform, i);
+
+					CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->Test(i) : true;
 					if (ConnectableFilter && ConnectableFilter->Test(i)) { continue; }
 					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(CachedTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
 				}
@@ -224,25 +246,25 @@ namespace PCGExConnectPoints
 				for (int i = 0; i < NumPoints; i++)
 				{
 					CachedTransforms[i] = InPointsRef[i].Transform;
+
+					CanGenerate[i] = GeneratorsFilter ? GeneratorsFilter->Test(i) : true;
 					if (ConnectableFilter && !ConnectableFilter->Test(i)) { continue; }
 					Octree->AddElement(FPositionRef(i, FBoxSphereBounds(CachedTransforms[i].GetLocation(), PPRefExtents, PPRefRadius)));
 				}
 			}
 		}
-
-		if (GeneratorsFilter) { for (int i = 0; i < CanGenerate.Num(); i++) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
-		else { for (bool& Gen : CanGenerate) { Gen = true; } }
+		else
+		{
+			if (GeneratorsFilter) { for (int i = 0; i < NumPoints; i++) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
+			else { for (bool& Gen : CanGenerate) { Gen = true; } }
+		}
 
 
 		PCGEX_DELETE(GeneratorsFilter)
 		PCGEX_DELETE(ConnectableFilter)
 
-		CWStackingTolerance = TypedContext->CWStackingTolerance;
-		bPreventStacking = Settings->bPreventStacking;
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
-
-		return true;
 	}
 
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<uint64>& Loops)

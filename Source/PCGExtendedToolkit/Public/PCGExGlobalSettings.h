@@ -17,7 +17,7 @@ public:
 	int32 SmallClusterSize = 256;
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
-	int32 ClusterDefaultBatchIterations = 64;
+	int32 ClusterDefaultBatchIterations = 256;
 	int32 GetClusterBatchIteration(const int32 In = -1) const { return In <= -1 ? ClusterDefaultBatchIterations : In; }
 
 
@@ -39,7 +39,7 @@ public:
 	bool IsSmallPointSize(const int32 InNum) const { return InNum <= SmallPointsSize; }
 
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
-	int32 PointsDefaultBatchIterations = 64;
+	int32 PointsDefaultBatchIterations = 256;
 	int32 GetPointsBatchIteration(const int32 In = -1) const { return In <= -1 ? PointsDefaultBatchIterations : In; }
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
