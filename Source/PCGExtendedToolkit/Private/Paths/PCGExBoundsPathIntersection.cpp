@@ -117,7 +117,7 @@ namespace PCGExPathIntersections
 		bClosedPath = Settings->bClosedPath;
 		LastIndex = PointIO->GetNum() - 1;
 		Segmentation = new PCGExGeo::FSegmentation();
-		Cloud = TypedContext->BoundsDataFacade->GetCloud(Settings->OutputSettings.InsideEpsilon);
+		Cloud = TypedContext->BoundsDataFacade->GetCloud(Settings->OutputSettings.BoundsSource, Settings->OutputSettings.InsideEpsilon);
 
 		Details = Settings->OutputSettings;
 

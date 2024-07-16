@@ -31,12 +31,12 @@ bool FPCGExPruneClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneClusters)
 
-	const PCGExData::FPointIO* Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
-	if (!Targets) { return false; }
+	const PCGExData::FPointIO* Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
+	if (!Bounds) { return false; }
 
-	Context->BoxCloud = new PCGExGeo::FPointBoxCloud(Targets->GetIn());
+	Context->BoxCloud = new PCGExGeo::FPointBoxCloud(Bounds->GetIn(), Settings->BoundsSource, Settings->InsideEpsilon);
 
-	PCGEX_DELETE(Targets)
+	PCGEX_DELETE(Bounds)
 
 	Context->ClusterState.SetNumUninitialized(Context->MainEdges->Num());
 	for (bool& State : Context->ClusterState) { State = false; }

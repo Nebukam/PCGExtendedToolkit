@@ -55,6 +55,15 @@ namespace PCGExMT
 	void FTaskGroup::StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined)
 	{
 		OnIterationCallback = Callback;
+
+		if(MaxItems <= ChunkSize)
+		{
+			NumStarted ++;
+			DoRangeIteration(0, MaxItems, 0);
+			OnTaskCompleted();
+			return;
+		}
+		
 		if (bInlined)
 		{
 			TArray<uint64> Loops;

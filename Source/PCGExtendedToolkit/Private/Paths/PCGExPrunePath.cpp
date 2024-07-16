@@ -11,7 +11,7 @@
 TArray<FPCGPinProperties> UPCGExPrunePathSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Intersection targets", Required, {})
+	PCGEX_PIN_POINT(PCGEx::SourceBoundsLabel, "Bounds", Required, {})
 	return PinProperties;
 }
 
@@ -32,7 +32,7 @@ bool FPCGExPrunePathElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PrunePath)
 
-	const PCGExData::FPointIO* Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
+	const PCGExData::FPointIO* Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
 
 	if (!Targets)
 	{
@@ -40,7 +40,7 @@ bool FPCGExPrunePathElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	Context->BoxCloud = new PCGExGeo::FPointBoxCloud(Targets->GetIn());
+	Context->BoxCloud = new PCGExGeo::FPointBoxCloud(Targets->GetIn(), Settings->BoundsSource, Settings->InsideEpsilon);
 
 	PCGEX_DELETE(Targets)
 

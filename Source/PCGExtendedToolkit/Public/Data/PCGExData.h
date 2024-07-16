@@ -502,7 +502,7 @@ namespace PCGExData
 			return Data->Metadata->GetConstTypedAttribute<T>(InName);
 		}
 
-		PCGExGeo::FPointBoxCloud* GetCloud(double Epsilon = DBL_EPSILON)
+		PCGExGeo::FPointBoxCloud* GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Epsilon = DBL_EPSILON)
 		{
 			{
 				FReadScopeLock ReadScopeLock(CloudLock);
@@ -511,7 +511,7 @@ namespace PCGExData
 
 			{
 				FWriteScopeLock WriteScopeLock(CloudLock);
-				Cloud = new PCGExGeo::FPointBoxCloud(GetIn(), Epsilon);
+				Cloud = new PCGExGeo::FPointBoxCloud(GetIn(), BoundsSource, Epsilon);
 			}
 
 			return Cloud;

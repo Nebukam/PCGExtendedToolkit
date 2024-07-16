@@ -15,7 +15,7 @@ namespace PCGExGeo
 	class FPointBoxCloud;
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph", Hidden)
 class PCGEXTENDEDTOOLKIT_API UPCGExPruneClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
@@ -37,9 +37,14 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
-	/** What to do with the selection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
-	FPCGExPointFilterActionDetails FilterActions;
+	/** Bounds type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
+
+	/** Epsilon value used to expand the box when testing if IsInside. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double InsideEpsilon = 1e-4;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersContext final : public FPCGExEdgesProcessorContext

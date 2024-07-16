@@ -432,8 +432,9 @@ namespace PCGExMT
 			if (bWorkDone) { return; }
 			PCGEX_ASYNC_CHECKPOINT_VOID
 			bWorkDone = true;
+			const bool bResult = ExecuteTask();
 			if (Group) { Group->OnTaskCompleted(); }
-			Manager->OnAsyncTaskExecutionComplete(this, ExecuteTask());
+			Manager->OnAsyncTaskExecutionComplete(this, bResult);
 		}
 
 		virtual bool ExecuteTask() = 0;

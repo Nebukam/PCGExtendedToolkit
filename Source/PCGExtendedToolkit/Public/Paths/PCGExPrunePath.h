@@ -18,7 +18,7 @@ namespace PCGExGeo
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", Hidden)
 class PCGEXTENDEDTOOLKIT_API UPCGExPrunePathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -44,9 +44,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
-	/** What to do with the selection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
-	FPCGExPointFilterActionDetails FilterActions;
+	/** Bounds type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
+
+	/** Epsilon value used to expand the box when testing if IsInside. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double InsideEpsilon = 1e-4;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPrunePathContext final : public FPCGExPathProcessorContext
