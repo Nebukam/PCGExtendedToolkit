@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExBoundsPathIntersection.h"
+#include "PCGExMath.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsPathIntersectionElement"
 #define PCGEX_NAMESPACE BoundsPathIntersection
@@ -116,7 +117,7 @@ namespace PCGExPathIntersections
 		bClosedPath = Settings->bClosedPath;
 		LastIndex = PointIO->GetNum() - 1;
 		Segmentation = new PCGExGeo::FSegmentation();
-		Cloud = TypedContext->BoundsDataFacade->GetCloud();
+		Cloud = TypedContext->BoundsDataFacade->GetCloud(Settings->OutputSettings.InsideEpsilon);
 
 		Details = Settings->OutputSettings;
 
@@ -190,7 +191,7 @@ namespace PCGExPathIntersections
 				PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 
 				Details.Mark(PointIO->GetOut()->Metadata);
-				Details.Init(PointDataFacade, TypedContext->BoundsDataFacade);				
+				Details.Init(PointDataFacade, TypedContext->BoundsDataFacade);
 
 				StartParallelLoopForPoints();
 			}
@@ -211,11 +212,13 @@ namespace PCGExPathIntersections
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
 		int32 Idx = 0;
-		MutablePoints[Idx++] = OriginalPoints[0];
-		for (int i = 1; i < OriginalPoints.Num(); i++)
+		
+		for (int i = 0; i < LastIndex; i++)
 		{
 			const FPCGPoint& OriginalPoint = OriginalPoints[i];
-			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(i - 1, i)))
+			MutablePoints[Idx++] = OriginalPoint;
+			
+			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(i, i+1)))
 			{
 				Intersections->Start = Idx;
 				for (int j = 0; j < Intersections->Cuts.Num(); j++)
@@ -225,13 +228,13 @@ namespace PCGExPathIntersections
 					Metadata->InitializeOnSet(NewPoint.MetadataEntry);
 				}
 			}
-
-			MutablePoints[Idx++] = OriginalPoint;
 		}
 
+		const FPCGPoint& OriginalPoint = OriginalPoints[LastIndex];
+		MutablePoints[Idx++] = OriginalPoint;
+		
 		if (bClosedPath)
-		{
-			const FPCGPoint& OriginalPoint = OriginalPoints[LastIndex];
+		{			
 			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(LastIndex, 0)))
 			{
 				Intersections->Start = Idx;
@@ -244,8 +247,9 @@ namespace PCGExPathIntersections
 			}
 		}
 
+		PointDataFacade->Source->CleanupKeys();
 		Details.Init(PointDataFacade, TypedContext->BoundsDataFacade);
-		
+
 		Segmentation->ReduceToArray();
 
 		InsertionTaskGroup = AsyncManagerPtr->CreateGroup();

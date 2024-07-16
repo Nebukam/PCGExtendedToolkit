@@ -68,6 +68,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Forwarding", meta=(PCG_Overridable))
 	FPCGExForwardDetails InsideForwarding;
 
+	/** Epsilon value used to expand the box when testing if IsInside. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double InsideEpsilon = 1e-4;
+
 	bool Validate(const FPCGContext* InContext) const
 	{
 #define PCGEX_LOCAL_DETAIL_CHECK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGEX_VALIDATE_NAME_C(InContext, _NAME##AttributeName) }
@@ -120,7 +124,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 
 	void SetIsInside(const int32 PointIndex, const bool bIsInside, const int32 BoundIndex) const
 	{
-		if (InsideForwardHandler && bIsInside) { InsideForwardHandler->Forward(PointIndex, BoundIndex); }
+		if (InsideForwardHandler && bIsInside) { InsideForwardHandler->Forward(BoundIndex, PointIndex); }
 		if (IsInsideWriter) { IsInsideWriter->Values[PointIndex] = bIsInside; }
 	}
 

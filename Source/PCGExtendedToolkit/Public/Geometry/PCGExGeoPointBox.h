@@ -165,7 +165,7 @@ namespace PCGExGeo
 		FBox EpsilonBox;
 		int32 Index;
 
-		explicit FPointBox(const FPCGPoint& InPoint, const int32 InIndex):
+		explicit FPointBox(const FPCGPoint& InPoint, const int32 InIndex, double Epsilon = DBL_EPSILON):
 			Transform(FTransform(InPoint.Transform.GetRotation(), InPoint.Transform.GetLocation(), FVector::One())),
 			Index(InIndex)
 		{
@@ -174,8 +174,8 @@ namespace PCGExGeo
 			const double Len = Extents.Length();
 
 			Box = FBox(Extents * -1, Extents);
-			EpsilonBox = FBox((Extents - PCGExMath::EPSILONV) * -1, (Extents - PCGExMath::EPSILONV));
-			Sphere = FBoxSphereBounds(InPoint.Transform.GetLocation(), FVector(Len), Len);
+			EpsilonBox = Box.ExpandBy(-Epsilon);
+			Sphere = FBoxSphereBounds(Transform.GetLocation(), FVector(Len), Len);
 		}
 
 		bool Contains(const FVector& Position) const { return Box.IsInside(Transform.InverseTransformPosition(Position)); }
@@ -341,17 +341,19 @@ namespace PCGExGeo
 		FBox CloudBounds;
 
 	public:
-		explicit FPointBoxCloud(const UPCGPointData* PointData)
+		explicit FPointBoxCloud(const UPCGPointData* PointData, double Epsilon = DBL_EPSILON)
 		{
 			CloudBounds = PointData->GetBounds();
 			Octree = new PointBoxCloudOctree(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length() * 1.5);
 			const TArray<FPCGPoint>& Points = PointData->GetPoints();
 
+			CloudBounds = CloudBounds.ExpandBy(Epsilon);
+			
 			PCGEX_SET_NUM_UNINITIALIZED(Boxes, Points.Num())
 
 			for (int i = 0; i < Points.Num(); i++)
 			{
-				FPointBox* NewPointBox = new FPointBox(Points[i], i);
+				FPointBox* NewPointBox = new FPointBox(Points[i], i, Epsilon);
 				Boxes[i] = NewPointBox;
 				Octree->AddElement(NewPointBox);
 			}
@@ -383,7 +385,6 @@ namespace PCGExGeo
 
 		bool ContainsMinusEpsilon(const FVector& InPosition) const
 		{
-			if (!CloudBounds.IsInside(InPosition)) { return false; }
 			bool bOverlapFound = false;
 			Octree->FindNearbyElements(
 				InPosition, [&](const FPointBox* NearbyBox)
@@ -395,7 +396,6 @@ namespace PCGExGeo
 
 		bool Contains(const FVector& InPosition, TArray<FPointBox*>& OutOverlaps) const
 		{
-			if (!CloudBounds.IsInside(InPosition)) { return false; }
 			Octree->FindNearbyElements(
 				InPosition, [&](const FPointBox* NearbyBox)
 				{

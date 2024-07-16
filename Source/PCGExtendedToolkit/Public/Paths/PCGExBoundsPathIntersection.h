@@ -105,7 +105,7 @@ namespace PCGExPathIntersections
 			{
 				TArray<PCGExGeo::FPointBox*> Overlaps;
 				const bool bContained = Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation(), Overlaps); // Avoid intersections being captured
-				Details.SetIsInside(Index, bContained, Overlaps[0]->Index);
+				Details.SetIsInside(Index, bContained, bContained ? Overlaps[0]->Index : -1);
 			}
 			else
 			{
