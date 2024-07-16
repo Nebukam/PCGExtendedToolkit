@@ -410,7 +410,7 @@ namespace PCGExGeo
 			Octree->FindNearbyElements(
 				InPosition, [&](const FPointBox* NearbyBox)
 				{
-					if (NearbyBox->Contains(InPosition)) { OutOverlaps.Add(*(Boxes.GetData() + NearbyBox->Index)); }
+					if (NearbyBox->ContainsMinusEpsilon(InPosition)) { OutOverlaps.Add(*(Boxes.GetData() + NearbyBox->Index)); }
 				});
 			return !OutOverlaps.IsEmpty();
 		}
