@@ -86,13 +86,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		Context->PackedClusters->Pairs.Reserve(Context->PackedClusterList.Num());
-		for (PCGExData::FPointIO* PackedIO : Context->PackedClusterList)
-		{
-			if (!PackedIO) { continue; }
-			Context->PackedClusters->AddUnsafe(PackedIO);
-		}
-
+		Context->PackedClusters->AddUnsafe(Context->PackedClusterList);
 		Context->PackedClusters->OutputTo(Context);
 	}
 
@@ -141,7 +135,6 @@ bool FPCGExPackClusterTask::ExecuteTask()
 
 	Context->CarryOverDetails.Filter(PointIO->Tags);
 	Context->CarryOverDetails.Filter(InEdges->Tags);
-
 
 	return true;
 }

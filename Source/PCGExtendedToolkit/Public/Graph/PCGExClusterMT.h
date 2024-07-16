@@ -235,7 +235,7 @@ namespace PCGExClusterMT
 				return;
 			}
 
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(PerLoopIterations);
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 			if (bInlineProcessNodes)
 			{
 				AsyncManagerPtr->Start<FAsyncProcessNodeRangeInline<FClusterProcessor>>(
@@ -260,7 +260,7 @@ namespace PCGExClusterMT
 				return;
 			}
 
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(PerLoopIterations);
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
 			if (bInlineProcessEdges)
 			{
@@ -286,7 +286,7 @@ namespace PCGExClusterMT
 				return;
 			}
 
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(PerLoopIterations);
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
 			if (bInlineProcessRange)
 			{
@@ -341,7 +341,7 @@ namespace PCGExClusterMT
 				return;
 			}
 
-			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(-1);
+			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(-1);
 
 			TArray<uint64> Scopes;
 			Scopes.Reserve(PLI);
@@ -490,7 +490,7 @@ namespace PCGExClusterMT
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
 			PCGExMT::SubRanges(
-				NumIterations, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations),
+				NumIterations, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations),
 				[&](const int32 Index, const int32 Count)
 				{
 					AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessorBatchBase>>(Index, nullptr, this, Count);
@@ -700,7 +700,7 @@ namespace PCGExClusterMT
 			{
 				PCGExMT::SubRanges(
 					NumTrivial,
-					GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(),
+					GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(),
 					[&](const int32 Index, const int32 Count)
 					{
 						AsyncManagerPtr->Start<FAsyncBatchProcessClosedRange<FClusterProcessorBatchBase>>(Index, nullptr, this, Count);

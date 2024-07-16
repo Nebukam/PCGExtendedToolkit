@@ -160,13 +160,13 @@ namespace PCGExUberFilter
 		{
 			TestTaskGroup->StartRanges(
 				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { Results->Values[Index] = PrimaryFilters->Test(Index); },
-				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 		}
 		else
 		{
 			TestTaskGroup->StartRanges(
 				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { PointFilterCache[Index] = PrimaryFilters->Test(Index); },
-				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 		}
 
 		return true;

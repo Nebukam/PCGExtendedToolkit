@@ -57,42 +57,15 @@ namespace PCGExGraph
 			const bool bUseCustom = false,
 			const FPCGExBlendingDetails* InOverride = nullptr);
 
-		template <class BuildGraphFunc>
-		void StartProcessing(
+		bool StartExecution(
 			FCompoundGraph* InCompoundGraph,
 			PCGExData::FFacade* InCompoundFacade,
+			const TArray<PCGExData::FFacade*>& InFacades,
 			const FPCGExGraphBuilderDetails& InBuilderDetails,
-			BuildGraphFunc&& BuildGraph)
-		{
-			bRunning = true;
+			const FPCGExCarryOverDetails* InCarryOverDetails);
 
-			GraphMetadataDetails.Grab(Context, PointPointIntersectionDetails);
-			GraphMetadataDetails.Grab(Context, PointEdgeIntersectionDetails);
-			GraphMetadataDetails.Grab(Context, EdgeEdgeIntersectionDetails);
-
-			CompoundGraph = InCompoundGraph;
-			CompoundFacade = InCompoundFacade;
-
-			GraphBuilder = new FGraphBuilder(CompoundFacade->Source, &InBuilderDetails, 4);
-
-			BuildGraph(GraphBuilder);
-
-			/*
-			TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
-			CompoundGraph->GetUniqueEdges(UniqueEdges);
-			CompoundGraph->WriteMetadata(GraphBuilder->Graph->NodeMetadata);
-
-			GraphBuilder->Graph->InsertEdges(UniqueEdges, -1); //TODO : valid IOIndex from CompoundGraph
-			UniqueEdges.Empty();
-			*/
-
-			if (bDoPointEdge) { FindPointEdgeIntersections(); }
-			else if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
-			else { Context->SetState(State_WritingClusters); }
-		}
-
+		void InternalStartExecution();
 		bool Execute();
-		bool IsRunning() const;
 
 	protected:
 		bool bRunning = false;
@@ -109,5 +82,6 @@ namespace PCGExGraph
 
 		void FindPointEdgeIntersections();
 		void FindEdgeEdgeIntersections();
+		void WriteClusters();
 	};
 }

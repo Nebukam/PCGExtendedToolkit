@@ -85,7 +85,7 @@ namespace PCGExFlatProjection
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlatProjection)
 
 		// TODO : Add Scoped Fetch
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		bWriteAttribute = Settings->bSaveAttributeForRestore;

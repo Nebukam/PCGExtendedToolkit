@@ -22,8 +22,8 @@ protected:
 	void WriteFutureOutputs();
 
 public:
-	~FPCGExContext();
-	
+	virtual ~FPCGExContext() override;
+
 	void FutureReserve(const int32 NumAdditions);
 	void FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
 	void FutureOutput(const FName Pin, UPCGData* InData);

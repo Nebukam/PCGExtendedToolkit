@@ -268,7 +268,7 @@ namespace PCGEx
 
 		bool GetScope(TArray<T>& OutValues, const uint64 Scope, FPCGAttributeAccessorKeysPoints* InKeys = nullptr) const
 		{
-			const int32 StartIndex = PCGEx::H64A(Scope);
+			const int32 StartIndex = H64A(Scope);
 			TArrayView<T> View = MakeArrayView(OutValues.GetData() + StartIndex, H64B(Scope));
 			return Accessor->GetRange(View, StartIndex, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
@@ -403,7 +403,7 @@ namespace PCGEx
 		{
 		}
 
-		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }
+		void Fetch(const uint64 Scope) { Fetch(H64A(Scope), H64B(Scope)); }
 	};
 
 	template <typename T>
@@ -437,7 +437,7 @@ namespace PCGEx
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
 		{
-			this->Accessor->GetScope(this->Values, PCGEx::H64(StartIndex, Count));
+			this->Accessor->GetScope(this->Values, H64(StartIndex, Count));
 		}
 
 		virtual ~FAttributeIOBase() override
@@ -696,7 +696,6 @@ namespace PCGEx
 
 						for (int i = 0; i < Count; i++) { Dump[StartIndex + i] = Convert(RawValues[i]); }
 						RawValues.Empty();
-						
 					});
 
 				bValid = true;

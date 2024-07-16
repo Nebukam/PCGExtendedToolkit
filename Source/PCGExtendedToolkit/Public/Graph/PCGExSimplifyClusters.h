@@ -84,7 +84,7 @@ namespace PCGExSimplifyClusters
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		TArray<bool> Breakpoints;
-		
+
 		TArray<PCGExCluster::FNodeChain*> Chains;
 
 		FPCGExSimplifyClustersContext* LocalTypedContext = nullptr;

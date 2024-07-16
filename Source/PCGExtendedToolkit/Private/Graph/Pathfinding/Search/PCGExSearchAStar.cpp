@@ -107,7 +107,7 @@ bool UPCGExSearchAStar::FindPath(
 	PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
 
 	TArray<int32> Path;
-	
+
 	if (PathNodeIndex != -1)
 	{
 		Path.Add(GoalNode.NodeIndex);
@@ -123,11 +123,11 @@ bool UPCGExSearchAStar::FindPath(
 			if (LocalFeedback) { Heuristics->FeedbackPointScore(GoalNode); }
 		}
 	}
-	
+
 	if (PathNodeIndex != -1)
 	{
 		bSuccess = true;
-		
+
 		while (PathNodeIndex != -1)
 		{
 			const int32 CurrentIndex = PathNodeIndex;

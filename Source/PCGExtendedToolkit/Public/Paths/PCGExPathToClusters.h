@@ -121,8 +121,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToClustersContext final : public FPCGExP
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FFacade* CompoundFacade = nullptr;
 
-	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
-
 	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
 };
 

@@ -75,7 +75,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->OutputMainPoints();
-	
+
 	return Context->TryComplete();
 }
 

@@ -30,7 +30,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionAttributesOperation : public
 
 public:
 	UPCGExConditionalActionAttributesFactory* TypedFactory = nullptr;
-	
+
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
@@ -44,14 +44,13 @@ protected:
 	TArray<PCGEx::FAAttributeIO*> SuccessWriters;
 	TArray<FPCGMetadataAttributeBase*> FailAttributes;
 	TArray<PCGEx::FAAttributeIO*> FailWriters;
-	
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionAttributesFactory : public UPCGExConditionalActionFactoryBase
 {
 	friend class UPCGExConditionalActionAttributesProviderSettings;
-	
+
 	GENERATED_BODY()
 
 public:
@@ -61,7 +60,6 @@ public:
 protected:
 	FPCGExAttributeGatherDetails SuccessAttributesFilter;
 	FPCGExAttributeGatherDetails FailAttributesFilter;
-	
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ConditionalActionAttributes")
@@ -87,7 +85,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExAttributeGatherDetails FailAttributesFilter;
-	
+
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif

@@ -134,7 +134,7 @@ public:
 	/** Type of Radius X value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	EPCGExFetchType RadiusXType = EPCGExFetchType::Constant;
-	
+
 	/** Source from which to fetch the Radius X value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXType==EPCGExFetchType::Attribute", EditConditionHides))
 	EPCGExGraphValueSource RadiusXSource = EPCGExGraphValueSource::Vtx;
@@ -148,7 +148,6 @@ public:
 	double RadiusXConstant = 1;
 
 
-	
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	bool bWriteRadiusY = false;
@@ -156,7 +155,7 @@ public:
 	/** Type of Radius Y value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	EPCGExFetchType RadiusYType = EPCGExFetchType::Constant;
-	
+
 	/** Source from which to fetch the Radius Y value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZType==EPCGExFetchType::Attribute", EditConditionHides))
 	EPCGExGraphValueSource RadiusYSource = EPCGExGraphValueSource::Vtx;
@@ -168,8 +167,8 @@ public:
 	/** Radius Y Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None && RadiusYType==EPCGExFetchType::Constant", EditConditionHides))
 	double RadiusYConstant = 1;
-	
-	
+
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	bool bWriteRadiusZ = false;
@@ -177,7 +176,7 @@ public:
 	/** Type of Radius Z value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
 	EPCGExFetchType RadiusZType = EPCGExFetchType::Constant;
-	
+
 	/** Source from which to fetch the Radius Z value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZType==EPCGExFetchType::Attribute", EditConditionHides))
 	EPCGExGraphValueSource RadiusZSource = EPCGExGraphValueSource::Vtx;
@@ -189,7 +188,7 @@ public:
 	/** Radius Z Constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None && RadiusZType==EPCGExFetchType::Constant", EditConditionHides))
 	double RadiusZConstant = 1;
-	
+
 private:
 	friend class FPCGExWriteEdgePropertiesElement;
 };
@@ -251,5 +250,4 @@ namespace PCGExWriteEdgeProperties
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 	};
-
 }

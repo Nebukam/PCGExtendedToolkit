@@ -28,9 +28,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
 	GENERATED_BODY()
 
 	/** Bounds type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
-	
+
 	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsIntersection = true;

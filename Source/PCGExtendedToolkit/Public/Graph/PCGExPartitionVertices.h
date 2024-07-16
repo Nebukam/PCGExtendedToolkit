@@ -68,7 +68,7 @@ namespace PCGExPartitionVertices
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 
 		FPCGExPartitionVerticesContext* LocalTypedContext = nullptr;
-		
+
 		PCGExData::FPointIO* PointPartitionIO = nullptr;
 		TMap<int32, int32> Remapping;
 		TArray<int32> KeptIndices;
@@ -80,7 +80,7 @@ namespace PCGExPartitionVertices
 		}
 
 		virtual ~FProcessor() override;
-		
+
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;

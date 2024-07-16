@@ -367,7 +367,10 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 			PCGExData::FPointIO* EdgeIO;
 
 			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex();
-				SourceEdgesIO && SourceEdgesIO->Pairs.IsValidIndex(IOIndex))
+				SourceEdgesIO&& SourceEdgesIO
+			->
+			Pairs.IsValidIndex(IOIndex)
+			)
 			{
 				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
 			}
@@ -606,7 +609,7 @@ namespace PCGExGraphTask
 		}
 
 		// TODO : Copy & Transform cluster as well for a big perf boost
-		
+
 		return true;
 	}
 }

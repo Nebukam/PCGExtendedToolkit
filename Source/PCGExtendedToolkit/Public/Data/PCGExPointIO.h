@@ -181,11 +181,11 @@ namespace PCGExData
 		FORCEINLINE const FPCGPoint& GetOutPoint(const int32 Index) const { return *(Out->GetPoints().GetData() + Index); }
 		FORCEINLINE FPCGPoint& GetMutablePoint(const int32 Index) const { return *(Out->GetMutablePoints().GetData() + Index); }
 
-		FORCEINLINE PCGExData::FPointRef GetInPointRef(const int32 Index) const { return PCGExData::FPointRef(In->GetPoints().GetData() + Index, Index); }
-		FORCEINLINE PCGExData::FPointRef GetOutPointRef(const int32 Index) const { return PCGExData::FPointRef(Out->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE FPointRef GetInPointRef(const int32 Index) const { return FPointRef(In->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE FPointRef GetOutPointRef(const int32 Index) const { return FPointRef(Out->GetPoints().GetData() + Index, Index); }
 
-		FORCEINLINE PCGExData::FPointRef* GetInPointRefPtr(const int32 Index) const { return new PCGExData::FPointRef(In->GetPoints().GetData() + Index, Index); }
-		FORCEINLINE PCGExData::FPointRef* GetOutPointRefPtr(const int32 Index) const { return new PCGExData::FPointRef(Out->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE FPointRef* GetInPointRefPtr(const int32 Index) const { return new FPointRef(In->GetPoints().GetData() + Index, Index); }
+		FORCEINLINE FPointRef* GetOutPointRefPtr(const int32 Index) const { return new FPointRef(Out->GetPoints().GetData() + Index, Index); }
 
 		FORCEINLINE const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? (In->GetPoints().GetData() + Index) : nullptr; }
 		FORCEINLINE const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? (Out->GetPoints().GetData() + Index) : nullptr; }
@@ -278,6 +278,7 @@ namespace PCGExData
 		FPointIO* Emplace_GetRef(EInit InitOut = EInit::NewOutput);
 		FPointIO* Emplace_GetRef(const FPointIO* PointIO, const EInit InitOut = EInit::NoOutput);
 		FPointIO* AddUnsafe(FPointIO* PointIO);
+		void AddUnsafe(const TArray<FPointIO*>& IOs);
 
 
 		template <typename T>

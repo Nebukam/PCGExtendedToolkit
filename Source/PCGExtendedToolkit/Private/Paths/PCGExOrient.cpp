@@ -104,7 +104,7 @@ namespace PCGExOrient
 		DefaultPointFilterValue = Settings->bFlipDirection;
 
 		// TODO : Add Scoped Fetch
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LastIndex = PointIO->GetNum() - 1;

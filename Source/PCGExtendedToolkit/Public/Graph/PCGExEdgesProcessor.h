@@ -125,6 +125,8 @@ protected:
 		bDoClusterBatchWritingStep = false;
 		bBuildEndpointsLookup = false;
 
+		Batches.Reserve(MainPoints->Pairs.Num());
+
 		while (AdvancePointsIO(false))
 		{
 			if (!TaggedEdges)

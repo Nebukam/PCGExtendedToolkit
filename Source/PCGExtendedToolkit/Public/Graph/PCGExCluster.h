@@ -241,7 +241,7 @@ namespace PCGExCluster
 		const TArray<int32>* GetVtxPointIndicesPtr();
 		const TArray<uint64>& GetVtxPointScopes();
 		TArrayView<const uint64> GetVtxPointScopesView();
-		
+
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
 		void RebuildOctree(EPCGExClusterClosestSearchMode Mode, const bool bForceRebuild = false);

@@ -108,7 +108,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->OutputMainPoints();
-	
+
 	return Context->TryComplete();
 }
 

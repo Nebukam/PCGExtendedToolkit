@@ -192,11 +192,7 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::Output()
 	{
-		for (PCGExData::FPointIO* PathIO : Paths)
-		{
-			if (!PathIO) { continue; }
-			LocalTypedContext->Paths->AddUnsafe(PathIO);
-		}
+		LocalTypedContext->Paths->AddUnsafe(Paths);
 	}
 }
 

@@ -285,6 +285,17 @@ namespace PCGExData
 		return PointIO;
 	}
 
+	void FPointIOCollection::AddUnsafe(const TArray<FPointIO*>& IOs)
+	{
+		if (IOs.IsEmpty()) { return; }
+		Pairs.Reserve(Pairs.Num() + IOs.Num());
+		for (FPointIO* IO : IOs)
+		{
+			if (!IO) { continue; }
+			AddUnsafe(IO);
+		}
+	}
+
 	/**
 	 * Write valid outputs to Context' tagged data
 	 * @param Context

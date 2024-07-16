@@ -45,7 +45,7 @@ public:
 	bool bClosedPath = false;
 
 	/** Bounds type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
 	/** Epsilon value used to expand the box when testing if IsInside. */

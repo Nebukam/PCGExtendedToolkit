@@ -124,7 +124,7 @@ namespace PCGExPathIntersections
 		FindIntersectionsTaskGroup = AsyncManagerPtr->CreateGroup();
 		FindIntersectionsTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { FindIntersections(Index); },
-			PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+			PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		//StartParallelLoopForPoints(PCGExData::ESource::In);
 
@@ -212,13 +212,13 @@ namespace PCGExPathIntersections
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
 		int32 Idx = 0;
-		
+
 		for (int i = 0; i < LastIndex; i++)
 		{
 			const FPCGPoint& OriginalPoint = OriginalPoints[i];
 			MutablePoints[Idx++] = OriginalPoint;
-			
-			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(i, i+1)))
+
+			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(i, i + 1)))
 			{
 				Intersections->Start = Idx;
 				for (int j = 0; j < Intersections->Cuts.Num(); j++)
@@ -232,9 +232,9 @@ namespace PCGExPathIntersections
 
 		const FPCGPoint& OriginalPoint = OriginalPoints[LastIndex];
 		MutablePoints[Idx++] = OriginalPoint;
-		
+
 		if (bClosedPath)
-		{			
+		{
 			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(LastIndex, 0)))
 			{
 				Intersections->Start = Idx;
@@ -256,7 +256,7 @@ namespace PCGExPathIntersections
 		InsertionTaskGroup->SetOnCompleteCallback([&]() { OnInsertionComplete(); });
 		InsertionTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { InsertIntersections(Index); },
-			Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+			Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		FPointsProcessor::CompleteWork();
 	}

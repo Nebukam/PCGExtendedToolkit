@@ -83,8 +83,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 	{
 		PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO();
 		CompoundPoints->SetInfos(-1, Settings->GetMainOutputLabel());
-		CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(
-			PCGExData::EInit::NewOutput);
+		CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		Context->CompoundFacade = new PCGExData::FFacade(CompoundPoints);
 
@@ -93,9 +92,6 @@ bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 			Context->MainPoints->GetInBounds().ExpandBy(10),
 			true,
 			Settings->PointPointIntersectionDetails.FuseMethod);
-
-		Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(
-			&Settings->DefaultPointsBlendingDetails, &Context->CarryOverDetails);
 	}
 
 	return true;
@@ -123,7 +119,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				{
 					NewBatch->bInlineProcessing = true;
 				},
-				PCGExGraph::State_ProcessingCompound))
+				PCGExGraph::State_PreparingCompound))
 			{
 				PCGE_LOG(
 					Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -157,87 +153,26 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Settings->bFusePaths)
 	{
-		if (Context->IsState(PCGExGraph::State_ProcessingCompound))
+		if (Context->IsState(PCGExGraph::State_PreparingCompound))
 		{
-			const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
-			if (NumCompoundNodes == 0)
+			Context->PathsFacades.Reserve(Context->MainBatch->ProcessorFacades.Num());
+			Context->PathsFacades.Append(Context->MainBatch->ProcessorFacades);
+
+			PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* MainBatch = static_cast<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>*>(Context->MainBatch);
+			for (PCGExPathToClusters::FFusingProcessor* Processor : MainBatch->Processors)
 			{
-				PCGE_LOG(Error, GraphAndLog, FTEXT("Compound graph is empty. Vtx/Edge pairs are likely corrupted."));
-				return true;
+				Processor->PointDataFacade = nullptr; // Remove ownership of facade
+				// before deleting the processor
 			}
 
-			TArray<FPCGPoint>& MutablePoints = Context->CompoundFacade->GetOut()->GetMutablePoints();
+			PCGEX_DELETE(Context->MainBatch);
 
-			auto Initialize = [&]()
-			{
-				Context->PathsFacades.Reserve(Context->MainBatch->ProcessorFacades.Num());
-				Context->PathsFacades.Append(Context->MainBatch->ProcessorFacades);
-
-				PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* MainBatch = static_cast<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>*>(Context->MainBatch);
-				for (PCGExPathToClusters::FFusingProcessor* Processor : MainBatch->Processors)
-				{
-					Processor->PointDataFacade = nullptr; // Remove ownership of facade
-					// before deleting the processor
-				}
-
-				PCGEX_DELETE(Context->MainBatch);
-
-				Context->CompoundFacade->Source->InitializeNum(
-					NumCompoundNodes, true);
-				Context->CompoundPointsBlender->AddSources(Context->PathsFacades);
-				Context->CompoundPointsBlender->PrepareMerge(
-					Context->CompoundFacade, Context->CompoundGraph->PointsCompounds);
-			};
-
-			auto ProcessNode = [&](const int32 Index)
-			{
-				PCGExGraph::FCompoundNode* CompoundNode =
-					Context->CompoundGraph->Nodes[Index];
-				PCGMetadataEntryKey Key = MutablePoints[Index].MetadataEntry;
-				MutablePoints[Index] =
-					CompoundNode->Point; // Copy "original" point properties, in case
-				// there's only one
-
-				FPCGPoint& Point = MutablePoints[Index];
-				Point.MetadataEntry = Key; // Restore key
-
-				Point.Transform.SetLocation(
-					CompoundNode->UpdateCenter(
-						Context->CompoundGraph->PointsCompounds, Context->MainPoints));
-				Context->CompoundPointsBlender->MergeSingle(
-					Index,
-					PCGExDetails::GetDistanceDetails(
-						Settings->PointPointIntersectionDetails));
-			};
-
-			if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes))
-			{
-				return false;
-			}
-
-			PCGEX_DELETE(Context->CompoundPointsBlender)
-
-			Context->CompoundFacade->Write(Context->GetAsyncManager(), true);
-			Context->SetAsyncState(PCGExMT::State_CompoundWriting);
-		}
-
-		if (Context->IsState(PCGExMT::State_CompoundWriting))
-		{
-			PCGEX_ASYNC_WAIT
-
-			Context->CompoundProcessor->StartProcessing(
+			if (!Context->CompoundProcessor->StartExecution(
 				Context->CompoundGraph,
 				Context->CompoundFacade,
+				Context->PathsFacades,
 				Settings->GraphBuilderDetails,
-				[&](PCGExGraph::FGraphBuilder* GraphBuilder)
-				{
-					TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
-					Context->CompoundGraph->GetUniqueEdges(UniqueEdges);
-					Context->CompoundGraph->WriteMetadata(
-						GraphBuilder->Graph->NodeMetadata);
-
-					GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
-				});
+				&Settings->CarryOverDetails)) { return true; }
 		}
 
 		if (!Context->CompoundProcessor->Execute()) { return false; }

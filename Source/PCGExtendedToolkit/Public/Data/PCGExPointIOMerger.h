@@ -52,7 +52,7 @@ namespace PCGExPointIOMerger
 
 		PCGEX_DELETE(Reader);
 	}
-	
+
 	class PCGEXTENDEDTOOLKIT_API FWriteAttributeTask final : public PCGExMT::FPCGExTask
 	{
 	public:

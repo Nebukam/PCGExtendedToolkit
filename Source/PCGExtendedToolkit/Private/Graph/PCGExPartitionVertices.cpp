@@ -149,6 +149,7 @@ namespace PCGExPartitionVertices
 	void FProcessor::Output()
 	{
 		LocalTypedContext->VtxPartitions->AddUnsafe(PointPartitionIO);
+		LocalTypedContext->VtxPartitions->OutputTo(LocalTypedContext);
 	}
 }
 

@@ -33,7 +33,7 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
-	
+
 	/** Meta filter settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Carry Over Settings"))
 	FPCGExCarryOverDetails CarryOverDetails;
@@ -54,7 +54,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMergeVerticesContext final : public FPCGExEd
 
 	virtual void OnBatchesProcessingDone() override;
 	virtual void OnBatchesCompletingWorkDone() override;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExMergeVerticesElement final : public FPCGExEdgesProcessorElement
@@ -80,24 +79,21 @@ namespace PCGExMergeVertices
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 
 		FPCGExMergeVerticesContext* LocalTypedContext = nullptr;
-	
+
 	public:
 		int32 StartIndexOffset = 0;
-		
+
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
 		}
 
 		virtual ~FProcessor() override;
-		
+
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};
-
-	
-
 }

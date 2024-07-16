@@ -38,13 +38,12 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 
 	/** Bounds type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
 	/** Epsilon value used to expand the box when testing if IsInside. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double InsideEpsilon = 1e-4;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersContext final : public FPCGExEdgesProcessorContext

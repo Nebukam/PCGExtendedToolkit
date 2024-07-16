@@ -52,18 +52,18 @@ namespace PCGExMT
 		NumCompleted = 0;
 	}
 
-	void FTaskGroup::StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined)
+	void FTaskGroup::StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined, const bool bExecuteSmallSynchronously)
 	{
 		OnIterationCallback = Callback;
 
-		if(MaxItems <= ChunkSize)
+		if (MaxItems <= ChunkSize && bExecuteSmallSynchronously)
 		{
-			NumStarted ++;
+			NumStarted++;
 			DoRangeIteration(0, MaxItems, 0);
 			OnTaskCompleted();
 			return;
 		}
-		
+
 		if (bInlined)
 		{
 			TArray<uint64> Loops;

@@ -165,7 +165,7 @@ namespace PCGExPointsMT
 				return;
 			}
 
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations);
 
 			if (bInlineProcessPoints)
 			{
@@ -223,7 +223,7 @@ namespace PCGExPointsMT
 				return;
 			}
 
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations);
 
 			if (bInlineProcessRange)
 			{
@@ -281,7 +281,7 @@ namespace PCGExPointsMT
 		virtual bool InitPrimaryFilters(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
 		{
 			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
-			
+
 			if (InFilterFactories->IsEmpty())
 			{
 				for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
@@ -361,7 +361,7 @@ namespace PCGExPointsMT
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
 			PCGExMT::SubRanges(
-				NumIterations, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations),
+				NumIterations, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations),
 				[&](const int32 Index, const int32 Count)
 				{
 					AsyncManagerPtr->Start<FAsyncProcessRange<FPointsProcessorBatchBase>>(

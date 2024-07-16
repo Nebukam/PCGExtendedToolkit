@@ -128,16 +128,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext final : public 
 	virtual ~FPCGExPartitionByValuesBaseContext() override;
 
 	TArray<FPCGExPartitonRuleConfig> RulesConfigs;
-	TArray<FPCGExFilter::FRule> Rules;
-	mutable FRWLock RulesLock;
-
-	TArray<int64> KeySums;
-
-	bool bSplitOutput = true;
-	PCGExPartition::FKPartition* RootPartition = nullptr;
-
-	int32 NumPartitions = -1;
-	TArray<PCGExPartition::FKPartition*> Partitions;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseElement final : public FPCGExPointsProcessorElement
@@ -152,3 +142,36 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExPartitionByValues
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		TArray<FPCGExFilter::FRule> Rules;
+		TArray<int64> KeySums;
+
+		PCGExPartition::FKPartition* RootPartition = nullptr;
+
+		int32 NumPartitions = -1;
+		TArray<PCGExPartition::FKPartition*> Partitions;
+
+		TArray<PCGExData::FPointIO*> PartitionsIOs;
+
+		FPCGExPartitionByValuesBaseContext* LocalTypedContext = nullptr;
+
+	public:
+		FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void CompleteWork() override;
+		virtual void Output() override;
+	};
+}

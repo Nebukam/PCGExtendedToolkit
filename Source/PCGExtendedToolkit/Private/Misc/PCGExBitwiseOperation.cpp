@@ -83,7 +83,7 @@ namespace PCGExBitwiseOperation
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBitwiseOperation::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BitwiseOperation)
 
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		Writer = PointDataFacade->GetWriter<int64>(Settings->FlagAttribute, 0, false, false);

@@ -195,14 +195,14 @@ namespace PCGExRefineEdges
 					SanitizeTaskGroup = AsyncManagerPtr->CreateGroup();
 					SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
 					SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
-						NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
+						NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
 						nullptr, this);
 				});
 
 			FilterManager = new PCGExPointFilter::TManager(EdgeDataFacade);
 			FilterManager->Init(Context, TypedContext->PreserveEdgeFilterFactories);
 			FilterTaskGroup->StartRanges<FFilterRangeTask>(
-				NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(),
+				NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
 				nullptr, this);
 		}
 		else

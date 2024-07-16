@@ -355,7 +355,7 @@ namespace PCGExMT
 			}
 		}
 
-		void StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false);
+		void StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false, const bool bExecuteSmallSynchronously = true);
 
 		void PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize);
 

@@ -201,7 +201,7 @@ namespace PCGExConnectPoints
 				PointDataFacade->Fetch(StartIndex, Count);
 			});
 
-		PrepTask->PrepareRangesOnly(PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+		PrepTask->PrepareRangesOnly(PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}

@@ -150,7 +150,7 @@ namespace PCGExConnectPoints
 	{
 		PCGExPointFilter::TManager* GeneratorsFilter = nullptr;
 		PCGExPointFilter::TManager* ConnectableFilter = nullptr;
-		
+
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		TArray<UPCGExProbeOperation*> ProbeOperations;
 		TArray<UPCGExProbeOperation*> DirectProbeOperations;

@@ -128,6 +128,7 @@ namespace PCGExGraph
 
 	PCGEX_ASYNC_STATE(State_ReadyForNextGraph)
 	PCGEX_ASYNC_STATE(State_ProcessingGraph)
+	PCGEX_ASYNC_STATE(State_PreparingCompound)
 	PCGEX_ASYNC_STATE(State_ProcessingCompound)
 
 	PCGEX_ASYNC_STATE(State_CachingGraphIndices)
@@ -141,7 +142,7 @@ namespace PCGExGraph
 	PCGEX_ASYNC_STATE(State_WaitingOnWritingClusters)
 	PCGEX_ASYNC_STATE(State_Compiling)
 
-	PCGEX_ASYNC_STATE(State_FindingPointEdgeIntersections)
+	PCGEX_ASYNC_STATE(State_ProcessingPointEdgeIntersections)
 	PCGEX_ASYNC_STATE(State_InsertingPointEdgeIntersections)
 
 	PCGEX_ASYNC_STATE(State_FindingEdgeEdgeIntersections)
@@ -153,7 +154,7 @@ namespace PCGExGraph
 	PCGEX_ASYNC_STATE(State_MergingPointCompounds)
 	PCGEX_ASYNC_STATE(State_MergingEdgeCompounds)
 	PCGEX_ASYNC_STATE(State_BlendingPointEdgeCrossings)
-	PCGEX_ASYNC_STATE(State_BlendingEdgeEdgeCrossings)
+	PCGEX_ASYNC_STATE(State_ProcessingEdgeEdgeIntersections)
 
 	PCGEX_ASYNC_STATE(State_WritingMainState)
 	PCGEX_ASYNC_STATE(State_WritingStatesAttributes)

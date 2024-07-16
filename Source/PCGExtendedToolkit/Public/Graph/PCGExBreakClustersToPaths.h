@@ -27,7 +27,6 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorCluster; }
 #endif
 
-
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -88,9 +87,9 @@ namespace PCGExBreakClustersToPaths
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		TArray<bool> Breakpoints;
-		
+
 		TArray<PCGExCluster::FNodeChain*> Chains;
-		
+
 		const FPCGExBreakClustersToPathsContext* LocalTypedContext = nullptr;
 		const UPCGExBreakClustersToPathsSettings* LocalSettings = nullptr;
 

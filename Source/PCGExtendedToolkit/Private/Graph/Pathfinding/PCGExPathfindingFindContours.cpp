@@ -35,7 +35,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	const TArray<FVector>& Positions = *ClusterProcessor->ProjectedPositions;
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
-	const FVector Guide = ProjectedSeeds[SeedIndex];
+	const FVector Guide = ClusterProcessor->LocalTypedContext->ProjectionDetails.Project(ClusterProcessor->LocalTypedContext->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(), SeedIndex);
 	int32 StartNodeIndex = Cluster->FindClosestNode(Guide, Settings->SeedPicking.PickingMethod, 2);
 	int32 NextEdge = Cluster->FindClosestEdge(StartNodeIndex, Guide);
 
@@ -236,8 +236,6 @@ FPCGExFindContoursContext::~FPCGExFindContoursContext()
 
 	SeedAttributesToPathTags.Cleanup();
 	PCGEX_DELETE(SeedForwardHandler)
-
-	ProjectedSeeds.Empty();
 }
 
 
@@ -277,24 +275,6 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ProcessingTargets);
-	}
-
-	if (Context->IsState(PCGExMT::State_ProcessingTargets))
-	{
-		const TArray<FPCGPoint>& Seeds = Context->SeedsDataFacade->GetIn()->GetPoints();
-
-		auto Initialize = [&]()
-		{
-			Context->ProjectedSeeds.SetNumUninitialized(Seeds.Num());
-		};
-
-		auto ProjectSeed = [&](const int32 Index)
-		{
-			Context->ProjectedSeeds[Index] = Context->ProjectionDetails.Project(Seeds[Index].Transform.GetLocation(), Index);
-		};
-
-		if (!Context->Process(Initialize, ProjectSeed, Seeds.Num())) { return false; }
 
 		if (!Context->StartProcessingClusters<PCGExFindContours::FBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
@@ -335,6 +315,7 @@ namespace PCGExFindContours
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindContours)
 
 		LocalSettings = Settings;
+		LocalTypedContext = TypedContext;
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
@@ -365,14 +346,14 @@ namespace PCGExFindContours
 
 		if (IsTrivial())
 		{
-			for (int i = 0; i < TypedContext->ProjectedSeeds.Num(); i++)
+			for (int i = 0; i < TypedContext->SeedsDataFacade->Source->GetNum(); i++)
 			{
 				TypedContext->TryFindContours(TypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput), i, this);
 			}
 		}
 		else
 		{
-			for (int i = 0; i < TypedContext->ProjectedSeeds.Num(); i++)
+			for (int i = 0; i < TypedContext->SeedsDataFacade->Source->GetNum(); i++)
 			{
 				AsyncManagerPtr->Start<FPCGExFindContourTask>(i, TypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput), this);
 			}
@@ -395,7 +376,7 @@ namespace PCGExFindContours
 			{
 				ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxIO->GetInPoint(Index).Transform.GetLocation(), Index);
 			},
-			VtxIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration());
+			VtxIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		TBatch<FProcessor>::Process(AsyncManager);
 	}

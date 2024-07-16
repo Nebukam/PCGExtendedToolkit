@@ -122,8 +122,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	PCGExData::FFacade* SeedsDataFacade = nullptr;
-	TArray<FVector> ProjectedSeeds;
-
 
 	PCGExData::FPointIOCollection* Paths;
 
@@ -159,6 +157,7 @@ namespace PCGExFindContours
 
 	protected:
 		const UPCGExFindContoursSettings* LocalSettings = nullptr;
+		const FPCGExFindContoursContext* LocalTypedContext = nullptr;
 
 		TArray<FVector>* ProjectedPositions = nullptr;
 

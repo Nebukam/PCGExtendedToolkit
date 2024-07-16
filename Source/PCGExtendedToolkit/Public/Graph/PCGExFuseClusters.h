@@ -115,7 +115,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext final : public FPCGExEdg
 	FPCGExCarryOverDetails VtxCarryOverDetails;
 	FPCGExCarryOverDetails EdgesCarryOverDetails;
 
-	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;
 
 	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;

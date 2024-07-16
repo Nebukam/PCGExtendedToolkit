@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
 
 #include "PCGExFilter.generated.h"
 
@@ -100,7 +101,6 @@ namespace FPCGExFilter
 
 		virtual ~FRule() override
 		{
-			FRule::Cleanup();
 			RuleConfig = nullptr;
 		}
 
@@ -110,17 +110,13 @@ namespace FPCGExFilter
 		double Upscale = 1.0;
 		double Offset = 0.0;
 
+		PCGExData::FCache<double>* DataCache = nullptr;
+
 		FORCEINLINE int64 Filter(const int32 Index) const
 		{
-			const double Upscaled = Values[Index] * Upscale + (Offset);
+			const double Upscaled = DataCache->Values[Index] * Upscale + (Offset);
 			const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize + PCGExMath::SignPlus(Upscaled);
 			return static_cast<int64>(Filtered);
-		}
-
-		virtual void Cleanup() override
-		{
-			Values.Empty();
-			FLocalSingleFieldGetter::Cleanup();
 		}
 	};
 };

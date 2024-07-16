@@ -95,9 +95,6 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 		true,
 		Settings->PointPointIntersectionDetails.FuseMethod);
 
-	Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(
-		&Settings->DefaultPointsBlendingDetails, &Context->VtxCarryOverDetails);
-
 	return true;
 }
 
@@ -121,7 +118,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				NewBatch->bInlineProcessing = true; //Context->CompoundGraph->Octree ? true : false;
 			},
-			PCGExGraph::State_ProcessingCompound,
+			PCGExGraph::State_PreparingCompound,
 			true)) //Context->CompoundGraph->Octree ? true : false))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -131,89 +128,28 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (Context->IsState(PCGExGraph::State_ProcessingCompound))
+	if (Context->IsState(PCGExGraph::State_PreparingCompound))
 	{
-		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
-		if (NumCompoundNodes == 0)
+		Context->VtxFacades.Reserve(Context->Batches.Num());
+		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch :
+		     Context->Batches)
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Compound graph is empty. Vtx/Edge pairs are likely corrupted."));
-			return true;
+			Context->VtxFacades.Add(Batch->VtxDataFacade);
+			Batch->VtxDataFacade = nullptr; // Remove ownership of facade
+			// before deleting the processor
 		}
 
-		TArray<FPCGPoint>& MutablePoints =
-			Context->CompoundFacade->GetOut()->GetMutablePoints();
+		PCGEX_DELETE_TARRAY(Context->Batches);
 
-		auto Initialize = [&]()
-		{
-			Context->VtxFacades.Reserve(Context->Batches.Num());
-			for (PCGExClusterMT::FClusterProcessorBatchBase* Batch :
-			     Context->Batches)
-			{
-				Context->VtxFacades.Add(Batch->VtxDataFacade);
-				Batch->VtxDataFacade = nullptr; // Remove ownership of facade
-				// before deleting the processor
-			}
-
-			PCGEX_DELETE_TARRAY(Context->Batches);
-			Context->CompoundFacade->Source->InitializeNum(
-				NumCompoundNodes, true);
-			Context->CompoundPointsBlender->AddSources(Context->VtxFacades);
-			Context->CompoundPointsBlender->PrepareMerge(
-				Context->CompoundFacade, Context->CompoundGraph->PointsCompounds);
-		};
-
-		auto ProcessNode = [&](const int32 Index)
-		{
-			PCGExGraph::FCompoundNode* CompoundNode =
-				Context->CompoundGraph->Nodes[Index];
-			PCGMetadataEntryKey Key = MutablePoints[Index].MetadataEntry;
-			MutablePoints[Index] =
-				CompoundNode->Point; // Copy "original" point properties, in case
-			// there's only one
-
-			FPCGPoint& Point = MutablePoints[Index];
-			Point.MetadataEntry = Key; // Restore key
-
-			Point.Transform.SetLocation(
-				CompoundNode->UpdateCenter(
-					Context->CompoundGraph->PointsCompounds, Context->MainPoints));
-			Context->CompoundPointsBlender->MergeSingle(
-				Index,
-				PCGExDetails::GetDistanceDetails(
-					Settings->PointPointIntersectionDetails));
-		};
-
-		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
-
-		PCGEX_DELETE(Context->CompoundPointsBlender)
-
-		Context->CompoundFacade->Write(Context->GetAsyncManager(), true);
-		Context->SetAsyncState(PCGExMT::State_CompoundWriting);
-	}
-
-	if (Context->IsState(PCGExMT::State_CompoundWriting))
-	{
-		PCGEX_ASYNC_WAIT
-
-		Context->CompoundProcessor->StartProcessing(
+		if (!Context->CompoundProcessor->StartExecution(
 			Context->CompoundGraph,
 			Context->CompoundFacade,
+			Context->VtxFacades,
 			Settings->GraphBuilderDetails,
-			[&](PCGExGraph::FGraphBuilder* GraphBuilder)
-			{
-				TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
-				Context->CompoundGraph->GetUniqueEdges(UniqueEdges);
-				Context->CompoundGraph->WriteMetadata(
-					GraphBuilder->Graph->NodeMetadata);
-
-				GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
-			});
+			&Settings->VtxCarryOverDetails)) { return true; }
 	}
 
-	if (!Context->CompoundProcessor->Execute())
-	{
-		return false;
-	}
+	if (!Context->CompoundProcessor->Execute()) { return false; }
 
 	Context->CompoundFacade->Source->OutputTo(Context);
 	Context->Done();

@@ -163,7 +163,7 @@ namespace PCGExGeo
 		explicit FPointBox(const FPCGPoint& InPoint, const int32 InIndex, const EPCGExPointBoundsSource BoundsSource, double Epsilon = DBL_EPSILON):
 			Transform(FTransform(InPoint.Transform.GetRotation(), InPoint.Transform.GetLocation(), FVector::One())),
 			Index(InIndex)
-		{			
+		{
 			const FBox PointBox = PCGExMath::GetLocalBounds(InPoint, BoundsSource);
 			const FVector Extents = PointBox.GetExtent();
 			const double Len = Extents.Length();

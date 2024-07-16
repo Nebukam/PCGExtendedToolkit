@@ -78,9 +78,8 @@ namespace PCGExConditionalActions
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-
 		TArray<UPCGExConditionalActionOperation*> Operations;
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)

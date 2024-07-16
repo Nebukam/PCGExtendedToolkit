@@ -30,6 +30,6 @@ namespace PCGExMath
 			UpAverage = UpAverage.GetSafeNormal();
 		}
 
-		return FMath::Lerp(GetNormal(VA, VB, VB + UpAverage), PCGExMath::GetNormal(VB, VC, VC + UpAverage), 0.5).GetSafeNormal();
+		return FMath::Lerp(GetNormal(VA, VB, VB + UpAverage), GetNormal(VB, VC, VC + UpAverage), 0.5).GetSafeNormal();
 	}
 }

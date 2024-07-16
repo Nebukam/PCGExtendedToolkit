@@ -74,7 +74,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->OutputMainPoints();
-	
+
 	return Context->TryComplete();
 }
 
