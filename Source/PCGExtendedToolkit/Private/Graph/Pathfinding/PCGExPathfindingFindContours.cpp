@@ -50,7 +50,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		return false;
 	}
 
-	const FVector SeedPosition = NodesRef[StartNodeIndex].Position;
+	const FVector SeedPosition = Cluster->GetPos(StartNodeIndex);
 	if (!Settings->SeedPicking.WithinDistance(SeedPosition, Guide))
 	{
 		// Fail. Not within radius.
@@ -61,8 +61,8 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	int32 NextIndex = (*(ExpandedEdges->GetData() + NextEdge))->OtherNodeIndex(PrevIndex);
 
 
-	const FVector A = (*(ExpandedNodes->GetData() + PrevIndex))->Node->Position;
-	const FVector B = (*(ExpandedNodes->GetData() + NextIndex))->Node->Position;
+	const FVector A = Cluster->GetPos((*(ExpandedNodes->GetData() + PrevIndex))->Node);
+	const FVector B = Cluster->GetPos((*(ExpandedNodes->GetData() + NextIndex))->Node);
 
 	const double SanityAngle = PCGExMath::GetDegreesBetweenVectors((B - A).GetSafeNormal(), (B - Guide).GetSafeNormal());
 	const bool bStartIsDeadEnd = (Cluster->Nodes->GetData() + StartNodeIndex)->Adjacency.Num() == 1;
@@ -94,7 +94,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	bool bIsConvex = true;
 	int32 Sign = 0;
 
-	PathBox += (*(ExpandedNodes->GetData() + PrevIndex))->Node->Position;
+	PathBox += Cluster->GetPos((*(ExpandedNodes->GetData() + PrevIndex))->Node);
 
 	bool bGracefullyClosed = false;
 	while (NextIndex != -1)
@@ -109,7 +109,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		Path.Add(NextIndex);
 		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
 
-		PathBox += Current->Node->Position;
+		PathBox += Cluster->GetPos(Current->Node);
 
 		//if (Current->Neighbors.Num() <= 1) { break; }
 		if (Current->Neighbors.Num() == 1 && Settings->bDuplicateDeadEndPoints) { Path.Add(NextIndex); }
@@ -150,9 +150,9 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 			if (Settings->OutputType != EPCGExContourShapeTypeOutput::Both && Path.Num() > 2)
 			{
 				PCGExMath::CheckConvex(
-					(Cluster->Nodes->GetData() + Path.Last(2))->Position,
-					(Cluster->Nodes->GetData() + Path.Last(1))->Position,
-					(Cluster->Nodes->GetData() + Path.Last())->Position,
+					Cluster->GetPos(Path.Last(2)),
+					Cluster->GetPos(Path.Last(1)),
+					Cluster->GetPos(Path.Last()),
 					bIsConvex, Sign);
 
 				if (!bIsConvex && Settings->OutputType == EPCGExContourShapeTypeOutput::ConvexOnly) { return false; }

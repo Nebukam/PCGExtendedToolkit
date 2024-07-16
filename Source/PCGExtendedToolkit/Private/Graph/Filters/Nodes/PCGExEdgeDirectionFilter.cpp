@@ -75,16 +75,14 @@ namespace PCGExNodeAdjacency
 			{
 				for (int i = 0; i < Dots.Num(); i++)
 				{
-					FVector Direction = (NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
-					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Direction));
+					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i]))));
 				}
 			}
 			else
 			{
 				for (int i = 0; i < Dots.Num(); i++)
 				{
-					FVector Direction = (NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
-					Dots[i] = FVector::DotProduct(RefDir, Direction);
+					Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])));
 				}
 			}
 		}
@@ -94,16 +92,14 @@ namespace PCGExNodeAdjacency
 			{
 				for (int i = 0; i < Dots.Num(); i++)
 				{
-					FVector Direction = (Node.Position - NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
-					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Direction));
+					Dots[i] = FMath::Abs(FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i]))));
 				}
 			}
 			else
 			{
 				for (int i = 0; i < Dots.Num(); i++)
 				{
-					FVector Direction = (Node.Position - NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
-					Dots[i] = FVector::DotProduct(RefDir, Direction);
+					Dots[i] = FVector::DotProduct(RefDir, Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])));
 				}
 			}
 		}
@@ -174,16 +170,14 @@ namespace PCGExNodeAdjacency
 		{
 			for (int i = 0; i < Hashes.Num(); i++)
 			{
-				FVector Direction = (NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position - Node.Position).GetSafeNormal();
-				Hashes[i] = PCGEx::GH(Direction, CWTolerance);
+				Hashes[i] = PCGEx::GH(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Hashes.Num(); i++)
 			{
-				FVector Direction = (Node.Position - NodesRef[PCGEx::H64A(Node.Adjacency[i])].Position).GetSafeNormal();
-				Hashes[i] = PCGEx::GH(Direction, CWTolerance);
+				Hashes[i] = PCGEx::GH(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
 			}
 		}
 

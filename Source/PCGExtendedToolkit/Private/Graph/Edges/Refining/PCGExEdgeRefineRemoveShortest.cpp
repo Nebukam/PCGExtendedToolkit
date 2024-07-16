@@ -14,7 +14,7 @@ void UPCGExEdgeRemoveShortest::ProcessNode(PCGExCluster::FNode& Node)
 
 	for (const uint64 AdjacencyHash : Node.Adjacency)
 	{
-		const double Dist = FVector::DistSquared(Node.Position, (Cluster->Nodes->GetData() + PCGEx::H64A(AdjacencyHash))->Position);
+		const double Dist = Cluster->GetDistSquared(Node.NodeIndex, PCGEx::H64A(AdjacencyHash));
 		if (Dist < ShortestDist)
 		{
 			ShortestDist = Dist;

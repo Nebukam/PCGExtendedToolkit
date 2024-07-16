@@ -93,7 +93,7 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 
 					PCGExCluster::FNode& ClosestNode = (*Context->CurrentCluster->Nodes)[ClosestNodeIndex];
 
-					const double Dist = FVector::DistSquared(ClosestNode.Position, Pickers.Position);
+					const double Dist = FVector::DistSquared(Context->CurrentCluster->GetPos(ClosestNode), Pickers.Position);
 					if (Dist > Pickers.ClosestDistance) { continue; }
 
 					Pickers.ClosestDistance = Dist;

@@ -92,7 +92,7 @@ namespace PCGExHeuristics
 
 		double ReferenceWeight = 1;
 		double TotalStaticWeight = 0;
-		double bUseDynamicWeight = false;
+		bool bUseDynamicWeight = false;
 
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 

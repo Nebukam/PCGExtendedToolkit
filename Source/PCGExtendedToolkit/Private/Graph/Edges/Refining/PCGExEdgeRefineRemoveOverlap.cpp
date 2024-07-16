@@ -35,7 +35,7 @@ void UPCGExEdgeRemoveOverlap::CopySettingsFrom(const UPCGExOperation* Other)
 void UPCGExEdgeRemoveOverlap::ProcessEdge(PCGExGraph::FIndexedEdge& Edge)
 {
 	const PCGExCluster::FExpandedEdge* EEdge = *(Cluster->ExpandedEdges->GetData() + Edge.EdgeIndex);
-	const double Length = EEdge->GetEdgeLengthSquared();
+	const double Length = EEdge->GetEdgeLengthSquared(Cluster);
 
 	auto ProcessOverlap = [&](const PCGExCluster::FClusterItemRef& ItemRef)
 	{
@@ -48,16 +48,11 @@ void UPCGExEdgeRemoveOverlap::ProcessEdge(PCGExGraph::FIndexedEdge& Edge)
 			EEdge->End == OtherEEdge->End || EEdge->End == OtherEEdge->Start) { return true; }
 
 		// TODO: Check directions/dot
-		const double OtherLength = OtherEEdge->GetEdgeLengthSquared();
+		const double OtherLength = OtherEEdge->GetEdgeLengthSquared(Cluster);
 
 		FVector A;
 		FVector B;
-		FMath::SegmentDistToSegment(
-			EEdge->Start->Position, EEdge->End->Position,
-			OtherEEdge->Start->Position, OtherEEdge->End->Position,
-			A, B);
-
-		if (FVector::DistSquared(A, B) >= ToleranceSquared) { return true; }
+		if (Cluster->EdgeDistToEdgeSquared(EEdge->GetNodes(), OtherEEdge->GetNodes(), A, B) >= ToleranceSquared) { return true; }
 
 		// Overlap!
 		if (Keep == EPCGExEdgeOverlapPick::Longest)

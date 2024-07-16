@@ -249,7 +249,7 @@ namespace PCGExRefineEdges
 						break;
 					}
 
-					const double ELengthSqr = EEdge->GetEdgeLengthSquared();
+					const double ELengthSqr = EEdge->GetEdgeLengthSquared(Processor->Cluster);
 					if (LongestLength < ELengthSqr)
 					{
 						LongestLength = ELengthSqr;
@@ -273,7 +273,7 @@ namespace PCGExRefineEdges
 						break;
 					}
 
-					const double ELengthSqr = EEdge->GetEdgeLengthSquared();
+					const double ELengthSqr = EEdge->GetEdgeLengthSquared(Processor->Cluster);
 					if (ShortestLength > ELengthSqr)
 					{
 						ShortestLength = ELengthSqr;

@@ -6,7 +6,7 @@
 
 void UPCGExHeuristicSteepness::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
 {
-	UpwardVector = UpVector.GetSafeNormal();
+	UpwardVector = UpwardVector.GetSafeNormal();
 	Super::PrepareForCluster(InCluster);
 }
 
@@ -14,6 +14,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() cons
 {
 	UPCGExHeuristicSteepness* NewOperation = NewObject<UPCGExHeuristicSteepness>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
+	NewOperation->UpwardVector = Config.UpVector;
 	return NewOperation;
 }
 
