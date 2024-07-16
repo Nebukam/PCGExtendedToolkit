@@ -93,6 +93,22 @@ bool UPCGExSearchDijkstra::FindPath(
 	int32 PathEdgeIndex;
 	PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
 
+	if (PathNodeIndex != -1)
+	{
+		Path.Add(GoalNode.NodeIndex);
+		if (PathNodeIndex != -1)
+		{
+			const PCGExGraph::FIndexedEdge& E = EdgesRef[PathEdgeIndex];
+			Heuristics->FeedbackScore(GoalNode, E);
+			if (LocalFeedback) { Heuristics->FeedbackScore(GoalNode, E); }
+		}
+		else
+		{
+			Heuristics->FeedbackPointScore(GoalNode);
+			if (LocalFeedback) { Heuristics->FeedbackPointScore(GoalNode); }
+		}
+	}
+
 	while (PathNodeIndex != -1)
 	{
 		const int32 CurrentIndex = PathNodeIndex;

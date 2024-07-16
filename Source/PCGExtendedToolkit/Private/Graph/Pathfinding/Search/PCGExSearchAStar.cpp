@@ -106,11 +106,28 @@ bool UPCGExSearchAStar::FindPath(
 	int32 PathEdgeIndex;
 	PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
 
+	TArray<int32> Path;
+	
+	if (PathNodeIndex != -1)
+	{
+		Path.Add(GoalNode.NodeIndex);
+		if (PathNodeIndex != -1)
+		{
+			const PCGExGraph::FIndexedEdge& E = EdgesRef[PathEdgeIndex];
+			Heuristics->FeedbackScore(GoalNode, E);
+			if (LocalFeedback) { Heuristics->FeedbackScore(GoalNode, E); }
+		}
+		else
+		{
+			Heuristics->FeedbackPointScore(GoalNode);
+			if (LocalFeedback) { Heuristics->FeedbackPointScore(GoalNode); }
+		}
+	}
+	
 	if (PathNodeIndex != -1)
 	{
 		bSuccess = true;
-		TArray<int32> Path;
-
+		
 		while (PathNodeIndex != -1)
 		{
 			const int32 CurrentIndex = PathNodeIndex;
