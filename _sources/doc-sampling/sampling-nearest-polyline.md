@@ -13,6 +13,17 @@ tagged:
     - node
     - sampling
 nav_order: 3
+inputs:
+    -   name : In
+        desc : Points that will sample data from targets
+        pin : points
+    -   name : Targets
+        desc : Target splines to read data from
+        pin : points
+outputs:
+    -   name : Out
+        desc : In with extra attributes and properties
+        pin : points
 ---
 
 {% include header_card_node %}

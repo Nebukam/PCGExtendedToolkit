@@ -11,7 +11,7 @@ preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged: 
     - node
-    - graphs
+    - clusters
 nav_order: 20
 see_also:
     - Working with Clusters

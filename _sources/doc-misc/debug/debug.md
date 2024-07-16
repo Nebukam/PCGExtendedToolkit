@@ -42,6 +42,5 @@ The `PCGExDebug` property in the `Debug` details of the node is overridable and 
 At the time of writing, there are three main debug nodes:
 1. {% include lk id='Draw Attributes' %}
 1. {% include lk id='Draw Edges' %}
-1. {% include lk id='Draw Custom Graph' %}
 
-`Draw Edges` and `Draw Custom Graph` are specific to Edges & Custom Graph, however {% include lk id='Draw Attributes' %} is designed to work with any input.
+`Draw Edges` is specific to Edges & Clusters, however {% include lk id='Draw Attributes' %} is designed to work with any input.

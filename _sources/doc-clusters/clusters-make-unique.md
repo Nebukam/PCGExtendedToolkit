@@ -11,7 +11,7 @@ preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged:
     - node
-    - graphs
+    - clusters
 see_also:
     - Working with Clusters
 nav_order: 60
@@ -38,7 +38,7 @@ outputs:
 > This node creates a duplicate of the input data with new unique cluster tags.
 {: .infos-hl }
 
-This node primarily exists to allow certain advanced operations such as copying an existing graph configuration, modify it and then fuse it with the original one.  
+This node primarily exists to allow certain advanced operations such as copying an existing cluster configuration, modify it and then fuse it with the original one.  
 
 
 ---

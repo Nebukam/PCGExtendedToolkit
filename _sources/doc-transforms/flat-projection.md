@@ -13,6 +13,14 @@ tagged:
     - node
     - transform
 nav_order: 2
+inputs:
+    -   name : In
+        desc : Points that will be projected or unprojected
+        pin : points
+outputs:
+    -   name : Out
+        desc : Points that have been projected or unprojected
+        pin : points
 ---
 
 {% include header_card_node %}

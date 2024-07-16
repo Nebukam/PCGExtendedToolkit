@@ -2,7 +2,7 @@
 layout: page
 grand_parent: Clusters
 parent: Refine
-title: Minimum Spanning Tree
+title: 🝔 Minimum Spanning Tree
 subtitle: Implementation of Prim's Minimum Spanning Tree algorithm.
 summary: The **MST** refinement ...
 color: white

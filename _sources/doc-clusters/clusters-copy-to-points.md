@@ -2,7 +2,7 @@
 layout: page
 #grand_parent: All Nodes
 parent: Clusters
-title: Copy to Points
+title: Copy Cluster to Points
 subtitle: Creates copies of entire clusters to target points; much like Copy Points does.
 summary: The **Copy Cluster to Points** ...
 color: white
@@ -11,7 +11,7 @@ preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged:
     - node
-    - graphs
+    - clusters
 see_also:
     - Working with Clusters
 nav_order: 20

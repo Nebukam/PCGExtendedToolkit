@@ -2,7 +2,7 @@
 layout: page
 #grand_parent: All Nodes
 parent: Clusters
-title: Pick Closest
+title: Pick Closest Clusters
 summary: The **Pick Closest Clusters** node filters out input clusters based on proximity to target points.
 color: white
 splash: icons/icon_graphs-sanitize.svg
@@ -10,7 +10,7 @@ preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged:
     - node
-    - graphs
+    - clusters
 see_also:
     - Working with Clusters
 nav_order: 30

@@ -15,6 +15,26 @@ tagged:
 see_also: 
     - Pathfinding
 nav_order: 1
+inputs:
+    -   name : Vtx
+        desc : Endpoints of the input Edges
+        pin : points
+    -   name : Edges
+        desc : Edges associated with the input Vtxs
+        pin : points
+    -   name : Seeds
+        desc : Seed points
+        pin : points
+    -   name : Goals
+        desc : Goal points
+        pin : points
+    -   name : Heuristics
+        desc : Heuristics nodes that will be used by the pathfinding search algorithm
+        pin : params
+outputs:
+    -   name : Paths
+        desc : A point collection per path found
+        pin : points
 ---
 
 {% include header_card_node %}

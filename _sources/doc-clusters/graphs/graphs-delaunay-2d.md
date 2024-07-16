@@ -11,6 +11,7 @@ preview_img: docs/splash-delaunay-2D.png
 toc_img: placeholder.jpg
 tagged: 
     - node
+    - clusters
     - graphs
 nav_order: 5
 see_also:

@@ -2,8 +2,8 @@
 layout: page
 #grand_parent: All Nodes
 parent: Paths
-title: Write Paths Extras
-subtitle: Compute path extra data
+title: Write Paths Properties
+subtitle: Compute extra path informations
 color: white
 summary: Writes a variety of path statistics such as length, time, normals, centroids etc
 splash: icons/icon_edges-extras.svg
@@ -13,6 +13,14 @@ tagged:
     - node
     - paths
 nav_order: 4
+inputs:
+    -   name : Paths
+        desc : Paths to compute information from
+        pin : points
+outputs:
+    -   name : Paths
+        desc : Paths with extra information
+        pin : points
 ---
 
 {% include header_card_node %}

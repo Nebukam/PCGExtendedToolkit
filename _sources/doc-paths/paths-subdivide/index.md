@@ -14,6 +14,14 @@ tagged:
     - paths
 nav_order: 4
 has_children: true
+inputs:
+    -   name : Paths
+        desc : Paths which segments will be subdivided
+        pin : points
+outputs:
+    -   name : Paths
+        desc : Subdivided paths
+        pin : points
 ---
 
 {% include header_card_node %}

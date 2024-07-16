@@ -23,6 +23,9 @@ inputs:
     -   name : Edges
         desc : Edges associated with the input Vtxs
         pin : points
+    -   name : Heuristics
+        desc : Heuristic nodes, if required by the selected refinement.
+        pin : params
 outputs:
     -   name : Vtx
         desc : Endpoints of the output Edges
@@ -39,7 +42,21 @@ outputs:
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
-| Refinement           | This property lets you select which kind of refinement you want to apply to the input clusters.<br>**Specifics of the instanced module will be available under its inner Settings section.**<br>*See {% include lk id='Refining' %}.*  |
+| Refinement           | This property lets you select which kind of refinement you want to apply to the input clusters.<br>**Specifics of the instanced module 
+will be available under its inner Settings section.**<br>*See {% include lk id='Refining' %}.*  |
+| Output Only Edges As Points | If enabled, this node will output edges as raw points, without the usually associated cluster. |
+
+## Sanitization
+The sanitization property lets you enforce some general conditions within the graph. Note that is applied after the refinement.
+
+| Sanitization       | Description          |
+|:-------------|:------------------|
+| None           | No sanitization.  |
+| Shortest           | If a node has no edge left, restore the shortest one.|
+| Longest           | If a node has no edge left, restore the longest one.|
+
+> Note that the sanitization options offer no guarantee that the initial interconnectivity will be preserved! 
+{: .warning }
 
 ---
 ## Refining modules

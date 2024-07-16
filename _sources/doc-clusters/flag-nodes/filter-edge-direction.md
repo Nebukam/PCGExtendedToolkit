@@ -12,8 +12,16 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - clusterfilter
-    - graphs
+    - clusters
 nav_order: 7
+inputs:
+    -   name : Filters
+        desc : Conditions & filters to be tested and determine the flag behavior. Supports both regular filter and cluster filters
+        pin : params
+outputs:
+    -   name : Flag
+        desc : A single flag definition
+        pin : params
 ---
 
 {% include header_card_node %}

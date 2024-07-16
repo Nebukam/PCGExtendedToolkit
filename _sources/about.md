@@ -17,7 +17,7 @@ I made **PCGEx** as a way to bring some my personal Houdini toolkit into Unreal,
 {: .fs-6 .fw-300 }
 
 I love my current workflow & tools when it comes to procedural generation, and often needed ways to generate data & structures to... well, generate *more* data and structures to spawn stuff on.  
-Unreal PCG has powerful tools to generate and work with splines, but unless you're making them by hand, spline are a pain to manipulate and maintain at scale -- that's the main reason why I wanted to have tools to create graph and pathfinding them. Turns out, it's useful for plenty of other things :)
+Unreal PCG has powerful tools to generate and work with splines, but unless you're making them by hand, spline are a pain to manipulate and maintain at scale -- that's the main reason why I wanted to have tools to create graphs and pathfind in them. Turns out, it's useful for plenty of other things :)
 
 ### Special Thanks
 Massive kudo to MikeC, who has been an early adopter, and whose feedback and suggestions tremendously helped make PCGEx a better and more useful tool <3   

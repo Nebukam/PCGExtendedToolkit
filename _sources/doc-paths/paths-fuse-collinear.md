@@ -13,6 +13,17 @@ tagged:
     - node
     - paths
 nav_order: 3
+inputs:
+    -   name : Paths
+        desc : Paths which points will be checked for collinearity
+        pin : points
+    -   name : Filters
+        desc : Optional filters used to determine whether a point can be removed or not
+        pin : params
+outputs:
+    -   name : Paths
+        desc : Simplified paths
+        pin : points
 ---
 
 {% include header_card_node %}

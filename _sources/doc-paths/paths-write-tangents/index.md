@@ -14,6 +14,14 @@ tagged:
     - node
     - paths
 nav_order: 5
+inputs:
+    -   name : Paths
+        desc : Paths which points will have tangents written on
+        pin : points
+outputs:
+    -   name : Paths
+        desc : Paths with updated tangents attributes
+        pin : points
 ---
 
 {% include header_card_node %}

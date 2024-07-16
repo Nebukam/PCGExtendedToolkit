@@ -15,6 +15,14 @@ tagged:
 see_also: 
     - Blending
 nav_order: 4
+inputs:
+    -   name : Plots
+        desc : Plot points in the form of points collections.
+        pin : points
+outputs:
+    -   name : Paths
+        desc : A single path per plot collection input
+        pin : points
 ---
 
 {% include header_card_node %}

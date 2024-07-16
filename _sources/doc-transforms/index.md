@@ -3,7 +3,7 @@ layout: page
 title: Transforms
 subtitle: Various unusual transform ...
 summary: Manipulate point positions & transforms
-splash: icons/icon_cat-graphs.svg
+splash: icons/icon_cat-clusters.svg
 preview_img: placeholder.jpg
 nav_order: 31
 has_children: true

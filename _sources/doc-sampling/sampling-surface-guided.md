@@ -14,6 +14,14 @@ tagged:
     - node
     - sampling
 nav_order: 2
+inputs:
+    -   name : In
+        desc : Points that will be used as origin for line tracing
+        pin : points
+outputs:
+    -   name : Out
+        desc : In with extra attributes and properties
+        pin : points
 ---
 
 {% include header_card_node %}

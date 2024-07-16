@@ -13,6 +13,14 @@ tagged:
     - node
     - paths
 nav_order: 2
+inputs:
+    -   name : Paths
+        desc : Paths which points attributes & properties will be blended
+        pin : points
+outputs:
+    -   name : Paths
+        desc : Paths with attributes & properties blended
+        pin : points
 ---
 
 {% include header_card_node %}

@@ -14,6 +14,14 @@ tagged:
     - node
     - paths
 nav_order: 1
+inputs:
+    -   name : Paths
+        desc : Paths which points will be smoothed
+        pin : points
+outputs:
+    -   name : Paths
+        desc : Paths with updated points positions
+        pin : points
 ---
 
 {% include header_card_node %}

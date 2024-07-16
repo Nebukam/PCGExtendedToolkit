@@ -11,7 +11,7 @@ preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 has_children: true
 tagged: 
-    - graphs
+    - clusters
     - node
 nav_order: 0
 use_child_thumbnails: true
@@ -21,6 +21,12 @@ inputs:
         pin : points
     -   name : Probes
         desc : Probes used to build connections
+        pin : params
+    -   name : Generators
+        desc : Filters used to determine which points are allowed to generate connections
+        pin : params
+    -   name : Connectables
+        desc : Filters used to determine which points are allowed to receive connections
         pin : params
 outputs:
     -   name : Vtx

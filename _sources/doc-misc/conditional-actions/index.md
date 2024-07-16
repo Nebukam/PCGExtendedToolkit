@@ -2,9 +2,9 @@
 layout: page
 #grand_parent: All Nodes
 parent: Misc
-title: Matchmaking
+title: Conditional Actions
 subtitle: Unified approach to Match & Set.
-summary: The **Matchmaking** node is writing things based on filters.
+summary: The **Conditional Actions** node is executing "actions" based on filters.
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
@@ -18,12 +18,12 @@ inputs:
     -   name : In
         desc : Points to be matchmaked
         pin : points
-    -   name : Matchmakers
-        desc : Matchmakes to be processed
+    -   name : Actions
+        desc : Actions to be processed
         pin : params
 outputs:
     -   name : Out
-        desc : In after matchmaking.
+        desc : In after actions.
         pin : points
 ---
 
@@ -31,3 +31,8 @@ outputs:
 
 > DOC TDB
 {: .warning }
+
+---
+## Available Actions
+<br>
+{% include card_childs tagged='action' %}

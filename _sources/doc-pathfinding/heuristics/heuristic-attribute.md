@@ -8,6 +8,14 @@ summary: The **Heuristic Attribute** heuristic node ...
 splash: icons/icon_component.svg
 preview_img: docs/splash-heuristic-modifiers.png
 nav_order: -1
+inputs:
+    -   name : None
+        desc : 
+        pin : 
+outputs:
+    -   name : Heuristics
+        desc : A single heuristics definition
+        pin : params
 #has_children: true
 ---
 

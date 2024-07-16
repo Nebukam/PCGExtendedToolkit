@@ -11,7 +11,7 @@ preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 has_children: true
 tagged: 
-    - graphs
+    - clusters
     - node
 nav_order: 30
 use_child_thumbnails: true

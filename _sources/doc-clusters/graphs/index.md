@@ -11,13 +11,14 @@ preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 has_children: true
 tagged: 
+    - clusters
     - graphs
     - node
 nav_order: 1
 use_child_thumbnails: true
 ---
 
-{% include header_card_node %}
+{% include header_card %}
 
 Classic graphs are very basic generators that can turn any random point cloud into a nicely interconnected structure.  
 Delaunay & Voronoi are two of the most popular algorithms to achieve that; as they offer the benefit of interesting & useful properties.  

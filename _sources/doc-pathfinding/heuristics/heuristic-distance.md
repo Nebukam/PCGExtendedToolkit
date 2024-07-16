@@ -12,6 +12,14 @@ toc_img: placeholder.jpg
 tagged: 
     - heuristics
 nav_order: 2
+inputs:
+    -   name : None
+        desc : 
+        pin : 
+outputs:
+    -   name : Heuristics
+        desc : A single heuristics definition
+        pin : params
 ---
 
 {% include header_card_node %}

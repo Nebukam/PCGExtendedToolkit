@@ -49,15 +49,12 @@ The `PCGEx/CachedEdgeNum` attribute hold the number of edges connected to that `
 ---
 ## Edges
 
->**Rule of thumb** : The only information that matter on `Edges` for graphs is their `start` and `end` attribute. Their position in space is ignored so feel free to use those points if they can be relevant to you. 
+>**Rule of thumb** : The only information that matter on `Edges` for clusters is their `start` and `end` attribute. Their position in space is ignored so feel free to use those points if they can be relevant to you. 
 {: .infos-hl }
 
-`Edges` have two important piece of data written on them, and everything else is pretty much ignored by PCGEx -- meaning you can use the set of point *almost* as you see fit.
-### Edge Start
-The `PCGEx/EdgeStart` attribute hold the *cached index* of its start `Vtx` when it was written into a graph.
-
-### Edge End
-The `PCGEx/EdgeEnd` attribute hold the *cached index* of its end `Vtx` when it was written into a graph.
+`Edges` have a single important piece of data written on them, and everything else is pretty much ignored by PCGEx -- meaning you can use the set of point *almost* as you see fit.
+### Edge Endpoints
+The `PCGEx/Endpoints` attribute hold the *cached index* of its start `Vtx` when it was written into a cluster.
 
 ---
 ## Clusters
@@ -76,7 +73,7 @@ A graph usually has a single set of vertices, but will output as many edge datas
 <br>
 {% include imgc a='docs/graph-output-settings.png' %}  
 
-This is a setting block you will see in a form or another on nodes that output sanitized graphs. They expose controls/filters over the `Vtx/Edges` output of the node to make sure the output is **sanitized, i.e, that it can be safely traversed by pathfinding search algorithms.**
+This is a setting block you will see in a form or another on nodes that output sanitized clusters. They expose controls/filters over the `Vtx/Edges` output of the node to make sure the output is **sanitized, i.e, that it can be safely traversed by pathfinding search algorithms.**
 
 See the {% include lk id='Sanitize Clusters' %} node for more infos, as it encapsulate the sanitization behavior embedded in many other nodes.
 

@@ -2,7 +2,7 @@
 layout: page
 grand_parent: Clusters
 parent: Connect Points
-title: 🜶 Closest
+title: 🝆 Closest
 subtitle: Connects to the closest point within a given radius
 summary: The **Closest** probe ...
 color: white
@@ -12,8 +12,12 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - probe
-    - graphs
+    - clusters
 nav_order: 7
+inputs:
+    -   name : None
+        desc : 
+        pin : 
 outputs:
     -   name : Probe
         desc : A single probe, to be used with the 'Connect Points' node

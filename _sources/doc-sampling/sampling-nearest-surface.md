@@ -14,6 +14,14 @@ tagged:
     - node
     - sampling
 nav_order: 1
+inputs:
+    -   name : In
+        desc : Points that will be used as origin for finding & sampling the nearest surface
+        pin : points
+outputs:
+    -   name : Out
+        desc : In with extra attributes and properties
+        pin : points
 ---
 
 {% include header_card_node %}

@@ -12,8 +12,16 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - neighborsample
-    - graphs
+    - clusters
 nav_order: 7
+inputs:
+    -   name : None
+        desc : 
+        pin : 
+outputs:
+    -   name : Sampler
+        desc : A single sampler definition
+        pin : params
 ---
 
 {% include header_card_node %}

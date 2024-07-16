@@ -13,6 +13,17 @@ tagged:
     - node
     - paths
 nav_order: 2
+inputs:
+    -   name : Paths
+        desc : Paths which points will be oriented
+        pin : points
+    -   name : Bounds
+        desc : Points which bounds will be used as intersection source
+        pin : points
+outputs:
+    -   name : Paths
+        desc : Paths with additional points & informations
+        pin : points
 ---
 
 {% include header_card_node %}

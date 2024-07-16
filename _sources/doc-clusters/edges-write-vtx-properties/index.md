@@ -23,6 +23,9 @@ inputs:
     -   name : Edges
         desc : Edges associated with the input Vtxs
         pin : points
+    -   name : Properties 
+        desc : Individual 'Vtx Property' nodes
+        pin : params
 outputs:
     -   name : Vtx
         desc : Endpoints of the output Edges
@@ -30,6 +33,7 @@ outputs:
     -   name : Edges
         desc : Edges associated with the output Vtxs
         pin : points
+   
 ---
 
 {% include header_card_node %}
@@ -40,4 +44,4 @@ outputs:
 ---
 ## Extra Modules
 <br>
-{% include card_childs tagged='vtx-extras' %}
+{% include card_childs tagged='vtx-property' %}

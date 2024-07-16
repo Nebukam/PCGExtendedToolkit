@@ -98,7 +98,7 @@ The selected attribute or property is used as the index for the point to use as 
 |:-------------|:------------------|
 | As an offset           | If enabled, the incoming vector will be used as an offset from the current point location. |
 
-> Note: this is a legacy tool for drawing edges, if using graphs, use {% include lk id='Draw Edges' %} instead.
+> Note: this is a legacy tool for drawing edges, if using clusters, use {% include lk id='Draw Edges' %} instead.
 {: .comment }
 
 ---

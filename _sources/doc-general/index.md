@@ -22,7 +22,7 @@ has_children: true
 <br>
 Some topics and their modules are more complex, and have a dedicated section:
 - {% include lk id='Pathfinding' %}
-- {% include lk id='Custom Graphs' %} 
+- {% include lk id='Clusters' %} 
 {: .fs-6 .fw-400 } 
 <br>
 

@@ -14,6 +14,14 @@ tagged:
     - node
     - paths
 nav_order: 2
+inputs:
+    -   name : Paths
+        desc : Paths which points will be oriented
+        pin : points
+outputs:
+    -   name : Paths
+        desc : Paths with updated points orientation
+        pin : points
 ---
 
 {% include header_card_node %}

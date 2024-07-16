@@ -13,6 +13,17 @@ tagged:
     - node
     - pathfinder
 nav_order: 3
+inputs:
+    -   name : Seeds
+        desc : Seed points
+        pin : points
+    -   name : Goals
+        desc : Goal points
+        pin : points
+outputs:
+    -   name : Paths
+        desc : A point collection per path found
+        pin : points
 ---
 
 {% include header_card_node %}

@@ -11,6 +11,7 @@ preview_img: docs/splash-voronoi-3D.png
 toc_img: placeholder.jpg
 tagged:
     - node
+    - clusters
     - graphs
 nav_order: 3
 see_also:

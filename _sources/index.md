@@ -6,7 +6,7 @@ nav_order: 0
 ---
 <div class="product-header large" style="--img:url('{{ site.baseurl }}/assets/images/logo.png');"><div class="infos" markdown="1">
 # PCGEx {% include github.html repo="PCGExtendedToolkit" %}  
-The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Procedural Content Generation pipeline, with a focus on **building graphs & pathfinding**.  
+The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Procedural Content Generation pipeline, with a focus on **building clusters & pathfinding**.  
 {: .fs-6 .fw-300 }  
    
 {% include link_btn title="Installation" color="red" link="installation" %} 
@@ -25,14 +25,9 @@ The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Pr
 # All Nodes
 
 ---
-## Graphs Nodes
+## Clusters Nodes
 <br>
-{% include card_childs reference="Graphs" tagged='graphs' %}
-
----
-## Custom Graph Nodes
-<br>
-{% include card_childs reference="Custom Graphs" tagged='customgraph' %}
+{% include card_childs reference="Clusters" tagged='clusters' %}
 
 ---
 ## Edges Nodes

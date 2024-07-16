@@ -11,7 +11,7 @@ preview_img: docs/splash-partition-vertices.png
 toc_img: placeholder.jpg
 tagged:
     - node
-    - graphs
+    - clusters
 see_also:
     - Working with Clusters
 nav_order: 50
@@ -35,7 +35,7 @@ outputs:
 
 *This node has no specific properties.*
 
-> Contrary to other edge & graph processors, this node does **not** produce a sanitized result.  
+> Contrary to other edge & cluster processors, this node does **not** produce a sanitized result.  
 > *If the input is unsanitized, you may have unexpected results.*  
 {: .warning }
 

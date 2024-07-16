@@ -34,3 +34,8 @@ outputs:
 
 > DOC TDB
 {: .warning }
+
+---
+## Available Filters
+<br>
+{% include card_childs tagged='filter' %}

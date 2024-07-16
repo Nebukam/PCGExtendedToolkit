@@ -13,6 +13,20 @@ tagged:
     - node
     - edges
 nav_order: 4
+inputs:
+    -   name : Vtx
+        desc : Endpoints of the input Edges
+        pin : points
+    -   name : Edges
+        desc : Edges associated with the input Vtxs
+        pin : points
+    -   name : Seed
+        desc : Seed points used to find contours based on proximity
+        pin : points
+outputs:
+    -   name : Paths
+        desc : One or multiple paths per seed points
+        pin : points
 ---
 
 {% include header_card_node %}

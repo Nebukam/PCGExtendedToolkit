@@ -13,9 +13,9 @@ nav_order: 200
 # All Nodes
 
 ---
-## Graphs Nodes
+## Cluster Nodes
 <br>
-{% include card_childs reference="Graphs" tagged='graphs' %}
+{% include card_childs reference="Clusters" tagged='clusters' %}
 
 ---
 ## Edges Nodes

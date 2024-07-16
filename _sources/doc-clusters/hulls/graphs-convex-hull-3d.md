@@ -11,7 +11,7 @@ preview_img: docs/splash-convex-hull-3D.png
 toc_img: placeholder.jpg
 tagged: 
     - node
-    - graphs
+    - clusters
 nav_order: 1
 see_also:
     - Working with Clusters

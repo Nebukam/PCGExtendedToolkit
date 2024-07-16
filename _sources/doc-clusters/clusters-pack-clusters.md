@@ -2,7 +2,7 @@
 layout: page
 #grand_parent: All Nodes
 parent: Clusters
-title: Pack
+title: Pack Clusters
 subtitle: Pack Clusters
 summary: The **Pack Clusters** node ...
 color: blue
@@ -11,7 +11,7 @@ preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged: 
     - node
-    - graphs
+    - clusters
 nav_order: 200
 see_also:
     - Working with Clusters
