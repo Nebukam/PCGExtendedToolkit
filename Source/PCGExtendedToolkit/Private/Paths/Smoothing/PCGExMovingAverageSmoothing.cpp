@@ -17,6 +17,7 @@ void UPCGExMovingAverageSmoothing::SmoothSingle(
 	const bool bClosedPath)
 {
 	const int32 NumPoints = Path->GetNum();
+	const int32 MaxIndex = NumPoints - 1;
 	const int32 SmoothingInt = Smoothing;
 	if (SmoothingInt == 0 || Influence == 0) { return; }
 
@@ -29,7 +30,7 @@ void UPCGExMovingAverageSmoothing::SmoothSingle(
 	{
 		for (int i = -SafeWindowSize; i <= SafeWindowSize; i++)
 		{
-			const int32 Index = PCGExMath::Tile(Target.Index + i, 0, NumPoints);
+			const int32 Index = PCGExMath::Tile(Target.Index + i, 0, MaxIndex);
 			const double Weight = (1 - (static_cast<double>(FMath::Abs(i)) / SafeWindowSize)) * Influence;
 			MetadataBlender->Blend(Target, Path->GetInPointRef(Index), Target, Weight);
 			Count++;
