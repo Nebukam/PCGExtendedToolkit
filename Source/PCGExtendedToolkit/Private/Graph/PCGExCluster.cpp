@@ -237,6 +237,8 @@ namespace PCGExCluster
 		if (bOwnsEdgeOctree) { PCGEX_DELETE(EdgeOctree) }
 		if (bOwnsExpandedNodes) { PCGEX_DELETE(ExpandedNodes) }
 		if (bOwnsExpandedEdges) { PCGEX_DELETE(ExpandedEdges) }
+		
+		NodePositions.Empty();
 	}
 
 	bool FCluster::BuildFrom(
@@ -936,8 +938,8 @@ namespace PCGExCluster
 		check(VtxIO)
 		
 		const TArray<FPCGPoint>& VtxPoints = VtxIO->GetIn()->GetPoints();
-		PCGEX_SET_NUM_UNINITIALIZED(Positions, Nodes->Num())
-		for (const FNode& N : *Nodes) { Positions[N.NodeIndex] = VtxPoints[N.PointIndex].Transform.GetLocation(); }
+		PCGEX_SET_NUM_UNINITIALIZED(NodePositions, Nodes->Num())
+		for (const FNode& N : *Nodes) { NodePositions[N.NodeIndex] = VtxPoints[N.PointIndex].Transform.GetLocation(); }
 	}
 
 	void FCluster::CreateVtxPointIndices()
@@ -1103,7 +1105,7 @@ namespace PCGExClusterTask
 	bool FTransformCluster::ExecuteTask()
 	{
 		const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
-		for (FVector& Position : Cluster->Positions) { Position = TargetPoint.Transform.TransformPosition(Position); }
+		for (FVector& Position : Cluster->NodePositions) { Position = TargetPoint.Transform.TransformPosition(Position); }
 		return true;
 	}
 

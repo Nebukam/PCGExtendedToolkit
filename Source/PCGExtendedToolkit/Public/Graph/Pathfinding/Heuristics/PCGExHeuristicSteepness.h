@@ -23,6 +23,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigSteepness : public FPCGExHeur
 	/** Vector pointing in the "up" direction. Mirrored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
+
+	/** When enabled, the overall steepness (whether toward or away the UpVector) determine the score. When disabled, the full range of the dot is used, with -1:1 remapped to 0:1 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAbsoluteSteepness = true;
 };
 
 /**
@@ -58,12 +62,12 @@ public:
 
 protected:
 	FVector UpwardVector = FVector::UpVector;
+	bool bAbsoluteSteepness = true;
 
-	double GetDot(const FVector& From, const FVector& To) const
+	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const
 	{
-		const FVector Dir = (To - From).GetSafeNormal();
-		const double Time = FVector::DotProduct(Dir, UpwardVector);
-		return FMath::Abs(Time);
+		const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), UpwardVector);
+		return bAbsoluteSteepness ? FMath::Abs(Dot) : PCGExMath::Remap(Dot, -1, 1);
 	}
 };
 

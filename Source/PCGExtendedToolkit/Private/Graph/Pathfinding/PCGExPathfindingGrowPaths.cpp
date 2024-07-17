@@ -139,7 +139,7 @@ namespace PCGExGrowPaths
 			}
 		}
 
-		Processor->Cluster->Positions[GoalNode->NodeIndex] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
+		Processor->Cluster->NodePositions[GoalNode->NodeIndex] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
 
 		if (Settings->bUseGrowthStop)
 		{
@@ -182,7 +182,7 @@ namespace PCGExGrowPaths
 	{
 		SeedNode = &(*Processor->Cluster->Nodes)[LastGrowthIndex];
 		GoalNode = new PCGExCluster::FNode();
-		GoalNode->NodeIndex = Processor->Cluster->Positions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 100);
+		GoalNode->NodeIndex = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 100);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
 	}
 
