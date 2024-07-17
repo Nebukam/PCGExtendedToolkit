@@ -208,7 +208,7 @@ PCGExMT::FTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
 	{
 		FWriteScopeLock WriteLock(ContextLock);
 		AsyncManager = new PCGExMT::FTaskManager();
-		AsyncManager->bForceSync = !bDoAsyncProcessing;
+		AsyncManager->ForceSync = !bDoAsyncProcessing;
 		AsyncManager->Context = this;
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)

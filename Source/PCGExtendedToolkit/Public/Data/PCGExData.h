@@ -116,12 +116,16 @@ namespace PCGExData
 					if (Reader)
 					{
 #if WITH_EDITOR
-						if (bDynamicCache) { check(!bFetch) }
+						// If this throws, we're requesting a full reader on a non-dynamic one.
+						// TODO : Read cache in full and toggle off dynamic.
+						if (bDynamicCache) { check(bFetch) } 
 #endif
 						return Reader;
 					}
 				}
 			}
+
+			bDynamicCache = bFetch;
 
 			if (bInitialized)
 			{
@@ -132,7 +136,6 @@ namespace PCGExData
 				if (bFetch) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
 				else { if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) } }
 
-				bDynamicCache = bFetch;
 				Attribute = TypedReader->Accessor->GetAttribute();
 				Reader = TypedReader;
 				bIsPureReader = false;

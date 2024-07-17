@@ -4,6 +4,7 @@
 #pragma once
 
 #include <functional>
+#include <atomic>
 
 #include "PCGContext.h"
 #include "PCGExGlobalSettings.h"
@@ -199,41 +200,36 @@ namespace PCGExMT
 
 		mutable FRWLock ManagerLock;
 		FPCGContext* Context;
-		bool bStopped = false;
-		bool bForceSync = false;
+		std::atomic<bool> Stopped = false;
+		std::atomic<bool> ForceSync = false;
 
 		FTaskGroup* CreateGroup();
+
+		FORCEINLINE bool AcceptsNewTasks() const { return Stopped.load() || Flushing.load() ? false : true; }
 
 		template <typename T, typename... Args>
 		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			{
-				FReadScopeLock ReadScopeLock(ManagerLock);
-				if (bStopped || bFlushing) { return; }
-			}
-
-			if (bForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
+			if (!AcceptsNewTasks()) { return; }
+			if (ForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 			else { StartBackgroundTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 		}
 
 		template <typename T, typename... Args>
 		void StartSynchronous(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			{
-				FReadScopeLock ReadScopeLock(ManagerLock);
-				if (bStopped || bFlushing) { return; }
-			}
-
+			if (!AcceptsNewTasks()) { return; }
 			StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
 		}
 
 		template <typename T>
 		void StartBackgroundTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
+			if (!AcceptsNewTasks()) { return; }
+			++NumStarted;
+
 			{
 				FWriteScopeLock WriteLock(ManagerLock);
-				if (bStopped || bFlushing) { return; }
-				NumStarted++;
 				QueuedTasks.Add(AsyncTask);
 			}
 
@@ -248,10 +244,7 @@ namespace PCGExMT
 		template <typename T>
 		void StartSynchronousTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
-			{
-				FReadScopeLock ReadLock(ManagerLock);
-				if (bStopped || bFlushing) { return; }
-			}
+			if (!AcceptsNewTasks()) { return; }
 
 			T& Task = AsyncTask->GetTask();
 			//Task.TaskPtr = AsyncTask;
@@ -263,7 +256,11 @@ namespace PCGExMT
 			delete AsyncTask;
 		}
 
-		void Reserve(const int32 NumTasks) { QueuedTasks.Reserve(NumTasks); }
+		void Reserve(const int32 NumTasks)
+		{
+			FWriteScopeLock WriteLock(ManagerLock);
+			QueuedTasks.Reserve(NumTasks);
+		}
 
 		void OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess);
 		bool IsAsyncWorkComplete() const;
@@ -274,10 +271,10 @@ namespace PCGExMT
 		T* GetContext() { return static_cast<T*>(Context); }
 
 	protected:
-		bool bFlushing = false;
-		int32 NumStarted = 0;
-		int32 NumCompleted = 0;
-		TSet<FAsyncTaskBase*> QueuedTasks;
+		std::atomic<bool> Flushing = {false};
+		std::atomic<int32> NumStarted = {0};
+		std::atomic<int32> NumCompleted = {0};
+		TArray<FAsyncTaskBase*> QueuedTasks;
 		TArray<FTaskGroup*> Groups;
 	};
 
@@ -320,25 +317,19 @@ namespace PCGExMT
 		template <typename T, typename... Args>
 		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			{
-				FReadScopeLock ReadScopeLock(Manager->ManagerLock);
-				if (Manager->bStopped || Manager->bFlushing) { return; }
-			}
+			if (!Manager->AcceptsNewTasks()) { return; }
 
-			NumStarted++;
+			++NumStarted;
 			FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
 			ATask->GetTask().Group = this;
-			if (Manager->bForceSync) { Manager->StartSynchronousTask<T>(ATask, TaskIndex); }
+			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, TaskIndex); }
 			else { Manager->StartBackgroundTask<T>(ATask, TaskIndex); }
 		}
 
 		template <typename T, typename... Args>
 		void StartRanges(const int32 MaxItems, const int32 ChunkSize, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			{
-				FReadScopeLock ReadScopeLock(Manager->ManagerLock);
-				if (Manager->bStopped || Manager->bFlushing) { return; }
-			}
+			if (!Manager->AcceptsNewTasks()) { return; }
 
 			TArray<uint64> Loops;
 			NumStarted += SubRanges(Loops, MaxItems, ChunkSize);
@@ -350,7 +341,7 @@ namespace PCGExMT
 				ATask->GetTask().Group = this;
 				ATask->GetTask().Scope = H;
 
-				if (Manager->bForceSync) { Manager->StartSynchronousTask<T>(ATask, LoopIdx++); }
+				if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, LoopIdx++); }
 				else { Manager->StartBackgroundTask<T>(ATask, LoopIdx++); }
 			}
 		}
@@ -371,19 +362,18 @@ namespace PCGExMT
 		bool bHasOnIterationRangeStartCallback = false;
 		IterationRangeStartCallback OnIterationRangeStartCallback;
 
-		bool bFlushing = false;
-		int32 NumStarted = 0;
-		int32 NumCompleted = 0;
+		std::atomic<int> NumStarted = {0};
+		std::atomic<int> NumCompleted = {0};
 
 		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
 		void PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
 
 		void OnTaskCompleted()
 		{
-			FWriteScopeLock WriteScopeLock(GroupLock);
-			NumCompleted++;
+			//FWriteScopeLock WriteScopeLock(GroupLock);
+			++NumCompleted;
 
-			if (NumCompleted == NumStarted)
+			if (NumCompleted.load() == NumStarted.load())
 			{
 				NumCompleted = 0;
 				NumStarted = 0;
@@ -441,7 +431,7 @@ namespace PCGExMT
 
 	protected:
 		bool bWorkDone = false;
-		bool Checkpoint() const { return !(!Manager || Manager->bStopped || Manager->bFlushing); }
+		bool Checkpoint() const { return !(!Manager || !Manager->AcceptsNewTasks()); }
 
 		template <typename T, typename... Args>
 		void InternalStart(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)

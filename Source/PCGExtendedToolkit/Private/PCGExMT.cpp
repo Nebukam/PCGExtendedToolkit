@@ -8,44 +8,44 @@ namespace PCGExMT
 {
 	FTaskManager::~FTaskManager()
 	{
-		bStopped = true;
+		Stopped = true;
 		PCGEX_DELETE_TARRAY(Groups)
 		Reset();
 	}
 
 	FTaskGroup* FTaskManager::CreateGroup()
 	{
-		FWriteScopeLock WriteScopeLock(ManagerLock);
 		FTaskGroup* NewGroup = new FTaskGroup(this);
-		Groups.Add(NewGroup);
+		{
+			FWriteScopeLock WriteScopeLock(ManagerLock);
+			Groups.Add(NewGroup);
+		}
 		return NewGroup;
 	}
 
 	void FTaskManager::OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess)
 	{
-		if (bFlushing) { return; }
-		FWriteScopeLock WriteLock(ManagerLock);
-		NumCompleted++;
-		if (NumCompleted == NumStarted) { Context->bIsPaused = false; }
+		if (Flushing.load()) { return; }
+		++NumCompleted;
+		if (NumCompleted.load() == NumStarted.load()) { Context->bIsPaused = false; }
 	}
 
 	bool FTaskManager::IsAsyncWorkComplete() const
 	{
-		FReadScopeLock ReadLock(ManagerLock);
-		return NumCompleted == NumStarted;
+		return NumCompleted.load() == NumStarted.load();
 	}
 
 	void FTaskManager::Reset()
 	{
 		FWriteScopeLock WriteLock(ManagerLock);
 
-		bFlushing = true;
+		Flushing = true;
 		for (FAsyncTaskBase* Task : QueuedTasks)
 		{
 			if (Task && !Task->Cancel()) { Task->EnsureCompletion(); }
 			delete Task;
 		}
-		bFlushing = false;
+		Flushing = false;
 
 		QueuedTasks.Empty();
 		NumStarted = 0;
@@ -99,7 +99,7 @@ namespace PCGExMT
 		NextRange->GetTask().MaxItems = MaxItems;
 		NextRange->GetTask().ChunkSize = ChunkSize;
 
-		if (Manager->bForceSync) { Manager->StartSynchronousTask<FGroupRangeInlineIterationTask>(NextRange, Index); }
+		if (Manager->ForceSync) { Manager->StartSynchronousTask<FGroupRangeInlineIterationTask>(NextRange, Index); }
 		else { Manager->StartBackgroundTask<FGroupRangeInlineIterationTask>(NextRange, Index); }
 	}
 
