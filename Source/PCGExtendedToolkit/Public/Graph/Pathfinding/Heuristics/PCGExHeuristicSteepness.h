@@ -23,21 +23,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigSteepness : public FPCGExHeur
 	/** Vector pointing in the "up" direction. Mirrored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
+
+	/** When enabled, the overall steepness (whether toward or away the UpVector) determine the score. When disabled, the full range of the dot is used, with -1:1 remapped to 0:1 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAbsoluteSteepness = true;
 };
 
 /**
  * 
  */
 UCLASS(DisplayName = "Steepness")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicSteepness : public UPCGExHeuristicDistance
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicSteepness : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
-public:
-	/** Vector pointing in the "up" direction. Mirrored. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FVector UpVector = FVector::UpVector;
+	friend class UPCGHeuristicsFactorySteepness;
 
+public:
 	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
@@ -45,7 +47,7 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		return SampleCurve(GetDot(From.Position, Goal.Position)) * ReferenceWeight;
+		return SampleCurve(GetDot(Cluster->GetPos(From), Cluster->GetPos(Goal))) * ReferenceWeight;
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
@@ -55,15 +57,17 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		return SampleCurve(GetDot(From.Position, To.Position)) * ReferenceWeight;
+		return SampleCurve(GetDot(Cluster->GetPos(From), Cluster->GetPos(To))) * ReferenceWeight;
 	}
 
 protected:
 	FVector UpwardVector = FVector::UpVector;
+	bool bAbsoluteSteepness = true;
 
 	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const
 	{
-		return FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector));
+		const double Dot = FVector::DotProduct((To - From).GetSafeNormal(), UpwardVector);
+		return bAbsoluteSteepness ? FMath::Abs(Dot) : PCGExMath::Remap(Dot, -1, 1);
 	}
 };
 

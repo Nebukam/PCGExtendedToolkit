@@ -184,8 +184,8 @@ namespace PCGExSimplifyClusters
 			const PCGExCluster::FNode& PrevNode = i == 0 ? NodesRef[Chain->First] : NodesRef[Chain->Nodes[i - 1]];
 			const PCGExCluster::FNode& NextNode = i == LastIndex ? NodesRef[Chain->Last] : NodesRef[Chain->Nodes[i + 1]];
 
-			const FVector A = (PrevNode.Position - CurrentNode.Position).GetSafeNormal();
-			const FVector B = (CurrentNode.Position - NextNode.Position).GetSafeNormal();
+			const FVector A = Cluster->GetDir(PrevNode, CurrentNode).GetSafeNormal();
+			const FVector B = Cluster->GetDir(CurrentNode, NextNode).GetSafeNormal();
 
 			if (!LocalSettings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > FixedDotThreshold) { continue; } }
 			else { if (FVector::DotProduct(A, B) < FixedDotThreshold) { continue; } }

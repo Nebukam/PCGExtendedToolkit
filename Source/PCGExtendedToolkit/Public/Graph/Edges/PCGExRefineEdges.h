@@ -65,7 +65,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	bool bOutputOnlyEdgesAsPoints = false;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bOutputOnlyEdgesAsPoints", EditConditionHides))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
 	/** Graph & Edges output properties */

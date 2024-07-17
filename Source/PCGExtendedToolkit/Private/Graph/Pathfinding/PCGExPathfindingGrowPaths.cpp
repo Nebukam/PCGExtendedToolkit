@@ -106,7 +106,7 @@ namespace PCGExGrowPaths
 		const PCGExCluster::FNode& CurrentNode = NodesRef[LastGrowthIndex];
 		const PCGExCluster::FNode& NextNode = NodesRef[NextGrowthIndex];
 
-		Metrics.Add(NextNode.Position);
+		Metrics.Add(Processor->Cluster->GetPos(NextNode));
 		if (MaxDistance > 0 && Metrics.Length > MaxDistance) { return false; }
 
 		Processor->HeuristicsHandler->FeedbackScore(NextNode, EdgesRef[CurrentNode.GetEdgeIndex(NextNode.NodeIndex)]);
@@ -139,7 +139,7 @@ namespace PCGExGrowPaths
 			}
 		}
 
-		GoalNode->Position = NextNode.Position + GrowthDirection * 10000;
+		Processor->Cluster->NodePositions[GoalNode->NodeIndex] = Processor->Cluster->GetPos(NextNode) + GrowthDirection * 10000;
 
 		if (Settings->bUseGrowthStop)
 		{
@@ -182,8 +182,8 @@ namespace PCGExGrowPaths
 	{
 		SeedNode = &(*Processor->Cluster->Nodes)[LastGrowthIndex];
 		GoalNode = new PCGExCluster::FNode();
-		GoalNode->Position = SeedNode->Position + GrowthDirection * 100;
-		Metrics.Reset(SeedNode->Position);
+		GoalNode->NodeIndex = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 100);
+		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
 	}
 
 	double FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge) const
@@ -340,7 +340,7 @@ namespace PCGExGrowPaths
 			if (NodeIndex == -1) { continue; }
 
 			const PCGExCluster::FNode& Node = (*Cluster->Nodes)[NodeIndex];
-			if (!Settings->SeedPicking.WithinDistance(Node.Position, SeedPosition) ||
+			if (!Settings->SeedPicking.WithinDistance(Cluster->GetPos(Node), SeedPosition) ||
 				Node.Adjacency.IsEmpty()) { continue; }
 
 			double StartNumIterations;

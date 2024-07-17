@@ -76,8 +76,8 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 	if (Settings->bClosedPath)
 	{
-		FVector SeedPosition = InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1).Transform.GetLocation();
-		FVector GoalPosition = InPlotPoints->GetInPoint(0).Transform.GetLocation();
+		const FVector SeedPosition = InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1).Transform.GetLocation();
+		const FVector GoalPosition = InPlotPoints->GetInPoint(0).Transform.GetLocation();
 
 		if (Settings->bAddPlotPointsToPath)
 		{

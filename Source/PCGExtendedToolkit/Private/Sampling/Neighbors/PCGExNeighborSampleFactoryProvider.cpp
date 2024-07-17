@@ -72,6 +72,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 	CurrentNeighbors->Append(ExpandedNodesRef[NodeIndex]->Neighbors);
 
 	PrepareNode(Node);
+	const FVector Origin = Cluster->GetPos(Node);
 
 
 	while (CurrentDepth <= SamplingConfig.MaxDepth)
@@ -86,7 +87,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 
 			if (SamplingConfig.BlendOver == EPCGExBlendOver::Distance)
 			{
-				const double Dist = FVector::Dist(Node.Position, Neighbor.Node->Position); // Use Neighbor.FromNode to accumulate per-path distance 
+				const double Dist = FVector::Dist(Origin, Cluster->GetPos(Neighbor)); // Use Neighbor.FromNode to accumulate per-path distance 
 				if (Dist > SamplingConfig.MaxDistance) { continue; }
 				LocalWeight = 1 - (Dist / SamplingConfig.MaxDistance);
 			}

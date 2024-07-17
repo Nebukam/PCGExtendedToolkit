@@ -22,17 +22,17 @@ namespace PCGExCluster
 
 	FVector FNode::GetCentroid(const FCluster* InCluster) const
 	{
-		if (Adjacency.IsEmpty()) { return Position; }
+		if (Adjacency.IsEmpty()) { return InCluster->GetPos(NodeIndex); }
 
 		FVector Centroid = FVector::ZeroVector;
 		const int32 NumPoints = Adjacency.Num();
 
 		TArray<FNode>& Nodes = *InCluster->Nodes;
-		for (int i = 0; i < NumPoints; i++) { Centroid += Nodes[PCGEx::H64A(Adjacency[i])].Position; }
+		for (int i = 0; i < NumPoints; i++) { Centroid += InCluster->GetPos(PCGEx::H64A(Adjacency[i])); }
 
 		if (Adjacency.Num() < 2)
 		{
-			Centroid += Position;
+			Centroid += InCluster->GetPos(NodeIndex);
 			return Centroid / 2;
 		}
 
@@ -55,7 +55,8 @@ namespace PCGExCluster
 
 		for (const FAdjacencyData& A : AdjacencyData)
 		{
-			OutNormal += PCGExMath::GetNormal((InCluster->Nodes->GetData() + A.NodeIndex)->Position, Position, Position + FVector::ForwardVector);
+			FVector Position = InCluster->GetPos(NodeIndex);
+			OutNormal += PCGExMath::GetNormal(InCluster->GetPos(A.NodeIndex), Position, Position + FVector::ForwardVector);
 		}
 
 		OutNormal /= NumNeighbors;
@@ -106,6 +107,8 @@ namespace PCGExCluster
 			Nodes = OtherCluster->Nodes;
 		}
 
+		UpdatePositions();
+		
 		if (bCopyEdges)
 		{
 			Edges = new TArray<PCGExGraph::FIndexedEdge>();
@@ -234,6 +237,8 @@ namespace PCGExCluster
 		if (bOwnsEdgeOctree) { PCGEX_DELETE(EdgeOctree) }
 		if (bOwnsExpandedNodes) { PCGEX_DELETE(ExpandedNodes) }
 		if (bOwnsExpandedEdges) { PCGEX_DELETE(ExpandedEdges) }
+		
+		NodePositions.Empty();
 	}
 
 	bool FCluster::BuildFrom(
@@ -480,7 +485,7 @@ namespace PCGExCluster
 			{
 				const FNode& Node = NodesRef[Item.ItemIndex];
 				if (Node.Adjacency.Num() < MinNeighbors) { return; }
-				const double Dist = FVector::DistSquared(Position, Node.Position);
+				const double Dist = FVector::DistSquared(Position, GetPos(Node));
 				if (Dist < MaxDistance)
 				{
 					MaxDistance = Dist;
@@ -495,7 +500,7 @@ namespace PCGExCluster
 			for (const FNode& Node : (*Nodes))
 			{
 				if (Node.Adjacency.Num() < MinNeighbors) { continue; }
-				const double Dist = FVector::DistSquared(Position, Node.Position);
+				const double Dist = FVector::DistSquared(Position, GetPos(Node));
 				if (Dist < MaxDistance)
 				{
 					MaxDistance = Dist;
@@ -521,7 +526,7 @@ namespace PCGExCluster
 			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
 				const FExpandedEdge* Edge = *(ExpandedEdges->GetData() + Item.ItemIndex);
-				const double Dist = FMath::PointDistToSegmentSquared(Position, Edge->Start->Position, Edge->End->Position);
+				const double Dist = FMath::PointDistToSegmentSquared(Position, GetPos(Edge->Start), GetPos(Edge->End));
 				if (Dist < MaxDistance)
 				{
 					MaxDistance = Dist;
@@ -535,7 +540,7 @@ namespace PCGExCluster
 		{
 			for (const FExpandedEdge* Edge : (*ExpandedEdges))
 			{
-				const double Dist = FMath::PointDistToSegmentSquared(Position, Edge->Start->Position, Edge->End->Position);
+				const double Dist = FMath::PointDistToSegmentSquared(Position, GetPos(Edge->Start), GetPos(Edge->End));
 				if (Dist < MaxDistance)
 				{
 					MaxDistance = Dist;
@@ -549,7 +554,7 @@ namespace PCGExCluster
 			{
 				const FNode& Start = NodesRef[NodeIndexLookupRef[Edge.Start]];
 				const FNode& End = NodesRef[NodeIndexLookupRef[Edge.End]];
-				const double Dist = FMath::PointDistToSegmentSquared(Position, Start.Position, End.Position);
+				const double Dist = FMath::PointDistToSegmentSquared(Position, GetPos(Start), GetPos(End));
 				if (Dist < MaxDistance)
 				{
 					MaxDistance = Dist;
@@ -564,7 +569,7 @@ namespace PCGExCluster
 		const FNode& Start = NodesRef[NodeIndexLookupRef[Edge.Start]];
 		const FNode& End = NodesRef[NodeIndexLookupRef[Edge.End]];
 
-		ClosestIndex = FVector::DistSquared(Position, Start.Position) < FVector::DistSquared(Position, End.Position) ? Start.NodeIndex : End.NodeIndex;
+		ClosestIndex = FVector::DistSquared(Position, GetPos(Start)) < FVector::DistSquared(Position, GetPos(End)) ? Start.NodeIndex : End.NodeIndex;
 
 		return ClosestIndex;
 	}
@@ -578,7 +583,8 @@ namespace PCGExCluster
 		int32 BestIndex = -1;
 
 		double BestDot = 1;
-		const FVector SearchDirection = (Node.Position - InPosition).GetSafeNormal();
+		FVector Position = GetPos(Node);
+		const FVector SearchDirection = (GetPos(Node) - InPosition).GetSafeNormal();
 
 		if (ExpandedNodes)
 		{
@@ -586,7 +592,7 @@ namespace PCGExCluster
 
 			for (const FExpandedNeighbor& N : ENode->Neighbors)
 			{
-				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Node.Position, N.Node->Position);
+				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Position, GetPos(N.Node));
 				if (Dist < MinDist)
 				{
 					MinDist = Dist;
@@ -594,7 +600,7 @@ namespace PCGExCluster
 				}
 				else if (Dist == MinDist)
 				{
-					if (const double Dot = FVector::DotProduct(SearchDirection, (N.Node->Position - Node.Position).GetSafeNormal());
+					if (const double Dot = FVector::DotProduct(SearchDirection, (GetPos(N.Node) - Position).GetSafeNormal());
 						Dot < BestDot)
 					{
 						BestDot = Dot;
@@ -610,8 +616,8 @@ namespace PCGExCluster
 				uint32 OtherNodeIndex;
 				uint32 OtherEdgeIndex;
 				PCGEx::H64(H, OtherNodeIndex, OtherEdgeIndex);
-				FVector NPos = (Nodes->GetData() + OtherNodeIndex)->Position;
-				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Node.Position, NPos);
+				FVector NPos = GetPos(OtherNodeIndex);
+				const double Dist = FMath::PointDistToSegmentSquared(InPosition, Position, NPos);
 				if (Dist < MinDist)
 				{
 					MinDist = Dist;
@@ -619,7 +625,7 @@ namespace PCGExCluster
 				}
 				else if (Dist == MinDist)
 				{
-					if (const double Dot = FVector::DotProduct(SearchDirection, (NPos - Node.Position).GetSafeNormal());
+					if (const double Dot = FVector::DotProduct(SearchDirection, (NPos - Position).GetSafeNormal());
 						Dot < BestDot)
 					{
 						BestDot = Dot;
@@ -638,13 +644,14 @@ namespace PCGExCluster
 		const FNode& Node = NodesRef[NodeIndex];
 		int32 Result = -1;
 		double LastDist = TNumericLimits<double>::Max();
+		const FVector NodePosition = GetPos(NodeIndex);
 
 		if (NodeOctree)
 		{
 			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
 				if (NodesRef[Item.ItemIndex].Adjacency.Num() < MinNeighborCount) { return; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, NodesRef[Item.ItemIndex].Position);
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.ItemIndex));
 					Dist < LastDist)
 				{
 					LastDist = Dist;
@@ -659,7 +666,7 @@ namespace PCGExCluster
 			for (const int32 OtherIndex : Node.Adjacency)
 			{
 				if (NodesRef[OtherIndex].Adjacency.Num() < MinNeighborCount) { continue; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, NodesRef[OtherIndex].Position);
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(OtherIndex));
 					Dist < LastDist)
 				{
 					LastDist = Dist;
@@ -677,6 +684,7 @@ namespace PCGExCluster
 		const FNode& Node = NodesRef[NodeIndex];
 		int32 Result = -1;
 		double LastDist = TNumericLimits<double>::Max();
+		const FVector NodePosition = GetPos(NodeIndex);
 
 		if (NodeOctree)
 		{
@@ -684,7 +692,7 @@ namespace PCGExCluster
 			{
 				if (NodesRef[Item.ItemIndex].Adjacency.Num() < MinNeighborCount) { return; }
 				if (Exclusion.Contains(Item.ItemIndex)) { return; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, NodesRef[Item.ItemIndex].Position);
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(Item.ItemIndex));
 					Dist < LastDist)
 				{
 					LastDist = Dist;
@@ -700,7 +708,7 @@ namespace PCGExCluster
 			{
 				if (NodesRef[OtherIndex].Adjacency.Num() < MinNeighborCount) { continue; }
 				if (Exclusion.Contains(OtherIndex)) { continue; }
-				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, NodesRef[OtherIndex].Position);
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, NodePosition, GetPos(OtherIndex));
 					Dist < LastDist)
 				{
 					LastDist = Dist;
@@ -731,7 +739,7 @@ namespace PCGExCluster
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[i];
-			const double Dist = FVector::DistSquared(NodesRef[NodeIndexLookupRef[Edge.Start]].Position, NodesRef[NodeIndexLookupRef[Edge.End]].Position);
+			const double Dist = GetDistSquared(NodeIndexLookupRef[Edge.Start], NodeIndexLookupRef[Edge.End]);
 			LengthsRef[i] = Dist;
 			Min = FMath::Min(Dist, Min);
 			Max = FMath::Max(Dist, Max);
@@ -838,12 +846,13 @@ namespace PCGExCluster
 		const FNode& Node = NodesRef[NodeIndex];
 		int32 Result = -1;
 		double LastDot = -1;
+		FVector Position = GetPos(NodeIndex);
 
 		for (const uint64 AdjacencyHash : Node.Adjacency)
 		{
 			const int32 AdjacentIndex = PCGEx::H64A(AdjacencyHash);
 			if (NodesRef[AdjacentIndex].Adjacency.Num() < MinNeighborCount) { continue; }
-			if (const double Dot = FVector::DotProduct(Direction, (Node.Position - NodesRef[AdjacentIndex].Position).GetSafeNormal());
+			if (const double Dot = FVector::DotProduct(Direction, GetDir(NodeIndex, AdjacentIndex));
 				Dot > LastDot)
 			{
 				LastDot = Dot;
@@ -922,6 +931,15 @@ namespace PCGExCluster
 			{
 				AsyncManager->Start<PCGExClusterTask::FExpandClusterEdges>(Start, nullptr, this, Count);
 			});
+	}
+
+	void FCluster::UpdatePositions()
+	{
+		check(VtxIO)
+		
+		const TArray<FPCGPoint>& VtxPoints = VtxIO->GetIn()->GetPoints();
+		PCGEX_SET_NUM_UNINITIALIZED(NodePositions, Nodes->Num())
+		for (const FNode& N : *Nodes) { NodePositions[N.NodeIndex] = VtxPoints[N.PointIndex].Transform.GetLocation(); }
 	}
 
 	void FCluster::CreateVtxPointIndices()
@@ -1087,7 +1105,7 @@ namespace PCGExClusterTask
 	bool FTransformCluster::ExecuteTask()
 	{
 		const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
-		for (PCGExCluster::FNode& Node : (*Cluster->Nodes)) { Node.Position = TargetPoint.Transform.TransformPosition(Node.Position); }
+		for (FVector& Position : Cluster->NodePositions) { Position = TargetPoint.Transform.TransformPosition(Position); }
 		return true;
 	}
 

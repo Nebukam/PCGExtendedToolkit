@@ -37,7 +37,7 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		return SampleCurve(FVector::DistSquared(From.Position, Goal.Position) / MaxDistSquared) * ReferenceWeight;
+		return SampleCurve(Cluster->GetDistSquared(From, Goal) / MaxDistSquared) * ReferenceWeight;
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
