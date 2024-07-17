@@ -17,6 +17,7 @@ MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(Normal, FVector)\
 MACRO(Distance, double)\
+MACRO(IsInside, bool)\
 MACRO(ActorReference, FString)\
 MACRO(PhysMat, FString)
 
@@ -99,6 +100,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("TracedDistance");
 
+	/** Write the inside/outside status of the point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteIsInside = false;
+
+	/** Name of the 'bool' attribute to write sampled point inside or outside the collision].*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteIsInside"))
+	FName IsInsideAttributeName = FName("IsInside");
+	
 	/** Write the actor reference hit. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteActorReference = false;

@@ -127,6 +127,7 @@ namespace PCGExSampleNearestSurface
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
+			PCGEX_OUTPUT_VALUE(IsInside, Index, false)
 			PCGEX_OUTPUT_VALUE(Success, Index, false)
 
 			PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
@@ -178,23 +179,53 @@ namespace PCGExSampleNearestSurface
 			if (bSuccess)
 			{
 				const FVector Direction = (HitLocation - Origin).GetSafeNormal();
-				PCGEX_OUTPUT_VALUE(Location, Index, HitLocation)
-				PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
+
 				PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
-				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
+				
+				FVector HitNormal = Direction * -1;
+				bool bIsInside = false;
 
 				if (HitComp)
 				{
-					PCGEX_OUTPUT_VALUE(ActorReference, Index, HitComp->GetOwner()->GetPathName())
-					UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
-					if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
-					else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
+					if (NormalWriter || IsInsideWriter || LocalSettings->bTraceComplex)
+					{
+						FCollisionQueryParams PreciseCollisionParams;
+						PreciseCollisionParams.bTraceComplex = LocalSettings->bTraceComplex;
+						PreciseCollisionParams.bReturnPhysicalMaterial = PhysMatWriter ? true : false;
+
+						FHitResult HitResult;
+						if (HitComp->LineTraceComponent(HitResult, HitLocation - Direction, HitLocation + Direction, PreciseCollisionParams))
+						{
+							HitNormal = HitResult.Normal;
+							HitLocation = HitResult.Location;
+							bIsInside = IsInsideWriter ? FVector::DotProduct(Direction, HitResult.Normal) > 0 : false;
+
+							if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName()) }
+							else { PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT("")) }
+
+							if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+							else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
+						}
+					}
+					else
+					{
+						PCGEX_OUTPUT_VALUE(ActorReference, Index, HitComp->GetOwner()->GetPathName())
+						UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
+
+						if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+						else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
+					}
 				}
 				else
 				{
 					PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
 					PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
 				}
+
+				PCGEX_OUTPUT_VALUE(Location, Index, HitLocation)
+				PCGEX_OUTPUT_VALUE(Normal, Index, HitNormal)
+				PCGEX_OUTPUT_VALUE(IsInside, Index, bIsInside)
+				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
 			}
 			else
 			{

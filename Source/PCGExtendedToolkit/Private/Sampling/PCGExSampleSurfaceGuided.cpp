@@ -130,6 +130,7 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
+			PCGEX_OUTPUT_VALUE(IsInside, Index, false)
 			PCGEX_OUTPUT_VALUE(Success, Index, false)
 
 			PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
@@ -146,6 +147,7 @@ namespace PCGExSampleSurfaceGuided
 
 		FCollisionQueryParams CollisionParams;
 		CollisionParams.bTraceComplex = LocalSettings->bTraceComplex;
+		CollisionParams.bReturnPhysicalMaterial = PhysMatWriter ? true : false;
 		CollisionParams.AddIgnoredActors(LocalTypedContext->IgnoredActors);
 
 		const FVector Trace = Direction * MaxDistance;
@@ -159,6 +161,7 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(Location, Index, HitResult.ImpactPoint)
 			PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.Normal)
 			PCGEX_OUTPUT_VALUE(Distance, Index, FVector::Distance(HitResult.ImpactPoint, Origin))
+			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
 
 			if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName()) }
