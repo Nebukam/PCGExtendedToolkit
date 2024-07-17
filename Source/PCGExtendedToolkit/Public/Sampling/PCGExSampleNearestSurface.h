@@ -56,12 +56,20 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
+	/** Surface source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::All;
+
+	/** Name of the attribute to read actor reference from.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
+	FName ActorReference = FName("ActorReference");
+	
 	/** Search max distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, CLampMin=0.001))
 	double MaxDistance = 1000;
 
 	/** Use a per-point maximum distance*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bUseLocalMaxDistance = false;
 
 	/** Attribute or property to read the local max distance from. */
@@ -163,6 +171,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
+
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext final : public FPCGExPointsProcessorContext
@@ -171,6 +180,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext final : public F
 
 	virtual ~FPCGExSampleNearestSurfaceContext() override;
 
+	bool bUseInclude = false;
+	TSet<AActor*> IncludedActors;
 	TArray<AActor*> IgnoredActors;
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL_TOGGLE)
@@ -209,6 +220,7 @@ namespace PCGExSampleNearestSurface
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

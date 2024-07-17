@@ -125,6 +125,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				if (!PathGetter->SoftGrab(Context->MainPoints->Pairs[0]))
 				{
 					PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh attribute does not exists on targets."));
+					PCGEX_DELETE(PathGetter)
 					return false;
 				}
 
@@ -193,6 +194,8 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 						}
 					}
 				}
+
+				PCGEX_DELETE(PathGetter)
 			}
 
 			const int32 GSMNums = Context->StaticMeshMap->GSMs.Num();

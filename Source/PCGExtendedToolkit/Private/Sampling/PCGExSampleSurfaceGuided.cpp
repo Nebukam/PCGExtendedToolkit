@@ -11,6 +11,7 @@
 TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::SourceActorReferencesLabel, "Points with actor reference paths.", Required, {}) }
 	PCGEX_PIN_PARAMS(PCGEx::SourcePointFilters, "Filter which points will be processed.", Advanced, {})
 	return PinProperties;
 }
@@ -35,6 +36,13 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
+	if (Context->bUseInclude)
+	{
+		PCGEX_VALIDATE_NAME(Settings->ActorReference)
+		if (!PCGExSampling::GetIncludedActors(Context, Settings->ActorReference, Context->IncludedActors)) { return false; }
+	}
 
 	return true;
 }
@@ -92,7 +100,7 @@ namespace PCGExSampleSurfaceGuided
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
-		// TODO : Add Scoped Fetch
+		PointDataFacade->bSupportsDynamic = true;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -120,6 +128,11 @@ namespace PCGExSampleSurfaceGuided
 		return true;
 	}
 
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
+	}
+
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : LocalSettings->MaxDistance;
@@ -137,7 +150,7 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
 		};
 
-		if (!PointFilterCache[Index])
+		if (PrimaryFilters && !PrimaryFilters->Test(Index))
 		{
 			SamplingFailed();
 			return;
@@ -155,6 +168,7 @@ namespace PCGExSampleSurfaceGuided
 
 		bool bSuccess = false;
 		FHitResult HitResult;
+		TArray<FHitResult> HitResults;
 
 		auto ProcessTraceResult = [&]()
 		{
@@ -171,24 +185,73 @@ namespace PCGExSampleSurfaceGuided
 			bSuccess = true;
 		};
 
+		auto ProcessMultipleTraceResult = [&]()
+		{
+			for (const FHitResult& Hit : HitResults)
+			{
+				if (LocalTypedContext->IncludedActors.Contains(Hit.GetActor()))
+				{
+					HitResult = Hit;
+					ProcessTraceResult();
+					return;
+				}
+			}
+		};
+
 		switch (LocalSettings->CollisionType)
 		{
 		case EPCGExCollisionFilterType::Channel:
-			if (LocalTypedContext->World->LineTraceSingleByChannel(HitResult, Origin, End, LocalSettings->CollisionChannel, CollisionParams))
+			if (LocalTypedContext->bUseInclude)
 			{
-				ProcessTraceResult();
+				if (LocalTypedContext->World->LineTraceMultiByChannel(
+					HitResults, Origin, End,
+					LocalSettings->CollisionChannel, CollisionParams))
+				{
+					ProcessMultipleTraceResult();
+				}
+			}
+			else
+			{
+				if (LocalTypedContext->World->LineTraceSingleByChannel(
+					HitResult, Origin, End,
+					LocalSettings->CollisionChannel, CollisionParams))
+				{
+					ProcessTraceResult();
+				}
 			}
 			break;
 		case EPCGExCollisionFilterType::ObjectType:
-			if (LocalTypedContext->World->LineTraceSingleByObjectType(HitResult, Origin, End, FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionParams))
+			if (LocalTypedContext->bUseInclude)
 			{
-				ProcessTraceResult();
+				if (LocalTypedContext->World->LineTraceMultiByObjectType(
+					HitResults, Origin, End,
+					FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionParams))
+				{
+					ProcessMultipleTraceResult();
+				}
+			}
+			else
+			{
+				if (LocalTypedContext->World->LineTraceSingleByObjectType(
+					HitResult, Origin, End,
+					FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionParams)) { ProcessTraceResult(); }
 			}
 			break;
 		case EPCGExCollisionFilterType::Profile:
-			if (LocalTypedContext->World->LineTraceSingleByProfile(HitResult, Origin, End, LocalSettings->CollisionProfileName, CollisionParams))
+			if (LocalTypedContext->bUseInclude)
 			{
-				ProcessTraceResult();
+				if (LocalTypedContext->World->LineTraceMultiByProfile(
+					HitResults, Origin, End,
+					LocalSettings->CollisionProfileName, CollisionParams))
+				{
+					ProcessMultipleTraceResult();
+				}
+			}
+			else
+			{
+				if (LocalTypedContext->World->LineTraceSingleByProfile(
+					HitResult, Origin, End,
+					LocalSettings->CollisionProfileName, CollisionParams)) { ProcessTraceResult(); }
 			}
 			break;
 		default:
