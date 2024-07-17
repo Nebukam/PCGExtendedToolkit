@@ -365,25 +365,12 @@ namespace PCGExMT
 		std::atomic<int> NumStarted = {0};
 		std::atomic<int> NumCompleted = {0};
 
-		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
 		void PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
-
-		void OnTaskCompleted()
-		{
-			if (!Manager->IsAvailable()) { return; }
-			
-			//FWriteScopeLock WriteScopeLock(GroupLock);
-			++NumCompleted;
-
-			if (NumCompleted.load() == NumStarted.load())
-			{
-				NumCompleted = 0;
-				NumStarted = 0;
-				if (bHasOnCompleteCallback) { OnCompleteCallback(); }
-			}
-		}
-
+		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
 		void InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize);
+
+		void OnTaskCompleted();
+
 	};
 
 	class PCGEXTENDEDTOOLKIT_API PCGExMT::FPCGExTask : public FNonAbandonableTask

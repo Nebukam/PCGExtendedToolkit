@@ -193,6 +193,21 @@ namespace PCGExConnectPoints
 			ConnectableFilter->Init(Context, TypedContext->ConnetablesFiltersFactories);
 		}
 
+		bUseProjection = Settings->bProjectPoints;
+
+		InPoints = &PointIO->GetIn()->GetPoints();
+
+		if (!ProbeOperations.IsEmpty())
+		{
+			const FBox B = PointIO->GetIn()->GetBounds();
+			Octree = new PositionOctree(bUseProjection ? ProjectionDetails.ProjectFlat(B.GetCenter()) : B.GetCenter(), B.GetExtent().Length());
+		}
+		else
+		{
+			if (GeneratorsFilter) { for (int i = 0; i <  InPoints->Num(); i++) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
+			else { for (bool& Gen : CanGenerate) { Gen = true; } }
+		}
+
 		PCGExMT::FTaskGroup* PrepTask = AsyncManager->CreateGroup();
 		PrepTask->SetOnCompleteCallback([&]() { OnPreparationComplete(); });
 		PrepTask->SetOnIterationRangeStartCallback(
@@ -208,25 +223,17 @@ namespace PCGExConnectPoints
 
 	void FProcessor::OnPreparationComplete()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
 
-		InPoints = &PointIO->GetIn()->GetPoints();
 		const TArray<FPCGPoint>& InPointsRef = *InPoints;
 		const int32 NumPoints = InPointsRef.Num();
 
 		if (!ProbeOperations.IsEmpty())
 		{
-			const FBox B = PointIO->GetIn()->GetBounds();
-
 			constexpr double PPRefRadius = 0.05;
 			const FVector PPRefExtents = FVector(PPRefRadius);
 
-			if (Settings->bProjectPoints)
+			if (bUseProjection)
 			{
-				bUseProjection = true;
-				const FVector ProjectedOctreeCenter = ProjectionDetails.ProjectFlat(B.GetCenter());
-				Octree = new PositionOctree(ProjectedOctreeCenter, B.GetExtent().Length());
-
 				for (int i = 0; i < NumPoints; i++)
 				{
 					CachedTransforms[i] = ProjectionDetails.ProjectFlat(InPointsRef[i].Transform, i);
@@ -238,8 +245,6 @@ namespace PCGExConnectPoints
 			}
 			else
 			{
-				Octree = new PositionOctree(B.GetCenter(), B.GetExtent().Length());
-
 				for (int i = 0; i < NumPoints; i++)
 				{
 					CachedTransforms[i] = InPointsRef[i].Transform;
@@ -250,12 +255,6 @@ namespace PCGExConnectPoints
 				}
 			}
 		}
-		else
-		{
-			if (GeneratorsFilter) { for (int i = 0; i < NumPoints; i++) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
-			else { for (bool& Gen : CanGenerate) { Gen = true; } }
-		}
-
 
 		PCGEX_DELETE(GeneratorsFilter)
 		PCGEX_DELETE(ConnectableFilter)
