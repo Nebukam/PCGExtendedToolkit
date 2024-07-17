@@ -38,7 +38,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterConfig
 
 	/** Where to read the compared direction from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExFetchType CompareAgainst = EPCGExFetchType::Attribute;
+	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
 
 	/** Operand B for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))

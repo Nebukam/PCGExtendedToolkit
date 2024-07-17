@@ -29,7 +29,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterConfig
 
 	/** Type of OperandA */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFetchType CompareAgainst = EPCGExFetchType::Attribute;
+	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
 
 	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))

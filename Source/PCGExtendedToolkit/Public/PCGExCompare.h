@@ -973,7 +973,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskWithOperation
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Individual;
+	EPCGExBitmaskMode Mode = EPCGExBitmaskMode::Direct;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExBitmaskMode::Direct", EditConditionHides))
 	int64 Bitmask = 0;
