@@ -205,12 +205,12 @@ namespace PCGExMT
 
 		FTaskGroup* CreateGroup();
 
-		FORCEINLINE bool AcceptsNewTasks() const { return Stopped.load() || Flushing.load() ? false : true; }
+		FORCEINLINE bool IsAvailable() const { return Stopped.load() || Flushing.load() ? false : true; }
 
 		template <typename T, typename... Args>
 		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			if (!AcceptsNewTasks()) { return; }
+			if (!IsAvailable()) { return; }
 			if (ForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 			else { StartBackgroundTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 		}
@@ -218,14 +218,14 @@ namespace PCGExMT
 		template <typename T, typename... Args>
 		void StartSynchronous(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			if (!AcceptsNewTasks()) { return; }
+			if (!IsAvailable()) { return; }
 			StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
 		}
 
 		template <typename T>
 		void StartBackgroundTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
-			if (!AcceptsNewTasks()) { return; }
+			if (!IsAvailable()) { return; }
 			++NumStarted;
 
 			{
@@ -244,7 +244,7 @@ namespace PCGExMT
 		template <typename T>
 		void StartSynchronousTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
-			if (!AcceptsNewTasks()) { return; }
+			if (!IsAvailable()) { return; }
 
 			T& Task = AsyncTask->GetTask();
 			//Task.TaskPtr = AsyncTask;
@@ -317,7 +317,7 @@ namespace PCGExMT
 		template <typename T, typename... Args>
 		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			if (!Manager->AcceptsNewTasks()) { return; }
+			if (!Manager->IsAvailable()) { return; }
 
 			++NumStarted;
 			FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
@@ -329,7 +329,7 @@ namespace PCGExMT
 		template <typename T, typename... Args>
 		void StartRanges(const int32 MaxItems, const int32 ChunkSize, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
-			if (!Manager->AcceptsNewTasks()) { return; }
+			if (!Manager->IsAvailable()) { return; }
 
 			TArray<uint64> Loops;
 			NumStarted += SubRanges(Loops, MaxItems, ChunkSize);
@@ -370,6 +370,8 @@ namespace PCGExMT
 
 		void OnTaskCompleted()
 		{
+			if (!Manager->IsAvailable()) { return; }
+			
 			//FWriteScopeLock WriteScopeLock(GroupLock);
 			++NumCompleted;
 
@@ -431,7 +433,7 @@ namespace PCGExMT
 
 	protected:
 		bool bWorkDone = false;
-		bool Checkpoint() const { return !(!Manager || !Manager->AcceptsNewTasks()); }
+		bool Checkpoint() const { return !(!Manager || !Manager->IsAvailable()); }
 
 		template <typename T, typename... Args>
 		void InternalStart(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
