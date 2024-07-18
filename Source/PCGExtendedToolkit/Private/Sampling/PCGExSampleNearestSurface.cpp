@@ -257,6 +257,7 @@ namespace PCGExSampleNearestSurface
 				PCGEX_OUTPUT_VALUE(Normal, Index, HitNormal)
 				PCGEX_OUTPUT_VALUE(IsInside, Index, bIsInside)
 				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
+				PCGEX_OUTPUT_VALUE(Success, Index, true)
 			}
 			else
 			{
