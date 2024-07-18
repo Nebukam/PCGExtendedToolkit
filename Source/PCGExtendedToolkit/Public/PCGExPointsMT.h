@@ -284,7 +284,7 @@ namespace PCGExPointsMT
 
 			if (InFilterFactories->IsEmpty())
 			{
-				for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
+				for (bool& Result : PointFilterCache) { Result = DefaultPointFilterValue; }
 				return true;
 			}
 

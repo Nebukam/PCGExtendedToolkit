@@ -31,6 +31,14 @@ if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_
 #define PCGEX_OUTPUT_ACCESSOR_INIT(_NAME, _TYPE) if(_NAME##Writer){_NAME##Writer->BindAndSetNumUninitialized(OutputIO);}
 #define PCGEX_OUTPUT_INIT(_NAME, _TYPE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWriter<_TYPE>(Settings->_NAME##AttributeName, true); }
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Surface Source"))
+enum class EPCGExSurfaceSource : uint8
+{
+	All UMETA(DisplayName = "Any surface", ToolTip="Any surface within range will be tested"),
+	ActorReferences UMETA(DisplayName = "Actor Reference", ToolTip="Only a list of actor surfaces will be included."),
+};
+
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))
 enum class EPCGExSampleMethod : uint8
 {
@@ -61,6 +69,7 @@ enum class EPCGExAngleRange : uint8
 namespace PCGExSampling
 {
 	const FName SourceIgnoreActorsLabel = TEXT("InIgnoreActors");
+	const FName SourceActorReferencesLabel = TEXT("ActorReferences");
 	const FName OutputSampledActorsLabel = TEXT("OutSampledActors");
 
 	FORCEINLINE static double GetAngle(const EPCGExAngleRange Mode, const FVector& A, const FVector& B)
@@ -110,5 +119,41 @@ namespace PCGExSampling
 		}
 
 		return OutAngle;
+	}
+
+	static bool GetIncludedActors(
+		const FPCGContext* InContext,
+		const PCGExData::FFacade* InFacade,
+		const FName ActorReferenceName,
+		TMap<AActor*, int32>& OutActorSet)
+	{
+
+		FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
+		Selector.SetAttributeName(ActorReferenceName);
+
+		PCGEx::FLocalToStringGetter* PathGetter = new PCGEx::FLocalToStringGetter();
+		PathGetter->Capture(Selector);
+		if (!PathGetter->SoftGrab(InFacade->Source))
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Actor reference attribute does not exist."));
+			PCGEX_DELETE(PathGetter)
+			return false;
+		}
+
+		const TArray<FPCGPoint>& TargetPoints = InFacade->GetIn()->GetPoints();
+		for (int i = 0; i < TargetPoints.Num(); i++)
+		{
+			FSoftObjectPath Path = PathGetter->SoftGet(TargetPoints[i], TEXT(""));
+
+			if (!Path.IsValid()) { continue; }
+
+			if (UObject* FoundObject = FindObject<AActor>(nullptr, *Path.ToString()))
+			{
+				if (AActor* TargetActor = Cast<AActor>(FoundObject)) { OutActorSet.FindOrAdd(TargetActor, i); }
+			}
+		}
+
+		PCGEX_DELETE(PathGetter)
+		return true;
 	}
 }

@@ -15,6 +15,7 @@
 TArray<FPCGPinProperties> UPCGExSampleNearestSurfaceSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	if (SurfaceSource == EPCGExSurfaceSource::ActorReferences) { PCGEX_PIN_POINT(PCGExSampling::SourceActorReferencesLabel, "Points with actor reference paths.", Required, {}) }
 	PCGEX_PIN_PARAMS(PCGEx::SourcePointFilters, "Filter which points will be processed.", Advanced, {})
 	return PinProperties;
 }
@@ -30,6 +31,7 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 {
 	PCGEX_TERMINATE_ASYNC
+	PCGEX_DELETE_FACADE_AND_SOURCE(ActorReferenceDataFacade)
 }
 
 bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
@@ -39,6 +41,24 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
+	if (Context->bUseInclude)
+	{
+		PCGEX_VALIDATE_NAME(Settings->ActorReference)
+		PCGExData::FPointIO* ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
+
+		if (!ActorRefIO) { return false; }
+
+		Context->ActorReferenceDataFacade = new PCGExData::FFacade(ActorRefIO);
+
+		if (!PCGExSampling::GetIncludedActors(
+			Context, Context->ActorReferenceDataFacade,
+			Settings->ActorReference, Context->IncludedActors))
+		{
+			return false;
+		}
+	}
 
 	return true;
 }
@@ -86,6 +106,7 @@ namespace PCGExSampleNearestSurface
 {
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE(SurfacesForward)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -96,7 +117,9 @@ namespace PCGExSampleNearestSurface
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
-		// TODO : Add Scoped Fetch
+		SurfacesForward = TypedContext->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(TypedContext->ActorReferenceDataFacade, PointDataFacade) : nullptr;
+
+		PointDataFacade->bSupportsDynamic = true;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -116,6 +139,11 @@ namespace PCGExSampleNearestSurface
 		return true;
 	}
 
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
+	}
+
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : LocalSettings->MaxDistance;
@@ -127,13 +155,14 @@ namespace PCGExSampleNearestSurface
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
+			PCGEX_OUTPUT_VALUE(IsInside, Index, false)
 			PCGEX_OUTPUT_VALUE(Success, Index, false)
 
 			PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
 			PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
 		};
 
-		if (!PointFilterCache[Index])
+		if (PrimaryFilters && !PrimaryFilters->Test(Index))
 		{
 			SamplingFailed();
 			return;
@@ -142,12 +171,13 @@ namespace PCGExSampleNearestSurface
 		const FVector Origin = PointIO->GetInPoint(Index).Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;
-		CollisionParams.bTraceComplex = false;
+		CollisionParams.bTraceComplex = LocalSettings->bTraceComplex;
 		CollisionParams.AddIgnoredActors(LocalTypedContext->IgnoredActors);
 
 		const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(MaxDistance);
 
 		FVector HitLocation;
+		int32* HitIndex = nullptr;
 		bool bSuccess = false;
 		TArray<FOverlapResult> OutOverlaps;
 
@@ -157,17 +187,17 @@ namespace PCGExSampleNearestSurface
 			UPrimitiveComponent* HitComp = nullptr;
 			for (const FOverlapResult& Overlap : OutOverlaps)
 			{
-				if (!Overlap.bBlockingHit) { continue; }
+				//if (!Overlap.bBlockingHit) { continue; }
+				if (LocalTypedContext->bUseInclude && !LocalTypedContext->IncludedActors.Contains(Overlap.GetActor())) { continue; }
+
 				FVector OutClosestLocation;
 				const float Distance = Overlap.Component->GetClosestPointOnCollision(Origin, OutClosestLocation);
+
 				if (Distance < 0) { continue; }
-				if (Distance == 0)
-				{
-					// Fallback for complex collisions?
-					continue;
-				}
+
 				if (Distance < MinDist)
 				{
+					HitIndex = LocalTypedContext->IncludedActors.Find(Overlap.GetActor());
 					MinDist = Distance;
 					HitLocation = OutClosestLocation;
 					bSuccess = true;
@@ -178,23 +208,56 @@ namespace PCGExSampleNearestSurface
 			if (bSuccess)
 			{
 				const FVector Direction = (HitLocation - Origin).GetSafeNormal();
-				PCGEX_OUTPUT_VALUE(Location, Index, HitLocation)
-				PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
+
 				PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
-				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
+
+				FVector HitNormal = Direction * -1;
+				bool bIsInside = MinDist == 0;
+
+				if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
 
 				if (HitComp)
 				{
-					PCGEX_OUTPUT_VALUE(ActorReference, Index, HitComp->GetOwner()->GetPathName())
-					UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
-					if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
-					else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
+					if (LocalSettings->bTraceComplex)
+					{
+						FCollisionQueryParams PreciseCollisionParams;
+						PreciseCollisionParams.bTraceComplex = true;
+						PreciseCollisionParams.bReturnPhysicalMaterial = PhysMatWriter ? true : false;
+
+						FHitResult HitResult;
+						if (HitComp->LineTraceComponent(HitResult, HitLocation - Direction, HitLocation + Direction, PreciseCollisionParams))
+						{
+							HitNormal = HitResult.Normal;
+							HitLocation = HitResult.Location;
+							bIsInside = IsInsideWriter ? FVector::DotProduct(Direction, HitResult.Normal) > 0 : false;
+
+							if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName()) }
+							else { PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT("")) }
+
+							if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+							else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
+						}
+					}
+					else
+					{
+						PCGEX_OUTPUT_VALUE(ActorReference, Index, HitComp->GetOwner()->GetPathName())
+						UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
+
+						if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
+						else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
+					}
 				}
 				else
 				{
 					PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
 					PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
 				}
+
+				PCGEX_OUTPUT_VALUE(Location, Index, HitLocation)
+				PCGEX_OUTPUT_VALUE(Normal, Index, HitNormal)
+				PCGEX_OUTPUT_VALUE(IsInside, Index, bIsInside)
+				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
+				PCGEX_OUTPUT_VALUE(Success, Index, true)
 			}
 			else
 			{
@@ -210,18 +273,21 @@ namespace PCGExSampleNearestSurface
 			{
 				ProcessOverlapResults();
 			}
+			else { SamplingFailed(); }
 			break;
 		case EPCGExCollisionFilterType::ObjectType:
 			if (LocalTypedContext->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionShape, CollisionParams))
 			{
 				ProcessOverlapResults();
 			}
+			else { SamplingFailed(); }
 			break;
 		case EPCGExCollisionFilterType::Profile:
 			if (LocalTypedContext->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, LocalSettings->CollisionProfileName, CollisionShape, CollisionParams))
 			{
 				ProcessOverlapResults();
 			}
+			else { SamplingFailed(); }
 			break;
 		default:
 			SamplingFailed();

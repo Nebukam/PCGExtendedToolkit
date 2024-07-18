@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExDataForward.h"
 
 
 #include "Geometry/PCGExGeo.h"
@@ -100,6 +101,10 @@ public:
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
+
+	/** Which input points attributes to forward on clusters. NOTE : Not implemented */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExForwardDetails AttributesForwarding;
 
 private:
 	friend class FPCGExMeshToClustersElement;

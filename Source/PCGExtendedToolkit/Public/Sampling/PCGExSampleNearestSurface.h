@@ -10,6 +10,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "Data/PCGExDataForward.h"
 
 #include "PCGExSampleNearestSurface.generated.h"
 
@@ -19,6 +20,7 @@ MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
+MACRO(IsInside, bool)\
 MACRO(Distance, double)\
 MACRO(ActorReference, FString)\
 MACRO(PhysMat, FString)
@@ -55,12 +57,20 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
+	/** Surface source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::All;
+
+	/** Name of the attribute to read actor reference from.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
+	FName ActorReference = FName("ActorReference");
+
 	/** Search max distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, CLampMin=0.001))
 	double MaxDistance = 1000;
 
 	/** Use a per-point maximum distance*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, InlineEditConditionToggle))
 	bool bUseLocalMaxDistance = false;
 
 	/** Attribute or property to read the local max distance from. */
@@ -109,6 +119,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("NearestDistance");
 
+	/** Write the inside/outside status of the point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteIsInside = false;
+
+	/** Name of the 'bool' attribute to write sampled point inside or outside the collision].*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteIsInside"))
+	FName IsInsideAttributeName = FName("IsInside");
+	
 	/** Write the actor reference hit. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteActorReference = false;
@@ -125,6 +143,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, EditCondition="bWritePhysMat"))
 	FName PhysMatAttributeName = FName("PhysMat");
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
+	bool bTraceComplex = false;
+	
 	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
@@ -151,6 +172,11 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
+
+	/** Which actor reference points attributes to forward on points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
+	FPCGExForwardDetails AttributesForwarding;
+
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext final : public FPCGExPointsProcessorContext
@@ -158,7 +184,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext final : public F
 	friend class FPCGExSampleNearestSurfaceElement;
 
 	virtual ~FPCGExSampleNearestSurfaceContext() override;
+	
+	PCGExData::FFacade* ActorReferenceDataFacade = nullptr;
 
+	bool bUseInclude = false;
+	TMap<AActor*, int32> IncludedActors;
 	TArray<AActor*> IgnoredActors;
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL_TOGGLE)
@@ -181,6 +211,8 @@ namespace PCGExSampleNearestSurface
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
+		
 		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
 
 		FPCGExSampleNearestSurfaceContext* LocalTypedContext = nullptr;
@@ -197,6 +229,7 @@ namespace PCGExSampleNearestSurface
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
