@@ -112,7 +112,7 @@ namespace PCGExDataBlending
 		// Create blending operations
 		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
-			PCGEX_DELETE(SrcMap->Writer)
+			SrcMap->Writer = nullptr;
 
 			PCGMetadataAttribute::CallbackWithRightType(
 				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)

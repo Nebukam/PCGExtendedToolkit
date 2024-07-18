@@ -122,7 +122,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIsInside = false;
 
-	/** Name of the 'bool' attribute to write sampled point inside or outside the collision].*/
+	/** Name of the 'bool' attribute to write sampled point inside or outside the collision.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteIsInside"))
 	FName IsInsideAttributeName = FName("IsInside");
 	

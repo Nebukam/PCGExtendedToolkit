@@ -13,6 +13,8 @@
 namespace PCGExFindContours
 {
 	class FProcessor;
+	const FName OutputGoodSeedsLabel = TEXT("SeedGenSuccess");
+	const FName OutputBadSeedsLabel = TEXT("SeedGenFailed");
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output"))
@@ -47,28 +49,51 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-
-	/** Keep only contours that closed gracefully; i.e connect to their start node */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bKeepOnlyGracefulContours = true;
-
-	/** Ensure the node doesn't output duplicate path. Can be expensive. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bDedupePaths = true;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExContourShapeTypeOutput OutputType = EPCGExContourShapeTypeOutput::Both;
-
+	
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;
-
 
 	/** Whether or not to duplicate dead end points. Useful if you plan on offsetting the generated contours. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bDuplicateDeadEndPoints = false;
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	EPCGExContourShapeTypeOutput OutputType = EPCGExContourShapeTypeOutput::Both;
+
+	/** Ensure the node doesn't output duplicate path. Can be expensive. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	bool bDedupePaths = true;
+
+	/** Keep only contours that closed gracefully; i.e connect to their start node */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	bool bKeepOnlyGracefulContours = true;
+
+	/** Whether to keep contour that include dead ends wrapping */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	bool bKeepContoursWithDeadEnds = true;
+
+	/** Output a filtered out set of points containing only those that generated a path */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	bool bOutputFilteredSeeds = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOmitBelowPointCount = false;
+
+	/** Paths with a point count below the specified threshold will be omitted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditCondition="bOmitBelowPointCount", ClampMin=0))
+	int32 MinPointCount = 3;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOmitAbovePointCount = false;
+
+	/** Paths with a point count below the specified threshold will be omitted */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=0))
+	int32 MaxPointCount = 500;
+	
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
@@ -124,6 +149,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 	PCGExData::FFacade* SeedsDataFacade = nullptr;
 
 	PCGExData::FPointIOCollection* Paths;
+	PCGExData::FPointIO* GoodSeeds;
+	PCGExData::FPointIO* BadSeeds;
+
+	TArray<bool> SeedQuality;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler;
@@ -157,7 +186,7 @@ namespace PCGExFindContours
 
 	protected:
 		const UPCGExFindContoursSettings* LocalSettings = nullptr;
-		const FPCGExFindContoursContext* LocalTypedContext = nullptr;
+		FPCGExFindContoursContext* LocalTypedContext = nullptr;
 
 		TArray<FVector>* ProjectedPositions = nullptr;
 

@@ -17,6 +17,11 @@ TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() cons
 {
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Contours", Required, {})
+	if (bOutputFilteredSeeds)
+	{
+		PCGEX_PIN_POINTS(PCGExFindContours::OutputGoodSeedsLabel, "GoodSeeds", Required, {})
+		PCGEX_PIN_POINTS(PCGExFindContours::OutputBadSeedsLabel, "BadSeeds", Required, {})
+	}
 	return PinProperties;
 }
 
@@ -60,12 +65,13 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	int32 PrevIndex = StartNodeIndex;
 	int32 NextIndex = (*(ExpandedEdges->GetData() + NextEdge))->OtherNodeIndex(PrevIndex);
 
-
 	const FVector A = Cluster->GetPos((*(ExpandedNodes->GetData() + PrevIndex))->Node);
 	const FVector B = Cluster->GetPos((*(ExpandedNodes->GetData() + NextIndex))->Node);
 
 	const double SanityAngle = PCGExMath::GetDegreesBetweenVectors((B - A).GetSafeNormal(), (B - Guide).GetSafeNormal());
 	const bool bStartIsDeadEnd = (Cluster->Nodes->GetData() + StartNodeIndex)->Adjacency.Num() == 1;
+
+	if (bStartIsDeadEnd && !Settings->bKeepContoursWithDeadEnds) { return false; }
 
 	if (SanityAngle > 180 && !bStartIsDeadEnd)
 	{
@@ -147,6 +153,9 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 		if (NextBest != -1)
 		{
+			if ((Cluster->Nodes->GetData() + NextBest)->Adjacency.Num() == 1 && !Settings->bKeepContoursWithDeadEnds) { return false; }
+			if (Settings->bOmitAbovePointCount && Path.Num() >= Settings->MaxPointCount) { return false; }
+
 			if (Settings->OutputType != EPCGExContourShapeTypeOutput::Both && Path.Num() > 2)
 			{
 				PCGExMath::CheckConvex(
@@ -172,6 +181,11 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 	if ((Settings->bKeepOnlyGracefulContours && !bGracefullyClosed) ||
 		(bIsConvex && Settings->OutputType == EPCGExContourShapeTypeOutput::ConcaveOnly))
+	{
+		return false;
+	}
+
+	if (Settings->bOmitBelowPointCount && Path.Num() < Settings->MinPointCount)
 	{
 		return false;
 	}
@@ -221,6 +235,8 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	PathDataFacade->Write(ClusterProcessor->AsyncManagerPtr, true);
 	PCGEX_DELETE(PathDataFacade)
 
+	if (Settings->bOutputFilteredSeeds) { ClusterProcessor->LocalTypedContext->SeedQuality[SeedIndex] = true; }
+
 	return true;
 }
 
@@ -233,7 +249,10 @@ FPCGExFindContoursContext::~FPCGExFindContoursContext()
 	PCGEX_DELETE_FACADE_AND_SOURCE(SeedsDataFacade)
 
 	PCGEX_DELETE(Paths)
+	PCGEX_DELETE(GoodSeeds)
+	PCGEX_DELETE(BadSeeds)
 
+	SeedQuality.Empty();
 	SeedAttributesToPathTags.Cleanup();
 	PCGEX_DELETE(SeedForwardHandler)
 }
@@ -261,6 +280,23 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 
 	Context->Paths = new PCGExData::FPointIOCollection();
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
+
+	if (Settings->bOutputFilteredSeeds)
+	{
+		const int32 NumSeeds = SeedsPoints->GetNum();
+		PCGEX_SET_NUM_UNINITIALIZED(Context->SeedQuality, NumSeeds)
+		for (bool& Quality : Context->SeedQuality) { Quality = false; }
+
+		Context->GoodSeeds = new PCGExData::FPointIO(SeedsPoints);
+		Context->GoodSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
+		Context->GoodSeeds->DefaultOutputLabel = PCGExFindContours::OutputGoodSeedsLabel;
+		Context->GoodSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
+
+		Context->BadSeeds = new PCGExData::FPointIO(SeedsPoints);
+		Context->BadSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
+		Context->BadSeeds->DefaultOutputLabel = PCGExFindContours::OutputBadSeedsLabel;
+		Context->BadSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
+	}
 
 	return true;
 }
@@ -294,6 +330,20 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 	}
 
 	if (!Context->ProcessClusters()) { return false; }
+
+	if (Settings->bOutputFilteredSeeds)
+	{
+		const TArray<FPCGPoint>& InSeeds = Context->SeedsDataFacade->Source->GetIn()->GetPoints();
+		TArray<FPCGPoint>& GoodSeeds = Context->GoodSeeds->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& BadSeeds = Context->BadSeeds->GetOut()->GetMutablePoints();
+		for (int i = 0; i < Context->SeedQuality.Num(); i++)
+		{
+			if (Context->SeedQuality[i]) { GoodSeeds.Add(InSeeds[i]); }
+			else { BadSeeds.Add(InSeeds[i]); }
+		}
+		Context->GoodSeeds->OutputTo(Context);
+		Context->BadSeeds->OutputTo(Context);
+	}
 
 	Context->Paths->OutputTo(Context);
 

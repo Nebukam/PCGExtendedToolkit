@@ -20,6 +20,7 @@ MACRO(Distance, double)\
 MACRO(SignedDistance, double)\
 MACRO(Angle, double)\
 MACRO(Time, double)\
+MACRO(NumInside, int32)\
 MACRO(NumSamples, int32)
 
 class UPCGExFilterFactoryBase;
@@ -248,6 +249,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteTime"))
 	FName TimeAttributeName = FName("WeightedTime");
 
+	/** Write the inside/outside status of the point toward any sampled spline. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteNumInside = false;
+
+	/** Name of the 'int32' attribute to write the number of spline this point lies inside*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumInside"))
+	FName NumInsideAttributeName = FName("NumInside");
+	
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumSamples = false;

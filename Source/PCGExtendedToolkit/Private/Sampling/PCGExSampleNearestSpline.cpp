@@ -168,6 +168,7 @@ namespace PCGExSampleNearestSpline
 			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
 			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
 			PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
+			PCGEX_OUTPUT_VALUE(NumInside, Index, 0)
 			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
 		};
 
@@ -176,6 +177,9 @@ namespace PCGExSampleNearestSpline
 			SamplingFailed();
 			return;
 		}
+
+
+		int32 NumInside = 0;
 
 		double RangeMin = FMath::Pow(RangeMinGetter ? RangeMinGetter->Values[Index] : LocalSettings->RangeMin, 2);
 		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Values[Index] : LocalSettings->RangeMax, 2);
@@ -193,14 +197,21 @@ namespace PCGExSampleNearestSpline
 			const FVector ModifiedOrigin = PCGExMath::GetSpatializedCenter(LocalSettings->DistanceSettings, Point, Origin, Transform.GetLocation());
 			const double Dist = FVector::DistSquared(ModifiedOrigin, Transform.GetLocation());
 
+			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
+
+			if (FVector::DotProduct(
+				(Transform.GetLocation() - ModifiedOrigin).GetSafeNormal(),
+				Transform.GetRotation().GetRightVector()) > 0)
+			{
+				NumInside++;
+			}
+
 			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 				LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
 				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, Dist, Time));
 				return;
 			}
-
-			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
 
 			const PCGExPolyLine::FSampleInfos& Infos = TargetsInfos.Emplace_GetRef(Transform, Dist, Time);
 			TargetsCompoundInfos.UpdateCompound(Infos);
@@ -214,7 +225,6 @@ namespace PCGExSampleNearestSpline
 				FTransform SampledTransform;
 				double Time = Line->SplineStruct.FindInputKeyClosestToWorldLocation(Origin);
 				SampledTransform = Line->SplineStruct.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
-				if (FVector::DistSquared(Origin, SampledTransform.GetLocation()) > RangeMax) { continue; }
 				ProcessTarget(SampledTransform, Time);
 			}
 		}
@@ -316,6 +326,7 @@ namespace PCGExSampleNearestSpline
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(Time, Index, WeightedTime)
+		PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
 	}
 
 	void FProcessor::CompleteWork()
