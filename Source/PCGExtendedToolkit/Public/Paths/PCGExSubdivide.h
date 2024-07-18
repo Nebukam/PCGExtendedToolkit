@@ -107,8 +107,10 @@ namespace PCGExSubdivide
 
 		virtual ~FProcessor() override;
 
+		virtual bool IsTrivial() const override { return false; } // Force non-trivial
+
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		void ProcessPathPoint(int32 Index);
+		void ProcessPathPoint(const int32 FromIndex, const int32 ToIndex);
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

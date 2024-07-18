@@ -89,7 +89,7 @@ namespace PCGExSubdivide
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
-	{
+	{		
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSubdivide::Process);
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -104,22 +104,25 @@ namespace PCGExSubdivide
 
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 
-		for (int i = 0; i < PointIO->GetNum(); i++) { ProcessPathPoint(i); }
+		const int32 LastIndex = PointIO->GetNum() - 1;
+		
+		for (int i = 0; i < LastIndex; i++) { ProcessPathPoint(i, i + 1); }
+		if (Settings->bClosedPath) { ProcessPathPoint(LastIndex, 0); }
 
 		return true;
 	}
 
-	void FProcessor::ProcessPathPoint(const int32 Index)
+	void FProcessor::ProcessPathPoint(const int32 FromIndex, const int32 ToIndex)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
 
-		int32 LastIndex;
+		int32 LastAddIndex;
 
-		const FPCGPoint& StartPoint = PointIO->GetInPoint(Index);
-		const FPCGPoint* EndPtr = PointIO->TryGetInPoint(Index + 1);
-		PointIO->CopyPoint(StartPoint, LastIndex);
+		const FPCGPoint& StartPoint = PointIO->GetInPoint(FromIndex);
+		const FPCGPoint* EndPtr = PointIO->TryGetInPoint(ToIndex);
+		PointIO->CopyPoint(StartPoint, LastAddIndex);
 
-		Milestones.Add(LastIndex);
+		Milestones.Add(LastAddIndex);
 		PCGExMath::FPathMetricsSquared& Metrics = MilestonesMetrics.Emplace_GetRef();
 
 		if (!EndPtr) { return; }
@@ -137,10 +140,12 @@ namespace PCGExSubdivide
 		const double StartOffset = (Distance - StepSize * NumSubdivisions) * 0.5;
 
 		Metrics.Reset(StartPos);
+		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		MutablePoints.Reserve(MutablePoints.Num() + NumSubdivisions);
 
 		for (int i = 0; i < NumSubdivisions; i++)
 		{
-			FPCGPoint& NewPoint = PointIO->CopyPoint(StartPoint, LastIndex);
+			FPCGPoint& NewPoint = PointIO->CopyPoint(StartPoint, LastAddIndex);
 			FVector SubLocation = StartPos + Dir * (StartOffset + i * StepSize);
 			NewPoint.Transform.SetLocation(SubLocation);
 			Metrics.Add(SubLocation);
