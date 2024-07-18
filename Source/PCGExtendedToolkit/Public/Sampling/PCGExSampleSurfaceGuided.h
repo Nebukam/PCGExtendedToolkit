@@ -16,6 +16,7 @@
 #define PCGEX_FOREACH_FIELD_SURFACEGUIDED(MACRO)\
 MACRO(Success, bool)\
 MACRO(Location, FVector)\
+MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
 MACRO(Distance, double)\
 MACRO(IsInside, bool)\
@@ -55,7 +56,7 @@ public:
 public:
 	/** Surface source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::All;
+	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::ActorReferences;
 
 	/** Name of the attribute to read actor reference from.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
@@ -93,6 +94,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLocation"))
 	FName LocationAttributeName = FName("TracedLocation");
 
+	/** Write the sample "look at" direction from the point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteLookAt = false;
+
+	/** Name of the 'vector' attribute to write sampled LookAt to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLookAt"))
+	FName LookAtAttributeName = FName("TracedLookAt");
+	
 	/** Write the sampled normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNormal = false;

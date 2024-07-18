@@ -227,24 +227,38 @@ namespace PCGExSampleNearestPoints
 			}
 		};
 
+
+		auto OctreeCallback = [&](const FPCGPointRef& InPointRef)
+		{
+			const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
+			if (!TargetPoints.IsValidIndex(PointIndex)) { return; }
+
+			ProcessTarget(PointIndex, TargetPoints[PointIndex]);
+		};
+
 		if (RangeMax > 0)
 		{
-			const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
-			auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
+			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget)
 			{
-				const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
-				if (!TargetPoints.IsValidIndex(PointIndex)) { return; }
-
-				ProcessTarget(PointIndex, TargetPoints[PointIndex]);
-			};
-
-			const UPCGPointData::PointOctree& Octree = LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree();
-			Octree.FindElementsWithBoundsTest(Box, ProcessNeighbor);
+				LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree().FindNearbyElements(SourceCenter, OctreeCallback);
+			}
+			else
+			{
+				const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
+				LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree().FindElementsWithBoundsTest(Box, OctreeCallback);
+			}
 		}
 		else
 		{
-			TargetsInfos.Reserve(NumTargets);
-			for (int i = 0; i < NumTargets; i++) { ProcessTarget(i, TargetPoints[i]); }
+			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget)
+			{
+				LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree().FindNearbyElements(SourceCenter, OctreeCallback);
+			}
+			else
+			{
+				TargetsInfos.Reserve(NumTargets);
+				for (int i = 0; i < NumTargets; i++) { ProcessTarget(i, TargetPoints[i]); }
+			}
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range

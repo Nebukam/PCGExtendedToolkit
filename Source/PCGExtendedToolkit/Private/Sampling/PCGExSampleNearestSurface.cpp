@@ -131,7 +131,11 @@ namespace PCGExSampleNearestSurface
 		if (Settings->bUseLocalMaxDistance)
 		{
 			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
-			if (!MaxDistanceGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
+			if (!MaxDistanceGetter)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("LocalMaxDistance missing"));
+				return false;
+			}
 		}
 
 		StartParallelLoopForPoints();
@@ -227,9 +231,9 @@ namespace PCGExSampleNearestSurface
 						FHitResult HitResult;
 						if (HitComp->LineTraceComponent(HitResult, HitLocation - Direction, HitLocation + Direction, PreciseCollisionParams))
 						{
-							HitNormal = HitResult.Normal;
+							HitNormal = HitResult.ImpactNormal;
 							HitLocation = HitResult.Location;
-							bIsInside = IsInsideWriter ? FVector::DotProduct(Direction, HitResult.Normal) > 0 : false;
+							bIsInside = IsInsideWriter ? FVector::DotProduct(Direction, HitResult.ImpactNormal) > 0 : false;
 
 							if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName()) }
 							else { PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT("")) }

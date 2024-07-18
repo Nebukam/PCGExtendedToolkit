@@ -134,7 +134,11 @@ namespace PCGExSampleSurfaceGuided
 		if (Settings->bUseLocalMaxDistance)
 		{
 			MaxDistanceGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->LocalMaxDistance);
-			if (MaxDistanceGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMin metadata missing")); }
+			if (!MaxDistanceGetter)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("LocalMaxDistance missing"));
+				return false;
+			}
 		}
 
 		StartParallelLoopForPoints();
@@ -155,7 +159,8 @@ namespace PCGExSampleSurfaceGuided
 		auto SamplingFailed = [&]()
 		{
 			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
-			PCGEX_OUTPUT_VALUE(Normal, Index, Direction)
+			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1)
+			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
 			PCGEX_OUTPUT_VALUE(IsInside, Index, false)
 			PCGEX_OUTPUT_VALUE(Success, Index, false)
@@ -187,10 +192,13 @@ namespace PCGExSampleSurfaceGuided
 
 		auto ProcessTraceResult = [&]()
 		{
+			bSuccess = true;
+			
 			PCGEX_OUTPUT_VALUE(Location, Index, HitResult.ImpactPoint)
-			PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.Normal)
+			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
+			PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.ImpactNormal)
 			PCGEX_OUTPUT_VALUE(Distance, Index, FVector::Distance(HitResult.ImpactPoint, Origin))
-			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
+			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.ImpactNormal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
 
 			if (const AActor* HitActor = HitResult.GetActor())
@@ -202,8 +210,6 @@ namespace PCGExSampleSurfaceGuided
 
 			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
 			else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
-
-			bSuccess = true;
 
 			if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
 		};
@@ -278,7 +284,6 @@ namespace PCGExSampleSurfaceGuided
 			}
 			break;
 		default:
-			SamplingFailed();
 			break;
 		}
 

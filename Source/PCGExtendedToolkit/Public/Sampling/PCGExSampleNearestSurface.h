@@ -59,7 +59,7 @@ public:
 public:
 	/** Surface source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::All;
+	EPCGExSurfaceSource SurfaceSource = EPCGExSurfaceSource::ActorReferences;
 
 	/** Name of the attribute to read actor reference from.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
