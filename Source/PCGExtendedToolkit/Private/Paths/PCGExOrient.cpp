@@ -92,8 +92,6 @@ namespace PCGExOrient
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(TransformWriter)
-		PCGEX_DELETE(DotWriter)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -102,30 +100,32 @@ namespace PCGExOrient
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Orient)
 
 		DefaultPointFilterValue = Settings->bFlipDirection;
-
-		// TODO : Add Scoped Fetch
+		PointDataFacade->bSupportsDynamic = true;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LastIndex = PointIO->GetNum() - 1;
 		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
-		Orient->PrepareForData(PointDataFacade);
+		if (!Orient->PrepareForData(PointDataFacade)) { return false; }
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
 		{
-			TransformWriter = new PCGEx::TFAttributeWriter<FTransform>(Settings->OutputAttribute);
-			TransformWriter->BindAndSetNumUninitialized(PointIO);
+			TransformWriter = PointDataFacade->GetWriter<FTransform>(Settings->OutputAttribute, true);
 		}
 
 		if (Settings->bOutputDot)
 		{
-			DotWriter = new PCGEx::TFAttributeWriter<double>(Settings->DotAttribute);
-			DotWriter->BindAndSetNumUninitialized(PointIO);
+			DotWriter = PointDataFacade->GetWriter<double>(Settings->DotAttribute, true);
 		}
 
 		StartParallelLoopForPoints();
 
 		return true;
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
@@ -156,8 +156,7 @@ namespace PCGExOrient
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, TransformWriter)
-		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, DotWriter)
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }
 

@@ -17,19 +17,21 @@ void UPCGExOrientLookAt::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExOrientLookAt::PrepareForData(PCGExData::FFacade* InDataFacade)
+bool UPCGExOrientLookAt::PrepareForData(PCGExData::FFacade* InDataFacade)
 {
-	PCGEX_DELETE(LookAtGetter)
-	Super::PrepareForData(InDataFacade);
+	if (!Super::PrepareForData(InDataFacade)) { return false; }
 
-	if (LookAt == EPCGExOrientLookAtMode::Direction)
+	if (LookAt == EPCGExOrientLookAtMode::Direction || LookAt == EPCGExOrientLookAtMode::Position)
 	{
 		LookAtGetter = InDataFacade->GetScopedBroadcaster<FVector>(LookAtAttribute);
 		if (!LookAtGetter)
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("LookAt Attribute ({0}) is not valid."), FText::FromString(LookAtAttribute.GetName().ToString())));
+			return false;
 		}
 	}
+
+	return true;
 }
 
 FTransform UPCGExOrientLookAt::ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const
@@ -81,6 +83,5 @@ FTransform UPCGExOrientLookAt::LookAtPosition(FTransform InT, const int32 Index,
 
 void UPCGExOrientLookAt::Cleanup()
 {
-	PCGEX_DELETE(LookAtGetter)
 	Super::Cleanup();
 }

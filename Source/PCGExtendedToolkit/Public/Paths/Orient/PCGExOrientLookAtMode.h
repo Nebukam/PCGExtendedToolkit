@@ -30,12 +30,12 @@ public:
 	EPCGExOrientLookAtMode LookAt = EPCGExOrientLookAtMode::NextPoint;
 
 	/** Vector attribute representing either a direction or world position, depending on selected mode. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAt::Direction", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAtMode::Direction || LookAt==EPCGExOrientLookAtMode::Position", EditConditionHides))
 	FPCGAttributePropertyInputSelector LookAtAttribute;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(PCGExData::FFacade* InDataFacade) override;
+	virtual bool PrepareForData(PCGExData::FFacade* InDataFacade) override;
 
 	virtual FTransform ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const override;
 
