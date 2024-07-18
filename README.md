@@ -17,6 +17,28 @@ It also comes with a set of lower-level, more generic features to manipulate att
 
 Question & support : [head to github discussions](https://github.com/Nebukam/PCGExtendedToolkit/discussions)!
 
+# Highlights
+### Vtx/Edge structures
+A new concept of connection between points, enabling entierely new ways of working with PCG
+
+![hl-graphs](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-graphs.jpg)
+
+### Pathfinding
+Advanced pathfinding utilities with a completely modular heuristics system
+
+![hl-graphs](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-pathfinding.jpg)
+
+### Sampling
+Powerful tool to extract, transfer and blend data between groups of points, splines, meshes
+
+![hl-sampling](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-samplers.jpg)
+
+### Low level utilities
+A lot of simple yet powerful utility nodes ranging from complex sorting, complex partitioning, remapping, advanced filters with chainable conditions, to bitmask operations.
+
+### *And so much more!*
+
+
 ### Disclaimer
 This software is provided under the MIT License. It is freely available for use & modifications, and may be incorporated into commercial products without the necessity of attribution (*though attribution is appreciated*). **The contents of this project are entirely original, comprising no AI-generated materials or third-party content, including but not limited to code and assets.**
 
