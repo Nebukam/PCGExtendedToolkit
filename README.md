@@ -38,7 +38,7 @@ A lot of simple yet powerful utility nodes ranging from complex sorting, complex
 
 ![hl-misc](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-miscjpg.jpg)
 
-#### *And so much more!*
+#### *And so much more -- PCGEx has 100+ nodes!*
 
 
 ### Disclaimer
