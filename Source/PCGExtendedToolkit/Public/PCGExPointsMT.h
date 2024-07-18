@@ -126,7 +126,7 @@ namespace PCGExPointsMT
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(Context); }
 
-		bool IsTrivial() const { return bIsSmallPoints; }
+		virtual bool IsTrivial() const { return bIsSmallPoints; }
 
 		void SetPointsFilterData(TArray<UPCGExFilterFactoryBase*>* InFactories)
 		{
@@ -444,6 +444,8 @@ namespace PCGExPointsMT
 
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 
+				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize) { NewProcessor->bIsSmallPoints = true; }
+
 				if (bInlineProcessing)
 				{
 					NewProcessor->bIsProcessorValid = NewProcessor->Process(AsyncManagerPtr);
@@ -451,13 +453,8 @@ namespace PCGExPointsMT
 					///////
 				}
 
-				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize)
-				{
-					NewProcessor->bIsSmallPoints = true;
-					TrivialProcessors.Add(NewProcessor);
-				}
-
-				if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcessWithUpdate<T>>(IO->IOIndex, IO, NewProcessor); }
+				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor); }
+				else { AsyncManager->Start<FAsyncProcessWithUpdate<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
 
 			if (!bInlineProcessing) { StartClosedBatchProcessing(); }

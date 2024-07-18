@@ -17,8 +17,9 @@ void UPCGExOrientOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExOrientOperation::PrepareForData(PCGExData::FFacade* InDataFacade)
+bool UPCGExOrientOperation::PrepareForData(PCGExData::FFacade* InDataFacade)
 {
+	return true;
 }
 
 FTransform UPCGExOrientOperation::ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const
