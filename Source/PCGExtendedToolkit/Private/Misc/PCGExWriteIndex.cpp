@@ -68,13 +68,15 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputNormalizedIndex)
 		{
-			DoubleWriter = PointDataFacade->GetWriter<double>(Settings->OutputAttributeName, false);
+			DoubleWriter = PointDataFacade->GetWriter<double>(Settings->OutputAttributeName, -1, false, false);
 		}
 		else
 		{
-			IntWriter = PointDataFacade->GetWriter<int32>(Settings->OutputAttributeName, false);
+			IntWriter = PointDataFacade->GetWriter<int32>(Settings->OutputAttributeName, -1, false,false);
 		}
 
+		StartParallelLoopForPoints();
+		
 		return true;
 	}
 

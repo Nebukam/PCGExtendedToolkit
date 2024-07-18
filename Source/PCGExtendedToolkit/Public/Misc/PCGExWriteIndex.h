@@ -17,7 +17,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExWriteIndexSettings : public UPCGExPointsProce
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WriteIndex, "Write Index", "Write the current point index to an attribute.");
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(WriteIndex, "Write Index", "Write the current point index to an attribute.",
+		OutputAttributeName);
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
 #endif
 
