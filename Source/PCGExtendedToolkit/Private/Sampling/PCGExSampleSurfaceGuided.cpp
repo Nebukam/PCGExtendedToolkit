@@ -41,7 +41,18 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	if (Context->bUseInclude)
 	{
 		PCGEX_VALIDATE_NAME(Settings->ActorReference)
-		if (!PCGExSampling::GetIncludedActors(Context, Settings->ActorReference, Context->IncludedActors)) { return false; }
+		PCGExData::FPointIO* ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
+
+		if (!ActorRefIO) { return false; }
+
+		Context->ActorReferenceDataFacade = new PCGExData::FFacade(ActorRefIO);
+
+		if (!PCGExSampling::GetIncludedActors(
+			Context, Context->ActorReferenceDataFacade,
+			Settings->ActorReference, Context->IncludedActors))
+		{
+			return false;
+		}
 	}
 
 	return true;
@@ -90,6 +101,7 @@ namespace PCGExSampleSurfaceGuided
 {
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE(SurfacesForward)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -99,6 +111,8 @@ namespace PCGExSampleSurfaceGuided
 
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
+
+		SurfacesForward = TypedContext->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(TypedContext->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
 		PointDataFacade->bSupportsDynamic = true;
 
@@ -167,6 +181,7 @@ namespace PCGExSampleSurfaceGuided
 		const FVector End = Origin + Trace;
 
 		bool bSuccess = false;
+		int32* HitIndex = nullptr;
 		FHitResult HitResult;
 		TArray<FHitResult> HitResults;
 
@@ -178,11 +193,19 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.Normal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
 
-			if (const AActor* HitActor = HitResult.GetActor()) { PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName()) }
+			if (const AActor* HitActor = HitResult.GetActor())
+			{
+				HitIndex = LocalTypedContext->IncludedActors.Find(HitActor);
+				PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName())
+			}
 			else { PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT("")) }
+
 			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
 			else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
+
 			bSuccess = true;
+
+			if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
 		};
 
 		auto ProcessMultipleTraceResult = [&]()

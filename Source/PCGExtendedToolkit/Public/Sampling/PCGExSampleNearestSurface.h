@@ -10,6 +10,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "Data/PCGExDataForward.h"
 
 #include "PCGExSampleNearestSurface.generated.h"
 
@@ -63,7 +64,7 @@ public:
 	/** Name of the attribute to read actor reference from.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FName ActorReference = FName("ActorReference");
-	
+
 	/** Search max distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, CLampMin=0.001))
 	double MaxDistance = 1000;
@@ -172,6 +173,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
 
+	/** Which actor reference points attributes to forward on points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
+	FPCGExForwardDetails AttributesForwarding;
+
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext final : public FPCGExPointsProcessorContext
@@ -179,9 +184,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext final : public F
 	friend class FPCGExSampleNearestSurfaceElement;
 
 	virtual ~FPCGExSampleNearestSurfaceContext() override;
+	
+	PCGExData::FFacade* ActorReferenceDataFacade = nullptr;
 
 	bool bUseInclude = false;
-	TSet<AActor*> IncludedActors;
+	TMap<AActor*, int32> IncludedActors;
 	TArray<AActor*> IgnoredActors;
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL_TOGGLE)
@@ -204,6 +211,8 @@ namespace PCGExSampleNearestSurface
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
+		
 		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
 
 		FPCGExSampleNearestSurfaceContext* LocalTypedContext = nullptr;

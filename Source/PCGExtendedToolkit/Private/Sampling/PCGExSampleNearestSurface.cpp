@@ -31,6 +31,7 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 {
 	PCGEX_TERMINATE_ASYNC
+	PCGEX_DELETE_FACADE_AND_SOURCE(ActorReferenceDataFacade)
 }
 
 bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
@@ -45,7 +46,18 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
 	if (Context->bUseInclude)
 	{
 		PCGEX_VALIDATE_NAME(Settings->ActorReference)
-		if (!PCGExSampling::GetIncludedActors(Context, Settings->ActorReference, Context->IncludedActors)) { return false; }
+		PCGExData::FPointIO* ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
+
+		if (!ActorRefIO) { return false; }
+
+		Context->ActorReferenceDataFacade = new PCGExData::FFacade(ActorRefIO);
+
+		if (!PCGExSampling::GetIncludedActors(
+			Context, Context->ActorReferenceDataFacade,
+			Settings->ActorReference, Context->IncludedActors))
+		{
+			return false;
+		}
 	}
 
 	return true;
@@ -94,6 +106,7 @@ namespace PCGExSampleNearestSurface
 {
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE(SurfacesForward)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -103,6 +116,8 @@ namespace PCGExSampleNearestSurface
 
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
+
+		SurfacesForward = TypedContext->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(TypedContext->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
 		PointDataFacade->bSupportsDynamic = true;
 
@@ -162,6 +177,7 @@ namespace PCGExSampleNearestSurface
 		const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(MaxDistance);
 
 		FVector HitLocation;
+		int32* HitIndex = nullptr;
 		bool bSuccess = false;
 		TArray<FOverlapResult> OutOverlaps;
 
@@ -181,6 +197,7 @@ namespace PCGExSampleNearestSurface
 
 				if (Distance < MinDist)
 				{
+					HitIndex = LocalTypedContext->IncludedActors.Find(Overlap.GetActor());
 					MinDist = Distance;
 					HitLocation = OutClosestLocation;
 					bSuccess = true;
@@ -196,6 +213,8 @@ namespace PCGExSampleNearestSurface
 
 				FVector HitNormal = Direction * -1;
 				bool bIsInside = MinDist == 0;
+
+				if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
 
 				if (HitComp)
 				{

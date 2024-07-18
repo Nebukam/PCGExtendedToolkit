@@ -9,6 +9,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "Data/PCGExDataForward.h"
 
 #include "PCGExSampleSurfaceGuided.generated.h"
 
@@ -162,6 +163,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
 
+	/** Which actor reference points attributes to forward on points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
+	FPCGExForwardDetails AttributesForwarding;
+
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
@@ -170,8 +175,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FP
 
 	virtual ~FPCGExSampleSurfaceGuidedContext() override;
 
+	PCGExData::FFacade* ActorReferenceDataFacade = nullptr;
+	
 	bool bUseInclude = false;
-	TSet<AActor*> IncludedActors;
+	TMap<AActor*, int32> IncludedActors;
 	TArray<AActor*> IgnoredActors;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
@@ -194,6 +201,8 @@ namespace PCGExSampleSurfaceGuided
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
+		
 		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
 		PCGExData::FCache<FVector>* DirectionGetter = nullptr;
 

@@ -121,25 +121,26 @@ namespace PCGExSampling
 		return OutAngle;
 	}
 
-	static bool GetIncludedActors(const FPCGContext* InContext, const FName ActorReferenceName, TSet<AActor*>& OutActorSet)
+	static bool GetIncludedActors(
+		const FPCGContext* InContext,
+		const PCGExData::FFacade* InFacade,
+		const FName ActorReferenceName,
+		TMap<AActor*, int32>& OutActorSet)
 	{
-		const PCGExData::FPointIO* Points = PCGExData::TryGetSingleInput(InContext, SourceActorReferencesLabel, true);
-		if (!Points) { return false; }
 
 		FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 		Selector.SetAttributeName(ActorReferenceName);
 
 		PCGEx::FLocalToStringGetter* PathGetter = new PCGEx::FLocalToStringGetter();
 		PathGetter->Capture(Selector);
-		if (!PathGetter->SoftGrab(Points))
+		if (!PathGetter->SoftGrab(InFacade->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Actor reference attribute does not exist."));
-			PCGEX_DELETE(Points)
 			PCGEX_DELETE(PathGetter)
 			return false;
 		}
 
-		const TArray<FPCGPoint>& TargetPoints = Points->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& TargetPoints = InFacade->GetIn()->GetPoints();
 		for (int i = 0; i < TargetPoints.Num(); i++)
 		{
 			FSoftObjectPath Path = PathGetter->SoftGet(TargetPoints[i], TEXT(""));
@@ -148,11 +149,10 @@ namespace PCGExSampling
 
 			if (UObject* FoundObject = FindObject<AActor>(nullptr, *Path.ToString()))
 			{
-				if (AActor* TargetActor = Cast<AActor>(FoundObject)) { OutActorSet.Add(TargetActor); }
+				if (AActor* TargetActor = Cast<AActor>(FoundObject)) { OutActorSet.FindOrAdd(TargetActor, i); }
 			}
 		}
 
-		PCGEX_DELETE(Points)
 		PCGEX_DELETE(PathGetter)
 		return true;
 	}
