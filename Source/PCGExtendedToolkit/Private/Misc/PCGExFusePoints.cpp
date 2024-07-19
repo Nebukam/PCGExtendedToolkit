@@ -44,7 +44,6 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExFusePoints::FProcessor>* NewBatch)
 			{
-				NewBatch->bInlineProcessing = !Settings->PointPointIntersectionDetails.DoParallelInsert();
 				NewBatch->bRequiresWriteStep = true;
 			},
 			PCGExMT::State_Done))
