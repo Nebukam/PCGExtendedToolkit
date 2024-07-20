@@ -308,9 +308,10 @@ namespace PCGExBridgeClusters
 		//Brute force find closest points
 		for (const PCGExCluster::FNode& Node : NodesRefA)
 		{
-			const PCGExCluster::FNode& OtherNode = NodesRefB[ClusterB->FindClosestNode(ClusterA->GetPos(Node))];
+			FVector NodePos = ClusterA->GetPos(Node);
+			const PCGExCluster::FNode& OtherNode = NodesRefB[ClusterB->FindClosestNode(NodePos)];
 
-			if (const double Dist = FVector::DistSquared(ClusterA->GetPos(Node), ClusterB->GetPos(OtherNode));
+			if (const double Dist = FVector::DistSquared(NodePos, ClusterB->GetPos(OtherNode));
 				Dist < Distance)
 			{
 				IndexA = Node.PointIndex;
