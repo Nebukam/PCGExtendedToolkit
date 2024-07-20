@@ -49,7 +49,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-	
+
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionDetails SeedPicking;
@@ -93,7 +93,7 @@ public:
 	/** Paths with a point count below the specified threshold will be omitted */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=0))
 	int32 MaxPointCount = 500;
-	
+
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;

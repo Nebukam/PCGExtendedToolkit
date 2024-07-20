@@ -992,7 +992,7 @@ namespace PCGEx
 				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
 				TFAttributeWriter<T>* Writer = new TFAttributeWriter<T>(
 					Identity.Name,
-					SourceAttribute->GetValueFromItemKey(PCGInvalidEntryKey),
+					SourceAttribute->GetValue(PCGDefaultValueKey),
 					SourceAttribute->AllowsInterpolation());
 
 				Writer->BindAndGet(Target);

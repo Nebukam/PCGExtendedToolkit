@@ -31,7 +31,7 @@ void UPCGExClusterNodesData::BeginDestroy()
 
 UPCGSpatialData* UPCGExClusterNodesData::CopyInternal() const
 {
-	UPCGExClusterNodesData* NewNodeData = NewObject<UPCGExClusterNodesData>();
+	PCGEX_NEW_TRANSIENT(UPCGExClusterNodesData, NewNodeData)
 	NewNodeData->CopyFrom(this);
 	return NewNodeData;
 }
@@ -65,7 +65,7 @@ PCGExCluster::FCluster* UPCGExClusterEdgesData::GetBoundCluster() const
 
 UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal() const
 {
-	UPCGExClusterEdgesData* NewEdgeData = NewObject<UPCGExClusterEdgesData>();
+	PCGEX_NEW_TRANSIENT(UPCGExClusterEdgesData, NewEdgeData)
 	NewEdgeData->CopyFrom(this);
 	return NewEdgeData;
 }

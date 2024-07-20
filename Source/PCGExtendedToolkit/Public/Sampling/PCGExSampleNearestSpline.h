@@ -256,7 +256,7 @@ public:
 	/** Name of the 'int32' attribute to write the number of spline this point lies inside*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumInside"))
 	FName NumInsideAttributeName = FName("NumInside");
-	
+
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumSamples = false;

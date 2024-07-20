@@ -100,7 +100,7 @@ namespace PCGExClusterMT
 
 	protected:
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
-		bool bBuildCluster = true; 
+		bool bBuildCluster = true;
 		bool bRequiresHeuristics = false;
 		bool bCacheVtxPointIndices = false;
 		bool bDeleteCluster = false;

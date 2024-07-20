@@ -227,7 +227,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 		T* RetValue;
 		if (!Operation)
 		{
+			FGCScopeGuard GCGuarded;
 			RetValue = NewObject<T>();
+			RetValue->AddToRoot();
 			OwnedProcessorOperations.Add(RetValue);
 		}
 		else

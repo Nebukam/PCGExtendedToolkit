@@ -18,7 +18,7 @@
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_OPERATION(_NAME, _BODY) \
 	UPCGExConditionalActionOperation* UPCGEx##_NAME##Factory::CreateOperation() const{ \
-	UPCGEx##_NAME##Operation* NewOperation = NewObject<UPCGEx##_NAME##Operation>(); \
+	PCGEX_NEW(UPCGEx##_NAME##Operation, NewOperation, this->GetOuter()) \
 	NewOperation->TypedFactory = const_cast<UPCGEx##_NAME##Factory*>(this); \
 	NewOperation->Factory = NewOperation->TypedFactory; \
 	_BODY \

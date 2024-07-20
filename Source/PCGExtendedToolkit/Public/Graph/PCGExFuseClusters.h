@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
+#include "PCGExIntersections.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExFuseClusters.generated.h"
@@ -137,6 +138,8 @@ namespace PCGExFuseClusters
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
+		int32 VtxIOIndex = 0;
+		int32 EdgesIOIndex = 0;
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 		const TArray<FPCGPoint>* InPoints = nullptr;
 
@@ -153,8 +156,21 @@ namespace PCGExFuseClusters
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
-		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		FORCEINLINE virtual void ProcessSingleRangeIteration(const int32 Iteration) override
+		{
+			ProcessSingleEdge(IndexedEdges[Iteration]);
+		}
+
+		FORCEINLINE virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
+
+			CompoundGraph->InsertEdge(
+				*(InPoints->GetData() + Edge.Start), VtxIOIndex, Edge.Start,
+				*(InPoints->GetData() + Edge.End), VtxIOIndex, Edge.End,
+				EdgesIOIndex, Edge.PointIndex);
+		}
+
 		virtual void CompleteWork() override;
 	};
 }

@@ -77,6 +77,8 @@ namespace PCGExDataBlending
 				Map = new FAttributeSourceMap(Identity);
 				Map->SetNum(NumSources);
 
+				Map->DefaultValuesSource = SourceAttribute; // TODO : Find a better way to choose this?
+
 				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
 				else { Map->TargetBlendOp = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingDetails->DefaultBlending, Identity); }
 
@@ -126,7 +128,7 @@ namespace PCGExDataBlending
 					}
 					else
 					{
-						Writer = CurrentTargetData->GetWriter<T>(SrcMap->Identity.Name, T{}, SrcMap->AllowsInterpolation, false);
+						Writer = CurrentTargetData->GetWriter<T>(static_cast<FPCGMetadataAttribute<T>*>(SrcMap->DefaultValuesSource), false);
 					}
 
 					SrcMap->Writer = Writer;

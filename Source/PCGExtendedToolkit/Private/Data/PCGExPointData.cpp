@@ -28,7 +28,7 @@ void UPCGExPointData::BeginDestroy()
 
 UPCGSpatialData* UPCGExPointData::CopyInternal() const
 {
-	UPCGExPointData* NewPointData = NewObject<UPCGExPointData>();
+	PCGEX_NEW_TRANSIENT(UPCGExPointData, NewPointData)
 	NewPointData->CopyFrom(this);
 	return NewPointData;
 }

@@ -92,9 +92,30 @@ namespace PCGExData
 		}
 	}
 
-	void FDataForwardHandler::Forward(const int32 SourceIndex, const FFacade* InTargetDataFacade)
+	void FDataForwardHandler::Forward(const int32 SourceIndex, FFacade* InTargetDataFacade)
 	{
 		if (Identities.IsEmpty()) { return; }
+
+		if (Details.bPreserveAttributesDefaultValue)
+		{
+			for (const PCGEx::FAttributeIdentity& Identity : Identities)
+			{
+				PCGMetadataAttribute::CallbackWithRightType(
+					static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+					{
+						using T = decltype(DummyValue);
+						const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
+
+						PCGEx::FAttributeIOBase<T>* Writer = InTargetDataFacade->GetWriter<T>(SourceAtt, true);
+
+						const T ForwardValue = SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry);
+						for (T& Value : Writer->Values) { Value = ForwardValue; }
+					});
+			}
+
+			return;
+		}
+
 		for (const PCGEx::FAttributeIdentity& Identity : Identities)
 		{
 			PCGMetadataAttribute::CallbackWithRightType(

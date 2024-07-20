@@ -92,7 +92,6 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
 		Settings->PointPointIntersectionDetails.FuseDetails,
 		Context->MainPoints->GetInBounds().ExpandBy(10),
-		true,
 		Settings->PointPointIntersectionDetails.FuseMethod);
 
 	return true;
@@ -111,15 +110,16 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
+		const bool bDoInline = Settings->PointPointIntersectionDetails.DoInlineInsertion();
+
 		if (!Context->StartProcessingClusters<
 			PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>* NewBatch)
 			{
-				NewBatch->bInlineProcessing = true; //Context->CompoundGraph->Octree ? true : false;
+				NewBatch->bInlineProcessing = bDoInline;
 			},
-			PCGExGraph::State_PreparingCompound,
-			true)) //Context->CompoundGraph->Octree ? true : false))
+			PCGExGraph::State_PreparingCompound, bDoInline))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
@@ -163,13 +163,15 @@ namespace PCGExFuseClusters
 	{
 	}
 
-	bool
-	FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseClusters)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+
+		VtxIOIndex = VtxIO->IOIndex;
+		EdgesIOIndex = EdgesIO->IOIndex;
 
 		// Prepare insertion
 		bDeleteCluster = false;
@@ -192,7 +194,7 @@ namespace PCGExFuseClusters
 		bInvalidEdges = false;
 		CompoundGraph = TypedContext->CompoundGraph;
 
-		bInlineProcessRange = bInlineProcessEdges = true; // TypedContext->CompoundGraph->Octree ? true : false;
+		bInlineProcessRange = bInlineProcessEdges = Settings->PointPointIntersectionDetails.DoInlineInsertion();
 
 		if (Cluster) { StartParallelLoopForEdges(); }
 		else { StartParallelLoopForRange(IndexedEdges.Num()); }
@@ -200,49 +202,11 @@ namespace PCGExFuseClusters
 		return true;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleRangeIteration);
-
-		const PCGExGraph::FIndexedEdge& Edge = IndexedEdges[Iteration];
-
-		CompoundGraph->InsertEdge(
-			(*InPoints)[Edge.Start], VtxIO->IOIndex, Edge.Start,
-			(*InPoints)[Edge.End], VtxIO->IOIndex, Edge.End,
-			EdgesIO->IOIndex, Edge.PointIndex);
-	}
-
-	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
-
-		CompoundGraph->InsertEdge(
-			(*InPoints)[Edge.Start], VtxIO->IOIndex, Edge.Start,
-			(*InPoints)[Edge.End], VtxIO->IOIndex, Edge.End,
-			EdgesIO->IOIndex, Edge.PointIndex);
-	}
-
 	void FProcessor::CompleteWork()
 	{
 		if (bInvalidEdges)
 		{
 		}
-
-		/*
-		                const TArray<FPCGPoint>& InPoints =
-		   VtxIO->GetIn()->GetPoints();
-	
-		                const int32 VtxIOIndex = VtxIO->IOIndex;
-		                const int32 EdgesIOIndex = EdgesIO->IOIndex;
-	
-		                for (const PCGExGraph::FIndexedEdge& Edge : IndexedEdges)
-		                {
-		                        TypedContext->CompoundGraph->CreateBridge(
-		                                InPoints[Edge.Start], VtxIOIndex,
-		   Edge.Start, InPoints[Edge.End], VtxIOIndex, Edge.End, EdgesIOIndex,
-		   Edge.PointIndex);
-		                }
-		*/
 	}
 }
 

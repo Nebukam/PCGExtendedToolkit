@@ -193,7 +193,7 @@ namespace PCGExSampleSurfaceGuided
 		auto ProcessTraceResult = [&]()
 		{
 			bSuccess = true;
-			
+
 			PCGEX_OUTPUT_VALUE(Location, Index, HitResult.ImpactPoint)
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.ImpactNormal)

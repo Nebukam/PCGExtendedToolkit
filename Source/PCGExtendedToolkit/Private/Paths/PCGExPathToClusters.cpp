@@ -4,7 +4,6 @@
 #include "Paths/PCGExPathToClusters.h"
 #include "Graph/PCGExGraph.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
 
@@ -90,7 +89,6 @@ bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 		Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			Context->MainPoints->GetInBounds().ExpandBy(10),
-			true,
 			Settings->PointPointIntersectionDetails.FuseMethod);
 	}
 
@@ -117,7 +115,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				},
 				[&](PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* NewBatch)
 				{
-					NewBatch->bInlineProcessing = true;
+					NewBatch->bInlineProcessing = Settings->PointPointIntersectionDetails.DoInlineInsertion();
 				},
 				PCGExGraph::State_PreparingCompound))
 			{
@@ -265,43 +263,31 @@ namespace PCGExPathToClusters
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		const int32 NumPoints = InPoints.Num();
-		const int32 IOIndex = PointIO->IOIndex;
+		InPoints = &PointIO->GetIn()->GetPoints();
+		const int32 NumPoints = InPoints->Num();
+		IOIndex = PointIO->IOIndex;
+		LastIndex = NumPoints - 1;
 
 		if (NumPoints < 2) { return false; }
 
 		CompoundGraph = TypedContext->CompoundGraph;
+		bClosedPath = Settings->bClosedPath;
+		bInlineProcessPoints = Settings->PointPointIntersectionDetails.DoInlineInsertion();
 
-		for (int i = 0; i < NumPoints; i++)
-		{
-			PCGExGraph::FCompoundNode* CurrentVtx = CompoundGraph->InsertPointUnsafe(InPoints[i], IOIndex, i);
-
-			if (const int32 PrevIndex = i - 1; InPoints.IsValidIndex(PrevIndex))
-			{
-				PCGExGraph::FCompoundNode* OtherVtx = CompoundGraph->InsertPoint(InPoints[PrevIndex], IOIndex, PrevIndex);
-
-				CurrentVtx->Adjacency.Add(OtherVtx->Index);
-				OtherVtx->Adjacency.Add(CurrentVtx->Index);
-			}
-
-			if (const int32 NextIndex = i + 1; InPoints.IsValidIndex(NextIndex))
-			{
-				PCGExGraph::FCompoundNode* OtherVtx = CompoundGraph->InsertPoint(InPoints[NextIndex], IOIndex, NextIndex);
-
-				CurrentVtx->Adjacency.Add(OtherVtx->Index);
-				OtherVtx->Adjacency.Add(CurrentVtx->Index);
-			}
-		}
-
-		if (Settings->bClosedPath)
-		{
-			// Create an edge between first and last points
-			const int32 LastIndex = NumPoints - 1;
-			CompoundGraph->InsertEdge(InPoints[0], IOIndex, 0, InPoints[LastIndex], IOIndex, LastIndex);
-		}
+		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;
+	}
+
+	void FFusingProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	{
+		const int32 NextIndex = Index + 1;
+		if (NextIndex > LastIndex)
+		{
+			if (bClosedPath) { CompoundGraph->InsertEdge(*(InPoints->GetData() + LastIndex), IOIndex, LastIndex, *InPoints->GetData(), IOIndex, 0); }
+			return;
+		}
+		CompoundGraph->InsertEdge(*(InPoints->GetData() + Index), IOIndex, Index, *(InPoints->GetData() + NextIndex), IOIndex, NextIndex);
 	}
 
 #pragma endregion

@@ -142,6 +142,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCarryOverDetails
 	{
 	}
 
+	/** If enabled, will preserve the initial attribute default value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0, EditCondition="bEnabled"))
+	bool bPreserveAttributesDefaultValue = false;
+
 	/** Attributes to carry over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExNameFiltersDetails Attributes = FPCGExNameFiltersDetails(false);

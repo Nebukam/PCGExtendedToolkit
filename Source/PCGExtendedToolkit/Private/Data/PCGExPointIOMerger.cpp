@@ -74,8 +74,9 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 		}
 
 		// Discover attributes
+		UPCGMetadata* Metadata = Source->GetIn()->Metadata;
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
-		PCGEx::FAttributeIdentity::Get(Source->GetIn()->Metadata, SourceAttributes);
+		PCGEx::FAttributeIdentity::Get(Metadata, SourceAttributes);
 		for (PCGEx::FAttributeIdentity SourceAtt : SourceAttributes)
 		{
 			FString StrName = SourceAtt.Name.ToString();
@@ -90,7 +91,15 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 					static_cast<uint16>(SourceAtt.UnderlyingType), [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
-						PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation);
+						PCGEx::TFAttributeWriter<T>* Writer = nullptr;
+
+						if (InCarryOverDetails->bPreserveAttributesDefaultValue)
+						{
+							const FPCGMetadataAttribute<T>* SourceAttribute = Metadata->GetConstTypedAttribute<T>(SourceAtt.Name);
+							Writer = new PCGEx::TFAttributeWriter<T>(SourceAtt.Name, SourceAttribute->GetValue(PCGDefaultValueKey), SourceAtt.bAllowsInterpolation);
+						}
+
+						if (!Writer) { Writer = new PCGEx::TFAttributeWriter<T>(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation); }
 						Writers.Add(Writer);
 						UniqueIdentities.Add(SourceAtt);
 					});

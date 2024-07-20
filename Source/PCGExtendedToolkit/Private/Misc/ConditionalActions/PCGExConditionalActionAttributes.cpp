@@ -59,7 +59,7 @@ void UPCGExConditionalActionAttributesOperation::OnMatchSuccess(int32 Index, con
 			static_cast<uint16>(AttributeBase->GetTypeId()), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				static_cast<PCGEx::FAttributeIOBase<T>*>(SuccessWriters[i])->Values[Index] = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValueFromItemKey(PCGInvalidEntryKey);
+				static_cast<PCGEx::FAttributeIOBase<T>*>(SuccessWriters[i])->Values[Index] = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
 			});
 	}
 }
@@ -73,7 +73,7 @@ void UPCGExConditionalActionAttributesOperation::OnMatchFail(int32 Index, const 
 			static_cast<uint16>(AttributeBase->GetTypeId()), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				static_cast<PCGEx::FAttributeIOBase<T>*>(FailWriters[i])->Values[Index] = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValueFromItemKey(PCGInvalidEntryKey);
+				static_cast<PCGEx::FAttributeIOBase<T>*>(FailWriters[i])->Values[Index] = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
 			});
 	}
 }

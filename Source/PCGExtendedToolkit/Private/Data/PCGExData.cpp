@@ -75,9 +75,14 @@ namespace PCGExData
 
 	uint64 FIdxCompound::Add(const int32 IOIndex, const int32 PointIndex)
 	{
-		IOIndices.Add(IOIndex);
 		const uint64 H = PCGEx::H64(IOIndex, PointIndex);
-		CompoundedHashSet.Add(H);
+
+		{
+			FWriteScopeLock WriteScopeLock(CompoundLock);
+			IOIndices.Add(IOIndex);
+			CompoundedHashSet.Add(H);
+		}
+
 		return H;
 	}
 

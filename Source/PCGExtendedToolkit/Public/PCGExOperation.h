@@ -43,7 +43,8 @@ public:
 	template <typename T>
 	T* CopyOperation() const
 	{
-		UObject* GenericInstance = NewObject<UObject>(this->GetOuter(), this->GetClass());
+		PCGEX_NEW_FROM(UObject, GenericInstance, this)
+
 		T* TypedInstance = Cast<T>(GenericInstance);
 
 		if (!TypedInstance)

@@ -79,7 +79,7 @@ FString UPCGExVtxPropertySpecialNeighborsSettings::GetDisplayName() const
 
 UPCGExVtxPropertyOperation* UPCGExVtxPropertySpecialNeighborsFactory::CreateOperation() const
 {
-	UPCGExVtxPropertySpecialNeighbors* NewOperation = NewObject<UPCGExVtxPropertySpecialNeighbors>();
+	PCGEX_NEW_TRANSIENT(UPCGExVtxPropertySpecialNeighbors, NewOperation)
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }

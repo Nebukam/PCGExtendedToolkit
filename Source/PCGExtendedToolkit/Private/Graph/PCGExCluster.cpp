@@ -108,7 +108,7 @@ namespace PCGExCluster
 		}
 
 		UpdatePositions();
-		
+
 		if (bCopyEdges)
 		{
 			Edges = new TArray<PCGExGraph::FIndexedEdge>();
@@ -237,7 +237,7 @@ namespace PCGExCluster
 		if (bOwnsEdgeOctree) { PCGEX_DELETE(EdgeOctree) }
 		if (bOwnsExpandedNodes) { PCGEX_DELETE(ExpandedNodes) }
 		if (bOwnsExpandedEdges) { PCGEX_DELETE(ExpandedEdges) }
-		
+
 		NodePositions.Empty();
 	}
 
@@ -936,7 +936,7 @@ namespace PCGExCluster
 	void FCluster::UpdatePositions()
 	{
 		check(VtxIO)
-		
+
 		const TArray<FPCGPoint>& VtxPoints = VtxIO->GetIn()->GetPoints();
 		PCGEX_SET_NUM_UNINITIALIZED(NodePositions, Nodes->Num())
 		for (const FNode& N : *Nodes) { NodePositions[N.NodeIndex] = VtxPoints[N.PointIndex].Transform.GetLocation(); }

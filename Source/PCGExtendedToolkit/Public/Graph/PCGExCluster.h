@@ -346,7 +346,7 @@ namespace PCGExCluster
 		}
 
 		void UpdatePositions();
-		
+
 	protected:
 		FORCEINLINE FNode& GetOrCreateNodeUnsafe(const TArray<FPCGPoint>& InNodePoints, int32 PointIndex)
 		{

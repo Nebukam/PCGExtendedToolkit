@@ -14,7 +14,7 @@ UPCGExParamFactoryBase* UPCGExProbe##_NAME##ProviderSettings::CreateFactory(FPCG
 	NewFactory->Config = Config; _EXTRA_FACTORY \
 	return Super::CreateFactory(InContext, NewFactory); } \
 UPCGExProbeOperation* UPCGExProbeFactory##_NAME::CreateOperation() const{\
-	UPCGExProbe##_NAME* NewOperation = NewObject<UPCGExProbe##_NAME>();\
+	PCGEX_NEW(UPCGExProbe##_NAME, NewOperation, this->GetOuter()) \
 	NewOperation->Config = Config; NewOperation->BaseConfig = &NewOperation->Config; _EXTRA_OPERATION return NewOperation;}
 
 class UPCGExProbeOperation;

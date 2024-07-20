@@ -72,11 +72,11 @@ namespace PCGExWriteIndex
 		}
 		else
 		{
-			IntWriter = PointDataFacade->GetWriter<int32>(Settings->OutputAttributeName, -1, false,false);
+			IntWriter = PointDataFacade->GetWriter<int32>(Settings->OutputAttributeName, -1, false, false);
 		}
 
 		StartParallelLoopForPoints();
-		
+
 		return true;
 	}
 

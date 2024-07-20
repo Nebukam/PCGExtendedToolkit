@@ -127,7 +127,6 @@ namespace PCGExSampling
 		const FName ActorReferenceName,
 		TMap<AActor*, int32>& OutActorSet)
 	{
-
 		FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 		Selector.SetAttributeName(ActorReferenceName);
 

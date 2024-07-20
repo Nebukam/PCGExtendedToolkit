@@ -45,7 +45,8 @@ namespace PCGExData
 		{
 			if (In)
 			{
-				UObject* GenericInstance = NewObject<UObject>(In->GetOuter(), In->GetClass());
+				PCGEX_NEW_FROM(UObject, GenericInstance, In)
+
 				Out = Cast<UPCGPointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
@@ -63,7 +64,9 @@ namespace PCGExData
 			}
 			else
 			{
+				FGCScopeGuard GCGuarded;
 				Out = NewObject<UPCGPointData>();
+				Out->AddToRoot();
 			}
 
 			return;
@@ -179,7 +182,8 @@ namespace PCGExData
 	{
 		if (bEnabled && Out && Out->GetPoints().Num() > 0)
 		{
-			Context->FutureOutput(DefaultOutputLabel, Out, Tags->ToSet());
+			if (In && Out == In) { Context->FutureOutput(DefaultOutputLabel, Out, Tags->ToSet()); }
+			else { Context->FutureRootedOutput(DefaultOutputLabel, Out, Tags->ToSet()); }
 			bWritten = true;
 			return true;
 		}

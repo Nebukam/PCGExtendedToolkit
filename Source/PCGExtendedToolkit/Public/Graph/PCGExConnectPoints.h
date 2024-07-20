@@ -7,7 +7,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExGraph.h"
-#include "Graph/PCGExIntersections.h"
 #include "PCGExConnectPoints.generated.h"
 
 class UPCGExProbeFactoryBase;
@@ -85,7 +84,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsContext final : public FPCGExPo
 	PCGExData::FPointIOCollection* MainVtx = nullptr;
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 
-	FVector CWStackingTolerance = FVector::ZeroVector;
+	FVector CWStackingTolerance = FVector::OneVector;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement
@@ -171,7 +170,7 @@ namespace PCGExConnectPoints
 
 		bool bPreventStacking = false;
 		bool bUseProjection = false;
-		FVector CWStackingTolerance = FVector::ZeroVector;
+		FVector CWStackingTolerance = FVector::OneVector;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)

@@ -155,6 +155,10 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FCompoundNode
 	{
+	protected:
+		mutable FRWLock AdjacencyLock;
+
+	public:
 		const FPCGPoint Point;
 		FVector Center;
 		FBoxSphereBounds Bounds;
@@ -177,6 +181,12 @@ namespace PCGExGraph
 		}
 
 		FVector UpdateCenter(const PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup);
+
+		FORCEINLINE void Add(const int32 InAdjacency)
+		{
+			FWriteScopeLock WriteScopeLock(AdjacencyLock);
+			Adjacency.Add(InAdjacency);
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeSemantics
@@ -223,25 +233,27 @@ namespace PCGExGraph
 		EPCGExFuseMethod Precision;
 
 		FBox Bounds;
-		const bool bFusePoints = true;
 
 		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
 		NodeOctree* Octree = nullptr;
 
-		mutable FRWLock OctreeLock;
+		mutable FRWLock CompoundLock;
 		mutable FRWLock EdgesLock;
 
-		explicit FCompoundGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds, const bool FusePoints = true, const EPCGExFuseMethod InPrecision = EPCGExFuseMethod::Voxel)
+		explicit FCompoundGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds, const EPCGExFuseMethod InPrecision = EPCGExFuseMethod::Voxel)
 			: FuseDetails(InFuseDetails),
 			  Precision(InPrecision),
-			  Bounds(InBounds),
-			  bFusePoints(FusePoints)
+			  Bounds(InBounds)
 		{
 			Nodes.Empty();
 			Edges.Empty();
 
-			if (InFuseDetails.bComponentWiseTolerance) { FVector(1 / (InFuseDetails.Tolerances.X * 2), 1 / (InFuseDetails.Tolerances.Y * 2), 1 / (InFuseDetails.Tolerances.Z * 2)); }
-			else { CWTolerance = FVector(1 / (InFuseDetails.Tolerance * 2)); }
+			// Scale up tolerance
+			const FVector TXYZ = InFuseDetails.Tolerances * 2;
+			const double TX = InFuseDetails.Tolerance * 2;
+
+			if (InFuseDetails.bComponentWiseTolerance) { FVector(1 / TXYZ.X, 1 / TXYZ.Y, 1 / TXYZ.Z); }
+			else { CWTolerance = FVector(1 / TX); }
 
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
@@ -269,7 +281,7 @@ namespace PCGExGraph
 		PCGExData::FIdxCompound* InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                                          const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                          const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
-		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
+		void GetUniqueEdges(TSet<uint64>& OutEdges);
 		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
 	};
 
@@ -610,6 +622,12 @@ namespace PCGExGraph
 
 		void FindIntersections(FPCGExPointsProcessorContext* InContext);
 
+		FORCEINLINE bool AlreadyChecked(const uint64 Key) const
+		{
+			FReadScopeLock ReadLock(InsertionLock);
+			return CheckedPairs.Contains(Key);
+		}
+
 		FORCEINLINE void Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split)
 		{
 			FWriteScopeLock WriteLock(InsertionLock);
@@ -658,12 +676,7 @@ namespace PCGExGraph
 
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
-
-				{
-					FReadScopeLock ReadLock(InIntersections->InsertionLock);
-					if (InIntersections->CheckedPairs.Contains(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { return; }
-				}
-
+				if (InIntersections->AlreadyChecked(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { return; }
 				if (!Edge.FindSplit(OtherEdge, Split)) { return; }
 
 				// Check overlap last as it's the most expensive op
@@ -684,16 +697,10 @@ namespace PCGExGraph
 
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
+				if (InIntersections->AlreadyChecked(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { return; }
+				if (!Edge.FindSplit(OtherEdge, Split)) { return; }
 
-				{
-					FReadScopeLock ReadLock(InIntersections->InsertionLock);
-					if (InIntersections->CheckedPairs.Contains(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { return; }
-				}
-
-				if (Edge.FindSplit(OtherEdge, Split))
-				{
-					InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
-				}
+				InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
 			};
 
 			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);

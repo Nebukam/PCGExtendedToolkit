@@ -61,7 +61,7 @@ public:
 	/** Name of the attribute to read actor reference from.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FName ActorReference = FName("ActorReference");
-	
+
 	/** The direction to use for the trace */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
 	FPCGAttributePropertyInputSelector Direction;
@@ -101,7 +101,7 @@ public:
 	/** Name of the 'vector' attribute to write sampled LookAt to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLookAt"))
 	FName LookAtAttributeName = FName("TracedLookAt");
-	
+
 	/** Write the sampled normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNormal = false;
@@ -125,7 +125,7 @@ public:
 	/** Name of the 'bool' attribute to write sampled point inside or outside the collision.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteIsInside"))
 	FName IsInsideAttributeName = FName("IsInside");
-	
+
 	/** Write the actor reference hit. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteActorReference = false;
@@ -175,7 +175,6 @@ public:
 	/** Which actor reference points attributes to forward on points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FPCGExForwardDetails AttributesForwarding;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
@@ -185,7 +184,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FP
 	virtual ~FPCGExSampleSurfaceGuidedContext() override;
 
 	PCGExData::FFacade* ActorReferenceDataFacade = nullptr;
-	
+
 	bool bUseInclude = false;
 	TMap<AActor*, int32> IncludedActors;
 	TArray<AActor*> IgnoredActors;
@@ -211,7 +210,7 @@ namespace PCGExSampleSurfaceGuided
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
-		
+
 		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
 		PCGExData::FCache<FVector>* DirectionGetter = nullptr;
 

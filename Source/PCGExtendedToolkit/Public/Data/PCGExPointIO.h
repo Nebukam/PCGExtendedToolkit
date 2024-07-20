@@ -113,7 +113,8 @@ namespace PCGExData
 
 			if (InitOut == EInit::NewOutput)
 			{
-				T* TypedOut = NewObject<T>();
+				PCGEX_NEW(T, TypedOut, nullptr)
+
 				Out = Cast<UPCGPointData>(TypedOut);
 				check(Out)
 
@@ -132,8 +133,7 @@ namespace PCGExData
 
 				if (!TypedIn)
 				{
-					// Need to broadcast to T
-					T* TypedOut = NewObject<T>();
+					PCGEX_NEW(T, TypedOut, nullptr)
 
 					if (UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(TypedOut)) { TypedPointData->CopyFrom(In); }
 					else { TypedOut->InitializeFromData(In); } // This is a potentially failed duplicate

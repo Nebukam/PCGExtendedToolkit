@@ -436,9 +436,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
 
-	/** Check this box if you're fusing over a very large radius. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel"))
-	bool bParallelInsertion = false;
+	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things considerably slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Octree"))
+	bool bInlineInsertion = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -456,7 +456,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCompoundSize"))
 	FName CompoundSizeAttributeName = "CompoundSize";
 
-	bool DoParallelInsert() const { return FuseMethod == EPCGExFuseMethod::Voxel && bParallelInsertion; }
+	bool DoInlineInsertion() const { return FuseMethod == EPCGExFuseMethod::Octree && bInlineInsertion; }
 };
 
 USTRUCT(BlueprintType)

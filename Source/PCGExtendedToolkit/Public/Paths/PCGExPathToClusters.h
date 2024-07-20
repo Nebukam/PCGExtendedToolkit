@@ -164,6 +164,13 @@ namespace PCGExPathToClusters
 
 	class FFusingProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		bool bClosedPath = false;
+
+		int32 IOIndex = 0;
+		int32 LastIndex = 0;
+
+		const TArray<FPCGPoint>* InPoints = nullptr;
+
 	public:
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 
@@ -175,6 +182,7 @@ namespace PCGExPathToClusters
 		virtual ~FFusingProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 	};
 
 #pragma endregion

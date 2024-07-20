@@ -92,7 +92,7 @@ bool FPCGExUnpackClusterTask::ExecuteTask()
 		return false;
 	}
 
-	const int32 NumEdges = EdgeCount->GetValueFromItemKey(PCGInvalidEntryKey);
+	const int32 NumEdges = EdgeCount->GetValue(PCGDefaultValueKey);
 	const int32 NumVtx = PointIO->GetNum() - NumEdges;
 
 	if (NumEdges > PointIO->GetNum() || NumVtx <= 0)

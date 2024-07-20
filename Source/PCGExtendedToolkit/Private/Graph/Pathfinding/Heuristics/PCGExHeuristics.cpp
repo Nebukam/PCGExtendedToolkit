@@ -71,7 +71,7 @@ namespace PCGExHeuristics
 		if (Operations.IsEmpty())
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid heuristics. Will use Shortest Distance as default. (Local feedback heuristics don't count)"));
-			UPCGExHeuristicDistance* DefaultHeuristics = NewObject<UPCGExHeuristicDistance>();
+			PCGEX_NEW_TRANSIENT(UPCGExHeuristicDistance, DefaultHeuristics)
 			DefaultHeuristics->ReferenceWeight = ReferenceWeight;
 			Operations.Add(DefaultHeuristics);
 		}

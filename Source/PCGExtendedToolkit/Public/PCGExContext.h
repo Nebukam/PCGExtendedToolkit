@@ -13,6 +13,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExContext : public FPCGContext
 protected:
 	mutable FRWLock ContextOutputLock;
 	TArray<FPCGTaggedData> FutureOutputs;
+	TArray<UPCGData*> Rooted;
 	bool bFlattenOutput = false;
 	bool bUseLock = true;
 
@@ -24,7 +25,10 @@ protected:
 public:
 	virtual ~FPCGExContext() override;
 
+	void UnrootFutures();
+
 	void FutureReserve(const int32 NumAdditions);
+	void FutureRootedOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
 	void FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
 	void FutureOutput(const FName Pin, UPCGData* InData);
 

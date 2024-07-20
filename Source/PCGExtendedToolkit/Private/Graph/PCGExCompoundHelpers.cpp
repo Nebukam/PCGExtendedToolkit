@@ -99,7 +99,7 @@ namespace PCGExGraph
 
 				GraphBuilder = new FGraphBuilder(CompoundFacade->Source, &InBuilderDetails, 4);
 
-				TArray<FUnsignedEdge> UniqueEdges;
+				TSet<uint64> UniqueEdges;
 				CompoundGraph->GetUniqueEdges(UniqueEdges);
 				CompoundGraph->WriteMetadata(GraphBuilder->Graph->NodeMetadata);
 
@@ -121,7 +121,7 @@ namespace PCGExGraph
 				Point.Transform.SetLocation(
 					CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, Context->MainPoints));
 				CompoundPointsBlender->MergeSingle(Index, PCGExDetails::GetDistanceDetails(PointPointIntersectionDetails));
-			}, NumCompoundNodes, 256);
+			}, NumCompoundNodes, 256, false, false);
 
 
 		return true;

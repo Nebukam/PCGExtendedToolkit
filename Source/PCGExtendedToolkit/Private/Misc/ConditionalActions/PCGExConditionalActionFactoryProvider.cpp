@@ -57,7 +57,7 @@ FString UPCGExConditionalActionProviderSettings::GetDisplayName() const { return
 
 UPCGExConditionalActionOperation* UPCGExConditionalActionFactoryBase::CreateOperation() const
 {
-	UPCGExConditionalActionOperation* NewOperation = NewObject<UPCGExConditionalActionOperation>();
+	PCGEX_NEW_TRANSIENT(UPCGExConditionalActionOperation, NewOperation)
 	NewOperation->Factory = const_cast<UPCGExConditionalActionFactoryBase*>(this);
 	return NewOperation;
 }

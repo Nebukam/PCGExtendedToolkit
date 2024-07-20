@@ -78,7 +78,6 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		
 		while (Context->AdvanceEdges(true))
 		{
 			if (!Context->CurrentCluster)

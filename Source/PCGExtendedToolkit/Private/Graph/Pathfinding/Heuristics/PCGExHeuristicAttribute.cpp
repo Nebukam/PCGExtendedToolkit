@@ -65,7 +65,7 @@ void UPCGExHeuristicAttribute::Cleanup()
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryAttribute::CreateOperation() const
 {
-	UPCGExHeuristicAttribute* NewOperation = NewObject<UPCGExHeuristicAttribute>();
+	PCGEX_NEW_TRANSIENT(UPCGExHeuristicAttribute, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->Attribute = Config.Attribute;
 	return NewOperation;

@@ -58,7 +58,7 @@ FString UPCGExVtxPropertyOrientSettings::GetDisplayName() const
 
 UPCGExVtxPropertyOperation* UPCGExVtxPropertyOrientFactory::CreateOperation() const
 {
-	UPCGExVtxPropertyOrient* NewOperation = NewObject<UPCGExVtxPropertyOrient>();
+	PCGEX_NEW_TRANSIENT(UPCGExVtxPropertyOrient, NewOperation)
 	PCGEX_VTX_EXTRA_CREATE
 	return NewOperation;
 }

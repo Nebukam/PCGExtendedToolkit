@@ -12,7 +12,7 @@ void UPCGExHeuristicSteepness::PrepareForCluster(const PCGExCluster::FCluster* I
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() const
 {
-	UPCGExHeuristicSteepness* NewOperation = NewObject<UPCGExHeuristicSteepness>();
+	PCGEX_NEW_TRANSIENT(UPCGExHeuristicSteepness, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->UpwardVector = Config.UpVector;
 	NewOperation->bAbsoluteSteepness = Config.bAbsoluteSteepness;

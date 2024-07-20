@@ -204,7 +204,7 @@ namespace PCGExConnectPoints
 		}
 		else
 		{
-			if (GeneratorsFilter) { for (int i = 0; i <  InPoints->Num(); i++) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
+			if (GeneratorsFilter) { for (int i = 0; i < InPoints->Num(); i++) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
 			else { for (bool& Gen : CanGenerate) { Gen = true; } }
 		}
 
@@ -223,7 +223,6 @@ namespace PCGExConnectPoints
 
 	void FProcessor::OnPreparationComplete()
 	{
-
 		const TArray<FPCGPoint>& InPointsRef = *InPoints;
 		const int32 NumPoints = InPointsRef.Num();
 

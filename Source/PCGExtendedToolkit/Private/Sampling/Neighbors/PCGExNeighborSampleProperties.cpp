@@ -47,8 +47,7 @@ FString UPCGExNeighborSamplePropertiesSettings::GetDisplayName() const
 
 UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryProperties::CreateOperation() const
 {
-	UPCGExNeighborSampleProperties* NewOperation = NewObject<UPCGExNeighborSampleProperties>();
-
+	PCGEX_NEW_TRANSIENT(UPCGExNeighborSampleProperties, NewOperation)
 	PCGEX_SAMPLER_CREATE
 
 	NewOperation->BlendingDetails = Config.Blending;

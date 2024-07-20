@@ -20,7 +20,7 @@ void UPCGExHeuristicDirection::PrepareForCluster(const PCGExCluster::FCluster* I
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() const
 {
-	UPCGExHeuristicDirection* NewOperation = NewObject<UPCGExHeuristicDirection>();
+	PCGEX_NEW_TRANSIENT(UPCGExHeuristicDirection, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

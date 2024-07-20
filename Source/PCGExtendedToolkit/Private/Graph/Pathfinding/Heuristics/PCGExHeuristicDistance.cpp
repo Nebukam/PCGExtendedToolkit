@@ -12,7 +12,7 @@ void UPCGExHeuristicDistance::PrepareForCluster(const PCGExCluster::FCluster* In
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation() const
 {
-	UPCGExHeuristicDistance* NewOperation = NewObject<UPCGExHeuristicDistance>();
+	PCGEX_NEW_TRANSIENT(UPCGExHeuristicDistance, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

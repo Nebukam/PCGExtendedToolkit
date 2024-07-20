@@ -118,7 +118,7 @@ namespace PCGExData
 #if WITH_EDITOR
 						// If this throws, we're requesting a full reader on a non-dynamic one.
 						// TODO : Read cache in full and toggle off dynamic.
-						if (bDynamicCache) { check(bFetch) } 
+						if (bDynamicCache) { check(bFetch) }
 #endif
 						return Reader;
 					}
@@ -186,8 +186,20 @@ namespace PCGExData
 				FReadScopeLock ReadScopeLock(CacheLock);
 				if (bInitialized) { return Writer; } // TODO : Handle cases where we already have a reader
 			}
+
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
+
+				if (Source->GetIn())
+				{
+					if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->GetConstTypedAttribute<T>(FullName))
+					{
+						return PrepareWriter(
+							ExistingAttribute->GetValue(PCGDefaultValueKey),
+							ExistingAttribute->AllowsInterpolation(),
+							bUninitialized);
+					}
+				}
 
 				bInitialized = true;
 				bIsPureReader = false;
@@ -419,7 +431,7 @@ namespace PCGExData
 		PCGEx::TFAttributeWriter<T>* GetWriter(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
 		{
 			FCache<T>* Cache = GetCache<T>(InAttribute->Name);
-			PCGEx::TFAttributeWriter<T>* Writer = Cache->PrepareWriter(InAttribute->GetValueFromItemKey(PCGInvalidEntryKey), InAttribute->AllowsInterpolation(), bUninitialized);
+			PCGEx::TFAttributeWriter<T>* Writer = Cache->PrepareWriter(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized);
 			return Writer;
 		}
 
@@ -560,6 +572,10 @@ namespace PCGExData
 
 	struct PCGEXTENDEDTOOLKIT_API FIdxCompound
 	{
+	protected:
+		mutable FRWLock CompoundLock;
+
+	public:
 		TSet<int32> IOIndices;
 		TSet<uint64> CompoundedHashSet;
 
@@ -587,10 +603,15 @@ namespace PCGExData
 
 		int32 Num() const { return Compounds.Num(); }
 
-		FORCEINLINE FIdxCompound* New()
+		FORCEINLINE FIdxCompound* New(const int32 IOIndex, const int32 PointIndex)
 		{
 			FIdxCompound* NewPointCompound = new FIdxCompound();
 			Compounds.Add(NewPointCompound);
+
+			NewPointCompound->IOIndices.Add(IOIndex);
+			const uint64 H = PCGEx::H64(IOIndex, PointIndex);
+			NewPointCompound->CompoundedHashSet.Add(H);
+
 			return NewPointCompound;
 		}
 

@@ -30,6 +30,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
 	bool bEnabled = false;
 
+	/** If enabled, will preserve the initial attribute default value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0, EditCondition="bEnabled"))
+	bool bPreserveAttributesDefaultValue = false;
+
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
 	{
 		if (FilterMode == EPCGExAttributeFilter::All) { return; }
@@ -66,7 +70,7 @@ namespace PCGExData
 		FDataForwardHandler(const FPCGExForwardDetails& InDetails, FFacade* InSourceDataFacade, FFacade* InTargetDataFacade);
 		FORCEINLINE bool IsEmpty() const { return Identities.IsEmpty(); }
 		void Forward(const int32 SourceIndex, const int32 TargetIndex);
-		void Forward(int32 SourceIndex, const FFacade* InTargetDataFacade);
+		void Forward(int32 SourceIndex, FFacade* InTargetDataFacade);
 	};
 }
 

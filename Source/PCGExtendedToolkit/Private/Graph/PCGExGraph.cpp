@@ -367,9 +367,9 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 			PCGExData::FPointIO* EdgeIO;
 
 			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex();
-				SourceEdgesIO&& SourceEdgesIO
-			->
-			Pairs.IsValidIndex(IOIndex)
+				SourceEdgesIO && SourceEdgesIO
+				                 ->
+				                 Pairs.IsValidIndex(IOIndex)
 			)
 			{
 				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);

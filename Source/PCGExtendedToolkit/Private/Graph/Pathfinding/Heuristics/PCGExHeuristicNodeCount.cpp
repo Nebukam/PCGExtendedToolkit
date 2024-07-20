@@ -6,7 +6,7 @@
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryLeastNodes::CreateOperation() const
 {
-	UPCGExHeuristicNodeCount* NewOperation = NewObject<UPCGExHeuristicNodeCount>();
+	PCGEX_NEW_TRANSIENT(UPCGExHeuristicNodeCount, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

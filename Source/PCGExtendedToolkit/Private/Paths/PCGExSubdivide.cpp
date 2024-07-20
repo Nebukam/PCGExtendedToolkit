@@ -89,7 +89,7 @@ namespace PCGExSubdivide
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
-	{		
+	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSubdivide::Process);
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -105,7 +105,7 @@ namespace PCGExSubdivide
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 
 		const int32 LastIndex = PointIO->GetNum() - 1;
-		
+
 		for (int i = 0; i < LastIndex; i++) { ProcessPathPoint(i, i + 1); }
 		if (Settings->bClosedPath) { ProcessPathPoint(LastIndex, 0); }
 

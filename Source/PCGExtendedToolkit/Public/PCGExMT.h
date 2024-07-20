@@ -370,7 +370,6 @@ namespace PCGExMT
 		void InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize);
 
 		void OnTaskCompleted();
-
 	};
 
 	class PCGEXTENDEDTOOLKIT_API PCGExMT::FPCGExTask : public FNonAbandonableTask

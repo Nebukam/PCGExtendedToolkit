@@ -55,7 +55,7 @@ namespace PCGExMT
 	void FTaskGroup::StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined, const bool bExecuteSmallSynchronously)
 	{
 		if (!Manager->IsAvailable()) { return; }
-		
+
 		OnIterationCallback = Callback;
 
 		if (MaxItems <= ChunkSize && bExecuteSmallSynchronously)
@@ -95,7 +95,7 @@ namespace PCGExMT
 	}
 
 	void FTaskGroup::InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize)
-	{		
+	{
 		FAsyncTask<FGroupRangeInlineIterationTask>* NextRange = new FAsyncTask<FGroupRangeInlineIterationTask>(nullptr);
 		NextRange->GetTask().Group = this;
 		NextRange->GetTask().MaxItems = MaxItems;
@@ -121,7 +121,7 @@ namespace PCGExMT
 			}
 		}
 	}
-	
+
 	bool FGroupRangeIterationTask::ExecuteTask()
 	{
 		check(Group)

@@ -21,6 +21,7 @@ namespace PCGExDataBlending
 {
 	struct PCGEXTENDEDTOOLKIT_API FAttributeSourceMap
 	{
+		FPCGMetadataAttributeBase* DefaultValuesSource = nullptr;
 		TArray<FPCGMetadataAttributeBase*> Attributes;
 		TArray<FDataBlendingOperationBase*> BlendOps;
 		PCGEx::FAttributeIdentity Identity;
@@ -62,13 +63,13 @@ namespace PCGExDataBlending
 		void SetNum(const int32 InNum)
 		{
 			const int32 Diff = InNum - Attributes.Num();
-			PCGEX_SET_NUM(Attributes, InNum)
-			PCGEX_SET_NUM(BlendOps, InNum)
+			PCGEX_SET_NUM_UNINITIALIZED(Attributes, InNum)
+			PCGEX_SET_NUM_UNINITIALIZED(BlendOps, InNum)
 
-			for (int i = 0; i < Diff; i++)
+			for (int i = 1; i <= Diff; i++)
 			{
-				Attributes[Attributes.Num() - 1 - i] = nullptr;
-				BlendOps[BlendOps.Num() - 1 - i] = nullptr;
+				Attributes[InNum - i] = nullptr;
+				BlendOps[InNum - i] = nullptr;
 			}
 		}
 	};
@@ -92,6 +93,7 @@ namespace PCGExDataBlending
 		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
 
 	protected:
+		bool bPreserveAttributesDefaultValue = false;
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
 
 		TArray<FAttributeSourceMap*> AttributeSourceMaps;

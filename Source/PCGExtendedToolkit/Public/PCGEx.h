@@ -255,23 +255,25 @@ namespace PCGEx
 
 	FORCEINLINE static uint32 GH(const FInt64Vector3& Seed) { return GetTypeHash(Seed); }
 
-	FORCEINLINE static uint32 GH(const FVector& Seed, const FInt64Vector3& Tolerance)
+	FORCEINLINE static FInt64Vector3 I643(const FVector& Seed, const FVector& Tolerance)
 	{
-		return GetTypeHash(
-			FInt64Vector3(
-				FMath::FloorToInt64(Seed.X * Tolerance.X),
-				FMath::FloorToInt64(Seed.Y * Tolerance.Y),
-				FMath::FloorToInt64(Seed.Z * Tolerance.Z)));
+		return FInt64Vector3(
+			FMath::FloorToInt64(Seed.X * Tolerance.X),
+			FMath::FloorToInt64(Seed.Y * Tolerance.Y),
+			FMath::FloorToInt64(Seed.Z * Tolerance.Z));
 	}
 
-	FORCEINLINE static uint32 GH(const FVector& Seed, const FVector& Tolerance)
+	FORCEINLINE static FInt64Vector3 I643(const FVector& Seed, const FInt64Vector3& Tolerance)
 	{
-		return GetTypeHash(
-			FInt64Vector3(
-				FMath::FloorToInt64(Seed.X * Tolerance.X),
-				FMath::FloorToInt64(Seed.Y * Tolerance.Y),
-				FMath::FloorToInt64(Seed.Z * Tolerance.Z)));
+		return FInt64Vector3(
+			FMath::FloorToInt64(Seed.X * Tolerance.X),
+			FMath::FloorToInt64(Seed.Y * Tolerance.Y),
+			FMath::FloorToInt64(Seed.Z * Tolerance.Z));
 	}
+
+	FORCEINLINE static uint32 GH(const FVector& Seed, const FInt64Vector3& Tolerance) { return GetTypeHash(I643(Seed, Tolerance)); }
+
+	FORCEINLINE static uint32 GH(const FVector& Seed, const FVector& Tolerance) { return GetTypeHash(I643(Seed, Tolerance)); }
 
 
 #pragma region Field Helpers
