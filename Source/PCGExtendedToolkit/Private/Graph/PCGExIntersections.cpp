@@ -220,20 +220,27 @@ namespace PCGExGraph
 			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex]; }
 		}
 
+		if (EdgeIdx)
 		{
-			if (!EdgeIdx)
-			{
-				FWriteScopeLock WriteLockEdges(EdgesLock);
-				EdgeIdx = EdgesCompounds->New(EdgeIOIndex, EdgePointIndex);
-				Edges.Add(H, FIndexedEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
-			}
-			else
-			{
-				EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
-			}
+			EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+			return EdgeIdx;
 		}
 
-		return EdgeIdx;
+		{
+			FWriteScopeLock WriteLockEdges(EdgesLock);
+
+			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex]; }
+
+			if (EdgeIdx)
+			{
+				EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+				return EdgeIdx;
+			}
+
+			EdgeIdx = EdgesCompounds->New(EdgeIOIndex, EdgePointIndex);
+			Edges.Add(H, FIndexedEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
+			return EdgeIdx;
+		}
 	}
 
 	PCGExData::FIdxCompound* FCompoundGraph::InsertEdgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
