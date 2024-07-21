@@ -108,20 +108,19 @@ namespace PCGExData
 
 		PCGEx::FAttributeIOBase<T>* PrepareReader(const ESource InSource = ESource::In, const bool bFetch = false)
 		{
+			FWriteScopeLock WriteScopeLock(CacheLock);
+
+			if (bInitialized)
 			{
-				FReadScopeLock ReadScopeLock(CacheLock);
-				if (bInitialized)
+				if (InSource == ESource::Out && Writer) { return Writer; }
+				if (Reader)
 				{
-					if (InSource == ESource::Out && Writer) { return Writer; }
-					if (Reader)
-					{
 #if WITH_EDITOR
-						// If this throws, we're requesting a full reader on a non-dynamic one.
-						// TODO : Read cache in full and toggle off dynamic.
-						if (bDynamicCache) { check(bFetch) }
+					// If this throws, we're requesting a full reader on a non-dynamic one.
+					// TODO : Read cache in full and toggle off dynamic.
+					if (bDynamicCache) { check(bFetch) }
 #endif
-						return Reader;
-					}
+					return Reader;
 				}
 			}
 
@@ -130,7 +129,6 @@ namespace PCGExData
 			if (bInitialized)
 			{
 				check(Writer)
-				FWriteScopeLock WriteScopeLock(CacheLock);
 				PCGEx::TFAttributeReader<T>* TypedReader = new PCGEx::TFAttributeReader<T>(FullName);
 
 				if (bFetch) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
@@ -139,10 +137,10 @@ namespace PCGExData
 				Attribute = TypedReader->Accessor->GetAttribute();
 				Reader = TypedReader;
 				bIsPureReader = false;
+
 				return Reader;
 			}
 
-			FWriteScopeLock WriteScopeLock(CacheLock);
 			bInitialized = true;
 
 			PCGEx::TFAttributeReader<T>* TypedReader = new PCGEx::TFAttributeReader<T>(FullName);
@@ -160,47 +158,42 @@ namespace PCGExData
 
 		PCGEx::TFAttributeWriter<T>* PrepareWriter(T DefaultValue, bool bAllowInterpolation, bool bUninitialized = false)
 		{
-			{
-				FReadScopeLock ReadScopeLock(CacheLock);
-				if (bInitialized) { return Writer; } // TODO : Handle cases where we already have a reader
-			}
-			{
-				FWriteScopeLock WriteScopeLock(CacheLock);
+			FWriteScopeLock WriteScopeLock(CacheLock);
 
-				bInitialized = true;
-				bIsPureReader = false;
+			if (bInitialized) { return Writer; } // TODO : Handle cases where we already have a reader
 
-				Writer = new PCGEx::TFAttributeWriter<T>(FullName, DefaultValue, bAllowInterpolation);
+			bInitialized = true;
+			bIsPureReader = false;
 
-				if (bUninitialized) { Writer->BindAndSetNumUninitialized(Source); }
-				else { Writer->BindAndGet(Source); }
-				Attribute = Writer->Accessor->GetAttribute();
+			Writer = new PCGEx::TFAttributeWriter<T>(FullName, DefaultValue, bAllowInterpolation);
 
-				return Writer;
-			}
+			if (bUninitialized) { Writer->BindAndSetNumUninitialized(Source); }
+			else { Writer->BindAndGet(Source); }
+			Attribute = Writer->Accessor->GetAttribute();
+
+			return Writer;
 		}
 
 		PCGEx::TFAttributeWriter<T>* PrepareWriter(bool bUninitialized = false)
 		{
 			{
-				FReadScopeLock ReadScopeLock(CacheLock);
+				FWriteScopeLock WriteScopeLock(CacheLock);
 				if (bInitialized) { return Writer; } // TODO : Handle cases where we already have a reader
+			}
+
+			if (Source->GetIn())
+			{
+				if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->GetConstTypedAttribute<T>(FullName))
+				{
+					return PrepareWriter(
+						ExistingAttribute->GetValue(PCGDefaultValueKey),
+						ExistingAttribute->AllowsInterpolation(),
+						bUninitialized);
+				}
 			}
 
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
-
-				if (Source->GetIn())
-				{
-					if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->GetConstTypedAttribute<T>(FullName))
-					{
-						return PrepareWriter(
-							ExistingAttribute->GetValue(PCGDefaultValueKey),
-							ExistingAttribute->AllowsInterpolation(),
-							bUninitialized);
-					}
-				}
-
 				bInitialized = true;
 				bIsPureReader = false;
 
@@ -216,43 +209,37 @@ namespace PCGExData
 
 		void Grab(PCGEx::FAttributeGetter<T>* Getter, bool bCaptureMinMax = false)
 		{
-			{
-				FReadScopeLock ReadScopeLock(CacheLock);
-				if (bInitialized)
-				{
-#if WITH_EDITOR
-					check(!DynamicBroadcaster)
-#endif
-					return;
-				}
-			}
-			{
-				FWriteScopeLock WriteScopeLock(CacheLock);
-				bInitialized = true;
-				bIsPureReader = true;
+			FWriteScopeLock WriteScopeLock(CacheLock);
 
-				Getter->GrabAndDump(Source, Values, bCaptureMinMax, Min, Max);
-				Attribute = Getter->Attribute;
+			if (bInitialized)
+			{
+#if WITH_EDITOR
+				check(!DynamicBroadcaster)
+#endif
+				return;
 			}
+
+			bInitialized = true;
+			bIsPureReader = true;
+
+			Getter->GrabAndDump(Source, Values, bCaptureMinMax, Min, Max);
+			Attribute = Getter->Attribute;
 		}
 
 		void SetDynamicGetter(PCGEx::FAttributeGetter<T>* Getter)
 		{
-			{
-				FReadScopeLock ReadScopeLock(CacheLock);
-				if (bInitialized) { return; }
-			}
-			{
-				FWriteScopeLock WriteScopeLock(CacheLock);
-				bInitialized = true;
-				bIsPureReader = true;
+			FWriteScopeLock WriteScopeLock(CacheLock);
 
-				bDynamicCache = true;
-				DynamicBroadcaster = Getter;
-				Attribute = Getter->Attribute;
+			if (bInitialized) { return; }
 
-				PCGEX_SET_NUM_UNINITIALIZED(Values, Source->GetNum())
-			}
+			bInitialized = true;
+			bIsPureReader = true;
+
+			bDynamicCache = true;
+			DynamicBroadcaster = Getter;
+			Attribute = Getter->Attribute;
+
+			PCGEX_SET_NUM_UNINITIALIZED(Values, Source->GetNum())
 		}
 
 		virtual void Write(PCGExMT::FTaskManager* AsyncManager) override
@@ -519,16 +506,11 @@ namespace PCGExData
 
 		PCGExGeo::FPointBoxCloud* GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Epsilon = DBL_EPSILON)
 		{
-			{
-				FReadScopeLock ReadScopeLock(CloudLock);
-				if (Cloud) { return Cloud; }
-			}
+			FWriteScopeLock WriteScopeLock(CloudLock);
 
-			{
-				FWriteScopeLock WriteScopeLock(CloudLock);
-				Cloud = new PCGExGeo::FPointBoxCloud(GetIn(), BoundsSource, Epsilon);
-			}
+			if (Cloud) { return Cloud; }
 
+			Cloud = new PCGExGeo::FPointBoxCloud(GetIn(), BoundsSource, Epsilon);
 			return Cloud;
 		}
 

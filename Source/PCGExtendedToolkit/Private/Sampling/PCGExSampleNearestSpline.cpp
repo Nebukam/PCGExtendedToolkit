@@ -168,8 +168,11 @@ namespace PCGExSampleNearestSpline
 			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
 			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
 			PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
-			PCGEX_OUTPUT_VALUE(NumInside, Index, 0)
+			PCGEX_OUTPUT_VALUE(Angle, Index, 0)
+			PCGEX_OUTPUT_VALUE(Time, Index, -1)
+			PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
 			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+
 		};
 
 		if (!PointFilterCache[Index])
