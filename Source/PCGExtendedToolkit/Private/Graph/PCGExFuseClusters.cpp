@@ -30,12 +30,7 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE_TARRAY(VtxFacades)
-
-	if (CompoundFacade)
-	{
-		PCGEX_DELETE(CompoundFacade->Source)
-		PCGEX_DELETE(CompoundFacade)
-	}
+	PCGEX_DELETE_FACADE_AND_SOURCE(CompoundFacade)
 
 	PCGEX_DELETE(CompoundProcessor)
 }

@@ -74,9 +74,6 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	Context->Paths->Pairs.Reserve(Context->Paths->Pairs.Num() + Context->GetTotalNumProcessors());
-	Context->OutputBatches();
-
 	Context->Paths->OutputTo(Context);
 
 	return Context->TryComplete();
@@ -88,7 +85,6 @@ namespace PCGExBreakClustersToPaths
 	{
 		Breakpoints.Empty();
 		PCGEX_DELETE_TARRAY(Chains)
-		Paths.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -136,12 +132,10 @@ namespace PCGExBreakClustersToPaths
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
 			PCGExClusterTask::DedupeChains(Chains);
-			PCGEX_SET_NUM_UNINITIALIZED_NULL(Paths, Chains.Num())
 			StartParallelLoopForRange(Chains.Num());
 		}
 		else
 		{
-			PCGEX_SET_NUM_UNINITIALIZED_NULL(Paths, EdgesIO->GetNum())
 			StartParallelLoopForEdges();
 		}
 	}
@@ -156,9 +150,7 @@ namespace PCGExBreakClustersToPaths
 		if (ChainSize < LocalSettings->MinPointCount) { return; }
 		if (LocalSettings->bOmitAbovePointCount && ChainSize > LocalSettings->MaxPointCount) { return; }
 
-		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(VtxIO);
-		PathIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::NewOutput);
-		Paths[Iteration] = PathIO;
+		const PCGExData::FPointIO* PathIO = LocalTypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
 
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(ChainSize);
@@ -175,12 +167,7 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
 	{
-		const FPCGExBreakClustersToPathsContext* InContext = static_cast<FPCGExBreakClustersToPathsContext*>(Context);
-
-		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(VtxIO);
-		PathIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::NewOutput);
-		Paths[Edge.EdgeIndex] = PathIO;
-
+		const PCGExData::FPointIO* PathIO = LocalTypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 
@@ -188,11 +175,6 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
 
 		PathIO->InitializeNum(2, true);
-	}
-
-	void FProcessor::Output()
-	{
-		LocalTypedContext->Paths->AddUnsafe(Paths);
 	}
 }
 

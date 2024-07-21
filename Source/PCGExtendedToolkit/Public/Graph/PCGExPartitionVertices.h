@@ -85,6 +85,5 @@ namespace PCGExPartitionVertices
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
-		virtual void Output() override;
 	};
 }

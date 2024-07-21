@@ -112,6 +112,5 @@ namespace PCGExUberFilter
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
-		virtual void Output() override;
 	};
 }

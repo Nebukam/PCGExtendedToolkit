@@ -47,8 +47,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext final : public FPCGExEdg
 
 	virtual ~FPCGExPackClustersContext() override;
 
-	TArray<PCGExData::FPointIO*> PackedClusterList;
-
 	PCGExData::FPointIOCollection* PackedClusters = nullptr;
 	FPCGExCarryOverDetails CarryOverDetails;
 };

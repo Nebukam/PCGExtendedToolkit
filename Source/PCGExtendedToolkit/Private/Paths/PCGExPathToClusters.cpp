@@ -35,11 +35,7 @@ FPCGExPathToClustersContext::~FPCGExPathToClustersContext()
 
 	PCGEX_DELETE_TARRAY(PathsFacades)
 
-	if (CompoundFacade)
-	{
-		PCGEX_DELETE(CompoundFacade->Source)
-		PCGEX_DELETE(CompoundFacade)
-	}
+	PCGEX_DELETE_FACADE_AND_SOURCE(CompoundFacade)
 
 	PCGEX_DELETE(CompoundProcessor)
 }

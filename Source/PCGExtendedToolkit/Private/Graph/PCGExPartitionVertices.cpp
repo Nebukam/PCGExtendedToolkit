@@ -95,8 +95,7 @@ namespace PCGExPartitionVertices
 
 		Cluster->NodeIndexLookup->Empty();
 
-		PointPartitionIO = new PCGExData::FPointIO(VtxIO);
-		PointPartitionIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		PointPartitionIO = TypedContext->VtxPartitions->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PointPartitionIO->GetOut()->GetMutablePoints();
 
 		MutablePoints.SetNumUninitialized(NumNodes);
@@ -146,11 +145,6 @@ namespace PCGExPartitionVertices
 		ForwardCluster(true);
 	}
 
-	void FProcessor::Output()
-	{
-		LocalTypedContext->VtxPartitions->AddUnsafe(PointPartitionIO);
-		LocalTypedContext->VtxPartitions->OutputTo(LocalTypedContext);
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

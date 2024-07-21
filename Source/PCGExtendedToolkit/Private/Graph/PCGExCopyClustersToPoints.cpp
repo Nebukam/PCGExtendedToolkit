@@ -66,7 +66,6 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	Context->OutputBatches();
 	Context->OutputPointsAndEdges();
 	Context->Done();
 
@@ -91,12 +90,11 @@ namespace PCGExCopyClusters
 		const int32 NumTargets = Targets.Num();
 
 		PCGEX_SET_NUM_UNINITIALIZED(EdgesDupes, NumTargets)
-		
+
 		for (int i = 0; i < NumTargets; i++)
 		{
 			// Create an edge copy per target point
-			PCGExData::FPointIO* EdgeDupe = new PCGExData::FPointIO(EdgesIO);
-			EdgeDupe->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			PCGExData::FPointIO* EdgeDupe = LocalTypedContext->MainEdges->Emplace_GetRef(EdgesIO, PCGExData::EInit::DuplicateInput);
 
 			EdgesDupes[i] = EdgeDupe;
 			PCGExGraph::MarkClusterEdges(EdgeDupe, *(VtxTag->GetData() + i));
@@ -133,11 +131,6 @@ namespace PCGExCopyClusters
 		}
 	}
 
-	void FProcessor::Output()
-	{
-		LocalTypedContext->MainEdges->AddUnsafe(EdgesDupes);
-	}
-
 	FBatch::~FBatch()
 	{
 	}
@@ -157,8 +150,7 @@ namespace PCGExCopyClusters
 		for (int i = 0; i < NumTargets; i++)
 		{
 			// Create a vtx copy per target point
-			PCGExData::FPointIO* VtxDupe = new PCGExData::FPointIO(VtxIO);
-			VtxDupe->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			PCGExData::FPointIO* VtxDupe = LocalTypedContext->MainPoints->Emplace_GetRef(VtxIO, PCGExData::EInit::DuplicateInput);
 
 			FString OutId;
 			PCGExGraph::SetClusterVtx(VtxDupe, OutId);
@@ -180,10 +172,5 @@ namespace PCGExCopyClusters
 		return true;
 	}
 
-	void FBatch::Output()
-	{
-		LocalTypedContext->MainPoints->AddUnsafe(VtxDupes);
-		TBatch<FProcessor>::Output();
-	}
 }
 #undef LOCTEXT_NAMESPACE

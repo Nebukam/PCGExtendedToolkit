@@ -190,7 +190,6 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Settings->bSplitOutput) { Context->MainBatch->Output(); }
 	Context->OutputMainPoints();
 
 	return Context->TryComplete();
@@ -261,9 +260,7 @@ namespace PCGExPartitionByValues
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
 
 		PCGExPartition::FKPartition* Partition = Partitions[Iteration];
-		PCGExData::FPointIO* PartitionIO = new PCGExData::FPointIO(PointIO);
-		PartitionIO->InitializeOutput(PCGExData::EInit::NewOutput);
-		PartitionsIOs[Iteration] = PartitionIO;
+		PCGExData::FPointIO* PartitionIO = TypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 
 		UPCGMetadata* Metadata = PartitionIO->GetOut()->Metadata;
 
@@ -315,8 +312,6 @@ namespace PCGExPartitionByValues
 			Partitions.Reserve(NumPartitions);
 			RootPartition->Register(Partitions);
 
-			PCGEX_SET_NUM_UNINITIALIZED(PartitionsIOs, NumPartitions)
-
 			StartParallelLoopForRange(NumPartitions, 16); // Too low maybe?
 			return;
 		}
@@ -363,10 +358,6 @@ namespace PCGExPartitionByValues
 		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 
-	void FProcessor::Output()
-	{
-		LocalTypedContext->MainPoints->AddUnsafe(PartitionsIOs);
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

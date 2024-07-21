@@ -107,11 +107,6 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 	else
 	{
-		const int32 Reserve = Context->MainBatch->GetNumProcessors();
-		Context->Inside->Pairs.Reserve(Context->Inside->Pairs.Num() + Reserve);
-		Context->Outside->Pairs.Reserve(Context->Outside->Pairs.Num() + Reserve);
-		Context->MainBatch->Output();
-
 		Context->Inside->OutputTo(Context);
 		Context->Outside->OutputTo(Context);
 	}
@@ -123,8 +118,7 @@ namespace PCGExUberFilter
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Inside)
-		PCGEX_DELETE(Outside)
+		
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -197,29 +191,19 @@ namespace PCGExUberFilter
 
 		if (NumInside == 0 || NumOutside == 0)
 		{
-			if (NumInside == 0)
-			{
-				Outside = new PCGExData::FPointIO(PointIO);
-				Outside->InitializeOutput(PCGExData::EInit::Forward);
-			}
-			else
-			{
-				Inside = new PCGExData::FPointIO(PointIO);
-				Inside->InitializeOutput(PCGExData::EInit::Forward);
-			}
-
+			if (NumInside == 0) { Outside = LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+			else { Inside = LocalTypedContext->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
 			return;
 		}
 
 		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
 
-		Inside = new PCGExData::FPointIO(PointIO);
+		Inside = LocalTypedContext->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 		Inside->InitializeOutput(PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& InsidePoints = Inside->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(InsidePoints, NumInside)
 
-		Outside = new PCGExData::FPointIO(PointIO);
-		Outside->InitializeOutput(PCGExData::EInit::NewOutput);
+		Outside = LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(OutsidePoints, NumOutside)
 
@@ -230,20 +214,6 @@ namespace PCGExUberFilter
 		}
 	}
 
-	void FProcessor::Output()
-	{
-		if (Inside)
-		{
-			LocalTypedContext->Inside->AddUnsafe(Inside);
-			Inside = nullptr;
-		}
-
-		if (Outside)
-		{
-			LocalTypedContext->Outside->AddUnsafe(Outside);
-			Outside = nullptr;
-		}
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

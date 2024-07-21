@@ -83,7 +83,6 @@ namespace PCGExCopyClusters
 		virtual ~FProcessor() override;
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
-		virtual void Output() override;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -104,6 +103,5 @@ namespace PCGExCopyClusters
 		virtual ~FBatch() override;
 		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
-		virtual void Output() override;
 	};
 }
