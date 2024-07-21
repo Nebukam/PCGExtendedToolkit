@@ -252,7 +252,7 @@ namespace PCGExGraph
 			const FVector TXYZ = InFuseDetails.Tolerances * 2;
 			const double TX = InFuseDetails.Tolerance * 2;
 
-			if (InFuseDetails.bComponentWiseTolerance) { FVector(1 / TXYZ.X, 1 / TXYZ.Y, 1 / TXYZ.Z); }
+			if (InFuseDetails.bComponentWiseTolerance) { CWTolerance = FVector(1 / TXYZ.X, 1 / TXYZ.Y, 1 / TXYZ.Z); }
 			else { CWTolerance = FVector(1 / TX); }
 
 			PointsCompounds = new PCGExData::FIdxCompoundList();
