@@ -288,13 +288,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
 	{
 	}
 
-	/** Fusing distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.0001))
-	double Tolerance = 0.001;
-
 	/** Uses a per-axis radius, manathan-style */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bComponentWiseTolerance = false;
+	
+	/** Fusing distance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bComponentWiseTolerance", EditConditionHides, ClampMin=0.0001))
+	double Tolerance = 0.001;
 
 	/** Component-wise radiuses */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComponentWiseTolerance", EditConditionHides, ClampMin=0.0001))
