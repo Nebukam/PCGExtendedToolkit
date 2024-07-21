@@ -15,7 +15,7 @@
 #define FSTRING(_TEXT) FString(_TEXT)
 
 #define PCGEX_NEW_TRANSIENT(_TYPE, _NAME) _TYPE* _NAME = nullptr; { FGCScopeGuard GCGuard; _NAME = NewObject<_TYPE>(); _NAME->AddToRoot(); }
-#define PCGEX_NEW(_TYPE, _NAME, _OUTER) _TYPE* _NAME = nullptr; { FGCScopeGuard GCGuard; _NAME = _OUTER ? NewObject<_TYPE>(_OUTER) : NewObject<_TYPE>(); _NAME->AddToRoot(); }
+#define PCGEX_NEW(_TYPE, _NAME, _OUTER) _TYPE* _NAME = nullptr; { FGCScopeGuard GCGuard; _NAME = NewObject<_TYPE>(_OUTER); _NAME->AddToRoot(); }
 #define PCGEX_NEW_FROM(_TYPE, _NAME, _OUTER) _TYPE* _NAME = nullptr; { FGCScopeGuard GCGuard; _NAME = NewObject<_TYPE>(_OUTER->GetOuter(), _OUTER->GetClass()); _NAME->AddToRoot(); }
 
 #define PCGEX_UNROOT(_VALUE) _VALUE->RemoveFromRoot(); _VALUE->ClearInternalFlags(EInternalObjectFlags::Async);

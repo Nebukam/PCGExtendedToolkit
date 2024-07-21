@@ -631,56 +631,6 @@ namespace PCGExClusterTask
 		}
 	}
 
-	class PCGEXTENDEDTOOLKIT_API FCopyClustersToPoint final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FCopyClustersToPoint(PCGExData::FPointIO* InPointIO,
-		                     PCGExData::FPointIO* InVtx,
-		                     const TArray<PCGExData::FPointIO*>& InEdges,
-		                     PCGExData::FPointIOCollection* InVtxCollection,
-		                     PCGExData::FPointIOCollection* InEdgeCollection,
-		                     FPCGExTransformDetails* InTransformDetails) :
-			FPCGExTask(InPointIO),
-			Vtx(InVtx),
-			Edges(InEdges),
-			VtxCollection(InVtxCollection),
-			EdgeCollection(InEdgeCollection),
-			TransformDetails(InTransformDetails)
-		{
-		}
-
-		virtual ~FCopyClustersToPoint() override;
-
-		PCGExData::FPointIO* Vtx = nullptr;
-		TArray<PCGExData::FPointIO*> Edges;
-
-		PCGExData::FPointIOCollection* VtxCollection = nullptr;
-		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
-
-		FPCGExTransformDetails* TransformDetails = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FTransformCluster final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FTransformCluster(
-			PCGExData::FPointIO* InPointIO,
-			PCGExCluster::FCluster* InCluster,
-			FPCGExTransformDetails* InTransformDetails) :
-			FPCGExTask(InPointIO),
-			Cluster(InCluster),
-			TransformDetails(InTransformDetails)
-		{
-		}
-
-		PCGExCluster::FCluster* Cluster = nullptr;
-		FPCGExTransformDetails* TransformDetails = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-
 	class PCGEXTENDEDTOOLKIT_API FExpandClusterNodes final : public PCGExMT::FPCGExTask
 	{
 	public:

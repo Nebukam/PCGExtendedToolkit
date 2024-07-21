@@ -61,3 +61,49 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExCopyClusters
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		FPCGExCopyClustersToPointsContext* LocalTypedContext = nullptr;
+		
+	public:
+		TArray<PCGExData::FPointIO*>* VtxDupes = nullptr;
+		TArray<FString>* VtxTag = nullptr;
+
+		TArray<PCGExData::FPointIO*> EdgesDupes;
+
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+			bBuildCluster = false;
+		}
+
+		virtual ~FProcessor() override;
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+		virtual void Output() override;
+	};
+
+	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+		friend class FProcessor;
+
+		FPCGExCopyClustersToPointsContext* LocalTypedContext = nullptr;
+		
+	public:
+		TArray<PCGExData::FPointIO*> VtxDupes;
+		TArray<FString> VtxTag;
+
+		FBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+			TBatch(InContext, InVtx, InEdges)
+		{
+		}
+
+		virtual ~FBatch() override;
+		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		virtual void Output() override;
+	};
+}

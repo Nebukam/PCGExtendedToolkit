@@ -113,7 +113,7 @@ namespace PCGExData
 
 			if (InitOut == EInit::NewOutput)
 			{
-				PCGEX_NEW(T, TypedOut, nullptr)
+				PCGEX_NEW_TRANSIENT(T, TypedOut)
 
 				Out = Cast<UPCGPointData>(TypedOut);
 				check(Out)
@@ -133,7 +133,7 @@ namespace PCGExData
 
 				if (!TypedIn)
 				{
-					PCGEX_NEW(T, TypedOut, nullptr)
+					PCGEX_NEW_TRANSIENT(T, TypedOut)
 
 					if (UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(TypedOut)) { TypedPointData->CopyFrom(In); }
 					else { TypedOut->InitializeFromData(In); } // This is a potentially failed duplicate

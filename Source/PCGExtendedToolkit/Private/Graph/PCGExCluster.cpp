@@ -1059,56 +1059,6 @@ namespace PCGExClusterTask
 		return true;
 	}
 
-	FCopyClustersToPoint::~FCopyClustersToPoint()
-	{
-		Edges.Empty();
-	}
-
-	bool FCopyClustersToPoint::ExecuteTask()
-	{
-		PCGExData::FPointIO* VtxDupe = VtxCollection->Emplace_GetRef(Vtx->GetIn(), PCGExData::EInit::DuplicateInput);
-		VtxDupe->IOIndex = TaskIndex;
-
-		FString OutId;
-		PCGExGraph::SetClusterVtx(VtxDupe, OutId);
-
-		InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, VtxDupe, TransformDetails);
-
-		for (const PCGExData::FPointIO* EdgeIO : Edges)
-		{
-			PCGExData::FPointIO* EdgeDupe = EdgeCollection->Emplace_GetRef(EdgeIO->GetIn(), PCGExData::EInit::DuplicateInput);
-			EdgeDupe->IOIndex = TaskIndex;
-			PCGExGraph::MarkClusterEdges(EdgeDupe, OutId);
-
-			const PCGExCluster::FCluster* CachedCluster = PCGExClusterData::TryGetCachedCluster(PointIO, EdgeIO);
-			UPCGExClusterEdgesData* EdgeDupeTypedData = Cast<UPCGExClusterEdgesData>(EdgeDupe->GetOut());
-			if (CachedCluster && EdgeDupeTypedData)
-			{
-				PCGExCluster::FCluster* ClusterCopy = new PCGExCluster::FCluster(
-					CachedCluster, VtxDupe, EdgeDupe,
-					true, true, false);
-
-				ClusterCopy->WillModifyVtxPositions(true);
-
-				EdgeDupeTypedData->SetBoundCluster(ClusterCopy, true);
-				InternalStart<FTransformCluster>(TaskIndex, PointIO, ClusterCopy, TransformDetails);
-			}
-
-			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, EdgeDupe, TransformDetails);
-		}
-
-		// TODO : Copy & transform cached cluster if they exist
-
-		return true;
-	}
-
-	bool FTransformCluster::ExecuteTask()
-	{
-		const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
-		for (FVector& Position : Cluster->NodePositions) { Position = TargetPoint.Transform.TransformPosition(Position); }
-		return true;
-	}
-
 	bool FExpandClusterNodes::ExecuteTask()
 	{
 		TArray<PCGExCluster::FExpandedNode*>& ExpandedNodesRef = (*Cluster->ExpandedNodes);

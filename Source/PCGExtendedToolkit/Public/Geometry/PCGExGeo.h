@@ -423,21 +423,21 @@ namespace PCGExGeoTasks
 	public:
 		FTransformPointIO(
 			PCGExData::FPointIO* InPointIO,
-			PCGExData::FPointIO* InTargetIO,
+			PCGExData::FPointIO* InToBeTransformedIO,
 			FPCGExTransformDetails* InTransformDetails) :
 			FPCGExTask(InPointIO),
-			TargetIO(InTargetIO),
+			ToBeTransformedIO(InToBeTransformedIO),
 			TransformDetails(InTransformDetails)
 		{
 		}
 
-		PCGExData::FPointIO* TargetIO = nullptr;
+		PCGExData::FPointIO* ToBeTransformedIO = nullptr;
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
 		virtual bool ExecuteTask() override
 		{
 			const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
-			TArray<FPCGPoint>& MutableTargets = TargetIO->GetOut()->GetMutablePoints();
+			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetOut()->GetMutablePoints();
 
 			for (FPCGPoint& InPoint : MutableTargets)
 			{
