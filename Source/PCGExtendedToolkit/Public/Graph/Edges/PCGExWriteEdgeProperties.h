@@ -10,9 +10,10 @@
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWriteEdgeProperties.generated.h"
 
-#define PCGEX_FOREACH_FIELD_EDGEEXTRAS(MACRO)\
-MACRO(EdgeLength, double)\
-MACRO(EdgeDirection, FVector)
+#define PCGEX_FOREACH_FIELD_EDGEEXTRAS(MACRO) \
+MACRO(EdgeLength, double) \
+MACRO(EdgeDirection, FVector) \
+MACRO(Heuristics, double)
 
 namespace PCGExDataBlending
 {
@@ -41,6 +42,14 @@ enum class EPCGExEdgeDirectionChoice : uint8
 	GreatestToSmallest UMETA(DisplayName = "Greatest to Smallest", ToolTip="Direction points from the greatest to smallest value")
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Heuristics Write Mode"))
+enum class EPCGExHeuristicsWriteMode : uint8
+{
+	EndpointsOrder UMETA(DisplayName = "Endpoints Order", ToolTip="Use endpoint order heuristics."),
+	Smallest UMETA(DisplayName = "Smallest Score", ToolTip="Compute heuristics both ways a keep smallest score"),
+	Highest UMETA(DisplayName = "Highest Score", ToolTip="Compute heuristics both ways a keep highest score."),
+};
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class PCGEXTENDEDTOOLKIT_API UPCGExWriteEdgePropertiesSettings : public UPCGExEdgesProcessorSettings
 {
@@ -57,6 +66,7 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -100,6 +110,18 @@ public:
 	/** Defines how fused point properties and attributes are merged together. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bEndpointsBlending"))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
+
+	/** Output Edge Heuristics. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteHeuristics = false;
+
+	/** Name of the 'double' attribute to write heuristics to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteHeuristics"))
+	FName HeuristicsAttributeName = FName("Heuristics");
+
+	/** Heuristic write mode. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Heuristics Mode", EditCondition="bWriteHeuristics", EditConditionHides, HideEditConditionToggle))
+	EPCGExHeuristicsWriteMode HeuristicsMode = EPCGExHeuristicsWriteMode::EndpointsOrder;
 
 
 	/** Update Edge position as a lerp between endpoints (according to the direction method selected above) */
@@ -219,6 +241,9 @@ namespace PCGExWriteEdgeProperties
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
+
+		const UPCGExWriteEdgePropertiesSettings* LocalSettings = nullptr;
+		
 		bool bAscendingDesired = true;
 		double StartWeight = 0;
 		double EndWeight = 1;

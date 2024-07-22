@@ -13,6 +13,13 @@
 PCGExData::EInit UPCGExWriteEdgePropertiesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
 PCGExData::EInit UPCGExWriteEdgePropertiesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
+TArray<FPCGPinProperties> UPCGExWriteEdgePropertiesSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	if (bWriteHeuristics) { PCGEX_PIN_PARAMS(PCGExGraph::SourceHeuristicsLabel, "Heuristics that will be computed and written.", Required, {}) }
+	return PinProperties;
+}
+
 PCGEX_INITIALIZE_ELEMENT(WriteEdgeProperties)
 
 FPCGExWriteEdgePropertiesContext::~FPCGExWriteEdgePropertiesContext()
@@ -46,6 +53,7 @@ bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExClusterMT::TBatch<PCGExWriteEdgeProperties::FProcessor>* NewBatch)
 			{
+				if (Settings->bWriteHeuristics) { NewBatch->SetRequiresHeuristics(true); }
 			},
 			PCGExMT::State_Done))
 		{
@@ -75,6 +83,8 @@ namespace PCGExWriteEdgeProperties
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+
+		LocalSettings = Settings;
 
 		{
 			PCGExData::FFacade* OutputFacade = EdgeDataFacade;
@@ -144,8 +154,6 @@ namespace PCGExWriteEdgeProperties
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
 	{
-		PCGEX_SETTINGS(WriteEdgeProperties)
-
 		uint32 EdgeStartPtIndex = Edge.Start;
 		uint32 EdgeEndPtIndex = Edge.End;
 
@@ -159,18 +167,18 @@ namespace PCGExWriteEdgeProperties
 		FVector DirTo = EndPoint.Transform.GetLocation();
 		bool bAscending = true; // Default for Context->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsOrder
 
-		if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
+		if (LocalSettings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
 		{
 			bAscending = VtxDirCompGetter->Values[EdgeStartPtIndex] < VtxDirCompGetter->Values[EdgeEndPtIndex];
 		}
-		else if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
+		else if (LocalSettings->DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 		{
 			const FVector CounterDir = EdgeDirCompGetter->Values[Edge.EdgeIndex];
 			const FVector StartEndDir = (EndPoint.Transform.GetLocation() - StartPoint.Transform.GetLocation()).GetSafeNormal();
 			const FVector EndStartDir = (StartPoint.Transform.GetLocation() - EndPoint.Transform.GetLocation()).GetSafeNormal();
 			bAscending = CounterDir.Dot(StartEndDir) < CounterDir.Dot(EndStartDir);
 		}
-		else if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsIndices)
+		else if (LocalSettings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsIndices)
 		{
 			bAscending = (EdgeStartPtIndex < EdgeEndPtIndex);
 		}
@@ -186,6 +194,32 @@ namespace PCGExWriteEdgeProperties
 
 		PCGEX_OUTPUT_VALUE(EdgeDirection, Edge.PointIndex, EdgeDirection);
 		PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, EdgeLength);
+
+		if (LocalSettings->bWriteHeuristics)
+		{
+			PCGExCluster::FNode StartNode = *(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[EdgeStartPtIndex]);
+			PCGExCluster::FNode EndNode = *(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[EdgeEndPtIndex]);
+
+			switch (LocalSettings->HeuristicsMode)
+			{
+			case EPCGExHeuristicsWriteMode::EndpointsOrder:
+				PCGEX_OUTPUT_VALUE(Heuristics, Edge.PointIndex, HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode));
+				break;
+			case EPCGExHeuristicsWriteMode::Smallest:
+				PCGEX_OUTPUT_VALUE(
+					Heuristics, Edge.PointIndex, FMath::Min(
+						HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode),
+						HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
+				break;
+			case EPCGExHeuristicsWriteMode::Highest:
+				PCGEX_OUTPUT_VALUE(
+					Heuristics, Edge.PointIndex, FMath::Max(
+						HeuristicsHandler->GetEdgeScore(StartNode, EndNode, Edge, StartNode, EndNode),
+						HeuristicsHandler->GetEdgeScore(EndNode, StartNode, Edge, EndNode, StartNode)));
+				break;
+			default: ;
+			}
+		}
 
 		FPCGPoint& MutableTarget = EdgesIO->GetMutablePoint(Edge.PointIndex);
 
@@ -205,20 +239,20 @@ namespace PCGExWriteEdgeProperties
 			FVector TargetBoundsMin = MutableTarget.BoundsMin;
 			FVector TargetBoundsMax = MutableTarget.BoundsMax;
 
-			const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Values[Edge.PointIndex] : Settings->SolidificationLerpConstant, 0, 1);
+			const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Values[Edge.PointIndex] : LocalSettings->SolidificationLerpConstant, 0, 1);
 			const double EdgeLerpInv = 1 - EdgeLerp;
 			bool bProcessAxis;
 
 #define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
-				bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
+				bProcessAxis = LocalSettings->bWriteRadius##_AXIS || LocalSettings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
 				if (bProcessAxis){\
-					if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
+					if (LocalSettings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
 						TargetBoundsMin._AXIS = -EdgeLength * EdgeLerpInv;\
 						TargetBoundsMax._AXIS = EdgeLength * EdgeLerp;\
 					}else{\
 						double Rad = Rad##_AXIS##Constant;\
 						if(SolidificationRad##_AXIS){\
-						if (Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Values[EdgeStartPtIndex], SolidificationRad##_AXIS->Values[EdgeEndPtIndex], EdgeLerp); }\
+						if (LocalSettings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Values[EdgeStartPtIndex], SolidificationRad##_AXIS->Values[EdgeEndPtIndex], EdgeLerp); }\
 						else { Rad = SolidificationRad##_AXIS->Values[Edge.PointIndex]; }}\
 						TargetBoundsMin._AXIS = -Rad;\
 						TargetBoundsMax._AXIS = Rad;\
@@ -227,7 +261,7 @@ namespace PCGExWriteEdgeProperties
 			PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
 #undef PCGEX_SOLIDIFY_DIMENSION
 
-			switch (Settings->SolidificationAxis)
+			switch (LocalSettings->SolidificationAxis)
 			{
 			default:
 			case EPCGExMinimalAxis::X:
@@ -252,11 +286,11 @@ namespace PCGExWriteEdgeProperties
 			MutableTarget.BoundsMin = TargetBoundsMin;
 			MutableTarget.BoundsMax = TargetBoundsMax;
 		}
-		else if (Settings->bWriteEdgePosition)
+		else if (LocalSettings->bWriteEdgePosition)
 		{
-			MutableTarget.Transform.SetLocation(FMath::Lerp(DirTo, DirFrom, Settings->EdgePositionLerp));
-			BlendWeightStart = Settings->EdgePositionLerp;
-			BlendWeightEnd = 1 - Settings->EdgePositionLerp;
+			MutableTarget.Transform.SetLocation(FMath::Lerp(DirTo, DirFrom, LocalSettings->EdgePositionLerp));
+			BlendWeightStart = LocalSettings->EdgePositionLerp;
+			BlendWeightEnd = 1 - LocalSettings->EdgePositionLerp;
 
 			if (MetadataBlender) { MetadataBlend(); }
 		}

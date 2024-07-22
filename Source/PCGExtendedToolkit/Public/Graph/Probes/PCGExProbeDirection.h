@@ -28,9 +28,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigDirection : public FPCGExProbeCon
 	{
 	}
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=180))
+	bool bUseComponentWiseAngle = false;
+
 	/** Max angle to search within. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=360))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseComponentWiseAngle"))
 	double MaxAngle = 45;
+
+	/** Max angle to search within. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseComponentWiseAngle", ClampMin=0, ClampMax=180))
+	FRotator MaxAngles = FRotator(45);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFetchType DirectionSource = EPCGExFetchType::Constant;

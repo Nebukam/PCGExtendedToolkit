@@ -1172,6 +1172,17 @@ namespace PCGExMath
 		return FBox(-Extents, Extents);
 	}
 
+	FORCEINLINE bool IsDirectionWithinTolerance(const FVector& A, const FVector& B, const FRotator& Limits)
+	{
+		const FRotator RA = A.Rotation();
+		const FRotator RB = B.Rotation();
+
+		return
+			FMath::Abs(FRotator::NormalizeAxis(RA.Yaw - RB.Yaw)) <= Limits.Yaw &&
+			FMath::Abs(FRotator::NormalizeAxis(RA.Pitch - RB.Pitch)) <= Limits.Pitch &&
+			FMath::Abs(FRotator::NormalizeAxis(RA.Roll - RB.Roll)) <= Limits.Roll;
+	}
+
 #pragma region Spatialized distances
 
 	// Stolen from PCGDistance

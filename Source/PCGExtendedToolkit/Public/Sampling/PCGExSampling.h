@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include "PCGEx.h"
+#include "Data/PCGExData.h"
+
 #include "PCGExSampling.generated.h"
 
 // Declaration & use pair, boolean will be set by name validation

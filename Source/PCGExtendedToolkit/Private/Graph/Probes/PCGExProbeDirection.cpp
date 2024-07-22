@@ -54,9 +54,17 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 		if (ConnectedSet && ConnectedSet->Contains(C.GH)) { continue; }
 		//if (OutEdges->Contains(PCGEx::H64U(Index, C.PointIndex))) { continue; }
 
-		const double Dot = FVector::DotProduct(Dir, C.Direction);
-
-		if (Dot < MaxDot) { continue; }
+		double Dot = 0;
+		if (Config.bUseComponentWiseAngle)
+		{
+			if (PCGExMath::IsDirectionWithinTolerance(Dir, C.Direction, Config.MaxAngles)) { continue; }
+			Dot = FVector::DotProduct(Dir, C.Direction);
+		}
+		else
+		{
+			Dot = FVector::DotProduct(Dir, C.Direction);
+			if (Dot < MaxDot) { continue; }
+		}
 
 		if (bUseBestDot)
 		{
@@ -107,9 +115,17 @@ void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 
 	if (Candidate.Distance > R) { return; }
 
-	const double Dot = FVector::DotProduct(Dir, Candidate.Direction);
-
-	if (Dot < MaxDot) { return; }
+	double Dot = 0;
+	if (Config.bUseComponentWiseAngle)
+	{
+		if (PCGExMath::IsDirectionWithinTolerance(Dir, Candidate.Direction, Config.MaxAngles)) { return; }
+		Dot = FVector::DotProduct(Dir, Candidate.Direction);
+	}
+	else
+	{
+		Dot = FVector::DotProduct(Dir, Candidate.Direction);
+		if (Dot < MaxDot) { return;; }
+	}
 
 	if (bUseBestDot)
 	{
