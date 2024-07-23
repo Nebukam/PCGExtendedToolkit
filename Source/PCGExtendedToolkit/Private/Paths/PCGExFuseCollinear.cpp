@@ -100,7 +100,7 @@ namespace PCGExFuseCollinear
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
-		OutPoints.Add_GetRef(InPoints[0]);
+		OutPoints.Add(InPoints[0]);
 
 		FVector LastPosition = InPoints[0].Transform.GetLocation();
 		FVector CurrentDirection = (LastPosition - InPoints[1].Transform.GetLocation()).GetSafeNormal();
@@ -125,7 +125,7 @@ namespace PCGExFuseCollinear
 			LastPosition = CurrentPosition;
 		}
 
-		OutPoints.Add_GetRef(InPoints[MaxIndex]);
+		OutPoints.Add(InPoints[MaxIndex]);
 
 		return true;
 	}
