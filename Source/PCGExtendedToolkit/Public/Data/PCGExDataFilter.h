@@ -8,6 +8,9 @@
 
 #include "Helpers/PCGHelpers.h"
 
+#include "PCGEx.h"
+#include "PCGExAttributeHelpers.h"
+
 #include "PCGExPointIO.h"
 #include "PCGExDataFilter.generated.h"
 
