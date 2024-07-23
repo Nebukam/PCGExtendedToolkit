@@ -291,7 +291,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
 	/** Uses a per-axis radius, manathan-style */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bComponentWiseTolerance = false;
-	
+
 	/** Fusing distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bComponentWiseTolerance", EditConditionHides, ClampMin=0.0001))
 	double Tolerance = 0.001;
@@ -320,9 +320,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
 
 	bool IsWithinToleranceComponentWise(const FVector& Source, const FVector& Target) const
 	{
-		return (FMath::IsWithin<double, double>(abs(Source.X - Target.X), 0, Tolerance) &&
-			FMath::IsWithin<double, double>(abs(Source.Y - Target.Y), 0, Tolerance) &&
-			FMath::IsWithin<double, double>(abs(Source.Z - Target.Z), 0, Tolerance));
+		return (FMath::IsWithin<double, double>(abs(Source.X - Target.X), 0, Tolerances.X) &&
+			FMath::IsWithin<double, double>(abs(Source.Y - Target.Y), 0, Tolerances.Y) &&
+			FMath::IsWithin<double, double>(abs(Source.Z - Target.Z), 0, Tolerances.Z));
 	}
 };
 
@@ -366,6 +366,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSourceFuseDetails : public FPCGExFuseDetails
 	}
 };
 
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision"))
+enum class EPCGExFuseMethod : uint8
+{
+	Voxel UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.\nDestructive toward initial topology."),
+	Octree UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology."),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 {
@@ -394,13 +402,44 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDistance TargetDistance = EPCGExDistance::Center;
 
-	void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
+
+	/** Offset the voxelized grid by an amount */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Voxel", EditConditionHides))
+	FVector VoxelGridOffset = FVector::ZeroVector;
+
+	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things considerably slower. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Octree", EditConditionHides))
+	bool bInlineInsertion = false;
+
+
+	FVector CWTolerance = FVector::OneVector;
+
+	void Init()
+	{
+		if (FuseMethod == EPCGExFuseMethod::Voxel)
+		{
+			Tolerances *= 2;
+			Tolerance *= 2;
+		}
+
+		if (bComponentWiseTolerance) { CWTolerance = FVector(1 / Tolerances.X, 1 / Tolerances.Y, 1 / Tolerances.Z); }
+		else { CWTolerance = FVector(1 / Tolerance); }
+	}
+
+	bool DoInlineInsertion() const { return FuseMethod == EPCGExFuseMethod::Octree && bInlineInsertion; }
+
+	FORCEINLINE uint32 GetGridKey(const FVector& Location) const { return PCGEx::GH(Location + VoxelGridOffset, CWTolerance); }
+	FORCEINLINE FBoxCenterAndExtent GetOctreeBox(const FVector& Location) const { return FBoxCenterAndExtent(Location, Tolerances); }
+
+	FORCEINLINE void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{
 		OutSource = PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourcePoint.Transform.GetLocation(), TargetPoint.Transform.GetLocation());
 		OutTarget = PCGExMath::GetSpatializedCenter(TargetDistance, TargetPoint, TargetPoint.Transform.GetLocation(), OutSource);
 	}
 
-	bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
+	FORCEINLINE bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
 	{
 		FVector A;
 		FVector B;
@@ -408,20 +447,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 		return FPCGExFuseDetailsBase::IsWithinTolerance(A, B);
 	}
 
-	bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
+	FORCEINLINE bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
 	{
 		FVector A;
 		FVector B;
 		GetCenters(SourcePoint, TargetPoint, A, B);
 		return FPCGExFuseDetailsBase::IsWithinToleranceComponentWise(A, B);
 	}
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision"))
-enum class EPCGExFuseMethod : uint8
-{
-	Voxel UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.\nDestructive toward initial topology."),
-	Octree UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology."),
 };
 
 USTRUCT(BlueprintType)
@@ -432,13 +464,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExFuseDetails FuseDetails;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Voxel;
-
-	/** Check this box if you're fusing over a very large radius and want to ensure determinism. NOTE : Will make things considerably slower. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Octree"))
-	bool bInlineInsertion = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -455,8 +480,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 	/** Name of the attribute to mark the number of fused point held */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCompoundSize"))
 	FName CompoundSizeAttributeName = "CompoundSize";
-
-	bool DoInlineInsertion() const { return FuseMethod == EPCGExFuseMethod::Octree && bInlineInsertion; }
 };
 
 USTRUCT(BlueprintType)

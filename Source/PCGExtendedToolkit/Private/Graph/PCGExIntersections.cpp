@@ -32,7 +32,7 @@ namespace PCGExGraph
 
 		if (!Octree)
 		{
-			const uint32 GridKey = PCGEx::GH(Origin, CWTolerance);
+			const uint32 GridKey = FuseDetails.GetGridKey(Origin);
 			FCompoundNode** NodePtr;
 			{
 				FReadScopeLock ReadScopeLock(CompoundLock);
@@ -75,9 +75,8 @@ namespace PCGExGraph
 
 			if (FuseDetails.bComponentWiseTolerance)
 			{
-				const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseDetails.Tolerances);
 				Octree->FindFirstElementWithBoundsTest(
-					Box, [&](const FCompoundNode* ExistingNode)
+					FuseDetails.GetOctreeBox(Origin), [&](const FCompoundNode* ExistingNode)
 					{
 						if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 						{
@@ -89,11 +88,10 @@ namespace PCGExGraph
 			}
 			else
 			{
-				const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseDetails.Tolerance));
 				Octree->FindFirstElementWithBoundsTest(
-					Box, [&](const FCompoundNode* ExistingNode)
+					FuseDetails.GetOctreeBox(Origin), [&](const FCompoundNode* ExistingNode)
 					{
-						if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
+						if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
 						{
 							NodeIndex = ExistingNode->Index;
 							return false;
@@ -134,7 +132,7 @@ namespace PCGExGraph
 
 		if (!Octree)
 		{
-			const uint32 GridKey = PCGEx::GH(Origin, CWTolerance);
+			const uint32 GridKey = FuseDetails.GetGridKey(Origin);
 
 			if (FCompoundNode** NodePtr = GridTree.Find(GridKey))
 			{
@@ -155,9 +153,8 @@ namespace PCGExGraph
 
 		if (FuseDetails.bComponentWiseTolerance)
 		{
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseDetails.Tolerances);
 			Octree->FindFirstElementWithBoundsTest(
-				Box, [&](const FCompoundNode* ExistingNode)
+				FuseDetails.GetOctreeBox(Origin), [&](const FCompoundNode* ExistingNode)
 				{
 					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
 					{
@@ -169,11 +166,10 @@ namespace PCGExGraph
 		}
 		else
 		{
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseDetails.Tolerance));
 			Octree->FindFirstElementWithBoundsTest(
-				Box, [&](const FCompoundNode* ExistingNode)
+				FuseDetails.GetOctreeBox(Origin), [&](const FCompoundNode* ExistingNode)
 				{
-					if (FuseDetails.IsWithinToleranceComponentWise(Point, ExistingNode->Point))
+					if (FuseDetails.IsWithinTolerance(Point, ExistingNode->Point))
 					{
 						NodeIndex = ExistingNode->Index;
 						return false;

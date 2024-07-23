@@ -86,8 +86,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 
 	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
 		Settings->PointPointIntersectionDetails.FuseDetails,
-		Context->MainPoints->GetInBounds().ExpandBy(10),
-		Settings->PointPointIntersectionDetails.FuseMethod);
+		Context->MainPoints->GetInBounds().ExpandBy(10));
 
 	return true;
 }
@@ -105,7 +104,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		const bool bDoInline = Settings->PointPointIntersectionDetails.DoInlineInsertion();
+		const bool bDoInline = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		if (!Context->StartProcessingClusters<
 			PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>(
@@ -189,7 +188,7 @@ namespace PCGExFuseClusters
 		bInvalidEdges = false;
 		CompoundGraph = TypedContext->CompoundGraph;
 
-		bInlineProcessRange = bInlineProcessEdges = Settings->PointPointIntersectionDetails.DoInlineInsertion();
+		bInlineProcessRange = bInlineProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		if (Cluster) { StartParallelLoopForEdges(); }
 		else { StartParallelLoopForRange(IndexedEdges.Num()); }

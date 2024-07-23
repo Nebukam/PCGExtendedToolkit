@@ -84,8 +84,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 
 		Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
 			Settings->PointPointIntersectionDetails.FuseDetails,
-			Context->MainPoints->GetInBounds().ExpandBy(10),
-			Settings->PointPointIntersectionDetails.FuseMethod);
+			Context->MainPoints->GetInBounds().ExpandBy(10));
 	}
 
 	return true;
@@ -111,7 +110,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				},
 				[&](PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* NewBatch)
 				{
-					NewBatch->bInlineProcessing = Settings->PointPointIntersectionDetails.DoInlineInsertion();
+					NewBatch->bInlineProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 				},
 				PCGExGraph::State_PreparingCompound))
 			{
@@ -268,7 +267,7 @@ namespace PCGExPathToClusters
 
 		CompoundGraph = TypedContext->CompoundGraph;
 		bClosedPath = Settings->bClosedPath;
-		bInlineProcessPoints = Settings->PointPointIntersectionDetails.DoInlineInsertion();
+		bInlineProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 

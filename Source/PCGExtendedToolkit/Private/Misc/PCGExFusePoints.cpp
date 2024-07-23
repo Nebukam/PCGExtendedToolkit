@@ -82,12 +82,11 @@ namespace PCGExFusePoints
 
 		CompoundGraph = new PCGExGraph::FCompoundGraph(
 			Settings->PointPointIntersectionDetails.FuseDetails,
-			PointIO->GetIn()->GetBounds().ExpandBy(10),
-			Settings->PointPointIntersectionDetails.FuseMethod);
+			PointIO->GetIn()->GetBounds().ExpandBy(10));
 
 		const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
 
-		bInlineProcessPoints = Settings->PointPointIntersectionDetails.DoInlineInsertion();
+		bInlineProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;

@@ -221,7 +221,6 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FCompoundGraph
 	{
-		FVector CWTolerance;
 		TMap<uint32, FCompoundNode*> GridTree;
 
 		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
@@ -229,8 +228,7 @@ namespace PCGExGraph
 		TArray<FCompoundNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 
-		const FPCGExFuseDetails FuseDetails;
-		EPCGExFuseMethod Precision;
+		FPCGExFuseDetails FuseDetails;
 
 		FBox Bounds;
 
@@ -240,25 +238,19 @@ namespace PCGExGraph
 		mutable FRWLock CompoundLock;
 		mutable FRWLock EdgesLock;
 
-		explicit FCompoundGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds, const EPCGExFuseMethod InPrecision = EPCGExFuseMethod::Voxel)
+		explicit FCompoundGraph(const FPCGExFuseDetails& InFuseDetails, const FBox& InBounds)
 			: FuseDetails(InFuseDetails),
-			  Precision(InPrecision),
 			  Bounds(InBounds)
 		{
 			Nodes.Empty();
 			Edges.Empty();
 
-			// Scale up tolerance
-			const FVector TXYZ = InFuseDetails.Tolerances * 2;
-			const double TX = InFuseDetails.Tolerance * 2;
-
-			if (InFuseDetails.bComponentWiseTolerance) { CWTolerance = FVector(1 / TXYZ.X, 1 / TXYZ.Y, 1 / TXYZ.Z); }
-			else { CWTolerance = FVector(1 / TX); }
+			FuseDetails.Init();
 
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
 
-			if (InPrecision == EPCGExFuseMethod::Octree) { Octree = new NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
+			if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = new NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
 		}
 
 		~FCompoundGraph()
