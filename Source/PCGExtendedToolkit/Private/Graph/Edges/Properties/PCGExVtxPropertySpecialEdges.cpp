@@ -97,7 +97,7 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertySpecialEdgesFactory::CreateOperatio
 	return NewOperation;
 }
 
-UPCGExParamFactoryBase* UPCGExVtxPropertySpecialEdgesSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExVtxPropertySpecialEdgesSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExVtxPropertySpecialEdgesFactory* NewFactory = NewObject<UPCGExVtxPropertySpecialEdgesFactory>();
 	NewFactory->Config = Config;

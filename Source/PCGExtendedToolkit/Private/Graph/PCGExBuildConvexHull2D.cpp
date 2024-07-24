@@ -29,7 +29,7 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties()
 
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull2D)
 
-bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const
+bool FPCGExBuildConvexHull2DElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -39,7 +39,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const
 
 	if (!Settings->GraphBuilderDetails.bPruneIsolatedPoints) { PCGEX_VALIDATE_NAME(Settings->HullAttributeName) }
 
-	Context->PathsIO = new PCGExData::FPointIOCollection();
+	Context->PathsIO = new PCGExData::FPointIOCollection(Context);
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	return true;
@@ -86,8 +86,8 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
-	Context->PathsIO->OutputTo(Context);
+	Context->MainPoints->OutputToContext();
+	Context->PathsIO->OutputToContext();
 
 	return Context->TryComplete();
 }
@@ -244,7 +244,7 @@ namespace PCGExConvexHull2D
 			return;
 		}
 
-		GraphBuilder->Write(Context);
+		GraphBuilder->Write();
 		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
 	}
 }

@@ -219,7 +219,7 @@ FPCGExPathfindingGrowPathsContext::~FPCGExPathfindingGrowPathsContext()
 	SeedAttributesToPathTags.Cleanup();
 }
 
-bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathfindingGrowPathsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -232,7 +232,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 
 	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
 
-	Context->OutputPaths = new PCGExData::FPointIOCollection();
+	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
 
 	if (Settings->NumIterations == EPCGExGrowthValueSource::SeedAttribute)
 	{
@@ -286,7 +286,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	Context->OutputPaths->OutputTo(Context);
+	Context->OutputPaths->OutputToContext();
 
 	return Context->TryComplete();
 }

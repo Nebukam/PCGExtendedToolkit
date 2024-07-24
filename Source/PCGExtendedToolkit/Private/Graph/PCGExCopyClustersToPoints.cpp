@@ -29,7 +29,7 @@ TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties
 	return PinProperties;
 }
 
-bool FPCGExCopyClustersToPointsElement::Boot(FPCGContext* InContext) const
+bool FPCGExCopyClustersToPointsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

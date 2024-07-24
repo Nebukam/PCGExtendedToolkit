@@ -17,7 +17,7 @@ FPCGExWritePathPropertiesContext::~FPCGExWritePathPropertiesContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExWritePathPropertiesElement::Boot(FPCGContext* InContext) const
+bool FPCGExWritePathPropertiesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -53,7 +53,7 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

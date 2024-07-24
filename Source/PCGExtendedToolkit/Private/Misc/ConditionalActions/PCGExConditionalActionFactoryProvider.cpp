@@ -111,7 +111,7 @@ TArray<FPCGPinProperties> UPCGExConditionalActionProviderSettings::InputPinPrope
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExConditionalActionProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExConditionalActionProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExConditionalActionFactoryBase* TypedFactory = Cast<UPCGExConditionalActionFactoryBase>(InFactory);
 

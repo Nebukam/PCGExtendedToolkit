@@ -11,7 +11,7 @@ PCGExPointFilter::TFilter* UPCGExFilterFactoryBase::CreateFilter() const
 }
 
 
-bool UPCGExFilterFactoryBase::Init(const FPCGContext* InContext)
+bool UPCGExFilterFactoryBase::Init(FPCGExContext* InContext)
 {
 	return true;
 }

@@ -14,7 +14,7 @@
 ///
 
 #define PCGEX_CREATE_FILTER_FACTORY(_FILTERID)\
-UPCGExParamFactoryBase* UPCGEx##_FILTERID##FilterProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const{\
+UPCGExParamFactoryBase* UPCGEx##_FILTERID##FilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{\
 	UPCGEx##_FILTERID##FilterFactory* NewFactory = NewObject<UPCGEx##_FILTERID##FilterFactory>();\
 	Super::CreateFactory(InContext, InFactory); NewFactory->Config = Config; if(!NewFactory->Init(InContext)){ PCGEX_DELETE(NewFactory) };	return NewFactory; }
 
@@ -35,7 +35,7 @@ public:
 
 public:
 	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

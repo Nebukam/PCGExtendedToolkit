@@ -33,13 +33,13 @@ FPCGExBreakClustersToPathsContext::~FPCGExBreakClustersToPathsContext()
 	PCGEX_DELETE_TARRAY(Chains)
 }
 
-bool FPCGExBreakClustersToPathsElement::Boot(FPCGContext* InContext) const
+bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-	Context->Paths = new PCGExData::FPointIOCollection();
+	Context->Paths = new PCGExData::FPointIOCollection(Context);
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	GetInputFactories(
@@ -74,7 +74,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	Context->Paths->OutputTo(Context);
+	Context->Paths->OutputToContext();
 
 	return Context->TryComplete();
 }

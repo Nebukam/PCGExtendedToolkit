@@ -15,7 +15,7 @@ FPCGExFlatProjectionContext::~FPCGExFlatProjectionContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExFlatProjectionElement::Boot(FPCGContext* InContext) const
+bool FPCGExFlatProjectionElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -72,7 +72,7 @@ bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

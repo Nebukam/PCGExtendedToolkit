@@ -28,7 +28,7 @@ FPCGExBoundsClustersIntersectionContext::~FPCGExBoundsClustersIntersectionContex
 
 PCGEX_INITIALIZE_ELEMENT(BoundsClustersIntersection)
 
-bool FPCGExBoundsClustersIntersectionElement::Boot(FPCGContext* InContext) const
+bool FPCGExBoundsClustersIntersectionElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -87,7 +87,7 @@ bool FPCGExBoundsClustersIntersectionElement::ExecuteInternal(FPCGContext* InCon
 
 	if (Context->IsDone())
 	{
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 	}
 
 	return Context->CompleteTaskExecution();

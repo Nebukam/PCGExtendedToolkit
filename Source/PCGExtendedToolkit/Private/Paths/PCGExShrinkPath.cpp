@@ -95,7 +95,7 @@ FPCGExShrinkPathContext::~FPCGExShrinkPathContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExShrinkPathElement::Boot(FPCGContext* InContext) const
+bool FPCGExShrinkPathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -160,7 +160,7 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

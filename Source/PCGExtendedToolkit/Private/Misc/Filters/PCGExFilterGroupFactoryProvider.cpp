@@ -24,7 +24,7 @@ TArray<FPCGPinProperties> UPCGExFilterGroupProviderSettings::InputPinProperties(
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExFilterGroupFactoryBase* NewFactory;
 

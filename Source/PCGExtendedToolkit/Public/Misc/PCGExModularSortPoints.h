@@ -44,7 +44,7 @@ public:
 	//~Begin UPCGExFactoryProviderSettings
 public:
 	virtual FName GetMainOutputLabel() const override { return FName("SortingRule"); }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

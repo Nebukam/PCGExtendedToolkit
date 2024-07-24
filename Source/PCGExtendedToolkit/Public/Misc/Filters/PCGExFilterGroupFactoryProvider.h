@@ -33,7 +33,7 @@ protected:
 
 public:
 	virtual FName GetMainOutputLabel() const override { return PCGExPointFilter::OutputFilterLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

@@ -17,7 +17,7 @@ FPCGExPointsToBoundsContext::~FPCGExPointsToBoundsContext()
 
 PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 
-bool FPCGExPointsToBoundsElement::Boot(FPCGContext* InContext) const
+bool FPCGExPointsToBoundsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -60,7 +60,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

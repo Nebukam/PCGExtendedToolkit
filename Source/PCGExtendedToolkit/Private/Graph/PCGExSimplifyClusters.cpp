@@ -27,7 +27,7 @@ FPCGExSimplifyClustersContext::~FPCGExSimplifyClustersContext()
 
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
 
-bool FPCGExSimplifyClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExSimplifyClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -67,7 +67,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

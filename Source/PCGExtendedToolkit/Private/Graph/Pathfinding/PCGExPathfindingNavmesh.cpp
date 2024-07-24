@@ -58,7 +58,7 @@ FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()
 	PCGEX_DELETE(GoalForwardHandler)
 }
 
-bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -98,7 +98,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
 
-	Context->OutputPaths = new PCGExData::FPointIOCollection();
+	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	// Prepare path queries
@@ -149,7 +149,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->OutputPaths->OutputTo(Context);
+		Context->OutputPaths->OutputToContext();
 		Context->Done();
 	}
 

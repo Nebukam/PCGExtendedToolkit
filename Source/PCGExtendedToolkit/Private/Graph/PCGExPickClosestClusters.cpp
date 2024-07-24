@@ -37,7 +37,7 @@ FPCGExPickClosestClustersContext::~FPCGExPickClosestClustersContext()
 }
 
 
-bool FPCGExPickClosestClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

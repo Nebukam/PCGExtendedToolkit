@@ -42,7 +42,7 @@ FPCGExUberFilterContext::~FPCGExUberFilterContext()
 
 PCGEX_INITIALIZE_ELEMENT(UberFilter)
 
-bool FPCGExUberFilterElement::Boot(FPCGContext* InContext) const
+bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -62,8 +62,8 @@ bool FPCGExUberFilterElement::Boot(FPCGContext* InContext) const
 		return true;
 	}
 
-	Context->Inside = new PCGExData::FPointIOCollection();
-	Context->Outside = new PCGExData::FPointIOCollection();
+	Context->Inside = new PCGExData::FPointIOCollection(Context);
+	Context->Outside = new PCGExData::FPointIOCollection(Context);
 
 	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
@@ -103,12 +103,12 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 	}
 	else
 	{
-		Context->Inside->OutputTo(Context);
-		Context->Outside->OutputTo(Context);
+		Context->Inside->OutputToContext();
+		Context->Outside->OutputToContext();
 	}
 
 	return Context->TryComplete();

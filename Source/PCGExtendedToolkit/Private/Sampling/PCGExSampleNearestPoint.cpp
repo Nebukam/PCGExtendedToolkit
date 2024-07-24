@@ -46,7 +46,7 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 	}
 }
 
-bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
+bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -107,7 +107,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

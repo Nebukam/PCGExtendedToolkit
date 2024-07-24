@@ -179,7 +179,7 @@ namespace PCGExGraph
 				return true;
 			}
 
-			GraphBuilder->Write(Context);
+			GraphBuilder->Write();
 			return true;
 		}
 

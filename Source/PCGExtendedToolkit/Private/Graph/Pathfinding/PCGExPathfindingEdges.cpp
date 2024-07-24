@@ -120,7 +120,7 @@ FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 }
 
 
-bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -158,7 +158,7 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
 	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade);
 
-	Context->OutputPaths = new PCGExData::FPointIOCollection();
+	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	// Prepare path queries
@@ -201,7 +201,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	Context->OutputPaths->OutputTo(Context);
+	Context->OutputPaths->OutputToContext();
 
 	return Context->TryComplete();
 }

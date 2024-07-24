@@ -24,13 +24,13 @@ FPCGExPartitionVerticesContext::~FPCGExPartitionVerticesContext()
 
 PCGEX_INITIALIZE_ELEMENT(PartitionVertices)
 
-bool FPCGExPartitionVerticesElement::Boot(FPCGContext* InContext) const
+bool FPCGExPartitionVerticesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionVertices)
 
-	Context->VtxPartitions = new PCGExData::FPointIOCollection();
+	Context->VtxPartitions = new PCGExData::FPointIOCollection(Context);
 	Context->VtxPartitions->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
 	return true;
@@ -63,8 +63,8 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 	if (!Context->ProcessClusters()) { return false; }
 
 	Context->OutputBatches();
-	Context->VtxPartitions->OutputTo(Context);
-	Context->MainEdges->OutputTo(Context);
+	Context->VtxPartitions->OutputToContext();
+	Context->MainEdges->OutputToContext();
 
 	return Context->TryComplete();
 }

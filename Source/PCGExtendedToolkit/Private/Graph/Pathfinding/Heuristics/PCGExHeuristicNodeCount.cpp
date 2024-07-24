@@ -11,7 +11,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryLeastNodes::CreateOperation() con
 	return NewOperation;
 }
 
-UPCGExParamFactoryBase* UPCGExHeuristicsLeastNodesProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExHeuristicsLeastNodesProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGHeuristicsFactoryLeastNodes* NewFactory = NewObject<UPCGHeuristicsFactoryLeastNodes>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY

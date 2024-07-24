@@ -20,7 +20,7 @@ FPCGExMakeClustersUniqueContext::~FPCGExMakeClustersUniqueContext()
 
 PCGEX_INITIALIZE_ELEMENT(MakeClustersUnique)
 
-bool FPCGExMakeClustersUniqueElement::Boot(FPCGContext* InContext) const
+bool FPCGExMakeClustersUniqueElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

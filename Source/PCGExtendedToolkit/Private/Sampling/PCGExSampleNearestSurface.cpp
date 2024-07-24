@@ -34,7 +34,7 @@ FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 	PCGEX_DELETE_FACADE_AND_SOURCE(ActorReferenceDataFacade)
 }
 
-bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
+bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -97,7 +97,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

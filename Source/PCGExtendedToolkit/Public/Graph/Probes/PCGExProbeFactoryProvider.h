@@ -9,7 +9,7 @@
 #include "PCGExProbeFactoryProvider.generated.h"
 
 #define PCGEX_CREATE_PROBE_FACTORY(_NAME, _EXTRA_FACTORY, _EXTRA_OPERATION) \
-UPCGExParamFactoryBase* UPCGExProbe##_NAME##ProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const{\
+UPCGExParamFactoryBase* UPCGExProbe##_NAME##ProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{\
 	UPCGExProbeFactory##_NAME* NewFactory = NewObject<UPCGExProbeFactory##_NAME>(); \
 	NewFactory->Config = Config; _EXTRA_FACTORY \
 	return Super::CreateFactory(InContext, NewFactory); } \
@@ -43,5 +43,5 @@ public:
 	//~End UPCGSettings
 
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputProbeLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 };

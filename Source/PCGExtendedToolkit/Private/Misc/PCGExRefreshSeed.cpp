@@ -10,7 +10,7 @@ PCGExData::EInit UPCGExRefreshSeedSettings::GetMainOutputInitMode() const { retu
 
 PCGEX_INITIALIZE_ELEMENT(RefreshSeed)
 
-bool FPCGExRefreshSeedElement::Boot(FPCGContext* InContext) const
+bool FPCGExRefreshSeedElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -46,7 +46,7 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 		PCGEX_ASYNC_WAIT
 
 		Context->Done();
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 	}
 
 	return Context->TryComplete();

@@ -288,7 +288,7 @@ FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 
 	InContext->AsyncLoop = InContext->MakeLoop<PCGExMT::FAsyncParallelLoop>();
 
-	InContext->MainPoints = new PCGExData::FPointIOCollection();
+	InContext->MainPoints = new PCGExData::FPointIOCollection(InContext);
 	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
 	if (!Settings->bEnabled) { return InContext; }
@@ -296,7 +296,7 @@ FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 	if (Settings->GetMainAcceptMultipleData())
 	{
 		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainInputLabel());
-		InContext->MainPoints->Initialize(InContext, Sources, Settings->GetMainOutputInitMode());
+		InContext->MainPoints->Initialize(Sources, Settings->GetMainOutputInitMode());
 	}
 	else
 	{
@@ -321,7 +321,7 @@ FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 	return InContext;
 }
 
-bool FPCGExPointsProcessorElement::Boot(FPCGContext* InContext) const
+bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 {
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)

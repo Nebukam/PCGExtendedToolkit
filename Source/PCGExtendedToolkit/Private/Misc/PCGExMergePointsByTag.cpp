@@ -212,7 +212,7 @@ FPCGExMergePointsByTagContext::~FPCGExMergePointsByTagContext()
 	PCGEX_DELETE_TARRAY(MergeLists)
 }
 
-bool FPCGExMergePointsByTagElement::Boot(FPCGContext* InContext) const
+bool FPCGExMergePointsByTagElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -257,7 +257,7 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 		Context->Done();
 	}
 

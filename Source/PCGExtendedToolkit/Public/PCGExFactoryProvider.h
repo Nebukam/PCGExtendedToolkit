@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "PCGExContext.h"
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
 #include "Data/PCGPointData.h"
@@ -93,7 +94,7 @@ protected:
 	//~Begin UPCGExFactoryProviderSettings
 public:
 	virtual FName GetMainOutputLabel() const { return TEXT(""); }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory = nullptr) const;
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory = nullptr) const;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const;

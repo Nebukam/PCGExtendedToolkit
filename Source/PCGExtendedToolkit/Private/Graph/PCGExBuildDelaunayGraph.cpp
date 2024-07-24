@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties(
 
 PCGEX_INITIALIZE_ELEMENT(BuildDelaunayGraph)
 
-bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const
+bool FPCGExBuildDelaunayGraphElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -40,7 +40,7 @@ bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const
 	if (Settings->bOutputSites)
 	{
 		if (Settings->bMarkSiteHull) { PCGEX_VALIDATE_NAME(Settings->SiteHullAttributeName) }
-		Context->MainSites = new PCGExData::FPointIOCollection();
+		Context->MainSites = new PCGExData::FPointIOCollection(Context);
 		Context->MainSites->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
 	}
 
@@ -95,8 +95,8 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
-	if (Context->MainSites) { Context->MainSites->OutputTo(Context); }
+	Context->MainPoints->OutputToContext();
+	if (Context->MainSites) { Context->MainSites->OutputToContext(); }
 
 	return Context->TryComplete();
 }
@@ -178,7 +178,7 @@ namespace PCGExBuildDelaunay
 			return;
 		}
 
-		GraphBuilder->Write(Context);
+		GraphBuilder->Write();
 
 		if (HullMarkPointWriter)
 		{

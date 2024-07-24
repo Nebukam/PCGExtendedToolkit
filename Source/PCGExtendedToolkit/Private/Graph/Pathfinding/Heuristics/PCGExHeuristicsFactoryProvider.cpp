@@ -12,7 +12,7 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryBase::CreateOperation() const
 	return nullptr; // Create heuristic operation
 }
 
-UPCGExParamFactoryBase* UPCGExHeuristicsFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExHeuristicsFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	return InFactory;
 }

@@ -42,7 +42,7 @@ TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() co
 
 PCGEX_INITIALIZE_ELEMENT(MeshToClusters)
 
-bool FPCGExMeshToClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -68,12 +68,12 @@ bool FPCGExMeshToClustersElement::Boot(FPCGContext* InContext) const
 	Context->StaticMeshMap = new PCGExGeo::FGeoStaticMeshMap();
 	Context->StaticMeshMap->DesiredTriangulationType = Settings->GraphOutputType;
 
-	Context->RootVtx = new PCGExData::FPointIOCollection(); // Make this pinless
+	Context->RootVtx = new PCGExData::FPointIOCollection(Context); // Make this pinless
 
-	Context->VtxChildCollection = new PCGExData::FPointIOCollection();
+	Context->VtxChildCollection = new PCGExData::FPointIOCollection(Context);
 	Context->VtxChildCollection->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
-	Context->EdgeChildCollection = new PCGExData::FPointIOCollection();
+	Context->EdgeChildCollection = new PCGExData::FPointIOCollection(Context);
 	Context->EdgeChildCollection->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
 	return true;
@@ -242,8 +242,8 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->VtxChildCollection->OutputTo(Context);
-		Context->EdgeChildCollection->OutputTo(Context);
+		Context->VtxChildCollection->OutputToContext();
+		Context->EdgeChildCollection->OutputToContext();
 
 		Context->Done();
 	}

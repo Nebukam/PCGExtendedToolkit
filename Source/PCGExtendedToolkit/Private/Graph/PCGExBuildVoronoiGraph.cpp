@@ -36,7 +36,7 @@ TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties()
 
 PCGEX_INITIALIZE_ELEMENT(BuildVoronoiGraph)
 
-bool FPCGExBuildVoronoiGraphElement::Boot(FPCGContext* InContext) const
+bool FPCGExBuildVoronoiGraphElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -44,7 +44,7 @@ bool FPCGExBuildVoronoiGraphElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	Context->SitesOutput = new PCGExData::FPointIOCollection();
+	Context->SitesOutput = new PCGExData::FPointIOCollection(Context);
 	Context->SitesOutput->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
 
 	return true;
@@ -93,8 +93,8 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
-	//Context->SitesOutput->OutputTo(Context);
+	Context->MainPoints->OutputToContext();
+	//Context->SitesOutput->OutputToContext();
 
 	return Context->TryComplete();
 }
@@ -253,7 +253,7 @@ namespace PCGExBuildVoronoi
 			return;
 		}
 
-		GraphBuilder->Write(Context);
+		GraphBuilder->Write();
 		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
 	}
 

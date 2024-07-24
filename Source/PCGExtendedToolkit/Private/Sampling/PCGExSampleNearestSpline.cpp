@@ -39,7 +39,7 @@ FPCGExSampleNearestSplineContext::~FPCGExSampleNearestSplineContext()
 	Targets.Empty();
 }
 
-bool FPCGExSampleNearestSplineElement::Boot(FPCGContext* InContext) const
+bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -101,7 +101,7 @@ bool FPCGExSampleNearestSplineElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

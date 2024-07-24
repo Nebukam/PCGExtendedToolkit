@@ -28,7 +28,7 @@ FPCGExMetaFilterContext::~FPCGExMetaFilterContext()
 	PCGEX_DELETE(Outside)
 }
 
-bool FPCGExMetaFilterElement::Boot(FPCGContext* InContext) const
+bool FPCGExMetaFilterElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -37,8 +37,8 @@ bool FPCGExMetaFilterElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(Filters)
 	Context->Filters.Init();
 
-	Context->Inside = new PCGExData::FPointIOCollection();
-	Context->Outside = new PCGExData::FPointIOCollection();
+	Context->Inside = new PCGExData::FPointIOCollection(Context);
+	Context->Outside = new PCGExData::FPointIOCollection(Context);
 
 	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
@@ -77,8 +77,8 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	Context->Inside->OutputTo(Context);
-	Context->Outside->OutputTo(Context);
+	Context->Inside->OutputToContext();
+	Context->Outside->OutputToContext();
 	Context->Done();
 
 	return Context->TryComplete();

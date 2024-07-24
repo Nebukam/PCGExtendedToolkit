@@ -29,7 +29,7 @@ void FPCGExWriteTangentsContext::WriteTangents()
 }
 
 
-bool FPCGExWriteTangentsElement::Boot(FPCGContext* InContext) const
+bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -124,7 +124,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!bProcessingComplete) { return false; }
 
 		Context->WriteTangents();
-		Context->CurrentIO->OutputTo(Context);
+		Context->CurrentIO->OutputToContext();
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

@@ -454,7 +454,7 @@ namespace PCGExGraph
 			Graph->EdgePosition = OutputDetails->EdgePosition;
 			Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
-			EdgesIO = new PCGExData::FPointIOCollection();
+			EdgesIO = new PCGExData::FPointIOCollection(InPointIO->GetContext());
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
 
 			bPrunePoints = OutputDetails->bPruneIsolatedPoints;
@@ -463,7 +463,7 @@ namespace PCGExGraph
 		void CompileAsync(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataDetails* MetadataDetails = nullptr);
 		void Compile(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataDetails* MetadataDetails = nullptr);
 
-		void Write(FPCGExContext* InContext) const;
+		void Write() const;
 
 		~FGraphBuilder()
 		{

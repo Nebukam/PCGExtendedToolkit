@@ -15,7 +15,7 @@ FPCGExReversePointOrderContext::~FPCGExReversePointOrderContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExReversePointOrderElement::Boot(FPCGContext* InContext) const
+bool FPCGExReversePointOrderElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -51,7 +51,7 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 		PCGEX_ASYNC_WAIT
 
 		Context->Done();
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 	}
 
 	return Context->TryComplete();

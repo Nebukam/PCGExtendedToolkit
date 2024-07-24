@@ -207,7 +207,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
 			{
-				if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(this); }
+				if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(); }
 			}
 
 			OnBatchesCompilationDone(true);
@@ -257,10 +257,10 @@ void FPCGExEdgesProcessorContext::AdvanceBatch()
 	}
 }
 
-void FPCGExEdgesProcessorContext::OutputPointsAndEdges()
+void FPCGExEdgesProcessorContext::OutputPointsAndEdges() const
 {
-	MainPoints->OutputTo(this);
-	MainEdges->OutputTo(this);
+	MainPoints->OutputToContext();
+	MainEdges->OutputToContext();
 }
 
 PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
@@ -280,7 +280,7 @@ void FPCGExEdgesProcessorElement::DisabledPassThroughData(FPCGContext* Context) 
 	}
 }
 
-bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
+bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -314,10 +314,10 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	TArray<PCGExData::FPointIO*> TaggedVtx;
 	TArray<PCGExData::FPointIO*> TaggedEdges;
 
-	Context->MainEdges = new PCGExData::FPointIOCollection();
+	Context->MainEdges = new PCGExData::FPointIOCollection(Context);
 	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
-	Context->MainEdges->Initialize(Context, Sources, Settings->GetEdgeOutputInitMode());
+	Context->MainEdges->Initialize(Sources, Settings->GetEdgeOutputInitMode());
 
 	// Gather Vtx inputs
 	for (PCGExData::FPointIO* MainIO : Context->MainPoints->Pairs)

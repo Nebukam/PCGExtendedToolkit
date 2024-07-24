@@ -40,7 +40,7 @@ FPCGExPathToClustersContext::~FPCGExPathToClustersContext()
 	PCGEX_DELETE(CompoundProcessor)
 }
 
-bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -76,7 +76,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->bFusePaths)
 	{
-		PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO();
+		PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(Context);
 		CompoundPoints->SetInfos(-1, Settings->GetMainOutputLabel());
 		CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
@@ -175,8 +175,8 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 #pragma endregion
 
-	if (Settings->bFusePaths) { Context->CompoundFacade->Source->OutputTo(Context); }
-	else { Context->OutputMainPoints(); }
+	if (Settings->bFusePaths) { Context->CompoundFacade->Source->OutputToContext(); }
+	else { Context->MainPoints->OutputToContext(); }
 
 	return Context->TryComplete();
 }
@@ -241,7 +241,7 @@ namespace PCGExPathToClusters
 			return;
 		}
 
-		GraphBuilder->Write(Context);
+		GraphBuilder->Write();
 	}
 
 #pragma endregion

@@ -26,7 +26,7 @@ FPCGExPrunePathContext::~FPCGExPrunePathContext()
 	PCGEX_DELETE(BoxCloud)
 }
 
-bool FPCGExPrunePathElement::Boot(FPCGContext* InContext) const
+bool FPCGExPrunePathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -78,7 +78,7 @@ bool FPCGExPrunePathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsDone())
 	{
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 	}
 
 	return Context->TryComplete();

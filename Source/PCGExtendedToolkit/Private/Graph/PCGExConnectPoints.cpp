@@ -46,7 +46,7 @@ FPCGExConnectPointsContext::~FPCGExConnectPointsContext()
 	PCGEX_DELETE(MainVtx);
 }
 
-bool FPCGExConnectPointsElement::Boot(FPCGContext* InContext) const
+bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -96,7 +96,7 @@ bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }
@@ -366,7 +366,7 @@ namespace PCGExConnectPoints
 			return;
 		}
 
-		GraphBuilder->Write(Context);
+		GraphBuilder->Write();
 		FPointsProcessor::Write();
 	}
 }

@@ -34,7 +34,7 @@ FPCGExConditionalActionsContext::~FPCGExConditionalActionsContext()
 
 PCGEX_INITIALIZE_ELEMENT(ConditionalActions)
 
-bool FPCGExConditionalActionsElement::Boot(FPCGContext* InContext) const
+bool FPCGExConditionalActionsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -103,7 +103,7 @@ bool FPCGExConditionalActionsElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

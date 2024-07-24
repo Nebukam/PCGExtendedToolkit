@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
 
-	void OutputPointsAndEdges();
+	void OutputPointsAndEdges() const;
 
 	template <class InitializeFunc, class LoopBodyFunc>
 	bool ProcessCurrentEdges(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentEdges->GetNum(), bForceSync); }
@@ -209,7 +209,7 @@ public:
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
-	virtual bool Boot(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual FPCGContext* InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,

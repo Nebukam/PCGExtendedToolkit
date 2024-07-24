@@ -47,7 +47,7 @@ void FPCGExMergeVerticesContext::OnBatchesCompletingWorkDone()
 
 PCGEX_INITIALIZE_ELEMENT(MergeVertices)
 
-bool FPCGExMergeVerticesElement::Boot(FPCGContext* InContext) const
+bool FPCGExMergeVerticesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -56,7 +56,7 @@ bool FPCGExMergeVerticesElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(CarryOverDetails)
 	Context->CarryOverDetails.Init();
 
-	Context->CompositeIO = new PCGExData::FPointIO();
+	Context->CompositeIO = new PCGExData::FPointIO(Context);
 	Context->CompositeIO->SetInfos(0, PCGExGraph::OutputVerticesLabel);
 	Context->CompositeIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
@@ -88,8 +88,8 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	Context->CompositeIO->OutputTo(Context);
-	Context->MainEdges->OutputTo(Context);
+	Context->CompositeIO->OutputToContext();
+	Context->MainEdges->OutputToContext();
 
 	return Context->TryComplete();
 }

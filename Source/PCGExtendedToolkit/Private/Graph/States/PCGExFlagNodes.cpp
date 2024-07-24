@@ -30,7 +30,7 @@ FPCGExFlagNodesContext::~FPCGExFlagNodesContext()
 
 PCGEX_INITIALIZE_ELEMENT(FlagNodes)
 
-bool FPCGExFlagNodesElement::Boot(FPCGContext* InContext) const
+bool FPCGExFlagNodesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

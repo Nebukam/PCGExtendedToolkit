@@ -17,7 +17,7 @@ FPCGExAttributeRemapContext::~FPCGExAttributeRemapContext()
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 
-bool FPCGExAttributeRemapElement::Boot(FPCGContext* InContext) const
+bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -126,7 +126,7 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 		Context->Done();
 	}
 

@@ -11,7 +11,7 @@ UPCGExProbeOperation* UPCGExProbeFactoryBase::CreateOperation() const
 	return nullptr; // Create probe operation
 }
 
-UPCGExParamFactoryBase* UPCGExProbeFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExProbeFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	return InFactory;
 }

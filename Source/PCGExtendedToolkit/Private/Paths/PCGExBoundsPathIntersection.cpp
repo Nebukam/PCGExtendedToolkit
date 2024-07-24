@@ -24,7 +24,7 @@ FPCGExBoundsPathIntersectionContext::~FPCGExBoundsPathIntersectionContext()
 	PCGEX_DELETE_FACADE_AND_SOURCE(BoundsDataFacade)
 }
 
-bool FPCGExBoundsPathIntersectionElement::Boot(FPCGContext* InContext) const
+bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -94,7 +94,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }
