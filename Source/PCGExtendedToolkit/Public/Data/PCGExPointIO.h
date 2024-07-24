@@ -64,9 +64,8 @@ namespace PCGExData
 		friend class FPointIOCollection;
 
 	protected:
-		
 		FPCGExContext* Context = nullptr;
-		
+
 		bool bWritten = false;
 		mutable FRWLock PointsLock;
 		int32 NumInPoints = -1;
@@ -79,7 +78,6 @@ namespace PCGExData
 
 		FPointIO* RootIO = nullptr;
 		bool bEnabled = true;
-
 
 	public:
 		FTags* Tags = nullptr;
@@ -148,7 +146,11 @@ namespace PCGExData
 				}
 				else
 				{
-					Out = Cast<UPCGPointData>(TypedIn->DuplicateData(true));
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
+					Out = Cast<UPCGPointData>(In->DuplicateData(true));
+#else
+					Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
+#endif
 				}
 
 				return;

@@ -75,7 +75,11 @@ namespace PCGExData
 		if (InitOut == EInit::DuplicateInput)
 		{
 			check(In)
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
+#else
+			Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
+#endif
 		}
 	}
 
