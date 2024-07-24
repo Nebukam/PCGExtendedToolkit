@@ -30,7 +30,7 @@ FPCGElementPtr UPCGExFactoryProviderSettings::CreateElement() const
 FString UPCGExFactoryProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExParamFactoryBase* UPCGExFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	return InFactory;
 }
@@ -41,12 +41,12 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	PCGEX_SETTINGS(FactoryProvider)
 
-	UPCGExParamFactoryBase* OutFactory = Settings->CreateFactory(Context, nullptr);
-
-	if (!OutFactory) { return true; }
-
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 	check(PCGExContext);
+	
+	UPCGExParamFactoryBase* OutFactory = Settings->CreateFactory(PCGExContext, nullptr);
+
+	if (!OutFactory) { return true; }
 
 	PCGExContext->FutureOutput(Settings->GetMainOutputLabel(), OutFactory);
 	PCGExContext->OnComplete();

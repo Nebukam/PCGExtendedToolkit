@@ -27,7 +27,7 @@ FPCGExWriteEdgePropertiesContext::~FPCGExWriteEdgePropertiesContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExWriteEdgePropertiesElement::Boot(FPCGContext* InContext) const
+bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

@@ -64,6 +64,8 @@ namespace PCGExData
 		friend class FPointIOCollection;
 
 	protected:
+		FPCGExContext* Context = nullptr;
+
 		bool bWritten = false;
 		mutable FRWLock PointsLock;
 		int32 NumInPoints = -1;
@@ -81,24 +83,26 @@ namespace PCGExData
 		FTags* Tags = nullptr;
 		int32 IOIndex = 0;
 
-		FPointIO():
-			In(nullptr)
+		FPointIO(FPCGExContext* InContext):
+			Context(InContext), In(nullptr)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
-		explicit FPointIO(const UPCGPointData* InData):
-			In(InData)
+		explicit FPointIO(FPCGExContext* InContext, const UPCGPointData* InData):
+			Context(InContext), In(InData)
 		{
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
-		explicit FPointIO(const FPointIO* InPointIO):
-			In(InPointIO->GetIn())
+		explicit FPointIO(FPCGExContext* InContext, const FPointIO* InPointIO):
+			Context(InContext), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			Tags = new FTags(*InPointIO->Tags);
 		}
+
+		FPCGExContext* GetContext() const { return Context; }
 
 		void SetInfos(const int32 InIndex,
 		              const FName InDefaultOutputLabel,
@@ -142,7 +146,11 @@ namespace PCGExData
 				}
 				else
 				{
-					Out = Cast<UPCGPointData>(TypedIn->DuplicateData(true));
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
+					Out = Cast<UPCGPointData>(In->DuplicateData(true));
+#else
+					Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
+#endif
 				}
 
 				return;
@@ -238,12 +246,9 @@ namespace PCGExData
 		void Disable() { bEnabled = false; }
 		void Enable() { bEnabled = true; }
 		bool IsEnabled() const { return bEnabled; }
-		/**
-		 * Write valid outputs to Context' tagged data
-		 * @param Context 
-		 */
-		bool OutputTo(FPCGExContext* Context);
-		bool OutputTo(FPCGExContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
+
+		bool OutputToContext();
+		bool OutputToContext(const int32 MinPointCount, const int32 MaxPointCount);
 	};
 
 	/**
@@ -253,11 +258,12 @@ namespace PCGExData
 	{
 	protected:
 		mutable FRWLock PairsLock;
+		FPCGExContext* Context = nullptr;
 
 	public:
-		FPointIOCollection();
-		FPointIOCollection(const FPCGContext* Context, FName InputLabel, EInit InitOut = EInit::NoOutput);
-		FPointIOCollection(const FPCGContext* Context, TArray<FPCGTaggedData>& Sources, EInit InitOut = EInit::NoOutput);
+		FPointIOCollection(FPCGExContext* InContext);
+		FPointIOCollection(FPCGExContext* InContext, FName InputLabel, EInit InitOut = EInit::NoOutput);
+		FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, EInit InitOut = EInit::NoOutput);
 
 		~FPointIOCollection();
 
@@ -271,7 +277,7 @@ namespace PCGExData
 		 * @param InitOut 
 		 */
 		void Initialize(
-			const FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
+			TArray<FPCGTaggedData>& Sources,
 			EInit InitOut = EInit::NoOutput);
 
 		FPointIO* Emplace_GetRef(const UPCGPointData* In, const EInit InitOut = EInit::NoOutput, const TSet<FString>* Tags = nullptr);
@@ -285,7 +291,7 @@ namespace PCGExData
 		FPointIO* Emplace_GetRef(const UPCGPointData* In, const EInit InitOut = EInit::NoOutput, const TSet<FString>* Tags = nullptr)
 		{
 			FWriteScopeLock WriteLock(PairsLock);
-			FPointIO* NewIO = new FPointIO(In);
+			FPointIO* NewIO = new FPointIO(Context, In);
 			NewIO->SetInfos(Pairs.Add(NewIO), DefaultOutputLabel, Tags);
 			NewIO->InitializeOutput<T>(InitOut);
 			return NewIO;
@@ -295,7 +301,7 @@ namespace PCGExData
 		FPointIO* Emplace_GetRef(EInit InitOut = EInit::NewOutput)
 		{
 			FWriteScopeLock WriteLock(PairsLock);
-			FPointIO* NewIO = new FPointIO();
+			FPointIO* NewIO = new FPointIO(Context);
 			NewIO->SetInfos(Pairs.Add(NewIO), DefaultOutputLabel);
 			NewIO->InitializeOutput<T>(InitOut);
 			return NewIO;
@@ -315,8 +321,8 @@ namespace PCGExData
 
 		FPointIO& operator[](const int32 Index) const { return *Pairs[Index]; }
 
-		void OutputTo(FPCGExContext* Context);
-		void OutputTo(FPCGExContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
+		void OutputToContext();
+		void OutputToContext(const int32 MinPointCount, const int32 MaxPointCount);
 
 		void Sort();
 
@@ -381,32 +387,16 @@ namespace PCGExData
 
 			return const_cast<UPCGPointData*>(PointData);
 		}
-
-		static FPointIO* GetPointIO(
-			const FPCGContext* Context,
-			const FPCGTaggedData& Source,
-			const FName OutputLabel = NAME_None,
-			const EInit InitOut = EInit::NoOutput)
-		{
-			if (const UPCGPointData* InData = GetMutablePointData(Context, Source))
-			{
-				FPointIO* PointIO = new FPointIO(InData);
-				PointIO->SetInfos(-1, OutputLabel, &Source.Tags);
-				PointIO->InitializeOutput(InitOut);
-				return PointIO;
-			}
-			return nullptr;
-		}
 	}
 
-	static FPointIO* TryGetSingleInput(const FPCGContext* InContext, const FName InputPinLabel, const bool bThrowError)
+	static FPointIO* TryGetSingleInput(FPCGExContext* InContext, const FName InputPinLabel, const bool bThrowError)
 	{
 		FPointIO* SingleIO = nullptr;
 		const FPointIOCollection* Collection = new FPointIOCollection(InContext, InputPinLabel);
 		if (!Collection->Pairs.IsEmpty())
 		{
 			const FPointIO* Data = Collection->Pairs[0];
-			SingleIO = new FPointIO(Data->GetIn());
+			SingleIO = new FPointIO(InContext, Data->GetIn());
 
 			TSet<FString> TagDump;
 			Data->Tags->Dump(TagDump);

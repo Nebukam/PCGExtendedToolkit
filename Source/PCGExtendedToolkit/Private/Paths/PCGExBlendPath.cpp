@@ -25,7 +25,7 @@ FPCGExBlendPathContext::~FPCGExBlendPathContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExBlendPathElement::Boot(FPCGContext* InContext) const
+bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -69,7 +69,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_ASYNC_WAIT
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 		Context->Done();
 	}
 

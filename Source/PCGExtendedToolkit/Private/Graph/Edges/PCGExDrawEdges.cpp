@@ -20,7 +20,7 @@ FPCGExDrawEdgesContext::~FPCGExDrawEdgesContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExDrawEdgesElement::Boot(FPCGContext* InContext) const
+bool FPCGExDrawEdgesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

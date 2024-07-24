@@ -25,7 +25,7 @@ FPCGExPruneClustersContext::~FPCGExPruneClustersContext()
 
 PCGEX_INITIALIZE_ELEMENT(PruneClusters)
 
-bool FPCGExPruneClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExPruneClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

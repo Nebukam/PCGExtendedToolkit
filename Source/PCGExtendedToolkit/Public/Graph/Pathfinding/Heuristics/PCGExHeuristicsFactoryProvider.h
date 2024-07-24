@@ -84,5 +84,5 @@ public:
 	//~End UPCGSettings
 
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputHeuristicsLabel; }
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 };

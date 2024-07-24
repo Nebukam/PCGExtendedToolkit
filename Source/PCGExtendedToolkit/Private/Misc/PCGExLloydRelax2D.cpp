@@ -17,7 +17,7 @@ FPCGExLloydRelax2DContext::~FPCGExLloydRelax2DContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExLloydRelax2DElement::Boot(FPCGContext* InContext) const
+bool FPCGExLloydRelax2DElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -66,7 +66,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

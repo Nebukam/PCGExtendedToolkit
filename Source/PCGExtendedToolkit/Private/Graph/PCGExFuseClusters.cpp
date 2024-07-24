@@ -37,7 +37,7 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 
 PCGEX_INITIALIZE_ELEMENT(FuseClusters)
 
-bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext))
 	{
@@ -77,7 +77,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 			&Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
-	PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO();
+	PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(Context);
 	CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
 	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(
 		PCGExData::EInit::NewOutput);
@@ -145,7 +145,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->CompoundProcessor->Execute()) { return false; }
 
-	Context->CompoundFacade->Source->OutputTo(Context);
+	Context->CompoundFacade->Source->OutputToContext();
 	Context->Done();
 
 	return Context->TryComplete();

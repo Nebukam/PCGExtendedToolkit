@@ -29,7 +29,7 @@ FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
+bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -92,7 +92,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

@@ -96,7 +96,7 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Boot(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 

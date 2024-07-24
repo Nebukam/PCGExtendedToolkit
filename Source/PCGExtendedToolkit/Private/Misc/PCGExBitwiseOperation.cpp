@@ -17,7 +17,7 @@ FPCGExBitwiseOperationContext::~FPCGExBitwiseOperationContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExBitwiseOperationElement::Boot(FPCGContext* InContext) const
+bool FPCGExBitwiseOperationElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -71,7 +71,7 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

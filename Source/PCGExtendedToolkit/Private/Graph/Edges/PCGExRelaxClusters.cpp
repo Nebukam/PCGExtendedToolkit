@@ -20,7 +20,7 @@ FPCGExRelaxClustersContext::~FPCGExRelaxClustersContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExRelaxClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

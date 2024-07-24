@@ -18,7 +18,7 @@ FPCGExFusePointsContext::~FPCGExFusePointsContext()
 
 PCGEX_INITIALIZE_ELEMENT(FusePoints)
 
-bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const
+bool FPCGExFusePointsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -55,7 +55,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

@@ -133,7 +133,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapElement final : public FPCGEx
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Boot(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

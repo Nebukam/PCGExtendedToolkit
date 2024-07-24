@@ -22,7 +22,7 @@ FPCGExPruneEdgesByLengthContext::~FPCGExPruneEdgesByLengthContext()
 
 PCGEX_INITIALIZE_ELEMENT(PruneEdgesByLength)
 
-bool FPCGExPruneEdgesByLengthElement::Boot(FPCGContext* InContext) const
+bool FPCGExPruneEdgesByLengthElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

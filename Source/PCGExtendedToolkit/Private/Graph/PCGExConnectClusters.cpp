@@ -21,7 +21,7 @@ FPCGExConnectClustersContext::~FPCGExConnectClustersContext()
 }
 
 
-bool FPCGExConnectClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

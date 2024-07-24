@@ -3,7 +3,7 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
-bool UPCGExDotFilterFactory::Init(const FPCGContext* InContext)
+bool UPCGExDotFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 	Config.Sanitize();

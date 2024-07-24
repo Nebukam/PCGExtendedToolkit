@@ -90,7 +90,7 @@ UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOper
 	return NewOperation;
 }
 
-UPCGExParamFactoryBase* UPCGExNeighborSampleAttributeSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExNeighborSampleAttributeSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExNeighborSamplerFactoryAttribute* SamplerFactory = NewObject<UPCGExNeighborSamplerFactoryAttribute>();
 	SamplerFactory->Config = Config;

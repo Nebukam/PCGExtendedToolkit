@@ -146,7 +146,7 @@ FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 }
 
 
-bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -154,11 +154,11 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
 
-	Context->OutputPaths = new PCGExData::FPointIOCollection();
-	Context->Plots = new PCGExData::FPointIOCollection();
+	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
+	Context->Plots = new PCGExData::FPointIOCollection(Context);
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
-	Context->Plots->Initialize(InContext, Sources, PCGExData::EInit::NoOutput);
+	Context->Plots->Initialize(Sources, PCGExData::EInit::NoOutput);
 
 	for (int i = 0; i < Context->Plots->Num(); i++)
 	{
@@ -205,7 +205,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	Context->OutputPaths->OutputTo(Context);
+	Context->OutputPaths->OutputToContext();
 
 	return Context->TryComplete();
 }

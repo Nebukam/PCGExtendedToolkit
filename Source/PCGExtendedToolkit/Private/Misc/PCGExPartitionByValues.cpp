@@ -123,7 +123,7 @@ FPCGExPartitionByValuesBaseContext::~FPCGExPartitionByValuesBaseContext()
 
 PCGEX_INITIALIZE_ELEMENT(PartitionByValuesBase)
 
-bool FPCGExPartitionByValuesBaseElement::Boot(FPCGContext* InContext) const
+bool FPCGExPartitionByValuesBaseElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -190,7 +190,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

@@ -107,7 +107,7 @@ TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::OutputPinPr
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExClusterStateFactoryBase* NewFactory = NewObject<UPCGExClusterStateFactoryBase>();
 	NewFactory->Priority = Priority;

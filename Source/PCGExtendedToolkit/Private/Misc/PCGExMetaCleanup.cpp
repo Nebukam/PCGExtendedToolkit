@@ -16,7 +16,7 @@ FPCGExMetaCleanupContext::~FPCGExMetaCleanupContext()
 {
 }
 
-bool FPCGExMetaCleanupElement::Boot(FPCGContext* InContext) const
+bool FPCGExMetaCleanupElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -54,7 +54,7 @@ bool FPCGExMetaCleanupElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 	Context->Done();
 
 	return Context->TryComplete();

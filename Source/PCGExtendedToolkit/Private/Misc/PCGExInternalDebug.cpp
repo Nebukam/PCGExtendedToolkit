@@ -15,7 +15,7 @@ FPCGExInternalDebugContext::~FPCGExInternalDebugContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExInternalDebugElement::Boot(FPCGContext* InContext) const
+bool FPCGExInternalDebugElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -65,7 +65,7 @@ bool FPCGExInternalDebugElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsDone())
 	{
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 	}
 
 	return Context->TryComplete();

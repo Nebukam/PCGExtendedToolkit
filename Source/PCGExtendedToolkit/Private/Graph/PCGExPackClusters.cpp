@@ -31,7 +31,7 @@ FPCGExPackClustersContext::~FPCGExPackClustersContext()
 }
 
 
-bool FPCGExPackClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExPackClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -40,7 +40,7 @@ bool FPCGExPackClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(CarryOverDetails)
 	Context->CarryOverDetails.Init();
 
-	Context->PackedClusters = new PCGExData::FPointIOCollection();
+	Context->PackedClusters = new PCGExData::FPointIOCollection(Context);
 	Context->PackedClusters->DefaultOutputLabel = PCGExGraph::OutputPackedClustersLabel;
 
 	return true;
@@ -80,7 +80,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 		PCGEX_ASYNC_WAIT
 
 		Context->Done();
-		Context->PackedClusters->OutputTo(Context);
+		Context->PackedClusters->OutputToContext();
 	}
 
 	return Context->TryComplete();

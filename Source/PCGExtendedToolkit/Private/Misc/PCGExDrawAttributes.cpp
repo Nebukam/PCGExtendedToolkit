@@ -219,7 +219,7 @@ void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent&
 
 PCGEX_INITIALIZE_ELEMENT(DrawAttributes)
 
-bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
+bool FPCGExDrawAttributesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 

@@ -20,7 +20,7 @@ FPCGExFuseCollinearContext::~FPCGExFuseCollinearContext()
 }
 
 
-bool FPCGExFuseCollinearElement::Boot(FPCGContext* InContext) const
+bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -78,7 +78,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

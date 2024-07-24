@@ -3,7 +3,7 @@
 
 #include "Misc/Filters/PCGExBoundsFilter.h"
 
-bool UPCGExBoundsFilterFactory::Init(const FPCGContext* InContext)
+bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
 	if (PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true))

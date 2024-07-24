@@ -20,7 +20,7 @@ FPCGExSmoothContext::~FPCGExSmoothContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExSmoothElement::Boot(FPCGContext* InContext) const
+bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -70,7 +70,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

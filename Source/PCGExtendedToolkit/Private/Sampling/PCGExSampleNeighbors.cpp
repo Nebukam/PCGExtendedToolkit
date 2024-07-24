@@ -29,7 +29,7 @@ FPCGExSampleNeighborsContext::~FPCGExSampleNeighborsContext()
 	SamplerFactories.Empty();
 }
 
-bool FPCGExSampleNeighborsElement::Boot(FPCGContext* InContext) const
+bool FPCGExSampleNeighborsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

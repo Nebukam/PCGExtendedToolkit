@@ -195,7 +195,7 @@ namespace PCGExGraph
 
 			while (Stack.Num() > 0)
 			{
-				const int32 NextIndex = Stack.Pop(false);
+				const int32 NextIndex = Stack.Pop(EAllowShrinking::No);
 				FNode& Node = Nodes[NextIndex];
 				Node.NumExportedEdges = 0;
 
@@ -421,9 +421,9 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 		PCGEX_ASYNC_WRITE_DELETE(AsyncManager, NumClusterIdWriter)
 	}
 
-	void FGraphBuilder::Write(FPCGExContext* InContext) const
+	void FGraphBuilder::Write() const
 	{
-		EdgesIO->OutputTo(InContext);
+		EdgesIO->OutputToContext();
 	}
 }
 

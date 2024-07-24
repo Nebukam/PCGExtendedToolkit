@@ -12,7 +12,7 @@ PCGEX_INITIALIZE_ELEMENT(Orient)
 
 FName UPCGExOrientSettings::GetPointFilterLabel() const { return FName("FlipOrientationConditions"); }
 
-bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
+bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -83,7 +83,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

@@ -17,7 +17,7 @@ FPCGExMovePivotContext::~FPCGExMovePivotContext()
 
 PCGEX_INITIALIZE_ELEMENT(MovePivot)
 
-bool FPCGExMovePivotElement::Boot(FPCGContext* InContext) const
+bool FPCGExMovePivotElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -52,7 +52,7 @@ bool FPCGExMovePivotElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

@@ -15,7 +15,7 @@ FPCGExWriteIndexContext::~FPCGExWriteIndexContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExWriteIndexElement::Boot(FPCGContext* InContext) const
+bool FPCGExWriteIndexElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -50,7 +50,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

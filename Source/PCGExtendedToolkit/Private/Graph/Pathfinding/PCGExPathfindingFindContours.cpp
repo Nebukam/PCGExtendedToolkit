@@ -258,7 +258,7 @@ FPCGExFindContoursContext::~FPCGExFindContoursContext()
 }
 
 
-bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
+bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -278,7 +278,7 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
 
-	Context->Paths = new PCGExData::FPointIOCollection();
+	Context->Paths = new PCGExData::FPointIOCollection(Context);
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	if (Settings->bOutputFilteredSeeds)
@@ -287,12 +287,12 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 		PCGEX_SET_NUM_UNINITIALIZED(Context->SeedQuality, NumSeeds)
 		for (bool& Quality : Context->SeedQuality) { Quality = false; }
 
-		Context->GoodSeeds = new PCGExData::FPointIO(SeedsPoints);
+		Context->GoodSeeds = new PCGExData::FPointIO(Context, SeedsPoints);
 		Context->GoodSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->GoodSeeds->DefaultOutputLabel = PCGExFindContours::OutputGoodSeedsLabel;
 		Context->GoodSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 
-		Context->BadSeeds = new PCGExData::FPointIO(SeedsPoints);
+		Context->BadSeeds = new PCGExData::FPointIO(Context, SeedsPoints);
 		Context->BadSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->BadSeeds->DefaultOutputLabel = PCGExFindContours::OutputBadSeedsLabel;
 		Context->BadSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
@@ -341,11 +341,11 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 			if (Context->SeedQuality[i]) { GoodSeeds.Add(InSeeds[i]); }
 			else { BadSeeds.Add(InSeeds[i]); }
 		}
-		Context->GoodSeeds->OutputTo(Context);
-		Context->BadSeeds->OutputTo(Context);
+		Context->GoodSeeds->OutputToContext();
+		Context->BadSeeds->OutputToContext();
 	}
 
-	Context->Paths->OutputTo(Context);
+	Context->Paths->OutputToContext();
 
 	return Context->TryComplete();
 }

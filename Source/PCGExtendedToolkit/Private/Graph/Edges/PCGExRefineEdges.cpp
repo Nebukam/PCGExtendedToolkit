@@ -36,7 +36,7 @@ FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
+bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -106,8 +106,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->OutputMainPoints(); }
-	else { Context->MainEdges->OutputTo(Context); }
+	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->MainPoints->OutputToContext(); }
+	else { Context->MainEdges->OutputToContext(); }
 
 	return Context->TryComplete();
 }

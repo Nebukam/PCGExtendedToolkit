@@ -41,7 +41,7 @@ FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
 }
 
 
-bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -49,7 +49,7 @@ bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
-	Context->OutputPaths = new PCGExData::FPointIOCollection();
+	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
 
 	PCGEX_FWD(bAddSeedToPath)
 	PCGEX_FWD(bAddGoalToPath)
@@ -94,7 +94,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsDone())
 	{
-		Context->OutputPaths->OutputTo(Context);
+		Context->OutputPaths->OutputToContext();
 	}
 
 	return Context->TryComplete();

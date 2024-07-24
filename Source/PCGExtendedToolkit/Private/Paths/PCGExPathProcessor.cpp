@@ -17,7 +17,7 @@ FPCGExPathProcessorContext::~FPCGExPathProcessorContext()
 
 PCGEX_INITIALIZE_CONTEXT(PathProcessor)
 
-bool FPCGExPathProcessorElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathProcessorElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 

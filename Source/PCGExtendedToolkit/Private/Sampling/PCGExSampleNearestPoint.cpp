@@ -46,7 +46,7 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 	}
 }
 
-bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
+bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -107,7 +107,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }
@@ -165,6 +165,11 @@ namespace PCGExSampleNearestPoints
 		StartParallelLoopForPoints();
 
 		return true;
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)

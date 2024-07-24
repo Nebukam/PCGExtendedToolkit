@@ -67,7 +67,7 @@ bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const PCGExData::FPointI
 	return true;
 }
 
-bool FPCGExCherryPickPointsElement::Boot(FPCGContext* InContext) const
+bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -115,7 +115,7 @@ bool FPCGExCherryPickPointsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

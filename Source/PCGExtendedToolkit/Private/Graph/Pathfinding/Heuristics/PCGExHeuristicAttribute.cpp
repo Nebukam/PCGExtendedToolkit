@@ -71,7 +71,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryAttribute::CreateOperation() cons
 	return NewOperation;
 }
 
-UPCGExParamFactoryBase* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGHeuristicsFactoryAttribute* NewFactory = NewObject<UPCGHeuristicsFactoryAttribute>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY

@@ -19,7 +19,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() cons
 	return NewOperation;
 }
 
-UPCGExParamFactoryBase* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGHeuristicsFactorySteepness* NewFactory = NewObject<UPCGHeuristicsFactorySteepness>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY

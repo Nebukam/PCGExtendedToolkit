@@ -30,7 +30,7 @@ FPCGExSplitPathContext::~FPCGExSplitPathContext()
 	PCGEX_DELETE(MainPaths)
 }
 
-bool FPCGExSplitPathElement::Boot(FPCGContext* InContext) const
+bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -45,7 +45,7 @@ bool FPCGExSplitPathElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	Context->MainPaths = new PCGExData::FPointIOCollection();
+	Context->MainPaths = new PCGExData::FPointIOCollection(Context);
 	Context->MainPaths->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
 	return true;
@@ -94,7 +94,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->MainPaths->Pairs.Reserve(Context->MainPaths->Pairs.Num() + Context->MainBatch->GetNumProcessors());
 	Context->MainBatch->Output();
 
-	Context->MainPaths->OutputTo(Context);
+	Context->MainPaths->OutputToContext();
 
 	return Context->TryComplete();
 }
@@ -219,7 +219,7 @@ namespace PCGExSplitPath
 
 		if (NumPathPoints == 1 && LocalSettings->bOmitSinglePointOutputs) { return; }
 
-		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(PointIO);
+		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(Context, PointIO);
 		PathIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		PathsIOs[Iteration] = PathIO;
 

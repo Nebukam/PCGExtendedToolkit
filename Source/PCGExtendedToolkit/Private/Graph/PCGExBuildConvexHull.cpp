@@ -26,7 +26,7 @@ TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() c
 
 PCGEX_INITIALIZE_ELEMENT(BuildConvexHull)
 
-bool FPCGExBuildConvexHullElement::Boot(FPCGContext* InContext) const
+bool FPCGExBuildConvexHullElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
@@ -78,7 +78,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }
@@ -179,7 +179,7 @@ namespace PCGExConvexHull
 			return;
 		}
 
-		GraphBuilder->Write(Context);
+		GraphBuilder->Write();
 		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
 	}
 }

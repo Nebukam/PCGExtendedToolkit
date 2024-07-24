@@ -28,7 +28,7 @@ FPCGExWriteVtxPropertiesContext::~FPCGExWriteVtxPropertiesContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExWriteVtxPropertiesElement::Boot(FPCGContext* InContext) const
+bool FPCGExWriteVtxPropertiesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 

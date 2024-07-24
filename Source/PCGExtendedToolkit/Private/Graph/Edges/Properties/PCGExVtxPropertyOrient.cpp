@@ -63,7 +63,7 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertyOrientFactory::CreateOperation() co
 	return NewOperation;
 }
 
-UPCGExParamFactoryBase* UPCGExVtxPropertyOrientSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExVtxPropertyOrientSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExVtxPropertyOrientFactory* NewFactory = NewObject<UPCGExVtxPropertyOrientFactory>();
 	NewFactory->Config = Config;

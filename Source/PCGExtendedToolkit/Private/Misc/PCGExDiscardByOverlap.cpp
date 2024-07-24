@@ -80,7 +80,7 @@ void UPCGExDiscardByOverlapSettings::PostEditChangeProperty(FPropertyChangedEven
 void FPCGExDiscardByOverlapContext::OutputFBounds(const PCGExPointsToBounds::FBounds* Bounds, const int32 RemoveAt)
 {
 	Bounds->PointIO->InitializeOutput(PCGExData::EInit::Forward);
-	Bounds->PointIO->OutputTo(this);
+	Bounds->PointIO->OutputToContext();
 	delete Bounds;
 
 	if (RemoveAt != -1) { IOBounds.RemoveAt(RemoveAt); }
@@ -99,7 +99,7 @@ void FPCGExDiscardByOverlapContext::RemoveFBounds(const PCGExPointsToBounds::FBo
 
 PCGEX_INITIALIZE_ELEMENT(DiscardByOverlap)
 
-bool FPCGExDiscardByOverlapElement::Boot(FPCGContext* InContext) const
+bool FPCGExDiscardByOverlapElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 

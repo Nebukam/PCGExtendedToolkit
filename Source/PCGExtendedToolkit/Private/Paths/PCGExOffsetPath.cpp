@@ -17,7 +17,7 @@ FPCGExOffsetPathContext::~FPCGExOffsetPathContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExOffsetPathElement::Boot(FPCGContext* InContext) const
+bool FPCGExOffsetPathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
@@ -66,7 +66,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->OutputMainPoints();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }

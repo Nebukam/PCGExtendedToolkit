@@ -12,7 +12,7 @@
 FString UPCGExFilterProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExParamFactoryBase* UPCGExFilterProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExFilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	if (UPCGExFilterFactoryBase* OutFilterFactory = static_cast<UPCGExFilterFactoryBase*>(InFactory)) { OutFilterFactory->Priority = Priority; }
 	return InFactory;

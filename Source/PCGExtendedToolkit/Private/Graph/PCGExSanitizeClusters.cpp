@@ -24,7 +24,7 @@ FPCGExSanitizeClustersContext::~FPCGExSanitizeClustersContext()
 
 PCGEX_INITIALIZE_ELEMENT(SanitizeClusters)
 
-bool FPCGExSanitizeClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExSanitizeClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
@@ -83,11 +83,11 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 				Builder->PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 				continue;
 			}
-			Builder->Write(Context);
+			Builder->Write();
 		}
 
 		Context->Done();
-		Context->OutputMainPoints();
+		Context->MainPoints->OutputToContext();
 	}
 
 	return Context->TryComplete();

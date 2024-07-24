@@ -183,8 +183,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	int32 ChunkSize = 0;
 	bool bDoAsyncProcessing = true;
 
-	void OutputMainPoints() { MainPoints->OutputTo(this); }
-
 #pragma region Async loops
 
 	template <class InitializeFunc, class LoopBodyFunc>
@@ -325,5 +323,5 @@ public:
 
 protected:
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
-	virtual bool Boot(FPCGContext* InContext) const;
+	virtual bool Boot(FPCGExContext* InContext) const;
 };

@@ -33,16 +33,16 @@ FPCGExUnpackClustersContext::~FPCGExUnpackClustersContext()
 }
 
 
-bool FPCGExUnpackClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExUnpackClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(UnpackClusters)
 
-	Context->OutPoints = new PCGExData::FPointIOCollection();
+	Context->OutPoints = new PCGExData::FPointIOCollection(Context);
 	Context->OutPoints->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
-	Context->OutEdges = new PCGExData::FPointIOCollection();
+	Context->OutEdges = new PCGExData::FPointIOCollection(Context);
 	Context->OutEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
 	return true;
@@ -71,8 +71,8 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->OutPoints->OutputTo(Context);
-		Context->OutEdges->OutputTo(Context);
+		Context->OutPoints->OutputToContext();
+		Context->OutEdges->OutputToContext();
 
 		Context->Done();
 	}

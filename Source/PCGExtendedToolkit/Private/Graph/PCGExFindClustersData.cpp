@@ -32,13 +32,13 @@ FPCGExFindClustersDataContext::~FPCGExFindClustersDataContext()
 	PCGEX_DELETE(MainEdges)
 }
 
-bool FPCGExFindClustersDataElement::Boot(FPCGContext* InContext) const
+bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindClustersData)
 
-	Context->MainEdges = new PCGExData::FPointIOCollection();
+	Context->MainEdges = new PCGExData::FPointIOCollection(Context);
 	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
 	return true;
@@ -156,8 +156,8 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_DELETE(InputDictionary)
 
-	Context->MainPoints->OutputTo(Context);
-	Context->MainEdges->OutputTo(Context);
+	Context->MainPoints->OutputToContext();
+	Context->MainEdges->OutputToContext();
 
 	Context->Done();
 

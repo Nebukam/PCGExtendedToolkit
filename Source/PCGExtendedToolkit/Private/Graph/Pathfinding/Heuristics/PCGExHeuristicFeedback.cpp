@@ -26,7 +26,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryFeedback::CreateOperation() const
 	return NewOperation;
 }
 
-UPCGExParamFactoryBase* UPCGExHeuristicFeedbackProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExHeuristicFeedbackProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGHeuristicsFactoryFeedback* NewFactory = NewObject<UPCGHeuristicsFactoryFeedback>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY

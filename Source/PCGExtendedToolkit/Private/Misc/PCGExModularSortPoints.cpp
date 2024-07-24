@@ -10,7 +10,7 @@
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
 
-UPCGExParamFactoryBase* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	UPCGExSortingRule* NewFactory = NewObject<UPCGExSortingRule>();
 	NewFactory->Priority = Priority;

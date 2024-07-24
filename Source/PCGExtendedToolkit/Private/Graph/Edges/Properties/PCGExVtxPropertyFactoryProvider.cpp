@@ -58,7 +58,7 @@ TArray<FPCGPinProperties> UPCGExVtxPropertyProviderSettings::InputPinProperties(
 	return PinProperties;
 }
 
-UPCGExParamFactoryBase* UPCGExVtxPropertyProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+UPCGExParamFactoryBase* UPCGExVtxPropertyProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
 	//UPCGExVtxPropertyFactoryBase* NewFactory = Cast<UPCGExVtxPropertyFactoryBase>(InFactory);
 	//SamplerFactory->Priority = Priority;
