@@ -129,12 +129,20 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
+	/** Sampling method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseTargetBoundsAsRange = false;
+
+	/** Sampling method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable, EditCondition="bUseTargetBoundsAsRange"))
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Bounds;
+	
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0, EditCondition="!bUseTargetBoundsAsRange", EditConditionHides, HideEditConditionToggle))
 	double RangeMin = 0;
 
 	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0, EditCondition="!bUseTargetBoundsAsRange", EditConditionHides, HideEditConditionToggle))
 	double RangeMax = 300;
 
 	/** Use a per-point minimum range*/
@@ -295,6 +303,10 @@ namespace PCGExSampleNearestPoints
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+
+		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
+		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Bounds;
+		
 		FPCGExSampleNearestPointContext* LocalTypedContext = nullptr;
 		const UPCGExSampleNearestPointSettings* LocalSettings = nullptr;
 
@@ -317,9 +329,12 @@ namespace PCGExSampleNearestPoints
 
 		virtual ~FProcessor() override;
 
+		void SamplingFailed(const int32 Index, FPCGPoint& Point) const;
+		
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
+		virtual void PrepareSingleLoopScopeForRange(const uint32 StartIndex, const int32 Count) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 	};
 }

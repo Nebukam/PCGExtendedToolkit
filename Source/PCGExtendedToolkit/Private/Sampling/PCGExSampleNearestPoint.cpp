@@ -119,6 +119,17 @@ namespace PCGExSampleNearestPoints
 		PCGEX_DELETE(Blender)
 	}
 
+	void FProcessor::SamplingFailed(const int32 Index, FPCGPoint& Point) const
+	{
+		const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Values[Index]) : LocalSettings->RangeMax;
+		PCGEX_OUTPUT_VALUE(Success, Index, false)
+		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
+		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
+		PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
+		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
+	}
+
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestPoints::Process);
@@ -126,8 +137,6 @@ namespace PCGExSampleNearestPoints
 
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
-
-		// TODO : Add Scoped Fetch
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -162,32 +171,17 @@ namespace PCGExSampleNearestPoints
 			if (!RangeMaxGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
 		}
 
-		StartParallelLoopForPoints();
+		if (!Settings->bUseTargetBoundsAsRange) { StartParallelLoopForRange(PointIO->GetNum()); }
+		else { StartParallelLoopForPoints(); }
 
 		return true;
 	}
 
-	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
-	{
-		PointDataFacade->Fetch(StartIndex, Count);
-	}
-
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		auto SamplingFailed = [&]()
-		{
-			const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Values[Index]) : LocalSettings->RangeMax;
-			PCGEX_OUTPUT_VALUE(Success, Index, false)
-			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
-			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
-			PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
-			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
-			PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
-		};
-
 		if (!PointFilterCache[Index])
 		{
-			SamplingFailed();
+			SamplingFailed(Index, Point);
 			return;
 		}
 
@@ -232,7 +226,6 @@ namespace PCGExSampleNearestPoints
 			}
 		};
 
-
 		auto OctreeCallback = [&](const FPCGPointRef& InPointRef)
 		{
 			const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
@@ -243,33 +236,28 @@ namespace PCGExSampleNearestPoints
 
 		if (RangeMax > 0)
 		{
-			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget)
+			const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
+			auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 			{
-				LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree().FindNearbyElements(SourceCenter, OctreeCallback);
-			}
-			else
-			{
-				const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
-				LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree().FindElementsWithBoundsTest(Box, OctreeCallback);
-			}
+				const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
+				if (!TargetPoints.IsValidIndex(PointIndex)) { return; }
+
+				ProcessTarget(PointIndex, TargetPoints[PointIndex]);
+			};
+
+			const UPCGPointData::PointOctree& Octree = LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree();
+			Octree.FindElementsWithBoundsTest(Box, ProcessNeighbor);
 		}
 		else
 		{
-			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget)
-			{
-				LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree().FindNearbyElements(SourceCenter, OctreeCallback);
-			}
-			else
-			{
-				TargetsInfos.Reserve(NumTargets);
-				for (int i = 0; i < NumTargets; i++) { ProcessTarget(i, TargetPoints[i]); }
-			}
+			TargetsInfos.Reserve(NumTargets);
+			for (int i = 0; i < NumTargets; i++) { ProcessTarget(i, TargetPoints[i]); }
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range
 		if (TargetsCompoundInfos.UpdateCount <= 0)
 		{
-			SamplingFailed();
+			SamplingFailed(Index, Point);
 			return;
 		}
 
@@ -356,6 +344,16 @@ namespace PCGExSampleNearestPoints
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForRange(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
+	{
+		FPointsProcessor::ProcessSingleRangeIteration(Iteration, LoopIdx, LoopCount);
 	}
 
 	void FProcessor::CompleteWork()
