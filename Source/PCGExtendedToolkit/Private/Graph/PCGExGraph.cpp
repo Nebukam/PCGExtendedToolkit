@@ -195,7 +195,11 @@ namespace PCGExGraph
 
 			while (Stack.Num() > 0)
 			{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
+				const int32 NextIndex = Stack.Pop(false);
+#else
 				const int32 NextIndex = Stack.Pop(EAllowShrinking::No);
+#endif
 				FNode& Node = Nodes[NextIndex];
 				Node.NumExportedEdges = 0;
 
