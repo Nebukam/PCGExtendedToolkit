@@ -10,6 +10,7 @@
 
 #define PCGEX_FOREACH_FIELD_PATH(MACRO)\
 MACRO(Dot, double)\
+MACRO(Angle, double)\
 MACRO(DistanceToNext, double)\
 MACRO(DistanceToPrev, double)\
 MACRO(DistanceToStart, double)\
@@ -100,6 +101,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, EditCondition="bWriteDot"))
 	FName DotAttributeName = FName("Dot");
 
+	/** Output Dot product of Prev/Next directions. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteAngle = false;
+
+	/** Name of the 'double' attribute to write angle to next point to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, EditCondition="bWriteAngle"))
+	FName AngleAttributeName = FName("Angle");
+	
+	/** Unit/range to output the angle to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle", EditConditionHides, HideEditConditionToggle))
+	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
+	
 	/** Output distance to next. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistanceToNext = false;
@@ -221,6 +234,8 @@ namespace PCGExWritePathProperties
 		TArray<FVector> Positions;
 		bool bClosedPath = false;
 		int32 LastIndex = 0;
+
+		const UPCGExWritePathPropertiesSettings* LocalSettings = nullptr;
 
 	public:
 		FProcessor(PCGExData::FPointIO* InPoints):

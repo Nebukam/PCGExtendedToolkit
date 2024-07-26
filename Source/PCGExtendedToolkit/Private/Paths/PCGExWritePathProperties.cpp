@@ -74,6 +74,8 @@ namespace PCGExWritePathProperties
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		LocalSettings = Settings;
+		
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_INIT)
@@ -108,7 +110,7 @@ namespace PCGExWritePathProperties
 
 		LastIndex = NumPoints - 1;
 		FVector PathCentroid = FVector::ZeroVector;
-
+		
 		PCGEX_OUTPUT_VALUE(DirectionToNext, 0, (Positions[0] - Positions[1]).GetSafeNormal());
 		PCGEX_OUTPUT_VALUE(DirectionToPrev, 0, (Positions[1] - Positions[0]).GetSafeNormal());
 		PCGEX_OUTPUT_VALUE(DistanceToStart, 0, 0);
@@ -180,7 +182,7 @@ namespace PCGExWritePathProperties
 
 		///
 
-		if (Settings->bWriteDot) { StartParallelLoopForPoints(); }
+		if (Settings->bWriteDot || Settings->bWriteAngle) { StartParallelLoopForPoints(); }
 
 		if (Sign != 0)
 		{
@@ -213,7 +215,8 @@ namespace PCGExWritePathProperties
 			Next = Positions[Index + 1];
 		}
 
-		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct((Prev - Loc).GetSafeNormal(), (Loc - Next).GetSafeNormal()));
+		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct((Prev - Loc).GetSafeNormal(), (Loc - Next).GetSafeNormal()));		
+		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, (Loc - Prev).GetSafeNormal(), (Loc - Next).GetSafeNormal()));
 	}
 
 	void FProcessor::CompleteWork()
