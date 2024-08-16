@@ -33,7 +33,7 @@ MACRO(X)\
 MACRO(Y)\
 MACRO(Z)
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
 enum class EPCGPinStatus : uint8
 {
 	Normal = 0,
@@ -42,7 +42,7 @@ enum class EPCGPinStatus : uint8
 };
 #endif
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
 MACRO(bool, Boolean, __VA_ARGS__)       \
 MACRO(int32, Integer32, __VA_ARGS__)      \
@@ -141,7 +141,7 @@ virtual FName AdditionalTaskName() const override{ return bCacheResult ? FName(F
 virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
 virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
 #define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ return _TASK_NAME.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString(GetDefaultNodeTitle().ToString() + "\r" + _TASK_NAME.ToString())); }\

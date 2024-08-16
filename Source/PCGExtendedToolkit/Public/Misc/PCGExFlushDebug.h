@@ -48,7 +48,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDebugContext final : public FPCGContext
 	bool bWait = true;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDebugElement final : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDebugElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

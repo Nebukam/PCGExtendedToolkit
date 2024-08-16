@@ -33,7 +33,7 @@ protected:
 	//~End UPCGSettings
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExForceGarbageCollectionElement final : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExForceGarbageCollectionElement final : public IPCGElement
 {
 public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }

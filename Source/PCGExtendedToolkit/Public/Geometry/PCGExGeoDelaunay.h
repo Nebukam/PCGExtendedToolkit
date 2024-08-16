@@ -169,8 +169,12 @@ namespace PCGExGeo
 
 			while (!Stack.IsEmpty())
 			{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
 				const int32 NextIndex = Stack.Pop(false);
-
+#else
+				const int32 NextIndex = Stack.Pop(EAllowShrinking::No);
+#endif
+				
 				bool bAlreadyProcessed;
 				OutMerged.Add(NextIndex, &bAlreadyProcessed);
 				if (bAlreadyProcessed) { continue; }
