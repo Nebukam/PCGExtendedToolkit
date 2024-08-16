@@ -87,6 +87,16 @@ public:
 
 namespace PCGEx
 {
+	static TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)
+	{
+		TArray<FString> Result;
+		InCommaSeparatedString.ParseIntoArray(Result, TEXT(","));
+		// Trim leading and trailing spaces
+		for (FString& String : Result) { String.TrimStartAndEndInline(); }
+
+		return Result;
+	}
+
 	static FPCGAttributePropertyInputSelector CopyAndFixLast(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, TArray<FString>& OutExtraNames)
 	{
 		//Copy, fix, and clear ExtraNames to support PCGEx custom selectors
