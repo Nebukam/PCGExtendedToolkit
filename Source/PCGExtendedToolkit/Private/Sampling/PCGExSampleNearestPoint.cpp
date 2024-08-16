@@ -78,6 +78,14 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
+	Context->TargetPoints = &Context->TargetsFacade->Source->GetIn()->GetPoints();
+	Context->NumTargets = Context->TargetPoints->Num();
+
+	if(!Settings->bUseTargetBoundsAsRange)
+	{
+		Context->TargetOctree = &Context->TargetsFacade->Source->GetIn()->GetOctree();
+	}
+
 	return true;
 }
 
@@ -171,7 +179,13 @@ namespace PCGExSampleNearestPoints
 			if (!RangeMaxGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
 		}
 
-		if (!Settings->bUseTargetBoundsAsRange) { StartParallelLoopForRange(PointIO->GetNum()); }
+		bSingleSample = (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget || LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget);
+
+		if (Settings->bUseTargetBoundsAsRange)
+		{
+			Cloud = LocalTypedContext->TargetsFacade->GetCloud(Settings->TargetBoundsSource);
+			StartParallelLoopForRange(PointIO->GetNum());
+		}
 		else { StartParallelLoopForPoints(); }
 
 		return true;
@@ -185,10 +199,6 @@ namespace PCGExSampleNearestPoints
 			return;
 		}
 
-		const bool bSingleSample = (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget || LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget);
-
-		const TArray<FPCGPoint>& TargetPoints = LocalTypedContext->TargetsFacade->Source->GetIn()->GetPoints();
-		const int32 NumTargets = TargetPoints.Num();
 		const FVector SourceCenter = Point.Transform.GetLocation();
 
 		double RangeMin = FMath::Pow(RangeMaxGetter ? RangeMinGetter->Values[Index] : LocalSettings->RangeMin, 2);
@@ -201,7 +211,7 @@ namespace PCGExSampleNearestPoints
 
 
 		PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
-		auto ProcessTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
+		auto SampleTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
 		{
 			//if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; } // TODO : Implement
 
@@ -226,32 +236,21 @@ namespace PCGExSampleNearestPoints
 			}
 		};
 
-		auto OctreeCallback = [&](const FPCGPointRef& InPointRef)
-		{
-			const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
-			if (!TargetPoints.IsValidIndex(PointIndex)) { return; }
-
-			ProcessTarget(PointIndex, TargetPoints[PointIndex]);
-		};
-
 		if (RangeMax > 0)
 		{
 			const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
 			auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 			{
-				const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
-				if (!TargetPoints.IsValidIndex(PointIndex)) { return; }
-
-				ProcessTarget(PointIndex, TargetPoints[PointIndex]);
+				const ptrdiff_t PointIndex = InPointRef.Point - LocalTypedContext->TargetPoints->GetData();
+				SampleTarget(PointIndex, *(LocalTypedContext->TargetPoints->GetData() + PointIndex));
 			};
-
-			const UPCGPointData::PointOctree& Octree = LocalTypedContext->TargetsFacade->Source->GetIn()->GetOctree();
-			Octree.FindElementsWithBoundsTest(Box, ProcessNeighbor);
+			
+			LocalTypedContext->TargetOctree->FindElementsWithBoundsTest(Box, ProcessNeighbor);
 		}
 		else
 		{
-			TargetsInfos.Reserve(NumTargets);
-			for (int i = 0; i < NumTargets; i++) { ProcessTarget(i, TargetPoints[i]); }
+			TargetsInfos.Reserve(LocalTypedContext->NumTargets);
+			for (int i = 0; i < LocalTypedContext->NumTargets; i++) { SampleTarget(i, *(LocalTypedContext->TargetPoints->GetData() + i)); }
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range
@@ -353,13 +352,151 @@ namespace PCGExSampleNearestPoints
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		FPointsProcessor::ProcessSingleRangeIteration(Iteration, LoopIdx, LoopCount);
+
+		FPCGPoint& Point = PointIO->GetMutablePoint(Iteration);
+		
+		if (!PointFilterCache[Iteration])
+		{
+			SamplingFailed(Iteration, Point);
+			return;
+		}
+
+		double RangeMin = FMath::Pow(RangeMaxGetter ? RangeMinGetter->Values[Iteration] : LocalSettings->RangeMin, 2);
+		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Values[Iteration] : LocalSettings->RangeMax, 2);
+
+		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
+
+		TArray<PCGExNearestPoint::FTargetInfos> TargetsInfos;
+		//TargetsInfos.Reserve(TypedContext->Targets->GetNum());
+
+
+		PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
+		PCGExGeo::FSample CurrentSample;
+		
+		const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Point.Transform.GetLocation(), PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
+		Cloud->GetOctree()->FindElementsWithBoundsTest(BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
+		{
+			NearbyBox->Sample(Point, CurrentSample);
+
+			FVector A;
+			FVector B;
+
+			LocalSettings->DistanceDetails.GetCenters(Point, LocalTypedContext->TargetsFacade->Source->GetInPoint(CurrentSample.BoxIndex), A, B);
+
+			const double Dist = FVector::DistSquared(A, B);
+
+			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
+
+			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
+				LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+			{
+				TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(CurrentSample.BoxIndex, Dist));
+			}
+			else
+			{
+				const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(CurrentSample.BoxIndex, Dist);
+				TargetsCompoundInfos.UpdateCompound(Infos);
+			}
+			
+		});
+
+		// Compound never got updated, meaning we couldn't find target in range
+		if (TargetsCompoundInfos.UpdateCount <= 0)
+		{
+			SamplingFailed(Iteration, Point);
+			return;
+		}
+
+		// Compute individual target weight
+		if (LocalSettings->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0)
+		{
+			// Reset compounded infos to full range
+			TargetsCompoundInfos.SampledRangeMin = RangeMin;
+			TargetsCompoundInfos.SampledRangeMax = RangeMax;
+			TargetsCompoundInfos.SampledRangeWidth = RangeMax - RangeMin;
+		}
+
+		FTransform WeightedTransform = FTransform::Identity;
+		WeightedTransform.SetScale3D(FVector::ZeroVector);
+		FVector WeightedUp = SafeUpVector;
+		if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Values[Iteration]; }
+
+		FVector WeightedSignAxis = FVector::Zero();
+		FVector WeightedAngleAxis = FVector::Zero();
+		double TotalWeight = 0;
+		double TotalSamples = 0;
+
+		auto ProcessTargetInfos = [&]
+			(const PCGExNearestPoint::FTargetInfos& TargetInfos, const double Weight)
+		{
+			const FPCGPoint& Target = LocalTypedContext->TargetsFacade->Source->GetInPoint(TargetInfos.Index);
+
+			const FTransform TargetTransform = Target.Transform;
+			const FQuat TargetRotation = TargetTransform.GetRotation();
+
+			WeightedTransform.SetRotation(WeightedTransform.GetRotation() + (TargetRotation * Weight));
+			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (TargetTransform.GetScale3D() * Weight));
+			WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (TargetTransform.GetLocation() * Weight));
+
+			if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Values[TargetInfos.Index] : SafeUpVector) * Weight; }
+
+			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, LocalSettings->SignAxis) * Weight;
+			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, LocalSettings->AngleAxis) * Weight;
+
+			TotalWeight += Weight;
+			TotalSamples++;
+
+			if (Blender) { Blender->Blend(Iteration, TargetInfos.Index, Iteration, Weight); }
+		};
+
+		if (Blender) { Blender->PrepareForBlending(Iteration, &Point); }
+
+		if (bSingleSample)
+		{
+			const PCGExNearestPoint::FTargetInfos& TargetInfos = LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
+			const double Weight = LocalTypedContext->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+			ProcessTargetInfos(TargetInfos, Weight);
+		}
+		else
+		{
+			for (PCGExNearestPoint::FTargetInfos& TargetInfos : TargetsInfos)
+			{
+				const double Weight = LocalTypedContext->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+				if (Weight == 0) { continue; }
+				ProcessTargetInfos(TargetInfos, Weight);
+			}
+		}
+
+		if (Blender) { Blender->CompleteBlending(Iteration, TotalSamples, TotalWeight); }
+
+		if (TotalWeight != 0) // Dodge NaN
+		{
+			WeightedUp /= TotalWeight;
+
+			WeightedTransform.SetRotation(WeightedTransform.GetRotation() / TotalWeight);
+			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() / TotalWeight);
+			WeightedTransform.SetLocation(WeightedTransform.GetLocation() / TotalWeight);
+		}
+
+		WeightedUp.Normalize();
+
+		FVector LookAt = (Point.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
+		const double WeightedDistance = FVector::Dist(Point.Transform.GetLocation(), WeightedTransform.GetLocation());
+
+		PCGEX_OUTPUT_VALUE(Success, Iteration, TargetsCompoundInfos.IsValid())
+		PCGEX_OUTPUT_VALUE(Transform, Iteration, WeightedTransform)
+		PCGEX_OUTPUT_VALUE(LookAtTransform, Iteration, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, LocalSettings->LookAtAxisAlign))
+		PCGEX_OUTPUT_VALUE(Distance, Iteration, WeightedDistance)
+		PCGEX_OUTPUT_VALUE(SignedDistance, Iteration, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
+		PCGEX_OUTPUT_VALUE(Angle, Iteration, PCGExSampling::GetAngle(LocalSettings->AngleRange, WeightedAngleAxis, LookAt))
+		PCGEX_OUTPUT_VALUE(NumSamples, Iteration, TotalSamples)
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
+
 }
 
 

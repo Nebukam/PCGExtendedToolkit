@@ -217,7 +217,7 @@ namespace PCGExGeo
 			return bContains || bIntersects;
 		}
 
-		FORCEINLINE void Sample(const FVector& Position, const EPCGExPointBoundsSource BoundsSource, FSample& OutSample) const
+		FORCEINLINE void Sample(const FVector& Position, FSample& OutSample) const
 		{
 			const FVector LocalPosition = Transform.InverseTransformPosition(Position);
 			OutSample.bIsInside = Box.IsInside(LocalPosition);
@@ -233,9 +233,9 @@ namespace PCGExGeo
 				(FMath::Clamp(FMath::Abs(OutSample.UVW.Z), 0, Extents.Z) / Extents.Z)) / 3);
 		}
 
-		FORCEINLINE void Sample(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource, FSample& OutSample) const
+		FORCEINLINE void Sample(const FPCGPoint& Point, FSample& OutSample) const
 		{
-			Sample(Point.Transform.GetLocation(), BoundsSource, OutSample);
+			Sample(Point.Transform.GetLocation(), OutSample);
 		}
 
 
@@ -398,6 +398,8 @@ namespace PCGExGeo
 			}
 		}
 
+		FORCEINLINE const PointBoxCloudOctree* GetOctree() const { return Octree; }
+
 		~FPointBoxCloud()
 		{
 			PCGEX_DELETE(Octree)
@@ -502,6 +504,19 @@ namespace PCGExGeo
 			const TArray<FPCGPoint>& Points = InPointData->GetPoints();
 
 			return false;
+		}
+
+		bool Sample(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource, TArray<FSample>& OutSample) const
+		{
+			const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Point.Transform.GetLocation(), PCGExMath::GetLocalBounds(Point, BoundsSource).GetExtent());
+			Octree->FindElementsWithBoundsTest(
+				BCAE, [&](const FPointBox* NearbyBox)
+				{
+					FSample& Sample = OutSample.Emplace_GetRef();
+					NearbyBox->Sample(Point, Sample);
+				});
+
+			return !OutSample.IsEmpty();
 		}
 	};
 }
