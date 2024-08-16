@@ -357,7 +357,6 @@ namespace PCGExPartitionByValues
 
 		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

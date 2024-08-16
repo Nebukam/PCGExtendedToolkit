@@ -108,11 +108,11 @@ public:
 	/** Name of the 'double' attribute to write angle to next point to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, EditCondition="bWriteAngle"))
 	FName AngleAttributeName = FName("Angle");
-	
+
 	/** Unit/range to output the angle to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle", EditConditionHides, HideEditConditionToggle))
 	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
-	
+
 	/** Output distance to next. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistanceToNext = false;

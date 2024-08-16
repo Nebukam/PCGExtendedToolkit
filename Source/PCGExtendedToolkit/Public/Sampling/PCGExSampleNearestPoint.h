@@ -128,7 +128,7 @@ public:
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
-	
+
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0, EditConditionHides, HideEditConditionToggle))
 	double RangeMin = 0;
@@ -298,9 +298,8 @@ namespace PCGExSampleNearestPoints
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-
 		bool bSingleSample = false;
-		
+
 		FPCGExSampleNearestPointContext* LocalTypedContext = nullptr;
 		const UPCGExSampleNearestPointSettings* LocalSettings = nullptr;
 
@@ -324,11 +323,10 @@ namespace PCGExSampleNearestPoints
 		virtual ~FProcessor() override;
 
 		void SamplingFailed(const int32 Index, FPCGPoint& Point) const;
-		
+
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
-
 	};
 }

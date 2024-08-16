@@ -202,7 +202,7 @@ namespace PCGExSampleNearestBounds
 
 				const double Dist = FVector::DistSquared(A, B);
 
-				if (CurrentSample.Weight > 1 || CurrentSample.Weight <= 0) { return; }
+				if (CurrentSample.Weight > 1 || CurrentSample.Weight <= 0 || !CurrentSample.bIsInside) { return; }
 
 				if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 					LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)

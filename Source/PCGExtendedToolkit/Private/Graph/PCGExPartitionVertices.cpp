@@ -144,7 +144,6 @@ namespace PCGExPartitionVertices
 
 		ForwardCluster(true);
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

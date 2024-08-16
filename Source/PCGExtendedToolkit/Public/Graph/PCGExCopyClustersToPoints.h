@@ -67,7 +67,7 @@ namespace PCGExCopyClusters
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		FPCGExCopyClustersToPointsContext* LocalTypedContext = nullptr;
-		
+
 	public:
 		TArray<PCGExData::FPointIO*>* VtxDupes = nullptr;
 		TArray<FString>* VtxTag = nullptr;
@@ -90,7 +90,7 @@ namespace PCGExCopyClusters
 		friend class FProcessor;
 
 		FPCGExCopyClustersToPointsContext* LocalTypedContext = nullptr;
-		
+
 	public:
 		TArray<PCGExData::FPointIO*> VtxDupes;
 		TArray<FString> VtxTag;

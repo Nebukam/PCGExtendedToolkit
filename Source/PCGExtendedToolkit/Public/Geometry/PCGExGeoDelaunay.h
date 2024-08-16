@@ -174,7 +174,7 @@ namespace PCGExGeo
 #else
 				const int32 NextIndex = Stack.Pop(EAllowShrinking::No);
 #endif
-				
+
 				bool bAlreadyProcessed;
 				OutMerged.Add(NextIndex, &bAlreadyProcessed);
 				if (bAlreadyProcessed) { continue; }
