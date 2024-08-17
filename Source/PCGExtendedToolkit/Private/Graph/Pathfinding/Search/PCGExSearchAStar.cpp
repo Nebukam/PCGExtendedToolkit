@@ -34,15 +34,15 @@ bool UPCGExSearchAStar::FindPath(
 	// Basic A* implementation TODO:Optimize
 
 	TSet<int32> Visited;
-	TArray<uint64> Previous;
+	TArray<uint64> TravelStack;
 	TArray<double> GScore;
 
 	GScore.SetNum(NumNodes);
-	Previous.SetNum(NumNodes);
+	TravelStack.SetNum(NumNodes);
 	for (int i = 0; i < NumNodes; i++)
 	{
 		GScore[i] = -1;
-		Previous[i] = PCGEx::NH64(-1, -1);
+		TravelStack[i] = PCGEx::NH64(-1, -1);
 	}
 
 	double MinGScore = TNumericLimits<double>::Max();
@@ -85,13 +85,13 @@ bool UPCGExSearchAStar::FindPath(
 			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 
-			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback);
+			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback, &TravelStack);
 			const double TentativeGScore = CurrentGScore + EScore;
 
 			const double PreviousGScore = GScore[NeighborIndex];
 			if (PreviousGScore != -1 && TentativeGScore >= PreviousGScore) { continue; }
 
-			Previous[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
+			TravelStack[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
 			GScore[NeighborIndex] = TentativeGScore;
 
 			const double GS = PCGExMath::Remap(Heuristics->GetGlobalScore(AdjacentNode, SeedNode, GoalNode), MinGScore, MaxGScore, 0, 1);
@@ -101,7 +101,7 @@ bool UPCGExSearchAStar::FindPath(
 		}
 	}
 
-	uint64 PathHash = Previous[GoalNode.NodeIndex];
+	uint64 PathHash = TravelStack[GoalNode.NodeIndex];
 	int32 PathNodeIndex;
 	int32 PathEdgeIndex;
 	PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
@@ -133,7 +133,7 @@ bool UPCGExSearchAStar::FindPath(
 			const int32 CurrentIndex = PathNodeIndex;
 			Path.Add(CurrentIndex);
 
-			PathHash = Previous[PathNodeIndex];
+			PathHash = TravelStack[PathNodeIndex];
 			PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
 
 			const PCGExCluster::FNode& N = NodesRef[CurrentIndex];
@@ -155,7 +155,7 @@ bool UPCGExSearchAStar::FindPath(
 	}
 
 	PCGEX_DELETE(ScoredQueue)
-	Previous.Empty();
+	TravelStack.Empty();
 	GScore.Empty();
 
 	return bSuccess;

@@ -40,16 +40,16 @@ bool UPCGExSearchDijkstra::FindPath(
 	// Basic Dijkstra implementation
 
 	TSet<int32> Visited;
-	TArray<uint64> Previous;
+	TArray<uint64> TravelStack;
 
 	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(
 		NumNodes, SeedNode.NodeIndex, 0);
 
-	Previous.SetNumUninitialized(NumNodes);
+	TravelStack.SetNumUninitialized(NumNodes);
 	for (int i = 0; i < NumNodes; i++)
 	{
 		ScoredQueue->Scores[i] = -1;
-		Previous[i] = PCGEx::NH64(-1, -1);
+		TravelStack[i] = PCGEx::NH64(-1, -1);
 	}
 
 	ScoredQueue->Scores[SeedNode.NodeIndex] = 0;
@@ -77,18 +77,18 @@ bool UPCGExSearchDijkstra::FindPath(
 			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 
-			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback);
+			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback, &TravelStack);
 			const double PreviousScore = ScoredQueue->Scores[NeighborIndex];
 			if (PreviousScore != -1 && AltScore >= PreviousScore) { continue; }
 
 			ScoredQueue->Enqueue(NeighborIndex, AltScore);
-			Previous[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
+			TravelStack[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
 		}
 	}
 
 	TArray<int32> Path;
 
-	uint64 PathHash = Previous[GoalNode.NodeIndex];
+	uint64 PathHash = TravelStack[GoalNode.NodeIndex];
 	int32 PathNodeIndex;
 	int32 PathEdgeIndex;
 	PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
@@ -114,7 +114,7 @@ bool UPCGExSearchDijkstra::FindPath(
 		const int32 CurrentIndex = PathNodeIndex;
 		Path.Add(CurrentIndex);
 
-		PathHash = Previous[PathNodeIndex];
+		PathHash = TravelStack[PathNodeIndex];
 		PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
 
 		const PCGExCluster::FNode& N = NodesRef[CurrentIndex];
@@ -136,7 +136,7 @@ bool UPCGExSearchDijkstra::FindPath(
 	OutPath.Append(Path);
 
 	Visited.Empty();
-	Previous.Empty();
+	TravelStack.Empty();
 	PCGEX_DELETE(ScoredQueue)
 
 	return true;

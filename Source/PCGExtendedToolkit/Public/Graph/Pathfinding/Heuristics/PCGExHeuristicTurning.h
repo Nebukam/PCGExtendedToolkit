@@ -4,18 +4,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Graph/PCGExCluster.h"
+#include "PCGExHeuristicsFactoryProvider.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
-#include "PCGExHeuristicsFactoryProvider.h"
-#include "PCGExHeuristicDistance.generated.h"
+#include "Graph/PCGExCluster.h"
+#include "PCGExHeuristicTurning.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigShortestDistance : public FPCGExHeuristicConfigBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigTurning : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigShortestDistance() :
+	FPCGExHeuristicConfigTurning() :
 		FPCGExHeuristicConfigBase()
 	{
 	}
@@ -24,8 +24,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigShortestDistance : public FPC
 /**
  * 
  */
-UCLASS(DisplayName = "Shortest Distance")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDistance : public UPCGExHeuristicOperation
+UCLASS(DisplayName = "Turning")
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicTurning : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
@@ -37,7 +37,9 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override
 	{
-		return SampleCurve(Cluster->GetDistSquared(From, Goal) / MaxDistSquared) * ReferenceWeight;
+		const FVector Dir = Cluster->GetDir(Seed, Goal);
+		const double Dot = FVector::DotProduct(Dir, Cluster->GetDir(From, Goal)) * -1;
+		return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
 	}
 
 	FORCEINLINE virtual double GetEdgeScore(
@@ -48,28 +50,30 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const TArray<uint64>* TravelStack) const override
 	{
-		return SampleCurve((*Cluster->EdgeLengths)[Edge.EdgeIndex]) * ReferenceWeight;
+		const double Dot = (FVector::DotProduct(Cluster->GetDir(From, To), Cluster->GetDir(From, Goal)) * -1);
+		return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
 	}
 
 protected:
-	double MaxDistSquared = 0;
+	double OutMin = 0;
+	double OutMax = 1;
 };
 
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryShortestDistance : public UPCGExHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryTurning : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicConfigShortestDistance Config;
+	FPCGExHeuristicConfigTurning Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsShortestDistanceProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsTurningProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -77,16 +81,17 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsDistance, "Heuristics : Shortest Distance", "Heuristics based on distance.",
+		HeuristicsTurning, "Heuristics : Turning", "Heuristics based on turning/steering from last visited node.\n NOTE: Very expensive!",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicConfigShortestDistance Config;
+	FPCGExHeuristicConfigTurning Config;
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

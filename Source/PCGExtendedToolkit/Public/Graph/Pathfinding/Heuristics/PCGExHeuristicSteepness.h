@@ -37,7 +37,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicSteepness : public UPCGExHeuristicOp
 {
 	GENERATED_BODY()
 
-	friend class UPCGHeuristicsFactorySteepness;
+	friend class UPCGExHeuristicsFactorySteepness;
 
 public:
 	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
@@ -55,7 +55,8 @@ public:
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
+		const PCGExCluster::FNode& Goal,
+		const TArray<uint64>* TravelStack) const override
 	{
 		return SampleCurve(GetDot(Cluster->GetPos(From), Cluster->GetPos(To))) * ReferenceWeight;
 	}
@@ -72,7 +73,7 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactorySteepness : public UPCGExHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactorySteepness : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 

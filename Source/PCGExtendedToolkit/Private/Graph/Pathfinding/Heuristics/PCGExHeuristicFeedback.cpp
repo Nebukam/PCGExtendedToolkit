@@ -17,7 +17,7 @@ void UPCGExHeuristicFeedback::Cleanup()
 	Super::Cleanup();
 }
 
-UPCGExHeuristicOperation* UPCGHeuristicsFactoryFeedback::CreateOperation() const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactoryFeedback::CreateOperation() const
 {
 	PCGEX_NEW_TRANSIENT(UPCGExHeuristicFeedback, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
@@ -28,7 +28,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryFeedback::CreateOperation() const
 
 UPCGExParamFactoryBase* UPCGExHeuristicFeedbackProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGHeuristicsFactoryFeedback* NewFactory = NewObject<UPCGHeuristicsFactoryFeedback>();
+	UPCGExHeuristicsFactoryFeedback* NewFactory = NewObject<UPCGExHeuristicsFactoryFeedback>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
 	return Super::CreateFactory(InContext, NewFactory);
 }

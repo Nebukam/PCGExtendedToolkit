@@ -47,7 +47,8 @@ public:
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
+		const PCGExCluster::FNode& Goal,
+		const TArray<uint64>* TravelStack) const override
 	{
 		const double Dot = (FVector::DotProduct(Cluster->GetDir(From, To), Cluster->GetDir(From, Goal)) * -1);
 		return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
@@ -61,7 +62,7 @@ protected:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryDirection : public UPCGExHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryDirection : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 

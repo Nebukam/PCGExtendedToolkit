@@ -43,7 +43,7 @@ namespace PCGExHeuristics
 		{
 			UPCGExHeuristicOperation* Operation = nullptr;
 
-			if (const UPCGHeuristicsFactoryFeedback* FeedbackFactory = Cast<UPCGHeuristicsFactoryFeedback>(OperationFactory))
+			if (const UPCGExHeuristicsFactoryFeedback* FeedbackFactory = Cast<UPCGExHeuristicsFactoryFeedback>(OperationFactory))
 			{
 				if (!FeedbackFactory->IsGlobal())
 				{

@@ -18,7 +18,7 @@ void UPCGExHeuristicDirection::PrepareForCluster(const PCGExCluster::FCluster* I
 	Super::PrepareForCluster(InCluster);
 }
 
-UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactoryDirection::CreateOperation() const
 {
 	PCGEX_NEW_TRANSIENT(UPCGExHeuristicDirection, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
@@ -27,7 +27,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() cons
 
 UPCGExParamFactoryBase* UPCGExHeuristicsDirectionProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGHeuristicsFactoryDirection* NewFactory = NewObject<UPCGHeuristicsFactoryDirection>();
+	UPCGExHeuristicsFactoryDirection* NewFactory = NewObject<UPCGExHeuristicsFactoryDirection>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
 	return Super::CreateFactory(InContext, NewFactory);
 }

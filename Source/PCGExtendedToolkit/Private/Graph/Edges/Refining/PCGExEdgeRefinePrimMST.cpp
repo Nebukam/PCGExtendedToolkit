@@ -18,13 +18,13 @@ void UPCGExEdgeRefinePrimMST::Process()
 
 	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(NumNodes, 0, 0);
 
-	TArray<uint64> Parent;
-	Parent.SetNum(NumNodes);
+	TArray<uint64> TravelStack;
+	TravelStack.SetNum(NumNodes);
 
 	for (int i = 0; i < NumNodes; i++)
 	{
 		ScoredQueue->Scores[i] = TNumericLimits<double>::Max();
-		Parent[i] = 0;
+		TravelStack[i] = 0;
 	}
 
 	ScoredQueue->Scores[0] = 0;
@@ -47,12 +47,12 @@ void UPCGExEdgeRefinePrimMST::Process()
 			const PCGExCluster::FNode& AdjacentNode = *(Cluster->Nodes->GetData() + NeighborIndex);
 			PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + EdgeIndex);
 
-			const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
+			const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode, nullptr, &TravelStack);
 
 			if (Score >= ScoredQueue->Scores[NeighborIndex]) { continue; }
 
 			ScoredQueue->Scores[NeighborIndex] = Score;
-			Parent[NeighborIndex] = PCGEx::H64(CurrentNodeIndex, EdgeIndex);
+			TravelStack[NeighborIndex] = PCGEx::H64(CurrentNodeIndex, EdgeIndex);
 
 			ScoredQueue->Enqueue(NeighborIndex, Score);
 		}
@@ -63,7 +63,7 @@ void UPCGExEdgeRefinePrimMST::Process()
 		uint32 NeighborIndex;
 		uint32 EdgeIndex;
 
-		PCGEx::H64(Parent[i], NeighborIndex, EdgeIndex);
+		PCGEx::H64(TravelStack[i], NeighborIndex, EdgeIndex);
 
 		if (NeighborIndex == i) { continue; }
 
@@ -71,7 +71,7 @@ void UPCGExEdgeRefinePrimMST::Process()
 	}
 
 	Visited.Empty();
-	Parent.Empty();
+	TravelStack.Empty();
 	PCGEX_DELETE(ScoredQueue)
 	PCGEX_DELETE(NoNode)
 }

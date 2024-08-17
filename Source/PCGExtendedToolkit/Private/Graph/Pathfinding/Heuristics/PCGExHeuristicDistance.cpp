@@ -10,7 +10,7 @@ void UPCGExHeuristicDistance::PrepareForCluster(const PCGExCluster::FCluster* In
 	MaxDistSquared = FVector::DistSquared(InCluster->Bounds.Min, InCluster->Bounds.Max);
 }
 
-UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation() const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactoryShortestDistance::CreateOperation() const
 {
 	PCGEX_NEW_TRANSIENT(UPCGExHeuristicDistance, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
@@ -19,7 +19,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation
 
 UPCGExParamFactoryBase* UPCGExHeuristicsShortestDistanceProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGHeuristicsFactoryShortestDistance* NewFactory = NewObject<UPCGHeuristicsFactoryShortestDistance>();
+	UPCGExHeuristicsFactoryShortestDistance* NewFactory = NewObject<UPCGExHeuristicsFactoryShortestDistance>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
 	return Super::CreateFactory(InContext, NewFactory);
 }

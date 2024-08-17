@@ -63,7 +63,7 @@ void UPCGExHeuristicAttribute::Cleanup()
 	Super::Cleanup();
 }
 
-UPCGExHeuristicOperation* UPCGHeuristicsFactoryAttribute::CreateOperation() const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAttribute::CreateOperation() const
 {
 	PCGEX_NEW_TRANSIENT(UPCGExHeuristicAttribute, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
@@ -73,7 +73,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryAttribute::CreateOperation() cons
 
 UPCGExParamFactoryBase* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGHeuristicsFactoryAttribute* NewFactory = NewObject<UPCGHeuristicsFactoryAttribute>();
+	UPCGExHeuristicsFactoryAttribute* NewFactory = NewObject<UPCGExHeuristicsFactoryAttribute>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
 	return Super::CreateFactory(InContext, NewFactory);
 }

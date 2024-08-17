@@ -58,7 +58,8 @@ public:
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
+		const PCGExCluster::FNode& Goal,
+		const TArray<uint64>* TravelStack) const override
 	{
 		return CachedScores[Source == EPCGExGraphValueSource::Edge ? Edge.PointIndex : To.NodeIndex];
 	}
@@ -75,7 +76,7 @@ protected:
 
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryAttribute : public UPCGExHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryAttribute : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
