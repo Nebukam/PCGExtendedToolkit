@@ -29,6 +29,17 @@ TArray<FPCGPinProperties> UPCGExForceGarbageCollectionSettings::OutputPinPropert
 
 FPCGElementPtr UPCGExForceGarbageCollectionSettings::CreateElement() const { return MakeShared<FPCGExForceGarbageCollectionElement>(); }
 
+FPCGContext* FPCGExForceGarbageCollectionElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+{
+	FPCGContext* Context = new FPCGContext();
+
+	Context->InputData = InputData;
+	Context->SourceComponent = SourceComponent;
+	Context->Node = Node;
+
+	return Context;
+}
+
 bool FPCGExForceGarbageCollectionElement::ExecuteInternal(FPCGContext* Context) const
 {
 	GEngine->ForceGarbageCollection();

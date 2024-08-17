@@ -36,6 +36,7 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExForceGarbageCollectionElement final : public IPCGElement
 {
 public:
+	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
 protected:
