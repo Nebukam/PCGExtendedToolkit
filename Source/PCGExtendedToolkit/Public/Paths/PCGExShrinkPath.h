@@ -10,8 +10,6 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExShrinkPath.generated.h"
 
-class UPCGExEdgeRefineOperation;
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Mode"))
 enum class EPCGExPathShrinkMode : uint8
 {
@@ -202,6 +200,5 @@ namespace PCGExShrinkPath
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 
-		UPCGExEdgeRefineOperation* Refinement = nullptr;
 	};
 }

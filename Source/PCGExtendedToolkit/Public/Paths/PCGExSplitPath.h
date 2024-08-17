@@ -10,8 +10,6 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExSplitPath.generated.h"
 
-class UPCGExEdgeRefineOperation;
-
 namespace PCGExSplitPath
 {
 	const FName SourceSplitFilters = TEXT("SplitConditions");
