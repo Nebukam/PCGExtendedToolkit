@@ -161,7 +161,7 @@ namespace PCGExSampleNearestBounds
 			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookAtUp is invalid.")); }
 		}
 
-		bSingleSample = (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget || LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget);
+		bSingleSample = LocalSettings->SampleMethod != EPCGExBoundsSampleMethod::WithinRange;
 
 		Cloud = LocalTypedContext->BoundsFacade->GetCloud(Settings->BoundsSource);
 		StartParallelLoopForPoints();
@@ -194,24 +194,17 @@ namespace PCGExSampleNearestBounds
 			BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
 			{
 				NearbyBox->Sample(Point, CurrentSample);
+				CurrentSample.Weight = LocalTypedContext->WeightCurve->GetFloatValue(CurrentSample.Weight);
 
-				const double Dist = CurrentSample.Distances.Length();
+				if (!CurrentSample.bIsInside) { return; }
 
-				if (CurrentSample.Weight > 1 || CurrentSample.Weight <= 0 || !CurrentSample.bIsInside) { return; }
-
-				if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
-					LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+				if (bSingleSample)
 				{
-					TargetsCompoundInfos.UpdateCompound(
-						PCGExNearestBounds::FTargetInfos(
-							CurrentSample.BoxIndex, Dist,
-							LocalTypedContext->WeightCurve->GetFloatValue(CurrentSample.Weight)));
+					TargetsCompoundInfos.UpdateCompound(PCGExNearestBounds::FTargetInfos(CurrentSample, NearbyBox->Len));
 				}
 				else
 				{
-					const PCGExNearestBounds::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(
-						CurrentSample.BoxIndex, Dist,
-						LocalTypedContext->WeightCurve->GetFloatValue(CurrentSample.Weight));
+					const PCGExNearestBounds::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(CurrentSample, NearbyBox->Len);
 					TargetsCompoundInfos.UpdateCompound(Infos);
 				}
 			});
@@ -261,8 +254,25 @@ namespace PCGExSampleNearestBounds
 
 		if (bSingleSample)
 		{
-			const PCGExNearestBounds::FTargetInfos& TargetInfos = LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
-			ProcessTargetInfos(TargetInfos);
+			switch (LocalSettings->SampleMethod)
+			{
+			default: ;
+			case EPCGExBoundsSampleMethod::WithinRange:
+				// Ignore
+				break;
+			case EPCGExBoundsSampleMethod::ClosestBounds:
+				ProcessTargetInfos(TargetsCompoundInfos.Closest);
+				break;
+			case EPCGExBoundsSampleMethod::FarthestBounds:
+				ProcessTargetInfos(TargetsCompoundInfos.Farthest);
+				break;
+			case EPCGExBoundsSampleMethod::LargestBounds:
+				ProcessTargetInfos(TargetsCompoundInfos.Largest);
+				break;
+			case EPCGExBoundsSampleMethod::SmallestBounds:
+				ProcessTargetInfos(TargetsCompoundInfos.Smallest);
+				break;
+			}
 		}
 		else
 		{

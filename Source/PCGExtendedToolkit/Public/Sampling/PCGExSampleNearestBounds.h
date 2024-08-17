@@ -22,6 +22,16 @@ MACRO(SignedDistance, double)\
 MACRO(Angle, double)\
 MACRO(NumSamples, int32)
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))
+enum class EPCGExBoundsSampleMethod : uint8
+{
+	WithinRange UMETA(DisplayName = "All", ToolTip="Process all overlapping bounds"),
+	ClosestBounds UMETA(DisplayName = "Closest Bounds", ToolTip="Picks & process the closest bounds only"),
+	FarthestBounds UMETA(DisplayName = "Farthest Bounds", ToolTip="Picks & process the farthest bounds only"),
+	LargestBounds UMETA(DisplayName = "Largest Bounds", ToolTip="Picks & process the largest bounds only (extents length)"),
+	SmallestBounds UMETA(DisplayName = "Smallest Bounds", ToolTip="Picks & process the smallest bounds only (extents length)"),
+};
+
 namespace PCGExDataBlending
 {
 	class FMetadataBlender;
@@ -44,17 +54,16 @@ namespace PCGExNearestBounds
 		{
 		}
 
-		FTargetInfos(const int32 InIndex, const double InDistance):
-			Index(InIndex), Distance(InDistance)
-		{
-		}
-
-		FTargetInfos(const int32 InIndex, const double InDistance, const double InWeight):
-			Index(InIndex), Distance(InDistance), Weight(InWeight)
+		FTargetInfos(const PCGExGeo::FSample& InSample, const double InLength):
+			Index(InSample.BoxIndex),
+			Length(InLength),
+			Distance(InSample.Distances.Length()),
+			Weight(InSample.Weight)
 		{
 		}
 
 		int32 Index = -1;
+		double Length = 0;
 		double Distance = 0;
 		double Weight = 0;
 	};
@@ -69,10 +78,14 @@ namespace PCGExNearestBounds
 		double TotalWeight = 0;
 		double SampledRangeMin = TNumericLimits<double>::Max();
 		double SampledRangeMax = 0;
+		double SampledLengthMin = TNumericLimits<double>::Max();
+		double SampledLengthMax = 0;
 		int32 UpdateCount = 0;
 
 		FTargetInfos Closest;
 		FTargetInfos Farthest;
+		FTargetInfos Largest;
+		FTargetInfos Smallest;
 
 		FORCEINLINE void UpdateCompound(const FTargetInfos& Infos)
 		{
@@ -83,11 +96,21 @@ namespace PCGExNearestBounds
 				Closest = Infos;
 				SampledRangeMin = Infos.Distance;
 			}
-
-			if (Infos.Distance > SampledRangeMax)
+			else if (Infos.Distance > SampledRangeMax)
 			{
 				Farthest = Infos;
 				SampledRangeMax = Infos.Distance;
+			}
+
+			if (Infos.Length > SampledLengthMax)
+			{
+				Largest = Infos;
+				SampledLengthMax = Infos.Length;
+			}
+			else if (Infos.Length < SampledLengthMin)
+			{
+				Smallest = Infos;
+				SampledLengthMin = Infos.Length;
 			}
 		}
 
@@ -125,7 +148,7 @@ public:
 public:
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
+	EPCGExBoundsSampleMethod SampleMethod = EPCGExBoundsSampleMethod::WithinRange;
 
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_NotOverridable))

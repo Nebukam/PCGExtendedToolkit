@@ -3,7 +3,6 @@
 
 #include "Sampling/PCGExSampleNearestPoint.h"
 
-#include "PCGExFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/PCGExCluster.h"
@@ -176,7 +175,7 @@ namespace PCGExSampleNearestPoints
 			if (!RangeMaxGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
 		}
 
-		bSingleSample = (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget || LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget);
+		bSingleSample = LocalSettings->SampleMethod != EPCGExSampleMethod::WithinRange;
 
 		StartParallelLoopForPoints();
 
@@ -221,8 +220,7 @@ namespace PCGExSampleNearestPoints
 
 			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
 
-			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
-				LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+			if (bSingleSample)
 			{
 				TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(PointIndex, Dist));
 			}
