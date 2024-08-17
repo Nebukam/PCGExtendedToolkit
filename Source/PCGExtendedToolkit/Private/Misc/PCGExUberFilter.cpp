@@ -118,7 +118,6 @@ namespace PCGExUberFilter
 {
 	FProcessor::~FProcessor()
 	{
-		
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -213,7 +212,6 @@ namespace PCGExUberFilter
 			else { OutsidePoints[Indices[i]] = OriginalPoints[i]; }
 		}
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -67,7 +67,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsContext final : public F
 
 	PCGExData::FPointIOCollection* Paths = nullptr;
 	TArray<PCGExCluster::FNodeChain*> Chains;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsElement final : public FPCGExEdgesProcessorElement

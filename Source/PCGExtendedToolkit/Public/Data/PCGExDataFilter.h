@@ -72,7 +72,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 
 	void Init()
 	{
-		const TArray<FString> Names = PCGHelpers::GetStringArrayFromCommaSeparatedString(CommaSeparatedNames);
+		const TArray<FString> Names = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
 		for (const FString& Name : Names) { Matches.Add(Name, CommaSeparatedNameFilter); }
 	}
 

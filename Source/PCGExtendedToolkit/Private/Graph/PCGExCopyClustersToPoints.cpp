@@ -171,6 +171,5 @@ namespace PCGExCopyClusters
 		ClusterProcessor->VtxTag = &VtxTag;
 		return true;
 	}
-
 }
 #undef LOCTEXT_NAMESPACE

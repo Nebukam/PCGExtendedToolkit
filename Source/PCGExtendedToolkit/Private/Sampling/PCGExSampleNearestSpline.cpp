@@ -172,7 +172,6 @@ namespace PCGExSampleNearestSpline
 			PCGEX_OUTPUT_VALUE(Time, Index, -1)
 			PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
 			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
-
 		};
 
 		if (!PointFilterCache[Index])

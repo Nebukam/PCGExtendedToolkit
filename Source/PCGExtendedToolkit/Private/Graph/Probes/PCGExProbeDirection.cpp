@@ -124,7 +124,7 @@ void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 	else
 	{
 		Dot = FVector::DotProduct(Dir, Candidate.Direction);
-		if (Dot < MaxDot) { return;; }
+		if (Dot < MaxDot) { return; }
 	}
 
 	if (bUseBestDot)

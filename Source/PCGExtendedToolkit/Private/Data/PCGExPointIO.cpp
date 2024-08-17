@@ -218,7 +218,7 @@ namespace PCGExData
 
 #pragma region FPointIOCollection
 
-	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext):Context(InContext)
+	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext): Context(InContext)
 	{
 	}
 

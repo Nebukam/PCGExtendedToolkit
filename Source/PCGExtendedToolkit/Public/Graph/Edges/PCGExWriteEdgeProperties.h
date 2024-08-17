@@ -241,9 +241,8 @@ namespace PCGExWriteEdgeProperties
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-
 		const UPCGExWriteEdgePropertiesSettings* LocalSettings = nullptr;
-		
+
 		bool bAscendingDesired = true;
 		double StartWeight = 0;
 		double EndWeight = 1;
