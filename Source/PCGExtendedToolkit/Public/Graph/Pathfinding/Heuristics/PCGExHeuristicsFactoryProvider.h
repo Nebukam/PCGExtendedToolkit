@@ -37,7 +37,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	double WeightFactor = 1;
 
-	/** Invert the heuristics so it looks away from the target instead of towards it. */
+	/** Invert the final heuristics score. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	bool bInvert = false;
 
