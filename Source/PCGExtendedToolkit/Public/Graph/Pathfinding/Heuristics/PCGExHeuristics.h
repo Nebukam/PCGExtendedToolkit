@@ -60,10 +60,11 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& To,
 			const PCGExGraph::FIndexedEdge& Edge,
 			const PCGExCluster::FNode& Seed,
-			const PCGExCluster::FNode& Goal) const
+			const PCGExCluster::FNode& Goal,
+			const TArray<uint64>* TravelStack = nullptr) const
 		{
 			double EScore = 0;
-			for (const UPCGExHeuristicFeedback* Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal); }
+			for (const UPCGExHeuristicFeedback* Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
 			return EScore;
 		}
 
@@ -123,24 +124,25 @@ namespace PCGExHeuristics
 			const PCGExGraph::FIndexedEdge& Edge,
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
-			const FLocalFeedbackHandler* LocalFeedback = nullptr) const
+			const FLocalFeedbackHandler* LocalFeedback = nullptr,
+			const TArray<uint64>* TravelStack = nullptr) const
 		{
 			//TODO : Account for custom weight here
 			double EScore = 0;
 			if (!bUseDynamicWeight)
 			{
-				for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal); }
-				if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
+				for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack); }
+				if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
 				return EScore / TotalStaticWeight;
 			}
 
 			double DynamicWeight = 0;
 			for (const UPCGExHeuristicOperation* Op : Operations)
 			{
-				EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal);
+				EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack);
 				DynamicWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.NodeIndex, Edge.PointIndex));
 			}
-			if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (DynamicWeight + LocalFeedback->TotalWeight); }
+			if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal, TravelStack)) / (DynamicWeight + LocalFeedback->TotalWeight); }
 			return EScore / DynamicWeight;
 		}
 

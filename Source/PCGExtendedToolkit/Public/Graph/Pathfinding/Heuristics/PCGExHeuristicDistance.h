@@ -45,7 +45,8 @@ public:
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
+		const PCGExCluster::FNode& Goal,
+		const TArray<uint64>* TravelStack) const override
 	{
 		return SampleCurve((*Cluster->EdgeLengths)[Edge.EdgeIndex]) * ReferenceWeight;
 	}
@@ -57,7 +58,7 @@ protected:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryShortestDistance : public UPCGExHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryShortestDistance : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 

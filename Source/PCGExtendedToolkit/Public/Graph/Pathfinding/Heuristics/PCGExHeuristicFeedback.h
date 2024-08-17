@@ -67,7 +67,8 @@ public:
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
+		const PCGExCluster::FNode& Goal,
+		const TArray<uint64>* TravelStack) const override
 	{
 		const double* NodePtr = NodeExtraWeight.Find(To.NodeIndex);
 		const double* EdgePtr = EdgeExtraWeight.Find(Edge.EdgeIndex);
@@ -95,7 +96,7 @@ public:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryFeedback : public UPCGExHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryFeedback : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 

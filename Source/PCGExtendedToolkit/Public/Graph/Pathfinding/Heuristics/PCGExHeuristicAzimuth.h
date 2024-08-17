@@ -8,14 +8,14 @@
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
 #include "Graph/PCGExCluster.h"
-#include "PCGExHeuristicDirection.generated.h"
+#include "PCGExHeuristicAzimuth.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigDirection : public FPCGExHeuristicConfigBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigAzimuth : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicConfigDirection() :
+	FPCGExHeuristicConfigAzimuth() :
 		FPCGExHeuristicConfigBase()
 	{
 	}
@@ -24,8 +24,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigDirection : public FPCGExHeur
 /**
  * 
  */
-UCLASS(DisplayName = "Direction")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOperation
+UCLASS(DisplayName = "Azimuth")
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicAzimuth : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,8 @@ public:
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override
+		const PCGExCluster::FNode& Goal,
+		const TArray<uint64>* TravelStack) const override
 	{
 		const double Dot = (FVector::DotProduct(Cluster->GetDir(From, To), Cluster->GetDir(From, Goal)) * -1);
 		return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
@@ -61,18 +62,18 @@ protected:
 ////
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryDirection : public UPCGExHeuristicsFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryAzimuth : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExHeuristicConfigDirection Config;
+	FPCGExHeuristicConfigAzimuth Config;
 
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsDirectionProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsAzimuthProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -80,7 +81,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsDirection, "Heuristics : Direction", "Heuristics based on direction.",
+		HeuristicsGoalFocused, "Heuristics : Azimuth", "Heuristics based on direction toward final goal (north star).",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
@@ -89,7 +90,7 @@ public:
 
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicConfigDirection Config;
+	FPCGExHeuristicConfigAzimuth Config;
 
 
 #if WITH_EDITOR

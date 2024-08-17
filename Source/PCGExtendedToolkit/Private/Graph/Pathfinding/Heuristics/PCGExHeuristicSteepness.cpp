@@ -10,7 +10,7 @@ void UPCGExHeuristicSteepness::PrepareForCluster(const PCGExCluster::FCluster* I
 	Super::PrepareForCluster(InCluster);
 }
 
-UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactorySteepness::CreateOperation() const
 {
 	PCGEX_NEW_TRANSIENT(UPCGExHeuristicSteepness, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
@@ -21,7 +21,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() cons
 
 UPCGExParamFactoryBase* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGHeuristicsFactorySteepness* NewFactory = NewObject<UPCGHeuristicsFactorySteepness>();
+	UPCGExHeuristicsFactorySteepness* NewFactory = NewObject<UPCGExHeuristicsFactorySteepness>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
 	return Super::CreateFactory(InContext, NewFactory);
 }
