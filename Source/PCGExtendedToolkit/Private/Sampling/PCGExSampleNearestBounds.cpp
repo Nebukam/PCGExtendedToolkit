@@ -163,7 +163,7 @@ namespace PCGExSampleNearestBounds
 
 		bSingleSample = (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget || LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget);
 
-		Cloud = LocalTypedContext->BoundsFacade->GetCloud(Settings->TargetBoundsSource);
+		Cloud = LocalTypedContext->BoundsFacade->GetCloud(Settings->BoundsSource);
 		StartParallelLoopForPoints();
 
 		return true;
@@ -195,12 +195,7 @@ namespace PCGExSampleNearestBounds
 			{
 				NearbyBox->Sample(Point, CurrentSample);
 
-				FVector A;
-				FVector B;
-
-				LocalSettings->DistanceDetails.GetCenters(Point, LocalTypedContext->BoundsFacade->Source->GetInPoint(CurrentSample.BoxIndex), A, B);
-
-				const double Dist = FVector::DistSquared(A, B);
+				const double Dist = CurrentSample.Distances.Length();
 
 				if (CurrentSample.Weight > 1 || CurrentSample.Weight <= 0 || !CurrentSample.bIsInside) { return; }
 
