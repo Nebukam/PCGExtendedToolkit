@@ -8,7 +8,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
-#include "Graph/PCGExGraph.h"
 #include "Paths/SubPoints/PCGExSubPointsOperation.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivide.generated.h"
