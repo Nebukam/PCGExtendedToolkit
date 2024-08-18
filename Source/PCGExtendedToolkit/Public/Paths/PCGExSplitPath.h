@@ -13,17 +13,6 @@
 namespace PCGExSplitPath
 {
 	const FName SourceSplitFilters = TEXT("SplitConditions");
-
-	struct PCGEXTENDEDTOOLKIT_API FPath
-	{
-		int32 Start = -1;
-		int32 End = -1;
-		int32 Count = 0;
-
-		FPath()
-		{
-		}
-	};
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
@@ -101,6 +90,18 @@ protected:
 
 namespace PCGExSplitPath
 {
+
+	struct PCGEXTENDEDTOOLKIT_API FPath
+	{
+		int32 Start = -1;
+		int32 End = -1;
+		int32 Count = 0;
+
+		FPath()
+		{
+		}
+	};
+	
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		FPCGExSplitPathContext* LocalTypedContext = nullptr;

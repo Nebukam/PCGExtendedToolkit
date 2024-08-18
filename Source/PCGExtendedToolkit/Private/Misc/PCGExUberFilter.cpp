@@ -144,10 +144,7 @@ namespace PCGExUberFilter
 
 		TestTaskGroup = AsyncManager->CreateGroup();
 		TestTaskGroup->SetOnIterationRangeStartCallback(
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
-			{
-				PointDataFacade->Fetch(StartIndex, Count);
-			});
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PointDataFacade->Fetch(StartIndex, Count); });
 
 		if (Results)
 		{

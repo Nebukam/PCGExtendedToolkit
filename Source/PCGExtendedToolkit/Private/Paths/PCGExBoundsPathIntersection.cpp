@@ -51,7 +51,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 	{
 		if (!Boot(Context)) { return true; }
 
-		bool bHasInvalildInputs = false;
+		bool bHasInvalidInputs = false;
 		bool bWritesAny = Settings->OutputSettings.WillWriteAny();
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry)
@@ -70,7 +70,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 							Entry->InitializeOutput(PCGExData::EInit::Forward);
 						}
 					}
-					else { bHasInvalildInputs = true; }
+					else { bHasInvalidInputs = true; }
 					return false;
 				}
 				return true;
@@ -86,7 +86,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 			return true;
 		}
 
-		if (bHasInvalildInputs)
+		if (bHasInvalidInputs)
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
 		}

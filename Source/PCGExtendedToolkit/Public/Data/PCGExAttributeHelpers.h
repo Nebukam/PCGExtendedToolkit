@@ -684,7 +684,8 @@ namespace PCGEx
 			check(Dump.Num() == PointIO->GetNum(PCGExData::ESource::In)) // Dump target should be initialized at full length before using Fetch
 
 			const UPCGPointData* InData = PointIO->GetIn();
-
+			const int32 LastIndex = StartIndex + Count;
+			
 			if (Selection == EPCGAttributePropertySelection::Attribute)
 			{
 				if (!FetchAccessor || !Attribute) { return false; }
@@ -714,16 +715,22 @@ namespace PCGEx
 			{
 				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, FetchSelector);
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-				const int32 LastIndex = StartIndex + Count;
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
 
 				switch (Config.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 				bValid = true;
 			}
-			else
+			else if (Selection == EPCGAttributePropertySelection::ExtraProperty)
 			{
-				//TODO: Support extra properties
+				switch (FetchSelector.GetExtraProperty())
+				{
+				case EPCGExtraProperties::Index:
+					for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(i); }
+					bValid = true;
+					break;
+				default: ;
+				}
 			}
 
 			return bValid;
@@ -813,9 +820,16 @@ namespace PCGEx
 #undef PCGEX_GET_BY_ACCESSOR
 				bValid = true;
 			}
-			else
+			else if (Selection == EPCGAttributePropertySelection::ExtraProperty)
 			{
-				//TODO: Support extra properties
+				switch (FetchSelector.GetExtraProperty())
+				{
+				case EPCGExtraProperties::Index:
+					for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(i); }
+					bValid = true;
+					break;
+				default: ;
+				}
 			}
 
 			return bValid;

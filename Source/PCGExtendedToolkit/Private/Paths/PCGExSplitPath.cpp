@@ -25,8 +25,6 @@ FPCGExSplitPathContext::~FPCGExSplitPathContext()
 
 	SplitFilterFactories.Empty();
 	RemoveFilterFactories.Empty();
-
-	PCGEX_DELETE(MainPaths)
 }
 
 bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
@@ -59,21 +57,21 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Boot(Context)) { return true; }
 
-		bool bHasInvalildInputs = false;
+		bool bHasInvalidInputs = false;
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
 					if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(PCGExData::EInit::Forward); }
-					else { bHasInvalildInputs = true; }
+					else { bHasInvalidInputs = true; }
 					return false;
 				}
 				return true;
 			},
 			[&](PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>* NewBatch)
 			{
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
+				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			},
 			PCGExMT::State_Done))
 		{
@@ -81,7 +79,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		if (bHasInvalildInputs)
+		if (bHasInvalidInputs)
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
 		}
@@ -110,12 +108,13 @@ namespace PCGExSplitPath
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
-
+		
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		PointDataFacade->bSupportsDynamic = true;
 		bClosedPath = Settings->bClosedPath;
 
 		if (!TypedContext->SplitFilterFactories.IsEmpty())
@@ -134,7 +133,9 @@ namespace PCGExSplitPath
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
 
 		PCGExMT::FTaskGroup* TaskGroup = AsyncManager->CreateGroup();
-
+		TaskGroup->SetOnIterationRangeStartCallback(
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PointDataFacade->Fetch(StartIndex, Count); });
+		
 		switch (Settings->SplitAction)
 		{
 		case EPCGExPathSplitAction::Split:
