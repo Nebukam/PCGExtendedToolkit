@@ -122,6 +122,22 @@ protected:
 
 namespace PCGExBevelPath
 {
+	class FProcessor;
+
+	struct PCGEXTENDEDTOOLKIT_API FSegmentInfos
+	{
+		int32 StartIndex = -1;
+		int32 EndIndex = -1;
+		FVector Start = FVector::ZeroVector;
+		FVector End = FVector::ZeroVector;
+
+		FSegmentInfos()
+		{
+		}
+
+		FSegmentInfos(const FProcessor* InProcessor, const int32 InStartIndex, const int32 InEndIndex);
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FBevel
 	{
 		int32 Index = -1;
@@ -136,13 +152,16 @@ namespace PCGExBevelPath
 		{
 		}
 	};
-	
+
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		friend struct FSegmentInfos;
+
 		FPCGExBevelPathContext* LocalTypedContext = nullptr;
 		const UPCGExBevelPathSettings* LocalSettings = nullptr;
 
 		TArray<FBevel*> Bevels;
+		TArray<FSegmentInfos> Segments;
 		TArray<int32> StartIndices;
 
 		bool bClosedPath = false;
