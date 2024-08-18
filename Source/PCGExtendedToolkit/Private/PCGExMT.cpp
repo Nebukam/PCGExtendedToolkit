@@ -58,7 +58,9 @@ namespace PCGExMT
 
 		OnIterationCallback = Callback;
 
-		if (MaxItems <= ChunkSize && bExecuteSmallSynchronously)
+		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
+		
+		if (MaxItems <= SanitizedChunkSize && bExecuteSmallSynchronously)
 		{
 			++NumStarted;
 			DoRangeIteration(0, MaxItems, 0);
@@ -69,12 +71,12 @@ namespace PCGExMT
 		if (bInlined)
 		{
 			TArray<uint64> Loops;
-			NumStarted += SubRanges(Loops, MaxItems, ChunkSize);
-			InternalStartInlineRange(0, MaxItems, ChunkSize);
+			NumStarted += SubRanges(Loops, MaxItems, SanitizedChunkSize);
+			InternalStartInlineRange(0, MaxItems, SanitizedChunkSize);
 		}
 		else
 		{
-			StartRanges<FGroupRangeIterationTask>(MaxItems, ChunkSize, nullptr);
+			StartRanges<FGroupRangeIterationTask>(MaxItems, SanitizedChunkSize, nullptr);
 		}
 	}
 
@@ -99,7 +101,7 @@ namespace PCGExMT
 		FAsyncTask<FGroupRangeInlineIterationTask>* NextRange = new FAsyncTask<FGroupRangeInlineIterationTask>(nullptr);
 		NextRange->GetTask().Group = this;
 		NextRange->GetTask().MaxItems = MaxItems;
-		NextRange->GetTask().ChunkSize = ChunkSize;
+		NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);;
 
 		if (Manager->ForceSync) { Manager->StartSynchronousTask<FGroupRangeInlineIterationTask>(NextRange, Index); }
 		else { Manager->StartBackgroundTask<FGroupRangeInlineIterationTask>(NextRange, Index); }
