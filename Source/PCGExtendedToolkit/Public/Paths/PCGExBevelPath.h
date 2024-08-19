@@ -57,10 +57,37 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExBevelProfileType Type = EPCGExBevelProfileType::Straight;
 
+	/** Whether to keep the corner point or not. If enabled, subdivision is ignored. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Type != EPCGExBevelProfileType::Custom", EditConditionHides))
+	bool bKeepCornerPoint = false;
+
+	/** Insert additional points between start & end */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Type != EPCGExBevelProfileType::Custom && !bKeepCornerPoint", ClampMin=0, EditConditionHides))
+	int32 NumSubdivision = 0;
+
+	/** Bevel width value interpretation.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExMeanMeasure WidthMeasure = EPCGExMeanMeasure::Discrete;
+
+	/** Bevel width source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExFetchType WidthSource = EPCGExFetchType::Constant;
+
+	/** Bevel width constant.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WidthSource == EPCGExFetchType::Constant", EditConditionHides))
+	double WidthConstant = 0.1;
+
+	/** Bevel width attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WidthSource == EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector WidthAttribute;
+
+	/** If enabled, will use the smallest relative value for both sides of the bevel.\n This is often the preferred option. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="WidthMeasure == EPCGExMeanMeasure::Relative"))
+	bool bUseSmallestRelative = true;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0))
-	int32 NumSubdivision = 0;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bLimit = true;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -136,6 +163,11 @@ namespace PCGExBevelPath
 		}
 
 		FSegmentInfos(const FProcessor* InProcessor, const int32 InStartIndex, const int32 InEndIndex);
+
+		FORCEINLINE double GetLength() const { return FVector::Dist(Start, End); }
+
+		FORCEINLINE FVector GetStartEndDir() const { return (End - Start).GetSafeNormal(); }
+		FORCEINLINE FVector GetEndStartDir() const { return (Start - End).GetSafeNormal(); }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FBevel
@@ -160,13 +192,14 @@ namespace PCGExBevelPath
 		FPCGExBevelPathContext* LocalTypedContext = nullptr;
 		const UPCGExBevelPathSettings* LocalSettings = nullptr;
 
+		int32 Subdivisions = 0;
+
 		TArray<FBevel*> Bevels;
 		TArray<FSegmentInfos> Segments;
 		TArray<int32> StartIndices;
 
 		bool bClosedPath = false;
-
-		TArray<bool> DoBevel;
+		PCGExData::FCache<double>* WidthGetter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)
@@ -180,6 +213,7 @@ namespace PCGExBevelPath
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
+		void PrepareSinglePoint(const int32 Index, const FPCGPoint& Point);
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 	};

@@ -48,9 +48,6 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bFlagEndPoint) { PCGEX_VALIDATE_NAME(Settings->EndPointFlagName) }
 	if (Settings->bFlagSubdivision) { PCGEX_VALIDATE_NAME(Settings->SubdivisionFlagName) }
 
-	Context->MainPaths = new PCGExData::FPointIOCollection(Context);
-	Context->MainPaths->DefaultOutputLabel = Settings->GetMainOutputLabel();
-
 	return true;
 }
 
@@ -95,7 +92,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	Context->MainPaths->OutputToContext();
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
 }
@@ -141,6 +138,16 @@ namespace PCGExBevelPath
 			return false;
 		}
 
+		if (Settings->WidthSource == EPCGExFetchType::Attribute)
+		{
+			WidthGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->WidthAttribute);
+			if (!WidthGetter)
+			{
+				// TODO : Throw error/warning, some filter metadata is missing
+				return false;
+			}
+		}
+
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;
@@ -150,32 +157,97 @@ namespace PCGExBevelPath
 	{
 		PointDataFacade->Fetch(StartIndex, Count);
 
-		if (PrimaryFilters) { for (int i = 0; i < Count; i++) { DoBevel[i + StartIndex] = PrimaryFilters->Test(i + StartIndex); } }
+		if (PrimaryFilters) { for (int i = 0; i < Count; i++) { PointFilterCache[i + StartIndex] = PrimaryFilters->Test(i + StartIndex); } }
 
 		if (!bClosedPath)
 		{
 			// Ensure bevel is disabled on start/end points
-			DoBevel[0] = false;
-			DoBevel[DoBevel.Num() - 1] = false;
+			PointFilterCache[0] = false;
+			PointFilterCache[PointFilterCache.Num() - 1] = false;
 		}
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		if (!DoBevel[Index]) { return; }
+		if (!PointFilterCache[Index]) { return; }
 
 		FBevel* NewBevel = new FBevel(Index);
 		Bevels[Index] = NewBevel;
 	}
 
+	void FProcessor::PrepareSinglePoint(const int32 Index, const FPCGPoint& Point)
+	{
+		const int32 StartIndex = StartIndices[Index];
+
+		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+
+		if (StartIndices.IsValidIndex(Index + 1)) { Segments[Index] = FSegmentInfos(this, Index, Index + 1); }
+		else { Segments[Index] = FSegmentInfos(this, Index, 0); }
+
+		if (const FBevel* Bevel = Bevels[Index])
+		{
+			for (int j = Bevel->StartOutputIndex; j <= Bevel->EndOutputIndex; j++)
+			{
+				MutablePoints[j] = Point;
+				Metadata->InitializeOnSet(MutablePoints[j].MetadataEntry);
+			}
+		}
+		else
+		{
+			MutablePoints[StartIndex] = Point;
+			Metadata->InitializeOnSet(MutablePoints[StartIndex].MetadataEntry);
+		}
+	}
+
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		const FBevel* Bevel = Bevels[Iteration];
-		if (!Bevel)
+		FBevel* Bevel = Bevels[Iteration];
+		if (!Bevel) { return; }
+
+		FPCGPoint& StartPoint = PointIO->GetMutablePoint(Bevel->StartOutputIndex);
+		FPCGPoint& EndPoint = PointIO->GetMutablePoint(Bevel->EndOutputIndex);
+
+		const FVector Corner = PointIO->GetInPoint(Bevel->Index).Transform.GetLocation();
+		const FSegmentInfos& PrevSegment = Bevel->Index == 0 ? Segments.Last() : Segments[Bevel->Index - 1];
+		const FSegmentInfos& NextSegment = Segments[Bevel->Index];
+
+		const FVector DirToPrev = PrevSegment.GetEndStartDir();
+		const FVector DirToNext = NextSegment.GetStartEndDir();
+
+		const double Width = LocalSettings->WidthSource == EPCGExFetchType::Constant ? LocalSettings->WidthConstant : WidthGetter->Values[Iteration];
+
+		if (LocalSettings->WidthMeasure == EPCGExMeanMeasure::Relative)
 		{
-			// TODO : Just insert existing point and move on
-			return;
+			const double LengthToPrev = PrevSegment.GetLength();
+			const double LengthToNext = PrevSegment.GetLength();
+
+			if (LocalSettings->bUseSmallestRelative)
+			{
+				const double SmallestLength = FMath::Min(LengthToPrev, LengthToNext);
+				Bevel->Start = Corner + DirToPrev * (SmallestLength * Width);
+				Bevel->End = Corner + DirToNext * (SmallestLength * Width);
+			}
+			else
+			{
+				Bevel->Start = Corner + DirToPrev * (LengthToPrev * Width);
+				Bevel->End = Corner + DirToNext * (LengthToNext * Width);
+			}
 		}
+		else
+		{
+			Bevel->Start = Corner + DirToPrev * Width;
+			Bevel->End = Corner + DirToNext * Width;
+		}
+
+		StartPoint.Transform.SetLocation(Bevel->Start);
+		EndPoint.Transform.SetLocation(Bevel->End);
+
+		if (Subdivisions == 0) { return; }
+
+		PCGEX_SET_NUM_UNINITIALIZED(Bevel->Subdivisions, Subdivisions);
+
+		// TODO : Subdivisions
 	}
 
 	void FProcessor::CompleteWork()
@@ -184,8 +256,11 @@ namespace PCGExBevelPath
 
 		PCGEX_SET_NUM_UNINITIALIZED(StartIndices, PointIO->GetNum())
 
+		const int32 Increment = LocalSettings->bKeepCornerPoint ? 2 : Settings->NumSubdivision + 1; // End + subdivs
+
 		int32 NumBevels = 0;
 		int32 NumOutPoints = 0;
+
 		for (int i = 0; i < StartIndices.Num(); i++)
 		{
 			StartIndices[i] = NumOutPoints;
@@ -194,11 +269,9 @@ namespace PCGExBevelPath
 			{
 				NumBevels++;
 
-				Bevel->StartOutputIndex = NumOutPoints++;
-				NumOutPoints += Bevel->Subdivisions.Num() + 1; // End + subdivs
-				Bevel->EndOutputIndex = NumOutPoints++;
-
-				continue;
+				Bevel->StartOutputIndex = NumOutPoints;
+				NumOutPoints += Increment;
+				Bevel->EndOutputIndex = NumOutPoints;
 			}
 
 			NumOutPoints++;
@@ -221,40 +294,13 @@ namespace PCGExBevelPath
 		PCGEX_SET_NUM(MutablePoints, NumOutPoints);
 
 		PCGExMT::FTaskGroup* PrepGroup = AsyncManagerPtr->CreateGroup();
-		PrepGroup->SetOnCompleteCallback(
-			[&]()
-			{
-				PointIO->CreateOutKeys();
-				bInlineProcessRange = true;
-				StartParallelLoopForRange(PointIO->GetNum());
-			});
-
-		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-
-		// Prepare for final processing
+		
+		PrepGroup->SetOnCompleteCallback([&]() { StartParallelLoopForRange(PointIO->GetNum()); });
 
 		PrepGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				const int32 StartIndex = StartIndices[Index];
-				const FPCGPoint& OriginalPoint = InputPoints[Index];
-
-				if (StartIndices.IsValidIndex(Index + 1)) { Segments[Index] = FSegmentInfos(this, Index, Index + 1); }
-				else { Segments[Index] = FSegmentInfos(this, Index, 0); }
-
-				if (const FBevel* Bevel = Bevels[Index])
-				{
-					for (int j = Bevel->StartOutputIndex; j <= Bevel->EndOutputIndex; j++)
-					{
-						MutablePoints[j] = OriginalPoint;
-						Metadata->InitializeOnSet(MutablePoints[j].MetadataEntry);
-					}
-				}
-				else
-				{
-					MutablePoints[StartIndex] = OriginalPoint;
-					Metadata->InitializeOnSet(MutablePoints[StartIndex].MetadataEntry);
-				}
+				PrepareSinglePoint(Index, InputPoints[Index]);
 			}, StartIndices.Num(), 64, false, false);
 	}
 }
