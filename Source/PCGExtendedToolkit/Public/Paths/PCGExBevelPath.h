@@ -16,12 +16,27 @@ namespace PCGExBevelPath
 	const FName SourceCustomProfile = TEXT("Profile");
 }
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bevel Mode"))
+enum class EPCGExBevelMode : uint8
+{
+	Radius UMETA(DisplayName = "Radius", ToolTip="Width is used as a radius value to compute distance along each point neighboring segments"),
+	Distance UMETA(DisplayName = "Distance", ToolTip="Width is used as a distance along each point neighboring segments"),
+};
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bevel Profile Type"))
 enum class EPCGExBevelProfileType : uint8
 {
-	Straight UMETA(DisplayName = "Straight", ToolTip="Straight profile"),
-	Round UMETA(DisplayName = "Round", ToolTip="Round profile"),
+	Line UMETA(DisplayName = "Line", ToolTip="Line profile"),
+	Arc UMETA(DisplayName = "Arc", ToolTip="Arc profile"),
 	Custom UMETA(DisplayName = "Custom", ToolTip="Custom profile"),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bevel Limit"))
+enum class EPCGExBevelLimit : uint8
+{
+	None UMETA(DisplayName = "None", ToolTip="Bevel is not limited"),
+	ClosestNeighbor UMETA(DisplayName = "Closest neighbor", ToolTip="Closest neighbor position is used as upper limit"),
+	Balanced UMETA(DisplayName = "Balanced", ToolTip="Weighted balance against opposite bevel position, falling back to closest neighbor"),
 };
 
 /**
@@ -55,7 +70,11 @@ public:
 
 	/** Type of Bevel operation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
-	EPCGExBevelProfileType Type = EPCGExBevelProfileType::Straight;
+	EPCGExBevelMode Mode = EPCGExBevelMode::Radius;
+
+	/** Type of Bevel profile */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
+	EPCGExBevelProfileType Type = EPCGExBevelProfileType::Line;
 
 	/** Whether to keep the corner point or not. If enabled, subdivision is ignored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Type != EPCGExBevelProfileType::Custom", EditConditionHides))
@@ -81,13 +100,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="WidthSource == EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector WidthAttribute;
 
-	/** If enabled, will use the smallest relative value for both sides of the bevel.\n This is often the preferred option. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="WidthMeasure == EPCGExMeanMeasure::Relative"))
-	bool bUseSmallestRelative = true;
-
-	/**  */
+	/** Bevel limit type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bLimit = true;
+	EPCGExBevelLimit Limit = EPCGExBevelLimit::None;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -151,43 +166,40 @@ namespace PCGExBevelPath
 {
 	class FProcessor;
 
-	struct PCGEXTENDEDTOOLKIT_API FSegmentInfos
-	{
-		int32 StartIndex = -1;
-		int32 EndIndex = -1;
-		FVector Start = FVector::ZeroVector;
-		FVector End = FVector::ZeroVector;
-
-		FSegmentInfos()
-		{
-		}
-
-		FSegmentInfos(const FProcessor* InProcessor, const int32 InStartIndex, const int32 InEndIndex);
-
-		FORCEINLINE double GetLength() const { return FVector::Dist(Start, End); }
-
-		FORCEINLINE FVector GetStartEndDir() const { return (End - Start).GetSafeNormal(); }
-		FORCEINLINE FVector GetEndStartDir() const { return (Start - End).GetSafeNormal(); }
-	};
-
 	struct PCGEXTENDEDTOOLKIT_API FBevel
 	{
 		int32 Index = -1;
+
 		int32 StartOutputIndex = -1;
 		int32 EndOutputIndex = -1;
-		FVector Start = FVector::ZeroVector;
-		FVector End = FVector::ZeroVector;
+
+		FVector Corner = FVector::ZeroVector;
+
+		FVector PrevLocation = FVector::ZeroVector;
+		FVector Arrive = FVector::ZeroVector;
+		FVector ArriveDir = FVector::ZeroVector;
+
+		FVector NextLocation = FVector::ZeroVector;
+		FVector Leave = FVector::ZeroVector;
+		FVector LeaveDir = FVector::ZeroVector;
+
 		TArray<FVector> Subdivisions;
 
-		FBevel(const int32 InIndex):
-			Index(InIndex)
+		FBevel(const int32 InIndex, const FProcessor* InProcessor);
+
+		~FBevel()
 		{
+			Subdivisions.Empty();
 		}
+
+		FORCEINLINE double ArriveLen() const { return FVector::Dist(Corner, Arrive); }
+		FORCEINLINE double LeaveLen() const { return FVector::Dist(Corner, Leave); }
+
 	};
 
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		friend struct FSegmentInfos;
+		friend struct FBevel;
 
 		FPCGExBevelPathContext* LocalTypedContext = nullptr;
 		const UPCGExBevelPathSettings* LocalSettings = nullptr;
@@ -195,7 +207,6 @@ namespace PCGExBevelPath
 		int32 Subdivisions = 0;
 
 		TArray<FBevel*> Bevels;
-		TArray<FSegmentInfos> Segments;
 		TArray<int32> StartIndices;
 
 		bool bClosedPath = false;
@@ -211,9 +222,7 @@ namespace PCGExBevelPath
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
-		void PrepareSinglePoint(const int32 Index, const FPCGPoint& Point);
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 	};
