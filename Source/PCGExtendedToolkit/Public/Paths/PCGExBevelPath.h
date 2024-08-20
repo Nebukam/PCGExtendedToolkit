@@ -102,7 +102,8 @@ public:
 
 	/** Bevel limit type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExBevelLimit Limit = EPCGExBevelLimit::None;
+	EPCGExBevelLimit Limit = EPCGExBevelLimit::Balanced;
+
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -169,6 +170,8 @@ namespace PCGExBevelPath
 	struct PCGEXTENDEDTOOLKIT_API FBevel
 	{
 		int32 Index = -1;
+		int32 ArriveIdx = -1;
+		int32 LeaveIdx = -1;
 
 		int32 StartOutputIndex = -1;
 		int32 EndOutputIndex = -1;
@@ -178,11 +181,15 @@ namespace PCGExBevelPath
 		FVector PrevLocation = FVector::ZeroVector;
 		FVector Arrive = FVector::ZeroVector;
 		FVector ArriveDir = FVector::ZeroVector;
+		double ArriveAlpha = 0;
 
 		FVector NextLocation = FVector::ZeroVector;
 		FVector Leave = FVector::ZeroVector;
 		FVector LeaveDir = FVector::ZeroVector;
+		double LeaveAlpha = 0;
 
+		double Width = 0;
+		
 		TArray<FVector> Subdivisions;
 
 		FBevel(const int32 InIndex, const FProcessor* InProcessor);
@@ -192,9 +199,9 @@ namespace PCGExBevelPath
 			Subdivisions.Empty();
 		}
 
-		FORCEINLINE double ArriveLen() const { return FVector::Dist(Corner, Arrive); }
-		FORCEINLINE double LeaveLen() const { return FVector::Dist(Corner, Leave); }
-
+		void Balance(const FProcessor* InProcessor);
+		void Compute();
+		
 	};
 
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
@@ -204,6 +211,7 @@ namespace PCGExBevelPath
 		FPCGExBevelPathContext* LocalTypedContext = nullptr;
 		const UPCGExBevelPathSettings* LocalSettings = nullptr;
 
+		TArray<double> Lengths;
 		int32 Subdivisions = 0;
 
 		TArray<FBevel*> Bevels;
@@ -220,6 +228,8 @@ namespace PCGExBevelPath
 		}
 
 		virtual ~FProcessor() override;
+
+		FORCEINLINE double Len(int32 Index) const { return Lengths[Index]; }
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;

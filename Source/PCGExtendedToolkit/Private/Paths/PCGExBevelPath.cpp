@@ -103,18 +103,23 @@ namespace PCGExBevelPath
 		Index(InIndex)
 	{
 		const TArray<FPCGPoint>& InPoints = InProcessor->PointIO->GetIn()->GetPoints();
+		ArriveIdx = Index - 1 < 0 ? InPoints.Num() - 1 : Index - 1;
+		LeaveIdx = Index + 1 == InPoints.Num() ? 0 : Index + 1;
 
 		Corner = InPoints[InIndex].Transform.GetLocation();
-		PrevLocation = InPoints[InPoints.IsValidIndex(Index - 1) ? Index - 1 : InPoints.Num() - 1].Transform.GetLocation();
-		NextLocation = InPoints[InPoints.IsValidIndex(Index + 1) ? Index + 1 : 0].Transform.GetLocation();
-		
+		PrevLocation = InPoints[ArriveIdx].Transform.GetLocation();
+		NextLocation = InPoints[LeaveIdx].Transform.GetLocation();
+
 		// Pre-compute some data
 
 		ArriveDir = (PrevLocation - Corner).GetSafeNormal();
 		LeaveDir = (NextLocation - Corner).GetSafeNormal();
 
-		double Width = InProcessor->WidthGetter ? InProcessor->WidthGetter->Values[Index] : InProcessor->LocalSettings->WidthConstant;
-		const double SmallestLength = FMath::Min(FVector::Dist(Corner, PrevLocation), FVector::Dist(Corner, NextLocation));
+		Width = InProcessor->WidthGetter ? InProcessor->WidthGetter->Values[Index] : InProcessor->LocalSettings->WidthConstant;
+
+		const double ArriveLen = InProcessor->Len(ArriveIdx);
+		const double LeaveLen = InProcessor->Len(Index);
+		const double SmallestLength = FMath::Min(ArriveLen, LeaveLen);
 
 		if (InProcessor->LocalSettings->WidthMeasure == EPCGExMeanMeasure::Relative)
 		{
@@ -126,18 +131,47 @@ namespace PCGExBevelPath
 			Width = Width / FMath::Sin(FMath::Acos(FVector::DotProduct(ArriveDir, LeaveDir)) / 2.0f);
 		}
 
-		if (InProcessor->LocalSettings->Limit == EPCGExBevelLimit::ClosestNeighbor)
+		if (InProcessor->LocalSettings->Limit != EPCGExBevelLimit::None)
 		{
 			Width = FMath::Min(Width, SmallestLength);
 		}
 
+		ArriveAlpha = Width / ArriveLen;
+		LeaveAlpha = Width / LeaveLen;
+	}
+
+	void FBevel::Balance(const FProcessor* InProcessor)
+	{
+		const FBevel* PrevBevel = InProcessor->Bevels[ArriveIdx];
+		const FBevel* NextBevel = InProcessor->Bevels[LeaveIdx];
+
+		double ArriveAlphaSum = ArriveAlpha;
+		double LeaveAlphaSum = LeaveAlpha;
+
+		if (PrevBevel) { ArriveAlphaSum += PrevBevel->LeaveAlpha; }
+		else { ArriveAlphaSum = 1; }
+
+		Width = FMath::Min(Width, InProcessor->Len(ArriveIdx) * (ArriveAlpha * (1 / ArriveAlphaSum)));
+
+		if (NextBevel) { LeaveAlphaSum += NextBevel->ArriveAlpha; }
+		else { LeaveAlphaSum = 1; }
+
+		Width = FMath::Min(Width, InProcessor->Len(Index) * (LeaveAlpha * (1 / LeaveAlphaSum)));
+	}
+
+	void FBevel::Compute()
+	{
 		Arrive = Corner + Width * ArriveDir;
 		Leave = Corner + Width * LeaveDir;
+
+		// TODO : compute final subdivision count
+		
 	}
 
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE_TARRAY(Bevels)
+		Lengths.Empty();
 		StartIndices.Empty();
 	}
 
@@ -174,6 +208,14 @@ namespace PCGExBevelPath
 			}
 		}
 
+		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		const int32 NumPoints = InPoints.Num();
+		PCGEX_SET_NUM_UNINITIALIZED(Lengths, NumPoints)
+		for (int i = 0; i < NumPoints; i++)
+		{
+			Lengths[i] = FVector::Distance(InPoints[i].Transform.GetLocation(), InPoints[i + 1 == NumPoints ? 0 : i + 1].Transform.GetLocation());
+		}
+
 		PCGExMT::FTaskGroup* Preparation = AsyncManagerPtr->CreateGroup();
 		Preparation->SetOnCompleteCallback([&]() { StartParallelLoopForPoints(PCGExData::ESource::In); });
 		Preparation->SetOnIterationRangeStartCallback(
@@ -204,7 +246,11 @@ namespace PCGExBevelPath
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		// TODO : Apply relational limits & compute final subdivision count
+		FBevel* Bevel = Bevels[Index];
+		if (!Bevel) { return; }
+
+		if (LocalSettings->Limit == EPCGExBevelLimit::Balanced) { Bevel->Balance(this); }
+		Bevel->Compute();
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
