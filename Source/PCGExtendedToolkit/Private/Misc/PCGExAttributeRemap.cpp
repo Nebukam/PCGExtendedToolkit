@@ -87,7 +87,7 @@ namespace PCGExAttributeRemap
 
 		PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
 		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->SourceAttributeName);
-		
+
 		if (!Identity)
 		{
 			PCGEX_DELETE(Infos)
@@ -96,7 +96,7 @@ namespace PCGExAttributeRemap
 		}
 
 		UnderlyingType = Identity->UnderlyingType;
-		
+
 		switch (UnderlyingType)
 		{
 		case EPCGMetadataTypes::Float:
@@ -163,13 +163,13 @@ namespace PCGExAttributeRemap
 			[&]()
 			{
 				// Fix min/max range
-
-				for (int d = 0; d < Dimensions; d++)
+				for (FPCGExComponentRemapRule& Rule : Rules)
 				{
-					FPCGExComponentRemapRule& Rule = Rules[d];
-
 					if (Rule.RemapDetails.bUseInMin) { Rule.RemapDetails.InMin = Rule.RemapDetails.CachedInMin; }
+					else { for (const double Min : Rule.MinCache) { Rule.RemapDetails.InMin = FMath::Min(Rule.RemapDetails.InMin, Min); } }
+
 					if (Rule.RemapDetails.bUseInMax) { Rule.RemapDetails.InMax = Rule.RemapDetails.CachedInMax; }
+					else { for (const double Max : Rule.MaxCache) { Rule.RemapDetails.InMax = FMath::Max(Rule.RemapDetails.InMax, Max); } }
 
 					if (Rule.RemapDetails.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapDetails.InMin = 0; }
 				}
@@ -177,11 +177,21 @@ namespace PCGExAttributeRemap
 				OnPreparationComplete();
 			});
 
+		FetchTask->SetOnIterationRangePrepareCallback(
+			[&](const TArray<uint64>& Loops)
+			{
+				for (FPCGExComponentRemapRule& Rule : Rules)
+				{
+					PCGEX_SET_NUM_DEFAULT(Rule.MinCache, Loops.Num(), TNumericLimits<double>::Max())
+					PCGEX_SET_NUM_DEFAULT(Rule.MaxCache, Loops.Num(), TNumericLimits<double>::Min())
+				}
+			});
+
 		FetchTask->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
-				
+
 				PointDataFacade->Fetch(StartIndex, Count);
 				PCGMetadataAttribute::CallbackWithRightType(
 					static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
@@ -189,7 +199,7 @@ namespace PCGExAttributeRemap
 						using RawT = decltype(DummyValue);
 						PCGEx::TFAttributeWriter<RawT>* Writer = static_cast<PCGEx::TFAttributeWriter<RawT>*>(CacheWriter);
 						PCGEx::TFAttributeReader<RawT>* Reader = static_cast<PCGEx::TFAttributeReader<RawT>*>(CacheReader);
-
+						
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
 						for (int i = StartIndex; i < StartIndex + Count; i++) { Writer->Values[i] = Reader->Values[i]; } // Copy range to writer
 
@@ -227,11 +237,8 @@ namespace PCGExAttributeRemap
 								}
 							}
 
-							{
-								FWriteScopeLock WriteScopeLock(MinMaxLock);
-								Rule.RemapDetails.InMin = FMath::Min(Rule.RemapDetails.InMin, Min);
-								Rule.RemapDetails.InMax = FMath::Max(Rule.RemapDetails.InMax, Max);
-							}
+							Rule.MinCache[LoopIdx] = Min;
+							Rule.MaxCache[LoopIdx] = Max;
 						}
 					});
 			});

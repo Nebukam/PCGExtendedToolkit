@@ -37,6 +37,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExClampDetails OutputClampDetails;
+
+	TArray<double> MinCache;
+	TArray<double> MaxCache;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -125,8 +128,6 @@ namespace PCGExAttributeRemap
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		mutable FRWLock MinMaxLock;
-		
 		FPCGExAttributeRemapContext* LocalTypedContext = nullptr;
 		const UPCGExAttributeRemapSettings* LocalSettings = nullptr;
 
@@ -134,7 +135,7 @@ namespace PCGExAttributeRemap
 		int32 Dimensions = 0;
 
 		TArray<FPCGExComponentRemapRule> Rules;
-		
+
 		PCGEx::FAAttributeIO* CacheWriter = nullptr;
 		PCGEx::FAAttributeIO* CacheReader = nullptr;
 
@@ -151,11 +152,10 @@ namespace PCGExAttributeRemap
 		template <typename T>
 		void RemapRange(const int32 StartIndex, const int32 Count, T DummyValue)
 		{
-
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
-			
+
 			PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(CacheWriter);
-			
+
 			for (int d = 0; d < Dimensions; d++)
 			{
 				FPCGExComponentRemapRule& Rule = Rules[d];
@@ -220,7 +220,7 @@ namespace PCGExAttributeRemap
 		}
 
 		void OnPreparationComplete();
-		
+
 		virtual void CompleteWork() override;
 	};
 }

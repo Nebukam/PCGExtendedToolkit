@@ -129,6 +129,7 @@ if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
 #pragma endregion
 
 #define PCGEX_SET_NUM(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNum(_num_); }
+#define PCGEX_SET_NUM_DEFAULT(_ARRAY, _NUM, _DEFAULT) { PCGEX_SET_NUM(_ARRAY, _NUM) for(int i = 0; i < _NUM; i++){_ARRAY[i] = _DEFAULT;} }
 #define PCGEX_SET_NUM_PTR(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY->Reserve(_num_); _ARRAY->SetNum(_num_); }
 
 #define PCGEX_SET_NUM_UNINITIALIZED(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNumUninitialized(_num_); }

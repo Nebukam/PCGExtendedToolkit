@@ -59,10 +59,11 @@ namespace PCGExMT
 		OnIterationCallback = Callback;
 
 		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
-		
+
 		if (MaxItems <= SanitizedChunkSize && bExecuteSmallSynchronously)
 		{
 			++NumStarted;
+			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback({PCGEx::H64(0, MaxItems)}); }
 			DoRangeIteration(0, MaxItems, 0);
 			OnTaskCompleted();
 			return;
@@ -72,6 +73,7 @@ namespace PCGExMT
 		{
 			TArray<uint64> Loops;
 			NumStarted += SubRanges(Loops, MaxItems, SanitizedChunkSize);
+			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 			InternalStartInlineRange(0, MaxItems, SanitizedChunkSize);
 		}
 		else

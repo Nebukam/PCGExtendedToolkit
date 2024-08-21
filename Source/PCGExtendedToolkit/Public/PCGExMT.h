@@ -291,6 +291,7 @@ namespace PCGExMT
 	public:
 		using CompletionCallback = std::function<void()>;
 		using IterationCallback = std::function<void(const int32, const int32, const int32)>;
+		using IterationRangePrepareCallback = std::function<void(const TArray<uint64>&)>;
 		using IterationRangeStartCallback = std::function<void(const int32, const int32, const int32)>;
 
 		explicit FTaskGroup(FTaskManager* InManager):
@@ -306,6 +307,12 @@ namespace PCGExMT
 		{
 			bHasOnCompleteCallback = true;
 			OnCompleteCallback = Callback;
+		}
+
+		void SetOnIterationRangePrepareCallback(const IterationRangePrepareCallback& Callback)
+		{
+			bHasOnIterationRangePrepareCallback = true;
+			OnIterationRangePrepareCallback = Callback;
 		}
 
 		void SetOnIterationRangeStartCallback(const IterationRangeStartCallback& Callback)
@@ -334,6 +341,8 @@ namespace PCGExMT
 			TArray<uint64> Loops;
 			NumStarted += SubRanges(Loops, MaxItems, ChunkSize);
 
+			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
+
 			int32 LoopIdx = 0;
 			for (const uint64 H : Loops)
 			{
@@ -359,6 +368,8 @@ namespace PCGExMT
 		CompletionCallback OnCompleteCallback;
 
 		IterationCallback OnIterationCallback;
+		bool bHasOnIterationRangePrepareCallback = false;
+		IterationRangePrepareCallback OnIterationRangePrepareCallback;
 		bool bHasOnIterationRangeStartCallback = false;
 		IterationRangeStartCallback OnIterationRangeStartCallback;
 
