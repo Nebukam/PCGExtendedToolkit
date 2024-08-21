@@ -798,22 +798,22 @@ namespace PCGExMath
 	////
 
 	template <typename T, typename CompilerSafety = void>
-	static void SetComponent(T& A, const int32 Index, const double InValue) { A = InValue; }
+	FORCEINLINE static void SetComponent(T& A, const int32 Index, const double InValue) { A = InValue; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(bool& A, const int32 Index, const double InValue) { A = InValue <= 0 ? false : true; }
+	FORCEINLINE static void SetComponent(bool& A, const int32 Index, const double InValue) { A = InValue <= 0 ? false : true; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FVector& A, const int32 Index, const double InValue) { A[Index] = InValue; }
+	FORCEINLINE static void SetComponent(FVector& A, const int32 Index, const double InValue) { A[Index] = InValue; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FVector2D& A, const int32 Index, const double InValue) { A[Index] = InValue; }
+	FORCEINLINE static void SetComponent(FVector2D& A, const int32 Index, const double InValue) { A[Index] = InValue; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FVector4& A, const int32 Index, const double InValue) { A[Index] = InValue; }
+	FORCEINLINE static void SetComponent(FVector4& A, const int32 Index, const double InValue) { A[Index] = InValue; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FRotator& A, const int32 Index, const double InValue)
+	FORCEINLINE static void SetComponent(FRotator& A, const int32 Index, const double InValue)
 	{
 		FVector Euler = A.Euler();
 		SetComponent(Euler, Index, InValue);
@@ -821,7 +821,7 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FQuat& A, const int32 Index, const double InValue)
+	FORCEINLINE static void SetComponent(FQuat& A, const int32 Index, const double InValue)
 	{
 		FVector Euler = A.Euler();
 		SetComponent(Euler, Index, InValue);
@@ -829,14 +829,14 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FTransform& A, const int32 Index, const double InValue)
+	FORCEINLINE static void SetComponent(FTransform& A, const int32 Index, const double InValue)
 	{
 		FVector Location = A.GetLocation();
 		SetComponent(Location, Index, InValue);
 		A.SetLocation(Location);
 	}
 
-#define PCGEX_UNSUPPORTED_SET_COMPONENT(_TYPE) template <typename CompilerSafety = void> static void SetComponent(_TYPE& A, const int32 Index, const double InValue)	{}
+#define PCGEX_UNSUPPORTED_SET_COMPONENT(_TYPE) template <typename CompilerSafety = void> FORCEINLINE static void SetComponent(_TYPE& A, const int32 Index, const double InValue)	{}
 	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_SET_COMPONENT)
 #undef PCGEX_UNSUPPORTED_SET_COMPONENT
 
