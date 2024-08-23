@@ -1177,55 +1177,6 @@ namespace PCGExMath
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
-	/**
-		 *	 Leave <---.Apex-----> Arrive (Direction)
-		 *		   . '   |    '  .  
-		 *		A----Anchor---------B
-		 */
-	struct PCGEXTENDEDTOOLKIT_API FApex
-	{
-		FApex()
-		{
-		}
-
-		FApex(const FVector& Start, const FVector& End, const FVector& InApex)
-		{
-			Direction = (Start - End).GetSafeNormal();
-			Anchor = FMath::ClosestPointOnSegment(InApex, Start, End);
-
-			const double DistToStart = FVector::Dist(Start, Anchor);
-			const double DistToEnd = FVector::Dist(End, Anchor);
-			TowardStart = Direction * (DistToStart * -1);
-			TowardEnd = Direction * DistToEnd;
-			Alpha = DistToStart / (DistToStart + DistToEnd);
-		}
-
-		FVector Direction;
-		FVector Anchor;
-		FVector TowardStart;
-		FVector TowardEnd;
-		double Alpha = 0;
-
-		FVector GetAnchorNormal(const FVector& Location) const { return (Anchor - Location).GetSafeNormal(); }
-
-		void Scale(const double InScale)
-		{
-			TowardStart *= InScale;
-			TowardEnd *= InScale;
-		}
-
-		void Extend(const double InSize)
-		{
-			TowardStart += Direction * InSize;
-			TowardEnd += Direction * -InSize;
-		}
-
-		static FApex FromStartOnly(const FVector& Start, const FVector& InApex) { return FApex(Start, InApex, InApex); }
-		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
-	};
-	
-	
-
 #pragma endregion
 }
 

@@ -6,10 +6,11 @@
 
 #include "PCGExMath.h"
 #include "Data/PCGExPointIO.h"
+#include "Geometry/PCGExGeo.h"
 
 void UPCGExAutoTangents::ProcessFirstPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
 {
-	PCGExMath::FApex Apex = PCGExMath::FApex::FromStartOnly(
+	PCGExGeo::FApex Apex = PCGExGeo::FApex::FromStartOnly(
 		NextPoint.Point->Transform.GetLocation(),
 		MainPoint.Point->Transform.GetLocation());
 
@@ -20,7 +21,7 @@ void UPCGExAutoTangents::ProcessFirstPoint(const PCGExData::FPointRef& MainPoint
 
 void UPCGExAutoTangents::ProcessLastPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const
 {
-	PCGExMath::FApex Apex = PCGExMath::FApex::FromEndOnly(
+	PCGExGeo::FApex Apex = PCGExGeo::FApex::FromEndOnly(
 		PreviousPoint.Point->Transform.GetLocation(),
 		MainPoint.Point->Transform.GetLocation());
 
@@ -31,7 +32,7 @@ void UPCGExAutoTangents::ProcessLastPoint(const PCGExData::FPointRef& MainPoint,
 
 void UPCGExAutoTangents::ProcessPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
 {
-	PCGExMath::FApex Apex = PCGExMath::FApex(
+	PCGExGeo::FApex Apex = PCGExGeo::FApex(
 		PreviousPoint.Point->Transform.GetLocation(),
 		NextPoint.Point->Transform.GetLocation(),
 		MainPoint.Point->Transform.GetLocation());

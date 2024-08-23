@@ -206,18 +206,9 @@ namespace PCGExBevelPath
 
 	void FBevel::SubdivideArc(const double Factor, const double bIsCount)
 	{
-		FExCenterArc Arc = FExCenterArc(Arrive, Corner, Leave);
-
-		int32 SubdivCount = Factor;
-
-		if (bIsCount)
-		{
-		}
-		else
-		{
-			SubdivCount = FMath::Floor(Arc.GetLength() / Factor);
-		}
-
+		const PCGExGeo::FExCenterArc Arc = PCGExGeo::FExCenterArc(Arrive, Corner, Leave);
+		int32 SubdivCount = bIsCount ? Factor : FMath::Floor(Arc.GetLength() / Factor);
+		
 		const double StepSize = 1 / static_cast<double>(SubdivCount + 1);
 		PCGEX_SET_NUM(Subdivisions, SubdivCount)
 

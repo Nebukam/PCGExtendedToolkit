@@ -3,6 +3,8 @@
 
 #include "Paths/Orient/PCGExOrientAverage.h"
 
+#include "Geometry/PCGExGeo.h"
+
 FTransform UPCGExOrientAverage::ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const
 {
 	const FVector PrevPos = Previous.Point->Transform.GetLocation();
@@ -10,7 +12,7 @@ FTransform UPCGExOrientAverage::ComputeOrientation(const PCGExData::FPointRef& P
 	FTransform OutT = Point.Point->Transform;
 	OutT.SetRotation(
 		PCGExMath::MakeDirection(
-			OrientAxis, PCGExMath::FApex(PrevPos, NextPos, OutT.GetLocation()).Direction * DirectionMultiplier,
+			OrientAxis, PCGExGeo::FApex(PrevPos, NextPos, OutT.GetLocation()).Direction * DirectionMultiplier,
 			PCGExMath::GetDirection(UpAxis)));
 	return OutT;
 }

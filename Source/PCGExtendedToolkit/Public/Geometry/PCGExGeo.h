@@ -414,6 +414,95 @@ namespace PCGExGeo
 		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumPoints)
 		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Points[i].Transform.GetLocation(); }
 	}
+
+	/**
+		 *	 Leave <---.Apex-----> Arrive (Direction)
+		 *		   . '   |    '  .  
+		 *		A----Anchor---------B
+		 */
+	struct PCGEXTENDEDTOOLKIT_API FApex
+	{
+		FApex()
+		{
+		}
+
+		FApex(const FVector& Start, const FVector& End, const FVector& InApex)
+		{
+			Direction = (Start - End).GetSafeNormal();
+			Anchor = FMath::ClosestPointOnSegment(InApex, Start, End);
+
+			const double DistToStart = FVector::Dist(Start, Anchor);
+			const double DistToEnd = FVector::Dist(End, Anchor);
+			TowardStart = Direction * (DistToStart * -1);
+			TowardEnd = Direction * DistToEnd;
+			Alpha = DistToStart / (DistToStart + DistToEnd);
+		}
+
+		FVector Direction;
+		FVector Anchor;
+		FVector TowardStart;
+		FVector TowardEnd;
+		double Alpha = 0;
+
+		FVector GetAnchorNormal(const FVector& Location) const { return (Anchor - Location).GetSafeNormal(); }
+
+		void Scale(const double InScale)
+		{
+			TowardStart *= InScale;
+			TowardEnd *= InScale;
+		}
+
+		void Extend(const double InSize)
+		{
+			TowardStart += Direction * InSize;
+			TowardEnd += Direction * -InSize;
+		}
+
+		static FApex FromStartOnly(const FVector& Start, const FVector& InApex) { return FApex(Start, InApex, InApex); }
+		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FExCenterArc
+	{
+		double Radius = 0;
+		double Theta = 0;
+		double SinTheta = 0;
+
+		FVector Center = FVector::ZeroVector;
+		FVector Normal = FVector::ZeroVector;
+		FVector Hand = FVector::ZeroVector;
+		FVector OtherHand = FVector::ZeroVector;
+
+
+		FExCenterArc()
+		{
+		}
+
+		FExCenterArc(const FVector& A, const FVector& B, const FVector& C)
+		{
+			const FVector Up = PCGExMath::GetNormal(A, B, C);
+			Center = FMath::LinePlaneIntersection(C, C + PCGExMath::GetNormal(B, C, C + Up), A, (A - B).GetSafeNormal());
+			Radius = FVector::Dist(C, Center);
+
+			Hand = (A - Center).GetSafeNormal();
+			OtherHand = (C - Center).GetSafeNormal();
+
+			Normal = FVector::CrossProduct(Hand, OtherHand).GetSafeNormal();
+			Theta = FMath::Acos(FVector::DotProduct(Hand, OtherHand));
+			SinTheta = FMath::Sin(Theta);
+		}
+
+		FORCEINLINE double GetLength() const { return Radius * Theta; }
+
+		FORCEINLINE FVector GetLocationOnArc(const double Alpha) const
+		{
+			const double W1 = FMath::Sin((1.0f - Alpha) * Theta) / SinTheta;
+			const double W2 = FMath::Sin(Alpha * Theta) / SinTheta;
+
+			const FVector Dir = Hand * W1 + OtherHand * W2;
+			return Center + (Dir * Radius);
+		}
+	};
 }
 
 namespace PCGExGeoTasks

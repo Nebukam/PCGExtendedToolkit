@@ -182,48 +182,7 @@ protected:
 
 namespace PCGExBevelPath
 {
-	struct PCGEXTENDEDTOOLKIT_API FExCenterArc
-	{
-		double Radius = 0;
-		double Theta = 0;
-		double SinTheta = 0;
-
-		FVector Center = FVector::ZeroVector;
-		FVector Normal = FVector::ZeroVector;
-		FVector Hand = FVector::ZeroVector;
-		FVector OtherHand = FVector::ZeroVector;
-
-
-		FExCenterArc()
-		{
-		}
-
-		FExCenterArc(const FVector& A, const FVector& B, const FVector& C)
-		{
-			const FVector Up = PCGExMath::GetNormal(A, B, C);
-			Center = FMath::LinePlaneIntersection(C, C + PCGExMath::GetNormal(B, C, C + Up), A, (A - B).GetSafeNormal());
-			Radius = FVector::Dist(C, Center);
-
-			Hand = (A - Center).GetSafeNormal();
-			OtherHand = (C - Center).GetSafeNormal();
-
-			Normal = FVector::CrossProduct(Hand, OtherHand).GetSafeNormal();
-			Theta = FMath::Acos(FVector::DotProduct(Hand, OtherHand));
-			SinTheta = FMath::Sin(Theta);
-		}
-
-		FORCEINLINE double GetLength() const { return Radius * Theta; }
-
-		FORCEINLINE FVector GetLocationOnArc(const double Alpha) const
-		{
-			const double W1 = FMath::Sin((1.0f - Alpha) * Theta) / SinTheta;
-			const double W2 = FMath::Sin(Alpha * Theta) / SinTheta;
-
-			const FVector Dir = Hand * W1 + OtherHand * W2;
-			return Center + (Dir * Radius);
-		}
-	};
-
+	
 	class FProcessor;
 
 	struct PCGEXTENDEDTOOLKIT_API FBevel
