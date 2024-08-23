@@ -80,10 +80,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Type != EPCGExBevelProfileType::Custom", EditConditionHides))
 	bool bKeepCornerPoint = false;
 
-	/** Insert additional points between start & end */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Type != EPCGExBevelProfileType::Custom && !bKeepCornerPoint", ClampMin=0, EditConditionHides))
-	int32 NumSubdivision = 0;
-
 	/** Bevel width value interpretation.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExMeanMeasure WidthMeasure = EPCGExMeanMeasure::Discrete;
@@ -104,6 +100,27 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExBevelLimit Limit = EPCGExBevelLimit::Balanced;
 
+
+	/** Whether to subdivide the profile */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="!bKeepCornerPoint && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
+	bool bSubdivide = false;
+
+	/** Subdivision method */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
+	EPCGExSubdivideMode SubdivideMethod = EPCGExSubdivideMode::Count;
+
+	/** Whether to subdivide the profile */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta = (PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom", EditConditionHides))
+	EPCGExFetchType SubdivisionValueSource = EPCGExFetchType::Constant;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Distance && SubdivisionValueSource==EPCGExFetchType::Constant", EditConditionHides, ClampMin=0.1))
+	double SubdivisionDistance = 10;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivideMethod==EPCGExSubdivideMode::Count && SubdivisionValueSource==EPCGExFetchType::Constant", EditConditionHides, ClampMin=1))
+	int32 SubdivisionCount = 10;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Subdivision", meta=(PCG_Overridable, EditCondition="!bKeepCornerPoint && bSubdivide && Type != EPCGExBevelProfileType::Custom && SubdivisionValueSource==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Flags", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -165,6 +182,48 @@ protected:
 
 namespace PCGExBevelPath
 {
+	struct PCGEXTENDEDTOOLKIT_API FExCenterArc
+	{
+		double Radius = 0;
+		double Theta = 0;
+		double SinTheta = 0;
+
+		FVector Center = FVector::ZeroVector;
+		FVector Normal = FVector::ZeroVector;
+		FVector Hand = FVector::ZeroVector;
+		FVector OtherHand = FVector::ZeroVector;
+
+
+		FExCenterArc()
+		{
+		}
+
+		FExCenterArc(const FVector& A, const FVector& B, const FVector& C)
+		{
+			const FVector Up = PCGExMath::GetNormal(A, B, C);
+			Center = FMath::LinePlaneIntersection(C, C + PCGExMath::GetNormal(B, C, C + Up), A, (A - B).GetSafeNormal());
+			Radius = FVector::Dist(C, Center);
+
+			Hand = (A - Center).GetSafeNormal();
+			OtherHand = (C - Center).GetSafeNormal();
+
+			Normal = FVector::CrossProduct(Hand, OtherHand).GetSafeNormal();
+			Theta = FMath::Acos(FVector::DotProduct(Hand, OtherHand));
+			SinTheta = FMath::Sin(Theta);
+		}
+
+		FORCEINLINE double GetLength() const { return Radius * Theta; }
+
+		FORCEINLINE FVector GetLocationOnArc(const double Alpha) const
+		{
+			const double W1 = FMath::Sin((1.0f - Alpha) * Theta) / SinTheta;
+			const double W2 = FMath::Sin(Alpha * Theta) / SinTheta;
+
+			const FVector Dir = Hand * W1 + OtherHand * W2;
+			return Center + (Dir * Radius);
+		}
+	};
+
 	class FProcessor;
 
 	struct PCGEXTENDEDTOOLKIT_API FBevel
@@ -189,7 +248,7 @@ namespace PCGExBevelPath
 		double LeaveAlpha = 0;
 
 		double Width = 0;
-		
+
 		TArray<FVector> Subdivisions;
 
 		FBevel(const int32 InIndex, const FProcessor* InProcessor);
@@ -200,8 +259,11 @@ namespace PCGExBevelPath
 		}
 
 		void Balance(const FProcessor* InProcessor);
-		void Compute();
-		
+		void Compute(const FProcessor* InProcessor);
+
+		void SubdivideLine(const double Factor, const double bIsCount);
+		void SubdivideArc(const double Factor, const double bIsCount);
+		void SubdivideCustom(const double Factor, const double bIsCount);
 	};
 
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
@@ -212,13 +274,17 @@ namespace PCGExBevelPath
 		const UPCGExBevelPathSettings* LocalSettings = nullptr;
 
 		TArray<double> Lengths;
-		int32 Subdivisions = 0;
 
 		TArray<FBevel*> Bevels;
 		TArray<int32> StartIndices;
 
 		bool bClosedPath = false;
+		bool bSubdivide = false;
+		bool bSubdivideCount = false;
+		bool bArc = false;
 		PCGExData::FCache<double>* WidthGetter = nullptr;
+		PCGExData::FCache<double>* SubdivAmountGetter = nullptr;
+		double ConstantSubdivAmount = 0;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)

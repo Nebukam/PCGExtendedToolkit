@@ -105,6 +105,9 @@ namespace PCGExSubdivide
 				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Subdivision Amount attribute is invalid."));
 				return false;
 			}
+		}else
+		{
+			ConstantAmount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count ? Settings->Count : Settings->Distance;
 		}
 
 		bUseCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
@@ -137,7 +140,7 @@ namespace PCGExSubdivide
 
 		Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
 
-		double Amount = AmountGetter ? AmountGetter->Values[Index] : bUseCount ? Settings->Count : Settings->Distance;
+		double Amount = AmountGetter ? AmountGetter->Values[Index] : ConstantAmount;
 		if (!bUseCount) { Amount = Sub.Dist / Amount; }
 
 		Sub.Dir = (Sub.End - Sub.Start).GetSafeNormal();

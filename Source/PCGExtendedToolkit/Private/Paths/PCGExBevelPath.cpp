@@ -159,13 +159,75 @@ namespace PCGExBevelPath
 		Width = FMath::Min(Width, InProcessor->Len(Index) * (LeaveAlpha * (1 / LeaveAlphaSum)));
 	}
 
-	void FBevel::Compute()
+	void FBevel::Compute(const FProcessor* InProcessor)
 	{
 		Arrive = Corner + Width * ArriveDir;
 		Leave = Corner + Width * LeaveDir;
 
 		// TODO : compute final subdivision count
-		
+
+		if (InProcessor->LocalSettings->Type == EPCGExBevelProfileType::Custom)
+		{
+			return;
+		}
+
+		if (!InProcessor->bSubdivide) { return; }
+
+		const double Amount = InProcessor->SubdivAmountGetter ? InProcessor->SubdivAmountGetter->Values[Index] : InProcessor->ConstantSubdivAmount;
+
+		if (!InProcessor->bArc) { SubdivideLine(Amount, InProcessor->bSubdivideCount); }
+		else { SubdivideArc(Amount, InProcessor->bSubdivideCount); }
+	}
+
+	void FBevel::SubdivideLine(const double Factor, const double bIsCount)
+	{
+		const double Dist = FVector::Dist(Arrive, Leave);
+		const FVector Dir = (Leave - Arrive).GetSafeNormal();
+
+		int32 SubdivCount = Factor;
+		double StepSize = 0;
+
+		if (bIsCount)
+		{
+			StepSize = Dist / static_cast<double>(SubdivCount + 1);
+		}
+		else
+		{
+			StepSize = FMath::Min(Dist, Factor);
+			SubdivCount = FMath::Floor(Dist / Factor);
+		}
+
+		SubdivCount = FMath::Max(0, SubdivCount);
+		PCGEX_SET_NUM(Subdivisions, SubdivCount)
+
+
+		for (int i = 0; i < SubdivCount; i++) { Subdivisions[i] = Arrive + Dir * (StepSize + i * StepSize); }
+	}
+
+	void FBevel::SubdivideArc(const double Factor, const double bIsCount)
+	{
+		FExCenterArc Arc = FExCenterArc(Arrive, Corner, Leave);
+
+		int32 SubdivCount = Factor;
+
+		if (bIsCount)
+		{
+		}
+		else
+		{
+			SubdivCount = FMath::Floor(Arc.GetLength() / Factor);
+		}
+
+		const double StepSize = 1 / static_cast<double>(SubdivCount + 1);
+		PCGEX_SET_NUM(Subdivisions, SubdivCount)
+
+		for (int i = 0; i < SubdivCount; i++) { Subdivisions[i] = Arc.GetLocationOnArc(StepSize + i * StepSize); }
+	}
+
+	void FBevel::SubdivideCustom(const double Factor, const double bIsCount)
+	{
+		// TODO : Transform and insert profile
+		// TODO : Subdiv count = profile.num() - 2 // (use profile start/end, meaning profile pt num must be >= 2)
 	}
 
 	FProcessor::~FProcessor()
@@ -194,7 +256,7 @@ namespace PCGExBevelPath
 
 		if (!InitPrimaryFilters(&TypedContext->BevelFilterFactories))
 		{
-			// TODO : Throw error/warning, some filter metadata is missing
+			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Some filter data is invalid or missing."));
 			return false;
 		}
 
@@ -203,10 +265,35 @@ namespace PCGExBevelPath
 			WidthGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->WidthAttribute);
 			if (!WidthGetter)
 			{
-				// TODO : Throw error/warning, some filter metadata is missing
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Width attribute data is invalid or missing."));
 				return false;
 			}
 		}
+
+		if (Settings->bSubdivide)
+		{
+			bSubdivide = !Settings->bKeepCornerPoint && Settings->Type != EPCGExBevelProfileType::Custom;
+			if (bSubdivide)
+			{
+				bSubdivideCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
+
+				if (Settings->SubdivisionValueSource == EPCGExFetchType::Attribute)
+				{
+					SubdivAmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
+					if (!SubdivAmountGetter)
+					{
+						PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Subdivision Amount attribute is invalid or missing."));
+						return false;
+					}
+				}
+				else
+				{
+					ConstantSubdivAmount = bSubdivideCount ? Settings->SubdivisionCount : Settings->SubdivisionDistance;
+				}
+			}
+		}
+
+		bArc = Settings->Type == EPCGExBevelProfileType::Arc;
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
@@ -250,7 +337,7 @@ namespace PCGExBevelPath
 		if (!Bevel) { return; }
 
 		if (LocalSettings->Limit == EPCGExBevelLimit::Balanced) { Bevel->Balance(this); }
-		Bevel->Compute();
+		Bevel->Compute(this);
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
@@ -270,10 +357,10 @@ namespace PCGExBevelPath
 			return;
 		}
 
-		for (int j = Bevel->StartOutputIndex; j <= Bevel->EndOutputIndex; j++)
+		for (int i = Bevel->StartOutputIndex; i <= Bevel->EndOutputIndex; i++)
 		{
-			MutablePoints[j] = OriginalPoint;
-			Metadata->InitializeOnSet(MutablePoints[j].MetadataEntry);
+			MutablePoints[i] = OriginalPoint;
+			Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
 		}
 
 		FPCGPoint& StartPoint = PointIO->GetMutablePoint(Bevel->StartOutputIndex);
@@ -282,11 +369,12 @@ namespace PCGExBevelPath
 		StartPoint.Transform.SetLocation(Bevel->Arrive);
 		EndPoint.Transform.SetLocation(Bevel->Leave);
 
-		if (Subdivisions == 0) { return; }
+		if (Bevel->Subdivisions.IsEmpty()) { return; }
 
-		PCGEX_SET_NUM_UNINITIALIZED(Bevel->Subdivisions, Subdivisions);
-
-		// TODO : Subdivisions & blending
+		for (int i = 0; i < Bevel->Subdivisions.Num(); i++)
+		{
+			MutablePoints[Bevel->StartOutputIndex + i + 1].Transform.SetLocation(Bevel->Subdivisions[i]);
+		}
 	}
 
 	void FProcessor::CompleteWork()
@@ -294,8 +382,6 @@ namespace PCGExBevelPath
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelPath)
 
 		PCGEX_SET_NUM_UNINITIALIZED(StartIndices, PointIO->GetNum())
-
-		const int32 Increment = LocalSettings->bKeepCornerPoint ? 2 : Settings->NumSubdivision + 1; // End + subdivs
 
 		int32 NumBevels = 0;
 		int32 NumOutPoints = 0;
@@ -309,7 +395,7 @@ namespace PCGExBevelPath
 				NumBevels++;
 
 				Bevel->StartOutputIndex = NumOutPoints;
-				NumOutPoints += Increment;
+				NumOutPoints += Bevel->Subdivisions.Num() + 1;
 				Bevel->EndOutputIndex = NumOutPoints;
 			}
 
