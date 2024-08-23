@@ -4,25 +4,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExClusterStates.h"
-#include "PCGExCompare.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
 
-#include "PCGExFlagNodes.generated.h"
+#include "PCGExBevelVertices.generated.h"
 
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph") // Abstract since WIP
+class PCGEXTENDEDTOOLKIT_API UPCGExBevelVerticesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FlagNodes, "Cluster : Flag Nodes", "Find & writes node states as a int64 flag mask");
+	PCGEX_NODE_INFOS(BevelVertices, "Cluster : Bevel Vtx", "Simple bevel on vertices");
 #endif
 
 protected:
@@ -47,19 +45,19 @@ public:
 	int64 InitialFlags;
 
 private:
-	friend class FPCGExFlagNodesElement;
+	friend class FPCGExBevelVerticesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFlagNodesContext final : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBevelVerticesContext final : public FPCGExEdgesProcessorContext
 {
-	friend class FPCGExFlagNodesElement;
+	friend class FPCGExBevelVerticesElement;
 
-	virtual ~FPCGExFlagNodesContext() override;
+	virtual ~FPCGExBevelVerticesContext() override;
 
 	TArray<UPCGExFilterFactoryBase*> StateFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBevelVerticesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -72,13 +70,13 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExFlagNodes
+namespace PCGExBevelVertices
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		friend class FProcessorBatch;
 		TArray<int64>* StateFlags = nullptr;
-		PCGExClusterStates::FStateManager* StateManager = nullptr;
+		PCGExClusterFilter::TManager* FilterManager = nullptr;
 
 		bool bBuildExpandedNodes = false;
 		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;

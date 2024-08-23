@@ -1,60 +1,60 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/States/PCGExFlagNodes.h"
+#include "Graph/PCGExBevelVertices.h"
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE FlagNodes
+#define PCGEX_NAMESPACE BevelVertices
 
-int32 UPCGExFlagNodesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
+int32 UPCGExBevelVerticesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EInit UPCGExFlagNodesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExFlagNodesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExBevelVerticesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBevelVerticesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-TArray<FPCGPinProperties> UPCGExFlagNodesSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExBevelVerticesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExCluster::SourceNodeFlagLabel, "Node states.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, "Bevel conditions", Normal, {})
 	return PinProperties;
 }
 
-FPCGExFlagNodesContext::~FPCGExFlagNodesContext()
+FPCGExBevelVerticesContext::~FPCGExBevelVerticesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 	StateFactories.Empty();
 }
 
-PCGEX_INITIALIZE_ELEMENT(FlagNodes)
+PCGEX_INITIALIZE_ELEMENT(BevelVertices)
 
-bool FPCGExFlagNodesElement::Boot(FPCGExContext* InContext) const
+bool FPCGExBevelVerticesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(FlagNodes)
+	PCGEX_CONTEXT_AND_SETTINGS(BevelVertices)
 
 	return PCGExFactories::GetInputFactories(
 		Context, PCGExCluster::SourceNodeFlagLabel, Context->StateFactories,
 		{PCGExFactories::EType::StateNode}, true);
 }
 
-bool FPCGExFlagNodesElement::ExecuteInternal(
+bool FPCGExBevelVerticesElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFlagNodesElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBevelVerticesElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(FlagNodes)
+	PCGEX_CONTEXT_AND_SETTINGS(BevelVertices)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartProcessingClusters<PCGExFlagNodes::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExBevelVertices::FProcessorBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExFlagNodes::FProcessorBatch* NewBatch)
+			[&](PCGExBevelVertices::FProcessorBatch* NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 				NewBatch->bWriteVtxDataFacade = true;
@@ -73,17 +73,17 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-namespace PCGExFlagNodes
+namespace PCGExBevelVertices
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(StateManager)
+		PCGEX_DELETE(FilterManager)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindNodeState::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelVertices::Process);
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelVertices)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
@@ -97,8 +97,8 @@ namespace PCGExFlagNodes
 
 		Cluster->ComputeEdgeLengths();
 
-		StateManager = new PCGExClusterStates::FStateManager(StateFlags, Cluster, VtxDataFacade, EdgeDataFacade);
-		StateManager->Init(Context, TypedContext->StateFactories);
+		FilterManager = new PCGExClusterStates::FStateManager(StateFlags, Cluster, VtxDataFacade, EdgeDataFacade);
+		FilterManager->Init(Context, TypedContext->StateFactories);
 
 		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }
 		else { StartParallelLoopForNodes(); }
@@ -113,7 +113,7 @@ namespace PCGExFlagNodes
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
 	{
-		StateManager->Test(Node);
+		FilterManager->Test(Node);
 	}
 
 	void FProcessor::CompleteWork()
@@ -123,7 +123,7 @@ namespace PCGExFlagNodes
 
 	void FProcessor::Write()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelVertices)
 	}
 
 	//////// BATCH
@@ -140,7 +140,7 @@ namespace PCGExFlagNodes
 
 	bool FProcessorBatch::PrepareProcessing()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelVertices)
 
 		if (!TBatch::PrepareProcessing()) { return false; }
 

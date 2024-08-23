@@ -49,11 +49,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSubdivideMode SubdivideMethod = EPCGExSubdivideMode::Distance;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod==EPCGExSubdivideMode::Distance", EditConditionHides, ClampMin=0.1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	EPCGExFetchType ValueSource = EPCGExFetchType::Constant;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod==EPCGExSubdivideMode::Distance && ValueSource==EPCGExFetchType::Constant", EditConditionHides, ClampMin=0.1))
 	double Distance = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod==EPCGExSubdivideMode::Count", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod==EPCGExSubdivideMode::Count && ValueSource==EPCGExFetchType::Constant", EditConditionHides, ClampMin=1))
 	int32 Count = 10;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector SubdivisionAmount;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
@@ -89,14 +95,29 @@ protected:
 
 namespace PCGExSubdivide
 {
+	struct FSubdivision
+	{
+		int32 NumSubdivisions = 0;
+		int32 OutStart = -1;
+		int32 OutEnd = -1;
+		double Dist = 0;
+		FVector Start = FVector::ZeroVector;
+		FVector End = FVector::ZeroVector;
+		FVector Dir = FVector::ZeroVector;
+	};
+
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
+		const UPCGExSubdivideSettings* LocalSettings = nullptr;
+		FPCGExSubdivideContext* LocalTypedContext = nullptr;
 
-		TArray<int32> Milestones;
-		TArray<PCGExMath::FPathMetricsSquared> MilestonesMetrics;
+		TArray<FSubdivision> Subdivisions;
 
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
+
+		PCGEx::TFAttributeWriter<bool>* FlagWriter = nullptr;
+		PCGExData::FCache<double>* AmountGetter = nullptr;
+		bool bUseCount = false;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
@@ -109,7 +130,8 @@ namespace PCGExSubdivide
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		void ProcessPathPoint(const int32 FromIndex, const int32 ToIndex);
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
