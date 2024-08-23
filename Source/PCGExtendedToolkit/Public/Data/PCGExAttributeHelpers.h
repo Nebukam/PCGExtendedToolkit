@@ -685,7 +685,7 @@ namespace PCGEx
 
 			const UPCGPointData* InData = PointIO->GetIn();
 			const int32 LastIndex = StartIndex + Count;
-			
+
 			if (Selection == EPCGAttributePropertySelection::Attribute)
 			{
 				if (!FetchAccessor || !Attribute) { return false; }

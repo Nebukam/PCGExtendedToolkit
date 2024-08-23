@@ -90,7 +90,6 @@ protected:
 
 namespace PCGExSplitPath
 {
-
 	struct PCGEXTENDEDTOOLKIT_API FPath
 	{
 		int32 Start = -1;
@@ -101,7 +100,7 @@ namespace PCGExSplitPath
 		{
 		}
 	};
-	
+
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		FPCGExSplitPathContext* LocalTypedContext = nullptr;
@@ -212,7 +211,7 @@ namespace PCGExSplitPath
 				ClosedPath.End = Index;
 				ClosedPath.Count++;
 			}
-			
+
 			CurrentPath = -1;
 		}
 

@@ -103,7 +103,7 @@ namespace PCGExMT
 		FAsyncTask<FGroupRangeInlineIterationTask>* NextRange = new FAsyncTask<FGroupRangeInlineIterationTask>(nullptr);
 		NextRange->GetTask().Group = this;
 		NextRange->GetTask().MaxItems = MaxItems;
-		NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);;
+		NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);
 
 		if (Manager->ForceSync) { Manager->StartSynchronousTask<FGroupRangeInlineIterationTask>(NextRange, Index); }
 		else { Manager->StartBackgroundTask<FGroupRangeInlineIterationTask>(NextRange, Index); }

@@ -108,7 +108,7 @@ namespace PCGExSplitPath
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
-		
+
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
@@ -123,7 +123,7 @@ namespace PCGExSplitPath
 			if (!FilterManager->Init(Context, TypedContext->SplitFilterFactories)) { PCGEX_DELETE(FilterManager) }
 		}
 
-		if(!FilterManager)
+		if (!FilterManager)
 		{
 			// TODO : Throw error/warning
 			return false;
@@ -135,7 +135,7 @@ namespace PCGExSplitPath
 		PCGExMT::FTaskGroup* TaskGroup = AsyncManager->CreateGroup();
 		TaskGroup->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PointDataFacade->Fetch(StartIndex, Count); });
-		
+
 		switch (Settings->SplitAction)
 		{
 		case EPCGExPathSplitAction::Split:

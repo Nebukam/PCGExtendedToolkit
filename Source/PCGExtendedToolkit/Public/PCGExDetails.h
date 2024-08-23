@@ -152,7 +152,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 		TruncateOutput(Other.TruncateOutput),
 		PostTruncateScale(Other.PostTruncateScale)
 	{
-		
 	}
 
 	~FPCGExRemapDetails()

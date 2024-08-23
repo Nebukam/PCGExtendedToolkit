@@ -144,7 +144,7 @@ namespace PCGExAttributeRemap
 			static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
 			{
 				using RawT = decltype(DummyValue);
-				CacheWriter = PointDataFacade->GetWriter<RawT>(Identity->Name, true);
+				CacheWriter = PointDataFacade->GetWriter<RawT>(Settings->TargetAttributeName, true);
 				CacheReader = PointDataFacade->GetScopedReader<RawT>(Identity->Name);
 			});
 
@@ -199,7 +199,7 @@ namespace PCGExAttributeRemap
 						using RawT = decltype(DummyValue);
 						PCGEx::TFAttributeWriter<RawT>* Writer = static_cast<PCGEx::TFAttributeWriter<RawT>*>(CacheWriter);
 						PCGEx::TFAttributeReader<RawT>* Reader = static_cast<PCGEx::TFAttributeReader<RawT>*>(CacheReader);
-						
+
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
 						for (int i = StartIndex; i < StartIndex + Count; i++) { Writer->Values[i] = Reader->Values[i]; } // Copy range to writer
 

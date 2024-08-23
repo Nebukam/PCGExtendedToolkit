@@ -105,7 +105,8 @@ namespace PCGExSubdivide
 				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Subdivision Amount attribute is invalid."));
 				return false;
 			}
-		}else
+		}
+		else
 		{
 			ConstantAmount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count ? Settings->Count : Settings->Distance;
 		}
@@ -171,7 +172,7 @@ namespace PCGExSubdivide
 			MutablePoints[Index].Transform.SetLocation(Position);
 			Metrics.Add(Position);
 		}
-		
+
 		Metrics.Add(Sub.End);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + Sub.OutStart, Sub.NumSubdivisions + 1);

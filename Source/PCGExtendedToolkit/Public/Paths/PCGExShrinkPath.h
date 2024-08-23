@@ -199,6 +199,5 @@ namespace PCGExShrinkPath
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
-
 	};
 }

@@ -182,7 +182,6 @@ protected:
 
 namespace PCGExBevelPath
 {
-	
 	class FProcessor;
 
 	struct PCGEXTENDEDTOOLKIT_API FBevel

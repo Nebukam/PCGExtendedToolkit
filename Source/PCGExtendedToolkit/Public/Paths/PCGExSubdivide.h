@@ -118,7 +118,7 @@ namespace PCGExSubdivide
 		PCGEx::TFAttributeWriter<bool>* FlagWriter = nullptr;
 		PCGExData::FCache<double>* AmountGetter = nullptr;
 		double ConstantAmount = 0;
-		
+
 		bool bUseCount = false;
 
 	public:
