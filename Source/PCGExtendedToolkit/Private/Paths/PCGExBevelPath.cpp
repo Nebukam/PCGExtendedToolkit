@@ -23,6 +23,7 @@ PCGEX_INITIALIZE_ELEMENT(BevelPath)
 void UPCGExBevelPathSettings::InitOutputFlags(const PCGExData::FPointIO* InPointIO) const
 {
 	UPCGMetadata* Metadata = InPointIO->GetOut()->Metadata;
+	if (bFlagEndpoints) { Metadata->FindOrCreateAttribute(EndpointsFlagName, false); }
 	if (bFlagStartPoint) { Metadata->FindOrCreateAttribute(StartPointFlagName, false); }
 	if (bFlagEndPoint) { Metadata->FindOrCreateAttribute(EndPointFlagName, false); }
 	if (bFlagSubdivision) { Metadata->FindOrCreateAttribute(SubdivisionFlagName, false); }
@@ -32,6 +33,9 @@ FPCGExBevelPathContext::~FPCGExBevelPathContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	PCGEX_DELETE_FACADE_AND_SOURCE(CustomProfileFacade)
+
+	CustomProfilePositions.Empty();
 	BevelFilterFactories.Empty();
 }
 
@@ -47,6 +51,36 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bFlagStartPoint) { PCGEX_VALIDATE_NAME(Settings->StartPointFlagName) }
 	if (Settings->bFlagEndPoint) { PCGEX_VALIDATE_NAME(Settings->EndPointFlagName) }
 	if (Settings->bFlagSubdivision) { PCGEX_VALIDATE_NAME(Settings->SubdivisionFlagName) }
+
+	if (Settings->Type == EPCGExBevelProfileType::Custom)
+	{
+		PCGExData::FPointIO* CustomProfileIO = PCGExData::TryGetSingleInput(Context, PCGExBevelPath::SourceCustomProfile, true);
+		if (!CustomProfileIO) { return false; }
+
+		if (CustomProfileIO->GetNum() < 2)
+		{
+			PCGEX_DELETE(CustomProfileIO)
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Custom profile must have at least two points."));
+			return false;
+		}
+
+		Context->CustomProfileFacade = new PCGExData::FFacade(CustomProfileIO);
+
+		const TArray<FPCGPoint>& ProfilePoints = CustomProfileIO->GetIn()->GetPoints();
+		PCGEX_SET_NUM_UNINITIALIZED(Context->CustomProfilePositions, ProfilePoints.Num())
+
+		const FVector Start = ProfilePoints[0].Transform.GetLocation();
+		const FVector End = ProfilePoints.Last().Transform.GetLocation();
+		const double Factor = 1 / FVector::Dist(Start, End);
+
+		const FVector ProjectionNormal = (End - Start).GetSafeNormal(1E-08, FVector::ForwardVector);
+		const FQuat ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::ForwardVector);
+
+		for (int i = 0; i < ProfilePoints.Num(); i++)
+		{
+			Context->CustomProfilePositions[i] = ProjectionQuat.RotateVector((ProfilePoints[i].Transform.GetLocation() - Start) * Factor);
+		}
+	}
 
 	return true;
 }
@@ -168,6 +202,7 @@ namespace PCGExBevelPath
 
 		if (InProcessor->LocalSettings->Type == EPCGExBevelProfileType::Custom)
 		{
+			SubdivideCustom(InProcessor);
 			return;
 		}
 
@@ -215,10 +250,24 @@ namespace PCGExBevelPath
 		for (int i = 0; i < SubdivCount; i++) { Subdivisions[i] = Arc.GetLocationOnArc(StepSize + i * StepSize); }
 	}
 
-	void FBevel::SubdivideCustom(const double Factor, const double bIsCount)
+	void FBevel::SubdivideCustom(const FProcessor* InProcessor)
 	{
-		// TODO : Transform and insert profile
-		// TODO : Subdiv count = profile.num() - 2 // (use profile start/end, meaning profile pt num must be >= 2)
+		const TArray<FVector>& SourcePos = InProcessor->LocalTypedContext->CustomProfilePositions;
+		const int32 SubdivCount = SourcePos.Num() - 2;
+
+		PCGEX_SET_NUM(Subdivisions, SubdivCount)
+
+		if (SubdivCount == 0) { return; }
+
+		const double Factor = FVector::Dist(Leave, Arrive);		
+		const FVector ProjectionNormal = (Leave - Arrive).GetSafeNormal(1E-08, FVector::ForwardVector);
+		const FQuat ProjectionQuat = FQuat::FindBetweenNormals(FVector::ForwardVector, ProjectionNormal);
+
+		for(int i = 0; i < SubdivCount; i++)
+		{
+			Subdivisions[i] = Arrive + ProjectionQuat.RotateVector(SourcePos[i+1] * Factor);
+		}
+		
 	}
 
 	FProcessor::~FProcessor()

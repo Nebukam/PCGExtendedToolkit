@@ -165,6 +165,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBevelPathContext final : public FPCGExPathPr
 	virtual ~FPCGExBevelPathContext() override;
 
 	TArray<UPCGExFilterFactoryBase*> BevelFilterFactories;
+	PCGExData::FFacade* CustomProfileFacade = nullptr;
+
+	TArray<FVector> CustomProfilePositions;
+	double CustomLength;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBevelPathElement final : public FPCGExPathProcessorElement
@@ -221,7 +226,7 @@ namespace PCGExBevelPath
 
 		void SubdivideLine(const double Factor, const double bIsCount);
 		void SubdivideArc(const double Factor, const double bIsCount);
-		void SubdivideCustom(const double Factor, const double bIsCount);
+		void SubdivideCustom(const FProcessor* InProcessor);
 	};
 
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
