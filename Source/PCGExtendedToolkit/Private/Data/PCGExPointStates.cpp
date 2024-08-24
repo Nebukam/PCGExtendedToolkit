@@ -3,8 +3,6 @@
 
 #include "Data/PCGExPointStates.h"
 
-#include "Graph/PCGExCluster.h"
-
 PCGExPointFilter::TFilter* UPCGExPointStateFactoryBase::CreateFilter() const
 {
 	return Super::CreateFilter();

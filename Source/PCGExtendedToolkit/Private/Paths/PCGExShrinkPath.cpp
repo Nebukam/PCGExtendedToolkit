@@ -3,8 +3,6 @@
 
 #include "Paths/PCGExShrinkPath.h"
 
-#include "Data/PCGExPointFilter.h"
-
 #define LOCTEXT_NAMESPACE "PCGExShrinkPathElement"
 #define PCGEX_NAMESPACE ShrinkPath
 

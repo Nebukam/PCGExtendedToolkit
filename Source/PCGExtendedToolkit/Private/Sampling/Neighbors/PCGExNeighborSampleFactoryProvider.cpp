@@ -12,8 +12,7 @@
 void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExNeighborSampleOperation* TypedOther = Cast<UPCGExNeighborSampleOperation>(Other);
-	if (TypedOther)
+	if (const UPCGExNeighborSampleOperation* TypedOther = Cast<UPCGExNeighborSampleOperation>(Other))
 	{
 		SamplingConfig = TypedOther->SamplingConfig;
 		WeightCurveObj = TypedOther->WeightCurveObj;

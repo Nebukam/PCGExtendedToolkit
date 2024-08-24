@@ -197,19 +197,19 @@ namespace PCGExGeo
 		FORCEINLINE bool Contains(const FVector& Position) const { return Box.IsInside(Transform.InverseTransformPosition(Position)); }
 		FORCEINLINE bool ContainsMinusEpsilon(const FVector& Position) const { return EpsilonBox.IsInside(Transform.InverseTransformPosition(Position)); }
 
-		FORCEINLINE bool Intersect(const FPCGPoint& Point, EPCGExPointBoundsSource BoundsSource) const
+		FORCEINLINE bool Intersect(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource).TransformBy(Point.Transform).InverseTransformBy(Transform);
 			return Box.Intersect(LocalBox);
 		}
 
-		FORCEINLINE bool Contains(const FPCGPoint& Point, EPCGExPointBoundsSource BoundsSource) const
+		FORCEINLINE bool Contains(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource) const
 		{
 			const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource).TransformBy(Point.Transform).InverseTransformBy(Transform);
 			return Box.IsInside(LocalBox);
 		}
 
-		FORCEINLINE bool ContainsOrIntersect(const FPCGPoint& Point, EPCGExPointBoundsSource BoundsSource, bool& bContains, bool& bIntersects) const
+		FORCEINLINE bool ContainsOrIntersect(const FPCGPoint& Point, const EPCGExPointBoundsSource BoundsSource, bool& bContains, bool& bIntersects) const
 		{
 			const FBox LocalBox = PCGExMath::GetLocalBounds(Point, BoundsSource).TransformBy(Point.Transform).InverseTransformBy(Transform);
 			bContains = Box.IsInside(LocalBox);

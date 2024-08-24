@@ -7,7 +7,6 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Graph/PCGExGraph.h"
 #include "PCGExPrimitiveProcessor.generated.h"
 
 /**

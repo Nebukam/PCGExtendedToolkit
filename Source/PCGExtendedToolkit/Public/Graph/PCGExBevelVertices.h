@@ -9,6 +9,11 @@
 
 #include "PCGExBevelVertices.generated.h"
 
+namespace PCGExClusterFilter
+{
+	class TManager;
+}
+
 /**
  * 
  */

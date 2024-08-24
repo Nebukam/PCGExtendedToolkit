@@ -9,8 +9,7 @@
 void UPCGExOrientWeighted::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExOrientWeighted* TypedOther = Cast<UPCGExOrientWeighted>(Other);
-	if (TypedOther)
+	if (const UPCGExOrientWeighted* TypedOther = Cast<UPCGExOrientWeighted>(Other))
 	{
 		bInverseWeight = TypedOther->bInverseWeight;
 	}

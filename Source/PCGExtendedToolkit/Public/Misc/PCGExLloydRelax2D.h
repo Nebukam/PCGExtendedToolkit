@@ -8,7 +8,6 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExDetails.h"
 #include "Geometry/PCGExGeo.h"
 #include "PCGExLloydRelax2D.generated.h"
 

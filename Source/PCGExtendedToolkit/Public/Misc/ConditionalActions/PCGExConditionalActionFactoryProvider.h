@@ -25,6 +25,7 @@
 	return NewOperation;}
 
 class UPCGExFilterFactoryBase;
+class UPCGExConditionalActionFactoryBase;
 
 namespace PCGExConditionalActions
 {
@@ -33,6 +34,7 @@ namespace PCGExConditionalActions
 	const FName SourceDefaultsLabel = TEXT("Default values");
 	const FName OutputConditionalActionLabel = TEXT("Action");
 }
+
 
 /**
  * 

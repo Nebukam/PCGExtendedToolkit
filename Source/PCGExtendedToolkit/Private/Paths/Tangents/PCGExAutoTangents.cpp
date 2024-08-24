@@ -4,38 +4,38 @@
 
 #include "Paths/Tangents/PCGExAutoTangents.h"
 
-#include "PCGExMath.h"
-#include "Data/PCGExPointIO.h"
 #include "Geometry/PCGExGeo.h"
 
-void UPCGExAutoTangents::ProcessFirstPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExAutoTangents::ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
 {
 	PCGExGeo::FApex Apex = PCGExGeo::FApex::FromStartOnly(
-		NextPoint.Point->Transform.GetLocation(),
-		MainPoint.Point->Transform.GetLocation());
+		InPoints[0].Transform.GetLocation(),
+		InPoints[0].Transform.GetLocation());
 
 	Apex.Scale(Scale);
 	OutArrive = Apex.TowardStart;
 	OutLeave = Apex.TowardEnd * -1;
 }
 
-void UPCGExAutoTangents::ProcessLastPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExAutoTangents::ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
 {
+	const int32 Index = InPoints.Num() - 1;
+	const int32 PrevIndex = Index - 1;
 	PCGExGeo::FApex Apex = PCGExGeo::FApex::FromEndOnly(
-		PreviousPoint.Point->Transform.GetLocation(),
-		MainPoint.Point->Transform.GetLocation());
+		InPoints[PrevIndex].Transform.GetLocation(),
+		InPoints[Index].Transform.GetLocation());
 
 	Apex.Scale(Scale);
 	OutArrive = Apex.TowardStart;
 	OutLeave = Apex.TowardEnd * -1;
 }
 
-void UPCGExAutoTangents::ProcessPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExAutoTangents::ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const
 {
 	PCGExGeo::FApex Apex = PCGExGeo::FApex(
-		PreviousPoint.Point->Transform.GetLocation(),
-		NextPoint.Point->Transform.GetLocation(),
-		MainPoint.Point->Transform.GetLocation());
+		InPoints[PrevIndex].Transform.GetLocation(),
+		InPoints[NextIndex].Transform.GetLocation(),
+		InPoints[Index].Transform.GetLocation());
 
 	Apex.Scale(Scale);
 	OutArrive = Apex.TowardStart;

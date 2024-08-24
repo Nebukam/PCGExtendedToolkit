@@ -10,7 +10,6 @@
 #include "PCGExCluster.h"
 #include "Data/PCGExClusterData.h"
 #include "Data/PCGExData.h"
-#include "Filters/PCGExClusterFilter.h"
 #include "Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
@@ -118,7 +117,7 @@ namespace PCGExClusterMT
 			return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, false, false, false);
 		}
 
-		void ForwardCluster(bool bAsOwner)
+		void ForwardCluster(const bool bAsOwner)
 		{
 			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(EdgesIO->GetOut()))
 			{
@@ -302,7 +301,7 @@ namespace PCGExClusterMT
 				});
 		}
 
-		virtual void ProcessView(int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
+		virtual void ProcessView(const int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
 		{
 			for (int i = 0; i < NodeView.Num(); i++)
 			{

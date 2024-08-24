@@ -9,7 +9,6 @@
 
 #include "PCGExFactoryProvider.h"
 #include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
 
 #include "PCGExConditionalActionAttributes.generated.h"
@@ -19,6 +18,8 @@ namespace PCGExConditionalActionAttribute
 	const FName SourceForwardSuccess = TEXT("MatchSuccess");
 	const FName SourceForwardFail = TEXT("MatchFail");
 }
+
+class UPCGExConditionalActionAttributesFactory;
 
 /**
  * 

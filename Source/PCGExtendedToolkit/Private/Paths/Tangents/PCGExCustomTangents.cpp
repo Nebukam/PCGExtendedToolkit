@@ -6,30 +6,28 @@
 
 #include "Data/PCGExPointIO.h"
 
-void UPCGExCustomTangents::PrepareForData(PCGExData::FPointIO* InPointIO)
+void UPCGExCustomTangents::PrepareForData(PCGExData::FFacade* InDataFacade)
 {
-	Super::PrepareForData(InPointIO);
-	Arrive.PrepareForData(InPointIO);
-	Leave.PrepareForData(InPointIO);
+	Super::PrepareForData(InDataFacade);
+	Arrive.PrepareForData(InDataFacade);
+	Leave.PrepareForData(InDataFacade);
 }
 
-void UPCGExCustomTangents::ProcessFirstPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExCustomTangents::ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
 {
-	const int32 Index = MainPoint.Index;
+	OutArrive = Arrive.GetTangent(0);
+	OutLeave = bMirror ? Arrive.GetTangent(0) : Leave.GetTangent(0);
+}
+
+void UPCGExCustomTangents::ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
+{
+	const int32 Index = InPoints.Num()-1;
 	OutArrive = Arrive.GetTangent(Index);
 	OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
 }
 
-void UPCGExCustomTangents::ProcessLastPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExCustomTangents::ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const
 {
-	const int32 Index = MainPoint.Index;
-	OutArrive = Arrive.GetTangent(Index);
-	OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
-}
-
-void UPCGExCustomTangents::ProcessPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
-{
-	const int32 Index = MainPoint.Index;
 	OutArrive = Arrive.GetTangent(Index);
 	OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
 }

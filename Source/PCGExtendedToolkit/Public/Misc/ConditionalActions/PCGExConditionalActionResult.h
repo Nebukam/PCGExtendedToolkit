@@ -12,6 +12,8 @@
 
 #include "PCGExConditionalActionResult.generated.h"
 
+class UPCGExConditionalActionResultFactory;
+
 /**
  * 
  */
@@ -26,8 +28,8 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-	FORCEINLINE virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = true; }
-	FORCEINLINE virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = false; }
+	FORCEINLINE virtual void OnMatchSuccess(const int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = true; }
+	FORCEINLINE virtual void OnMatchFail(const int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = false; }
 
 	virtual void Cleanup() override;
 

@@ -5,7 +5,6 @@
 #include "Graph/PCGExIntersections.h"
 
 #include "Data/Blending/PCGExCompoundBlender.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
 

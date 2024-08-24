@@ -478,10 +478,25 @@ namespace PCGExGeo
 		{
 		}
 
+
+		/**
+		 * ExCenter arc from 3 points.
+		 * The arc center will be opposite to B
+		 * @param A 
+		 * @param B 
+		 * @param C 
+		 */
 		FExCenterArc(const FVector& A, const FVector& B, const FVector& C)
 		{
 			const FVector Up = PCGExMath::GetNormal(A, B, C);
-			Center = FMath::LinePlaneIntersection(C, C + PCGExMath::GetNormal(B, C, C + Up), A, (A - B).GetSafeNormal());
+			bool bIntersect = true;
+
+			Center = PCGExMath::SafeLinePlaneIntersection(
+				C, C + PCGExMath::GetNormal(B, C, C + Up),
+				A, (A - B).GetSafeNormal(), bIntersect);
+
+			if (!bIntersect) { Center = FMath::Lerp(A, C, 0.5); } // Parallel lines, place center right in the middle
+
 			Radius = FVector::Dist(C, Center);
 
 			Hand = (A - Center).GetSafeNormal();
@@ -492,11 +507,55 @@ namespace PCGExGeo
 			SinTheta = FMath::Sin(Theta);
 		}
 
+		/**
+		 * ExCenter arc from 2 segments.
+		 * The arc center will be opposite to B
+		 * @param A1 
+		 * @param B1 
+		 * @param A2 
+		 * @param B2
+		 * @param MaxLength 
+		 */
+		FExCenterArc(const FVector& A1, const FVector& B1, const FVector& A2, const FVector& B2, const double MaxLength = 100000)
+		{
+			const FVector& N1 = PCGExMath::GetNormal(B1, A1, A1 + PCGExMath::GetNormal(B1, A1, A2));
+			const FVector& N2 = PCGExMath::GetNormal(B2, A2, A2 + PCGExMath::GetNormal(B2, A2, A1));
+
+			if (FMath::IsNearlyZero(FVector::DotProduct(N1, N2)))
+			{
+				Center = FMath::Lerp(B1, B2, 0.5);
+			}
+			else
+			{
+				FVector OutA = FVector::ZeroVector;
+				FVector OutB = FVector::ZeroVector;
+				FMath::SegmentDistToSegment(
+					B1 + N1 * -MaxLength, B1 + N1 * MaxLength,
+					B2 + N2 * -MaxLength, B2 + N2 * MaxLength,
+					OutA, OutB);
+				Center = FMath::Lerp(OutA, OutB, 0.5);
+			}
+
+			Radius = FVector::Dist(A2, Center);
+
+			Hand = (B1 - Center).GetSafeNormal();
+			OtherHand = (B2 - Center).GetSafeNormal();
+
+			Normal = FVector::CrossProduct(Hand, OtherHand).GetSafeNormal();
+			Theta = FMath::Acos(FVector::DotProduct(Hand, OtherHand));
+			SinTheta = FMath::Sin(Theta);
+		}
+
 		FORCEINLINE double GetLength() const { return Radius * Theta; }
 
+		/**
+		 * 
+		 * @param Alpha 0-1 normalized range on the arc
+		 * @return 
+		 */
 		FORCEINLINE FVector GetLocationOnArc(const double Alpha) const
 		{
-			const double W1 = FMath::Sin((1.0f - Alpha) * Theta) / SinTheta;
+			const double W1 = FMath::Sin((1.0 - Alpha) * Theta) / SinTheta;
 			const double W2 = FMath::Sin(Alpha * Theta) / SinTheta;
 
 			const FVector Dir = Hand * W1 + OtherHand * W2;

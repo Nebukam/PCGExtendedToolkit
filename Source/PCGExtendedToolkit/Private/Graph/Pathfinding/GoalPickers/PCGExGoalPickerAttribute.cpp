@@ -4,13 +4,10 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
 
-#include "PCGEx.h"
-
 void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExGoalPickerAttribute* TypedOther = Cast<UPCGExGoalPickerAttribute>(Other);
-	if (TypedOther)
+	if (const UPCGExGoalPickerAttribute* TypedOther = Cast<UPCGExGoalPickerAttribute>(Other))
 	{
 		GoalCount = TypedOther->GoalCount;
 		SingleSelector = TypedOther->SingleSelector;

@@ -32,7 +32,7 @@ public class PCGExtendedToolkit : ModuleRules
 				"GeometryCore",
 				"NavigationSystem",
 				"Engine",
-				"PCG",
+				"PCG"
 			}
 		);
 

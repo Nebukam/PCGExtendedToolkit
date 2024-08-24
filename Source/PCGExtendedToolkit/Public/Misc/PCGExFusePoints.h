@@ -10,7 +10,6 @@
 #include "PCGExDetails.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExFusePoints.generated.h"

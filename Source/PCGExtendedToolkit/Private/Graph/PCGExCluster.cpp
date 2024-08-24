@@ -75,7 +75,7 @@ namespace PCGExCluster
 	}
 
 	FCluster::FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO,
-	                   bool bCopyNodes, bool bCopyEdges, bool bCopyLookup)
+	                   const bool bCopyNodes, const bool bCopyEdges, const bool bCopyLookup)
 	{
 		bIsMirror = true;
 		bIsCopyCluster = false;
@@ -137,12 +137,14 @@ namespace PCGExCluster
 
 		Bounds = OtherCluster->Bounds;
 
+		/*
 		EdgeLengths = OtherCluster->EdgeLengths;
 		if (EdgeLengths)
 		{
 			bEdgeLengthsDirty = false;
 			bOwnsLengths = false;
 		}
+		*/
 
 		VtxPointIndices = OtherCluster->VtxPointIndices;
 		if (VtxPointIndices) { bOwnsVtxPointIndices = false; }

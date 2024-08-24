@@ -141,7 +141,7 @@ namespace PCGExCluster
 
 		FVector GetCentroid(const FCluster* InCluster) const;
 
-		FORCEINLINE int32 GetEdgeIndex(int32 AdjacentNodeIndex) const
+		FORCEINLINE int32 GetEdgeIndex(const int32 AdjacentNodeIndex) const
 		{
 			for (const uint64 AdjacencyHash : Adjacency) { if (PCGEx::H64A(AdjacencyHash) == AdjacentNodeIndex) { return PCGEx::H64B(AdjacencyHash); } }
 			return -1;
@@ -149,7 +149,7 @@ namespace PCGExCluster
 
 		void ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData, FVector& OutNormal) const;
 
-		FORCEINLINE void Add(const FNode& Neighbor, int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
+		FORCEINLINE void Add(const FNode& Neighbor, const int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FExpandedNeighbor
@@ -423,7 +423,7 @@ namespace PCGExCluster
 		FORCEINLINE double GetEdgeLength(const FCluster* Cluster) const { return FVector::Dist(Cluster->GetPos(Start), Cluster->GetPos(End)); }
 		FORCEINLINE double GetEdgeLengthSquared(const FCluster* Cluster) const { return FVector::DistSquared(Cluster->GetPos(Start), Cluster->GetPos(End)); }
 		FORCEINLINE FVector GetCenter() const { return Bounds.Origin; }
-		FORCEINLINE int32 OtherNodeIndex(int32 NodeIndex) const
+		FORCEINLINE int32 OtherNodeIndex(const int32 NodeIndex) const
 		{
 			check(NodeIndex == Start->NodeIndex || NodeIndex == End->NodeIndex)
 			return NodeIndex == Start->NodeIndex ? End->NodeIndex : Start->NodeIndex;

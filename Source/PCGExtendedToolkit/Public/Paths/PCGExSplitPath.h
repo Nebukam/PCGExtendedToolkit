@@ -131,9 +131,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionSplit(const int32 Index)
 		{
-			const bool bSplit = FilterManager->Test(Index);
-
-			if (!bSplit)
+			if (!FilterManager->Test(Index))
 			{
 				if (CurrentPath == -1)
 				{
@@ -162,9 +160,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionRemove(const int32 Index)
 		{
-			const bool bSplit = FilterManager->Test(Index);
-
-			if (!bSplit)
+			if (!FilterManager->Test(Index))
 			{
 				if (CurrentPath == -1)
 				{
@@ -189,9 +185,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionDisconnect(const int32 Index)
 		{
-			const bool bSplit = FilterManager->Test(Index);
-
-			if (!bSplit)
+			if (!FilterManager->Test(Index))
 			{
 				if (CurrentPath == -1)
 				{

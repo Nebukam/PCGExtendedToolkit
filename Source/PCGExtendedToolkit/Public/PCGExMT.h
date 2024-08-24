@@ -21,7 +21,7 @@
 
 namespace PCGExMT
 {
-	static void SetWorkPriority(EPCGExAsyncPriority Selection, EQueuedWorkPriority& Priority)
+	static void SetWorkPriority(const EPCGExAsyncPriority Selection, EQueuedWorkPriority& Priority)
 	{
 		switch (Selection)
 		{
@@ -208,7 +208,7 @@ namespace PCGExMT
 		FORCEINLINE bool IsAvailable() const { return Stopped.load() || Flushing.load() ? false : true; }
 
 		template <typename T, typename... Args>
-		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+		void Start(const int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
 			if (!IsAvailable()) { return; }
 			if (ForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
@@ -322,7 +322,7 @@ namespace PCGExMT
 		}
 
 		template <typename T, typename... Args>
-		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+		void Start(const int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
 			if (!Manager->IsAvailable()) { return; }
 
@@ -451,7 +451,7 @@ namespace PCGExMT
 	class FGroupRangeCallbackTask : public FPCGExTask
 	{
 	public:
-		FGroupRangeCallbackTask(PCGExData::FPointIO* InPointIO):
+		explicit FGroupRangeCallbackTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}
@@ -463,7 +463,7 @@ namespace PCGExMT
 	class FGroupRangeIterationTask : public FPCGExTask
 	{
 	public:
-		FGroupRangeIterationTask(PCGExData::FPointIO* InPointIO):
+		explicit FGroupRangeIterationTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}
@@ -475,7 +475,7 @@ namespace PCGExMT
 	class FGroupPrepareRangeTask : public FPCGExTask
 	{
 	public:
-		FGroupPrepareRangeTask(PCGExData::FPointIO* InPointIO):
+		explicit FGroupPrepareRangeTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}
@@ -487,7 +487,7 @@ namespace PCGExMT
 	class FGroupRangeInlineIterationTask : public FPCGExTask
 	{
 	public:
-		FGroupRangeInlineIterationTask(PCGExData::FPointIO* InPointIO):
+		explicit FGroupRangeInlineIterationTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}

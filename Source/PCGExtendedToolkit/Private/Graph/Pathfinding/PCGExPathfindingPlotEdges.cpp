@@ -5,7 +5,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
-#include "PCGExPathfinding.cpp"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Algo/Reverse.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"

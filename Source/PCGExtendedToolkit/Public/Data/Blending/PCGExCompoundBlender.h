@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExMT.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExDataBlending.h"

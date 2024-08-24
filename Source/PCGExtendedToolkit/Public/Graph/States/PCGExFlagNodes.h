@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExClusterStates.h"
-#include "PCGExCompare.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
 

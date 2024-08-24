@@ -15,7 +15,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	{
 	}
 
-	explicit FPCGExUVW(double DefaultW)
+	explicit FPCGExUVW(const double DefaultW)
 		: WConstant(DefaultW)
 	{
 	}

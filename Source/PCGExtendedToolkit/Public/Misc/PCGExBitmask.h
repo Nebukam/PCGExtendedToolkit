@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Elements/PCGPointProcessingElementBase.h"
 
 #include "PCGEx.h"
 #include "PCGExCompare.h"

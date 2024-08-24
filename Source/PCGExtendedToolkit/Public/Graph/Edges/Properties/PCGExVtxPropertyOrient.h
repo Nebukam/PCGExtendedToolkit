@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.h"

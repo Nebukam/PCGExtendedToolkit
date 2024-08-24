@@ -238,7 +238,7 @@ namespace PCGExWritePathProperties
 		const UPCGExWritePathPropertiesSettings* LocalSettings = nullptr;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InPoints):
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
 		{
 		}

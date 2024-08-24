@@ -156,7 +156,7 @@ namespace PCGExData
 			return Reader;
 		}
 
-		PCGEx::TFAttributeWriter<T>* PrepareWriter(T DefaultValue, bool bAllowInterpolation, bool bUninitialized = false)
+		PCGEx::TFAttributeWriter<T>* PrepareWriter(T DefaultValue, bool bAllowInterpolation, const bool bUninitialized = false)
 		{
 			FWriteScopeLock WriteScopeLock(CacheLock);
 
@@ -174,7 +174,7 @@ namespace PCGExData
 			return Writer;
 		}
 
-		PCGEx::TFAttributeWriter<T>* PrepareWriter(bool bUninitialized = false)
+		PCGEx::TFAttributeWriter<T>* PrepareWriter(const bool bUninitialized = false)
 		{
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
@@ -514,7 +514,7 @@ namespace PCGExData
 			return Cloud;
 		}
 
-		const UPCGPointData* GetData(ESource InSource) const { return Source->GetData(InSource); }
+		const UPCGPointData* GetData(const ESource InSource) const { return Source->GetData(InSource); }
 		const UPCGPointData* GetIn() const { return Source->GetIn(); }
 		UPCGPointData* GetOut() const { return Source->GetOut(); }
 
@@ -531,7 +531,7 @@ namespace PCGExData
 			CacheMap.Empty();
 		}
 
-		void Write(PCGExMT::FTaskManager* AsyncManager, bool bFlush)
+		void Write(PCGExMT::FTaskManager* AsyncManager, const bool bFlush)
 		{
 			for (FCacheBase* Cache : Caches) { Cache->Write(AsyncManager); }
 			if (bFlush) { Flush(); }

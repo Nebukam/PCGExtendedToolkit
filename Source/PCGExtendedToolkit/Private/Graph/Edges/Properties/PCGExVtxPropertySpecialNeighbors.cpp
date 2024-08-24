@@ -14,8 +14,7 @@ MACRO(Average)
 void UPCGExVtxPropertySpecialNeighbors::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExVtxPropertySpecialNeighbors* TypedOther = Cast<UPCGExVtxPropertySpecialNeighbors>(Other);
-	if (TypedOther)
+	if (const UPCGExVtxPropertySpecialNeighbors* TypedOther = Cast<UPCGExVtxPropertySpecialNeighbors>(Other))
 	{
 		Config = TypedOther->Config;
 	}

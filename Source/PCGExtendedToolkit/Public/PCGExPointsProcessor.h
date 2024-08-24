@@ -158,14 +158,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 		SetState(WaitState, false);
 	}
 
-	void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true)
+	void SetState(const PCGExMT::AsyncState StateId, const bool bResetAsyncWork = true)
 	{
 		if (bResetAsyncWork) { ResetAsyncWork(); }
-		if (CurrentState == OperationId) { return; }
-		CurrentState = OperationId;
+		if (CurrentState == StateId) { return; }
+		CurrentState = StateId;
 	}
 
-	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
+	bool IsState(const PCGExMT::AsyncState StateId) const { return CurrentState == StateId; }
 
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }

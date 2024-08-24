@@ -11,7 +11,6 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExData.h"
 
 #include "PCGExGraph.generated.h"
 

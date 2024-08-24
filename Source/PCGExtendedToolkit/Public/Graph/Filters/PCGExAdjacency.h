@@ -121,7 +121,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 	int32 GetThreshold(const PCGExCluster::FNode& Node) const
 	{
-		auto InternalEnsure = [&](int32 Value)-> int32
+		auto InternalEnsure = [&](const int32 Value)-> int32
 		{
 			switch (ThresholdComparison)
 			{

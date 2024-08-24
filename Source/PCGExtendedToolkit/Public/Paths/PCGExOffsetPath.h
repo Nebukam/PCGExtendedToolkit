@@ -111,7 +111,5 @@ namespace PCGExOffsetPath
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 
-	protected:
-		FVector NRM(const int32 A, const int32 B, const int32 C) const;
 	};
 }

@@ -158,7 +158,7 @@ namespace PCGExPartitionByValues
 		FPCGExPartitionByValuesBaseContext* LocalTypedContext = nullptr;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InPoints):
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
 		{
 		}

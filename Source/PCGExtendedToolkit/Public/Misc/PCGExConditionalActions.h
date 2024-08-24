@@ -81,7 +81,7 @@ namespace PCGExConditionalActions
 		TArray<UPCGExConditionalActionOperation*> Operations;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InPoints):
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
 		{
 		}

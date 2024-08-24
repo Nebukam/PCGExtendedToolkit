@@ -10,7 +10,6 @@
 
 #include "PCGExData.h"
 #include "PCGExPointFilter.h"
-#include "Misc/PCGExBitmaskMerge.h"
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExPointStates.generated.h"

@@ -3,8 +3,6 @@
 
 #include "Graph/Probes/PCGExProbeIndex.h"
 
-#include "Graph/Probes/PCGExProbing.h"
-
 PCGEX_CREATE_PROBE_FACTORY(Index, {}, {})
 
 bool UPCGExProbeIndex::RequiresDirectProcessing()

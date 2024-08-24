@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataDetails.h"
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"

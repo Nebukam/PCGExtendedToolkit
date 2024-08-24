@@ -7,7 +7,6 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 #include "Helpers/PCGSettingsHelpers.h"
-#include "PCGExGlobalSettings.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

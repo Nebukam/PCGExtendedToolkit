@@ -129,7 +129,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraph::InsertEdgesUnsafe(const TSet<uint64>& InEdges, int32 InIOIndex)
+	void FGraph::InsertEdgesUnsafe(const TSet<uint64>& InEdges, const int32 InIOIndex)
 	{
 		uint32 A;
 		uint32 B;

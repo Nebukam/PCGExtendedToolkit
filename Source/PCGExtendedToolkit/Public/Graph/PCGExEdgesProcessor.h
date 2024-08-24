@@ -110,7 +110,7 @@ protected:
 
 
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
-	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState, bool bInlined = false)
+	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState, const bool bInlined = false)
 	{
 		ResetAsyncWork();
 

@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExSimplifyClusters.h"
 
+#include "Graph/Filters/PCGExClusterFilter.h"
+
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 

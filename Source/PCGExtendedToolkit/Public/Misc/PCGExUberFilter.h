@@ -7,7 +7,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExPointFilter.h"
 
 #include "PCGExUberFilter.generated.h"
 

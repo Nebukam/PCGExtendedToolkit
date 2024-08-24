@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExBreakClustersToPaths.h"
 
+#include "Graph/Filters/PCGExClusterFilter.h"
+
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"
 #define PCGEX_NAMESPACE BreakClustersToPaths
 

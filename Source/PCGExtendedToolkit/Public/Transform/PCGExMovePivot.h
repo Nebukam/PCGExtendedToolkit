@@ -9,8 +9,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
-#include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "PCGExMovePivot.generated.h"
 

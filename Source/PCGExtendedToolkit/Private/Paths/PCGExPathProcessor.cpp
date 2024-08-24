@@ -3,7 +3,6 @@
 
 #include "Paths/PCGExPathProcessor.h"
 
-#include "PCGExPointsMT.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"

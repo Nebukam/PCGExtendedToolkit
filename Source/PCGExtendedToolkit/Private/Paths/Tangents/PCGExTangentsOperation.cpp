@@ -6,18 +6,29 @@
 
 #include "Data/PCGExPointIO.h"
 
-void UPCGExTangentsOperation::PrepareForData(PCGExData::FPointIO* InPointIO)
+void UPCGExTangentsOperation::CopySettingsFrom(const UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	if (const UPCGExTangentsOperation* TypedOther = Cast<UPCGExTangentsOperation>(Other))
+	{
+		ArriveName = TypedOther->ArriveName;
+		LeaveName = TypedOther->LeaveName;
+		bClosedPath = TypedOther->bClosedPath;
+	}
+}
+
+void UPCGExTangentsOperation::PrepareForData(PCGExData::FFacade* InDataFacade)
 {
 }
 
-void UPCGExTangentsOperation::ProcessFirstPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExTangentsOperation::ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
 {
 }
 
-void UPCGExTangentsOperation::ProcessLastPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExTangentsOperation::ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
 {
 }
 
-void UPCGExTangentsOperation::ProcessPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
+void UPCGExTangentsOperation::ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const
 {
 }

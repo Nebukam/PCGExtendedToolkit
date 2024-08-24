@@ -9,7 +9,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 #include "Graph/PCGExEdgesProcessor.h"
-#include "Heuristics/PCGExHeuristics.h"
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 

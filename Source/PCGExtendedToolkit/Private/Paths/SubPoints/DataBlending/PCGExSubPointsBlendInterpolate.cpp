@@ -18,8 +18,7 @@ void UPCGExSubPointsBlendInterpolate::ApplyOverrides()
 void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExSubPointsBlendInterpolate* TypedOther = Cast<UPCGExSubPointsBlendInterpolate>(Other);
-	if (TypedOther)
+	if (const UPCGExSubPointsBlendInterpolate* TypedOther = Cast<UPCGExSubPointsBlendInterpolate>(Other))
 	{
 		BlendOver = TypedOther->BlendOver;
 		Weight = TypedOther->Weight;

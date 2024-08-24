@@ -255,6 +255,25 @@ namespace PCGExMath
 
 #pragma endregion
 
+#pragma region basics
+
+	FORCEINLINE static FVector SafeLinePlaneIntersection(
+		const FVector& Pt1, const FVector& Pt2,
+		const FVector& PlaneOrigin, const FVector& PlaneNormal,
+		bool& bIntersect)
+	{
+		if(FMath::IsNearlyZero(FVector::DotProduct((Pt1-Pt2).GetSafeNormal(), PlaneNormal)))
+		{
+			bIntersect = false;
+			return FVector::ZeroVector;
+		}
+
+		bIntersect = true;
+		return FMath::LinePlaneIntersection(Pt1, Pt2, PlaneOrigin, PlaneNormal); 
+	}
+	
+#pragma endregion 
+	
 #pragma region Add
 
 	template <typename T, typename CompilerSafety = void>

@@ -54,7 +54,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	return true;
 }
 
-FPCGContext* FPCGExFactoryProviderElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExFactoryProviderElement::Initialize(const FPCGDataCollection& InputData, const TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGExContext* Context = new FPCGExContext();
 	Context->InputData = InputData;

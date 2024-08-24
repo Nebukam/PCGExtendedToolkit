@@ -9,7 +9,6 @@
 #include "PCGExPointsToBounds.h"
 #include "PCGExSortPoints.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 #include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
 
 #include "PCGExDiscardByOverlap.generated.h"

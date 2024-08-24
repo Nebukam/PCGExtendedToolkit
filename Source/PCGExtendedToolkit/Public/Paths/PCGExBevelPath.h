@@ -253,7 +253,7 @@ namespace PCGExBevelPath
 
 		virtual ~FProcessor() override;
 
-		FORCEINLINE double Len(int32 Index) const { return Lengths[Index]; }
+		FORCEINLINE double Len(const int32 Index) const { return Lengths[Index]; }
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;

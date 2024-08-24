@@ -938,7 +938,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmask
 		return Mask;
 	}
 
-	void DoOperation(EPCGExBitOp Op, int64& Flags) const
+	void DoOperation(const EPCGExBitOp Op, int64& Flags) const
 	{
 		const int64 Mask = Get();
 		switch (Op)

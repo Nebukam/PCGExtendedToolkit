@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 
-#include "Helpers/PCGHelpers.h"
-
 #include "PCGEx.h"
 #include "PCGExAttributeHelpers.h"
 
@@ -43,7 +41,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNameFiltersDetails
 	{
 	}
 
-	explicit FPCGExNameFiltersDetails(bool FilterToRemove)
+	explicit FPCGExNameFiltersDetails(const bool FilterToRemove)
 		: bFilterToRemove(FilterToRemove)
 	{
 	}

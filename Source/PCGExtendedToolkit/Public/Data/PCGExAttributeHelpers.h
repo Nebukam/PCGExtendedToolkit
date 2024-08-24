@@ -174,7 +174,7 @@ namespace PCGEx
 	};
 
 	static void GatherAttributes(
-		FAttributesInfos* OutInfos, const FPCGContext* InContext, FName InputLabel,
+		FAttributesInfos* OutInfos, const FPCGContext* InContext, const FName InputLabel,
 		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
 	{
 		TArray<FPCGTaggedData> InputData = InContext->InputData.GetInputsByPin(InputLabel);
@@ -182,7 +182,7 @@ namespace PCGEx
 		{
 			if (const UPCGParamData* AsParamData = Cast<UPCGParamData>(TaggedData.Data))
 			{
-				FAttributesInfos* Infos = FAttributesInfos::Get(AsParamData->Metadata);
+				const FAttributesInfos* Infos = FAttributesInfos::Get(AsParamData->Metadata);
 				OutInfos->Append(Infos, InDetails, Mismatches);
 				PCGEX_DELETE(Infos);
 				continue;
@@ -190,7 +190,7 @@ namespace PCGEx
 
 			if (const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(TaggedData.Data))
 			{
-				FAttributesInfos* Infos = FAttributesInfos::Get(AsSpatialData->Metadata);
+				const FAttributesInfos* Infos = FAttributesInfos::Get(AsSpatialData->Metadata);
 				OutInfos->Append(Infos, InDetails, Mismatches);
 				PCGEX_DELETE(Infos);
 			}
@@ -198,7 +198,7 @@ namespace PCGEx
 	}
 
 	static FAttributesInfos* GatherAttributes(
-		const FPCGContext* InContext, FName InputLabel,
+		const FPCGContext* InContext, const FName InputLabel,
 		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
 	{
 		FAttributesInfos* OutInfos = new FAttributesInfos();
@@ -269,7 +269,7 @@ namespace PCGEx
 			return Accessor->GetRange(OutValues, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
 
-		bool GetRange(TArray<T>& OutValues, const int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr, int32 Count = -1) const
+		bool GetRange(TArray<T>& OutValues, const int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr, const int32 Count = -1) const
 		{
 			PCGEX_SET_NUM_UNINITIALIZED(OutValues, Count == -1 ? NumEntries - Index : Count)
 			TArrayView<T> View(OutValues);
@@ -1433,7 +1433,7 @@ namespace PCGEx
 
 #pragma endregion
 
-	static FAttributesInfos* GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, bool bThrowError)
+	static FAttributesInfos* GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError)
 	{
 		FAttributesInfos* OutInfos = new FAttributesInfos();
 		TArray<FPCGTaggedData> TaggedDatas = InContext->InputData.GetInputsByPin(InPinLabel);
