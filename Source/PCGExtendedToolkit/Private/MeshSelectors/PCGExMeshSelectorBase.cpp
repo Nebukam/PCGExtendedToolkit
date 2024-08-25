@@ -67,14 +67,7 @@ bool UPCGExMeshSelectorBase::SelectInstances(
 
 	if (!Execute(Data)) { return false; }
 
-	if (Context.CurrentPointIndex == InPointData->GetPoints().Num())
-	{
-		TArray<TArray<FPCGMeshInstanceList>>& MeshInstances = Context.WeightedMeshInstances;
-		CollapseInstances(MeshInstances, OutMeshInstances);
-		return true;
-	}
-
-	return false;
+	return Context.CurrentPointIndex == InPointData->GetPoints().Num();
 }
 
 void UPCGExMeshSelectorBase::BeginDestroy()
@@ -199,19 +192,6 @@ FPCGMeshInstanceList& UPCGExMeshSelectorBase::RegisterPick(
 	}
 
 	return InstanceList;
-}
-
-void UPCGExMeshSelectorBase::CollapseInstances(TArray<TArray<FPCGMeshInstanceList>>& MeshInstances, TArray<FPCGMeshInstanceList>& OutMeshInstances) const
-{
-	/*
-	for (TArray<FPCGMeshInstanceList>& PickedMeshInstances : MeshInstances)
-	{
-		for (FPCGMeshInstanceList& PickedMeshInstanceEntry : PickedMeshInstances)
-		{
-			OutMeshInstances.Emplace(MoveTemp(PickedMeshInstanceEntry));
-		}
-	}
-	*/
 }
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3

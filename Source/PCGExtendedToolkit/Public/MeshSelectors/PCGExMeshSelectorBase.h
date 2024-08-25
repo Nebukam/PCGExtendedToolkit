@@ -100,18 +100,20 @@ protected:
 	virtual bool Execute(PCGExMeshSelection::FCtx& Ctx) const;
 	virtual FPCGMeshInstanceList& RegisterPick(const FPCGExMeshCollectionEntry& Entry, const FPCGPoint& Point, const int32 PointIndex, PCGExMeshSelection::FCtx& Ctx) const;
 
-	void CollapseInstances(TArray<TArray<FPCGMeshInstanceList>>& MeshInstances, TArray<FPCGMeshInstanceList>& OutMeshInstances) const;
-
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+	
 	virtual FPCGMeshInstanceList& GetInstanceList(
 		TArray<FPCGMeshInstanceList>& InstanceLists,
 		const FPCGExMeshCollectionEntry& Pick,
 		bool bReverseCulling,
 		const int AttributePartitionIndex = INDEX_NONE) const;
+	
 #else
+	
 	virtual FPCGMeshInstanceList& GetInstanceList(
 		TArray<FPCGMeshInstanceList>& InstanceLists,
 		const FPCGExMeshCollectionEntry& Pick,
 		bool bReverseCulling) const;
+	
 #endif
 };
