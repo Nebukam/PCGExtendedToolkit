@@ -50,7 +50,7 @@ enum class EPCGExSubdivideMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointFilterActionDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointFilterActionDetails
 {
 	GENERATED_BODY()
 
@@ -84,7 +84,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointFilterActionDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExClampDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExClampDetails
 {
 	GENERATED_BODY()
 
@@ -129,7 +129,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClampDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 {
 	GENERATED_BODY()
 
@@ -156,7 +156,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 
 	~FPCGExRemapDetails()
 	{
-		RemapCurveObj = nullptr;
+		PCGEX_CLEAN_SP(RemapCurveObj)
 	}
 
 	/** Whether or not to use only positive values to compute range.*/
@@ -195,6 +195,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 
 	UPROPERTY(EditAnywhere, Category = Settings, BlueprintReadWrite)
 	TSoftObjectPtr<UCurveFloat> RemapCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+	
 	TObjectPtr<UCurveFloat> RemapCurveObj = nullptr;
 
 
@@ -234,7 +235,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDistanceDetails
 {
 	GENERATED_BODY()
 
@@ -279,7 +280,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetailsBase
 {
 	GENERATED_BODY()
 
@@ -331,7 +332,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetailsBase
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSourceFuseDetails : public FPCGExFuseDetailsBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSourceFuseDetails : public FPCGExFuseDetailsBase
 {
 	GENERATED_BODY()
 
@@ -379,7 +380,7 @@ enum class EPCGExFuseMethod : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseDetails : public FPCGExSourceFuseDetails
 {
 	GENERATED_BODY()
 
@@ -461,7 +462,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseDetails : public FPCGExSourceFuseDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPointIntersectionDetails
 {
 	GENERATED_BODY()
 
@@ -487,7 +488,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointEdgeIntersectionDetails
 {
 	GENERATED_BODY()
 
@@ -521,7 +522,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEdgeIntersectionDetails
 {
 	GENERATED_BODY()
 
@@ -581,7 +582,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExTransformDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTransformDetails
 {
 	GENERATED_BODY()
 

@@ -11,7 +11,7 @@
 #include "PCGExHeuristicSteepness.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigSteepness : public FPCGExHeuristicConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigSteepness : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 

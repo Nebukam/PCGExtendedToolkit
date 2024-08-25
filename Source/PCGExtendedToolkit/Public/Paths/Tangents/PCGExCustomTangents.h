@@ -9,7 +9,7 @@
 #include "PCGExCustomTangents.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleTangentConfig
 {
 	GENERATED_BODY()
 
@@ -18,18 +18,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentConfig
 		Direction.Update("$Transform.Backward");
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Direction;
 	PCGExData::FCache<FVector>* DirectionGetter = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalScale = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalScale"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable, EditCondition="bUseLocalScale"))
 	FPCGAttributePropertyInputSelector LocalScale;
 	PCGExData::FCache<double>* ScaleGetter = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
 	double DefaultScale = 10;
 
 	void PrepareForData(PCGExData::FFacade* InDataFacade)
@@ -60,13 +60,13 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCustomTangents : public UPCGExTangentsOpe
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents)
 	FPCGExSingleTangentConfig Arrive;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(InlineEditConditionToggle))
 	bool bMirror = true;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bMirror"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(EditCondition="!bMirror"))
 	FPCGExSingleTangentConfig Leave;
 
 	virtual void PrepareForData(PCGExData::FFacade* InDataFacade) override

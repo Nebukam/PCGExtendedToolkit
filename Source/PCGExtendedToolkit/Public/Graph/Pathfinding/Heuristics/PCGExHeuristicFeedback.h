@@ -12,7 +12,7 @@
 #include "PCGExHeuristicFeedback.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigFeedback : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 

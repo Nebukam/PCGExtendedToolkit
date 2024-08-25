@@ -126,6 +126,8 @@ if (!_SOURCE.ToSoftObjectPath().IsValid()) { _TARGET = TSoftObjectPtr<_TYPE>(_DE
 else { _TARGET = _SOURCE.LoadSynchronous(); }\
 if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
 
+#define PCGEX_CLEAN_SP(_NAME) _NAME = nullptr;
+
 #pragma endregion
 
 #define PCGEX_SET_NUM(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNum(_num_); }

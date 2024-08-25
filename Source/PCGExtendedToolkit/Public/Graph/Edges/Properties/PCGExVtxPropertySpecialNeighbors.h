@@ -14,7 +14,7 @@
 #include "PCGExVtxPropertySpecialNeighbors.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialNeighborsConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSpecialNeighborsConfig
 {
 	GENERATED_BODY()
 

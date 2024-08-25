@@ -44,7 +44,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TDelaunay2
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDelaunay2
 	{
 	public:
 		TArray<FDelaunaySite2> Sites;
@@ -242,7 +242,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TDelaunay3
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDelaunay3
 	{
 	public:
 		TArray<FDelaunaySite3> Sites;

@@ -30,7 +30,7 @@ namespace PCGExFuse
 	PCGEX_ASYNC_STATE(State_FindingFusePoints)
 	PCGEX_ASYNC_STATE(State_MergingPoints)
 
-	struct PCGEXTENDEDTOOLKIT_API FFusedPoint
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FFusedPoint
 	{
 		mutable FRWLock IndicesLock;
 		int32 Index = -1;
@@ -104,14 +104,14 @@ private:
 	friend class FPCGExFusePointsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
 	virtual ~FPCGExFusePointsContext() override;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

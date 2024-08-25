@@ -52,7 +52,7 @@ public:
 	EPCGExIndexSafety Safety = EPCGExIndexSafety::Ignore;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExCherryPickPointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExCherryPickPointsElement;
 
@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCherryPickPointsContext final : public FPCGE
 	TArray<int32> SharedTargetIndices;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

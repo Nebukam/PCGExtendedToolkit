@@ -21,7 +21,7 @@ namespace PCGExGeo
 {
 	class FExtractStaticMeshTask;
 
-	class PCGEXTENDEDTOOLKIT_API FGeoMesh
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoMesh
 	{
 	public:
 		bool bIsValid = false;
@@ -98,7 +98,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FGeoStaticMesh : public FGeoMesh
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoStaticMesh : public FGeoMesh
 	{
 	public:
 		TObjectPtr<UStaticMesh> StaticMesh;
@@ -273,10 +273,11 @@ namespace PCGExGeo
 
 		~FGeoStaticMesh()
 		{
+			PCGEX_CLEAN_SP(StaticMesh)
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FGeoStaticMeshMap : public FGeoMesh
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoStaticMeshMap : public FGeoMesh
 	{
 	public:
 		TMap<FSoftObjectPath, int32> Map;
@@ -314,7 +315,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractStaticMeshTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FExtractStaticMeshTask(PCGExData::FPointIO* InPointIO, FGeoStaticMesh* InGSM) :

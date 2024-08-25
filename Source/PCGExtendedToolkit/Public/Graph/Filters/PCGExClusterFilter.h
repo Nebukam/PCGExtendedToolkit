@@ -62,7 +62,7 @@ public:
 
 namespace PCGExClusterFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TFilter : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TFilter : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TFilter(const UPCGExClusterFilterFactoryBase* InFactory):
@@ -81,7 +81,7 @@ namespace PCGExClusterFilter
 		virtual void PostInit() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TManager : public PCGExPointFilter::TManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ TManager : public PCGExPointFilter::TManager
 	{
 	public:
 		TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade);

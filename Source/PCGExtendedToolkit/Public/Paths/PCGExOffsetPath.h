@@ -63,14 +63,14 @@ public:
 	FPCGAttributePropertyInputSelector UpVectorAttribute;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExOffsetPathElement;
 
 	virtual ~FPCGExOffsetPathContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

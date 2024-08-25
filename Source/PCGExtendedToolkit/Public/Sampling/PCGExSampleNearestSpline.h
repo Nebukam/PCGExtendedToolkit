@@ -27,7 +27,7 @@ class UPCGExFilterFactoryBase;
 
 namespace PCGExPolyLine
 {
-	struct PCGEXTENDEDTOOLKIT_API FSampleInfos
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FSampleInfos
 	{
 		FSampleInfos()
 		{
@@ -43,7 +43,7 @@ namespace PCGExPolyLine
 		double Time = 0;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FTargetsCompoundInfos
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FTargetsCompoundInfos
 	{
 		FTargetsCompoundInfos()
 		{
@@ -266,7 +266,7 @@ public:
 	FName NumSamplesAttributeName = FName("NumSamples");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSplineContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestSplineElement;
 
@@ -281,7 +281,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSplineContext final : public FP
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

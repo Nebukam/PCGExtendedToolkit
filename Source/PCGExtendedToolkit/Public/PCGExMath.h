@@ -849,20 +849,26 @@ namespace PCGExMath
 
 
 	template <typename T>
-	FORCEINLINE static T SanitizeIndex(const T& Index, const T& Limit, const EPCGExIndexSafety Method)
+	FORCEINLINE static T SanitizeIndex(const T& Index, const T& MaxIndex, const EPCGExIndexSafety Method)
 	{
+		if (Method == EPCGExIndexSafety::Yoyo)
+		{
+			const T L = 2 * MaxIndex;
+			const T C = Index % L;
+
+			return C <= MaxIndex ? C : L - C;
+		}
+
 		switch (Method)
 		{
+		default:
 		case EPCGExIndexSafety::Ignore:
-			if (Index < 0 || Index > Limit) { return -1; }
-			break;
+			return (Index < 0 || Index > MaxIndex) ? -1 : Index;
 		case EPCGExIndexSafety::Tile:
-			return PCGExMath::Tile(Index, 0, Limit);
+			return PCGExMath::Tile(Index, 0, MaxIndex);
 		case EPCGExIndexSafety::Clamp:
-			return FMath::Clamp(Index, 0, Limit);
-		default: ;
+			return FMath::Clamp(Index, 0, MaxIndex);
 		}
-		return Index;
 	}
 
 	FORCEINLINE static FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir)
@@ -955,13 +961,6 @@ namespace PCGExMath
 		T* Ptr1 = &Array[FirstIndex];
 		T* Ptr2 = &Array[SecondIndex];
 		std::swap(*Ptr1, *Ptr2);
-	}
-
-	FORCEINLINE static void RandomizeSeed(FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector)
-	{
-		Point.Seed = static_cast<int32>(Remap(
-			FMath::PerlinNoise3D(Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
-			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
 	}
 
 	FORCEINLINE static FVector GetNormal(const FVector& A, const FVector& B, const FVector& C)
@@ -1084,7 +1083,7 @@ namespace PCGExMath
 
 #pragma region Helpers
 
-	struct PCGEXTENDEDTOOLKIT_API FPathMetricsSquared
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetricsSquared
 	{
 		FPathMetricsSquared()
 		{
@@ -1140,7 +1139,7 @@ namespace PCGExMath
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetrics
 	{
 		FPathMetrics()
 		{

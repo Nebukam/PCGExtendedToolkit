@@ -40,7 +40,7 @@ public:
 	FPCGExBoxIntersectionDetails IntersectionDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsClustersIntersectionContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExBoundsClustersIntersectionSettings;
 	friend class FPCGExBoundsClustersIntersectionElement;
@@ -50,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsClustersIntersectionContext final : pu
 	PCGExData::FFacade* BoundsDataFacade = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBoundsClustersIntersectionElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

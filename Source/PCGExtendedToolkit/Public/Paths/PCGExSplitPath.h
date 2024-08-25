@@ -65,7 +65,7 @@ public:
 	bool bOmitSinglePointOutputs = true;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSplitPathElement;
 
@@ -75,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathPr
 	TArray<UPCGExFilterFactoryBase*> RemoveFilterFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -90,7 +90,7 @@ protected:
 
 namespace PCGExSplitPath
 {
-	struct PCGEXTENDEDTOOLKIT_API FPath
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPath
 	{
 		int32 Start = -1;
 		int32 End = -1;

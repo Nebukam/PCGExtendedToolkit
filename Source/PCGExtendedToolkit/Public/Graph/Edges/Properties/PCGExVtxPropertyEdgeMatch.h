@@ -24,7 +24,7 @@ namespace PCGExPointFilter
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeMatchConfig
 {
 	GENERATED_BODY()
 

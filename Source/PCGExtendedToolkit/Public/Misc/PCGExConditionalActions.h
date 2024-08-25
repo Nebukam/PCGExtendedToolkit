@@ -51,7 +51,7 @@ private:
 	friend class FPCGExConditionalActionsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExConditionalActionsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExConditionalActionsElement;
 
@@ -61,7 +61,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConditionalActionsContext final : public FPC
 	TArray<UPCGExConditionalActionFactoryBase*> ConditionalActionsFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConditionalActionsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

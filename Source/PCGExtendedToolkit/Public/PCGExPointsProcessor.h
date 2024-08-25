@@ -25,7 +25,7 @@ class FPCGExPointsProcessorElement;
 
 namespace PCGEx
 {
-	struct PCGEXTENDEDTOOLKIT_API FAPointLoop
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAPointLoop
 	{
 		virtual ~FAPointLoop() = default;
 
@@ -55,7 +55,7 @@ namespace PCGEx
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointLoop : public FAPointLoop
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointLoop : public FAPointLoop
 	{
 		FPointLoop()
 		{
@@ -65,7 +65,7 @@ namespace PCGEx
 		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FAsyncPointLoop : public FPointLoop
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAsyncPointLoop : public FPointLoop
 	{
 		FAsyncPointLoop()
 		{
@@ -136,7 +136,7 @@ protected:
 	//~End UPCGExPointsProcessorSettings
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
 
@@ -304,7 +304,7 @@ public:
 	virtual bool IsAsyncWorkComplete();
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorElement : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

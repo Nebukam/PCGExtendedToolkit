@@ -15,7 +15,7 @@
 #include "PCGExAdjacencyFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencyFilterConfig
 {
 	GENERATED_BODY()
 
@@ -72,7 +72,7 @@ public:
 
 namespace PCGExNodeAdjacency
 {
-	class PCGEXTENDEDTOOLKIT_API FAdjacencyFilter final : public PCGExClusterFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAdjacencyFilter final : public PCGExClusterFilter::TFilter
 	{
 	public:
 		explicit FAdjacencyFilter(const UPCGExAdjacencyFilterFactory* InFactory)

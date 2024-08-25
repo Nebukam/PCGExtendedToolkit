@@ -16,7 +16,7 @@
 class UPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicAttributeConfig : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 

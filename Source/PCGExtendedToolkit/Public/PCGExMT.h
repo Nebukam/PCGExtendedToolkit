@@ -102,7 +102,7 @@ namespace PCGExMT
 		return OutSubRanges.Num();
 	}
 
-	struct PCGEXTENDEDTOOLKIT_API FAsyncParallelLoop
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAsyncParallelLoop
 	{
 		FAsyncParallelLoop()
 		{
@@ -188,7 +188,7 @@ namespace PCGExMT
 	class FTaskGroup;
 	class FGroupRangeCallbackTask;
 
-	class PCGEXTENDEDTOOLKIT_API FTaskManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskManager
 	{
 		friend class FPCGExTask;
 		friend class FTaskGroup;
@@ -278,7 +278,7 @@ namespace PCGExMT
 		TArray<FTaskGroup*> Groups;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FTaskGroup
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup
 	{
 		friend class FTaskManager;
 
@@ -383,7 +383,7 @@ namespace PCGExMT
 		void OnTaskCompleted();
 	};
 
-	class PCGEXTENDEDTOOLKIT_API PCGExMT::FPCGExTask : public FNonAbandonableTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ PCGExMT::FPCGExTask : public FNonAbandonableTask
 	{
 		friend class FTaskManager;
 		friend class FTaskGroup;
@@ -498,7 +498,7 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FWriteTask final : public FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTask final : public FPCGExTask
 	{
 	public:
 		FWriteTask(PCGExData::FPointIO* InPointIO,
@@ -519,7 +519,7 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FWriteAndDeleteTask final : public FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAndDeleteTask final : public FPCGExTask
 	{
 	public:
 		FWriteAndDeleteTask(PCGExData::FPointIO* InPointIO,

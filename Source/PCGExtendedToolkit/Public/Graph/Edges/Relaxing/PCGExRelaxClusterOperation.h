@@ -22,7 +22,7 @@ namespace PCGExCluster
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExRelaxClusterOperation : public UPCGExOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRelaxClusterOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

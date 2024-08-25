@@ -11,7 +11,7 @@
 #include "PCGExFlatProjection.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExFlatProjectionSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFlatProjectionSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -53,7 +53,7 @@ public:
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFlatProjectionContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlatProjectionContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFlatProjectionElement;
 
@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFlatProjectionContext final : public FPCGExP
 	FName CachedTransformAttributeName = NAME_None;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFlatProjectionElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlatProjectionElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

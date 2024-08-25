@@ -18,7 +18,7 @@ namespace PCGExClusterFilter
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph") // Abstract since WIP
-class PCGEXTENDEDTOOLKIT_API UPCGExBevelVerticesSettings : public UPCGExEdgesProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBevelVerticesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -53,7 +53,7 @@ private:
 	friend class FPCGExBevelVerticesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBevelVerticesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelVerticesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExBevelVerticesElement;
 
@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBevelVerticesContext final : public FPCGExEd
 	TArray<UPCGExFilterFactoryBase*> StateFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBevelVerticesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelVerticesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

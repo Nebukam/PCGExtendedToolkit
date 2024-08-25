@@ -16,7 +16,7 @@
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionFilterConfig
 {
 	GENERATED_BODY()
 
@@ -77,7 +77,7 @@ public:
 
 namespace PCGExNodeAdjacency
 {
-	class PCGEXTENDEDTOOLKIT_API FEdgeDirectionFilter final : public PCGExClusterFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FEdgeDirectionFilter final : public PCGExClusterFilter::TFilter
 	{
 	public:
 		explicit FEdgeDirectionFilter(const UPCGExEdgeDirectionFilterFactory* InFactory)

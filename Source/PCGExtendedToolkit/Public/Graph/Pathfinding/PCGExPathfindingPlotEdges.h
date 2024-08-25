@@ -86,7 +86,7 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotEdgesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingPlotEdgesElement;
 
@@ -102,7 +102,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext final : public F
 		const PCGExData::FPointIO* InPlotPoints, PCGExHeuristics::THeuristicsHandler* HeuristicsHandler) const;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -117,7 +117,7 @@ protected:
 
 namespace PCGExPathfindingPlotEdge
 {
-	class PCGEXTENDEDTOOLKIT_API FPCGExPlotClusterPathTask final : public FPCGExPathfindingTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotClusterPathTask final : public FPCGExPathfindingTask
 	{
 	public:
 		FPCGExPlotClusterPathTask(PCGExData::FPointIO* InPointIO,

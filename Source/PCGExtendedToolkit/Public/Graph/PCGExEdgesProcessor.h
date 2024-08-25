@@ -11,7 +11,7 @@
 #include "PCGExEdgesProcessor.generated.h"
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -39,7 +39,7 @@ public:
 	//~End UPCGExPointsProcessorSettings
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
 {
 	friend class UPCGExEdgesProcessorSettings;
 	friend class FPCGExEdgesProcessorElement;
@@ -198,7 +198,7 @@ protected:
 	int32 CurrentEdgesIndex = -1;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

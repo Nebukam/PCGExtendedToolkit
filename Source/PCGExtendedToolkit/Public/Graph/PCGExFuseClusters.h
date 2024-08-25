@@ -102,7 +102,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExFuseClustersSettings;
 	friend class FPCGExFuseClustersElement;
@@ -121,7 +121,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext final : public FPCGExEdg
 	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

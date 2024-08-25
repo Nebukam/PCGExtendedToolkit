@@ -11,7 +11,7 @@
 #include "PCGExHeuristicInertia.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigInertia : public FPCGExHeuristicConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigInertia : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 

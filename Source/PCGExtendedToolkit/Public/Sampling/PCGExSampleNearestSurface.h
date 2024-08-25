@@ -178,7 +178,7 @@ public:
 	FPCGExForwardDetails AttributesForwarding;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestSurfaceElement;
 
@@ -193,7 +193,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext final : public F
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

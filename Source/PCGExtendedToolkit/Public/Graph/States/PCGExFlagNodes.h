@@ -49,7 +49,7 @@ private:
 	friend class FPCGExFlagNodesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFlagNodesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFlagNodesElement;
 
@@ -58,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFlagNodesContext final : public FPCGExEdgesP
 	TArray<UPCGExFilterFactoryBase*> StateFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

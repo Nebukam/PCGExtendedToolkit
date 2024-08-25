@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExBoundsPathIntersection.h"
 #include "PCGExMath.h"
+#include "PCGExRandom.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsPathIntersectionElement"
 #define PCGEX_NAMESPACE BoundsPathIntersection
@@ -167,7 +168,7 @@ namespace PCGExPathIntersections
 			PCGExGeo::FCut& Cut = Intersections->Cuts[i];
 			Point.Transform.SetLocation(Cut.Position);
 
-			PCGExMath::RandomizeSeed(Point);
+			Point.Seed = PCGExRandom::ComputeSeed(Point);
 
 			Details.SetIntersection(Idx, Cut.Normal, Cut.BoxIndex);
 		}

@@ -105,7 +105,7 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathfindingNavmeshElement;
 
@@ -134,7 +134,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPC
 	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -148,7 +148,7 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask final : public FPCGExPathfindingTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FSampleNavmeshTask final : public FPCGExPathfindingTask
 {
 public:
 	FSampleNavmeshTask(

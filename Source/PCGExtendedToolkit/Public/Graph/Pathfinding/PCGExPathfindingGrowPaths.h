@@ -49,7 +49,7 @@ namespace PCGExGrowPaths
 {
 	class FProcessor;
 
-	class PCGEXTENDEDTOOLKIT_API FGrowth
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowth
 	{
 	public:
 		const FProcessor* Processor = nullptr;
@@ -249,7 +249,7 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingGrowPathsElement;
 
@@ -268,7 +268,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -316,7 +316,7 @@ namespace PCGExGrowPaths
 		void Grow();
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FGrowTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FGrowTask(PCGExData::FPointIO* InPointIO, FProcessor* InProcessor) :

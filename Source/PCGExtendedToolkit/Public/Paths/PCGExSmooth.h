@@ -81,7 +81,7 @@ public:
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSmoothContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSmoothElement;
 
@@ -90,7 +90,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext final : public FPCGExPathProce
 	UPCGExSmoothingOperation* SmoothingMethod = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSmoothElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSmoothElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

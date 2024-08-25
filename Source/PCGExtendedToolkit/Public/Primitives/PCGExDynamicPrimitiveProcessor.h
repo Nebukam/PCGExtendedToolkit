@@ -13,7 +13,7 @@
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExDynamicPrimitiveProcessorSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDynamicPrimitiveProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -31,12 +31,12 @@ protected:
 	//~End UPCGSettings
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDynamicPrimitiveProcessorContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDynamicPrimitiveProcessorContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExDynamicPrimitiveProcessorElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDynamicPrimitiveProcessorElement : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDynamicPrimitiveProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

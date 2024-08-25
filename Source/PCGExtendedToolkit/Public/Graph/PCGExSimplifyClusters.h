@@ -58,7 +58,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimplifyClustersContext : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSimplifyClustersSettings;
 	friend class FPCGExSimplifyClustersElement;
@@ -66,7 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdges
 	virtual ~FPCGExSimplifyClustersContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

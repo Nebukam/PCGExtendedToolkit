@@ -16,7 +16,7 @@
 
 namespace PCGExGraph
 {
-	struct PCGEXTENDEDTOOLKIT_API FCompoundProcessor
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundProcessor
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 

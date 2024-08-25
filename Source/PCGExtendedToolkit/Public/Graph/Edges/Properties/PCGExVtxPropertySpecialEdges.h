@@ -14,7 +14,7 @@
 #include "PCGExVtxPropertySpecialEdges.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialEdgesConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSpecialEdgesConfig
 {
 	GENERATED_BODY()
 

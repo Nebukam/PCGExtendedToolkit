@@ -31,13 +31,13 @@ namespace PCGExPointsMT
 
 #define PCGEX_POINTS_MT_TASK(_NAME, _BODY)\
 	template <typename T>\
-	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
 		public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
 		T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
 
 #define PCGEX_POINTS_MT_TASK_RANGE_INLINE(_NAME, _BODY)\
 	template <typename T> \
-	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask {\
+	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask {\
 		public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InPerNumIterations, const uint64 InTotalIterations, const PCGExData::ESource InSource = PCGExData::ESource::Out, const int32 InLoopIdx = 0)\
 		: PCGExMT::FPCGExTask(InPointIO), Target(InTarget), PerNumIterations(InPerNumIterations), TotalIterations(InTotalIterations), Source(InSource), LoopIdx(InLoopIdx){}\
 		T* Target = nullptr; uint64 PerNumIterations = 0; uint64 TotalIterations = 0; const PCGExData::ESource Source; const int32 LoopIdx;\
@@ -50,7 +50,7 @@ namespace PCGExPointsMT
 
 #define PCGEX_POINTS_MT_TASK_RANGE(_NAME, _BODY)\
 	template <typename T>\
-		class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+		class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
 			public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations, const PCGExData::ESource InSource = PCGExData::ESource::Out, const int32 InLoopIdx = 0) \
 			: PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations), Source(InSource), LoopIdx(InLoopIdx){} \
 			T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source; const int32 LoopIdx; virtual bool ExecuteTask() override{_BODY return true; }}; \

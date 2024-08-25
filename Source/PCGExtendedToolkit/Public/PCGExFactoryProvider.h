@@ -48,7 +48,7 @@ namespace PCGExFactories
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExParamDataBase : public UPCGPointData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamDataBase : public UPCGPointData
 {
 	GENERATED_BODY()
 
@@ -60,7 +60,7 @@ public:
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExParamFactoryBase : public UPCGExParamDataBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamFactoryBase : public UPCGExParamDataBase
 {
 	GENERATED_BODY()
 
@@ -70,7 +70,7 @@ public:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExFactoryProviderSettings : public UPCGSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFactoryProviderSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -102,7 +102,7 @@ public:
 	//~End UPCGExFactoryProviderSettings
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderElement final : public IPCGElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFactoryProviderElement final : public IPCGElement
 {
 public:
 #if WITH_EDITOR

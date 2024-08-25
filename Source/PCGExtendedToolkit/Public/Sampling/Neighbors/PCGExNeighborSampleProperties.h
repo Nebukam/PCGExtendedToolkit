@@ -67,7 +67,7 @@ protected:
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesSamplerConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPropertiesSamplerConfigBase
 {
 	GENERATED_BODY()
 

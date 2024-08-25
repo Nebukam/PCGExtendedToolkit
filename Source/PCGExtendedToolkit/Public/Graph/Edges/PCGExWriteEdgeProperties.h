@@ -215,7 +215,7 @@ private:
 	friend class FPCGExWriteEdgePropertiesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgePropertiesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteEdgePropertiesElement;
 
@@ -224,7 +224,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgePropertiesContext final : public FP
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

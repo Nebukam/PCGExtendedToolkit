@@ -24,13 +24,18 @@
 class UPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 
 	FPCGExHeuristicConfigBase():
 		ScoreCurve(PCGEx::WeightDistributionLinear)
 	{
+	}
+
+	~FPCGExHeuristicConfigBase()
+	{
+		PCGEX_CLEAN_SP(ScoreCurveObj)
 	}
 
 	/** The weight factor for this heuristic.*/
@@ -44,6 +49,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve;
+	
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
 
 	/** Use a local attribute */
@@ -60,7 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigBase
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
@@ -71,7 +77,7 @@ public:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

@@ -61,7 +61,7 @@ private:
 	friend class FPCGExConnectClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExConnectClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -72,7 +72,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersContext final : public FPCGEx
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -117,7 +117,7 @@ namespace PCGExBridgeClusters
 		virtual void Write() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateBridgeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FPCGExCreateBridgeTask(

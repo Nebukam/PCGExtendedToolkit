@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExBuildVoronoiGraph.h"
 
+#include "PCGExRandom.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
@@ -170,7 +171,7 @@ namespace PCGExBuildVoronoi
 				RemappedIndices[i] = Centroids.Num();
 				FPCGPoint& NewPoint = Centroids.Emplace_GetRef();
 				NewPoint.Transform.SetLocation(Centroid);
-				PCGExMath::RandomizeSeed(NewPoint);
+				NewPoint.Seed = PCGExRandom::ComputeSeed(NewPoint);
 			}
 
 			TArray<uint64> ValidEdges;
@@ -204,7 +205,7 @@ namespace PCGExBuildVoronoi
 				for (int i = 0; i < NumSites; i++)
 				{
 					Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center);
-					PCGExMath::RandomizeSeed(Centroids[i]);
+					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
 				}
 			}
 			else if (Settings->Method == EPCGExCellCenter::Centroid)
@@ -212,7 +213,7 @@ namespace PCGExBuildVoronoi
 				for (int i = 0; i < NumSites; i++)
 				{
 					Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]);
-					PCGExMath::RandomizeSeed(Centroids[i]);
+					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
 				}
 			}
 			else if (Settings->Method == EPCGExCellCenter::Balanced)
@@ -222,7 +223,7 @@ namespace PCGExBuildVoronoi
 					FVector Target = Voronoi->Circumspheres[i].Center;
 					if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
 					else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
-					PCGExMath::RandomizeSeed(Centroids[i]);
+					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
 				}
 			}
 

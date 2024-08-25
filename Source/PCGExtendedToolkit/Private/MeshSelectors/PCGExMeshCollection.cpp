@@ -29,19 +29,46 @@ namespace PCGExMeshCollection
 		PCGEx::ArrayOfIndices(Order, NumEntries);
 		for (int i = 0; i < NumEntries; i++) { Weights[i] = Weights[i] / WeightSum; }
 
-		// TODO : Ugh
-		// std::sort(Order.begin(), Order.end(), [&](int A, int B) { return Weights[A] < Weights[B]; });
+		Order.Sort([&](const int32 A, const int32 B) { return Weights[A] < Weights[B]; });
 	}
+}
+
+void UPCGExMeshCollection::PostLoad()
+{
+	Super::PostLoad();
+#if WITH_EDITOR
+	RefreshDisplayNames();
+#endif
+}
+
+void UPCGExMeshCollection::PostDuplicate(bool bDuplicateForPIE)
+{
+	Super::PostDuplicate(bDuplicateForPIE);
+#if WITH_EDITOR
+	RefreshDisplayNames();
+#endif
+}
+
+void UPCGExMeshCollection::PostEditImport()
+{
+	Super::PostEditImport();
+#if WITH_EDITOR
+	RefreshDisplayNames();
+#endif
 }
 
 #if WITH_EDITOR
 void UPCGExMeshCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+	RefreshDisplayNames();
+}
 
+void UPCGExMeshCollection::RefreshDisplayNames()
+{
 	for (FPCGExMeshCollectionEntry& Entry : Entries)
 	{
-		Entry.DisplayName = Entry.Descriptor.StaticMesh ? FName(Entry.Descriptor.StaticMesh->GetName()) : NAME_None;
+		Entry.DisplayName = Entry.bSubCollection ? FName(TEXT("+ ") + Entry.SubCollection.GetAssetName()) : FName(Entry.Descriptor.StaticMesh.GetAssetName());
 	}
 
 	bCacheDirty = true;
@@ -130,10 +157,12 @@ bool UPCGExMeshCollection::RebuildCachedData()
 
 	PCGEx::ArrayOfIndices(Order, NumEntries);
 
-	for (int i = 0; i < NumEntries; i++) { CachedWeights[i] = CachedWeights[i] / WeightSum; }
+	for (int i = 0; i < NumEntries; i++)
+	{
+		CachedWeights[i] = i == 0 ? CachedWeights[i] / WeightSum : CachedWeights[i - 1] + CachedWeights[i] / WeightSum;
+	}
 
-	// TODO : Ugh
-	// std::sort(Order.begin(), Order.end(), [&](const int A, const int B) { return CachedWeights[A] < CachedWeights[B]; });
+	Order.Sort([&](const int32 A, const int32 B) { return CachedWeights[A] < CachedWeights[B]; });
 
 	return true;
 }

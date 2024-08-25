@@ -30,7 +30,7 @@ namespace PCGExData
 		Out
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointRef
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointRef
 	{
 		friend struct FPointIO;
 
@@ -59,7 +59,7 @@ namespace PCGExData
 	/**
 	 * 
 	 */
-	struct PCGEXTENDEDTOOLKIT_API FPointIO
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointIO
 	{
 		friend class FPointIOCollection;
 
@@ -254,7 +254,7 @@ namespace PCGExData
 	/**
 	 * 
 	 */
-	class PCGEXTENDEDTOOLKIT_API FPointIOCollection
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOCollection
 	{
 	protected:
 		mutable FRWLock PairsLock;
@@ -331,7 +331,7 @@ namespace PCGExData
 		void Flush();
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedEntries
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedEntries
 	{
 	public:
 		FString TagId;
@@ -351,7 +351,7 @@ namespace PCGExData
 		void Add(FPointIO* Value);
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedDictionary
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedDictionary
 	{
 	public:
 		FString TagId;

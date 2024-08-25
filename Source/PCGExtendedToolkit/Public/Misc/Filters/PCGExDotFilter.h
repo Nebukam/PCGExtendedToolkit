@@ -14,7 +14,7 @@
 #include "PCGExDotFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotFilterConfig
 {
 	GENERATED_BODY()
 
@@ -71,7 +71,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TDotFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDotFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TDotFilter(const UPCGExDotFilterFactory* InFactory)

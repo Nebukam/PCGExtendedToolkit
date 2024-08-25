@@ -41,13 +41,13 @@ protected:
 	FLinearColor CustomColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDebugContext final : public FPCGContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugContext final : public FPCGContext
 {
 	friend class FPCGExDebugElement;
 	bool bWait = true;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDebugElement final : public IPCGElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

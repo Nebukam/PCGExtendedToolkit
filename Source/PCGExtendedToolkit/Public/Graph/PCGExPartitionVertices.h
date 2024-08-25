@@ -34,7 +34,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPartitionVerticesSettings;
 	friend class FPCGExPartitionVerticesElement;
@@ -45,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesContext final : public FPCG
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

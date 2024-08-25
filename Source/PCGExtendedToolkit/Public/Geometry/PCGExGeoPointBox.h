@@ -10,7 +10,7 @@
 
 namespace PCGExGeo
 {
-	struct PCGEXTENDEDTOOLKIT_API FCut
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCut
 	{
 		FVector Position = FVector::ZeroVector;
 		FVector Normal = FVector::ZeroVector;
@@ -23,7 +23,7 @@ namespace PCGExGeo
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FSample
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FSample
 	{
 		FVector Distances = FVector::ZeroVector;
 		FVector UVW = FVector::ZeroVector;
@@ -41,7 +41,7 @@ namespace PCGExGeo
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FIntersections
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FIntersections
 	{
 		TArray<FCut> Cuts;
 		FVector StartPosition = FVector::ZeroVector;
@@ -104,7 +104,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FSegmentation
+	class /*PCGEXTENDEDTOOLKIT_API*/ FSegmentation
 	{
 		mutable FRWLock IntersectionsLock;
 
@@ -170,7 +170,7 @@ namespace PCGExGeo
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointBox
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBox
 	{
 		FTransform Transform;
 		FBoxSphereBounds Sphere;
@@ -341,7 +341,7 @@ namespace PCGExGeo
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointBoxSemantics
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBoxSemantics
 	{
 		enum { MaxElementsPerLeaf = 16 };
 
@@ -371,7 +371,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPointBoxCloud
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointBoxCloud
 	{
 		using PointBoxCloudOctree = TOctree2<FPointBox*, FPointBoxSemantics>;
 		PointBoxCloudOctree* Octree = nullptr;

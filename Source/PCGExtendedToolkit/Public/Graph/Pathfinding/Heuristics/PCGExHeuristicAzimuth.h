@@ -11,7 +11,7 @@
 #include "PCGExHeuristicAzimuth.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigAzimuth : public FPCGExHeuristicConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigAzimuth : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 

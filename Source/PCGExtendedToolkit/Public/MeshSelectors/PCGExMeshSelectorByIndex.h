@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "PCGEx.h"
 #include "PCGExMeshSelectorBase.h"
 
 #include "PCGExMeshSelectorByIndex.generated.h"
@@ -13,27 +14,19 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorByIndex : public UPCGExMeshSe
 	GENERATED_BODY()
 
 public:
-	// ~Begin UObject interface
-	virtual void PostLoad() override;
-	// ~End UObject interface
-
-	virtual bool SelectInstances(
+	virtual bool Execute(
 		FPCGStaticMeshSpawnerContext& Context,
 		const UPCGStaticMeshSpawnerSettings* Settings,
 		const UPCGPointData* InPointData,
 		TArray<FPCGMeshInstanceList>& OutMeshInstances,
-		UPCGPointData* OutPointData) const override;
+		UPCGPointData* OutPointData,
+		TArray<FPCGPoint>* OutPoints,
+		FPCGMetadataAttribute<FString>* OutAttributeId) const override;
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
 	FName IndexAttributeName;
 
-	UPROPERTY(EditAnywhere, Category = MeshSelector)
-	FSoftISMComponentDescriptor TemplateDescriptor;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (InlineEditConditionToggle))
-	bool bUseAttributeMaterialOverrides = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, DisplayName = "By Attribute Material Overrides", Category = MeshSelector, meta = (EditCondition = "bUseAttributeMaterialOverrides"))
-	TArray<FName> MaterialOverrideAttributes;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector)
+	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 };

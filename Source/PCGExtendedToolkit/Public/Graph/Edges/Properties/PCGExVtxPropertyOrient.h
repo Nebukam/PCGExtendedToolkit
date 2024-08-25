@@ -23,7 +23,7 @@ namespace PCGExPointFilter
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExOrientConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOrientConfig
 {
 	GENERATED_BODY()
 

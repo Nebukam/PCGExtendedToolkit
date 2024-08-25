@@ -12,7 +12,7 @@
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDebugEdgeSettings
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugEdgeSettings
 {
 	GENERATED_BODY()
 
@@ -65,7 +65,7 @@ namespace PCGExGraph
 		return HashCombineFast(A == 0 ? B : A, Index);
 	}
 
-	struct PCGEXTENDEDTOOLKIT_API FEdge
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdge
 	{
 		uint32 Start = 0;
 		uint32 End = 0;
@@ -106,7 +106,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FUnsignedEdge : public FEdge
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnsignedEdge : public FEdge
 	{
 		FUnsignedEdge()
 		{
@@ -130,7 +130,7 @@ namespace PCGExGraph
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FIndexedEdge : public FUnsignedEdge
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FIndexedEdge : public FUnsignedEdge
 	{
 		int32 EdgeIndex = -1;
 		int32 PointIndex = -1;

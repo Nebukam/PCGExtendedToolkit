@@ -15,7 +15,7 @@
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareFilterConfig
 {
 	GENERATED_BODY()
 
@@ -65,7 +65,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TNumericComparisonFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TNumericComparisonFilter(const UPCGExNumericCompareFilterFactory* InDefinition)

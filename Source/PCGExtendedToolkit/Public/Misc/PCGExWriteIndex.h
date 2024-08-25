@@ -42,14 +42,14 @@ public:
 	FName OutputAttributeName = "CurrentIndex";
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteIndexContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
 
 	virtual ~FPCGExWriteIndexContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

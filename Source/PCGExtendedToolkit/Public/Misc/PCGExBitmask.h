@@ -107,7 +107,7 @@ protected:
 	bool bGlobalInstance = false;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBitmaskElement final : public IPCGElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

@@ -152,6 +152,7 @@ void UPCGExNeighborSampleOperation::FinalizeOperation()
 void UPCGExNeighborSampleOperation::Cleanup()
 {
 	Super::Cleanup();
+	PCGEX_CLEAN_SP(WeightCurveObj)
 	PCGEX_DELETE(PointFilters)
 	PCGEX_DELETE(ValueFilters)
 }

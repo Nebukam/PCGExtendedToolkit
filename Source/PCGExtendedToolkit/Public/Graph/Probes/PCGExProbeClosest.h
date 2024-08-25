@@ -17,7 +17,7 @@ namespace PCGExProbing
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 

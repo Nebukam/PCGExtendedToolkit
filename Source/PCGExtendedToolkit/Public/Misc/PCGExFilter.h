@@ -12,7 +12,7 @@
 struct FPCGPoint;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitonRuleConfig : public FPCGExInputConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitonRuleConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
@@ -87,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitonRuleConfig : public FPCGExInputConfi
 
 namespace FPCGExFilter
 {
-	struct PCGEXTENDEDTOOLKIT_API FRule final : public PCGEx::FLocalSingleFieldGetter
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FRule final : public PCGEx::FLocalSingleFieldGetter
 	{
 		explicit FRule(FPCGExPartitonRuleConfig& InRule)
 			: FLocalSingleFieldGetter(),

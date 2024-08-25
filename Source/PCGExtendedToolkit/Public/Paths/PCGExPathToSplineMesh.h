@@ -70,7 +70,7 @@ public:
 	bool bSynchronousLoad = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathToSplineMeshContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToSplineMeshContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPathToSplineMeshElement;
 
@@ -79,7 +79,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToSplineMeshContext final : public FPCGE
 	UPCGExTangentsOperation* Tangents = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathToSplineMeshElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToSplineMeshElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

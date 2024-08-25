@@ -158,7 +158,7 @@ public:
 	void InitOutputFlags(const PCGExData::FPointIO* InPointIO) const;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBevelPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExBevelPathElement;
 
@@ -171,7 +171,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBevelPathContext final : public FPCGExPathPr
 	double CustomLength;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBevelPathElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -188,7 +188,7 @@ namespace PCGExBevelPath
 {
 	class FProcessor;
 
-	struct PCGEXTENDEDTOOLKIT_API FBevel
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FBevel
 	{
 		int32 Index = -1;
 		int32 ArriveIdx = -1;

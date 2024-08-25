@@ -20,7 +20,7 @@ namespace PCGExProbing
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
@@ -50,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigBase
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeOperation : public UPCGExOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

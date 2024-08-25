@@ -138,7 +138,7 @@ private:
 	friend class FPCGExFindContoursElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFindContoursElement;
 	friend class FPCGExCreateBridgeTask;
@@ -160,7 +160,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 	bool TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -243,7 +243,7 @@ namespace PCGExFindContours
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContourTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,

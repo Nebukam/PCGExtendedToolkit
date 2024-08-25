@@ -15,7 +15,7 @@
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExModuloCompareFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExModuloCompareFilterConfig
 {
 	GENERATED_BODY()
 
@@ -77,7 +77,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TModuloComparisonFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TModuloComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TModuloComparisonFilter(const UPCGExModuloCompareFilterFactory* InDefinition)

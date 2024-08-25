@@ -11,7 +11,7 @@
 #include "PCGExHeuristicDistance.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigShortestDistance : public FPCGExHeuristicConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigShortestDistance : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 

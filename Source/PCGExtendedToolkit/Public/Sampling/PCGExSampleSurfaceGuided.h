@@ -177,7 +177,7 @@ public:
 	FPCGExForwardDetails AttributesForwarding;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleSurfaceGuidedElement;
 
@@ -192,7 +192,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FP
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

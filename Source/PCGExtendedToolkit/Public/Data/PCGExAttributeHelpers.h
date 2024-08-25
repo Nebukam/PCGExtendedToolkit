@@ -25,7 +25,7 @@
 struct FPCGExAttributeGatherDetails;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInputConfig
 {
 	GENERATED_BODY()
 
@@ -120,7 +120,7 @@ namespace PCGEx
 
 #pragma region Attribute identity
 
-	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAttributeIdentity
 	{
 		const FName Name = NAME_None;
 		const EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
@@ -211,12 +211,12 @@ namespace PCGEx
 #pragma region Accessors
 #define PCGEX_AAFLAG EPCGAttributeAccessorFlags::AllowBroadcast
 
-	class PCGEXTENDEDTOOLKIT_API FAttributeAccessorGeneric
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeAccessorGeneric
 	{
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeAccessorBase : public FAttributeAccessorGeneric
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeAccessorBase : public FAttributeAccessorGeneric
 	{
 	protected:
 		FPCGMetadataAttribute<T>* Attribute = nullptr;
@@ -304,7 +304,7 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeAccessor final : public FAttributeAccessorBase<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeAccessor final : public FAttributeAccessorBase<T>
 	{
 	public:
 		FAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
@@ -363,7 +363,7 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FConstAttributeAccessor final : public FAttributeAccessorBase<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FConstAttributeAccessor final : public FAttributeAccessorBase<T>
 	{
 	public:
 		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
@@ -394,7 +394,7 @@ namespace PCGEx
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FAAttributeIO
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAAttributeIO
 	{
 	public:
 		FName Name = NAME_None;
@@ -417,7 +417,7 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeIOBase : public FAAttributeIO
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeIOBase : public FAAttributeIO
 	{
 	public:
 		TArray<T> Values;
@@ -458,7 +458,7 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TFAttributeWriter final : public FAttributeIOBase<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TFAttributeWriter final : public FAttributeIOBase<T>
 	{
 		T DefaultValue;
 		bool bAllowsInterpolation;
@@ -545,7 +545,7 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TFAttributeReader final : public FAttributeIOBase<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TFAttributeReader final : public FAttributeIOBase<T>
 	{
 	public:
 		explicit TFAttributeReader(const FName& InName)
@@ -579,12 +579,12 @@ namespace PCGEx
 
 #pragma region Local Attribute Inputs
 
-	class PCGEXTENDEDTOOLKIT_API FAttributeGetterBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeGetterBase
 	{
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeGetter : public FAttributeGetterBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeGetter : public FAttributeGetterBase
 	{
 	protected:
 		bool bMinMaxDirty = true;
@@ -1037,7 +1037,7 @@ namespace PCGEx
 
 #pragma region Local Attribute Getter
 
-	class PCGEXTENDEDTOOLKIT_API FLocalSingleFieldGetter : public FAttributeGetter<double>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalSingleFieldGetter : public FAttributeGetter<double>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Double; }
 
@@ -1144,7 +1144,7 @@ namespace PCGEx
 		FORCEINLINE virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FLocalIntegerGetter final : public FAttributeGetter<int32>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalIntegerGetter final : public FAttributeGetter<int32>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Integer32; }
 
@@ -1251,7 +1251,7 @@ namespace PCGEx
 		FORCEINLINE virtual int32 Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FLocalBoolGetter final : public FAttributeGetter<bool>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalBoolGetter final : public FAttributeGetter<bool>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Boolean; }
 
@@ -1358,7 +1358,7 @@ namespace PCGEx
 		FORCEINLINE virtual bool Convert(const FName Value) const override { return Value.ToString().Len() == 4; }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FLocalVectorGetter final : public FAttributeGetter<FVector>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalVectorGetter final : public FAttributeGetter<FVector>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Vector; }
 
@@ -1398,7 +1398,7 @@ namespace PCGEx
 		FORCEINLINE virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FLocalToStringGetter final : public FAttributeGetter<FString>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalToStringGetter final : public FAttributeGetter<FString>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::String; }
 

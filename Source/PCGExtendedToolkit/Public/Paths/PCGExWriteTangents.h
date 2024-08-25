@@ -39,11 +39,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName LeaveName = "LeaveTangent";
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Tangents, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsOperation> Tangents;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExWriteTangentsElement;
 
@@ -52,7 +52,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext final : public FPCGExPa
 	UPCGExTangentsOperation* Tangents = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

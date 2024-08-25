@@ -11,7 +11,7 @@
 #include "PCGExGeo.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 {
 	GENERATED_BODY()
 
@@ -205,7 +205,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExLloydSettings
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydSettings
 {
 	GENERATED_BODY()
 
@@ -420,7 +420,7 @@ namespace PCGExGeo
 		 *		   . '   |    '  .  
 		 *		A----Anchor---------B
 		 */
-	struct PCGEXTENDEDTOOLKIT_API FApex
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FApex
 	{
 		FApex()
 		{
@@ -462,7 +462,7 @@ namespace PCGExGeo
 		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FExCenterArc
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FExCenterArc
 	{
 		double Radius = 0;
 		double Theta = 0;
@@ -566,7 +566,7 @@ namespace PCGExGeo
 
 namespace PCGExGeoTasks
 {
-	class PCGEXTENDEDTOOLKIT_API FTransformPointIO final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTransformPointIO final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FTransformPointIO(

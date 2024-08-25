@@ -46,7 +46,7 @@ public:
 	double InsideEpsilon = 1e-4;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPruneClustersSettings;
 	friend class FPCGExPruneClustersElement;
@@ -59,7 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersContext final : public FPCGExEd
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -72,7 +72,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPruneClusterTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExPruneClusterTask(PCGExData::FPointIO* InPointIO,

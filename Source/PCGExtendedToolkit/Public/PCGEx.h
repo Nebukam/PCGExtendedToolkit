@@ -100,6 +100,7 @@ enum class EPCGExIndexSafety : uint8
 	Ignore UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored."),
 	Tile UMETA(DisplayName = "Tile", Tooltip="Out of bounds indices are tiled."),
 	Clamp UMETA(DisplayName = "Clamp", Tooltip="Out of bounds indices are clamped."),
+	Yoyo UMETA(DisplayName = "Yoyo", Tooltip="Out of bounds indices are mirrored and back."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Collision Type Filter"))

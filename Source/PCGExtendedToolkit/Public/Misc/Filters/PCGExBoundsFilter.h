@@ -13,7 +13,7 @@
 #include "PCGExBoundsFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsFilterConfig
 {
 	GENERATED_BODY()
 
@@ -53,7 +53,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TBoundsFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TBoundsFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TBoundsFilter(const UPCGExBoundsFilterFactory* InFactory)

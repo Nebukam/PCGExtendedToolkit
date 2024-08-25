@@ -22,7 +22,7 @@ enum class EPCGExDebugExpression : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDrawConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
@@ -95,7 +95,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawConfig : public FPCGExInpu
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDraw
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDraw
 {
 	GENERATED_BODY()
 
@@ -184,7 +184,7 @@ private:
 	friend class FPCGExDrawAttributesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawAttributesContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
 
@@ -194,7 +194,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesContext final : public FPCGExP
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawAttributesElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

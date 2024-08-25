@@ -8,7 +8,7 @@
 
 namespace PCGExGeo
 {
-	struct PCGEXTENDEDTOOLKIT_API FTriangle
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FTriangle
 	{
 		int32 Vtx[3];
 
@@ -104,7 +104,7 @@ namespace PCGExGeo
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FBoundedTriangle : public FTriangle
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FBoundedTriangle : public FTriangle
 	{
 		FBox Bounds;
 

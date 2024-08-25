@@ -7,6 +7,7 @@
 
 #include "PCGExMeshSelectorBase.generated.h"
 
+struct FPCGExMeshCollectionEntry;
 class UPCGExMeshCollection;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
@@ -17,6 +18,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorBase : public UPCGMeshSelecto
 public:
 	// ~Begin UObject interface
 	virtual void PostLoad() override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 	// ~End UObject interface
 
 	virtual bool SelectInstances(
@@ -26,7 +30,46 @@ public:
 		TArray<FPCGMeshInstanceList>& OutMeshInstances,
 		UPCGPointData* OutPointData) const override;
 
+	virtual void BeginDestroy() override;
+
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExMeshCollection> MainCollection;
+
+	TObjectPtr<UPCGExMeshCollection> MainCollectionPtr;
+
+	// TODO : Expose material overrides when API is available
+
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta = (InlineEditConditionToggle))
+	bool bUseAttributeMaterialOverrides = false;
+
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, DisplayName = "By Attribute Material Overrides", Category = MeshSelector, meta = (EditCondition = "bUseAttributeMaterialOverrides"))
+	TArray<FName> MaterialOverrideAttributes;
+
+protected:
+	virtual void RefreshInternal();
+
+	virtual bool Setup(
+		FPCGStaticMeshSpawnerContext& Context,
+		const UPCGStaticMeshSpawnerSettings* Settings,
+		const UPCGPointData* InPointData,
+		UPCGPointData* OutPointData) const;
+
+	virtual bool Execute(
+		FPCGStaticMeshSpawnerContext& Context,
+		const UPCGStaticMeshSpawnerSettings* Settings,
+		const UPCGPointData* InPointData,
+		TArray<FPCGMeshInstanceList>& OutMeshInstances,
+		UPCGPointData* OutPointData,
+		TArray<FPCGPoint>* OutPoints = nullptr,
+		FPCGMetadataAttribute<FString>* OutAttributeId = nullptr) const;
+
+	//virtual void RegisterPick(FPCGMetadataAttribute<FString>* OutAttributeId, const FPCGExMeshCollectionEntry& Pick,)
+	void CollapseInstances(TArray<TArray<FPCGMeshInstanceList>>& MeshInstances, TArray<FPCGMeshInstanceList>& OutMeshInstances) const;
+
+	virtual FPCGMeshInstanceList& GetInstanceList(
+		TArray<FPCGMeshInstanceList>& InstanceLists,
+		const FPCGExMeshCollectionEntry& Pick,
+		bool bReverseCulling,
+		const int AttributePartitionIndex = INDEX_NONE) const;
 };

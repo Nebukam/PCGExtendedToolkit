@@ -37,7 +37,7 @@ public:
 	FPCGExCarryOverDetails Filters;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMetaCleanupContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaCleanupContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMetaCleanupElement;
 
@@ -46,7 +46,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMetaCleanupContext final : public FPCGExPoin
 	virtual ~FPCGExMetaCleanupContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMetaCleanupElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaCleanupElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

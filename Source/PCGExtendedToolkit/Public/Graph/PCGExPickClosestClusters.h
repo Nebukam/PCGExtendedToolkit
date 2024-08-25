@@ -12,7 +12,7 @@ class FPCGExPointIOMerger;
 
 namespace PCGExFilterCluster
 {
-	struct PCGEXTENDEDTOOLKIT_API FPicker
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPicker
 	{
 		int32 VtxIndex = -1;
 		int32 EdgesIndex = -1;
@@ -67,7 +67,7 @@ private:
 	friend class FPCGExPickClosestClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPickClosestClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPickClosestClustersElement;
 
@@ -80,7 +80,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPickClosestClustersContext final : public FP
 	TSet<int32>* CurrentEdgeMap = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPickClosestClustersElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

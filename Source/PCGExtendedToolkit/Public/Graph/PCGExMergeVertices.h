@@ -39,7 +39,7 @@ public:
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMergeVerticesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExMergeVerticesSettings;
 	friend class FPCGExMergeVerticesElement;
@@ -56,7 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMergeVerticesContext final : public FPCGExEd
 	virtual void OnBatchesCompletingWorkDone() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMergeVerticesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

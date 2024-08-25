@@ -40,7 +40,7 @@ private:
 	friend class FPCGExUnpackClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExUnpackClustersContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExUnpackClustersElement;
 
@@ -50,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUnpackClustersContext final : public FPCGExP
 	PCGExData::FPointIOCollection* OutEdges = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExUnpackClustersElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -63,7 +63,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExUnpackClusterTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExUnpackClusterTask(PCGExData::FPointIO* InPointIO) :

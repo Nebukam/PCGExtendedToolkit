@@ -50,14 +50,14 @@ public:
 	double Tolerance = 0.01;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExCollocationCountContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExCollocationCountElement;
 
 	virtual ~FPCGExCollocationCountContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCollocationCountElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

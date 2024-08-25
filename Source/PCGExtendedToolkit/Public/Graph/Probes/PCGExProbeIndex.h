@@ -25,7 +25,7 @@ enum class EPCGExProbeTargetMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 

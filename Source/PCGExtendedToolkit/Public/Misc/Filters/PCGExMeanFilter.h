@@ -13,7 +13,7 @@
 #include "PCGExMeanFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeanFilterConfig
 {
 	GENERATED_BODY()
 
@@ -74,7 +74,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TMeanFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TMeanFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TMeanFilter(const UPCGExMeanFilterFactory* InFactory)

@@ -39,12 +39,12 @@ public:
 	int32 Base = 0;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefreshSeedContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExRefreshSeedElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefreshSeedElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -57,7 +57,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefreshSeedTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExRefreshSeedTask(PCGExData::FPointIO* InPointIO) :

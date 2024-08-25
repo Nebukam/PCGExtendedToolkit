@@ -108,7 +108,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathToClustersContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPathToClustersElement;
 
@@ -124,7 +124,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToClustersContext final : public FPCGExP
 	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathToClustersElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

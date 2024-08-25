@@ -20,7 +20,7 @@ UPCGExProbeOperation* UPCGExProbeFactory##_NAME::CreateOperation() const{\
 class UPCGExProbeOperation;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
@@ -30,7 +30,7 @@ public:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

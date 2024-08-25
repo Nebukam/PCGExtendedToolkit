@@ -48,7 +48,7 @@ public:
 	//~End UObject interface
 
 	/** Controls how goals are picked.*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = GoalPicker, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
 	/** Add seed point at the beginning of the path */
@@ -68,7 +68,7 @@ public:
 	FPCGExNodeSelectionDetails GoalPicking;
 
 	/** Search algorithm. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Search, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
 
 	/** TBD */
@@ -97,7 +97,7 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingEdgesElement;
 
@@ -125,7 +125,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext final : public FPCGE
 		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -140,7 +140,7 @@ protected:
 
 namespace PCGExPathfindingEdge
 {
-	class PCGEXTENDEDTOOLKIT_API FSampleClusterPathTask final : public FPCGExPathfindingTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FSampleClusterPathTask final : public FPCGExPathfindingTask
 	{
 	public:
 		FSampleClusterPathTask(PCGExData::FPointIO* InPointIO,

@@ -11,7 +11,7 @@
 #include "PCGExHeuristicNodeCount.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigLeastNodes : public FPCGExHeuristicConfigBase
 {
 	GENERATED_BODY()
 

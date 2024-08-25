@@ -40,7 +40,7 @@ namespace PCGExConditionalActions
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionOperation : public UPCGExOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
@@ -82,7 +82,7 @@ public:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ConditionalAction")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionProviderSettings : public UPCGExFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

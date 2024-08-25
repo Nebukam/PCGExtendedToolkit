@@ -35,9 +35,10 @@ public:
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails;
+
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersToPointsContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCopyClustersToPointsContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExCopyClustersToPointsSettings;
 	friend class FPCGExCopyClustersToPointsElement;
@@ -49,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersToPointsContext final : public F
 	PCGExData::FPointIO* Targets = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersToPointsElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCopyClustersToPointsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

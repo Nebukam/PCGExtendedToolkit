@@ -14,7 +14,7 @@
 #include "PCGExBitmaskFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskFilterConfig
 {
 	GENERATED_BODY()
 
@@ -64,7 +64,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TBitmaskFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TBitmaskFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TBitmaskFilter(const UPCGExBitmaskFilterFactory* InDefinition)

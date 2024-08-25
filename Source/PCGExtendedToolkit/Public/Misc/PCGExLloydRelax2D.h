@@ -49,14 +49,14 @@ public:
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2DContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelax2DElement;
 
 	virtual ~FPCGExLloydRelax2DContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2DElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -93,7 +93,7 @@ namespace PCGExLloydRelax2D
 		virtual void CompleteWork() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FLloydRelaxTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLloydRelaxTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FLloydRelaxTask(PCGExData::FPointIO* InPointIO,

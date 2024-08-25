@@ -88,7 +88,7 @@ public:
 	bool bOmitCompletePathOnFailedPlot = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotNavmeshContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathfindingPlotNavmeshElement;
 
@@ -108,7 +108,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext final : public
 	double FuseDistance = 10;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotNavmeshElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -122,7 +122,7 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPlotNavmeshTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotNavmeshTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExPlotNavmeshTask(

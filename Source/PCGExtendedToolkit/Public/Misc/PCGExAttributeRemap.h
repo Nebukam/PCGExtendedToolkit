@@ -14,7 +14,7 @@
 #include "PCGExAttributeRemap.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComponentRemapRule
 {
 	GENERATED_BODY()
 
@@ -101,7 +101,7 @@ private:
 	friend class FPCGExAttributeRemapElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeRemapElement;
 
@@ -111,7 +111,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext final : public FPCGExP
 	int32 RemapIndices[4];
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

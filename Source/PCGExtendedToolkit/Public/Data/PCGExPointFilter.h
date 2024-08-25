@@ -41,7 +41,7 @@ namespace PCGExFilters
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
@@ -63,7 +63,7 @@ namespace PCGExPointFilter
 	const FName OutputInsideFiltersLabel = TEXT("Inside");
 	const FName OutputOutsideFiltersLabel = TEXT("Outside");
 
-	class PCGEXTENDEDTOOLKIT_API TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TFilter
 	{
 	public:
 		explicit TFilter(const UPCGExFilterFactoryBase* InFactory):
@@ -96,7 +96,7 @@ namespace PCGExPointFilter
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ TManager
 	{
 	public:
 		explicit TManager(PCGExData::FFacade* InPointDataFacade);

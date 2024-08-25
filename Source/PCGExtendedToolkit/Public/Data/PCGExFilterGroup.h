@@ -62,7 +62,7 @@ public:
 
 namespace PCGExFilterGroup
 {
-	class PCGEXTENDEDTOOLKIT_API TFilterGroup : public PCGExClusterFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroup : public PCGExClusterFilter::TFilter
 	{
 	public:
 		explicit TFilterGroup(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<UPCGExFilterFactoryBase*>* InFilterFactories):
@@ -104,7 +104,7 @@ namespace PCGExFilterGroup
 		virtual void PostInitManagedFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter);
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TFilterGroupAND : public TFilterGroup
+	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroupAND : public TFilterGroup
 	{
 	public:
 		explicit TFilterGroupAND(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<UPCGExFilterFactoryBase*>* InFilterFactories):
@@ -131,7 +131,7 @@ namespace PCGExFilterGroup
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TFilterGroupOR : public TFilterGroup
+	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroupOR : public TFilterGroup
 	{
 	public:
 		explicit TFilterGroupOR(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<UPCGExFilterFactoryBase*>* InFilterFactories):

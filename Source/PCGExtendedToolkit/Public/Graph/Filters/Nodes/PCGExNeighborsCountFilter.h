@@ -15,7 +15,7 @@
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNeighborsCountFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNeighborsCountFilterConfig
 {
 	GENERATED_BODY()
 
@@ -60,7 +60,7 @@ public:
 
 namespace PCGExNodeNeighborsCount
 {
-	class PCGEXTENDEDTOOLKIT_API FNeighborsCountFilter final : public PCGExClusterFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNeighborsCountFilter final : public PCGExClusterFilter::TFilter
 	{
 	public:
 		explicit FNeighborsCountFilter(const UPCGExNeighborsCountFilterFactory* InFactory)

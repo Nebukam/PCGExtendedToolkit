@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExSubdivide.h"
 
+#include "PCGExRandom.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
@@ -181,7 +182,7 @@ namespace PCGExSubdivide
 			PointIO->GetOutPointRef(Sub.OutStart), PointIO->GetOutPointRef(Sub.OutEnd),
 			View, Metrics);
 
-		for (FPCGPoint& Pt : View) { PCGExMath::RandomizeSeed(Pt); }
+		for (FPCGPoint& Pt : View) { Pt.Seed = PCGExRandom::ComputeSeed(Pt); }
 	}
 
 	void FProcessor::CompleteWork()

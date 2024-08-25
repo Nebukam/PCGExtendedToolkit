@@ -49,7 +49,7 @@ public:
 	FPCGExBoxIntersectionDetails OutputSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExBoundsPathIntersectionElement;
 
@@ -58,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionContext final : public
 	PCGExData::FFacade* BoundsDataFacade = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

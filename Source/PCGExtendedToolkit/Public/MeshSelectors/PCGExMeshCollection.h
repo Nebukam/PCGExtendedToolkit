@@ -4,15 +4,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExRandom.h"
 #include "Engine/DataAsset.h"
 #include "ISMPartition/ISMComponentDescriptor.h"
+#include "MeshSelectors/PCGMeshSelectorBase.h"
 
 #include "PCGExMeshCollection.generated.h"
 
 class UPCGExMeshCollection;
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry
 {
 	GENERATED_BODY()
 
@@ -43,11 +45,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionEntry
 #endif
 
 	void LoadSubCollection();
+
+	bool Matches(const FPCGMeshInstanceList& InstanceList) const
+	{
+		// TODO : This is way too weak
+		return InstanceList.Descriptor.StaticMesh == Descriptor.StaticMesh;
+	}
+	
+	bool SameAs(const FPCGExMeshCollectionEntry& Other) const
+	{
+		return
+			SubCollectionPtr == Other.SubCollectionPtr &&
+			Weight == Other.Weight &&
+			Category == Other.Category &&
+			Descriptor.StaticMesh == Other.Descriptor.StaticMesh;
+	}
 };
 
 namespace PCGExMeshCollection
 {
-	struct PCGEXTENDEDTOOLKIT_API FPCGExMeshCollectionCategory
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionCategory
 	{
 		FName Name = NAME_None;
 		double WeightSum = 0;
@@ -71,16 +88,21 @@ namespace PCGExMeshCollection
 }
 
 UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
-class PCGEXTENDEDTOOLKIT_API UPCGExMeshCollection : public UDataAsset
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshCollection : public UDataAsset
 {
 	GENERATED_BODY()
 
 	friend struct FPCGExMeshCollectionEntry;
+	friend class UPCGExMeshSelectorBase;
 
 public:
+	virtual void PostLoad() override;
+	virtual void PostDuplicate(bool bDuplicateForPIE) override;
+	virtual void PostEditImport() override;
+
 #if WITH_EDITOR
-	// Override PostEditChangeProperty to react to property changes
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	void RefreshDisplayNames();
 #endif
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
@@ -91,6 +113,18 @@ public:
 	const TMap<FName, PCGExMeshCollection::FPCGExMeshCollectionCategory*>& GetCategories() const { return CachedCategories; }
 
 	virtual void BeginDestroy() override;
+
+	FORCEINLINE int32 GetWeightedIndexFromPoint(
+		const FPCGPoint& Point,
+		const int32 Offset,
+		const UPCGSettings* Settings = nullptr,
+		const UPCGComponent* Component = nullptr)
+	{
+		const double Threshold = PCGExRandom::GetRandomStreamFromPoint(Point, Offset, Settings, Component).RandRange(0, 1);
+		int32 Pick = 0;
+		while (Pick < CachedWeights.Num() && CachedWeights[Order[Pick]] <= Threshold) { ++Pick; }
+		return Order[Pick];
+	}
 
 protected:
 	bool bCacheDirty = true;

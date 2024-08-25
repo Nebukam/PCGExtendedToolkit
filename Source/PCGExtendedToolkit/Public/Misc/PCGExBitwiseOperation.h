@@ -53,14 +53,14 @@ public:
 	int64 Bitmask;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBitwiseOperationContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBitwiseOperationElement;
 
 	virtual ~FPCGExBitwiseOperationContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBitwiseOperationElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

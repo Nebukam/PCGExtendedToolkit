@@ -38,14 +38,14 @@ public:
 	FName ActorReferenceAttributeName = "ActorReference";
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindSplinesContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindSplinesContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindSplinesElement;
 
 	virtual ~FPCGExFindSplinesContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindSplinesElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindSplinesElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

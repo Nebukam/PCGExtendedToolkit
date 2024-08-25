@@ -76,7 +76,7 @@ private:
 	friend class FPCGExRefineEdgesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRefineEdgesElement;
 
@@ -87,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext final : public FPCGExEdge
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
