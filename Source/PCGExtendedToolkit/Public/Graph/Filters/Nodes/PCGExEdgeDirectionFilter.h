@@ -64,7 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeDirectionFilterConfig
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeDirectionFilterFactory : public UPCGExClusterFilterFactoryBase
 {
 	GENERATED_BODY()
@@ -114,7 +114,7 @@ namespace PCGExNodeAdjacency
 }
 
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeDirectionFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

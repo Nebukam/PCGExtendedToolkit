@@ -50,7 +50,7 @@ public:
 	virtual void Cleanup() override;
 };
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyOrientFactory : public UPCGExVtxPropertyFactoryBase
 {
 	GENERATED_BODY()
@@ -61,7 +61,7 @@ public:
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyOrientSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()

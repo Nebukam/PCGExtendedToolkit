@@ -9,7 +9,7 @@
 #include "Relaxing/PCGExForceDirectedRelax.h"
 #include "PCGExRelaxClusters.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Edges")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRelaxClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

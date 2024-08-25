@@ -169,7 +169,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBevelPathContext final : public FPCGExPathPr
 
 	TArray<FVector> CustomProfilePositions;
 	double CustomLength;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBevelPathElement final : public FPCGExPathProcessorElement

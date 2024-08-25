@@ -73,7 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointFilterActionDetails
 	bool Validate(const FPCGContext* Context) const
 	{
 		if (Action == EPCGExFilterDataAction::Tag)
-		{			
+		{
 			PCGEX_VALIDATE_NAME_C(Context, KeepTag)
 			PCGEX_VALIDATE_NAME_C(Context, OmitTag)
 			return true;

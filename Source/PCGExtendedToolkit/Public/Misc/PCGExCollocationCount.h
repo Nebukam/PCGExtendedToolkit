@@ -40,7 +40,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLinearOccurences = false;
-	
+
 	/** The name of the attribute to write linear occurences to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteLinearOccurences"))
 	FName LinearOccurencesAttributeName = "NumLinearOccurences";
@@ -80,7 +80,7 @@ namespace PCGExCollocationCount
 		PCGEx::TFAttributeWriter<int32>* LinearOccurencesWriter = nullptr;
 
 		const UPCGPointData::PointOctree* Octree = nullptr;
-		
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)

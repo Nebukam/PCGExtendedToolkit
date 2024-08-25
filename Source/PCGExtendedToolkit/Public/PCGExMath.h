@@ -262,18 +262,18 @@ namespace PCGExMath
 		const FVector& PlaneOrigin, const FVector& PlaneNormal,
 		bool& bIntersect)
 	{
-		if(FMath::IsNearlyZero(FVector::DotProduct((Pt1-Pt2).GetSafeNormal(), PlaneNormal)))
+		if (FMath::IsNearlyZero(FVector::DotProduct((Pt1 - Pt2).GetSafeNormal(), PlaneNormal)))
 		{
 			bIntersect = false;
 			return FVector::ZeroVector;
 		}
 
 		bIntersect = true;
-		return FMath::LinePlaneIntersection(Pt1, Pt2, PlaneOrigin, PlaneNormal); 
+		return FMath::LinePlaneIntersection(Pt1, Pt2, PlaneOrigin, PlaneNormal);
 	}
-	
-#pragma endregion 
-	
+
+#pragma endregion
+
 #pragma region Add
 
 	template <typename T, typename CompilerSafety = void>

@@ -12,7 +12,7 @@
 #include "PCGExMergeVertices.generated.h"
 
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMergeVerticesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

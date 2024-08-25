@@ -17,7 +17,7 @@ namespace PCGExGeo
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildConvexHull2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

@@ -15,7 +15,7 @@ namespace PCGExGeo
 	class FPointBoxCloud;
 }
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph", Hidden)
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph", Hidden)
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPruneClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

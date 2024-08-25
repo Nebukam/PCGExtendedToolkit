@@ -17,7 +17,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAutoTangents : public UPCGExTangentsOpera
 	GENERATED_BODY()
 
 public:
-
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
 	{
 		Super::CopySettingsFrom(Other);
@@ -26,7 +25,7 @@ public:
 			Scale = TypedOther->Scale;
 		}
 	}
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double Scale = 1;
 

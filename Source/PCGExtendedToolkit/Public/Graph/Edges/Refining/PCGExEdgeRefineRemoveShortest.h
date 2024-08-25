@@ -18,7 +18,7 @@ namespace PCGExCluster
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType,  meta=(DisplayName="Remove Shortest"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Shortest"))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveShortest : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

@@ -101,7 +101,7 @@ namespace PCGExWriteTangents
 		LastIndex = PointIO->GetNum() - 1;
 
 		StartParallelLoopForPoints();
-		
+
 		return true;
 	}
 

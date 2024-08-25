@@ -18,7 +18,7 @@ namespace PCGExCluster
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType,  meta=(DisplayName="Remove Lowest Score"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Lowest Score"))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveLowestScore : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

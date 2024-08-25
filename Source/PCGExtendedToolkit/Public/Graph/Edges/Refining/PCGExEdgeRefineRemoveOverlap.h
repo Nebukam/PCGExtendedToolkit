@@ -25,7 +25,7 @@ namespace PCGExCluster
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType,  meta=(DisplayName="Remove Overlap"))
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Overlap"))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveOverlap : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

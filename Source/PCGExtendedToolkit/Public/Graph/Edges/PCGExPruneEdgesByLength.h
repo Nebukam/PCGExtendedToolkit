@@ -14,7 +14,7 @@ namespace PCGExCluster
 	struct FCluster;
 }
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

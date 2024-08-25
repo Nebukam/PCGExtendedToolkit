@@ -50,7 +50,7 @@ enum class EPCGExHeuristicsWriteMode : uint8
 	Highest UMETA(DisplayName = "Highest Score", ToolTip="Compute heuristics both ways a keep highest score."),
 };
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Edges")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteEdgePropertiesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

@@ -36,7 +36,7 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
-	
+
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -68,8 +68,6 @@ public:
 	/** Force meshes/materials to load synchronously. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Debug")
 	bool bSynchronousLoad = false;
-
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathToSplineMeshContext final : public FPCGExPathProcessorContext
@@ -79,7 +77,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToSplineMeshContext final : public FPCGE
 	virtual ~FPCGExPathToSplineMeshContext() override;
 
 	UPCGExTangentsOperation* Tangents = nullptr;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathToSplineMeshElement final : public FPCGExPathProcessorElement

@@ -63,7 +63,7 @@ FString UPCGExModuloCompareFilterProviderSettings::GetDisplayName() const
 	else { DisplayName += FString::Printf(TEXT("%.3f "), (static_cast<int32>(1000 * Config.OperandBConstant) / 1000.0)); }
 
 	DisplayName += PCGExCompare::ToString(Config.Comparison);
-	
+
 	if (Config.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Config.OperandC.GetName().ToString(); }
 	else { DisplayName += FString::Printf(TEXT(" %.3f"), (static_cast<int32>(1000 * Config.OperandCConstant) / 1000.0)); }
 

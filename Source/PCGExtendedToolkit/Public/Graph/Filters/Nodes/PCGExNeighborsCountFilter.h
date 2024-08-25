@@ -47,7 +47,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNeighborsCountFilterConfig
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborsCountFilterFactory : public UPCGExClusterFilterFactoryBase
 {
 	GENERATED_BODY()
@@ -84,7 +84,7 @@ namespace PCGExNodeNeighborsCount
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()

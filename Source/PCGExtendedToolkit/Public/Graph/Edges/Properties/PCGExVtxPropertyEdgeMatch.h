@@ -91,7 +91,7 @@ protected:
 	TArray<PCGExPointFilter::TManager*> FilterManagers;
 };
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryBase
 {
 	GENERATED_BODY()
@@ -102,7 +102,7 @@ public:
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()

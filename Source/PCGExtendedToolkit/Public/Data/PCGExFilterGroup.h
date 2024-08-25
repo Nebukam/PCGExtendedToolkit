@@ -37,7 +37,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseAND : public UPCGExFilterGroupFactoryBase
 {
 	GENERATED_BODY()
@@ -50,7 +50,7 @@ public:
 /**
  * 
  */
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseOR : public UPCGExFilterGroupFactoryBase
 {
 	GENERATED_BODY()

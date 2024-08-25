@@ -8,7 +8,7 @@
 #include "PCGExMeshSelectorByIndex.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorByIndex : public UPCGExMeshSelectorBase 
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorByIndex : public UPCGExMeshSelectorBase
 {
 	GENERATED_BODY()
 
@@ -36,5 +36,4 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, DisplayName = "By Attribute Material Overrides", Category = MeshSelector, meta = (EditCondition = "bUseAttributeMaterialOverrides"))
 	TArray<FName> MaterialOverrideAttributes;
-
 };

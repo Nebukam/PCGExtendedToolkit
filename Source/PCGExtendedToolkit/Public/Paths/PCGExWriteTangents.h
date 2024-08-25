@@ -27,7 +27,7 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
-	
+
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -50,7 +50,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext final : public FPCGExPa
 	virtual ~FPCGExWriteTangentsContext() override;
 
 	UPCGExTangentsOperation* Tangents = nullptr;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement

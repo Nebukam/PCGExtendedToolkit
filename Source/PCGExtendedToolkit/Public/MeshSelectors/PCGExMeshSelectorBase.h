@@ -10,7 +10,7 @@
 class UPCGExMeshCollection;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorBase : public UPCGMeshSelectorBase 
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorBase : public UPCGMeshSelectorBase
 {
 	GENERATED_BODY()
 
@@ -25,10 +25,8 @@ public:
 		const UPCGPointData* InPointData,
 		TArray<FPCGMeshInstanceList>& OutMeshInstances,
 		UPCGPointData* OutPointData) const override;
-	
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector)
 	TSoftObjectPtr<UPCGExMeshCollection> MainCollection;
-
 };

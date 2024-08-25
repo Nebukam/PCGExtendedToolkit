@@ -54,7 +54,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExModuloCompareFilterConfig
 	/** Operand C for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
 	double OperandCConstant = 0;
-	
+
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0.001;

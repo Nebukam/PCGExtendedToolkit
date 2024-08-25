@@ -43,7 +43,7 @@ public:
 	virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
 };
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialNeighborsFactory : public UPCGExVtxPropertyFactoryBase
 {
 	GENERATED_BODY()
@@ -53,7 +53,7 @@ public:
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialNeighborsSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()

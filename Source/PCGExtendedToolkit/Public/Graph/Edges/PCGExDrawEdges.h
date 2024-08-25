@@ -17,7 +17,7 @@ namespace PCGExDataBlending
 	struct FPropertiesBlender;
 }
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Edges")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDrawEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()

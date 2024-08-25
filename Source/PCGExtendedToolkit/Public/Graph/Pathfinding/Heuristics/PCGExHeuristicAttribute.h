@@ -86,7 +86,7 @@ public:
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCreateHeuristicAttributeSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()

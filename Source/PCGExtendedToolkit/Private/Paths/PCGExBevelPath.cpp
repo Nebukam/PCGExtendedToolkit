@@ -259,15 +259,14 @@ namespace PCGExBevelPath
 
 		if (SubdivCount == 0) { return; }
 
-		const double Factor = FVector::Dist(Leave, Arrive);		
+		const double Factor = FVector::Dist(Leave, Arrive);
 		const FVector ProjectionNormal = (Leave - Arrive).GetSafeNormal(1E-08, FVector::ForwardVector);
 		const FQuat ProjectionQuat = FQuat::FindBetweenNormals(FVector::ForwardVector, ProjectionNormal);
 
-		for(int i = 0; i < SubdivCount; i++)
+		for (int i = 0; i < SubdivCount; i++)
 		{
-			Subdivisions[i] = Arrive + ProjectionQuat.RotateVector(SourcePos[i+1] * Factor);
+			Subdivisions[i] = Arrive + ProjectionQuat.RotateVector(SourcePos[i + 1] * Factor);
 		}
-		
 	}
 
 	FProcessor::~FProcessor()

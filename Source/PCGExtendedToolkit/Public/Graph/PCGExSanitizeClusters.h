@@ -10,7 +10,7 @@
 #include "PCGExSanitizeClusters.generated.h"
 
 
-UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSanitizeClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
