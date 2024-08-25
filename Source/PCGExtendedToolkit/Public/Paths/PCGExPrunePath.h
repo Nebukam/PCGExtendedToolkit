@@ -18,8 +18,8 @@ namespace PCGExGeo
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", Hidden)
-class PCGEXTENDEDTOOLKIT_API UPCGExPrunePathSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", Hidden)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPrunePathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 

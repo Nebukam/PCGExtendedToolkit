@@ -52,8 +52,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterConfig
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExNumericCompareFilterFactory : public UPCGExFilterFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -95,8 +95,8 @@ namespace PCGExPointsFilter
 
 ///
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExNumericCompareFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

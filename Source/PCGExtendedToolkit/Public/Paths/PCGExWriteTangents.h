@@ -13,8 +13,8 @@
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteTangentsSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteTangentsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -48,12 +48,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext final : public FPCGExPa
 	friend class FPCGExWriteTangentsElement;
 
 	virtual ~FPCGExWriteTangentsContext() override;
-
-	PCGEx::FAttributeAccessor<FVector>* ArriveTangentsAccessor = nullptr;
-	PCGEx::FAttributeAccessor<FVector>* LeaveTangentsAccessor = nullptr;
-
-	TArray<FVector> ArriveTangents;
-	TArray<FVector> LeaveTangents;
 
 	UPCGExTangentsOperation* Tangents = nullptr;
 

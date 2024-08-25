@@ -35,8 +35,8 @@ enum class EPCGExRefineSanitization : uint8
 	Longest UMETA(DisplayName = "Longest", ToolTip="If a node has no edge left, restore the longest one."),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExRefineEdgesSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRefineEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

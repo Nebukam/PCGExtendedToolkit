@@ -24,8 +24,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigLeastNodes : public FPCGExHeu
 /**
  * 
  */
-UCLASS(DisplayName = "Least Nodes")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicNodeCount : public UPCGExHeuristicDistance
+UCLASS(MinimalAPI, DisplayName = "Least Nodes")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicNodeCount : public UPCGExHeuristicDistance
 {
 	GENERATED_BODY()
 
@@ -44,8 +44,8 @@ public:
 
 ////
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryLeastNodes : public UPCGExHeuristicsFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryLeastNodes : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
@@ -55,8 +55,8 @@ public:
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsLeastNodesProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsLeastNodesProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 

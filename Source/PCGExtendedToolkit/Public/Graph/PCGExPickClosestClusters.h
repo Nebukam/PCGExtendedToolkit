@@ -27,8 +27,8 @@ namespace PCGExFilterCluster
 	};
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExPickClosestClustersSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPickClosestClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

@@ -21,8 +21,8 @@ namespace PCGExWriteVtxProperties
 	class FProcessorBatch;
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteVtxPropertiesSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteVtxPropertiesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

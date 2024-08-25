@@ -61,8 +61,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterConfig
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterFactory : public UPCGExFilterFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeanFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -108,8 +108,8 @@ namespace PCGExPointsFilter
 
 ///
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeanFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

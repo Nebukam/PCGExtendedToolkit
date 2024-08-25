@@ -25,10 +25,30 @@ public:
 	FName ArriveName = "ArriveTangent";
 	FName LeaveName = "LeaveTangent";
 
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
-	virtual void PrepareForData(PCGExData::FFacade* InDataFacade);
-	virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const;
-	virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const;
-	virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExTangentsOperation* TypedOther = Cast<UPCGExTangentsOperation>(Other))
+		{
+			ArriveName = TypedOther->ArriveName;
+			LeaveName = TypedOther->LeaveName;
+			bClosedPath = TypedOther->bClosedPath;
+		}
+	}
+
+	virtual void PrepareForData(PCGExData::FFacade* InDataFacade)
+	{
+	}
+
+	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
+	{
+	}
+
+	FORCEINLINE virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
+	{
+	}
+
+	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const
+	{
+	}
 };

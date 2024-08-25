@@ -32,8 +32,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigSteepness : public FPCGExHeur
 /**
  * 
  */
-UCLASS(DisplayName = "Steepness")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicSteepness : public UPCGExHeuristicOperation
+UCLASS(MinimalAPI, DisplayName = "Steepness")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicSteepness : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
@@ -72,8 +72,8 @@ protected:
 	}
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactorySteepness : public UPCGExHeuristicsFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactorySteepness : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
@@ -83,8 +83,8 @@ public:
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsSteepnessProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsSteepnessProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 

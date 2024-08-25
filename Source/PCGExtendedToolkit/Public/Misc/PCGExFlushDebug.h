@@ -10,8 +10,8 @@
 
 #include "PCGExFlushDebug.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExDebugSettings : public UPCGSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDebugSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 

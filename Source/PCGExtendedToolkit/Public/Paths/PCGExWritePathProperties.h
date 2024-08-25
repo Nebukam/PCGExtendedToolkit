@@ -28,8 +28,8 @@ MACRO(PathCentroid, FVector)
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 

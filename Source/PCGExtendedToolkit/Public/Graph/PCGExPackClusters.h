@@ -7,8 +7,8 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPackClusters.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExPackClustersSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPackClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

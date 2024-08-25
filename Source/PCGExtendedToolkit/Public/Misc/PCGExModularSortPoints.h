@@ -14,8 +14,8 @@
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExSortingRule : public UPCGExParamFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSortingRule : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
@@ -26,8 +26,8 @@ public:
 	FPCGExSortRuleConfig Config;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExSortingRuleProviderSettings : public UPCGExFactoryProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSortingRuleProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
@@ -60,8 +60,8 @@ public:
 	FPCGExSortRuleConfig Config;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExModularSortPointsSettings : public UPCGExSortPointsBaseSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExModularSortPointsSettings : public UPCGExSortPointsBaseSettings
 {
 	GENERATED_BODY()
 

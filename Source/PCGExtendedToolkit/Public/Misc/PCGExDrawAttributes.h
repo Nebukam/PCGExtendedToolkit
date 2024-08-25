@@ -141,8 +141,8 @@ protected:
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExDrawAttributesSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDrawAttributesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 

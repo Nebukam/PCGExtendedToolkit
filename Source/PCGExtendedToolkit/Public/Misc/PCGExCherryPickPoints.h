@@ -16,8 +16,8 @@ enum class EPCGExCherryPickSource : uint8
 	Target UMETA(DisplayName = "Targets", ToolTip="Read indices from a list of target points."),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExCherryPickPointsSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCherryPickPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 

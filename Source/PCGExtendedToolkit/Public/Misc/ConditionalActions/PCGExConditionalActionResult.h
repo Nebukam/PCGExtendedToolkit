@@ -17,8 +17,8 @@ class UPCGExConditionalActionResultFactory;
 /**
  * 
  */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionResultOperation : public UPCGExConditionalActionOperation
+UCLASS(MinimalAPI)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionResultOperation : public UPCGExConditionalActionOperation
 {
 	GENERATED_BODY()
 
@@ -37,8 +37,8 @@ protected:
 	PCGEx::TFAttributeWriter<bool>* ResultWriter = nullptr;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionResultFactory : public UPCGExConditionalActionFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionResultFactory : public UPCGExConditionalActionFactoryBase
 {
 	friend class UPCGExConditionalActionResultProviderSettings;
 
@@ -51,8 +51,8 @@ public:
 	virtual bool Boot(FPCGContext* InContext) override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ConditionalActionResult")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionResultProviderSettings : public UPCGExConditionalActionProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ConditionalActionResult")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionResultProviderSettings : public UPCGExConditionalActionProviderSettings
 {
 	GENERATED_BODY()
 

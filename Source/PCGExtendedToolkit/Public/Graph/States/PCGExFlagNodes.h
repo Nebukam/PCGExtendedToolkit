@@ -13,8 +13,8 @@
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

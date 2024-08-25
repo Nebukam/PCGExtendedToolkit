@@ -58,8 +58,8 @@ namespace PCPGExMergePointsByTag
 	};
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExMergePointsByTagSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMergePointsByTagSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 

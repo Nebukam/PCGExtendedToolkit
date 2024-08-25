@@ -9,8 +9,8 @@
 
 #include "PCGExMakeClustersUnique.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExMakeClustersUniqueSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMakeClustersUniqueSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

@@ -12,8 +12,8 @@
 #include "PCGExBoundsClustersIntersection.generated.h"
 
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph", Hidden)
-class PCGEXTENDEDTOOLKIT_API UPCGExBoundsClustersIntersectionSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph", Hidden)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsClustersIntersectionSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

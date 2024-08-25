@@ -10,8 +10,8 @@
 /**
  * 
  */
-UCLASS(meta=(DisplayName="Force Directed"))
-class PCGEXTENDEDTOOLKIT_API UPCGExForceDirectedRelax : public UPCGExRelaxClusterOperation
+UCLASS(MinimalAPI, meta=(DisplayName="Force Directed"))
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExForceDirectedRelax : public UPCGExRelaxClusterOperation
 {
 	GENERATED_BODY()
 

@@ -11,8 +11,8 @@
 #include "PCGExPartitionVertices.generated.h"
 
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExPartitionVerticesSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPartitionVerticesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

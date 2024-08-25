@@ -24,8 +24,8 @@ enum class EPCGExGoalPickRandomAmount : uint8
 /**
  * 
  */
-UCLASS(DisplayName = "Random")
-class PCGEXTENDEDTOOLKIT_API UPCGExGoalPickerRandom : public UPCGExGoalPicker
+UCLASS(MinimalAPI, DisplayName = "Random")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGoalPickerRandom : public UPCGExGoalPicker
 {
 	GENERATED_BODY()
 

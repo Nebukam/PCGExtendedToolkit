@@ -3,7 +3,7 @@
 
 #include "Paths/PCGExWriteTangents.h"
 
-#include "Paths/Tangents/PCGExAutoTangents.h"
+#include "Paths/Tangents/PCGExZeroTangents.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -21,7 +21,7 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 
-	PCGEX_OPERATION_BIND(Tangents, UPCGExAutoTangents)
+	PCGEX_OPERATION_BIND(Tangents, UPCGExZeroTangents)
 
 	Context->Tangents->bClosedPath = Settings->bClosedPath;
 

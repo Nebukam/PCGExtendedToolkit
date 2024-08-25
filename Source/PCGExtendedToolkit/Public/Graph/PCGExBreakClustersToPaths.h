@@ -15,8 +15,8 @@ enum class EPCGExBreakClusterOperationTarget : uint8
 	Edges UMETA(DisplayName = "Edges", ToolTip="Operate on each edge individually (very expensive)"),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExBreakClustersToPathsSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBreakClustersToPathsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

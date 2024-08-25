@@ -49,18 +49,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentConfig
 	{
 		return GetDirection(Index) * (ScaleGetter ? ScaleGetter->Values[Index] : DefaultScale);
 	}
-
-	void Cleanup()
-	{
-		
-	}
 };
 
 /**
  * 
  */
-UCLASS(DisplayName="Custom")
-class PCGEXTENDEDTOOLKIT_API UPCGExCustomTangents : public UPCGExTangentsOperation
+UCLASS(MinimalAPI, DisplayName="Custom")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCustomTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()
 
@@ -74,10 +69,29 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bMirror"))
 	FPCGExSingleTangentConfig Leave;
 
-	virtual void PrepareForData(PCGExData::FFacade* InDataFacade) override;
-	virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override;
-	virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override;
-	virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const override;
+	virtual void PrepareForData(PCGExData::FFacade* InDataFacade) override
+	{
+		Super::PrepareForData(InDataFacade);
+		Arrive.PrepareForData(InDataFacade);
+		Leave.PrepareForData(InDataFacade);
+	}
 
-	virtual void Cleanup() override;
+	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
+	{
+		OutArrive = Arrive.GetTangent(0);
+		OutLeave = bMirror ? Arrive.GetTangent(0) : Leave.GetTangent(0);
+	}
+
+	FORCEINLINE virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
+	{
+		const int32 Index = InPoints.Num() - 1;
+		OutArrive = Arrive.GetTangent(Index);
+		OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
+	}
+
+	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const override
+	{
+		OutArrive = Arrive.GetTangent(Index);
+		OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
+	}
 };

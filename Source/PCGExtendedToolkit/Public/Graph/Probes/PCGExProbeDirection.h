@@ -67,8 +67,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigDirection : public FPCGExProbeCon
 /**
  * 
  */
-UCLASS(DisplayName = "Direction")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeDirection : public UPCGExProbeOperation
+UCLASS(MinimalAPI, DisplayName = "Direction")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeDirection : public UPCGExProbeOperation
 {
 	GENERATED_BODY()
 
@@ -93,8 +93,8 @@ protected:
 
 ////
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryDirection : public UPCGExProbeFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryDirection : public UPCGExProbeFactoryBase
 {
 	GENERATED_BODY()
 

@@ -25,8 +25,8 @@ enum class EPCGExContourShapeTypeOutput : uint8
 	ConcaveOnly UMETA(DisplayName = "Concave Only", ToolTip="Output only concave paths")
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFindContoursSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 

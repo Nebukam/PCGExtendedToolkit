@@ -64,8 +64,8 @@ namespace PCGExBitmask
 	}
 }
 
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExGlobalBitmaskManager : public UObject
+UCLASS(MinimalAPI)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGlobalBitmaskManager : public UObject
 {
 	GENERATED_BODY()
 
@@ -77,8 +77,8 @@ public:
 	TMap<int64, UPCGParamData*> SharedInstances;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskSettings : public UPCGSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 

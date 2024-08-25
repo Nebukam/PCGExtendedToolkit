@@ -32,8 +32,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicConfigInertia : public FPCGExHeuris
 /**
  * 
  */
-UCLASS(DisplayName = "Inertia")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicInertia : public UPCGExHeuristicOperation
+UCLASS(MinimalAPI, DisplayName = "Inertia")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicInertia : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
@@ -82,8 +82,8 @@ protected:
 
 ////
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryInertia : public UPCGExHeuristicsFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryInertia : public UPCGExHeuristicsFactoryBase
 {
 	GENERATED_BODY()
 
@@ -93,8 +93,8 @@ public:
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsInertiaProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsInertiaProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
 {
 	GENERATED_BODY()
 

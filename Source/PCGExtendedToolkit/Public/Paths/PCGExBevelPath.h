@@ -42,8 +42,8 @@ enum class EPCGExBevelLimit : uint8
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExBevelPathSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBevelPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 

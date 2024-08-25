@@ -35,8 +35,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExOrientConfig
 /**
  * 
  */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOrient : public UPCGExVtxPropertyOperation
+UCLASS(MinimalAPI)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyOrient : public UPCGExVtxPropertyOperation
 {
 	GENERATED_BODY()
 
@@ -50,8 +50,8 @@ public:
 	virtual void Cleanup() override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOrientFactory : public UPCGExVtxPropertyFactoryBase
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyOrientFactory : public UPCGExVtxPropertyFactoryBase
 {
 	GENERATED_BODY()
 
@@ -61,8 +61,8 @@ public:
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOrientSettings : public UPCGExVtxPropertyProviderSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyOrientSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
 

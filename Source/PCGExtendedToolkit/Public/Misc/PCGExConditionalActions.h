@@ -14,8 +14,8 @@ class UPCGExConditionalActionFactoryBase;
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionsSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 

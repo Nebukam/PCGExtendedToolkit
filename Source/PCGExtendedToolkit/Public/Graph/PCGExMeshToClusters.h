@@ -44,8 +44,8 @@ enum class EPCGExMeshAttributeHandling : uint8
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExMeshToClustersSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshToClustersSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 

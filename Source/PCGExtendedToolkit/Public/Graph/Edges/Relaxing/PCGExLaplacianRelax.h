@@ -10,8 +10,8 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Laplacian (Poisson)")
-class PCGEXTENDEDTOOLKIT_API UPCGExLaplacianRelax : public UPCGExRelaxClusterOperation
+UCLASS(MinimalAPI, DisplayName = "Laplacian (Poisson)")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExLaplacianRelax : public UPCGExRelaxClusterOperation
 {
 	GENERATED_BODY()
 

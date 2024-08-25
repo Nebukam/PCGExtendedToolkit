@@ -9,8 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExBitmaskMerge.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskMergeSettings : public UPCGSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskMergeSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 

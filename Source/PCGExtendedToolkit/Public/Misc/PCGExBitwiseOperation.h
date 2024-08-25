@@ -10,8 +10,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExBitwiseOperation.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExBitwiseOperationSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitwiseOperationSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 

@@ -9,8 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExInternalDebug.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Debug")
-class PCGEXTENDEDTOOLKIT_API UPCGExInternalDebugSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Debug")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExInternalDebugSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 

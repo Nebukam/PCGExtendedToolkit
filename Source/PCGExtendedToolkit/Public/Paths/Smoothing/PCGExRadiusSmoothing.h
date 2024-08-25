@@ -11,8 +11,8 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Radius")
-class PCGEXTENDEDTOOLKIT_API UPCGExRadiusSmoothing : public UPCGExSmoothingOperation
+UCLASS(MinimalAPI, DisplayName = "Radius")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRadiusSmoothing : public UPCGExSmoothingOperation
 {
 	GENERATED_BODY()
 

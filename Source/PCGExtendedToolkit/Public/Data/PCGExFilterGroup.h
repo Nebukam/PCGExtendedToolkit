@@ -22,8 +22,8 @@ enum class EPCGExFilterGroupMode : uint8
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupFactoryBase : public UPCGExClusterFilterFactoryBase
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBase : public UPCGExClusterFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -37,8 +37,8 @@ public:
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupFactoryBaseAND : public UPCGExFilterGroupFactoryBase
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseAND : public UPCGExFilterGroupFactoryBase
 {
 	GENERATED_BODY()
 
@@ -50,8 +50,8 @@ public:
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExFilterGroupFactoryBaseOR : public UPCGExFilterGroupFactoryBase
+UCLASS(MinimalAPI, BlueprintType,  ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseOR : public UPCGExFilterGroupFactoryBase
 {
 	GENERATED_BODY()
 

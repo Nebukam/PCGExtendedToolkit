@@ -42,8 +42,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 	TArray<double> MaxCache;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExAttributeRemapSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeRemapSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
