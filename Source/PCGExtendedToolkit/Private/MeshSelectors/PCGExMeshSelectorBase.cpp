@@ -172,10 +172,12 @@ FPCGMeshInstanceList& UPCGExMeshSelectorBase::RegisterPick(
 		if (Ctx.Settings->bApplyMeshBoundsToPoints)
 		{
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-			TArray<int32>& PointIndices = Context.MeshToOutPoints.FindOrAdd(Mesh).FindOrAdd(OutPointData);
-			// CurrentPointIndex - 1, because CurrentPointIndex is incremented at the beginning of the loop
-			PointIndices.Emplace(CurrentPointIndex - 1);
+
+			TArray<int32>& PointIndices = Ctx.Context->MeshToOutPoints.FindOrAdd(Mesh).FindOrAdd(Ctx.OutPointData);
+			PointIndices.Emplace(PointIndex);
+
 #else
+
 			if (!MeshToBoundingBox.Contains(Mesh) && Mesh.LoadSynchronous())
 			{
 				MeshToBoundingBox.Add(Mesh, Mesh->GetBoundingBox());
@@ -187,6 +189,7 @@ FPCGMeshInstanceList& UPCGExMeshSelectorBase::RegisterPick(
 				OutPoint.BoundsMin = MeshBounds.Min;
 				OutPoint.BoundsMax = MeshBounds.Max;
 			}
+			
 #endif
 		}
 	}
@@ -195,6 +198,7 @@ FPCGMeshInstanceList& UPCGExMeshSelectorBase::RegisterPick(
 }
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+
 FPCGMeshInstanceList& UPCGExMeshSelectorBase::GetInstanceList(
 	TArray<FPCGMeshInstanceList>& InstanceLists,
 	const FPCGExMeshCollectionEntry& Pick,
@@ -219,7 +223,9 @@ FPCGMeshInstanceList& UPCGExMeshSelectorBase::GetInstanceList(
 		return NewInstanceList;
 	}
 }
+
 #else
+
 FPCGMeshInstanceList& UPCGExMeshSelectorBase::GetInstanceList(
 	TArray<FPCGMeshInstanceList>& InstanceLists,
 	const FPCGExMeshCollectionEntry& Pick,
