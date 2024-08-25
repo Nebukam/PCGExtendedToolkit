@@ -47,7 +47,7 @@ bool UPCGExMeshSelectorByIndex::Execute(PCGExMeshSelection::FCtx& Ctx) const
 		const FPCGExMeshCollectionEntry& Entry = MainCollectionPtr->Entries[PickedIndex];
 
 		//bUseAttributeMaterialOverrides, MaterialOverrideHelper.GetMaterialOverrides(Point.MetadataEntry)
-		
+
 		// CurrentPointIndex - 1, because CurrentPointIndex is incremented at the beginning of the loop
 		RegisterPick(Entry, Point, CurrentPointIndex - 1, Ctx);
 
@@ -55,7 +55,7 @@ bool UPCGExMeshSelectorByIndex::Execute(PCGExMeshSelection::FCtx& Ctx) const
 		if (CurrentPointIndex - LastCheckpointIndex >= TimeSlicingCheckFrequency)
 		{
 			if (Ctx.Context->ShouldStop()) { return false; }
-			else { LastCheckpointIndex = CurrentPointIndex; }
+			LastCheckpointIndex = CurrentPointIndex;
 		}
 	}
 

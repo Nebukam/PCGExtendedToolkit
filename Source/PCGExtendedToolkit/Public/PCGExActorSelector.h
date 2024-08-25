@@ -88,7 +88,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSelectionKey
 	TObjectPtr<const UClass> OptionalExtraDependency = nullptr;
 };
 
-/*PCGEXTENDEDTOOLKIT_API*/ FArchive& operator<<(FArchive& Ar, FPCGExSelectionKey& Key);
+/*PCGEXTENDEDTOOLKIT_API*/
+FArchive& operator<<(FArchive& Ar, FPCGExSelectionKey& Key);
 
 /** Helper struct for organizing queries against the world to gather actors. */
 USTRUCT(BlueprintType)
@@ -162,6 +163,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorSelectorSettings
 
 namespace PCGExActorSelector
 {
-	/*PCGEXTENDEDTOOLKIT_API*/ TArray<AActor*> FindActors(const FPCGExActorSelectorSettings& Settings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
-	/*PCGEXTENDEDTOOLKIT_API*/ AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
+	/*PCGEXTENDEDTOOLKIT_API*/
+	TArray<AActor*> FindActors(const FPCGExActorSelectorSettings& Settings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
+	/*PCGEXTENDEDTOOLKIT_API*/
+	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
 }

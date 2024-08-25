@@ -195,7 +195,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 
 	UPROPERTY(EditAnywhere, Category = Settings, BlueprintReadWrite)
 	TSoftObjectPtr<UCurveFloat> RemapCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
-	
+
 	TObjectPtr<UCurveFloat> RemapCurveObj = nullptr;
 
 

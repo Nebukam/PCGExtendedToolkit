@@ -51,7 +51,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry
 		// TODO : This is way too weak
 		return InstanceList.Descriptor.StaticMesh == Descriptor.StaticMesh;
 	}
-	
+
 	bool SameAs(const FPCGExMeshCollectionEntry& Other) const
 	{
 		return

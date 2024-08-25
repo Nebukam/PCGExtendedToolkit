@@ -74,7 +74,7 @@ namespace PCGExClusterMT
 	PCGEX_CLUSTER_MT_TASK_SCOPE(FAsyncProcessScopeList, {for(const uint64 Scope: Scopes ){ Target->ProcessScope(Scope);}})
 
 	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncBatchProcessClosedRange, {Target->ProcessClosedBatchRange(TaskIndex, Iterations);})
-	
+
 #pragma endregion
 
 	class FClusterProcessor

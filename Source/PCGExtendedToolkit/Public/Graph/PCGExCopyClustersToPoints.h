@@ -35,7 +35,6 @@ public:
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformDetails TransformDetails;
-
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCopyClustersToPointsContext final : public FPCGExEdgesProcessorContext

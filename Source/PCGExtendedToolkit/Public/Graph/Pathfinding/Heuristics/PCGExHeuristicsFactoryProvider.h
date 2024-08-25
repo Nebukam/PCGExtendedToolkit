@@ -49,7 +49,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve;
-	
+
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
 
 	/** Use a local attribute */

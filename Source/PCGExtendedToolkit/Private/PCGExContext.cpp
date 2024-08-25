@@ -133,25 +133,19 @@ bool FPCGExContext::RequestResourceLoad(FPCGContext* ThisContext, TArray<FSoftOb
 
 			return true;
 		}
-		else
+		ThisContext->bIsPaused = true;
+
+		// It is a bit unsafe to pass this to a delegate lambda. But if the context dies before the completion of the loading, the context will cancel the loading in its dtor.
+		LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(std::forward<TArray<FSoftObjectPath>>(ObjectsToLoad), [ThisContext]() { ThisContext->bIsPaused = false; });
+		bLoadRequested = true;
+
+		// If the load handle is not active it means objects were invalid
+		if (!LoadHandle->IsActive())
 		{
-			ThisContext->bIsPaused = true;
-
-			// It is a bit unsafe to pass this to a delegate lambda. But if the context dies before the completion of the loading, the context will cancel the loading in its dtor.
-			LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(std::forward<TArray<FSoftObjectPath>>(ObjectsToLoad), [ThisContext]() { ThisContext->bIsPaused = false; });
-			bLoadRequested = true;
-
-			// If the load handle is not active it means objects were invalid
-			if (!LoadHandle->IsActive())
-			{
-				ThisContext->bIsPaused = false;
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			ThisContext->bIsPaused = false;
+			return true;
 		}
+		return false;
 	}
 
 	return true;
