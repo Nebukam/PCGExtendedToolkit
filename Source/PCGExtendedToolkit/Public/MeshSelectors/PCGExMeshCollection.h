@@ -64,7 +64,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry
 
 namespace PCGExMeshCollection
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionCategory
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCategory
 	{
 		FName Name = NAME_None;
 		double WeightSum = 0;
@@ -72,16 +72,16 @@ namespace PCGExMeshCollection
 		TArray<int32> Weights;
 		TArray<int32> Order;
 
-		FPCGExMeshCollectionCategory()
+		FCategory()
 		{
 		}
 
-		explicit FPCGExMeshCollectionCategory(const FName InName):
+		explicit FCategory(const FName InName):
 			Name(InName)
 		{
 		}
 
-		~FPCGExMeshCollectionCategory();
+		~FCategory();
 
 		void BuildFromIndices();
 	};
@@ -110,7 +110,7 @@ public:
 
 	const TArray<int32>& GetValidEntries() const { return CachedIndices; }
 	const TArray<double>& GetWeights() const { return CachedWeights; }
-	const TMap<FName, PCGExMeshCollection::FPCGExMeshCollectionCategory*>& GetCategories() const { return CachedCategories; }
+	const TMap<FName, PCGExMeshCollection::FCategory*>& GetCategories() const { return CachedCategories; }
 
 	virtual void BeginDestroy() override;
 
@@ -132,7 +132,7 @@ protected:
 	TArray<int32> CachedIndices;
 	TArray<double> CachedWeights;
 	TArray<int32> Order;
-	TMap<FName, PCGExMeshCollection::FPCGExMeshCollectionCategory*> CachedCategories;
+	TMap<FName, PCGExMeshCollection::FCategory*> CachedCategories;
 
 	void ClearCategories();
 	virtual bool RebuildCachedData();

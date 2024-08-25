@@ -97,7 +97,7 @@ namespace PCGExPointsFilter
 			const double A = OperandA->Values[PointIndex];
 			const double B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
 			const double C = OperandC ? OperandC->Values[PointIndex] : TypedFilterFactory->Config.OperandCConstant;
-			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Modulo(A, B), C, TypedFilterFactory->Config.Tolerance);
+			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);
 		}
 
 		virtual ~TModuloComparisonFilter() override

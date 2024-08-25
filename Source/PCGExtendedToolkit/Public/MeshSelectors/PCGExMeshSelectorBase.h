@@ -10,6 +10,46 @@
 struct FPCGExMeshCollectionEntry;
 class UPCGExMeshCollection;
 
+namespace PCGExMeshSelection
+{
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCtx
+	{
+		FPCGStaticMeshSpawnerContext* Context = nullptr;
+		const UPCGStaticMeshSpawnerSettings* Settings = nullptr;
+		const UPCGPointData* InPointData = nullptr;
+		TArray<FPCGMeshInstanceList>* OutMeshInstances = nullptr;
+		UPCGPointData* OutPointData = nullptr;
+		TArray<FPCGPoint>* OutPoints = nullptr;
+		FPCGMetadataAttribute<FString>* OutAttributeId = nullptr;
+
+		FCtx()
+		{
+		}
+
+		explicit FCtx(
+			FPCGStaticMeshSpawnerContext* InContext = nullptr,
+			const UPCGStaticMeshSpawnerSettings* InSettings = nullptr,
+			const UPCGPointData* InInPointData = nullptr,
+			TArray<FPCGMeshInstanceList>* InOutMeshInstances = nullptr,
+			UPCGPointData* InOutPointData = nullptr,
+			TArray<FPCGPoint>* InOutPoints = nullptr,
+			FPCGMetadataAttribute<FString>* InOutAttributeId = nullptr):
+			Context(InContext),
+			Settings(InSettings),
+			InPointData(InInPointData),
+			OutMeshInstances(InOutMeshInstances),
+			OutPointData(InOutPointData),
+			OutPoints(InOutPoints),
+			OutAttributeId(InOutAttributeId)
+		{
+		}
+
+		~FCtx()
+		{
+		}
+	};
+}
+
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorBase : public UPCGMeshSelectorBase
 {
@@ -47,6 +87,8 @@ public:
 	TArray<FName> MaterialOverrideAttributes;
 
 protected:
+	const int32 TimeSlicingCheckFrequency = 1024;
+
 	virtual void RefreshInternal();
 
 	virtual bool Setup(
@@ -55,21 +97,21 @@ protected:
 		const UPCGPointData* InPointData,
 		UPCGPointData* OutPointData) const;
 
-	virtual bool Execute(
-		FPCGStaticMeshSpawnerContext& Context,
-		const UPCGStaticMeshSpawnerSettings* Settings,
-		const UPCGPointData* InPointData,
-		TArray<FPCGMeshInstanceList>& OutMeshInstances,
-		UPCGPointData* OutPointData,
-		TArray<FPCGPoint>* OutPoints = nullptr,
-		FPCGMetadataAttribute<FString>* OutAttributeId = nullptr) const;
+	virtual bool Execute(PCGExMeshSelection::FCtx& Ctx) const;
+	virtual FPCGMeshInstanceList& RegisterPick(const FPCGExMeshCollectionEntry& Entry, const FPCGPoint& Point, const int32 PointIndex, PCGExMeshSelection::FCtx& Ctx) const;
 
-	//virtual void RegisterPick(FPCGMetadataAttribute<FString>* OutAttributeId, const FPCGExMeshCollectionEntry& Pick,)
 	void CollapseInstances(TArray<TArray<FPCGMeshInstanceList>>& MeshInstances, TArray<FPCGMeshInstanceList>& OutMeshInstances) const;
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 	virtual FPCGMeshInstanceList& GetInstanceList(
 		TArray<FPCGMeshInstanceList>& InstanceLists,
 		const FPCGExMeshCollectionEntry& Pick,
 		bool bReverseCulling,
 		const int AttributePartitionIndex = INDEX_NONE) const;
+#else
+	virtual FPCGMeshInstanceList& GetInstanceList(
+		TArray<FPCGMeshInstanceList>& InstanceLists,
+		const FPCGExMeshCollectionEntry& Pick,
+		bool bReverseCulling) const;
+#endif
 };

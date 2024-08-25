@@ -15,14 +15,14 @@ void FPCGExMeshCollectionEntry::LoadSubCollection()
 
 namespace PCGExMeshCollection
 {
-	FPCGExMeshCollectionCategory::~FPCGExMeshCollectionCategory()
+	FCategory::~FCategory()
 	{
 		Indices.Empty();
 		Weights.Empty();
 		Order.Empty();
 	}
 
-	void FPCGExMeshCollectionCategory::BuildFromIndices()
+	void FCategory::BuildFromIndices()
 	{
 		const int32 NumEntries = Indices.Num();
 
@@ -93,7 +93,7 @@ void UPCGExMeshCollection::ClearCategories()
 
 	for (FName Key : Keys)
 	{
-		const PCGExMeshCollection::FPCGExMeshCollectionCategory* Category = *CachedCategories.Find(Key);
+		const PCGExMeshCollection::FCategory* Category = *CachedCategories.Find(Key);
 		PCGEX_DELETE(Category)
 	}
 
@@ -113,7 +113,7 @@ bool UPCGExMeshCollection::RebuildCachedData()
 	CachedWeights.Empty();
 	CachedWeights.Reserve(Entries.Num());
 
-	TArray<PCGExMeshCollection::FPCGExMeshCollectionCategory*> TempCategories;
+	TArray<PCGExMeshCollection::FCategory*> TempCategories;
 
 	double WeightSum = 0;
 
@@ -134,12 +134,12 @@ bool UPCGExMeshCollection::RebuildCachedData()
 
 		if (Entry.Category.IsNone()) { continue; }
 
-		PCGExMeshCollection::FPCGExMeshCollectionCategory** CategoryPtr = CachedCategories.Find(Entry.Category);
-		PCGExMeshCollection::FPCGExMeshCollectionCategory* Category = nullptr;
+		PCGExMeshCollection::FCategory** CategoryPtr = CachedCategories.Find(Entry.Category);
+		PCGExMeshCollection::FCategory* Category = nullptr;
 
 		if (!CategoryPtr)
 		{
-			Category = new PCGExMeshCollection::FPCGExMeshCollectionCategory(Entry.Category);
+			Category = new PCGExMeshCollection::FCategory(Entry.Category);
 			CachedCategories.Add(Entry.Category, Category);
 			TempCategories.Add(Category);
 		}
@@ -150,7 +150,7 @@ bool UPCGExMeshCollection::RebuildCachedData()
 		Category->WeightSum += Entry.Weight;
 	}
 
-	for (PCGExMeshCollection::FPCGExMeshCollectionCategory* Cate : TempCategories) { Cate->BuildFromIndices(); }
+	for (PCGExMeshCollection::FCategory* Cate : TempCategories) { Cate->BuildFromIndices(); }
 
 	const int32 NumEntries = CachedIndices.Num();
 	PCGEX_SET_NUM_UNINITIALIZED(CachedWeights, NumEntries)

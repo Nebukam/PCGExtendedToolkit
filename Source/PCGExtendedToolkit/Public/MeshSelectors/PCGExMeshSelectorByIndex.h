@@ -14,14 +14,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorByIndex : public UPCGExMeshSe
 	GENERATED_BODY()
 
 public:
-	virtual bool Execute(
-		FPCGStaticMeshSpawnerContext& Context,
-		const UPCGStaticMeshSpawnerSettings* Settings,
-		const UPCGPointData* InPointData,
-		TArray<FPCGMeshInstanceList>& OutMeshInstances,
-		UPCGPointData* OutPointData,
-		TArray<FPCGPoint>* OutPoints,
-		FPCGMetadataAttribute<FString>* OutAttributeId) const override;
+	virtual bool Execute(PCGExMeshSelection::FCtx& Ctx) const override;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
