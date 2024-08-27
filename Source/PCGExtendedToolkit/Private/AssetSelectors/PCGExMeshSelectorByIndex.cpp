@@ -30,9 +30,7 @@ bool UPCGExMeshSelectorByIndex::Execute(PCGExMeshSelection::FCtx& Ctx) const
 
 	// Assign points to entries
 	int32 CurrentPointIndex = Ctx.Context->CurrentPointIndex;
-
 	int32 LastCheckpointIndex = CurrentPointIndex;
-	TMap<TSoftObjectPtr<UStaticMesh>, PCGMetadataValueKey>& MeshToValueKey = Ctx.Context->MeshToValueKey;
 
 	while (CurrentPointIndex < Points.Num())
 	{
@@ -50,7 +48,7 @@ bool UPCGExMeshSelectorByIndex::Execute(PCGExMeshSelection::FCtx& Ctx) const
 
 		if (!MainCollectionPtr->GetEntry(
 			Entry, MainCollectionPtr->Entries, DesiredIndex,
-			PCGExRandom::GetSeedFromPoint(Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get())))
+			PCGExRandom::GetSeedFromPoint(SeedComponents, Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get())))
 		{
 			continue;
 		}

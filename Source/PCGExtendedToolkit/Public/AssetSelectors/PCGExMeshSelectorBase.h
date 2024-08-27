@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "PCGExRandom.h"
 #include "MeshSelectors/PCGMeshSelectorBase.h"
 
 #include "PCGExMeshSelectorBase.generated.h"
@@ -47,6 +48,10 @@ public:
 	virtual void BeginDestroy() override;
 
 public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
+	uint8 SeedComponents = 0;
+
+	/** Note that this is only accounted for if selected in the seed component. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
 	int32 LocalSeed = 0;
 	

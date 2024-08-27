@@ -55,8 +55,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 
 	virtual bool IsValid();
 
-	bool bBadEntry = false;
-
 protected:
 	virtual void OnSubCollectionLoaded();
 };
@@ -83,6 +81,29 @@ namespace PCGExAssetCollection
 		~FCategory();
 
 		void BuildFromIndices();
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAssetTuple
+	{
+		const UPCGExAssetCollection* Collection = nullptr;
+		int32 Index = -1;
+
+		FAssetTuple()
+		{
+		}
+
+		explicit FAssetTuple(const UPCGExAssetCollection* InCollection, int32 InIndex):
+			Collection(InCollection), Index(InIndex)
+		{
+		}
+
+		explicit FAssetTuple(const FAssetTuple& Other):
+			Collection(Other.Collection),
+			Index(Other.Index)
+		{
+		}
+
+		~FAssetTuple();
 	};
 }
 
