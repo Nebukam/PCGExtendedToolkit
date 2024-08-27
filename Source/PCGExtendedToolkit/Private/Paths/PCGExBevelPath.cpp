@@ -111,6 +111,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>* NewBatch)
 			{
+				NewBatch->bRequiresWriteStep = (Settings->bFlagEndpoints || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
 			},
 			PCGExMT::State_Done))
 		{
@@ -416,6 +417,24 @@ namespace PCGExBevelPath
 		}
 	}
 
+	void FProcessor::WriteFlags(const int32 Index)
+	{
+		const FBevel* Bevel = Bevels[Index];
+		if (!Bevel) { return; }
+
+		if (EndpointsWriter)
+		{
+			EndpointsWriter->Values[Bevel->StartOutputIndex] = true;
+			EndpointsWriter->Values[Bevel->EndOutputIndex] = true;
+		}
+
+		if (StartPointWriter) { StartPointWriter->Values[Bevel->StartOutputIndex] = true; }
+
+		if (EndPointWriter) { EndPointWriter->Values[Bevel->EndOutputIndex] = true; }
+
+		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); i++) { SubdivisionWriter->Values[Bevel->StartOutputIndex + i] = true; } }
+	}
+
 	void FProcessor::CompleteWork()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelPath)
@@ -457,6 +476,40 @@ namespace PCGExBevelPath
 		PCGEX_SET_NUM(MutablePoints, NumOutPoints);
 
 		StartParallelLoopForRange(PointIO->GetNum());
+	}
+
+	void FProcessor::Write()
+	{
+		if (LocalSettings->bFlagEndpoints)
+		{
+			EndpointsWriter = PointDataFacade->GetWriter<bool>(LocalSettings->EndpointsFlagName, false, true, true);
+		}
+
+		if (LocalSettings->bFlagStartPoint)
+		{
+			StartPointWriter = PointDataFacade->GetWriter<bool>(LocalSettings->StartPointFlagName, false, true, true);
+		}
+
+		if (LocalSettings->bFlagEndPoint)
+		{
+			EndPointWriter = PointDataFacade->GetWriter<bool>(LocalSettings->EndPointFlagName, false, true, true);
+		}
+
+		if (LocalSettings->bFlagSubdivision)
+		{
+			SubdivisionWriter = PointDataFacade->GetWriter<bool>(LocalSettings->SubdivisionFlagName, false, true, true);
+		}
+
+		PCGExMT::FTaskGroup* WriteFlagsTask = AsyncManagerPtr->CreateGroup();
+		WriteFlagsTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr, true); });
+		WriteFlagsTask->StartRanges(
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				if (!PointFilterCache[Index]) { return; }
+				WriteFlags(Index);
+			}, PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+
+		FPointsProcessor::Write();
 	}
 }
 

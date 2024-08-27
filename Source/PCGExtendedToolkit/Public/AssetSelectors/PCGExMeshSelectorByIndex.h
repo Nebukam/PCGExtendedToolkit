@@ -8,7 +8,7 @@
 
 #include "PCGExMeshSelectorByIndex.generated.h"
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), DisplayName="[PCGEx] Select by Index")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorByIndex : public UPCGExMeshSelectorBase
 {
 	GENERATED_BODY()

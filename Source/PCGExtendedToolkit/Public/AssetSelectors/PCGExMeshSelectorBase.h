@@ -20,33 +20,7 @@ namespace PCGExMeshSelection
 		TArray<FPCGMeshInstanceList>* OutMeshInstances = nullptr;
 		UPCGPointData* OutPointData = nullptr;
 		TArray<FPCGPoint>* OutPoints = nullptr;
-		FPCGMetadataAttribute<FString>* OutAttributeId = nullptr;
-
-		FCtx()
-		{
-		}
-
-		explicit FCtx(
-			FPCGStaticMeshSpawnerContext* InContext = nullptr,
-			const UPCGStaticMeshSpawnerSettings* InSettings = nullptr,
-			const UPCGPointData* InInPointData = nullptr,
-			TArray<FPCGMeshInstanceList>* InOutMeshInstances = nullptr,
-			UPCGPointData* InOutPointData = nullptr,
-			TArray<FPCGPoint>* InOutPoints = nullptr,
-			FPCGMetadataAttribute<FString>* InOutAttributeId = nullptr):
-			Context(InContext),
-			Settings(InSettings),
-			InPointData(InInPointData),
-			OutMeshInstances(InOutMeshInstances),
-			OutPointData(InOutPointData),
-			OutPoints(InOutPoints),
-			OutAttributeId(InOutAttributeId)
-		{
-		}
-
-		~FCtx()
-		{
-		}
+		FPCGMetadataAttribute<FString>* OutAttribute = nullptr;
 	};
 }
 
@@ -73,6 +47,9 @@ public:
 	virtual void BeginDestroy() override;
 
 public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
+	int32 LocalSeed = 0;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExMeshCollection> MainCollection;
 

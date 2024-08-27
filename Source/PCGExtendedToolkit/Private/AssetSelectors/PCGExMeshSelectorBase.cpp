@@ -1,7 +1,7 @@
 // Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "MeshSelectors/PCGExMeshSelectorBase.h"
+#include "AssetSelectors/PCGExMeshSelectorBase.h"
 
 #include "PCGExMacros.h"
 #include "Data/PCGPointData.h"
@@ -19,7 +19,7 @@
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 #include "Engine/StaticMesh.h"
-#include "MeshSelectors/PCGExMeshCollection.h"
+#include "AssetSelectors/PCGExMeshCollection.h"
 
 #define LOCTEXT_NAMESPACE "PCGMeshSelectorBase"
 
@@ -61,13 +61,11 @@ bool UPCGExMeshSelectorBase::SelectInstances(
 		OutPoints = OutAttribute ? &OutPointData->GetMutablePoints() : nullptr;
 	}
 
-	PCGExMeshSelection::FCtx Data = PCGExMeshSelection::FCtx(
-		&Context, Settings, InPointData, &OutMeshInstances,
-		OutPointData, OutPoints, OutAttribute);
+	PCGExMeshSelection::FCtx Data = {&Context, Settings, InPointData, &OutMeshInstances, OutPointData, OutPoints, OutAttribute};
 
-	if (!Execute(Data)) { return false; }
+	if (Context.CurrentPointIndex != InPointData->GetPoints().Num()) { if (!Execute(Data)) { return false; } }
 
-	return Context.CurrentPointIndex == InPointData->GetPoints().Num();
+	return true;
 }
 
 void UPCGExMeshSelectorBase::BeginDestroy()
@@ -81,7 +79,11 @@ void UPCGExMeshSelectorBase::RefreshInternal()
 	if (MainCollection.ToSoftObjectPath().IsValid())
 	{
 		MainCollectionPtr = MainCollection.LoadSynchronous();
-		if (MainCollectionPtr) { MainCollectionPtr->RebuildCachedData(); }
+		if (MainCollectionPtr) { MainCollectionPtr->RebuildCachedData(MainCollectionPtr->Entries); }
+	}
+	else
+	{
+		MainCollectionPtr = nullptr;
 	}
 }
 
@@ -101,7 +103,7 @@ bool UPCGExMeshSelectorBase::Setup(
 			return false;
 		}
 
-		if (FPCGMetadataAttributeBase* OutAttributeBase = OutPointData->Metadata->GetMutableAttribute(Settings->OutAttributeName))
+		if (const FPCGMetadataAttributeBase* OutAttributeBase = OutPointData->Metadata->GetConstAttribute(Settings->OutAttributeName))
 		{
 			if (OutAttributeBase->GetTypeId() != PCG::Private::MetadataTypes<FString>::Id)
 			{
@@ -110,6 +112,8 @@ bool UPCGExMeshSelectorBase::Setup(
 			}
 		}
 	}
+
+	const_cast<UPCGExMeshSelectorBase*>(this)->RefreshInternal(); // TT_TT
 
 	if (!MainCollectionPtr)
 	{
@@ -131,11 +135,7 @@ bool UPCGExMeshSelectorBase::Setup(
 	return true;
 }
 
-bool UPCGExMeshSelectorBase::Execute(PCGExMeshSelection::FCtx& Ctx) const
-{
-	Ctx.Context->CurrentPointIndex = Ctx.InPointData->GetPoints().Num() - 1;
-	return true;
-}
+bool UPCGExMeshSelectorBase::Execute(PCGExMeshSelection::FCtx& Ctx) const { return true; }
 
 FPCGMeshInstanceList& UPCGExMeshSelectorBase::RegisterPick(
 	const FPCGExMeshCollectionEntry& Entry,
@@ -148,7 +148,7 @@ FPCGMeshInstanceList& UPCGExMeshSelectorBase::RegisterPick(
 	InstanceList.Instances.Emplace(Point.Transform);
 	InstanceList.InstancesMetadataEntry.Emplace(Point.MetadataEntry);
 
-	if (Ctx.OutPoints && Ctx.OutAttributeId)
+	if (Ctx.OutPoints && Ctx.OutAttribute)
 	{
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
 		TMap<TSoftObjectPtr<UStaticMesh>, FBox>& MeshToBoundingBox = Ctx.Context->MeshToBoundingBox;
@@ -160,14 +160,14 @@ FPCGMeshInstanceList& UPCGExMeshSelectorBase::RegisterPick(
 		PCGMetadataValueKey* OutValueKey = Ctx.Context->MeshToValueKey.Find(Mesh);
 		if (!OutValueKey)
 		{
-			PCGMetadataValueKey ValueKey = Ctx.OutAttributeId->AddValue(Mesh.ToSoftObjectPath().ToString());
+			PCGMetadataValueKey ValueKey = Ctx.OutAttribute->AddValue(Mesh.ToSoftObjectPath().ToString());
 			OutValueKey = &Ctx.Context->MeshToValueKey.Add(Mesh, ValueKey);
 		}
 
 		check(OutValueKey);
 
 		Ctx.OutPointData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-		Ctx.OutAttributeId->SetValueFromValueKey(OutPoint.MetadataEntry, *OutValueKey);
+		Ctx.OutAttribute->SetValueFromValueKey(OutPoint.MetadataEntry, *OutValueKey);
 
 		if (Ctx.Settings->bApplyMeshBoundsToPoints)
 		{

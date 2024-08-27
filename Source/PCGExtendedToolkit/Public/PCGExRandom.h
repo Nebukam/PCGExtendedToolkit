@@ -26,7 +26,7 @@ namespace PCGExRandom
 		return ((A * 196314165U) + 907633515U) ^ ((B * 73148459U) + 453816763U) ^ ((C * 34731343U) + 453816743U);
 	}
 
-	FORCEINLINE static FRandomStream GetRandomStreamFromPoint(const FPCGPoint& Point, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr)
+	FORCEINLINE static int32 GetSeedFromPoint(const FPCGPoint& Point, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr)
 	{
 		// From Epic git main, unexposed in 5.3
 
@@ -36,7 +36,12 @@ namespace PCGExRandom
 		else if (Settings) { Seed = ComputeSeed(Seed, Settings->Seed); }
 		else if (Component) { Seed = ComputeSeed(Seed, Component->Seed); }
 
-		return FRandomStream(Seed);
+		return Seed;
+	}
+
+	FORCEINLINE static FRandomStream GetRandomStreamFromPoint(const FPCGPoint& Point, const int32 Offset, const UPCGSettings* Settings = nullptr, const UPCGComponent* Component = nullptr)
+	{
+		return FRandomStream(GetSeedFromPoint(Point, Offset, Settings, Component));
 	}
 
 	FORCEINLINE static int ComputeSeed(const FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector)
