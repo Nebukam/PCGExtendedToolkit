@@ -21,7 +21,7 @@ bool FPCGExMeshCollectionEntry::IsValid()
 void FPCGExMeshCollectionEntry::OnSubCollectionLoaded()
 {
 	SubCollectionPtr = Cast<UPCGExMeshCollection>(BaseSubCollectionPtr);
-	BaseSubCollectionPtr->RebuildCachedData(SubCollectionPtr->Entries);
+	SubCollectionPtr->RebuildCachedData(SubCollectionPtr->Entries);
 }
 
 

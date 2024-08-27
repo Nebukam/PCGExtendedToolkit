@@ -38,11 +38,13 @@ bool UPCGExMeshSelectorRandom::Execute(PCGExMeshSelection::FCtx& Ctx) const
 		const FPCGPoint& Point = Points[CurrentPointIndex++];
 
 		FPCGExMeshCollectionEntry Entry = FPCGExMeshCollectionEntry{};
-		MainCollectionPtr->GetRandomEntry(
-			Entry, MainCollectionPtr->Entries,
-			PCGExRandom::GetSeedFromPoint(Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get()));
 
-		if (Entry.bBadEntry) { continue; }
+		if (!MainCollectionPtr->GetRandomEntry(
+			Entry, MainCollectionPtr->Entries,
+			PCGExRandom::GetSeedFromPoint(Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get())))
+		{
+			continue;
+		}
 
 		//bUseAttributeMaterialOverrides, MaterialOverrideHelper.GetMaterialOverrides(Point.MetadataEntry)
 

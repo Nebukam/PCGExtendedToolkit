@@ -47,12 +47,13 @@ bool UPCGExMeshSelectorByIndex::Execute(PCGExMeshSelection::FCtx& Ctx) const
 
 
 		FPCGExMeshCollectionEntry Entry = FPCGExMeshCollectionEntry{};
-		
-		MainCollectionPtr->GetEntry(
-			Entry, MainCollectionPtr->Entries, DesiredIndex,
-			PCGExRandom::GetSeedFromPoint(Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get()));
 
-		if (Entry.bBadEntry) { continue; }
+		if (!MainCollectionPtr->GetEntry(
+			Entry, MainCollectionPtr->Entries, DesiredIndex,
+			PCGExRandom::GetSeedFromPoint(Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get())))
+		{
+			continue;
+		}
 
 		//bUseAttributeMaterialOverrides, MaterialOverrideHelper.GetMaterialOverrides(Point.MetadataEntry)
 
