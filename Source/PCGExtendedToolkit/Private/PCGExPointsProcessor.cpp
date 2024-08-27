@@ -235,6 +235,25 @@ bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
 	return false;
 }
 
+bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* Context) const
+{
+	FPCGExContext* Ctx = static_cast<FPCGExContext*>(Context);
+	if(Ctx)
+	{
+		if (!Ctx->WasAssetLoadRequested())
+		{
+			Ctx->RegisterAssetDependencies();
+			if (Ctx->HasAssetRequirements())
+			{
+				Ctx->LoadAssets();
+				return false;
+			}
+		}
+	}
+
+	return IPCGElement::PrepareDataInternal(Context);
+}
+
 FPCGContext* FPCGExPointsProcessorElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -323,6 +342,12 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)
 
+	if(Context->bAssetLoadError)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("An error occured while loading asset dependencies."));
+		return false;
+	}
+	
 	if (Context->InputData.GetInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
 
 	if (Context->MainPoints->IsEmpty())

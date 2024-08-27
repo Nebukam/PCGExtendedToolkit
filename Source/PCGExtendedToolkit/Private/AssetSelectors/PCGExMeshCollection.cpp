@@ -6,26 +6,44 @@
 #include "PCGEx.h"
 #include "PCGExMacros.h"
 
-bool FPCGExMeshCollectionEntry::IsValid()
+bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
-	if (bIsSubCollection)
-	{
-		LoadSubCollection(SubCollection);
-		if (!SubCollectionPtr || SubCollectionPtr->GetValidEntryNum() == 0) { return false; }
-	}
-	else if (!Descriptor.StaticMesh.ToSoftObjectPath().IsValid()) { return false; }
+	if (bIsSubCollection) { LoadSubCollection(SubCollection); }
+	else if (!Descriptor.StaticMesh.ToSoftObjectPath().IsValid() && ParentCollection->bDoNotIgnoreInvalidEntries) { return false; }
 
-	return true;
+	return Super::Validate(ParentCollection);
 }
+
+#if WITH_EDITOR
+void FPCGExMeshCollectionEntry::UpdateStaging()
+{
+	if (bIsSubCollection) { return; }
+
+	const UStaticMesh* M = Descriptor.StaticMesh.LoadSynchronous();
+	if (!M)
+	{
+		Staging.Pivot = FVector::ZeroVector;
+		Staging.Bounds = FBox(ForceInitToZero);
+		return;
+	}
+
+	Staging.Pivot = FVector::ZeroVector;
+	Staging.Bounds = M->GetBoundingBox();
+}
+#endif
 
 void FPCGExMeshCollectionEntry::OnSubCollectionLoaded()
 {
 	SubCollectionPtr = Cast<UPCGExMeshCollection>(BaseSubCollectionPtr);
-	SubCollectionPtr->RebuildCachedData(SubCollectionPtr->Entries);
 }
 
-
 #if WITH_EDITOR
+bool UPCGExMeshCollection::IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	if (Super::IsCacheableProperty(PropertyChangedEvent)) { return true; }
+	return PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UPCGExMeshCollection, Entries);
+}
+
 void UPCGExMeshCollection::RefreshDisplayNames()
 {
 	Super::RefreshDisplayNames();
@@ -35,4 +53,14 @@ void UPCGExMeshCollection::RefreshDisplayNames()
 	}
 }
 
+void UPCGExMeshCollection::RefreshStagingData()
+{
+	Super::RefreshStagingData();
+	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.UpdateStaging(); }
+}
+
+void UPCGExMeshCollection::BuildCache()
+{
+	Super::BuildCache(Entries);
+}
 #endif

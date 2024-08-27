@@ -26,14 +26,50 @@ namespace PCGExAssetCollection
 	}
 }
 
-bool FPCGExAssetCollectionEntry::IsValid()
+bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
-	return false;
+	if (bIsSubCollection)
+	{
+		if (!BaseSubCollectionPtr) { return false; }
+		BaseSubCollectionPtr->LoadCache();
+	}
+	return true;
 }
+#if WITH_EDITOR
+void FPCGExAssetCollectionEntry::UpdateStaging()
+{
+}
+#endif
 
 void FPCGExAssetCollectionEntry::OnSubCollectionLoaded()
 {
-	// TODO : Rebuild cache
+}
+
+namespace PCGExAssetCollection
+{
+	void FCache::FinalizeCache()
+	{
+		Shrink();
+
+		const int32 NumEntries = Indices.Num();
+
+		PCGEx::ArrayOfIndices(Order, NumEntries);
+
+		Order.Sort([&](const int32 A, const int32 B) { return Weights[A] < Weights[B]; });
+		Weights.Sort([&](const int32 A, const int32 B) { return A < B; });
+
+		for (int32 i = 0; i < NumEntries; i++) { Weights[i] = i == 0 ? Weights[i] : Weights[i - 1] + Weights[i]; }
+	}
+}
+
+PCGExAssetCollection::FCache* UPCGExAssetCollection::LoadCache()
+{
+	if (bCacheNeedsRebuild) { PCGEX_DELETE(Cache) }
+	if (Cache) { return Cache; }
+	Cache = new PCGExAssetCollection::FCache();
+	BuildCache();
+	Cache->FinalizeCache();
+	return Cache;
 }
 
 void UPCGExAssetCollection::PostLoad()
@@ -41,6 +77,7 @@ void UPCGExAssetCollection::PostLoad()
 	Super::PostLoad();
 #if WITH_EDITOR
 	RefreshDisplayNames();
+	SetDirty();
 #endif
 }
 
@@ -49,6 +86,7 @@ void UPCGExAssetCollection::PostDuplicate(bool bDuplicateForPIE)
 	Super::PostDuplicate(bDuplicateForPIE);
 #if WITH_EDITOR
 	RefreshDisplayNames();
+	SetDirty();
 #endif
 }
 
@@ -57,6 +95,7 @@ void UPCGExAssetCollection::PostEditImport()
 	Super::PostEditImport();
 #if WITH_EDITOR
 	RefreshDisplayNames();
+	SetDirty();
 #endif
 }
 
@@ -64,36 +103,36 @@ void UPCGExAssetCollection::PostEditImport()
 void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+	if (IsCacheableProperty(PropertyChangedEvent)) { RefreshStagingData(); }
+
 	RefreshDisplayNames();
+	SetDirty();
+}
+
+bool UPCGExAssetCollection::IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	return PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, bIsSubCollection) ||
+		PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, Weight) ||
+		PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, Category);
 }
 
 void UPCGExAssetCollection::RefreshDisplayNames()
-{	
-	bCacheDirty = true;
+{
+}
+
+void UPCGExAssetCollection::RefreshStagingData()
+{
+	Modify();
 }
 #endif
 
 void UPCGExAssetCollection::BeginDestroy()
 {
 	Super::BeginDestroy();
-
-	CachedIndices.Empty();
-	CachedWeights.Empty();
-	Order.Empty();
-
-	ClearCategories();
+	PCGEX_DELETE(Cache)
 }
 
-void UPCGExAssetCollection::ClearCategories()
+void UPCGExAssetCollection::BuildCache()
 {
-	TArray<FName> Keys;
-	CachedCategories.GetKeys(Keys);
-
-	for (FName Key : Keys)
-	{
-		const PCGExAssetCollection::FCategory* Category = *CachedCategories.Find(Key);
-		PCGEX_DELETE(Category)
-	}
-
-	CachedCategories.Empty();
+	/* per-class implementation, forwards Entries to protected method */
 }

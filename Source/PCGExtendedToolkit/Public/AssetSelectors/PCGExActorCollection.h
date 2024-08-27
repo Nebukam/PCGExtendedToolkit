@@ -40,7 +40,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 			Actor == Other.Actor;
 	}
 
-	virtual bool IsValid() override;
+	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
+#if WITH_EDITOR
+	virtual void UpdateStaging() override;
+#endif
 
 protected:
 	virtual void OnSubCollectionLoaded() override;
@@ -55,9 +58,13 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActorCollection : public UPCGExAssetColle
 
 public:
 #if WITH_EDITOR
+	virtual bool IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void RefreshDisplayNames() override;
+	virtual void RefreshStagingData() override;
 #endif
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
 	TArray<FPCGExActorCollectionEntry> Entries;
+
+	virtual void BuildCache() override;
 };

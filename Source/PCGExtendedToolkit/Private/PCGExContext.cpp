@@ -63,7 +63,7 @@ void FPCGExContext::WriteFutureOutputs()
 
 FPCGExContext::~FPCGExContext()
 {
-	CancelLoading();
+	CancelAssetLoading();
 	UnrootFutures();
 	FutureOutputs.Empty();
 }
@@ -122,39 +122,48 @@ void FPCGExContext::OnComplete()
 
 #pragma region Async resource management
 
-bool FPCGExContext::RequestResourceLoad(FPCGContext* ThisContext, TArray<FSoftObjectPath>&& ObjectsToLoad, bool bAsynchronous)
-{
-	if (!ObjectsToLoad.IsEmpty() && !bLoadRequested)
-	{
-		if (!bAsynchronous)
-		{
-			LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(std::forward<TArray<FSoftObjectPath>>(ObjectsToLoad));
-			bLoadRequested = true;
-
-			return true;
-		}
-		ThisContext->bIsPaused = true;
-
-		// It is a bit unsafe to pass this to a delegate lambda. But if the context dies before the completion of the loading, the context will cancel the loading in its dtor.
-		LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(std::forward<TArray<FSoftObjectPath>>(ObjectsToLoad), [ThisContext]() { ThisContext->bIsPaused = false; });
-		bLoadRequested = true;
-
-		// If the load handle is not active it means objects were invalid
-		if (!LoadHandle->IsActive())
-		{
-			ThisContext->bIsPaused = false;
-			return true;
-		}
-		return false;
-	}
-
-	return true;
-}
-
-void FPCGExContext::CancelLoading()
+void FPCGExContext::CancelAssetLoading()
 {
 	if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
 	LoadHandle.Reset();
+	RequiredAssets.Empty();
+}
+
+void FPCGExContext::RegisterAssetDependencies()
+{
+}
+
+void FPCGExContext::RegisterAssetRequirement(const FSoftObjectPath& Dependency)
+{
+	RequiredAssets.Add(Dependency);
+}
+
+void FPCGExContext::LoadAssets()
+{
+	if (WasAssetLoadRequested()) { return; }
+
+	bAssetLoadRequested = true;
+
+	if(RequiredAssets.IsEmpty())
+	{
+		bAssetLoadError = true; // No asset to load, yet we required it?
+		return;
+	}
+	
+	bIsPaused = true;
+
+	LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+		RequiredAssets.Array(), [&]()
+		{
+			bIsPaused = false;
+		});
+
+	if (!LoadHandle->IsActive())
+	{
+		// Huh
+		bAssetLoadError = true;
+		bIsPaused = false;
+	}
 }
 
 #pragma endregion

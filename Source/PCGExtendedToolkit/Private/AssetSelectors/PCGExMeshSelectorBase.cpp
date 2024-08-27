@@ -79,7 +79,7 @@ void UPCGExMeshSelectorBase::RefreshInternal()
 	if (MainCollection.ToSoftObjectPath().IsValid())
 	{
 		MainCollectionPtr = MainCollection.LoadSynchronous();
-		if (MainCollectionPtr) { MainCollectionPtr->RebuildCachedData(MainCollectionPtr->Entries); }
+		if (MainCollectionPtr) { MainCollectionPtr->LoadCache(); }
 	}
 	else
 	{

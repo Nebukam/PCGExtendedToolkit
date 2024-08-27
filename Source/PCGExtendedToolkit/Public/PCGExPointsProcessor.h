@@ -307,6 +307,7 @@ public:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorElement : public IPCGElement
 {
 public:
+	virtual bool PrepareDataInternal(FPCGContext* Context) const override;
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 
 #if WITH_EDITOR

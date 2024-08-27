@@ -46,7 +46,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 			Descriptor.StaticMesh == Other.Descriptor.StaticMesh;
 	}
 
-	virtual bool IsValid() override;
+	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
+	
+#if WITH_EDITOR
+	virtual void UpdateStaging() override;
+#endif
 
 protected:
 	virtual void OnSubCollectionLoaded() override;
@@ -62,9 +66,13 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshCollection : public UPCGExAssetCollec
 
 public:
 #if WITH_EDITOR
+	virtual bool IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void RefreshDisplayNames() override;
+	virtual void RefreshStagingData() override;
 #endif
 
+	virtual void BuildCache() override;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
 	TArray<FPCGExMeshCollectionEntry> Entries;
 
