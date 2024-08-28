@@ -15,10 +15,15 @@ bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 }
 
 #if WITH_EDITOR
-void FPCGExActorCollectionEntry::UpdateStaging()
+void FPCGExActorCollectionEntry::UpdateStaging(bool bRecursive)
 {
-	if (bIsSubCollection) { return; }
+	if (bIsSubCollection)
+	{
+		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RefreshStagingData_Recursive(); }
+		return;
+	}
 
+	Staging.Path = Actor.ToSoftObjectPath();
 	const AActor* A = Actor.LoadSynchronous();
 
 	if (!A)
@@ -61,8 +66,14 @@ void UPCGExActorCollection::RefreshDisplayNames()
 
 void UPCGExActorCollection::RefreshStagingData()
 {
+	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(false); }
 	Super::RefreshStagingData();
-	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(); }
+}
+
+void UPCGExActorCollection::RefreshStagingData_Recursive()
+{
+	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(true); }
+	Super::RefreshStagingData_Recursive();
 }
 #endif
 

@@ -14,11 +14,19 @@ UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bounds Staging"))
 enum class EPCGExBoundsStaging : uint8
 {
 	Ignore UMETA(DisplayName = "Ignore", ToolTip="Ignore bounds"),
-	UpdatePointScale UMETA(DisplayName = "Update scale", ToolTip="Update the point scale so final instance matches the existing point' bounds"),
-	UpdatePointBounds UMETA(DisplayName = "Update bounds", ToolTip="Update the point bounds so it reflects the bounds of the final instance"),
+	UpdatePointScale UMETA(DisplayName = "Update scale", ToolTip="Update the point scale so final asset matches the existing point' bounds"),
+	UpdatePointBounds UMETA(DisplayName = "Update bounds", ToolTip="Update the point bounds so it reflects the bounds of the final asset"),
 };
 
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bounds Staging"))
+enum class EPCGExDistribution : uint8
+{
+	Index UMETA(DisplayName = "Index", ToolTip="Distribution by index"),
+	Random UMETA(DisplayName = "Random", ToolTip="Update the point scale so final asset matches the existing point' bounds"),
+	WeightedRandom UMETA(DisplayName = "Weighted random", ToolTip="Update the point bounds so it reflects the bounds of the final asset"),
+};
+
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -45,6 +53,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;
 
+	/** Distribution type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
+
+	/** Index sanitization behavior */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
+
+	/** The name of the attribute index to read index selection from.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	FPCGAttributePropertyInputSelector IndexAttribute;
+
 	/** Note that this is only accounted for if selected in the seed component. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 LocalSeed = 0;
@@ -60,9 +80,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
 
-	/** The name of the attribute to write asset path to.*/
+	/** If enabled, filter output based on whether a staging has been applied or not (empty entry). \n NOT IMPLEMENTED YET */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName BoundsAttributeName = "AssetPath";
+	bool bOmitInvalidStagedPoints = false;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : public FPCGExPointsProcessorContext
@@ -72,8 +92,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : public FPCGE
 	virtual ~FPCGExAssetStagingContext() override;
 
 	TObjectPtr<UPCGExMeshCollection> MainCollection;
-
-	virtual void RegisterAssetDependencies() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement
@@ -95,10 +113,15 @@ namespace PCGExAssetStaging
 	{
 		double NumPoints = 0;
 
+		const UPCGExAssetStagingSettings* LocalSettings = nullptr;
+		const FPCGExAssetStagingContext* LocalTypedContext = nullptr;
+
+		PCGExData::FCache<int32>* IndexCache = nullptr;
+
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PCGEx::TFAttributeWriter<FString>* PathWriter = nullptr;
-#else
 		PCGEx::TFAttributeWriter<FSoftObjectPath>* PathWriter = nullptr;
+#else
+		PCGEx::TFAttributeWriter<FString>* PathWriter = nullptr;
 #endif
 
 	public:
@@ -112,6 +135,7 @@ namespace PCGExAssetStaging
 		}
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

@@ -36,7 +36,7 @@ bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 	return true;
 }
 #if WITH_EDITOR
-void FPCGExAssetCollectionEntry::UpdateStaging()
+void FPCGExAssetCollectionEntry::UpdateStaging(bool bRecursive)
 {
 }
 #endif
@@ -121,6 +121,11 @@ void UPCGExAssetCollection::RefreshDisplayNames()
 }
 
 void UPCGExAssetCollection::RefreshStagingData()
+{
+	Modify();
+}
+
+void UPCGExAssetCollection::RefreshStagingData_Recursive()
 {
 	Modify();
 }

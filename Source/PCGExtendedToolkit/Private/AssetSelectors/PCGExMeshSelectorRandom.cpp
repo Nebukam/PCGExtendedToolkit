@@ -37,7 +37,7 @@ bool UPCGExMeshSelectorRandom::Execute(PCGExMeshSelection::FCtx& Ctx) const
 
 		FPCGExMeshCollectionEntry Entry = FPCGExMeshCollectionEntry{};
 
-		if (!MainCollectionPtr->GetRandomEntry(
+		if (!MainCollectionPtr->GetEntryRandom(
 			Entry, MainCollectionPtr->Entries,
 			PCGExRandom::GetSeedFromPoint(SeedComponents, Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get())))
 		{

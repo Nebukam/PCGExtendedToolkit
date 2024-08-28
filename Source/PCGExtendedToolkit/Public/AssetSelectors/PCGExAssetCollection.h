@@ -24,6 +24,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	}
 
 	UPROPERTY()
+	FSoftObjectPath Path;
+
+	UPROPERTY()
 	FVector Pivot = FVector::ZeroVector;
 
 	UPROPERTY()
@@ -65,7 +68,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 
 #if WITH_EDITOR
-	virtual void UpdateStaging();
+	virtual void UpdateStaging(bool bRecursive);
 #endif
 
 protected:
@@ -138,6 +141,24 @@ namespace PCGExAssetCollection
 			Order.Shrink();
 		}
 
+		FORCEINLINE int32 GetPick(const int32 Index) const
+		{
+			return Indices.IsValidIndex(Index) ? Indices[Index] : -1;
+		}
+
+		FORCEINLINE int32 GetPickRandom(const int32 Seed) const
+		{
+			return Indices[Order[FRandomStream(Seed).RandRange(0, Order.Num() - 1)]];
+		}
+
+		FORCEINLINE int32 GetPickRandomWeighted(const int32 Seed) const
+		{
+			const double Threshold = FRandomStream(Seed).RandRange(0, WeightSum - 1);
+			int32 Pick = 0;
+			while (Pick < Weights.Num() && Weights[Pick] <= Threshold) { Pick++; }
+			return Indices[Order[Pick]];
+		}
+
 		void FinalizeCache();
 	};
 }
@@ -163,9 +184,11 @@ public:
 	virtual bool IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent);
 	virtual void RefreshDisplayNames();
 
-	// Declare a method callable from the editor
 	UFUNCTION(CallInEditor, Category = "Editor")
 	virtual void RefreshStagingData();
+
+	UFUNCTION(CallInEditor, Category = "Editor")
+	virtual void RefreshStagingData_Recursive();
 
 #endif
 
@@ -179,38 +202,84 @@ public:
 
 	virtual void BuildCache();
 
+#pragma region GetEntry
+
 	template <typename T>
-	FORCEINLINE bool GetEntry(T& OutEntry, TArray<T>& InEntries, const int32 Index, const int32 Seed = -1)
+	FORCEINLINE bool GetEntry(T& OutEntry, TArray<T>& InEntries, const int32 Index, const int32 Seed = -1) const
 	{
-		if (!Cache->Indices.IsValidIndex(Index)) { return false; }
-		const int32 Pick = Cache->Indices[Index];
+		const int32 Pick = Cache->GetPick(Index);
+		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		OutEntry = InEntries[Pick];
-		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetRandomEntryWeighted(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed); }
+		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed); }
 		return true;
 	}
 
 	template <typename T>
-	FORCEINLINE bool GetRandomEntry(T& OutEntry, TArray<T>& InEntries, const int32 Seed)
+	FORCEINLINE bool GetEntryRandom(T& OutEntry, TArray<T>& InEntries, const int32 Seed) const
 	{
-		const int32 Pick = Cache->Indices[Cache->Order[FRandomStream(Seed).RandRange(0, Cache->Order.Num() - 1)]];
-		OutEntry = InEntries[Pick];
-		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetRandomEntry(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed + 1); }
+		OutEntry = InEntries[Cache->GetPickRandom(Seed)];
+		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed + 1); }
 		return true;
 	}
 
 	template <typename T>
-	FORCEINLINE bool GetRandomEntryWeighted(T& OutEntry, TArray<T>& InEntries, const int32 Seed)
+	FORCEINLINE bool GetEntryWeightedRandom(T& OutEntry, TArray<T>& InEntries, const int32 Seed) const
 	{
-		const double Threshold = FRandomStream(Seed).RandRange(0, Cache->WeightSum - 1);
-		int32 Pick = 0;
-		while (Pick < Cache->Weights.Num() && Cache->Weights[Pick] <= Threshold) { Pick++; }
-		Pick = Cache->Indices[Cache->Order[Pick]];
-		OutEntry = InEntries[Pick];
-		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetRandomEntryWeighted(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed + 1); }
+		OutEntry = InEntries[Cache->GetPickRandomWeighted(Seed)];
+		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed + 1); }
 		return true;
+	}
+
+#pragma endregion
+
+
+	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed = -1) const
+	{
+		return false;
+	}
+
+	FORCEINLINE virtual bool GetStagingRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const
+	{
+		return false;
+	}
+
+	FORCEINLINE virtual bool GetStagingWeightedRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const
+	{
+		return false;
 	}
 
 protected:
+#pragma region GetStaging
+	template <typename T>
+	FORCEINLINE bool GetStagingTpl(FPCGExAssetStagingData& OutStaging, const TArray<T>& InEntries, const int32 Index, const int32 Seed = -1) const
+	{
+		const int32 Pick = Cache->GetPick(Index, Seed);
+		if (!InEntries.IsValidIndex(Pick)) { return false; }
+		if (const T& Entry = InEntries[Pick]; Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed); }
+		else { OutStaging = Entry.Staging; }
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetStagingRandomTpl(FPCGExAssetStagingData& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
+	{
+		const T& Entry = InEntries[Cache->GetPickRandom(Seed)];
+		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
+		else { OutStaging = Entry.Staging; }
+		return true;
+	}
+
+	template <typename T>
+	FORCEINLINE bool GetStagingWeightedRandomTpl(FPCGExAssetStagingData& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
+	{
+		const T& Entry = InEntries[Cache->GetPickRandomWeighted(Seed)];
+		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
+		else { OutStaging = Entry.Staging; }
+		return true;
+	}
+
+#pragma endregion
+
 	bool bCacheNeedsRebuild = true;
 	PCGExAssetCollection::FCache* Cache = nullptr;
 

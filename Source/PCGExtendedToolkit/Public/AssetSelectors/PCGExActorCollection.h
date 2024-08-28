@@ -42,7 +42,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 #if WITH_EDITOR
-	virtual void UpdateStaging() override;
+	virtual void UpdateStaging(bool bRecursive) override;
 #endif
 
 protected:
@@ -61,10 +61,26 @@ public:
 	virtual bool IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void RefreshDisplayNames() override;
 	virtual void RefreshStagingData() override;
+	virtual void RefreshStagingData_Recursive() override;
 #endif
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
 	TArray<FPCGExActorCollectionEntry> Entries;
+
+	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed = -1) const override
+	{
+		return GetStagingTpl(OutStaging, Entries, Index, Seed);
+	}
+
+	FORCEINLINE virtual bool GetStagingRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const override
+	{
+		return GetStagingRandomTpl(OutStaging, Entries, Seed);
+	}
+
+	FORCEINLINE virtual bool GetStagingWeightedRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const override
+	{
+		return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);
+	}
 
 	virtual void BuildCache() override;
 };

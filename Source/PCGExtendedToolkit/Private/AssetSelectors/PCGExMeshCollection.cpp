@@ -15,9 +15,15 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 }
 
 #if WITH_EDITOR
-void FPCGExMeshCollectionEntry::UpdateStaging()
+void FPCGExMeshCollectionEntry::UpdateStaging(bool bRecursive)
 {
-	if (bIsSubCollection) { return; }
+	if (bIsSubCollection)
+	{
+		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RefreshStagingData_Recursive(); }
+		return;
+	}
+
+	Staging.Path = Descriptor.StaticMesh.ToSoftObjectPath();
 
 	const UStaticMesh* M = Descriptor.StaticMesh.LoadSynchronous();
 	if (!M)
@@ -55,8 +61,14 @@ void UPCGExMeshCollection::RefreshDisplayNames()
 
 void UPCGExMeshCollection::RefreshStagingData()
 {
+	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.UpdateStaging(false); }
 	Super::RefreshStagingData();
-	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.UpdateStaging(); }
+}
+
+void UPCGExMeshCollection::RefreshStagingData_Recursive()
+{
+	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.UpdateStaging(true); }
+	Super::RefreshStagingData_Recursive();
 }
 
 void UPCGExMeshCollection::BuildCache()
