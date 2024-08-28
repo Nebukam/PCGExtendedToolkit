@@ -18,7 +18,7 @@ enum class EPCGExBoundsStaging : uint8
 	UpdatePointBounds UMETA(DisplayName = "Update bounds", ToolTip="Update the point bounds so it reflects the bounds of the final asset"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bounds Staging"))
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distribution"))
 enum class EPCGExDistribution : uint8
 {
 	Index UMETA(DisplayName = "Index", ToolTip="Distribution by index"),
@@ -50,6 +50,14 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
+	/** How to handle bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExBoundsStaging BoundsStaging = EPCGExBoundsStaging::UpdatePointBounds;
+	
+	/** Adjust point position/pivot to match the staging */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BoundsStaging!=EPCGExBoundsStaging::Ignore", EditConditionHides))
+	bool bAdjustPointPivot = true;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;
 
@@ -60,7 +68,7 @@ public:
 	/** Index sanitization behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
-
+	
 	/** The name of the attribute index to read index selection from.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
 	FPCGAttributePropertyInputSelector IndexAttribute;
@@ -71,10 +79,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExMeshCollection> MainCollection;
-
-	/** How to handle bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExBoundsStaging BoundsStaging = EPCGExBoundsStaging::UpdatePointBounds;
 
 	/** The name of the attribute to write asset path to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

@@ -253,7 +253,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetStagingTpl(FPCGExAssetStagingData& OutStaging, const TArray<T>& InEntries, const int32 Index, const int32 Seed = -1) const
 	{
-		const int32 Pick = Cache->GetPick(Index, Seed);
+		const int32 Pick = Cache->GetPick(Index);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		if (const T& Entry = InEntries[Pick]; Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed); }
 		else { OutStaging = Entry.Staging; }
