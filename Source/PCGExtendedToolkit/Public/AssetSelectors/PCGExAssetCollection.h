@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGExRandom.h"
 #include "Engine/DataAsset.h"
-#include "ISMPartition/ISMComponentDescriptor.h"
-#include "MeshSelectors/PCGMeshSelectorBase.h"
 
 #include "PCGExAssetCollection.generated.h"
 
@@ -26,10 +24,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	UPROPERTY()
 	FSoftObjectPath Path;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category = Settings)
 	FVector Pivot = FVector::ZeroVector;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category = Settings)
 	FBox Bounds = FBox(ForceInitToZero);
 };
 
@@ -52,7 +50,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	FName Category = NAME_None;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, Category = Settings)
 	FPCGExAssetStagingData Staging;
 
 	//UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bSubCollection", EditConditionHides))
@@ -184,11 +182,16 @@ public:
 	virtual bool IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent);
 	virtual void RefreshDisplayNames();
 
-	UFUNCTION(CallInEditor, Category = "Editor")
+	bool bCollectGarbage = true;
+	
+	UFUNCTION(CallInEditor, Category = "Tools", meta=(DisplayName="Refresh Staging", ShortToolTip="Refresh Staging data just for this collection."))
 	virtual void RefreshStagingData();
 
-	UFUNCTION(CallInEditor, Category = "Editor")
+	UFUNCTION(CallInEditor, Category = "Tools", meta=(DisplayName="Refresh Staging (Recursive)", ShortToolTip="Refresh Staging data for this collection and its sub-collections, recursively."))
 	virtual void RefreshStagingData_Recursive();
+
+	UFUNCTION(CallInEditor, Category = "Tools", meta=(DisplayName="Refresh Staging (Project)", ShortToolTip="Refresh Staging data for all collection within this project."))
+	virtual void RefreshStagingData_Project();
 
 #endif
 

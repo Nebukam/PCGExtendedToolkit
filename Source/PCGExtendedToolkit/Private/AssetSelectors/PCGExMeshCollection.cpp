@@ -24,7 +24,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(bool bRecursive)
 	}
 
 	Staging.Path = Descriptor.StaticMesh.ToSoftObjectPath();
-
+	
 	const UStaticMesh* M = Descriptor.StaticMesh.LoadSynchronous();
 	if (!M)
 	{
@@ -35,6 +35,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(bool bRecursive)
 
 	Staging.Pivot = FVector::ZeroVector;
 	Staging.Bounds = M->GetBoundingBox();
+	
 }
 #endif
 

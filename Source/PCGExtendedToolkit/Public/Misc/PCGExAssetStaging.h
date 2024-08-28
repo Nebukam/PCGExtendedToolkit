@@ -10,14 +10,6 @@
 #include "AssetSelectors/PCGExMeshCollection.h"
 #include "PCGExAssetStaging.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bounds Staging"))
-enum class EPCGExBoundsStaging : uint8
-{
-	Ignore UMETA(DisplayName = "Ignore", ToolTip="Ignore bounds"),
-	UpdatePointScale UMETA(DisplayName = "Update scale", ToolTip="Update the point scale so final asset matches the existing point' bounds"),
-	UpdatePointBounds UMETA(DisplayName = "Update bounds", ToolTip="Update the point bounds so it reflects the bounds of the final asset"),
-};
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distribution"))
 enum class EPCGExDistribution : uint8
 {
@@ -50,13 +42,13 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
-	/** How to handle bounds */
+	/** Update point bounds from staged data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExBoundsStaging BoundsStaging = EPCGExBoundsStaging::UpdatePointBounds;
-	
-	/** Adjust point position/pivot to match the staging */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BoundsStaging!=EPCGExBoundsStaging::Ignore", EditConditionHides))
-	bool bAdjustPointPivot = true;
+	bool bUpdatePointBounds = true;
+
+	/** Update point scale so staged asset fits within its bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bUpdatePointScale = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;

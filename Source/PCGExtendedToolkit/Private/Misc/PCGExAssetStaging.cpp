@@ -141,11 +141,13 @@ namespace PCGExAssetStaging
 
 			Point.Density = 0;
 
-			if (LocalSettings->BoundsStaging == EPCGExBoundsStaging::UpdatePointBounds)
+			if (LocalSettings->bUpdatePointBounds)
 			{
-				Point.SetExtents(FVector::ZeroVector);
+				Point.BoundsMin = FVector::ZeroVector;
+				Point.BoundsMax = FVector::ZeroVector;
 			}
-			else if (LocalSettings->BoundsStaging == EPCGExBoundsStaging::UpdatePointScale)
+
+			if (LocalSettings->bUpdatePointScale)
 			{
 				Point.Transform.SetScale3D(FVector::ZeroVector);
 			}
@@ -159,15 +161,17 @@ namespace PCGExAssetStaging
 		PathWriter->Values[Index] = StagingData.Path.ToString();
 #endif
 
-		if (LocalSettings->BoundsStaging == EPCGExBoundsStaging::Ignore) { return; }
-
-		if (LocalSettings->BoundsStaging == EPCGExBoundsStaging::UpdatePointBounds)
+		if (LocalSettings->bUpdatePointBounds)
 		{
-			Point.SetExtents(StagingData.Bounds.GetExtent());
+			const FBox Bounds = StagingData.Bounds;
+			Point.BoundsMin = Bounds.Min;
+			Point.BoundsMax = Bounds.Max;
 		}
-		else if (LocalSettings->BoundsStaging == EPCGExBoundsStaging::UpdatePointScale)
+
+		if (LocalSettings->bUpdatePointScale)
 		{
-			Point.Transform.SetScale3D(Point.Transform.GetScale3D() * (Point.GetExtents().Length() / StagingData.Bounds.GetExtent().Length()));
+			const FVector ScaleFactor = StagingData.Bounds.GetExtent() / Point.GetScaledExtents();
+			Point.Transform.SetScale3D(Point.Transform.GetScale3D() * ScaleFactor);
 		}
 	}
 

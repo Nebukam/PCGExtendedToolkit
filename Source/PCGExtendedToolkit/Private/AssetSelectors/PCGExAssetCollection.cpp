@@ -5,6 +5,7 @@
 
 #include "PCGEx.h"
 #include "PCGExMacros.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 namespace PCGExAssetCollection
 {
@@ -123,11 +124,33 @@ void UPCGExAssetCollection::RefreshDisplayNames()
 void UPCGExAssetCollection::RefreshStagingData()
 {
 	Modify();
+	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
 
 void UPCGExAssetCollection::RefreshStagingData_Recursive()
 {
 	Modify();
+	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+}
+
+void UPCGExAssetCollection::RefreshStagingData_Project()
+{
+	const FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	const IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	FARFilter Filter;
+	Filter.ClassPaths.Add(StaticClass()->GetClassPathName());
+	Filter.bRecursiveClasses = true;
+
+	TArray<FAssetData> AssetDataList;
+	AssetRegistry.GetAssets(Filter, AssetDataList);
+
+	for (const FAssetData& AssetData : AssetDataList)
+	{
+		if (UPCGExAssetCollection* Collection = Cast<UPCGExAssetCollection>(AssetData.GetAsset())) { Collection->RefreshStagingData(); }
+	}
+
+	bCollectGarbage = true;
 }
 #endif
 
