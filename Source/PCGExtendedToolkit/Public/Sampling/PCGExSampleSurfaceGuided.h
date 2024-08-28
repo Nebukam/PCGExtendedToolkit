@@ -19,9 +19,12 @@ MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
 MACRO(Distance, double)\
-MACRO(IsInside, bool)\
+MACRO(IsInside, bool)
+
+#define PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(MACRO)\
 MACRO(ActorReference, FString)\
 MACRO(PhysMat, FString)
+
 
 class UPCGExFilterFactoryBase;
 
@@ -190,6 +193,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : publi
 	TArray<AActor*> IgnoredActors;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
@@ -218,6 +222,7 @@ namespace PCGExSampleSurfaceGuided
 		const UPCGExSampleSurfaceGuidedSettings* LocalSettings = nullptr;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
+		PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_DECL)
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

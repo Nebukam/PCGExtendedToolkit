@@ -21,7 +21,9 @@ MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
 MACRO(IsInside, bool)\
-MACRO(Distance, double)\
+MACRO(Distance, double)
+
+#define PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(MACRO)\
 MACRO(ActorReference, FString)\
 MACRO(PhysMat, FString)
 
@@ -188,9 +190,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : publ
 
 	bool bUseInclude = false;
 	TMap<AActor*, int32> IncludedActors;
+	TArray<UPrimitiveComponent*> IncludedPrimitives;
 	TArray<AActor*> IgnoredActors;
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL_TOGGLE)
+	PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceElement final : public FPCGExPointsProcessorElement
@@ -218,6 +222,7 @@ namespace PCGExSampleNearestSurface
 		const UPCGExSampleNearestSurfaceSettings* LocalSettings = nullptr;
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
+		PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_DECL)
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
