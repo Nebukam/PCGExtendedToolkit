@@ -79,11 +79,11 @@ namespace PCGExAssetStaging
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		NumPoints = PointIO->GetNum();
-		MaxIndex = LocalTypedContext->MainCollection->LoadCache()->Indices.Num();
-
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
+
+		NumPoints = PointIO->GetNum();
+		MaxIndex = TypedContext->MainCollection->LoadCache()->Indices.Num() - 1;
 
 		PointDataFacade->bSupportsDynamic = true;
 
@@ -190,24 +190,33 @@ namespace PCGExAssetStaging
 		PathWriter->Values[Index] = StagingData.Path.ToString();
 #endif
 
-		if (LocalSettings->bUpdatePointScale)
-		{
-			const FVector A = Point.GetLocalBounds().GetSize();
-			const FVector B = StagingData.Bounds.GetSize();
-
-			const double XFactor = A.X / B.X;
-			const double YFactor = A.Y / B.Y;
-			const double ZFactor = A.Z / B.Z;
-
-			const double ScaleFactor = FMath::Min3(XFactor, YFactor, ZFactor);
-			Point.Transform.SetScale3D(Point.Transform.GetScale3D() * ScaleFactor);
-		}
+		const FVector OriginalBoundsSize = Point.GetLocalBounds().GetSize();;
 
 		if (LocalSettings->bUpdatePointBounds)
 		{
 			const FBox Bounds = StagingData.Bounds;
 			Point.BoundsMin = Bounds.Min;
 			Point.BoundsMax = Bounds.Max;
+		}
+
+		if (LocalSettings->bUpdatePointScale)
+		{
+			if (LocalSettings->bUniformScale)
+			{
+				const FVector A = OriginalBoundsSize;
+				const FVector B = StagingData.Bounds.GetSize();
+
+				const double XFactor = A.X / B.X;
+				const double YFactor = A.Y / B.Y;
+				const double ZFactor = A.Z / B.Z;
+
+				const double ScaleFactor = FMath::Min3(XFactor, YFactor, ZFactor);
+				Point.Transform.SetScale3D(Point.Transform.GetScale3D() * ScaleFactor);
+			}
+			else
+			{
+				Point.Transform.SetScale3D(Point.Transform.GetScale3D() * (OriginalBoundsSize / StagingData.Bounds.GetSize()));
+			}
 		}
 
 		if (LocalSettings->bUpdatePointPivot)
