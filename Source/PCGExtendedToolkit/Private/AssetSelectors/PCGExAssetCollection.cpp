@@ -37,7 +37,7 @@ bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 	return true;
 }
 #if WITH_EDITOR
-void FPCGExAssetCollectionEntry::UpdateStaging(const bool bRecursive)
+void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
 	Staging.Weight = Weight;
 	Staging.Category = Category;

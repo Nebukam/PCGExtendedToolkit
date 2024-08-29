@@ -36,7 +36,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetStagingSettings : public UPCGExPoint
 	GENERATED_BODY()
 
 	UPCGExAssetStagingSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+		: Super(ObjectInitializer)
 	{
 		if (IndexSource.GetName() == FName("@Last")) { IndexSource.Update(TEXT("$Index")); }
 	}
@@ -70,7 +70,7 @@ public:
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable, EditCondition="bUpdatePointScale", EditConditionHides))
 	bool bUniformScale = true;
-	
+
 	/** Update point bounds from staged data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
 	bool bUpdatePointBounds = true;
@@ -86,14 +86,26 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
 
+	/** Index picking mode*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings", meta=(EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending;
+
 	/** Index sanitization behavior */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 
 	/** The name of the attribute index to read index selection from.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
 	FPCGAttributePropertyInputSelector IndexSource;
 
+	/** Whether to remap index input value to collection size */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings|Remap", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	bool bRemapIndexToCollectionSize = false;
+
+	/** Whether to remap index input value to collection size */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings|Remap", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	EPCGExTruncateMode TruncateRemap = EPCGExTruncateMode::None;
+	
 	/** Note that this is only accounted for if selected in the seed component. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	int32 LocalSeed = 0;
@@ -102,9 +114,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
 
-	/** If enabled, filter output based on whether a staging has been applied or not (empty entry). \n NOT IMPLEMENTED YET */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
-	bool bOmitInvalidStagedPoints = false;
+	///** If enabled, filter output based on whether a staging has been applied or not (empty entry). \n NOT IMPLEMENTED YET */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
+	//bool bOmitInvalidStagedPoints = false;
 
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Staged Properties", meta=(PCG_Overridable))
@@ -143,6 +155,7 @@ namespace PCGExAssetStaging
 	{
 		int32 NumPoints = 0;
 		int32 MaxIndex = 0;
+		double MaxInputIndex = 0;
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;

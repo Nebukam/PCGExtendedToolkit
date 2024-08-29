@@ -19,7 +19,6 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
-
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 
 	Context->MainCollection = Settings->MainCollection.LoadSynchronous();
@@ -108,11 +107,24 @@ namespace PCGExAssetStaging
 
 		if (Settings->Distribution == EPCGExDistribution::Index)
 		{
-			IndexGetter = PointDataFacade->GetScopedBroadcaster<int32>(Settings->IndexSource);
+			if (Settings->bRemapIndexToCollectionSize)
+			{
+				IndexGetter = PointDataFacade->GetBroadcaster<int32>(Settings->IndexSource, true);
+			}
+			else
+			{
+				IndexGetter = PointDataFacade->GetScopedBroadcaster<int32>(Settings->IndexSource);
+			}
+
 			if (!IndexGetter)
 			{
 				// TODO : Throw
 				return false;
+			}
+
+			if (Settings->bRemapIndexToCollectionSize)
+			{
+				MaxInputIndex = static_cast<double>(IndexGetter->Max);
 			}
 		}
 
@@ -147,7 +159,32 @@ namespace PCGExAssetStaging
 		}
 		else
 		{
-			bValid = LocalTypedContext->MainCollection->GetStaging(StagingData, PCGExMath::SanitizeIndex(IndexGetter->Values[Index], MaxIndex, LocalSettings->IndexSafety), Seed);
+			double PickedIndex = IndexGetter->Values[Index];
+			if (LocalSettings->bRemapIndexToCollectionSize)
+			{
+				PickedIndex = PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);;
+				switch (LocalSettings->TruncateRemap)
+				{
+				case EPCGExTruncateMode::Round:
+					PickedIndex = FMath::RoundToInt(PickedIndex);
+					break;
+				case EPCGExTruncateMode::Ceil:
+					PickedIndex = FMath::CeilToDouble(PickedIndex);
+					break;
+				case EPCGExTruncateMode::Floor:
+					PickedIndex = FMath::FloorToDouble(PickedIndex);
+					break;
+				default:
+				case EPCGExTruncateMode::None:
+					break;
+				}
+			}
+
+			bValid = LocalTypedContext->MainCollection->GetStaging(
+				StagingData,
+				PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, LocalSettings->IndexSafety),
+				Seed,
+				LocalSettings->PickMode);
 		}
 
 		if (!bValid)

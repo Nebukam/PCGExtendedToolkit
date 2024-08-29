@@ -4,6 +4,7 @@
 #pragma once
 
 #include "PCGEx.h"
+#include "PCGExAssetCollection.h"
 #include "PCGExMeshSelectorBase.h"
 
 #include "PCGExMeshSelectorByIndex.generated.h"
@@ -20,6 +21,9 @@ public:
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
 	FName IndexAttribute = NAME_None;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector)
+	EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector)
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;

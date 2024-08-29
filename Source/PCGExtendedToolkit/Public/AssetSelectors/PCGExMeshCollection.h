@@ -49,7 +49,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 
 #if WITH_EDITOR
-	virtual void UpdateStaging(const bool bRecursive) override;
+	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive) override;
 #endif
 
 protected:
@@ -72,9 +72,9 @@ public:
 	virtual void RefreshStagingData_Recursive() override;
 #endif
 
-	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed = -1) const override
+	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override
 	{
-		return GetStagingTpl(OutStaging, Entries, Index, Seed);
+		return GetStagingTpl(OutStaging, Entries, Index, Seed, PickMode);
 	}
 
 	FORCEINLINE virtual bool GetStagingRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const override

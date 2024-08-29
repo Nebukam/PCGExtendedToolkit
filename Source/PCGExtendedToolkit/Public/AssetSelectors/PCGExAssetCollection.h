@@ -12,14 +12,23 @@
 class UPCGExAssetCollection;
 
 UENUM(BlueprintType)
+enum class EPCGExIndexPickMode : uint8
+{
+	Ascending UMETA(DisplayName = "Collection order (Ascending)", Tooltip="..."),
+	Descending UMETA(DisplayName = "Collection order (Descending)", Tooltip="..."),
+	WeightAscending UMETA(DisplayName = "Weight (Descending)", Tooltip="..."),
+	WeightDescending UMETA(DisplayName = "Weight (Ascending)", Tooltip="..."),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExStagedPropertyType : uint8
 {
-	Double = 0,
-	Integer32,
-	Vector,
-	Color,
-	Boolean,
-	Name
+	Double UMETA(DisplayName = "Double", Tooltip="...") ,
+	Integer32 UMETA(DisplayName = "Integer 32", Tooltip="...") ,
+	Vector UMETA(DisplayName = "Vector", Tooltip="...") ,
+	Color UMETA(DisplayName = "Color", Tooltip="...") ,
+	Boolean UMETA(DisplayName = "Boolean", Tooltip="...") ,
+	Name UMETA(DisplayName = "Name", Tooltip="...")
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staged Property")
@@ -79,7 +88,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	int32 Weight = 1; // Dupe from parent.
 
 	UPROPERTY()
-	FName Category = NAME_None;// Dupe from parent.
+	FName Category = NAME_None; // Dupe from parent.
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditFixedSize))
 	TArray<FPCGExStagedProperty> CustomProperties;
@@ -126,7 +135,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 
 #if WITH_EDITOR
-	virtual void UpdateStaging(const bool bRecursive);
+	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive);
 #endif
 
 protected:
@@ -199,9 +208,41 @@ namespace PCGExAssetCollection
 			Order.Shrink();
 		}
 
-		FORCEINLINE int32 GetPick(const int32 Index) const
+
+		FORCEINLINE int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const
+		{
+			switch (PickMode)
+			{
+			default:
+			case EPCGExIndexPickMode::Ascending:
+				return GetPickAscending(Index);
+			case EPCGExIndexPickMode::Descending:
+				return GetPickDescending(Index);
+			case EPCGExIndexPickMode::WeightAscending:
+				return GetPickWeightAscending(Index);
+			case EPCGExIndexPickMode::WeightDescending:
+				return GetPickWeightDescending(Index);
+			}
+		}
+
+		FORCEINLINE int32 GetPickAscending(const int32 Index) const
+		{
+			return Indices.IsValidIndex(Index) ? Indices[(Indices.Num() - 1) - Index] : -1;
+		}
+
+		FORCEINLINE int32 GetPickDescending(const int32 Index) const
 		{
 			return Indices.IsValidIndex(Index) ? Indices[Index] : -1;
+		}
+
+		FORCEINLINE int32 GetPickWeightAscending(const int32 Index) const
+		{
+			return Order.IsValidIndex(Index) ? Indices[Order[Index]] : -1;
+		}
+
+		FORCEINLINE int32 GetPickWeightDescending(const int32 Index) const
+		{
+			return Order.IsValidIndex(Index) ? Indices[Order[(Order.Num() - 1) - Index]] : -1;
 		}
 
 		FORCEINLINE int32 GetPickRandom(const int32 Seed) const
@@ -268,9 +309,9 @@ public:
 #pragma region GetEntry
 
 	template <typename T>
-	FORCEINLINE bool GetEntry(T& OutEntry, TArray<T>& InEntries, const int32 Index, const int32 Seed = -1) const
+	FORCEINLINE bool GetEntry(T& OutEntry, TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	{
-		const int32 Pick = Cache->GetPick(Index);
+		int32 Pick = Cache->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		OutEntry = InEntries[Pick];
 		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed); }
@@ -296,7 +337,7 @@ public:
 #pragma endregion
 
 
-	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed = -1) const
+	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	{
 		return false;
 	}
@@ -314,9 +355,9 @@ public:
 protected:
 #pragma region GetStaging
 	template <typename T>
-	FORCEINLINE bool GetStagingTpl(FPCGExAssetStagingData& OutStaging, const TArray<T>& InEntries, const int32 Index, const int32 Seed = -1) const
+	FORCEINLINE bool GetStagingTpl(FPCGExAssetStagingData& OutStaging, const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	{
-		const int32 Pick = Cache->GetPick(Index);
+		const int32 Pick = Cache->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		if (const T& Entry = InEntries[Pick]; Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed); }
 		else { OutStaging = Entry.Staging; }

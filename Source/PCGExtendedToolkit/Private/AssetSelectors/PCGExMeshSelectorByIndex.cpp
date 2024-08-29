@@ -61,13 +61,15 @@ bool UPCGExMeshSelectorByIndex::Execute(PCGExMeshSelection::FCtx& Ctx) const
 			// Invalid pick
 			continue;
 		}
-
-
+		
 		FPCGExMeshCollectionEntry Entry = FPCGExMeshCollectionEntry{};
 
 		if (!MainCollectionPtr->GetEntry(
-			Entry, MainCollectionPtr->Entries, DesiredIndex,
-			PCGExRandom::GetSeedFromPoint(SeedComponents, Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get())))
+			Entry,
+			MainCollectionPtr->Entries,
+			DesiredIndex,
+			PCGExRandom::GetSeedFromPoint(SeedComponents, Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get()),
+			PickMode))
 		{
 			continue;
 		}

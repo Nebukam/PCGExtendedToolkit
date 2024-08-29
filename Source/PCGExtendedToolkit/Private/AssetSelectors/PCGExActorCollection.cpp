@@ -15,7 +15,7 @@ bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 }
 
 #if WITH_EDITOR
-void FPCGExActorCollectionEntry::UpdateStaging(const bool bRecursive)
+void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
 	if (bIsSubCollection)
 	{
@@ -40,7 +40,7 @@ void FPCGExActorCollectionEntry::UpdateStaging(const bool bRecursive)
 	Staging.Pivot = Origin;
 	Staging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
 	
-	Super::UpdateStaging(bRecursive);
+	Super::UpdateStaging(OwningCollection, bRecursive);
 }
 #endif
 
@@ -68,13 +68,13 @@ void UPCGExActorCollection::RefreshDisplayNames()
 
 void UPCGExActorCollection::RefreshStagingData()
 {
-	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(false); }
+	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, false); }
 	Super::RefreshStagingData();
 }
 
 void UPCGExActorCollection::RefreshStagingData_Recursive()
 {
-	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(true); }
+	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, true); }
 	Super::RefreshStagingData_Recursive();
 }
 #endif

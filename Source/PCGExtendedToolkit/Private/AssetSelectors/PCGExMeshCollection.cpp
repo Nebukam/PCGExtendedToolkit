@@ -15,7 +15,7 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 }
 
 #if WITH_EDITOR
-void FPCGExMeshCollectionEntry::UpdateStaging(const bool bRecursive)
+void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
 	if (bIsSubCollection)
 	{
@@ -36,7 +36,7 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const bool bRecursive)
 	Staging.Pivot = FVector::ZeroVector;
 	Staging.Bounds = M->GetBoundingBox();
 
-	Super::UpdateStaging(bRecursive);
+	Super::UpdateStaging(OwningCollection, bRecursive);
 	
 }
 #endif
@@ -64,13 +64,13 @@ void UPCGExMeshCollection::RefreshDisplayNames()
 
 void UPCGExMeshCollection::RefreshStagingData()
 {
-	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.UpdateStaging(false); }
+	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, false); }
 	Super::RefreshStagingData();
 }
 
 void UPCGExMeshCollection::RefreshStagingData_Recursive()
 {
-	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.UpdateStaging(true); }
+	for (FPCGExMeshCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, true); }
 	Super::RefreshStagingData_Recursive();
 }
 
