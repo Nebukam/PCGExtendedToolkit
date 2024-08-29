@@ -91,9 +91,13 @@ namespace PCGExAssetStaging
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
 		bOneMinusWeight = Settings->WeightToAttribute == EPCGExWeightOutputMode::NormalizedInverted || Settings->WeightToAttribute == EPCGExWeightOutputMode::NormalizedInvertedToDensity;
 
-		if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw || Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
+		if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw)
 		{
 			WeightWriter = PointDataFacade->GetWriter<int32>(Settings->WeightAttributeName, true);
+		}
+		else if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
+		{
+			NormalizedWeightWriter = PointDataFacade->GetWriter<double>(Settings->WeightAttributeName, true);
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
@@ -170,6 +174,7 @@ namespace PCGExAssetStaging
 			if (bOutputWeight)
 			{
 				if (WeightWriter) { WeightWriter->Values[Index] = -1; }
+				else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = -1; }
 				else { Point.Density = -1; }
 			}
 
@@ -178,9 +183,10 @@ namespace PCGExAssetStaging
 
 		if (bOutputWeight)
 		{
-			double Weight = bNormalizedWeight ? StagingData.Weight / LocalTypedContext->MainCollection->LoadCache()->WeightSum : StagingData.Weight;
+			double Weight = bNormalizedWeight ? static_cast<double>(StagingData.Weight) / static_cast<double>(LocalTypedContext->MainCollection->LoadCache()->WeightSum) : StagingData.Weight;
 			if (bOneMinusWeight) { Weight = 1 - Weight; }
 			if (WeightWriter) { WeightWriter->Values[Index] = Weight; }
+			else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = Weight; }
 			else { Point.Density = Weight; }
 		}
 

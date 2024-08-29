@@ -64,54 +64,54 @@ public:
 	TSoftObjectPtr<UPCGExMeshCollection> MainCollection;
 
 	/** Update point scale so staged asset fits within its bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Bounds, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
 	bool bUpdatePointScale = false;
 
 	/** Update point scale so staged asset fits within its bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Bounds, meta=(PCG_Overridable, EditCondition="bUpdatePointScale", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable, EditCondition="bUpdatePointScale", EditConditionHides))
 	bool bUniformScale = true;
 	
 	/** Update point bounds from staged data */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Bounds, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
 	bool bUpdatePointBounds = true;
 
 	/** Update point pivot to match staged bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Bounds, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
 	bool bUpdatePointPivot = true;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Distribution, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
 	uint8 SeedComponents = 0;
 
 	/** Distribution type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Distribution, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
 
 	/** Index sanitization behavior */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Distribution, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 
 	/** The name of the attribute index to read index selection from.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Distribution, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
 	FPCGAttributePropertyInputSelector IndexSource;
 
 	/** Note that this is only accounted for if selected in the seed component. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Distribution, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	int32 LocalSeed = 0;
 
 	/** The name of the attribute to write asset path to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Distribution, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
 
 	/** If enabled, filter output based on whether a staging has been applied or not (empty entry). \n NOT IMPLEMENTED YET */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Distribution, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	bool bOmitInvalidStagedPoints = false;
 
 	/** Update point scale so staged asset fits within its bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Staged Properties", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Staged Properties", meta=(PCG_Overridable))
 	EPCGExWeightOutputMode WeightToAttribute = EPCGExWeightOutputMode::NoOutput;
 
 	/** The name of the attribute to write asset weight to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Staged Properties", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Staged Properties", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
 };
 
@@ -152,6 +152,7 @@ namespace PCGExAssetStaging
 
 		PCGExData::FCache<int32>* IndexGetter = nullptr;
 		PCGEx::TFAttributeWriter<int32>* WeightWriter = nullptr;
+		PCGEx::TFAttributeWriter<double>* NormalizedWeightWriter = nullptr;
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 		PCGEx::TFAttributeWriter<FSoftObjectPath>* PathWriter = nullptr;
