@@ -11,6 +11,57 @@
 
 class UPCGExAssetCollection;
 
+UENUM(BlueprintType)
+enum class EPCGExStagedPropertyType : uint8
+{
+	Double = 0,
+	Integer32,
+	Vector,
+	Color,
+	Boolean,
+	Name
+};
+
+USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staged Property")
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStagedProperty
+{
+	GENERATED_BODY()
+	virtual ~FPCGExStagedProperty() = default;
+
+	FPCGExStagedProperty()
+	{
+	}
+
+	UPROPERTY(EditAnywhere, Category = Settings)
+	FName Name = NAME_None;
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY()
+	bool bIsChildProperty = false;
+#endif
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsChildProperty", EditConditionHides))
+	EPCGExStagedPropertyType Type = EPCGExStagedPropertyType::Double;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Double", EditConditionHides))
+	double MDouble = 0.0;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Integer32", EditConditionHides))
+	int32 MInt32 = 0.0;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Vector", EditConditionHides))
+	FVector MVector = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Color", EditConditionHides))
+	FLinearColor MColor = FLinearColor::White;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Boolean", EditConditionHides))
+	bool MBoolean = true;
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Name", EditConditionHides))
+	FName MName = NAME_None;
+};
+
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staging Data")
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 {
@@ -24,10 +75,19 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	UPROPERTY()
 	FSoftObjectPath Path;
 
-	UPROPERTY(VisibleAnywhere, Category = Settings)
+	UPROPERTY()
+	int32 Weight = 1; // Dupe from parent.
+
+	UPROPERTY()
+	FName Category = NAME_None;// Dupe from parent.
+
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditFixedSize))
+	TArray<FPCGExStagedProperty> CustomProperties;
+
+	UPROPERTY(VisibleAnywhere, Category = Baked)
 	FVector Pivot = FVector::ZeroVector;
 
-	UPROPERTY(VisibleAnywhere, Category = Settings)
+	UPROPERTY(VisibleAnywhere, Category = Baked)
 	FBox Bounds = FBox(ForceInitToZero);
 };
 
@@ -50,7 +110,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
 	FName Category = NAME_None;
 
-	UPROPERTY(VisibleAnywhere, Category = Settings)
+	UPROPERTY(EditAnywhere, Category = Settings)
 	FPCGExAssetStagingData Staging;
 
 	//UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bSubCollection", EditConditionHides))
@@ -66,7 +126,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 
 #if WITH_EDITOR
-	virtual void UpdateStaging(bool bRecursive);
+	virtual void UpdateStaging(const bool bRecursive);
 #endif
 
 protected:
@@ -183,14 +243,14 @@ public:
 	virtual void RefreshDisplayNames();
 
 	bool bCollectGarbage = true;
-	
-	UFUNCTION(CallInEditor, Category = "Tools", meta=(DisplayName="Refresh Staging", ShortToolTip="Refresh Staging data just for this collection."))
+
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Refresh Staging", ShortToolTip="Refresh Staging data just for this collection."))
 	virtual void RefreshStagingData();
 
-	UFUNCTION(CallInEditor, Category = "Tools", meta=(DisplayName="Refresh Staging (Recursive)", ShortToolTip="Refresh Staging data for this collection and its sub-collections, recursively."))
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Refresh Staging (Recursive)", ShortToolTip="Refresh Staging data for this collection and its sub-collections, recursively."))
 	virtual void RefreshStagingData_Recursive();
 
-	UFUNCTION(CallInEditor, Category = "Tools", meta=(DisplayName="Refresh Staging (Project)", ShortToolTip="Refresh Staging data for all collection within this project."))
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Refresh Staging (Project)", ShortToolTip="Refresh Staging data for all collection within this project."))
 	virtual void RefreshStagingData_Project();
 
 #endif

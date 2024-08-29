@@ -15,7 +15,7 @@ bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 }
 
 #if WITH_EDITOR
-void FPCGExActorCollectionEntry::UpdateStaging(bool bRecursive)
+void FPCGExActorCollectionEntry::UpdateStaging(const bool bRecursive)
 {
 	if (bIsSubCollection)
 	{
@@ -39,6 +39,8 @@ void FPCGExActorCollectionEntry::UpdateStaging(bool bRecursive)
 
 	Staging.Pivot = Origin;
 	Staging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
+	
+	Super::UpdateStaging(bRecursive);
 }
 #endif
 

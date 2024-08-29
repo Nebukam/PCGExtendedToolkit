@@ -49,7 +49,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 
 #if WITH_EDITOR
-	virtual void UpdateStaging(bool bRecursive) override;
+	virtual void UpdateStaging(const bool bRecursive) override;
 #endif
 
 protected:

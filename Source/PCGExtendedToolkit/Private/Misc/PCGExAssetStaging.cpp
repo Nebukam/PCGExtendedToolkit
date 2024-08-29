@@ -33,6 +33,11 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->AssetPathAttributeName)
 
+	if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw || Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
+	{
+		PCGEX_VALIDATE_NAME(Settings->WeightAttributeName)
+	}
+
 	return true;
 }
 
@@ -74,12 +79,22 @@ namespace PCGExAssetStaging
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		PointDataFacade->bSupportsDynamic = true;
+		NumPoints = PointIO->GetNum();
+		MaxIndex = LocalTypedContext->MainCollection->LoadCache()->Indices.Num();
 
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
-		NumPoints = PointIO->GetNum();
+		PointDataFacade->bSupportsDynamic = true;
+
+		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
+		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
+		bOneMinusWeight = Settings->WeightToAttribute == EPCGExWeightOutputMode::NormalizedInverted || Settings->WeightToAttribute == EPCGExWeightOutputMode::NormalizedInvertedToDensity;
+
+		if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw || Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
+		{
+			WeightWriter = PointDataFacade->GetWriter<int32>(Settings->WeightAttributeName, true);
+		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 		PathWriter = PointDataFacade->GetWriter<FSoftObjectPath>(Settings->AssetPathAttributeName, false);
@@ -89,8 +104,8 @@ namespace PCGExAssetStaging
 
 		if (Settings->Distribution == EPCGExDistribution::Index)
 		{
-			IndexCache = PointDataFacade->GetScopedBroadcaster<int32>(Settings->IndexAttribute);
-			if (!IndexCache)
+			IndexGetter = PointDataFacade->GetScopedBroadcaster<int32>(Settings->IndexSource);
+			if (!IndexGetter)
 			{
 				// TODO : Throw
 				return false;
@@ -128,7 +143,7 @@ namespace PCGExAssetStaging
 		}
 		else
 		{
-			bValid = LocalTypedContext->MainCollection->GetStaging(StagingData, Index, Seed);
+			bValid = LocalTypedContext->MainCollection->GetStaging(StagingData, PCGExMath::SanitizeIndex(IndexGetter->Values[Index], MaxIndex, LocalSettings->IndexSafety), Seed);
 		}
 
 		if (!bValid)
@@ -152,7 +167,21 @@ namespace PCGExAssetStaging
 				Point.Transform.SetScale3D(FVector::ZeroVector);
 			}
 
+			if (bOutputWeight)
+			{
+				if (WeightWriter) { WeightWriter->Values[Index] = -1; }
+				else { Point.Density = -1; }
+			}
+
 			return;
+		}
+
+		if (bOutputWeight)
+		{
+			double Weight = bNormalizedWeight ? StagingData.Weight / LocalTypedContext->MainCollection->LoadCache()->WeightSum : StagingData.Weight;
+			if (bOneMinusWeight) { Weight = 1 - Weight; }
+			if (WeightWriter) { WeightWriter->Values[Index] = Weight; }
+			else { Point.Density = Weight; }
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
@@ -161,6 +190,19 @@ namespace PCGExAssetStaging
 		PathWriter->Values[Index] = StagingData.Path.ToString();
 #endif
 
+		if (LocalSettings->bUpdatePointScale)
+		{
+			const FVector A = Point.GetLocalBounds().GetSize();
+			const FVector B = StagingData.Bounds.GetSize();
+
+			const double XFactor = A.X / B.X;
+			const double YFactor = A.Y / B.Y;
+			const double ZFactor = A.Z / B.Z;
+
+			const double ScaleFactor = FMath::Min3(XFactor, YFactor, ZFactor);
+			Point.Transform.SetScale3D(Point.Transform.GetScale3D() * ScaleFactor);
+		}
+
 		if (LocalSettings->bUpdatePointBounds)
 		{
 			const FBox Bounds = StagingData.Bounds;
@@ -168,10 +210,12 @@ namespace PCGExAssetStaging
 			Point.BoundsMax = Bounds.Max;
 		}
 
-		if (LocalSettings->bUpdatePointScale)
+		if (LocalSettings->bUpdatePointPivot)
 		{
-			const FVector ScaleFactor = StagingData.Bounds.GetExtent() / Point.GetScaledExtents();
-			Point.Transform.SetScale3D(Point.Transform.GetScale3D() * ScaleFactor);
+			const FVector Center = Point.GetLocalCenter() * Point.Transform.GetScale3D();
+			const FVector Pos = Point.Transform.GetLocation();
+			Point.Transform.SetLocation(Pos - Center);
+			//Point.SetLocalBounds(FBoxCenterAndExtent(FVector::ZeroVector, Point.GetExtents()).GetBox());
 		}
 	}
 

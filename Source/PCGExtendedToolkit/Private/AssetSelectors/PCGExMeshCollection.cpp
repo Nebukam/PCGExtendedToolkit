@@ -15,7 +15,7 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 }
 
 #if WITH_EDITOR
-void FPCGExMeshCollectionEntry::UpdateStaging(bool bRecursive)
+void FPCGExMeshCollectionEntry::UpdateStaging(const bool bRecursive)
 {
 	if (bIsSubCollection)
 	{
@@ -35,6 +35,8 @@ void FPCGExMeshCollectionEntry::UpdateStaging(bool bRecursive)
 
 	Staging.Pivot = FVector::ZeroVector;
 	Staging.Bounds = M->GetBoundingBox();
+
+	Super::UpdateStaging(bRecursive);
 	
 }
 #endif

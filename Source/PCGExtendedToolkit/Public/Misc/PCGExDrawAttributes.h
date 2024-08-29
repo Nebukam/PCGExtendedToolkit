@@ -54,38 +54,38 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDrawConfig : public FPCGEx
 	float Thickness = 1.0;
 
 	/** Draw size. What it means depends on the selected debug type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta=(PCG_Overridable, ClampMin=0.000001))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Size, meta=(PCG_Overridable, ClampMin=0.000001))
 	double Size = 100.0;
 
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Size, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bSizeFromAttribute = false;
 
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (PCG_Overridable, EditCondition="bSizeFromAttribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Size, meta = (PCG_Overridable, EditCondition="bSizeFromAttribute"))
 	FPCGAttributePropertyInputSelector LocalSizeAttribute;
 
 	/** Draw color. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta=(PCG_Overridable))
 	FColor Color = FColor(255, 0, 0); /** Draw color. */
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta=(PCG_Overridable, EditConditionHides, EditCondition="ExpressedAs==EPCGExDebugExpression::Boolean"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta=(PCG_Overridable, EditConditionHides, EditCondition="ExpressedAs==EPCGExDebugExpression::Boolean"))
 	FColor SecondaryColor = FColor(0, 255, 0);
 
 	/** Fetch the color from a local attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bEnabled", InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta = (PCG_Overridable, EditCondition="bEnabled", InlineEditConditionToggle))
 	bool bColorFromAttribute = false;
 
 	/** Fetch the color from a local attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bColorFromAttribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta = (PCG_Overridable, EditCondition="bColorFromAttribute"))
 	FPCGAttributePropertyInputSelector LocalColorAttribute;
 
 	/** Basically divides input values by 255*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bColorFromAttribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Color, meta = (PCG_Overridable, EditCondition="bColorFromAttribute"))
 	bool bColorIsLinear = true;
 
 	/** Depth priority. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 DepthPriority = 0;
 
 	FString GetNestedStructDisplayText() const
@@ -174,7 +174,7 @@ public:
 	TArray<FPCGExAttributeDebugDrawConfig> DebugList;
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Debug, meta=(PCG_Overridable))
 	bool bPCGExDebug = true;
 
 protected:

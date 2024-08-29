@@ -14,11 +14,12 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshSelectorByIndex : public UPCGExMeshSe
 	GENERATED_BODY()
 
 public:
+	virtual bool Setup(FPCGStaticMeshSpawnerContext& Context, const UPCGStaticMeshSpawnerSettings* Settings, const UPCGPointData* InPointData, UPCGPointData* OutPointData) const override;
 	virtual bool Execute(PCGExMeshSelection::FCtx& Ctx) const override;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
-	FName IndexAttributeName;
+	FName IndexAttribute = NAME_None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector)
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
