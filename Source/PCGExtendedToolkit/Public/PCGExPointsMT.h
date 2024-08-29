@@ -313,6 +313,7 @@ namespace PCGExPointsMT
 		bool bInlineCompletion = false;
 		bool bRequiresWriteStep = false;
 		TArray<PCGExData::FFacade*> ProcessorFacades;
+		TMap<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*>* SubProcessorMap = nullptr;
 
 		mutable FRWLock BatchLock;
 
@@ -438,6 +439,7 @@ namespace PCGExPointsMT
 				}
 
 				ProcessorFacades.Add(NewProcessor->PointDataFacade);
+				SubProcessorMap->Add(NewProcessor->PointDataFacade->Source, NewProcessor);
 
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
 				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }

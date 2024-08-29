@@ -124,6 +124,8 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 		if (OwnedProcessorOperations.Contains(Operation)) { PCGEX_DELETE_OPERATION(Operation) }
 	}
 
+	SubProcessorMap.Empty();
+
 	PCGEX_DELETE(MainBatch)
 	BatchablePoints.Empty();
 
@@ -238,7 +240,7 @@ bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
 bool FPCGExPointsProcessorElement::PrepareDataInternal(FPCGContext* Context) const
 {
 	FPCGExContext* Ctx = static_cast<FPCGExContext*>(Context);
-	if(Ctx)
+	if (Ctx)
 	{
 		if (!Ctx->WasAssetLoadRequested())
 		{
@@ -342,12 +344,12 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)
 
-	if(Context->bAssetLoadError)
+	if (Context->bAssetLoadError)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("An error occured while loading asset dependencies."));
 		return false;
 	}
-	
+
 	if (Context->InputData.GetInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
 
 	if (Context->MainPoints->IsEmpty())
