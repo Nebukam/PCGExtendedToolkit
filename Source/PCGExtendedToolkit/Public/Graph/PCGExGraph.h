@@ -11,7 +11,6 @@
 #include "PCGExGlobalSettings.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExData.h"
 
 #include "PCGExGraph.generated.h"
 
@@ -41,7 +40,7 @@ enum class EPCGExIntersectionType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 {
 	GENERATED_BODY()
 
@@ -169,7 +168,7 @@ namespace PCGExGraph
 
 #pragma region Graph
 
-	struct PCGEXTENDEDTOOLKIT_API FGraphMetadataDetails
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphMetadataDetails
 	{
 		bool bWriteCompounded = false;
 		FName CompoundedAttributeName = "bCompounded";
@@ -215,7 +214,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FGraphNodeMetadata
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphNodeMetadata
 	{
 		int32 NodeIndex;
 		EPCGExIntersectionType Type = EPCGExIntersectionType::PointEdge;
@@ -240,7 +239,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FGraphEdgeMetadata
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphEdgeMetadata
 	{
 		int32 EdgeIndex;
 		int32 ParentIndex;
@@ -274,7 +273,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FNode
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode
 	{
 		FNode()
 		{
@@ -303,7 +302,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FSubGraph
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FSubGraph
 	{
 		int64 Id = -1;
 		FGraph* ParentGraph = nullptr;
@@ -341,7 +340,7 @@ namespace PCGExGraph
 		int32 GetFirstInIOIndex();
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FGraph
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGraph
 	{
 		mutable FRWLock GraphLock;
 		const int32 NumEdgesReserve;
@@ -417,7 +416,7 @@ namespace PCGExGraph
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FGraphBuilder
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGraphBuilder
 	{
 	public:
 		const FPCGExGraphBuilderDetails* OutputDetails = nullptr;
@@ -592,7 +591,7 @@ namespace PCGExGraphTask
 		const UPCGPointData* VtxIO,
 		PCGExGraph::FSubGraph* SubGraph, const PCGExGraph::FGraphMetadataDetails* MetadataDetails);
 
-	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteSubGraphEdges(PCGExData::FPointIO* InPointIO,
@@ -610,7 +609,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FWriteSmallSubGraphEdges final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSmallSubGraphEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteSmallSubGraphEdges(
@@ -635,7 +634,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteSubGraphCluster(PCGExData::FPointIO* InPointIO,
@@ -649,7 +648,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCompileGraph final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FCompileGraph(
@@ -668,7 +667,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyGraphToPoint final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FCopyGraphToPoint(PCGExData::FPointIO* InPointIO,

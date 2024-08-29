@@ -3,7 +3,6 @@
 
 #include "Misc/PCGExDiscardByOverlap.h"
 
-#include "Data/PCGExData.h"
 #include "Misc/PCGExPointsToBounds.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardByOverlapElement"

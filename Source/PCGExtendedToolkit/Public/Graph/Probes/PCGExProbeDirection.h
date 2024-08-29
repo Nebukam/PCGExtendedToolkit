@@ -19,7 +19,7 @@ enum class EPCGExProbeDirectionPriorization : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigDirection : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
@@ -67,8 +67,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigDirection : public FPCGExProbeCon
 /**
  * 
  */
-UCLASS(DisplayName = "Direction")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeDirection : public UPCGExProbeOperation
+UCLASS(MinimalAPI, DisplayName = "Direction")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeDirection : public UPCGExProbeOperation
 {
 	GENERATED_BODY()
 
@@ -93,8 +93,8 @@ protected:
 
 ////
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryDirection : public UPCGExProbeFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryDirection : public UPCGExProbeFactoryBase
 {
 	GENERATED_BODY()
 
@@ -104,7 +104,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeDirectionProviderSettings : public UPCGExProbeFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeDirectionProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
 

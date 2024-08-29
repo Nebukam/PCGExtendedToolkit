@@ -9,8 +9,8 @@
 
 #include "PCGExMakeClustersUnique.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExMakeClustersUniqueSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMakeClustersUniqueSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMakeClustersUniqueContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExMakeClustersUniqueSettings;
 	friend class FPCGExMakeClustersUniqueElement;
@@ -40,7 +40,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueContext final : public FPC
 	virtual ~FPCGExMakeClustersUniqueContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMakeClustersUniqueElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

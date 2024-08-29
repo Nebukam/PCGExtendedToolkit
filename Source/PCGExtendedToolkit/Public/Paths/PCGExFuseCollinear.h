@@ -11,8 +11,8 @@
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExFuseCollinearSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFuseCollinearSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -54,7 +54,7 @@ public:
 	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseCollinearContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExFuseCollinearElement;
 
@@ -66,7 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearContext final : public FPCGExPa
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseCollinearElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

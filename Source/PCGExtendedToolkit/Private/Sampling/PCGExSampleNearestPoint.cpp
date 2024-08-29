@@ -38,6 +38,9 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_CLEAN_SP(WeightCurve)
+
 	if (TargetsFacade)
 	{
 		PCGEX_DELETE(TargetsFacade->Source)

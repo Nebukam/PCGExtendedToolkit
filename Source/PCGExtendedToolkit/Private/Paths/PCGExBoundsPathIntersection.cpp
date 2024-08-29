@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExBoundsPathIntersection.h"
 #include "PCGExMath.h"
+#include "PCGExRandom.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsPathIntersectionElement"
 #define PCGEX_NAMESPACE BoundsPathIntersection
@@ -51,7 +52,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 	{
 		if (!Boot(Context)) { return true; }
 
-		bool bHasInvalildInputs = false;
+		bool bHasInvalidInputs = false;
 		bool bWritesAny = Settings->OutputSettings.WillWriteAny();
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry)
@@ -70,7 +71,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 							Entry->InitializeOutput(PCGExData::EInit::Forward);
 						}
 					}
-					else { bHasInvalildInputs = true; }
+					else { bHasInvalidInputs = true; }
 					return false;
 				}
 				return true;
@@ -86,7 +87,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 			return true;
 		}
 
-		if (bHasInvalildInputs)
+		if (bHasInvalidInputs)
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
 		}
@@ -167,7 +168,7 @@ namespace PCGExPathIntersections
 			PCGExGeo::FCut& Cut = Intersections->Cuts[i];
 			Point.Transform.SetLocation(Cut.Position);
 
-			PCGExMath::RandomizeSeed(Point);
+			Point.Seed = PCGExRandom::ComputeSeed(Point);
 
 			Details.SetIntersection(Idx, Cut.Normal, Cut.BoxIndex);
 		}

@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataDetails.h"
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
@@ -15,8 +14,8 @@
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExBoundsPathIntersectionSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsPathIntersectionSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -50,7 +49,7 @@ public:
 	FPCGExBoxIntersectionDetails OutputSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExBoundsPathIntersectionElement;
 
@@ -59,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionContext final : public
 	PCGExData::FFacade* BoundsDataFacade = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -9,8 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExWriteIndex.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteIndexSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteIndexSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -42,14 +42,14 @@ public:
 	FName OutputAttributeName = "CurrentIndex";
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteIndexContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
 
 	virtual ~FPCGExWriteIndexContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

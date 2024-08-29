@@ -3,8 +3,6 @@
 
 #include "Transform/PCGExBoundsToPoints.h"
 
-#include "Data/PCGExData.h"
-
 #define LOCTEXT_NAMESPACE "PCGExBoundsToPointsElement"
 #define PCGEX_NAMESPACE BoundsToPoints
 
@@ -35,7 +33,6 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry) { return true; },

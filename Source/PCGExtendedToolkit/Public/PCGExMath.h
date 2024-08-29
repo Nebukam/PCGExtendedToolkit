@@ -18,8 +18,8 @@ MACRO(FSoftClassPath)
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExMeanMeasure : uint8
 {
-	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1"),
-	Discrete UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used."),
+	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. \n(what it means exactly depends on context. See node-specific documentation.)"),
+	Discrete UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. \n(what it means exactly depends on context. See node-specific documentation.)"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Method"))
@@ -56,166 +56,10 @@ namespace PCGExMath
 
 #pragma region basics
 
-	/**
-	 *	 Leave <---.Apex-----> Arrive (Direction)
-	 *		   . '   |    '  .  
-	 *		A----Anchor---------B
-	 */
-	struct PCGEXTENDEDTOOLKIT_API FApex
+	FORCEINLINE static double ACot(const double Angle)
 	{
-		FApex()
-		{
-		}
-
-		FApex(const FVector& Start, const FVector& End, const FVector& InApex)
-		{
-			Direction = (Start - End).GetSafeNormal();
-			Anchor = FMath::ClosestPointOnSegment(InApex, Start, End);
-
-			const double DistToStart = FVector::Dist(Start, Anchor);
-			const double DistToEnd = FVector::Dist(End, Anchor);
-			TowardStart = Direction * (DistToStart * -1);
-			TowardEnd = Direction * DistToEnd;
-			Alpha = DistToStart / (DistToStart + DistToEnd);
-		}
-
-		FVector Direction;
-		FVector Anchor;
-		FVector TowardStart;
-		FVector TowardEnd;
-		double Alpha = 0;
-
-		FVector GetAnchorNormal(const FVector& Location) const { return (Anchor - Location).GetSafeNormal(); }
-
-		void Scale(const double InScale)
-		{
-			TowardStart *= InScale;
-			TowardEnd *= InScale;
-		}
-
-		void Extend(const double InSize)
-		{
-			TowardStart += Direction * InSize;
-			TowardEnd += Direction * -InSize;
-		}
-
-		static FApex FromStartOnly(const FVector& Start, const FVector& InApex) { return FApex(Start, InApex, InApex); }
-		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FPathMetricsSquared
-	{
-		FPathMetricsSquared()
-		{
-		}
-
-		explicit FPathMetricsSquared(const FVector& InStart)
-		{
-			Add(InStart);
-		}
-
-		explicit FPathMetricsSquared(const TArrayView<FPCGPoint>& Points)
-		{
-			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
-		}
-
-		FPathMetricsSquared(const FPathMetricsSquared& Other)
-			: Start(Other.Start),
-			  Last(Other.Last),
-			  Length(Other.Length),
-			  Count(Other.Count)
-		{
-		}
-
-		FVector Start;
-		FVector Last;
-		double Length = -1;
-		int32 Count = 0;
-
-		void Reset(const FVector& InStart)
-		{
-			Start = InStart;
-			Last = InStart;
-			Length = 0;
-			Count = 1;
-		}
-
-		double Add(const FVector& Location)
-		{
-			if (Length == -1)
-			{
-				Reset(Location);
-				return 0;
-			}
-			Length += DistToLast(Location);
-			Last = Location;
-			Count++;
-			return Length;
-		}
-
-		bool IsValid() const { return Length > 0; }
-		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
-		double DistToLast(const FVector& Location) const { return FVector::DistSquared(Last, Location); }
-		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
-	};
-
-
-	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
-	{
-		FPathMetrics()
-		{
-		}
-
-		explicit FPathMetrics(const FVector& InStart)
-		{
-			Add(InStart);
-		}
-
-		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points)
-		{
-			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
-		}
-
-		explicit FPathMetrics(const FPathMetricsSquared& Other)
-			: Start(Other.Start),
-			  Last(Other.Last),
-			  Length(Other.Length),
-			  Count(Other.Count)
-		{
-		}
-
-		FVector Start;
-		FVector Last;
-		double Length = -1;
-		int32 Count = 0;
-
-		void Reset(const FVector& InStart)
-		{
-			Start = InStart;
-			Last = InStart;
-			Length = 0;
-			Count = 1;
-		}
-
-		double Add(const FVector& Location)
-		{
-			if (Length == -1)
-			{
-				Reset(Location);
-				return 0;
-			}
-			Length += DistToLast(Location);
-			Last = Location;
-			Count++;
-			return Length;
-		}
-
-		bool IsValid() const { return Length > 0; }
-		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
-		double DistToLast(const FVector& Location) const { return FVector::Dist(Last, Location); }
-		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
-	};
-
+		return FMath::Cos(Angle) / FMath::Sin(Angle);
+	}
 
 	FORCEINLINE static double DegreesToDot(const double Angle)
 	{
@@ -407,6 +251,25 @@ namespace PCGExMath
 
 		Map.Empty();
 		return Mode;
+	}
+
+#pragma endregion
+
+#pragma region basics
+
+	FORCEINLINE static FVector SafeLinePlaneIntersection(
+		const FVector& Pt1, const FVector& Pt2,
+		const FVector& PlaneOrigin, const FVector& PlaneNormal,
+		bool& bIntersect)
+	{
+		if (FMath::IsNearlyZero(FVector::DotProduct((Pt1 - Pt2).GetSafeNormal(), PlaneNormal)))
+		{
+			bIntersect = false;
+			return FVector::ZeroVector;
+		}
+
+		bIntersect = true;
+		return FMath::LinePlaneIntersection(Pt1, Pt2, PlaneOrigin, PlaneNormal);
 	}
 
 #pragma endregion
@@ -798,22 +661,22 @@ namespace PCGExMath
 	////
 
 	template <typename T, typename CompilerSafety = void>
-	static void SetComponent(T& A, const int32 Index, const double InValue) { A = InValue; }
+	FORCEINLINE static void SetComponent(T& A, const int32 Index, const double InValue) { A = InValue; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(bool& A, const int32 Index, const double InValue) { A = InValue <= 0 ? false : true; }
+	FORCEINLINE static void SetComponent(bool& A, const int32 Index, const double InValue) { A = InValue <= 0 ? false : true; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FVector& A, const int32 Index, const double InValue) { A[Index] = InValue; }
+	FORCEINLINE static void SetComponent(FVector& A, const int32 Index, const double InValue) { A[Index] = InValue; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FVector2D& A, const int32 Index, const double InValue) { A[Index] = InValue; }
+	FORCEINLINE static void SetComponent(FVector2D& A, const int32 Index, const double InValue) { A[Index] = InValue; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FVector4& A, const int32 Index, const double InValue) { A[Index] = InValue; }
+	FORCEINLINE static void SetComponent(FVector4& A, const int32 Index, const double InValue) { A[Index] = InValue; }
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FRotator& A, const int32 Index, const double InValue)
+	FORCEINLINE static void SetComponent(FRotator& A, const int32 Index, const double InValue)
 	{
 		FVector Euler = A.Euler();
 		SetComponent(Euler, Index, InValue);
@@ -821,7 +684,7 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FQuat& A, const int32 Index, const double InValue)
+	FORCEINLINE static void SetComponent(FQuat& A, const int32 Index, const double InValue)
 	{
 		FVector Euler = A.Euler();
 		SetComponent(Euler, Index, InValue);
@@ -829,14 +692,14 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static void SetComponent(FTransform& A, const int32 Index, const double InValue)
+	FORCEINLINE static void SetComponent(FTransform& A, const int32 Index, const double InValue)
 	{
 		FVector Location = A.GetLocation();
 		SetComponent(Location, Index, InValue);
 		A.SetLocation(Location);
 	}
 
-#define PCGEX_UNSUPPORTED_SET_COMPONENT(_TYPE) template <typename CompilerSafety = void> static void SetComponent(_TYPE& A, const int32 Index, const double InValue)	{}
+#define PCGEX_UNSUPPORTED_SET_COMPONENT(_TYPE) template <typename CompilerSafety = void> FORCEINLINE static void SetComponent(_TYPE& A, const int32 Index, const double InValue)	{}
 	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_SET_COMPONENT)
 #undef PCGEX_UNSUPPORTED_SET_COMPONENT
 
@@ -986,20 +849,26 @@ namespace PCGExMath
 
 
 	template <typename T>
-	FORCEINLINE static T SanitizeIndex(const T& Index, const T& Limit, const EPCGExIndexSafety Method)
+	FORCEINLINE static T SanitizeIndex(const T& Index, const T& MaxIndex, const EPCGExIndexSafety Method)
 	{
+		if (Method == EPCGExIndexSafety::Yoyo)
+		{
+			const T L = 2 * MaxIndex;
+			const T C = Index % L;
+
+			return C <= MaxIndex ? C : L - C;
+		}
+
 		switch (Method)
 		{
+		default:
 		case EPCGExIndexSafety::Ignore:
-			if (Index < 0 || Index > Limit) { return -1; }
-			break;
+			return (Index < 0 || Index > MaxIndex) ? -1 : Index;
 		case EPCGExIndexSafety::Tile:
-			return PCGExMath::Tile(Index, 0, Limit);
+			return PCGExMath::Tile(Index, 0, MaxIndex);
 		case EPCGExIndexSafety::Clamp:
-			return FMath::Clamp(Index, 0, Limit);
-		default: ;
+			return FMath::Clamp(Index, 0, MaxIndex);
 		}
-		return Index;
 	}
 
 	FORCEINLINE static FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir)
@@ -1092,13 +961,6 @@ namespace PCGExMath
 		T* Ptr1 = &Array[FirstIndex];
 		T* Ptr2 = &Array[SecondIndex];
 		std::swap(*Ptr1, *Ptr2);
-	}
-
-	FORCEINLINE static void RandomizeSeed(FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector)
-	{
-		Point.Seed = static_cast<int32>(Remap(
-			FMath::PerlinNoise3D(Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
-			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
 	}
 
 	FORCEINLINE static FVector GetNormal(const FVector& A, const FVector& B, const FVector& C)
@@ -1216,6 +1078,122 @@ namespace PCGExMath
 		// EPCGExDistance::Center
 		return FromCenter;
 	}
+
+#pragma endregion
+
+#pragma region Helpers
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetricsSquared
+	{
+		FPathMetricsSquared()
+		{
+		}
+
+		explicit FPathMetricsSquared(const FVector& InStart)
+		{
+			Add(InStart);
+		}
+
+		explicit FPathMetricsSquared(const TArrayView<FPCGPoint>& Points)
+		{
+			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
+		}
+
+		FPathMetricsSquared(const FPathMetricsSquared& Other)
+			: Start(Other.Start),
+			  Last(Other.Last),
+			  Length(Other.Length),
+			  Count(Other.Count)
+		{
+		}
+
+		FVector Start;
+		FVector Last;
+		double Length = -1;
+		int32 Count = 0;
+
+		void Reset(const FVector& InStart)
+		{
+			Start = InStart;
+			Last = InStart;
+			Length = 0;
+			Count = 1;
+		}
+
+		double Add(const FVector& Location)
+		{
+			if (Length == -1)
+			{
+				Reset(Location);
+				return 0;
+			}
+			Length += DistToLast(Location);
+			Last = Location;
+			Count++;
+			return Length;
+		}
+
+		bool IsValid() const { return Length > 0; }
+		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
+		double DistToLast(const FVector& Location) const { return FVector::DistSquared(Last, Location); }
+		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetrics
+	{
+		FPathMetrics()
+		{
+		}
+
+		explicit FPathMetrics(const FVector& InStart)
+		{
+			Add(InStart);
+		}
+
+		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points)
+		{
+			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
+		}
+
+		explicit FPathMetrics(const FPathMetricsSquared& Other)
+			: Start(Other.Start),
+			  Last(Other.Last),
+			  Length(Other.Length),
+			  Count(Other.Count)
+		{
+		}
+
+		FVector Start;
+		FVector Last;
+		double Length = -1;
+		int32 Count = 0;
+
+		void Reset(const FVector& InStart)
+		{
+			Start = InStart;
+			Last = InStart;
+			Length = 0;
+			Count = 1;
+		}
+
+		double Add(const FVector& Location)
+		{
+			if (Length == -1)
+			{
+				Reset(Location);
+				return 0;
+			}
+			Length += DistToLast(Location);
+			Last = Location;
+			Count++;
+			return Length;
+		}
+
+		bool IsValid() const { return Length > 0; }
+		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
+		double DistToLast(const FVector& Location) const { return FVector::Dist(Last, Location); }
+		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
+	};
 
 #pragma endregion
 }

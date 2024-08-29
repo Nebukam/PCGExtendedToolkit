@@ -8,7 +8,7 @@
 
 namespace PCGExProbing
 {
-	struct PCGEXTENDEDTOOLKIT_API FCandidate
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCandidate
 	{
 		int32 PointIndex;
 		FVector Direction;
@@ -21,7 +21,7 @@ namespace PCGExProbing
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FBestCandidate
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FBestCandidate
 	{
 		int32 BestIndex = -1;
 		double BestPrimaryValue = 0;

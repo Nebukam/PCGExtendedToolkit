@@ -23,9 +23,9 @@
 #define PCGEX_DELETE(_VALUE) if(_VALUE){ delete _VALUE; _VALUE = nullptr; }
 #define PCGEX_DELETE_UOBJECT(_VALUE) if(_VALUE){ PCGEX_UNROOT(_VALUE) _VALUE->MarkAsGarbage(); _VALUE = nullptr; } // ConditionalBeginDestroy
 #define PCGEX_DELETE_OPERATION(_VALUE) if(_VALUE){ _VALUE->Cleanup(); PCGEX_DELETE_UOBJECT(_VALUE) _VALUE = nullptr; } // ConditionalBeginDestroy
-#define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
-#define PCGEX_DELETE_TARRAY_FULL(_VALUE) if(_VALUE){ for(const auto* Item : (*_VALUE)){ delete Item; } PCGEX_DELETE(_VALUE); }
-#define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
+#define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ if(Item){ delete Item; }} _VALUE.Empty();
+#define PCGEX_DELETE_TARRAY_FULL(_VALUE) if(_VALUE){ for(const auto* Item : (*_VALUE)){ if(Item){ delete Item; }} PCGEX_DELETE(_VALUE); }
+#define PCGEX_DELETE_TMAP(_VALUE, _TYPE){if(!_VALUE.IsEmpty()){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }}
 #define PCGEX_DELETE_FACADE_AND_SOURCE(_VALUE) if(_VALUE){ PCGEX_DELETE(_VALUE->Source) PCGEX_DELETE(_VALUE) }
 
 #define PCGEX_FOREACH_XYZ(MACRO)\
@@ -126,13 +126,16 @@ if (!_SOURCE.ToSoftObjectPath().IsValid()) { _TARGET = TSoftObjectPtr<_TYPE>(_DE
 else { _TARGET = _SOURCE.LoadSynchronous(); }\
 if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
 
+#define PCGEX_CLEAN_SP(_NAME) _NAME = nullptr;
+
 #pragma endregion
 
 #define PCGEX_SET_NUM(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNum(_num_); }
+#define PCGEX_SET_NUM_DEFAULT(_ARRAY, _NUM, _DEFAULT) { PCGEX_SET_NUM(_ARRAY, _NUM) for(int i = 0; i < _NUM; i++){_ARRAY[i] = _DEFAULT;} }
 #define PCGEX_SET_NUM_PTR(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY->Reserve(_num_); _ARRAY->SetNum(_num_); }
 
 #define PCGEX_SET_NUM_UNINITIALIZED(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNumUninitialized(_num_); }
-#define PCGEX_SET_NUM_UNINITIALIZED_NULL(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNumUninitialized(_num_); for(int i = 0; i < _num_; i++){_ARRAY[i] = nullptr;} }
+#define PCGEX_SET_NUM_NULLPTR(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNumUninitialized(_num_); for(int i = 0; i < _num_; i++){_ARRAY[i] = nullptr;} }
 #define PCGEX_SET_NUM_UNINITIALIZED_PTR(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY->Reserve(_num_); _ARRAY->SetNumUninitialized(_num_); }
 
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\

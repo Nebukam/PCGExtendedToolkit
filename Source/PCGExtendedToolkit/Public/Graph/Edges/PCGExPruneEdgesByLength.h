@@ -14,8 +14,8 @@ namespace PCGExCluster
 	struct FCluster;
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -81,7 +81,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneEdgesByLengthContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPruneEdgesByLengthSettings;
 	friend class FPCGExPruneEdgesByLengthElement;
@@ -89,7 +89,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext final : public FPC
 	virtual ~FPCGExPruneEdgesByLengthContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

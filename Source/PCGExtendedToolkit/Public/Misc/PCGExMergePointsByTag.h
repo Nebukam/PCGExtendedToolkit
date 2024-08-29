@@ -20,7 +20,7 @@ enum class EPCGExMergeByTagOverlapResolutionMode : uint8
 
 namespace PCPGExMergePointsByTag
 {
-	class PCGEXTENDEDTOOLKIT_API FMergeList
+	class /*PCGEXTENDEDTOOLKIT_API*/ FMergeList
 	{
 	public:
 		TArray<PCGExData::FPointIO*> IOs;
@@ -34,7 +34,7 @@ namespace PCPGExMergePointsByTag
 		void Write(PCGExMT::FTaskManager* AsyncManager) const;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FTagBucket
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTagBucket
 	{
 	public:
 		FString Tag;
@@ -43,7 +43,7 @@ namespace PCPGExMergePointsByTag
 		~FTagBucket();
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FTagBuckets
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTagBuckets
 	{
 	public:
 		TArray<FTagBucket*> Buckets;
@@ -58,8 +58,8 @@ namespace PCPGExMergePointsByTag
 	};
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExMergePointsByTagSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMergePointsByTagSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -97,7 +97,7 @@ public:
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMergePointsByTagContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsByTagContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMergePointsByTagElement;
 
@@ -109,7 +109,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMergePointsByTagContext final : public FPCGE
 	TArray<PCPGExMergePointsByTag::FMergeList*> MergeLists;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMergePointsByTagElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsByTagElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

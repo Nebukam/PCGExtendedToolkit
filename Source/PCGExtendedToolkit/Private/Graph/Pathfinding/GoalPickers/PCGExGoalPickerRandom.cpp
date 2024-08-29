@@ -9,8 +9,7 @@
 void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExGoalPickerRandom* TypedOther = Cast<UPCGExGoalPickerRandom>(Other);
-	if (TypedOther)
+	if (const UPCGExGoalPickerRandom* TypedOther = Cast<UPCGExGoalPickerRandom>(Other))
 	{
 		GoalCount = TypedOther->GoalCount;
 		NumGoals = TypedOther->NumGoals;

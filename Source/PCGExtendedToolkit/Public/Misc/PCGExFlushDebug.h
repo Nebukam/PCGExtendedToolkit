@@ -4,15 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Elements/PCGPointProcessingElementBase.h"
 
 #include "PCGEx.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExFlushDebug.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExDebugSettings : public UPCGSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDebugSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -34,21 +33,21 @@ protected:
 	//~End UPCGSettings
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Debug, meta=(PCG_Overridable))
 	bool bPCGExDebug = true;
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Debug, meta=(PCG_Overridable))
 	FLinearColor CustomColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDebugContext final : public FPCGContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugContext final : public FPCGContext
 {
 	friend class FPCGExDebugElement;
 	bool bWait = true;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDebugElement final : public IPCGElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

@@ -12,8 +12,8 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Interpolate")
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInterpolate : public UPCGExSubPointsBlendOperation
+UCLASS(MinimalAPI, DisplayName = "Interpolate")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubPointsBlendInterpolate : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()
 

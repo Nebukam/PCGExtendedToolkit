@@ -3,7 +3,7 @@
 
 #include "Paths/PCGExWriteTangents.h"
 
-#include "Paths/Tangents/PCGExAutoTangents.h"
+#include "Paths/Tangents/PCGExZeroTangents.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -12,22 +12,8 @@ PCGEX_INITIALIZE_ELEMENT(WriteTangents)
 
 FPCGExWriteTangentsContext::~FPCGExWriteTangentsContext()
 {
-	Tangents = nullptr;
-	ArriveTangents.Empty();
-	LeaveTangents.Empty();
-	PCGEX_DELETE(ArriveTangentsAccessor)
-	PCGEX_DELETE(LeaveTangentsAccessor)
+	PCGEX_TERMINATE_ASYNC
 }
-
-void FPCGExWriteTangentsContext::WriteTangents()
-{
-	ArriveTangentsAccessor->SetRange(ArriveTangents, 0, CurrentIO->GetOutKeys());
-	LeaveTangentsAccessor->SetRange(LeaveTangents, 0, CurrentIO->GetOutKeys());
-
-	PCGEX_DELETE(ArriveTangentsAccessor)
-	PCGEX_DELETE(LeaveTangentsAccessor)
-}
-
 
 bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 {
@@ -35,17 +21,12 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 
-	PCGEX_OPERATION_BIND(Tangents, UPCGExAutoTangents)
+	PCGEX_OPERATION_BIND(Tangents, UPCGExZeroTangents)
 
-	Context->Tangents->ArriveName = Settings->ArriveName;
-	Context->Tangents->LeaveName = Settings->LeaveName;
+	Context->Tangents->bClosedPath = Settings->bClosedPath;
 
-	if (!FPCGMetadataAttributeBase::IsValidName(Context->Tangents->ArriveName) ||
-		!FPCGMetadataAttributeBase::IsValidName(Context->Tangents->LeaveName))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid attribute names"));
-		return false;
-	}
+	PCGEX_VALIDATE_NAME(Settings->ArriveName)
+	PCGEX_VALIDATE_NAME(Settings->LeaveName)
 
 	return true;
 }
@@ -60,75 +41,109 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO())
+		bool bInvalidInputs = false;
+
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWriteTangents::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bInvalidInputs = true;
+					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					return false;
+				}
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExWriteTangents::FProcessor>* NewBatch)
+			{
+				NewBatch->PrimaryOperation = Context->Tangents;
+			},
+			PCGExMT::State_Done))
 		{
-			Context->Done();
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to write tangents to."));
+			return true;
 		}
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+
+		if (bInvalidInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
+		}
 	}
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		const int32 NumPoints = Context->CurrentIO->GetNum();
+	if (!Context->ProcessPointsBatch()) { return false; }
 
-		auto Initialize = [&]()
-		{
-			Context->ArriveTangents.SetNum(NumPoints);
-			Context->LeaveTangents.SetNum(NumPoints);
-
-			Context->ArriveTangentsAccessor = PCGEx::FAttributeAccessor<FVector>::FindOrCreate(Context->CurrentIO, Context->Tangents->ArriveName);
-			Context->LeaveTangentsAccessor = PCGEx::FAttributeAccessor<FVector>::FindOrCreate(Context->CurrentIO, Context->Tangents->LeaveName);
-
-			Context->Tangents->PrepareForData(Context->CurrentIO);
-		};
-
-		auto ProcessPoint = [&](const int32 Index)
-		{
-			FVector& OutArrive = Context->ArriveTangents[Index];
-			FVector& OutLeave = Context->LeaveTangents[Index];
-
-			const PCGExData::FPointRef MainPoint = PCGExData::FPointRef(Context->CurrentIO->GetOutPoint(Index), Index);
-			const PCGExData::FPointRef PrevPoint = PCGExData::FPointRef(Context->CurrentIO->TryGetOutPoint(Index - 1), Index - 1);
-			const PCGExData::FPointRef NextPoint = PCGExData::FPointRef(Context->CurrentIO->TryGetOutPoint(Index + 1), Index + 1);
-
-			if (NextPoint.IsValid() && PrevPoint.IsValid()) { Context->Tangents->ProcessPoint(MainPoint, PrevPoint, NextPoint, OutArrive, OutLeave); }
-			else if (NextPoint.IsValid()) { Context->Tangents->ProcessFirstPoint(MainPoint, NextPoint, OutArrive, OutLeave); }
-			else if (PrevPoint.IsValid()) { Context->Tangents->ProcessLastPoint(MainPoint, PrevPoint, OutArrive, OutLeave); }
-		};
-
-		auto ProcessPointTile = [&](const int32 Index)
-		{
-			FVector& OutArrive = Context->ArriveTangents[Index];
-			FVector& OutLeave = Context->LeaveTangents[Index];
-
-			const int32 MaxIndex = NumPoints - 1;
-			const int32 PrevIndex = PCGExMath::Tile(Index - 1, 0, MaxIndex);
-			const int32 NextIndex = PCGExMath::Tile(Index + 1, 0, MaxIndex);
-
-			const PCGExData::FPointRef MainPoint = PCGExData::FPointRef(Context->CurrentIO->GetOutPoint(Index), Index);
-			const PCGExData::FPointRef PrevPoint = PCGExData::FPointRef(Context->CurrentIO->GetOutPoint(PrevIndex), PrevIndex);
-			const PCGExData::FPointRef NextPoint = PCGExData::FPointRef(Context->CurrentIO->GetOutPoint(NextIndex), NextIndex);
-
-			Context->Tangents->ProcessPoint(MainPoint, PrevPoint, NextPoint, OutArrive, OutLeave);
-		};
-
-		bool bProcessingComplete;
-		if (Settings->bClosedPath) { bProcessingComplete = Context->Process(Initialize, ProcessPointTile, NumPoints); }
-		else { bProcessingComplete = Context->Process(Initialize, ProcessPoint, NumPoints); }
-
-		if (!bProcessingComplete) { return false; }
-
-		Context->WriteTangents();
-		Context->CurrentIO->OutputToContext();
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
+	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
+}
+
+namespace PCGExWriteTangents
+{
+	FProcessor::~FProcessor()
+	{
+	}
+
+	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteTangents)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		LocalSettings = Settings;
+
+		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
+		Tangents->PrepareForData(PointDataFacade);
+
+		ArriveWriter = PointDataFacade->GetWriter(Settings->ArriveName, FVector::ZeroVector, true, false);
+		LeaveWriter = PointDataFacade->GetWriter(Settings->LeaveName, FVector::ZeroVector, true, false);
+
+		LastIndex = PointIO->GetNum() - 1;
+
+		StartParallelLoopForPoints();
+
+		return true;
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	{
+		int32 PrevIndex = Index - 1;
+		int32 NextIndex = Index + 1;
+
+		FVector OutArrive = FVector::ZeroVector;
+		FVector OutLeave = FVector::ZeroVector;
+
+		if (bClosedPath)
+		{
+			if (PrevIndex < 0) { PrevIndex = LastIndex; }
+			if (NextIndex > LastIndex) { NextIndex = 0; }
+
+			Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, OutArrive, OutLeave);
+		}
+		else
+		{
+			if (PrevIndex >= 0 && NextIndex <= LastIndex)
+			{
+				Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, OutArrive, OutLeave);
+			}
+			else if (PrevIndex < 0)
+			{
+				Tangents->ProcessFirstPoint(PointIO->GetIn()->GetPoints(), OutArrive, OutLeave);
+			}
+			else if (NextIndex > LastIndex)
+			{
+				Tangents->ProcessLastPoint(PointIO->GetIn()->GetPoints(), OutArrive, OutLeave);
+			}
+		}
+
+		ArriveWriter->Values[Index] = OutArrive;
+		LeaveWriter->Values[Index] = OutLeave;
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		PointDataFacade->Write(AsyncManagerPtr, true);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

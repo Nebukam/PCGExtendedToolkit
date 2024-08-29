@@ -21,8 +21,8 @@
 /**
  * 
  */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleAttribute : public UPCGExNeighborSampleOperation
+UCLASS(MinimalAPI)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleAttribute : public UPCGExNeighborSampleOperation
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ protected:
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSamplerConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeSamplerConfigBase
 {
 	GENERATED_BODY()
 
@@ -86,8 +86,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeSamplerConfigBase
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryAttribute : public UPCGExNeighborSamplerFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSamplerFactoryAttribute : public UPCGExNeighborSamplerFactoryBase
 {
 	GENERATED_BODY()
 
@@ -96,8 +96,8 @@ public:
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")
-class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleAttributeSettings : public UPCGExNeighborSampleProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleAttributeSettings : public UPCGExNeighborSampleProviderSettings
 {
 	GENERATED_BODY()
 

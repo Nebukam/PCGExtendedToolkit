@@ -43,7 +43,7 @@ enum class EPCGExPathPointOrientation : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathStatistics
 {
 	GENERATED_BODY()
 
@@ -74,7 +74,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
-	struct PCGEXTENDEDTOOLKIT_API FExtraWeights //TODO: Deprecate
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FExtraWeights //TODO: Deprecate
 	{
 		TArray<double> NodeExtraWeight;
 		TArray<double> EdgeExtraWeight;
@@ -111,7 +111,7 @@ namespace PCGExPathfinding
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPlotPoint
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPlotPoint
 	{
 		int32 PlotIndex;
 		FVector Position;
@@ -123,7 +123,7 @@ namespace PCGExPathfinding
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPathQuery
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathQuery
 	{
 		FPathQuery(const int32 InSeedIndex, const FVector& InSeedPosition,
 		           const int32 InGoalIndex, const FVector& InGoalPosition):
@@ -167,7 +167,7 @@ namespace PCGExPathfinding
 	}
 }
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingTask : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExPathfindingTask(PCGExData::FPointIO* InPointIO,

@@ -10,8 +10,8 @@
 #include "PCGExSanitizeClusters.generated.h"
 
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExSanitizeClustersSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSanitizeClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -37,7 +37,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSanitizeClustersSettings;
 	friend class FPCGExSanitizeClustersElement;
@@ -48,7 +48,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext final : public FPCGE
 	TArray<TMap<uint32, int32>> EndpointsLookups;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -61,7 +61,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClusterTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExSanitizeClusterTask(PCGExData::FPointIO* InPointIO,
@@ -76,7 +76,7 @@ public:
 	virtual bool ExecuteTask() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeInsertTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeInsertTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExSanitizeInsertTask(PCGExData::FPointIO* InPointIO,

@@ -9,8 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExInternalDebug.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Debug")
-class PCGEXTENDEDTOOLKIT_API UPCGExInternalDebugSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Debug")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExInternalDebugSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -35,7 +35,7 @@ public:
 	FVector GHTolerance = FVector(0.001, 0.001, 0.001);
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExInternalDebugContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInternalDebugContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExInternalDebugElement;
 
@@ -44,7 +44,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInternalDebugContext final : public FPCGExPo
 	FVector GHTolerance = FVector::One();
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExInternalDebugElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInternalDebugElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

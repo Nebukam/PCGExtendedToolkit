@@ -28,8 +28,8 @@ MACRO(PathCentroid, FVector)
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWritePathPropertiesSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -202,7 +202,7 @@ public:
 	FString ConvexTag = TEXT("Convex");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWritePathPropertiesContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExWritePathPropertiesElement;
 
@@ -212,7 +212,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWritePathPropertiesContext final : public FP
 	PCGEX_FOREACH_FIELD_PATH_MARKS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWritePathPropertiesElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -238,7 +238,7 @@ namespace PCGExWritePathProperties
 		const UPCGExWritePathPropertiesSettings* LocalSettings = nullptr;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InPoints):
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
 		{
 		}

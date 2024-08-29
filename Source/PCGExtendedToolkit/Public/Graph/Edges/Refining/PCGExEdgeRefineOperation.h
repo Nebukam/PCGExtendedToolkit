@@ -36,7 +36,7 @@ namespace PCGExCluster
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefineOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

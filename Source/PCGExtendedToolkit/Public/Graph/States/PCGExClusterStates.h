@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 #include "Data/PCGExPointStates.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
-#include "../../Misc/PCGExBitmaskMerge.h"
+#include "Misc/PCGExBitmaskMerge.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExClusterStates.generated.h"
 
@@ -18,7 +18,7 @@ namespace PCGExNodeFlags
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateConfigBase : public FPCGExStateConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExClusterStateConfigBase : public FPCGExStateConfigBase
 {
 	GENERATED_BODY()
 
@@ -31,7 +31,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClusterStateConfigBase : public FPCGExStateC
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryBase : public UPCGExClusterFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryBase : public UPCGExClusterFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -48,7 +48,7 @@ public:
 
 namespace PCGExClusterStates
 {
-	class PCGEXTENDEDTOOLKIT_API FState : public PCGExClusterFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FState : public PCGExClusterFilter::TFilter
 	{
 	public:
 		FPCGExClusterStateConfigBase Config;
@@ -75,7 +75,7 @@ namespace PCGExClusterStates
 		PCGExClusterFilter::TManager* Manager = nullptr;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FStateManager : public PCGExClusterFilter::TManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExClusterFilter::TManager
 	{
 		TArray<FState*> States;
 		TArray<int64>* FlagsCache = nullptr;
@@ -111,7 +111,7 @@ namespace PCGExClusterStates
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

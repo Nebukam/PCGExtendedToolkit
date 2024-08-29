@@ -25,7 +25,7 @@ namespace PCGExCluster
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterData : public UPCGExPointData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterData : public UPCGExPointData
 {
 	GENERATED_BODY()
 };
@@ -34,7 +34,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterData : public UPCGExPointData
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterNodesData : public UPCGExClusterData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterNodesData : public UPCGExClusterData
 {
 	GENERATED_BODY()
 
@@ -57,7 +57,7 @@ protected:
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterEdgesData : public UPCGExClusterData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterEdgesData : public UPCGExClusterData
 {
 	GENERATED_BODY()
 

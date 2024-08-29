@@ -3,7 +3,6 @@
 
 #include "Paths/PCGExPathProcessor.h"
 
-#include "PCGExPointsMT.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
@@ -13,6 +12,8 @@ PCGExData::EInit UPCGExPathProcessorSettings::GetMainOutputInitMode() const { re
 FPCGExPathProcessorContext::~FPCGExPathProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(MainPaths)
 }
 
 PCGEX_INITIALIZE_CONTEXT(PathProcessor)

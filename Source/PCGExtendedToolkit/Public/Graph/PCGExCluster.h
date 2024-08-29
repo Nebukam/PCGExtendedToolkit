@@ -27,7 +27,7 @@ enum class EPCGExClusterClosestSearchMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNodeSelectionDetails
 {
 	GENERATED_BODY()
 
@@ -68,7 +68,7 @@ namespace PCGExCluster
 
 	PCGEX_ASYNC_STATE(State_ProcessingCluster)
 
-	struct PCGEXTENDEDTOOLKIT_API FClusterItemRef
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FClusterItemRef
 	{
 		int32 ItemIndex;
 		FBoxSphereBounds Bounds;
@@ -79,7 +79,7 @@ namespace PCGExCluster
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FClusterItemRefSemantics
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FClusterItemRefSemantics
 	{
 		enum { MaxElementsPerLeaf = 16 };
 
@@ -111,7 +111,7 @@ namespace PCGExCluster
 
 	struct FCluster;
 
-	struct PCGEXTENDEDTOOLKIT_API FNode : public PCGExGraph::FNode
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : public PCGExGraph::FNode
 	{
 		FNode(): PCGExGraph::FNode()
 		{
@@ -141,7 +141,7 @@ namespace PCGExCluster
 
 		FVector GetCentroid(const FCluster* InCluster) const;
 
-		FORCEINLINE int32 GetEdgeIndex(int32 AdjacentNodeIndex) const
+		FORCEINLINE int32 GetEdgeIndex(const int32 AdjacentNodeIndex) const
 		{
 			for (const uint64 AdjacencyHash : Adjacency) { if (PCGEx::H64A(AdjacencyHash) == AdjacentNodeIndex) { return PCGEx::H64B(AdjacencyHash); } }
 			return -1;
@@ -149,10 +149,10 @@ namespace PCGExCluster
 
 		void ComputeNormal(const FCluster* InCluster, const TArray<FAdjacencyData>& AdjacencyData, FVector& OutNormal) const;
 
-		FORCEINLINE void Add(const FNode& Neighbor, int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
+		FORCEINLINE void Add(const FNode& Neighbor, const int32 EdgeIndex) { Adjacency.Add(PCGEx::H64(Neighbor.NodeIndex, EdgeIndex)); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FExpandedNeighbor
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FExpandedNeighbor
 	{
 		const FNode* Node;
 		const PCGExGraph::FIndexedEdge* Edge;
@@ -164,7 +164,7 @@ namespace PCGExCluster
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FCluster
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCluster
 	{
 	protected:
 		bool bIsMirror = false;
@@ -369,7 +369,7 @@ namespace PCGExCluster
 		void CreateVtxPointScopes();
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FExpandedNode
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FExpandedNode
 	{
 		const FNode* Node = nullptr;
 		TArray<FExpandedNeighbor> Neighbors;
@@ -398,7 +398,7 @@ namespace PCGExCluster
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FExpandedEdge
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FExpandedEdge
 	{
 		const int32 Index;
 		const FNode* Start = nullptr;
@@ -423,14 +423,14 @@ namespace PCGExCluster
 		FORCEINLINE double GetEdgeLength(const FCluster* Cluster) const { return FVector::Dist(Cluster->GetPos(Start), Cluster->GetPos(End)); }
 		FORCEINLINE double GetEdgeLengthSquared(const FCluster* Cluster) const { return FVector::DistSquared(Cluster->GetPos(Start), Cluster->GetPos(End)); }
 		FORCEINLINE FVector GetCenter() const { return Bounds.Origin; }
-		FORCEINLINE int32 OtherNodeIndex(int32 NodeIndex) const
+		FORCEINLINE int32 OtherNodeIndex(const int32 NodeIndex) const
 		{
 			check(NodeIndex == Start->NodeIndex || NodeIndex == End->NodeIndex)
 			return NodeIndex == Start->NodeIndex ? End->NodeIndex : Start->NodeIndex;
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FNodeChain
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FNodeChain
 	{
 		int32 First = -1;
 		int32 Last = -1;
@@ -458,7 +458,7 @@ namespace PCGExCluster
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FAdjacencyData
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAdjacencyData
 	{
 		int32 NodeIndex = -1;
 		int32 NodePointIndex = -1;
@@ -494,7 +494,7 @@ namespace PCGExCluster
 
 namespace PCGExClusterTask
 {
-	class PCGEXTENDEDTOOLKIT_API FBuildCluster final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildCluster final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FBuildCluster(
@@ -520,7 +520,7 @@ namespace PCGExClusterTask
 	};
 
 
-	class PCGEXTENDEDTOOLKIT_API FFindNodeChains final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFindNodeChains final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FFindNodeChains(PCGExData::FPointIO* InPointIO,
@@ -548,7 +548,7 @@ namespace PCGExClusterTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FBuildChain final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildChain final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FBuildChain(PCGExData::FPointIO* InPointIO,
@@ -631,7 +631,7 @@ namespace PCGExClusterTask
 		}
 	}
 
-	class PCGEXTENDEDTOOLKIT_API FExpandClusterNodes final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FExpandClusterNodes final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FExpandClusterNodes(PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
@@ -645,7 +645,7 @@ namespace PCGExClusterTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FExpandClusterEdges final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FExpandClusterEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FExpandClusterEdges(PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :

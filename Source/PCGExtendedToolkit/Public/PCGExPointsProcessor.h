@@ -25,7 +25,7 @@ class FPCGExPointsProcessorElement;
 
 namespace PCGEx
 {
-	struct PCGEXTENDEDTOOLKIT_API FAPointLoop
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAPointLoop
 	{
 		virtual ~FAPointLoop() = default;
 
@@ -55,7 +55,7 @@ namespace PCGEx
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointLoop : public FAPointLoop
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointLoop : public FAPointLoop
 	{
 		FPointLoop()
 		{
@@ -65,7 +65,7 @@ namespace PCGEx
 		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FAsyncPointLoop : public FPointLoop
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAsyncPointLoop : public FPointLoop
 	{
 		FAsyncPointLoop()
 		{
@@ -79,7 +79,7 @@ namespace PCGEx
 #pragma endregion
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointsProcessorSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -136,7 +136,7 @@ protected:
 	//~End UPCGExPointsProcessorSettings
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
 
@@ -158,14 +158,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 		SetState(WaitState, false);
 	}
 
-	void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true)
+	void SetState(const PCGExMT::AsyncState StateId, const bool bResetAsyncWork = true)
 	{
 		if (bResetAsyncWork) { ResetAsyncWork(); }
-		if (CurrentState == OperationId) { return; }
-		CurrentState = OperationId;
+		if (CurrentState == StateId) { return; }
+		CurrentState = StateId;
 	}
 
-	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
+	bool IsState(const PCGExMT::AsyncState StateId) const { return CurrentState == StateId; }
 
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
@@ -304,9 +304,10 @@ public:
 	virtual bool IsAsyncWorkComplete();
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorElement : public IPCGElement
 {
 public:
+	virtual bool PrepareDataInternal(FPCGContext* Context) const override;
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 
 #if WITH_EDITOR

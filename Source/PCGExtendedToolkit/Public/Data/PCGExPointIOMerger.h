@@ -10,7 +10,7 @@
 
 struct FPCGExCarryOverDetails;
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointIOMerger final
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final
 {
 	friend class FPCGExAttributeMergeTask;
 
@@ -53,7 +53,7 @@ namespace PCGExPointIOMerger
 		PCGEX_DELETE(Reader);
 	}
 
-	class PCGEXTENDEDTOOLKIT_API FWriteAttributeTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAttributeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteAttributeTask(
@@ -69,7 +69,7 @@ namespace PCGExPointIOMerger
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FWriteAttributeScopeTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAttributeScopeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FWriteAttributeScopeTask(

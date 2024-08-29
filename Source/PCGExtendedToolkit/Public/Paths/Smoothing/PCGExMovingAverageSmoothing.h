@@ -11,8 +11,8 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Moving Average")
-class PCGEXTENDEDTOOLKIT_API UPCGExMovingAverageSmoothing : public UPCGExSmoothingOperation
+UCLASS(MinimalAPI, DisplayName = "Moving Average")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMovingAverageSmoothing : public UPCGExSmoothingOperation
 {
 	GENERATED_BODY()
 

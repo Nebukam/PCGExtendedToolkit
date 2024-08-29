@@ -4,7 +4,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "Data/PCGExData.h"
-#include "Helpers/PCGHelpers.h"
 
 #if WITH_EDITOR
 FString FPCGExInputConfig::GetDisplayName() const { return GetName().ToString(); }

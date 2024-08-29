@@ -8,15 +8,13 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExDetails.h"
-#include "Geometry/PCGExGeo.h"
 #include "PCGExLloydRelax.generated.h"
 
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExLloydRelaxSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExLloydRelaxSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -46,14 +44,14 @@ public:
 	FPCGExInfluenceDetails InfluenceDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelaxElement;
 
 	virtual ~FPCGExLloydRelaxContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -88,7 +86,7 @@ namespace PCGExLloydRelax
 		virtual void CompleteWork() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FLloydRelaxTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLloydRelaxTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FLloydRelaxTask(PCGExData::FPointIO* InPointIO,

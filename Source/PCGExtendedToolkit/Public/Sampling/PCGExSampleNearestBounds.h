@@ -48,7 +48,7 @@ class UPCGExNodeStateFactory;
 
 namespace PCGExNearestBounds
 {
-	struct PCGEXTENDEDTOOLKIT_API FTargetInfos
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FTargetInfos
 	{
 		FTargetInfos()
 		{
@@ -68,7 +68,7 @@ namespace PCGExNearestBounds
 		double Weight = 0;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FTargetsCompoundInfos
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FTargetsCompoundInfos
 	{
 		FTargetsCompoundInfos()
 		{
@@ -118,8 +118,8 @@ namespace PCGExNearestBounds
 	};
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestBoundsSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleNearestBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -256,7 +256,7 @@ public:
 	FName NumSamplesAttributeName = FName("NumSamples");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestBoundsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestBoundsElement;
 
@@ -272,7 +272,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestBoundsContext final : public FP
 	PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestBoundsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

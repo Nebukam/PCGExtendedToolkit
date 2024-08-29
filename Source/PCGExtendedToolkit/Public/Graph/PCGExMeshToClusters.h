@@ -44,8 +44,8 @@ enum class EPCGExMeshAttributeHandling : uint8
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExMeshToClustersSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshToClustersSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -110,7 +110,7 @@ private:
 	friend class FPCGExMeshToClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMeshToClustersElement;
 
@@ -130,7 +130,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext final : public FPCGExP
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -145,7 +145,7 @@ protected:
 
 namespace PCGExMeshToCluster
 {
-	class PCGEXTENDEDTOOLKIT_API FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractMeshAndBuildGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FExtractMeshAndBuildGraph(

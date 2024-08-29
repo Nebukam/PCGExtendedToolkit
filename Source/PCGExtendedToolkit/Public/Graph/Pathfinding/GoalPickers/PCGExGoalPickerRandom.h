@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -25,22 +24,22 @@ enum class EPCGExGoalPickRandomAmount : uint8
 /**
  * 
  */
-UCLASS(DisplayName = "Random")
-class PCGEXTENDEDTOOLKIT_API UPCGExGoalPickerRandom : public UPCGExGoalPicker
+UCLASS(MinimalAPI, DisplayName = "Random")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGoalPickerRandom : public UPCGExGoalPicker
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker)
 	EPCGExGoalPickRandomAmount GoalCount = EPCGExGoalPickRandomAmount::Single;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single", ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single", ClampMin=1))
 	int32 NumGoals = 5;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single"))
 	bool bUseLocalNumGoals = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && bUseLocalNumGoals"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && bUseLocalNumGoals"))
 	FPCGAttributePropertyInputSelector LocalNumGoalAttribute;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;

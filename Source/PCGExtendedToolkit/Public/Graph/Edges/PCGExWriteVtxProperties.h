@@ -21,8 +21,8 @@ namespace PCGExWriteVtxProperties
 	class FProcessorBatch;
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteVtxPropertiesSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteVtxPropertiesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ private:
 	friend class FPCGExWriteVtxPropertiesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteVtxPropertiesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteVtxPropertiesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteVtxPropertiesElement;
 
@@ -73,7 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteVtxPropertiesContext final : public FPC
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteVtxPropertiesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteVtxPropertiesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

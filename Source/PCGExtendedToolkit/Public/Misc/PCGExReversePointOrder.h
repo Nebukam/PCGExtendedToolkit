@@ -9,8 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExReversePointOrder.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExReversePointOrderSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExReversePointOrderSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -31,13 +31,13 @@ public:
 	//~End UPCGExPointsProcessorSettings
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExReversePointOrderElement;
 	virtual ~FPCGExReversePointOrderContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -50,7 +50,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExReversePointOrderTask(PCGExData::FPointIO* InPointIO) :

@@ -52,9 +52,9 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartProcessingClusters<PCGExFindNodeState::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExFlagNodes::FProcessorBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExFindNodeState::FProcessorBatch* NewBatch)
+			[&](PCGExFlagNodes::FProcessorBatch* NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 				NewBatch->bWriteVtxDataFacade = true;
@@ -73,7 +73,7 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-namespace PCGExFindNodeState
+namespace PCGExFlagNodes
 {
 	FProcessor::~FProcessor()
 	{

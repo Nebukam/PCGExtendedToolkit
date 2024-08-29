@@ -18,7 +18,7 @@ namespace PCGExDataBlending
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendOperation : public UPCGExSubPointsOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubPointsBlendOperation : public UPCGExSubPointsOperation
 {
 	GENERATED_BODY()
 

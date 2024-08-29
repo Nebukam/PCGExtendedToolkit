@@ -14,8 +14,8 @@
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExFindClustersDataSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFindClustersDataSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,7 @@ public:
 	bool bSkipImportantWarnings = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindClustersDataContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindClustersDataElement;
 
@@ -56,7 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataContext final : public FPCGE
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindClustersDataElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

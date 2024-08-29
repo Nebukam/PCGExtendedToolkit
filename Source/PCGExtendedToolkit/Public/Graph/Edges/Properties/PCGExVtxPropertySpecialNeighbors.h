@@ -14,7 +14,7 @@
 #include "PCGExVtxPropertySpecialNeighbors.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialNeighborsConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSpecialNeighborsConfig
 {
 	GENERATED_BODY()
 
@@ -30,8 +30,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialNeighborsConfig
 /**
  * ó
  */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialNeighbors : public UPCGExVtxPropertyOperation
+UCLASS(MinimalAPI)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialNeighbors : public UPCGExVtxPropertyOperation
 {
 	GENERATED_BODY()
 
@@ -43,8 +43,8 @@ public:
 	virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialNeighborsFactory : public UPCGExVtxPropertyFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialNeighborsFactory : public UPCGExVtxPropertyFactoryBase
 {
 	GENERATED_BODY()
 
@@ -53,8 +53,8 @@ public:
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertySpecialNeighborsSettings : public UPCGExVtxPropertyProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialNeighborsSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
 

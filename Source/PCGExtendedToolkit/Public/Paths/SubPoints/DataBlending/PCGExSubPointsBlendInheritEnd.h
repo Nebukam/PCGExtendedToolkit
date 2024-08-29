@@ -10,8 +10,8 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Inherit Last")
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInheritEnd : public UPCGExSubPointsBlendOperation
+UCLASS(MinimalAPI, DisplayName = "Inherit Last")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubPointsBlendInheritEnd : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()
 

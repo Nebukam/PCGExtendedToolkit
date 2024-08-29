@@ -12,8 +12,7 @@
 void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExNeighborSampleOperation* TypedOther = Cast<UPCGExNeighborSampleOperation>(Other);
-	if (TypedOther)
+	if (const UPCGExNeighborSampleOperation* TypedOther = Cast<UPCGExNeighborSampleOperation>(Other))
 	{
 		SamplingConfig = TypedOther->SamplingConfig;
 		WeightCurveObj = TypedOther->WeightCurveObj;
@@ -153,6 +152,7 @@ void UPCGExNeighborSampleOperation::FinalizeOperation()
 void UPCGExNeighborSampleOperation::Cleanup()
 {
 	Super::Cleanup();
+	PCGEX_CLEAN_SP(WeightCurveObj)
 	PCGEX_DELETE(PointFilters)
 	PCGEX_DELETE(ValueFilters)
 }

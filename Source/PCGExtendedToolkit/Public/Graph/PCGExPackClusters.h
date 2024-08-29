@@ -7,8 +7,8 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPackClusters.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExPackClustersSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPackClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -40,7 +40,7 @@ private:
 	friend class FPCGExPackClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPackClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -51,7 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext final : public FPCGExEdg
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPackClustersElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -64,7 +64,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExPackClusterTask(PCGExData::FPointIO* InPointIO,

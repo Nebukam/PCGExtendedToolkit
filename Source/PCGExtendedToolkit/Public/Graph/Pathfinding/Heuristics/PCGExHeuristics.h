@@ -22,7 +22,7 @@ enum class EPCGExHeuristicScoreMode : uint8
 
 namespace PCGExHeuristics
 {
-	struct PCGEXTENDEDTOOLKIT_API FLocalFeedbackHandler
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FLocalFeedbackHandler
 	{
 		PCGExData::FFacade* VtxDataFacade = nullptr;
 		PCGExData::FFacade* EdgeDataFacade = nullptr;
@@ -79,7 +79,7 @@ namespace PCGExHeuristics
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API THeuristicsHandler
+	class /*PCGEXTENDEDTOOLKIT_API*/ THeuristicsHandler
 	{
 	public:
 		PCGExData::FFacade* VtxDataFacade = nullptr;

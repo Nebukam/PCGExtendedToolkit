@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExClusterStates.h"
-#include "PCGExCompare.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
 
@@ -14,8 +13,8 @@
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFlagNodesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -50,7 +49,7 @@ private:
 	friend class FPCGExFlagNodesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFlagNodesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFlagNodesElement;
 
@@ -59,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFlagNodesContext final : public FPCGExEdgesP
 	TArray<UPCGExFilterFactoryBase*> StateFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -72,7 +71,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-namespace PCGExFindNodeState
+namespace PCGExFlagNodes
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{

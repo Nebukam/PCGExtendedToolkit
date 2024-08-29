@@ -11,7 +11,7 @@
 #include "PCGExGeo.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 {
 	GENERATED_BODY()
 
@@ -205,7 +205,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExLloydSettings
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydSettings
 {
 	GENERATED_BODY()
 
@@ -414,11 +414,179 @@ namespace PCGExGeo
 		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumPoints)
 		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Points[i].Transform.GetLocation(); }
 	}
+
+	FORCEINLINE static FVector GetBarycentricCoordinates(const FVector& Point, const FVector& A, const FVector& B, const FVector& C)
+	{
+		const FVector AB = B - A;
+		const FVector AC = C - A;
+		const FVector AD = Point - A;
+
+		const double d00 = FVector::DotProduct(AB, AB);
+		const double d01 = FVector::DotProduct(AB, AC);
+		const double d11 = FVector::DotProduct(AC, AC);
+		const double d20 = FVector::DotProduct(AD, AB);
+		const double d21 = FVector::DotProduct(AD, AC);
+
+		const double Den = d00 * d11 - d01 * d01;
+		const double V = (d11 * d20 - d01 * d21) / Den;
+		const double W = (d00 * d21 - d01 * d20) / Den;
+		const double U = 1.0f - V - W;
+
+		return FVector(U, V, W);
+	}
+
+	/**
+		 *	 Leave <---.Apex-----> Arrive (Direction)
+		 *		   . '   |    '  .  
+		 *		A----Anchor---------B
+		 */
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FApex
+	{
+		FApex()
+		{
+		}
+
+		FApex(const FVector& Start, const FVector& End, const FVector& InApex)
+		{
+			Direction = (Start - End).GetSafeNormal();
+			Anchor = FMath::ClosestPointOnSegment(InApex, Start, End);
+
+			const double DistToStart = FVector::Dist(Start, Anchor);
+			const double DistToEnd = FVector::Dist(End, Anchor);
+			TowardStart = Direction * (DistToStart * -1);
+			TowardEnd = Direction * DistToEnd;
+			Alpha = DistToStart / (DistToStart + DistToEnd);
+		}
+
+		FVector Direction;
+		FVector Anchor;
+		FVector TowardStart;
+		FVector TowardEnd;
+		double Alpha = 0;
+
+		FVector GetAnchorNormal(const FVector& Location) const { return (Anchor - Location).GetSafeNormal(); }
+
+		void Scale(const double InScale)
+		{
+			TowardStart *= InScale;
+			TowardEnd *= InScale;
+		}
+
+		void Extend(const double InSize)
+		{
+			TowardStart += Direction * InSize;
+			TowardEnd += Direction * -InSize;
+		}
+
+		static FApex FromStartOnly(const FVector& Start, const FVector& InApex) { return FApex(Start, InApex, InApex); }
+		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FExCenterArc
+	{
+		double Radius = 0;
+		double Theta = 0;
+		double SinTheta = 0;
+
+		FVector Center = FVector::ZeroVector;
+		FVector Normal = FVector::ZeroVector;
+		FVector Hand = FVector::ZeroVector;
+		FVector OtherHand = FVector::ZeroVector;
+
+
+		FExCenterArc()
+		{
+		}
+
+
+		/**
+		 * ExCenter arc from 3 points.
+		 * The arc center will be opposite to B
+		 * @param A 
+		 * @param B 
+		 * @param C 
+		 */
+		FExCenterArc(const FVector& A, const FVector& B, const FVector& C)
+		{
+			const FVector Up = PCGExMath::GetNormal(A, B, C);
+			bool bIntersect = true;
+
+			Center = PCGExMath::SafeLinePlaneIntersection(
+				C, C + PCGExMath::GetNormal(B, C, C + Up),
+				A, (A - B).GetSafeNormal(), bIntersect);
+
+			if (!bIntersect) { Center = FMath::Lerp(A, C, 0.5); } // Parallel lines, place center right in the middle
+
+			Radius = FVector::Dist(C, Center);
+
+			Hand = (A - Center).GetSafeNormal();
+			OtherHand = (C - Center).GetSafeNormal();
+
+			Normal = FVector::CrossProduct(Hand, OtherHand).GetSafeNormal();
+			Theta = FMath::Acos(FVector::DotProduct(Hand, OtherHand));
+			SinTheta = FMath::Sin(Theta);
+		}
+
+		/**
+		 * ExCenter arc from 2 segments.
+		 * The arc center will be opposite to B
+		 * @param A1 
+		 * @param B1 
+		 * @param A2 
+		 * @param B2
+		 * @param MaxLength 
+		 */
+		FExCenterArc(const FVector& A1, const FVector& B1, const FVector& A2, const FVector& B2, const double MaxLength = 100000)
+		{
+			const FVector& N1 = PCGExMath::GetNormal(B1, A1, A1 + PCGExMath::GetNormal(B1, A1, A2));
+			const FVector& N2 = PCGExMath::GetNormal(B2, A2, A2 + PCGExMath::GetNormal(B2, A2, A1));
+
+			if (FMath::IsNearlyZero(FVector::DotProduct(N1, N2)))
+			{
+				Center = FMath::Lerp(B1, B2, 0.5);
+			}
+			else
+			{
+				FVector OutA = FVector::ZeroVector;
+				FVector OutB = FVector::ZeroVector;
+				FMath::SegmentDistToSegment(
+					B1 + N1 * -MaxLength, B1 + N1 * MaxLength,
+					B2 + N2 * -MaxLength, B2 + N2 * MaxLength,
+					OutA, OutB);
+				Center = FMath::Lerp(OutA, OutB, 0.5);
+			}
+
+			Radius = FVector::Dist(A2, Center);
+
+			Hand = (B1 - Center).GetSafeNormal();
+			OtherHand = (B2 - Center).GetSafeNormal();
+
+			Normal = FVector::CrossProduct(Hand, OtherHand).GetSafeNormal();
+			Theta = FMath::Acos(FVector::DotProduct(Hand, OtherHand));
+			SinTheta = FMath::Sin(Theta);
+		}
+
+		FORCEINLINE double GetLength() const { return Radius * Theta; }
+
+		/**
+		 * 
+		 * @param Alpha 0-1 normalized range on the arc
+		 * @return 
+		 */
+		FORCEINLINE FVector GetLocationOnArc(const double Alpha) const
+		{
+			const double W1 = FMath::Sin((1.0 - Alpha) * Theta) / SinTheta;
+			const double W2 = FMath::Sin(Alpha * Theta) / SinTheta;
+
+			const FVector Dir = Hand * W1 + OtherHand * W2;
+			return Center + (Dir * Radius);
+		}
+	};
 }
 
 namespace PCGExGeoTasks
 {
-	class PCGEXTENDEDTOOLKIT_API FTransformPointIO final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTransformPointIO final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FTransformPointIO(

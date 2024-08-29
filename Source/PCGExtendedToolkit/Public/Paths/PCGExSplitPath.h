@@ -10,22 +10,9 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExSplitPath.generated.h"
 
-class UPCGExEdgeRefineOperation;
-
 namespace PCGExSplitPath
 {
 	const FName SourceSplitFilters = TEXT("SplitConditions");
-
-	struct PCGEXTENDEDTOOLKIT_API FPath
-	{
-		int32 Start = -1;
-		int32 End = -1;
-		int32 Count = 0;
-
-		FPath()
-		{
-		}
-	};
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
@@ -39,8 +26,8 @@ enum class EPCGExPathSplitAction : uint8
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExSplitPathSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplitPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -78,7 +65,7 @@ public:
 	bool bOmitSinglePointOutputs = true;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSplitPathElement;
 
@@ -88,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathPr
 	TArray<UPCGExFilterFactoryBase*> RemoveFilterFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -103,6 +90,17 @@ protected:
 
 namespace PCGExSplitPath
 {
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPath
+	{
+		int32 Start = -1;
+		int32 End = -1;
+		int32 Count = 0;
+
+		FPath()
+		{
+		}
+	};
+
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		FPCGExSplitPathContext* LocalTypedContext = nullptr;
@@ -133,9 +131,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionSplit(const int32 Index)
 		{
-			const bool bSplit = FilterManager->Test(Index);
-
-			if (!bSplit)
+			if (!FilterManager->Test(Index))
 			{
 				if (CurrentPath == -1)
 				{
@@ -164,9 +160,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionRemove(const int32 Index)
 		{
-			const bool bSplit = FilterManager->Test(Index);
-
-			if (!bSplit)
+			if (!FilterManager->Test(Index))
 			{
 				if (CurrentPath == -1)
 				{
@@ -191,9 +185,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionDisconnect(const int32 Index)
 		{
-			const bool bSplit = FilterManager->Test(Index);
-
-			if (!bSplit)
+			if (!FilterManager->Test(Index))
 			{
 				if (CurrentPath == -1)
 				{
@@ -213,7 +205,7 @@ namespace PCGExSplitPath
 				ClosedPath.End = Index;
 				ClosedPath.Count++;
 			}
-			
+
 			CurrentPath = -1;
 		}
 

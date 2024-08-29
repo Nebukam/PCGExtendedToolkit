@@ -18,8 +18,8 @@ enum class EPCGExBridgeClusterMethod : uint8
 	MostEdges UMETA(DisplayName = "Most Edges", ToolTip="Each cluster will have a bridge to every other cluster"),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExConnectClustersSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConnectClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -61,7 +61,7 @@ private:
 	friend class FPCGExConnectClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExConnectClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -72,7 +72,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersContext final : public FPCGEx
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -117,7 +117,7 @@ namespace PCGExBridgeClusters
 		virtual void Write() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCreateBridgeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FPCGExCreateBridgeTask(

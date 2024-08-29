@@ -11,8 +11,8 @@
 /**
  * 
  */
-UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExOrientOperation : public UPCGExOperation
+UCLASS(MinimalAPI, Abstract)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOrientOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

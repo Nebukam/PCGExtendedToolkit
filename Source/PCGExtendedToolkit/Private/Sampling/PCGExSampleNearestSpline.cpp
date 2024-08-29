@@ -36,6 +36,8 @@ FPCGExSampleNearestSplineContext::~FPCGExSampleNearestSplineContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	PCGEX_CLEAN_SP(WeightCurve)
+
 	Targets.Empty();
 }
 

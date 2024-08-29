@@ -23,7 +23,7 @@ MACRO(BoundIndex, int32, -1)\
 MACRO(IsInside, bool, false)
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 {
 	GENERATED_BODY()
 
@@ -153,7 +153,7 @@ namespace PCGExGraph
 {
 #pragma region Compound Graph
 
-	struct PCGEXTENDEDTOOLKIT_API FCompoundNode
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundNode
 	{
 	protected:
 		mutable FRWLock AdjacencyLock;
@@ -189,7 +189,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeSemantics
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundNodeSemantics
 	{
 		enum { MaxElementsPerLeaf = 16 };
 
@@ -219,7 +219,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FCompoundGraph
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundGraph
 	{
 		TMap<uint32, FCompoundNode*> GridTree;
 
@@ -281,7 +281,7 @@ namespace PCGExGraph
 
 #pragma region Point Edge intersections
 
-	struct PCGEXTENDEDTOOLKIT_API FPESplit
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPESplit
 	{
 		int32 NodeIndex = -1;
 		double Time = -1;
@@ -290,7 +290,7 @@ namespace PCGExGraph
 		bool operator==(const FPESplit& Other) const { return NodeIndex == Other.NodeIndex; }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointEdgeProxy
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointEdgeProxy
 	{
 		int32 EdgeIndex = -1;
 		TArray<FPESplit> CollinearPoints;
@@ -355,7 +355,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointEdgeIntersections
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
 		PCGExData::FPointIO* PointIO = nullptr;
@@ -458,14 +458,14 @@ namespace PCGExGraph
 
 #pragma region Edge Edge intersections
 
-	struct PCGEXTENDEDTOOLKIT_API FEESplit
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FEESplit
 	{
 		double TimeA = -1;
 		double TimeB = -1;
 		FVector Center = FVector::ZeroVector;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FEECrossing
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FEECrossing
 	{
 		int32 NodeIndex = -1;
 		int32 EdgeA = -1;
@@ -482,7 +482,7 @@ namespace PCGExGraph
 		bool operator==(const FEECrossing& Other) const { return NodeIndex == Other.NodeIndex; }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeProxy
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeProxy
 	{
 		int32 EdgeIndex = -1;
 		TArray<FEECrossing*> Intersections;
@@ -560,7 +560,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeProxySemantics
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeProxySemantics
 	{
 		enum { MaxElementsPerLeaf = 16 };
 
@@ -590,7 +590,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeIntersections
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
 		PCGExData::FPointIO* PointIO = nullptr;
@@ -706,7 +706,7 @@ namespace PCGExGraphTask
 {
 #pragma region Intersections tasks
 
-	class PCGEXTENDEDTOOLKIT_API FFindPointEdgeIntersections final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFindPointEdgeIntersections final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FFindPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
@@ -720,7 +720,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FInsertPointEdgeIntersections final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FInsertPointEdgeIntersections final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FInsertPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
@@ -735,7 +735,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FFindEdgeEdgeIntersections final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFindEdgeEdgeIntersections final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FFindEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,
@@ -749,7 +749,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FInsertEdgeEdgeIntersections final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FInsertEdgeEdgeIntersections final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FInsertEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,

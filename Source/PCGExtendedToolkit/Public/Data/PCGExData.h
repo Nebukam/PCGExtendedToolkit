@@ -15,7 +15,7 @@
 #include "PCGExData.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeGatherDetails : public FPCGExNameFiltersDetails
 {
 	GENERATED_BODY()
 
@@ -38,7 +38,7 @@ namespace PCGExData
 		return PCGEx::H64(GetTypeHash(FullName), static_cast<int32>(Type));
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCacheBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCacheBase
 	{
 		friend class FFacade;
 
@@ -79,7 +79,7 @@ namespace PCGExData
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FCache : public FCacheBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCache : public FCacheBase
 	{
 	public:
 		TArray<T> Values;
@@ -156,7 +156,7 @@ namespace PCGExData
 			return Reader;
 		}
 
-		PCGEx::TFAttributeWriter<T>* PrepareWriter(T DefaultValue, bool bAllowInterpolation, bool bUninitialized = false)
+		PCGEx::TFAttributeWriter<T>* PrepareWriter(T DefaultValue, bool bAllowInterpolation, const bool bUninitialized = false)
 		{
 			FWriteScopeLock WriteScopeLock(CacheLock);
 
@@ -174,7 +174,7 @@ namespace PCGExData
 			return Writer;
 		}
 
-		PCGEx::TFAttributeWriter<T>* PrepareWriter(bool bUninitialized = false)
+		PCGEx::TFAttributeWriter<T>* PrepareWriter(const bool bUninitialized = false)
 		{
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
@@ -265,7 +265,7 @@ namespace PCGExData
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FFacade
+	class /*PCGEXTENDEDTOOLKIT_API*/ FFacade
 	{
 		mutable FRWLock PoolLock;
 		mutable FRWLock CloudLock;
@@ -514,7 +514,7 @@ namespace PCGExData
 			return Cloud;
 		}
 
-		const UPCGPointData* GetData(ESource InSource) const { return Source->GetData(InSource); }
+		const UPCGPointData* GetData(const ESource InSource) const { return Source->GetData(InSource); }
 		const UPCGPointData* GetIn() const { return Source->GetIn(); }
 		UPCGPointData* GetOut() const { return Source->GetOut(); }
 
@@ -531,7 +531,7 @@ namespace PCGExData
 			CacheMap.Empty();
 		}
 
-		void Write(PCGExMT::FTaskManager* AsyncManager, bool bFlush)
+		void Write(PCGExMT::FTaskManager* AsyncManager, const bool bFlush)
 		{
 			for (FCacheBase* Cache : Caches) { Cache->Write(AsyncManager); }
 			if (bFlush) { Flush(); }
@@ -552,7 +552,7 @@ namespace PCGExData
 
 #pragma region Compound
 
-	struct PCGEXTENDEDTOOLKIT_API FIdxCompound
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FIdxCompound
 	{
 	protected:
 		mutable FRWLock CompoundLock;
@@ -576,7 +576,7 @@ namespace PCGExData
 		uint64 Add(const int32 IOIndex, const int32 PointIndex);
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FIdxCompoundList
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FIdxCompoundList
 	{
 		TArray<FIdxCompound*> Compounds;
 

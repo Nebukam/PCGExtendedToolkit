@@ -18,8 +18,8 @@ namespace PCGExCluster
 /**
  * 
  */
-UCLASS(BlueprintType, meta=(DisplayName="Remove Highest Score"))
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRemoveHighestScore : public UPCGExEdgeRefineOperation
+UCLASS(MinimalAPI, BlueprintType, meta=(DisplayName="Remove Highest Score"))
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveHighestScore : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()
 

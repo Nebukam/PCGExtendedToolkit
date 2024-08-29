@@ -9,7 +9,7 @@
 #include "PCGExCustomTangents.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleTangentConfig
 {
 	GENERATED_BODY()
 
@@ -18,72 +18,80 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentConfig
 		Direction.Update("$Transform.Backward");
 	}
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Direction;
-	PCGEx::FLocalVectorGetter DirectionGetter;
+	PCGExData::FCache<FVector>* DirectionGetter = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalScale = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalScale"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable, EditCondition="bUseLocalScale"))
 	FPCGAttributePropertyInputSelector LocalScale;
-	PCGEx::FLocalSingleFieldGetter ScaleGetter;
+	PCGExData::FCache<double>* ScaleGetter = nullptr;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
 	double DefaultScale = 10;
 
-	void PrepareForData(const PCGExData::FPointIO* InPointIO)
+	void PrepareForData(PCGExData::FFacade* InDataFacade)
 	{
-		DirectionGetter.Capture(Direction);
-		DirectionGetter.Grab(InPointIO);
-		if (bUseLocalScale)
-		{
-			ScaleGetter.bEnabled = true;
-			ScaleGetter.Capture(LocalScale);
-			ScaleGetter.Grab(InPointIO);
-		}
-		else { ScaleGetter.bEnabled = false; }
+		DirectionGetter = InDataFacade->GetBroadcaster<FVector>(Direction);
+
+		if (!bUseLocalScale) { return; }
+		ScaleGetter = InDataFacade->GetBroadcaster<double>(LocalScale);
 	}
 
 	FORCEINLINE FVector GetDirection(const int32 Index) const
 	{
-		return DirectionGetter[Index];
+		return DirectionGetter ? DirectionGetter->Values[Index] : FVector::ZeroVector;
 	}
 
 	FORCEINLINE FVector GetTangent(const int32 Index) const
 	{
-		return DirectionGetter[Index] * ScaleGetter.SafeGet(Index, DefaultScale);
-	}
-
-	void Cleanup()
-	{
-		DirectionGetter.Cleanup();
-		ScaleGetter.Cleanup();
+		return GetDirection(Index) * (ScaleGetter ? ScaleGetter->Values[Index] : DefaultScale);
 	}
 };
 
 /**
  * 
  */
-UCLASS(DisplayName="Custom")
-class PCGEXTENDEDTOOLKIT_API UPCGExCustomTangents : public UPCGExTangentsOperation
+UCLASS(MinimalAPI, DisplayName="Custom")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCustomTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents)
 	FPCGExSingleTangentConfig Arrive;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(InlineEditConditionToggle))
 	bool bMirror = true;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bMirror"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(EditCondition="!bMirror"))
 	FPCGExSingleTangentConfig Leave;
 
-	virtual void PrepareForData(PCGExData::FPointIO* InPointIO) override;
-	virtual void ProcessFirstPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const override;
-	virtual void ProcessLastPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const override;
-	virtual void ProcessPoint(const PCGExData::FPointRef& MainPoint, const PCGExData::FPointRef& PreviousPoint, const PCGExData::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const override;
+	virtual void PrepareForData(PCGExData::FFacade* InDataFacade) override
+	{
+		Super::PrepareForData(InDataFacade);
+		Arrive.PrepareForData(InDataFacade);
+		Leave.PrepareForData(InDataFacade);
+	}
 
-	virtual void Cleanup() override;
+	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
+	{
+		OutArrive = Arrive.GetTangent(0);
+		OutLeave = bMirror ? Arrive.GetTangent(0) : Leave.GetTangent(0);
+	}
+
+	FORCEINLINE virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
+	{
+		const int32 Index = InPoints.Num() - 1;
+		OutArrive = Arrive.GetTangent(Index);
+		OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
+	}
+
+	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const override
+	{
+		OutArrive = Arrive.GetTangent(Index);
+		OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
+	}
 };

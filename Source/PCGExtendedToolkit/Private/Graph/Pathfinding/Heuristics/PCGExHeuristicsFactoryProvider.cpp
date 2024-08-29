@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicsFactoryProvider.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
 #define PCGEX_NAMESPACE CreateHeuristics

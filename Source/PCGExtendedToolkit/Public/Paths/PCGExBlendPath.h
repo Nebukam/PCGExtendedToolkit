@@ -14,8 +14,8 @@ class UPCGExSubPointsBlendOperation;
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExBlendPathSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBlendPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -52,7 +52,7 @@ public:
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBlendPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExBlendPathElement;
 
@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendPathContext final : public FPCGExPathPr
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -75,7 +75,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathTask final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathTask final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExBlendPathTask(PCGExData::FPointIO* InPointIO) :

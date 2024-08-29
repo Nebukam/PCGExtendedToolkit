@@ -10,7 +10,6 @@
 #include "PCGExDetails.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExFusePoints.generated.h"
@@ -31,7 +30,7 @@ namespace PCGExFuse
 	PCGEX_ASYNC_STATE(State_FindingFusePoints)
 	PCGEX_ASYNC_STATE(State_MergingPoints)
 
-	struct PCGEXTENDEDTOOLKIT_API FFusedPoint
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FFusedPoint
 	{
 		mutable FRWLock IndicesLock;
 		int32 Index = -1;
@@ -63,8 +62,8 @@ namespace PCGExFuse
 	};
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExFusePointsSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFusePointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -105,14 +104,14 @@ private:
 	friend class FPCGExFusePointsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
 	virtual ~FPCGExFusePointsContext() override;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

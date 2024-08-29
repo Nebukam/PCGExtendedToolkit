@@ -7,7 +7,7 @@
 #include "PCGExTransform.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 {
 	GENERATED_BODY()
 
@@ -15,7 +15,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUVW
 	{
 	}
 
-	explicit FPCGExUVW(double DefaultW)
+	explicit FPCGExUVW(const double DefaultW)
 		: WConstant(DefaultW)
 	{
 	}

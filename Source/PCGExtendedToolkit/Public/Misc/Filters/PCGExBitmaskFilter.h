@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
-#include "PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -15,7 +14,7 @@
 #include "PCGExBitmaskFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskFilterConfig
 {
 	GENERATED_BODY()
 
@@ -52,8 +51,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBitmaskFilterConfig
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskFilterFactory : public UPCGExFilterFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -65,7 +64,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TBitmaskFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TBitmaskFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TBitmaskFilter(const UPCGExBitmaskFilterFactory* InDefinition)
@@ -101,8 +100,8 @@ namespace PCGExPointsFilter
 
 ///
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

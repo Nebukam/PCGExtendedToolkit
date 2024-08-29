@@ -10,8 +10,8 @@
 #include "Data/PCGExDataFilter.h"
 #include "PCGExMetaFilter.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExMetaFilterSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMetaFilterSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -42,7 +42,7 @@ public:
 	bool bSwap = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMetaFilterContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMetaFilterElement;
 
@@ -54,7 +54,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMetaFilterContext final : public FPCGExPoint
 	PCGExData::FPointIOCollection* Outside = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMetaFilterElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

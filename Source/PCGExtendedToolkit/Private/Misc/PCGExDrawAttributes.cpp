@@ -37,11 +37,6 @@ bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO* PointIO)
 		IndexGetter.Capture(*Config);
 		bValid = IndexGetter.Grab(PointIO);
 		break;
-	case EPCGExDebugExpression::Label:
-		//TextGetter.Capture(*Config);
-		//bValid = TextGetter.Grab(PointIO);
-		bValid = false;
-		break;
 	case EPCGExDebugExpression::Boolean:
 		SingleGetter.Capture(*Config);
 		bValid = SingleGetter.Grab(PointIO);
@@ -132,9 +127,6 @@ void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, c
 		break;
 	case EPCGExDebugExpression::Point:
 		DrawPoint(World, Start, Point);
-		break;
-	case EPCGExDebugExpression::Label:
-		DrawLabel(World, Start, Point);
 		break;
 	case EPCGExDebugExpression::Boolean:
 		DrawSingle(World, Start, Point);

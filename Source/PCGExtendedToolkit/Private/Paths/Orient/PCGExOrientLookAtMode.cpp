@@ -9,8 +9,7 @@
 void UPCGExOrientLookAt::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExOrientLookAt* TypedOther = Cast<UPCGExOrientLookAt>(Other);
-	if (TypedOther)
+	if (const UPCGExOrientLookAt* TypedOther = Cast<UPCGExOrientLookAt>(Other))
 	{
 		LookAt = TypedOther->LookAt;
 		LookAtAttribute = TypedOther->LookAtAttribute;
@@ -50,7 +49,7 @@ FTransform UPCGExOrientLookAt::ComputeOrientation(const PCGExData::FPointRef& Po
 	}
 }
 
-FTransform UPCGExOrientLookAt::LookAtWorldPos(FTransform InT, const FVector& WorldPos, const double DirectionMultiplier) const
+FTransform UPCGExOrientLookAt::LookAtWorldPos(const FTransform InT, const FVector& WorldPos, const double DirectionMultiplier) const
 {
 	FTransform OutT = InT;
 	OutT.SetRotation(
@@ -61,7 +60,7 @@ FTransform UPCGExOrientLookAt::LookAtWorldPos(FTransform InT, const FVector& Wor
 	return OutT;
 }
 
-FTransform UPCGExOrientLookAt::LookAtDirection(FTransform InT, const int32 Index, const double DirectionMultiplier) const
+FTransform UPCGExOrientLookAt::LookAtDirection(const FTransform InT, const int32 Index, const double DirectionMultiplier) const
 {
 	FTransform OutT = InT;
 	OutT.SetRotation(
@@ -70,7 +69,7 @@ FTransform UPCGExOrientLookAt::LookAtDirection(FTransform InT, const int32 Index
 	return OutT;
 }
 
-FTransform UPCGExOrientLookAt::LookAtPosition(FTransform InT, const int32 Index, const double DirectionMultiplier) const
+FTransform UPCGExOrientLookAt::LookAtPosition(const FTransform InT, const int32 Index, const double DirectionMultiplier) const
 {
 	FTransform OutT = InT;
 	const FVector Current = OutT.GetLocation();

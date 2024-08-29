@@ -10,8 +10,8 @@
 #include "Data/PCGExDataFilter.h"
 #include "PCGExMetaCleanup.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExMetaCleanupSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMetaCleanupSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -37,7 +37,7 @@ public:
 	FPCGExCarryOverDetails Filters;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMetaCleanupContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaCleanupContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMetaCleanupElement;
 
@@ -46,7 +46,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMetaCleanupContext final : public FPCGExPoin
 	virtual ~FPCGExMetaCleanupContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMetaCleanupElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaCleanupElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

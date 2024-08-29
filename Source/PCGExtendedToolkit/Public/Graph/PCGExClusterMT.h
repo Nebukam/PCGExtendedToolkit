@@ -10,7 +10,6 @@
 #include "PCGExCluster.h"
 #include "Data/PCGExClusterData.h"
 #include "Data/PCGExData.h"
-#include "Filters/PCGExClusterFilter.h"
 #include "Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
@@ -24,13 +23,13 @@ namespace PCGExClusterMT
 
 #define PCGEX_CLUSTER_MT_TASK(_NAME, _BODY)\
 	template <typename T>\
-	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
 	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
 		T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
 
 #define PCGEX_CLUSTER_MT_TASK_RANGE_INLINE(_NAME, _BODY)\
 	template <typename T> \
-	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask {\
+	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask {\
 	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InPerNumIterations, const uint64 InTotalIterations)\
 	: PCGExMT::FPCGExTask(InPointIO), Target(InTarget), PerNumIterations(InPerNumIterations), TotalIterations(InTotalIterations){}\
 		T* Target = nullptr; uint64 PerNumIterations = 0; uint64 TotalIterations = 0;\
@@ -43,14 +42,14 @@ namespace PCGExClusterMT
 
 #define PCGEX_CLUSTER_MT_TASK_RANGE(_NAME, _BODY)\
 	template <typename T>\
-	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
 	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InIterations) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations){} \
 		T* Target = nullptr; uint64 Iterations = 0; virtual bool ExecuteTask() override{_BODY return true; }};\
 	PCGEX_CLUSTER_MT_TASK_RANGE_INLINE(_NAME##Inline, _BODY)
 
 #define PCGEX_CLUSTER_MT_TASK_SCOPE(_NAME, _BODY)\
 	template <typename T>\
-	class PCGEXTENDEDTOOLKIT_API _NAME final : public PCGExMT::FPCGExTask	{\
+	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
 	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const TArray<uint64>& InScopes) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Scopes(InScopes){} \
 	T* Target = nullptr; TArray<uint64> Scopes; virtual bool ExecuteTask() override{_BODY return true; }};
 
@@ -76,22 +75,6 @@ namespace PCGExClusterMT
 
 	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncBatchProcessClosedRange, {Target->ProcessClosedBatchRange(TaskIndex, Iterations);})
 
-	/*
-	template <typename T> class PCGEXTENDEDTOOLKIT_API FAsyncBatchProcessRangeInline final : public PCGExMT::FPCGExTask {
-	public: FAsyncBatchProcessRangeInline(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InPerNumIterations, const uint64 InTotalIterations)
-		: PCGExMT::FPCGExTask(InPointIO), Target(InTarget), PerNumIterations(InPerNumIterations), TotalIterations(InTotalIterations){}
-		T* Target = nullptr; uint64 PerNumIterations = 0; uint64 TotalIterations = 0;
-
-		virtual bool ExecuteTask() override {
-			const uint64 RemainingIterations = TotalIterations - TaskIndex;
-			uint64 Iterations = FMath::Min(PerNumIterations, RemainingIterations);
-			{
-				Target->ProcessClosedBatchRange(TaskIndex, Iterations);
-			}
-			int32 NextIndex = TaskIndex + Iterations; if (NextIndex >= TotalIterations) { return true; }
-			InternalStart<FAsyncBatchProcessRangeInline>(NextIndex, nullptr, PerNumIterations, TotalIterations);
-			return true; } };
-	*/
 #pragma endregion
 
 	class FClusterProcessor
@@ -118,7 +101,7 @@ namespace PCGExClusterMT
 			return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, false, false, false);
 		}
 
-		void ForwardCluster(bool bAsOwner)
+		void ForwardCluster(const bool bAsOwner)
 		{
 			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(EdgesIO->GetOut()))
 			{
@@ -302,7 +285,7 @@ namespace PCGExClusterMT
 				});
 		}
 
-		virtual void ProcessView(int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
+		virtual void ProcessView(const int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
 		{
 			for (int i = 0; i < NodeView.Num(); i++)
 			{

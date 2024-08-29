@@ -10,8 +10,7 @@
 void UPCGExSubPointsOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExSubPointsOperation* TypedOther = Cast<UPCGExSubPointsOperation>(Other);
-	if (TypedOther)
+	if (const UPCGExSubPointsOperation* TypedOther = Cast<UPCGExSubPointsOperation>(Other))
 	{
 		bClosedPath = TypedOther->bClosedPath;
 	}

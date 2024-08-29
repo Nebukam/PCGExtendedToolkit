@@ -9,8 +9,8 @@
 #include "Relaxing/PCGExForceDirectedRelax.h"
 #include "PCGExRelaxClusters.generated.h"
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExRelaxClustersSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRelaxClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -47,7 +47,7 @@ private:
 	friend class FPCGExRelaxClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRelaxClustersElement;
 
@@ -56,7 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxClustersContext final : public FPCGExEd
 	UPCGExRelaxClusterOperation* Relaxing = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRelaxClustersElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

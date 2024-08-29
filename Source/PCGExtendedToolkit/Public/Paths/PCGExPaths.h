@@ -7,7 +7,7 @@
 
 namespace PCGExPaths
 {
-	struct PCGEXTENDEDTOOLKIT_API FMetadata
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FMetadata
 	{
 		double Position = 0;
 		double TotalLength = 0;

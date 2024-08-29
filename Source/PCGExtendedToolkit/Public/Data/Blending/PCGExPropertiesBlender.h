@@ -18,7 +18,7 @@ namespace PCGExDataBlending
 		EPCGExDataBlendingType::Sum,
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPropertiesBlender
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPropertiesBlender
 	{
 #define PCGEX_BLEND_FUNCREF(_TYPE, _NAME, ...) bool bReset##_NAME = false; EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Weight;
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCREF)

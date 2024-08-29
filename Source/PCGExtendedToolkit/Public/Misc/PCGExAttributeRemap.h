@@ -14,7 +14,7 @@
 #include "PCGExAttributeRemap.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComponentRemapRule
 {
 	GENERATED_BODY()
 
@@ -37,10 +37,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComponentRemapRule
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExClampDetails OutputClampDetails;
+
+	TArray<double> MinCache;
+	TArray<double> MaxCache;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExAttributeRemapSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeRemapSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -98,7 +101,7 @@ private:
 	friend class FPCGExAttributeRemapElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeRemapElement;
 
@@ -108,7 +111,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext final : public FPCGExP
 	int32 RemapIndices[4];
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -121,20 +124,103 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRemapPointIO final : public PCGExMT::FPCGExTask
+namespace PCGExAttributeRemap
 {
-public:
-	FPCGExRemapPointIO(PCGExData::FPointIO* InPointIO,
-	                   const EPCGMetadataTypes InDataType,
-	                   const int32 InDimensions) :
-		FPCGExTask(InPointIO),
-		DataType(InDataType),
-		Dimensions(InDimensions)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		FPCGExAttributeRemapContext* LocalTypedContext = nullptr;
+		const UPCGExAttributeRemapSettings* LocalSettings = nullptr;
 
-	EPCGMetadataTypes DataType;
-	int32 Dimensions;
+		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
+		int32 Dimensions = 0;
 
-	virtual bool ExecuteTask() override;
-};
+		TArray<FPCGExComponentRemapRule> Rules;
+
+		PCGEx::FAAttributeIO* CacheWriter = nullptr;
+		PCGEx::FAAttributeIO* CacheReader = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+
+		template <typename T>
+		void RemapRange(const int32 StartIndex, const int32 Count, T DummyValue)
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
+
+			PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(CacheWriter);
+
+			for (int d = 0; d < Dimensions; d++)
+			{
+				FPCGExComponentRemapRule& Rule = Rules[d];
+
+				double VAL;
+
+				if (Rule.RemapDetails.bUseAbsoluteRange)
+				{
+					if (Rule.RemapDetails.bPreserveSign)
+					{
+						for (int i = StartIndex; i < StartIndex + Count; i++)
+						{
+							T& V = Writer->Values[i];
+							VAL = PCGExMath::GetComponent(V, d);
+							VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL)) * PCGExMath::SignPlus(VAL);
+							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
+
+							PCGExMath::SetComponent(V, d, VAL);
+						}
+					}
+					else
+					{
+						for (int i = StartIndex; i < StartIndex + Count; i++)
+						{
+							T& V = Writer->Values[i];
+							VAL = PCGExMath::GetComponent(V, d);
+							VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL));
+							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
+
+							PCGExMath::SetComponent(V, d, VAL);
+						}
+					}
+				}
+				else
+				{
+					if (Rule.RemapDetails.bPreserveSign)
+					{
+						for (int i = StartIndex; i < StartIndex + Count; i++)
+						{
+							T& V = Writer->Values[i];
+							VAL = PCGExMath::GetComponent(V, d);
+							VAL = Rule.RemapDetails.GetRemappedValue(VAL);
+							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
+
+							PCGExMath::SetComponent(V, d, VAL);
+						}
+					}
+					else
+					{
+						for (int i = StartIndex; i < StartIndex + Count; i++)
+						{
+							T& V = Writer->Values[i];
+							VAL = PCGExMath::GetComponent(V, d);
+							VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL));
+							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
+
+							PCGExMath::SetComponent(V, d, VAL);
+						}
+					}
+				}
+			}
+		}
+
+		void OnPreparationComplete();
+
+		virtual void CompleteWork() override;
+	};
+}

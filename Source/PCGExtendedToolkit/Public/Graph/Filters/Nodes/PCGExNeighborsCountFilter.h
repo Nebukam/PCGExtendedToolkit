@@ -15,7 +15,7 @@
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExNeighborsCountFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNeighborsCountFilterConfig
 {
 	GENERATED_BODY()
 
@@ -47,8 +47,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNeighborsCountFilterConfig
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExNeighborsCountFilterFactory : public UPCGExClusterFilterFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborsCountFilterFactory : public UPCGExClusterFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -60,7 +60,7 @@ public:
 
 namespace PCGExNodeNeighborsCount
 {
-	class PCGEXTENDEDTOOLKIT_API FNeighborsCountFilter final : public PCGExClusterFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FNeighborsCountFilter final : public PCGExClusterFilter::TFilter
 	{
 	public:
 		explicit FNeighborsCountFilter(const UPCGExNeighborsCountFilterFactory* InFactory)
@@ -84,8 +84,8 @@ namespace PCGExNodeNeighborsCount
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 

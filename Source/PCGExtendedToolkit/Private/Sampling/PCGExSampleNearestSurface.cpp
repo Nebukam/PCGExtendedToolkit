@@ -41,6 +41,7 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
 	if (Context->bUseInclude)
@@ -58,6 +59,23 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 		{
 			return false;
 		}
+
+		TSet<UPrimitiveComponent*> IncludedPrimitiveSet;
+		for (const TPair<AActor*, int32> Pair : Context->IncludedActors)
+		{
+			TArray<UPrimitiveComponent*> FoundPrimitives;
+			Pair.Key->GetComponents(UPrimitiveComponent::StaticClass(), FoundPrimitives);
+			for (UPrimitiveComponent* Primitive : FoundPrimitives) { IncludedPrimitiveSet.Add(Primitive); }
+		}
+
+		if (IncludedPrimitiveSet.IsEmpty())
+		{
+			// TODO : Throw
+			return false;
+		}
+
+		Context->IncludedPrimitives.Reserve(IncludedPrimitiveSet.Num());
+		Context->IncludedPrimitives.Append(IncludedPrimitiveSet.Array());
 	}
 
 	return true;
@@ -126,6 +144,7 @@ namespace PCGExSampleNearestSurface
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_INIT)
+			PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_INIT_DEFAULT)
 		}
 
 		if (Settings->bUseLocalMaxDistance)
@@ -270,32 +289,48 @@ namespace PCGExSampleNearestSurface
 		};
 
 
-		switch (LocalSettings->CollisionType)
+		if (LocalSettings->SurfaceSource == EPCGExSurfaceSource::ActorReferences)
 		{
-		case EPCGExCollisionFilterType::Channel:
-			if (LocalTypedContext->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, LocalSettings->CollisionChannel, CollisionShape, CollisionParams))
+			for (const UPrimitiveComponent* Primitive : LocalTypedContext->IncludedPrimitives)
 			{
-				ProcessOverlapResults();
+				TArray<FOverlapResult> TempOverlaps;
+				if (Primitive->OverlapComponentWithResult(Origin, FQuat::Identity, CollisionShape, TempOverlaps))
+				{
+					OutOverlaps.Append(TempOverlaps);
+				}
 			}
-			else { SamplingFailed(); }
-			break;
-		case EPCGExCollisionFilterType::ObjectType:
-			if (LocalTypedContext->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionShape, CollisionParams))
+			if (OutOverlaps.IsEmpty()) { SamplingFailed(); }
+			else { ProcessOverlapResults(); }
+		}
+		else
+		{
+			switch (LocalSettings->CollisionType)
 			{
-				ProcessOverlapResults();
+			case EPCGExCollisionFilterType::Channel:
+				if (LocalTypedContext->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, LocalSettings->CollisionChannel, CollisionShape, CollisionParams))
+				{
+					ProcessOverlapResults();
+				}
+				else { SamplingFailed(); }
+				break;
+			case EPCGExCollisionFilterType::ObjectType:
+				if (LocalTypedContext->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionShape, CollisionParams))
+				{
+					ProcessOverlapResults();
+				}
+				else { SamplingFailed(); }
+				break;
+			case EPCGExCollisionFilterType::Profile:
+				if (LocalTypedContext->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, LocalSettings->CollisionProfileName, CollisionShape, CollisionParams))
+				{
+					ProcessOverlapResults();
+				}
+				else { SamplingFailed(); }
+				break;
+			default:
+				SamplingFailed();
+				break;
 			}
-			else { SamplingFailed(); }
-			break;
-		case EPCGExCollisionFilterType::Profile:
-			if (LocalTypedContext->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, LocalSettings->CollisionProfileName, CollisionShape, CollisionParams))
-			{
-				ProcessOverlapResults();
-			}
-			else { SamplingFailed(); }
-			break;
-		default:
-			SamplingFailed();
-			break;
 		}
 	}
 

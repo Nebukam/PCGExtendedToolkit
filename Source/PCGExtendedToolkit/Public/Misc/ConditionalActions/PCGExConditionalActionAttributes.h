@@ -9,7 +9,6 @@
 
 #include "PCGExFactoryProvider.h"
 #include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
 
 #include "PCGExConditionalActionAttributes.generated.h"
@@ -20,11 +19,13 @@ namespace PCGExConditionalActionAttribute
 	const FName SourceForwardFail = TEXT("MatchFail");
 }
 
+class UPCGExConditionalActionAttributesFactory;
+
 /**
  * 
  */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionAttributesOperation : public UPCGExConditionalActionOperation
+UCLASS(MinimalAPI)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionAttributesOperation : public UPCGExConditionalActionOperation
 {
 	GENERATED_BODY()
 
@@ -46,8 +47,8 @@ protected:
 	TArray<PCGEx::FAAttributeIO*> FailWriters;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionAttributesFactory : public UPCGExConditionalActionFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionAttributesFactory : public UPCGExConditionalActionFactoryBase
 {
 	friend class UPCGExConditionalActionAttributesProviderSettings;
 
@@ -62,8 +63,8 @@ protected:
 	FPCGExAttributeGatherDetails FailAttributesFilter;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ConditionalActionAttributes")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionAttributesProviderSettings : public UPCGExConditionalActionProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ConditionalActionAttributes")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionAttributesProviderSettings : public UPCGExConditionalActionProviderSettings
 {
 	GENERATED_BODY()
 

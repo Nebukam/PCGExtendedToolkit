@@ -27,7 +27,7 @@ class UPCGExFilterFactoryBase;
 
 namespace PCGExPolyLine
 {
-	struct PCGEXTENDEDTOOLKIT_API FSampleInfos
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FSampleInfos
 	{
 		FSampleInfos()
 		{
@@ -43,7 +43,7 @@ namespace PCGExPolyLine
 		double Time = 0;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FTargetsCompoundInfos
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FTargetsCompoundInfos
 	{
 		FTargetsCompoundInfos()
 		{
@@ -91,8 +91,8 @@ namespace PCGExPolyLine
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestSplineSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleNearestSplineSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -266,7 +266,7 @@ public:
 	FName NumSamplesAttributeName = FName("NumSamples");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSplineContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleNearestSplineElement;
 
@@ -281,7 +281,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSplineContext final : public FP
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

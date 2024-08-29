@@ -13,7 +13,7 @@
 #include "PCGExDataDetails.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInfluenceDetails
 {
 	GENERATED_BODY()
 

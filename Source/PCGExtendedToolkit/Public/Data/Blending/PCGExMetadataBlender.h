@@ -12,7 +12,7 @@
 
 namespace PCGExDataBlending
 {
-	class PCGEXTENDEDTOOLKIT_API FMetadataBlender final
+	class /*PCGEXTENDEDTOOLKIT_API*/ FMetadataBlender final
 	{
 	public:
 		bool bBlendProperties = true;
@@ -69,14 +69,14 @@ namespace PCGExDataBlending
 			PropertiesBlender->Blend(*(PrimaryPoints->GetData() + PrimaryIndex), *(SecondaryPoints->GetData() + SecondaryIndex), (*PrimaryPoints)[TargetIndex], Weight);
 		}
 
-		FORCEINLINE void CompleteBlending(const PCGExData::FPointRef& Target, const int32 Count, double TotalWeight) const
+		FORCEINLINE void CompleteBlending(const PCGExData::FPointRef& Target, const int32 Count, const double TotalWeight) const
 		{
 			for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(Target.Index, Count, TotalWeight); }
 			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
 			PropertiesBlender->CompleteBlending(Target.MutablePoint(), Count, TotalWeight);
 		}
 
-		FORCEINLINE void CompleteBlending(const int32 PrimaryIndex, const int32 Count, double TotalWeight) const
+		FORCEINLINE void CompleteBlending(const int32 PrimaryIndex, const int32 Count, const double TotalWeight) const
 		{
 			//check(Count > 0) // Ugh, there's a check missing in a blender user...
 			for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(PrimaryIndex, Count, TotalWeight); }

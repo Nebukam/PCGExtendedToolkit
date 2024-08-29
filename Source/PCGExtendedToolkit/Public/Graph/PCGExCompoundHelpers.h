@@ -7,7 +7,6 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExGraph.h"
-#include "PCGExEdge.h"
 #include "PCGExIntersections.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
@@ -17,7 +16,7 @@
 
 namespace PCGExGraph
 {
-	struct PCGEXTENDEDTOOLKIT_API FCompoundProcessor
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundProcessor
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 

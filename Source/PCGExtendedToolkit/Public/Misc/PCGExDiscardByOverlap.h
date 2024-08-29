@@ -9,7 +9,6 @@
 #include "PCGExPointsToBounds.h"
 #include "PCGExSortPoints.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 #include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
 
 #include "PCGExDiscardByOverlap.generated.h"
@@ -44,8 +43,8 @@ namespace PCGExDiscardByOverlap
 	PCGEX_ASYNC_STATE(State_ProcessPreciseOverlap)
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExDiscardByOverlapSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDiscardByOverlapSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -114,7 +113,7 @@ private:
 	friend class FPCGExDiscardByOverlapElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExDiscardByOverlapElement;
 	virtual ~FPCGExDiscardByOverlapContext() override;
@@ -125,7 +124,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext final : public FPCGE
 	static void RemoveFBounds(const PCGExPointsToBounds::FBounds* Bounds, TArray<PCGExPointsToBounds::FBounds*>& OutAffectedBounds);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
@@ -137,7 +136,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExComputePreciseOverlap final : public PCGExMT::FPCGExTask
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComputePreciseOverlap final : public PCGExMT::FPCGExTask
 {
 public:
 	FPCGExComputePreciseOverlap(PCGExData::FPointIO* InPointIO,

@@ -30,7 +30,7 @@ namespace PCGExData
 		Out
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointRef
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointRef
 	{
 		friend struct FPointIO;
 
@@ -59,7 +59,7 @@ namespace PCGExData
 	/**
 	 * 
 	 */
-	struct PCGEXTENDEDTOOLKIT_API FPointIO
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointIO
 	{
 		friend class FPointIOCollection;
 
@@ -83,7 +83,7 @@ namespace PCGExData
 		FTags* Tags = nullptr;
 		int32 IOIndex = 0;
 
-		FPointIO(FPCGExContext* InContext):
+		explicit FPointIO(FPCGExContext* InContext):
 			Context(InContext), In(nullptr)
 		{
 			PCGEX_LOG_CTR(FPointIO)
@@ -162,7 +162,7 @@ namespace PCGExData
 		~FPointIO();
 
 		FORCEINLINE const UPCGPointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
-		FORCEINLINE UPCGPointData* GetMutableData(ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
+		FORCEINLINE UPCGPointData* GetMutableData(const ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
 		FORCEINLINE const UPCGPointData* GetIn() const { return In; }
 		FORCEINLINE UPCGPointData* GetOut() const { return Out; }
 		FORCEINLINE const UPCGPointData* GetOutIn() const { return Out ? Out : In; }
@@ -221,7 +221,7 @@ namespace PCGExData
 			return Pt;
 		}
 
-		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit) const
+		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, const bool bInit) const
 		{
 			FWriteScopeLock WriteLock(PointsLock);
 			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
@@ -254,14 +254,14 @@ namespace PCGExData
 	/**
 	 * 
 	 */
-	class PCGEXTENDEDTOOLKIT_API FPointIOCollection
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOCollection
 	{
 	protected:
 		mutable FRWLock PairsLock;
 		FPCGExContext* Context = nullptr;
 
 	public:
-		FPointIOCollection(FPCGExContext* InContext);
+		explicit FPointIOCollection(FPCGExContext* InContext);
 		FPointIOCollection(FPCGExContext* InContext, FName InputLabel, EInit InitOut = EInit::NoOutput);
 		FPointIOCollection(FPCGExContext* InContext, TArray<FPCGTaggedData>& Sources, EInit InitOut = EInit::NoOutput);
 
@@ -272,7 +272,6 @@ namespace PCGExData
 
 		/**
 		 * Initialize from Sources
-		 * @param Context 
 		 * @param Sources 
 		 * @param InitOut 
 		 */
@@ -298,7 +297,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		FPointIO* Emplace_GetRef(EInit InitOut = EInit::NewOutput)
+		FPointIO* Emplace_GetRef(const EInit InitOut = EInit::NewOutput)
 		{
 			FWriteScopeLock WriteLock(PairsLock);
 			FPointIO* NewIO = new FPointIO(Context);
@@ -332,7 +331,7 @@ namespace PCGExData
 		void Flush();
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedEntries
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedEntries
 	{
 	public:
 		FString TagId;
@@ -352,7 +351,7 @@ namespace PCGExData
 		void Add(FPointIO* Value);
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedDictionary
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedDictionary
 	{
 	public:
 		FString TagId;

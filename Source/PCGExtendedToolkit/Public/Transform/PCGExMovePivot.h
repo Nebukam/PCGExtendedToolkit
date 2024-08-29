@@ -9,8 +9,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
-#include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "PCGExMovePivot.generated.h"
 
@@ -18,7 +16,7 @@ class FPCGExComputeIOBounds;
 
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExMovePivotSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMovePivotSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -47,14 +45,14 @@ private:
 	friend class FPCGExMovePivotElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMovePivotContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMovePivotContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMovePivotElement;
 
 	virtual ~FPCGExMovePivotContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMovePivotElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMovePivotElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

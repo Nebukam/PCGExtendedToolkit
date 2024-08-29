@@ -19,8 +19,8 @@ namespace PCGExGeo
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExBuildDelaunayGraphSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildDelaunayGraphSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -83,7 +83,7 @@ private:
 	friend class FPCGExBuildDelaunayGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraphContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildDelaunayGraphElement;
 
@@ -94,7 +94,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext final : public FPC
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraphElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -135,7 +135,7 @@ namespace PCGExBuildDelaunay
 		virtual void Write() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FOutputDelaunaySites final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunaySites final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FOutputDelaunaySites(PCGExData::FPointIO* InPointIO,
@@ -150,7 +150,7 @@ namespace PCGExBuildDelaunay
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FOutputDelaunayUrquhartSites final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FOutputDelaunayUrquhartSites(PCGExData::FPointIO* InPointIO,

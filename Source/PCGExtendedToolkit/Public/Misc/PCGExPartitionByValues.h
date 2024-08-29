@@ -15,7 +15,7 @@ namespace PCGExPartition
 
 	class FKPartition;
 
-	class PCGEXTENDEDTOOLKIT_API FKPartition
+	class /*PCGEXTENDEDTOOLKIT_API*/ FKPartition
 	{
 	protected:
 		mutable FRWLock LayersLock;
@@ -54,8 +54,8 @@ namespace PCGExPartition
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesBaseSettings : public UPCGExPointsProcessorSettings
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPartitionByValuesBaseSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -95,8 +95,8 @@ public:
 /**
  * 
  */
-UCLASS(BlueprintType, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPartitionByValuesBaseSettings
+UCLASS(BlueprintType, MinimalAPI, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPartitionByValuesSettings : public UPCGExPartitionByValuesBaseSettings
 {
 	GENERATED_BODY()
 
@@ -121,7 +121,7 @@ public:
 	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const override;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionByValuesBaseContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPartitionByValuesBaseElement;
 
@@ -130,7 +130,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext final : public 
 	TArray<FPCGExPartitonRuleConfig> RulesConfigs;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionByValuesBaseElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -158,7 +158,7 @@ namespace PCGExPartitionByValues
 		FPCGExPartitionByValuesBaseContext* LocalTypedContext = nullptr;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InPoints):
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
 		{
 		}

@@ -7,14 +7,13 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Graph/PCGExGraph.h"
 #include "PCGExPrimitiveProcessor.generated.h"
 
 /**
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExPrimitiveProcessorSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPrimitiveProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -32,12 +31,12 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveProcessorContext : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveProcessorContext : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPrimitiveProcessorElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveProcessorElement : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

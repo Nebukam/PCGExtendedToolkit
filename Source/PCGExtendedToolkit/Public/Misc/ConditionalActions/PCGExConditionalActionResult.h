@@ -12,11 +12,13 @@
 
 #include "PCGExConditionalActionResult.generated.h"
 
+class UPCGExConditionalActionResultFactory;
+
 /**
  * 
  */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionResultOperation : public UPCGExConditionalActionOperation
+UCLASS(MinimalAPI)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionResultOperation : public UPCGExConditionalActionOperation
 {
 	GENERATED_BODY()
 
@@ -26,8 +28,8 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-	FORCEINLINE virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = true; }
-	FORCEINLINE virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = false; }
+	FORCEINLINE virtual void OnMatchSuccess(const int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = true; }
+	FORCEINLINE virtual void OnMatchFail(const int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = false; }
 
 	virtual void Cleanup() override;
 
@@ -35,8 +37,8 @@ protected:
 	PCGEx::TFAttributeWriter<bool>* ResultWriter = nullptr;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionResultFactory : public UPCGExConditionalActionFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionResultFactory : public UPCGExConditionalActionFactoryBase
 {
 	friend class UPCGExConditionalActionResultProviderSettings;
 
@@ -49,8 +51,8 @@ public:
 	virtual bool Boot(FPCGContext* InContext) override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ConditionalActionResult")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionResultProviderSettings : public UPCGExConditionalActionProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|ConditionalActionResult")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionResultProviderSettings : public UPCGExConditionalActionProviderSettings
 {
 	GENERATED_BODY()
 

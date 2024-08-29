@@ -21,7 +21,7 @@ namespace PCGExPointsToBounds
 
 	PCGEX_ASYNC_STATE(State_ComputeBounds)
 
-	struct PCGEXTENDEDTOOLKIT_API FBounds
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FBounds
 	{
 		FBox Bounds = FBox(ForceInit);
 		PCGExData::FPointIO* PointIO;
@@ -131,8 +131,8 @@ namespace PCGExPointsToBounds
 }
 
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExPointsToBoundsSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointsToBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -177,14 +177,14 @@ private:
 	friend class FPCGExPointsToBoundsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsToBoundsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPointsToBoundsElement;
 
 	virtual ~FPCGExPointsToBoundsContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
@@ -198,7 +198,7 @@ protected:
 
 namespace PCGExPointsToBounds
 {
-	class PCGEXTENDEDTOOLKIT_API FComputeIOBoundsTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FComputeIOBoundsTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FComputeIOBoundsTask(PCGExData::FPointIO* InPointIO,

@@ -4,11 +4,12 @@
 
 #include "Paths/Orient/PCGExOrientWeighted.h"
 
+#include "Geometry/PCGExGeo.h"
+
 void UPCGExOrientWeighted::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExOrientWeighted* TypedOther = Cast<UPCGExOrientWeighted>(Other);
-	if (TypedOther)
+	if (const UPCGExOrientWeighted* TypedOther = Cast<UPCGExOrientWeighted>(Other))
 	{
 		bInverseWeight = TypedOther->bInverseWeight;
 	}
@@ -23,7 +24,7 @@ FTransform UPCGExOrientWeighted::ComputeOrientation(const PCGExData::FPointRef& 
 	const FVector NextPos = Next.Point->Transform.GetLocation();
 	const FVector DirToPrev = (PrevPos - Current);
 	const FVector DirToNext = (Current - NextPos);
-	const double Weight = PCGExMath::FApex(PrevPos, NextPos, Current).Alpha;
+	const double Weight = PCGExGeo::FApex(PrevPos, NextPos, Current).Alpha;
 
 	OutT.SetRotation(
 		PCGExMath::MakeDirection(

@@ -7,8 +7,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGContext.h"
+#include "Engine/StreamableManager.h"
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExContext : public FPCGContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : public FPCGContext
 {
 protected:
 	mutable FRWLock ContextOutputLock;
@@ -32,5 +33,27 @@ public:
 	void FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
 	void FutureOutput(const FName Pin, UPCGData* InData);
 
+
 	virtual void OnComplete();
+
+#pragma region Async resource management
+
+	void CancelAssetLoading();
+	bool WasAssetLoadRequested() const { return bAssetLoadRequested; }
+	bool HasAssetRequirements() const { return !RequiredAssets.IsEmpty(); }
+
+	virtual void RegisterAssetDependencies();
+	void RegisterAssetRequirement(const FSoftObjectPath& Dependency);
+	void LoadAssets();
+
+protected:
+	bool bAssetLoadRequested = false;
+	bool bAssetLoadError = false;
+	TSet<FSoftObjectPath> RequiredAssets;
+
+	/** Handle holder for any loaded resources */
+	TSharedPtr<FStreamableHandle> LoadHandle;
+
+
+#pragma endregion
 };

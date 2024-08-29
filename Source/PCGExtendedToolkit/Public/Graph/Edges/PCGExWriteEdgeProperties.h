@@ -50,8 +50,8 @@ enum class EPCGExHeuristicsWriteMode : uint8
 	Highest UMETA(DisplayName = "Highest Score", ToolTip="Compute heuristics both ways a keep highest score."),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteEdgePropertiesSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteEdgePropertiesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -215,7 +215,7 @@ private:
 	friend class FPCGExWriteEdgePropertiesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgePropertiesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteEdgePropertiesElement;
 
@@ -224,7 +224,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgePropertiesContext final : public FP
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

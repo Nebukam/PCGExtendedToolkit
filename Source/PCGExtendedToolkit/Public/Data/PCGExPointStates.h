@@ -10,13 +10,12 @@
 
 #include "PCGExData.h"
 #include "PCGExPointFilter.h"
-#include "../Misc/PCGExBitmaskMerge.h"
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExPointStates.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExStateConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStateConfigBase
 {
 	GENERATED_BODY()
 
@@ -52,7 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStateConfigBase
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryBase : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryBase : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -65,7 +64,7 @@ public:
 
 namespace PCGExPointStates
 {
-	class PCGEXTENDEDTOOLKIT_API FState : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ FState : public PCGExPointFilter::TFilter
 	{
 	public:
 		FPCGExStateConfigBase* BaseConfig = nullptr;
@@ -89,7 +88,7 @@ namespace PCGExPointStates
 		PCGExPointFilter::TManager* Manager = nullptr;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FStateManager : public PCGExPointFilter::TManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExPointFilter::TManager
 	{
 		TArray<FState*> States;
 		TArray<int64>* FlagsCache = nullptr;
@@ -106,7 +105,7 @@ namespace PCGExPointStates
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExPointStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

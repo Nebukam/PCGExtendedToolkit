@@ -9,7 +9,7 @@
 namespace PCGExDataBlending
 {
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingAverage final : public TDataBlendingOperation<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAverage final : public TDataBlendingOperation<T>
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Average; };
@@ -23,7 +23,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingCopy final : public TDataBlendingOperation<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingCopy final : public TDataBlendingOperation<T>
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Copy; };
@@ -31,7 +31,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingSum final : public TDataBlendingOperation<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingSum final : public TDataBlendingOperation<T>
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Sum; };
@@ -44,7 +44,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingMax final : public FDataBlendingOperationWithFirstInit<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingMax final : public FDataBlendingOperationWithFirstInit<T>
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Max; };
@@ -52,7 +52,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingMin final : public FDataBlendingOperationWithFirstInit<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingMin final : public FDataBlendingOperationWithFirstInit<T>
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Min; };
@@ -60,7 +60,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingWeight final : public TDataBlendingOperation<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeight final : public TDataBlendingOperation<T>
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Weight; };
@@ -74,7 +74,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingWeightedSum final : public TDataBlendingOperation<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSum final : public TDataBlendingOperation<T>
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::WeightedSum; };
@@ -87,7 +87,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingLerp final : public TDataBlendingOperation<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingLerp final : public TDataBlendingOperation<T>
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Lerp; };
@@ -95,7 +95,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingNone final : public FDataBlendingOperationWithFirstInit<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingNone final : public FDataBlendingOperationWithFirstInit<T>
 	{
 	public:
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return A; }

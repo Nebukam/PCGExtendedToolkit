@@ -9,7 +9,7 @@
 
 namespace PCGExGeo
 {
-	class PCGEXTENDEDTOOLKIT_API TVoronoi2
+	class /*PCGEXTENDEDTOOLKIT_API*/ TVoronoi2
 	{
 	public:
 		TDelaunay2* Delaunay = nullptr;
@@ -70,7 +70,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TVoronoi3
+	class /*PCGEXTENDEDTOOLKIT_API*/ TVoronoi3
 	{
 	public:
 		TDelaunay3* Delaunay = nullptr;

@@ -3,8 +3,6 @@
 
 #include "Misc/PCGExMetaCleanup.h"
 
-#include "Helpers/PCGHelpers.h"
-
 #define LOCTEXT_NAMESPACE "PCGExMetaCleanupElement"
 #define PCGEX_NAMESPACE MetaCleanup
 

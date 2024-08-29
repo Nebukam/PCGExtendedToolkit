@@ -5,7 +5,6 @@
 
 #include "PCGEx.h"
 #include "PCGExMT.h"
-#include "PCGExDetails.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
@@ -70,7 +69,7 @@ enum class EPCGExDataBlendingType : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointPropertyBlendingOverrides
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPropertyBlendingOverrides
 {
 	GENERATED_BODY()
 
@@ -134,7 +133,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPropertyBlendingOverrides
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPropertiesBlendingDetails
 {
 	GENERATED_BODY()
 
@@ -206,7 +205,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingDetails
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 {
 	GENERATED_BODY()
 
@@ -287,7 +286,7 @@ namespace PCGExDataBlending
 	/**
 	 * 
 	 */
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ FDataBlendingOperationBase
 	{
 	public:
 		virtual ~FDataBlendingOperationBase()
@@ -336,7 +335,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API TDataBlendingOperation : public FDataBlendingOperationBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingOperation : public FDataBlendingOperationBase
 	{
 	protected:
 		void Cleanup()
@@ -448,7 +447,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationWithFirstInit : public TDataBlendingOperation<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FDataBlendingOperationWithFirstInit : public TDataBlendingOperation<T>
 	{
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const override
 		{

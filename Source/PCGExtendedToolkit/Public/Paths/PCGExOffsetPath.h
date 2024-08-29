@@ -13,8 +13,8 @@
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExOffsetPathSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOffsetPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -63,14 +63,14 @@ public:
 	FPCGAttributePropertyInputSelector UpVectorAttribute;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExOffsetPathElement;
 
 	virtual ~FPCGExOffsetPathContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -110,8 +110,5 @@ namespace PCGExOffsetPath
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
-
-	protected:
-		FVector NRM(const int32 A, const int32 B, const int32 C) const;
 	};
 }

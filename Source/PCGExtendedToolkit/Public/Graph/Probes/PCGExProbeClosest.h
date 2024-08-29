@@ -17,7 +17,7 @@ namespace PCGExProbing
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigClosest : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
@@ -51,8 +51,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigClosest : public FPCGExProbeConfi
 /**
  * 
  */
-UCLASS(DisplayName = "Closest")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeClosest : public UPCGExProbeOperation
+UCLASS(MinimalAPI, DisplayName = "Closest")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeClosest : public UPCGExProbeOperation
 {
 	GENERATED_BODY()
 
@@ -73,8 +73,8 @@ protected:
 
 ////
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryClosest : public UPCGExProbeFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryClosest : public UPCGExProbeFactoryBase
 {
 	GENERATED_BODY()
 
@@ -83,8 +83,8 @@ public:
 	virtual UPCGExProbeOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeClosestProviderSettings : public UPCGExProbeFactoryProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeClosestProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
 

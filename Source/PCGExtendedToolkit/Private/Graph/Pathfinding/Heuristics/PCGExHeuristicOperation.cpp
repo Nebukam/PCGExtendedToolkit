@@ -43,5 +43,6 @@ void UPCGExHeuristicOperation::Cleanup()
 {
 	Cluster = nullptr;
 	LocalWeightMultiplier.Empty();
+	PCGEX_CLEAN_SP(ScoreCurveObj)
 	Super::Cleanup();
 }

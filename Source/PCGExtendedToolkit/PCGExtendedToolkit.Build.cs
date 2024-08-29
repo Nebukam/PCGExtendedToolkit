@@ -31,8 +31,9 @@ public class PCGExtendedToolkit : ModuleRules
 				"CoreUObject",
 				"GeometryCore",
 				"NavigationSystem",
+				"Landscape",
 				"Engine",
-				"PCG",
+				"PCG"
 			}
 		);
 

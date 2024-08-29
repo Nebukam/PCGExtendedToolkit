@@ -13,8 +13,8 @@
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExSmoothSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSmoothSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -81,7 +81,7 @@ public:
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSmoothContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSmoothElement;
 
@@ -90,7 +90,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext final : public FPCGExPathProce
 	UPCGExSmoothingOperation* SmoothingMethod = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSmoothElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSmoothElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

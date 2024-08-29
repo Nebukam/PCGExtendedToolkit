@@ -23,7 +23,7 @@ namespace PCGExVtxProperty
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 {
 	GENERATED_BODY()
 	virtual ~FPCGExSimpleEdgeOutputSettings() = default;
@@ -87,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
 {
 	GENERATED_BODY()
 
@@ -174,7 +174,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyOperation : public UPCGExOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
@@ -197,7 +197,7 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyFactoryBase : public UPCGExParamFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
@@ -207,7 +207,7 @@ public:
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyProviderSettings : public UPCGExFactoryProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 

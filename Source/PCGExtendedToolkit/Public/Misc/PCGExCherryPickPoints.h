@@ -16,8 +16,8 @@ enum class EPCGExCherryPickSource : uint8
 	Target UMETA(DisplayName = "Targets", ToolTip="Read indices from a list of target points."),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExCherryPickPointsSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCherryPickPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -52,7 +52,7 @@ public:
 	EPCGExIndexSafety Safety = EPCGExIndexSafety::Ignore;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExCherryPickPointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExCherryPickPointsElement;
 
@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCherryPickPointsContext final : public FPCGE
 	TArray<int32> SharedTargetIndices;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

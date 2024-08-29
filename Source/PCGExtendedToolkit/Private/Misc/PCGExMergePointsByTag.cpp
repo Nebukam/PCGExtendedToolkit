@@ -106,7 +106,7 @@ namespace PCPGExMergePointsByTag
 		ReverseBucketsMap.Add(IO, NewBucketSet);
 	}
 
-	void FTagBuckets::BuildMergeLists(EPCGExMergeByTagOverlapResolutionMode Mode, TArray<FMergeList*>& OutLists, const TArray<FString>& Priorities)
+	void FTagBuckets::BuildMergeLists(const EPCGExMergeByTagOverlapResolutionMode Mode, TArray<FMergeList*>& OutLists, const TArray<FString>& Priorities)
 	{
 		Buckets.Sort(
 			[&](const FTagBucket& A, const FTagBucket& B)

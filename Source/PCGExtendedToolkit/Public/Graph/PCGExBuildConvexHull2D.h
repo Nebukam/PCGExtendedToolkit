@@ -17,8 +17,8 @@ namespace PCGExGeo
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExBuildConvexHull2DSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildConvexHull2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -61,7 +61,7 @@ private:
 	friend class FPCGExBuildConvexHull2DElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildConvexHull2DElement;
 
@@ -73,7 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DContext final : public FPCG
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

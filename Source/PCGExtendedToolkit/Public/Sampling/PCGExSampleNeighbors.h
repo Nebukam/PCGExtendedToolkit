@@ -22,8 +22,8 @@ namespace PCGExSampleNeighbors
 	PCGEX_ASYNC_STATE(State_Sampling)
 }
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleNeighborsSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleNeighborsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -53,7 +53,7 @@ private:
 	friend class FPCGExSampleNeighborsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNeighborsContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSampleNeighborsElement;
 	virtual ~FPCGExSampleNeighborsContext() override;
@@ -61,7 +61,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext final : public FPCGEx
 	TArray<UPCGExNeighborSamplerFactoryBase*> SamplerFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

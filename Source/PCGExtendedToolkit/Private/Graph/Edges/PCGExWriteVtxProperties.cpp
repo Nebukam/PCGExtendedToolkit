@@ -3,10 +3,7 @@
 
 #include "Graph/Edges/PCGExWriteVtxProperties.h"
 
-#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
-
-#include "Kismet/KismetMathLibrary.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE WriteVtxProperties

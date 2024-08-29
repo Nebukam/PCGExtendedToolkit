@@ -15,12 +15,12 @@ class UPCGPointData;
  * 
  */
 UCLASS(DisplayName = "Default")
-class PCGEXTENDEDTOOLKIT_API UPCGExGoalPicker : public UPCGExOperation
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGoalPicker : public UPCGExOperation
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker)
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;

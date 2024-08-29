@@ -21,7 +21,7 @@
 
 namespace PCGExMT
 {
-	static void SetWorkPriority(EPCGExAsyncPriority Selection, EQueuedWorkPriority& Priority)
+	static void SetWorkPriority(const EPCGExAsyncPriority Selection, EQueuedWorkPriority& Priority)
 	{
 		switch (Selection)
 		{
@@ -102,7 +102,7 @@ namespace PCGExMT
 		return OutSubRanges.Num();
 	}
 
-	struct PCGEXTENDEDTOOLKIT_API FAsyncParallelLoop
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAsyncParallelLoop
 	{
 		FAsyncParallelLoop()
 		{
@@ -188,7 +188,7 @@ namespace PCGExMT
 	class FTaskGroup;
 	class FGroupRangeCallbackTask;
 
-	class PCGEXTENDEDTOOLKIT_API FTaskManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskManager
 	{
 		friend class FPCGExTask;
 		friend class FTaskGroup;
@@ -208,7 +208,7 @@ namespace PCGExMT
 		FORCEINLINE bool IsAvailable() const { return Stopped.load() || Flushing.load() ? false : true; }
 
 		template <typename T, typename... Args>
-		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+		void Start(const int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
 			if (!IsAvailable()) { return; }
 			if (ForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
@@ -278,7 +278,7 @@ namespace PCGExMT
 		TArray<FTaskGroup*> Groups;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FTaskGroup
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup
 	{
 		friend class FTaskManager;
 
@@ -291,6 +291,7 @@ namespace PCGExMT
 	public:
 		using CompletionCallback = std::function<void()>;
 		using IterationCallback = std::function<void(const int32, const int32, const int32)>;
+		using IterationRangePrepareCallback = std::function<void(const TArray<uint64>&)>;
 		using IterationRangeStartCallback = std::function<void(const int32, const int32, const int32)>;
 
 		explicit FTaskGroup(FTaskManager* InManager):
@@ -308,6 +309,12 @@ namespace PCGExMT
 			OnCompleteCallback = Callback;
 		}
 
+		void SetOnIterationRangePrepareCallback(const IterationRangePrepareCallback& Callback)
+		{
+			bHasOnIterationRangePrepareCallback = true;
+			OnIterationRangePrepareCallback = Callback;
+		}
+
 		void SetOnIterationRangeStartCallback(const IterationRangeStartCallback& Callback)
 		{
 			bHasOnIterationRangeStartCallback = true;
@@ -315,7 +322,7 @@ namespace PCGExMT
 		}
 
 		template <typename T, typename... Args>
-		void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+		void Start(const int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 		{
 			if (!Manager->IsAvailable()) { return; }
 
@@ -333,6 +340,8 @@ namespace PCGExMT
 
 			TArray<uint64> Loops;
 			NumStarted += SubRanges(Loops, MaxItems, ChunkSize);
+
+			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 
 			int32 LoopIdx = 0;
 			for (const uint64 H : Loops)
@@ -359,6 +368,8 @@ namespace PCGExMT
 		CompletionCallback OnCompleteCallback;
 
 		IterationCallback OnIterationCallback;
+		bool bHasOnIterationRangePrepareCallback = false;
+		IterationRangePrepareCallback OnIterationRangePrepareCallback;
 		bool bHasOnIterationRangeStartCallback = false;
 		IterationRangeStartCallback OnIterationRangeStartCallback;
 
@@ -372,7 +383,7 @@ namespace PCGExMT
 		void OnTaskCompleted();
 	};
 
-	class PCGEXTENDEDTOOLKIT_API PCGExMT::FPCGExTask : public FNonAbandonableTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ PCGExMT::FPCGExTask : public FNonAbandonableTask
 	{
 		friend class FTaskManager;
 		friend class FTaskGroup;
@@ -440,7 +451,7 @@ namespace PCGExMT
 	class FGroupRangeCallbackTask : public FPCGExTask
 	{
 	public:
-		FGroupRangeCallbackTask(PCGExData::FPointIO* InPointIO):
+		explicit FGroupRangeCallbackTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}
@@ -452,7 +463,7 @@ namespace PCGExMT
 	class FGroupRangeIterationTask : public FPCGExTask
 	{
 	public:
-		FGroupRangeIterationTask(PCGExData::FPointIO* InPointIO):
+		explicit FGroupRangeIterationTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}
@@ -464,7 +475,7 @@ namespace PCGExMT
 	class FGroupPrepareRangeTask : public FPCGExTask
 	{
 	public:
-		FGroupPrepareRangeTask(PCGExData::FPointIO* InPointIO):
+		explicit FGroupPrepareRangeTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}
@@ -476,7 +487,7 @@ namespace PCGExMT
 	class FGroupRangeInlineIterationTask : public FPCGExTask
 	{
 	public:
-		FGroupRangeInlineIterationTask(PCGExData::FPointIO* InPointIO):
+		explicit FGroupRangeInlineIterationTask(PCGExData::FPointIO* InPointIO):
 			FPCGExTask(InPointIO)
 		{
 		}
@@ -487,7 +498,7 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FWriteTask final : public FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTask final : public FPCGExTask
 	{
 	public:
 		FWriteTask(PCGExData::FPointIO* InPointIO,
@@ -508,7 +519,7 @@ namespace PCGExMT
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FWriteAndDeleteTask final : public FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAndDeleteTask final : public FPCGExTask
 	{
 	public:
 		FWriteAndDeleteTask(PCGExData::FPointIO* InPointIO,

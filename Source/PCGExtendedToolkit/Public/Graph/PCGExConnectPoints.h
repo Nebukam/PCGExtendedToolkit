@@ -26,8 +26,8 @@ namespace PCGExDataBlending
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExConnectPointsSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConnectPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -71,7 +71,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExConnectPointsElement;
 
@@ -87,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsContext final : public FPCGExPo
 	FVector CWStackingTolerance = FVector::OneVector;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -102,7 +102,7 @@ protected:
 
 namespace PCGExConnectPoints
 {
-	struct PCGEXTENDEDTOOLKIT_API FPositionRef
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPositionRef
 	{
 		int32 Index;
 		FBoxSphereBounds Bounds;
@@ -113,7 +113,7 @@ namespace PCGExConnectPoints
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPositionRefSemantics
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPositionRefSemantics
 	{
 		enum { MaxElementsPerLeaf = 16 };
 

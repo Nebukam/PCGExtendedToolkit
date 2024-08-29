@@ -19,8 +19,8 @@ namespace PCGExGeo
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExBuildVoronoiGraphSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildVoronoiGraphSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -75,7 +75,7 @@ private:
 	friend class FPCGExBuildVoronoiGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraphContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildVoronoiGraphElement;
 
@@ -85,7 +85,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext final : public FPCG
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraphElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

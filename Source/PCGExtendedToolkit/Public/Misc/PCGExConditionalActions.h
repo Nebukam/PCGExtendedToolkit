@@ -14,8 +14,8 @@ class UPCGExConditionalActionFactoryBase;
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExConditionalActionsSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -51,7 +51,7 @@ private:
 	friend class FPCGExConditionalActionsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExConditionalActionsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExConditionalActionsElement;
 
@@ -61,7 +61,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConditionalActionsContext final : public FPC
 	TArray<UPCGExConditionalActionFactoryBase*> ConditionalActionsFactories;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConditionalActionsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -81,7 +81,7 @@ namespace PCGExConditionalActions
 		TArray<UPCGExConditionalActionOperation*> Operations;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InPoints):
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)
 		{
 		}

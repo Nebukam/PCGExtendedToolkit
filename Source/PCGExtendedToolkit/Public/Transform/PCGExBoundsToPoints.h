@@ -7,7 +7,6 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
@@ -17,7 +16,7 @@
 class FPCGExComputeIOBounds;
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExBoundsToPointsSettings : public UPCGExPointsProcessorSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsToPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -74,14 +73,14 @@ private:
 	friend class FPCGExBoundsToPointsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBoundsToPointsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsToPointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBoundsToPointsElement;
 
 	virtual ~FPCGExBoundsToPointsContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBoundsToPointsElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsToPointsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

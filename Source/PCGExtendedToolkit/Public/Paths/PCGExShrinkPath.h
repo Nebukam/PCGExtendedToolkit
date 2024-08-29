@@ -10,8 +10,6 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExShrinkPath.generated.h"
 
-class UPCGExEdgeRefineOperation;
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Mode"))
 enum class EPCGExPathShrinkMode : uint8
 {
@@ -44,7 +42,7 @@ enum class EPCGExShrinkConstantMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointDistanceDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointDistanceDetails
 {
 	GENERATED_BODY()
 
@@ -72,7 +70,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointDistanceDetails
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointCountDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathEndpointCountDetails
 {
 	GENERATED_BODY()
 
@@ -98,8 +96,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointCountDetails
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExShrinkPathSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShrinkPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -163,7 +161,7 @@ public:
 	EPCGExShrinkEndpoint ShrinkFirst = EPCGExShrinkEndpoint::Both;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExShrinkPathElement;
 
@@ -173,7 +171,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext final : public FPCGExPathP
 	virtual ~FPCGExShrinkPathContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -201,7 +199,5 @@ namespace PCGExShrinkPath
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
-
-		UPCGExEdgeRefineOperation* Refinement = nullptr;
 	};
 }

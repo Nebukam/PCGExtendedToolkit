@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExMT.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExDataBlending.h"
@@ -19,7 +18,7 @@ namespace PCGExDataBlending
 
 namespace PCGExDataBlending
 {
-	struct PCGEXTENDEDTOOLKIT_API FAttributeSourceMap
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAttributeSourceMap
 	{
 		FPCGMetadataAttributeBase* DefaultValuesSource = nullptr;
 		TArray<FPCGMetadataAttributeBase*> Attributes;
@@ -74,7 +73,7 @@ namespace PCGExDataBlending
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCompoundBlender final
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCompoundBlender final
 	{
 		friend class FPCGExCompoundBlendTask;
 		friend class FPCGExCompoundedPointBlendTask;

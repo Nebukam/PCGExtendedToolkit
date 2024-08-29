@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Elements/PCGPointProcessingElementBase.h"
 
 #include "PCGEx.h"
 #include "PCGExCompare.h"
@@ -65,8 +64,8 @@ namespace PCGExBitmask
 	}
 }
 
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExGlobalBitmaskManager : public UObject
+UCLASS(MinimalAPI)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExGlobalBitmaskManager : public UObject
 {
 	GENERATED_BODY()
 
@@ -78,8 +77,8 @@ public:
 	TMap<int64, UPCGParamData*> SharedInstances;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExBitmaskSettings : public UPCGSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -108,7 +107,7 @@ protected:
 	bool bGlobalInstance = false;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBitmaskElement final : public IPCGElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitmaskElement final : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

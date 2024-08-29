@@ -19,9 +19,12 @@ MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
 MACRO(Distance, double)\
-MACRO(IsInside, bool)\
+MACRO(IsInside, bool)
+
+#define PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(MACRO)\
 MACRO(ActorReference, FString)\
 MACRO(PhysMat, FString)
+
 
 class UPCGExFilterFactoryBase;
 
@@ -29,8 +32,8 @@ class UPCGExFilterFactoryBase;
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleSurfaceGuidedSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleSurfaceGuidedSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -177,7 +180,7 @@ public:
 	FPCGExForwardDetails AttributesForwarding;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleSurfaceGuidedElement;
 
@@ -190,9 +193,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FP
 	TArray<AActor*> IgnoredActors;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -218,6 +222,7 @@ namespace PCGExSampleSurfaceGuided
 		const UPCGExSampleSurfaceGuidedSettings* LocalSettings = nullptr;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
+		PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_DECL)
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

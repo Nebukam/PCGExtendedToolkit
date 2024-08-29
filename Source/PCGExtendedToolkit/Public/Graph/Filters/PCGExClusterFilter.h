@@ -30,8 +30,8 @@ namespace PCGExPointFilter
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryBase : public UPCGExFilterFactoryBase
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterFilterFactoryBase : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 };
@@ -39,8 +39,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryBase : public UPCGExFilte
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExNodeFilterFactoryBase : public UPCGExFilterFactoryBase
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNodeFilterFactoryBase : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -51,8 +51,8 @@ public:
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgeFilterFactoryBase : public UPCGExFilterFactoryBase
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeFilterFactoryBase : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -62,7 +62,7 @@ public:
 
 namespace PCGExClusterFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TFilter : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TFilter : public PCGExPointFilter::TFilter
 	{
 	public:
 		explicit TFilter(const UPCGExClusterFilterFactoryBase* InFactory):
@@ -81,7 +81,7 @@ namespace PCGExClusterFilter
 		virtual void PostInit() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TManager : public PCGExPointFilter::TManager
+	class /*PCGEXTENDEDTOOLKIT_API*/ TManager : public PCGExPointFilter::TManager
 	{
 	public:
 		TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade);

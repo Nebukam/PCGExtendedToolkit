@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExRefreshSeed.h"
 
+#include "PCGExRandom.h"
+
 #define LOCTEXT_NAMESPACE "PCGExRefreshSeedElement"
 #define PCGEX_NAMESPACE RefreshSeed
 
@@ -57,7 +59,7 @@ bool FPCGExRefreshSeedTask::ExecuteTask()
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 	const FVector BaseOffset = FVector(TaskIndex) * 0.001;
-	for (int i = 0; i < PointIO->GetNum(); i++) { PCGExMath::RandomizeSeed(MutablePoints[i], BaseOffset); }
+	for (int i = 0; i < PointIO->GetNum(); i++) { MutablePoints[i].Seed = PCGExRandom::ComputeSeed(MutablePoints[i], BaseOffset); }
 
 	return true;
 }

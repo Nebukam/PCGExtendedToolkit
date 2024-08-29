@@ -24,7 +24,7 @@ namespace PCGExPointFilter
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeMatchConfig
 {
 	GENERATED_BODY()
 
@@ -65,8 +65,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchConfig
 /**
  * 
  */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyEdgeMatch : public UPCGExVtxPropertyOperation
+UCLASS(MinimalAPI)
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatch : public UPCGExVtxPropertyOperation
 {
 	GENERATED_BODY()
 
@@ -91,8 +91,8 @@ protected:
 	TArray<PCGExPointFilter::TManager*> FilterManagers;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchFactory : public UPCGExVtxPropertyFactoryBase
 {
 	GENERATED_BODY()
 
@@ -102,8 +102,8 @@ public:
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
-class PCGEXTENDEDTOOLKIT_API UPCGExVtxPropertyEdgeMatchSettings : public UPCGExVtxPropertyProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchSettings : public UPCGExVtxPropertyProviderSettings
 {
 	GENERATED_BODY()
 

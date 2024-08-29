@@ -9,7 +9,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 #include "Graph/PCGExEdgesProcessor.h"
-#include "Heuristics/PCGExHeuristics.h"
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 
@@ -50,7 +49,7 @@ namespace PCGExGrowPaths
 {
 	class FProcessor;
 
-	class PCGEXTENDEDTOOLKIT_API FGrowth
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowth
 	{
 	public:
 		const FProcessor* Processor = nullptr;
@@ -105,8 +104,8 @@ class UPCGExSearchOperation;
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingGrowPathsSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathfindingGrowPathsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -250,7 +249,7 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingGrowPathsElement;
 
@@ -269,7 +268,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext final : public F
 	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -317,7 +316,7 @@ namespace PCGExGrowPaths
 		void Grow();
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FGrowTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowTask final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FGrowTask(PCGExData::FPointIO* InPointIO, FProcessor* InProcessor) :

@@ -27,8 +27,8 @@ enum class EPCGExUrquhartSiteMergeMode : uint8
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExBuildDelaunayGraph2DSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBuildDelaunayGraph2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -95,7 +95,7 @@ private:
 	friend class FPCGExBuildDelaunayGraph2DElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildDelaunayGraph2DElement;
 
@@ -106,7 +106,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext final : public F
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -148,7 +148,7 @@ namespace PCGExBuildDelaunay2D
 		virtual void Write() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FOutputDelaunaySites2D final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunaySites2D final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FOutputDelaunaySites2D(PCGExData::FPointIO* InPointIO,
@@ -163,7 +163,7 @@ namespace PCGExBuildDelaunay2D
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FOutputDelaunayUrquhartSites2D final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites2D final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FOutputDelaunayUrquhartSites2D(PCGExData::FPointIO* InPointIO,

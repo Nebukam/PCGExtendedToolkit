@@ -31,7 +31,7 @@ bool UPCGExConditionalActionOperation::PrepareForData(const FPCGContext* InConte
 	return true;
 }
 
-void UPCGExConditionalActionOperation::ProcessPoint(int32 Index, const FPCGPoint& Point)
+void UPCGExConditionalActionOperation::ProcessPoint(const int32 Index, const FPCGPoint& Point)
 {
 	if (FilterManager->Test(Index)) { OnMatchSuccess(Index, Point); }
 	else { OnMatchFail(Index, Point); }

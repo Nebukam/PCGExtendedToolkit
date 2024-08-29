@@ -306,7 +306,6 @@ namespace PCGExData
 
 	/**
 	 * Write valid outputs to Context' tagged data
-	 * @param Context
 	 */
 	void FPointIOCollection::OutputToContext()
 	{

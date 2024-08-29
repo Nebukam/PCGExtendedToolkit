@@ -5,6 +5,7 @@
 
 #include "PCGExMacros.h"
 #include "Data/PCGSpatialData.h"
+#include "Engine/AssetManager.h"
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
@@ -62,6 +63,7 @@ void FPCGExContext::WriteFutureOutputs()
 
 FPCGExContext::~FPCGExContext()
 {
+	CancelAssetLoading();
 	UnrootFutures();
 	FutureOutputs.Empty();
 }
@@ -118,5 +120,52 @@ void FPCGExContext::OnComplete()
 	}
 }
 
+#pragma region Async resource management
+
+void FPCGExContext::CancelAssetLoading()
+{
+	if (LoadHandle.IsValid() && LoadHandle->IsActive()) { LoadHandle->CancelHandle(); }
+	LoadHandle.Reset();
+	RequiredAssets.Empty();
+}
+
+void FPCGExContext::RegisterAssetDependencies()
+{
+}
+
+void FPCGExContext::RegisterAssetRequirement(const FSoftObjectPath& Dependency)
+{
+	RequiredAssets.Add(Dependency);
+}
+
+void FPCGExContext::LoadAssets()
+{
+	if (WasAssetLoadRequested()) { return; }
+
+	bAssetLoadRequested = true;
+
+	if(RequiredAssets.IsEmpty())
+	{
+		bAssetLoadError = true; // No asset to load, yet we required it?
+		return;
+	}
+	
+	bIsPaused = true;
+
+	LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+		RequiredAssets.Array(), [&]()
+		{
+			bIsPaused = false;
+		});
+
+	if (!LoadHandle->IsActive())
+	{
+		// Huh
+		bAssetLoadError = true;
+		bIsPaused = false;
+	}
+}
+
+#pragma endregion
 
 #undef LOCTEXT_NAMESPACE

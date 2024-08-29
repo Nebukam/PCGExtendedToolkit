@@ -18,7 +18,7 @@ namespace PCGExData
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExForwardDetails : public FPCGExNameFiltersDetails
 {
 	GENERATED_BODY()
 
@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardDetails : public FPCGExNameFiltersDet
 
 namespace PCGExData
 {
-	class PCGEXTENDEDTOOLKIT_API FDataForwardHandler
+	class /*PCGEXTENDEDTOOLKIT_API*/ FDataForwardHandler
 	{
 		FPCGExForwardDetails Details;
 		FFacade* SourceDataFacade = nullptr;
@@ -75,7 +75,7 @@ namespace PCGExData
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeToTagDetails
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 {
 	GENERATED_BODY()
 

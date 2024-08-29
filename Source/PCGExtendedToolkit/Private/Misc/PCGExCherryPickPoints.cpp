@@ -21,7 +21,7 @@ FPCGExCherryPickPointsContext::~FPCGExCherryPickPointsContext()
 {
 }
 
-bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const PCGExData::FPointIO* InSource, TArray<int32>& OutUniqueIndices, int32 MaxIndex) const
+bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const PCGExData::FPointIO* InSource, TArray<int32>& OutUniqueIndices, const int32 MaxIndex) const
 {
 	PCGEX_SETTINGS_LOCAL(CherryPickPoints)
 

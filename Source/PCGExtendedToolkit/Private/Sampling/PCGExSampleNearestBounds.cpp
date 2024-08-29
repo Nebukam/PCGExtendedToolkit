@@ -38,6 +38,9 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestBounds)
 FPCGExSampleNearestBoundsContext::~FPCGExSampleNearestBoundsContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_CLEAN_SP(WeightCurve)
+
 	if (BoundsFacade)
 	{
 		PCGEX_DELETE(BoundsFacade->Source)
@@ -71,6 +74,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	Context->WeightCurve = Settings->WeightRemap.LoadSynchronous();
+
 	if (!Context->WeightCurve)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Weight Curve asset could not be loaded."));

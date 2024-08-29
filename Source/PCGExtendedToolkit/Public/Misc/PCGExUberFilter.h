@@ -7,7 +7,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExPointFilter.h"
 
 #include "PCGExUberFilter.generated.h"
 
@@ -18,8 +17,8 @@ enum class EPCGExUberFilterMode : uint8
 	Write UMETA(DisplayName = "Write result", ToolTip="Simply write filter result to an attribute but doesn't change point structure."),
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExUberFilterSettings : public UPCGExPointsProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExUberFilterSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -65,7 +64,7 @@ private:
 	friend class FPCGExUberFilterElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberFilterElement;
 	virtual ~FPCGExUberFilterContext() override;
@@ -74,7 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext final : public FPCGExPoint
 	PCGExData::FPointIOCollection* Outside = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExUberFilterElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

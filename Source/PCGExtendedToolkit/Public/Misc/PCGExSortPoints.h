@@ -19,7 +19,7 @@ enum class EPCGExSortDirection : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleConfig : public FPCGExInputConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRuleConfig : public FPCGExInputConfig
 {
 	GENERATED_BODY()
 
@@ -46,7 +46,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleConfig : public FPCGExInputConfig
 	//bool bAbsolute = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRule
 {
 	FPCGExSortRule()
 	{
@@ -59,8 +59,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule
 	bool bAbsolute = false;
 };
 
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsBaseSettings : public UPCGExPointsProcessorSettings
+UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSortPointsBaseSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -85,8 +85,8 @@ private:
 	friend class FPCGExSortPointsBaseElement;
 };
 
-UCLASS(BlueprintType, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGExSortPointsBaseSettings
+UCLASS(MinimalAPI, BlueprintType, Hidden, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSortPointsSettings : public UPCGExSortPointsBaseSettings
 {
 	GENERATED_BODY()
 
@@ -115,7 +115,7 @@ private:
 	friend class FPCGExSortPointsBaseElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsBaseElement final : public FPCGExPointsProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortPointsBaseElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

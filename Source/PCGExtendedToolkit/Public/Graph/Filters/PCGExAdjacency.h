@@ -46,7 +46,7 @@ enum class EPCGExRelativeThresholdRoundingMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 {
 	GENERATED_BODY()
 
@@ -121,7 +121,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencySettings
 
 	int32 GetThreshold(const PCGExCluster::FNode& Node) const
 	{
-		auto InternalEnsure = [&](int32 Value)-> int32
+		auto InternalEnsure = [&](const int32 Value)-> int32
 		{
 			switch (ThresholdComparison)
 			{

@@ -11,8 +11,7 @@
 void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExNeighborSampleProperties* TypedOther = Cast<UPCGExNeighborSampleProperties>(Other);
-	if (TypedOther)
+	if (const UPCGExNeighborSampleProperties* TypedOther = Cast<UPCGExNeighborSampleProperties>(Other))
 	{
 		BlendingDetails = TypedOther->BlendingDetails;
 	}

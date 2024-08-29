@@ -9,8 +9,7 @@
 void UPCGExOrientOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
-	const UPCGExOrientOperation* TypedOther = Cast<UPCGExOrientOperation>(Other);
-	if (TypedOther)
+	if (const UPCGExOrientOperation* TypedOther = Cast<UPCGExOrientOperation>(Other))
 	{
 		OrientAxis = TypedOther->OrientAxis;
 		UpAxis = TypedOther->UpAxis;

@@ -17,7 +17,7 @@ namespace PCGExData
  * 
  */
 UCLASS(Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExPointData : public UPCGPointData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointData : public UPCGPointData
 {
 	GENERATED_BODY()
 

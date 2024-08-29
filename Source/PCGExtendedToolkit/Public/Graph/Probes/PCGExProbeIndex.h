@@ -25,7 +25,7 @@ enum class EPCGExProbeTargetMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigIndex : public FPCGExProbeConfigBase
 {
 	GENERATED_BODY()
 
@@ -53,8 +53,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExProbeConfigIndex : public FPCGExProbeConfigB
 /**
  * 
  */
-UCLASS(DisplayName = "Index")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeIndex : public UPCGExProbeOperation
+UCLASS(MinimalAPI, DisplayName = "Index")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeIndex : public UPCGExProbeOperation
 {
 	GENERATED_BODY()
 
@@ -72,8 +72,8 @@ protected:
 
 ////
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeFactoryIndex : public UPCGExProbeFactoryBase
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryIndex : public UPCGExProbeFactoryBase
 {
 	GENERATED_BODY()
 
@@ -82,8 +82,8 @@ public:
 	virtual UPCGExProbeOperation* CreateOperation() const override;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExProbeIndexProviderSettings : public UPCGExProbeFactoryProviderSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeIndexProviderSettings : public UPCGExProbeFactoryProviderSettings
 {
 	GENERATED_BODY()
 
