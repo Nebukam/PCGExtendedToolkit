@@ -263,8 +263,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 		SubProcessorMap.Empty();
 		SubProcessorMap.Reserve(MainPoints->Num());
-		MainBatch->SubProcessorMap = &SubProcessorMap;
-
+		
 		TargetState_PointsProcessingDone = InState;
 		BatchablePoints.Empty();
 
@@ -277,6 +276,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 		if (BatchablePoints.IsEmpty()) { return false; }
 
 		MainBatch = new T(this, BatchablePoints);
+		MainBatch->SubProcessorMap = &SubProcessorMap;
+		
 		T* TypedBatch = static_cast<T*>(MainBatch);
 		InitBatch(TypedBatch);
 

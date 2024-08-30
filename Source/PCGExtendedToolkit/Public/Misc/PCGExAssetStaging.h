@@ -10,36 +10,10 @@
 #include "AssetSelectors/PCGExMeshCollection.h"
 #include "PCGExAssetStaging.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distribution"))
-enum class EPCGExDistribution : uint8
-{
-	Index UMETA(DisplayName = "Index", ToolTip="Distribution by index"),
-	Random UMETA(DisplayName = "Random", ToolTip="Update the point scale so final asset matches the existing point' bounds"),
-	WeightedRandom UMETA(DisplayName = "Weighted random", ToolTip="Update the point bounds so it reflects the bounds of the final asset"),
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distribution"))
-enum class EPCGExWeightOutputMode : uint8
-{
-	NoOutput UMETA(DisplayName = "No Output", ToolTip="Don't output weight as an attribute"),
-	Raw UMETA(DisplayName = "Raw", ToolTip="Raw integer"),
-	Normalized UMETA(DisplayName = "Normalized", ToolTip="Normalized weight value (Weight / WeightSum)"),
-	NormalizedInverted UMETA(DisplayName = "Normalized (Inverted)", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
-
-	NormalizedToDensity UMETA(DisplayName = "Normalized to Density", ToolTip="Normalized weight value (Weight / WeightSum)"),
-	NormalizedInvertedToDensity UMETA(DisplayName = "Normalized (Inverted) to Density", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
-};
-
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
-
-	UPCGExAssetStagingSettings(const FObjectInitializer& ObjectInitializer)
-		: Super(ObjectInitializer)
-	{
-		if (IndexSource.GetName() == FName("@Last")) { IndexSource.Update(TEXT("$Index")); }
-	}
 
 public:
 	//~Begin UPCGSettings
@@ -79,36 +53,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
 	bool bUpdatePointPivot = true;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
-	uint8 SeedComponents = 0;
-
-	/** Distribution type */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
-	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
-
-	/** Index picking mode*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings", meta=(EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
-	EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending;
-
-	/** Index sanitization behavior */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
-	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
-
-	/** The name of the attribute index to read index selection from.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
-	FPCGAttributePropertyInputSelector IndexSource;
-
-	/** Whether to remap index input value to collection size */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings|Remap", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
-	bool bRemapIndexToCollectionSize = false;
-
-	/** Whether to remap index input value to collection size */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution|Index Settings|Remap", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
-	EPCGExTruncateMode TruncateRemap = EPCGExTruncateMode::None;
-	
-	/** Note that this is only accounted for if selected in the seed component. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
-	int32 LocalSeed = 0;
+	/** Distribution details */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExAssetDistributionDetails DistributionSettings;
 
 	/** The name of the attribute to write asset path to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
@@ -160,6 +107,7 @@ namespace PCGExAssetStaging
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
+		FPCGExAssetDistributionDetails Details;
 		const UPCGExAssetStagingSettings* LocalSettings = nullptr;
 		const FPCGExAssetStagingContext* LocalTypedContext = nullptr;
 
