@@ -67,6 +67,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>* NewBatch)
 			{
+				NewBatch->PrimaryOperation = Context->Blending;
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = true;
 			},
@@ -124,14 +125,14 @@ namespace PCGExPathCrossings
 		if (!CanBeCutFilterManager->Init(Context, TypedContext->CanBeCutFilterFactories)) { PCGEX_DELETE(CanBeCutFilterManager) }
 
 		// Build edges
-		const int32 NumPoints = PointIO->GetNum();
-		const int32 NumEdges = bClosedPath ? NumPoints : NumPoints - 1;
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-
+		NumPoints = InPoints.Num();
 		LastIndex = NumPoints - 1;
 
 		PCGEX_SET_NUM_UNINITIALIZED(Positions, NumPoints)
-		PCGEX_SET_NUM_UNINITIALIZED(Edges, NumEdges)
+		PCGEX_SET_NUM_UNINITIALIZED(Lengths, NumPoints)
+		PCGEX_SET_NUM_UNINITIALIZED(Edges, NumPoints)
+		PCGEX_SET_NUM_UNINITIALIZED(Crossings, NumPoints)
 
 		FBox PointBounds = FBox(ForceInit);
 		for (int i = 0; i < NumPoints; i++)
@@ -145,12 +146,6 @@ namespace PCGExPathCrossings
 
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 
-		for (int i = 0; i < NumEdges; i++)
-		{
-			PCGExPaths::FPathEdge* Edge = new PCGExPaths::FPathEdge(i, i + 1 > NumPoints ? 0 : i + 1, Positions, Details.Tolerance);
-			Edges[i] = Edge;
-		}
-
 		PCGExMT::FTaskGroup* Preparation = AsyncManager->CreateGroup();
 
 		Preparation->SetOnCompleteCallback(
@@ -159,12 +154,17 @@ namespace PCGExPathCrossings
 				PCGEX_DELETE(CanCutFilterManager)
 				PCGEX_DELETE(CanBeCutFilterManager)
 
-				for (int i = 0; i < NumEdges; i++)
+				if (!bClosedPath)
+				{
+					Edges.Last()->bCanBeCut = false;
+					Edges.Last()->bCanCut = false;
+				}
+
+				for (int i = 0; i < NumPoints; i++)
 				{
 					if (!Edges[i]->bCanCut) { continue; } // !!
 					EdgeOctree->AddElement(Edges[i]);
 				}
-				StartParallelLoopForPoints();
 			});
 
 		Preparation->SetOnIterationRangeStartCallback(
@@ -176,11 +176,15 @@ namespace PCGExPathCrossings
 		Preparation->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				PCGExPaths::FPathEdge* Edge = new PCGExPaths::FPathEdge(Index, Index + 1 > NumPoints ? 0 : Index + 1, Positions, Details.Tolerance);
-				Edge->bCanBeCut = Lengths[Index] == 0 ? false : CanBeCutFilterManager ? CanBeCutFilterManager->Test(Index) : true;
-				Edge->bCanCut = Lengths[Index] == 0 ? false : CanCutFilterManager ? CanCutFilterManager->Test(Index) : true;
+				PCGExPaths::FPathEdge* Edge = new PCGExPaths::FPathEdge(Index, Index + 1 >= NumPoints ? 0 : Index + 1, Positions, Details.Tolerance);
+
+				const double Length = FVector::DistSquared(Positions[Edge->Start], Positions[Edge->End]);
+				Lengths[Index] = Length;
+
+				Edge->bCanBeCut = Length == 0 ? false : CanBeCutFilterManager ? CanBeCutFilterManager->Test(Index) : true;
+				Edge->bCanCut = Length == 0 ? false : CanCutFilterManager ? CanCutFilterManager->Test(Index) : true;
+
 				Edges[Index] = Edge;
-				Lengths[Index] = FVector::DistSquared(Positions[Edge->Start], Positions[Edge->End]);
 			}, NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
@@ -188,6 +192,8 @@ namespace PCGExPathCrossings
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
+		Crossings[Index] = nullptr;
+
 		if (!bClosedPath && Index == LastIndex) { return; }
 
 		const PCGExPaths::FPathEdge* Edge = Edges[Index];
@@ -216,6 +222,7 @@ namespace PCGExPathCrossings
 
 			if (FVector::DistSquared(A, B) >= Details.ToleranceSquared) { return; }
 
+			NewCrossing->Crossings.Add(PCGEx::H64(E2->Start, CurrentIOIndex));
 			NewCrossing->Positions.Add(FMath::Lerp(A, B, 0.5));
 			NewCrossing->Alphas.Add(FVector::DistSquared(A1, A) / Lengths[E1->Start]);
 		};
@@ -287,26 +294,28 @@ namespace PCGExPathCrossings
 		Metrics.Add(Positions[Edge->End]);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(OutPoints.GetData() + Edge->OffsetedStart, NumCrossings + 1);
-		Blending->ProcessSubPoints(PointIO->GetOutPointRef(Edge->OffsetedStart), PointIO->GetOutPointRef(Edge->OffsetedStart + NumCrossings + 1), View, Metrics);
+		const int32 EndIndex = Iteration == LastIndex ? 0 : Edge->OffsetedStart + NumCrossings + 1;
+		Blending->ProcessSubPoints(PointIO->GetOutPointRef(Edge->OffsetedStart), PointIO->GetOutPointRef(EndIndex), View, Metrics);
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::OnSearchComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathCrossings)
 
 		// TODO : Find the final number of points we require
-		const int32 NumPoints = PointIO->GetNum();
 		int32 NumPointsFinal = 0;
 
 		for (int i = 0; i < NumPoints; i++)
 		{
-			Edges[i]->OffsetedStart = NumPointsFinal++;
+			NumPointsFinal++;
 
 			const FCrossing* Crossing = Crossings[i];
 			if (!Crossing) { continue; }
 
 			NumPointsFinal += Crossing->Crossings.Num();
 		}
+
+		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
@@ -319,9 +328,11 @@ namespace PCGExPathCrossings
 		int32 Index = 0;
 		for (int i = 0; i < NumPoints; i++)
 		{
+			Edges[i]->OffsetedStart = Index;
+
 			const FPCGPoint& OriginalPoint = InPoints[i];
-			OutPoints[Index++] = OriginalPoint;
-			Metadata->InitializeOnSet(OutPoints[NumPointsFinal].MetadataEntry);
+			OutPoints[Index] = OriginalPoint;
+			Metadata->InitializeOnSet(OutPoints[Index++].MetadataEntry);
 
 			const FCrossing* Crossing = Crossings[i];
 			if (!Crossing) { continue; }
@@ -329,14 +340,27 @@ namespace PCGExPathCrossings
 			for (const uint64 Hash : Crossing->Crossings)
 			{
 				IOIndices.Add(PCGEx::H64B(Hash));
-				OutPoints[Index++] = OriginalPoint;
-				Metadata->InitializeOnSet(OutPoints[NumPointsFinal].MetadataEntry);
+				OutPoints[Index] = OriginalPoint;
+				Metadata->InitializeOnSet(OutPoints[Index++].MetadataEntry);
 			}
 		}
 
 		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out);
 
 		StartParallelLoopForRange(NumPoints);
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		PCGExMT::FTaskGroup* SearchTask = AsyncManagerPtr->CreateGroup();
+		SearchTask->SetOnCompleteCallback([&]() { OnSearchComplete(); });
+		SearchTask->StartRanges(
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				FPCGPoint Dummy;
+				ProcessSinglePoint(Index, Dummy, LoopIdx, Count);
+			},
+			NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::Write()

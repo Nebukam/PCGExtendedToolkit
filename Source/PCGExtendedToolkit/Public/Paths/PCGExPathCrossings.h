@@ -107,6 +107,7 @@ namespace PCGExPathCrossings
 		bool bClosedPath = false;
 		bool bSelfIntersectionOnly = false;
 
+		int32 NumPoints = 0;
 		int32 LastIndex = 0;
 
 		TArray<FVector> Positions;
@@ -140,6 +141,7 @@ namespace PCGExPathCrossings
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		void OnSearchComplete();
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};
