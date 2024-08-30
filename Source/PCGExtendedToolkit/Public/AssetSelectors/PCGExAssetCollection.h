@@ -31,6 +31,83 @@ enum class EPCGExStagedPropertyType : uint8
 	Name UMETA(DisplayName = "Name", Tooltip="...")
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distribution"))
+enum class EPCGExDistribution : uint8
+{
+	Index UMETA(DisplayName = "Index", ToolTip="Distribution by index"),
+	Random UMETA(DisplayName = "Random", ToolTip="Update the point scale so final asset matches the existing point' bounds"),
+	WeightedRandom UMETA(DisplayName = "Weighted random", ToolTip="Update the point bounds so it reflects the bounds of the final asset"),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distribution"))
+enum class EPCGExWeightOutputMode : uint8
+{
+	NoOutput UMETA(DisplayName = "No Output", ToolTip="Don't output weight as an attribute"),
+	Raw UMETA(DisplayName = "Raw", ToolTip="Raw integer"),
+	Normalized UMETA(DisplayName = "Normalized", ToolTip="Normalized weight value (Weight / WeightSum)"),
+	NormalizedInverted UMETA(DisplayName = "Normalized (Inverted)", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
+
+	NormalizedToDensity UMETA(DisplayName = "Normalized to Density", ToolTip="Normalized weight value (Weight / WeightSum)"),
+	NormalizedInvertedToDensity UMETA(DisplayName = "Normalized (Inverted) to Density", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionIndexDetails
+{
+
+	GENERATED_BODY()
+	
+	FPCGExAssetDistributionIndexDetails()
+	{
+		if (IndexSource.GetName() == FName("@Last")) { IndexSource.Update(TEXT("$Index")); }
+	}
+
+	/** Index picking mode*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending;
+
+	/** Index sanitization behavior */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
+
+	/** The name of the attribute index to read index selection from.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	FPCGAttributePropertyInputSelector IndexSource;
+
+	/** Whether to remap index input value to collection size */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	bool bRemapIndexToCollectionSize = false;
+
+	/** Whether to remap index input value to collection size */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	EPCGExTruncateMode TruncateRemap = EPCGExTruncateMode::None;
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionDetails
+{
+	GENERATED_BODY()
+
+	FPCGExAssetDistributionDetails()
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExSeedComponents"))
+	uint8 SeedComponents = 0;
+
+	/** Distribution type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
+	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
+
+	/** Index settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution == EPCGExDistribution::Index"))
+	FPCGExAssetDistributionIndexDetails IndexSettings;
+
+	/** Note that this is only accounted for if selected in the seed component. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
+	int32 LocalSeed = 0;
+};
+
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staged Property")
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStagedProperty
 {

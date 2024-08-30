@@ -81,6 +81,7 @@ namespace PCGExAssetStaging
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
+		Details = Settings->DistributionSettings;
 		NumPoints = PointIO->GetNum();
 		MaxIndex = TypedContext->MainCollection->LoadCache()->Indices.Num() - 1;
 
@@ -105,15 +106,15 @@ namespace PCGExAssetStaging
 		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
 #endif
 
-		if (Settings->Distribution == EPCGExDistribution::Index)
+		if (Details.Distribution == EPCGExDistribution::Index)
 		{
-			if (Settings->bRemapIndexToCollectionSize)
+			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
-				IndexGetter = PointDataFacade->GetBroadcaster<int32>(Settings->IndexSource, true);
+				IndexGetter = PointDataFacade->GetBroadcaster<int32>(Details.IndexSettings.IndexSource, true);
 			}
 			else
 			{
-				IndexGetter = PointDataFacade->GetScopedBroadcaster<int32>(Settings->IndexSource);
+				IndexGetter = PointDataFacade->GetScopedBroadcaster<int32>(Details.IndexSettings.IndexSource);
 			}
 
 			if (!IndexGetter)
@@ -122,7 +123,7 @@ namespace PCGExAssetStaging
 				return false;
 			}
 
-			if (Settings->bRemapIndexToCollectionSize)
+			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
 				MaxInputIndex = static_cast<double>(IndexGetter->Max);
 			}
@@ -144,26 +145,26 @@ namespace PCGExAssetStaging
 
 		FPCGExAssetStagingData StagingData;
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
-			LocalSettings->SeedComponents, Point,
-			LocalSettings->LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
+			Details.SeedComponents, Point,
+			Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
 
 		bool bValid = false;
 
-		if (LocalSettings->Distribution == EPCGExDistribution::WeightedRandom)
+		if (Details.Distribution == EPCGExDistribution::WeightedRandom)
 		{
 			bValid = LocalTypedContext->MainCollection->GetStagingWeightedRandom(StagingData, Seed);
 		}
-		else if (LocalSettings->Distribution == EPCGExDistribution::Random)
+		else if (Details.Distribution == EPCGExDistribution::Random)
 		{
 			bValid = LocalTypedContext->MainCollection->GetStagingRandom(StagingData, Seed);
 		}
 		else
 		{
 			double PickedIndex = IndexGetter->Values[Index];
-			if (LocalSettings->bRemapIndexToCollectionSize)
+			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
 				PickedIndex = PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);;
-				switch (LocalSettings->TruncateRemap)
+				switch (Details.IndexSettings.TruncateRemap)
 				{
 				case EPCGExTruncateMode::Round:
 					PickedIndex = FMath::RoundToInt(PickedIndex);
@@ -182,9 +183,9 @@ namespace PCGExAssetStaging
 
 			bValid = LocalTypedContext->MainCollection->GetStaging(
 				StagingData,
-				PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, LocalSettings->IndexSafety),
+				PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
 				Seed,
-				LocalSettings->PickMode);
+				Details.IndexSettings.PickMode);
 		}
 
 		if (!bValid)

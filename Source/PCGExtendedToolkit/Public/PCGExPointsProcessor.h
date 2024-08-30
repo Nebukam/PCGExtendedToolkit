@@ -252,6 +252,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	PCGExMT::AsyncState TargetState_PointsProcessingDone;
 	PCGExPointsMT::FPointsProcessorBatchBase* MainBatch = nullptr;
 	TArray<PCGExData::FPointIO*> BatchablePoints;
+	TMap<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
 	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
@@ -260,6 +261,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 
+		SubProcessorMap.Empty();
+		SubProcessorMap.Reserve(MainPoints->Num());
+		
 		TargetState_PointsProcessingDone = InState;
 		BatchablePoints.Empty();
 
@@ -272,6 +276,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 		if (BatchablePoints.IsEmpty()) { return false; }
 
 		MainBatch = new T(this, BatchablePoints);
+		MainBatch->SubProcessorMap = &SubProcessorMap;
+		
 		T* TypedBatch = static_cast<T*>(MainBatch);
 		InitBatch(TypedBatch);
 
