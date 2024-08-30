@@ -11,6 +11,7 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExPathCrossings.generated.h"
 
+
 class UPCGExSubPointsBlendOperation;
 /**
  * 
@@ -47,7 +48,7 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExEdgeEdgeIntersectionDetails IntersectionDetails;
+	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
@@ -123,7 +124,7 @@ namespace PCGExPathCrossings
 		using TEdgeOctree = TOctree2<PCGExPaths::FPathEdge*, PCGExPaths::FPathEdgeSemantics>;
 		TEdgeOctree* EdgeOctree = nullptr;
 
-		FPCGExEdgeEdgeIntersectionDetails Details;
+		FPCGExPathEdgeIntersectionDetails Details;
 
 		PCGEx::TFAttributeWriter<bool>* FlagWriter = nullptr;
 
