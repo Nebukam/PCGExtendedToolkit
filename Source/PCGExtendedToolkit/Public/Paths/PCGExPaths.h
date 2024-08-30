@@ -7,6 +7,9 @@
 
 namespace PCGExPaths
 {
+	const FName SourceCanCutFilters = TEXT("Can Cut Conditions");
+	const FName SourceCanBeCutFilters = TEXT("Can Be Cut Conditions");
+	
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FMetadata
 	{
 		double Position = 0;
@@ -22,8 +25,8 @@ namespace PCGExPaths
 	{
 		int32 Start = -1;
 		int32 End = -1;
-		bool bCuttable = false;
-		bool bCutter = false;
+		bool bCanBeCut = false;
+		bool bCanCut = false;
 		FBoxSphereBounds FSBounds = FBoxSphereBounds{};
 		int32 OffsetedStart = -1;
 

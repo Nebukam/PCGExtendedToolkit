@@ -533,6 +533,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEdgeIntersectionDetails
 	/** Distance at which two edges are considered intersecting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = 0.001;
+	double ToleranceSquared = 0.001;
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -578,6 +579,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEdgeIntersectionDetails
 	{
 		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle * 0.5) : -1;
 		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle * 0.5) : 1;
+		ToleranceSquared = Tolerance * Tolerance;
 	}
 };
 

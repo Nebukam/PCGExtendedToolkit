@@ -15,7 +15,7 @@ class UPCGExSubPointsBlendOperation;
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathCrossingsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -65,6 +65,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCG
 
 	virtual ~FPCGExPathCrossingsContext() override;
 
+	TArray<UPCGExFilterFactoryBase*> CanCutFilterFactories;
+	TArray<UPCGExFilterFactoryBase*> CanBeCutFilterFactories;
+
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
@@ -107,8 +110,12 @@ namespace PCGExPathCrossings
 		int32 LastIndex = 0;
 
 		TArray<FVector> Positions;
+		TArray<double> Lengths;
 		TArray<PCGExPaths::FPathEdge*> Edges;
 		TArray<FCrossing*> Crossings;
+
+		PCGExPointFilter::TManager* CanCutFilterManager = nullptr;
+		PCGExPointFilter::TManager* CanBeCutFilterManager = nullptr;
 
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
@@ -116,7 +123,7 @@ namespace PCGExPathCrossings
 		TEdgeOctree* EdgeOctree = nullptr;
 
 		FPCGExEdgeEdgeIntersectionDetails Details;
-		
+
 		PCGEx::TFAttributeWriter<bool>* FlagWriter = nullptr;
 
 	public:

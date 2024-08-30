@@ -12,7 +12,8 @@
 TArray<FPCGPinProperties> UPCGExPathCrossingsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	// TODO : Filter pin
+	PCGEX_PIN_PARAMS(PCGExPaths::SourceCanCutFilters, "Fiter which edges can 'cut' other edges. Leave empty so all edges are can cut other edges.", Normal, {})
+	PCGEX_PIN_PARAMS(PCGExPaths::SourceCanBeCutFilters, "Fiter which edges can be 'cut' by other edges. Leave empty so all edges are can cut other edges.", Normal, {})
 	return PinProperties;
 }
 
@@ -35,6 +36,9 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 	Context->Blending->bClosedPath = Settings->bClosedPath;
+
+	PCGExFactories::GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
+	PCGExFactories::GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
 
 	return true;
 }
@@ -93,6 +97,9 @@ namespace PCGExPathCrossings
 		PCGEX_DELETE_TARRAY(Edges)
 		PCGEX_DELETE_TARRAY(Crossings)
 		PCGEX_DELETE(EdgeOctree)
+
+		PCGEX_DELETE(CanCutFilterManager)
+		PCGEX_DELETE(CanBeCutFilterManager)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -108,6 +115,13 @@ namespace PCGExPathCrossings
 		bClosedPath = Settings->bClosedPath;
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
 		Details = Settings->IntersectionDetails;
+		Details.ComputeDot();
+
+		CanCutFilterManager = new PCGExPointFilter::TManager(PointDataFacade);
+		if (!CanCutFilterManager->Init(Context, TypedContext->CanCutFilterFactories)) { PCGEX_DELETE(CanCutFilterManager) }
+
+		CanBeCutFilterManager = new PCGExPointFilter::TManager(PointDataFacade);
+		if (!CanBeCutFilterManager->Init(Context, TypedContext->CanBeCutFilterFactories)) { PCGEX_DELETE(CanBeCutFilterManager) }
 
 		// Build edges
 		const int32 NumPoints = PointIO->GetNum();
@@ -142,9 +156,12 @@ namespace PCGExPathCrossings
 		Preparation->SetOnCompleteCallback(
 			[&]()
 			{
+				PCGEX_DELETE(CanCutFilterManager)
+				PCGEX_DELETE(CanBeCutFilterManager)
+
 				for (int i = 0; i < NumEdges; i++)
 				{
-					if (!Edges[i]->bCutter) { continue; } // !!
+					if (!Edges[i]->bCanCut) { continue; } // !!
 					EdgeOctree->AddElement(Edges[i]);
 				}
 				StartParallelLoopForPoints();
@@ -160,9 +177,10 @@ namespace PCGExPathCrossings
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				PCGExPaths::FPathEdge* Edge = new PCGExPaths::FPathEdge(Index, Index + 1 > NumPoints ? 0 : Index + 1, Positions, Details.Tolerance);
-				Edge->bCuttable = true; // TODO : Filter driven
-				Edge->bCutter = true;   // TODO : Filter driven
+				Edge->bCanBeCut = Lengths[Index] == 0 ? false : CanBeCutFilterManager ? CanBeCutFilterManager->Test(Index) : true;
+				Edge->bCanCut = Lengths[Index] == 0 ? false : CanCutFilterManager ? CanCutFilterManager->Test(Index) : true;
 				Edges[Index] = Edge;
+				Lengths[Index] = FVector::DistSquared(Positions[Edge->Start], Positions[Edge->End]);
 			}, NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
@@ -174,7 +192,33 @@ namespace PCGExPathCrossings
 
 		const PCGExPaths::FPathEdge* Edge = Edges[Index];
 
-		if (!Edge->bCuttable) { return; }
+		if (!Edge->bCanBeCut) { return; }
+
+		int32 CurrentIOIndex = PointIO->IOIndex;
+		const TArray<FVector>* P2 = &Positions;
+
+		FCrossing* NewCrossing = new FCrossing(Index);
+
+		auto FindSplit = [&](const PCGExPaths::FPathEdge* E1, const PCGExPaths::FPathEdge* E2)
+		{
+			const FVector& A1 = Positions[E1->Start];
+			const FVector& B1 = Positions[E1->End];
+			const FVector& A2 = *(P2->GetData() + E2->Start);
+			const FVector& B2 = *(P2->GetData() + E2->End);
+			if (A1 == A2 || A1 == B2 || A2 == B1 || B2 == B1) { return; }
+
+			FVector A;
+			FVector B;
+			FMath::SegmentDistToSegment(
+				A1, B1,
+				A2, B2,
+				A, B);
+
+			if (FVector::DistSquared(A, B) >= Details.ToleranceSquared) { return; }
+
+			NewCrossing->Positions.Add(FMath::Lerp(A, B, 0.5));
+			NewCrossing->Alphas.Add(FVector::DistSquared(A1, A) / Lengths[E1->Start]);
+		};
 
 		// Find crossings
 		if (bSelfIntersectionOnly)
@@ -183,12 +227,10 @@ namespace PCGExPathCrossings
 				Edge->FSBounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge)
 				{
 					if (OtherEdge == Edge) { return; }
-					// TODO : Find crossings
+					FindSplit(Edge, OtherEdge);
 				});
 			return;
 		}
-
-		FCrossing* NewCrossing = new FCrossing(Index);
 
 		for (const PCGExData::FFacade* Facade : ParentBatch->ProcessorFacades)
 		{
@@ -200,11 +242,11 @@ namespace PCGExPathCrossings
 			const FProcessor* TypedProcessor = static_cast<FProcessor*>(OtherProcessor);
 			const TEdgeOctree* OtherOctree = TypedProcessor->GetEdgeOctree();
 
+			CurrentIOIndex = TypedProcessor->PointIO->IOIndex;
+			P2 = &TypedProcessor->Positions;
+
 			OtherOctree->FindElementsWithBoundsTest(
-				Edge->FSBounds.GetBox(), [&](PCGExPaths::FPathEdge* OtherEdge)
-				{
-					// TODO : Find crossings					
-				});
+				Edge->FSBounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(Edge, OtherEdge); });
 		}
 
 		if (NewCrossing->Crossings.IsEmpty()) { PCGEX_DELETE(NewCrossing) }
@@ -218,7 +260,7 @@ namespace PCGExPathCrossings
 		const PCGExPaths::FPathEdge* Edge = Edges[Iteration];
 		if (!Crossing)
 		{
-			// TODO : Flag as false for IsCrossing etc
+			if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = true; }
 			return;
 		}
 
@@ -227,13 +269,18 @@ namespace PCGExPathCrossings
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
 		PCGExMath::FPathMetricsSquared Metrics = PCGExMath::FPathMetricsSquared(Positions[Edge->Start]);
 
-		// TODO : Compute alphas
-		// TODO : Sort crossings by alpha
+		TArray<int32> Order;
+		PCGEx::ArrayOfIndices(Order, NumCrossings);
+		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
+
 		// TODO : Blend by alpha using SubPoint blender
 		for (int i = 0; i < NumCrossings; i++)
 		{
 			const int32 Index = Edge->OffsetedStart + i + 1;
 			FPCGPoint& CrossingPt = OutPoints[Index];
+			const FVector& V = Crossing->Positions[Order[i]];
+			CrossingPt.Transform.SetLocation(V);
+			Metrics.Add(V);
 			if (FlagWriter) { FlagWriter->Values[Index] = true; }
 		}
 
