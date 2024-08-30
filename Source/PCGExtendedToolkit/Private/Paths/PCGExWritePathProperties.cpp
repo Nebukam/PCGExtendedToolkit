@@ -62,7 +62,7 @@ namespace PCGExWritePathProperties
 {
 	FProcessor::~FProcessor()
 	{
-		Positions.Empty();
+		Details.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -70,9 +70,13 @@ namespace PCGExWritePathProperties
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWritePathProperties::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathProperties)
 
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		PointDataFacade->bSupportsDynamic = true;
+
 		bClosedPath = Settings->bClosedPath;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		LastIndex = PointIO->GetNum() - 1;
 
 		LocalSettings = Settings;
 
@@ -85,104 +89,161 @@ namespace PCGExWritePathProperties
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
-		TArray<FVector> Normals;
 
-		const FVector UpConstant = Settings->UpVector;
-		const PCGExData::FCache<FVector>* UpGetter = Settings->bUseLocalUpVector ? PointDataFacade->GetBroadcaster<FVector>(Settings->LocalUpVector) : nullptr;
+		PCGEX_SET_NUM_UNINITIALIZED(Details, NumPoints)
 
-		Positions.SetNum(NumPoints);
-		Normals.SetNum(NumPoints);
+		UpConstant = Settings->UpVectorConstant;
+		if (Settings->UpVectorType == EPCGExFetchType::Attribute)
+		{
+			UpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->UpVectorSourceAttribute);
+			if (!UpGetter)
+			{
+				//TODO : Throw warning and fallback to constant
+			}
+		}
+
+		for (int i = 0; i < NumPoints; i++)
+		{
+			Details[i] = {
+				i,
+				0,
+				InPoints[i].Transform.GetLocation(),
+				FVector::ZeroVector,
+				FVector::ZeroVector,
+				FVector::ZeroVector,
+				FVector::ZeroVector
+			};
+		}
+
+		StartParallelLoopForPoints();
+
+		return true;
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
+	{
+		const int32 PrevIndex = Index == 0 ? bClosedPath ? LastIndex : Index : Index - 1;
+		const int32 NextIndex = Index == LastIndex ? bClosedPath ? 0 : Index : Index + 1;
+
+		FPointDetails& Current = Details[Index];
+		const FPointDetails& Prev = Details[PrevIndex];
+		const FPointDetails& Next = Details[NextIndex];
+
+		Current.Length = FVector::Dist(Current.Position, Next.Position);
+
+		Current.ToPrev = (Prev.Position - Current.Position).GetSafeNormal();
+		Current.ToNext = (Next.Position - Current.Position).GetSafeNormal();
+
+		if (!bClosedPath)
+		{
+			if (Index == LastIndex) { Current.ToNext = Current.ToPrev * -1; }
+			else if (Index == 0) { Current.ToPrev = Current.ToNext * -1; }
+		}
+
+		Current.Normal = FVector::CrossProduct(Current.ToNext, FVector::CrossProduct(UpGetter ? UpGetter->Values[Index] : UpConstant, Current.ToNext)).GetSafeNormal();
+		Current.Binormal = FVector::CrossProduct(Current.ToNext, Current.Normal).GetSafeNormal();
+
+		if (!LocalSettings->bAverageNormals)
+		{
+			PCGEX_OUTPUT_VALUE(PointNormal, Index, Current.Normal);
+			PCGEX_OUTPUT_VALUE(PointBinormal, Index, Current.Binormal);
+		}
+
+		PCGEX_OUTPUT_VALUE(DirectionToNext, Index, Current.ToNext);
+		PCGEX_OUTPUT_VALUE(DirectionToPrev, Index, Current.ToPrev);
+
+		PCGEX_OUTPUT_VALUE(DistanceToNext, Index, Current.Length);
+		PCGEX_OUTPUT_VALUE(DistanceToPrev, Index, FVector::Dist(Prev.Position,Current.Position));
+
+		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Current.ToPrev * -1, Current.ToNext));
+		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, Current.ToPrev, Current.ToNext));
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathProperties)
+
+		const int32 NumPoints = PointIO->GetNum();
+
+		FVector PathCentroid = FVector::ZeroVector;
+		FVector PathDir = Details[0].ToNext;
 
 		bool bIsConvex = true;
 		int32 Sign = 0;
 
 		auto CheckConvex = [&](const int32 A, const int32 B, const int32 C)
 		{
-			if (!Settings->bTagConcave && !Settings->bTagConvex) { return; }
+			if (!bIsConvex) { return; }
+
+			if (A == C)
+			{
+				bIsConvex = false;
+				return;
+			}
+
 			PCGExMath::CheckConvex(
-				Positions[A], Positions[B], Positions[C],
+				Details[A].Position, Details[B].Position, Details[C].Position,
 				bIsConvex, Sign);
 		};
 
-		for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
+		// Compute path-wide data
+		double TotalLength = 0;
+		for (int i = 0; i < NumPoints; i++) { TotalLength += Details[i].Length; }
 
-		PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(Positions[0]);
-
-		LastIndex = NumPoints - 1;
-		FVector PathCentroid = FVector::ZeroVector;
-
-		PCGEX_OUTPUT_VALUE(DirectionToNext, 0, (Positions[0] - Positions[1]).GetSafeNormal());
-		PCGEX_OUTPUT_VALUE(DirectionToPrev, 0, (Positions[1] - Positions[0]).GetSafeNormal());
-		PCGEX_OUTPUT_VALUE(DistanceToStart, 0, 0);
-
-		PCGEX_OUTPUT_VALUE(DistanceToNext, 0, FVector::Dist(Positions[0], Positions[1]));
-		PCGEX_OUTPUT_VALUE(DistanceToPrev, 0, 0);
-
-
-		FVector PathDir = (Positions[0] - Positions[1]);
-
-		for (int i = 1; i < LastIndex; i++)
+		// Compute path-wide, per-point stuff
+		double TraversedDistance = 0;
+		for (int i = 0; i <= LastIndex; i++)
 		{
-			CheckConvex(i - 1, i, i + 1);
-			const double TraversedDistance = Metrics.Add(Positions[i]);
-			PCGEX_OUTPUT_VALUE(PointNormal, i, PCGExMath::NRM(i - 1, i, i + 1, Positions, UpGetter, UpConstant));
-			PCGEX_OUTPUT_VALUE(DirectionToNext, i, (Positions[i] - Positions[i + 1]).GetSafeNormal());
-			PCGEX_OUTPUT_VALUE(DirectionToPrev, i, (Positions[i - 1] - Positions[i]).GetSafeNormal());
+			const int32 PrevIndex = i == 0 ? bClosedPath ? LastIndex : i : i - 1;
+			const int32 NextIndex = i == LastIndex ? bClosedPath ? 0 : i : i + 1;
+
+			if (LocalSettings->bTagConcave || LocalSettings->bTagConvex) { CheckConvex(PrevIndex, i, NextIndex); }
+
+			const FPointDetails& Detail = Details[i];
+			PathDir += Detail.ToNext;
+
+			PCGEX_OUTPUT_VALUE(PointTime, i, TraversedDistance / TotalLength);
+
 			PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
+			PCGEX_OUTPUT_VALUE(DistanceToEnd, i, TotalLength - TraversedDistance);
 
-			PCGEX_OUTPUT_VALUE(DistanceToNext, i, FVector::Dist(Positions[i],Positions[i+1]));
-			PCGEX_OUTPUT_VALUE(DistanceToPrev, i, FVector::Dist(Positions[i-1],Positions[i]));
-
-			PathDir += (Positions[i] - Positions[i + 1]);
+			TraversedDistance += Detail.Length;
+			PathCentroid += Detail.Position;
 		}
 
-		Metrics.Add(Positions[LastIndex]);
-
-		PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex - 1] - Positions[LastIndex]).GetSafeNormal());
-		PCGEX_OUTPUT_VALUE(DirectionToPrev, LastIndex, (Positions[LastIndex] - Positions[LastIndex - 1]).GetSafeNormal());
-		PCGEX_OUTPUT_VALUE(DistanceToStart, LastIndex, Metrics.Length);
-
-		PCGEX_OUTPUT_VALUE(DistanceToNext, LastIndex, 0);
-		PCGEX_OUTPUT_VALUE(DistanceToPrev, LastIndex, FVector::Dist(Positions[LastIndex-1],Positions[LastIndex]));
-
-		if (bClosedPath)
+		if (!bClosedPath)
 		{
-			CheckConvex(LastIndex, 0, 1);
+			PCGEX_OUTPUT_VALUE(Dot, 0, 0);
+			PCGEX_OUTPUT_VALUE(Angle, 0, 0);
 
-			PCGEX_OUTPUT_VALUE(DirectionToPrev, 0, (Positions[0] - Positions[LastIndex]).GetSafeNormal());
-			PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex] - Positions[0]).GetSafeNormal());
-
-			PCGEX_OUTPUT_VALUE(DistanceToNext, LastIndex, FVector::Dist(Positions[LastIndex], Positions[0]));
-			PCGEX_OUTPUT_VALUE(DistanceToPrev, 0, FVector::Dist(Positions[0], Positions[LastIndex]));
-
-			PCGEX_OUTPUT_VALUE(PointNormal, 0, PCGExMath::NRM(LastIndex, 0, 1, Positions, UpGetter, UpConstant));
-			PCGEX_OUTPUT_VALUE(PointNormal, LastIndex, PCGExMath::NRM(NumPoints - 2, LastIndex, 0, Positions, UpGetter, UpConstant));
-		}
-		else
-		{
-			PCGEX_OUTPUT_VALUE(PointNormal, 0, PCGExMath::NRM(0, 0, 1, Positions, UpGetter, UpConstant));
-			PCGEX_OUTPUT_VALUE(PointNormal, LastIndex, PCGExMath::NRM(NumPoints - 2, LastIndex, LastIndex, Positions, UpGetter, UpConstant));
+			PCGEX_OUTPUT_VALUE(Dot, LastIndex, 0);
+			PCGEX_OUTPUT_VALUE(Angle, LastIndex, 0);
 		}
 
-		PCGExMath::FPathMetrics SecondMetrics = PCGExMath::FPathMetrics(Positions[0]);
-
-		for (int i = 0; i < NumPoints; i++)
+		if (LocalSettings->bAverageNormals)
 		{
-			const double TraversedDistance = SecondMetrics.Add(Positions[i]);
-			PCGEX_OUTPUT_VALUE(PointTime, i, TraversedDistance / Metrics.Length);
-			PCGEX_OUTPUT_VALUE(DistanceToEnd, i, Metrics.Length - TraversedDistance);
-			PathCentroid += Positions[i];
+			for (int i = 0; i <= LastIndex; i++)
+			{
+				const int32 PrevIndex = i == 0 ? bClosedPath ? LastIndex : i : i - 1;
+				const int32 NextIndex = i == LastIndex ? bClosedPath ? 0 : i : i + 1;
+
+				PCGEX_OUTPUT_VALUE(PointNormal, i, ((Details[PrevIndex].Normal + Details[i].Normal + Details[NextIndex].Normal) / 3).GetSafeNormal());
+				PCGEX_OUTPUT_VALUE(PointBinormal, i, ((Details[PrevIndex].Binormal + Details[i].Binormal + Details[NextIndex].Binormal) / 3).GetSafeNormal());
+			}
 		}
 
 		UPCGMetadata* Meta = PointIO->GetOut()->Metadata;
 
-		if (TypedContext->bWritePathLength) { PCGExData::WriteMark(Meta, Settings->PathLengthAttributeName, Metrics.Length); }
+		if (TypedContext->bWritePathLength) { PCGExData::WriteMark(Meta, Settings->PathLengthAttributeName, TotalLength); }
 		if (TypedContext->bWritePathDirection) { PCGExData::WriteMark(Meta, Settings->PathDirectionAttributeName, (PathDir / NumPoints).GetSafeNormal()); }
 		if (TypedContext->bWritePathCentroid) { PCGExData::WriteMark(Meta, Settings->PathCentroidAttributeName, (PathCentroid / NumPoints).GetSafeNormal()); }
 
 		///
-
-		if (Settings->bWriteDot || Settings->bWriteAngle) { StartParallelLoopForPoints(); }
 
 		if (Sign != 0)
 		{
@@ -190,37 +251,6 @@ namespace PCGExWritePathProperties
 			if (Settings->bTagConvex && bIsConvex) { PointIO->Tags->RawTags.Add(Settings->ConvexTag); }
 		}
 
-		return true;
-	}
-
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
-	{
-		FVector Loc = Point.Transform.GetLocation();
-		FVector Next;
-		FVector Prev;
-
-		if (Index == 0)
-		{
-			Prev = bClosedPath ? Positions[LastIndex] : FVector::ZeroVector;
-			Next = Positions[Index + 1];
-		}
-		else if (Index == LastIndex)
-		{
-			Prev = Positions[Index - 1];
-			Next = bClosedPath ? Positions[0] : FVector::ZeroVector;
-		}
-		else
-		{
-			Prev = Positions[Index - 1];
-			Next = Positions[Index + 1];
-		}
-
-		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct((Prev - Loc).GetSafeNormal(), (Loc - Next).GetSafeNormal()));
-		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, (Loc - Prev).GetSafeNormal(), (Loc - Next).GetSafeNormal()));
-	}
-
-	void FProcessor::CompleteWork()
-	{
 		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }

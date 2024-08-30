@@ -82,7 +82,7 @@ public:
 
 	/** Bevel width value interpretation.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
-	EPCGExMeanMeasure WidthMeasure = EPCGExMeanMeasure::Discrete;
+	EPCGExMeanMeasure WidthMeasure = EPCGExMeanMeasure::Relative;
 
 	/** Bevel width source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))

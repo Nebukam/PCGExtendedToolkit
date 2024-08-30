@@ -968,6 +968,11 @@ namespace PCGExMath
 		return FVector::CrossProduct((B - A), (C - A)).GetSafeNormal();
 	}
 
+	FORCEINLINE static FVector GetNormalUp(const FVector& A, const FVector& B, const FVector& Up)
+	{
+		return FVector::CrossProduct((B - A), ((B + Up) - A)).GetSafeNormal();
+	}
+
 	FORCEINLINE static FTransform MakeLookAtTransform(const FVector& LookAt, const FVector& LookUp, const EPCGExAxisAlign AlignAxis)
 	{
 		switch (AlignAxis)
