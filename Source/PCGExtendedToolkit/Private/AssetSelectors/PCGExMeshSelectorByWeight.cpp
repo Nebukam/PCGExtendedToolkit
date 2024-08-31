@@ -39,7 +39,7 @@ bool UPCGExMeshSelectorByWeight::Execute(PCGExMeshSelection::FCtx& Ctx) const
 
 		if (!MainCollectionPtr->GetEntryWeightedRandom(
 			Entry, MainCollectionPtr->Entries,
-			PCGExRandom::GetSeedFromPoint(SeedComponents,Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get())))
+			PCGExRandom::GetSeedFromPoint(SeedComponents, Point, LocalSeed, Ctx.Settings, Ctx.Context->SourceComponent.Get())))
 		{
 			continue;
 		}

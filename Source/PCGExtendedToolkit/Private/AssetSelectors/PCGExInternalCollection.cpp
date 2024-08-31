@@ -1,7 +1,7 @@
 // Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetSelectors\PCGExInternalCollection.h"
+#include "AssetSelectors/PCGExInternalCollection.h"
 
 #include "PCGEx.h"
 #include "PCGExMacros.h"
@@ -33,7 +33,7 @@ void FPCGExInternalCollectionEntry::UpdateStaging(const UPCGExAssetCollection* O
 
 	Staging.Pivot = FVector::ZeroVector;
 	Staging.Bounds = FBox(ForceInitToZero);
-	
+
 	if (const UStaticMesh* Mesh = Cast<UStaticMesh>(LoadedAsset)) { PCGExAssetCollection::UpdateStagingBounds(Staging, Mesh); }
 	else if (const AActor* Actor = Cast<AActor>(LoadedAsset)) { PCGExAssetCollection::UpdateStagingBounds(Staging, Actor); }
 

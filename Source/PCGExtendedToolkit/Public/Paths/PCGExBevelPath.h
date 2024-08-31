@@ -252,7 +252,7 @@ namespace PCGExBevelPath
 		PCGEx::TFAttributeWriter<bool>* StartPointWriter = nullptr;
 		PCGEx::TFAttributeWriter<bool>* EndPointWriter = nullptr;
 		PCGEx::TFAttributeWriter<bool>* SubdivisionWriter = nullptr;
-		
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)
 			: FPointsProcessor(InPoints)

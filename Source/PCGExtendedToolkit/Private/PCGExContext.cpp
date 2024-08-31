@@ -144,12 +144,12 @@ void FPCGExContext::LoadAssets()
 
 	bAssetLoadRequested = true;
 
-	if(RequiredAssets.IsEmpty())
+	if (RequiredAssets.IsEmpty())
 	{
 		bAssetLoadError = true; // No asset to load, yet we required it?
 		return;
 	}
-	
+
 	bIsPaused = true;
 
 	LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(

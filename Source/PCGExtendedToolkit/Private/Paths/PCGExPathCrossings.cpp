@@ -37,8 +37,8 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 	Context->Blending->bClosedPath = Settings->bClosedPath;
 
-	PCGExFactories::GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
-	PCGExFactories::GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
+	GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
 
 	return true;
 }
@@ -241,9 +241,9 @@ namespace PCGExPathCrossings
 
 		for (const PCGExData::FFacade* Facade : ParentBatch->ProcessorFacades)
 		{
-			PCGExPointsMT::FPointsProcessor** OtherProcessorPtr = ParentBatch->SubProcessorMap->Find(Facade->Source);
+			FPointsProcessor** OtherProcessorPtr = ParentBatch->SubProcessorMap->Find(Facade->Source);
 			if (!OtherProcessorPtr) { continue; }
-			PCGExPointsMT::FPointsProcessor* OtherProcessor = *OtherProcessorPtr;
+			FPointsProcessor* OtherProcessor = *OtherProcessorPtr;
 			if (!Details.bEnableSelfIntersection && OtherProcessor == this) { continue; }
 
 			const FProcessor* TypedProcessor = static_cast<FProcessor*>(OtherProcessor);

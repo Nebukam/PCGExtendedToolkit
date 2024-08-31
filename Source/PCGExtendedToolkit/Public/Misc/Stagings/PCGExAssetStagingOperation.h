@@ -33,5 +33,4 @@ public:
 		const int32 Index,
 		const UPCGSettings* Settings = nullptr,
 		const UPCGComponent* Component = nullptr) const;
-
 };

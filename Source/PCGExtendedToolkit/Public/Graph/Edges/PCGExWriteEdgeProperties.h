@@ -261,7 +261,7 @@ namespace PCGExWriteEdgeProperties
 #define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGExData::FCache<double>* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
@@ -273,6 +273,5 @@ namespace PCGExWriteEdgeProperties
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
-		
 	};
 }

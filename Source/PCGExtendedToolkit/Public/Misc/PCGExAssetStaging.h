@@ -44,7 +44,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
 	FPCGExAssetAttributeSetDetails AttributeSetDetails;
-	
+
 	/** Distribution details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAssetDistributionDetails DistributionSettings;

@@ -20,7 +20,7 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 	StartCut = Settings->PrimaryDistanceDetails.CutType;
 	EndCut = Settings->PrimaryDistanceDetails.CutType;
 
-	const int32 StartIndex = 0;
+	constexpr int32 StartIndex = 0;
 	const int32 EndIndex = PointIO->GetNum() - 1;
 
 	if (Settings->PrimaryDistanceDetails.ValueSource == EPCGExFetchType::Attribute)
@@ -61,7 +61,7 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 {
 	PCGEX_SETTINGS_LOCAL(ShrinkPath)
 
-	const int32 StartIndex = 0;
+	constexpr int32 StartIndex = 0;
 	const int32 EndIndex = PointIO->GetNum() - 1;
 
 	if (Settings->PrimaryCountDetails.ValueSource == EPCGExFetchType::Attribute)

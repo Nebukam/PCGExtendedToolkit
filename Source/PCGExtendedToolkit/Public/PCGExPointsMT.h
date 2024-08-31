@@ -313,7 +313,7 @@ namespace PCGExPointsMT
 		bool bInlineCompletion = false;
 		bool bRequiresWriteStep = false;
 		TArray<PCGExData::FFacade*> ProcessorFacades;
-		TMap<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*>* SubProcessorMap = nullptr;
+		TMap<PCGExData::FPointIO*, FPointsProcessor*>* SubProcessorMap = nullptr;
 
 		mutable FRWLock BatchLock;
 

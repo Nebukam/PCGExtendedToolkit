@@ -103,7 +103,6 @@ void UPCGExAssetCollection::PostEditImport()
 
 void UPCGExAssetCollection::RebuildStagingData(const bool bRecursive)
 {
-	
 }
 
 #if WITH_EDITOR

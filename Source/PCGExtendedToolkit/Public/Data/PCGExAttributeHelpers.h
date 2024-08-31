@@ -921,14 +921,17 @@ namespace PCGEx
 						FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<FPCGMetadataAttribute<RawT>*>(Attribute);
 						return Convert(TypedAttribute->GetValueFromItemKey(Point.MetadataEntry));
 					});
-			}else if (Selection == EPCGAttributePropertySelection::PointProperty)
+			}
+			if (Selection == EPCGAttributePropertySelection::PointProperty)
 			{
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return Convert(Point._ACCESSOR); break;
 				switch (PointProperty) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
-			}else if(Selection == EPCGAttributePropertySelection::ExtraProperty)
+			}
+			else if (Selection == EPCGAttributePropertySelection::ExtraProperty)
 			{
-				switch (ExtraProperty) {
+				switch (ExtraProperty)
+				{
 				case EPCGExtraProperties::Index:
 					return Convert(Index);
 				default: ;

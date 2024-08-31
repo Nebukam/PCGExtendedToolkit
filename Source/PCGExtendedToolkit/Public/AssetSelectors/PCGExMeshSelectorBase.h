@@ -54,7 +54,7 @@ public:
 	/** Note that this is only accounted for if selected in the seed component. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
 	int32 LocalSeed = 0;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = MeshSelector, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExMeshCollection> MainCollection;
 

@@ -30,7 +30,7 @@ bool UPCGExMeshSelectorRandom::Execute(PCGExMeshSelection::FCtx& Ctx) const
 	// Assign points to entries
 	int32 CurrentPointIndex = Ctx.Context->CurrentPointIndex;
 	int32 LastCheckpointIndex = CurrentPointIndex;
-	
+
 	while (CurrentPointIndex < Points.Num())
 	{
 		const FPCGPoint& Point = Points[CurrentPointIndex++];

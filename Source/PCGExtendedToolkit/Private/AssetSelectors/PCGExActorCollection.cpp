@@ -22,8 +22,8 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	Staging.Path = Actor.ToSoftObjectPath();
 	const AActor* A = Actor.LoadSynchronous();
 
-    PCGExAssetCollection::UpdateStagingBounds(Staging, A);
-	
+	PCGExAssetCollection::UpdateStagingBounds(Staging, A);
+
 	Super::UpdateStaging(OwningCollection, bRecursive);
 }
 
@@ -34,7 +34,7 @@ void FPCGExActorCollectionEntry::OnSubCollectionLoaded()
 
 void UPCGExActorCollection::RebuildStagingData(const bool bRecursive)
 {
-for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); }
+	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); }
 	Super::RebuildStagingData(bRecursive);
 }
 

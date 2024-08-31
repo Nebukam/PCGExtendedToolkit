@@ -55,9 +55,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExInternalCollection : public UPCGExAssetCo
 	friend class UPCGExMeshSelectorBase;
 
 public:
+	virtual void RebuildStagingData(const bool bRecursive) override;
 
-	virtual  void RebuildStagingData(const bool bRecursive) override;
-	
 #if WITH_EDITOR
 	virtual bool EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

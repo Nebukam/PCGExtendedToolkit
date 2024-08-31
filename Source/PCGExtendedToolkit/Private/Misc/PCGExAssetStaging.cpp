@@ -189,7 +189,7 @@ namespace PCGExAssetStaging
 		}
 		else
 		{
-			double PickedIndex = static_cast<double>(IndexGetter->Values[Index]);
+			double PickedIndex = IndexGetter->Values[Index];
 			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
 				PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
