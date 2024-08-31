@@ -81,7 +81,11 @@ namespace PCGExAssetStaging
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
+		Justification = Settings->Justification;
+		Justification.Init(Context, PointDataFacade);
+
 		Details = Settings->DistributionSettings;
+
 		NumPoints = PointIO->GetNum();
 		MaxIndex = TypedContext->MainCollection->LoadCache()->Indices.Num() - 1;
 
@@ -234,42 +238,25 @@ namespace PCGExAssetStaging
 		PathWriter->Values[Index] = StagingData.Path.ToString();
 #endif
 
-		const FVector OriginalBoundsSize = Point.GetLocalBounds().GetSize();;
 
-		if (LocalSettings->bUpdatePointBounds)
-		{
-			const FBox Bounds = StagingData.Bounds;
-			Point.BoundsMin = Bounds.Min;
-			Point.BoundsMax = Bounds.Max;
-		}
+		const FBox& StBox = StagingData.Bounds;
+		FVector OutScale = Point.Transform.GetScale3D();
+		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
+		FBox OutBounds = StBox;
 
-		if (LocalSettings->bUpdatePointScale)
-		{
-			if (LocalSettings->bUniformScale)
-			{
-				const FVector A = OriginalBoundsSize;
-				const FVector B = StagingData.Bounds.GetSize();
+		LocalSettings->ScaleToFit.Process(Point, StagingData.Bounds, OutScale, OutBounds);
 
-				const double XFactor = A.X / B.X;
-				const double YFactor = A.Y / B.Y;
-				const double ZFactor = A.Z / B.Z;
+		Point.BoundsMin = OutBounds.Min;
+		Point.BoundsMax = OutBounds.Max;
 
-				const double ScaleFactor = FMath::Min3(XFactor, YFactor, ZFactor);
-				Point.Transform.SetScale3D(Point.Transform.GetScale3D() * ScaleFactor);
-			}
-			else
-			{
-				Point.Transform.SetScale3D(Point.Transform.GetScale3D() * (OriginalBoundsSize / StagingData.Bounds.GetSize()));
-			}
-		}
 
-		if (LocalSettings->bUpdatePointPivot)
-		{
-			const FVector Center = Point.GetLocalCenter() * Point.Transform.GetScale3D();
-			const FVector Pos = Point.Transform.GetLocation();
-			Point.Transform.SetLocation(Pos - Center);
-			//Point.SetLocalBounds(FBoxCenterAndExtent(FVector::ZeroVector, Point.GetExtents()).GetBox());
-		}
+		FVector OutTranslation = FVector::ZeroVector;
+		OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);
+
+		Justification.Process(Index, InBounds, OutBounds, OutTranslation);
+
+		Point.Transform.AddToTranslation(Point.Transform.GetRotation().RotateVector(OutTranslation));
+		Point.Transform.SetScale3D(OutScale);
 	}
 
 	void FProcessor::CompleteWork()

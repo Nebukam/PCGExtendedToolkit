@@ -8,71 +8,9 @@
 
 #include "PCGExPointsProcessor.h"
 #include "AssetSelectors/PCGExMeshCollection.h"
+#include "Geometry/PCGExFitting.h"
 #include "PCGExAssetStaging.generated.h"
 
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
-enum class EPCGExFittingMode : uint8
-{
-	Uniform UMETA(DisplayName = "Uniform", ToolTip="Uniform fit"),
-	Individual UMETA(DisplayName = "Individual", ToolTip="Per-component fit"),
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
-enum class EPCGExFittingReference : uint8
-{
-	Asset UMETA(DisplayName = "Asset", ToolTip="Asset data will be the reference."),
-	Point UMETA(DisplayName = "Point", ToolTip="Point data will be the reference."),
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
-enum class EPCGExFittingOperation : uint8
-{
-	None UMETA(DisplayName = "None", ToolTip="Use main raw values (Asset or Point, based on fitting mode)"),
-	BestFit UMETA(DisplayName = "Individual", ToolTip="Per-component fit"),
-	Fill UMETA(DisplayName = "Individual", ToolTip="Per-component fit"),
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Justify From"))
-enum class EPCGExJustifyFrom : uint8
-{
-	None UMETA(DisplayName = "None", ToolTip="..."),
-	Min UMETA(DisplayName = "Min", ToolTip="..."),
-	Center UMETA(DisplayName = "Center", ToolTip="..."),
-	Max UMETA(DisplayName = "Max", ToolTip="..."),
-	Custom UMETA(DisplayName = "Custom", ToolTip="..."),
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Justify To"))
-enum class EPCGExJustifyTo : uint8
-{
-	Same UMETA(DisplayName = "None", ToolTip="..."),
-	Min UMETA(DisplayName = "Min", ToolTip="..."),
-	Center UMETA(DisplayName = "Center", ToolTip="..."),
-	Max UMETA(DisplayName = "Max", ToolTip="..."),
-	Custom UMETA(DisplayName = "Custom", ToolTip="..."),
-};
-
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingDetails
-{
-	GENERATED_BODY()
-
-	FPCGExFittingDetails()
-	{
-	}
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFittingReference Reference = EPCGExFittingReference::Asset;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFittingOperation Operation = EPCGExFittingOperation::BestFit;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bAdjustPivot = false;
-	
-};
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
@@ -100,6 +38,12 @@ public:
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UPCGExMeshCollection> MainCollection;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExScaleToFitDetails ScaleToFit;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExJustificationDetails Justification;
 
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
@@ -167,13 +111,16 @@ namespace PCGExAssetStaging
 		int32 NumPoints = 0;
 		int32 MaxIndex = 0;
 		double MaxInputIndex = 0;
+		
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
-		FPCGExAssetDistributionDetails Details;
 		const UPCGExAssetStagingSettings* LocalSettings = nullptr;
 		const FPCGExAssetStagingContext* LocalTypedContext = nullptr;
+		
+		FPCGExJustificationDetails Justification;		
+		FPCGExAssetDistributionDetails Details;
 
 		PCGExData::FCache<int32>* IndexGetter = nullptr;
 		PCGEx::TFAttributeWriter<int32>* WeightWriter = nullptr;
