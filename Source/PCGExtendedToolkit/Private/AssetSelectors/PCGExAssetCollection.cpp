@@ -36,13 +36,12 @@ bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 	}
 	return true;
 }
-#if WITH_EDITOR
+
 void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
 	Staging.Weight = Weight;
 	Staging.Category = Category;
 }
-#endif
 
 void FPCGExAssetCollectionEntry::OnSubCollectionLoaded()
 {
@@ -79,7 +78,7 @@ void UPCGExAssetCollection::PostLoad()
 {
 	Super::PostLoad();
 #if WITH_EDITOR
-	RefreshDisplayNames();
+	EDITOR_RefreshDisplayNames();
 	SetDirty();
 #endif
 }
@@ -88,7 +87,7 @@ void UPCGExAssetCollection::PostDuplicate(bool bDuplicateForPIE)
 {
 	Super::PostDuplicate(bDuplicateForPIE);
 #if WITH_EDITOR
-	RefreshDisplayNames();
+	EDITOR_RefreshDisplayNames();
 	SetDirty();
 #endif
 }
@@ -97,45 +96,52 @@ void UPCGExAssetCollection::PostEditImport()
 {
 	Super::PostEditImport();
 #if WITH_EDITOR
-	RefreshDisplayNames();
+	EDITOR_RefreshDisplayNames();
 	SetDirty();
 #endif
+}
+
+void UPCGExAssetCollection::RebuildStagingData(const bool bRecursive)
+{
+	
 }
 
 #if WITH_EDITOR
 void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (IsCacheableProperty(PropertyChangedEvent)) { RefreshStagingData(); }
+	if (EDITOR_IsCacheableProperty(PropertyChangedEvent)) { EDITOR_RebuildStagingData(); }
 
-	RefreshDisplayNames();
+	EDITOR_RefreshDisplayNames();
 	SetDirty();
 }
 
-bool UPCGExAssetCollection::IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExAssetCollection::EDITOR_RefreshDisplayNames()
+{
+}
+
+bool UPCGExAssetCollection::EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	return PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, bIsSubCollection) ||
 		PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, Weight) ||
 		PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, Category);
 }
 
-void UPCGExAssetCollection::RefreshDisplayNames()
+void UPCGExAssetCollection::EDITOR_RebuildStagingData()
 {
-}
-
-void UPCGExAssetCollection::RefreshStagingData()
-{
+	RebuildStagingData(false);
 	Modify();
-	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
 
-void UPCGExAssetCollection::RefreshStagingData_Recursive()
+void UPCGExAssetCollection::EDITOR_RebuildStagingData_Recursive()
 {
+	RebuildStagingData(true);
 	Modify();
-	CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
 
-void UPCGExAssetCollection::RefreshStagingData_Project()
+void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 {
 	const FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	const IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
@@ -149,17 +155,16 @@ void UPCGExAssetCollection::RefreshStagingData_Project()
 
 	for (const FAssetData& AssetData : AssetDataList)
 	{
-		if (UPCGExAssetCollection* Collection = Cast<UPCGExAssetCollection>(AssetData.GetAsset())) { Collection->RefreshStagingData(); }
+		if (UPCGExAssetCollection* Collection = Cast<UPCGExAssetCollection>(AssetData.GetAsset())) { Collection->EDITOR_RebuildStagingData(); }
 	}
-
-	bCollectGarbage = true;
 }
 #endif
 
+
 void UPCGExAssetCollection::BeginDestroy()
 {
-	Super::BeginDestroy();
 	PCGEX_DELETE(Cache)
+	Super::BeginDestroy();
 }
 
 void UPCGExAssetCollection::BuildCache()

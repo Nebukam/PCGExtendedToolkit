@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExAssetStaging.h"
 
+#include "AssetSelectors/PCGExInternalCollection.h"
+
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging
 
@@ -10,9 +12,20 @@ PCGExData::EInit UPCGExAssetStagingSettings::GetMainOutputInitMode() const { ret
 
 PCGEX_INITIALIZE_ELEMENT(AssetStaging)
 
+TArray<FPCGPinProperties> UPCGExAssetStagingSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
+	if (CollectionSource == EPCGExCollectionSource::AttributeSet) { PCGEX_PIN_PARAM(PCGExAssetCollection::SourceAssetCollection, "Attribute set to be used as collection.", Required, {}) }
+
+	return PinProperties;
+}
+
 FPCGExAssetStagingContext::~FPCGExAssetStagingContext()
 {
 	PCGEX_TERMINATE_ASYNC
+	UPCGExInternalCollection* InternalCollection = Cast<UPCGExInternalCollection>(MainCollection);
+	PCGEX_DELETE_UOBJECT(InternalCollection)
 }
 
 bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
@@ -21,7 +34,18 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 
-	Context->MainCollection = Settings->MainCollection.LoadSynchronous();
+	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
+	{
+		Context->MainCollection = Settings->AssetCollection.LoadSynchronous();
+	}
+	else
+	{
+		Context->MainCollection = PCGExAssetCollection::GetCollectionFromAttributeSet(
+			Context,
+			PCGExAssetCollection::SourceAssetCollection,
+			Settings->AttributeSetDetails);
+	}
+
 	if (!Context->MainCollection)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
@@ -114,6 +138,7 @@ namespace PCGExAssetStaging
 		{
 			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
+				// Non-dynamic since we want min-max to start with :(
 				IndexGetter = PointDataFacade->GetBroadcaster<int32>(Details.IndexSettings.IndexSource, true);
 			}
 			else
@@ -123,7 +148,7 @@ namespace PCGExAssetStaging
 
 			if (!IndexGetter)
 			{
-				// TODO : Throw
+				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Invalid Index attribute used"));
 				return false;
 			}
 
@@ -164,10 +189,10 @@ namespace PCGExAssetStaging
 		}
 		else
 		{
-			double PickedIndex = IndexGetter->Values[Index];
+			double PickedIndex = static_cast<double>(IndexGetter->Values[Index]);
 			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
-				PickedIndex = PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);;
+				PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
 				switch (Details.IndexSettings.TruncateRemap)
 				{
 				case EPCGExTruncateMode::Round:
@@ -202,16 +227,10 @@ namespace PCGExAssetStaging
 
 			Point.Density = 0;
 
-			if (LocalSettings->bUpdatePointBounds)
-			{
-				Point.BoundsMin = FVector::ZeroVector;
-				Point.BoundsMax = FVector::ZeroVector;
-			}
+			Point.BoundsMin = FVector::ZeroVector;
+			Point.BoundsMax = FVector::ZeroVector;
 
-			if (LocalSettings->bUpdatePointScale)
-			{
-				Point.Transform.SetScale3D(FVector::ZeroVector);
-			}
+			Point.Transform.SetScale3D(FVector::ZeroVector);
 
 			if (bOutputWeight)
 			{
@@ -248,7 +267,6 @@ namespace PCGExAssetStaging
 
 		Point.BoundsMin = OutBounds.Min;
 		Point.BoundsMax = OutBounds.Max;
-
 
 		FVector OutTranslation = FVector::ZeroVector;
 		OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);

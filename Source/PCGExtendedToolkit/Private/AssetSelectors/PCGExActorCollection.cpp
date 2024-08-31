@@ -3,9 +3,6 @@
 
 #include "AssetSelectors/PCGExActorCollection.h"
 
-#include "PCGEx.h"
-#include "PCGExMacros.h"
-
 bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (bIsSubCollection) { LoadSubCollection(SubCollection); }
@@ -14,68 +11,48 @@ bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 	return Super::Validate(ParentCollection);
 }
 
-#if WITH_EDITOR
 void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
 	if (bIsSubCollection)
 	{
-		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RefreshStagingData_Recursive(); }
+		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->EDITOR_RebuildStagingData_Recursive(); }
 		return;
 	}
 
 	Staging.Path = Actor.ToSoftObjectPath();
 	const AActor* A = Actor.LoadSynchronous();
 
-	if (!A)
-	{
-		Staging.Pivot = FVector::ZeroVector;
-		Staging.Bounds = FBox(ForceInitToZero);
-		return;
-	}
-
-	FVector Origin = FVector::ZeroVector;
-	FVector Extents = FVector::ZeroVector;
-	A->GetActorBounds(true, Origin, Extents);
-
-	Staging.Pivot = Origin;
-	Staging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
+    PCGExAssetCollection::UpdateStagingBounds(Staging, A);
 	
 	Super::UpdateStaging(OwningCollection, bRecursive);
 }
-#endif
 
 void FPCGExActorCollectionEntry::OnSubCollectionLoaded()
 {
 	SubCollectionPtr = Cast<UPCGExActorCollection>(BaseSubCollectionPtr);
 }
 
-#if WITH_EDITOR
-bool UPCGExActorCollection::IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExActorCollection::RebuildStagingData(const bool bRecursive)
 {
-	if (Super::IsCacheableProperty(PropertyChangedEvent)) { return true; }
+for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); }
+	Super::RebuildStagingData(bRecursive);
+}
+
+#if WITH_EDITOR
+bool UPCGExActorCollection::EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	if (Super::EDITOR_IsCacheableProperty(PropertyChangedEvent)) { return true; }
 	return PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UPCGExActorCollection, Entries);
 }
 
 
-void UPCGExActorCollection::RefreshDisplayNames()
+void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 {
-	Super::RefreshDisplayNames();
+	Super::EDITOR_RefreshDisplayNames();
 	for (FPCGExActorCollectionEntry& Entry : Entries)
 	{
 		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]")) : FName(Entry.Actor.GetAssetName());
 	}
-}
-
-void UPCGExActorCollection::RefreshStagingData()
-{
-	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, false); }
-	Super::RefreshStagingData();
-}
-
-void UPCGExActorCollection::RefreshStagingData_Recursive()
-{
-	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, true); }
-	Super::RefreshStagingData_Recursive();
 }
 #endif
 

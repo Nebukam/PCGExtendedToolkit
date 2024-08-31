@@ -12,6 +12,13 @@
 class UPCGExAssetCollection;
 
 UENUM(BlueprintType)
+enum class EPCGExCollectionSource : uint8
+{
+	Asset UMETA(DisplayName = "Asset", Tooltip="..."),
+	AttributeSet UMETA(DisplayName = "Attribute Set", Tooltip="..."),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExIndexPickMode : uint8
 {
 	Ascending UMETA(DisplayName = "Collection order (Ascending)", Tooltip="..."),
@@ -51,35 +58,39 @@ enum class EPCGExWeightOutputMode : uint8
 	NormalizedInvertedToDensity UMETA(DisplayName = "Normalized (Inverted) to Density", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
 };
 
+namespace PCGExAssetCollection
+{
+	const FName SourceAssetCollection = TEXT("AttributeSet");
+}
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionIndexDetails
 {
-
 	GENERATED_BODY()
-	
+
 	FPCGExAssetDistributionIndexDetails()
 	{
 		if (IndexSource.GetName() == FName("@Last")) { IndexSource.Update(TEXT("$Index")); }
 	}
 
 	/** Index picking mode*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending;
 
 	/** Index sanitization behavior */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 
 	/** The name of the attribute index to read index selection from.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector IndexSource;
 
 	/** Whether to remap index input value to collection size */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bRemapIndexToCollectionSize = false;
 
 	/** Whether to remap index input value to collection size */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExTruncateMode TruncateRemap = EPCGExTruncateMode::None;
 };
 
@@ -100,12 +111,34 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetDistributionDetails
 	EPCGExDistribution Distribution = EPCGExDistribution::WeightedRandom;
 
 	/** Index settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution == EPCGExDistribution::Index"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, EditCondition="Distribution==EPCGExDistribution::Index"))
 	FPCGExAssetDistributionIndexDetails IndexSettings;
 
 	/** Note that this is only accounted for if selected in the seed component. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	int32 LocalSeed = 0;
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetAttributeSetDetails
+{
+	GENERATED_BODY()
+
+	FPCGExAssetAttributeSetDetails()
+	{
+	}
+
+	/** Name of the attribute on the AttributeSet that contains the asset path to be staged */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides))
+	FName AssetPathSourceAttribute = NAME_None;
+
+	/** Name of the attribute on the AttributeSet that contains the asset weight, if any. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides))
+	FName WeightSourceAttribute = NAME_None;
+
+	/** Name of the attribute on the AttributeSet that contains the asset category, if any. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides))
+	FName CategorySourceAttribute = NAME_None;
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staged Property")
@@ -210,10 +243,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 #endif
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
-
-#if WITH_EDITOR
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive);
-#endif
 
 protected:
 	template <typename T>
@@ -337,6 +367,40 @@ namespace PCGExAssetCollection
 
 		void FinalizeCache();
 	};
+
+#pragma region Staging bounds update
+
+	static void UpdateStagingBounds(FPCGExAssetStagingData& InStaging, const AActor* InActor)
+	{
+		if (!InActor)
+		{
+			InStaging.Pivot = FVector::ZeroVector;
+			InStaging.Bounds = FBox(ForceInitToZero);
+			return;
+		}
+
+		FVector Origin = FVector::ZeroVector;
+		FVector Extents = FVector::ZeroVector;
+		InActor->GetActorBounds(true, Origin, Extents);
+
+		InStaging.Pivot = Origin;
+		InStaging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
+	}
+
+	static void UpdateStagingBounds(FPCGExAssetStagingData& InStaging, const UStaticMesh* InMesh)
+	{
+		if (!InMesh)
+		{
+			InStaging.Pivot = FVector::ZeroVector;
+			InStaging.Bounds = FBox(ForceInitToZero);
+			return;
+		}
+
+		InStaging.Pivot = FVector::ZeroVector;
+		InStaging.Bounds = InMesh->GetBoundingBox();
+	}
+
+#pragma endregion
 }
 
 UCLASS(Abstract, BlueprintType, DisplayName="[PCGEx] Asset Collection")
@@ -354,23 +418,21 @@ public:
 	virtual void PostDuplicate(bool bDuplicateForPIE) override;
 	virtual void PostEditImport() override;
 
+	virtual void RebuildStagingData(const bool bRecursive);
+
 #if WITH_EDITOR
-
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual bool IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent);
-	virtual void RefreshDisplayNames();
+	virtual bool EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent);
+	virtual void EDITOR_RefreshDisplayNames();
 
-	bool bCollectGarbage = true;
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging", ShortToolTip="Rebuild Staging data just for this collection."))
+	virtual void EDITOR_RebuildStagingData();
 
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Refresh Staging", ShortToolTip="Refresh Staging data just for this collection."))
-	virtual void RefreshStagingData();
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Recursive)", ShortToolTip="Rebuild Staging data for this collection and its sub-collections, recursively."))
+	virtual void EDITOR_RebuildStagingData_Recursive();
 
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Refresh Staging (Recursive)", ShortToolTip="Refresh Staging data for this collection and its sub-collections, recursively."))
-	virtual void RefreshStagingData_Recursive();
-
-	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Refresh Staging (Project)", ShortToolTip="Refresh Staging data for all collection within this project."))
-	virtual void RefreshStagingData_Project();
-
+	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging (Project)", ShortToolTip="Rebuild Staging data for all collection within this project."))
+	virtual void EDITOR_RebuildStagingData_Project();
 #endif
 
 	virtual void BeginDestroy() override;

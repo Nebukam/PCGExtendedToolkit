@@ -5,10 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExAssetCollection.h"
-#include "PCGExRandom.h"
 #include "Engine/DataAsset.h"
-#include "ISMPartition/ISMComponentDescriptor.h"
-#include "MeshSelectors/PCGMeshSelectorBase.h"
 
 #include "PCGExActorCollection.generated.h"
 
@@ -41,9 +38,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 	}
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
-#if WITH_EDITOR
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive) override;
-#endif
 
 protected:
 	virtual void OnSubCollectionLoaded() override;
@@ -57,11 +52,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActorCollection : public UPCGExAssetColle
 	friend struct FPCGExActorCollectionEntry;
 
 public:
+	virtual void RebuildStagingData(const bool bRecursive) override;
+
 #if WITH_EDITOR
-	virtual bool IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual void RefreshDisplayNames() override;
-	virtual void RefreshStagingData() override;
-	virtual void RefreshStagingData_Recursive() override;
+	virtual bool EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void EDITOR_RefreshDisplayNames() override;
 #endif
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))

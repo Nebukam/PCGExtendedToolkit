@@ -11,7 +11,6 @@
 #include "Geometry/PCGExFitting.h"
 #include "PCGExAssetStaging.generated.h"
 
-
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAssetStagingSettings : public UPCGExPointsProcessorSettings
 {
@@ -22,12 +21,13 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		AssetStaging, "Asset Staging", "Data staging from PCGEx Asset Collections.",
-		FName(TEXT("[ ") + MainCollection.GetAssetName() + TEXT(" ]")));
+		FName(TEXT("[ ") + ( CollectionSource == EPCGExCollectionSource::Asset ? AssetCollection.GetAssetName() : TEXT("Attribute Set to Collection")) + TEXT(" ]")));
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
@@ -37,30 +37,14 @@ public:
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UPCGExMeshCollection> MainCollection;
+	EPCGExCollectionSource CollectionSource = EPCGExCollectionSource::Asset;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExScaleToFitDetails ScaleToFit;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::Asset", EditConditionHides))
+	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExJustificationDetails Justification;
-
-	/** Update point scale so staged asset fits within its bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
-	bool bUpdatePointScale = false;
-
-	/** Update point scale so staged asset fits within its bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable, EditCondition="bUpdatePointScale", EditConditionHides))
-	bool bUniformScale = true;
-
-	/** Update point bounds from staged data */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
-	bool bUpdatePointBounds = true;
-
-	/** Update point pivot to match staged bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Bounds", meta=(PCG_Overridable))
-	bool bUpdatePointPivot = true;
-
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
+	FPCGExAssetAttributeSetDetails AttributeSetDetails;
+	
 	/** Distribution details */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAssetDistributionDetails DistributionSettings;
@@ -68,6 +52,12 @@ public:
 	/** The name of the attribute to write asset path to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExScaleToFitDetails ScaleToFit;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExJustificationDetails Justification;
 
 	///** If enabled, filter output based on whether a staging has been applied or not (empty entry). \n NOT IMPLEMENTED YET */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
@@ -88,7 +78,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : public FPCGE
 
 	virtual ~FPCGExAssetStagingContext() override;
 
-	TObjectPtr<UPCGExMeshCollection> MainCollection;
+	TObjectPtr<UPCGExAssetCollection> MainCollection;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingElement final : public FPCGExPointsProcessorElement
@@ -111,15 +101,15 @@ namespace PCGExAssetStaging
 		int32 NumPoints = 0;
 		int32 MaxIndex = 0;
 		double MaxInputIndex = 0;
-		
+
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
 		const UPCGExAssetStagingSettings* LocalSettings = nullptr;
 		const FPCGExAssetStagingContext* LocalTypedContext = nullptr;
-		
-		FPCGExJustificationDetails Justification;		
+
+		FPCGExJustificationDetails Justification;
 		FPCGExAssetDistributionDetails Details;
 
 		PCGExData::FCache<int32>* IndexGetter = nullptr;

@@ -126,7 +126,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 			const FPCGPoint& Point = TagSource->GetIn()->GetPoint(TagIndex);
 			for (PCGEx::FLocalToStringGetter* Getter : Getters)
 			{
-				FString Tag = Getter->SoftGet(Point, TEXT(""));
+				FString Tag = Getter->SoftGet(TagIndex, Point, TEXT(""));
 				if (Tag.IsEmpty()) { continue; }
 				PointIO->Tags->RawTags.Add(Tag);
 			}

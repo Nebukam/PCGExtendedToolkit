@@ -222,6 +222,8 @@ namespace PCGExData
 			bInitialized = true;
 			bIsPureReader = true;
 
+			PCGEX_SET_NUM_UNINITIALIZED(Values, Source->GetNum(ESource::In))
+
 			Getter->GrabAndDump(Source, Values, bCaptureMinMax, Min, Max);
 			Attribute = Getter->Attribute;
 		}

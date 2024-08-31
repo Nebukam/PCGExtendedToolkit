@@ -10,6 +10,15 @@
 
 PCGEX_INITIALIZE_ELEMENT(PathToSplineMesh)
 
+TArray<FPCGPinProperties> UPCGExPathToSplineMeshSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties;
+	// No output
+	return PinProperties;
+}
+
+PCGExData::EInit UPCGExPathToSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+
 FPCGExPathToSplineMeshContext::~FPCGExPathToSplineMeshContext()
 {
 	PCGEX_TERMINATE_ASYNC

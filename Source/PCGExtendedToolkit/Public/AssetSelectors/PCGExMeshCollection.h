@@ -47,10 +47,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAsset
 	}
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
-
-#if WITH_EDITOR
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive) override;
-#endif
 
 protected:
 	virtual void OnSubCollectionLoaded() override;
@@ -65,11 +62,12 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshCollection : public UPCGExAssetCollec
 	friend class UPCGExMeshSelectorBase;
 
 public:
+
+	virtual void RebuildStagingData(const bool bRecursive) override;
+	
 #if WITH_EDITOR
-	virtual bool IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual void RefreshDisplayNames() override;
-	virtual void RefreshStagingData() override;
-	virtual void RefreshStagingData_Recursive() override;
+	virtual bool EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void EDITOR_RefreshDisplayNames() override;
 #endif
 
 	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override
