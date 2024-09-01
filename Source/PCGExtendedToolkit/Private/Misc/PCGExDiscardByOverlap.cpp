@@ -37,13 +37,78 @@ PCGExDiscardByOverlap::FOverlap* FPCGExDiscardByOverlapContext::RegisterOverlap(
 	}
 }
 
+void FPCGExDiscardByOverlapContext::UpdateMaxScores(const TArray<PCGExDiscardByOverlap::FProcessor*>& InStack)
+{
+	MaxScores.ResetMin();
+	for (const PCGExDiscardByOverlap::FProcessor* C : InStack) { MaxScores.Max(C->RawScores); }
+}
+
+void FPCGExDiscardByOverlapContext::Prune()
+{
+	PCGEX_SETTINGS_LOCAL(DiscardByOverlap)
+
+	TArray<PCGExDiscardByOverlap::FProcessor*> Remaining;
+	Remaining.Reserve(MainBatch->GetNumProcessors());
+
+	for (const TPair<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*> Pair : *(MainBatch->SubProcessorMap))
+	{
+		PCGExDiscardByOverlap::FProcessor* P = static_cast<PCGExDiscardByOverlap::FProcessor*>(Pair.Value);
+		if (!P->bIsProcessorValid) { continue; }
+
+		if (P->HasOverlaps())
+		{
+			Remaining.Add(P);
+			continue;
+		}
+
+		P->PointDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward);
+	}
+
+	UpdateMaxScores(Remaining);
+
+	while (!Remaining.IsEmpty())
+	{
+		// Sort remaining overlaps...
+
+		switch (Settings->Logic)
+		{
+		default: case EPCGExOverlapPruningLogic::LowFirst:
+			Remaining.Sort([](const PCGExDiscardByOverlap::FProcessor& A, const PCGExDiscardByOverlap::FProcessor& B) { return A.Weight > B.Weight; });
+			break;
+		case EPCGExOverlapPruningLogic::HighFirst:
+			Remaining.Sort([](const PCGExDiscardByOverlap::FProcessor& A, const PCGExDiscardByOverlap::FProcessor& B) { return A.Weight < B.Weight; });
+			break;
+		}
+
+		PCGExDiscardByOverlap::FProcessor* Candidate = Remaining.Pop();
+
+		if (Candidate->HasOverlaps()) { Candidate->Prune(Remaining); }
+		else { Candidate->PointDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward); }
+
+		UpdateMaxScores(Remaining);
+
+		for (PCGExDiscardByOverlap::FProcessor* C : Remaining) { C->UpdateWeight(MaxScores); }
+	}
+}
+
 PCGEX_INITIALIZE_ELEMENT(DiscardByOverlap)
 
 bool FPCGExDiscardByOverlapElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
+
 	PCGEX_CONTEXT_AND_SETTINGS(DiscardByOverlap)
+
+	Context->Weights = Settings->Weighting;
+
+	if (Settings->TestMode == EPCGExOverlapTestMode::Fast)
+	{
+		Context->Weights.DynamicBalance = 0;
+		Context->Weights.StaticBalance = 1;
+	}
+
+	Context->Weights.Init();
 
 	if (Context->MainPoints->Num() < 2)
 	{
@@ -70,7 +135,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 			{
 				NewBatch->bRequiresWriteStep = true; // Not really but we need the step
 			},
-			PCGExMT::State_Done))
+			PCGExMT::State_Processing))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any input to check for overlaps."));
 			return true;
@@ -79,48 +144,17 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	TArray<PCGExDiscardByOverlap::FProcessor*> ProcessorStack;
-	ProcessorStack.Reserve(Context->MainBatch->GetNumProcessors());
-
-	for (const TPair<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*> Pair : *(Context->MainBatch->SubProcessorMap))
+	if(Context->IsState(PCGExMT::State_Processing))
 	{
-		if (!Pair.Value->bIsProcessorValid) { continue; }
-		ProcessorStack.Add(static_cast<PCGExDiscardByOverlap::FProcessor*>(Pair.Value));
+		Context->SetAsyncState(PCGExMT::State_Completing);
+		Context->GetAsyncManager()->Start<PCGExDiscardByOverlap::FPruneTask>(-1,nullptr);
+		return false;
 	}
 
-	while (!ProcessorStack.IsEmpty())
+	if(Context->IsState(PCGExMT::State_Completing))
 	{
-		// Sort remaining overlaps...
-
-#define PCGEX_COMPARE_AB(_FUNC) \
-		switch (Settings->Logic){ default: case EPCGExOverlapPruningLogic::LowFirst: \
-			ProcessorStack.Sort([](const PCGExDiscardByOverlap::FProcessor& A, const PCGExDiscardByOverlap::FProcessor& B) { return A._FUNC(B); }); \
-			break; case EPCGExOverlapPruningLogic::HighFirst: \
-			ProcessorStack.Sort([](const PCGExDiscardByOverlap::FProcessor& A, const PCGExDiscardByOverlap::FProcessor& B) { return !A._FUNC(B); }); \
-			break; }
-
-		switch (Settings->PruningReference)
-		{
-		default:
-		case EPCGExOverlapCompare::Count:
-			PCGEX_COMPARE_AB(CompareOverlapCount)
-			break;
-		case EPCGExOverlapCompare::SubCount:
-			PCGEX_COMPARE_AB(CompareOverlapSubCount)
-			break;
-		case EPCGExOverlapCompare::Volume:
-			PCGEX_COMPARE_AB(CompareOverlapVolume)
-			break;
-		}
-
-#undef PCGEX_COMPARE_AB
-
-		// 1 - Remove top/bottom of the list
-
-		PCGExDiscardByOverlap::FProcessor* Candidate = ProcessorStack.Pop();
-
-		if (Candidate->HasOverlaps()) { Candidate->Prune(); }
-		else { Candidate->PointDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward); }
+		PCGEX_ASYNC_WAIT
+		Context->Done();
 	}
 
 	Context->MainPoints->OutputToContext();
@@ -154,17 +188,27 @@ namespace PCGExDiscardByOverlap
 		Overlaps.Add(Overlap);
 	}
 
-	void FProcessor::RemoveOverlap(FOverlap* InOverlap)
+	void FProcessor::RemoveOverlap(FOverlap* InOverlap, TArray<FProcessor*>& Stack)
 	{
 		Overlaps.Remove(InOverlap);
-		Stats.Remove(InOverlap->Stats, NumPoints, RoughVolume);
+
+		if (Overlaps.IsEmpty())
+		{
+			// Remove from stack & output.
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward);
+			Stack.Remove(this);
+			return;
+		}
+
+		Stats.Remove(InOverlap->Stats, NumPoints, TotalVolume);
+		UpdateWeightValues();
 	}
 
-	void FProcessor::Prune()
+	void FProcessor::Prune(TArray<FProcessor*>& Stack)
 	{
 		for (FOverlap* Overlap : Overlaps)
 		{
-			Overlap->GetOther(this)->RemoveOverlap(Overlap);
+			Overlap->GetOther(this)->RemoveOverlap(Overlap, Stack);
 			PCGEX_DELETE(Overlap)
 		}
 
@@ -196,7 +240,13 @@ namespace PCGExDiscardByOverlap
 			[&]()
 			{
 				Octree = new TBoundsOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
-				for (FPointBounds* PtBounds : LocalPointBounds) { Octree->AddElement(PtBounds); }
+				for (FPointBounds* PtBounds : LocalPointBounds)
+				{
+					Octree->AddElement(PtBounds);
+					TotalDensity += PtBounds->Point->Density;
+				}
+
+				VolumeDensity = NumPoints / TotalVolume;
 			});
 
 		switch (Settings->BoundsSource)
@@ -310,7 +360,6 @@ namespace PCGExDiscardByOverlap
 
 	void FProcessor::Write()
 	{
-		// Sort overlaps so we can process them
 		ManagedOverlaps.Empty();
 
 		// Sanitize stats & overlaps
@@ -332,7 +381,57 @@ namespace PCGExDiscardByOverlap
 			i--;
 		}
 
-		Stats.UpdateRelative(NumPoints, RoughVolume);
+		// Sort overlaps so we can process them
+
+		Stats.UpdateRelative(NumPoints, TotalVolume);
+
+		RawScores.NumPoints = static_cast<double>(NumPoints);
+		RawScores.Volume = TotalVolume;
+		RawScores.VolumeDensity = VolumeDensity;
+
+		UpdateWeightValues();
+	}
+
+	void FProcessor::UpdateWeightValues()
+	{
+		RawScores.OverlapCount = static_cast<double>(Overlaps.Num());
+		RawScores.OverlapSubCount = static_cast<double>(Stats.OverlapCount);
+		RawScores.OverlapVolume = Stats.OverlapVolume;
+		RawScores.OverlapVolumeDensity = Stats.OverlapVolumeAvg;
+	}
+
+	void FProcessor::UpdateWeight(const FPCGExOverlapScoresWeighting& InMax)
+	{
+		const FPCGExOverlapScoresWeighting& W = LocalTypedContext->Weights;
+
+		StaticWeight = 0;
+		StaticWeight += (RawScores.NumPoints / InMax.NumPoints) * W.NumPoints;
+		StaticWeight += (RawScores.Volume / InMax.Volume) * W.Volume;
+		StaticWeight += (RawScores.VolumeDensity / InMax.VolumeDensity) * W.VolumeDensity;
+
+		DynamicWeight = 0;
+		DynamicWeight += (RawScores.OverlapCount / InMax.OverlapCount) * W.OverlapCount;
+		DynamicWeight += (RawScores.OverlapSubCount / InMax.OverlapSubCount) * W.OverlapSubCount;
+		DynamicWeight += (RawScores.OverlapVolume / InMax.OverlapVolume) * W.OverlapVolume;
+		DynamicWeight += (RawScores.OverlapVolumeDensity / InMax.OverlapVolumeDensity) * W.OverlapVolumeDensity;
+
+		Weight = StaticWeight * W.StaticBalance + DynamicWeight * W.DynamicBalance;
+
+		/*
+		UE_LOG(
+			LogTemp, Warning, TEXT("Set #%d | W = %f | SW = %f | DW = %f | NumPoints = %f, Volume = %f, VolumeDensity = %f, OverlapCount = %f, OverlapSubCount = %f, OverlapVolume = %f, OverlapVolumeDensity = %f"),
+			BatchIndex,
+			Weight,
+			StaticWeight,
+			DynamicWeight,
+			RawScores.NumPoints,
+			RawScores.Volume,
+			RawScores.VolumeDensity,
+			RawScores.OverlapCount,
+			RawScores.OverlapSubCount,
+			RawScores.OverlapVolume,
+			RawScores.OverlapVolumeDensity)
+			*/
 	}
 }
 #undef LOCTEXT_NAMESPACE
