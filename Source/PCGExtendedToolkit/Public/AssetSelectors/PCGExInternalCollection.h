@@ -136,6 +136,7 @@ namespace PCGExAssetCollection
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
 
 		Infos = PCGEx::FAttributesInfos::Get(Metadata);
+		if (Infos->Attributes.IsEmpty()) { return CreationFailed(); }
 
 		const PCGEx::FAttributeIdentity* PathIdentity = Infos->Find(Details.AssetPathSourceAttribute);
 		const PCGEx::FAttributeIdentity* WeightIdentity = Infos->Find(Details.WeightSourceAttribute);
@@ -173,7 +174,12 @@ namespace PCGExAssetCollection
 			}
 		}
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 		Keys = new FPCGAttributeAccessorKeysEntries(Metadata);
+#else
+		Keys = new FPCGAttributeAccessorKeysEntries(Infos->Attributes[0]); // Probably not reliable, but make 5.3 compile -_-
+#endif
+
 		const int32 NumEntries = Keys->GetNum();
 		if (NumEntries == 0)
 		{
@@ -202,14 +208,14 @@ namespace PCGExAssetCollection
 		}
 		else
 #endif
-			if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
-			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V[i])); })
-			}
-			else
-			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V[i].ToString())); })
-			}
+		if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
+		{
+			PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V[i])); })
+		}
+		else
+		{
+			PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V[i].ToString())); })
+		}
 
 
 		// Weight value
