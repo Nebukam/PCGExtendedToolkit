@@ -263,8 +263,6 @@ namespace PCGExDiscardByOverlap
 							if (OverlapSize < LocalSettings->MinThreshold) { return; }
 						}
 
-						UE_LOG(LogTemp, Warning, TEXT("huh %f"), OverlapSize)
-
 						ManagedOverlap->Stats.OverlapCount++;
 						ManagedOverlap->Stats.OverlapVolume += Intersection.GetVolume();
 					});
