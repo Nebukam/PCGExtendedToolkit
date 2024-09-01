@@ -41,3 +41,8 @@ nav_order: 200
 ## Sampling Nodes
 <br>
 {% include card_childs reference="Sampling" tagged='sampling' %}
+
+---
+## Staging Nodes
+<br>
+{% include card_childs reference="Staging" tagged='staging' %}

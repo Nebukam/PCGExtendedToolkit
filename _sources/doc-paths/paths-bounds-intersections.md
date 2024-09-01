@@ -2,9 +2,9 @@
 layout: page
 #grand_parent: All Nodes
 parent: Paths
-title: Bounds Intersections
+title: Path × Bounds Intersections
 subtitle: Find intersections with points bounds.
-summary: The **Bounds Intersection** node ...
+summary: The **Path × Bounds Intersection** node ...
 color: white
 splash: icons/icon_paths-orient.svg
 preview_img: docs/splash-orienting.png
@@ -15,7 +15,7 @@ tagged:
 nav_order: 2
 inputs:
     -   name : Paths
-        desc : Paths which points will be oriented
+        desc : Paths which points will be checked
         pin : points
     -   name : Bounds
         desc : Points which bounds will be used as intersection source

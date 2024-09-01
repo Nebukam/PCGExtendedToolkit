@@ -2,9 +2,9 @@
 layout: page
 grand_parent: Pathfinding
 parent: 🝰 Heuristics
-title: 🝰 Direction
+title: 🝰 Inertia
 subtitle: Subtitle
-summary: The **Direction** heuristic node ...
+summary: The **Inertia** heuristic node ...
 color: white
 splash: icons/icon_component.svg
 preview_img: docs/splash-search-direction.png

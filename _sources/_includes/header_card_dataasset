@@ -1,0 +1,32 @@
+{% include header_card %}
+
+{% if page.example %}
+<span class="example">★</span> See Example Project @ **{{ page.example }}**
+{% endif %}
+---
+{% else %}
+{% if page.example %}
+<span class="example">★</span> See Example Project @ **{{ page.example }}**
+---
+{% endif %}
+{% endif %}
+{% if page.see_also %}
+#### Related
+{: .no_toc }
+{% for item in page.see_also %}
+- {% include lk id=item %} {% endfor %}
+{% endif %}
+
+{% if page.warning %}
+> {{ page.warning }}
+{: .warning }
+{% endif %}
+
+#### Table of content
+{: .no_toc }
+- TOC
+{:toc}
+
+---
+## Properties
+<br>
