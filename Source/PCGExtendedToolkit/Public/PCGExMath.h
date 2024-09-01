@@ -38,7 +38,7 @@ enum class EPCGExPointBoundsSource : uint8
 {
 	ScaledBounds UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
 	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
-	Bounds UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds")
+	Bounds UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)")
 };
 
 namespace PCGExMath
