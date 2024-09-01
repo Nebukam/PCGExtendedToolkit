@@ -60,7 +60,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOverlapScoresWeighting
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double StaticBalance = 0.5;
 
-	/** Number of points' weight */
+	/** Number of points weight (points in a given set) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Static Weights", meta = (PCG_Overridable))
 	double NumPoints = 1;
 
