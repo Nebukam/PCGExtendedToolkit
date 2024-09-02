@@ -19,7 +19,14 @@ void FPCGExInternalCollectionEntry::UpdateStaging(const UPCGExAssetCollection* O
 {
 	if (bIsSubCollection)
 	{
-		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->EDITOR_RebuildStagingData_Recursive(); }
+		if (bRecursive && SubCollection.LoadSynchronous())
+		{
+			if (UPCGExInternalCollection* InternalCollection = Cast<UPCGExInternalCollection>(SubCollection.Get()))
+			{
+				// Only rebuild if Internal
+				InternalCollection->RebuildStagingData(true);
+			}
+		}
 		return;
 	}
 
