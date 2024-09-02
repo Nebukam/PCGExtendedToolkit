@@ -489,6 +489,12 @@ public:
 
 	virtual void BeginDestroy() override;
 
+#if WITH_EDITORONLY_DATA
+	/**  */
+	UPROPERTY(EditAnywhere, Category = Settings, AdvancedDisplay)
+	bool bAutoRebuildStaging = true;
+#endif
+
 	/** If enabled, empty mesh will still be weighted and picked as valid entries, instead of being ignored. */
 	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bDoNotIgnoreInvalidEntries = false;
@@ -589,7 +595,9 @@ protected:
 
 #pragma endregion
 
+	UPROPERTY()
 	bool bCacheNeedsRebuild = true;
+
 	PCGExAssetCollection::FCache* Cache = nullptr;
 
 	template <typename T>
@@ -637,9 +645,10 @@ protected:
 	}
 
 #if WITH_EDITOR
-	void SetDirty()
+	void EDITOR_SetDirty()
 	{
 		bCacheNeedsRebuild = true;
+		if (bAutoRebuildStaging) { EDITOR_RebuildStagingData(); }
 	}
 #endif
 

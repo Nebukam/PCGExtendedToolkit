@@ -169,8 +169,8 @@ namespace PCGExPathSplineMesh
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Helper)
-		for (USplineMeshComponent* SMC : SplineMeshComponents) { PCGEX_DELETE_UOBJECT(SMC) }
-		SplineMeshComponents.Empty();
+		//for (USplineMeshComponent* SMC : SplineMeshComponents) { PCGEX_DELETE_UOBJECT(SMC) }
+		//SplineMeshComponents.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -201,7 +201,7 @@ namespace PCGExPathSplineMesh
 		LastIndex = PointIO->GetNum() - 1;
 
 		PCGEX_SET_NUM_UNINITIALIZED(Segments, LastIndex)
-		PCGEX_SET_NUM_UNINITIALIZED(SplineMeshComponents, LastIndex)
+		//PCGEX_SET_NUM_UNINITIALIZED(SplineMeshComponents, LastIndex)
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
@@ -243,10 +243,12 @@ namespace PCGExPathSplineMesh
 		Segment.Params.EndScale = FVector2D(Scale.Y, Scale.Z);
 		Segment.Params.EndRoll = EndTransform.GetRotation().Rotator().Roll;
 
+		/*
 		AActor* TargetActor = LocalSettings->TargetActor.Get() ? LocalSettings->TargetActor.Get() : Context->GetTargetActor(nullptr);
 		if (!TargetActor) { return; }
 
 		SplineMeshComponents[Index] = UPCGExManagedSplineMeshComponent::CreateComponentOnly(TargetActor, Context->SourceComponent.Get(), Segment);
+		*/
 	}
 
 	void FProcessor::CompleteWork()
@@ -266,6 +268,23 @@ namespace PCGExPathSplineMesh
 
 		UPCGComponent* Comp = Context->SourceComponent.Get();
 
+		for (const PCGExPaths::FSplineMeshSegment& Segment : Segments)
+		{
+			USplineMeshComponent* SMC = UPCGExManagedSplineMeshComponent::CreateComponentOnly(TargetActor, Context->SourceComponent.Get(), Segment);
+			if (!SMC) { continue; }
+
+			if (!Segment.ApplyMesh(SMC))
+			{
+				PCGEX_DELETE_UOBJECT(SMC)
+				continue;
+			}
+
+			SMC->ClearInternalFlags(EInternalObjectFlags::Async);
+			UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(TargetActor, SMC, Comp, LocalSettings->UID);
+			LocalTypedContext->NotifyActors.Add(TargetActor);
+		}
+		
+		/*
 		for (int i = 0; i < SplineMeshComponents.Num(); i++)
 		{
 			USplineMeshComponent* SMC = SplineMeshComponents[i];
@@ -285,6 +304,7 @@ namespace PCGExPathSplineMesh
 		}
 
 		SplineMeshComponents.Empty();
+		*/
 	}
 }
 

@@ -83,7 +83,7 @@ void UPCGExAssetCollection::PostLoad()
 	Super::PostLoad();
 #if WITH_EDITOR
 	EDITOR_RefreshDisplayNames();
-	SetDirty();
+	EDITOR_SetDirty();
 #endif
 }
 
@@ -92,7 +92,7 @@ void UPCGExAssetCollection::PostDuplicate(bool bDuplicateForPIE)
 	Super::PostDuplicate(bDuplicateForPIE);
 #if WITH_EDITOR
 	EDITOR_RefreshDisplayNames();
-	SetDirty();
+	EDITOR_SetDirty();
 #endif
 }
 
@@ -101,7 +101,7 @@ void UPCGExAssetCollection::PostEditImport()
 	Super::PostEditImport();
 #if WITH_EDITOR
 	EDITOR_RefreshDisplayNames();
-	SetDirty();
+	EDITOR_SetDirty();
 #endif
 }
 
@@ -116,7 +116,7 @@ void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& Proper
 	if (EDITOR_IsCacheableProperty(PropertyChangedEvent)) { EDITOR_RebuildStagingData(); }
 
 	EDITOR_RefreshDisplayNames();
-	SetDirty();
+	EDITOR_SetDirty();
 }
 
 void UPCGExAssetCollection::EDITOR_RefreshDisplayNames()

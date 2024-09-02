@@ -153,7 +153,7 @@ namespace PCGExPathSplineMesh
 		UPCGExTangentsOperation* Tangents = nullptr;
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;		
-		TArray<USplineMeshComponent*> SplineMeshComponents;
+		//TArray<USplineMeshComponent*> SplineMeshComponents;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
