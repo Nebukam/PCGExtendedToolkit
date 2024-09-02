@@ -375,7 +375,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSourceFuseDetails : public FPCGExFuseDet
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision"))
 enum class EPCGExFuseMethod : uint8
 {
-	Voxel UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.\nDestructive toward initial topology."),
+	Voxel UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.Destructive toward initial topology."),
 	Octree UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology."),
 };
 

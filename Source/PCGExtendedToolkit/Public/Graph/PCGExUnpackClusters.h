@@ -32,7 +32,7 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-	/** Flatten unpacked metadata \n Depending on your setup this is a tradeoff between memory and speed.*/
+	/** Flatten unpacked metadata  Depending on your setup this is a tradeoff between memory and speed.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bFlatten = false;
 

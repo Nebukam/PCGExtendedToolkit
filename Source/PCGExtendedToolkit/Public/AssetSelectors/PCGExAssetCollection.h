@@ -5,6 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExRandom.h"
+#include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExData.h"
+#include "Engine/AssetManager.h"
 #include "Engine/DataAsset.h"
 
 #include "PCGExAssetCollection.generated.h"
@@ -61,6 +64,32 @@ enum class EPCGExWeightOutputMode : uint8
 namespace PCGExAssetCollection
 {
 	const FName SourceAssetCollection = TEXT("AttributeSet");
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+	const TSet<EPCGMetadataTypes> SupportedPathTypes = {
+		EPCGMetadataTypes::SoftObjectPath,
+		EPCGMetadataTypes::String,
+		EPCGMetadataTypes::Name
+	};
+#else
+	const TSet<EPCGMetadataTypes> SupportedPathTypes = {
+		EPCGMetadataTypes::String,
+		EPCGMetadataTypes::Name
+	};
+#endif
+
+
+	const TSet<EPCGMetadataTypes> SupportedWeightTypes = {
+		EPCGMetadataTypes::Float,
+		EPCGMetadataTypes::Double,
+		EPCGMetadataTypes::Integer32,
+		EPCGMetadataTypes::Integer64,
+	};
+
+	const TSet<EPCGMetadataTypes> SupportedCategoryTypes = {
+		EPCGMetadataTypes::String,
+		EPCGMetadataTypes::Name
+	};
 }
 
 USTRUCT(BlueprintType)
@@ -208,6 +237,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 
 	UPROPERTY(VisibleAnywhere, Category = Baked)
 	FBox Bounds = FBox(ForceInitToZero);
+
+	template <typename T>
+	T* LoadSynchronous() const
+	{
+		UObject* LoadedAsset = UAssetManager::GetStreamableManager().RequestSyncLoad(Path)->GetLoadedAsset();
+		if (!LoadedAsset) { return nullptr; }
+		return Cast<T>(LoadedAsset);
+	}
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry")
@@ -244,6 +281,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection);
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive);
+	virtual void SetAssetPath(FSoftObjectPath InPath);
 
 protected:
 	template <typename T>
@@ -476,48 +514,58 @@ public:
 #pragma endregion
 
 
-	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
+	FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	{
 		return false;
 	}
 
-	FORCEINLINE virtual bool GetStagingRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const
+	FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const
 	{
 		return false;
 	}
 
-	FORCEINLINE virtual bool GetStagingWeightedRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const
+	FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const
 	{
 		return false;
 	}
+
+	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(
+		const FPCGContext* InContext,
+		const UPCGParamData* InAttributeSet,
+		const FPCGExAssetAttributeSetDetails& Details) const;
+
+	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(
+		const FPCGContext* InContext,
+		const FName InputPin,
+		const FPCGExAssetAttributeSetDetails& Details) const;
 
 protected:
 #pragma region GetStaging
 	template <typename T>
-	FORCEINLINE bool GetStagingTpl(FPCGExAssetStagingData& OutStaging, const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
+	FORCEINLINE bool GetStagingTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	{
 		const int32 Pick = Cache->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		if (const T& Entry = InEntries[Pick]; Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed); }
-		else { OutStaging = Entry.Staging; }
+		else { OutStaging = &Entry.Staging; }
 		return true;
 	}
 
 	template <typename T>
-	FORCEINLINE bool GetStagingRandomTpl(FPCGExAssetStagingData& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
+	FORCEINLINE bool GetStagingRandomTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
 	{
 		const T& Entry = InEntries[Cache->GetPickRandom(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
-		else { OutStaging = Entry.Staging; }
+		else { OutStaging = &Entry.Staging; }
 		return true;
 	}
 
 	template <typename T>
-	FORCEINLINE bool GetStagingWeightedRandomTpl(FPCGExAssetStagingData& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
+	FORCEINLINE bool GetStagingWeightedRandomTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
 	{
 		const T& Entry = InEntries[Cache->GetPickRandomWeighted(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
-		else { OutStaging = Entry.Staging; }
+		else { OutStaging = &Entry.Staging; }
 		return true;
 	}
 
@@ -576,4 +624,191 @@ protected:
 		bCacheNeedsRebuild = true;
 	}
 #endif
+
+	template <typename T>
+	T* GetCollectionFromAttributeSetTpl(
+		const FPCGContext* InContext,
+		const UPCGParamData* InAttributeSet,
+		const FPCGExAssetAttributeSetDetails& Details) const
+	{
+		PCGEX_NEW_TRANSIENT(T, Collection)
+		FPCGAttributeAccessorKeysEntries* Keys = nullptr;
+
+		PCGEx::FAttributesInfos* Infos = nullptr;
+
+		auto Cleanup = [&]()
+		{
+			PCGEX_DELETE(Infos)
+			PCGEX_DELETE(Keys)
+		};
+
+		auto CreationFailed = [&]()
+		{
+			Cleanup();
+			PCGEX_DELETE_UOBJECT(Collection)
+			return nullptr;
+		};
+
+		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
+
+		Infos = PCGEx::FAttributesInfos::Get(Metadata);
+		if (Infos->Attributes.IsEmpty()) { return CreationFailed(); }
+
+		const PCGEx::FAttributeIdentity* PathIdentity = Infos->Find(Details.AssetPathSourceAttribute);
+		const PCGEx::FAttributeIdentity* WeightIdentity = Infos->Find(Details.WeightSourceAttribute);
+		const PCGEx::FAttributeIdentity* CategoryIdentity = Infos->Find(Details.CategorySourceAttribute);
+
+		if (!PathIdentity || !PCGExAssetCollection::SupportedPathTypes.Contains(PathIdentity->UnderlyingType))
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Path attribute '{0}' is either of unsupported type or not in the metadata. Expecting SoftObjectPath/String/Name"), FText::FromName(Details.AssetPathSourceAttribute)));
+			return CreationFailed();
+		}
+
+		if (WeightIdentity)
+		{
+			if (!PCGExAssetCollection::SupportedWeightTypes.Contains(WeightIdentity->UnderlyingType))
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Weight attribute '{0}' is of unsupported type. Expecting Float/Double/int32/int64"), FText::FromName(Details.WeightSourceAttribute)));
+				WeightIdentity = nullptr;
+			}
+			else if (Details.WeightSourceAttribute.IsNone())
+			{
+				CategoryIdentity = nullptr;
+			}
+		}
+
+		if (CategoryIdentity)
+		{
+			if (!PCGExAssetCollection::SupportedCategoryTypes.Contains(CategoryIdentity->UnderlyingType))
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Category attribute '{0}' is of unsupported type. Expecting String/Name"), FText::FromName(Details.CategorySourceAttribute)));
+				CategoryIdentity = nullptr;
+			}
+			else if (Details.CategorySourceAttribute.IsNone())
+			{
+				CategoryIdentity = nullptr;
+			}
+		}
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		Keys = new FPCGAttributeAccessorKeysEntries(Metadata);
+#else
+		Keys = new FPCGAttributeAccessorKeysEntries(Infos->Attributes[0]); // Probably not reliable, but make 5.3 compile -_-
+#endif
+
+		const int32 NumEntries = Keys->GetNum();
+		if (NumEntries == 0)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Attribute set is empty."));
+			return CreationFailed();
+		}
+
+		PCGEX_SET_NUM(Collection->Entries, NumEntries);
+
+		// Path value
+
+		auto SetEntryPath = [&](const int32 Index, const FSoftObjectPath& Path) { Collection->Entries[Index].SetAssetPath(Path); };
+
+#define PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, _NAME, _BODY)\
+		TArray<_TYPE> V; PCGEX_SET_NUM(V, NumEntries)\
+		FPCGAttributeAccessor<_TYPE>* A = new FPCGAttributeAccessor<_TYPE>(Metadata->GetConstTypedAttribute<_TYPE>(_NAME), Metadata);\
+		A->GetRange(MakeArrayView(V), 0, *Keys);\
+		for (int i = 0; i < NumEntries; i++) { _BODY }\
+		PCGEX_DELETE(A)
+
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		if (PathIdentity->UnderlyingType == EPCGMetadataTypes::SoftObjectPath)
+		{
+			PCGEX_FOREACH_COLLECTION_ENTRY(FSoftObjectPath, PathIdentity->Name, { SetEntryPath(i, V[i]); })
+		}
+		else
+#endif
+			if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
+			{
+				PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V[i])); })
+			}
+			else
+			{
+				PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V[i].ToString())); })
+			}
+
+
+		// Weight value
+		if (WeightIdentity)
+		{
+#define PCGEX_ATT_TOINT32(_NAME, _TYPE)\
+			if (WeightIdentity->UnderlyingType == EPCGMetadataTypes::_NAME){ \
+				PCGEX_FOREACH_COLLECTION_ENTRY(int32, WeightIdentity->Name, {  Collection->Entries[i].Weight = static_cast<int32>(V[i]); }) }
+
+			PCGEX_ATT_TOINT32(Integer32, int32)
+			else
+				PCGEX_ATT_TOINT32(Double, double)
+				else
+					PCGEX_ATT_TOINT32(Float, float)
+					else
+						PCGEX_ATT_TOINT32(Integer64, int64)
+
+#undef PCGEX_ATT_TOINT32
+		}
+
+		// Category value
+		if (CategoryIdentity)
+		{
+			if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::String)
+			{
+				PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Name, { Collection->Entries[i].Category = FName(V[i]); })
+			}
+			else if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::Name)
+			{
+				PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Name, { Collection->Entries[i].Category = V[i]; })
+			}
+		}
+
+#undef PCGEX_FOREACH_COLLECTION_ENTRY
+
+		Cleanup();
+		Collection->RebuildStagingData(false);
+
+		return Collection;
+	}
+
+	template <typename T>
+	T* GetCollectionFromAttributeSetTpl(
+		const FPCGContext* InContext,
+		const FName InputPin,
+		const FPCGExAssetAttributeSetDetails& Details) const
+	{
+		const TArray<FPCGTaggedData> Inputs = InContext->InputData.GetInputsByPin(InputPin);
+		if (Inputs.IsEmpty()) { return nullptr; }
+		for (const FPCGTaggedData& InData : Inputs)
+		{
+			if (const UPCGParamData* ParamData = Cast<UPCGParamData>(InData.Data))
+			{
+				return GetCollectionFromAttributeSetTpl<T>(InContext, ParamData, Details);
+			}
+		}
+		return nullptr;
+	}
 };
+
+namespace PCGExAssetCollection
+{
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FDistributionHelper
+	{
+		UPCGExAssetCollection* Collection = nullptr;
+		FPCGExAssetDistributionDetails Details;
+
+		PCGExData::FCache<int32>* IndexGetter = nullptr;
+
+		int32 MaxIndex = 0;
+		double MaxInputIndex = 0;
+
+		FDistributionHelper(
+			UPCGExAssetCollection* InCollection,
+			const FPCGExAssetDistributionDetails& InDetails);
+
+		bool Init(const FPCGContext* InContext, PCGExData::FFacade* InDataFacade);
+		void GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 PointIndex, const int32 Seed) const;
+	};
+}

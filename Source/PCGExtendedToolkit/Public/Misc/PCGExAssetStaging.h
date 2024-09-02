@@ -59,7 +59,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExJustificationDetails Justification;
 
-	///** If enabled, filter output based on whether a staging has been applied or not (empty entry). \n NOT IMPLEMENTED YET */
+	///** If enabled, filter output based on whether a staging has been applied or not (empty entry).  NOT IMPLEMENTED YET */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	//bool bOmitInvalidStagedPoints = false;
 
@@ -99,8 +99,6 @@ namespace PCGExAssetStaging
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		int32 NumPoints = 0;
-		int32 MaxIndex = 0;
-		double MaxInputIndex = 0;
 
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
@@ -110,9 +108,9 @@ namespace PCGExAssetStaging
 		const FPCGExAssetStagingContext* LocalTypedContext = nullptr;
 
 		FPCGExJustificationDetails Justification;
-		FPCGExAssetDistributionDetails Details;
 
-		PCGExData::FCache<int32>* IndexGetter = nullptr;
+		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
+
 		PCGEx::TFAttributeWriter<int32>* WeightWriter = nullptr;
 		PCGEx::TFAttributeWriter<double>* NormalizedWeightWriter = nullptr;
 
@@ -130,6 +128,7 @@ namespace PCGExAssetStaging
 
 		virtual ~FProcessor() override
 		{
+			PCGEX_DELETE(Helper)
 		}
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;

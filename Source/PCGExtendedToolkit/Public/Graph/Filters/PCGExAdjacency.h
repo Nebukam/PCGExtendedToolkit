@@ -32,9 +32,9 @@ enum class EPCGExAdjacencyGatherMode : uint8
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Mode"))
 enum class EPCGExAdjacencyThreshold : uint8
 {
-	AtLeast UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least N adjacent nodes. \n (Where N is the Threshold)"),
-	AtMost UMETA(DisplayName = "At Most", Tooltip="Requirements must be met by at most N adjacent nodes. \n (Where N is the Threshold)"),
-	Exactly UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly N adjacent nodes, no more, no less. \n (Where N is the Threshold)")
+	AtLeast UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least N adjacent nodes.  (Where N is the Threshold)"),
+	AtMost UMETA(DisplayName = "At Most", Tooltip="Requirements must be met by at most N adjacent nodes.  (Where N is the Threshold)"),
+	Exactly UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly N adjacent nodes, no more, no less.  (Where N is the Threshold)")
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Relative Rounding Mode"))

@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExBevelPath.h"
 
+#include "PCGExRandom.h"
 #include "Data/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"
@@ -417,11 +418,16 @@ namespace PCGExBevelPath
 		StartPoint.Transform.SetLocation(Bevel->Arrive);
 		EndPoint.Transform.SetLocation(Bevel->Leave);
 
+		PCGExRandom::ComputeSeed(StartPoint);
+		PCGExRandom::ComputeSeed(EndPoint);
+
 		if (Bevel->Subdivisions.IsEmpty()) { return; }
 
 		for (int i = 0; i < Bevel->Subdivisions.Num(); i++)
 		{
-			MutablePoints[Bevel->StartOutputIndex + i + 1].Transform.SetLocation(Bevel->Subdivisions[i]);
+			FPCGPoint& Pt = MutablePoints[Bevel->StartOutputIndex + i + 1];
+			Pt.Transform.SetLocation(Bevel->Subdivisions[i]);
+			PCGExRandom::ComputeSeed(Pt);
 		}
 	}
 

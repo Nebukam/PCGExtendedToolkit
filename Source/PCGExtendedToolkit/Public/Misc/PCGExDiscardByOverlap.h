@@ -36,84 +36,47 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOverlapScoresWeighting
 	}
 
 	/** How much of the dynamic weights to account for vs. static ones */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
 	double DynamicBalance = 1;
 
 	/** Overlap count weight (how many sets overlap) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Dynamic Weights", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
 	double OverlapCount = 2;
 
 	/** Overlap Sub-Count weight (how many points overlap) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Dynamic Weights", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
 	double OverlapSubCount = 1;
 
-	/** Overlap volume weight (cumulative volume overlap) \n Note that each sub point adds its own intersection volume whether or not it occupies an already computed volume in space. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Dynamic Weights", meta = (PCG_Overridable))
+	/** Overlap volume weight (cumulative volume overlap)  Note that each sub point adds its own intersection volume whether or not it occupies an already computed volume in space. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
 	double OverlapVolume = 0;
 
 	/** Overlap volume density weight (cumulative volume overlap / number of overlapping points) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Dynamic Weights", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
 	double OverlapVolumeDensity = 0;
 
-
 	/** How much of the static weights to account for vs. dynamic ones */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
 	double StaticBalance = 0.5;
 
 	/** Number of points weight (points in a given set) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Static Weights", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
 	double NumPoints = 1;
 
-	/** Volume weight \n Note that each sub point adds its own intersection volume whether or not it occupies an already computed volume in space. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Static Weights", meta = (PCG_Overridable))
+	/** Volume weight  Note that each sub point adds its own intersection volume whether or not it occupies an already computed volume in space. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
 	double Volume = 0;
 
 	/** Volume density. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Static Weights", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
 	double VolumeDensity = 0;
 
 	double StaticWeightSum = 0;
 	double DynamicWeightSum = 0;
 
-	void Init()
-	{
-		StaticWeightSum = FMath::Abs(NumPoints) + FMath::Abs(Volume) + FMath::Abs(VolumeDensity);
-		NumPoints /= StaticWeightSum;
-		Volume /= StaticWeightSum;
-		VolumeDensity /= StaticWeightSum;
-
-		DynamicWeightSum = FMath::Abs(OverlapCount) + FMath::Abs(OverlapSubCount) + FMath::Abs(OverlapVolume) + FMath::Abs(OverlapVolumeDensity);
-		OverlapCount /= DynamicWeightSum;
-		OverlapSubCount /= DynamicWeightSum;
-		OverlapVolume /= DynamicWeightSum;
-		OverlapVolumeDensity /= DynamicWeightSum;
-
-		const double Balance = FMath::Abs(DynamicBalance) + FMath::Abs(StaticBalance);
-		DynamicBalance /= Balance;
-		StaticBalance /= Balance;
-	}
-
-	void ResetMin()
-	{
-		OverlapCount =
-			OverlapSubCount =
-			OverlapVolume =
-			OverlapVolumeDensity =
-			NumPoints =
-			Volume =
-			VolumeDensity = TNumericLimits<double>::Min();
-	}
-
-	void Max(const FPCGExOverlapScoresWeighting& Other)
-	{
-		OverlapCount = FMath::Max(OverlapCount, Other.OverlapCount);
-		OverlapSubCount = FMath::Max(OverlapSubCount, Other.OverlapSubCount);
-		OverlapVolume = FMath::Max(OverlapVolume, Other.OverlapVolume);
-		OverlapVolumeDensity = FMath::Max(OverlapVolumeDensity, Other.OverlapVolumeDensity);
-		NumPoints = FMath::Max(NumPoints, Other.NumPoints);
-		Volume = FMath::Max(Volume, Other.Volume);
-		VolumeDensity = FMath::Max(VolumeDensity, Other.VolumeDensity);
-	}
+	void Init();
+	void ResetMin();
+	void Max(const FPCGExOverlapScoresWeighting& Other);
 };
 
 namespace PCGExDiscardByOverlap
@@ -166,11 +129,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOverlapPruningLogic Logic = EPCGExOverlapPruningLogic::HighFirst;
 
-	/** The minimum amount two sub-points must overlap to be added to the comparison. \n The higher, the more "overlap" there must be. */
+	/** The minimum amount two sub-points must overlap to be added to the comparison.  The higher, the more "overlap" there must be. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double MinThreshold = 0.1;
 
-	/** How to interpret the min overlap value. \n Discrete means distance in world space \n Relative means uses percentage (0-1) of the averaged radius. */
+	/** How to interpret the min overlap value.  Discrete means distance in world space  Relative means uses percentage (0-1) of the averaged radius. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExMeanMeasure ThresholdMeasure = EPCGExMeanMeasure::Relative;
 

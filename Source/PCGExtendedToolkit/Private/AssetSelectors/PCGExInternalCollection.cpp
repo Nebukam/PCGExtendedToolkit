@@ -40,6 +40,11 @@ void FPCGExInternalCollectionEntry::UpdateStaging(const UPCGExAssetCollection* O
 	Super::UpdateStaging(OwningCollection, bRecursive);
 }
 
+void FPCGExInternalCollectionEntry::SetAssetPath(FSoftObjectPath InPath)
+{
+	Object = InPath;
+}
+
 void FPCGExInternalCollectionEntry::OnSubCollectionLoaded()
 {
 	SubCollectionPtr = Cast<UPCGExInternalCollection>(BaseSubCollectionPtr);
@@ -58,6 +63,16 @@ bool UPCGExInternalCollection::EDITOR_IsCacheableProperty(FPropertyChangedEvent&
 	return PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UPCGExInternalCollection, Entries);
 }
 #endif
+
+UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details) const
+{
+	return GetCollectionFromAttributeSetTpl<UPCGExInternalCollection>(InContext, InAttributeSet, Details);
+}
+
+UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details) const
+{
+	return GetCollectionFromAttributeSetTpl<UPCGExInternalCollection>(InContext, InputPin, Details);
+}
 
 void UPCGExInternalCollection::BuildCache()
 {

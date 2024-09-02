@@ -64,7 +64,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="FilterMode!=EPCGExAttributeFilter::All", EditConditionHides))
 	EPCGExStringMatchMode CommaSeparatedNameFilter = EPCGExStringMatchMode::Equals;
 
-	/** If enabled, PCGEx attributes & tags won't be affected. \n Cluster-related nodes rely on these to work! */
+	/** If enabled, PCGEx attributes & tags won't be affected.  Cluster-related nodes rely on these to work! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	bool bPreservePCGExData = true;
 

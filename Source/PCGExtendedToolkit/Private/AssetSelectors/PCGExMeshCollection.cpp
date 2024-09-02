@@ -30,6 +30,11 @@ void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Ownin
 	Super::UpdateStaging(OwningCollection, bRecursive);
 }
 
+void FPCGExMeshCollectionEntry::SetAssetPath(FSoftObjectPath InPath)
+{
+	Descriptor.StaticMesh = TSoftObjectPtr<UStaticMesh>(InPath);
+}
+
 void FPCGExMeshCollectionEntry::OnSubCollectionLoaded()
 {
 	SubCollectionPtr = Cast<UPCGExMeshCollection>(BaseSubCollectionPtr);
@@ -55,6 +60,16 @@ void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
 	{
 		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]")) : FName(Entry.Descriptor.StaticMesh.GetAssetName());
 	}
+}
+
+UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details) const
+{
+	return GetCollectionFromAttributeSetTpl<UPCGExMeshCollection>(InContext, InAttributeSet, Details);
+}
+
+UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details) const
+{
+	return GetCollectionFromAttributeSetTpl<UPCGExMeshCollection>(InContext, InputPin, Details);
 }
 
 void UPCGExMeshCollection::BuildCache()

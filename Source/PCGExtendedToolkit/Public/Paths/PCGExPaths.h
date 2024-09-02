@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AssetSelectors/PCGExMeshCollection.h"
+#include "Components/SplineMeshComponent.h"
 
 #include "PCGExPaths.generated.h"
 
@@ -119,6 +121,51 @@ namespace PCGExPaths
 
 		FORCEINLINE static void SetElementId(const FPathEdge* Element, FOctreeElementId2 OctreeElementID)
 		{
+		}
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FSplineMeshSegment
+	{
+		FSplineMeshSegment()
+		{
+		}
+
+		bool bSmoothInterpRollScale = true;
+		bool bUseDegrees = true;
+		FVector UpVector = FVector::UpVector;
+
+		const FPCGExAssetStagingData* AssetStaging = nullptr;
+		FSplineMeshParams Params;
+
+		void ApplyToComponent(USplineMeshComponent* Component) const
+		{
+			check(Component)
+			check(AssetStaging)
+
+			UStaticMesh* StaticMesh = AssetStaging->LoadSynchronous<UStaticMesh>();
+			check(StaticMesh)
+			
+			Component->SetStaticMesh(StaticMesh);
+			Component->SetStartAndEnd(Params.StartPos, Params.StartTangent, Params.EndPos, Params.EndTangent);
+
+			Component->SetStartScale(Params.StartScale);
+			if (bUseDegrees) { Component->SetStartRollDegrees(Params.StartRoll); }
+			else { Component->SetStartRoll(Params.StartRoll); }
+
+			Component->SetEndScale(Params.EndScale);
+			if (bUseDegrees) { Component->SetEndRollDegrees(Params.EndRoll); }
+			else { Component->SetEndRoll(Params.EndRoll); }
+
+
+			Component->SetForwardAxis(ESplineMeshAxis::Type::X);
+			Component->SetSplineUpDir(FVector::UpVector);
+
+			Component->SplineParams.NaniteClusterBoundsScale = Params.NaniteClusterBoundsScale;
+
+			Component->SplineBoundaryMin = 0;
+			Component->SplineBoundaryMax = 0;
+
+			Component->bSmoothInterpRollScale = bSmoothInterpRollScale;
 		}
 	};
 }

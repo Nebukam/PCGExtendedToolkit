@@ -6,31 +6,52 @@
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
 #include "PCGExPointsProcessor.h"
+#include "AssetSelectors/PCGExMeshCollection.h"
 
 #include "Tangents/PCGExTangentsOperation.h"
 #include "Components/SplineMeshComponent.h"
 
-#include "PCGExPathToSplineMesh.generated.h"
+#include "PCGExPathSplineMesh.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
-enum class EPCGExMeshSelectionMode : uint8
+#define PCGEX_FOREACH_SPLINE_PARAM(MACRO) \
+MACRO(StartScale, FVector) \
+MACRO(StartOffset, FVector) \
+MACRO(StartRoll, double) \
+MACRO(EndScale, FVector) \
+MACRO(EndOffset, FVector) \
+MACRO(EndRoll, FVector)
+
+namespace PCGExPaths
 {
-	NameAttribute UMETA(DisplayName = "Name Attribute", ToolTip="Uses a name attribute to fetch a datatable entry."),
-	IndexAttribute UMETA(DisplayName = "Index Attribute", ToolTip="Uses an index attribute to fetch a datatable entry."),
+	struct FSplineMeshSegment;
+}
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineParamsMapping
+{
+	GENERATED_BODY()
+
+	FPCGExSplineParamsMapping()
+	{
+	}
+
+	/** Write whether the sampling was sucessful or not to a boolean attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_NotOverridable, InlineEditConditionToggle))
+	bool bLocalParam = false;
 };
 
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathToSplineMeshSettings : public UPCGExPathProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathSplineMeshSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathToSplineMesh, "Path : To Spline Mesh", "Create spline mesh components from paths.");
+	PCGEX_NODE_INFOS(PathSplineMesh, "Path : Spline Mesh", "Create spline mesh components from paths.");
 #endif
 
 protected:
@@ -45,8 +66,29 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExCollectionSource CollectionSource = EPCGExCollectionSource::Asset;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::Asset", EditConditionHides))
+	TSoftObjectPtr<UPCGExAssetCollection> MainCollection;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
+	FPCGExAssetAttributeSetDetails AttributeSetDetails;
+
+	/** Distribution details */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExAssetDistributionDetails DistributionSettings;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
+
+	/**  */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
+	//bool bPerSegmentTargetActor = false;
+
+	/**  */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta=(PCG_Overridable, EditCondition="bPerSegmentTargetActor", EditConditionHides))
+	//FName TargetActorAttributeName;
 
 	/** Whether to read tangents from attributes or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tangents", meta = (PCG_Overridable))
@@ -67,22 +109,21 @@ public:
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
-
-	/** Force meshes/materials to load synchronously. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Debug")
-	bool bSynchronousLoad = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToSplineMeshContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : public FPCGExPathProcessorContext
 {
-	friend class FPCGExPathToSplineMeshElement;
+	friend class FPCGExPathSplineMeshElement;
 
-	virtual ~FPCGExPathToSplineMeshContext() override;
+	virtual ~FPCGExPathSplineMeshContext() override;
 
 	UPCGExTangentsOperation* Tangents = nullptr;
+	TSet<AActor*> NotifyActors;
+
+	TObjectPtr<UPCGExAssetCollection> MainCollection;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToSplineMeshElement final : public FPCGExPathProcessorElement
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -95,20 +136,25 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExPathToSplineMesh
+namespace PCGExPathSplineMesh
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		const UPCGExPathToSplineMeshSettings* LocalSettings = nullptr;
+		FPCGExPathSplineMeshContext* LocalTypedContext = nullptr;
+		const UPCGExPathSplineMeshSettings* LocalSettings = nullptr;
+
 		bool bClosedPath = false;
+		
 		int32 LastIndex = 0;
 
+		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
+		
 		PCGExData::FCache<FVector>* ArriveReader = nullptr;
 		PCGExData::FCache<FVector>* LeaveReader = nullptr;
 
 		UPCGExTangentsOperation* Tangents = nullptr;
 
-		TArray<FSplineMeshParams> SplineMeshParams;
+		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

@@ -40,7 +40,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		Context->MainCollection = PCGExAssetCollection::GetCollectionFromAttributeSet(
+		Context->MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
 			Context,
 			PCGExAssetCollection::SourceAssetCollection,
 			Settings->AttributeSetDetails);
@@ -108,11 +108,9 @@ namespace PCGExAssetStaging
 		Justification = Settings->Justification;
 		Justification.Init(Context, PointDataFacade);
 
-		Details = Settings->DistributionSettings;
+		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
 
-		NumPoints = PointIO->GetNum();
-		MaxIndex = TypedContext->MainCollection->LoadCache()->Indices.Num() - 1;
-
+		NumPoints = PointIO->GetNum();		
 		PointDataFacade->bSupportsDynamic = true;
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
@@ -134,29 +132,7 @@ namespace PCGExAssetStaging
 		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
 #endif
 
-		if (Details.Distribution == EPCGExDistribution::Index)
-		{
-			if (Details.IndexSettings.bRemapIndexToCollectionSize)
-			{
-				// Non-dynamic since we want min-max to start with :(
-				IndexGetter = PointDataFacade->GetBroadcaster<int32>(Details.IndexSettings.IndexSource, true);
-			}
-			else
-			{
-				IndexGetter = PointDataFacade->GetScopedBroadcaster<int32>(Details.IndexSettings.IndexSource);
-			}
-
-			if (!IndexGetter)
-			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Invalid Index attribute used"));
-				return false;
-			}
-
-			if (Details.IndexSettings.bRemapIndexToCollectionSize)
-			{
-				MaxInputIndex = static_cast<double>(IndexGetter->Max);
-			}
-		}
+		if (!Helper->Init(Context, PointDataFacade)) { return false; }
 
 		StartParallelLoopForPoints();
 
@@ -172,52 +148,15 @@ namespace PCGExAssetStaging
 	{
 		// Note : Prototype implementation
 
-		FPCGExAssetStagingData StagingData;
+		const FPCGExAssetStagingData* StagingData = nullptr;
+
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
-			Details.SeedComponents, Point,
-			Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
+			Helper->Details.SeedComponents, Point,
+			Helper->Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
 
-		bool bValid = false;
+		Helper->GetStaging(StagingData, Index, Seed);
 
-		if (Details.Distribution == EPCGExDistribution::WeightedRandom)
-		{
-			bValid = LocalTypedContext->MainCollection->GetStagingWeightedRandom(StagingData, Seed);
-		}
-		else if (Details.Distribution == EPCGExDistribution::Random)
-		{
-			bValid = LocalTypedContext->MainCollection->GetStagingRandom(StagingData, Seed);
-		}
-		else
-		{
-			double PickedIndex = IndexGetter->Values[Index];
-			if (Details.IndexSettings.bRemapIndexToCollectionSize)
-			{
-				PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
-				switch (Details.IndexSettings.TruncateRemap)
-				{
-				case EPCGExTruncateMode::Round:
-					PickedIndex = FMath::RoundToInt(PickedIndex);
-					break;
-				case EPCGExTruncateMode::Ceil:
-					PickedIndex = FMath::CeilToDouble(PickedIndex);
-					break;
-				case EPCGExTruncateMode::Floor:
-					PickedIndex = FMath::FloorToDouble(PickedIndex);
-					break;
-				default:
-				case EPCGExTruncateMode::None:
-					break;
-				}
-			}
-
-			bValid = LocalTypedContext->MainCollection->GetStaging(
-				StagingData,
-				PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
-				Seed,
-				Details.IndexSettings.PickMode);
-		}
-
-		if (!bValid)
+		if (!StagingData)
 		{
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 			PathWriter->Values[Index] = FSoftObjectPath{};
@@ -244,7 +183,7 @@ namespace PCGExAssetStaging
 
 		if (bOutputWeight)
 		{
-			double Weight = bNormalizedWeight ? static_cast<double>(StagingData.Weight) / static_cast<double>(LocalTypedContext->MainCollection->LoadCache()->WeightSum) : StagingData.Weight;
+			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(LocalTypedContext->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
 			if (bOneMinusWeight) { Weight = 1 - Weight; }
 			if (WeightWriter) { WeightWriter->Values[Index] = Weight; }
 			else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = Weight; }
@@ -252,18 +191,18 @@ namespace PCGExAssetStaging
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PathWriter->Values[Index] = StagingData.Path;
+		PathWriter->Values[Index] = StagingData->Path;
 #else
-		PathWriter->Values[Index] = StagingData.Path.ToString();
+		PathWriter->Values[Index] = StagingData->Path.ToString();
 #endif
 
 
-		const FBox& StBox = StagingData.Bounds;
+		const FBox& StBox = StagingData->Bounds;
 		FVector OutScale = Point.Transform.GetScale3D();
 		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
 		FBox OutBounds = StBox;
 
-		LocalSettings->ScaleToFit.Process(Point, StagingData.Bounds, OutScale, OutBounds);
+		LocalSettings->ScaleToFit.Process(Point, StagingData->Bounds, OutScale, OutBounds);
 
 		Point.BoundsMin = OutBounds.Min;
 		Point.BoundsMax = OutBounds.Max;

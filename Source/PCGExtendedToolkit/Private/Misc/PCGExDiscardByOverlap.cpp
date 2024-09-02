@@ -8,6 +8,46 @@
 #define LOCTEXT_NAMESPACE "PCGExDiscardByOverlapElement"
 #define PCGEX_NAMESPACE DiscardByOverlap
 
+void FPCGExOverlapScoresWeighting::Init()
+{
+	StaticWeightSum = FMath::Abs(NumPoints) + FMath::Abs(Volume) + FMath::Abs(VolumeDensity);
+	NumPoints /= StaticWeightSum;
+	Volume /= StaticWeightSum;
+	VolumeDensity /= StaticWeightSum;
+
+	DynamicWeightSum = FMath::Abs(OverlapCount) + FMath::Abs(OverlapSubCount) + FMath::Abs(OverlapVolume) + FMath::Abs(OverlapVolumeDensity);
+	OverlapCount /= DynamicWeightSum;
+	OverlapSubCount /= DynamicWeightSum;
+	OverlapVolume /= DynamicWeightSum;
+	OverlapVolumeDensity /= DynamicWeightSum;
+
+	const double Balance = FMath::Abs(DynamicBalance) + FMath::Abs(StaticBalance);
+	DynamicBalance /= Balance;
+	StaticBalance /= Balance;
+}
+
+void FPCGExOverlapScoresWeighting::ResetMin()
+{
+	OverlapCount =
+		OverlapSubCount =
+		OverlapVolume =
+		OverlapVolumeDensity =
+		NumPoints =
+		Volume =
+		VolumeDensity = TNumericLimits<double>::Min();
+}
+
+void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other)
+{
+	OverlapCount = FMath::Max(OverlapCount, Other.OverlapCount);
+	OverlapSubCount = FMath::Max(OverlapSubCount, Other.OverlapSubCount);
+	OverlapVolume = FMath::Max(OverlapVolume, Other.OverlapVolume);
+	OverlapVolumeDensity = FMath::Max(OverlapVolumeDensity, Other.OverlapVolumeDensity);
+	NumPoints = FMath::Max(NumPoints, Other.NumPoints);
+	Volume = FMath::Max(Volume, Other.Volume);
+	VolumeDensity = FMath::Max(VolumeDensity, Other.VolumeDensity);
+}
+
 PCGExData::EInit UPCGExDiscardByOverlapSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGExDiscardByOverlapContext::~FPCGExDiscardByOverlapContext()
@@ -50,7 +90,7 @@ void FPCGExDiscardByOverlapContext::Prune()
 	TArray<PCGExDiscardByOverlap::FProcessor*> Remaining;
 	Remaining.Reserve(MainBatch->GetNumProcessors());
 
-	for (const TPair<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*> Pair : *(MainBatch->SubProcessorMap))
+	for (const TPair<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*> Pair : SubProcessorMap)
 	{
 		PCGExDiscardByOverlap::FProcessor* P = static_cast<PCGExDiscardByOverlap::FProcessor*>(Pair.Value);
 		if (!P->bIsProcessorValid) { continue; }
@@ -144,14 +184,14 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if(Context->IsState(PCGExMT::State_Processing))
+	if (Context->IsState(PCGExMT::State_Processing))
 	{
 		Context->SetAsyncState(PCGExMT::State_Completing);
-		Context->GetAsyncManager()->Start<PCGExDiscardByOverlap::FPruneTask>(-1,nullptr);
+		Context->GetAsyncManager()->Start<PCGExDiscardByOverlap::FPruneTask>(-1, nullptr);
 		return false;
 	}
 
-	if(Context->IsState(PCGExMT::State_Completing))
+	if (Context->IsState(PCGExMT::State_Completing))
 	{
 		PCGEX_ASYNC_WAIT
 		Context->Done();

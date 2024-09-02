@@ -39,6 +39,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive) override;
+	virtual void SetAssetPath(FSoftObjectPath InPath) override;
 
 protected:
 	virtual void OnSubCollectionLoaded() override;
@@ -62,20 +63,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
 	TArray<FPCGExActorCollectionEntry> Entries;
 
-	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override
+	FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override
 	{
 		return GetStagingTpl(OutStaging, Entries, Index, Seed, PickMode);
 	}
 
-	FORCEINLINE virtual bool GetStagingRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const override
+	FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override
 	{
 		return GetStagingRandomTpl(OutStaging, Entries, Seed);
 	}
 
-	FORCEINLINE virtual bool GetStagingWeightedRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const override
+	FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override
 	{
 		return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);
 	}
 
+	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details) const override;
+	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details) const override;
+	
 	virtual void BuildCache() override;
 };

@@ -43,6 +43,10 @@ void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	Staging.Category = Category;
 }
 
+void FPCGExAssetCollectionEntry::SetAssetPath(FSoftObjectPath InPath)
+{
+}
+
 void FPCGExAssetCollectionEntry::OnSubCollectionLoaded()
 {
 }
@@ -169,4 +173,98 @@ void UPCGExAssetCollection::BeginDestroy()
 void UPCGExAssetCollection::BuildCache()
 {
 	/* per-class implementation, forwards Entries to protected method */
+}
+
+UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details) const
+{
+	return nullptr;
+}
+
+UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details) const
+{
+	return nullptr;
+}
+
+namespace PCGExAssetCollection
+{
+	FDistributionHelper::FDistributionHelper(
+		UPCGExAssetCollection* InCollection,
+		const FPCGExAssetDistributionDetails& InDetails):
+		Collection(InCollection),
+		Details(InDetails)
+	{
+	}
+
+	bool FDistributionHelper::Init(
+		const FPCGContext* InContext,
+		PCGExData::FFacade* InDataFacade)
+	{
+		MaxIndex = InDataFacade->Source->GetNum() - 1;
+
+		if (Details.Distribution == EPCGExDistribution::Index)
+		{
+			if (Details.IndexSettings.bRemapIndexToCollectionSize)
+			{
+				// Non-dynamic since we want min-max to start with :(
+				IndexGetter = InDataFacade->GetBroadcaster<int32>(Details.IndexSettings.IndexSource, true);
+			}
+			else
+			{
+				IndexGetter = InDataFacade->GetScopedBroadcaster<int32>(Details.IndexSettings.IndexSource);
+			}
+
+			if (!IndexGetter)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Invalid Index attribute used"));
+				return false;
+			}
+
+			if (Details.IndexSettings.bRemapIndexToCollectionSize)
+			{
+				MaxInputIndex = static_cast<double>(IndexGetter->Max);
+			}
+		}
+
+		return true;
+	}
+
+	void FDistributionHelper::GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 PointIndex, const int32 Seed) const
+	{
+		if (Details.Distribution == EPCGExDistribution::WeightedRandom)
+		{
+			Collection->GetStagingWeightedRandom(OutStaging, Seed);
+		}
+		else if (Details.Distribution == EPCGExDistribution::Random)
+		{
+			Collection->GetStagingRandom(OutStaging, Seed);
+		}
+		else
+		{
+			double PickedIndex = IndexGetter->Values[PointIndex];
+			if (Details.IndexSettings.bRemapIndexToCollectionSize)
+			{
+				PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);
+				switch (Details.IndexSettings.TruncateRemap)
+				{
+				case EPCGExTruncateMode::Round:
+					PickedIndex = FMath::RoundToInt(PickedIndex);
+					break;
+				case EPCGExTruncateMode::Ceil:
+					PickedIndex = FMath::CeilToDouble(PickedIndex);
+					break;
+				case EPCGExTruncateMode::Floor:
+					PickedIndex = FMath::FloorToDouble(PickedIndex);
+					break;
+				default:
+				case EPCGExTruncateMode::None:
+					break;
+				}
+			}
+
+			Collection->GetStaging(
+				OutStaging,
+				PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
+				Seed, Details.IndexSettings.PickMode);
+		}
+	}
 }

@@ -18,8 +18,8 @@ MACRO(FSoftClassPath)
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExMeanMeasure : uint8
 {
-	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. \n(what it means exactly depends on context. See node-specific documentation.)"),
-	Discrete UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. \n(what it means exactly depends on context. See node-specific documentation.)"),
+	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. (what it means exactly depends on context. See node-specific documentation.)"),
+	Discrete UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. (what it means exactly depends on context. See node-specific documentation.)"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Method"))
