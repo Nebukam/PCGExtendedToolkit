@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
+#include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "AssetSelectors/PCGExMeshCollection.h"
 
@@ -20,11 +21,6 @@ MACRO(StartRoll, double) \
 MACRO(EndScale, FVector) \
 MACRO(EndOffset, FVector) \
 MACRO(EndRoll, FVector)
-
-namespace PCGExPaths
-{
-	struct FSplineMeshSegment;
-}
 
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineParamsMapping
@@ -156,7 +152,8 @@ namespace PCGExPathSplineMesh
 
 		UPCGExTangentsOperation* Tangents = nullptr;
 
-		TArray<PCGExPaths::FSplineMeshSegment> Segments;
+		TArray<PCGExPaths::FSplineMeshSegment> Segments;		
+		TArray<USplineMeshComponent*> SplineMeshComponents;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

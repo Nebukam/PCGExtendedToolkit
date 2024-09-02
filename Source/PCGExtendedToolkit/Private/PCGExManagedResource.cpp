@@ -56,34 +56,45 @@ void UPCGExManagedSplineMeshComponent::AttachTo(AActor* InTargetActor, UPCGCompo
 	CachedRawComponentPtr->AttachToComponent(InTargetActor->GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
 }
 
-UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::CreateRoaming(AActor* Outer, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams)
+USplineMeshComponent* UPCGExManagedSplineMeshComponent::CreateComponentOnly(AActor* InOuter, UPCGComponent* InSourceComponent, const PCGExPaths::FSplineMeshSegment& InParams)
 {
 	const FString ComponentName = TEXT("PCGSplineMeshComponent_") + InParams.AssetStaging->Path.GetAssetName();
 	const EObjectFlags ObjectFlags = (InSourceComponent->IsInPreviewMode() ? RF_Transient : RF_NoFlags);
-	USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(Outer, MakeUniqueObjectName(Outer, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
+	USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(InOuter, MakeUniqueObjectName(InOuter, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
 	SplineMeshComponent->ComponentTags.Add(InSourceComponent->GetFName());
 	SplineMeshComponent->ComponentTags.Add(PCGHelpers::DefaultPCGTag);
+
 	
 	SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	SplineMeshComponent->SetMobility(EComponentMobility::Static);
 	SplineMeshComponent->SetSimulatePhysics(false);
 	SplineMeshComponent->SetMassOverrideInKg(NAME_None, 0.0f);
 	SplineMeshComponent->SetUseCCD(false);
+	SplineMeshComponent->CanCharacterStepUpOn = ECB_No;
+	SplineMeshComponent->bUseDefaultCollision = false;
+	SplineMeshComponent->bNavigationRelevant = false;
+	SplineMeshComponent->SetbNeverNeedsCookedCollisionData(true);
 
-	InParams.ApplyToComponent(SplineMeshComponent); // Init Component
+	InParams.ApplySettings(SplineMeshComponent); // Init Component
 
+	return SplineMeshComponent;
+}
+
+UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(AActor* InOuter, USplineMeshComponent* InSMC, UPCGComponent* InSourceComponent, uint64 SettingsUID)
+{
 	UPCGExManagedSplineMeshComponent* Resource = PCGExManagedRessource::CreateResource<UPCGExManagedSplineMeshComponent>(InSourceComponent, SettingsUID);
-	Resource->SetComponent(SplineMeshComponent);
+	Resource->SetComponent(InSMC);
 	//Resource->SetDescriptor(InParams.Descriptor);
 	//Resource->SetSplineMeshParams(InParams.SplineMeshParams);
 
+	Resource->AttachTo(InOuter, InSourceComponent);
 	return Resource;
 }
 
-UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::GetOrCreate(AActor* InTargetActor, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams, const bool bForceNew)
+UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::GetOrCreate(AActor* InOuter, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams, const bool bForceNew)
 {
-	check(InTargetActor && InSourceComponent);
+	check(InOuter && InSourceComponent);
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExManagedSplineMeshComponent::GetOrCreate);
 
@@ -133,8 +144,5 @@ UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::GetOrCreate(
 	}
 	*/
 
-	UPCGExManagedSplineMeshComponent* Resource = CreateRoaming(InTargetActor, InSourceComponent, SettingsUID, InParams);
-	Resource->AttachTo(InTargetActor, InSourceComponent);
-
-	return Resource;
+	return RegisterAndAttachComponent(InOuter, CreateComponentOnly(InOuter, InSourceComponent, InParams), InSourceComponent, SettingsUID);;
 }

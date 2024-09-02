@@ -130,6 +130,7 @@ namespace PCGExPaths
 		{
 		}
 
+		bool bSetMeshWithSettings = false;
 		bool bSmoothInterpRollScale = true;
 		bool bUseDegrees = true;
 		FVector UpVector = FVector::UpVector;
@@ -137,14 +138,10 @@ namespace PCGExPaths
 		const FPCGExAssetStagingData* AssetStaging = nullptr;
 		FSplineMeshParams Params;
 
-		void ApplyToComponent(USplineMeshComponent* Component) const
+		void ApplySettings(USplineMeshComponent* Component) const
 		{
 			check(Component)
-			check(AssetStaging)
 
-			UStaticMesh* StaticMesh = AssetStaging->TryGet<UStaticMesh>(); //LoadSynchronous<UStaticMesh>();
-			check(StaticMesh)
-			
 			Component->SetStartAndEnd(Params.StartPos, Params.StartTangent, Params.EndPos, Params.EndTangent, false);
 
 			Component->SetStartScale(Params.StartScale, false);
@@ -154,7 +151,7 @@ namespace PCGExPaths
 			Component->SetEndScale(Params.EndScale, false);
 			if (bUseDegrees) { Component->SetEndRollDegrees(Params.EndRoll, false); }
 			else { Component->SetEndRoll(Params.EndRoll, false); }
-			
+
 			Component->SetForwardAxis(ESplineMeshAxis::Type::X, false);
 			Component->SetSplineUpDir(FVector::UpVector, false);
 
@@ -165,7 +162,19 @@ namespace PCGExPaths
 
 			Component->bSmoothInterpRollScale = bSmoothInterpRollScale;
 
+			if (bSetMeshWithSettings) { ApplyMesh(Component); }
+		}
+
+		bool ApplyMesh(USplineMeshComponent* Component) const
+		{
+			check(Component)
+			UStaticMesh* StaticMesh = AssetStaging->TryGet<UStaticMesh>(); //LoadSynchronous<UStaticMesh>();
+
+			if (!StaticMesh) { return false; }
+
 			Component->SetStaticMesh(StaticMesh); // Will trigger a force rebuild, so put this last
+
+			return true;
 		}
 	};
 }

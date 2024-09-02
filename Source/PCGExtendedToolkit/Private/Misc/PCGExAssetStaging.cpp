@@ -38,8 +38,8 @@ void FPCGExAssetStagingContext::RegisterAssetDependencies()
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		MainCollection = Settings->AssetCollection.Get();
-		if (!MainCollection) { RequiredAssets.Add(Settings->AssetCollection.ToSoftObjectPath()); }
+		MainCollection = Settings->AssetCollection.LoadSynchronous();
+		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly); }
 	}
 	else
 	{
@@ -51,6 +51,8 @@ void FPCGExAssetStagingContext::RegisterAssetDependencies()
 
 		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
 	}
+
+	
 }
 
 bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const

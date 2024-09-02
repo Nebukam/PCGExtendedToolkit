@@ -65,9 +65,10 @@ public:
 
 	void AttachTo(AActor* InTargetActor, UPCGComponent* InSourceComponent);
 
-	static UPCGExManagedSplineMeshComponent* CreateRoaming(AActor* Outer, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams);
+	static USplineMeshComponent* CreateComponentOnly(AActor* InOuter, UPCGComponent* InSourceComponent, const PCGExPaths::FSplineMeshSegment& InParams);
+	static UPCGExManagedSplineMeshComponent* RegisterAndAttachComponent(AActor* InOuter, USplineMeshComponent* InSMC, UPCGComponent* InSourceComponent, uint64 SettingsUID);
 
-	static UPCGExManagedSplineMeshComponent* GetOrCreate(AActor* InTargetActor, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams, const bool bForceNew = false);
+	static UPCGExManagedSplineMeshComponent* GetOrCreate(AActor* InOuter, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams, const bool bForceNew = false);
 
 protected:
 	//UPROPERTY()

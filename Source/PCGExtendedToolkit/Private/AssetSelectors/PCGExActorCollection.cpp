@@ -73,11 +73,15 @@ UPCGExAssetCollection* UPCGExActorCollection::GetCollectionFromAttributeSet(cons
 
 void UPCGExActorCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
 {
+
+    const bool bCollectionOnly = Flags == PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly;
+	const bool bRecursive = bCollectionOnly || Flags == PCGExAssetCollection::ELoadingFlags::Recursive;
+	
 	for (const FPCGExActorCollectionEntry& Entry : Entries)
     	{
     		if (Entry.bIsSubCollection)
     		{
-    			if (Flags == PCGExAssetCollection::ELoadingFlags::Recursive)
+    			if (bRecursive || bCollectionOnly)
     			{
     				if (const UPCGExActorCollection* SubCollection = Entry.SubCollection.LoadSynchronous())
     				{
@@ -87,6 +91,7 @@ void UPCGExActorCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const
     			continue;
     		}
     
+            if(bCollectionOnly){continue;}
             if(!Entry.Actor.Get()){ OutPaths.Add(Entry.Actor.ToSoftObjectPath()); }
     	}
 }

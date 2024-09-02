@@ -307,6 +307,7 @@ namespace PCGExAssetCollection
 	{
 		Default = 0,
 		Recursive,
+		RecursiveCollectionsOnly,
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FCategory

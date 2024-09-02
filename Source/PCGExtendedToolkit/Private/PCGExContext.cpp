@@ -150,19 +150,26 @@ void FPCGExContext::LoadAssets()
 		return;
 	}
 
-	bIsPaused = true;
-
-	LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-		RequiredAssets.Array(), [&]()
-		{
-			bIsPaused = false;
-		});
-
-	if (!LoadHandle->IsActive())
+	if (!bForceSynchronousAssetLoad)
 	{
-		// Huh
-		bAssetLoadError = true;
-		bIsPaused = false;
+		bIsPaused = true;
+		
+		LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+			RequiredAssets.Array(), [&]()
+			{
+				bIsPaused = false;
+			});
+
+		if (!LoadHandle->IsActive())
+		{
+			// Huh
+			bAssetLoadError = true;
+			bIsPaused = false;
+		}
+	}
+	else
+	{
+		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets.Array());
 	}
 }
 

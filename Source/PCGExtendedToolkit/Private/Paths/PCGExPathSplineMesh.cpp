@@ -48,8 +48,7 @@ void FPCGExPathSplineMeshContext::RegisterAssetDependencies()
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		MainCollection = Settings->AssetCollection.Get();
-		if (!MainCollection) { RequiredAssets.Add(Settings->AssetCollection.ToSoftObjectPath()); }
+		MainCollection = Settings->AssetCollection.LoadSynchronous();
 	}
 	else
 	{
@@ -58,9 +57,9 @@ void FPCGExPathSplineMeshContext::RegisterAssetDependencies()
 		MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
 			this, PCGExAssetCollection::SourceAssetCollection,
 			Settings->AttributeSetDetails, false);
-
-		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
 	}
+
+	if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
 }
 
 bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
@@ -170,6 +169,8 @@ namespace PCGExPathSplineMesh
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Helper)
+		for (USplineMeshComponent* SMC : SplineMeshComponents) { PCGEX_DELETE_UOBJECT(SMC) }
+		SplineMeshComponents.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -200,6 +201,7 @@ namespace PCGExPathSplineMesh
 		LastIndex = PointIO->GetNum() - 1;
 
 		PCGEX_SET_NUM_UNINITIALIZED(Segments, LastIndex)
+		PCGEX_SET_NUM_UNINITIALIZED(SplineMeshComponents, LastIndex)
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
@@ -240,6 +242,11 @@ namespace PCGExPathSplineMesh
 		Segment.Params.EndPos = EndTransform.GetLocation();
 		Segment.Params.EndScale = FVector2D(Scale.Y, Scale.Z);
 		Segment.Params.EndRoll = EndTransform.GetRotation().Rotator().Roll;
+
+		AActor* TargetActor = LocalSettings->TargetActor.Get() ? LocalSettings->TargetActor.Get() : Context->GetTargetActor(nullptr);
+		if (!TargetActor) { return; }
+
+		SplineMeshComponents[Index] = UPCGExManagedSplineMeshComponent::CreateComponentOnly(TargetActor, Context->SourceComponent.Get(), Segment);
 	}
 
 	void FProcessor::CompleteWork()
@@ -259,32 +266,25 @@ namespace PCGExPathSplineMesh
 
 		UPCGComponent* Comp = Context->SourceComponent.Get();
 
-		bool bEncounteredInvalidStaging = false;
-		for (const PCGExPaths::FSplineMeshSegment& SegmentParams : Segments)
+		for (int i = 0; i < SplineMeshComponents.Num(); i++)
 		{
-			if (!SegmentParams.AssetStaging)
+			USplineMeshComponent* SMC = SplineMeshComponents[i];
+			if (!SMC) { continue; }
+
+			const PCGExPaths::FSplineMeshSegment& Params = Segments[i];
+
+			if (!Params.ApplyMesh(SMC))
 			{
-				// Warning
-				bEncounteredInvalidStaging = true;
-				continue;
+				SplineMeshComponents[i] = nullptr;
+				PCGEX_DELETE_UOBJECT(SMC)
 			}
 
-			if (!SegmentParams.AssetStaging->LoadSynchronous<UStaticMesh>())
-			{
-				// Staging exist, just has empty/unloadable data.
-				continue;
-			}
-
-			if (UPCGExManagedSplineMeshComponent::GetOrCreate(TargetActor, Comp, LocalSettings->UID, SegmentParams, true))
-			{
-				LocalTypedContext->NotifyActors.Add(TargetActor);
-			}
+			SMC->ClearInternalFlags(EInternalObjectFlags::Async);
+			UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(TargetActor, SMC, Comp, LocalSettings->UID);
+			LocalTypedContext->NotifyActors.Add(TargetActor);
 		}
 
-		if (bEncounteredInvalidStaging)
-		{
-			// TODO : Throw
-		}
+		SplineMeshComponents.Empty();
 	}
 }
 

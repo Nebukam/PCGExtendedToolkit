@@ -74,11 +74,14 @@ UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const
 
 void UPCGExMeshCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
 {
+	const bool bCollectionOnly = Flags == PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly;
+	const bool bRecursive = bCollectionOnly || Flags == PCGExAssetCollection::ELoadingFlags::Recursive;
+
 	for (const FPCGExMeshCollectionEntry& Entry : Entries)
 	{
 		if (Entry.bIsSubCollection)
 		{
-			if (Flags == PCGExAssetCollection::ELoadingFlags::Recursive)
+			if (bRecursive || bCollectionOnly)
 			{
 				if (const UPCGExMeshCollection* SubCollection = Entry.SubCollection.LoadSynchronous())
 				{
@@ -88,7 +91,25 @@ void UPCGExMeshCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const 
 			continue;
 		}
 
-		if (!Entry.Descriptor.StaticMesh.Get()) { OutPaths.Add(Entry.Descriptor.StaticMesh.ToSoftObjectPath()); }
+		if (bCollectionOnly) { continue; }
+
+		OutPaths.Add(Entry.Descriptor.StaticMesh.ToSoftObjectPath());
+
+		for (int i = 0; i < Entry.Descriptor.OverrideMaterials.Num(); ++i)
+		{
+			if (!Entry.Descriptor.OverrideMaterials[i].IsNull())
+			{
+				OutPaths.Add(Entry.Descriptor.OverrideMaterials[i].ToSoftObjectPath());
+			}
+		}
+
+		for (int i = 0; i < Entry.Descriptor.RuntimeVirtualTextures.Num(); ++i)
+		{
+			if (!Entry.Descriptor.RuntimeVirtualTextures[i].IsNull())
+			{
+				OutPaths.Add(Entry.Descriptor.RuntimeVirtualTextures[i].ToSoftObjectPath());
+			}
+		}
 	}
 }
 
