@@ -2,7 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExAssetStaging.h"
-
 #include "AssetSelectors/PCGExInternalCollection.h"
 
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
@@ -108,10 +107,11 @@ namespace PCGExAssetStaging
 		Justification = Settings->Justification;
 		Justification.Init(Context, PointDataFacade);
 
-		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
-
-		NumPoints = PointIO->GetNum();		
+		NumPoints = PointIO->GetNum();
 		PointDataFacade->bSupportsDynamic = true;
+
+		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
+		if (!Helper->Init(Context, PointDataFacade)) { return false; }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
@@ -131,8 +131,6 @@ namespace PCGExAssetStaging
 #else
 		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
 #endif
-
-		if (!Helper->Init(Context, PointDataFacade)) { return false; }
 
 		StartParallelLoopForPoints();
 

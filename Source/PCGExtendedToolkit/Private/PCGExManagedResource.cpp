@@ -106,6 +106,9 @@ UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::GetOrCreate(
 	const EObjectFlags ObjectFlags = (InSourceComponent->IsInPreviewMode() ? RF_Transient : RF_NoFlags);
 	USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(InTargetActor, MakeUniqueObjectName(InTargetActor, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
+	SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	SplineMeshComponent->SetMobility(EComponentMobility::Static);
+	
 	// Init Component
 	InParams.ApplyToComponent(SplineMeshComponent);
 

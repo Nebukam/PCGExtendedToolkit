@@ -145,7 +145,10 @@ namespace PCGExPathSplineMesh
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
+		PointDataFacade->bSupportsDynamic = true;
+
 		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
+		if (!Helper->Init(Context, PointDataFacade)) { return false; }
 
 		if (Settings->bTangentsFromAttributes)
 		{
