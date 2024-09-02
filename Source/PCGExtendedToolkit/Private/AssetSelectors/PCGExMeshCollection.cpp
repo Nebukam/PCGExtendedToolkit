@@ -61,6 +61,7 @@ void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
 		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]")) : FName(Entry.Descriptor.StaticMesh.GetAssetName());
 	}
 }
+#endif
 
 UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
@@ -117,4 +118,4 @@ void UPCGExMeshCollection::BuildCache()
 {
 	Super::BuildCache(Entries);
 }
-#endif
+

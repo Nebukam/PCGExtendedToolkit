@@ -187,7 +187,6 @@ UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(cons
 
 void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
 {
-	
 }
 
 namespace PCGExAssetCollection
