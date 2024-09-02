@@ -11,7 +11,7 @@ preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged: 
     - dataasset
-    - assetstaging
+    - staging
 nav_order: 7
 ---
 
