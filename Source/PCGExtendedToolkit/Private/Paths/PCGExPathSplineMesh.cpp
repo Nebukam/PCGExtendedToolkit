@@ -221,6 +221,8 @@ namespace PCGExPathSplineMesh
 			return;
 		}
 
+		UPCGComponent* Comp = Context->SourceComponent.Get();
+
 		bool bEncounteredInvalidStaging = false;
 		for (const PCGExPaths::FSplineMeshSegment& SegmentParams : Segments)
 		{
@@ -237,10 +239,10 @@ namespace PCGExPathSplineMesh
 				continue;
 			}
 
-			UPCGExManagedSplineMeshComponent* SplineMeshComponent = UPCGExManagedSplineMeshComponent::GetOrCreate(
-				TargetActor, Context->SourceComponent.Get(), LocalSettings->UID, SegmentParams, true);
-
-			if (SplineMeshComponent) { LocalTypedContext->NotifyActors.Add(TargetActor); }
+			if (UPCGExManagedSplineMeshComponent::GetOrCreate(TargetActor, Comp, LocalSettings->UID, SegmentParams, true))
+			{
+				LocalTypedContext->NotifyActors.Add(TargetActor);
+			}
 		}
 
 		if (bEncounteredInvalidStaging)

@@ -245,6 +245,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 		if (!LoadedAsset) { return nullptr; }
 		return Cast<T>(LoadedAsset);
 	}
+
+	template <typename T>
+	T* TryGet() const
+	{
+		TSoftObjectPtr<T> SoftPtr = TSoftObjectPtr<T>(Path);
+		return SoftPtr.Get();
+	}
 };
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Collection Entry")

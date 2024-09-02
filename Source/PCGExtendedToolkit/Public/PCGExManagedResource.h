@@ -6,6 +6,8 @@
 //#include "Elements/PCGSplineMeshParams.h"
 
 //#include "Engine/SplineMeshComponentDescriptor.h"
+#include "PCGComponent.h"
+#include "PCGContext.h"
 #include "PCGManagedResource.h"
 
 #include "PCGExManagedResource.generated.h"
@@ -20,6 +22,18 @@ namespace PCGExPaths
 class UActorComponent;
 class UInstancedStaticMeshComponent;
 class USplineMeshComponent;
+
+namespace PCGExManagedRessource
+{
+	template <typename T>
+	static T* CreateResource(UPCGComponent* InSourceComponent, uint64 SettingsUID)
+	{
+		T* Resource = NewObject<T>(InSourceComponent);
+		Resource->SetSettingsUID(SettingsUID);
+		InSourceComponent->AddToManagedResources(Resource);
+		return Resource;
+	}
+}
 
 UCLASS(BlueprintType)
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExManagedSplineMeshComponent : public UPCGManagedComponent
@@ -49,12 +63,11 @@ public:
 	uint64 GetSettingsUID() const { return SettingsUID; }
 	void SetSettingsUID(uint64 InSettingsUID) { SettingsUID = InSettingsUID; }
 
-	static UPCGExManagedSplineMeshComponent* GetOrCreate(
-		AActor* InTargetActor,
-		UPCGComponent* InSourceComponent,
-		uint64 SettingsUID,
-		const PCGExPaths::FSplineMeshSegment& InParams,
-		const bool bForceNew = false);
+	void AttachTo(AActor* InTargetActor, UPCGComponent* InSourceComponent);
+
+	static UPCGExManagedSplineMeshComponent* CreateRoaming(AActor* Outer, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams);
+
+	static UPCGExManagedSplineMeshComponent* GetOrCreate(AActor* InTargetActor, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams, const bool bForceNew = false);
 
 protected:
 	//UPROPERTY()

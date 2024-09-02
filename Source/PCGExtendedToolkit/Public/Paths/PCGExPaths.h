@@ -142,23 +142,21 @@ namespace PCGExPaths
 			check(Component)
 			check(AssetStaging)
 
-			UStaticMesh* StaticMesh = AssetStaging->LoadSynchronous<UStaticMesh>();
+			UStaticMesh* StaticMesh = AssetStaging->TryGet<UStaticMesh>(); //LoadSynchronous<UStaticMesh>();
 			check(StaticMesh)
 			
-			Component->SetStaticMesh(StaticMesh);
-			Component->SetStartAndEnd(Params.StartPos, Params.StartTangent, Params.EndPos, Params.EndTangent);
+			Component->SetStartAndEnd(Params.StartPos, Params.StartTangent, Params.EndPos, Params.EndTangent, false);
 
-			Component->SetStartScale(Params.StartScale);
-			if (bUseDegrees) { Component->SetStartRollDegrees(Params.StartRoll); }
-			else { Component->SetStartRoll(Params.StartRoll); }
+			Component->SetStartScale(Params.StartScale, false);
+			if (bUseDegrees) { Component->SetStartRollDegrees(Params.StartRoll, false); }
+			else { Component->SetStartRoll(Params.StartRoll, false); }
 
-			Component->SetEndScale(Params.EndScale);
-			if (bUseDegrees) { Component->SetEndRollDegrees(Params.EndRoll); }
-			else { Component->SetEndRoll(Params.EndRoll); }
-
-
-			Component->SetForwardAxis(ESplineMeshAxis::Type::X);
-			Component->SetSplineUpDir(FVector::UpVector);
+			Component->SetEndScale(Params.EndScale, false);
+			if (bUseDegrees) { Component->SetEndRollDegrees(Params.EndRoll, false); }
+			else { Component->SetEndRoll(Params.EndRoll, false); }
+			
+			Component->SetForwardAxis(ESplineMeshAxis::Type::X, false);
+			Component->SetSplineUpDir(FVector::UpVector, false);
 
 			Component->SplineParams.NaniteClusterBoundsScale = Params.NaniteClusterBoundsScale;
 
@@ -166,6 +164,8 @@ namespace PCGExPaths
 			Component->SplineBoundaryMax = 0;
 
 			Component->bSmoothInterpRollScale = bSmoothInterpRollScale;
+
+			Component->SetStaticMesh(StaticMesh); // Will trigger a force rebuild, so put this last
 		}
 	};
 }

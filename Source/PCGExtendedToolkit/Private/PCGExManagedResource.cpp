@@ -44,17 +44,50 @@ void UPCGExManagedSplineMeshComponent::SetComponent(USplineMeshComponent* InComp
 	CachedRawComponentPtr = InComponent;
 }
 
-UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::GetOrCreate(
-	AActor* InTargetActor,
-	UPCGComponent* InSourceComponent,
-	uint64 SettingsUID,
-	const PCGExPaths::FSplineMeshSegment& InParams,
-	const bool bForceNew)
+void UPCGExManagedSplineMeshComponent::AttachTo(AActor* InTargetActor, UPCGComponent* InSourceComponent)
+{
+	check(CachedRawComponentPtr)
+
+	// No matching component found, let's create a new one.
+	InTargetActor->Modify(!InSourceComponent->IsInPreviewMode());
+
+	CachedRawComponentPtr->RegisterComponent();
+	InTargetActor->AddInstanceComponent(CachedRawComponentPtr);
+	CachedRawComponentPtr->AttachToComponent(InTargetActor->GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
+}
+
+UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::CreateRoaming(AActor* Outer, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams)
+{
+	const FString ComponentName = TEXT("PCGSplineMeshComponent_") + InParams.AssetStaging->Path.GetAssetName();
+	const EObjectFlags ObjectFlags = (InSourceComponent->IsInPreviewMode() ? RF_Transient : RF_NoFlags);
+	USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(Outer, MakeUniqueObjectName(Outer, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
+
+	SplineMeshComponent->ComponentTags.Add(InSourceComponent->GetFName());
+	SplineMeshComponent->ComponentTags.Add(PCGHelpers::DefaultPCGTag);
+	
+	SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	SplineMeshComponent->SetMobility(EComponentMobility::Static);
+	SplineMeshComponent->SetSimulatePhysics(false);
+	SplineMeshComponent->SetMassOverrideInKg(NAME_None, 0.0f);
+	SplineMeshComponent->SetUseCCD(false);
+
+	InParams.ApplyToComponent(SplineMeshComponent); // Init Component
+
+	UPCGExManagedSplineMeshComponent* Resource = PCGExManagedRessource::CreateResource<UPCGExManagedSplineMeshComponent>(InSourceComponent, SettingsUID);
+	Resource->SetComponent(SplineMeshComponent);
+	//Resource->SetDescriptor(InParams.Descriptor);
+	//Resource->SetSplineMeshParams(InParams.SplineMeshParams);
+
+	return Resource;
+}
+
+UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::GetOrCreate(AActor* InTargetActor, UPCGComponent* InSourceComponent, uint64 SettingsUID, const PCGExPaths::FSplineMeshSegment& InParams, const bool bForceNew)
 {
 	check(InTargetActor && InSourceComponent);
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExManagedSplineMeshComponent::GetOrCreate);
 
+	/*
 	if (!bForceNew)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExManagedSplineMeshComponent::GetOrCreate::FindMatchingManagedSplineMeshComponent);
@@ -98,34 +131,10 @@ UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::GetOrCreate(
 			return MatchingResource;
 		}
 	}
+	*/
 
-	// No matching component found, let's create a new one.
-	InTargetActor->Modify(!InSourceComponent->IsInPreviewMode());
-
-	FString ComponentName = TEXT("PCGSplineMeshComponent_") + InParams.AssetStaging->Path.GetAssetName();
-	const EObjectFlags ObjectFlags = (InSourceComponent->IsInPreviewMode() ? RF_Transient : RF_NoFlags);
-	USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(InTargetActor, MakeUniqueObjectName(InTargetActor, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
-
-	SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
-	SplineMeshComponent->SetMobility(EComponentMobility::Static);
-	
-	// Init Component
-	InParams.ApplyToComponent(SplineMeshComponent);
-
-	SplineMeshComponent->RegisterComponent();
-	InTargetActor->AddInstanceComponent(SplineMeshComponent);
-
-	SplineMeshComponent->AttachToComponent(InTargetActor->GetRootComponent(), FAttachmentTransformRules(EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, EAttachmentRule::KeepWorld, false));
-	SplineMeshComponent->ComponentTags.Add(InSourceComponent->GetFName());
-	SplineMeshComponent->ComponentTags.Add(PCGHelpers::DefaultPCGTag);
-
-	// Create managed resource on source component
-	UPCGExManagedSplineMeshComponent* Resource = NewObject<UPCGExManagedSplineMeshComponent>(InSourceComponent);
-	Resource->SetComponent(SplineMeshComponent);
-	//Resource->SetDescriptor(InParams.Descriptor);
-	//Resource->SetSplineMeshParams(InParams.SplineMeshParams);
-	Resource->SetSettingsUID(SettingsUID);
-	InSourceComponent->AddToManagedResources(Resource);
+	UPCGExManagedSplineMeshComponent* Resource = CreateRoaming(InTargetActor, InSourceComponent, SettingsUID, InParams);
+	Resource->AttachTo(InTargetActor, InSourceComponent);
 
 	return Resource;
 }
