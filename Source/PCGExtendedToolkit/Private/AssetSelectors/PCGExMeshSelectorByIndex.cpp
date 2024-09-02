@@ -61,7 +61,7 @@ bool UPCGExMeshSelectorByIndex::Execute(PCGExMeshSelection::FCtx& Ctx) const
 			// Invalid pick
 			continue;
 		}
-		
+
 		FPCGExMeshCollectionEntry Entry = FPCGExMeshCollectionEntry{};
 
 		if (!MainCollectionPtr->GetEntry(

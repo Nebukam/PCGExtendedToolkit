@@ -112,7 +112,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 				CurrentEdges, CurrentIO->GetIn()->GetPoints(),
 				EndpointsLookup, &EndpointsAdjacency))
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed. \n If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
+				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed.  If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
 				PCGEX_DELETE(CurrentCluster)
 			}
 			else

@@ -14,6 +14,11 @@
 
 #include "PCGExGraph.generated.h"
 
+namespace PCGExGraph
+{
+	struct FSubGraph;
+}
+
 namespace PCGExCluster
 {
 	struct FCluster;
@@ -71,15 +76,23 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 
 	/** Minimum points threshold */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
-	int32 MinClusterSize = 3;
+	int32 MinVtxCount = 3;
 
+	/** Minimum edges threshold */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
+	int32 MinEdgeCount = 3;
+	
 	/** Don't output Clusters if they have more points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bRemoveBigClusters = false;
 
 	/** Maximum points threshold */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
-	int32 MaxClusterSize = 500;
+	int32 MaxVtxCount = 500;
+
+	/** Maximum edges threshold */
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
+	int32 MaxEdgeCount = 500;
 
 	/** Refresh Edge Seed. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
@@ -93,8 +106,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bBuildAndCacheClusters"))
 	bool bExpandClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultCacheExpandedClusters;
 
-	int32 GetMinClusterSize() const { return bRemoveSmallClusters ? MinClusterSize : 0; }
-	int32 GetMaxClusterSize() const { return bRemoveBigClusters ? MaxClusterSize : TNumericLimits<int32>::Max(); }
+	bool IsValid(const PCGExGraph::FSubGraph* InSubgraph) const;
+	
 };
 
 namespace PCGExGraph
@@ -389,7 +402,7 @@ namespace PCGExGraph
 
 		TArrayView<FNode> AddNodes(const int32 NumNewNodes);
 
-		void BuildSubGraphs(const int32 Min = 1, const int32 Max = TNumericLimits<int32>::Max());
+		void BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits);
 
 		void ForEachCluster(TFunction<void(FSubGraph*)>&& Func)
 		{

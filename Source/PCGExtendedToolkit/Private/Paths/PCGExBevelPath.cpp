@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExBevelPath.h"
 
+#include "PCGExRandom.h"
 #include "Data/PCGExPointFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"
@@ -243,6 +244,14 @@ namespace PCGExBevelPath
 	void FBevel::SubdivideArc(const double Factor, const double bIsCount)
 	{
 		const PCGExGeo::FExCenterArc Arc = PCGExGeo::FExCenterArc(Arrive, Corner, Leave);
+
+		if (Arc.bIsLine)
+		{
+			// Fallback to line since we can't infer a proper radius
+			SubdivideLine(Factor, bIsCount);
+			return;
+		}
+
 		int32 SubdivCount = bIsCount ? Factor : FMath::Floor(Arc.GetLength() / Factor);
 
 		const double StepSize = 1 / static_cast<double>(SubdivCount + 1);
@@ -409,11 +418,16 @@ namespace PCGExBevelPath
 		StartPoint.Transform.SetLocation(Bevel->Arrive);
 		EndPoint.Transform.SetLocation(Bevel->Leave);
 
+		PCGExRandom::ComputeSeed(StartPoint);
+		PCGExRandom::ComputeSeed(EndPoint);
+
 		if (Bevel->Subdivisions.IsEmpty()) { return; }
 
 		for (int i = 0; i < Bevel->Subdivisions.Num(); i++)
 		{
-			MutablePoints[Bevel->StartOutputIndex + i + 1].Transform.SetLocation(Bevel->Subdivisions[i]);
+			FPCGPoint& Pt = MutablePoints[Bevel->StartOutputIndex + i + 1];
+			Pt.Transform.SetLocation(Bevel->Subdivisions[i]);
+			PCGExRandom::ComputeSeed(Pt);
 		}
 	}
 

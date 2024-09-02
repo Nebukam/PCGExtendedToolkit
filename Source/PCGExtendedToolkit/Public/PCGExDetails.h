@@ -375,7 +375,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSourceFuseDetails : public FPCGExFuseDet
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision"))
 enum class EPCGExFuseMethod : uint8
 {
-	Voxel UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.\nDestructive toward initial topology."),
+	Voxel UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.Destructive toward initial topology."),
 	Octree UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology."),
 };
 
@@ -533,6 +533,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEdgeIntersectionDetails
 	/** Distance at which two edges are considered intersecting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = 0.001;
+	double ToleranceSquared = 0.001;
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -578,6 +579,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEdgeIntersectionDetails
 	{
 		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle * 0.5) : -1;
 		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle * 0.5) : 1;
+		ToleranceSquared = Tolerance * Tolerance;
 	}
 };
 

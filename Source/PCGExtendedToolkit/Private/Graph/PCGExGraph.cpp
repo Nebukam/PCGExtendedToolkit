@@ -8,6 +8,21 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
+bool FPCGExGraphBuilderDetails::IsValid(const PCGExGraph::FSubGraph* InSubgraph) const
+{
+	if (bRemoveBigClusters)
+	{
+		if (InSubgraph->Edges.Num() > MaxEdgeCount || InSubgraph->Nodes.Num() > MaxVtxCount) { return false; }
+	}
+
+	if (bRemoveSmallClusters)
+	{
+		if (InSubgraph->Edges.Num() < MinEdgeCount || InSubgraph->Nodes.Num() < MinVtxCount) { return false; }
+	}
+
+	return true;
+}
+
 namespace PCGExGraph
 {
 	void FSubGraph::Invalidate(FGraph* InGraph)
@@ -165,7 +180,7 @@ namespace PCGExGraph
 	}
 
 
-	void FGraph::BuildSubGraphs(const int32 Min, const int32 Max)
+	void FGraph::BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::BuildSubGraphs);
 
@@ -220,7 +235,8 @@ namespace PCGExGraph
 				}
 			}
 
-			if (!FMath::IsWithin(SubGraph->Edges.Num(), FMath::Max(Min, 1), FMath::Max(Max, 1)))
+
+			if (!Limits.IsValid(SubGraph))
 			{
 				SubGraph->Invalidate(this); // Will invalidate isolated points
 				delete SubGraph;
@@ -267,7 +283,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraphBuilder::Compile);
 
-		Graph->BuildSubGraphs(OutputDetails->GetMinClusterSize(), OutputDetails->GetMaxClusterSize());
+		Graph->BuildSubGraphs(*OutputDetails);
 
 		if (Graph->SubGraphs.IsEmpty())
 		{

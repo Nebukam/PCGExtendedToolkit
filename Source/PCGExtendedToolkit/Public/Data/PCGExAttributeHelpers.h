@@ -627,6 +627,7 @@ namespace PCGEx
 		bool bValid = false;
 
 		EPCGPointProperties PointProperty = EPCGPointProperties::Position;
+		EPCGExtraProperties ExtraProperty = EPCGExtraProperties::Index;
 		EPCGAttributePropertySelection Selection = EPCGAttributePropertySelection::Attribute;
 		FPCGMetadataAttributeBase* Attribute = nullptr;
 
@@ -873,7 +874,11 @@ namespace PCGEx
 				PointProperty = Selector.GetPointProperty();
 				bValid = true;
 			}
-			else { bValid = false; }
+			else if (Selection == EPCGAttributePropertySelection::ExtraProperty)
+			{
+				ExtraProperty = Selector.GetExtraProperty();
+				bValid = true;
+			}
 
 			return bValid;
 		}
@@ -900,7 +905,7 @@ namespace PCGEx
 			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
 		}
 
-		FORCEINLINE T SoftGet(const FPCGPoint& Point, const T& fallback)
+		FORCEINLINE T SoftGet(const int32 Index, const FPCGPoint& Point, const T& fallback)
 		{
 			// Note: This function is SUPER SLOW and should only be used for cherry picking
 
@@ -917,12 +922,20 @@ namespace PCGEx
 						return Convert(TypedAttribute->GetValueFromItemKey(Point.MetadataEntry));
 					});
 			}
-
 			if (Selection == EPCGAttributePropertySelection::PointProperty)
 			{
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return Convert(Point._ACCESSOR); break;
 				switch (PointProperty) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
+			}
+			else if (Selection == EPCGAttributePropertySelection::ExtraProperty)
+			{
+				switch (ExtraProperty)
+				{
+				case EPCGExtraProperties::Index:
+					return Convert(Index);
+				default: ;
+				}
 			}
 
 			return fallback;

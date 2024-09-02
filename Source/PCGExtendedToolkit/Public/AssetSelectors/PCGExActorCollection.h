@@ -5,12 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "PCGExAssetCollection.h"
-#include "PCGExRandom.h"
 #include "Engine/DataAsset.h"
-#include "ISMPartition/ISMComponentDescriptor.h"
-#include "MeshSelectors/PCGMeshSelectorBase.h"
 
 #include "PCGExActorCollection.generated.h"
+
+namespace PCGExAssetCollection
+{
+	enum class ELoadingFlags : uint8;
+}
 
 class UPCGExActorCollection;
 
@@ -41,9 +43,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAsse
 	}
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
-#if WITH_EDITOR
 	virtual void UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive) override;
-#endif
+	virtual void SetAssetPath(FSoftObjectPath InPath) override;
 
 protected:
 	virtual void OnSubCollectionLoaded() override;
@@ -57,30 +58,34 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActorCollection : public UPCGExAssetColle
 	friend struct FPCGExActorCollectionEntry;
 
 public:
+	virtual void RebuildStagingData(const bool bRecursive) override;
+
 #if WITH_EDITOR
-	virtual bool IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual void RefreshDisplayNames() override;
-	virtual void RefreshStagingData() override;
-	virtual void RefreshStagingData_Recursive() override;
+	virtual bool EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void EDITOR_RefreshDisplayNames() override;
 #endif
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
 	TArray<FPCGExActorCollectionEntry> Entries;
 
-	FORCEINLINE virtual bool GetStaging(FPCGExAssetStagingData& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override
+	FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override
 	{
 		return GetStagingTpl(OutStaging, Entries, Index, Seed, PickMode);
 	}
 
-	FORCEINLINE virtual bool GetStagingRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const override
+	FORCEINLINE virtual bool GetStagingRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override
 	{
 		return GetStagingRandomTpl(OutStaging, Entries, Seed);
 	}
 
-	FORCEINLINE virtual bool GetStagingWeightedRandom(FPCGExAssetStagingData& OutStaging, const int32 Seed) const override
+	FORCEINLINE virtual bool GetStagingWeightedRandom(const FPCGExAssetStagingData*& OutStaging, const int32 Seed) const override
 	{
 		return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);
 	}
+
+	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const override;
+	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const override;
+	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const override;
 
 	virtual void BuildCache() override;
 };

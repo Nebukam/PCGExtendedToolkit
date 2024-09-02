@@ -5,44 +5,37 @@
 
 #include "CoreMinimal.h"
 #include "PCGExAssetCollection.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Engine/DataAsset.h"
-#include "ISMPartition/ISMComponentDescriptor.h"
-#include "MeshSelectors/PCGMeshSelectorBase.h"
 
-#include "PCGExMeshCollection.generated.h"
+#include "PCGExInternalCollection.generated.h"
 
-class UPCGExMeshCollection;
+class UPCGExInternalCollection;
 
-USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshCollectionEntry : public FPCGExAssetCollectionEntry
+USTRUCT(NotBlueprintable, DisplayName="[PCGEx] Untyped Collection Entry")
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInternalCollectionEntry : public FPCGExAssetCollectionEntry
 {
 	GENERATED_BODY()
 
-	FPCGExMeshCollectionEntry()
+	FPCGExInternalCollectionEntry()
 	{
 	}
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
-	FSoftISMComponentDescriptor Descriptor;
+	FSoftObjectPath Object;
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bIsSubCollection", EditConditionHides))
-	TSoftObjectPtr<UPCGExMeshCollection> SubCollection;
+	TSoftObjectPtr<UPCGExInternalCollection> SubCollection;
 
-	TObjectPtr<UPCGExMeshCollection> SubCollectionPtr;
+	TObjectPtr<UPCGExInternalCollection> SubCollectionPtr;
 
-	bool Matches(const FPCGMeshInstanceList& InstanceList) const
-	{
-		// TODO : This is way too weak
-		return InstanceList.Descriptor.StaticMesh == Descriptor.StaticMesh;
-	}
-
-	bool SameAs(const FPCGExMeshCollectionEntry& Other) const
+	bool SameAs(const FPCGExInternalCollectionEntry& Other) const
 	{
 		return
 			SubCollectionPtr == Other.SubCollectionPtr &&
 			Weight == Other.Weight &&
 			Category == Other.Category &&
-			Descriptor.StaticMesh == Other.Descriptor.StaticMesh;
+			Object == Other.Object;
 	}
 
 	virtual bool Validate(const UPCGExAssetCollection* ParentCollection) override;
@@ -53,12 +46,12 @@ protected:
 	virtual void OnSubCollectionLoaded() override;
 };
 
-UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeshCollection : public UPCGExAssetCollection
+UCLASS(NotBlueprintable, DisplayName="[PCGEx] Untyped Collection")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExInternalCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
 
-	friend struct FPCGExMeshCollectionEntry;
+	friend struct FPCGExInternalCollectionEntry;
 	friend class UPCGExMeshSelectorBase;
 
 public:
@@ -66,7 +59,6 @@ public:
 
 #if WITH_EDITOR
 	virtual bool EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual void EDITOR_RefreshDisplayNames() override;
 #endif
 
 	FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override
@@ -87,9 +79,9 @@ public:
 	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const override;
 	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const override;
 	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const override;
-	
+
 	virtual void BuildCache() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
-	TArray<FPCGExMeshCollectionEntry> Entries;
+	TArray<FPCGExInternalCollectionEntry> Entries;
 };

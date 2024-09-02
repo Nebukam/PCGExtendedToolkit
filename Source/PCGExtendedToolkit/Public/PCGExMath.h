@@ -18,8 +18,8 @@ MACRO(FSoftClassPath)
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExMeanMeasure : uint8
 {
-	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. \n(what it means exactly depends on context. See node-specific documentation.)"),
-	Discrete UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. \n(what it means exactly depends on context. See node-specific documentation.)"),
+	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. (what it means exactly depends on context. See node-specific documentation.)"),
+	Discrete UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. (what it means exactly depends on context. See node-specific documentation.)"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Method"))
@@ -38,7 +38,7 @@ enum class EPCGExPointBoundsSource : uint8
 {
 	ScaledBounds UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
 	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
-	Bounds UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds")
+	Bounds UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)")
 };
 
 namespace PCGExMath
@@ -966,6 +966,11 @@ namespace PCGExMath
 	FORCEINLINE static FVector GetNormal(const FVector& A, const FVector& B, const FVector& C)
 	{
 		return FVector::CrossProduct((B - A), (C - A)).GetSafeNormal();
+	}
+
+	FORCEINLINE static FVector GetNormalUp(const FVector& A, const FVector& B, const FVector& Up)
+	{
+		return FVector::CrossProduct((B - A), ((B + Up) - A)).GetSafeNormal();
 	}
 
 	FORCEINLINE static FTransform MakeLookAtTransform(const FVector& LookAt, const FVector& LookUp, const EPCGExAxisAlign AlignAxis)

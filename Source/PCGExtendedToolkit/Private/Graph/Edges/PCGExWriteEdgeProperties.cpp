@@ -265,13 +265,13 @@ namespace PCGExWriteEdgeProperties
 			{
 			default:
 			case EPCGExMinimalAxis::X:
-				EdgeRot = UKismetMathLibrary::MakeRotFromX(EdgeDirection);
+				EdgeRot = FRotationMatrix::MakeFromX(EdgeDirection).Rotator();
 				break;
 			case EPCGExMinimalAxis::Y:
-				EdgeRot = UKismetMathLibrary::MakeRotFromY(EdgeDirection);
+				EdgeRot = FRotationMatrix::MakeFromY(EdgeDirection).Rotator();
 				break;
 			case EPCGExMinimalAxis::Z:
-				EdgeRot = UKismetMathLibrary::MakeRotFromZ(EdgeDirection);
+				EdgeRot = FRotationMatrix::MakeFromZ(EdgeDirection).Rotator();
 				break;
 			}
 

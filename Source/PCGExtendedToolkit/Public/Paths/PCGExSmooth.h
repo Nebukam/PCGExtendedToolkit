@@ -64,7 +64,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExFetchType SmoothingAmountType = EPCGExFetchType::Constant;
 
-	/** The amount of smoothing applied. \n Range of this value is highly dependant on the chosen smoothing method. */
+	/** The amount of smoothing applied.  Range of this value is highly dependant on the chosen smoothing method. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=1, EditCondition="SmoothingAmountType == EPCGExFetchType::Constant", EditConditionHides))
 	double SmoothingAmountConstant = 5;
 

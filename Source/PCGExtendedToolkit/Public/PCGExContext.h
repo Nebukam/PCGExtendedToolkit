@@ -47,6 +47,7 @@ public:
 	void LoadAssets();
 
 protected:
+	bool bForceSynchronousAssetLoad = false;
 	bool bAssetLoadRequested = false;
 	bool bAssetLoadError = false;
 	TSet<FSoftObjectPath> RequiredAssets;

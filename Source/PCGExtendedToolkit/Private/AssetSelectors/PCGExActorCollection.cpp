@@ -3,9 +3,6 @@
 
 #include "AssetSelectors/PCGExActorCollection.h"
 
-#include "PCGEx.h"
-#include "PCGExMacros.h"
-
 bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {
 	if (bIsSubCollection) { LoadSubCollection(SubCollection); }
@@ -14,70 +11,90 @@ bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 	return Super::Validate(ParentCollection);
 }
 
-#if WITH_EDITOR
 void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
 	if (bIsSubCollection)
 	{
-		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RefreshStagingData_Recursive(); }
+		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RebuildStagingData(true); }
 		return;
 	}
 
 	Staging.Path = Actor.ToSoftObjectPath();
 	const AActor* A = Actor.LoadSynchronous();
 
-	if (!A)
-	{
-		Staging.Pivot = FVector::ZeroVector;
-		Staging.Bounds = FBox(ForceInitToZero);
-		return;
-	}
+	PCGExAssetCollection::UpdateStagingBounds(Staging, A);
 
-	FVector Origin = FVector::ZeroVector;
-	FVector Extents = FVector::ZeroVector;
-	A->GetActorBounds(true, Origin, Extents);
-
-	Staging.Pivot = Origin;
-	Staging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
-	
 	Super::UpdateStaging(OwningCollection, bRecursive);
 }
-#endif
+
+void FPCGExActorCollectionEntry::SetAssetPath(FSoftObjectPath InPath)
+{
+	Actor = TSoftObjectPtr<AActor>(InPath);
+}
 
 void FPCGExActorCollectionEntry::OnSubCollectionLoaded()
 {
 	SubCollectionPtr = Cast<UPCGExActorCollection>(BaseSubCollectionPtr);
 }
 
-#if WITH_EDITOR
-bool UPCGExActorCollection::IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExActorCollection::RebuildStagingData(const bool bRecursive)
 {
-	if (Super::IsCacheableProperty(PropertyChangedEvent)) { return true; }
+	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); }
+	Super::RebuildStagingData(bRecursive);
+}
+
+#if WITH_EDITOR
+bool UPCGExActorCollection::EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	if (Super::EDITOR_IsCacheableProperty(PropertyChangedEvent)) { return true; }
 	return PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UPCGExActorCollection, Entries);
 }
 
 
-void UPCGExActorCollection::RefreshDisplayNames()
+void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 {
-	Super::RefreshDisplayNames();
+	Super::EDITOR_RefreshDisplayNames();
 	for (FPCGExActorCollectionEntry& Entry : Entries)
 	{
 		Entry.DisplayName = Entry.bIsSubCollection ? FName(TEXT("[") + Entry.SubCollection.GetAssetName() + TEXT("]")) : FName(Entry.Actor.GetAssetName());
 	}
 }
-
-void UPCGExActorCollection::RefreshStagingData()
-{
-	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, false); }
-	Super::RefreshStagingData();
-}
-
-void UPCGExActorCollection::RefreshStagingData_Recursive()
-{
-	for (FPCGExActorCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, true); }
-	Super::RefreshStagingData_Recursive();
-}
 #endif
+
+UPCGExAssetCollection* UPCGExActorCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
+{
+	return GetCollectionFromAttributeSetTpl<UPCGExActorCollection>(InContext, InAttributeSet, Details, bBuildStaging);
+}
+
+UPCGExAssetCollection* UPCGExActorCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
+{
+	return GetCollectionFromAttributeSetTpl<UPCGExActorCollection>(InContext, InputPin, Details, bBuildStaging);
+}
+
+void UPCGExActorCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
+{
+
+    const bool bCollectionOnly = Flags == PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly;
+	const bool bRecursive = bCollectionOnly || Flags == PCGExAssetCollection::ELoadingFlags::Recursive;
+	
+	for (const FPCGExActorCollectionEntry& Entry : Entries)
+    	{
+    		if (Entry.bIsSubCollection)
+    		{
+    			if (bRecursive || bCollectionOnly)
+    			{
+    				if (const UPCGExActorCollection* SubCollection = Entry.SubCollection.LoadSynchronous())
+    				{
+    					SubCollection->GetAssetPaths(OutPaths, Flags);
+    				}
+    			}
+    			continue;
+    		}
+    
+            if(bCollectionOnly){continue;}
+            if(!Entry.Actor.Get()){ OutPaths.Add(Entry.Actor.ToSoftObjectPath()); }
+    	}
+}
 
 void UPCGExActorCollection::BuildCache()
 {

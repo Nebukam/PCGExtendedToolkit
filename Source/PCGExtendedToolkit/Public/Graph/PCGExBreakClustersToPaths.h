@@ -11,7 +11,7 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Break Cluster Operation Target"))
 enum class EPCGExBreakClusterOperationTarget : uint8
 {
-	Paths UMETA(DisplayName = "Paths", ToolTip="Operate on edge chains which form paths with no crossings. \n e.g, nodes with only two neighbors."),
+	Paths UMETA(DisplayName = "Paths", ToolTip="Operate on edge chains which form paths with no crossings.  e.g, nodes with only two neighbors."),
 	Edges UMETA(DisplayName = "Edges", ToolTip="Operate on each edge individually (very expensive)"),
 };
 

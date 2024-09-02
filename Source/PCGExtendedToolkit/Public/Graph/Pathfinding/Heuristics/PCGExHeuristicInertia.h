@@ -102,7 +102,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		HeuristicsTurning, "Heuristics : Inertia", "Heuristics based on direction inertia from last visited node.\n NOTE: Can be quite expensive.",
+		HeuristicsTurning, "Heuristics : Inertia", "Heuristics based on direction inertia from last visited node. NOTE: Can be quite expensive.",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings

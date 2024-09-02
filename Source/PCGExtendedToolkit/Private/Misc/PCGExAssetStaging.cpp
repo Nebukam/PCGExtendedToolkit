@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExAssetStaging.h"
+#include "AssetSelectors/PCGExInternalCollection.h"
 
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging
@@ -10,9 +11,48 @@ PCGExData::EInit UPCGExAssetStagingSettings::GetMainOutputInitMode() const { ret
 
 PCGEX_INITIALIZE_ELEMENT(AssetStaging)
 
+TArray<FPCGPinProperties> UPCGExAssetStagingSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	
+	if (CollectionSource == EPCGExCollectionSource::AttributeSet)
+	{
+		PCGEX_PIN_PARAM(PCGExAssetCollection::SourceAssetCollection, "Attribute set to be used as collection.", Required, {})
+	}
+	
+	return PinProperties;
+}
+
 FPCGExAssetStagingContext::~FPCGExAssetStagingContext()
 {
 	PCGEX_TERMINATE_ASYNC
+	UPCGExInternalCollection* InternalCollection = Cast<UPCGExInternalCollection>(MainCollection);
+	PCGEX_DELETE_UOBJECT(InternalCollection)
+}
+
+void FPCGExAssetStagingContext::RegisterAssetDependencies()
+{
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
+
+	PCGEX_SETTINGS_LOCAL(AssetStaging)
+
+	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
+	{
+		MainCollection = Settings->AssetCollection.LoadSynchronous();
+		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::RecursiveCollectionsOnly); }
+	}
+	else
+	{
+		// Only load assets for internal collections
+		// since we need them for staging
+		MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
+			this, PCGExAssetCollection::SourceAssetCollection,
+			Settings->AttributeSetDetails, false);
+
+		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
+	}
+
+	
 }
 
 bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
@@ -21,7 +61,19 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 
-	Context->MainCollection = Settings->MainCollection.LoadSynchronous();
+	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
+	{
+		Context->MainCollection = Settings->AssetCollection.LoadSynchronous();
+	}
+	else
+	{
+		if (Context->MainCollection)
+		{
+			// Internal collection, assets have been loaded at this point
+			Context->MainCollection->RebuildStagingData(true);
+		}
+	}
+
 	if (!Context->MainCollection)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
@@ -81,11 +133,14 @@ namespace PCGExAssetStaging
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
-		Details = Settings->DistributionSettings;
-		NumPoints = PointIO->GetNum();
-		MaxIndex = TypedContext->MainCollection->LoadCache()->Indices.Num() - 1;
+		Justification = Settings->Justification;
+		Justification.Init(Context, PointDataFacade);
 
+		NumPoints = PointIO->GetNum();
 		PointDataFacade->bSupportsDynamic = true;
+
+		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
+		if (!Helper->Init(Context, PointDataFacade)) { return false; }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
@@ -106,29 +161,6 @@ namespace PCGExAssetStaging
 		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
 #endif
 
-		if (Details.Distribution == EPCGExDistribution::Index)
-		{
-			if (Details.IndexSettings.bRemapIndexToCollectionSize)
-			{
-				IndexGetter = PointDataFacade->GetBroadcaster<int32>(Details.IndexSettings.IndexSource, true);
-			}
-			else
-			{
-				IndexGetter = PointDataFacade->GetScopedBroadcaster<int32>(Details.IndexSettings.IndexSource);
-			}
-
-			if (!IndexGetter)
-			{
-				// TODO : Throw
-				return false;
-			}
-
-			if (Details.IndexSettings.bRemapIndexToCollectionSize)
-			{
-				MaxInputIndex = static_cast<double>(IndexGetter->Max);
-			}
-		}
-
 		StartParallelLoopForPoints();
 
 		return true;
@@ -143,52 +175,15 @@ namespace PCGExAssetStaging
 	{
 		// Note : Prototype implementation
 
-		FPCGExAssetStagingData StagingData;
+		const FPCGExAssetStagingData* StagingData = nullptr;
+
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
-			Details.SeedComponents, Point,
-			Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
+			Helper->Details.SeedComponents, Point,
+			Helper->Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
 
-		bool bValid = false;
+		Helper->GetStaging(StagingData, Index, Seed);
 
-		if (Details.Distribution == EPCGExDistribution::WeightedRandom)
-		{
-			bValid = LocalTypedContext->MainCollection->GetStagingWeightedRandom(StagingData, Seed);
-		}
-		else if (Details.Distribution == EPCGExDistribution::Random)
-		{
-			bValid = LocalTypedContext->MainCollection->GetStagingRandom(StagingData, Seed);
-		}
-		else
-		{
-			double PickedIndex = IndexGetter->Values[Index];
-			if (Details.IndexSettings.bRemapIndexToCollectionSize)
-			{
-				PickedIndex = PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);;
-				switch (Details.IndexSettings.TruncateRemap)
-				{
-				case EPCGExTruncateMode::Round:
-					PickedIndex = FMath::RoundToInt(PickedIndex);
-					break;
-				case EPCGExTruncateMode::Ceil:
-					PickedIndex = FMath::CeilToDouble(PickedIndex);
-					break;
-				case EPCGExTruncateMode::Floor:
-					PickedIndex = FMath::FloorToDouble(PickedIndex);
-					break;
-				default:
-				case EPCGExTruncateMode::None:
-					break;
-				}
-			}
-
-			bValid = LocalTypedContext->MainCollection->GetStaging(
-				StagingData,
-				PCGExMath::SanitizeIndex(static_cast<int32>(PickedIndex), MaxIndex, Details.IndexSettings.IndexSafety),
-				Seed,
-				Details.IndexSettings.PickMode);
-		}
-
-		if (!bValid)
+		if (!StagingData)
 		{
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 			PathWriter->Values[Index] = FSoftObjectPath{};
@@ -198,16 +193,10 @@ namespace PCGExAssetStaging
 
 			Point.Density = 0;
 
-			if (LocalSettings->bUpdatePointBounds)
-			{
-				Point.BoundsMin = FVector::ZeroVector;
-				Point.BoundsMax = FVector::ZeroVector;
-			}
+			Point.BoundsMin = FVector::ZeroVector;
+			Point.BoundsMax = FVector::ZeroVector;
 
-			if (LocalSettings->bUpdatePointScale)
-			{
-				Point.Transform.SetScale3D(FVector::ZeroVector);
-			}
+			Point.Transform.SetScale3D(FVector::ZeroVector);
 
 			if (bOutputWeight)
 			{
@@ -221,7 +210,7 @@ namespace PCGExAssetStaging
 
 		if (bOutputWeight)
 		{
-			double Weight = bNormalizedWeight ? static_cast<double>(StagingData.Weight) / static_cast<double>(LocalTypedContext->MainCollection->LoadCache()->WeightSum) : StagingData.Weight;
+			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(LocalTypedContext->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
 			if (bOneMinusWeight) { Weight = 1 - Weight; }
 			if (WeightWriter) { WeightWriter->Values[Index] = Weight; }
 			else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = Weight; }
@@ -229,47 +218,29 @@ namespace PCGExAssetStaging
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PathWriter->Values[Index] = StagingData.Path;
+		PathWriter->Values[Index] = StagingData->Path;
 #else
-		PathWriter->Values[Index] = StagingData.Path.ToString();
+		PathWriter->Values[Index] = StagingData->Path.ToString();
 #endif
 
-		const FVector OriginalBoundsSize = Point.GetLocalBounds().GetSize();;
 
-		if (LocalSettings->bUpdatePointBounds)
-		{
-			const FBox Bounds = StagingData.Bounds;
-			Point.BoundsMin = Bounds.Min;
-			Point.BoundsMax = Bounds.Max;
-		}
+		const FBox& StBox = StagingData->Bounds;
+		FVector OutScale = Point.Transform.GetScale3D();
+		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
+		FBox OutBounds = StBox;
 
-		if (LocalSettings->bUpdatePointScale)
-		{
-			if (LocalSettings->bUniformScale)
-			{
-				const FVector A = OriginalBoundsSize;
-				const FVector B = StagingData.Bounds.GetSize();
+		LocalSettings->ScaleToFit.Process(Point, StagingData->Bounds, OutScale, OutBounds);
 
-				const double XFactor = A.X / B.X;
-				const double YFactor = A.Y / B.Y;
-				const double ZFactor = A.Z / B.Z;
+		Point.BoundsMin = OutBounds.Min;
+		Point.BoundsMax = OutBounds.Max;
 
-				const double ScaleFactor = FMath::Min3(XFactor, YFactor, ZFactor);
-				Point.Transform.SetScale3D(Point.Transform.GetScale3D() * ScaleFactor);
-			}
-			else
-			{
-				Point.Transform.SetScale3D(Point.Transform.GetScale3D() * (OriginalBoundsSize / StagingData.Bounds.GetSize()));
-			}
-		}
+		FVector OutTranslation = FVector::ZeroVector;
+		OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);
 
-		if (LocalSettings->bUpdatePointPivot)
-		{
-			const FVector Center = Point.GetLocalCenter() * Point.Transform.GetScale3D();
-			const FVector Pos = Point.Transform.GetLocation();
-			Point.Transform.SetLocation(Pos - Center);
-			//Point.SetLocalBounds(FBoxCenterAndExtent(FVector::ZeroVector, Point.GetExtents()).GetBox());
-		}
+		Justification.Process(Index, InBounds, OutBounds, OutTranslation);
+
+		Point.Transform.AddToTranslation(Point.Transform.GetRotation().RotateVector(OutTranslation));
+		Point.Transform.SetScale3D(OutScale);
 	}
 
 	void FProcessor::CompleteWork()

@@ -144,25 +144,32 @@ void FPCGExContext::LoadAssets()
 
 	bAssetLoadRequested = true;
 
-	if(RequiredAssets.IsEmpty())
+	if (RequiredAssets.IsEmpty())
 	{
 		bAssetLoadError = true; // No asset to load, yet we required it?
 		return;
 	}
-	
-	bIsPaused = true;
 
-	LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
-		RequiredAssets.Array(), [&]()
-		{
-			bIsPaused = false;
-		});
-
-	if (!LoadHandle->IsActive())
+	if (!bForceSynchronousAssetLoad)
 	{
-		// Huh
-		bAssetLoadError = true;
-		bIsPaused = false;
+		bIsPaused = true;
+		
+		LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
+			RequiredAssets.Array(), [&]()
+			{
+				bIsPaused = false;
+			});
+
+		if (!LoadHandle->IsActive())
+		{
+			// Huh
+			bAssetLoadError = true;
+			bIsPaused = false;
+		}
+	}
+	else
+	{
+		LoadHandle = UAssetManager::GetStreamableManager().RequestSyncLoad(RequiredAssets.Array());
 	}
 }
 

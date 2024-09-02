@@ -7,7 +7,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExPointsToBounds.h"
-#include "PCGExSortPoints.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
 
@@ -20,19 +19,64 @@ enum class EPCGExOverlapTestMode : uint8
 	Precise UMETA(DisplayName = "Precise", ToolTip="Test every points' bounds"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Overlap Pruning Order"))
-enum class EPCGExOverlapPruningOrder : uint8
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Overlap Pruning Logic"))
+enum class EPCGExOverlapPruningLogic : uint8
 {
-	OverlapCount UMETA(DisplayName = "Count > Amount", ToolTip="Overlap count"),
-	OverlapAmount UMETA(DisplayName = "Amount > Count", ToolTip="Overlap amount"),
+	LowFirst UMETA(DisplayName = "Low to High", ToolTip="Lower weights are pruned first."),
+	HighFirst UMETA(DisplayName = "High to Low", ToolTip="Higher weights are pruned first."),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Expand Points Bounds Mode"))
-enum class EPCGExExpandPointsBoundsMode : uint8
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOverlapScoresWeighting
 {
-	None UMETA(DisplayName = "Don't expand", ToolTip="Use vanilla point bounds"),
-	Static UMETA(DisplayName = "Static value", ToolTip="Expand point bounds by a static value"),
-	Attribute UMETA(DisplayName = "Local attribute", ToolTip="Expand point bounds by a local attribute"),
+	GENERATED_BODY()
+
+	FPCGExOverlapScoresWeighting()
+	{
+	}
+
+	/** How much of the dynamic weights to account for vs. static ones */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
+	double DynamicBalance = 1;
+
+	/** Overlap count weight (how many sets overlap) */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
+	double OverlapCount = 2;
+
+	/** Overlap Sub-Count weight (how many points overlap) */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
+	double OverlapSubCount = 1;
+
+	/** Overlap volume weight (cumulative volume overlap)  Note that each sub point adds its own intersection volume whether or not it occupies an already computed volume in space. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
+	double OverlapVolume = 0;
+
+	/** Overlap volume density weight (cumulative volume overlap / number of overlapping points) */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Dynamic Weights", EditAnywhere, meta = (PCG_Overridable))
+	double OverlapVolumeDensity = 0;
+
+	/** How much of the static weights to account for vs. dynamic ones */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
+	double StaticBalance = 0.5;
+
+	/** Number of points weight (points in a given set) */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
+	double NumPoints = 1;
+
+	/** Volume weight  Note that each sub point adds its own intersection volume whether or not it occupies an already computed volume in space. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
+	double Volume = 0;
+
+	/** Volume density. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
+	double VolumeDensity = 0;
+
+	double StaticWeightSum = 0;
+	double DynamicWeightSum = 0;
+
+	void Init();
+	void ResetMin();
+	void Max(const FPCGExOverlapScoresWeighting& Other);
 };
 
 namespace PCGExDiscardByOverlap
@@ -41,6 +85,10 @@ namespace PCGExDiscardByOverlap
 	PCGEX_ASYNC_STATE(State_PreciseOverlap)
 	PCGEX_ASYNC_STATE(State_ProcessFastOverlap)
 	PCGEX_ASYNC_STATE(State_ProcessPreciseOverlap)
+
+	struct FOverlapStats;
+	struct FOverlap;
+	class FProcessor;
 }
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -59,14 +107,6 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UObject interface
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
@@ -75,39 +115,27 @@ public:
 public:
 	/** Overlap overlap test mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExOverlapTestMode TestMode = EPCGExOverlapTestMode::Fast;
+	EPCGExOverlapTestMode TestMode = EPCGExOverlapTestMode::Precise;
 
 	/** Point bounds to be used to compute overlaps */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 
-	/** Pruning order & prioritization */
+	/** Scores weighting */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExOverlapPruningOrder PruningOrder = EPCGExOverlapPruningOrder::OverlapCount;
-
-	/** Static value to be used as bound expansion */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=1))
-	double AmountFMod = 10;
-
-	/** Static value to be used as bound expansion */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestMode==EPCGExOverlapTestMode::Precise", EditConditionHides))
-	bool bUsePerPointsValues = false;
+	FPCGExOverlapScoresWeighting Weighting;
 
 	/** Pruning order & prioritization */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExSortDirection Order = EPCGExSortDirection::Ascending;
+	EPCGExOverlapPruningLogic Logic = EPCGExOverlapPruningLogic::HighFirst;
 
-	/** Expand local point bounds when doing precise testing */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExExpandPointsBoundsMode ExpansionMode = EPCGExExpandPointsBoundsMode::None;
+	/** The minimum amount two sub-points must overlap to be added to the comparison.  The higher, the more "overlap" there must be. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	double MinThreshold = 0.1;
 
-	/** Static value to be used as bound expansion */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ExpansionMode==EPCGExExpandPointsBoundsMode::Static", EditConditionHides))
-	double ExpansionValue = 10;
-
-	/** Local point value to be used as bound expansion */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ExpansionMode==EPCGExExpandPointsBoundsMode::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector ExpansionLocalValue;
+	/** How to interpret the min overlap value.  Discrete means distance in world space  Relative means uses percentage (0-1) of the averaged radius. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExMeanMeasure ThresholdMeasure = EPCGExMeanMeasure::Relative;
 
 private:
 	friend class FPCGExDiscardByOverlapElement;
@@ -118,10 +146,19 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : public F
 	friend class FPCGExDiscardByOverlapElement;
 	virtual ~FPCGExDiscardByOverlapContext() override;
 
-	TArray<PCGExPointsToBounds::FBounds*> IOBounds;
+	mutable FRWLock OverlapLock;
+	TMap<uint64, PCGExDiscardByOverlap::FOverlap*> OverlapMap;
 
-	void OutputFBounds(const PCGExPointsToBounds::FBounds* Bounds, const int32 RemoveAt = -1);
-	static void RemoveFBounds(const PCGExPointsToBounds::FBounds* Bounds, TArray<PCGExPointsToBounds::FBounds*>& OutAffectedBounds);
+	PCGExDiscardByOverlap::FOverlap* RegisterOverlap(
+		PCGExDiscardByOverlap::FProcessor* InManager,
+		PCGExDiscardByOverlap::FProcessor* InManaged,
+		const FBox& InIntersection);
+
+	FPCGExOverlapScoresWeighting Weights;
+	FPCGExOverlapScoresWeighting MaxScores;
+	void UpdateMaxScores(const TArray<PCGExDiscardByOverlap::FProcessor*>& InStack);
+
+	void Prune();
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElement
@@ -136,18 +173,190 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComputePreciseOverlap final : public PCGExMT::FPCGExTask
+namespace PCGExDiscardByOverlap
 {
-public:
-	FPCGExComputePreciseOverlap(PCGExData::FPointIO* InPointIO,
-	                            const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
-		FPCGExTask(InPointIO),
-		BoundsSource(InBoundsSource), Bounds(InBounds)
+	class /*PCGEXTENDEDTOOLKIT_API*/ FPruneTask final : public PCGExMT::FPCGExTask
 	{
-	}
+	public:
+		FPruneTask(PCGExData::FPointIO* InPointIO)
+			: FPCGExTask(InPointIO)
 
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
-	PCGExPointsToBounds::FBounds* Bounds = nullptr;
+		{
+		}
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override
+		{
+			FPCGExDiscardByOverlapContext* Context = Manager->GetContext<FPCGExDiscardByOverlapContext>();
+			Context->Prune();
+			return false;
+		}
+	};
+
+	class FProcessor;
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FOverlapStats
+	{
+		int32 OverlapCount = 0;
+		double OverlapVolume = 0;
+		double OverlapVolumeAvg = 0;
+		double RelativeOverlapCount = 0;
+		double RelativeOverlapVolume = 0;
+
+		FORCEINLINE void Add(const FOverlapStats& Other)
+		{
+			OverlapCount += Other.OverlapCount;
+			OverlapVolume += Other.OverlapVolume;
+		}
+
+		FORCEINLINE void Remove(const FOverlapStats& Other)
+		{
+			OverlapCount -= Other.OverlapCount;
+			OverlapVolume -= Other.OverlapVolume;
+		}
+
+		FORCEINLINE void Add(const FOverlapStats& Other, const int32 MaxCount, const double MaxVolume)
+		{
+			Add(Other);
+			UpdateRelative(MaxCount, MaxVolume);
+		}
+
+		FORCEINLINE void Remove(const FOverlapStats& Other, const int32 MaxCount, const double MaxVolume)
+		{
+			Remove(Other);
+			UpdateRelative(MaxCount, MaxVolume);
+		}
+
+		FORCEINLINE void UpdateRelative(const int32 MaxCount, const double MaxVolume)
+		{
+			OverlapVolumeAvg = OverlapVolume / OverlapCount;
+			RelativeOverlapCount = OverlapCount / MaxCount;
+			RelativeOverlapVolume = OverlapVolume / MaxVolume;
+		}
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FOverlap
+	{
+		uint64 HashID = 0;
+		FBox Intersection = FBox(NoInit);
+		bool IsValid = true;
+
+		FProcessor* Manager = nullptr;
+		FProcessor* Managed = nullptr;
+
+		FOverlapStats Stats;
+
+		FOverlap(FProcessor* InManager, FProcessor* InManaged, const FBox& InIntersection);
+		FORCEINLINE FProcessor* GetOther(const FProcessor* InCandidate) const { return Manager == InCandidate ? Managed : Manager; }
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBounds
+	{
+		FPointBounds(const FPCGPoint& InPoint, const FBox& InBounds):
+			Point(&InPoint), Bounds(InBounds)
+		{
+		}
+
+		const FPCGPoint* Point;
+		FBoxSphereBounds Bounds;
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBoundsSemantics
+	{
+		enum { MaxElementsPerLeaf = 16 };
+
+		enum { MinInclusiveElementsPerNode = 7 };
+
+		enum { MaxNodeDepth = 12 };
+
+		typedef TInlineAllocator<MaxElementsPerLeaf> ElementAllocator;
+
+		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FPointBounds* InPoint)
+		{
+			return InPoint->Bounds;
+		}
+
+		FORCEINLINE static const bool AreElementsEqual(const FPointBounds* A, const FPointBounds* B)
+		{
+			return A->Point == B->Point;
+		}
+
+		FORCEINLINE static void ApplyOffset(FPointBounds& InPoint)
+		{
+			ensureMsgf(false, TEXT("Not implemented"));
+		}
+
+		FORCEINLINE static void SetElementId(const FPointBounds* Element, FOctreeElementId2 OctreeElementID)
+		{
+		}
+	};
+
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		friend struct FPCGExDiscardByOverlapContext;
+
+		const UPCGExDiscardByOverlapSettings* LocalSettings = nullptr;
+		FPCGExDiscardByOverlapContext* LocalTypedContext = nullptr;
+
+		const TArray<FPCGPoint>* InPoints = nullptr;
+		FBox Bounds = FBox(ForceInit);
+
+		using TBoundsOctree = TOctree2<FPointBounds*, FPointBoundsSemantics>;
+		TBoundsOctree* Octree = nullptr;
+
+		TArray<FPointBounds*> LocalPointBounds;
+
+		mutable FRWLock RegistrationLock;
+		TArray<FOverlap*> Overlaps;
+		TArray<FOverlap*> ManagedOverlaps;
+
+		int32 NumPoints = 0;
+		double TotalVolume = 0;
+		double VolumeDensity = 0;
+		double TotalDensity = 0;
+
+	public:
+		FPCGExOverlapScoresWeighting RawScores;
+
+		double StaticWeight = 0;
+		double DynamicWeight = 0;
+		double Weight = 0;
+
+		FOverlapStats Stats;
+
+		explicit FProcessor(PCGExData::FPointIO* InPoints)
+			: FPointsProcessor(InPoints)
+		{
+		}
+
+		FORCEINLINE const FBox& GetBounds() const { return Bounds; }
+		FORCEINLINE const TArray<FPointBounds*>& GetPointBounds() const { return LocalPointBounds; }
+		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree; }
+
+		//virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
+
+		virtual ~FProcessor() override;
+
+		FORCEINLINE bool HasOverlaps() const { return !Overlaps.IsEmpty(); }
+
+		void RegisterOverlap(FProcessor* InManaged, const FBox& Intersection);
+		void RemoveOverlap(FOverlap* InOverlap, TArray<PCGExDiscardByOverlap::FProcessor*>& Stack);
+		void Prune(TArray<PCGExDiscardByOverlap::FProcessor*>& Stack);
+
+		FORCEINLINE void RegisterPointBounds(const int32 Index, FPointBounds* InPointBounds)
+		{
+			LocalPointBounds[Index] = InPointBounds;
+			const FBox B = InPointBounds->Bounds.GetBox();
+			Bounds += B;
+			TotalVolume += B.GetVolume();
+		}
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+
+	protected:
+		void UpdateWeightValues();
+		void UpdateWeight(const FPCGExOverlapScoresWeighting& InMax);
+	};
+}

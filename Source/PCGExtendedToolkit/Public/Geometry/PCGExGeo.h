@@ -493,6 +493,7 @@ namespace PCGExGeo
 		FVector Hand = FVector::ZeroVector;
 		FVector OtherHand = FVector::ZeroVector;
 
+		bool bIsLine = false;
 
 		FExCenterArc()
 		{
@@ -521,6 +522,8 @@ namespace PCGExGeo
 
 			Hand = (A - Center).GetSafeNormal();
 			OtherHand = (C - Center).GetSafeNormal();
+
+			bIsLine = FMath::IsNearlyEqual(FMath::Abs(FVector::DotProduct(Hand, OtherHand)), 1);
 
 			Normal = FVector::CrossProduct(Hand, OtherHand).GetSafeNormal();
 			Theta = FMath::Acos(FVector::DotProduct(Hand, OtherHand));

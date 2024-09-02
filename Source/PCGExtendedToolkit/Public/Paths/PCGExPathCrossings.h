@@ -11,11 +11,12 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExPathCrossings.generated.h"
 
+
 class UPCGExSubPointsBlendOperation;
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathCrossingsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -41,13 +42,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
-	/** If enabled, crossings are only computed per path, against themselves only.\n Note: this ignores the "bEnableSelfIntersection" from details below. */
+	/** If enabled, crossings are only computed per path, against themselves only. Note: this ignores the "bEnableSelfIntersection" from details below. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	bool bSelfIntersectionOnly = false;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExEdgeEdgeIntersectionDetails IntersectionDetails;
+	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
@@ -64,6 +65,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCG
 	friend class FPCGExPathCrossingsElement;
 
 	virtual ~FPCGExPathCrossingsContext() override;
+
+	TArray<UPCGExFilterFactoryBase*> CanCutFilterFactories;
+	TArray<UPCGExFilterFactoryBase*> CanBeCutFilterFactories;
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
@@ -104,19 +108,24 @@ namespace PCGExPathCrossings
 		bool bClosedPath = false;
 		bool bSelfIntersectionOnly = false;
 
+		int32 NumPoints = 0;
 		int32 LastIndex = 0;
 
 		TArray<FVector> Positions;
+		TArray<double> Lengths;
 		TArray<PCGExPaths::FPathEdge*> Edges;
 		TArray<FCrossing*> Crossings;
+
+		PCGExPointFilter::TManager* CanCutFilterManager = nullptr;
+		PCGExPointFilter::TManager* CanBeCutFilterManager = nullptr;
 
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 		using TEdgeOctree = TOctree2<PCGExPaths::FPathEdge*, PCGExPaths::FPathEdgeSemantics>;
 		TEdgeOctree* EdgeOctree = nullptr;
 
-		FPCGExEdgeEdgeIntersectionDetails Details;
-		
+		FPCGExPathEdgeIntersectionDetails Details;
+
 		PCGEx::TFAttributeWriter<bool>* FlagWriter = nullptr;
 
 	public:
@@ -133,6 +142,7 @@ namespace PCGExPathCrossings
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
+		void OnSearchComplete();
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

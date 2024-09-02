@@ -162,7 +162,7 @@ public:
 	EPCGExGraphValueSource RadiusXSource = EPCGExGraphValueSource::Vtx;
 
 	/** Attribute read on edge endpoints */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXType!=EPCGExFetchType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None && RadiusXType==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector RadiusXSourceAttribute;
 
 	/** Radius X Constant */
@@ -253,6 +253,15 @@ namespace PCGExWriteEdgeProperties
 
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
 
+		bool bSolidify = false;
+
+		PCGExData::FCache<double>* VtxDirCompGetter = nullptr;
+		PCGExData::FCache<FVector>* EdgeDirCompGetter = nullptr;
+
+#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGExData::FCache<double>* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
+		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
+#undef PCGEX_LOCAL_EDGE_GETTER_DECL
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
@@ -264,14 +273,5 @@ namespace PCGExWriteEdgeProperties
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
-
-		bool bSolidify = false;
-
-		PCGExData::FCache<double>* VtxDirCompGetter = nullptr;
-		PCGExData::FCache<FVector>* EdgeDirCompGetter = nullptr;
-
-#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGExData::FCache<double>* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
-		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
-#undef PCGEX_LOCAL_EDGE_GETTER_DECL
 	};
 }
