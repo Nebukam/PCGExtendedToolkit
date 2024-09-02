@@ -9,6 +9,11 @@
 
 #include "PCGExActorCollection.generated.h"
 
+namespace PCGExAssetCollection
+{
+	enum class ELoadingFlags : uint8;
+}
+
 class UPCGExActorCollection;
 
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
@@ -78,8 +83,9 @@ public:
 		return GetStagingWeightedRandomTpl(OutStaging, Entries, Seed);
 	}
 
-	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details) const override;
-	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details) const override;
-	
+	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const override;
+	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const override;
+	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const override;
+
 	virtual void BuildCache() override;
 };

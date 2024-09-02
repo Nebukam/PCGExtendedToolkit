@@ -303,6 +303,12 @@ protected:
 
 namespace PCGExAssetCollection
 {
+	enum class ELoadingFlags : uint8
+	{
+		Default = 0,
+		Recursive,
+	};
+
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FCategory
 	{
 		FName Name = NAME_None;
@@ -539,12 +545,16 @@ public:
 	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(
 		const FPCGContext* InContext,
 		const UPCGParamData* InAttributeSet,
-		const FPCGExAssetAttributeSetDetails& Details) const;
+		const FPCGExAssetAttributeSetDetails& Details,
+		const bool bBuildStaging = false) const;
 
 	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(
 		const FPCGContext* InContext,
 		const FName InputPin,
-		const FPCGExAssetAttributeSetDetails& Details) const;
+		const FPCGExAssetAttributeSetDetails& Details,
+		const bool bBuildStaging = false) const;
+
+	virtual void GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const;
 
 protected:
 #pragma region GetStaging
@@ -636,7 +646,8 @@ protected:
 	T* GetCollectionFromAttributeSetTpl(
 		const FPCGContext* InContext,
 		const UPCGParamData* InAttributeSet,
-		const FPCGExAssetAttributeSetDetails& Details) const
+		const FPCGExAssetAttributeSetDetails& Details,
+		const bool bBuildStaging = false) const
 	{
 		PCGEX_NEW_TRANSIENT(T, Collection)
 		FPCGAttributeAccessorKeysEntries* Keys = nullptr;
@@ -775,7 +786,8 @@ protected:
 #undef PCGEX_FOREACH_COLLECTION_ENTRY
 
 		Cleanup();
-		Collection->RebuildStagingData(false);
+
+		if (bBuildStaging) { Collection->RebuildStagingData(false); }
 
 		return Collection;
 	}
@@ -784,7 +796,7 @@ protected:
 	T* GetCollectionFromAttributeSetTpl(
 		const FPCGContext* InContext,
 		const FName InputPin,
-		const FPCGExAssetAttributeSetDetails& Details) const
+		const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 	{
 		const TArray<FPCGTaggedData> Inputs = InContext->InputData.GetInputsByPin(InputPin);
 		if (Inputs.IsEmpty()) { return nullptr; }
@@ -792,7 +804,7 @@ protected:
 		{
 			if (const UPCGParamData* ParamData = Cast<UPCGParamData>(InData.Data))
 			{
-				return GetCollectionFromAttributeSetTpl<T>(InContext, ParamData, Details);
+				return GetCollectionFromAttributeSetTpl<T>(InContext, ParamData, Details, bBuildStaging);
 			}
 		}
 		return nullptr;

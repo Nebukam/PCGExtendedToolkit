@@ -61,14 +61,34 @@ void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 }
 #endif
 
-UPCGExAssetCollection* UPCGExActorCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details) const
+UPCGExAssetCollection* UPCGExActorCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
-	return GetCollectionFromAttributeSetTpl<UPCGExActorCollection>(InContext, InAttributeSet, Details);
+	return GetCollectionFromAttributeSetTpl<UPCGExActorCollection>(InContext, InAttributeSet, Details, bBuildStaging);
 }
 
-UPCGExAssetCollection* UPCGExActorCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details) const
+UPCGExAssetCollection* UPCGExActorCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
-	return GetCollectionFromAttributeSetTpl<UPCGExActorCollection>(InContext, InputPin, Details);
+	return GetCollectionFromAttributeSetTpl<UPCGExActorCollection>(InContext, InputPin, Details, bBuildStaging);
+}
+
+void UPCGExActorCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
+{
+	for (const FPCGExActorCollectionEntry& Entry : Entries)
+    	{
+    		if (Entry.bIsSubCollection)
+    		{
+    			if (Flags == PCGExAssetCollection::ELoadingFlags::Recursive)
+    			{
+    				if (const UPCGExActorCollection* SubCollection = Entry.SubCollection.LoadSynchronous())
+    				{
+    					SubCollection->GetAssetPaths(OutPaths, Flags);
+    				}
+    			}
+    			continue;
+    		}
+    
+            if(!Entry.Actor.Get()){ OutPaths.Add(Entry.Actor.ToSoftObjectPath()); }
+    	}
 }
 
 void UPCGExActorCollection::BuildCache()

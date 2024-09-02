@@ -63,14 +63,34 @@ bool UPCGExInternalCollection::EDITOR_IsCacheableProperty(FPropertyChangedEvent&
 }
 #endif
 
-UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details) const
+UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
-	return GetCollectionFromAttributeSetTpl<UPCGExInternalCollection>(InContext, InAttributeSet, Details);
+	return GetCollectionFromAttributeSetTpl<UPCGExInternalCollection>(InContext, InAttributeSet, Details, bBuildStaging);
 }
 
-UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details) const
+UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
-	return GetCollectionFromAttributeSetTpl<UPCGExInternalCollection>(InContext, InputPin, Details);
+	return GetCollectionFromAttributeSetTpl<UPCGExInternalCollection>(InContext, InputPin, Details, bBuildStaging);
+}
+
+void UPCGExInternalCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
+{
+	for (const FPCGExInternalCollectionEntry& Entry : Entries)
+	{
+		if (Entry.bIsSubCollection)
+		{
+			if (Flags == PCGExAssetCollection::ELoadingFlags::Recursive)
+			{
+				if (const UPCGExInternalCollection* SubCollection = Entry.SubCollection.LoadSynchronous())
+				{
+					SubCollection->GetAssetPaths(OutPaths, Flags);
+				}
+			}
+			continue;
+		}
+
+		if (!Entry.Object.ResolveObject()) { OutPaths.Add(Entry.Object); }
+	}
 }
 
 void UPCGExInternalCollection::BuildCache()

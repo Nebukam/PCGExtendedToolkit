@@ -56,6 +56,7 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings
 
@@ -70,7 +71,7 @@ public:
 	EPCGExCollectionSource CollectionSource = EPCGExCollectionSource::Asset;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::Asset", EditConditionHides))
-	TSoftObjectPtr<UPCGExAssetCollection> MainCollection;
+	TSoftObjectPtr<UPCGExAssetCollection> AssetCollection;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CollectionSource == EPCGExCollectionSource::AttributeSet", EditConditionHides))
 	FPCGExAssetAttributeSetDetails AttributeSetDetails;
@@ -116,6 +117,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : public FPC
 	friend class FPCGExPathSplineMeshElement;
 
 	virtual ~FPCGExPathSplineMeshContext() override;
+	virtual void RegisterAssetDependencies() override;
 
 	UPCGExTangentsOperation* Tangents = nullptr;
 	TSet<AActor*> NotifyActors;
@@ -144,11 +146,11 @@ namespace PCGExPathSplineMesh
 		const UPCGExPathSplineMeshSettings* LocalSettings = nullptr;
 
 		bool bClosedPath = false;
-		
+
 		int32 LastIndex = 0;
 
 		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
-		
+
 		PCGExData::FCache<FVector>* ArriveReader = nullptr;
 		PCGExData::FCache<FVector>* LeaveReader = nullptr;
 

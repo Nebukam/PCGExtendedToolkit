@@ -14,6 +14,18 @@
 
 PCGEX_INITIALIZE_ELEMENT(PathSplineMesh)
 
+TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
+	if (CollectionSource == EPCGExCollectionSource::AttributeSet)
+	{
+		PCGEX_PIN_PARAM(PCGExAssetCollection::SourceAssetCollection, "Attribute set to be used as collection.", Required, {})
+	}
+
+	return PinProperties;
+}
+
 TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -26,6 +38,29 @@ PCGExData::EInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { r
 FPCGExPathSplineMeshContext::~FPCGExPathSplineMeshContext()
 {
 	PCGEX_TERMINATE_ASYNC
+}
+
+void FPCGExPathSplineMeshContext::RegisterAssetDependencies()
+{
+	FPCGExPathProcessorContext::RegisterAssetDependencies();
+
+	PCGEX_SETTINGS_LOCAL(PathSplineMesh)
+
+	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
+	{
+		MainCollection = Settings->AssetCollection.Get();
+		if (!MainCollection) { RequiredAssets.Add(Settings->AssetCollection.ToSoftObjectPath()); }
+	}
+	else
+	{
+		// Only load assets for internal collections
+		// since we need them for staging
+		MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
+			this, PCGExAssetCollection::SourceAssetCollection,
+			Settings->AttributeSetDetails, false);
+
+		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
+	}
 }
 
 bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
@@ -49,14 +84,15 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
-		Context->MainCollection = Settings->MainCollection.LoadSynchronous();
+		Context->MainCollection = Settings->AssetCollection.LoadSynchronous();
 	}
 	else
 	{
-		Context->MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
-			Context,
-			PCGExAssetCollection::SourceAssetCollection,
-			Settings->AttributeSetDetails);
+		if (Context->MainCollection)
+		{
+			// Internal collection, assets have been loaded at this point
+			Context->MainCollection->RebuildStagingData(true);
+		}
 	}
 
 	if (!Context->MainCollection)

@@ -14,9 +14,12 @@ PCGEX_INITIALIZE_ELEMENT(AssetStaging)
 TArray<FPCGPinProperties> UPCGExAssetStagingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	if (CollectionSource == EPCGExCollectionSource::AttributeSet) { PCGEX_PIN_PARAM(PCGExAssetCollection::SourceAssetCollection, "Attribute set to be used as collection.", Required, {}) }
-
+	
+	if (CollectionSource == EPCGExCollectionSource::AttributeSet)
+	{
+		PCGEX_PIN_PARAM(PCGExAssetCollection::SourceAssetCollection, "Attribute set to be used as collection.", Required, {})
+	}
+	
 	return PinProperties;
 }
 
@@ -25,6 +28,29 @@ FPCGExAssetStagingContext::~FPCGExAssetStagingContext()
 	PCGEX_TERMINATE_ASYNC
 	UPCGExInternalCollection* InternalCollection = Cast<UPCGExInternalCollection>(MainCollection);
 	PCGEX_DELETE_UOBJECT(InternalCollection)
+}
+
+void FPCGExAssetStagingContext::RegisterAssetDependencies()
+{
+	FPCGExPointsProcessorContext::RegisterAssetDependencies();
+
+	PCGEX_SETTINGS_LOCAL(AssetStaging)
+
+	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
+	{
+		MainCollection = Settings->AssetCollection.Get();
+		if (!MainCollection) { RequiredAssets.Add(Settings->AssetCollection.ToSoftObjectPath()); }
+	}
+	else
+	{
+		// Only load assets for internal collections
+		// since we need them for staging
+		MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
+			this, PCGExAssetCollection::SourceAssetCollection,
+			Settings->AttributeSetDetails, false);
+
+		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
+	}
 }
 
 bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
@@ -39,10 +65,11 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 	}
 	else
 	{
-		Context->MainCollection = GetDefault<UPCGExInternalCollection>()->GetCollectionFromAttributeSet(
-			Context,
-			PCGExAssetCollection::SourceAssetCollection,
-			Settings->AttributeSetDetails);
+		if (Context->MainCollection)
+		{
+			// Internal collection, assets have been loaded at this point
+			Context->MainCollection->RebuildStagingData(true);
+		}
 	}
 
 	if (!Context->MainCollection)

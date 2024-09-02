@@ -62,14 +62,34 @@ void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
 	}
 }
 
-UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details) const
+UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
-	return GetCollectionFromAttributeSetTpl<UPCGExMeshCollection>(InContext, InAttributeSet, Details);
+	return GetCollectionFromAttributeSetTpl<UPCGExMeshCollection>(InContext, InAttributeSet, Details, bBuildStaging);
 }
 
-UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details) const
+UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
-	return GetCollectionFromAttributeSetTpl<UPCGExMeshCollection>(InContext, InputPin, Details);
+	return GetCollectionFromAttributeSetTpl<UPCGExMeshCollection>(InContext, InputPin, Details, bBuildStaging);
+}
+
+void UPCGExMeshCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
+{
+	for (const FPCGExMeshCollectionEntry& Entry : Entries)
+	{
+		if (Entry.bIsSubCollection)
+		{
+			if (Flags == PCGExAssetCollection::ELoadingFlags::Recursive)
+			{
+				if (const UPCGExMeshCollection* SubCollection = Entry.SubCollection.LoadSynchronous())
+				{
+					SubCollection->GetAssetPaths(OutPaths, Flags);
+				}
+			}
+			continue;
+		}
+
+		if (!Entry.Descriptor.StaticMesh.Get()) { OutPaths.Add(Entry.Descriptor.StaticMesh.ToSoftObjectPath()); }
+	}
 }
 
 void UPCGExMeshCollection::BuildCache()

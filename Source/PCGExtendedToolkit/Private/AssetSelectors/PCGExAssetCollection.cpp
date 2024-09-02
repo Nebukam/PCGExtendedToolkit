@@ -175,14 +175,19 @@ void UPCGExAssetCollection::BuildCache()
 	/* per-class implementation, forwards Entries to protected method */
 }
 
-UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details) const
+UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
 	return nullptr;
 }
 
-UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details) const
+UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
 	return nullptr;
+}
+
+void UPCGExAssetCollection::GetAssetPaths(TSet<FSoftObjectPath>& OutPaths, const PCGExAssetCollection::ELoadingFlags Flags) const
+{
+	
 }
 
 namespace PCGExAssetCollection
