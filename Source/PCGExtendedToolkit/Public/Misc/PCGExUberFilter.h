@@ -96,7 +96,7 @@ namespace PCGExUberFilter
 
 		PCGExMT::FTaskGroup* TestTaskGroup = nullptr;
 
-		PCGEx::TFAttributeWriter<bool>* Results = nullptr;
+		PCGEx::TAttributeWriter<bool>* Results = nullptr;
 
 	public:
 		PCGExData::FPointIO* Inside = nullptr;

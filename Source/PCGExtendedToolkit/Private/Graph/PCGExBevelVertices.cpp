@@ -144,7 +144,7 @@ namespace PCGExBevelVertices
 
 		if (!TBatch::PrepareProcessing()) { return false; }
 
-		PCGEx::TFAttributeWriter<int64>* Writer = VtxDataFacade->GetWriter(Settings->FlagAttribute, Settings->InitialFlags, false, false);
+		PCGEx::TAttributeWriter<int64>* Writer = VtxDataFacade->GetWriter(Settings->FlagAttribute, Settings->InitialFlags, false, false);
 		StateFlags = &Writer->Values;
 
 		return true;

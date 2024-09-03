@@ -494,7 +494,7 @@ namespace PCGExGraph
 		PCGEX_SET_NUM_UNINITIALIZED(OutAdjacency, InPointIO->GetNum())
 		OutIndices.Empty();
 
-		PCGEx::TFAttributeReader<int64>* IndexReader = new PCGEx::TFAttributeReader<int64>(Tag_VtxEndpoint);
+		PCGEx:: TAttributeReader<int64>* IndexReader = new PCGEx:: TAttributeReader<int64>(Tag_VtxEndpoint);
 		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO*>(InPointIO)))
 		{
 			PCGEX_DELETE(IndexReader)
@@ -548,7 +548,7 @@ namespace PCGExGraph
 
 	static bool GetReducedVtxIndices(PCGExData::FPointIO* InEdges, const TMap<uint32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
 	{
-		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
+		PCGEx:: TAttributeReader<int64>* EndpointsReader = new PCGEx:: TAttributeReader<int64>(Tag_EdgeEndpoints);
 
 		if (!EndpointsReader->Bind(InEdges))
 		{

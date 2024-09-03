@@ -10,14 +10,14 @@
 
 // Declaration & use pair, boolean will be set by name validation
 #define PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE) bool bWrite##_NAME = false;
-#define PCGEX_OUTPUT_DECL(_NAME, _TYPE) PCGEx::TFAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
+#define PCGEX_OUTPUT_DECL(_NAME, _TYPE) PCGEx:: TAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
 #define PCGEX_OUTPUT_DECL_AND_TOGGLE(_NAME, _TYPE) PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE) PCGEX_OUTPUT_DECL(_NAME, _TYPE)
 
 // Create writer in context
-#define PCGEX_OUTPUT_FWD_C(_NAME, _TYPE) if(Context->bWrite##_NAME){ Context->_NAME##Writer =  new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME##AttributeName); }
+#define PCGEX_OUTPUT_FWD_C(_NAME, _TYPE) if(Context->bWrite##_NAME){ Context->_NAME##Writer =  new PCGEx:: TAttributeWriter<_TYPE>(Settings->_NAME##AttributeName); }
 
 // Create writer in root
-#define PCGEX_OUTPUT_FWD(_NAME, _TYPE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME##AttributeName); }
+#define PCGEX_OUTPUT_FWD(_NAME, _TYPE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = new PCGEx:: TAttributeWriter<_TYPE>(Settings->_NAME##AttributeName); }
 
 // Simply validate name from settings
 #define PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_C(_NAME, _TYPE)\

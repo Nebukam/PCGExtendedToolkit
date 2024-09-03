@@ -45,7 +45,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 	/** Name of the attribute to output the direction to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteDirection"))
 	FName DirectionAttribute = "Direction";
-	PCGEx::TFAttributeWriter<FVector>* DirWriter = nullptr;
+	PCGEx::TAttributeWriter<FVector>* DirWriter = nullptr;
 
 	/** Invert the direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteDirection"))
@@ -58,7 +58,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 	/** Name of the attribute to output the length to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteLength"))
 	FName LengthAttribute = "Length";
-	PCGEx::TFAttributeWriter<double>* LengthWriter = nullptr;
+	PCGEx::TAttributeWriter<double>* LengthWriter = nullptr;
 
 	virtual bool Validate(const FPCGContext* InContext) const
 	{
@@ -111,7 +111,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteEdgeIndex", DisplayAfter="bWriteEdgeIndex"))
 	FName EdgeIndexAttribute = "EdgeIndex";
-	PCGEx::TFAttributeWriter<int32>* EIdxWriter = nullptr;
+	PCGEx::TAttributeWriter<int32>* EIdxWriter = nullptr;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="EdgeIndexAttribute"))
@@ -120,7 +120,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteVtxIndex", DisplayAfter="bWriteVtxIndex"))
 	FName VtxIndexAttribute = "VtxIndex";
-	PCGEx::TFAttributeWriter<int32>* VIdxWriter = nullptr;
+	PCGEx::TAttributeWriter<int32>* VIdxWriter = nullptr;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="VtxIndexAttribute"))
@@ -129,7 +129,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteNeighborCount", DisplayAfter="bWriteNeighborCount"))
 	FName NeighborCountAttribute = "Count";
-	PCGEx::TFAttributeWriter<int32>* NCountWriter = nullptr;
+	PCGEx::TAttributeWriter<int32>* NCountWriter = nullptr;
 
 	virtual bool Validate(const FPCGContext* InContext) const override
 	{

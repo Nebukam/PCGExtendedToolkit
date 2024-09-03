@@ -123,7 +123,7 @@ namespace PCGExConvexHull
 
 		if (!Settings->GraphBuilderDetails.bPruneIsolatedPoints && Settings->bMarkHull)
 		{
-			HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
+			HullMarkPointWriter = new PCGEx::TAttributeWriter<bool>(Settings->HullAttributeName, false, false);
 			HullMarkPointWriter->BindAndSetNumUninitialized(PointIO);
 			StartParallelLoopForPoints();
 		}

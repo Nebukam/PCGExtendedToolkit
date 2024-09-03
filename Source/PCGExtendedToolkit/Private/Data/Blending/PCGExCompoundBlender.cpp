@@ -121,7 +121,7 @@ namespace PCGExDataBlending
 				{
 					using T = decltype(DummyValue);
 
-					PCGEx::TFAttributeWriter<T>* Writer;
+					PCGEx::TAttributeWriter<T>* Writer;
 					if (const FPCGMetadataAttribute<T>* ExistingAttribute = CurrentTargetData->FindConstAttribute<T>(SrcMap->Identity.Name))
 					{
 						Writer = CurrentTargetData->GetWriter<T>(ExistingAttribute, false);

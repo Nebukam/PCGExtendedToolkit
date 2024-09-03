@@ -119,7 +119,7 @@ namespace PCGExBuildDelaunay
 		TSet<uint64> UrquhartEdges;
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
+		PCGEx::TAttributeWriter<bool>* HullMarkPointWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

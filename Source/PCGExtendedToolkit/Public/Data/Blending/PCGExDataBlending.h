@@ -302,7 +302,7 @@ namespace PCGExDataBlending
 		{
 		}
 
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		virtual void PrepareForData(PCGEx::FAttributeIOBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
 		}
 
@@ -352,10 +352,10 @@ namespace PCGExDataBlending
 
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::None; };
 
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(PCGEx::FAttributeIOBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
-			Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(InWriter);
+			Writer = static_cast<PCGEx::TAttributeWriter<T>*>(InWriter);
 
 			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
 			TypedAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
@@ -442,8 +442,8 @@ namespace PCGExDataBlending
 
 	protected:
 		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;
-		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
-		PCGEx::FAttributeIOBase<T>* Reader = nullptr;
+		PCGEx::TAttributeWriter<T>* Writer = nullptr;
+		PCGEx::TAttributeIO<T>* Reader = nullptr;
 	};
 
 	template <typename T>

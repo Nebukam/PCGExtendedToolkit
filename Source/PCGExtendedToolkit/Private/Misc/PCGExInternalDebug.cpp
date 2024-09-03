@@ -39,7 +39,7 @@ bool FPCGExInternalDebugElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-#define PCGEX_W(_NAME, _TYPE) FName _NAME##Name = FName(#_NAME); PCGEx::TFAttributeWriter<_TYPE>* _NAME##Writer = new PCGEx::TFAttributeWriter<_TYPE>(_NAME##Name); _NAME##Writer->BindAndSetNumUninitialized(Context->CurrentIO);
+#define PCGEX_W(_NAME, _TYPE) FName _NAME##Name = FName(#_NAME); PCGEx:: TAttributeWriter<_TYPE>* _NAME##Writer = new PCGEx:: TAttributeWriter<_TYPE>(_NAME##Name); _NAME##Writer->BindAndSetNumUninitialized(Context->CurrentIO);
 #define PCGEX_D(_NAME) _NAME##Writer->Write(); PCGEX_DELETE(_NAME##Writer)
 
 		while (Context->AdvancePointsIO())

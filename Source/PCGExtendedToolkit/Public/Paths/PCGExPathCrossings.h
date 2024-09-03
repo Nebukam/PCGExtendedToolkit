@@ -126,7 +126,7 @@ namespace PCGExPathCrossings
 
 		FPCGExPathEdgeIntersectionDetails Details;
 
-		PCGEx::TFAttributeWriter<bool>* FlagWriter = nullptr;
+		PCGEx::TAttributeWriter<bool>* FlagWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)

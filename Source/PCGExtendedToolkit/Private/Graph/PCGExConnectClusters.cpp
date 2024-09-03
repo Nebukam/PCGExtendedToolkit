@@ -286,7 +286,7 @@ namespace PCGExBridgeClusters
 
 		// Force writing cluster ID to Vtx, otherwise we inherit from previous metadata.
 		const uint64 ClusterId = VtxIO->GetOut()->UID;
-		PCGEx::TFAttributeWriter<int64>* ClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_ClusterId);
+		PCGEx::TAttributeWriter<int64>* ClusterIdWriter = new PCGEx::TAttributeWriter<int64>(PCGExGraph::Tag_ClusterId);
 		for (int64& Id : ClusterIdWriter->Values) { Id = ClusterId; }
 		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, ClusterIdWriter);
 

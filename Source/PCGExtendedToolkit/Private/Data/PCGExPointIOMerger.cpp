@@ -91,15 +91,15 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 					static_cast<uint16>(SourceAtt.UnderlyingType), [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
-						PCGEx::TFAttributeWriter<T>* Writer = nullptr;
+						PCGEx::TAttributeWriter<T>* Writer = nullptr;
 
 						if (InCarryOverDetails->bPreserveAttributesDefaultValue)
 						{
 							const FPCGMetadataAttribute<T>* SourceAttribute = Metadata->GetConstTypedAttribute<T>(SourceAtt.Name);
-							Writer = new PCGEx::TFAttributeWriter<T>(SourceAtt.Name, SourceAttribute->GetValue(PCGDefaultValueKey), SourceAtt.bAllowsInterpolation);
+							Writer = new PCGEx::TAttributeWriter<T>(SourceAtt.Name, SourceAttribute->GetValue(PCGDefaultValueKey), SourceAtt.bAllowsInterpolation);
 						}
 
-						if (!Writer) { Writer = new PCGEx::TFAttributeWriter<T>(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation); }
+						if (!Writer) { Writer = new PCGEx::TAttributeWriter<T>(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation); }
 						Writers.Add(Writer);
 						UniqueIdentities.Add(SourceAtt);
 					});
@@ -128,7 +128,7 @@ void FPCGExPointIOMerger::Write()
 			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(Writers[i]);
+				PCGEx::TAttributeWriter<T>* Writer = static_cast<PCGEx::TAttributeWriter<T>*>(Writers[i]);
 				Writer->Write();
 				delete Writer;
 			});
@@ -145,7 +145,7 @@ void FPCGExPointIOMerger::Write(PCGExMT::FTaskManager* AsyncManager)
 			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(Writers[i]);
+				PCGEx::TAttributeWriter<T>* Writer = static_cast<PCGEx::TAttributeWriter<T>*>(Writers[i]);
 				PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Writer)
 			});
 	}
@@ -158,13 +158,13 @@ namespace PCGExPointIOMerger
 	bool FWriteAttributeTask::ExecuteTask()
 	{
 		const PCGEx::FAttributeIdentity& Identity = Merger->UniqueIdentities[TaskIndex];
-		PCGEx::FAAttributeIO* Writer = Merger->Writers[TaskIndex];
+		PCGEx::FAttributeIOBase* Writer = Merger->Writers[TaskIndex];
 
 		PCGMetadataAttribute::CallbackWithRightType(
 			Identity.GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				PCGEx::TFAttributeWriter<T>* TypedWriter = static_cast<PCGEx::TFAttributeWriter<T>*>(Writer);
+				PCGEx::TAttributeWriter<T>* TypedWriter = static_cast<PCGEx::TAttributeWriter<T>*>(Writer);
 				TypedWriter->BindAndSetNumUninitialized(PointIO);
 
 				for (int i = 0; i < Merger->IOSources.Num(); i++)

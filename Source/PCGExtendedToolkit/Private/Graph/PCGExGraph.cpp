@@ -341,7 +341,7 @@ namespace PCGExGraph
 
 		PointIO->InitializeNum(PointIO->GetNum(PCGExData::ESource::Out), true);
 
-		PCGEx::TFAttributeWriter<int64>* VtxEndpointWriter = new PCGEx::TFAttributeWriter<int64>(Tag_VtxEndpoint, 0, false);
+		PCGEx::TAttributeWriter<int64>* VtxEndpointWriter = new PCGEx::TAttributeWriter<int64>(Tag_VtxEndpoint, 0, false);
 
 		VtxEndpointWriter->BindAndSetNumUninitialized(PointIO);
 
@@ -358,7 +358,7 @@ namespace PCGExGraph
 		{
 #define PCGEX_METADATA(_NAME, _TYPE, _DEFAULT, _ACCESSOR)\
 {if(MetadataDetails->bWrite##_NAME){\
-PCGEx::TFAttributeWriter<_TYPE>* Writer = MetadataDetails->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, false) : nullptr;\
+PCGEx:: TAttributeWriter<_TYPE>* Writer = MetadataDetails->bWrite##_NAME ? new PCGEx:: TAttributeWriter<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, false) : nullptr;\
 Writer->BindAndSetNumUninitialized(PointIO);\
 		for(const int32 NodeIndex : ValidNodes){\
 		PCGExGraph::FGraphNodeMetadata** NodeMeta = Graph->NodeMetadata.Find(NodeIndex);\
@@ -375,7 +375,7 @@ Writer->BindAndSetNumUninitialized(PointIO);\
 
 		bCompiledSuccessfully = true;
 
-		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(Tag_ClusterId, -1, false);
+		PCGEx::TAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TAttributeWriter<int64>(Tag_ClusterId, -1, false);
 		NumClusterIdWriter->BindAndSetNumUninitialized(PointIO);
 
 		// Subgraphs
@@ -499,7 +499,7 @@ namespace PCGExGraphTask
 
 		EdgeIO->CreateOutKeys();
 
-		PCGEx::TFAttributeWriter<int64>* EdgeEndpoints = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false);
+		PCGEx::TAttributeWriter<int64>* EdgeEndpoints = new PCGEx::TAttributeWriter<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false);
 		EdgeEndpoints->BindAndSetNumUninitialized(EdgeIO);
 
 		const FVector SeedOffset = FVector(EdgeIO->IOIndex);

@@ -248,10 +248,10 @@ namespace PCGExBevelPath
 		PCGExData::FCache<double>* SubdivAmountGetter = nullptr;
 		double ConstantSubdivAmount = 0;
 
-		PCGEx::TFAttributeWriter<bool>* EndpointsWriter = nullptr;
-		PCGEx::TFAttributeWriter<bool>* StartPointWriter = nullptr;
-		PCGEx::TFAttributeWriter<bool>* EndPointWriter = nullptr;
-		PCGEx::TFAttributeWriter<bool>* SubdivisionWriter = nullptr;
+		PCGEx::TAttributeWriter<bool>* EndpointsWriter = nullptr;
+		PCGEx::TAttributeWriter<bool>* StartPointWriter = nullptr;
+		PCGEx::TAttributeWriter<bool>* EndPointWriter = nullptr;
+		PCGEx::TAttributeWriter<bool>* SubdivisionWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)

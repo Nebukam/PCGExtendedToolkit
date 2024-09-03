@@ -364,7 +364,7 @@ namespace PCGExPartitionByValues
 				IndiceMap.Empty();
 			}
 
-			PCGEx::TFAttributeWriter<int32>* KeyWriter = PointDataFacade->GetWriter(Rule.RuleConfig->KeyAttributeName, 0, false, true);
+			PCGEx::TAttributeWriter<int32>* KeyWriter = PointDataFacade->GetWriter(Rule.RuleConfig->KeyAttributeName, 0, false, true);
 			for (int i = 0; i < Rule.FilteredValues.Num(); i++)
 			{
 				KeyWriter->Values[i] = Rule.FilteredValues[i];
@@ -374,7 +374,7 @@ namespace PCGExPartitionByValues
 
 		if (Settings->bWriteKeySum)
 		{
-			PCGEx::TFAttributeWriter<int32>* KeySumWriter = PointDataFacade->GetWriter(Settings->KeySumAttributeName, 0, false, true);
+			PCGEx::TAttributeWriter<int32>* KeySumWriter = PointDataFacade->GetWriter(Settings->KeySumAttributeName, 0, false, true);
 			for (int i = 0; i < KeySums.Num(); i++) { KeySumWriter->Values[i] = KeySums[i]; }
 		}
 

@@ -142,7 +142,7 @@ namespace PCGExBuildDelaunay
 			else { Delaunay->RemoveLongestEdges(ActivePositions); }
 		}
 
-		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
+		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
 
 		ActivePositions.Empty();
 
@@ -223,7 +223,7 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEx::TFAttributeWriter<bool>* HullWriter = new PCGEx::TFAttributeWriter<bool>(Settings->SiteHullAttributeName);
+			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; i++) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
 			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);
@@ -262,7 +262,7 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEx::TFAttributeWriter<bool>* HullWriter = new PCGEx::TFAttributeWriter<bool>(Settings->SiteHullAttributeName);
+			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; i++) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
 			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);

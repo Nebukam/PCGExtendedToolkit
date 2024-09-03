@@ -87,7 +87,7 @@ namespace PCGExConvexHull
 
 		TArray<uint64> Edges;
 
-		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
+		PCGEx::TAttributeWriter<bool>* HullMarkPointWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

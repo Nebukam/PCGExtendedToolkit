@@ -73,8 +73,8 @@ namespace PCGExWriteTangents
 		bool bClosedPath = false;
 		int32 LastIndex = 0;
 
-		PCGEx::TFAttributeWriter<FVector>* ArriveWriter = nullptr;
-		PCGEx::TFAttributeWriter<FVector>* LeaveWriter = nullptr;
+		PCGEx::TAttributeWriter<FVector>* ArriveWriter = nullptr;
+		PCGEx::TAttributeWriter<FVector>* LeaveWriter = nullptr;
 
 		UPCGExTangentsOperation* Tangents = nullptr;
 

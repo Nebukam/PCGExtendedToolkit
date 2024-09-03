@@ -220,7 +220,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	if (Settings->bFlagDeadEnds)
 	{
 		PathIO->CreateOutKeys();
-		PCGEx::TFAttributeWriter<bool>* DeadEndWriter = new PCGEx::TFAttributeWriter<bool>(Settings->DeadEndAttributeName, false, false, true);
+		PCGEx::TAttributeWriter<bool>* DeadEndWriter = new PCGEx::TAttributeWriter<bool>(Settings->DeadEndAttributeName, false, false, true);
 		DeadEndWriter->BindAndSetNumUninitialized(PathIO);
 		for (int i = 0; i < Path.Num(); i++) { DeadEndWriter->Values[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
 		PCGEX_ASYNC_WRITE_DELETE(ClusterProcessor->AsyncManagerPtr, DeadEndWriter)

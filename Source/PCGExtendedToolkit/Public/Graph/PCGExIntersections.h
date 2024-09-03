@@ -85,7 +85,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 		return true;
 	}
 
-#define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) PCGEx::TFAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
+#define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) PCGEx:: TAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
 	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_DECL)
 #undef PCGEX_LOCAL_DETAIL_DECL
 

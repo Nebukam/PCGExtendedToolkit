@@ -61,8 +61,8 @@ namespace PCGExData
 		FFacade* SourceDataFacade = nullptr;
 		FFacade* TargetDataFacade = nullptr;
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		TArray<PCGEx::FAAttributeIO*> Readers;
-		TArray<PCGEx::FAAttributeIO*> Writers;
+		TArray<PCGEx::FAttributeIOBase*> Readers;
+		TArray<PCGEx::FAttributeIOBase*> Writers;
 
 	public:
 		~FDataForwardHandler();

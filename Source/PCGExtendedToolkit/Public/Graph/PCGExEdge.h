@@ -161,7 +161,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
-		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
+		PCGEx:: TAttributeReader<int64>* EndpointsReader = new PCGEx:: TAttributeReader<int64>(Tag_EdgeEndpoints);
 		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
 		{
 			PCGEX_DELETE(EndpointsReader)
@@ -230,7 +230,7 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-WithPoints);
 		//EdgeIO.CreateInKeys();
 
-		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
+		PCGEx:: TAttributeReader<int64>* EndpointsReader = new PCGEx:: TAttributeReader<int64>(Tag_EdgeEndpoints);
 
 		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
 		{

@@ -394,18 +394,18 @@ namespace PCGEx
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FAAttributeIO
+	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeIOBase
 	{
 	public:
 		FName Name = NAME_None;
 		int16 UnderlyingType = static_cast<int16>(EPCGMetadataTypes::Unknown);
 
-		explicit FAAttributeIO(const FName InName):
+		explicit FAttributeIOBase(const FName InName):
 			Name(InName)
 		{
 		}
 
-		virtual ~FAAttributeIO()
+		virtual ~FAttributeIOBase()
 		{
 		}
 
@@ -417,14 +417,14 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeIOBase : public FAAttributeIO
+	class /*PCGEXTENDEDTOOLKIT_API*/ TAttributeIO : public FAttributeIOBase
 	{
 	public:
 		TArray<T> Values;
 		FAttributeAccessorBase<T>* Accessor = nullptr;
 
-		explicit FAttributeIOBase(const FName InName):
-			FAAttributeIO(InName)
+		explicit TAttributeIO(const FName InName):
+			FAttributeIOBase(InName)
 		{
 			Values.Empty();
 		}
@@ -450,7 +450,7 @@ namespace PCGEx
 			this->Accessor->GetScope(this->Values, H64(StartIndex, Count));
 		}
 
-		virtual ~FAttributeIOBase() override
+		virtual ~TAttributeIO() override
 		{
 			PCGEX_DELETE(Accessor)
 			Values.Empty();
@@ -458,7 +458,7 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TFAttributeWriter final : public FAttributeIOBase<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TAttributeWriter final : public TAttributeIO<T>
 	{
 		T DefaultValue;
 		bool bAllowsInterpolation;
@@ -466,8 +466,8 @@ namespace PCGEx
 		bool bOverwriteIfTypeMismatch;
 
 	public:
-		explicit TFAttributeWriter(const FName& InName)
-			: FAttributeIOBase<T>(InName),
+		explicit TAttributeWriter(const FName& InName)
+			: TAttributeIO<T>(InName),
 			  DefaultValue(T{}),
 			  bAllowsInterpolation(true),
 			  bOverrideParent(true),
@@ -475,13 +475,13 @@ namespace PCGEx
 		{
 		}
 
-		TFAttributeWriter(
+		TAttributeWriter(
 			const FName& InName,
 			const T& InDefaultValue,
 			const bool AllowsInterpolation = true,
 			const bool OverrideParent = true,
 			const bool OverwriteIfTypeMismatch = true)
-			: FAttributeIOBase<T>(InName),
+			: TAttributeIO<T>(InName),
 			  DefaultValue(InDefaultValue),
 			  bAllowsInterpolation(AllowsInterpolation),
 			  bOverrideParent(OverrideParent),
@@ -545,11 +545,11 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TFAttributeReader final : public FAttributeIOBase<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/  TAttributeReader final : public TAttributeIO<T>
 	{
 	public:
-		explicit TFAttributeReader(const FName& InName)
-			: FAttributeIOBase<T>(InName)
+		explicit  TAttributeReader(const FName& InName)
+			: TAttributeIO<T>(InName)
 		{
 		}
 
@@ -584,7 +584,7 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ FAttributeGetter : public FAttributeGetterBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ TAttributeGetter : public FAttributeGetterBase
 	{
 	protected:
 		bool bMinMaxDirty = true;
@@ -593,21 +593,21 @@ namespace PCGEx
 		IPCGAttributeAccessor* FetchAccessor = nullptr;
 
 	public:
-		FAttributeGetter()
+		TAttributeGetter()
 		{
 		}
 
-		FAttributeGetter(const FAttributeGetter& Other)
+		TAttributeGetter(const TAttributeGetter& Other)
 			: Component(Other.Component),
 			  Axis(Other.Axis),
 			  Field(Other.Field)
 		{
 		}
 
-		virtual ~FAttributeGetter()
+		virtual ~TAttributeGetter()
 		{
 			PCGEX_DELETE(FetchAccessor)
-			FAttributeGetter<T>::Cleanup();
+			TAttributeGetter<T>::Cleanup();
 		}
 
 		virtual EPCGMetadataTypes GetType() { return EPCGMetadataTypes::Unknown; }
@@ -1027,7 +1027,7 @@ namespace PCGEx
 				TArray<T> RawValues;
 
 				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
-				TFAttributeWriter<T>* Writer = new TFAttributeWriter<T>(
+				TAttributeWriter<T>* Writer = new TAttributeWriter<T>(
 					Identity.Name,
 					SourceAttribute->GetValue(PCGDefaultValueKey),
 					SourceAttribute->AllowsInterpolation());
@@ -1050,7 +1050,7 @@ namespace PCGEx
 
 #pragma region Local Attribute Getter
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalSingleFieldGetter : public FAttributeGetter<double>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalSingleFieldGetter : public TAttributeGetter<double>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Double; }
 
@@ -1157,7 +1157,7 @@ namespace PCGEx
 		FORCEINLINE virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalIntegerGetter final : public FAttributeGetter<int32>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalIntegerGetter final : public TAttributeGetter<int32>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Integer32; }
 
@@ -1264,7 +1264,7 @@ namespace PCGEx
 		FORCEINLINE virtual int32 Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalBoolGetter final : public FAttributeGetter<bool>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalBoolGetter final : public TAttributeGetter<bool>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Boolean; }
 
@@ -1371,7 +1371,7 @@ namespace PCGEx
 		FORCEINLINE virtual bool Convert(const FName Value) const override { return Value.ToString().Len() == 4; }
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalVectorGetter final : public FAttributeGetter<FVector>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalVectorGetter final : public TAttributeGetter<FVector>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Vector; }
 
@@ -1411,7 +1411,7 @@ namespace PCGEx
 		FORCEINLINE virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalToStringGetter final : public FAttributeGetter<FString>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalToStringGetter final : public TAttributeGetter<FString>
 	{
 		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::String; }
 

@@ -65,8 +65,8 @@ namespace PCGExData
 				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					PCGEx::FAttributeIOBase<T>* Reader = SourceDataFacade->GetReader<T>(Identity.Name);
-					PCGEx::FAttributeIOBase<T>* Writer = TargetDataFacade->GetWriter<T>(Reader->Accessor->GetTypedAttribute(), false);
+					PCGEx::TAttributeIO<T>* Reader = SourceDataFacade->GetReader<T>(Identity.Name);
+					PCGEx::TAttributeIO<T>* Writer = TargetDataFacade->GetWriter<T>(Reader->Accessor->GetTypedAttribute(), false);
 					Readers[i] = Reader;
 					Writers[i] = Writer;
 				});
@@ -85,8 +85,8 @@ namespace PCGExData
 				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					PCGEx::FAttributeIOBase<T>* Reader = static_cast<PCGEx::FAttributeIOBase<T>*>(Readers[i]);
-					PCGEx::FAttributeIOBase<T>* Writer = static_cast<PCGEx::FAttributeIOBase<T>*>(Writers[i]);
+					PCGEx::TAttributeIO<T>* Reader = static_cast<PCGEx::TAttributeIO<T>*>(Readers[i]);
+					PCGEx::TAttributeIO<T>* Writer = static_cast<PCGEx::TAttributeIO<T>*>(Writers[i]);
 					Writer->Values[TargetIndex] = Reader->Values[SourceIndex];
 				});
 		}
@@ -106,7 +106,7 @@ namespace PCGExData
 						using T = decltype(DummyValue);
 						const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
 
-						PCGEx::FAttributeIOBase<T>* Writer = InTargetDataFacade->GetWriter<T>(SourceAtt, true);
+						PCGEx::TAttributeIO<T>* Writer = InTargetDataFacade->GetWriter<T>(SourceAtt, true);
 
 						const T ForwardValue = SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry);
 						for (T& Value : Writer->Values) { Value = ForwardValue; }

@@ -81,20 +81,16 @@ public:
 	//FName TargetActorAttributeName;
 
 	/** Whether to read tangents from attributes or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tangents", meta = (PCG_Overridable))
-	bool bTangentsFromAttributes = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bApplyCustomTangents = false;
 
 	/** Arrive tangent attribute (expects FVector) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tangents", meta=(PCG_Overridable, EditCondition="bTangentsFromAttributes", EditConditionHides))
-	FName Arrive;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
+	FName ArriveTangentAttribute = "ArriveTangent";
 
 	/** Leave tangent attribute (expects FVector) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tangents", meta=(PCG_Overridable, EditCondition="bTangentsFromAttributes", EditConditionHides))
-	FName Leave;
-
-	/** In-place tangent solver */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Tangents", Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault, EditCondition="!bTangentsFromAttributes", EditConditionHides))
-	TObjectPtr<UPCGExTangentsOperation> Tangents;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
+	FName LeaveTangentAttribute = "LeaveTangent";
 
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -108,7 +104,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : public FPC
 	virtual ~FPCGExPathSplineMeshContext() override;
 	virtual void RegisterAssetDependencies() override;
 
-	UPCGExTangentsOperation* Tangents = nullptr;
 	TSet<AActor*> NotifyActors;
 
 	TObjectPtr<UPCGExAssetCollection> MainCollection;
@@ -140,10 +135,8 @@ namespace PCGExPathSplineMesh
 
 		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
 
-		PCGEx::FAttributeIOBase<FVector>* ArriveReader = nullptr;
-		PCGEx::FAttributeIOBase<FVector>* LeaveReader = nullptr;
-
-		UPCGExTangentsOperation* Tangents = nullptr;
+		PCGEx::TAttributeIO<FVector>* ArriveReader = nullptr;
+		PCGEx::TAttributeIO<FVector>* LeaveReader = nullptr;
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 		//TArray<USplineMeshComponent*> SplineMeshComponents;

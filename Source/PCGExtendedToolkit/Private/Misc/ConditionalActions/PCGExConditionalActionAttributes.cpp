@@ -28,7 +28,7 @@ bool UPCGExConditionalActionAttributesOperation::PrepareForData(const FPCGContex
 			{
 				using T = decltype(DummyValue);
 				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-				PCGEx::FAttributeIOBase<T>* Writer = InPointDataFacade->GetWriter<T>(TypedAttribute, false);
+				PCGEx::TAttributeIO<T>* Writer = InPointDataFacade->GetWriter<T>(TypedAttribute, false);
 				SuccessAttributes.Add(AttributeBase);
 				SuccessWriters.Add(Writer);
 			});
@@ -41,7 +41,7 @@ bool UPCGExConditionalActionAttributesOperation::PrepareForData(const FPCGContex
 			{
 				using T = decltype(DummyValue);
 				const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-				PCGEx::FAttributeIOBase<T>* Writer = InPointDataFacade->GetWriter<T>(TypedAttribute, false);
+				PCGEx::TAttributeIO<T>* Writer = InPointDataFacade->GetWriter<T>(TypedAttribute, false);
 				FailAttributes.Add(AttributeBase);
 				FailWriters.Add(Writer);
 			});
@@ -59,7 +59,7 @@ void UPCGExConditionalActionAttributesOperation::OnMatchSuccess(int32 Index, con
 			static_cast<uint16>(AttributeBase->GetTypeId()), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				static_cast<PCGEx::FAttributeIOBase<T>*>(SuccessWriters[i])->Values[Index] = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
+				static_cast<PCGEx::TAttributeIO<T>*>(SuccessWriters[i])->Values[Index] = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
 			});
 	}
 }
@@ -73,7 +73,7 @@ void UPCGExConditionalActionAttributesOperation::OnMatchFail(int32 Index, const 
 			static_cast<uint16>(AttributeBase->GetTypeId()), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				static_cast<PCGEx::FAttributeIOBase<T>*>(FailWriters[i])->Values[Index] = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
+				static_cast<PCGEx::TAttributeIO<T>*>(FailWriters[i])->Values[Index] = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase)->GetValue(PCGDefaultValueKey);
 			});
 	}
 }

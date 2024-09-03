@@ -68,16 +68,10 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMesh)
 
-	if (!Settings->bTangentsFromAttributes)
+	if (Settings->bApplyCustomTangents)
 	{
-		PCGEX_OPERATION_BIND(Tangents, UPCGExZeroTangents)
-		Context->Tangents->bClosedPath = Settings->bClosedPath;
-	}
-
-	if (Settings->bTangentsFromAttributes)
-	{
-		PCGEX_VALIDATE_NAME(Settings->Arrive)
-		PCGEX_VALIDATE_NAME(Settings->Leave)
+		PCGEX_VALIDATE_NAME(Settings->ArriveTangentAttribute)
+		PCGEX_VALIDATE_NAME(Settings->LeaveTangentAttribute)
 	}
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
@@ -129,7 +123,6 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](PCGExPointsMT::TBatch<PCGExPathSplineMesh::FProcessor>* NewBatch)
 			{
-				NewBatch->PrimaryOperation = Context->Tangents;
 			},
 			PCGExMT::State_Done))
 		{
@@ -187,26 +180,21 @@ namespace PCGExPathSplineMesh
 		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(Context, PointDataFacade)) { return false; }
 
-		if (Settings->bTangentsFromAttributes)
+		if (Settings->bApplyCustomTangents)
 		{
-			ArriveReader = PointDataFacade->GetScopedReader<FVector>(Settings->Arrive);
+			ArriveReader = PointDataFacade->GetReader<FVector>(Settings->ArriveTangentAttribute);
 			if (!ArriveReader)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Could not fetch tangent' Arrive attribute on some inputs."));
 				return false;
 			}
 
-			LeaveReader = PointDataFacade->GetScopedReader<FVector>(Settings->Leave);
+			LeaveReader = PointDataFacade->GetReader<FVector>(Settings->LeaveTangentAttribute);
 			if (!ArriveReader)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Could not fetch tangent' Leave attribute on some inputs."));
 				return false;
 			}
-		}
-		else
-		{
-			Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
-			Tangents->PrepareForData(PointDataFacade);
 		}
 
 		LastIndex = PointIO->GetNum() - 1;
@@ -226,6 +214,7 @@ namespace PCGExPathSplineMesh
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
+		// TODO : Support closed splines
 		if (Index == LastIndex) { return; } // Ignore last index, only used for maths reasons
 
 		Segments[Index] = PCGExPaths::FSplineMeshSegment();
@@ -254,39 +243,32 @@ namespace PCGExPathSplineMesh
 		Segment.Params.EndScale = FVector2D(Scale.Y, Scale.Z);
 		Segment.Params.EndRoll = EndTransform.GetRotation().Rotator().Roll;
 
-		if (Tangents)
+		if (LocalSettings->bApplyCustomTangents)
 		{
-			int32 PrevIndex = Index - 1;
 			int32 NextIndex = Index + 1;
 
 			if (bClosedPath)
 			{
-				if (PrevIndex < 0) { PrevIndex = LastIndex; }
 				if (NextIndex > LastIndex) { NextIndex = 0; }
 
-				Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, Segment.Params.StartTangent, Segment.Params.EndTangent);
+				Segment.Params.StartTangent = LeaveReader->Values[Index];
+				Segment.Params.EndTangent = ArriveReader->Values[NextIndex];
 			}
 			else
 			{
-				if (PrevIndex >= 0 && NextIndex <= LastIndex)
+				if (NextIndex > LastIndex)
 				{
-					Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, Segment.Params.StartTangent, Segment.Params.EndTangent);
+					Segment.Params.StartTangent = LeaveReader->Values[Index];
+					Segment.Params.EndTangent = ArriveReader->Values[Index];
 				}
-				else if (PrevIndex < 0)
+				else
 				{
-					Tangents->ProcessFirstPoint(PointIO->GetIn()->GetPoints(), Segment.Params.StartTangent, Segment.Params.EndTangent);
-				}
-				else if (NextIndex > LastIndex)
-				{
-					Tangents->ProcessLastPoint(PointIO->GetIn()->GetPoints(), Segment.Params.StartTangent, Segment.Params.EndTangent);
+					Segment.Params.StartTangent = LeaveReader->Values[Index];
+					Segment.Params.EndTangent = ArriveReader->Values[NextIndex];
 				}
 			}
 		}
-		else
-		{
-			Segment.Params.StartTangent = ArriveReader->Values[Index];
-			Segment.Params.EndTangent = LeaveReader->Values[Index];
-		}
+
 
 		/*
 		AActor* TargetActor = LocalSettings->TargetActor.Get() ? LocalSettings->TargetActor.Get() : Context->GetTargetActor(nullptr);

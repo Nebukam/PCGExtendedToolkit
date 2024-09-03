@@ -19,7 +19,7 @@ public:
 	PCGExData::FPointIO* CompositeIO = nullptr;
 	TArray<PCGExData::FPointIO*> IOSources;
 	TArray<uint64> Scopes;
-	TArray<PCGEx::FAAttributeIO*> Writers;
+	TArray<PCGEx::FAttributeIOBase*> Writers;
 
 	FPCGExPointIOMerger(PCGExData::FPointIO* OutMergedData);
 	~FPCGExPointIOMerger();
@@ -38,9 +38,9 @@ protected:
 namespace PCGExPointIOMerger
 {
 	template <typename T>
-	static void ScopeMerge(const uint64 Scope, const PCGEx::FAttributeIdentity& Identity, PCGExData::FPointIO* SourceIO, PCGEx::TFAttributeWriter<T>* Writer)
+	static void ScopeMerge(const uint64 Scope, const PCGEx::FAttributeIdentity& Identity, PCGExData::FPointIO* SourceIO, PCGEx::TAttributeWriter<T>* Writer)
 	{
-		PCGEx::TFAttributeReader<T>* Reader = new PCGEx::TFAttributeReader<T>(Identity.Name);
+		PCGEx:: TAttributeReader<T>* Reader = new PCGEx:: TAttributeReader<T>(Identity.Name);
 		Reader->Bind(SourceIO);
 
 		uint32 StartIndex;
@@ -76,7 +76,7 @@ namespace PCGExPointIOMerger
 			PCGExData::FPointIO* InPointIO,
 			const uint64 InScope,
 			const PCGEx::FAttributeIdentity& InIdentity,
-			PCGEx::TFAttributeWriter<T>* InWriter)
+			PCGEx::TAttributeWriter<T>* InWriter)
 			: FPCGExTask(InPointIO),
 			  Scope(InScope),
 			  Identity(InIdentity),
@@ -86,7 +86,7 @@ namespace PCGExPointIOMerger
 
 		const uint64 Scope;
 		const PCGEx::FAttributeIdentity Identity;
-		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
+		PCGEx::TAttributeWriter<T>* Writer = nullptr;
 
 		virtual bool ExecuteTask() override
 		{

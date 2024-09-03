@@ -112,13 +112,13 @@ namespace PCGExAssetStaging
 
 		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
 
-		PCGEx::TFAttributeWriter<int32>* WeightWriter = nullptr;
-		PCGEx::TFAttributeWriter<double>* NormalizedWeightWriter = nullptr;
+		PCGEx::TAttributeWriter<int32>* WeightWriter = nullptr;
+		PCGEx::TAttributeWriter<double>* NormalizedWeightWriter = nullptr;
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PCGEx::TFAttributeWriter<FSoftObjectPath>* PathWriter = nullptr;
+		PCGEx::TAttributeWriter<FSoftObjectPath>* PathWriter = nullptr;
 #else
-		PCGEx::TFAttributeWriter<FString>* PathWriter = nullptr;
+		PCGEx:: TAttributeWriter<FString>* PathWriter = nullptr;
 #endif
 
 	public:
