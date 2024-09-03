@@ -50,7 +50,7 @@ protected:
 	virtual void OnSubCollectionLoaded() override;
 };
 
-UCLASS(BlueprintType, DisplayName="[PCGEx] Mesh Collection")
+UCLASS(BlueprintType, DisplayName="[PCGEx] Actor Collection")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExActorCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()
@@ -67,6 +67,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Settings, meta=(TitleProperty="DisplayName"))
 	TArray<FPCGExActorCollectionEntry> Entries;
+
+	FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const override
+	{
+		return GetStagingAtTpl(OutStaging, Entries, Index);
+	}
 
 	FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode) const override
 	{

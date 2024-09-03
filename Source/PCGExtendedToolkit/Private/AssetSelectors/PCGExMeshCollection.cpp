@@ -17,8 +17,10 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
 	if (bIsSubCollection)
-	{
+	{		
+		Staging.Path = SubCollection.ToSoftObjectPath();
 		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RebuildStagingData(true); }
+		Super::UpdateStaging(OwningCollection, bRecursive);
 		return;
 	}
 

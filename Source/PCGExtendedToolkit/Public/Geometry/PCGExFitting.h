@@ -58,10 +58,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExScaleToFitDetails
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExFitMode ScaleToFitMode = EPCGExFitMode::Individual;
+	EPCGExFitMode ScaleToFitMode = EPCGExFitMode::Uniform;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode==EPCGExFitMode::Uniform", EditConditionHides))
-	EPCGExScaleToFit ScaleToFit = EPCGExScaleToFit::None;
+	EPCGExScaleToFit ScaleToFit = EPCGExScaleToFit::Min;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ScaleToFitMode==EPCGExFitMode::Individual", EditConditionHides))
 	EPCGExScaleToFit ScaleToFitX = EPCGExScaleToFit::None;

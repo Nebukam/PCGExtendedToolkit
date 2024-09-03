@@ -39,6 +39,7 @@ bool FPCGExAssetCollectionEntry::Validate(const UPCGExAssetCollection* ParentCol
 
 void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
+	Staging.bIsSubCollection = bIsSubCollection;
 	Staging.Weight = Weight;
 	Staging.Category = Category;
 }
@@ -203,7 +204,7 @@ namespace PCGExAssetCollection
 		const FPCGContext* InContext,
 		PCGExData::FFacade* InDataFacade)
 	{
-		MaxIndex = InDataFacade->Source->GetNum() - 1;
+		MaxIndex = Collection->LoadCache()->Order.Num(); //InDataFacade->Source->GetNum() - 1;
 
 		if (Details.Distribution == EPCGExDistribution::Index)
 		{

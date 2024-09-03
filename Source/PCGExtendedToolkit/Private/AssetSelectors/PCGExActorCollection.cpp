@@ -15,7 +15,9 @@ void FPCGExActorCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 {
 	if (bIsSubCollection)
 	{
+		Staging.Path = SubCollection.ToSoftObjectPath();
 		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RebuildStagingData(true); }
+		Super::UpdateStaging(OwningCollection, bRecursive);
 		return;
 	}
 

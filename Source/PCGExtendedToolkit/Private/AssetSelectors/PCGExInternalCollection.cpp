@@ -19,6 +19,7 @@ void FPCGExInternalCollectionEntry::UpdateStaging(const UPCGExAssetCollection* O
 {
 	if (bIsSubCollection)
 	{
+		Staging.Path = SubCollection.ToSoftObjectPath();
 		if (bRecursive && SubCollection.LoadSynchronous())
 		{
 			if (UPCGExInternalCollection* InternalCollection = Cast<UPCGExInternalCollection>(SubCollection.Get()))
@@ -27,6 +28,7 @@ void FPCGExInternalCollectionEntry::UpdateStaging(const UPCGExAssetCollection* O
 				InternalCollection->RebuildStagingData(true);
 			}
 		}
+		Super::UpdateStaging(OwningCollection, bRecursive);
 		return;
 	}
 

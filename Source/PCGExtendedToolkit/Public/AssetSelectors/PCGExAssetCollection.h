@@ -159,7 +159,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetAttributeSetDetails
 
 	/** Name of the attribute on the AttributeSet that contains the asset path to be staged */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides))
-	FName AssetPathSourceAttribute = NAME_None;
+	FName AssetPathSourceAttribute = FName("AssetPath");
 
 	/** Name of the attribute on the AttributeSet that contains the asset weight, if any. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides))
@@ -221,6 +221,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 	}
 
 	UPROPERTY()
+	bool bIsSubCollection = false;
+
+	UPROPERTY()
 	FSoftObjectPath Path;
 
 	UPROPERTY()
@@ -267,10 +270,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bIsSubCollection = false;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides, ClampMin=0))
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(ClampMin=0))
 	int32 Weight = 1;
 
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category = Settings)
 	FName Category = NAME_None;
 
 	UPROPERTY(EditAnywhere, Category = Settings)
@@ -386,12 +389,12 @@ namespace PCGExAssetCollection
 
 		FORCEINLINE int32 GetPickAscending(const int32 Index) const
 		{
-			return Indices.IsValidIndex(Index) ? Indices[(Indices.Num() - 1) - Index] : -1;
+			return Indices.IsValidIndex(Index) ? Indices[Index] : -1;
 		}
 
 		FORCEINLINE int32 GetPickDescending(const int32 Index) const
 		{
-			return Indices.IsValidIndex(Index) ? Indices[Index] : -1;
+			return Indices.IsValidIndex(Index) ? Indices[(Indices.Num() - 1) - Index] : -1;
 		}
 
 		FORCEINLINE int32 GetPickWeightAscending(const int32 Index) const
@@ -533,6 +536,10 @@ public:
 
 #pragma endregion
 
+	FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const
+	{
+		return false;
+	}
 
 	FORCEINLINE virtual bool GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	{
@@ -565,6 +572,15 @@ public:
 
 protected:
 #pragma region GetStaging
+	template <typename T>
+	FORCEINLINE bool GetStagingAtTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Index) const
+	{
+		const int32 Pick = Cache->GetPick(Index, EPCGExIndexPickMode::Ascending);
+		if (!InEntries.IsValidIndex(Pick)) { return false; }
+		OutStaging = &InEntries[Pick].Staging;
+		return true;
+	}
+
 	template <typename T>
 	FORCEINLINE bool GetStagingTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	{
