@@ -48,8 +48,12 @@ void UPCGExManagedSplineMeshComponent::AttachTo(AActor* InTargetActor, UPCGCompo
 {
 	check(CachedRawComponentPtr)
 
-	// No matching component found, let's create a new one.
-	InTargetActor->Modify(!InSourceComponent->IsInPreviewMode());
+	bool bIsPreviewMode = false;
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+	bIsPreviewMode = InSourceComponent->IsInPreviewMode();
+#endif
+
+	InTargetActor->Modify(!bIsPreviewMode);
 
 	CachedRawComponentPtr->RegisterComponent();
 	InTargetActor->AddInstanceComponent(CachedRawComponentPtr);
@@ -58,8 +62,13 @@ void UPCGExManagedSplineMeshComponent::AttachTo(AActor* InTargetActor, UPCGCompo
 
 USplineMeshComponent* UPCGExManagedSplineMeshComponent::CreateComponentOnly(AActor* InOuter, UPCGComponent* InSourceComponent, const PCGExPaths::FSplineMeshSegment& InParams)
 {
+	bool bIsPreviewMode = false;
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+	bIsPreviewMode = InSourceComponent->IsInPreviewMode();
+#endif
+
 	const FString ComponentName = TEXT("PCGSplineMeshComponent_") + InParams.AssetStaging->Path.GetAssetName();
-	const EObjectFlags ObjectFlags = (InSourceComponent->IsInPreviewMode() ? RF_Transient : RF_NoFlags);
+	const EObjectFlags ObjectFlags = (bIsPreviewMode ? RF_Transient : RF_NoFlags);
 	USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(InOuter, MakeUniqueObjectName(InOuter, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
 
 	SplineMeshComponent->ComponentTags.Add(InSourceComponent->GetFName());
