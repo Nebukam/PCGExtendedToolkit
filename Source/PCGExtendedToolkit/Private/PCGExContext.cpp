@@ -160,7 +160,7 @@ void FPCGExContext::LoadAssets()
 				bIsPaused = false;
 			});
 
-		if (!LoadHandle->IsActive())
+		if (!LoadHandle || !LoadHandle->IsActive())
 		{
 			// Huh
 			bAssetLoadError = true;
