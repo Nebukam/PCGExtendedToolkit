@@ -155,7 +155,9 @@ namespace PCGExPaths
 			Component->SetForwardAxis(ESplineMeshAxis::Type::X, false);
 			Component->SetSplineUpDir(FVector::UpVector, false);
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 			Component->SplineParams.NaniteClusterBoundsScale = Params.NaniteClusterBoundsScale;
+#endif
 
 			Component->SplineBoundaryMin = 0;
 			Component->SplineBoundaryMax = 0;
