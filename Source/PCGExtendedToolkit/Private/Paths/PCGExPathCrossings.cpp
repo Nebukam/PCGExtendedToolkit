@@ -32,7 +32,7 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathCrossings)
 
-	if (Settings->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Settings->FlagName) }
+	if (Settings->bFlagCrossing) { PCGEX_VALIDATE_NAME(Settings->CrossingFlagAttributeName) }
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 	Context->Blending->bClosedPath = Settings->bClosedPath;
@@ -269,7 +269,7 @@ namespace PCGExPathCrossings
 		const PCGExPaths::FPathEdge* Edge = Edges[Iteration];
 		if (!Crossing)
 		{
-			if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = true; }
+			if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = false; }
 			return;
 		}
 
@@ -347,6 +347,7 @@ namespace PCGExPathCrossings
 			}
 		}
 
+		if(Settings->bFlagCrossing){ FlagWriter = PointDataFacade->GetWriter(Settings->CrossingFlagAttributeName, false, true, true); }
 		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out);
 
 		StartParallelLoopForRange(NumPoints);

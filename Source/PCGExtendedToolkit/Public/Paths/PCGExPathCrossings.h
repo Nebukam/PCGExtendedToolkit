@@ -54,10 +54,10 @@ public:
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bFlagSubPoints = false;
+	bool bFlagCrossing = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFlagSubPoints"))
-	FName FlagName = "IsSubPoint";
+	FName CrossingFlagAttributeName = "bIsCrossing";
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCGExPathProcessorContext
