@@ -198,8 +198,7 @@ namespace PCGExSubdivide
 		}
 
 		if (LocalSettings->bClosedPath) { Subdivisions[Subdivisions.Num() - 1].OutEnd = 0; }
-
-		Subdivisions[Subdivisions.Num() - 1].NumSubdivisions = 0;
+		else { Subdivisions[Subdivisions.Num() - 1].NumSubdivisions = 0; }
 
 		if (NumPoints == PointIO->GetNum())
 		{
@@ -220,6 +219,8 @@ namespace PCGExSubdivide
 			const FPCGPoint& OriginalPoint = InPoints[i];
 			MutablePoints[Sub.OutStart] = OriginalPoint;
 			Metadata->InitializeOnSet(MutablePoints[Sub.OutStart].MetadataEntry);
+
+			if (Sub.NumSubdivisions == 0) { continue; }
 
 			for (int s = 1; s <= Sub.NumSubdivisions; s++)
 			{
