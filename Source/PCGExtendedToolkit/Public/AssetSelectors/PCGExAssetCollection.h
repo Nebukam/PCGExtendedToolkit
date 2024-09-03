@@ -738,27 +738,24 @@ protected:
 		auto SetEntryPath = [&](const int32 Index, const FSoftObjectPath& Path) { Collection->Entries[Index].SetAssetPath(Path); };
 
 #define PCGEX_FOREACH_COLLECTION_ENTRY(_TYPE, _NAME, _BODY)\
-		TArray<_TYPE> V; PCGEX_SET_NUM(V, NumEntries)\
-		FPCGAttributeAccessor<_TYPE>* A = new FPCGAttributeAccessor<_TYPE>(Metadata->GetConstTypedAttribute<_TYPE>(_NAME), Metadata);\
-		A->GetRange(MakeArrayView(V), 0, *Keys);\
-		for (int i = 0; i < NumEntries; i++) { _BODY }\
-		PCGEX_DELETE(A)
+		const FPCGMetadataAttribute<_TYPE>* A = Metadata->GetConstTypedAttribute<_TYPE>(_NAME);\
+		for (int i = 0; i < NumEntries; i++) { _TYPE V = A->GetValueFromItemKey(i); _BODY }
 
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 		if (PathIdentity->UnderlyingType == EPCGMetadataTypes::SoftObjectPath)
 		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FSoftObjectPath, PathIdentity->Name, { SetEntryPath(i, V[i]); })
+			PCGEX_FOREACH_COLLECTION_ENTRY(FSoftObjectPath, PathIdentity->Name, { SetEntryPath(i, V); })
 		}
 		else
 #endif
 			if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
 			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V[i])); })
+				PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V)); })
 			}
 			else
 			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V[i].ToString())); })
+				PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
 			}
 
 
@@ -767,7 +764,7 @@ protected:
 		{
 #define PCGEX_ATT_TOINT32(_NAME, _TYPE)\
 			if (WeightIdentity->UnderlyingType == EPCGMetadataTypes::_NAME){ \
-				PCGEX_FOREACH_COLLECTION_ENTRY(int32, WeightIdentity->Name, {  Collection->Entries[i].Weight = static_cast<int32>(V[i]); }) }
+				PCGEX_FOREACH_COLLECTION_ENTRY(int32, WeightIdentity->Name, {  Collection->Entries[i].Weight = static_cast<int32>(V); }) }
 
 			PCGEX_ATT_TOINT32(Integer32, int32)
 			else
@@ -785,11 +782,11 @@ protected:
 		{
 			if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::String)
 			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Name, { Collection->Entries[i].Category = FName(V[i]); })
+				PCGEX_FOREACH_COLLECTION_ENTRY(FString, WeightIdentity->Name, { Collection->Entries[i].Category = FName(V); })
 			}
 			else if (CategoryIdentity->UnderlyingType == EPCGMetadataTypes::Name)
 			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Name, { Collection->Entries[i].Category = V[i]; })
+				PCGEX_FOREACH_COLLECTION_ENTRY(FName, WeightIdentity->Name, { Collection->Entries[i].Category = V; })
 			}
 		}
 

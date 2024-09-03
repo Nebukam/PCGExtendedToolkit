@@ -46,7 +46,7 @@ protected:
 	virtual void OnSubCollectionLoaded() override;
 };
 
-UCLASS(NotBlueprintable, DisplayName="[PCGEx] Untyped Collection")
+UCLASS(Hidden, DisplayName="[PCGEx] Untyped Collection")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExInternalCollection : public UPCGExAssetCollection
 {
 	GENERATED_BODY()

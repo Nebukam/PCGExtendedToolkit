@@ -14,13 +14,6 @@
 
 #include "PCGExPathSplineMesh.generated.h"
 
-#define PCGEX_FOREACH_SPLINE_PARAM(MACRO) \
-MACRO(StartScale, FVector) \
-MACRO(StartOffset, FVector) \
-MACRO(StartRoll, double) \
-MACRO(EndScale, FVector) \
-MACRO(EndOffset, FVector) \
-MACRO(EndRoll, FVector)
 
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineParamsMapping
@@ -91,13 +84,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tangents", meta = (PCG_Overridable))
 	bool bTangentsFromAttributes = false;
 
-	/** Arrive tangent attribute (will be broadcast to FVector under the hood) */
+	/** Arrive tangent attribute (expects FVector) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tangents", meta=(PCG_Overridable, EditCondition="bTangentsFromAttributes", EditConditionHides))
-	FPCGAttributePropertyInputSelector Arrive;
+	FName Arrive;
 
-	/** Leave tangent attribute (will be broadcast to FVector under the hood) */
+	/** Leave tangent attribute (expects FVector) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tangents", meta=(PCG_Overridable, EditCondition="bTangentsFromAttributes", EditConditionHides))
-	FPCGAttributePropertyInputSelector Leave;
+	FName Leave;
 
 	/** In-place tangent solver */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Tangents", Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault, EditCondition="!bTangentsFromAttributes", EditConditionHides))
@@ -147,8 +140,8 @@ namespace PCGExPathSplineMesh
 
 		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
 
-		PCGExData::FCache<FVector>* ArriveReader = nullptr;
-		PCGExData::FCache<FVector>* LeaveReader = nullptr;
+		PCGEx::FAttributeIOBase<FVector>* ArriveReader = nullptr;
+		PCGEx::FAttributeIOBase<FVector>* LeaveReader = nullptr;
 
 		UPCGExTangentsOperation* Tangents = nullptr;
 

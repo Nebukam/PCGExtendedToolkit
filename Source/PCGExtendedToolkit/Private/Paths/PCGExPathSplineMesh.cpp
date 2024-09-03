@@ -74,12 +74,11 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 		Context->Tangents->bClosedPath = Settings->bClosedPath;
 	}
 
-	/*
-	if (Settings->bPerSegmentTargetActor)
+	if (Settings->bTangentsFromAttributes)
 	{
-		PCGEX_VALIDATE_NAME(Settings->TargetActorAttributeName)
+		PCGEX_VALIDATE_NAME(Settings->Arrive)
+		PCGEX_VALIDATE_NAME(Settings->Leave)
 	}
-	*/
 
 	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
 	{
@@ -190,13 +189,24 @@ namespace PCGExPathSplineMesh
 
 		if (Settings->bTangentsFromAttributes)
 		{
-			Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
-			Tangents->PrepareForData(PointDataFacade);
+			ArriveReader = PointDataFacade->GetScopedReader<FVector>(Settings->Arrive);
+			if (!ArriveReader)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Could not fetch tangent' Arrive attribute on some inputs."));
+				return false;
+			}
+
+			LeaveReader = PointDataFacade->GetScopedReader<FVector>(Settings->Leave);
+			if (!ArriveReader)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Could not fetch tangent' Leave attribute on some inputs."));
+				return false;
+			}
 		}
 		else
 		{
-			ArriveReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Arrive);
-			LeaveReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->Leave);
+			Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
+			Tangents->PrepareForData(PointDataFacade);
 		}
 
 		LastIndex = PointIO->GetNum() - 1;
@@ -243,6 +253,40 @@ namespace PCGExPathSplineMesh
 		Segment.Params.EndPos = EndTransform.GetLocation();
 		Segment.Params.EndScale = FVector2D(Scale.Y, Scale.Z);
 		Segment.Params.EndRoll = EndTransform.GetRotation().Rotator().Roll;
+
+		if (Tangents)
+		{
+			int32 PrevIndex = Index - 1;
+			int32 NextIndex = Index + 1;
+
+			if (bClosedPath)
+			{
+				if (PrevIndex < 0) { PrevIndex = LastIndex; }
+				if (NextIndex > LastIndex) { NextIndex = 0; }
+
+				Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, Segment.Params.StartTangent, Segment.Params.EndTangent);
+			}
+			else
+			{
+				if (PrevIndex >= 0 && NextIndex <= LastIndex)
+				{
+					Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, Segment.Params.StartTangent, Segment.Params.EndTangent);
+				}
+				else if (PrevIndex < 0)
+				{
+					Tangents->ProcessFirstPoint(PointIO->GetIn()->GetPoints(), Segment.Params.StartTangent, Segment.Params.EndTangent);
+				}
+				else if (NextIndex > LastIndex)
+				{
+					Tangents->ProcessLastPoint(PointIO->GetIn()->GetPoints(), Segment.Params.StartTangent, Segment.Params.EndTangent);
+				}
+			}
+		}
+		else
+		{
+			Segment.Params.StartTangent = ArriveReader->Values[Index];
+			Segment.Params.EndTangent = LeaveReader->Values[Index];
+		}
 
 		/*
 		AActor* TargetActor = LocalSettings->TargetActor.Get() ? LocalSettings->TargetActor.Get() : Context->GetTargetActor(nullptr);

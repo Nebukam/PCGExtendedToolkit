@@ -16,7 +16,7 @@ namespace PCGExAssetCollection
 
 class UPCGExActorCollection;
 
-USTRUCT(BlueprintType, DisplayName="[PCGEx] Mesh Collection Entry")
+USTRUCT(BlueprintType, DisplayName="[PCGEx] Actor Collection Entry")
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExActorCollectionEntry : public FPCGExAssetCollectionEntry
 {
 	GENERATED_BODY()
