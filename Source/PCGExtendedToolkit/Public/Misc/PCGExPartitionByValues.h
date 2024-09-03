@@ -26,6 +26,7 @@ namespace PCGExPartition
 		~FKPartition();
 
 		FKPartition* Parent = nullptr;
+		int32 IOIndex = -1;
 		int32 PartitionIndex = 0;
 		int64 PartitionKey = 0;
 		FPCGExFilter::FRule* Rule = nullptr;

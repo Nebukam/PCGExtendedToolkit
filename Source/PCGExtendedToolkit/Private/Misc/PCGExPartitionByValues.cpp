@@ -43,19 +43,21 @@ namespace PCGExPartition
 		{
 			FReadScopeLock ReadLock(LayersLock);
 			LayerPtr = SubLayers.Find(Key);
+			if (LayerPtr) { return *LayerPtr; }
 		}
 
-		if (!LayerPtr)
 		{
 			FWriteScopeLock WriteLock(LayersLock);
+			LayerPtr = SubLayers.Find(Key);
+
+			if (LayerPtr) { return *LayerPtr; }
+
 			FKPartition* Partition = new FKPartition(this, Key, InRule, SubLayers.Num());
 
 			UniquePartitionKeys.Add(Key);
 			SubLayers.Add(Key, Partition);
 			return Partition;
 		}
-
-		return *LayerPtr;
 	}
 
 	void FKPartition::Register(TArray<FKPartition*>& Partitions)
@@ -85,6 +87,8 @@ namespace PCGExPartition
 			Pair.Value->SortPartitions();
 			Pair.Value->PartitionIndex = *ValuesIndices.Find(Pair.Value->PartitionKey); //Ordered index
 		}
+
+		Points.Sort([](const int32& A, const int32& B) { return A < B; });
 
 		ValuesIndices.Empty();
 		UniquePartitionKeys.Empty();
@@ -260,7 +264,9 @@ namespace PCGExPartitionByValues
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
 
 		PCGExPartition::FKPartition* Partition = Partitions[Iteration];
-		PCGExData::FPointIO* PartitionIO = TypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+
+		//Manually create & insert partition at the sorted IO Index
+		PCGExData::FPointIO* PartitionIO = TypedContext->MainPoints->Pairs[Partition->IOIndex];
 
 		UPCGMetadata* Metadata = PartitionIO->GetOut()->Metadata;
 
@@ -268,7 +274,11 @@ namespace PCGExPartitionByValues
 		TArray<FPCGPoint>& OutPoints = PartitionIO->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(OutPoints, Partition->Points.Num())
 
-		for (int i = 0; i < OutPoints.Num(); i++) { OutPoints[i] = InPoints[Partition->Points[i]]; }
+		for (int i = 0; i < OutPoints.Num(); i++)
+		{
+			OutPoints[i] = InPoints[Partition->Points[i]];
+			Metadata->InitializeOnSet(OutPoints[i].MetadataEntry);
+		}
 
 		int64 Sum = 0;
 		while (Partition->Parent)
@@ -312,7 +322,20 @@ namespace PCGExPartitionByValues
 			Partitions.Reserve(NumPartitions);
 			RootPartition->Register(Partitions);
 
-			StartParallelLoopForRange(NumPartitions, 16); // Too low maybe?
+			// Sort by point index & ensure consistent output partition order
+
+			Partitions.Sort([](const PCGExPartition::FKPartition& A, PCGExPartition::FKPartition& B) { return A.Points[0] < B.Points[0]; });
+			const int32 InsertOffset = TypedContext->MainPoints->Pairs.Num();
+
+			int32 SumPts = 0;
+			for (int i = 0; i < Partitions.Num(); i++)
+			{
+				Partitions[i]->IOIndex = InsertOffset + i;
+				TypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+				SumPts += Partitions[i]->Points.Num();
+			}
+
+			StartParallelLoopForRange(NumPartitions, 64); // Too low maybe?
 			return;
 		}
 
