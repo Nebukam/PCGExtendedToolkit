@@ -292,6 +292,18 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 		return true;
 	}
 
+	virtual void MTState_PointsProcessingDone()
+	{
+	}
+
+	virtual void MTState_PointsCompletingWorkDone()
+	{
+	}
+
+	virtual void MTState_PointsWritingDone()
+	{
+	}
+
 #pragma endregion
 
 protected:

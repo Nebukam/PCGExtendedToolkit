@@ -36,7 +36,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 	bool bWriteIsIntersection = true;
 
 	/** Name of the attribute to write point intersection boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteIsIntersection" ))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="IsIntersection", PCG_Overridable, EditCondition="bWriteIsIntersection" ))
 	FName IsIntersectionAttributeName = FName("IsIntersection");
 
 	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
@@ -44,7 +44,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 	bool bWriteNormal = false;
 
 	/** Name of the attribute to write point intersection normal to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteNormal" ))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="Normal", PCG_Overridable, EditCondition="bWriteNormal" ))
 	FName NormalAttributeName = FName("Normal");
 
 	/**  */
@@ -52,7 +52,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 	bool bWriteBoundIndex = false;
 
 	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteBoundIndex" ))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="BoundIndex", PCG_Overridable, EditCondition="bWriteBoundIndex" ))
 	FName BoundIndexAttributeName = FName("BoundIndex");
 
 	/** If enabled, mark points inside the volume with a boolean value. */
@@ -60,7 +60,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 	bool bWriteIsInside = true;
 
 	/** Name of the attribute to write inside boolean to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteIsInside" ))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="IsInside", PCG_Overridable, EditCondition="bWriteIsInside" ))
 	FName IsInsideAttributeName = FName("IsInside");
 
 

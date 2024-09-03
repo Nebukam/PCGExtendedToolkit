@@ -53,7 +53,7 @@ public:
 	EPCGExUberFilterMode Mode = EPCGExUberFilterMode::Partition;
 
 	/** Name of the attribute to write result to */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterMode::Write", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="PassFilter", PCG_Overridable, EditCondition="Mode==EPCGExUberFilterMode::Write", EditConditionHides))
 	FName ResultAttributeName = FName("PassFilter");
 
 	/** Invert the filter result */

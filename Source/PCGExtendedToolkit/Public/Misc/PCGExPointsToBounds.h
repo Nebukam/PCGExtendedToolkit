@@ -9,7 +9,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
 
 #include "PCGExPointsToBounds.generated.h"
 

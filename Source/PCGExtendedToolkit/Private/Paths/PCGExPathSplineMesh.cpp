@@ -177,12 +177,13 @@ namespace PCGExPathSplineMesh
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathSplineMesh)
 
+		// Must be set before process for filters
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
-
-		PointDataFacade->bSupportsDynamic = true;
 
 		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(Context, PointDataFacade)) { return false; }
@@ -283,7 +284,7 @@ namespace PCGExPathSplineMesh
 			UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(TargetActor, SMC, Comp, LocalSettings->UID);
 			LocalTypedContext->NotifyActors.Add(TargetActor);
 		}
-		
+
 		/*
 		for (int i = 0; i < SplineMeshComponents.Num(); i++)
 		{

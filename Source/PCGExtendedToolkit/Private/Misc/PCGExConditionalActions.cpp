@@ -121,9 +121,10 @@ namespace PCGExConditionalActions
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConditionalActions::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConditionalActions)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
+		// Must be set before process for filters
 		PointDataFacade->bSupportsDynamic = true;
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		// Initialize writers with provided default value
 		for (FPCGMetadataAttributeBase* AttributeBase : TypedContext->DefaultAttributes->Attributes)

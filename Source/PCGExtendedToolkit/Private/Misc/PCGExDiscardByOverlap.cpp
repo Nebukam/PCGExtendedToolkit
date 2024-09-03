@@ -3,17 +3,16 @@
 
 #include "Misc/PCGExDiscardByOverlap.h"
 
-#include "Misc/PCGExPointsToBounds.h"
-
 #define LOCTEXT_NAMESPACE "PCGExDiscardByOverlapElement"
 #define PCGEX_NAMESPACE DiscardByOverlap
 
 void FPCGExOverlapScoresWeighting::Init()
 {
-	StaticWeightSum = FMath::Abs(NumPoints) + FMath::Abs(Volume) + FMath::Abs(VolumeDensity);
+	StaticWeightSum = FMath::Abs(NumPoints) + FMath::Abs(Volume) + FMath::Abs(VolumeDensity) + FMath::Abs(CustomTagScore);
 	NumPoints /= StaticWeightSum;
 	Volume /= StaticWeightSum;
 	VolumeDensity /= StaticWeightSum;
+	CustomTagWeight /= StaticWeightSum;
 
 	DynamicWeightSum = FMath::Abs(OverlapCount) + FMath::Abs(OverlapSubCount) + FMath::Abs(OverlapVolume) + FMath::Abs(OverlapVolumeDensity);
 	OverlapCount /= DynamicWeightSum;
@@ -34,7 +33,8 @@ void FPCGExOverlapScoresWeighting::ResetMin()
 		OverlapVolumeDensity =
 		NumPoints =
 		Volume =
-		VolumeDensity = TNumericLimits<double>::Min();
+		VolumeDensity =
+		CustomTagScore = TNumericLimits<double>::Min();
 }
 
 void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other)
@@ -46,9 +46,17 @@ void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other
 	NumPoints = FMath::Max(NumPoints, Other.NumPoints);
 	Volume = FMath::Max(Volume, Other.Volume);
 	VolumeDensity = FMath::Max(VolumeDensity, Other.VolumeDensity);
+	CustomTagScore = FMath::Max(CustomTagScore, Other.CustomTagScore);
 }
 
 PCGExData::EInit UPCGExDiscardByOverlapSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+
+TArray<FPCGPinProperties> UPCGExDiscardByOverlapSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, "Filters used to know whether a point should be considered for overlap or not.", Normal, {})
+	return PinProperties;
+}
 
 FPCGExDiscardByOverlapContext::~FPCGExDiscardByOverlapContext()
 {
@@ -156,6 +164,8 @@ bool FPCGExDiscardByOverlapElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
+	GetInputFactories(Context, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories, PCGExFactories::PointFilters, false);
+
 	return true;
 }
 
@@ -173,6 +183,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>* NewBatch)
 			{
+				NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = true; // Not really but we need the step
 			},
 			PCGExMT::State_Processing))
@@ -282,11 +293,18 @@ namespace PCGExDiscardByOverlap
 				Octree = new TBoundsOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
 				for (FPointBounds* PtBounds : LocalPointBounds)
 				{
+					if (!PtBounds) { continue; }
 					Octree->AddElement(PtBounds);
 					TotalDensity += PtBounds->Point->Density;
 				}
 
 				VolumeDensity = NumPoints / TotalVolume;
+			});
+
+		BoundsPreparationTask->SetOnIterationRangeStartCallback(
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				FilterScope(StartIndex, Count);
 			});
 
 		switch (Settings->BoundsSource)
@@ -297,16 +315,16 @@ namespace PCGExDiscardByOverlap
 				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 				{
 					const FPCGPoint& Point = *(InPoints->GetData() + Index);
-					RegisterPointBounds(Index, new FPointBounds(Point, Point.GetLocalBounds().TransformBy(Point.Transform)));
-				}, NumPoints, 1024, true);
+					RegisterPointBounds(Index, new FPointBounds(Index, Point, Point.GetLocalBounds().TransformBy(Point.Transform)));
+				}, NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
 			break;
 		case EPCGExPointBoundsSource::DensityBounds:
 			BoundsPreparationTask->StartRanges(
 				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 				{
 					const FPCGPoint& Point = *(InPoints->GetData() + Index);
-					RegisterPointBounds(Index, new FPointBounds(Point, Point.GetLocalDensityBounds().TransformBy(Point.Transform)));
-				}, NumPoints, 1024, true);
+					RegisterPointBounds(Index, new FPointBounds(Index, Point, Point.GetLocalDensityBounds().TransformBy(Point.Transform)));
+				}, NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
 			break;
 		case EPCGExPointBoundsSource::Bounds:
 			BoundsPreparationTask->StartRanges(
@@ -315,8 +333,8 @@ namespace PCGExDiscardByOverlap
 					const FPCGPoint& Point = *(InPoints->GetData() + Index);
 					FTransform TR = Point.Transform;
 					TR.SetScale3D(FVector::OneVector); // Zero-out scale. I'm not sure this mode is of any use.
-					RegisterPointBounds(Index, new FPointBounds(Point, Point.GetLocalBounds().TransformBy(TR)));
-				}, NumPoints, 1024, true);
+					RegisterPointBounds(Index, new FPointBounds(Index, Point, Point.GetLocalBounds().TransformBy(TR)));
+				}, NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
 			break;
 		}
 
@@ -336,6 +354,7 @@ namespace PCGExDiscardByOverlap
 			{
 				const FBox RefBox = OwnedPoint->Bounds.GetBox();
 				const FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(OwnedPoint->Bounds.GetBox());
+
 				OtherProcessor->GetOctree()->FindElementsWithBoundsTest(
 					BCAE, [&](const FPointBounds* OtherPoint)
 					{
@@ -429,6 +448,12 @@ namespace PCGExDiscardByOverlap
 		RawScores.Volume = TotalVolume;
 		RawScores.VolumeDensity = VolumeDensity;
 
+		RawScores.CustomTagScore = 0;
+		for (const TPair<FString, double>& TagScore : LocalSettings->Weighting.TagScores)
+		{
+			if (PointIO->Tags->RawTags.Contains(TagScore.Key)) { RawScores.CustomTagScore += TagScore.Value; }
+		}
+
 		UpdateWeightValues();
 	}
 
@@ -448,6 +473,7 @@ namespace PCGExDiscardByOverlap
 		StaticWeight += (RawScores.NumPoints / InMax.NumPoints) * W.NumPoints;
 		StaticWeight += (RawScores.Volume / InMax.Volume) * W.Volume;
 		StaticWeight += (RawScores.VolumeDensity / InMax.VolumeDensity) * W.VolumeDensity;
+		StaticWeight += (RawScores.CustomTagScore / InMax.CustomTagScore) * W.CustomTagWeight;
 
 		DynamicWeight = 0;
 		DynamicWeight += (RawScores.OverlapCount / InMax.OverlapCount) * W.OverlapCount;

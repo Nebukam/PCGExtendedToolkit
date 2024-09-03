@@ -70,9 +70,10 @@ namespace PCGExWritePathProperties
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWritePathProperties::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathProperties)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
+		// Must be set before process for filters
 		PointDataFacade->bSupportsDynamic = true;
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		bClosedPath = Settings->bClosedPath;
 

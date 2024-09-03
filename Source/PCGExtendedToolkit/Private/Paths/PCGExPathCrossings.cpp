@@ -108,10 +108,12 @@ namespace PCGExPathCrossings
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathCrossings::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathCrossings)
 
+		// Must be set before process for filters
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LocalTypedContext = TypedContext;
-		PointDataFacade->bSupportsDynamic = true;
 
 		bClosedPath = Settings->bClosedPath;
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;

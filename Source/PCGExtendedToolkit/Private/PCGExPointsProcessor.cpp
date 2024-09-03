@@ -172,6 +172,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
+		MTState_PointsProcessingDone();
 		CompleteBatch(GetAsyncManager(), MainBatch);
 		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
 	}
@@ -179,6 +180,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	if (IsState(PCGExPointsMT::MTState_PointsCompletingWork))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
+
+		MTState_PointsCompletingWorkDone();
 
 		if (MainBatch->bRequiresWriteStep)
 		{
@@ -195,6 +198,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	if (IsState(PCGExPointsMT::MTState_PointsWriting))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
+
+		MTState_PointsWritingDone();
 
 		if (TargetState_PointsProcessingDone == PCGExMT::State_Done) { Done(); }
 		else { SetState(TargetState_PointsProcessingDone); }

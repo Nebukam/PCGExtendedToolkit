@@ -60,16 +60,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathStatistics
 	bool bWritePointUseCount = false;
 
 	/** Name of the attribute to write point use count to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWritePointUseCount"))
-	FName PointUseCountAttributeName = FName("UseCount");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="PointUseCount", PCG_Overridable, EditCondition="bWritePointUseCount"))
+	FName PointUseCountAttributeName = FName("PointUseCount");
 
 	/** Write the edge use count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgeUseCount = false;
 
 	/** Name of the attribute to write edge use count to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteEdgeUseCount"))
-	FName EdgeUseCountAttributeName = FName("UseCount");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayName="EdgeUseCount", PCG_Overridable, EditCondition="bWriteEdgeUseCount"))
+	FName EdgeUseCountAttributeName = FName("EdgeUseCount");
 };
 
 namespace PCGExPathfinding

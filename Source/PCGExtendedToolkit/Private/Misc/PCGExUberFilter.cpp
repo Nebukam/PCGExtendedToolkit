@@ -127,9 +127,10 @@ namespace PCGExUberFilter
 
 		LocalTypedContext = TypedContext;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
+		// Must be set before process for filters
 		PointDataFacade->bSupportsDynamic = true;
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		if (!InitPrimaryFilters(&TypedContext->FilterFactories)) { return false; }
 

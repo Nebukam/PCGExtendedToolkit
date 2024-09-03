@@ -88,7 +88,7 @@ public:
 	bool bWriteEdgeLength = false;
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeLength"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="EdgeLength", PCG_Overridable, EditCondition="bWriteEdgeLength"))
 	FName EdgeLengthAttributeName = FName("EdgeLength");
 
 	/** Output Edge Direction */
@@ -96,7 +96,7 @@ public:
 	bool bWriteEdgeDirection = false;
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="EdgeDirection", PCG_Overridable, EditCondition="bWriteEdgeDirection"))
 	FName EdgeDirectionAttributeName = FName("EdgeDirection");
 
 	/** Edges will inherit point attributes*/
@@ -116,7 +116,7 @@ public:
 	bool bWriteHeuristics = false;
 
 	/** Name of the 'double' attribute to write heuristics to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteHeuristics"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Heuristics", PCG_Overridable, EditCondition="bWriteHeuristics"))
 	FName HeuristicsAttributeName = FName("Heuristics");
 
 	/** Heuristic write mode. */

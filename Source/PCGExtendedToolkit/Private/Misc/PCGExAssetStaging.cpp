@@ -14,12 +14,12 @@ PCGEX_INITIALIZE_ELEMENT(AssetStaging)
 TArray<FPCGPinProperties> UPCGExAssetStagingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	
+
 	if (CollectionSource == EPCGExCollectionSource::AttributeSet)
 	{
 		PCGEX_PIN_PARAM(PCGExAssetCollection::SourceAssetCollection, "Attribute set to be used as collection.", Required, {})
 	}
-	
+
 	return PinProperties;
 }
 
@@ -51,8 +51,6 @@ void FPCGExAssetStagingContext::RegisterAssetDependencies()
 
 		if (MainCollection) { MainCollection->GetAssetPaths(RequiredAssets, PCGExAssetCollection::ELoadingFlags::Recursive); }
 	}
-
-	
 }
 
 bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
@@ -128,6 +126,9 @@ namespace PCGExAssetStaging
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAssetStaging::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(AssetStaging)
 
+		// Must be set before process for filters
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LocalSettings = Settings;
@@ -137,7 +138,6 @@ namespace PCGExAssetStaging
 		Justification.Init(Context, PointDataFacade);
 
 		NumPoints = PointIO->GetNum();
-		PointDataFacade->bSupportsDynamic = true;
 
 		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(Context, PointDataFacade)) { return false; }

@@ -93,6 +93,9 @@ namespace PCGExSubdivide
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
 
+		// Must be set before process for filters
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LocalSettings = Settings;
@@ -113,8 +116,6 @@ namespace PCGExSubdivide
 		}
 
 		bUseCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
-
-		PointDataFacade->bSupportsDynamic = true;
 
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 

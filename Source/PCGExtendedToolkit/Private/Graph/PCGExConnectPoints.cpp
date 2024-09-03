@@ -130,11 +130,10 @@ namespace PCGExConnectPoints
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConnectPoints::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
 
-		// TODO : Add Scoped Fetch
+		// Must be set before process for filters
+		PointDataFacade->bSupportsDynamic = true;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
-		PointDataFacade->bSupportsDynamic = true;
 
 		CWStackingTolerance = TypedContext->CWStackingTolerance;
 		bPreventStacking = Settings->bPreventStacking;

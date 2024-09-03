@@ -100,6 +100,8 @@ namespace PCGExOrient
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Orient)
 
 		DefaultPointFilterValue = Settings->bFlipDirection;
+
+		// Must be set before process for filters
 		PointDataFacade->bSupportsDynamic = true;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }

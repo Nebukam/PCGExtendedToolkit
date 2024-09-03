@@ -6,9 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExPointsToBounds.h"
-#include "Data/PCGExAttributeHelpers.h"
-#include "PCGExtendedToolkit/Public/Transform/PCGExTransform.h"
 
 #include "PCGExDiscardByOverlap.generated.h"
 
@@ -71,6 +68,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOverlapScoresWeighting
 	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
 	double VolumeDensity = 0;
 
+	/** Weight of custom tags scores, if any. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
+	double CustomTagWeight = 0;
+
+	/** Lets you add custom 'score' by tags. If the tag is found on the collection, its score will be added to the computation, letting you have more granular control. */
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Static Weights", EditAnywhere, meta = (PCG_Overridable))
+	TMap<FString, double> TagScores;
+
+	double CustomTagScore = 0;
+
 	double StaticWeightSum = 0;
 	double DynamicWeightSum = 0;
 
@@ -81,11 +88,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOverlapScoresWeighting
 
 namespace PCGExDiscardByOverlap
 {
-	PCGEX_ASYNC_STATE(State_InitialOverlap)
-	PCGEX_ASYNC_STATE(State_PreciseOverlap)
-	PCGEX_ASYNC_STATE(State_ProcessFastOverlap)
-	PCGEX_ASYNC_STATE(State_ProcessPreciseOverlap)
-
 	struct FOverlapStats;
 	struct FOverlap;
 	class FProcessor;
@@ -110,6 +112,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGExPointsProcessorSettings
 
 public:
@@ -136,6 +139,10 @@ public:
 	/** How to interpret the min overlap value.  Discrete means distance in world space  Relative means uses percentage (0-1) of the averaged radius. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExMeanMeasure ThresholdMeasure = EPCGExMeanMeasure::Relative;
+
+	/** If enabled, points that are filtered out from overlap detection are still accounted for in static metrics/maths. i.e they still participate to the overall bounds shape etc instead of being thoroughly ignored. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bIncludeFilteredInMetrics = true;
 
 private:
 	friend class FPCGExDiscardByOverlapElement;
@@ -251,11 +258,12 @@ namespace PCGExDiscardByOverlap
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointBounds
 	{
-		FPointBounds(const FPCGPoint& InPoint, const FBox& InBounds):
-			Point(&InPoint), Bounds(InBounds)
+		FPointBounds(const int32 InIndex, const FPCGPoint& InPoint, const FBox& InBounds):
+			Index(InIndex), Point(&InPoint), Bounds(InBounds)
 		{
 		}
 
+		const int32 Index;
 		const FPCGPoint* Point;
 		FBoxSphereBounds Bounds;
 	};
@@ -268,7 +276,7 @@ namespace PCGExDiscardByOverlap
 
 		enum { MaxNodeDepth = 12 };
 
-		typedef TInlineAllocator<MaxElementsPerLeaf> ElementAllocator;
+		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
 
 		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FPointBounds* InPoint)
 		{
@@ -339,15 +347,19 @@ namespace PCGExDiscardByOverlap
 		FORCEINLINE bool HasOverlaps() const { return !Overlaps.IsEmpty(); }
 
 		void RegisterOverlap(FProcessor* InManaged, const FBox& Intersection);
-		void RemoveOverlap(FOverlap* InOverlap, TArray<PCGExDiscardByOverlap::FProcessor*>& Stack);
-		void Prune(TArray<PCGExDiscardByOverlap::FProcessor*>& Stack);
+		void RemoveOverlap(FOverlap* InOverlap, TArray<FProcessor*>& Stack);
+		void Prune(TArray<FProcessor*>& Stack);
 
 		FORCEINLINE void RegisterPointBounds(const int32 Index, FPointBounds* InPointBounds)
 		{
-			LocalPointBounds[Index] = InPointBounds;
-			const FBox B = InPointBounds->Bounds.GetBox();
+			const bool bValidPoint = PointFilterCache[Index];
+			if (!bValidPoint && !LocalSettings->bIncludeFilteredInMetrics) { return; }
+
+			const FBox& B = InPointBounds->Bounds.GetBox();
 			Bounds += B;
 			TotalVolume += B.GetVolume();
+
+			if (bValidPoint) { LocalPointBounds[Index] = InPointBounds; }
 		}
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;

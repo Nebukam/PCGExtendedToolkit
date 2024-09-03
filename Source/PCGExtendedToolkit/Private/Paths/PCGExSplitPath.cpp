@@ -112,9 +112,11 @@ namespace PCGExSplitPath
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
+		// Must be set before process for filters
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		PointDataFacade->bSupportsDynamic = true;
 		bClosedPath = Settings->bClosedPath;
 
 		if (!TypedContext->SplitFilterFactories.IsEmpty())

@@ -182,7 +182,7 @@ public:
 	bool bWriteSuccess = false;
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSuccess"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Success", PCG_Overridable, EditCondition="bWriteSuccess"))
 	FName SuccessAttributeName = FName("bSamplingSuccess");
 
 	/** Write the sampled transform. */
@@ -190,7 +190,7 @@ public:
 	bool bWriteTransform = false;
 
 	/** Name of the 'transform' attribute to write sampled Transform to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteTransform"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Transform", PCG_Overridable, EditCondition="bWriteTransform"))
 	FName TransformAttributeName = FName("WeightedTransform");
 
 
@@ -199,7 +199,7 @@ public:
 	bool bWriteLookAtTransform = false;
 
 	/** Name of the 'transform' attribute to write sampled Transform to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLookAtTransform"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="LookAt", PCG_Overridable, EditCondition="bWriteLookAtTransform"))
 	FName LookAtTransformAttributeName = FName("WeightedLookAt");
 
 	/** The axis to align transform the look at vector to.*/
@@ -223,7 +223,7 @@ public:
 	bool bWriteDistance = false;
 
 	/** Name of the 'double' attribute to write sampled distance to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Distance", PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("WeightedDistance");
 
 	/** Write the sampled Signed distance. */
@@ -231,7 +231,7 @@ public:
 	bool bWriteSignedDistance = false;
 
 	/** Name of the 'double' attribute to write sampled Signed distance to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSignedDistance"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="SignedDistance", PCG_Overridable, EditCondition="bWriteSignedDistance"))
 	FName SignedDistanceAttributeName = FName("WeightedSignedDistance");
 
 	/** Axis to use to calculate the distance' sign*/
@@ -243,7 +243,7 @@ public:
 	bool bWriteAngle = false;
 
 	/** Name of the 'double' attribute to write sampled Signed distance to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteAngle"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Angle", PCG_Overridable, EditCondition="bWriteAngle"))
 	FName AngleAttributeName = FName("WeightedAngle");
 
 	/** Axis to use to calculate the angle*/
@@ -259,7 +259,7 @@ public:
 	bool bWriteNumSamples = false;
 
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumSamples"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
 };
 

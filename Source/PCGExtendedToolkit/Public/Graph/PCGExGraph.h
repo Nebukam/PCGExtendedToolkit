@@ -81,7 +81,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 	/** Minimum edges threshold */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
 	int32 MinEdgeCount = 3;
-	
+
 	/** Don't output Clusters if they have more points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bRemoveBigClusters = false;
@@ -107,7 +107,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 	bool bExpandClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultCacheExpandedClusters;
 
 	bool IsValid(const PCGExGraph::FSubGraph* InSubgraph) const;
-	
 };
 
 namespace PCGExGraph

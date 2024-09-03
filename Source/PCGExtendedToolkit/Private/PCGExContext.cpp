@@ -153,7 +153,7 @@ void FPCGExContext::LoadAssets()
 	if (!bForceSynchronousAssetLoad)
 	{
 		bIsPaused = true;
-		
+
 		LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 			RequiredAssets.Array(), [&]()
 			{

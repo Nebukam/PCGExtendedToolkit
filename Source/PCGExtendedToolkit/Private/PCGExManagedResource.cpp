@@ -61,11 +61,11 @@ USplineMeshComponent* UPCGExManagedSplineMeshComponent::CreateComponentOnly(AAct
 	const FString ComponentName = TEXT("PCGSplineMeshComponent_") + InParams.AssetStaging->Path.GetAssetName();
 	const EObjectFlags ObjectFlags = (InSourceComponent->IsInPreviewMode() ? RF_Transient : RF_NoFlags);
 	USplineMeshComponent* SplineMeshComponent = NewObject<USplineMeshComponent>(InOuter, MakeUniqueObjectName(InOuter, USplineMeshComponent::StaticClass(), FName(ComponentName)), ObjectFlags);
-	
+
 	SplineMeshComponent->ComponentTags.Add(InSourceComponent->GetFName());
 	SplineMeshComponent->ComponentTags.Add(PCGHelpers::DefaultPCGTag);
 
-	
+
 	SplineMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 	SplineMeshComponent->SetMobility(EComponentMobility::Static);
 	SplineMeshComponent->SetSimulatePhysics(false);
@@ -144,5 +144,5 @@ UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::GetOrCreate(
 	}
 	*/
 
-	return RegisterAndAttachComponent(InOuter, CreateComponentOnly(InOuter, InSourceComponent, InParams), InSourceComponent, SettingsUID);;
+	return RegisterAndAttachComponent(InOuter, CreateComponentOnly(InOuter, InSourceComponent, InParams), InSourceComponent, SettingsUID);
 }

@@ -66,9 +66,10 @@ namespace PCGExPathSolidify
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathSolidify::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathSolidify)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
+		// Must be set before process for filters
 		PointDataFacade->bSupportsDynamic = true;
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		bClosedPath = Settings->bClosedPath;
 		LastIndex = PointIO->GetNum() - 1;

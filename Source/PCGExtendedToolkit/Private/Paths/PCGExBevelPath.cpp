@@ -294,9 +294,11 @@ namespace PCGExBevelPath
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
+		// Must be set before process for filters
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		PointDataFacade->bSupportsDynamic = true;
 
 		bInlineProcessPoints = true;
 		bClosedPath = Settings->bClosedPath;
