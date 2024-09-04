@@ -8,7 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "AssetSelectors/PCGExMeshCollection.h"
-#include "Geometry/PCGExFitting.h"
+#include "PCGExFitting.h"
 #include "PCGExAssetStaging.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")

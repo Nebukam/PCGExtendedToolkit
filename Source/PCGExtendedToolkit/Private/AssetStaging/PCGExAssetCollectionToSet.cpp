@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExAssetCollectionToSet.h"
+#include "AssetStaging/PCGExAssetCollectionToSet.h"
 
 #include "PCGGraph.h"
 #include "PCGPin.h"
@@ -27,6 +27,26 @@ TArray<FPCGPinProperties> UPCGExAssetCollectionToSetSettings::OutputPinPropertie
 FPCGElementPtr UPCGExAssetCollectionToSetSettings::CreateElement() const { return MakeShared<FPCGExAssetCollectionToSetElement>(); }
 
 #pragma endregion
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#define PCGEX_FOREACH_COL_FIELD(MACRO)\
+MACRO(AssetPath, FSoftObjectPath, FSoftObjectPath(), S->Path)\
+MACRO(Weight, int32, 0, S->Weight)\
+MACRO(Category, FName, NAME_None, S->Category)\
+MACRO(Extents, FVector, FVector::OneVector, S->Bounds.GetExtent())\
+MACRO(BoundsMin, FVector, FVector::OneVector, S->Bounds.Min)\
+MACRO(BoundsMax, FVector, FVector::OneVector, S->Bounds.Max)\
+MACRO(NestingDepth, int32, -1, -1)
+#else
+#define PCGEX_FOREACH_COL_FIELD(MACRO)\
+MACRO(AssetPath, FString, TEXT(""), S->Path.ToString())\
+MACRO(Weight, int32, 0, S->Weight)\
+MACRO(Category, FName, NAME_None, S->Category)\
+MACRO(Extents, FVector, FVector::OneVector, S->Bounds.GetExtent())\
+MACRO(BoundsMin, FVector, FVector::OneVector, S->Bounds.Min)\
+MACRO(BoundsMax, FVector, FVector::OneVector, S->Bounds.Max)\
+MACRO(NestingDepth, int32, -1, -1)
+#endif
 
 FPCGContext* FPCGExAssetCollectionToSetElement::Initialize(
 	const FPCGDataCollection& InputData,
@@ -58,26 +78,12 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 
 	if (!Settings->AssetCollection) { return OutputToPin(); }
 
-
-	const bool bOutputPath = !Settings->OutputAttributes.AssetPathSourceAttribute.IsNone();
-	const bool bOutputWeight = !Settings->OutputAttributes.WeightSourceAttribute.IsNone();
-	const bool bOutputCategory = !Settings->OutputAttributes.CategorySourceAttribute.IsNone();
-
-	if (bOutputPath && !PCGEx::IsValidName(Settings->OutputAttributes.AssetPathSourceAttribute))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid AssetPath output attribute name."));
-	}
-
-	if (bOutputWeight && !PCGEx::IsValidName(Settings->OutputAttributes.WeightSourceAttribute))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid Weight output attribute name."));
-	}
-
-	if (bOutputCategory && !PCGEx::IsValidName(Settings->OutputAttributes.CategorySourceAttribute))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid Category output attribute name."));
-	}
-
+#define PCGEX_DECLARE_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) \
+	const bool bOutput##_NAME = Settings->bWrite##_NAME; \
+	FPCGMetadataAttribute<_TYPE>* _NAME##Attribute = nullptr; \
+	if(bOutput##_NAME){PCGEX_VALIDATE_NAME(Settings->_NAME##AttributeName) _NAME##Attribute = OutputSet->Metadata->FindOrCreateAttribute<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT, false, true);}
+	PCGEX_FOREACH_COL_FIELD(PCGEX_DECLARE_ATT);
+#undef PCGEX_DECLARE_ATT
 
 	UPCGExAssetCollection* MainCollection = Settings->AssetCollection.LoadSynchronous();
 
@@ -88,10 +94,7 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 	}
 
 	PCGExAssetCollection::FCache* MainCache = MainCollection->LoadCache();
-
-	TArray<int32> Weights;
-	TArray<FSoftObjectPath> Paths;
-	TArray<FName> Categories;
+	TArray<const FPCGExAssetStagingData*> StagingDataList;
 
 	const FPCGExAssetStagingData* StagingData = nullptr;
 
@@ -101,36 +104,28 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 	{
 		GUIDS.Empty();
 		MainCollection->GetStagingAt(StagingData, i);
-		ProcessStagingData(StagingData, Weights, Paths, Categories, Settings->bOmitInvalidAndEmpty, Settings->SubCollectionHandling, GUIDS);
+		ProcessStagingData(StagingData, StagingDataList, Settings->bOmitInvalidAndEmpty, !Settings->bAllowDuplicates, Settings->SubCollectionHandling, GUIDS);
 	}
 
-	if (Paths.IsEmpty()) { return OutputToPin(); }
+	if (StagingDataList.IsEmpty()) { return OutputToPin(); }
 
+	// TODO : Sort StagingDataList according to sorting parameters
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-	FPCGMetadataAttribute<FSoftObjectPath>* PathAttribute = bOutputPath ? OutputSet->Metadata->FindOrCreateAttribute<FSoftObjectPath>(Settings->OutputAttributes.AssetPathSourceAttribute, FSoftObjectPath(), false, true) : nullptr;
-#else
-	FPCGMetadataAttribute<FString>* PathAttribute = bOutputPath ? OutputSet->Metadata->FindOrCreateAttribute<FString>(Settings->OutputAttributes.AssetPathSourceAttribute, TEXT(""), false, true) : nullptr;
-#endif
-
-	FPCGMetadataAttribute<int32>* WeightAttribute = bOutputWeight ? OutputSet->Metadata->FindOrCreateAttribute<int32>(Settings->OutputAttributes.WeightSourceAttribute, 0, false, true) : nullptr;
-	FPCGMetadataAttribute<FName>* CategoryAttribute = bOutputCategory ? OutputSet->Metadata->FindOrCreateAttribute<FName>(Settings->OutputAttributes.CategorySourceAttribute, NAME_None, false, true) : nullptr;
-
-	for (int i = 0; i < Paths.Num(); i++)
+	for (const FPCGExAssetStagingData* S : StagingDataList)
 	{
 		int64 Key = OutputSet->Metadata->AddEntry();
 
-		if (PathAttribute)
+		if (!S || S->bIsSubCollection)
 		{
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-			PathAttribute->SetValue(Key, Paths[i]);
-#else
-			PathAttribute->SetValue(i, Paths[i].ToString());
-#endif
+#define PCGEX_SET_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) if(_NAME##Attribute){ _NAME##Attribute->SetValue(Key, _DEFAULT); }
+			PCGEX_FOREACH_COL_FIELD(PCGEX_SET_ATT)
+#undef PCGEX_SET_ATT
+			continue;
 		}
 
-		if (WeightAttribute) { WeightAttribute->SetValue(Key, Weights[i]); }
-		if (CategoryAttribute) { CategoryAttribute->SetValue(Key, Categories[i]); }
+#define PCGEX_SET_ATT(_NAME, _TYPE, _DEFAULT, _VALUE) if(_NAME##Attribute){ _NAME##Attribute->SetValue(Key, _VALUE); }
+		PCGEX_FOREACH_COL_FIELD(PCGEX_SET_ATT)
+#undef PCGEX_SET_ATT
 	}
 
 	return OutputToPin();
@@ -138,22 +133,18 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 
 void FPCGExAssetCollectionToSetElement::ProcessStagingData(
 	const FPCGExAssetStagingData* InStagingData,
-	TArray<int32>& Weights,
-	TArray<FSoftObjectPath>& Paths,
-	TArray<FName>& Categories,
+	TArray<const FPCGExAssetStagingData*>& OutStagingDataList,
 	const bool bOmitInvalidAndEmpty,
+	const bool bNoDuplicates,
 	const EPCGExSubCollectionToSet SubHandling,
 	TSet<uint64>& GUIDS)
 {
-	//const FPCGExAssetStagingData* StagingData = nullptr;
-	//MainCollection->GetStaging(StagingData, i, i + Settings->Seed);
+	if (bNoDuplicates) { if (OutStagingDataList.Contains(InStagingData)) { return; } }
 
 	auto AddNone = [&]()
 	{
 		if (bOmitInvalidAndEmpty) { return; }
-		Paths.Add(FSoftObjectPath());
-		Weights.Add(0);
-		Categories.Add(NAME_None);
+		OutStagingDataList.Add(nullptr);
 	};
 
 	if (!InStagingData)
@@ -165,9 +156,7 @@ void FPCGExAssetCollectionToSetElement::ProcessStagingData(
 	auto AddEmpty = [&](const FPCGExAssetStagingData* S)
 	{
 		if (bOmitInvalidAndEmpty) { return; }
-		Paths.Add(FSoftObjectPath());
-		Weights.Add(S->Weight);
-		Categories.Add(S->Category);
+		OutStagingDataList.Add(S);
 	};
 
 	if (InStagingData->bIsSubCollection)
@@ -196,7 +185,7 @@ void FPCGExAssetCollectionToSetElement::ProcessStagingData(
 			for (int i = 0; i < SubCache->Main->Order.Num(); i++)
 			{
 				SubCollection->GetStagingAt(NestedStaging, i);
-				ProcessStagingData(NestedStaging, Weights, Paths, Categories, bOmitInvalidAndEmpty, SubHandling, GUIDS);
+				ProcessStagingData(NestedStaging, OutStagingDataList, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 			}
 			return;
 			break;
@@ -214,15 +203,14 @@ void FPCGExAssetCollectionToSetElement::ProcessStagingData(
 			break;
 		}
 
-		ProcessStagingData(NestedStaging, Weights, Paths, Categories, bOmitInvalidAndEmpty, SubHandling, GUIDS);
+		ProcessStagingData(NestedStaging, OutStagingDataList, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);
 	}
 	else
 	{
-		Paths.Add(InStagingData->Path);
-		Weights.Add(InStagingData->Weight);
-		Categories.Add(InStagingData->Category);
+		OutStagingDataList.Add(InStagingData);
 	}
 }
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
+#undef PCGEX_FOREACH_COL_FIELD

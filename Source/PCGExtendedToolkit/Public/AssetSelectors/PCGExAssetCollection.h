@@ -9,7 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Engine/AssetManager.h"
 #include "Engine/DataAsset.h"
-#include "Geometry/PCGExFitting.h"
+#include "AssetStaging/PCGExFitting.h"
 
 #include "PCGExAssetCollection.generated.h"
 
@@ -148,15 +148,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetAttributeSetDetails
 	}
 
 	/** Name of the attribute on the AttributeSet that contains the asset path to be staged */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName AssetPathSourceAttribute = FName("AssetPath");
 
 	/** Name of the attribute on the AttributeSet that contains the asset weight, if any. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName WeightSourceAttribute = NAME_None;
 
 	/** Name of the attribute on the AttributeSet that contains the asset category, if any. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName CategorySourceAttribute = NAME_None;
 };
 
