@@ -46,13 +46,6 @@ void UPCGExActorCollection::RebuildStagingData(const bool bRecursive)
 }
 
 #if WITH_EDITOR
-bool UPCGExActorCollection::EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	if (Super::EDITOR_IsCacheableProperty(PropertyChangedEvent)) { return true; }
-	return PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UPCGExActorCollection, Entries);
-}
-
-
 void UPCGExActorCollection::EDITOR_RefreshDisplayNames()
 {
 	Super::EDITOR_RefreshDisplayNames();

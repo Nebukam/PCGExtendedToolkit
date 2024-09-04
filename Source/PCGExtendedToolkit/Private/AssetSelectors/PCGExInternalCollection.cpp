@@ -39,7 +39,6 @@ void FPCGExInternalCollectionEntry::UpdateStaging(const UPCGExAssetCollection* O
 
 	UObject* LoadedAsset = UAssetManager::GetStreamableManager().RequestSyncLoad(Object)->GetLoadedAsset();
 
-	Staging.Pivot = FVector::ZeroVector;
 	Staging.Bounds = FBox(ForceInitToZero);
 
 	if (const UStaticMesh* Mesh = Cast<UStaticMesh>(LoadedAsset)) { PCGExAssetCollection::UpdateStagingBounds(Staging, Mesh); }
@@ -63,14 +62,6 @@ void UPCGExInternalCollection::RebuildStagingData(const bool bRecursive)
 	for (FPCGExInternalCollectionEntry& Entry : Entries) { Entry.UpdateStaging(this, bRecursive); }
 	Super::RebuildStagingData(bRecursive);
 }
-
-#if WITH_EDITOR
-bool UPCGExInternalCollection::EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	if (Super::EDITOR_IsCacheableProperty(PropertyChangedEvent)) { return true; }
-	return PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UPCGExInternalCollection, Entries);
-}
-#endif
 
 UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {

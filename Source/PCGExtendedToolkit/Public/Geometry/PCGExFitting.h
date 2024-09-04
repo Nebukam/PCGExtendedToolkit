@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExData.h"
+#include "PCGExRandom.h"
 
 #include "PCGExFitting.generated.h"
 
@@ -46,6 +47,14 @@ enum class EPCGExJustifyTo : uint8
 	Max UMETA(DisplayName = "Max", ToolTip="..."),
 	Pivot UMETA(DisplayName = "Pivot", ToolTip="..."),
 	Custom UMETA(DisplayName = "Custom", ToolTip="..."),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Justify From"))
+enum class EPCGExVariationMode : uint8
+{
+	Disabled UMETA(DisplayName = "Disabled", ToolTip="..."),
+	Before UMETA(DisplayName = "Before fitting", ToolTip="Variation are applied to the point that will be fitted"),
+	After UMETA(DisplayName = "After fitting", ToolTip="Variation are applied to the fitted bounds"),
 };
 
 USTRUCT(BlueprintType)
@@ -449,6 +458,130 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExJustificationDetails
 			}
 		}
 		return true;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingVariations
+{
+	GENERATED_BODY()
+
+	/** Index picking mode*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FVector OffsetMin = FVector::Zero();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FVector OffsetMax = FVector::Zero();
+
+	/** Set offset in world space */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bAbsoluteOffset = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FRotator RotationMin = FRotator::ZeroRotator;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FRotator RotationMax = FRotator::ZeroRotator;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (AllowPreserveRatio, PCG_Overridable))
+	FVector ScaleMin = FVector::One();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (AllowPreserveRatio, PCG_Overridable))
+	FVector ScaleMax = FVector::One();
+
+	/** Scale uniformly on each axis. Uses the X component of ScaleMin and ScaleMax. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bUniformScale = true;
+};
+
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFittingVariationsDetails
+{
+	GENERATED_BODY()
+
+	FPCGExFittingVariationsDetails()
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExVariationMode Offset = EPCGExVariationMode::Disabled;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExVariationMode Rotation = EPCGExVariationMode::Disabled;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExVariationMode Scale = EPCGExVariationMode::Disabled;
+
+	bool bEnabledBefore = true;
+	bool bEnabledAfter = true;
+	int Seed = 0;
+
+	void Init(int InSeed)
+	{
+		Seed = InSeed;
+		bEnabledBefore = (Offset == EPCGExVariationMode::Before || Rotation != EPCGExVariationMode::Before || Scale != EPCGExVariationMode::Before);
+		bEnabledAfter = (Offset == EPCGExVariationMode::After || Rotation != EPCGExVariationMode::After || Scale != EPCGExVariationMode::After);
+	}
+
+	void Apply(
+		FPCGPoint& InPoint,
+		const FPCGExFittingVariations& Variations,
+		const EPCGExVariationMode& Step) const
+	{
+		FRandomStream RandomSource(PCGExRandom::ComputeSeed(Seed, InPoint.Seed));
+
+		FVector RandomScale = FVector::OneVector;
+		FVector RandomOffset = FVector::ZeroVector;
+		FQuat RandomRotation = FQuat::Identity;
+		FTransform SourceTransform = InPoint.Transform;
+
+		if (Offset == Step)
+		{
+			const float OffsetX = RandomSource.FRandRange(Variations.OffsetMin.X, Variations.OffsetMax.X);
+			const float OffsetY = RandomSource.FRandRange(Variations.OffsetMin.Y, Variations.OffsetMax.Y);
+			const float OffsetZ = RandomSource.FRandRange(Variations.OffsetMin.Z, Variations.OffsetMax.Z);
+			RandomOffset = FVector(OffsetX, OffsetY, OffsetZ);
+		}
+
+		if (Rotation == Step)
+		{
+			const float RotationX = RandomSource.FRandRange(Variations.RotationMin.Pitch, Variations.RotationMax.Pitch);
+			const float RotationY = RandomSource.FRandRange(Variations.RotationMin.Yaw, Variations.RotationMax.Yaw);
+			const float RotationZ = RandomSource.FRandRange(Variations.RotationMin.Roll, Variations.RotationMax.Roll);
+			RandomRotation = FQuat(FRotator(RotationX, RotationY, RotationZ).Quaternion());
+		}
+
+		if (Scale == Step)
+		{
+			if (Variations.bUniformScale)
+			{
+				RandomScale = FVector(RandomSource.FRandRange(Variations.ScaleMin.X, Variations.ScaleMax.X));
+			}
+			else
+			{
+				RandomScale.X = RandomSource.FRandRange(Variations.ScaleMin.X, Variations.ScaleMax.X);
+				RandomScale.Y = RandomSource.FRandRange(Variations.ScaleMin.Y, Variations.ScaleMax.Y);
+				RandomScale.Z = RandomSource.FRandRange(Variations.ScaleMin.Z, Variations.ScaleMax.Z);
+			}
+		}
+
+		FTransform FinalTransform = SourceTransform;
+
+		if (Variations.bAbsoluteOffset)
+		{
+			FinalTransform.SetLocation(SourceTransform.GetLocation() + RandomOffset);
+		}
+		else
+		{
+			const FTransform RotatedTransform(SourceTransform.GetRotation());
+			FinalTransform.SetLocation(SourceTransform.GetLocation() + RotatedTransform.TransformPosition(RandomOffset));
+		}
+
+		FinalTransform.SetRotation(SourceTransform.GetRotation() * RandomRotation);
+		FinalTransform.SetScale3D(SourceTransform.GetScale3D() * RandomScale);
+
+		InPoint.Transform = FinalTransform;
 	}
 };
 

@@ -59,9 +59,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExJustificationDetails Justification;
 
-	///** If enabled, filter output based on whether a staging has been applied or not (empty entry).  NOT IMPLEMENTED YET */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
-	//bool bOmitInvalidStagedPoints = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
+	FPCGExFittingVariationsDetails Variations;
+
+	//** If enabled, filter output based on whether a staging has been applied or not (empty entry).  Current implementation is slow. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bPruneEmptyPoints = true;
 
 	/** Update point scale so staged asset fits within its bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Staged Properties", meta=(PCG_Overridable))
@@ -105,10 +108,12 @@ namespace PCGExAssetStaging
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
+		TArray<bool> ValidPoint;
 		const UPCGExAssetStagingSettings* LocalSettings = nullptr;
 		const FPCGExAssetStagingContext* LocalTypedContext = nullptr;
 
 		FPCGExJustificationDetails Justification;
+		FPCGExFittingVariationsDetails Variations;
 
 		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
 
@@ -136,5 +141,6 @@ namespace PCGExAssetStaging
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
+		virtual void Write() override;
 	};
 }

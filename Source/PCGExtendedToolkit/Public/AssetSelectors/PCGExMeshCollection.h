@@ -65,7 +65,6 @@ public:
 	virtual void RebuildStagingData(const bool bRecursive) override;
 
 #if WITH_EDITOR
-	virtual bool EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual void EDITOR_RefreshDisplayNames() override;
 #endif
 

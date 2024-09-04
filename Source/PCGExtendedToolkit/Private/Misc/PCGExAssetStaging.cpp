@@ -94,7 +94,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAssetStagingElement::Execute);
 
-	PCGEX_CONTEXT(AssetStaging)
+	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 
 	if (Context->IsSetup())
 	{
@@ -104,6 +104,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExAssetStaging::FProcessor>* NewBatch)
 			{
+				NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
 			},
 			PCGExMT::State_Done))
 		{
@@ -137,6 +138,9 @@ namespace PCGExAssetStaging
 		Justification = Settings->Justification;
 		Justification.Init(Context, PointDataFacade);
 
+		Variations = Settings->Variations;
+		Variations.Init(Settings->Seed);
+
 		NumPoints = PointIO->GetNum();
 
 		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
@@ -161,6 +165,8 @@ namespace PCGExAssetStaging
 		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
 #endif
 
+		if (Settings->bPruneEmptyPoints) { PCGEX_SET_NUM_UNINITIALIZED(ValidPoint, NumPoints) }
+
 		StartParallelLoopForPoints();
 
 		return true;
@@ -183,30 +189,26 @@ namespace PCGExAssetStaging
 
 		Helper->GetStaging(StagingData, Index, Seed);
 
-		if (!StagingData)
+		if (!StagingData || !StagingData->Bounds.IsValid)
 		{
+			if (LocalSettings->bPruneEmptyPoints) { ValidPoint[Index] = false; }
+
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 			PathWriter->Values[Index] = FSoftObjectPath{};
 #else
 			PathWriter->Values[Index] = TEXT("");
 #endif
 
-			Point.Density = 0;
-
-			Point.BoundsMin = FVector::ZeroVector;
-			Point.BoundsMax = FVector::ZeroVector;
-
-			Point.Transform.SetScale3D(FVector::ZeroVector);
-
 			if (bOutputWeight)
 			{
 				if (WeightWriter) { WeightWriter->Values[Index] = -1; }
 				else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = -1; }
-				else { Point.Density = -1; }
 			}
 
 			return;
 		}
+
+		if (LocalSettings->bPruneEmptyPoints) { ValidPoint[Index] = true; }
 
 		if (bOutputWeight)
 		{
@@ -223,6 +225,8 @@ namespace PCGExAssetStaging
 		PathWriter->Values[Index] = StagingData->Path.ToString();
 #endif
 
+
+		if (Variations.bEnabledBefore) { Variations.Apply(Point, StagingData->Variations, EPCGExVariationMode::Before); }
 
 		const FBox& StBox = StagingData->Bounds;
 		FVector OutScale = Point.Transform.GetScale3D();
@@ -241,11 +245,37 @@ namespace PCGExAssetStaging
 
 		Point.Transform.AddToTranslation(Point.Transform.GetRotation().RotateVector(OutTranslation));
 		Point.Transform.SetScale3D(OutScale);
+
+		if (Variations.bEnabledAfter) { Variations.Apply(Point, StagingData->Variations, EPCGExVariationMode::After); }
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->Write(AsyncManagerPtr, true);
+	}
+
+	void FProcessor::Write()
+	{
+		// TODO : Find a better solution
+
+		bool bHasInvalidPoint = false;
+		for (bool IsValidPoint : ValidPoint)
+		{
+			if (!bHasInvalidPoint)
+			{
+				bHasInvalidPoint = true;
+				break;
+			}
+		}
+
+		if (!bHasInvalidPoint) { return; }
+
+		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint> MutableValidPoints;
+		MutableValidPoints.Reserve(MutablePoints.Num());
+
+		for (int i = 0; i < NumPoints; i++) { if (ValidPoint[i]) { MutableValidPoints.Add(MutablePoints[i]); } }
+		PointIO->GetOut()->SetPoints(MutableValidPoints);
 	}
 }
 

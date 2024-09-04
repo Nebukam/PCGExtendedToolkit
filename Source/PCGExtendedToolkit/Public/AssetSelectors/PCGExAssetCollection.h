@@ -9,6 +9,7 @@
 #include "Data/PCGExData.h"
 #include "Engine/AssetManager.h"
 #include "Engine/DataAsset.h"
+#include "Geometry/PCGExFitting.h"
 
 #include "PCGExAssetCollection.generated.h"
 
@@ -28,17 +29,6 @@ enum class EPCGExIndexPickMode : uint8
 	Descending UMETA(DisplayName = "Collection order (Descending)", Tooltip="..."),
 	WeightAscending UMETA(DisplayName = "Weight (Descending)", Tooltip="..."),
 	WeightDescending UMETA(DisplayName = "Weight (Ascending)", Tooltip="..."),
-};
-
-UENUM(BlueprintType)
-enum class EPCGExStagedPropertyType : uint8
-{
-	Double UMETA(DisplayName = "Double", Tooltip="...") ,
-	Integer32 UMETA(DisplayName = "Integer 32", Tooltip="...") ,
-	Vector UMETA(DisplayName = "Vector", Tooltip="...") ,
-	Color UMETA(DisplayName = "Color", Tooltip="...") ,
-	Boolean UMETA(DisplayName = "Boolean", Tooltip="...") ,
-	Name UMETA(DisplayName = "Name", Tooltip="...")
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distribution"))
@@ -170,55 +160,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetAttributeSetDetails
 	FName CategorySourceAttribute = NAME_None;
 };
 
-USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staged Property")
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStagedProperty
-{
-	GENERATED_BODY()
-	virtual ~FPCGExStagedProperty() = default;
-
-	FPCGExStagedProperty()
-	{
-	}
-
-	UPROPERTY(EditAnywhere, Category = Settings)
-	FName Name = NAME_None;
-
-#if WITH_EDITORONLY_DATA
-	UPROPERTY()
-	bool bIsChildProperty = false;
-#endif
-
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsChildProperty", EditConditionHides))
-	EPCGExStagedPropertyType Type = EPCGExStagedPropertyType::Double;
-
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Double", EditConditionHides))
-	double MDouble = 0.0;
-
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Integer32", EditConditionHides))
-	int32 MInt32 = 0.0;
-
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Vector", EditConditionHides))
-	FVector MVector = FVector::ZeroVector;
-
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Color", EditConditionHides))
-	FLinearColor MColor = FLinearColor::White;
-
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Boolean", EditConditionHides))
-	bool MBoolean = true;
-
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(DisplayName="Value", EditCondition="Type==EPCGExStagedPropertyType::Name", EditConditionHides))
-	FName MName = NAME_None;
-};
-
 USTRUCT(BlueprintType, DisplayName="[PCGEx] Asset Staging Data")
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 {
 	GENERATED_BODY()
-	virtual ~FPCGExAssetStagingData() = default;
-
-	FPCGExAssetStagingData()
-	{
-	}
 
 	UPROPERTY()
 	bool bIsSubCollection = false;
@@ -231,12 +176,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 
 	UPROPERTY()
 	FName Category = NAME_None; // Dupe from parent.
-
-	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditFixedSize))
-	TArray<FPCGExStagedProperty> CustomProperties;
-
-	UPROPERTY(VisibleAnywhere, Category = Baked)
-	FVector Pivot = FVector::ZeroVector;
+	
+	UPROPERTY()
+	FPCGExFittingVariations Variations;
 
 	UPROPERTY(VisibleAnywhere, Category = Baked)
 	FBox Bounds = FBox(ForceInitToZero);
@@ -276,7 +218,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FName Category = NAME_None;
 
-	UPROPERTY(EditAnywhere, Category = Settings)
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection"))
+	FPCGExFittingVariations Variations;
+	
+	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection"))
 	FPCGExAssetStagingData Staging;
 
 	//UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="bSubCollection", EditConditionHides))
@@ -429,7 +374,6 @@ namespace PCGExAssetCollection
 	{
 		if (!InActor)
 		{
-			InStaging.Pivot = FVector::ZeroVector;
 			InStaging.Bounds = FBox(ForceInitToZero);
 			return;
 		}
@@ -438,7 +382,6 @@ namespace PCGExAssetCollection
 		FVector Extents = FVector::ZeroVector;
 		InActor->GetActorBounds(true, Origin, Extents);
 
-		InStaging.Pivot = Origin;
 		InStaging.Bounds = FBoxCenterAndExtent(Origin, Extents).GetBox();
 	}
 
@@ -446,12 +389,10 @@ namespace PCGExAssetCollection
 	{
 		if (!InMesh)
 		{
-			InStaging.Pivot = FVector::ZeroVector;
 			InStaging.Bounds = FBox(ForceInitToZero);
 			return;
 		}
 
-		InStaging.Pivot = FVector::ZeroVector;
 		InStaging.Bounds = InMesh->GetBoundingBox();
 	}
 
@@ -477,7 +418,6 @@ public:
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual bool EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent);
 	virtual void EDITOR_RefreshDisplayNames();
 
 	UFUNCTION(CallInEditor, Category = Tools, meta=(DisplayName="Rebuild Staging", ShortToolTip="Rebuild Staging data just for this collection."))
@@ -664,7 +604,6 @@ protected:
 	void EDITOR_SetDirty()
 	{
 		bCacheNeedsRebuild = true;
-		if (bAutoRebuildStaging) { EDITOR_RebuildStagingData(); }
 	}
 #endif
 

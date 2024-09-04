@@ -42,6 +42,8 @@ void FPCGExAssetCollectionEntry::UpdateStaging(const UPCGExAssetCollection* Owni
 	Staging.bIsSubCollection = bIsSubCollection;
 	Staging.Weight = Weight;
 	Staging.Category = Category;
+	Staging.Variations = Variations;
+	if (bIsSubCollection) { Staging.Bounds = FBox(ForceInitToZero); }
 }
 
 void FPCGExAssetCollectionEntry::SetAssetPath(FSoftObjectPath InPath)
@@ -114,34 +116,30 @@ void UPCGExAssetCollection::RebuildStagingData(const bool bRecursive)
 void UPCGExAssetCollection::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (EDITOR_IsCacheableProperty(PropertyChangedEvent)) { EDITOR_RebuildStagingData(); }
 
 	EDITOR_RefreshDisplayNames();
 	EDITOR_SetDirty();
+
+	if (bAutoRebuildStaging) { EDITOR_RebuildStagingData(); }
 }
 
 void UPCGExAssetCollection::EDITOR_RefreshDisplayNames()
 {
 }
 
-bool UPCGExAssetCollection::EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	return PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, bIsSubCollection) ||
-		PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, Weight) ||
-		PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(FPCGExAssetCollectionEntry, Category);
-}
-
 void UPCGExAssetCollection::EDITOR_RebuildStagingData()
 {
+	Modify(true);
 	RebuildStagingData(false);
-	Modify();
+	MarkPackageDirty();
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
 
 void UPCGExAssetCollection::EDITOR_RebuildStagingData_Recursive()
 {
+	Modify(true);
 	RebuildStagingData(true);
-	Modify();
+	MarkPackageDirty();
 	//CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
 }
 
@@ -212,6 +210,7 @@ namespace PCGExAssetCollection
 			{
 				// Non-dynamic since we want min-max to start with :(
 				IndexGetter = InDataFacade->GetBroadcaster<int32>(Details.IndexSettings.IndexSource, true);
+				MaxInputIndex = IndexGetter ? static_cast<double>(IndexGetter->Max) : 0;
 			}
 			else
 			{
@@ -222,11 +221,6 @@ namespace PCGExAssetCollection
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Invalid Index attribute used"));
 				return false;
-			}
-
-			if (Details.IndexSettings.bRemapIndexToCollectionSize)
-			{
-				MaxInputIndex = static_cast<double>(IndexGetter->Max);
 			}
 		}
 

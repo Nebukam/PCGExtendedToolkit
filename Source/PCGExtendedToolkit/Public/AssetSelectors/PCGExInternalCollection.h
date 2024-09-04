@@ -57,10 +57,6 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExInternalCollection : public UPCGExAssetCo
 public:
 	virtual void RebuildStagingData(const bool bRecursive) override;
 
-#if WITH_EDITOR
-	virtual bool EDITOR_IsCacheableProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-
 	FORCEINLINE virtual bool GetStagingAt(const FPCGExAssetStagingData*& OutStaging, const int32 Index) const override
 	{
 		return GetStagingAtTpl(OutStaging, Entries, Index);
