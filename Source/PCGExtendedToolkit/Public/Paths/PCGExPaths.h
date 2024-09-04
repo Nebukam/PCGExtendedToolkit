@@ -23,23 +23,22 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 	double Tolerance = 0.001;
 	double ToleranceSquared = 0.001;
 
-	/** . */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bUseMinAngle = true;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMinAngle = true;
 
 	/** Min angle. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
-	//double MinAngle = 0;
-	//double MinDot = -1;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=180))
+	double MinAngle = 0;
+	double MinDot = -1;
 
 	/** . */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	//bool bUseMaxAngle = true;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMaxAngle = true;
 
 	/** Maximum angle. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
-	//double MaxAngle = 90;
-	//double MaxDot = 1;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=180))
+	double MaxAngle = 90;
+	double MaxDot = 1;
 
 	//
 
@@ -51,10 +50,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCrossing"))
 	FName CrossingAttributeName = "bCrossing";
 
-	void ComputeDot()
+	void Init()
 	{
-		//MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle * 0.5) : -1;
-		//MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle * 0.5) : 1;
+		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle * 0.5) : -1;
+		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle * 0.5) : 1;
 		ToleranceSquared = Tolerance * Tolerance;
 	}
 };

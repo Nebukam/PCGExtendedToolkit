@@ -165,8 +165,6 @@ namespace PCGExAssetStaging
 		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
 #endif
 
-		if (Settings->bPruneEmptyPoints) { PCGEX_SET_NUM_UNINITIALIZED(ValidPoint, NumPoints) }
-
 		StartParallelLoopForPoints();
 
 		return true;
@@ -191,7 +189,11 @@ namespace PCGExAssetStaging
 
 		if (!StagingData || !StagingData->Bounds.IsValid)
 		{
-			if (LocalSettings->bPruneEmptyPoints) { ValidPoint[Index] = false; }
+			if (LocalSettings->bPruneEmptyPoints)
+			{
+				Point.MetadataEntry = -2;
+				return;
+			}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 			PathWriter->Values[Index] = FSoftObjectPath{};
@@ -207,8 +209,6 @@ namespace PCGExAssetStaging
 
 			return;
 		}
-
-		if (LocalSettings->bPruneEmptyPoints) { ValidPoint[Index] = true; }
 
 		if (bOutputWeight)
 		{
@@ -257,25 +257,12 @@ namespace PCGExAssetStaging
 	void FProcessor::Write()
 	{
 		// TODO : Find a better solution
-
-		bool bHasInvalidPoint = false;
-		for (bool IsValidPoint : ValidPoint)
-		{
-			if (!bHasInvalidPoint)
-			{
-				bHasInvalidPoint = true;
-				break;
-			}
-		}
-
-		if (!bHasInvalidPoint) { return; }
-
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-		TArray<FPCGPoint> MutableValidPoints;
-		MutableValidPoints.Reserve(MutablePoints.Num());
 
-		for (int i = 0; i < NumPoints; i++) { if (ValidPoint[i]) { MutableValidPoints.Add(MutablePoints[i]); } }
-		PointIO->GetOut()->SetPoints(MutableValidPoints);
+		int32 WriteIndex = 0;
+		for (int32 i = 0; i < NumPoints; ++i) { if (MutablePoints[i].MetadataEntry != -2) { MutablePoints[WriteIndex++] = MutablePoints[i]; } }
+
+		MutablePoints.SetNum(WriteIndex);
 	}
 }
 

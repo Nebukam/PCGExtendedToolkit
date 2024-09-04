@@ -108,7 +108,6 @@ namespace PCGExAssetStaging
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
-		TArray<bool> ValidPoint;
 		const UPCGExAssetStagingSettings* LocalSettings = nullptr;
 		const FPCGExAssetStagingContext* LocalTypedContext = nullptr;
 

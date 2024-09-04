@@ -785,6 +785,9 @@ namespace PCGExAssetCollection
 		int32 MaxIndex = 0;
 		double MaxInputIndex = 0;
 
+		TArray<int32> MinCache;
+		TArray<int32> MaxCache;
+
 		FDistributionHelper(
 			UPCGExAssetCollection* InCollection,
 			const FPCGExAssetDistributionDetails& InDetails);

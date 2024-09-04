@@ -198,7 +198,7 @@ namespace PCGExAttributeRemap
 					{
 						using RawT = decltype(DummyValue);
 						PCGEx::TAttributeWriter<RawT>* Writer = static_cast<PCGEx::TAttributeWriter<RawT>*>(CacheWriter);
-						PCGEx:: TAttributeReader<RawT>* Reader = static_cast<PCGEx:: TAttributeReader<RawT>*>(CacheReader);
+						PCGEx::TAttributeReader<RawT>* Reader = static_cast<PCGEx::TAttributeReader<RawT>*>(CacheReader);
 
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
 						for (int i = StartIndex; i < StartIndex + Count; i++) { Writer->Values[i] = Reader->Values[i]; } // Copy range to writer
