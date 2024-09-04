@@ -176,7 +176,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingData
 
 	UPROPERTY()
 	FName Category = NAME_None; // Dupe from parent.
-	
+
 	UPROPERTY()
 	FPCGExFittingVariations Variations;
 
@@ -220,7 +220,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetCollectionEntry
 
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection"))
 	FPCGExFittingVariations Variations;
-	
+
 	UPROPERTY(EditAnywhere, Category = Settings, meta=(EditCondition="!bIsSubCollection"))
 	FPCGExAssetStagingData Staging;
 
@@ -265,6 +265,7 @@ namespace PCGExAssetCollection
 		TArray<int32> Indices;
 		TArray<int32> Weights;
 		TArray<int32> Order;
+		TArray<const FPCGExAssetStagingData*> StagingDatas;
 
 		FCategory()
 		{
@@ -276,44 +277,6 @@ namespace PCGExAssetCollection
 		}
 
 		~FCategory();
-
-		void BuildFromIndices();
-	};
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCache
-	{
-		int32 WeightSum = 0;
-		TMap<FName, FCategory*> Categories;
-		TArray<int32> Indices;
-		TArray<int32> Weights;
-		TArray<int32> Order;
-
-		explicit FCache()
-		{
-		}
-
-		~FCache()
-		{
-			PCGEX_DELETE_TMAP(Categories, FName)
-
-			Indices.Empty();
-			Weights.Empty();
-			Order.Empty();
-		}
-
-		void Reserve(int32 Num)
-		{
-			Indices.Reserve(Num);
-			Weights.Reserve(Num);
-			Order.Reserve(Num);
-		}
-
-		void Shrink()
-		{
-			Indices.Shrink();
-			Weights.Shrink();
-			Order.Shrink();
-		}
 
 
 		FORCEINLINE int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const
@@ -365,7 +328,45 @@ namespace PCGExAssetCollection
 			return Indices[Order[Pick]];
 		}
 
-		void FinalizeCache();
+
+		void Reserve(int32 Num)
+		{
+			Indices.Reserve(Num);
+			Weights.Reserve(Num);
+			Order.Reserve(Num);
+		}
+
+		void Shrink()
+		{
+			Indices.Shrink();
+			Weights.Shrink();
+			Order.Shrink();
+		}
+
+		void RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging);
+		void Compile();
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCache
+	{
+		int32 WeightSum = 0;
+		FCategory* Main = nullptr;
+		TMap<FName, FCategory*> Categories;
+
+		explicit FCache()
+		{
+			Main = new FCategory(NAME_None);
+		}
+
+		~FCache()
+		{
+			PCGEX_DELETE(Main)
+			PCGEX_DELETE_TMAP(Categories, FName)
+		}
+
+		void Compile();
+
+		void RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging);
 	};
 
 #pragma region Staging bounds update
@@ -442,7 +443,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = Settings)
 	bool bDoNotIgnoreInvalidEntries = false;
 
-	virtual int32 GetValidEntryNum() { return Cache ? Cache->Indices.Num() : 0; }
+	virtual int32 GetValidEntryNum() { return Cache ? Cache->Main->Indices.Num() : 0; }
 
 	virtual void BuildCache();
 
@@ -451,7 +452,7 @@ public:
 	template <typename T>
 	FORCEINLINE bool GetEntry(T& OutEntry, TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	{
-		int32 Pick = Cache->GetPick(Index, PickMode);
+		int32 Pick = Cache->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		OutEntry = InEntries[Pick];
 		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed); }
@@ -461,7 +462,7 @@ public:
 	template <typename T>
 	FORCEINLINE bool GetEntryRandom(T& OutEntry, TArray<T>& InEntries, const int32 Seed) const
 	{
-		OutEntry = InEntries[Cache->GetPickRandom(Seed)];
+		OutEntry = InEntries[Cache->Main->GetPickRandom(Seed)];
 		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed + 1); }
 		return true;
 	}
@@ -469,7 +470,7 @@ public:
 	template <typename T>
 	FORCEINLINE bool GetEntryWeightedRandom(T& OutEntry, TArray<T>& InEntries, const int32 Seed) const
 	{
-		OutEntry = InEntries[Cache->GetPickRandomWeighted(Seed)];
+		OutEntry = InEntries[Cache->Main->GetPickRandomWeighted(Seed)];
 		if (OutEntry.SubCollectionPtr) { OutEntry.SubCollectionPtr->GetEntryWeightedRandom(OutEntry, OutEntry.SubCollectionPtr->Entries, Seed + 1); }
 		return true;
 	}
@@ -515,7 +516,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetStagingAtTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Index) const
 	{
-		const int32 Pick = Cache->GetPick(Index, EPCGExIndexPickMode::Ascending);
+		const int32 Pick = Cache->Main->GetPick(Index, EPCGExIndexPickMode::Ascending);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		OutStaging = &InEntries[Pick].Staging;
 		return true;
@@ -524,7 +525,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetStagingTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Index, const int32 Seed, const EPCGExIndexPickMode PickMode = EPCGExIndexPickMode::Ascending) const
 	{
-		const int32 Pick = Cache->GetPick(Index, PickMode);
+		const int32 Pick = Cache->Main->GetPick(Index, PickMode);
 		if (!InEntries.IsValidIndex(Pick)) { return false; }
 		if (const T& Entry = InEntries[Pick]; Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed); }
 		else { OutStaging = &Entry.Staging; }
@@ -534,7 +535,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetStagingRandomTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
 	{
-		const T& Entry = InEntries[Cache->GetPickRandom(Seed)];
+		const T& Entry = InEntries[Cache->Main->GetPickRandom(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
 		else { OutStaging = &Entry.Staging; }
 		return true;
@@ -543,7 +544,7 @@ protected:
 	template <typename T>
 	FORCEINLINE bool GetStagingWeightedRandomTpl(const FPCGExAssetStagingData*& OutStaging, const TArray<T>& InEntries, const int32 Seed) const
 	{
-		const T& Entry = InEntries[Cache->GetPickRandomWeighted(Seed)];
+		const T& Entry = InEntries[Cache->Main->GetPickRandomWeighted(Seed)];
 		if (Entry.SubCollectionPtr) { Entry.SubCollectionPtr->GetStagingWeightedRandomTpl(OutStaging, Entry.SubCollectionPtr->Entries, Seed + 1); }
 		else { OutStaging = &Entry.Staging; }
 		return true;
@@ -564,7 +565,7 @@ protected:
 		bCacheNeedsRebuild = false;
 
 		const int32 NumEntries = InEntries.Num();
-		Cache->Reserve(NumEntries);
+		Cache->Main->Reserve(NumEntries);
 
 		TArray<PCGExAssetCollection::FCategory*> TempCategories;
 
@@ -573,29 +574,10 @@ protected:
 			T& Entry = InEntries[i];
 			if (!Entry.Validate(this)) { continue; }
 
-			Cache->Indices.Add(i);
-			Cache->Weights.Add(Entry.Weight);
-			Cache->WeightSum += Entry.Weight;
-
-			if (Entry.Category.IsNone()) { continue; }
-
-			PCGExAssetCollection::FCategory** CategoryPtr = Cache->Categories.Find(Entry.Category);
-			PCGExAssetCollection::FCategory* Category = nullptr;
-
-			if (!CategoryPtr)
-			{
-				Category = new PCGExAssetCollection::FCategory(Entry.Category);
-				Cache->Categories.Add(Entry.Category, Category);
-				TempCategories.Add(Category);
-			}
-			else { Category = *CategoryPtr; }
-
-			Category->Indices.Add(i);
-			Category->Weights.Add(Entry.Weight);
-			Category->WeightSum += Entry.Weight;
+			Cache->RegisterStaging(i, &Entry.Staging);
 		}
 
-		for (PCGExAssetCollection::FCategory* Category : TempCategories) { Category->BuildFromIndices(); }
+		Cache->Main->Compile();
 
 		return true;
 	}

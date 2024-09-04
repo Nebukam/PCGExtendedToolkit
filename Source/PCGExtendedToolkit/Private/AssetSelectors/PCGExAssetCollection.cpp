@@ -14,16 +14,30 @@ namespace PCGExAssetCollection
 		Indices.Empty();
 		Weights.Empty();
 		Order.Empty();
+		StagingDatas.Empty();
 	}
 
-	void FCategory::BuildFromIndices()
+	void FCategory::RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging)
 	{
-		const int32 NumEntries = Indices.Num();
+		StagingDatas.Add(InStaging);
 
+		Indices.Add(Index);
+
+		Weights.Add(InStaging->Weight);
+		WeightSum += InStaging->Weight;
+	}
+
+	void FCategory::Compile()
+	{
+		Shrink();
+		
+		const int32 NumEntries = Indices.Num();
 		PCGEx::ArrayOfIndices(Order, NumEntries);
-		for (int i = 0; i < NumEntries; i++) { Weights[i] = Weights[i] / WeightSum; }
 
 		Order.Sort([&](const int32 A, const int32 B) { return Weights[A] < Weights[B]; });
+		Weights.Sort([&](const int32 A, const int32 B) { return A < B; });
+
+		for (int32 i = 0; i < NumEntries; i++) { Weights[i] = i == 0 ? Weights[i] : Weights[i - 1] + Weights[i]; }
 	}
 }
 
@@ -56,18 +70,28 @@ void FPCGExAssetCollectionEntry::OnSubCollectionLoaded()
 
 namespace PCGExAssetCollection
 {
-	void FCache::FinalizeCache()
+	void FCache::RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging)
 	{
-		Shrink();
+		// Register to main category
+		Main->RegisterStaging(Index, InStaging);
 
-		const int32 NumEntries = Indices.Num();
+		// Register to sub categories
+		if (FCategory** CategoryPtr = Categories.Find(InStaging->Category); !CategoryPtr)
+		{
+			FCategory* Category = new FCategory(InStaging->Category);
+			Categories.Add(InStaging->Category, Category);
+			Category->RegisterStaging(Index, InStaging);
+		}
+		else
+		{
+			(*CategoryPtr)->RegisterStaging(Index, InStaging);;
+		}
+	}
 
-		PCGEx::ArrayOfIndices(Order, NumEntries);
-
-		Order.Sort([&](const int32 A, const int32 B) { return Weights[A] < Weights[B]; });
-		Weights.Sort([&](const int32 A, const int32 B) { return A < B; });
-
-		for (int32 i = 0; i < NumEntries; i++) { Weights[i] = i == 0 ? Weights[i] : Weights[i - 1] + Weights[i]; }
+	void FCache::Compile()
+	{
+		Main->Compile();
+		for (const TPair<FName, FCategory*>& Pair : Categories){ Pair.Value->Compile(); }
 	}
 }
 
@@ -77,7 +101,7 @@ PCGExAssetCollection::FCache* UPCGExAssetCollection::LoadCache()
 	if (Cache) { return Cache; }
 	Cache = new PCGExAssetCollection::FCache();
 	BuildCache();
-	Cache->FinalizeCache();
+	Cache->Compile();
 	return Cache;
 }
 
@@ -202,7 +226,7 @@ namespace PCGExAssetCollection
 		const FPCGContext* InContext,
 		PCGExData::FFacade* InDataFacade)
 	{
-		MaxIndex = Collection->LoadCache()->Order.Num(); //InDataFacade->Source->GetNum() - 1;
+		MaxIndex = Collection->LoadCache()->Main->Order.Num(); //InDataFacade->Source->GetNum() - 1;
 
 		if (Details.Distribution == EPCGExDistribution::Index)
 		{
