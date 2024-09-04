@@ -37,7 +37,9 @@ namespace PCGExData
 		EPCGMetadataTypes::Transform,
 		EPCGMetadataTypes::String,
 		EPCGMetadataTypes::Name,
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 		EPCGMetadataTypes::SoftObjectPath,
+#endif
 	};
 
 	static uint64 CacheUID(const FName FullName, const EPCGMetadataTypes Type)
