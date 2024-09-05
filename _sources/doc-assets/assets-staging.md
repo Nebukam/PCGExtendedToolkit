@@ -59,6 +59,8 @@ When using the `Attribute Set` source, the node will create a temp, internal {% 
 ---
 ## Scale to Fit
 
+{% include img a='placeholder-wide.jpg' %}
+
 Scale the spawned asset bounds in order to fit within the host point' bounds.  
 
 
@@ -70,20 +72,17 @@ You can use the following rules:
 
 |: Scale to Fit      ||
 |:-------------|:------------------|
-|: **None** :||
-| IMG           | Disable the scaling rule. |
-|: **Fill** :||
-| IMG           | Scale the asset so it fills the point' bounds. |
-|: **Min** :||
-| IMG           | Scale the asset so it fits snuggly within the minimum point' bounds. |
-|: **Max** :||
-| IMG           | Scale the asset so it fits snuggly within the maximum point' bounds. |
-|: **Average** :||
-| IMG           | Scale the asset so it fits the average of the point' bounds.|
+| {% include img a='placeholder.jpg' %}           | **None**<br>Disable the scaling rule. |
+| {% include img a='placeholder.jpg' %}           | **Fill**<br>Scale the asset so it fills the point' bounds. |
+| {% include img a='placeholder.jpg' %}           | **Min**<br>Scale the asset so it fits snuggly within the minimum point' bounds. |
+| {% include img a='placeholder.jpg' %}           | **Max**<br>Scale the asset so it fits snuggly within the maximum point' bounds. |
+| {% include img a='placeholder.jpg' %}           | **Average**<br>Scale the asset so it fits the average of the point' bounds.|
 {: .enum }
 
 ---
 ## Justification
+
+{% include img a='placeholder-wide.jpg' %}
 
 Offset the spawned asset bounds relative to the host point' bounds.  
 Justification is done & tweaked per-component.  
@@ -100,16 +99,11 @@ You can use the following rules for `From`:
 
 |: Justify From     ||
 |:-------------|:------------------|
-|: **Min** :||
-| IMG           | Uses the asset bounds' min as reference point. |
-|: **Center** :||
-| IMG           | Uses the asset bounds' local center as reference point. |
-|: **Max** :||
-| IMG           | Uses the asset bounds' max as reference point.|
-|: **Pivot** :||
-| IMG           | Uses the asset pivot as reference point, ignoring bounds. |
-|: **Custom** :||
-| IMG           | Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
+| {% include img a='placeholder.jpg' %}           | **Min**<br>Uses the asset bounds' min as reference point. |
+| {% include img a='placeholder.jpg' %}           | **Center**<br>Uses the asset bounds' local center as reference point. |
+| {% include img a='placeholder.jpg' %}           | **Max**<br>Uses the asset bounds' max as reference point.|
+| {% include img a='placeholder.jpg' %}           | **Pivot**<br>Uses the asset pivot as reference point, ignoring bounds. |
+| {% include img a='placeholder.jpg' %}           | **Custom**<br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
 {: .enum }
 
 ### To
@@ -117,30 +111,60 @@ You can use the following rules for `To`:
 
 |: Justify To     ||
 |:-------------|:------------------|
-|: **Same** :||
-| IMG           | Auto-selects the same justification as `From`, but computed against the point' bounds. |
-|: **Min** :||
-| IMG           | Uses the point bounds' min as reference point. |
-|: **Center** :||
-| IMG           | Uses the point bounds' local center as reference point. |
-|: **Max** :||
-| IMG           | Uses the point bounds' max as reference point. |
-|: **Pivot** :||
-| IMG           | Uses the point bounds' pivot, ignoring bounds. |
-|: **Custom** :||
-| IMG           | Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
+| {% include img a='placeholder.jpg' %}           | **Same**<br>Auto-selects the same justification as `From`, but computed against the point' bounds. |
+| {% include img a='placeholder.jpg' %}           | **Min**<br>Uses the point bounds' min as reference point. |
+| {% include img a='placeholder.jpg' %}           | **Center**<br>Uses the point bounds' local center as reference point. |
+| {% include img a='placeholder.jpg' %}           | **Max**<br>Uses the point bounds' max as reference point. |
+| {% include img a='placeholder.jpg' %}           | **Pivot**<br>Uses the point bounds' pivot, ignoring bounds. |
+| {% include img a='placeholder.jpg' %}           | **Custom**<br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
 {: .enum }
 
---
+---
 ## Variations
 
 When to apply the asset' variations, if any, as defined in the Source.
 
 > At the time of writing, this is not supported for `Attribute Set` source.
 
---
-## Distribution
+---
+## Distribution Settings
 
---
+Distribution drives how assets are selected within the collection & assigned to points.
+
+|: Seed components      ||
+| Seed components lets you choose which seed source you want to combined to drive randomness.   ||
+| None           | Will only use the point' seed. |
+| Local           | The local user-set seed *see property below* |
+| Settings           | This node' Settings seed. |
+| Component           | The parent PCG component' seed. |
+{: .enum }
+
+### Distribution
+
+|: Distribution     ||
+| Index           | Index-based selection within the collection.<br>*Enable a lot of additional options.*|
+| Random           | Plain old random selection. |
+| Weighted Random           | Weighted random selection, using entries' `Weight` property. |
+{: .enum }
+
+### Index Settings
+
+Index settings offer granular controls over what the `Index` actually is, and how it 
+is used.
+
+| Index Setting       | Description          |
+|:-------------|:------------------|
+| Pick Mode           | Choose in which ordered context the input index should be used.  |
+| Index Safety           | Defines how the index value should be sanitized/post-processed. |
+| Index Source           | The source of the index value. |
+| Remap Index to Collection Size           | If enabled, the input index is first remapped to the size of the collection.<br>**This enable the use of basically any input value and distribute the entierety of the collection over its range.**<br>*Note that this can have a noticeable performance impact since all input indices must be loaded in memory first to find the min/max range.*|
+| Truncate Remap           | Lets you choose how the remapped value (floating point) should be truncated to an integer. |
+
+{% include embed id='settings-index-safety' %}
+
+---
 ## Output
+
+Lets you output the Weight of the selection to each node, using different post-processing methods.  
+**This can be very handy to identify "rare" spawns and preserve them during self-pruning operations.**
 

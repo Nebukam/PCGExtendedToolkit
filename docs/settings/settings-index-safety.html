@@ -1,32 +1,30 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html><body>
-<h2 id="index-safety">Index Safety</h2>
-<p>The index safety property controls how invalid indices are handled.</p>
+<h3 id="index-safety">Index Safety</h3>
+<p>The index safety property controls how invalid/out of bounds input values are handled.</p>
 
-<table>
-  <thead>
-    <tr>
-      <th style="text-align: left">Safety method</th>
-      <th style="text-align: left">Description</th>
-    </tr>
-  </thead>
+<table class="enum">
   <tbody>
     <tr>
-      <td style="text-align: left">Ignore</td>
-      <td style="text-align: left">Invalid indices will be ignored and won’t be processed further.</td>
+      <td colspan="2">Safety method</td>
+      
     </tr>
     <tr>
-      <td style="text-align: left">Tile</td>
-      <td style="text-align: left">Index is tiled (<em>wrapped around</em>) the context’ valid min/max range.</td>
+      <td>Ignore</td>
+      <td>Invalid indices will be ignored and won’t be processed further.</td>
     </tr>
     <tr>
-      <td style="text-align: left">Clamp</td>
-      <td style="text-align: left">Index is clamped between the context’ valid min/max range.</td>
+      <td>Tile</td>
+      <td>Index is tiled (<em>wrapped around</em>) the context’ valid min/max range.</td>
+    </tr>
+    <tr>
+      <td>Clamp</td>
+      <td>Index is clamped between the context’ valid min/max range.</td>
+    </tr>
+    <tr>
+      <td>Yoyo</td>
+      <td>Index bounces back and forth between the context’ valid min/max range.</td>
     </tr>
   </tbody>
 </table>
-
-<blockquote class="warning-hl">
-  <p>Tiling index means that for a range of <code class="language-plaintext highlighter-rouge">[0..10]</code>, a value of <code class="language-plaintext highlighter-rouge">11</code> will be sanitized to <code class="language-plaintext highlighter-rouge">1</code> and a value of <code class="language-plaintext highlighter-rouge">-1</code> sanitized to <code class="language-plaintext highlighter-rouge">9</code>.</p>
-</blockquote>
 </body></html>

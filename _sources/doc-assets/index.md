@@ -22,7 +22,6 @@ This section contains data asset & staging utilities. Staging nodes rely on {% i
 {% include card_childs tagged='staging' %}
 
 ---
-## {% include lk id='Asset Collection' %}
----
+## {% include lk id='Asset Collection' %}s
 <br>
 {% include card_childs reference="Asset Collection" tagged='assetcollection' %}

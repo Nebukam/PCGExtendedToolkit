@@ -31,6 +31,8 @@ This helps keeping the editor *relatively* smooth when performing heavy tasks.
 
 {% include img a='docs/pcgex-performance.png' %} 
 
+> Side note that most PCGEx nodes are greedy, and contrary to vanilla nodes, **they process all inputs in parallel instead of one after another**. Most of the time it's a non-issue, but may be noticeable if you have a lot of very large datasets plugged into the same node.
+
 ### Do Async Processing
 Checked by default, you can toggle it off to force synchronous/unparallelized execution of the code.  
 *This is a very legacy option, best leave it to `true`.*

@@ -45,6 +45,8 @@ outputs:
 > DOC TDB
 {: .warning }
 
+{% include embed id='settings-cluster-output' %}
+
 ---
 ## Probes
 <br>
