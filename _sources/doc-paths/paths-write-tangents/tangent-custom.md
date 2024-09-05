@@ -16,7 +16,8 @@ nav_order: 2
 
 {% include header_card_node %}
 
-{% include img a='details/modules/tangent-custom.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

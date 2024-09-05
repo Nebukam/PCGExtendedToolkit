@@ -34,7 +34,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-relax.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|
@@ -52,7 +53,7 @@ outputs:
 
 {% include img_link a='docs/relax/comparison.png' %} 
 
-{% include embed id='settings-graph-output' %}
+{% include embed id='settings-cluster-output' %}
 {% include embed id='settings-performance' %}
 
 ---

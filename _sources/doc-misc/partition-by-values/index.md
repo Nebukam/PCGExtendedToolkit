@@ -29,7 +29,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-partition-by-values.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

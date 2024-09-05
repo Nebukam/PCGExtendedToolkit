@@ -51,7 +51,7 @@ blending-common-properties
 | Selector       | Data          |
 |:-------------|:------------------|
 | None           | Keep the first processed value |
-| Weight           | Weights all the processed values. **How that weight of each value is calculated depends on the node, module, and data set.**<br> *More often than not, it comes down to a basic lerp.* |
+| Weight           | Weights all the processed values. **How that weight of each value is calculated depends on the node, module, and Dataset.**<br> *More often than not, it comes down to a basic lerp.* |
 | Average           | Average all the processed values |
 | Min           | Keep the minimum value (component-wise) encountered during processing |
 | Max           | Keep the maximum value (component-wise) encountered during processing |

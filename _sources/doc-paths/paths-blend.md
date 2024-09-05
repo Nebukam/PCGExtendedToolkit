@@ -25,7 +25,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-blend.png' %} 
+# Properties
+<br> 
 
 | Property       | Description          |
 |:-------------|:------------------|

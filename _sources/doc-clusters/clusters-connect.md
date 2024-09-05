@@ -33,6 +33,9 @@ outputs:
 
 {% include img a='details/details-bridge-clusters.png' %} 
 
+# Properties
+<br>
+
 | Property       | Description          |
 |:-------------|:------------------|
 | Bridge Method           | The method that will be used to identify and create bridges between clusters.|

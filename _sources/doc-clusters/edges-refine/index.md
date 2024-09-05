@@ -37,7 +37,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-edges-refine.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|
@@ -63,7 +64,7 @@ The sanitization property lets you enforce some general conditions within the gr
 <br>
 {% include card_any tagged="edgerefining" %}
 
-{% include embed id='settings-graph-output' %}
+{% include embed id='settings-cluster-output' %}
 {% include embed id='settings-performance' %}
 
 ---

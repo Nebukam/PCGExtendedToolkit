@@ -25,5 +25,8 @@ outputs:
 
 {% include header_card_node %}
 
+# Properties
+<br>
+
 > WIP
 {: .warning-hl }

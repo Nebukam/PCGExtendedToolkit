@@ -19,7 +19,8 @@ nav_order: 7
 
 See [Lloyd Relaxation](https://en.wikipedia.org/wiki/Lloyd%27s_algorithm) on Wikipedia.
 
-{% include img a='details/details-write-index.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

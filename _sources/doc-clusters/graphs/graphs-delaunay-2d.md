@@ -32,7 +32,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-delaunay-2d.png' %} 
+# Properties
+<br>
 
 > If you'd like to know more about Delaunay intrinsic properties, check out the [Wikipedia article](https://en.wikipedia.org/wiki/Delaunay_triangulation)!
 

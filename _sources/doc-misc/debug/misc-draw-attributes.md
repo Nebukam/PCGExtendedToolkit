@@ -25,14 +25,10 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-draw-attributes.png' %} 
-
 Each **Draw Attribute** node can display any number of things by fetching values from whatever point data is plugged into the input pin; in the order in which they are set up.
 
 ---
 ## Individual Debug Settings
-
-{% include img a='details/details-draw-attributes-rule.png' %} 
 
 | Property       | Description          |
 |:-------------|:------------------|

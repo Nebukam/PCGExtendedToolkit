@@ -19,12 +19,7 @@ Almost every node in the PCGEx inherit from the same point processor, and as suc
 
 PCGEx has a focus on performance and multithreading -- very few nodes are actively computing anything on the main thread, and instead the bulk of the tasks is handled asynchronously; and parallelized whenever possible.  
 This helps keeping the editor *relatively* smooth when performing heavy tasks.
-{: .fs-5 .fw-300 } 
-
->Because of the parallelization, a *very few* select nodes have non-deterministic outputs; meaning they will yield slightly different results between two runs.  
->**These nodes are flagged in the doc.**  
->*This is something I'm working to fix to ensure all nodes have deterministic results.*
-{: .error}
+{: .fs-5 .fw-400 } 
 
 #### Common Tweaks
 {: .no_toc }
@@ -37,9 +32,8 @@ This helps keeping the editor *relatively* smooth when performing heavy tasks.
 {% include img a='docs/pcgex-performance.png' %} 
 
 ### Do Async Processing
-Checked by default, you can toggle it off to force synchronous/unparallelized execution of the code. *(This is a cheap workaround to ensure deterministic result in nodes that are otherwise non-deterministic due to parallel processing)*
-
-> Note that synchronous execution still processes data in *chunks*, it just does it with guaranteed order, as opposed to parallel processing.
+Checked by default, you can toggle it off to force synchronous/unparallelized execution of the code.  
+*This is a very legacy option, best leave it to `true`.*
 
 ### Chunk Size
 The chunk size usually represents the number of point a node will process in a single parallel batch. There is no ideal value: too small and you loose the gain of parallelization, too high and you're just hogging thread ressources. **Ultimately, it depends on your specific setup.**  
@@ -52,6 +46,9 @@ Under the hood, all PCG node come with the ability to cache their result; but th
 
 > Be aware that the cache is easily corrupted, and sometime leads to missing points or data; *it's still a small price to pay when you're working iteratively with hundreds of thousands points.*
 {: .warning }
+
+### Flatten Output
+Flatten the output of this node. On `5.3` this is an absurdly expensive operation, it's better in `5.4` and should be even faster in `5.5`.  Flattening ensure all inherited attribute values are copied to the output, and metadata parenting/inheritance is forfeited in the process. **This is a required step to ensure attribute values are properly saved to PCG Data Assets!**
 
 ---
 ## Input Pruning & De-duping

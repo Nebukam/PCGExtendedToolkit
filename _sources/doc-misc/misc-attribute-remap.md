@@ -36,6 +36,9 @@ nav_order: 3
 
 {% include img a='details/details-attribute-remap.png' %} 
 
+# Properties
+<br>
+
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||

@@ -31,7 +31,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-prune-by-length.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|
@@ -48,7 +49,7 @@ outputs:
 >Keep in mind that calculations are **relative to the mean value.**
 {: .infos-hl }
 #### Example
-{: .no-toc }
+{: .no_toc }  
 If using `Relative` measure and `Average` mean method, the mean value will be the *average edge length*.  
 The `Prune Below` value is substracted from that average to find the minimum acceptable length (in relative terms), while the `Prune Above` value is added to that average to find the maximum acceptable length.  
 
@@ -146,7 +147,7 @@ Measure: `Absolute`, Mean Method: `Fixed`, Mean Value: `500`, Prune Above : `0`.
 Measure: `Absolute`, Mean Method: `Fixed`, Mean Value: `42`, Prune Below : `0`.
 *This basically prune all edges which length is below `42 - 0`.*
 
-{% include embed id='settings-graph-output' %}
+{% include embed id='settings-cluster-output' %}
 {% include embed id='settings-performance' %}
 
 ---

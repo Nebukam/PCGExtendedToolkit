@@ -17,7 +17,8 @@ nav_order: 7
 
 {% include header_card_node %}
 
-{% include img a='details/details-write-index.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

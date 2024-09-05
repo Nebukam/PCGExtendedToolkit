@@ -31,7 +31,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-draw-edges.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

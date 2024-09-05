@@ -13,9 +13,16 @@ tagged:
 
 {% include header_card %}
 
-This section contains data asset & staging utilities 
+This section contains data asset & staging utilities. Staging nodes rely on {% include lk id='Asset Collection' %} to **associate points & edit them based on asset properties, such as bounding box.**
+{: .fs-5 .fw-400 } 
 
 ---
-## Assets & Staging Nodes
+## Staging Nodes
 <br>
-{% include card_childs tagged='assetstaging' %}
+{% include card_childs tagged='staging' %}
+
+---
+## {% include lk id='Asset Collection' %}
+---
+<br>
+{% include card_childs reference="Asset Collection" tagged='assetcollection' %}

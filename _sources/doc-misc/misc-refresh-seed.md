@@ -17,6 +17,9 @@ nav_order: 15
 
 {% include header_card_node %}
 
+# Properties
+<br>
+
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||

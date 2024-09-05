@@ -28,6 +28,9 @@ outputs:
 
 {% include header_card_node %}
 
+# Properties
+<br>
+
 {% include img a='details/details-paths-to-edges.png' %} 
 
 | Property       | Description          |

@@ -18,7 +18,9 @@ nav_order: 3
 {% include header_card_node %}
 
 {% include img a='docs/fuse/image.png' %} 
-{% include img a='details/details-fuse-points.png' %} 
+
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

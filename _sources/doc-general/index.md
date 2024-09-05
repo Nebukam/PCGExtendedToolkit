@@ -23,7 +23,7 @@ has_children: true
 Some topics and their modules are more complex, and have a dedicated section:
 - {% include lk id='Pathfinding' %}
 - {% include lk id='Clusters' %} 
-{: .fs-6 .fw-400 } 
+{: .fs-6 .fw-300 } 
 <br>
 
 ---

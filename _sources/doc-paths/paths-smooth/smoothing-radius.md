@@ -20,8 +20,10 @@ nav_order: 1
 > Note that because of how the maths works for this module, it can be used with any input data: **whether the points are ordered as `paths` or not doesn't matter.**
 {: .infos-hl }
 
-{% include img a='details/modules/smoothing-radius.png' %} 
 {% include img a='docs/smooth/radius.png' %} 
+
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

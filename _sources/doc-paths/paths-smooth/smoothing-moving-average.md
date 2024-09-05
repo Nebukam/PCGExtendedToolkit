@@ -16,9 +16,10 @@ nav_order: 1
 
 {% include header_card_node %}
 
-
-{% include img a='details/modules/smoothing-moving-average.png' %} 
 {% include img a='docs/smooth/moving.png' %} 
+
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

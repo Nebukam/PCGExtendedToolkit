@@ -20,10 +20,13 @@ inputs:
 outputs:
     -   name : None
         desc : 
-        pin : 
+        pin : none
 ---
 
 {% include header_card_node %}
+
+# Properties
+<br>
 
 > DOC TDB
 {: .warning }

@@ -16,7 +16,8 @@ nav_order: 1
 
 {% include header_card_node %}
 
-{% include img a='details/modules/orienting-average.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

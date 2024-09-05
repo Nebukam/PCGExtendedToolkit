@@ -21,7 +21,7 @@ One of the main focus of PCGEx is working with Clusters : vtx & edge-based "grap
 
 PCGEx leverage PCG' point data as data holders in order to enable easy tweaking and manipulation of edge/vertice data using existing vanilla nodes. In short, **a graph is represented by at least two separate set of points: the first, `Vtx` represent individual vertices; others, `Edges`, represent interconnected clusters.**  
 `Edges` points stores the indices of their `start` and `end` point in the matching `Vtx` group.
-{: .fs-5 .fw-300 } 
+{: .fs-5 .fw-400 } 
 
 >Because of that approach, nodes that work with graph require `Vtx` and `Edges` as separate inputs. Data Tags are used to mark which edges match which vertices, so you will see additional tags appear on your data, formatted as `PCGEx/Cluster::UID`.
 

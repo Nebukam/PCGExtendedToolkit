@@ -34,7 +34,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-graph-fuse-clusters.png' %} 
+# Properties
+<br>
 
 > Current implementation is **WIP**: not all attributes from the inputs are not forwarded to the output cluster.
 {: .error }

@@ -6,6 +6,7 @@ subtitle: Frequently Asked Questions
 splash: icons/icon_view-grid.svg
 preview_img: placeholder.jpg
 nav_order: 300
+nav_exclude: true
 ---
 
 {% include header_card %}

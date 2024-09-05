@@ -18,7 +18,8 @@ nav_order: 1
 
 The random goal picker match each `Seed` with one or multiple `Goals`.
 
-{% include img a='details/modules/picker-random.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

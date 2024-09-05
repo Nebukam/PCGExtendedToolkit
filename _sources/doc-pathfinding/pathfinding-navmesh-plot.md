@@ -30,7 +30,8 @@ outputs:
 >Important: Currently, the navigation data used by the node is the one returned by `GetDefaultNavDataInstance()`; **hence it requires a navmesh to be built and loaded at the time of execution.**
 {: .error }
 
-{% include img a='details/details-pathfinding-navmesh-plot.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

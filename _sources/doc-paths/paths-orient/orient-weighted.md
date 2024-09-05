@@ -16,11 +16,11 @@ nav_order: 1
 
 {% include header_card_node %}
 
-
-
 Weighted orientation balances the orientation of the point between the previous and next point based on perpendicular distance.
 {% include img a='docs/orient/weight.png' %}   
-{% include img a='details/modules/orienting-weighted.png' %} 
+
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

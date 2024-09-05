@@ -28,7 +28,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-sample-nearest-point.png' %} 
+# Properties
+<br>
 
 > Each output property is written individually for each point.
 {: .comment }

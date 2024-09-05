@@ -16,5 +16,8 @@ nav_order: 2
 
 {% include header_card_node %}
 
+# Properties
+<br>
+
 > DOC TDB
 {: .warning }

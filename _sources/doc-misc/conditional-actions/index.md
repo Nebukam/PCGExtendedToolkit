@@ -29,6 +29,9 @@ outputs:
 
 {% include header_card_node %}
 
+# Properties
+<br>
+
 > DOC TDB
 {: .warning }
 

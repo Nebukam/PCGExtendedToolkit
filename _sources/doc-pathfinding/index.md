@@ -41,7 +41,7 @@ The search returns the path found **with the lowest possible weight**, or *score
 
 While the selected search algorithm is important, {% include lk id='🝰 Heuristics' %} are more critical to the operation, as user-defined weights can drastically change and shape the path deemed best by the search.
 
->Note: The `Plot` nodes variations don't have a goal picker and instead process each point data set as *a list of points to go through from start to finish*. The first point is the initial seed, the last point is the final goal, and then a path is found that goes through each point in-between, in order.
+>Note: The `Plot` nodes variations don't have a goal picker and instead process each point Dataset as *a list of points to go through from start to finish*. The first point is the initial seed, the last point is the final goal, and then a path is found that goes through each point in-between, in order.
 {: .comment }
 
 {% include imgc a='pathfinding/ploting.png' %}  

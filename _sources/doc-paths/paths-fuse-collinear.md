@@ -28,7 +28,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-fuse-collinear.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

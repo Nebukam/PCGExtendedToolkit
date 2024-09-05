@@ -24,7 +24,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/modules/heuristics-node-count.png' %} 
+# Properties
+<br>
 
 > DOC TDB
 {: .warning }

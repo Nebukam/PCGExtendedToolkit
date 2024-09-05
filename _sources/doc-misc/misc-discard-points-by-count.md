@@ -17,7 +17,8 @@ nav_order: 20
 
 {% include header_card_node %}
 
-{% include img a='details/details-discard-by-point-count.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

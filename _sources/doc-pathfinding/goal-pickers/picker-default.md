@@ -19,7 +19,8 @@ nav_order: 1
 The default goal picker attempts to match input `Seeds` and `Goals` in a 1:1 fashion.  
 Seed index `0` will be matched to goal index `0`, and so on.  
 
-{% include img a='details/modules/picker-default.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

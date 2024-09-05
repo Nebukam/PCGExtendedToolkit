@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body>
+<hr>
+<h3 id="common-properties">Common properties</h3>
+<h4 class="no_toc" id="common-properties-are-properties-shared-amonst-all-asset-collection-entries">Common properties are properties shared amonst all asset collection’ entries</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Property</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center" colspan="2"><strong>Sub Collection</strong></td>
+      
+    </tr>
+    <tr>
+      <td style="text-align: left">Sub Collection</td>
+      <td style="text-align: left">If <code class="language-plaintext highlighter-rouge">Is Sub Collection</code> is enabled, lets you pick an <strong>Asset Collection</strong> that will work like a list of alternative choices for this entry.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Is Sub Collection</td>
+      <td style="text-align: left">Whether this entry is a sub-collection or not.<br>Enabling this option will reveal the <strong>Asset Collection</strong> picker.</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td colspan="2" style="text-align: center"><strong>Settings</strong></td>
+      
+    </tr>
+    <tr>
+      <td>Weight</td>
+      <td>The weight of this entry, relative to the others in the list.<br>Higher weights means higher chance of being picked, if the context is using weighted random selection.</td>
+    </tr>
+    <tr>
+      <td>Category</td>
+      <td>A category associated with this entry. <em>Think of it as a unique tag.</em>
+</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote class="infos-hl">
+  <p>An entry <code class="language-plaintext highlighter-rouge">Weight</code> is not only used for Weighted Random selection, but is also used to sort entries in certain cases; among which <code class="language-plaintext highlighter-rouge">Indexed Weight</code> (Ascending/Descending) distribution mode of the <a href="/PCGExtendedToolkit/doc-assets/assets-staging.html"><img class="icon emb" src="/PCGExtendedToolkit/assets/icons/icon_paths-orient.svg">Asset Staging</a> node.</p>
+</blockquote>
+
+<hr>
+<h3 id="variations">Variations</h3>
+
+<p>Optionally, you may enter a few random ranges for staging nodes to use, should you want to.<br>
+<em>This can come in handy if you want to have high-level, per-asset variations.</em></p>
+
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><strong>Positions</strong></td>
+      <td><em>Additive</em></td>
+    </tr>
+    <tr>
+      <td>Offset Min</td>
+      <td>Minimum offset range.</td>
+    </tr>
+    <tr>
+      <td>Offset Max</td>
+      <td>Maximum offset range.</td>
+    </tr>
+    <tr>
+      <td>Absolute offset</td>
+      <td>Whether the offset should be applied in world space, or “local” to the point’ transform.</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><strong>Rotation</strong></td>
+      <td><em>Additive</em></td>
+    </tr>
+    <tr>
+      <td>Rotation Min</td>
+      <td>Minimum rotation offset range.</td>
+    </tr>
+    <tr>
+      <td>Rotation Max</td>
+      <td>Maximum rotation offset range.</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><strong>Scale</strong></td>
+      <td><em>Multiplicative</em></td>
+    </tr>
+    <tr>
+      <td>Scale Min</td>
+      <td>Minimum scale multiplier range.</td>
+    </tr>
+    <tr>
+      <td>Scale Max</td>
+      <td>Maximum scale multiplier range.</td>
+    </tr>
+    <tr>
+      <td>Uniform Scale</td>
+      <td>Whether the random scale multiplier should be applied per-component or uniformly (<em>in which case it uses <code class="language-plaintext highlighter-rouge">X</code> for all components</em>).</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote class="comment">
+  <p>Note that variations are <strong>never</strong> applied by default by any nodes, and are considered an advanced tweak.</p>
+</blockquote>
+</body></html>

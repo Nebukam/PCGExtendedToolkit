@@ -33,7 +33,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-sanitize-clusters.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

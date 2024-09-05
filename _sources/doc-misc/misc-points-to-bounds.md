@@ -17,7 +17,8 @@ nav_order: 5
 
 {% include header_card_node %}
 
-{% include img a='details/details-points-to-bounds.png' %} 
+# Properties
+<br>
 
 **Points to bound** has no dedicated properties and is pretty straighforward to use.
 It embeds a data blender module, which you can read more about in the specific {% include lk id='Blending' %} section.

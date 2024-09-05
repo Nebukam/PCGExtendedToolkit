@@ -26,7 +26,8 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-smooth.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

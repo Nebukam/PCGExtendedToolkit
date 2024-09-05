@@ -29,7 +29,8 @@ outputs:
 > Note that this only works with *simple* collisions -- 'use complex as simple' won't work either.
 {: .warning-hl }
 
-{% include img a='details/details-sample-nearest-surface.png' %} 
+# Properties
+<br>
 
 > Each output property is written individually for each point.
 {: .comment }

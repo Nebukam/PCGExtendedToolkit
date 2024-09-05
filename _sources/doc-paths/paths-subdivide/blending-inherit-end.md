@@ -16,7 +16,8 @@ nav_order: 3
 
 {% include header_card_node %}
 
-{% include img a='details/modules/blending-inherit-last.png' %} 
+# Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|
