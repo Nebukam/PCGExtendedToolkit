@@ -10,8 +10,6 @@
 
 PCGEX_INITIALIZE_ELEMENT(Orient)
 
-FName UPCGExOrientSettings::GetPointFilterLabel() const { return FName("FlipOrientationConditions"); }
-
 bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -112,12 +110,12 @@ namespace PCGExOrient
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
 		{
-			TransformWriter = PointDataFacade->GetWriter<FTransform>(Settings->OutputAttribute, true);
+			TransformWriter = PointDataFacade->GetWriter<FTransform>(Settings->OutputAttribute, false);
 		}
 
 		if (Settings->bOutputDot)
 		{
-			DotWriter = PointDataFacade->GetWriter<double>(Settings->DotAttribute, true);
+			DotWriter = PointDataFacade->GetWriter<double>(Settings->DotAttribute, false);
 		}
 
 		StartParallelLoopForPoints();
@@ -128,12 +126,13 @@ namespace PCGExOrient
 	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
 	{
 		PointDataFacade->Fetch(StartIndex, Count);
+		FilterScope(StartIndex, Count);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		PCGEX_SETTINGS(Orient)
-
+		
 		FTransform OutT;
 
 		PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);

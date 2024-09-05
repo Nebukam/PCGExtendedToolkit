@@ -46,7 +46,7 @@ protected:
 
 	//~Begin UPCGExPointProcessorSettings
 public:
-	virtual FName GetPointFilterLabel() const override;
+	virtual FName GetPointFilterLabel() const override { return FName("FlipOrientationConditions"); }
 	//~End UPCGExPointProcessorSettings
 
 public:

@@ -217,7 +217,7 @@ namespace PCGExPathCrossings
 
 			if (Details.bUseMinAngle || Details.bUseMaxAngle)
 			{
-				const double Dot = FVector::DotProduct((B1 - A1).GetSafeNormal(), (B2 - A2).GetSafeNormal());
+				const double Dot = FMath::Abs(FVector::DotProduct((B1 - A1).GetSafeNormal(), (B2 - A2).GetSafeNormal()));
 				if (Dot < Details.MinDot || Dot > Details.MaxDot) { return; }
 			}
 
