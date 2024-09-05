@@ -148,6 +148,7 @@ namespace PCGExConnectPoints
 		{
 			UPCGExProbeOperation* NewOperation = Factory->CreateOperation();
 			NewOperation->BindContext(Context);
+			NewOperation->PrimaryDataFacade = PointDataFacade;
 
 			if (!NewOperation->PrepareForPoints(PointIO))
 			{
