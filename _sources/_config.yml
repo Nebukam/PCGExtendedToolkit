@@ -32,7 +32,7 @@ github_username:  nebukam
 destination: ../docs/
 
 # Build settings
-incremental: true
+#incremental: true
 theme: just-the-docs
 color_scheme: dark
 logo: "/assets/images/splash.png" 
