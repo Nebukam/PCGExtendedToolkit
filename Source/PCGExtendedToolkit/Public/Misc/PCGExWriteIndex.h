@@ -33,13 +33,21 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
-	/** The name of the attribute to write its index to.*/
+	/** Whther to write the index as a normalized output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOutputNormalizedIndex = false;
 
 	/** The name of the attribute to write its index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName OutputAttributeName = "CurrentIndex";
+
+	/** Whether to write the collection index as an attribute (note this will be a default value attribute, so memory-friendly).*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bOutputCollectionIndex = false;
+
+	/** The name of the attribute to write the collection index to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName CollectionIndexAttributeName = "CollectionIndex";
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteIndexContext final : public FPCGExPointsProcessorContext
