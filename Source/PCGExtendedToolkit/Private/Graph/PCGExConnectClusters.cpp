@@ -329,7 +329,10 @@ namespace PCGExBridgeClusters
 		const FPCGPoint& StartPoint = Batch->VtxIO->GetOutPoint(IndexA);
 		const FPCGPoint& EndPoint = Batch->VtxIO->GetOutPoint(IndexB);
 
-		EdgePoint.Transform.SetLocation(FMath::Lerp(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation(), 0.5));
+		if(EdgePoint.Transform.IsValid())
+		{
+			EdgePoint.Transform.SetLocation(FMath::Lerp(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation(), 0.5));
+		}
 
 		uint32 StartIdx;
 		uint32 StartNumEdges;
