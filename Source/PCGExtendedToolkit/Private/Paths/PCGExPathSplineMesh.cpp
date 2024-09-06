@@ -177,6 +177,8 @@ namespace PCGExPathSplineMesh
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
+		bClosedPath = Settings->bClosedPath;
+
 		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(Context, PointDataFacade)) { return false; }
 
@@ -199,7 +201,7 @@ namespace PCGExPathSplineMesh
 
 		LastIndex = PointIO->GetNum() - 1;
 
-		PCGEX_SET_NUM_UNINITIALIZED(Segments, LastIndex)
+		PCGEX_SET_NUM_UNINITIALIZED(Segments, bClosedPath ? LastIndex + 1 : LastIndex)
 		//PCGEX_SET_NUM_UNINITIALIZED(SplineMeshComponents, LastIndex)
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -214,8 +216,7 @@ namespace PCGExPathSplineMesh
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		// TODO : Support closed splines
-		if (Index == LastIndex) { return; } // Ignore last index, only used for maths reasons
+		if (Index == LastIndex && !bClosedPath) { return; } // Ignore last index, only used for maths reasons
 
 		const FPCGExAssetStagingData* StagingData = nullptr;
 
@@ -231,7 +232,9 @@ namespace PCGExPathSplineMesh
 
 		if (!StagingData) { return; }
 
-		const FPCGPoint& NextPoint = PointIO->GetInPoint(Index + 1);
+		const int32 NextIndex = Index + 1 > LastIndex ? bClosedPath ? 0 : Index : Index + 1;
+
+		const FPCGPoint& NextPoint = PointIO->GetInPoint(NextIndex);
 		const FTransform& StartTransform = Point.Transform;
 		const FTransform& EndTransform = NextPoint.Transform;
 
@@ -247,37 +250,9 @@ namespace PCGExPathSplineMesh
 
 		if (LocalSettings->bApplyCustomTangents)
 		{
-			int32 NextIndex = Index + 1;
-
-			if (bClosedPath)
-			{
-				if (NextIndex > LastIndex) { NextIndex = 0; }
-
-				Segment.Params.StartTangent = LeaveReader->Values[Index];
-				Segment.Params.EndTangent = ArriveReader->Values[NextIndex];
-			}
-			else
-			{
-				if (NextIndex > LastIndex)
-				{
-					Segment.Params.StartTangent = LeaveReader->Values[Index];
-					Segment.Params.EndTangent = ArriveReader->Values[Index];
-				}
-				else
-				{
-					Segment.Params.StartTangent = LeaveReader->Values[Index];
-					Segment.Params.EndTangent = ArriveReader->Values[NextIndex];
-				}
-			}
+			Segment.Params.StartTangent = LeaveReader->Values[Index];
+			Segment.Params.EndTangent = ArriveReader->Values[NextIndex];
 		}
-
-
-		/*
-		AActor* TargetActor = LocalSettings->TargetActor.Get() ? LocalSettings->TargetActor.Get() : Context->GetTargetActor(nullptr);
-		if (!TargetActor) { return; }
-
-		SplineMeshComponents[Index] = UPCGExManagedSplineMeshComponent::CreateComponentOnly(TargetActor, Context->SourceComponent.Get(), Segment);
-		*/
 	}
 
 	void FProcessor::CompleteWork()
@@ -300,7 +275,7 @@ namespace PCGExPathSplineMesh
 		for (const PCGExPaths::FSplineMeshSegment& Segment : Segments)
 		{
 			if (!Segment.AssetStaging) { continue; }
-			
+
 			USplineMeshComponent* SMC = UPCGExManagedSplineMeshComponent::CreateComponentOnly(TargetActor, Context->SourceComponent.Get(), Segment);
 			if (!SMC) { continue; }
 
