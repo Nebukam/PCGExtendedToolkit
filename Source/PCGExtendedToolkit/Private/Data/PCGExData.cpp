@@ -38,13 +38,17 @@ namespace PCGExData
 
 	void FIdxCompound::ComputeWeights(
 		const TArray<FFacade*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
-		const FPCGExDistanceDetails& InDistanceDetails, TArray<uint64>& OutCompoundHashes, TArray<double>& OutWeights)
+		const FPCGExDistanceDetails& InDistanceDetails, TArray<int32>& OutIOIdx, TArray<int32>& OutPointsIdx, TArray<double>& OutWeights)
 	{
-		OutCompoundHashes.SetNumUninitialized(CompoundedHashSet.Num());
-		OutWeights.SetNumUninitialized(CompoundedHashSet.Num());
+		const int32 NumHashes = CompoundedHashSet.Num();
+
+		PCGEX_SET_NUM_UNINITIALIZED(OutPointsIdx, NumHashes)
+		PCGEX_SET_NUM_UNINITIALIZED(OutWeights, NumHashes)
+		PCGEX_SET_NUM_UNINITIALIZED(OutIOIdx, NumHashes)
 
 		double TotalWeight = 0;
 		int32 Index = 0;
+
 		for (const uint64 Hash : CompoundedHashSet)
 		{
 			uint32 IOIndex;
@@ -54,7 +58,8 @@ namespace PCGExData
 			const int32* IOIdx = SourcesIdx.Find(IOIndex);
 			if (!IOIdx) { continue; }
 
-			OutCompoundHashes[Index] = Hash;
+			OutIOIdx[Index] = *IOIdx;
+			OutPointsIdx[Index] = PtIndex;
 
 			const double Weight = InDistanceDetails.GetDistance(Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target);
 			OutWeights[Index] = Weight;
@@ -62,6 +67,12 @@ namespace PCGExData
 
 			Index++;
 		}
+
+		if (Index == 0) { return; }
+
+		OutPointsIdx.SetNum(Index);
+		OutWeights.SetNum(Index);
+		OutIOIdx.SetNum(Index);
 
 		if (TotalWeight == 0)
 		{

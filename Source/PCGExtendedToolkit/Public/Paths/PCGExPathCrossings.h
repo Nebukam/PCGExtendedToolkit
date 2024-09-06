@@ -8,6 +8,7 @@
 #include "PCGExPaths.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/Blending/PCGExDataBlending.h"
 #include "Geometry/PCGExGeo.h"
 #include "PCGExPathCrossings.generated.h"
 
@@ -50,6 +51,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExPathEdgeIntersectionDetails IntersectionDetails;
 
+	/** Blending applied on intersecting points along the path prev and next point. This is different from inheriting from external properties. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
@@ -58,6 +60,13 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
 	FName CrossingFlagAttributeName = "bIsCrossing";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bDoCrossBlending = false;
+
+	/** If enabled, blend in properties & attributes from external sources. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoCrossBlending"))
+	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::None);
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCGExPathProcessorContext

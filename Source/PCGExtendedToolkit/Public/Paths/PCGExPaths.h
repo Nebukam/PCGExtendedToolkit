@@ -29,7 +29,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 	/** Min angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=180))
 	double MinAngle = 0;
-	double MinDot = -1;
+	double MaxDot = -1;
 
 	/** . */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -38,7 +38,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 	/** Maximum angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=180))
 	double MaxAngle = 90;
-	double MaxDot = 1;
+	double MinDot = 1;
 
 	//
 
@@ -52,10 +52,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 
 	void Init()
 	{
-		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle * 0.5) : -1;
-		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle * 0.5) : 1;
+		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 0;
+		MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
 		ToleranceSquared = Tolerance * Tolerance;
 	}
+
+	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
 };
 
 namespace PCGExPaths

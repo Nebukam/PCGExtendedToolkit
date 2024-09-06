@@ -88,8 +88,12 @@ namespace PCGExDataBlending
 		void AddSources(const TArray<PCGExData::FFacade*>& InFacades);
 
 		void PrepareMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList);
-		//void Merge(PCGExMT::FTaskManager* AsyncManager, PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList, const FPCGExDistanceDetails& InDistDetails);
 		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
+
+		void PrepareSoftMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList);
+		void SoftMergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
+
+		void BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights);
 
 	protected:
 		bool bPreserveAttributesDefaultValue = false;

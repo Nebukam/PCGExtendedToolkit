@@ -107,7 +107,8 @@ namespace PCGExDataBlending
 		CurrentTargetData = TargetData;
 
 		PCGEX_DELETE(PropertiesBlender)
-		PropertiesBlender = new FPropertiesBlender(BlendingDetails->GetPropertiesBlendingDetails());
+		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
+		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : new FPropertiesBlender(PropertiesBlendingDetails);
 
 		CurrentTargetData->Source->CreateOutKeys();
 
@@ -138,7 +139,7 @@ namespace PCGExDataBlending
 						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, Sources[i]); }
 					}
 
-					SrcMap->TargetBlendOp->PrepareForData(Writer, TargetData, PCGExData::ESource::Out);
+					SrcMap->TargetBlendOp->PrepareForData(Writer, CurrentTargetData, PCGExData::ESource::Out);
 				});
 		}
 	}
@@ -147,42 +148,25 @@ namespace PCGExDataBlending
 	{
 		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
 
-		TArray<uint64> CompoundHashes;
+		TArray<int32> IdxIO;
+		TArray<int32> IdxPt;
 		TArray<double> Weights;
 
 		Compound->ComputeWeights(
 			Sources, IOIndices,
 			CurrentTargetData->Source->GetOutPoint(CompoundIndex), InDistanceDetails,
-			CompoundHashes, Weights);
+			IdxIO, IdxPt, Weights);
 
-		const int32 NumCompounded = CompoundHashes.Num();
+		const int32 NumCompounded = IdxPt.Num();
 
-		int32 ValidCompounds = 0;
-		double TotalWeight = 0;
+		if (NumCompounded == 0) { return; }
 
 		// Blend Properties
 
 		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(CompoundIndex);
-		PropertiesBlender->PrepareBlending(Target, Target);
 
-		for (int k = 0; k < NumCompounded; k++)
-		{
-			uint32 IOIndex;
-			uint32 PtIndex;
-			PCGEx::H64(CompoundHashes[k], IOIndex, PtIndex);
-
-			const int32* IOIdx = IOIndices.Find(IOIndex);
-			if (!IOIdx) { continue; }
-
-			const double Weight = Weights[k];
-
-			PropertiesBlender->Blend(Target, Sources[*IOIdx]->Source->GetInPoint(PtIndex), Target, Weight);
-
-			ValidCompounds++;
-			TotalWeight += Weight;
-		}
-
-		PropertiesBlender->CompleteBlending(Target, ValidCompounds, TotalWeight);
+		// Blend Properties
+		BlendProperties(Target, IdxIO, IdxPt, Weights);
 
 		// Blend Attributes
 
@@ -190,25 +174,18 @@ namespace PCGExDataBlending
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(CompoundIndex);
 
-			ValidCompounds = 0;
-			TotalWeight = 0;
+			int32 ValidCompounds = 0;
+			double TotalWeight = 0;
 
 			for (int k = 0; k < NumCompounded; k++)
 			{
-				uint32 IOIndex;
-				uint32 PtIndex;
-				PCGEx::H64(CompoundHashes[k], IOIndex, PtIndex);
-
-				const int32* IOIdx = IOIndices.Find(IOIndex);
-				if (!IOIdx) { continue; }
-
-				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[*IOIdx];
+				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
 
 				const double Weight = Weights[k];
 
 				Operation->DoOperation(
-					CompoundIndex, Sources[*IOIdx]->Source->GetInPoint(PtIndex),
+					CompoundIndex, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]),
 					CompoundIndex, Weight, k == 0);
 
 				ValidCompounds++;
@@ -219,5 +196,112 @@ namespace PCGExDataBlending
 
 			SrcMap->TargetBlendOp->FinalizeOperation(CompoundIndex, ValidCompounds, TotalWeight);
 		}
+	}
+
+	// Soft blending
+
+	void FCompoundBlender::PrepareSoftMerge(
+		PCGExData::FFacade* TargetData,
+		PCGExData::FIdxCompoundList* CompoundList)
+	{
+		CurrentCompoundList = CompoundList;
+		CurrentTargetData = TargetData;
+
+		PCGEX_DELETE(PropertiesBlender)
+		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
+		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : new FPropertiesBlender(PropertiesBlendingDetails);
+
+		CurrentTargetData->Source->CreateOutKeys();
+
+		// Create blending operations
+		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
+		{
+			SrcMap->Writer = nullptr;
+
+			PCGMetadataAttribute::CallbackWithRightType(
+				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+
+					// TODO : Only prepare for data if the matching IO exists
+
+					for (int i = 0; i < Sources.Num(); i++)
+					{
+						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->SoftPrepareForData(CurrentTargetData, Sources[i]); }
+					}
+
+					SrcMap->TargetBlendOp->SoftPrepareForData(CurrentTargetData, CurrentTargetData, PCGExData::ESource::Out);
+				});
+		}
+	}
+
+	void FCompoundBlender::SoftMergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails)
+	{
+		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
+
+		TArray<int32> IdxIO;
+		TArray<int32> IdxPt;
+		TArray<double> Weights;
+
+		Compound->ComputeWeights(
+			Sources, IOIndices,
+			CurrentTargetData->Source->GetOutPoint(CompoundIndex), InDistanceDetails,
+			IdxIO, IdxPt, Weights);
+
+		const int32 NumCompounded = IdxPt.Num();
+
+		if (NumCompounded == 0) { return; }
+
+		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(CompoundIndex);
+
+		// Blend Properties
+		BlendProperties(Target, IdxIO, IdxPt, Weights);
+
+		// Blend Attributes
+
+		for (const FAttributeSourceMap* SrcMap : AttributeSourceMaps)
+		{
+			SrcMap->TargetBlendOp->PrepareOperation(Target.MetadataEntry);
+
+			int32 ValidCompounds = 0;
+			double TotalWeight = 0;
+
+			for (int k = 0; k < NumCompounded; k++)
+			{
+				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[IdxIO[k]];
+				if (!Operation) { continue; }
+
+				const double Weight = Weights[k];
+
+				Operation->DoOperation(
+					Target.MetadataEntry, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]).MetadataEntry,
+					Target.MetadataEntry, Weight, k == 0);
+
+				ValidCompounds++;
+				TotalWeight += Weight;
+			}
+
+			if (ValidCompounds == 0) { continue; } // No valid attribute to merge on any compounded source
+
+			SrcMap->TargetBlendOp->FinalizeOperation(Target.MetadataEntry, ValidCompounds, TotalWeight);
+		}
+	}
+
+	void FCompoundBlender::BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights)
+	{
+		if (!PropertiesBlender) { return; }
+
+		PropertiesBlender->PrepareBlending(TargetPoint, TargetPoint);
+
+		const int32 NumCompounded = IdxIO.Num();
+		double TotalWeight = 0;
+		for (int k = 0; k < NumCompounded; k++)
+		{
+			const double Weight = Weights[k];
+			PropertiesBlender->Blend(TargetPoint, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]), TargetPoint, Weight);
+			TotalWeight += Weight;
+		}
+
+		PropertiesBlender->CompleteBlending(TargetPoint, NumCompounded, TotalWeight);
 	}
 }

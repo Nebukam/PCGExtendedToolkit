@@ -328,6 +328,8 @@ namespace PCGExData
 		FBox GetInBounds() const;
 		FBox GetOutBounds() const;
 
+		void PruneNullEntries(const bool bUpdateIndices);
+
 		void Flush();
 	};
 

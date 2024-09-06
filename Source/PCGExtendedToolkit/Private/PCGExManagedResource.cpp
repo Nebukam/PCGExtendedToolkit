@@ -62,6 +62,8 @@ void UPCGExManagedSplineMeshComponent::AttachTo(AActor* InTargetActor, UPCGCompo
 
 USplineMeshComponent* UPCGExManagedSplineMeshComponent::CreateComponentOnly(AActor* InOuter, UPCGComponent* InSourceComponent, const PCGExPaths::FSplineMeshSegment& InParams)
 {
+	if (!InParams.AssetStaging) { return nullptr; } // Booh
+
 	bool bIsPreviewMode = false;
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 	bIsPreviewMode = InSourceComponent->IsInPreviewMode();

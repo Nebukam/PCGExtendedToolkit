@@ -29,11 +29,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigDirection : public FPCGExProb
 	}
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=180))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUseComponentWiseAngle = false;
 
 	/** Max angle to search within. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseComponentWiseAngle"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bUseComponentWiseAngle", ClampMin=0, ClampMax=180))
 	double MaxAngle = 45;
 
 	/** Max angle to search within. */
@@ -85,7 +85,7 @@ public:
 
 protected:
 	bool bUseConstantDir = false;
-	double MaxDot = 0;
+	double MinDot = 0;
 	bool bUseBestDot = false;
 	FVector Direction = FVector::ForwardVector;
 	PCGExData::FCache<FVector>* DirectionCache = nullptr;

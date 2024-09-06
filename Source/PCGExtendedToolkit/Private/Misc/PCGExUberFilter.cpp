@@ -87,6 +87,14 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Boot(Context)) { return true; }
 
+		Context->NumPairs = Context->MainPoints->Pairs.Num();
+
+		if (Settings->Mode == EPCGExUberFilterMode::Partition)
+		{
+			PCGEX_SET_NUM_NULLPTR(Context->Inside->Pairs, Context->NumPairs)
+			PCGEX_SET_NUM_NULLPTR(Context->Outside->Pairs, Context->NumPairs)
+		}
+
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>* NewBatch)
@@ -107,6 +115,9 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 	else
 	{
+		Context->Inside->PruneNullEntries(true);
+		Context->Outside->PruneNullEntries(true);
+
 		Context->Inside->OutputToContext();
 		Context->Outside->OutputToContext();
 	}
@@ -163,6 +174,15 @@ namespace PCGExUberFilter
 		return true;
 	}
 
+	PCGExData::FPointIO* FProcessor::CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const
+	{
+		PCGExData::FPointIO* NewPointIO = new PCGExData::FPointIO(Context, PointIO);
+		NewPointIO->DefaultOutputLabel = InCollection->DefaultOutputLabel;
+		NewPointIO->InitializeOutput(InitMode);
+		InCollection->Pairs[BatchIndex] = NewPointIO;
+		return NewPointIO;
+	}
+
 	void FProcessor::CompleteWork()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUberFilterProcessor::CompleteWork);
@@ -188,19 +208,18 @@ namespace PCGExUberFilter
 
 		if (NumInside == 0 || NumOutside == 0)
 		{
-			if (NumInside == 0) { Outside = LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
-			else { Inside = LocalTypedContext->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+			if (NumInside == 0) { Outside = CreateIO(LocalTypedContext->Outside, PCGExData::EInit::Forward); }
+			else { Inside = CreateIO(LocalTypedContext->Inside, PCGExData::EInit::Forward); }
 			return;
 		}
 
 		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
 
-		Inside = LocalTypedContext->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
-		Inside->InitializeOutput(PCGExData::EInit::NewOutput);
+		Inside = CreateIO(LocalTypedContext->Inside, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& InsidePoints = Inside->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(InsidePoints, NumInside)
 
-		Outside = LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+		Outside = CreateIO(LocalTypedContext->Outside, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(OutsidePoints, NumOutside)
 

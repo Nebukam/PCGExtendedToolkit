@@ -153,7 +153,7 @@ namespace PCGExSimplifyClusters
 		}
 
 		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
-		const double FixedDotThreshold = PCGExMath::DegreesToDot(LocalSettings->AngularThreshold * 0.5);
+		const double DotThreshold = PCGExMath::DegreesToDot(LocalSettings->AngularThreshold);
 		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 
 		if (!LocalSettings->bMergeAboveAngularThreshold)
@@ -189,8 +189,8 @@ namespace PCGExSimplifyClusters
 			const FVector A = Cluster->GetDir(PrevNode, CurrentNode).GetSafeNormal();
 			const FVector B = Cluster->GetDir(CurrentNode, NextNode).GetSafeNormal();
 
-			if (!LocalSettings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > FixedDotThreshold) { continue; } }
-			else { if (FVector::DotProduct(A, B) < FixedDotThreshold) { continue; } }
+			if (!LocalSettings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { continue; } }
+			else { if (FVector::DotProduct(A, B) < DotThreshold) { continue; } }
 
 			NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[CurrentIndex].PointIndex));
 			StartIndex = CurrentIndex;

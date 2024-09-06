@@ -565,8 +565,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 
 		if (DotUnits == EPCGExDotUnits::Degrees)
 		{
-			DotTolerance = PCGExMath::DegreesToDot(DegreesTolerance * 0.5);
-			DotConstant = PCGExMath::DegreesToDotForComparison(DegreesConstant * 0.5);
+			DotTolerance = PCGExMath::DegreesToDot(DegreesTolerance);
+			DotConstant = PCGExMath::DegreesToDotForComparison(DegreesConstant);
 		}
 
 		return true;

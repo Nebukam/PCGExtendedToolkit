@@ -14,7 +14,7 @@ bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
 	bUseBestDot = Config.Favor == EPCGExProbeDirectionPriorization::Dot;
-	MaxDot = PCGExMath::DegreesToDot(Config.MaxAngle * 0.5);
+	MinDot = PCGExMath::DegreesToDot(Config.MaxAngle);
 
 	if (Config.DirectionSource == EPCGExFetchType::Constant)
 	{
@@ -63,7 +63,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 		else
 		{
 			Dot = FVector::DotProduct(Dir, C.Direction);
-			if (Dot < MaxDot) { continue; }
+			if (Dot < MinDot) { continue; }
 		}
 
 		if (bUseBestDot)
@@ -124,7 +124,7 @@ void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 	else
 	{
 		Dot = FVector::DotProduct(Dir, Candidate.Direction);
-		if (Dot < MaxDot) { return; }
+		if (Dot < MinDot) { return; }
 	}
 
 	if (bUseBestDot)

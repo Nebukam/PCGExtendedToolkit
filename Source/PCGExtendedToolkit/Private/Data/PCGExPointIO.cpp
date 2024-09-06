@@ -346,6 +346,28 @@ namespace PCGExData
 		return Bounds;
 	}
 
+	void FPointIOCollection::PruneNullEntries(const bool bUpdateIndices)
+	{
+		const int32 MaxPairs = Pairs.Num();
+		int32 WriteIndex = 0;
+		if (!bUpdateIndices)
+		{
+			for (int32 i = 0; i < MaxPairs; ++i) { if (Pairs[i]) { Pairs[WriteIndex++] = Pairs[i]; } }
+		}
+		else
+		{
+			for (int32 i = 0; i < MaxPairs; ++i)
+			{
+				if (Pairs[i])
+				{
+					Pairs[i]->IOIndex = WriteIndex;
+					Pairs[WriteIndex++] = Pairs[i];
+				}
+			}
+		}
+		Pairs.SetNum(WriteIndex);
+	}
+
 	void FPointIOCollection::Flush()
 	{
 		PCGEX_DELETE_TARRAY(Pairs)

@@ -561,7 +561,7 @@ namespace PCGExPointsMT
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPointsBatch::TrivialBatchProcessing);
 
 				TArray<uint64> Loops;
-				PCGExMT::SubRanges(Loops, TrivialProcessors.Num(), 64);
+				PCGExMT::SubRanges(Loops, TrivialProcessors.Num(), 32);
 
 				for (int i = 0; i < Loops.Num(); i++)
 				{

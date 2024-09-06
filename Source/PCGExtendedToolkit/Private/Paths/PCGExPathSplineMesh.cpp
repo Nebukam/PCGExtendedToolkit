@@ -217,9 +217,6 @@ namespace PCGExPathSplineMesh
 		// TODO : Support closed splines
 		if (Index == LastIndex) { return; } // Ignore last index, only used for maths reasons
 
-		Segments[Index] = PCGExPaths::FSplineMeshSegment();
-		PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
-
 		const FPCGExAssetStagingData* StagingData = nullptr;
 
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
@@ -227,7 +224,12 @@ namespace PCGExPathSplineMesh
 			Helper->Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
 
 		Helper->GetStaging(StagingData, Index, Seed);
+
+		Segments[Index] = PCGExPaths::FSplineMeshSegment();
+		PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 		Segment.AssetStaging = StagingData;
+
+		if (!StagingData) { return; }
 
 		const FPCGPoint& NextPoint = PointIO->GetInPoint(Index + 1);
 		const FTransform& StartTransform = Point.Transform;
@@ -297,6 +299,8 @@ namespace PCGExPathSplineMesh
 
 		for (const PCGExPaths::FSplineMeshSegment& Segment : Segments)
 		{
+			if (!Segment.AssetStaging) { continue; }
+			
 			USplineMeshComponent* SMC = UPCGExManagedSplineMeshComponent::CreateComponentOnly(TargetActor, Context->SourceComponent.Get(), Segment);
 			if (!SMC) { continue; }
 

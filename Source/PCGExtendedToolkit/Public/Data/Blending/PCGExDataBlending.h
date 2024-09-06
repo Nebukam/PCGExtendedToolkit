@@ -300,10 +300,20 @@ namespace PCGExDataBlending
 
 		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
+			PrimaryData = InPrimaryFacade->Source->GetOut();
+			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
 		}
 
 		virtual void PrepareForData(PCGEx::FAttributeIOBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
+			PrimaryData = nullptr;
+			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
+		}
+
+		virtual void SoftPrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		{
+			PrimaryData = InPrimaryFacade->Source->GetOut();
+			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
 		}
 
 		FORCEINLINE virtual bool GetIsInterpolation() const { return false; }
@@ -329,9 +339,17 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const bool bFirstOperation) const = 0;
 		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
 
+		// Soft ops
+
+		FORCEINLINE virtual void PrepareOperation(const PCGMetadataEntryKey WriteKey) const = 0;
+		FORCEINLINE virtual void DoOperation(const PCGMetadataEntryKey PrimaryReadKey, const PCGMetadataEntryKey SecondaryReadKey, const PCGMetadataEntryKey WriteKey, const double Weight, const bool bFirstOperation) const = 0;
+		FORCEINLINE virtual void FinalizeOperation(const PCGMetadataEntryKey WriteKey, const int32 Count, const double TotalWeight) const = 0;
+
 	protected:
 		bool bDoInterpolation = true;
 		FName AttributeName = NAME_None;
+		UPCGPointData* PrimaryData = nullptr;
+		const UPCGPointData* SecondaryData = nullptr;
 	};
 
 	template <typename T>
@@ -358,7 +376,7 @@ namespace PCGExDataBlending
 			Writer = static_cast<PCGEx::TAttributeWriter<T>*>(InWriter);
 
 			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
-			TypedAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
+			SourceAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
 
 			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
 		}
@@ -367,9 +385,9 @@ namespace PCGExDataBlending
 		{
 			Cleanup();
 
-			TypedAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
+			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
 
-			if (TypedAttribute) { Writer = InPrimaryFacade->GetWriter<T>(TypedAttribute, false); }
+			if (SourceAttribute) { Writer = InPrimaryFacade->GetWriter<T>(SourceAttribute, false); }
 			else { Writer = InPrimaryFacade->GetWriter<T>(AttributeName, T{}, true, false); }
 
 			Reader = InSecondaryFacade->GetReader<T>(AttributeName, SecondarySource); // Will return writer is sources ==
@@ -377,6 +395,22 @@ namespace PCGExDataBlending
 			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
 
 			FDataBlendingOperationBase::PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
+		}
+
+		virtual void SoftPrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		{
+			Cleanup();
+
+			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
+			TargetAttribute = InPrimaryFacade->FindMutableAttribute<T>(AttributeName, PCGExData::ESource::Out);
+
+			if (!TargetAttribute) { TargetAttribute = static_cast<FPCGMetadataAttribute<T>*>(InPrimaryFacade->GetOut()->Metadata->CopyAttribute(SourceAttribute, SourceAttribute->Name, false, false, false)); }
+
+			check(TargetAttribute) // Something went wrong
+
+			bDoInterpolation = SourceAttribute->AllowsInterpolation() && GetIsInterpolation();
+
+			FDataBlendingOperationBase::SoftPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 		}
 
 		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const override
@@ -420,7 +454,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
 			const T A = Writer->Values[PrimaryReadIndex];
-			const T B = TypedAttribute ? TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
+			const T B = SourceAttribute ? SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
 			Writer->Values[WriteIndex] = SingleOperation(A, B, Weight);
 		}
 
@@ -429,6 +463,26 @@ namespace PCGExDataBlending
 			if (!bDoInterpolation) { return; }
 			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
 		}
+
+
+		FORCEINLINE virtual void PrepareOperation(const PCGMetadataEntryKey WriteKey) const override
+		{
+			T Value = TargetAttribute->GetValueFromItemKey(WriteKey);
+			SinglePrepare(Value);
+			TargetAttribute->SetValue(WriteKey, Value);
+		};
+
+		FORCEINLINE virtual void DoOperation(const PCGMetadataEntryKey PrimaryReadKey, const PCGMetadataEntryKey SecondaryReadKey, const PCGMetadataEntryKey WriteKey, const double Weight, const bool bFirstOperation) const override
+		{
+			TargetAttribute->SetValue(WriteKey, SingleOperation(SourceAttribute->GetValueFromItemKey(SecondaryReadKey), TargetAttribute->GetValueFromItemKey(PrimaryReadKey), Weight));
+		};
+
+		FORCEINLINE virtual void FinalizeOperation(const PCGMetadataEntryKey WriteKey, const int32 Count, const double TotalWeight) const override
+		{
+			T Value = TargetAttribute->GetValueFromItemKey(WriteKey);
+			SingleFinalize(Value, Count, TotalWeight);
+			TargetAttribute->SetValue(WriteKey, Value);
+		};
 
 		FORCEINLINE virtual void SinglePrepare(T& A) const
 		{
@@ -441,7 +495,8 @@ namespace PCGExDataBlending
 		};
 
 	protected:
-		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;
+		const FPCGMetadataAttribute<T>* SourceAttribute = nullptr;
+		FPCGMetadataAttribute<T>* TargetAttribute = nullptr;
 		PCGEx::TAttributeWriter<T>* Writer = nullptr;
 		PCGEx::TAttributeIO<T>* Reader = nullptr;
 	};
@@ -467,7 +522,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
 			const T A = this->Writer->Values[PrimaryReadIndex];
-			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
+			const T B = this->SourceAttribute ? this->SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
 
 			if (bFirstOperation)
 			{

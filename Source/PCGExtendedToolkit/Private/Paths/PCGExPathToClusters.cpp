@@ -50,7 +50,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 	Context->CarryOverDetails.Init();
 
 	const_cast<UPCGExPathToClustersSettings*>(Settings)
-		->EdgeEdgeIntersectionDetails.ComputeDot();
+		->EdgeEdgeIntersectionDetails.Init();
 
 	Context->CompoundProcessor = new PCGExGraph::FCompoundProcessor(
 		Context,

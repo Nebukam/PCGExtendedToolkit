@@ -71,6 +71,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterContext final : public FPCGExP
 
 	PCGExData::FPointIOCollection* Inside = nullptr;
 	PCGExData::FPointIOCollection* Outside = nullptr;
+
+	int32 NumPairs = 0;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterElement final : public FPCGExPointsProcessorElement
@@ -110,6 +112,7 @@ namespace PCGExUberFilter
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		PCGExData::FPointIO* CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const;
 		virtual void CompleteWork() override;
 	};
 }

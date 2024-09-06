@@ -51,8 +51,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(EdgesCarryOverDetails)
 	Context->EdgesCarryOverDetails.Init();
 
-	const_cast<UPCGExFuseClustersSettings*>(Settings)
-		->EdgeEdgeIntersectionDetails.ComputeDot();
+	const_cast<UPCGExFuseClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
 	Context->CompoundProcessor = new PCGExGraph::FCompoundProcessor(
 		Context,
@@ -78,8 +77,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(Context);
 	CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
-	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(
-		PCGExData::EInit::NewOutput);
+	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 	Context->CompoundFacade = new PCGExData::FFacade(CompoundPoints);
 

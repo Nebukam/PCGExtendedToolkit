@@ -669,6 +669,12 @@ namespace PCGExGraph
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
 				if (InIntersections->AlreadyChecked(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { return; }
+
+				if (InIntersections->Details->bUseMinAngle || InIntersections->Details->bUseMaxAngle)
+				{
+					if (!InIntersections->Details->CheckDot(FVector::DotProduct((Edge.Start - Edge.End).GetSafeNormal(), (OtherEdge.Start - OtherEdge.End).GetSafeNormal()))) { return; }
+				}
+
 				if (!Edge.FindSplit(OtherEdge, Split)) { return; }
 
 				// Check overlap last as it's the most expensive op

@@ -575,12 +575,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeEdgeIntersectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
 	FName FlagB;
 
-	void ComputeDot()
+	void Init()
 	{
-		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle * 0.5) : -1;
-		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle * 0.5) : 1;
+		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 0;
+		MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
 		ToleranceSquared = Tolerance * Tolerance;
 	}
+
+	FORCEINLINE bool CheckDot(const double InDot) const { return InDot <= MaxDot && InDot >= MinDot; }
 };
 
 USTRUCT(BlueprintType)
