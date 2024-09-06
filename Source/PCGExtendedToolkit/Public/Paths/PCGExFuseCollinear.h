@@ -60,7 +60,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseCollinearContext final : public FPCG
 
 	virtual ~FPCGExFuseCollinearContext() override;
 
-	double MinDot = 0;
+	double DotThreshold = 0;
 	double FuseDistSquared = 0;
 	//bool bDoBlend;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;

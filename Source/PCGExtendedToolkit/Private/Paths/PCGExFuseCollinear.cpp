@@ -26,7 +26,7 @@ bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseCollinear)
 
-	Context->MinDot = PCGExMath::DegreesToDot(Settings->Threshold);
+	Context->DotThreshold = Settings->bInvertThreshold ? PCGExMath::DegreesToDot(180 - Settings->Threshold) : PCGExMath::DegreesToDot(Settings->Threshold);
 	Context->FuseDistSquared = Settings->FuseDistance * Settings->FuseDistance;
 
 	//PCGEX_FWD(bDoBlend)
@@ -103,7 +103,7 @@ namespace PCGExFuseCollinear
 		OutPoints.Add(InPoints[0]);
 
 		FVector LastPosition = InPoints[0].Transform.GetLocation();
-		FVector CurrentDirection = (LastPosition - InPoints[1].Transform.GetLocation()).GetSafeNormal();
+		FVector CurrentDirection = (InPoints[1].Transform.GetLocation() - LastPosition).GetSafeNormal();
 		const int32 MaxIndex = InPoints.Num() - 1;
 
 		for (int i = 1; i < MaxIndex; i++)
@@ -113,7 +113,7 @@ namespace PCGExFuseCollinear
 			FVector DirToNext = (NextPosition - CurrentPosition).GetSafeNormal();
 
 			const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
-			const bool bWithinThreshold = Settings->bInvertThreshold ? Dot > TypedContext->MinDot : Dot < TypedContext->MinDot;
+			const bool bWithinThreshold = Dot > TypedContext->DotThreshold;
 			if (FVector::DistSquared(CurrentPosition, LastPosition) <= TypedContext->FuseDistSquared || bWithinThreshold)
 			{
 				// Collinear with previous, keep moving
