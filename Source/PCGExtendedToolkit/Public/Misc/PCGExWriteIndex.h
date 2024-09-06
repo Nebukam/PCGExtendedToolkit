@@ -42,11 +42,11 @@ public:
 	FName OutputAttributeName = "CurrentIndex";
 
 	/** Whether to write the collection index as an attribute (note this will be a default value attribute, so memory-friendly).*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOutputCollectionIndex = false;
 
 	/** The name of the attribute to write the collection index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputCollectionIndex"))
 	FName CollectionIndexAttributeName = "CollectionIndex";
 };
 

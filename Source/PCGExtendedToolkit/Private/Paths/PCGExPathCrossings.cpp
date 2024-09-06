@@ -4,6 +4,7 @@
 #include "Paths/PCGExPathCrossings.h"
 #include "PCGExMath.h"
 #include "PCGExRandom.h"
+#include "Data/Blending/PCGExCompoundBlender.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathCrossingsElement"
@@ -101,6 +102,9 @@ namespace PCGExPathCrossings
 
 		PCGEX_DELETE(CanCutFilterManager)
 		PCGEX_DELETE(CanBeCutFilterManager)
+
+		PCGEX_DELETE(CompoundList)
+		PCGEX_DELETE(CompoundBlender)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -113,6 +117,7 @@ namespace PCGExPathCrossings
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
 		bClosedPath = Settings->bClosedPath;
@@ -134,7 +139,7 @@ namespace PCGExPathCrossings
 		PCGEX_SET_NUM_UNINITIALIZED(Positions, NumPoints)
 		PCGEX_SET_NUM_UNINITIALIZED(Lengths, NumPoints)
 		PCGEX_SET_NUM_UNINITIALIZED(Edges, NumPoints)
-		PCGEX_SET_NUM_UNINITIALIZED(Crossings, NumPoints)
+		PCGEX_SET_NUM_NULLPTR(Crossings, NumPoints)
 
 		FBox PointBounds = FBox(ForceInit);
 		for (int i = 0; i < NumPoints; i++)
@@ -281,6 +286,8 @@ namespace PCGExPathCrossings
 			return;
 		}
 
+		FlagWriter->Values[Edge->OffsetedStart] = false; 
+
 		const int32 NumCrossings = Crossing->Crossings.Num();
 
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
@@ -290,15 +297,40 @@ namespace PCGExPathCrossings
 		PCGEx::ArrayOfIndices(Order, NumCrossings);
 		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
-		// TODO : Blend by alpha using SubPoint blender
-		for (int i = 0; i < NumCrossings; i++)
+		if (CompoundBlender)
 		{
-			const int32 Index = Edge->OffsetedStart + i + 1;
-			FPCGPoint& CrossingPt = OutPoints[Index];
-			const FVector& V = Crossing->Positions[Order[i]];
-			CrossingPt.Transform.SetLocation(V);
-			Metrics.Add(V);
-			if (FlagWriter) { FlagWriter->Values[Index] = true; }
+			for (int i = 0; i < NumCrossings; i++)
+			{
+				const int32 Index = Edge->OffsetedStart + i + 1;
+				FPCGPoint& CrossingPt = OutPoints[Index];
+				
+				const FVector& V = Crossing->Positions[Order[i]];
+				CrossingPt.Transform.SetLocation(V);
+				Metrics.Add(V);
+
+				if (FlagWriter) { FlagWriter->Values[Index] = true; }
+
+				uint32 PtIdx;
+				uint32 IOIdx;
+				PCGEx::H64(Crossing->Crossings[Order[i]], PtIdx, IOIdx);
+
+				PCGExData::FIdxCompound* TempCompound = new PCGExData::FIdxCompound();
+				TempCompound->Add(IOIdx, PtIdx);
+				CompoundBlender->SoftMergeSingle(Index, TempCompound, LocalSettings->CrossingBlendingDistance);
+				PCGEX_DELETE(TempCompound)
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumCrossings; i++)
+			{
+				const int32 Index = Edge->OffsetedStart + i + 1;
+				FPCGPoint& CrossingPt = OutPoints[Index];
+				const FVector& V = Crossing->Positions[Order[i]];
+				CrossingPt.Transform.SetLocation(V);
+				Metrics.Add(V);
+				if (FlagWriter) { FlagWriter->Values[Index] = true; }
+			}
 		}
 
 		Metrics.Add(Positions[Edge->End]);
@@ -310,8 +342,6 @@ namespace PCGExPathCrossings
 
 	void FProcessor::OnSearchComplete()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathCrossings)
-
 		// TODO : Find the final number of points we require
 		int32 NumPointsFinal = 0;
 
@@ -355,9 +385,23 @@ namespace PCGExPathCrossings
 			}
 		}
 
-		if (Settings->bFlagCrossing) { FlagWriter = PointDataFacade->GetWriter(Settings->CrossingFlagAttributeName, false, true, true); }
 		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out);
+		
+		if (LocalSettings->bDoCrossBlending)
+		{
+			CompoundList = new PCGExData::FIdxCompoundList();
+			CompoundBlender = new PCGExDataBlending::FCompoundBlender(&LocalSettings->CrossingBlending, &LocalSettings->CrossingCarryOver);
+			for (const PCGExData::FPointIO* IO : LocalTypedContext->MainPoints->Pairs)
+			{
+				if (IOIndices.Contains(IO->IOIndex)) { CompoundBlender->AddSource(LocalTypedContext->SubProcessorMap[IO]->PointDataFacade); }
+			}
 
+			CompoundBlender->PrepareSoftMerge(PointDataFacade, CompoundList);
+		}
+		
+		// Flag last so it doesn't get captured by blenders
+		if (LocalSettings->bFlagCrossing) { FlagWriter = PointDataFacade->GetWriter(LocalSettings->CrossingFlagAttributeName, false, true, true); }
+		
 		StartParallelLoopForRange(NumPoints);
 	}
 

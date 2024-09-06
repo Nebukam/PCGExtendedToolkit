@@ -89,9 +89,11 @@ namespace PCGExDataBlending
 
 		void PrepareMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList);
 		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
+		void MergeSingle(const int32 WriteIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails);
 
 		void PrepareSoftMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList);
 		void SoftMergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
+		void SoftMergeSingle(const int32 CompoundIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails);
 
 		void BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights);
 
@@ -100,6 +102,9 @@ namespace PCGExDataBlending
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
 
 		TArray<FAttributeSourceMap*> AttributeSourceMaps;
+		TSet<FString> UniqueTags;
+		TArray<FString> UniqueTagsList;
+		TArray<FPCGMetadataAttribute<bool>*> TagAttributes;
 		TMap<uint32, int32> IOIndices;
 		TArray<PCGExData::FFacade*> Sources;
 

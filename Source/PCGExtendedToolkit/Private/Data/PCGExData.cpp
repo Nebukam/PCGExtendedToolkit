@@ -38,7 +38,7 @@ namespace PCGExData
 
 	void FIdxCompound::ComputeWeights(
 		const TArray<FFacade*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
-		const FPCGExDistanceDetails& InDistanceDetails, TArray<int32>& OutIOIdx, TArray<int32>& OutPointsIdx, TArray<double>& OutWeights)
+		const FPCGExDistanceDetails& InDistanceDetails, TArray<int32>& OutIOIdx, TArray<int32>& OutPointsIdx, TArray<double>& OutWeights) const
 	{
 		const int32 NumHashes = CompoundedHashSet.Num();
 

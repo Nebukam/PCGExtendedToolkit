@@ -144,7 +144,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCarryOverDetails
 	}
 
 	/** If enabled, will preserve the initial attribute default value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0, EditCondition="bEnabled"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bPreserveAttributesDefaultValue = false;
 
 	/** Attributes to carry over. */
@@ -205,6 +205,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCarryOverDetails
 		for (const FString& Tag : InTags->RawTags) { if (!Tags.Test(Tag)) { return false; } }
 		for (const TPair<FString, FString>& Pair : InTags->Tags) { if (!Tags.Test((Pair.Key + PCGExData::TagSeparator + Pair.Value))) { return false; } }
 		return true;
+	}
+
+	void Reduce(TSet<FString>& InTags) const
+	{
+		if (Tags.FilterMode == EPCGExAttributeFilter::All) { return; }
+		for (TArray<FString> TagList = InTags.Array(); const FString& Tag : TagList) { if (!Tags.Test(Tag)) { InTags.Remove(Tag); } }
 	}
 
 	void Filter(UPCGMetadata* Metadata) const

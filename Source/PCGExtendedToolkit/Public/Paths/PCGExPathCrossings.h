@@ -13,6 +13,11 @@
 #include "PCGExPathCrossings.generated.h"
 
 
+namespace PCGExDataBlending
+{
+	class FCompoundBlender;
+}
+
 class UPCGExSubPointsBlendOperation;
 /**
  * 
@@ -66,7 +71,13 @@ public:
 
 	/** If enabled, blend in properties & attributes from external sources. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoCrossBlending"))
+	FPCGExCarryOverDetails CrossingCarryOver;
+	
+	/** If enabled, blend in properties & attributes from external sources. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoCrossBlending"))
 	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::None);
+
+	FPCGExDistanceDetails CrossingBlendingDistance;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCGExPathProcessorContext
@@ -112,6 +123,7 @@ namespace PCGExPathCrossings
 
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		const UPCGExPathCrossingsSettings* LocalSettings = nullptr;
 		FPCGExPathCrossingsContext* LocalTypedContext = nullptr;
 
 		bool bClosedPath = false;
@@ -129,6 +141,9 @@ namespace PCGExPathCrossings
 		PCGExPointFilter::TManager* CanBeCutFilterManager = nullptr;
 
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
+
+		PCGExData::FIdxCompoundList* CompoundList = nullptr;
+		PCGExDataBlending::FCompoundBlender* CompoundBlender = nullptr;
 
 		using TEdgeOctree = TOctree2<PCGExPaths::FPathEdge*, PCGExPaths::FPathEdgeSemantics>;
 		TEdgeOctree* EdgeOctree = nullptr;

@@ -25,6 +25,9 @@ namespace PCGExDataBlending
 	FCompoundBlender::~FCompoundBlender()
 	{
 		Sources.Empty();
+		UniqueTags.Empty();
+		UniqueTagsList.Empty();
+		TagAttributes.Empty();
 		PCGEX_DELETE(PropertiesBlender)
 		PCGEX_DELETE_TARRAY(AttributeSourceMaps)
 	}
@@ -34,6 +37,8 @@ namespace PCGExDataBlending
 		const int32 SourceIdx = Sources.Add(InFacade);
 		const int32 NumSources = Sources.Num();
 		IOIndices.Add(InFacade->Source->IOIndex, SourceIdx);
+
+		UniqueTags.Append(InFacade->Source->Tags->RawTags);
 
 		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps) { SrcMap->SetNum(NumSources); }
 
@@ -146,15 +151,20 @@ namespace PCGExDataBlending
 
 	void FCompoundBlender::MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails)
 	{
-		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
+		MergeSingle(CompoundIndex, (*CurrentCompoundList)[CompoundIndex], InDistanceDetails);
+	}
 
+	void FCompoundBlender::MergeSingle(const int32 WriteIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails)
+	{
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
 		TArray<double> Weights;
 
+		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(WriteIndex);
+		
 		Compound->ComputeWeights(
 			Sources, IOIndices,
-			CurrentTargetData->Source->GetOutPoint(CompoundIndex), InDistanceDetails,
+			Target, InDistanceDetails,
 			IdxIO, IdxPt, Weights);
 
 		const int32 NumCompounded = IdxPt.Num();
@@ -163,7 +173,6 @@ namespace PCGExDataBlending
 
 		// Blend Properties
 
-		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(CompoundIndex);
 
 		// Blend Properties
 		BlendProperties(Target, IdxIO, IdxPt, Weights);
@@ -172,7 +181,7 @@ namespace PCGExDataBlending
 
 		for (const FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
-			SrcMap->TargetBlendOp->PrepareOperation(CompoundIndex);
+			SrcMap->TargetBlendOp->PrepareOperation(WriteIndex);
 
 			int32 ValidCompounds = 0;
 			double TotalWeight = 0;
@@ -185,8 +194,8 @@ namespace PCGExDataBlending
 				const double Weight = Weights[k];
 
 				Operation->DoOperation(
-					CompoundIndex, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]),
-					CompoundIndex, Weight, k == 0);
+					WriteIndex, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]),
+					WriteIndex, Weight, k == 0);
 
 				ValidCompounds++;
 				TotalWeight += Weight;
@@ -194,7 +203,7 @@ namespace PCGExDataBlending
 
 			if (ValidCompounds == 0) { continue; } // No valid attribute to merge on any compounded source
 
-			SrcMap->TargetBlendOp->FinalizeOperation(CompoundIndex, ValidCompounds, TotalWeight);
+			SrcMap->TargetBlendOp->FinalizeOperation(WriteIndex, ValidCompounds, TotalWeight);
 		}
 	}
 
@@ -212,6 +221,9 @@ namespace PCGExDataBlending
 		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : new FPropertiesBlender(PropertiesBlendingDetails);
 
 		CurrentTargetData->Source->CreateOutKeys();
+		CarryOverDetails->Reduce(UniqueTags);
+
+		UPCGMetadata* TargetMetadata = TargetData->Source->GetOut()->Metadata;
 
 		// Create blending operations
 		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
@@ -233,26 +245,47 @@ namespace PCGExDataBlending
 					SrcMap->TargetBlendOp->SoftPrepareForData(CurrentTargetData, CurrentTargetData, PCGExData::ESource::Out);
 				});
 		}
+
+		// Strip existing attribute names that may conflict with tags
+
+		TArray<FName> ReservedNames;
+		TArray<EPCGMetadataTypes> ReservedTypes;
+		TargetMetadata->GetAttributes(ReservedNames, ReservedTypes);
+		for (FName ReservedName : ReservedNames) { UniqueTags.Remove(ReservedName.ToString()); }
+		UniqueTagsList = UniqueTags.Array();
+		TagAttributes.Reserve(UniqueTagsList.Num());
+
+		for (FString TagName : UniqueTagsList)
+		{
+			TagAttributes.Add(TargetMetadata->FindOrCreateAttribute<bool>(FName(TagName), false));
+		}
 	}
 
 	void FCompoundBlender::SoftMergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails)
 	{
 		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
+		SoftMergeSingle(CompoundIndex, Compound, InDistanceDetails);
+	}
 
+	void FCompoundBlender::SoftMergeSingle(const int32 CompoundIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails)
+	{
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
 		TArray<double> Weights;
+		TArray<bool> InheritedTags;
+
+		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(CompoundIndex);
 
 		Compound->ComputeWeights(
 			Sources, IOIndices,
-			CurrentTargetData->Source->GetOutPoint(CompoundIndex), InDistanceDetails,
+			Target, InDistanceDetails,
 			IdxIO, IdxPt, Weights);
 
 		const int32 NumCompounded = IdxPt.Num();
 
 		if (NumCompounded == 0) { return; }
 
-		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(CompoundIndex);
+		PCGEX_SET_NUM_DEFAULT(InheritedTags, TagAttributes.Num(), false)
 
 		// Blend Properties
 		BlendProperties(Target, IdxIO, IdxPt, Weights);
@@ -285,6 +318,18 @@ namespace PCGExDataBlending
 
 			SrcMap->TargetBlendOp->FinalizeOperation(Target.MetadataEntry, ValidCompounds, TotalWeight);
 		}
+
+		// Tag flags
+
+		for (const int32 IOI : IdxIO)
+		{
+			for (int i = 0; i < TagAttributes.Num(); i++)
+			{
+				if (Sources[IOI]->Source->Tags->RawTags.Contains(UniqueTagsList[i])) { InheritedTags[i] = true; }
+			}
+		}
+
+		for (int i = 0; i < TagAttributes.Num(); i++) { TagAttributes[i]->SetValue(Target.MetadataEntry, InheritedTags[i]); }
 	}
 
 	void FCompoundBlender::BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights)
