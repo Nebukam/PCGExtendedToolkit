@@ -80,14 +80,3 @@ See [Range Method](#range-method) as it drives how values are sampled close to z
 > Note that the `Effective Range` method tends to spread/scale the input set of values -- but allows one to leverage the full range of the curve no matter the min/max input values.  
 > **Hence, using `Full Range` with only high (or low) input value will only sample a very narrow portion of the curve.**
 {: .infos-hl }
-
----
-# Inputs
-## In
-Any number of point datasets.
-
----
-# Outputs
-## Out
-Same as Inputs with the added metadata.  
-*Reminder that empty inputs will be ignored & pruned*.

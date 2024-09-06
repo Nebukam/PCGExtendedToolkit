@@ -13,7 +13,7 @@ inputs:
         desc : 
         pin : 
 outputs:
-    -   name : Heuristics
+    -   name : 🝰 Heuristics
         desc : A single heuristics definition
         pin : params
 #has_children: true
@@ -27,7 +27,7 @@ outputs:
 Heuristics Attribute allows fine-grained and precise control over pathfinding constraints by leveraging user-defined attributes.
 {: .fs-5 .fw-400 } 
 
->When dealing with modifiers, keep in mind that **lower values are considered better** than higher ones by the {% include lk id='Search' %} algorithms.
+>When dealing with modifiers, keep in mind that **lower values are considered better** than higher ones by the {% include lk id='⊚ Search' %} algorithms.
 {: .error }
 
 #### Checklist
@@ -44,7 +44,7 @@ Heuristics Attribute allows fine-grained and precise control over pathfinding co
 | Property       | Description          |
 |:-------------|:------------------|
 | Reference Weight           | The reference weight is used internally by heuristics to "adapt" its scale against modifiers. *In other words, if the heuristic module itself was outputing a value like a modifier, this would its `Weight` property.*  |
-| **Modifier List**           | A list of individual modifiers. Their values are accumulated per `Source`, and the final sum is used by the {% include lk id='Search' %} algorithm. |
+| **Modifier List**           | A list of individual modifiers. Their values are accumulated per `Source`, and the final sum is used by the {% include lk id='⊚ Search' %} algorithm. |
 
 ---
 # Individual Modifier

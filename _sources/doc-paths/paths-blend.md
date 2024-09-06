@@ -40,14 +40,3 @@ outputs:
 ## Available {% include lk id='Blending' %} Modules
 <br>
 {% include card_any tagged="blending" %}
-
----
-# Inputs
-## In
-Any number of point datasets assumed to be paths.
-
----
-# Outputs
-## Out
-Same as Inputs with the transformation applied.  
-*Reminder that empty inputs will be ignored & pruned*.

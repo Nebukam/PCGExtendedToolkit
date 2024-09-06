@@ -50,7 +50,7 @@ outputs:
 
 |**Modules**||
 |**Search Algorithm**| The search algorithm that will be used to solve pathfinding.<br>*Each module has individual settings and documentation -- See [Available Search Algorithms](#available-search-modules).* |
-|**Heuristics**| The base heuristics module that will be used during pathfinding.<br>*Each module has individual settings and documentation -- See [Available Heuristics](#available-heuristics-modules).* |
+|**Heuristics**| The base heuristics module that will be used during pathfinding.<br>*Each module has individual settings and documentation -- See [Available Heuristics](#available--heuristics-modules).* |
 |**Heuristics Modifiers**| This property group is available no matter what **Heuristics** have been picked.<br>*See {% include lk id='🝰 Heuristic Attribute' %}.*|
   
 {% include embed id='settings-statistics' %}
@@ -68,7 +68,7 @@ outputs:
 ---
 # Modules
 
-## Available {% include lk id='Search' %} modules
+## Available {% include lk id='⊚ Search' %} modules
 <br>
 {% include card_any tagged="search" %}
 
@@ -76,15 +76,3 @@ outputs:
 ## Available {% include lk id='🝰 Heuristics' %} modules
 <br>
 {% include card_any tagged="heuristics" %}
-
----
-# Inputs
-## Plots
-The plot input supports an unlimited amount of points dataset.  
-Each Plot dataset is interpreted as a list of point that must be connected by a single path, in order, then merged into a single consolidated path.
-
----
-# Outputs
-## Paths
-A point dataset for each path generated.  
-Points in the dataset are ordered linearily from start to end.

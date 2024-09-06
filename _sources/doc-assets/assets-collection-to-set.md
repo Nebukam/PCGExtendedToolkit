@@ -3,6 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Staging
 title: Asset Collection to Set
+name_in_editor: Asset Collection to Set
 subtitle: Converts an asset collection to an attribute set.
 summary: The **Asset Collection to Set** offers a variety of options & settings to turn an Asset Collection to a more common Attribute Set.
 color: white

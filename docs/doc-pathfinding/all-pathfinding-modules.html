@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html><body>
-<h2 id="goal-pickers"><a href="/PCGExtendedToolkit/doc-pathfinding/goal-pickers/"><img class="icon emb" src="/PCGExtendedToolkit/assets/icons/icon_placement-center.svg">Goal Pickers</a></h2>
+<h2 id="-goal-pickers"><a href="/PCGExtendedToolkit/doc-pathfinding/goal-pickers/"><img class="icon emb" src="/PCGExtendedToolkit/assets/icons/icon_placement-center.svg">🝓 Goal Pickers</a></h2>
 
 <p class="fs-4 fw-300">An inventory of the available goal pickers modules.
 <br></p>
@@ -13,7 +13,7 @@
     
     <div class="infos white">
 
-      <h2 class="no_toc" id="default"><a href="/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-default.html">Default</a></h2>
+      <h2 class="no_toc" id="default"><a href="/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-default.html">🝓 Default</a></h2>
 
       <p class="fs-5 fw-300">Match seeds to goals at the same index.</p>
 
@@ -32,7 +32,7 @@
     
     <div class="infos white">
 
-      <h2 class="no_toc" id="random"><a href="/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-random.html">Random</a></h2>
+      <h2 class="no_toc" id="random"><a href="/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-random.html">🝓 Random</a></h2>
 
       <p class="fs-5 fw-300">Match seeds to goals at a random index.</p>
 
@@ -51,7 +51,7 @@
     
     <div class="infos white">
 
-      <h2 class="no_toc" id="goal-from-attribute"><a href="/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-attribute.html">Goal from Attribute</a></h2>
+      <h2 class="no_toc" id="goal-from-attribute"><a href="/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-attribute.html">🝓 Goal from Attribute</a></h2>
 
       <p class="fs-5 fw-300">Match seed with goals picked at an attribute-specified index.</p>
 
@@ -68,60 +68,155 @@
 
 <hr>
 
-<h2 id="search"><a href="/PCGExtendedToolkit/doc-pathfinding/search/"><img class="icon emb" src="/PCGExtendedToolkit/assets/icons/icon_pathfinding-navmesh.svg">Search</a></h2>
+<p>##</p>
 
-<p class="fs-4 fw-300">An inventory of the available search modules.
+<p class="fs-4 fw-300"><br></p>
+
+<div class="card-ctnr ">
+
+</div>
+
+<hr>
+
+<h2 id="-heuristics"><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/"><img class="icon emb" src="/PCGExtendedToolkit/assets/icons/icon_component.svg">🝰 Heuristics</a></h2>
+
+<p class="fs-4 fw-300">An inventory of the available heuristics modules.
 <br></p>
 
 <div class="card-ctnr ">
 
   <div class="card large gradient">
     
-    <div class="previews preview" style="--img:url('/PCGExtendedToolkit/assets/images/docs/splash-search-dijkstra.png'); --ico:url('/PCGExtendedToolkit/assets/icons/icon_pathfinding-navmesh.svg');"></div>
+    <div class="previews preview" style="--img:url('/PCGExtendedToolkit/assets/images/docs/splash-heuristic-modifiers.png'); --ico:url('/PCGExtendedToolkit/assets/icons/icon_component.svg');"></div>
     
-    <div class="infos white">
+    <div class="infos blue">
 
-      <h2 class="no_toc" id="dijkstra"><a href="/PCGExtendedToolkit/doc-pathfinding/search/search-djikstra.html">Dijkstra</a></h2>
+      <h2 class="no_toc" id="heuristic-attribute"><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-attribute.html">🝰 Heuristic Attribute</a></h2>
 
-      <p class="fs-5 fw-300">Dijkstra’s Algorithm</p>
+      <p class="fs-5 fw-300">Attribute-driven heuristics</p>
 
       <div class="summary-excerpt">
-        <p>The <strong>Dijkstra’s Algorithm</strong> search mode …</p>
+        <p>The <strong>Heuristic Attribute</strong> heuristic node …</p>
       </div>
 
-      <p><a href="/PCGExtendedToolkit/doc-pathfinding/search/search-djikstra.html" class="link-more white"><img class="icon" src="/PCGExtendedToolkit/assets/icons/icon_pathfinding-navmesh.svg"></a></p>
+      <p><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-attribute.html" class="link-more blue"><img class="icon" src="/PCGExtendedToolkit/assets/icons/icon_component.svg"></a></p>
 
     </div>
 </div>
 
   <div class="card large gradient">
     
-    <div class="previews preview" style="--img:url('/PCGExtendedToolkit/assets/images/docs/splash-search-astar.png'); --ico:url('/PCGExtendedToolkit/assets/icons/icon_pathfinding-navmesh.svg');"></div>
+    <div class="previews preview" style="--img:url('/PCGExtendedToolkit/assets/images/docs/splash-search-shortest.png'); --ico:url('/PCGExtendedToolkit/assets/icons/icon_component.svg');"></div>
     
     <div class="infos white">
 
-      <h2 class="no_toc" id="a-star"><a href="/PCGExtendedToolkit/doc-pathfinding/search/search-astar.html">A* Star</a></h2>
+      <h2 class="no_toc" id="shortest-distance"><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-distance.html">🝰 Shortest Distance</a></h2>
 
-      <p class="fs-5 fw-300">A* Algorithm</p>
+      <p class="fs-5 fw-300">Subtitle</p>
 
       <div class="summary-excerpt">
-        <p>The <strong>A* Algorithm</strong> search mode …</p>
+        <p>The <strong>Shortest Distance</strong> heuristic node …</p>
       </div>
 
-      <p><a href="/PCGExtendedToolkit/doc-pathfinding/search/search-astar.html" class="link-more white"><img class="icon" src="/PCGExtendedToolkit/assets/icons/icon_pathfinding-navmesh.svg"></a></p>
+      <p><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-distance.html" class="link-more white"><img class="icon" src="/PCGExtendedToolkit/assets/icons/icon_component.svg"></a></p>
 
     </div>
 </div>
 
+  <div class="card large gradient">
+    
+    <div class="previews preview" style="--img:url('/PCGExtendedToolkit/assets/images/docs/splash-search-direction.png'); --ico:url('/PCGExtendedToolkit/assets/icons/icon_component.svg');"></div>
+    
+    <div class="infos white">
+
+      <h2 class="no_toc" id="inertia"><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-inertia.html">🝰 Inertia</a></h2>
+
+      <p class="fs-5 fw-300">Subtitle</p>
+
+      <div class="summary-excerpt">
+        <p>The <strong>Inertia</strong> heuristic node …</p>
+      </div>
+
+      <p><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-inertia.html" class="link-more white"><img class="icon" src="/PCGExtendedToolkit/assets/icons/icon_component.svg"></a></p>
+
+    </div>
 </div>
 
-<hr>
+  <div class="card large gradient">
+    
+    <div class="previews preview" style="--img:url('/PCGExtendedToolkit/assets/images/docs/splash-search-direction.png'); --ico:url('/PCGExtendedToolkit/assets/icons/icon_component.svg');"></div>
+    
+    <div class="infos white">
 
-<p>##</p>
+      <h2 class="no_toc" id="turning"><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-turning.html">🝰 Turning</a></h2>
 
-<p class="fs-4 fw-300"><br></p>
+      <p class="fs-5 fw-300">Subtitle</p>
 
-<div class="card-ctnr ">
+      <div class="summary-excerpt">
+        <p>The <strong>Turning</strong> heuristic node …</p>
+      </div>
+
+      <p><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-turning.html" class="link-more white"><img class="icon" src="/PCGExtendedToolkit/assets/icons/icon_component.svg"></a></p>
+
+    </div>
+</div>
+
+  <div class="card large gradient">
+    
+    <div class="previews preview" style="--img:url('/PCGExtendedToolkit/assets/images/docs/splash-search-direction.png'); --ico:url('/PCGExtendedToolkit/assets/icons/icon_component.svg');"></div>
+    
+    <div class="infos white">
+
+      <h2 class="no_toc" id="steepness"><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-steepness.html">🝰 Steepness</a></h2>
+
+      <p class="fs-5 fw-300">Favor flat paths</p>
+
+      <div class="summary-excerpt">
+        <p>The <strong>Steepness</strong> heuristic node …</p>
+      </div>
+
+      <p><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-steepness.html" class="link-more white"><img class="icon" src="/PCGExtendedToolkit/assets/icons/icon_component.svg"></a></p>
+
+    </div>
+</div>
+
+  <div class="card large gradient">
+    
+    <div class="previews preview" style="--img:url('/PCGExtendedToolkit/assets/images/docs/splash-search-direction.png'); --ico:url('/PCGExtendedToolkit/assets/icons/icon_component.svg');"></div>
+    
+    <div class="infos white">
+
+      <h2 class="no_toc" id="azimuth"><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-azimuth.html">🝰 Azimuth</a></h2>
+
+      <p class="fs-5 fw-300">Subtitle</p>
+
+      <div class="summary-excerpt">
+        <p>The <strong>Azimuth</strong> heuristic node …</p>
+      </div>
+
+      <p><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-azimuth.html" class="link-more white"><img class="icon" src="/PCGExtendedToolkit/assets/icons/icon_component.svg"></a></p>
+
+    </div>
+</div>
+
+  <div class="card large gradient">
+    
+    <div class="previews preview" style="--img:url('/PCGExtendedToolkit/assets/images/docs/splash-search-least-nodes.png'); --ico:url('/PCGExtendedToolkit/assets/icons/icon_component.svg');"></div>
+    
+    <div class="infos white">
+
+      <h2 class="no_toc" id="least-nodes"><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-node-count.html">🝰 Least Nodes</a></h2>
+
+      <p class="fs-5 fw-300">Subtitle</p>
+
+      <div class="summary-excerpt">
+        <p>The <strong>Least Nodes</strong> heuristic node …</p>
+      </div>
+
+      <p><a href="/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-node-count.html" class="link-more white"><img class="icon" src="/PCGExtendedToolkit/assets/icons/icon_component.svg"></a></p>
+
+    </div>
+</div>
 
 </div>
 </body></html>

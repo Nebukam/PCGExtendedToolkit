@@ -13,6 +13,8 @@ tagged:
     - node
     - edges
 nav_order: 100
+see_also: 
+    - Working with Clusters
 inputs:
     -   name : Vtx
         desc : Endpoints of the input Edges
@@ -56,8 +58,3 @@ outputs:
 | {% include img a='docs/bridge/method-most.png' %}           | When using this method, the algorithm will create a bridge from each cluster to every other cluster.|
 
 {% include embed id='settings-performance' %}
-
----
-# Inputs & Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

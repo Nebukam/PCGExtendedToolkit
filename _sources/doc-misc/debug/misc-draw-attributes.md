@@ -117,11 +117,3 @@ The debug color is selected based on the input value: **If the value is `<= 0` t
 |**Extra Properties**||
 |:-------------|:------------------|
 | Secondary Color           | The color to be used for values `> 0`. |
-
----
-### ~~Label~~
->Label is currently not working as expected, despite using engine APIs and not throwing any error when used.
-
----
-# Inputs & Outputs
-> This nodes forwards its inputs as if it was disabled.  

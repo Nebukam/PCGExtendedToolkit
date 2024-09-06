@@ -64,14 +64,3 @@ outputs:
 | Collision Object Type          | Same as Collision Channel, but work with a **flag**, allowing for a combination of types to test against. |
 |**Profile**||
 | Collision Profile Name          | Name of the collision profile to test against. |
-
----
-# Inputs
-## In
-Points that will sample the environment for collision.  
-Each point position in world space will be used as a center for a spherical query of the surrounding collisons. 
-
----
-# Outputs
-## Out
-Same as input, with additional metadata.

@@ -12,6 +12,8 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - edges
+see_also:
+    - Working with Clusters
 nav_order: 1000
 inputs:
     -   name : Vtx
@@ -41,10 +43,3 @@ outputs:
 | Secondary Color           | If enabled, each cluster will have a different color ranging from the primary color to the secondary color, based on the dataset index in the inputs. |
 | Thickness           | Line thickness  |
 | Depth Priority          | Debug draw depth priority. <br>- `-1` : draw on top of everything.<br>- `0` : Regular depth sorting.<br>- `1` : Draw behind everything. |
-
----
-# Inputs & Outputs
-> This nodes forwards its inputs as if it was disabled.  
-
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

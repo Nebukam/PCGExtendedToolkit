@@ -45,17 +45,3 @@ outputs:
 
 {% include embed id='settings-projection' %}
 
----
-# Inputs
-## In
-The input points to generate a Convex Hull from.  
-Each input dataset is processed separately and will generate its own hull.
-
----
-# Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}
-
-## Paths
-TBD
-

@@ -22,14 +22,3 @@ nav_order: 5
 
 **Points to bound** has no dedicated properties and is pretty straighforward to use.
 It embeds a data blender module, which you can read more about in the specific {% include lk id='Blending' %} section.
-
----
-# Inputs
-## In
-Any number of point datasets.
-
----
-# Outputs
-## Out
-As many outputs as there are inputs. Each output contains a single point representing the bounds of the corresponding input dataset.  
-*Reminder that empty inputs will be ignored & pruned*.

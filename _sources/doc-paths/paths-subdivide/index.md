@@ -52,14 +52,3 @@ outputs:
 ## {% include lk id='Blending' %}
 <br>
 {% include card_any tagged="blending" %}
-
----
-# Inputs
-## In
-Any number of point datasets assumed to be paths.
-
----
-# Outputs
-## Out
-Same as Inputs with the added subdivisions points.  
-*Reminder that empty inputs will be ignored & pruned*.

@@ -44,14 +44,3 @@ outputs:
 ## Smoothing modules
 <br>
 {% include card_any tagged="pathsmoothing" %}
-
----
-# Inputs
-## In
-Any number of point datasets assumed to be paths.
-
----
-# Outputs
-## Out
-Same as Inputs with the transformation applied.  
-*Reminder that empty inputs will be ignored & pruned*.

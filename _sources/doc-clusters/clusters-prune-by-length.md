@@ -12,6 +12,8 @@ toc_img: placeholder.jpg
 tagged:
     - node
     - edges
+see_also:
+    - Working with Clusters
 nav_order: 5
 inputs:
     -   name : Vtx
@@ -149,8 +151,3 @@ Measure: `Absolute`, Mean Method: `Fixed`, Mean Value: `42`, Prune Below : `0`.
 
 {% include embed id='settings-cluster-output' %}
 {% include embed id='settings-performance' %}
-
----
-# Inputs & Outputs
-{% include embed id='inputs-vtx-edges' %}
-{% include embed id='outputs-vtx-edges' %}

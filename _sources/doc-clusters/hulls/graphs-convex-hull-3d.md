@@ -41,14 +41,3 @@ outputs:
 
 > Note that the hull is *optimized* and will ignore points that *lie* on the hull but don't mathematically influence it *(i.e collinear/coplanar points)*.
 {: .warning }
-
----
-# Inputs
-## In
-The input points to generate a Convex Hull from.  
-Each input dataset is processed separately and will generate its own hull.
-
----
-# Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

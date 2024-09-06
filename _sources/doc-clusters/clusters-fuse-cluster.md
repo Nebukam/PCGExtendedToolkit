@@ -39,8 +39,3 @@ outputs:
 
 > Current implementation is **WIP**: not all attributes from the inputs are not forwarded to the output cluster.
 {: .error }
-
----
-# Inputs & Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

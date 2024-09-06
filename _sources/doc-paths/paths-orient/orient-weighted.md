@@ -2,7 +2,7 @@
 layout: page
 grand_parent: Paths
 parent: Orient
-title: Weighted
+title: ⋋ Weighted
 subtitle: Distance-weighted interpolation
 color: white
 #summary: summary_goes_here

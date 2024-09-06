@@ -2,7 +2,7 @@
 layout: page
 grand_parent: Paths
 parent: Subdivide
-title: Inherit First
+title: ⋰ Inherit First
 subtitle: Copy the first point' values
 color: white
 summary: Processed subpoints will inherit from the first properties & attributes. Nothing fancy about it.

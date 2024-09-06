@@ -26,8 +26,28 @@ outputs:
 
 {% include header_card_node %}
 
-# Properties
-<br>
+This probes creates a single connections to another point at a given index.
+{: .fs-5 .fw-400 } 
 
-> DOC TDB
-{: .warning }
+{% include img a='placeholder-wide.jpg' %}
+
+# Properties
+
+| Property       | Description          |
+|:-------------|:------------------|
+| Mode          | How the node is to interpret the target index value. |
+| Index Safety           | *Index safety is a recurring mechanism in PCGEx, see below for more infos.* |
+|: **Target Index Settings** :|
+| Target Index           | The type of value used for this probe' index source; either a `Constant` value or fetched from an`Attribute` |
+| Target Constant           | Constant index value; or constant offset depending on the selected `Mode`. |
+| Target Attribute           | Per-point attribute value for the index/offset. |
+
+## Mode
+
+|: Favor     ||
+|:-------------|:------------------|
+| Target           | Use the target index value as a raw index to connect to. |
+| One-way Offset         | Use the target index value as an offset to the currently probed point' index. |
+| Two-way Offset         | Use the target index value as an offset to the currently probed point' index; and creates a second connection but this time using the **target index value multiplied by -1.** |
+
+{% include embed id='settings-index-safety' %}

@@ -12,6 +12,8 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - paths
+see_also:
+    - Working with Clusters
 nav_order: 6
 inputs:
     -   name : Paths
@@ -38,14 +40,3 @@ outputs:
 |**Settings**||
 | Fuse Distance           | This define the distance at this the points are considered to be identical.  |
 | **Graph Output Settings**           | *See {% include lk id='Working with Clusters' a='#graph-output-settings-' %}.* |
-
----
-# Inputs
-## In
-Any number of point datasets assumed to be paths.
-
----
-# Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}.  
-*Reminder that empty inputs will be ignored & pruned*.

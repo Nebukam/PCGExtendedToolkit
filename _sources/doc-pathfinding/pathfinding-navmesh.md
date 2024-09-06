@@ -48,14 +48,3 @@ outputs:
 > Remaining properties are [Unreal' navigation system](https://docs.unrealengine.com/4.27/en-US/InteractiveExperiences/ArtificialIntelligence/NavigationSystem/) query specifics.
 > **Despite using the right API, they seem to be ignored for the most part, which is something I need to look into.**
 {: .warning }
-
----
-# Inputs
-## Seeds & Goals
-Each of these input data will be forwarded to the selected `Goal Picker`. 
-
----
-# Outputs
-## Paths
-A point dataset for each path generated.  
-Points in the dataset are ordered linearily from start to end.

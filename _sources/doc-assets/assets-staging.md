@@ -3,6 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Staging
 title: Asset Staging
+name_in_editor: Asset Staging
 subtitle: Prepare points before spawning.
 summary: The **Asset Staging** node lets your prepare points for spawning assets.
 color: white
@@ -28,23 +29,22 @@ outputs:
         pin : points
 ---
 
-{% include header_card_toc %}
+{% include header_card_node %}
 
 The **Asset Staging** exists for many reasons, but primarily to "pre-spawn" assets from an {% include lk id='Asset Collection' %}, and modify points according to various rules, in relation to their associated asset.
 {: .fs-5 .fw-400 } 
 
 This is especially useful if you want to have pruning control on overlaps, or require very tight placement rules no matter how the assets have been authored (pivot point location etc)
 
+{% include img a='placeholder-wide.jpg' %}
+
 ---
 # Properties
 
 | Property       | Description          |
 |:-------------|:------------------|
-|: **Source** :||
 | Source           | Which type of source to use for the asset collection.<br>Can be either `Asset` for an {% include lk id='Asset Collection' %} picker, or `Attribute Set`, which will reveal a new input pin that accepts an attribute set. |
-| Asset Collection           | If `Asset` is selected as a source, this is the {% include lk id='Asset Collection' %} that will be used for staging points. |
-
-### Attribute Set Source
+| Asset Collection           | If `Asset` is selected as a source, this is the {% include lk id='Asset Collection' %} that will be used for staging points.<br>*See [Available Asset Collections](#available-asset-collections).* |
 
 When using the `Attribute Set` source, the node will create a temp, internal {% include lk id='Asset Collection' %} from the source attribute set. 
 
@@ -88,11 +88,11 @@ Offset the spawned asset bounds relative to the host point' bounds.
 Justification is done & tweaked per-component.  
 
 |: **Per component** :||
-| From          | The location within the **Asset** bounds that will be justified *To* the point' bounds.   |
-| To           | The location withn the **Point** bounds to which the **Asset** bounds will be justified. |  
+| From          | The location within the **Asset** bounds that will be justified *To* the point' bounds. <br>*i.e, from which location in the asset do i start moving.*  |
+| To           | The location withn the **Point** bounds to which the **Asset** bounds will be justified. <br>*i.e, to which location in the point do i want to go.* |  
 |: **Consolidated custom inputs** :||
-| Custom from Vector Attribute         | An `FVector` whose individual component will be used to drive `From` properties set to `Custom`. |
-| Custom to Vector Attribute         | An `FVector` whose individual component will be used to drive `To` properties set to `Custom`. |
+| Custom from Vector Attribute         | An `FVector` whose individual component will be used to drive `From` properties set to `Custom`.<br>*Prefer this consolidated approach if you're using custom values on more than one component.* |
+| Custom to Vector Attribute         | An `FVector` whose individual component will be used to drive `To` properties set to `Custom`. *Prefer this consolidated approach if you're using custom values on more than one component.* |
 
 ### From
 You can use the following rules for `From`:
@@ -168,3 +168,9 @@ is used.
 Lets you output the Weight of the selection to each node, using different post-processing methods.  
 **This can be very handy to identify "rare" spawns and preserve them during self-pruning operations.**
 
+---
+# Modules
+
+## Available {% include lk id='Asset Collection' %}s modules
+<br>
+{% include card_any tagged="assetcollection" %}

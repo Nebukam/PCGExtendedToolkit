@@ -1,8 +1,8 @@
 ---
 layout: page
 grand_parent: Pathfinding
-parent: Goal Pickers
-title: Goal from Attribute
+parent: 🝓 Goal Pickers
+title: 🝓 Goal from Attribute
 subtitle: Match seed with goals picked at an attribute-specified index.
 summary: The **Goal from Attribute** picker ...
 color: white
@@ -10,6 +10,7 @@ splash: icons/icon_placement-center.svg
 preview_img: docs/splash-picker-attribute.png
 toc_img: placeholder.jpg
 tagged: 
+    - module
     - goalpicker
 nav_order: 1
 ---

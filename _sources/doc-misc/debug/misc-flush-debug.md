@@ -26,7 +26,3 @@ outputs:
 {% include header_card %}
 
 See {% include lk id='Debug' %}
-
----
-# Inputs & Outputs
-Anything. This node forwards out whatever goes in.

@@ -43,14 +43,3 @@ outputs:
 ## Tangents modules
 <br>
 {% include card_any tagged="pathstangents" %}
-
----
-# Inputs
-## In
-Any number of point datasets assumed to be paths.
-
----
-# Outputs
-## Out
-Same as Inputs with the added metadata.  
-*Reminder that empty inputs will be ignored & pruned*.

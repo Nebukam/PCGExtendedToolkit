@@ -2,8 +2,8 @@
 layout: page
 grand_parent: Paths
 parent: Subdivide
-title: Interpolate
-subtitle: Interpolate values between first and last point.
+title: ⋰ Interpolate
+subtitle: Interpolates values between first and last point.
 color: white
 summary: Processed subpoints properties & attributes will lerp between the first and last subpoints.
 splash: icons/icon_sampling-point.svg

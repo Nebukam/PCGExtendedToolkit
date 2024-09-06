@@ -14,6 +14,7 @@ tagged:
     - node
     - edges
 see_also: 
+    - Working with Clusters
     - Refining
 nav_order: 12
 inputs:
@@ -23,7 +24,7 @@ inputs:
     -   name : Edges
         desc : Edges associated with the input Vtxs
         pin : points
-    -   name : Heuristics
+    -   name : 🝰 Heuristics
         desc : Heuristic nodes, if required by the selected refinement.
         pin : params
 outputs:
@@ -66,8 +67,3 @@ The sanitization property lets you enforce some general conditions within the gr
 
 {% include embed id='settings-cluster-output' %}
 {% include embed id='settings-performance' %}
-
----
-# Inputs & Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

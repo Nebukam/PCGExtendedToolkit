@@ -36,14 +36,3 @@ outputs:
 |**Settings**||
 | Threshold           | Threshold in degree under which the deviation is considered small enough to be collinear.  |
 | Fuse Distance           | In addition to collinearity, this value allows to fuse points that are close enough. |
-
----
-# Inputs
-## In
-Any number of point datasets assumed to be paths.
-
----
-# Outputs
-## Out
-A smaller dataset for each input dataset.  
-*Reminder that empty inputs will be ignored & pruned*.

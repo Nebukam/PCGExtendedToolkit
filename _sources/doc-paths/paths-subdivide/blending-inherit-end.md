@@ -2,7 +2,7 @@
 layout: page
 grand_parent: Paths
 parent: Subdivide
-title: Inherit Last
+title: ⋰ Inherit Last
 subtitle: Copy the last point' values
 color: white
 summary: Processed subpoints will inherit from the last properties & attributes. Nothing fancy about it.

@@ -904,6 +904,8 @@ details { padding: 10px 20px; background-color: rgba(0, 0, 0, 0.2); }
 
 .summary-excerpt { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
+.name-in-editor { border-radius: 5px; background: #5c5962; color: #fdfdfd; place-self: flex-start; padding: 4px 6px; margin-bottom: -17px; margin-top: -2px; font-size: 80%; user-select: none; opacity: 0.8; }
+
 .icon.emb { height: 1em; transform: translateY(0.15em); margin-right: 0.1em; }
 
 .link-more { position: absolute; top: 250px; top: 230px; right: -5px; background-color: #5771aa; padding: 5px 10px; border-radius: 3px 0px 0px 3px; padding-bottom: 0px; }

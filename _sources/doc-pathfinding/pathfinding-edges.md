@@ -28,8 +28,8 @@ inputs:
     -   name : Goals
         desc : Goal points
         pin : points
-    -   name : Heuristics
-        desc : Heuristics nodes that will be used by the pathfinding search algorithm
+    -   name : 🝰 Heuristics
+        desc : 🝰 Heuristics nodes that will be used by the pathfinding search algorithm
         pin : params
 outputs:
     -   name : Paths
@@ -46,7 +46,7 @@ outputs:
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Goal Picker**| The module that will be used to interpret and manipulate goals and seeds inputs.<br>*Each module has individual settings and documentation -- See [Available Goal Pickers](#available-goal-pickers-modules).*|
+|**Goal Picker**| The module that will be used to interpret and manipulate goals and seeds inputs.<br>*Each module has individual settings and documentation -- See [Available Goal Pickers](#available--goal-pickers-modules).*|
 
 |**Settings**||
 | Add Seed to Path           | Prepends the *seed position* at the beginning of the output path.<br>*This will create a point with the position of the seed.* |
@@ -54,7 +54,7 @@ outputs:
 
 |**Modules**||
 |**Search Algorithm**| The search algorithm that will be used to solve pathfinding.<br>*Each module has individual settings and documentation -- See [Available Search Algorithms](#available-search-modules).* |
-|**Heuristics**| The base heuristics module that will be used during pathfinding.<br>*Each module has individual settings and documentation -- See [Available Heuristics](#available-heuristics-modules).* |
+|**Heuristics**| The base heuristics module that will be used during pathfinding.<br>*Each module has individual settings and documentation -- See [Available Heuristics](#available--heuristics-modules).* |
 |**Heuristics Modifiers**| This property group is available no matter what **Heuristics** have been picked.<br>*See {% include lk id='🝰 Heuristic Attribute' %}.*|
 
 {% include embed id='settings-statistics' %}
@@ -72,12 +72,12 @@ outputs:
 ---
 # Modules
 
-## Available {% include lk id='Goal Pickers' %} modules
+## Available {% include lk id='🝓 Goal Pickers' %} modules
 <br>
 {% include card_any tagged="goalpicker" %}
 
 ---
-## Available {% include lk id='Search' %} modules
+## Available {% include lk id='⊚ Search' %} modules
 <br>
 {% include card_any tagged="search" %}
 
@@ -85,14 +85,3 @@ outputs:
 ## Available {% include lk id='🝰 Heuristics' %} modules
 <br>
 {% include card_any tagged="heuristics" %}
-
----
-# Inputs
-## Seeds & Goals
-Each of these input data will be forwarded to the selected `Goal Picker`.  
-
----
-# Outputs
-## Paths
-A point dataset for each path generated.  
-Points in the dataset are ordered linearily from start to end.

@@ -25,14 +25,3 @@ nav_order: 7
 |**Settings**||
 | Output Normalized Index           | If enabled, the index will be written as a `double` *(instead of `int32`)*, as a normalized value in the range `[0..1]`.  |
 | Output Attribute Name           | Name of the attribute to write the point index to. |
-
----
-# Inputs
-## In
-Any number of point datasets.
-
----
-# Outputs
-## Out
-Same as Inputs with the added metadata.  
-*Reminder that empty inputs will be ignored & pruned*.

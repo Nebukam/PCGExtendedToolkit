@@ -1,8 +1,8 @@
 ---
 layout: page
 grand_parent: Pathfinding
-parent: Goal Pickers
-title: Random
+parent: 🝓 Goal Pickers
+title: 🝓 Random
 subtitle: Match seeds to goals at a random index.
 summary: The **Random** picker ...
 color: white
@@ -10,6 +10,7 @@ splash: icons/icon_placement-center.svg
 preview_img: docs/splash-picker-random.png
 toc_img: placeholder.jpg
 tagged: 
+    - module
     - goalpicker
 nav_order: 1
 ---

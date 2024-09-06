@@ -49,14 +49,3 @@ outputs:
 > **Despite using the right API, they seem to be ignored for the most part, which is something I need to look into.**
 {: .warning }
 
----
-# Inputs
-## Plots
-The plot input supports an unlimited amount of points dataset.  
-Each Plot dataset is interpreted as a list of point that must be connected by a single path, in order, then merged into a single consolidated path.
-
----
-# Outputs
-## Paths
-A point dataset for each path generated.  
-Points in the dataset are ordered linearily from start to end.

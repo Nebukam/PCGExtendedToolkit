@@ -14,6 +14,7 @@ tagged:
     - node
     - edges
 see_also: 
+    - Working with Clusters
     - Relaxing
 nav_order: 30
 inputs:
@@ -55,11 +56,6 @@ outputs:
 
 {% include embed id='settings-cluster-output' %}
 {% include embed id='settings-performance' %}
-
----
-# Inputs & Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}
 
 ---
 # Examples

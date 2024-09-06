@@ -68,14 +68,3 @@ outputs:
 
 > Important note: under the hood this find the closest point on the closest collider -- this feature **is only supported for simple collider and won't work on complex ones**.
 {: .error }
-
----
-# Inputs
-## In
-Points that will sample the environment for collision.  
-Each point position in world space will be used as a center for a spherical query of the surrounding collisons. 
-
----
-# Outputs
-## Out
-Same as input, with additional metadata.

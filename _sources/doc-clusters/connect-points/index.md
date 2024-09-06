@@ -3,6 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Clusters
 title: Connect Points
+name_in_editor: Connect Points
 subtitle: Connect points according to user-defined probes.
 summary: The **Connect Points** node ...
 color: white
@@ -39,15 +40,41 @@ outputs:
 
 {% include header_card_node %}
 
+The connect point node allows you to create connected clusters using different **probes**. Each point will go through each probe' rules to find neighboring points to connect to.
+{: .fs-5 .fw-400 } 
+
+{% include img a='placeholder-wide.jpg' %}
+
 # Properties
+
+| Property       | Description          |
+|:-------------|:------------------|
+| Stacking Prevention Tolerance           | When enabled, the node will prevent multiple connections from happening in the same direction, within that tolerance.<br>*This avoids the creation of overlapping edges when testing in near-collinear situations.* |
+| Project Points           | If enabled, points will be projected on a plane under-the-hood before looking for connections.<br>*This is especially desirable when working with landscapes* |
+| Projection normal           | The normal of the plane to project points to, if enabled.<br>*Unless you're doing very custom stuff, the default value is usually fine as it project points as if "seen from top view"* |
+
+---
+## Generators & Connectables
+These two inputs accept any of filters available for the {% include lk id='Uber Filter' %} node.  
+- **Generators** are points that will use the probes to find neighbors they can connect to.
+- **Connectables** are points that will be seen by the probes.
+All points
+
+---
+## Probes
+
+Probes are at the core of the **Connect Points** node.  
+You can connect as many probes as you'd like to the `Probes` input.
+{: .fs-5 .fw-400 } 
+
+> No matter how many probes you use, this node will NEVER generate duplicate edges; so feel free to experiment.
+{: .infos-hl }
 <br>
 
-> DOC TDB
-{: .warning }
+{% include card_childs tagged='probe' %}
 
 {% include embed id='settings-cluster-output' %}
 
 ---
-## Probes
-<br>
-{% include card_childs tagged='probe' %}
+
+{% include img a='placeholder-wide.jpg' %}

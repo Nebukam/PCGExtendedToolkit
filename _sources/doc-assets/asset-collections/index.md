@@ -3,7 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Staging
 title: Asset Collection
-subtitle: Available Asset Collection
+subtitle: Glorified Data Tables
 summary: Asset Collection represent collections of things (meshes, actors) that can be used with the **Asset Staging** node.
 color: white
 splash: icons/icon_custom-graphs-build.svg

@@ -37,8 +37,3 @@ outputs:
 
 | **Output**           ||
 | **Edge Length** Attribute Name           | When enabled, the `length` of the edge will be written to the specified attribute.<br>*The length of an edge is the distance between its start and end point.* |
-
----
-# Inputs & Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

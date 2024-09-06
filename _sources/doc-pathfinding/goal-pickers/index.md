@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Pathfinding
-title: Goal Pickers
+title: 🝓 Goal Pickers
 subtitle: An inventory of the available goal pickers modules.
 #summary: The **Write Index** picker ...
 color: white

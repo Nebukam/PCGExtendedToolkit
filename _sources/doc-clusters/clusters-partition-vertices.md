@@ -41,8 +41,3 @@ outputs:
 
 This node primarily exists to allow certain advanced operations such as easily finding individual convex hull of isolated clusters.  
 *This is not a default behavior as doing so slightly increases processing times.*
-
----
-# Inputs & Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

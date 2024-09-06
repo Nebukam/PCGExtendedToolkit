@@ -2,7 +2,7 @@
 layout: page
 grand_parent: Paths
 parent: Orient
-title: LookAt
+title: ⋋ Look At
 subtitle: Look at next
 color: white
 #summary: summary_goes_here

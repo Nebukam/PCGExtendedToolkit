@@ -42,8 +42,3 @@ outputs:
 | Edge Position           | If enabled, this sets the position of the `Edge` points to a lerp between their `Start` and `End` points.<br>*By default, `Edges` point are placed at the center between their two `Vtx`.*|
 | Min Cluster Size           | If enabled, any cluster with less **edges** than specified will be pruned from the output.  |
 | Max Cluster Size           | If enabled, any cluster with more **edges** than specified will be pruned from the output.  |
-
----
-# Inputs & Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

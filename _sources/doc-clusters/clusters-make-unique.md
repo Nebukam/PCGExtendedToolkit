@@ -39,9 +39,3 @@ outputs:
 {: .infos-hl }
 
 This node primarily exists to allow certain advanced operations such as copying an existing cluster configuration, modify it and then fuse it with the original one.  
-
-
----
-# Inputs & Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

@@ -2,7 +2,7 @@
 layout: page
 grand_parent: Paths
 parent: Orient
-title: Average
+title: ⋋ Average
 subtitle: Average between previous and next
 color: white
 #summary: summary_goes_here

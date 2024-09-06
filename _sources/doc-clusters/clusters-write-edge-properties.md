@@ -13,6 +13,7 @@ tagged:
     - node
     - edges
 see_also: 
+    - Working with Clusters
     - Interpolate
 nav_order: 10
 inputs:
@@ -52,8 +53,3 @@ outputs:
 {: .warning }
 
 {% include embed id='settings-performance' %}
-
----
-# Inputs & Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

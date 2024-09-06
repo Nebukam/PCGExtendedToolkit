@@ -14,10 +14,6 @@ tagged:
     - probe
     - clusters
 nav_order: 7
-inputs:
-    -   name : None
-        desc : 
-        pin : 
 outputs:
     -   name : Probe
         desc : A single probe, to be used with the 'Connect Points' node
@@ -26,8 +22,19 @@ outputs:
 
 {% include header_card_node %}
 
-# Properties
-<br>
+An anisotropic probe is a preset to find connection in 16 different directions over the `X` & `Y` axis.  
+*Anisotropic pathfinding is a popular approach to finding high-level plots, it made sense to have an hardcoded version as opposed to hand crafting 16 directional probes to the same effect*
+{: .fs-5 .fw-400 } 
 
-> DOC TDB
-{: .warning }
+{% include img a='placeholder-wide.jpg' %}
+
+# Properties
+
+| Property       | Description          |
+|:-------------|:------------------|
+|: **Settings** :|
+| Transform Direction          | If enabled, the direction of the probe will be adjusted by the current probing point' transform.<br>*If disabled, the direction is in world space.* |
+|: **Search Radius** :|
+| Search Radius Source           | The type of value used for this probe' search radius; either a `Constant` value or fetched from an`Attribute` |
+| Search Radius Constant           | Fixed radius of the probe. |
+| Search Radius Attribute           | Per-point attribute value radius of the probe.<br>*Dynamic radiuses can be super expensive if they are different for each probe: search will use the greatest radius to sample to octree for this point.* |

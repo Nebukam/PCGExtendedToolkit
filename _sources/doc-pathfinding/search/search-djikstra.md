@@ -1,7 +1,7 @@
 ---
 layout: page
 grand_parent: Pathfinding
-parent: Search
+parent: ⊚ Search
 title: Dijkstra
 subtitle: Dijkstra's Algorithm
 summary: The **Dijkstra's Algorithm** search mode ...
@@ -10,6 +10,7 @@ splash: icons/icon_pathfinding-navmesh.svg
 preview_img: docs/splash-search-dijkstra.png
 toc_img: placeholder.jpg
 tagged: 
+    - module
     - search
 nav_order: 1
 ---

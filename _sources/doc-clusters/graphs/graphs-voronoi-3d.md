@@ -60,14 +60,3 @@ There are three available methods to drive Voronoi' site position in space.
 | Balanced           | Uses `Canon` site location when site is within bounds, and fallbacks to `Centroid` otherwise. |
 | Canon           | Uses the real, computed voronoi site position.<br>**Sites on the outskirts of the graph usually have extreme deformations.**  |
 | Centroid           | Uses the delaunay' triangulation centroid instead of the real position.<br>*This is usually good looking, but can lead to overlapping edges.*  |
-
----
-# Inputs
-## In
-The input points to generate a Voronoi graph from.  
-Each input dataset is processed separately and will generate its own graph.
-
----
-# Outputs
-## Vtx & Edges
-See {% include lk id='Working with Clusters' %}

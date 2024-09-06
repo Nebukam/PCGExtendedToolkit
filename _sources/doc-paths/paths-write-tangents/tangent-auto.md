@@ -2,7 +2,7 @@
 layout: page
 grand_parent: Paths
 parent: Write Tangents
-title: Auto Tangents
+title: ∢ Auto Tangents
 subtitle: Neighbor-based tangents
 color: white
 #summary: Index-based moving-average sampling

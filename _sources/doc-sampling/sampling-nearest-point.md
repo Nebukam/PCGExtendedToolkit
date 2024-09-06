@@ -85,17 +85,3 @@ outputs:
 > Note that the `Effective Range` method tends to spread/scale the input set of values -- but allows one to leverage the full range of the curve no matter the min/max input values.  
 > **Hence, using `Full Range` with only high (or low) input value will only sample a very narrow portion of the curve.**
 {: .infos-hl }
-
----
-# Inputs
-## In
-Points that will sample the input targets.  
-Each point position in world space will be used as a center for a spherical query of the surrounding target points. 
-
-## In Targets
-A single point group that will be sampled by each point of each dataset pluggued in the `In` pin.
-
----
-# Outputs
-## Out
-Same as input, with additional metadata.

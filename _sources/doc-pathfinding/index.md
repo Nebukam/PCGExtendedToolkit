@@ -25,8 +25,8 @@ has_children: true
 ---
 
 ## How pathfinding works
-Although details vary a bit depending on the selected {% include lk id='Search' %} algorithm, the basic gist is, for each path & cluster:
-1. {% include lk id='Goal Pickers' %} will find a suitable `Seed` and `Goal` point within the cluster.
+Although details vary a bit depending on the selected {% include lk id='⊚ Search' %} algorithm, the basic gist is, for each path & cluster:
+1. {% include lk id='🝓 Goal Pickers' %} will find a suitable `Seed` and `Goal` point within the cluster.
 2. The Search Algorithm will then find the best path that goes from `Seed` to `Goal`, accounting for its internal maths, and using {% include lk id='🝰 Heuristics' %} as to determine whether one connection is better than another.
 
 {% include imgc a='pathfinding/heuristic-score.png' %} 

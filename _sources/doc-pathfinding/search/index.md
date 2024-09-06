@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Pathfinding
-title: Search
+title: ⊚ Search
 subtitle: An inventory of the available search modules.
 #summary: summary_goes_here
 color: white
