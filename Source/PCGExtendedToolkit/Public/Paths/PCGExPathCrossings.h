@@ -87,6 +87,19 @@ public:
 	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::None);
 
 	FPCGExDistanceDetails CrossingBlendingDistance;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasCrossing = false;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasCrossing"))
+	FString HasCrossingsTag = TEXT("HasCrossings");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasNoCrossings = false;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasNoCrossings"))
+	FString HasNoCrossingsTag = TEXT("HasNoCrossings");
+	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCGExPathProcessorContext
