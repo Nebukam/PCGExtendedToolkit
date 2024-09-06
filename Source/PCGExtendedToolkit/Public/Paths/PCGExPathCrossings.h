@@ -66,6 +66,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
 	FName CrossingFlagAttributeName = "bIsCrossing";
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteAlpha = false;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteAlpha"))
+	FName CrossingAlphaAttributeName = "Alpha";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteAlpha", HideEditConditionToggle))
+	double DefaultAlpha = -1;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bDoCrossBlending = false;
 
@@ -151,6 +160,7 @@ namespace PCGExPathCrossings
 		FPCGExPathEdgeIntersectionDetails Details;
 
 		PCGEx::TAttributeWriter<bool>* FlagWriter = nullptr;
+		PCGEx::TAttributeWriter<double>* AlphaWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)
