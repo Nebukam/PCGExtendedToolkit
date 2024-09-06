@@ -70,7 +70,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				NewBatch->PrimaryOperation = Context->Blending;
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
-				NewBatch->bRequiresWriteStep = true;
+				NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
 			},
 			PCGExMT::State_Done))
 		{
@@ -275,18 +275,18 @@ namespace PCGExPathCrossings
 		Crossings[Index] = NewCrossing;
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
+	void FProcessor::FixPoint(const int32 Index)
 	{
 		// TODO : Set crossing positions + blending
-		const FCrossing* Crossing = Crossings[Iteration];
-		const PCGExPaths::FPathEdge* Edge = Edges[Iteration];
+		const FCrossing* Crossing = Crossings[Index];
+		const PCGExPaths::FPathEdge* Edge = Edges[Index];
 		if (!Crossing)
 		{
 			if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = false; }
 			return;
 		}
 
-		FlagWriter->Values[Edge->OffsetedStart] = false; 
+		FlagWriter->Values[Edge->OffsetedStart] = false;
 
 		const int32 NumCrossings = Crossing->Crossings.Num();
 
@@ -297,52 +297,58 @@ namespace PCGExPathCrossings
 		PCGEx::ArrayOfIndices(Order, NumCrossings);
 		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
-		if (CompoundBlender)
+		for (int i = 0; i < NumCrossings; i++)
 		{
-			for (int i = 0; i < NumCrossings; i++)
-			{
-				const int32 Index = Edge->OffsetedStart + i + 1;
-				FPCGPoint& CrossingPt = OutPoints[Index];
-				
-				const FVector& V = Crossing->Positions[Order[i]];
-				CrossingPt.Transform.SetLocation(V);
-				Metrics.Add(V);
+			const int32 Idx = Edge->OffsetedStart + i + 1;
+			FPCGPoint& CrossingPt = OutPoints[Idx];
 
-				if (FlagWriter) { FlagWriter->Values[Index] = true; }
+			const FVector& V = Crossing->Positions[Order[i]];
 
-				uint32 PtIdx;
-				uint32 IOIdx;
-				PCGEx::H64(Crossing->Crossings[Order[i]], PtIdx, IOIdx);
+			CrossingPt.Transform.SetLocation(V);
+			Metrics.Add(V);
 
-				PCGExData::FIdxCompound* TempCompound = new PCGExData::FIdxCompound();
-				TempCompound->Add(IOIdx, PtIdx);
-				CompoundBlender->SoftMergeSingle(Index, TempCompound, LocalSettings->CrossingBlendingDistance);
-				PCGEX_DELETE(TempCompound)
-			}
-		}
-		else
-		{
-			for (int i = 0; i < NumCrossings; i++)
-			{
-				const int32 Index = Edge->OffsetedStart + i + 1;
-				FPCGPoint& CrossingPt = OutPoints[Index];
-				const FVector& V = Crossing->Positions[Order[i]];
-				CrossingPt.Transform.SetLocation(V);
-				Metrics.Add(V);
-				if (FlagWriter) { FlagWriter->Values[Index] = true; }
-			}
+			if (FlagWriter) { FlagWriter->Values[Idx] = true; }
 		}
 
 		Metrics.Add(Positions[Edge->End]);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(OutPoints.GetData() + Edge->OffsetedStart, NumCrossings + 1);
-		const int32 EndIndex = Iteration == LastIndex ? 0 : Edge->OffsetedStart + NumCrossings + 1;
+		const int32 EndIndex = Index == LastIndex ? 0 : Edge->OffsetedStart + NumCrossings + 1;
 		Blending->ProcessSubPoints(PointIO->GetOutPointRef(Edge->OffsetedStart), PointIO->GetOutPointRef(EndIndex), View, Metrics);
+	}
+
+	void FProcessor::CrossBlendPoint(const int32 Index)
+	{
+		// TODO : Set crossing positions + blending
+		const FCrossing* Crossing = Crossings[Index];
+		const PCGExPaths::FPathEdge* Edge = Edges[Index];
+
+		const int32 NumCrossings = Crossing->Crossings.Num();
+
+		// Sorting again, ugh
+		TArray<int32> Order;
+		PCGEx::ArrayOfIndices(Order, NumCrossings);
+		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
+
+		PCGExData::FIdxCompound* TempCompound = new PCGExData::FIdxCompound();
+		for (int i = 0; i < NumCrossings; i++)
+		{
+			uint32 PtIdx;
+			uint32 IOIdx;
+			PCGEx::H64(Crossing->Crossings[Order[i]], PtIdx, IOIdx);
+
+			const int32 SecondIndex = static_cast<uint32>(LocalTypedContext->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::ESource::In)) >= PtIdx + 1 ? 0 : PtIdx + 1;
+
+			TempCompound->Clear();
+			TempCompound->Add(IOIdx, PtIdx);
+			TempCompound->Add(IOIdx, SecondIndex);
+			CompoundBlender->SoftMergeSingle(Edge->OffsetedStart + i + 1, TempCompound, LocalSettings->CrossingBlendingDistance);
+		}
+		PCGEX_DELETE(TempCompound)
 	}
 
 	void FProcessor::OnSearchComplete()
 	{
-		// TODO : Find the final number of points we require
 		int32 NumPointsFinal = 0;
 
 		for (int i = 0; i < NumPoints; i++)
@@ -386,7 +392,7 @@ namespace PCGExPathCrossings
 		}
 
 		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out);
-		
+
 		if (LocalSettings->bDoCrossBlending)
 		{
 			CompoundList = new PCGExData::FIdxCompoundList();
@@ -398,11 +404,15 @@ namespace PCGExPathCrossings
 
 			CompoundBlender->PrepareSoftMerge(PointDataFacade, CompoundList);
 		}
-		
+
 		// Flag last so it doesn't get captured by blenders
 		if (LocalSettings->bFlagCrossing) { FlagWriter = PointDataFacade->GetWriter(LocalSettings->CrossingFlagAttributeName, false, true, true); }
-		
-		StartParallelLoopForRange(NumPoints);
+
+		PCGExMT::FTaskGroup* FixTask = AsyncManagerPtr->CreateGroup();
+		FixTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr, true); });
+		FixTask->StartRanges(
+			[&](const int32 FixIndex, const int32 Count, const int32 LoopIdx) { FixPoint(FixIndex); },
+			NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CompleteWork()
@@ -420,8 +430,17 @@ namespace PCGExPathCrossings
 
 	void FProcessor::Write()
 	{
-		FPointsProcessor::Write();
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		if (LocalSettings->bDoCrossBlending)
+		{
+			PCGExMT::FTaskGroup* CrossBlendTask = AsyncManagerPtr->CreateGroup();
+			CrossBlendTask->StartRanges(
+				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
+				{
+					if (!Crossings[Index]) { return; }
+					CrossBlendPoint(Index);
+				},
+				NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		}
 	}
 }
 

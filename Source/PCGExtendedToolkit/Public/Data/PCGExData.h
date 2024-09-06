@@ -598,6 +598,12 @@ namespace PCGExData
 			TArray<double>& OutWeights) const;
 
 		uint64 Add(const int32 IOIndex, const int32 PointIndex);
+
+		void Clear()
+		{
+			IOIndices.Empty();
+			CompoundedHashSet.Empty();
+		}
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FIdxCompoundList
