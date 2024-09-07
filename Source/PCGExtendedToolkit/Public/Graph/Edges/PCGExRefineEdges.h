@@ -107,9 +107,6 @@ namespace PCGExRefineEdges
 		friend class FSanitizeRangeTask;
 		friend class FFilterRangeTask;
 
-		PCGExMT::FTaskGroup* FilterTaskGroup = nullptr;
-		PCGExMT::FTaskGroup* SanitizeTaskGroup = nullptr;
-
 	protected:
 		PCGExPointFilter::TManager* FilterManager = nullptr;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
@@ -128,6 +125,7 @@ namespace PCGExRefineEdges
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		void Sanitize();
 		void InsertEdges() const;
 		virtual void CompleteWork() override;
 

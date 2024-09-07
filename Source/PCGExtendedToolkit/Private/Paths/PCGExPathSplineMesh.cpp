@@ -232,21 +232,19 @@ namespace PCGExPathSplineMesh
 
 		if (!StagingData) { return; }
 
-		const int32 NextIndex = Index + 1 > LastIndex ? bClosedPath ? 0 : Index : Index + 1;
+		const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
 
 		const FPCGPoint& NextPoint = PointIO->GetInPoint(NextIndex);
-		const FTransform& StartTransform = Point.Transform;
-		const FTransform& EndTransform = NextPoint.Transform;
 
-		FVector Scale = StartTransform.GetScale3D();
-		Segment.Params.StartPos = StartTransform.GetLocation();
+		FVector Scale = Point.Transform.GetScale3D();
+		Segment.Params.StartPos = Point.Transform.GetLocation();
 		Segment.Params.StartScale = FVector2D(Scale.Y, Scale.Z);
-		Segment.Params.StartRoll = StartTransform.GetRotation().Rotator().Roll;
+		Segment.Params.StartRoll = Point.Transform.GetRotation().Rotator().Roll;
 
-		Scale = EndTransform.GetScale3D();
-		Segment.Params.EndPos = EndTransform.GetLocation();
+		Scale = NextPoint.Transform.GetScale3D();
+		Segment.Params.EndPos = NextPoint.Transform.GetLocation();
 		Segment.Params.EndScale = FVector2D(Scale.Y, Scale.Z);
-		Segment.Params.EndRoll = EndTransform.GetRotation().Rotator().Roll;
+		Segment.Params.EndRoll = NextPoint.Transform.GetRotation().Rotator().Roll;
 
 		if (LocalSettings->bApplyCustomTangents)
 		{

@@ -17,11 +17,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubPointsBlendNone : public UPCGExSubPoin
 
 public:
 	virtual void BlendSubPoints(
-		const PCGExData::FPointRef& StartPoint,
-		const PCGExData::FPointRef& EndPoint,
+		const PCGExData::FPointRef& From,
+		const PCGExData::FPointRef& To,
 		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& Metrics,
-		PCGExDataBlending::FMetadataBlender* InBlender) const override;
+		PCGExDataBlending::FMetadataBlender* InBlender, const int32 StartIndex) const override;
 
 	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override;
 };

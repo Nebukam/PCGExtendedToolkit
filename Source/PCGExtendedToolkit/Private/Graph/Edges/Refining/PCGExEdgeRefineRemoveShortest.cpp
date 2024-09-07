@@ -24,8 +24,5 @@ void UPCGExEdgeRemoveShortest::ProcessNode(PCGExCluster::FNode& Node)
 
 	if (BestIndex == -1) { return; }
 
-	{
-		FWriteScopeLock WriteScopeLock(EdgeLock);
-		(Cluster->Edges->GetData() + BestIndex)->bValid = false;
-	}
+	FPlatformAtomics::InterlockedExchange(&(Cluster->Edges->GetData() + BestIndex)->bValid, 0);
 }

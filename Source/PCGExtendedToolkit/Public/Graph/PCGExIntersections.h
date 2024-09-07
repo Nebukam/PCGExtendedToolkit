@@ -672,7 +672,7 @@ namespace PCGExGraph
 
 				if (InIntersections->Details->bUseMinAngle || InIntersections->Details->bUseMaxAngle)
 				{
-					if (!InIntersections->Details->CheckDot(FVector::DotProduct((Edge.Start - Edge.End).GetSafeNormal(), (OtherEdge.Start - OtherEdge.End).GetSafeNormal()))) { return; }
+					if (!InIntersections->Details->CheckDot(FMath::Abs(FVector::DotProduct((Edge.Start - Edge.End).GetSafeNormal(), (OtherEdge.Start - OtherEdge.End).GetSafeNormal())))) { return; }
 				}
 
 				if (!Edge.FindSplit(OtherEdge, Split)) { return; }

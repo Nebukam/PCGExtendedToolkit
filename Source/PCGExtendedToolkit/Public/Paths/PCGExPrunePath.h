@@ -5,20 +5,20 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-
 #include "PCGExPointsProcessor.h"
-#include "Geometry/PCGExGeo.h"
 #include "PCGExPrunePath.generated.h"
 
-namespace PCGExGeo
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
+enum class EPCGExPathPruneTriggerMode : uint8
 {
-	class FPointBoxCloud;
-}
+	Once UMETA(DisplayName = "Once", ToolTip="Each point is pruned individually based on filters."),
+	Switch UMETA(DisplayName = "Switch", ToolTip="Switch between pruning/non-pruning based on filters"),
+};
 
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path", Hidden)
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPrunePathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
@@ -26,11 +26,10 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPrunePathSettings : public UPCGExPathProc
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PrunePath, "Path : Prune", "Prune entire paths.");
+	PCGEX_NODE_INFOS(PrunePath, "Path : Prune", "Prune paths points.");
 #endif
 
 protected:
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -39,18 +38,25 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
+	virtual bool RequiresPointFilters() const override { return true; }
+	virtual FName GetPointFilterLabel() const override;
+
 public:
-	/** Consider paths to be closed -- processing will wrap between first and last points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bClosedPath = false;
-
-	/** Bounds type. */
+	/** Select pruning mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
+	EPCGExPathPruneTriggerMode TriggerMode = EPCGExPathPruneTriggerMode::Once;
 
-	/** Epsilon value used to expand the box when testing if IsInside. */
+	/** Initial switch state */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TriggerMode==EPCGExPathPruneTriggerMode::Switch", EditConditionHides))
+	bool bInitialSwitchValue = false;
+
+	/** Initial switch state */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double InsideEpsilon = 1e-4;
+	bool bGenerateNewPaths = false;
+	
+	/** Initial switch state */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvertFilterValue = false;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrunePathContext final : public FPCGExPathProcessorContext
@@ -58,8 +64,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrunePathContext final : public FPCGExPa
 	friend class FPCGExPrunePathElement;
 
 	virtual ~FPCGExPrunePathContext() override;
-
-	PCGExGeo::FPointBoxCloud* BoxCloud = nullptr;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrunePathElement final : public FPCGExPathProcessorElement
@@ -75,13 +79,30 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrunePathTask final : public PCGExMT::FPCGExTask
+namespace PCGExPrunePath
 {
-public:
-	FPCGExPrunePathTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		FPCGExPrunePathContext* LocalTypedContext = nullptr;
+		const UPCGExPrunePathSettings* LocalSettings = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		int32 CachedIndex = 0;
+		bool bCurrentSwitch = false;
+
+		TArray<FPCGPoint>* OutPoints = nullptr;
+		UPCGMetadata* OutMetadata = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
+		void CreateNewIO();
+	};
+}

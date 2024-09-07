@@ -140,7 +140,7 @@ namespace PCGExRefineEdges
 
 		if (Refinement->InvalidateAllEdgesBeforeProcessing())
 		{
-			for (PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges) { Edge.bValid = false; }
+			for (PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges) { Edge.bValid = true; }
 		}
 
 		if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
@@ -152,6 +152,17 @@ namespace PCGExRefineEdges
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) { Refinement->ProcessNode(Node); }
 
 	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) { Refinement->ProcessEdge(Edge); }
+
+	void FProcessor::Sanitize()
+	{
+		Cluster->GetExpandedEdges(true); //Oof
+
+		PCGExMT::FTaskGroup* SanitizeTaskGroup = AsyncManagerPtr->CreateGroup();
+		SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
+		SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
+			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
+			nullptr, this);
+	}
 
 	void FProcessor::InsertEdges() const
 	{
@@ -179,7 +190,7 @@ namespace PCGExRefineEdges
 
 		if (!TypedContext->PreserveEdgeFilterFactories.IsEmpty())
 		{
-			FilterTaskGroup = AsyncManagerPtr->CreateGroup();
+			PCGExMT::FTaskGroup* FilterTaskGroup = AsyncManagerPtr->CreateGroup();
 			FilterTaskGroup->SetOnCompleteCallback(
 				[&]()
 				{
@@ -189,13 +200,7 @@ namespace PCGExRefineEdges
 						return;
 					}
 
-					Cluster->GetExpandedEdges(true); //Oof
-
-					SanitizeTaskGroup = AsyncManagerPtr->CreateGroup();
-					SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
-					SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
-						NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
-						nullptr, this);
+					Sanitize();
 				});
 
 			FilterManager = new PCGExPointFilter::TManager(EdgeDataFacade);
@@ -203,6 +208,10 @@ namespace PCGExRefineEdges
 			FilterTaskGroup->StartRanges<FFilterRangeTask>(
 				NumEdges, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
 				nullptr, this);
+		}
+		else if (Settings->Sanitization != EPCGExRefineSanitization::None)
+		{
+			Sanitize();
 		}
 		else
 		{

@@ -176,11 +176,9 @@ namespace PCGExSubdivide
 
 		Metrics.Add(Sub.End);
 
-		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + Sub.OutStart, Sub.NumSubdivisions + 1);
-
-		Blending->ProcessSubPoints(
-			PointIO->GetOutPointRef(Sub.OutStart), PointIO->GetOutPointRef(Sub.OutEnd),
-			View, Metrics);
+		const int32 FirstSubdivIndex = Sub.OutStart + 1;
+		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + FirstSubdivIndex, Sub.NumSubdivisions);
+		Blending->ProcessSubPoints(PointIO->GetOutPointRef(Sub.OutStart), PointIO->GetOutPointRef(Sub.OutEnd), View, Metrics, FirstSubdivIndex);
 
 		for (FPCGPoint& Pt : View) { Pt.Seed = PCGExRandom::ComputeSeed(Pt); }
 	}

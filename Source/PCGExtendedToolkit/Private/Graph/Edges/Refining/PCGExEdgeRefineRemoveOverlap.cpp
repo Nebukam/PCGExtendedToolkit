@@ -12,8 +12,8 @@
 void UPCGExEdgeRemoveOverlap::PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
 	Super::PrepareForCluster(InCluster, InHeuristics);
-	MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 0;
-	MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
+	MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
+	MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
 	ToleranceSquared = Tolerance * Tolerance;
 	Cluster->GetExpandedEdges(true); // Let's hope it was cached ^_^
 }
@@ -50,8 +50,8 @@ void UPCGExEdgeRemoveOverlap::ProcessEdge(PCGExGraph::FIndexedEdge& Edge)
 
 		if (bUseMinAngle || bUseMaxAngle)
 		{
-			const double Dot = FVector::DotProduct(Cluster->GetDir(*EEdge->Start, *EEdge->End), Cluster->GetDir(*OtherEEdge->Start, *OtherEEdge->End));
-			if (!(Dot <= MaxDot && Dot >= MinDot)) { return false; }
+			const double Dot = FMath::Abs(FVector::DotProduct(Cluster->GetDir(*EEdge->Start, *EEdge->End), Cluster->GetDir(*OtherEEdge->Start, *OtherEEdge->End)));
+			if (!(Dot >= MaxDot && Dot <= MinDot)) { return true; }
 		}
 
 		const double OtherLength = OtherEEdge->GetEdgeLengthSquared(Cluster);
@@ -65,7 +65,7 @@ void UPCGExEdgeRemoveOverlap::ProcessEdge(PCGExGraph::FIndexedEdge& Edge)
 		{
 			if (OtherLength > Length)
 			{
-				Edge.bValid = false;
+				FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
 				return false;
 			}
 		}
@@ -73,7 +73,7 @@ void UPCGExEdgeRemoveOverlap::ProcessEdge(PCGExGraph::FIndexedEdge& Edge)
 		{
 			if (OtherLength < Length)
 			{
-				Edge.bValid = false;
+				FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
 				return false;
 			}
 		}

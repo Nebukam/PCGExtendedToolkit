@@ -118,6 +118,8 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		const FVector NextPosition = PointIO->GetInPoint(Index == LastIndex ? 0 : Index + 1).Transform.GetLocation();
 		const double Length = FVector::Dist(Position, NextPosition);
 		const FVector EdgeDirection = (Position - NextPosition).GetSafeNormal();
+		const FVector Scale = LocalSettings->bScaleBounds ? FVector::OneVector / Point.Transform.GetScale3D() : FVector::OneVector;
+
 
 		FRotator EdgeRot;
 		FVector TargetBoundsMin = Point.BoundsMin;
@@ -131,8 +133,8 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		bProcessAxis = LocalSettings->bWriteRadius##_AXIS || LocalSettings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
 		if (bProcessAxis){\
 			if (LocalSettings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
-				TargetBoundsMin._AXIS = -Length * EdgeLerpInv;\
-				TargetBoundsMax._AXIS = Length * EdgeLerp;\
+				TargetBoundsMin._AXIS = (-Length * EdgeLerpInv)* Scale._AXIS;\
+				TargetBoundsMax._AXIS = (Length * EdgeLerp)* Scale._AXIS;\
 			}else{\
 				double Rad = Rad##_AXIS##Constant;\
 				if(SolidificationRad##_AXIS){Rad = FMath::Lerp(SolidificationRad##_AXIS->Values[Index], SolidificationRad##_AXIS->Values[Index], EdgeLerp); }\

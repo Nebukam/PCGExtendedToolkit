@@ -65,7 +65,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 					bHasInvalidInputs = true;
 
 					if (Settings->bTagIfHasNoCrossings) { Entry->Tags->RawTags.Add(Settings->HasNoCrossingsTag); }
-					
+
 					return false;
 				}
 				return true;
@@ -285,10 +285,12 @@ namespace PCGExPathCrossings
 		const FCrossing* Crossing = Crossings[Index];
 		const PCGExPaths::FPathEdge* Edge = Edges[Index];
 
-		if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = false; }
-		if (AlphaWriter) { AlphaWriter->Values[Edge->OffsetedStart] = LocalSettings->DefaultAlpha; }
-
-		if (!Crossing) { return; }
+		if (!Crossing)
+		{
+			if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = false; }
+			if (AlphaWriter) { AlphaWriter->Values[Edge->OffsetedStart] = LocalSettings->DefaultAlpha; }
+			return;
+		}
 
 		const int32 NumCrossings = Crossing->Crossings.Num();
 		const int32 CrossingStartIndex = Edge->OffsetedStart + 1;
@@ -311,16 +313,28 @@ namespace PCGExPathCrossings
 
 			CrossingPt.Transform.SetLocation(V);
 			Metrics.Add(V);
-
-			if (FlagWriter) { FlagWriter->Values[Idx] = true; }
-			if (AlphaWriter) { AlphaWriter->Values[Idx] = Crossing->Alphas[OrderIdx]; }
 		}
 
 		Metrics.Add(Positions[Edge->End]);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(OutPoints.GetData() + CrossingStartIndex, NumCrossings);
-		const int32 EndIndex = Index == LastIndex ? 0 : CrossingStartIndex + NumCrossings + 1;
-		Blending->ProcessSubPoints(PointIO->GetOutPointRef(CrossingStartIndex), PointIO->GetOutPointRef(EndIndex), View, Metrics);
+		const int32 EndIndex = Index == LastIndex ? 0 : CrossingStartIndex + NumCrossings;
+		Blending->ProcessSubPoints(PointIO->GetOutPointRef(CrossingStartIndex - 1), PointIO->GetOutPointRef(EndIndex), View, Metrics, CrossingStartIndex);
+
+		// Ensure we overwrite flag with current values if they exist already
+
+		if (FlagWriter || AlphaWriter)
+		{
+			if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = false; }
+			if (AlphaWriter) { AlphaWriter->Values[Edge->OffsetedStart] = LocalSettings->DefaultAlpha; }
+
+			for (int i = 0; i < NumCrossings; i++)
+			{
+				const int32 Idx = CrossingStartIndex + i;
+				if (FlagWriter) { FlagWriter->Values[Idx] = true; }
+				if (AlphaWriter) { AlphaWriter->Values[Idx] = Crossing->Alphas[Order[i]]; }
+			}
+		}
 	}
 
 	void FProcessor::CrossBlendPoint(const int32 Index)

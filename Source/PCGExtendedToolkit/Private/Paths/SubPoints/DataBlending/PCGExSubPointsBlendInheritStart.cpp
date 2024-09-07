@@ -7,11 +7,12 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 void UPCGExSubPointsBlendInheritStart::BlendSubPoints(
-	const PCGExData::FPointRef& StartPoint,
-	const PCGExData::FPointRef& EndPoint,
+	const PCGExData::FPointRef& From,
+	const PCGExData::FPointRef& To,
 	const TArrayView<FPCGPoint>& SubPoints,
 	const PCGExMath::FPathMetricsSquared& Metrics,
-	PCGExDataBlending::FMetadataBlender* InBlender) const
+	PCGExDataBlending::FMetadataBlender* InBlender,
+	const int32 StartIndex) const
 {
 	const int32 NumPoints = SubPoints.Num();
 	TArray<double> Weights;
@@ -26,7 +27,7 @@ void UPCGExSubPointsBlendInheritStart::BlendSubPoints(
 		Weights.Add(0);
 	}
 
-	InBlender->BlendRangeFromTo(StartPoint, EndPoint, StartPoint.Index, Weights);
+	InBlender->BlendRangeFromTo(From, To, StartIndex < 0 ? From.Index : StartIndex, Weights);
 
 	// Restore pre-blend position
 	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }

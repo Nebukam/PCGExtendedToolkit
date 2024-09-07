@@ -52,7 +52,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 
 	void Init()
 	{
-		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 0;
+		MaxDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
 		MinDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
 		ToleranceSquared = Tolerance * Tolerance;
 	}

@@ -29,14 +29,11 @@ void UPCGExSubPointsOperation::ProcessPoints(UPCGPointData* InData) const
 	ProcessSubPoints(StartPoint, EndPoint, Path, PCGExMath::FPathMetricsSquared());
 }
 
-void UPCGExSubPointsOperation::ProcessSubPoints(const PCGExData::FPointRef& Start, const PCGExData::FPointRef& End, const TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetricsSquared& Metrics) const
+void UPCGExSubPointsOperation::ProcessSubPoints(
+	const PCGExData::FPointRef& From,
+	const PCGExData::FPointRef& To,
+	const TArrayView<FPCGPoint>& SubPoints,
+	const PCGExMath::FPathMetricsSquared& Metrics,
+	const int32 StartIndex) const
 {
-}
-
-void UPCGExSubPointsOperation::ProcessSubPoints(const TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetricsSquared& Metrics, const int32 Offset) const
-{
-	const FPCGPoint& Start = SubPoints[0];
-	const int32 LastIndex = SubPoints.Num() - 1;
-	const FPCGPoint& End = SubPoints[LastIndex];
-	ProcessSubPoints(PCGExData::FPointRef(Start, 0), PCGExData::FPointRef(End, LastIndex), SubPoints, Metrics);
 }

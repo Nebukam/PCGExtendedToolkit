@@ -239,8 +239,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	PCGExDataBlending::FMetadataBlender* TempBlender =
 		Context->Blending->CreateBlender(PathDataFacade, Context->GoalsDataFacade);
 
-	TArrayView<FPCGPoint> View(MutablePoints);
-	Context->Blending->BlendSubPoints(View, Metrics, TempBlender);
+	Context->Blending->BlendSubPoints(MutablePoints, Metrics, TempBlender);
 	PCGEX_DELETE(TempBlender)
 
 	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }

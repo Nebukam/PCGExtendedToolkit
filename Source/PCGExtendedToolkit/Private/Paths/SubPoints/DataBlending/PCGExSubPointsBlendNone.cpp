@@ -7,11 +7,11 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 void UPCGExSubPointsBlendNone::BlendSubPoints(
-	const PCGExData::FPointRef& StartPoint,
-	const PCGExData::FPointRef& EndPoint,
+	const PCGExData::FPointRef& From,
+	const PCGExData::FPointRef& To,
 	const TArrayView<FPCGPoint>& SubPoints,
 	const PCGExMath::FPathMetricsSquared& Metrics,
-	PCGExDataBlending::FMetadataBlender* InBlender) const
+	PCGExDataBlending::FMetadataBlender* InBlender, const int32 StartIndex) const
 {
 	
 }

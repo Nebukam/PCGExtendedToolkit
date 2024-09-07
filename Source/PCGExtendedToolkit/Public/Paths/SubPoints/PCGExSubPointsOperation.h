@@ -24,6 +24,11 @@ public:
 
 	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade);
 	virtual void ProcessPoints(UPCGPointData* InData) const;
-	virtual void ProcessSubPoints(const PCGExData::FPointRef& Start, const PCGExData::FPointRef& End, const TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetricsSquared& Metrics) const;
-	virtual void ProcessSubPoints(const TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetricsSquared& Metrics, const int32 Offset) const;
+
+	virtual void ProcessSubPoints(
+		const PCGExData::FPointRef& From,
+		const PCGExData::FPointRef& To,
+		const TArrayView<FPCGPoint>& SubPoints,
+		const PCGExMath::FPathMetricsSquared& Metrics,
+		const int32 StartIndex = -1) const;
 };

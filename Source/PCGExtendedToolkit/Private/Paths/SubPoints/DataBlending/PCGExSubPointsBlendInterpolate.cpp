@@ -26,11 +26,12 @@ void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExOperation* Ot
 }
 
 void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
-	const PCGExData::FPointRef& StartPoint,
-	const PCGExData::FPointRef& EndPoint,
+	const PCGExData::FPointRef& From,
+	const PCGExData::FPointRef& To,
 	const TArrayView<FPCGPoint>& SubPoints,
 	const PCGExMath::FPathMetricsSquared& Metrics,
-	PCGExDataBlending::FMetadataBlender* InBlender) const
+	PCGExDataBlending::FMetadataBlender* InBlender,
+	const int32 StartIndex) const
 {
 	const int32 NumPoints = SubPoints.Num();
 
@@ -45,7 +46,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 
 	if (SafeBlendOver == EPCGExBlendOver::Distance)
 	{
-		PCGExMath::FPathMetricsSquared PathMetrics = PCGExMath::FPathMetricsSquared(StartPoint.Point->Transform.GetLocation());
+		PCGExMath::FPathMetricsSquared PathMetrics = PCGExMath::FPathMetricsSquared(From.Point->Transform.GetLocation());
 		for (int i = 0; i < NumPoints; i++)
 		{
 			const FVector Location = SubPoints[i].Transform.GetLocation();
@@ -70,7 +71,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 		}
 	}
 
-	InBlender->BlendRangeFromTo(StartPoint, EndPoint, StartPoint.Index, Weights);
+	InBlender->BlendRangeFromTo(From, To, StartIndex < 0 ? From.Index : StartIndex, Weights);
 
 	// Restore pre-blend position
 	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }
