@@ -264,6 +264,20 @@ public:
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
+
+	//
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasSuccesses = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasSuccesses"))
+	FString HasSuccessesTag = TEXT("HasSuccesses");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasNoSuccesses = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasNoSuccesses"))
+	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : public FPCGExPointsProcessorContext
@@ -306,6 +320,7 @@ namespace PCGExSampleNearestSpline
 		PCGExData::FCache<FVector>* LookAtUpGetter = nullptr;
 
 		FVector SafeUpVector = FVector::UpVector;
+		int8 bAnySuccess = 0;
 
 		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
 

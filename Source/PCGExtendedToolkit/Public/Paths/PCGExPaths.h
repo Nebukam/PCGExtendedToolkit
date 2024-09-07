@@ -136,6 +136,8 @@ namespace PCGExPaths
 		bool bUseDegrees = true;
 		FVector UpVector = FVector::UpVector;
 
+		ESplineMeshAxis::Type SplineMeshAxis = ESplineMeshAxis::Type::X;
+
 		const FPCGExAssetStagingData* AssetStaging = nullptr;
 		FSplineMeshParams Params;
 
@@ -153,8 +155,11 @@ namespace PCGExPaths
 			if (bUseDegrees) { Component->SetEndRollDegrees(Params.EndRoll, false); }
 			else { Component->SetEndRoll(Params.EndRoll, false); }
 
-			Component->SetForwardAxis(ESplineMeshAxis::Type::X, false);
+			Component->SetForwardAxis(SplineMeshAxis, false);
 			Component->SetSplineUpDir(FVector::UpVector, false);
+
+			Component->SetStartOffset(Params.StartOffset, false);
+			Component->SetEndOffset(Params.EndOffset, false);
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 			Component->SplineParams.NaniteClusterBoundsScale = Params.NaniteClusterBoundsScale;

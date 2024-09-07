@@ -91,7 +91,18 @@ public:
 	/** Leave tangent attribute (expects FVector) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
 	FName LeaveTangentAttribute = "LeaveTangent";
+	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExJustificationDetails Justification;
+
+	/** Leave tangent attribute (expects FVector) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
+	bool bJustifyToOne = false;
+	
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
@@ -134,12 +145,15 @@ namespace PCGExPathSplineMesh
 		int32 LastIndex = 0;
 
 		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
+		FPCGExJustificationDetails Justification;
 
 		PCGEx::TAttributeIO<FVector>* ArriveReader = nullptr;
 		PCGEx::TAttributeIO<FVector>* LeaveReader = nullptr;
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 		//TArray<USplineMeshComponent*> SplineMeshComponents;
+
+		ESplineMeshAxis::Type SplineMeshAxisConstant = ESplineMeshAxis::Type::X;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

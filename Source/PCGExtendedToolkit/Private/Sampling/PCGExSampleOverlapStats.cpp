@@ -255,6 +255,7 @@ namespace PCGExSampleOverlapStats
 
 				if (Count > 0)
 				{
+					FPlatformAtomics::InterlockedExchange(&bAnyOverlap, 1);
 					FPlatformAtomics::InterlockedAdd(&OverlapSubCount[OwnedPoint->Index], Count);
 					FPlatformAtomics::InterlockedAdd(&OverlapCount[OwnedPoint->Index], 1);
 				}
@@ -314,7 +315,14 @@ namespace PCGExSampleOverlapStats
 	void FProcessor::Write()
 	{
 		PCGExMT::FTaskGroup* SearchTask = AsyncManagerPtr->CreateGroup();
-		SearchTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr, true); });
+		SearchTask->SetOnCompleteCallback(
+			[&]()
+			{
+				PointDataFacade->Write(AsyncManagerPtr, true);
+
+				if (LocalSettings->bTagIfHasAnyOverlap && bAnyOverlap) { PointIO->Tags->Add(LocalSettings->HasAnyOverlapTag); }
+				if (LocalSettings->bTagIfHasNoOverlap && !bAnyOverlap) { PointIO->Tags->Add(LocalSettings->HasNoOverlapTag); }
+			});
 
 		SearchTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { WriteSingleData(Index); },

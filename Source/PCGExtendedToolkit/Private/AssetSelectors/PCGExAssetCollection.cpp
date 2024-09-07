@@ -30,7 +30,7 @@ namespace PCGExAssetCollection
 	void FCategory::Compile()
 	{
 		Shrink();
-		
+
 		const int32 NumEntries = Indices.Num();
 		PCGEx::ArrayOfIndices(Order, NumEntries);
 
@@ -91,7 +91,7 @@ namespace PCGExAssetCollection
 	void FCache::Compile()
 	{
 		Main->Compile();
-		for (const TPair<FName, FCategory*>& Pair : Categories){ Pair.Value->Compile(); }
+		for (const TPair<FName, FCategory*>& Pair : Categories) { Pair.Value->Compile(); }
 	}
 }
 
@@ -226,7 +226,7 @@ namespace PCGExAssetCollection
 		const FPCGContext* InContext,
 		PCGExData::FFacade* InDataFacade)
 	{
-		MaxIndex = Collection->LoadCache()->Main->Order.Num(); //InDataFacade->Source->GetNum() - 1;
+		MaxIndex = Collection->LoadCache()->Main->Order.Num() - 1;
 
 		if (Details.Distribution == EPCGExDistribution::Index)
 		{

@@ -75,6 +75,7 @@ bool FPCGExPrunePathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
+	Context->MainBatch->Output();
 	Context->MainPoints->OutputToContext();
 
 	return Context->TryComplete();
@@ -84,6 +85,7 @@ namespace PCGExPrunePath
 {
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE_TARRAY(Outputs)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -151,7 +153,9 @@ namespace PCGExPrunePath
 	{
 		// Create new point IO
 		// TODO : Cache points IO locally and add them during the output step instead of this
-		PCGExData::FPointIO* NewIO = LocalTypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+		PCGExData::FPointIO* NewIO = new PCGExData::FPointIO(LocalTypedContext, PointIO);
+
+		Outputs.Add(NewIO);
 
 		OutPoints = &NewIO->GetOut()->GetMutablePoints();
 		OutPoints->Reserve(PointIO->GetNum() - CachedIndex);
@@ -171,6 +175,7 @@ namespace PCGExPrunePath
 			// The last valid section connects back to the valid starting section
 			// TODO : Insert PathBegin at the end of CurrentPath then get rid PathBegin
 			// This will however put the first segment last in the outputs.
+
 			TArray<FPCGPoint>& CurrentPoints = CurrentPath->GetOut()->GetMutablePoints();
 			TArray<FPCGPoint>& BeginPoints = PathBegin->GetOut()->GetMutablePoints();
 
@@ -185,14 +190,29 @@ namespace PCGExPrunePath
 				CurrentPoints[Index] = BeginPoints[i];
 			}
 
-
-			PathBegin->InitializeOutput(PCGExData::EInit::NoOutput); // Dun dun dun
+			Outputs[0] = nullptr;
+			PCGEX_DELETE(PathBegin);
 		}
 	}
 
 	void FProcessor::Output()
 	{
-		// Insert valid local FPointIOs
+		for (PCGExData::FPointIO* IO : Outputs)
+		{
+			if (IO)
+			{
+				if (IO->GetNum(PCGExData::ESource::Out) > 0)
+				{
+					LocalTypedContext->MainPoints->AddUnsafe(IO);
+				}
+				else
+				{
+					PCGEX_DELETE(IO)
+				}
+			}
+		}
+
+		Outputs.Empty();
 	}
 }
 

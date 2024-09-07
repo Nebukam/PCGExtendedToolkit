@@ -88,9 +88,12 @@ namespace PCGExWriteTangents
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteTangents)
 
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LocalSettings = Settings;
+		bClosedPath = Settings->bClosedPath;
 
 		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
 		Tangents->PrepareForData(PointDataFacade);
@@ -103,6 +106,11 @@ namespace PCGExWriteTangents
 		StartParallelLoopForPoints();
 
 		return true;
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)

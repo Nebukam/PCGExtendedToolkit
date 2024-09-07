@@ -69,7 +69,7 @@ namespace PCGExGraph
 	{
 		uint32 Start = 0;
 		uint32 End = 0;
-		int bValid = 1; // int for atomic operations
+		int8 bValid = 1; // int for atomic operations
 
 		FEdge()
 		{
