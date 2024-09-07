@@ -140,7 +140,7 @@ namespace PCGExRefineEdges
 
 		if (Refinement->InvalidateAllEdgesBeforeProcessing())
 		{
-			for (PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges) { Edge.bValid = true; }
+			for (PCGExGraph::FIndexedEdge& Edge : *Cluster->Edges) { Edge.bValid = false; }
 		}
 
 		if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
