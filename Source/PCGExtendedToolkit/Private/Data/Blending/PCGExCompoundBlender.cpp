@@ -325,7 +325,7 @@ namespace PCGExDataBlending
 		{
 			for (int i = 0; i < TagAttributes.Num(); i++)
 			{
-				if (Sources[IOI]->Source->Tags->RawTags.Contains(UniqueTagsList[i])) { InheritedTags[i] = true; }
+				if (Sources[IOI]->Source->Tags->IsTagged(UniqueTagsList[i])) { InheritedTags[i] = true; }
 			}
 		}
 

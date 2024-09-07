@@ -121,7 +121,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	PCGExGraph::CleanupClusterTags(PackedIO);
 
 	FString OutPairId;
-	PackedIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
+	PackedIO->Tags->Add(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
 
 	InEdges->CleanupKeys();
 

@@ -218,7 +218,7 @@ namespace PCGExSplitPath
 		for (PCGExData::FPointIO* PathIO : PathsIOs)
 		{
 			if (!PathIO) { continue; }
-			if (bAddOpenTag) { PathIO->Tags->RawTags.Add(Settings->OpenPathTag); }
+			if (bAddOpenTag) { PathIO->Tags->Add(Settings->OpenPathTag); }
 			LocalTypedContext->MainPaths->AddUnsafe(PathIO);
 		}
 

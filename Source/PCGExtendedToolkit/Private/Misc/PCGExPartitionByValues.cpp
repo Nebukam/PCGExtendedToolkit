@@ -297,7 +297,7 @@ namespace PCGExPartitionByValues
 			if (Rule->RuleConfig->bWriteTag)
 			{
 				FString TagValue;
-				PartitionIO->Tags->Set(
+				PartitionIO->Tags->Add(
 					Rule->RuleConfig->TagPrefixName.ToString(),
 					Rule->RuleConfig->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey,
 					TagValue);

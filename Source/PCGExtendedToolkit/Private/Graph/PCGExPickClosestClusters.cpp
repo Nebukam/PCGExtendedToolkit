@@ -188,8 +188,8 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 
 		if (Settings->FilterActions.Action == EPCGExFilterDataAction::Tag)
 		{
-			for (PCGExData::FPointIO* IO : KeepList) { IO->Tags->RawTags.Add(Settings->FilterActions.KeepTag.ToString()); }
-			for (PCGExData::FPointIO* IO : OmitList) { IO->Tags->RawTags.Add(Settings->FilterActions.OmitTag.ToString()); }
+			for (PCGExData::FPointIO* IO : KeepList) { IO->Tags->Add(Settings->FilterActions.KeepTag.ToString()); }
+			for (PCGExData::FPointIO* IO : OmitList) { IO->Tags->Add(Settings->FilterActions.OmitTag.ToString()); }
 		}
 		else
 		{

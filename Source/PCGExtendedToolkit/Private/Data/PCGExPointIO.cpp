@@ -380,7 +380,7 @@ namespace PCGExData
 	void FPointIOTaggedEntries::Add(FPointIO* Value)
 	{
 		Entries.AddUnique(Value);
-		Value->Tags->Set(TagId, TagValue);
+		Value->Tags->Add(TagId, TagValue);
 	}
 
 	bool FPointIOTaggedDictionary::CreateKey(const FPointIO& PointIOKey)
@@ -389,7 +389,7 @@ namespace PCGExData
 		if (!PointIOKey.Tags->GetValue(TagId, TagValue))
 		{
 			TagValue = FString::Printf(TEXT("%llu"), PointIOKey.GetInOut()->UID);
-			PointIOKey.Tags->Set(TagId, TagValue);
+			PointIOKey.Tags->Add(TagId, TagValue);
 		}
 
 		bool bFoundDupe = false;

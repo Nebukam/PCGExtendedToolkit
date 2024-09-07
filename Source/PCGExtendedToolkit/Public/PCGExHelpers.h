@@ -83,3 +83,111 @@ private:
 	{
 	}
 };
+
+namespace PCGEx
+{
+	static const TSet<EPCGMetadataTypes> MustBeInitialized = {
+		EPCGMetadataTypes::Transform,
+		EPCGMetadataTypes::String,
+		EPCGMetadataTypes::Name,
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		EPCGMetadataTypes::SoftObjectPath,
+#endif
+	};
+
+#pragma region Metadata Type
+
+	template <typename T, typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const T Dummy) { return EPCGMetadataTypes::Unknown; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const bool Dummy) { return EPCGMetadataTypes::Boolean; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const int32 Dummy) { return EPCGMetadataTypes::Integer32; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const int64 Dummy) { return EPCGMetadataTypes::Integer64; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const float Dummy) { return EPCGMetadataTypes::Float; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const double Dummy) { return EPCGMetadataTypes::Double; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FVector2D Dummy) { return EPCGMetadataTypes::Vector2; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FVector Dummy) { return EPCGMetadataTypes::Vector; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FVector4 Dummy) { return EPCGMetadataTypes::Vector4; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FQuat Dummy) { return EPCGMetadataTypes::Quaternion; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FRotator Dummy) { return EPCGMetadataTypes::Rotator; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FTransform Dummy) { return EPCGMetadataTypes::Transform; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FString Dummy) { return EPCGMetadataTypes::String; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FName Dummy) { return EPCGMetadataTypes::Name; }
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FSoftClassPath Dummy) { return EPCGMetadataTypes::Unknown; }
+
+	template <typename CompilerSafety = void>
+	static EPCGMetadataTypes GetMetadataType(const FSoftObjectPath Dummy) { return EPCGMetadataTypes::Unknown; }
+
+#endif
+
+
+	static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
+	{
+		switch (Property)
+		{
+		case EPCGPointProperties::Density:
+			return EPCGMetadataTypes::Float;
+		case EPCGPointProperties::BoundsMin:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::BoundsMax:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Extents:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Color:
+			return EPCGMetadataTypes::Vector4;
+		case EPCGPointProperties::Position:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Rotation:
+			return EPCGMetadataTypes::Rotator;
+		case EPCGPointProperties::Scale:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Transform:
+			return EPCGMetadataTypes::Transform;
+		case EPCGPointProperties::Steepness:
+			return EPCGMetadataTypes::Float;
+		case EPCGPointProperties::LocalCenter:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Seed:
+			return EPCGMetadataTypes::Integer32;
+		default:
+			return EPCGMetadataTypes::Unknown;
+		}
+	}
+
+	static bool RequireInit(const EPCGMetadataTypes Type) { return MustBeInitialized.Contains(Type); }
+
+	template <typename T>
+	static bool RequireInit(const T& DummyValue) { return RequireInit(GetMetadataType(DummyValue)); }
+
+
+#pragma endregion
+}

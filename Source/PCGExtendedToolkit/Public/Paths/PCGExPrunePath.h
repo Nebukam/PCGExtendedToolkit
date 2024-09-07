@@ -42,6 +42,10 @@ public:
 	virtual FName GetPointFilterLabel() const override;
 
 public:
+	/** Consider paths to be closed -- processing will wrap between first and last points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bClosedPath = false;
+
 	/** Select pruning mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPathPruneTriggerMode TriggerMode = EPCGExPathPruneTriggerMode::Once;
@@ -53,7 +57,7 @@ public:
 	/** Initial switch state */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bGenerateNewPaths = false;
-	
+
 	/** Initial switch state */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertFilterValue = false;
@@ -86,9 +90,14 @@ namespace PCGExPrunePath
 		FPCGExPrunePathContext* LocalTypedContext = nullptr;
 		const UPCGExPrunePathSettings* LocalSettings = nullptr;
 
+		bool bClosedPath = false;
+
 		int32 CachedIndex = 0;
+		int32 LastValidIndex = -1;
 		bool bCurrentSwitch = false;
 
+		PCGExData::FPointIO* PathBegin = nullptr;
+		PCGExData::FPointIO* CurrentPath = nullptr;
 		TArray<FPCGPoint>* OutPoints = nullptr;
 		UPCGMetadata* OutMetadata = nullptr;
 
@@ -103,6 +112,8 @@ namespace PCGExPrunePath
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
-		void CreateNewIO();
+		PCGExData::FPointIO* NewPathIO();
+		virtual void CompleteWork() override;
+		virtual void Output() override;
 	};
 }

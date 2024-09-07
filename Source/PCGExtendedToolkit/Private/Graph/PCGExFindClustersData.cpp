@@ -62,9 +62,9 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		// Vtx ?
 
-		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+		if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
 		{
-			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
 			{
 				if (!Settings->bSkipTrivialWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges -- it will be ignored for safety.")); }
 				continue;
@@ -82,9 +82,9 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		// Edge ?
 
-		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+		if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
 		{
-			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
 			{
 				if (!Settings->bSkipTrivialWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges -- it will be ignored for safety.")); }
 				continue;

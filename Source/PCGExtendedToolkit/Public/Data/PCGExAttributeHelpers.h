@@ -11,6 +11,7 @@
 
 #include "PCGExMacros.h"
 #include "PCGEx.h"
+#include "PCGExHelpers.h"
 #include "PCGExMath.h"
 #include "PCGExMT.h"
 #include "PCGExPointIO.h"
@@ -271,7 +272,9 @@ namespace PCGEx
 
 		bool GetRange(TArray<T>& OutValues, const int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr, const int32 Count = -1) const
 		{
-			PCGEX_SET_NUM_UNINITIALIZED(OutValues, Count == -1 ? NumEntries - Index : Count)
+			if (PCGEx::RequireInit(T{})) { PCGEX_SET_NUM(OutValues, Count == -1 ? NumEntries - Index : Count) }
+			else { PCGEX_SET_NUM_UNINITIALIZED(OutValues, Count == -1 ? NumEntries - Index : Count) }
+
 			TArrayView<T> View(OutValues);
 			return Accessor->GetRange(View, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
@@ -514,7 +517,9 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				PCGEX_SET_NUM_UNINITIALIZED(this->Values, PointIO->GetNum(PCGExData::ESource::Out))
+				if (PCGEx::RequireInit(T{})) { PCGEX_SET_NUM(this->Values, PointIO->GetNum(PCGExData::ESource::Out)) }
+				else { PCGEX_SET_NUM_UNINITIALIZED(this->Values, PointIO->GetNum(PCGExData::ESource::Out)) }
+
 				return true;
 			}
 			return false;
@@ -531,7 +536,7 @@ namespace PCGEx
 		void Write(const TArrayView<const int32>& InIndices)
 		{
 			if (this->Values.IsEmpty()) { return; }
-			for (int32 Index : InIndices) { this->Accessor->Set(this->Values[Index], Index); }
+			for (int32 Index : InIndices) { this->Accessor->Add(this->Values[Index], Index); }
 		}
 
 		void Write(const uint64 Scope)
@@ -545,10 +550,10 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/  TAttributeReader final : public TAttributeIO<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TAttributeReader final : public TAttributeIO<T>
 	{
 	public:
-		explicit  TAttributeReader(const FName& InName)
+		explicit TAttributeReader(const FName& InName)
 			: TAttributeIO<T>(InName)
 		{
 		}
@@ -698,7 +703,8 @@ namespace PCGEx
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;
 
-						PCGEX_SET_NUM_UNINITIALIZED(RawValues, Count)
+						if (PCGEx::RequireInit(DummyValue)) { PCGEX_SET_NUM(RawValues, Count) }
+						else { PCGEX_SET_NUM_UNINITIALIZED(RawValues, Count) }
 
 						FPCGAttributeAccessor<RawT>* Accessor = static_cast<FPCGAttributeAccessor<RawT>*>(FetchAccessor);
 						IPCGAttributeAccessorKeys* Keys = PointIO->CreateInKeys();
@@ -777,8 +783,17 @@ namespace PCGEx
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;
 
-						PCGEX_SET_NUM_UNINITIALIZED(RawValues, NumPoints)
-						PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints)
+						if (PCGEx::RequireInit(DummyValue))
+						{
+							PCGEX_SET_NUM(RawValues, NumPoints)
+							PCGEX_SET_NUM(Dump, NumPoints)
+						}
+						else
+						{
+							PCGEX_SET_NUM_UNINITIALIZED(RawValues, NumPoints)
+							PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints)
+						}
+
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
 						FPCGAttributeAccessor<RawT>* Accessor = new FPCGAttributeAccessor<RawT>(TypedAttribute, InData->Metadata);
@@ -811,7 +826,11 @@ namespace PCGEx
 			{
 				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-				PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints)
+
+
+				if (PCGEx::RequireInit(GetPropertyType(Config.Selector.GetPointProperty()))) { PCGEX_SET_NUM(Dump, NumPoints) }
+				else { PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints) }
+
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
 				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) {\
 						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExMath::Min(V, OutMin); OutMax = PCGExMath::Max(V, OutMax); Dump[i] = V;\
@@ -971,7 +990,7 @@ namespace PCGEx
 		FORCEINLINE virtual T GetDefaultValue() const = 0;
 		virtual void ResetMinMax() = 0;
 
-#define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME, ...) FORCEINLINE virtual T Convert(const _TYPE Value) const { return GetDefaultValue(); };
+#define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME, ...) FORCEINLINE virtual T Convert(const _TYPE& Value) const { return GetDefaultValue(); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_PRINT_VIRTUAL)
 	};
 
@@ -1063,12 +1082,12 @@ namespace PCGEx
 
 		FORCEINLINE virtual double GetDefaultValue() const override { return 0; }
 
-		FORCEINLINE virtual double Convert(const int32 Value) const override { return Value; }
-		FORCEINLINE virtual double Convert(const int64 Value) const override { return static_cast<double>(Value); }
-		FORCEINLINE virtual double Convert(const float Value) const override { return Value; }
-		FORCEINLINE virtual double Convert(const double Value) const override { return Value; }
+		FORCEINLINE virtual double Convert(const int32& Value) const override { return Value; }
+		FORCEINLINE virtual double Convert(const int64& Value) const override { return static_cast<double>(Value); }
+		FORCEINLINE virtual double Convert(const float& Value) const override { return Value; }
+		FORCEINLINE virtual double Convert(const double& Value) const override { return Value; }
 
-		FORCEINLINE virtual double Convert(const FVector2D Value) const override
+		FORCEINLINE virtual double Convert(const FVector2D& Value) const override
 		{
 			switch (Field)
 			{
@@ -1084,7 +1103,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual double Convert(const FVector Value) const override
+		FORCEINLINE virtual double Convert(const FVector& Value) const override
 		{
 			switch (Field)
 			{
@@ -1101,7 +1120,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual double Convert(const FVector4 Value) const override
+		FORCEINLINE virtual double Convert(const FVector4& Value) const override
 		{
 			switch (Field)
 			{
@@ -1119,7 +1138,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual double Convert(const FQuat Value) const override
+		FORCEINLINE virtual double Convert(const FQuat& Value) const override
 		{
 			if (bUseAxis) { return Convert(PCGExMath::GetDirection(Value, Axis)); }
 			switch (Field)
@@ -1137,7 +1156,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual double Convert(const FTransform Value) const override
+		FORCEINLINE virtual double Convert(const FTransform& Value) const override
 		{
 			switch (Component)
 			{
@@ -1151,10 +1170,10 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual double Convert(const bool Value) const override { return Value; }
-		FORCEINLINE virtual double Convert(const FRotator Value) const override { return Convert(FVector(Value.Pitch, Value.Yaw, Value.Roll)); }
-		FORCEINLINE virtual double Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
-		FORCEINLINE virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
+		FORCEINLINE virtual double Convert(const bool& Value) const override { return Value; }
+		FORCEINLINE virtual double Convert(const FRotator& Value) const override { return Convert(FVector(Value.Pitch, Value.Yaw, Value.Roll)); }
+		FORCEINLINE virtual double Convert(const FString& Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
+		FORCEINLINE virtual double Convert(const FName& Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalIntegerGetter final : public TAttributeGetter<int32>
@@ -1170,12 +1189,12 @@ namespace PCGEx
 
 		FORCEINLINE virtual int32 GetDefaultValue() const override { return 0; }
 
-		FORCEINLINE virtual int32 Convert(const int32 Value) const override { return Value; }
-		FORCEINLINE virtual int32 Convert(const int64 Value) const override { return static_cast<int32>(Value); }
-		FORCEINLINE virtual int32 Convert(const float Value) const override { return Value; }
-		FORCEINLINE virtual int32 Convert(const double Value) const override { return Value; }
+		FORCEINLINE virtual int32 Convert(const int32& Value) const override { return Value; }
+		FORCEINLINE virtual int32 Convert(const int64& Value) const override { return static_cast<int32>(Value); }
+		FORCEINLINE virtual int32 Convert(const float& Value) const override { return Value; }
+		FORCEINLINE virtual int32 Convert(const double& Value) const override { return Value; }
 
-		FORCEINLINE virtual int32 Convert(const FVector2D Value) const override
+		FORCEINLINE virtual int32 Convert(const FVector2D& Value) const override
 		{
 			switch (Field)
 			{
@@ -1191,7 +1210,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual int32 Convert(const FVector Value) const override
+		FORCEINLINE virtual int32 Convert(const FVector& Value) const override
 		{
 			switch (Field)
 			{
@@ -1208,7 +1227,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual int32 Convert(const FVector4 Value) const override
+		FORCEINLINE virtual int32 Convert(const FVector4& Value) const override
 		{
 			switch (Field)
 			{
@@ -1226,7 +1245,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual int32 Convert(const FQuat Value) const override
+		FORCEINLINE virtual int32 Convert(const FQuat& Value) const override
 		{
 			if (bUseAxis) { return Convert(PCGExMath::GetDirection(Value, Axis)); }
 			switch (Field)
@@ -1244,7 +1263,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual int32 Convert(const FTransform Value) const override
+		FORCEINLINE virtual int32 Convert(const FTransform& Value) const override
 		{
 			switch (Component)
 			{
@@ -1258,10 +1277,10 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual int32 Convert(const bool Value) const override { return Value; }
-		FORCEINLINE virtual int32 Convert(const FRotator Value) const override { return Convert(FVector(Value.Pitch, Value.Yaw, Value.Roll)); }
-		FORCEINLINE virtual int32 Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
-		FORCEINLINE virtual int32 Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
+		FORCEINLINE virtual int32 Convert(const bool& Value) const override { return Value; }
+		FORCEINLINE virtual int32 Convert(const FRotator& Value) const override { return Convert(FVector(Value.Pitch, Value.Yaw, Value.Roll)); }
+		FORCEINLINE virtual int32 Convert(const FString& Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
+		FORCEINLINE virtual int32 Convert(const FName& Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalBoolGetter final : public TAttributeGetter<bool>
@@ -1277,12 +1296,12 @@ namespace PCGEx
 
 		FORCEINLINE virtual bool GetDefaultValue() const override { return false; }
 
-		FORCEINLINE virtual bool Convert(const int32 Value) const override { return Value > 0; }
-		FORCEINLINE virtual bool Convert(const int64 Value) const override { return Value > 0; }
-		FORCEINLINE virtual bool Convert(const float Value) const override { return Value > 0; }
-		FORCEINLINE virtual bool Convert(const double Value) const override { return Value > 0; }
+		FORCEINLINE virtual bool Convert(const int32& Value) const override { return Value > 0; }
+		FORCEINLINE virtual bool Convert(const int64& Value) const override { return Value > 0; }
+		FORCEINLINE virtual bool Convert(const float& Value) const override { return Value > 0; }
+		FORCEINLINE virtual bool Convert(const double& Value) const override { return Value > 0; }
 
-		FORCEINLINE virtual bool Convert(const FVector2D Value) const override
+		FORCEINLINE virtual bool Convert(const FVector2D& Value) const override
 		{
 			switch (Field)
 			{
@@ -1298,7 +1317,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual bool Convert(const FVector Value) const override
+		FORCEINLINE virtual bool Convert(const FVector& Value) const override
 		{
 			switch (Field)
 			{
@@ -1315,7 +1334,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual bool Convert(const FVector4 Value) const override
+		FORCEINLINE virtual bool Convert(const FVector4& Value) const override
 		{
 			switch (Field)
 			{
@@ -1333,7 +1352,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual bool Convert(const FQuat Value) const override
+		FORCEINLINE virtual bool Convert(const FQuat& Value) const override
 		{
 			if (bUseAxis) { return Convert(PCGExMath::GetDirection(Value, Axis)); }
 			switch (Field)
@@ -1351,7 +1370,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual bool Convert(const FTransform Value) const override
+		FORCEINLINE virtual bool Convert(const FTransform& Value) const override
 		{
 			switch (Component)
 			{
@@ -1365,10 +1384,10 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual bool Convert(const bool Value) const override { return Value; }
-		FORCEINLINE virtual bool Convert(const FRotator Value) const override { return Convert(FVector(Value.Pitch, Value.Yaw, Value.Roll)); }
-		FORCEINLINE virtual bool Convert(const FString Value) const override { return Value.Len() == 4; }
-		FORCEINLINE virtual bool Convert(const FName Value) const override { return Value.ToString().Len() == 4; }
+		FORCEINLINE virtual bool Convert(const bool& Value) const override { return Value; }
+		FORCEINLINE virtual bool Convert(const FRotator& Value) const override { return Convert(FVector(Value.Pitch, Value.Yaw, Value.Roll)); }
+		FORCEINLINE virtual bool Convert(const FString& Value) const override { return Value.Len() == 4; }
+		FORCEINLINE virtual bool Convert(const FName& Value) const override { return Value.ToString().Len() == 4; }
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalVectorGetter final : public TAttributeGetter<FVector>
@@ -1384,17 +1403,17 @@ namespace PCGEx
 
 		FORCEINLINE virtual FVector GetDefaultValue() const override { return FVector::ZeroVector; }
 
-		FORCEINLINE virtual FVector Convert(const bool Value) const override { return FVector(Value); }
-		FORCEINLINE virtual FVector Convert(const int32 Value) const override { return FVector(Value); }
-		FORCEINLINE virtual FVector Convert(const int64 Value) const override { return FVector(Value); }
-		FORCEINLINE virtual FVector Convert(const float Value) const override { return FVector(Value); }
-		FORCEINLINE virtual FVector Convert(const double Value) const override { return FVector(Value); }
-		FORCEINLINE virtual FVector Convert(const FVector2D Value) const override { return FVector(Value.X, Value.Y, 0); }
-		FORCEINLINE virtual FVector Convert(const FVector Value) const override { return Value; }
-		FORCEINLINE virtual FVector Convert(const FVector4 Value) const override { return FVector(Value); }
-		FORCEINLINE virtual FVector Convert(const FQuat Value) const override { return PCGExMath::GetDirection(Value, Axis); }
+		FORCEINLINE virtual FVector Convert(const bool& Value) const override { return FVector(Value); }
+		FORCEINLINE virtual FVector Convert(const int32& Value) const override { return FVector(Value); }
+		FORCEINLINE virtual FVector Convert(const int64& Value) const override { return FVector(Value); }
+		FORCEINLINE virtual FVector Convert(const float& Value) const override { return FVector(Value); }
+		FORCEINLINE virtual FVector Convert(const double& Value) const override { return FVector(Value); }
+		FORCEINLINE virtual FVector Convert(const FVector2D& Value) const override { return FVector(Value.X, Value.Y, 0); }
+		FORCEINLINE virtual FVector Convert(const FVector& Value) const override { return Value; }
+		FORCEINLINE virtual FVector Convert(const FVector4& Value) const override { return FVector(Value); }
+		FORCEINLINE virtual FVector Convert(const FQuat& Value) const override { return PCGExMath::GetDirection(Value, Axis); }
 
-		FORCEINLINE virtual FVector Convert(const FTransform Value) const override
+		FORCEINLINE virtual FVector Convert(const FTransform& Value) const override
 		{
 			switch (Component)
 			{
@@ -1408,7 +1427,7 @@ namespace PCGEx
 			}
 		}
 
-		FORCEINLINE virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
+		FORCEINLINE virtual FVector Convert(const FRotator& Value) const override { return Value.Vector(); }
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FLocalToStringGetter final : public TAttributeGetter<FString>
@@ -1424,26 +1443,47 @@ namespace PCGEx
 
 		FORCEINLINE virtual FString GetDefaultValue() const override { return ""; }
 
-		FORCEINLINE virtual FString Convert(const bool Value) const override { return FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false")); }
-		FORCEINLINE virtual FString Convert(const int32 Value) const override { return FString::Printf(TEXT("%d"), Value); }
-		FORCEINLINE virtual FString Convert(const int64 Value) const override { return FString::Printf(TEXT("%lld"), Value); }
-		FORCEINLINE virtual FString Convert(const float Value) const override { return FString::Printf(TEXT("%f"), Value); }
-		FORCEINLINE virtual FString Convert(const double Value) const override { return FString::Printf(TEXT("%lf"), Value); }
-		FORCEINLINE virtual FString Convert(const FVector2D Value) const override { return *Value.ToString(); }
-		FORCEINLINE virtual FString Convert(const FVector Value) const override { return *Value.ToString(); }
-		FORCEINLINE virtual FString Convert(const FVector4 Value) const override { return *Value.ToString(); }
-		FORCEINLINE virtual FString Convert(const FQuat Value) const override { return *Value.ToString(); }
-		FORCEINLINE virtual FString Convert(const FTransform Value) const override { return *Value.ToString(); }
-		FORCEINLINE virtual FString Convert(const FRotator Value) const override { return *Value.ToString(); }
-		FORCEINLINE virtual FString Convert(const FString Value) const override { return *Value; }
-		FORCEINLINE virtual FString Convert(const FName Value) const override { return *Value.ToString(); }
-
+		FORCEINLINE virtual FString Convert(const bool& Value) const override { return FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false")); }
+		FORCEINLINE virtual FString Convert(const int32& Value) const override { return FString::Printf(TEXT("%d"), Value); }
+		FORCEINLINE virtual FString Convert(const int64& Value) const override { return FString::Printf(TEXT("%lld"), Value); }
+		FORCEINLINE virtual FString Convert(const float& Value) const override { return FString::Printf(TEXT("%f"), Value); }
+		FORCEINLINE virtual FString Convert(const double& Value) const override { return FString::Printf(TEXT("%lf"), Value); }
+		FORCEINLINE virtual FString Convert(const FVector2D& Value) const override { return *Value.ToString(); }
+		FORCEINLINE virtual FString Convert(const FVector& Value) const override { return *Value.ToString(); }
+		FORCEINLINE virtual FString Convert(const FVector4& Value) const override { return *Value.ToString(); }
+		FORCEINLINE virtual FString Convert(const FQuat& Value) const override { return *Value.ToString(); }
+		FORCEINLINE virtual FString Convert(const FTransform& Value) const override { return *Value.ToString(); }
+		FORCEINLINE virtual FString Convert(const FRotator& Value) const override { return *Value.ToString(); }
+		FORCEINLINE virtual FString Convert(const FString& Value) const override { return *Value; }
+		FORCEINLINE virtual FString Convert(const FName& Value) const override { return *Value.ToString(); }
+		
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		FORCEINLINE virtual FString Convert(const FSoftClassPath Value) const override { return Value.ToString(); }
-		FORCEINLINE virtual FString Convert(const FSoftObjectPath Value) const override { return Value.ToString(); }
+		FORCEINLINE virtual FString Convert(const FSoftClassPath& Value) const override { return Value.IsValid() ? Value.ToString() : TEXT(""); }
+		FORCEINLINE virtual FString Convert(const FSoftObjectPath& Value) const override { return Value.IsValid() ? Value.ToString() : TEXT(""); }
+#endif
+		
+	};
+
+	class /*PCGEXTENDEDTOOLKIT_API*/ FSoftObjectPathGetter final : public TAttributeGetter<FSoftObjectPath>
+	{
+		virtual EPCGMetadataTypes GetType() override { return EPCGMetadataTypes::Integer32; }
+
+	protected:
+		virtual void ResetMinMax() override
+		{
+		}
+
+		FORCEINLINE virtual FSoftObjectPath GetDefaultValue() const override { return FSoftObjectPath(); }
+
+		FORCEINLINE virtual FSoftObjectPath Convert(const FString& Value) const override { return FSoftObjectPath(Value); }
+		FORCEINLINE virtual FSoftObjectPath Convert(const FName& Value) const override { return FSoftObjectPath(Value.ToString()); }
+		
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		FORCEINLINE virtual FSoftObjectPath Convert(const FSoftClassPath& Value) const override { return Value; }
 #endif
 	};
 
+	
 #pragma endregion
 
 	static FAttributesInfos* GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError)

@@ -322,9 +322,9 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	// Gather Vtx inputs
 	for (PCGExData::FPointIO* MainIO : Context->MainPoints->Pairs)
 	{
-		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+		if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
 		{
-			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges -- it will be ignored for safety."));
 				continue;
@@ -334,9 +334,9 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 			continue;
 		}
 
-		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+		if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
 		{
-			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges. It will be ignored."));
 				continue;
@@ -352,9 +352,9 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	// Gather Edge inputs
 	for (PCGExData::FPointIO* MainIO : Context->MainEdges->Pairs)
 	{
-		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+		if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
 		{
-			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges. It will be ignored."));
 				continue;
@@ -364,9 +364,9 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 			continue;
 		}
 
-		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+		if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
 		{
-			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+			if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges. It will be ignored."));
 				continue;

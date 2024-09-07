@@ -451,7 +451,7 @@ namespace PCGExDiscardByOverlap
 		RawScores.CustomTagScore = 0;
 		for (const TPair<FString, double>& TagScore : LocalSettings->Weighting.TagScores)
 		{
-			if (PointIO->Tags->RawTags.Contains(TagScore.Key)) { RawScores.CustomTagScore += TagScore.Value; }
+			if (PointIO->Tags->IsTagged(TagScore.Key)) { RawScores.CustomTagScore += TagScore.Value; }
 		}
 
 		UpdateWeightValues();

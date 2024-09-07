@@ -453,7 +453,7 @@ namespace PCGExGraph
 		{
 			PointIO = InPointIO;
 			PairId = PointIO->GetOutIn()->UID;
-			PointIO->Tags->Set(TagStr_ClusterPair, PairId, PairIdStr);
+			PointIO->Tags->Add(TagStr_ClusterPair, PairId, PairIdStr);
 
 			const int32 NumNodes = PointIO->GetOutInNum();
 			VtxDataFacade = new PCGExData::FFacade(PointIO);

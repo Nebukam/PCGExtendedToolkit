@@ -119,7 +119,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 
 	void Tag(const int32 TagIndex, const PCGExData::FPointIO* PointIO) const
 	{
-		if (bAddIndexTag) { PointIO->Tags->RawTags.Add(IndexTagPrefix + FString::Printf(TEXT("%d"), TagIndex)); }
+		if (bAddIndexTag) { PointIO->Tags->Add(IndexTagPrefix + FString::Printf(TEXT("%d"), TagIndex)); }
 
 		if (!Getters.IsEmpty())
 		{
@@ -128,7 +128,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 			{
 				FString Tag = Getter->SoftGet(TagIndex, Point, TEXT(""));
 				if (Tag.IsEmpty()) { continue; }
-				PointIO->Tags->RawTags.Add(Tag);
+				PointIO->Tags->Add(Tag);
 			}
 		}
 	}

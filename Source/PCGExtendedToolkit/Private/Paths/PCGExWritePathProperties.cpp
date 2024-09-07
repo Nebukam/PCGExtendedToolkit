@@ -248,8 +248,8 @@ namespace PCGExWritePathProperties
 
 		if (Sign != 0)
 		{
-			if (Settings->bTagConcave && !bIsConvex) { PointIO->Tags->RawTags.Add(Settings->ConcaveTag); }
-			if (Settings->bTagConvex && bIsConvex) { PointIO->Tags->RawTags.Add(Settings->ConvexTag); }
+			if (Settings->bTagConcave && !bIsConvex) { PointIO->Tags->Add(Settings->ConcaveTag); }
+			if (Settings->bTagConvex && bIsConvex) { PointIO->Tags->Add(Settings->ConvexTag); }
 		}
 
 		PointDataFacade->Write(AsyncManagerPtr, true);

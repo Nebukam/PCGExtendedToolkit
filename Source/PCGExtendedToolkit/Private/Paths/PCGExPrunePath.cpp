@@ -98,9 +98,10 @@ namespace PCGExPrunePath
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
+		bClosedPath = Settings->bClosedPath;
 		bCurrentSwitch = Settings->bInitialSwitchValue;
 
-		if (!Settings->bGenerateNewPaths) { CreateNewIO(); }
+		if (!Settings->bGenerateNewPaths) { NewPathIO(); }
 
 		bInlineProcessPoints = true;
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -127,25 +128,71 @@ namespace PCGExPrunePath
 
 		if (Trigger)
 		{
-			if (LocalSettings->bGenerateNewPaths) { OutPoints = nullptr; }
+			if (LocalSettings->bGenerateNewPaths)
+			{
+				OutPoints = nullptr;
+				CurrentPath = nullptr;
+			}
 			return;
 		}
-		
-		if (!OutPoints) { CreateNewIO(); }
+
+		if (!OutPoints)
+		{
+			CurrentPath = NewPathIO();
+			if (Index == 0) { PathBegin = CurrentPath; }
+		}
 
 		FPCGPoint& NewPoint = OutPoints->Add_GetRef(Point);
-		OutMetadata->InitializeOnSet(NewPoint.MetadataEntry);
+		//OutMetadata->InitializeOnSet(NewPoint.MetadataEntry);
+		LastValidIndex = Index;
 	}
 
-	void FProcessor::CreateNewIO()
+	PCGExData::FPointIO* FProcessor::NewPathIO()
 	{
 		// Create new point IO
-		const PCGExData::FPointIO* NewIO = LocalTypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+		// TODO : Cache points IO locally and add them during the output step instead of this
+		PCGExData::FPointIO* NewIO = LocalTypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 
 		OutPoints = &NewIO->GetOut()->GetMutablePoints();
 		OutPoints->Reserve(PointIO->GetNum() - CachedIndex);
 
 		OutMetadata = NewIO->GetOut()->Metadata;
+
+		return NewIO;
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		if (bClosedPath &&
+			LocalSettings->bGenerateNewPaths &&
+			PathBegin && CurrentPath && PathBegin != CurrentPath &&
+			LastValidIndex == PointIO->GetNum() - 1)
+		{
+			// The last valid section connects back to the valid starting section
+			// TODO : Insert PathBegin at the end of CurrentPath then get rid PathBegin
+			// This will however put the first segment last in the outputs.
+			TArray<FPCGPoint>& CurrentPoints = CurrentPath->GetOut()->GetMutablePoints();
+			TArray<FPCGPoint>& BeginPoints = PathBegin->GetOut()->GetMutablePoints();
+
+			const int32 NumBasePoints = CurrentPoints.Num();
+			const int32 NumAddPoints = BeginPoints.Num();
+
+			PCGEX_SET_NUM_UNINITIALIZED(CurrentPoints, NumBasePoints + NumAddPoints)
+
+			for (int i = 0; i < NumAddPoints; i++)
+			{
+				const int32 Index = NumBasePoints + i;
+				CurrentPoints[Index] = BeginPoints[i];
+			}
+
+
+			PathBegin->InitializeOutput(PCGExData::EInit::NoOutput); // Dun dun dun
+		}
+	}
+
+	void FProcessor::Output()
+	{
+		// Insert valid local FPointIOs
 	}
 }
 

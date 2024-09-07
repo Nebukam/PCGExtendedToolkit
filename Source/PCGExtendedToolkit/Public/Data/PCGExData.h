@@ -12,6 +12,8 @@
 #include "Data/PCGPointData.h"
 #include "Geometry/PCGExGeoPointBox.h"
 #include "UObject/Object.h"
+#include "PCGExHelpers.h"
+
 #include "PCGExData.generated.h"
 
 USTRUCT(BlueprintType)
@@ -32,15 +34,6 @@ namespace PCGExData
 	PCGEX_ASYNC_STATE(State_MergingData);
 
 #pragma region Pool & cache
-
-	const TSet<EPCGMetadataTypes> MustBeInitialized = {
-		EPCGMetadataTypes::Transform,
-		EPCGMetadataTypes::String,
-		EPCGMetadataTypes::Name,
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		EPCGMetadataTypes::SoftObjectPath,
-#endif
-	};
 
 	static uint64 CacheUID(const FName FullName, const EPCGMetadataTypes Type)
 	{
@@ -173,7 +166,7 @@ namespace PCGExData
 
 			Writer = new PCGEx::TAttributeWriter<T>(FullName, DefaultValue, bAllowInterpolation);
 
-			if (bUninitialized && !MustBeInitialized.Contains(Type)) { Writer->BindAndSetNumUninitialized(Source); }
+			if (bUninitialized && !PCGEx::RequireInit(Type)) { Writer->BindAndSetNumUninitialized(Source); }
 			else { Writer->BindAndGet(Source); }
 			Attribute = Writer->Accessor->GetAttribute();
 
@@ -205,7 +198,7 @@ namespace PCGExData
 
 				Writer = new PCGEx::TAttributeWriter<T>(FullName);
 
-				if (bUninitialized && !MustBeInitialized.Contains(Type)) { Writer->BindAndSetNumUninitialized(Source); }
+				if (bUninitialized && PCGEx::RequireInit(Type)) { Writer->BindAndSetNumUninitialized(Source); }
 				else { Writer->BindAndGet(Source); }
 				Attribute = Writer->Accessor->GetAttribute();
 
@@ -675,7 +668,7 @@ namespace PCGExData
 	static void WriteId(const FPointIO& PointIO, const FName IdName, const int64 Id)
 	{
 		FString OutId;
-		PointIO.Tags->Set(IdName.ToString(), Id, OutId);
+		PointIO.Tags->Add(IdName.ToString(), Id, OutId);
 		if (PointIO.GetOut()) { WriteMark(PointIO.GetOut()->Metadata, IdName, Id); }
 	}
 

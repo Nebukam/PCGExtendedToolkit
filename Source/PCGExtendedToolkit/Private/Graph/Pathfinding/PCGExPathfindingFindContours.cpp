@@ -228,8 +228,8 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 
 	if (Sign != 0)
 	{
-		if (Settings->bTagConcave && !bIsConvex) { PathIO->Tags->RawTags.Add(Settings->ConcaveTag); }
-		if (Settings->bTagConvex && bIsConvex) { PathIO->Tags->RawTags.Add(Settings->ConvexTag); }
+		if (Settings->bTagConcave && !bIsConvex) { PathIO->Tags->Add(Settings->ConcaveTag); }
+		if (Settings->bTagConvex && bIsConvex) { PathIO->Tags->Add(Settings->ConvexTag); }
 	}
 
 	PathDataFacade->Write(ClusterProcessor->AsyncManagerPtr, true);

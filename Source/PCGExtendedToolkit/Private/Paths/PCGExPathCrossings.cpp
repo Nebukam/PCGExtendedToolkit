@@ -64,7 +64,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 					Entry->InitializeOutput(PCGExData::EInit::Forward); // TODO : This is no good as we'll be missing template attributes
 					bHasInvalidInputs = true;
 
-					if (Settings->bTagIfHasNoCrossings) { Entry->Tags->RawTags.Add(Settings->HasNoCrossingsTag); }
+					if (Settings->bTagIfHasNoCrossings) { Entry->Tags->Add(Settings->HasNoCrossingsTag); }
 
 					return false;
 				}
@@ -429,8 +429,8 @@ namespace PCGExPathCrossings
 		if (LocalSettings->bFlagCrossing) { FlagWriter = PointDataFacade->GetWriter(LocalSettings->CrossingFlagAttributeName, false, true, true); }
 		if (LocalSettings->bWriteAlpha) { AlphaWriter = PointDataFacade->GetWriter<double>(LocalSettings->CrossingAlphaAttributeName, LocalSettings->DefaultAlpha, true, true); }
 
-		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (LocalSettings->bTagIfHasCrossing) { PointIO->Tags->RawTags.Add(LocalSettings->HasCrossingsTag); } }
-		else { if (LocalSettings->bTagIfHasNoCrossings) { PointIO->Tags->RawTags.Add(LocalSettings->HasNoCrossingsTag); } }
+		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (LocalSettings->bTagIfHasCrossing) { PointIO->Tags->Add(LocalSettings->HasCrossingsTag); } }
+		else { if (LocalSettings->bTagIfHasNoCrossings) { PointIO->Tags->Add(LocalSettings->HasNoCrossingsTag); } }
 
 		PCGExMT::FTaskGroup* FixTask = AsyncManagerPtr->CreateGroup();
 		FixTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr, true); });
