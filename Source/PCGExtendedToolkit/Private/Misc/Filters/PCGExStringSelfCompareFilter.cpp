@@ -1,17 +1,17 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/Filters/PCGExNumericSelfCompareFilter.h"
+#include "Misc/Filters/PCGExStringSelfCompareFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGExPointFilter::TFilter* UPCGExNumericSelfCompareFilterFactory::CreateFilter() const
+PCGExPointFilter::TFilter* UPCGExStringSelfCompareFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TNumericSelfComparisonFilter(this);
+	return new PCGExPointsFilter::TStringSelfComparisonFilter(this);
 }
 
-bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TStringSelfComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -20,16 +20,14 @@ bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* In
 
 	if (MaxIndex < 0) { return false; }
 
-	OperandA = new PCGEx::FLocalSingleFieldGetter();
+	OperandA = new PCGEx::FLocalToStringGetter();
 	OperandA->Capture(TypedFilterFactory->Config.OperandA);
-
+	
 	if (!OperandA->SoftGrab(PointDataFacade->Source))
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandA)));
 		return false;
 	}
-
-	
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
@@ -45,12 +43,12 @@ bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* In
 	return true;
 }
 
-PCGEX_CREATE_FILTER_FACTORY(NumericSelfCompare)
+PCGEX_CREATE_FILTER_FACTORY(StringSelfCompare)
 
 #if WITH_EDITOR
-FString UPCGExNumericSelfCompareFilterProviderSettings::GetDisplayName() const
+FString UPCGExStringSelfCompareFilterProviderSettings::GetDisplayName() const
 {
-	FString DisplayName = Config.OperandA.GetName().ToString() + PCGExCompare::ToString(Config.Comparison);
+	FString DisplayName = Config.OperandA.ToString() + PCGExCompare::ToString(Config.Comparison);
 
 	if (Config.IndexMode == EPCGExIndexMode::Pick) { DisplayName += TEXT(" @ "); }
 	else { DisplayName += TEXT(" i+ "); }

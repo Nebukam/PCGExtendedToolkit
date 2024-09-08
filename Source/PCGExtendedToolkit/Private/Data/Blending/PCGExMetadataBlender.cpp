@@ -30,9 +30,10 @@ namespace PCGExDataBlending
 		PCGExData::FFacade* InPrimaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
-		const TSet<FName>* IgnoreAttributeSet)
+		const TSet<FName>* IgnoreAttributeSet,
+		const bool bSoftMode)
 	{
-		InternalPrepareForData(InPrimaryFacade, InPrimaryFacade, SecondarySource, bInitFirstOperation, IgnoreAttributeSet);
+		InternalPrepareForData(InPrimaryFacade, InPrimaryFacade, SecondarySource, bInitFirstOperation, IgnoreAttributeSet, bSoftMode);
 	}
 
 	void FMetadataBlender::PrepareForData(
@@ -40,9 +41,10 @@ namespace PCGExDataBlending
 		PCGExData::FFacade* InSecondaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
-		const TSet<FName>* IgnoreAttributeSet)
+		const TSet<FName>* IgnoreAttributeSet,
+		const bool bSoftMode)
 	{
-		InternalPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, bInitFirstOperation, IgnoreAttributeSet);
+		InternalPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, bInitFirstOperation, IgnoreAttributeSet, bSoftMode);
 	}
 
 	void FMetadataBlender::PrepareRangeForBlending(
@@ -143,7 +145,8 @@ namespace PCGExDataBlending
 		PCGExData::FFacade* InSecondaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
-		const TSet<FName>* IgnoreAttributeSet)
+		const TSet<FName>* IgnoreAttributeSet,
+		const bool bSoftMode)
 	{
 		Cleanup();
 
@@ -162,7 +165,7 @@ namespace PCGExDataBlending
 		InSecondaryFacade->Source->CreateKeys(SecondarySource);
 
 		PrimaryPoints = &InPrimaryFacade->Source->GetOut()->GetMutablePoints();
-		SecondaryPoints = const_cast<TArray<FPCGPoint>*>(&InSecondaryFacade->Source->GetData(SecondarySource)->GetPoints());
+		SecondaryPoints = &InSecondaryFacade->Source->GetData(SecondarySource)->GetPoints();
 
 		TArray<PCGEx::FAttributeIdentity> Identities;
 		PCGEx::FAttributeIdentity::Get(InPrimaryFacade->Source->GetOut()->Metadata, Identities);
@@ -228,7 +231,8 @@ namespace PCGExDataBlending
 			if (Op->GetRequiresPreparation()) { OperationsToBePrepared.Add(Op); }
 			if (Op->GetRequiresFinalization()) { OperationsToBeCompleted.Add(Op); }
 
-			Op->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
+			if (bSoftMode) { Op->SoftPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource); }
+			else { Op->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource); }
 		}
 
 		FirstPointOperation.SetNum(PrimaryPoints->Num());

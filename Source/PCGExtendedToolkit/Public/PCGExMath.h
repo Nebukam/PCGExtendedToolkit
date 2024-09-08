@@ -348,38 +348,38 @@ namespace PCGExMath
 #pragma region Sub
 
 	template <typename T, typename CompilerSafety = void>
-	FORCEINLINE static T Sub(const T& A, const T& B) { return A - B; }
+	FORCEINLINE static T Subtract(const T& A, const T& B) { return A - B; }
 
 	template <typename CompilerSafety = void>
-	FORCEINLINE static bool Sub(const bool& A, const bool& B) { return B ? true : A; }
+	FORCEINLINE static bool Subtract(const bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename CompilerSafety = void>
-	FORCEINLINE static FRotator Sub(const FRotator& A, const FRotator& B) { return B - A; }
+	FORCEINLINE static FRotator Subtract(const FRotator& A, const FRotator& B) { return B - A; }
 
 	template <typename CompilerSafety = void>
-	FORCEINLINE static FQuat Sub(const FQuat& A, const FQuat& B) { return Sub(A.Rotator(), B.Rotator()).Quaternion(); }
+	FORCEINLINE static FQuat Subtract(const FQuat& A, const FQuat& B) { return Subtract(A.Rotator(), B.Rotator()).Quaternion(); }
 
 	template <typename CompilerSafety = void>
-	FORCEINLINE static FTransform Sub(const FTransform& A, const FTransform& B)
+	FORCEINLINE static FTransform Subtract(const FTransform& A, const FTransform& B)
 	{
 		return FTransform(
-			Sub(A.GetRotation(), B.GetRotation()),
+			Subtract(A.GetRotation(), B.GetRotation()),
 			A.GetLocation() - B.GetLocation(),
 			A.GetScale3D() - B.GetScale3D());
 	}
 
 	template <typename CompilerSafety = void>
-	FORCEINLINE static FString Sub(const FString& A, const FString& B) { return A < B ? A : B; }
+	FORCEINLINE static FString Subtract(const FString& A, const FString& B) { return A < B ? A : B; }
 
 	template <typename CompilerSafety = void>
-	FORCEINLINE static FName Sub(const FName& A, const FName& B) { return A.ToString() < B.ToString() ? A : B; }
+	FORCEINLINE static FName Subtract(const FName& A, const FName& B) { return A.ToString() < B.ToString() ? A : B; }
 
 	// Unhandled, but needs to be supported as property
 	template <typename CompilerSafety = void>
-	FORCEINLINE static FSoftObjectPath Sub(const FSoftObjectPath& A, const FSoftObjectPath& B) { return A; }
+	FORCEINLINE static FSoftObjectPath Subtract(const FSoftObjectPath& A, const FSoftObjectPath& B) { return A; }
 
 	template <typename CompilerSafety = void>
-	FORCEINLINE static FSoftClassPath Sub(const FSoftClassPath& A, const FSoftClassPath& B) { return A; }
+	FORCEINLINE static FSoftClassPath Subtract(const FSoftClassPath& A, const FSoftClassPath& B) { return A; }
 
 #pragma endregion
 

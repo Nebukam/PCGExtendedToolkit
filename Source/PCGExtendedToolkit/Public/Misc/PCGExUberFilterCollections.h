@@ -1,0 +1,138 @@
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "PCGExCompare.h"
+
+#include "PCGExPointsProcessor.h"
+#include "Data/PCGExAttributeHelpers.h"
+
+#include "PCGExUberFilterCollections.generated.h"
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode"))
+enum class EPCGExUberFilterCollectionsMode : uint8
+{
+	All UMETA(DisplayName = "All", ToolTip="All points must pass the filters."),
+	Any UMETA(DisplayName = "Any", ToolTip="At least one point must pass the filter."),
+	Partial UMETA(DisplayName = "Partial", ToolTip="A given amount of points must pass the filter."),
+};
+
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExUberFilterCollectionsSettings : public UPCGExPointsProcessorSettings
+{
+	GENERATED_BODY()
+
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+#endif
+	//~End UObject interface
+
+public:
+	//~Begin UPCGSettings
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS(UberFilterCollections, "Uber Filter (Collection)", "Filter entire collections based on multiple rules & conditions.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub; }
+#endif
+
+protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	virtual FPCGElementPtr CreateElement() const override;
+	//~End UPCGSettings
+
+	//~Begin UPCGExPointsProcessorSettings
+public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings
+
+public:
+	/** Write result to point instead of split outputs */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExUberFilterCollectionsMode Mode = EPCGExUberFilterCollectionsMode::All;
+
+	/** Partial value type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterCollectionsMode::Partial", EditConditionHides))
+	EPCGExMeanMeasure Measure = EPCGExMeanMeasure::Relative;
+
+	/** Partial value comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterCollectionsMode::Partial", EditConditionHides))
+	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
+
+	/** Partial value type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterCollectionsMode::Partial && Measure==EPCGExMeanMeasure::Relative", EditConditionHides, ClampMin=0, ClampMax=1))
+	double DblThreshold = 0.5;
+
+	/** Partial value type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Mode==EPCGExUberFilterCollectionsMode::Partial && Measure==EPCGExMeanMeasure::Discrete", EditConditionHides, ClampMin=0))
+	int32 IntThreshold = 10;
+
+	/** Rounding mode for relative measures */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	double Tolerance = 0.001;
+
+	/** Invert the filter result */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bSwap = false;
+
+private:
+	friend class FPCGExUberFilterCollectionsElement;
+};
+
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterCollectionsContext final : public FPCGExPointsProcessorContext
+{
+	friend class FPCGExUberFilterCollectionsElement;
+	virtual ~FPCGExUberFilterCollectionsContext() override;
+
+	PCGExData::FPointIOCollection* Inside = nullptr;
+	PCGExData::FPointIOCollection* Outside = nullptr;
+
+	int32 NumPairs = 0;
+};
+
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterCollectionsElement final : public FPCGExPointsProcessorElement
+{
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
+
+protected:
+	virtual bool Boot(FPCGExContext* InContext) const override;
+	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+};
+
+namespace PCGExUberFilterCollections
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		const UPCGExUberFilterCollectionsSettings* LocalSettings = nullptr;
+		FPCGExUberFilterCollectionsContext* LocalTypedContext = nullptr;
+
+		int32 NumPoints = 0;
+		int32 NumInside = 0;
+		int32 NumOutside = 0;
+
+
+		PCGExPointFilter::TManager* LocalFilterManager = nullptr;
+
+	public:
+		PCGExData::FPointIO* Inside = nullptr;
+		PCGExData::FPointIO* Outside = nullptr;
+
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void Output() override;
+	};
+}

@@ -13,19 +13,12 @@
 
 #include "PCGExNumericSelfCompareFilter.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
-enum class EPCGExIndexMode : uint8
-{
-	Pick UMETA(DisplayName = "Pick", ToolTip="Index value represent a specific pick"),
-	Offset UMETA(DisplayName = "Offset", ToolTip="Index value represent an offset from current point' index"),
-};
-
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSelfCompareFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericSelfCompareFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExSelfCompareFilterConfig()
+	FPCGExNumericSelfCompareFilterConfig()
 	{
 	}
 
@@ -67,31 +60,30 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSelfCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSelfCompareFilterFactory : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericSelfCompareFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExSelfCompareFilterConfig Config;
+	FPCGExNumericSelfCompareFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TSelfComparisonFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericSelfComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TSelfComparisonFilter(const UPCGExSelfCompareFilterFactory* InDefinition)
+		explicit TNumericSelfComparisonFilter(const UPCGExNumericSelfCompareFilterFactory* InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExSelfCompareFilterFactory* TypedFilterFactory;
+		const UPCGExNumericSelfCompareFilterFactory* TypedFilterFactory;
 
-		PCGEx::FLocalSingleFieldGetter* ComparisonValueGetter = nullptr;
+		PCGEx::FLocalSingleFieldGetter* OperandA = nullptr;
 		PCGExData::TCache<int32>* Index = nullptr;
-		PCGExData::TCache<double>* OperandA = nullptr;
 		bool bOffset = false;
 		int32 MaxIndex = 0;
 
@@ -101,15 +93,17 @@ namespace PCGExPointsFilter
 			const int32 IndexValue = Index ? Index->Values[PointIndex] : TypedFilterFactory->Config.IndexConstant;
 			const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
 
-			const double A = OperandA->Values[PointIndex];
-			const double B = ComparisonValueGetter->SoftGet(TargetIndex, PointDataFacade->Source->GetInPoint(TargetIndex), 0);
+			if (TargetIndex == -1) { return false; }
+			
+			const double A = OperandA->SoftGet(PointIndex, PointDataFacade->Source->GetInPoint(PointIndex), 0);
+			const double B = OperandA->SoftGet(TargetIndex, PointDataFacade->Source->GetInPoint(TargetIndex), 0);
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 		}
 
-		virtual ~TSelfComparisonFilter() override
+		virtual ~TNumericSelfComparisonFilter() override
 		{
 			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(ComparisonValueGetter)
+			PCGEX_DELETE(OperandA)
 		}
 	};
 }
@@ -117,7 +111,7 @@ namespace PCGExPointsFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSelfCompareFilterProviderSettings : public UPCGExFilterProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericSelfCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -125,7 +119,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CompareFilterFactory, "Filter : Self Compare (Numeric)", "Creates a filter definition that compares an attribute value against itself at another index.",
+		CompareFilterFactory, "Filter : Self Compare (Numeric)", "Creates a filter definition that compares an attribute value against iTNumericSelf at another index.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
@@ -133,7 +127,7 @@ public:
 public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSelfCompareFilterConfig Config;
+	FPCGExNumericSelfCompareFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

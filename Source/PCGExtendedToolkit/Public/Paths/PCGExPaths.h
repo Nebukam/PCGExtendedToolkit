@@ -48,7 +48,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 
 	/** Name of the attribute to flag point as crossing (result of an Edge/Edge intersection) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCrossing"))
-	FName CrossingAttributeName = "bCrossing";
+	FName CrossingAttributeName = "bIsCrossing";
 
 	void Init()
 	{

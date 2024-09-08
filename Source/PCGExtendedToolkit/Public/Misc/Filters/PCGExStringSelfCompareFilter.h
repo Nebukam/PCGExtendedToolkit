@@ -10,17 +10,15 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExAttributeHelpers.h"
 
-#include "PCGExStringCompareFilter.generated.h"
-
+#include "PCGExStringSelfCompareFilter.generated.h"
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStringCompareFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStringSelfCompareFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExStringCompareFilterConfig()
+	FPCGExStringSelfCompareFilterConfig()
 	{
 	}
 
@@ -32,17 +30,25 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStringCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExStringComparison Comparison = EPCGExStringComparison::StrictlyEqual;
 
+	/** Index mode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExIndexMode IndexMode = EPCGExIndexMode::Offset;
+
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
 
-	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	/** Operand B for testing -- Will be translated to `int32` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
-	FName OperandB = NAME_None;
+	FPCGAttributePropertyInputSelector IndexAttribute;
 
 	/** Operand B for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
-	FString OperandBConstant = TEXT("MyString");
+	int32 IndexConstant = -1;
+
+	/** Index safety */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Clamp;
 };
 
 
@@ -50,45 +56,50 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExStringCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringCompareFilterFactory : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringSelfCompareFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExStringCompareFilterConfig Config;
+	FPCGExStringSelfCompareFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TStringCompareFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TStringSelfComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TStringCompareFilter(const UPCGExStringCompareFilterFactory* InFactory)
-			: TFilter(InFactory), TypedFilterFactory(InFactory)
+		explicit TStringSelfComparisonFilter(const UPCGExStringSelfCompareFilterFactory* InDefinition)
+			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExStringCompareFilterFactory* TypedFilterFactory;
+		const UPCGExStringSelfCompareFilterFactory* TypedFilterFactory;
 
 		PCGEx::FLocalToStringGetter* OperandA = nullptr;
-		PCGEx::FLocalToStringGetter* OperandB = nullptr;
+		PCGExData::TCache<int32>* Index = nullptr;
+		bool bOffset = false;
+		int32 MaxIndex = 0;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
-			const FString A = OperandA->SoftGet(PointIndex, Point, TEXT(""));
-			const FString B = TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute ? OperandB->SoftGet(PointIndex, Point, TEXT("")) : TypedFilterFactory->Config.OperandBConstant;
+			const int32 IndexValue = Index ? Index->Values[PointIndex] : TypedFilterFactory->Config.IndexConstant;
+			const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
+
+			if (TargetIndex == -1) { return false; }
+
+			const FString A = OperandA->SoftGet(PointIndex, PointDataFacade->Source->GetInPoint(PointIndex), TEXT(""));
+			const FString B = OperandA->SoftGet(TargetIndex, PointDataFacade->Source->GetInPoint(TargetIndex), TEXT(""));
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B);
 		}
 
-		virtual ~TStringCompareFilter() override
+		virtual ~TStringSelfComparisonFilter() override
 		{
 			TypedFilterFactory = nullptr;
 			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
 		}
 	};
 }
@@ -96,7 +107,7 @@ namespace PCGExPointsFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringCompareFilterProviderSettings : public UPCGExFilterProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringSelfCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -104,15 +115,15 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CompareFilterFactory, "Filter : Compare (String)", "Creates a filter definition that compares two string attribute values.",
+		CompareFilterFactory, "Filter : Self Compare (String)", "Creates a filter definition that compares an attribute value against itself at another index.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 
 public:
-	/** State name.*/
+	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExStringCompareFilterConfig Config;
+	FPCGExStringSelfCompareFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;

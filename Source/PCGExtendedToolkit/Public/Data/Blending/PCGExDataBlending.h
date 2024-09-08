@@ -63,9 +63,10 @@ enum class EPCGExDataBlendingType : uint8
 	Min         = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
 	Max         = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
 	Copy        = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
-	Sum         = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum of all the data"),
-	WeightedSum = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
+	Add         = 6 UMETA(DisplayName = "Add", ToolTip = "Add"),
+	WeightedAdd = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
 	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
+	Subtract    = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
 };
 
 USTRUCT(BlueprintType)
@@ -238,7 +239,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Setting)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExPointPropertyBlendingOverrides PropertiesOverrides;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -373,17 +374,20 @@ namespace PCGExDataBlending
 		virtual void PrepareForData(PCGEx::FAttributeIOBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
+
+			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
+
 			Writer = static_cast<PCGEx::TAttributeWriter<T>*>(InWriter);
 
 			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
 			SourceAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
-
-			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
 		}
 
 		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
+
+			FDataBlendingOperationBase::PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 
 			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
 
@@ -393,13 +397,13 @@ namespace PCGExDataBlending
 			Reader = InSecondaryFacade->GetReader<T>(AttributeName, SecondarySource); // Will return writer is sources ==
 
 			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
-
-			FDataBlendingOperationBase::PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 		}
 
 		virtual void SoftPrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
+
+			FDataBlendingOperationBase::SoftPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 
 			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
 			TargetAttribute = InPrimaryFacade->FindMutableAttribute<T>(AttributeName, PCGExData::ESource::Out);
@@ -409,8 +413,6 @@ namespace PCGExDataBlending
 			check(TargetAttribute) // Something went wrong
 
 			bDoInterpolation = SourceAttribute->AllowsInterpolation() && GetIsInterpolation();
-
-			FDataBlendingOperationBase::SoftPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 		}
 
 		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const override

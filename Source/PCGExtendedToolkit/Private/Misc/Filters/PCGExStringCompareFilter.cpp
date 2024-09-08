@@ -15,8 +15,10 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = PointDataFacade->GetScopedReader<FString>(TypedFilterFactory->Config.OperandA);
-	if (!OperandA)
+	OperandA = new PCGEx::FLocalToStringGetter();
+	OperandA->Capture(TypedFilterFactory->Config.OperandA);
+	
+	if (!OperandA->SoftGrab(PointDataFacade->Source))
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA)));
 		return false;
@@ -24,8 +26,10 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = PointDataFacade->GetScopedReader<FString>(TypedFilterFactory->Config.OperandB);
-		if (!OperandB)
+		OperandB = new PCGEx::FLocalToStringGetter();
+		OperandB->Capture(TypedFilterFactory->Config.OperandB);
+	
+		if (!OperandB->SoftGrab(PointDataFacade->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB)));
 			return false;
@@ -41,51 +45,7 @@ PCGEX_CREATE_FILTER_FACTORY(StringCompare)
 FString UPCGExStringCompareFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = Config.OperandA.ToString();
-
-	switch (Config.Comparison)
-	{
-	case EPCGExStringComparison::StrictlyEqual:
-		DisplayName += " == ";
-		break;
-	case EPCGExStringComparison::StrictlyNotEqual:
-		DisplayName += " != ";
-		break;
-	case EPCGExStringComparison::LengthStrictlyEqual:
-		DisplayName += " L == L ";
-		break;
-	case EPCGExStringComparison::LengthStrictlyUnequal:
-		DisplayName += " L != L ";
-		break;
-	case EPCGExStringComparison::LengthEqualOrGreater:
-		DisplayName += " L >= L ";
-		break;
-	case EPCGExStringComparison::LengthEqualOrSmaller:
-		DisplayName += " L <= L ";
-		break;
-	case EPCGExStringComparison::StrictlyGreater:
-		DisplayName += " L > L ";
-		break;
-	case EPCGExStringComparison::StrictlySmaller:
-		DisplayName += " L < L ";
-		break;
-	case EPCGExStringComparison::LocaleStrictlyGreater:
-		DisplayName += " > ";
-		break;
-	case EPCGExStringComparison::LocaleStrictlySmaller:
-		DisplayName += " < ";
-		break;
-	case EPCGExStringComparison::Contains:
-		DisplayName += " contains ";
-		break;
-	case EPCGExStringComparison::StartsWith:
-		DisplayName += " starts with ";
-		break;
-	case EPCGExStringComparison::EndsWith:
-		DisplayName += " ends with ";
-		break;
-	default: ;
-	}
-
+	DisplayName += PCGExCompare::ToString(Config.Comparison);
 	DisplayName += Config.CompareAgainst == EPCGExFetchType::Constant ? Config.OperandBConstant : Config.OperandB.ToString();
 	return DisplayName;
 }

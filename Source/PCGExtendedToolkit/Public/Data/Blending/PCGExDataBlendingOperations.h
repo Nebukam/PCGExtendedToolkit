@@ -31,16 +31,29 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingSum final : public TDataBlendingOperation<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAdd final : public TDataBlendingOperation<T>
 	{
 	public:
-		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Sum; };
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Add; };
 		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 
 		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingSubtract final : public TDataBlendingOperation<T>
+	{
+	public:
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Subtract; };
+		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
+
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Subtract(A, B); }
 	};
 
 	template <typename T>
@@ -74,10 +87,10 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSum final : public TDataBlendingOperation<T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedAdd final : public TDataBlendingOperation<T>
 	{
 	public:
-		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::WeightedSum; };
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::WeightedAdd; };
 		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
@@ -110,10 +123,10 @@ PCGEX_BLEND_CASE(None)\
 PCGEX_BLEND_CASE(Copy)\
 PCGEX_BLEND_CASE(Average)\
 PCGEX_BLEND_CASE(Weight)\
-PCGEX_BLEND_CASE(WeightedSum)\
+PCGEX_BLEND_CASE(WeightedAdd)\
 PCGEX_BLEND_CASE(Min)\
 PCGEX_BLEND_CASE(Max)\
-PCGEX_BLEND_CASE(Sum)\
+PCGEX_BLEND_CASE(Add)\
 PCGEX_BLEND_CASE(Lerp)
 
 		FDataBlendingOperationBase* NewOperation = nullptr;

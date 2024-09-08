@@ -49,10 +49,11 @@ case EPCGExDataBlendingType::Average:		Target##_NAME = PCGExMath::Add(A._ACCESSO
 case EPCGExDataBlendingType::Min:			Target##_NAME = PCGExMath::Min(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Max:			Target##_NAME = PCGExMath::Max(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Copy:			Target##_NAME = PCGExMath::Copy(A._ACCESSOR, B._ACCESSOR);break;\
-case EPCGExDataBlendingType::Sum:			Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
+case EPCGExDataBlendingType::Add:			Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Weight:		Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
-case EPCGExDataBlendingType::WeightedSum:	Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
-case EPCGExDataBlendingType::Lerp:	Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Weight);break;}
+case EPCGExDataBlendingType::WeightedAdd:	Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
+case EPCGExDataBlendingType::Lerp:	Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Weight);break; \
+case EPCGExDataBlendingType::Subtract:		Target##_NAME = PCGExMath::Subtract(A._ACCESSOR, B._ACCESSOR);break; }
 
 		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
 #undef PCGEX_BLEND_PROPDECL

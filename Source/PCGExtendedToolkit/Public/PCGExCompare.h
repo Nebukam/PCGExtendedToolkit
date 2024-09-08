@@ -20,6 +20,13 @@ MACRO(FSoftClassPath)
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
+enum class EPCGExIndexMode : uint8
+{
+	Pick UMETA(DisplayName = "Pick", ToolTip="Index value represent a specific pick"),
+	Offset UMETA(DisplayName = "Offset", ToolTip="Index value represent an offset from current point' index"),
+};
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Dot Units"))
 enum class EPCGExDotUnits : uint8
 {
@@ -120,6 +127,74 @@ namespace PCGExCompare
 		}
 	}
 
+	static FString ToString(const EPCGExStringComparison Comparison)
+	{
+		switch (Comparison)
+		{
+		case EPCGExStringComparison::StrictlyEqual:
+			return " == ";
+		case EPCGExStringComparison::StrictlyNotEqual:
+			return " != ";
+		case EPCGExStringComparison::LengthStrictlyEqual:
+			return " L == L ";
+		case EPCGExStringComparison::LengthStrictlyUnequal:
+			return " L != L ";
+		case EPCGExStringComparison::LengthEqualOrGreater:
+			return " L >= L ";
+		case EPCGExStringComparison::LengthEqualOrSmaller:
+			return " L <= L ";
+		case EPCGExStringComparison::StrictlyGreater:
+			return " L > L ";
+		case EPCGExStringComparison::StrictlySmaller:
+			return " L < L ";
+		case EPCGExStringComparison::LocaleStrictlyGreater:
+			return " > ";
+		case EPCGExStringComparison::LocaleStrictlySmaller:
+			return " < ";
+		case EPCGExStringComparison::Contains:
+			return " contains ";
+		case EPCGExStringComparison::StartsWith:
+			return " starts with ";
+		case EPCGExStringComparison::EndsWith:
+			return " ends with ";
+		default: return " ?? ";
+		}
+	}
+
+	FORCEINLINE static bool Compare(const EPCGExStringComparison Method, const FString& A, const FString& B)
+	{
+		switch (Method)
+		{
+		case EPCGExStringComparison::StrictlyEqual:
+			return A == B;
+		case EPCGExStringComparison::StrictlyNotEqual:
+			return A != B;
+		case EPCGExStringComparison::LengthStrictlyEqual:
+			return A.Len() == B.Len();
+		case EPCGExStringComparison::LengthStrictlyUnequal:
+			return A.Len() != B.Len();
+		case EPCGExStringComparison::LengthEqualOrGreater:
+			return A.Len() >= B.Len();
+		case EPCGExStringComparison::LengthEqualOrSmaller:
+			return A.Len() <= B.Len();
+		case EPCGExStringComparison::StrictlyGreater:
+			return A.Len() > B.Len();
+		case EPCGExStringComparison::StrictlySmaller:
+			return A.Len() < B.Len();
+		case EPCGExStringComparison::LocaleStrictlyGreater:
+			return A > B;
+		case EPCGExStringComparison::LocaleStrictlySmaller:
+			return A < B;
+		case EPCGExStringComparison::Contains:
+			return A.Contains(B);
+		case EPCGExStringComparison::StartsWith:
+			return A.StartsWith(B);
+		case EPCGExStringComparison::EndsWith:
+			return A.EndsWith(B);
+		default:
+			return false;
+		}
+	}
 
 #pragma region StrictlyEqual
 

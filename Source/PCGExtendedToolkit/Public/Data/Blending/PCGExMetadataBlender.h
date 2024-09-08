@@ -28,14 +28,17 @@ namespace PCGExDataBlending
 			PCGExData::FFacade* InPrimaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = false,
-			const TSet<FName>* IgnoreAttributeSet = nullptr);
+			const TSet<FName>* IgnoreAttributeSet = nullptr,
+			const bool bSoftMode = false);
 
 		void PrepareForData(
 			PCGExData::FFacade* InPrimaryFacade,
 			PCGExData::FFacade* InSecondaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = false,
-			const TSet<FName>* IgnoreAttributeSet = nullptr);
+			const TSet<FName>* IgnoreAttributeSet = nullptr,
+			const bool bSoftMode = false);
+
 
 		FORCEINLINE void PrepareForBlending(const PCGExData::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const
 		{
@@ -90,6 +93,29 @@ namespace PCGExDataBlending
 
 		void BlendRangeFromTo(const PCGExData::FPointRef& From, const PCGExData::FPointRef& To, const int32 StartIndex, const TArrayView<double>& Weights);
 
+		// Soft ops
+		
+		FORCEINLINE void PrepareForBlending(FPCGPoint& Target, const FPCGPoint* Defaults = nullptr) const
+		{
+			for (const FDataBlendingOperationBase* Op : OperationsToBePrepared) { Op->PrepareOperation(Target.MetadataEntry); }
+			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
+			PropertiesBlender->PrepareBlending(Target, Defaults ? *Defaults : Target);
+		}
+
+		FORCEINLINE void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight, const bool bIsFirstOperation = false)
+		{
+			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(A.MetadataEntry, B.MetadataEntry, Target.MetadataEntry, Weight, bIsFirstOperation); }
+			if (bSkipProperties) { return; }
+			PropertiesBlender->Blend(A, B, Target, Weight);
+		}
+
+		FORCEINLINE void CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const
+		{
+			for (const FDataBlendingOperationBase* Op : OperationsToBeCompleted) { Op->FinalizeOperation(Target.MetadataEntry, Count, TotalWeight); }
+			if (bSkipProperties || !PropertiesBlender->bRequiresPrepare) { return; }
+			PropertiesBlender->CompleteBlending(Target, Count, TotalWeight);
+		}
+
 		void Cleanup();
 
 	protected:
@@ -101,7 +127,7 @@ namespace PCGExDataBlending
 		TArray<FDataBlendingOperationBase*> OperationsToBeCompleted;
 
 		TArray<FPCGPoint>* PrimaryPoints = nullptr;
-		TArray<FPCGPoint>* SecondaryPoints = nullptr;
+		const TArray<FPCGPoint>* SecondaryPoints = nullptr;
 
 		TArray<bool> FirstPointOperation;
 
@@ -110,6 +136,7 @@ namespace PCGExDataBlending
 			PCGExData::FFacade* InSecondaryFacade,
 			const PCGExData::ESource SecondarySource,
 			const bool bInitFirstOperation,
-			const TSet<FName>* IgnoreAttributeSet);
+			const TSet<FName>* IgnoreAttributeSet,
+			const bool bSoftMode = false);
 	};
 }

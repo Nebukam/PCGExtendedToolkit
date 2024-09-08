@@ -39,8 +39,8 @@ public:
 
 public:
 	/** Blending settings used to smooth attributes.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::None);
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRollingContext final : public FPCGExPathProcessorContext
@@ -72,6 +72,9 @@ namespace PCGExAttributeRolling
 
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 
+		UPCGMetadata* OutMetadata = nullptr;
+		TArray<FPCGPoint>* OutPoints = nullptr;
+		
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)

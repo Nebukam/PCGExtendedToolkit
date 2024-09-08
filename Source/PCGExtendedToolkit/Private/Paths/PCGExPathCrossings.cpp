@@ -33,7 +33,7 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathCrossings)
 
-	if (Settings->bFlagCrossing) { PCGEX_VALIDATE_NAME(Settings->CrossingFlagAttributeName) }
+	if (Settings->IntersectionDetails.bWriteCrossing) { PCGEX_VALIDATE_NAME(Settings->IntersectionDetails.CrossingAttributeName) }
 	if (Settings->bWriteAlpha) { PCGEX_VALIDATE_NAME(Settings->CrossingAlphaAttributeName) }
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
@@ -426,7 +426,7 @@ namespace PCGExPathCrossings
 		}
 
 		// Flag last so it doesn't get captured by blenders
-		if (LocalSettings->bFlagCrossing) { FlagWriter = PointDataFacade->GetWriter(LocalSettings->CrossingFlagAttributeName, false, true, true); }
+		if (LocalSettings->IntersectionDetails.bWriteCrossing) { FlagWriter = PointDataFacade->GetWriter(LocalSettings->IntersectionDetails.CrossingAttributeName, false, true, true); }
 		if (LocalSettings->bWriteAlpha) { AlphaWriter = PointDataFacade->GetWriter<double>(LocalSettings->CrossingAlphaAttributeName, LocalSettings->DefaultAlpha, true, true); }
 
 		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (LocalSettings->bTagIfHasCrossing) { PointIO->Tags->Add(LocalSettings->HasCrossingsTag); } }

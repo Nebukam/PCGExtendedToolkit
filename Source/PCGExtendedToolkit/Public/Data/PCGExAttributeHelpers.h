@@ -920,7 +920,7 @@ namespace PCGEx
 			if (bNormalized) { return; }
 			bNormalized = true;
 			UpdateMinMax();
-			T Range = PCGExMath::Sub(Max, Min);
+			T Range = PCGExMath::Subtract(Max, Min);
 			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
 		}
 
@@ -965,6 +965,7 @@ namespace PCGEx
 
 		virtual void Capture(const FPCGExInputConfig& InConfig) { Config = InConfig; }
 		virtual void Capture(const FPCGAttributePropertyInputSelector& InConfig) { Capture(FPCGExInputConfig(InConfig)); }
+		virtual void Capture(const FName& InName) { Capture(FPCGExInputConfig(InName)); }
 
 	protected:
 		virtual void ProcessExtraNames(const FName BaseName, const TArray<FString>& ExtraNames)
