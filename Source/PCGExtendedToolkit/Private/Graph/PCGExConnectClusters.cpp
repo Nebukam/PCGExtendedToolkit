@@ -329,7 +329,7 @@ namespace PCGExBridgeClusters
 		const FPCGPoint& StartPoint = Batch->VtxIO->GetOutPoint(IndexA);
 		const FPCGPoint& EndPoint = Batch->VtxIO->GetOutPoint(IndexB);
 
-		if(EdgePoint.Transform.IsValid())
+		if (EdgePoint.Transform.IsValid())
 		{
 			EdgePoint.Transform.SetLocation(FMath::Lerp(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation(), 0.5));
 		}
@@ -347,7 +347,7 @@ namespace PCGExBridgeClusters
 		FPCGMetadataAttribute<int64>* OutVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(Batch->VtxIO->GetOut()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
 
 		if (!EdgeEndpointsAtt || !OutVtxEndpointAtt) { return false; } // Somehow crashes, sometimes? Need to look into it.
-		
+
 		EdgeEndpointsAtt->SetValue(EdgePoint.MetadataEntry, PCGEx::H64(StartIdx, EndIdx));
 		OutVtxEndpointAtt->SetValue(StartPoint.MetadataEntry, PCGEx::H64(StartIdx, StartNumEdges + 1));
 		OutVtxEndpointAtt->SetValue(EndPoint.MetadataEntry, PCGEx::H64(EndIdx, EndNumEdges + 1));

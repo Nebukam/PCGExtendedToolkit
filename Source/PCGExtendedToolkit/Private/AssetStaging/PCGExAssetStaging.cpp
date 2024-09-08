@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "AssetStaging/PCGExAssetStaging.h"
-#include "AssetSelectors/PCGExInternalCollection.h"
+#include "Collections/PCGExInternalCollection.h"
 
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging

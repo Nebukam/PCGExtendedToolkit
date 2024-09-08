@@ -23,11 +23,11 @@ bool FPCGExWriteIndexElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->OutputAttributeName)
 
-	if(Settings->bOutputCollectionIndex)
+	if (Settings->bOutputCollectionIndex)
 	{
 		PCGEX_VALIDATE_NAME(Settings->CollectionIndexAttributeName)
 	}
-	
+
 	return true;
 }
 
@@ -56,7 +56,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->MainPoints->OutputToContext();
-	
+
 	return Context->TryComplete();
 }
 
@@ -80,11 +80,11 @@ namespace PCGExWriteIndex
 			IntWriter = PointDataFacade->GetWriter<int32>(Settings->OutputAttributeName, -1, false, false);
 		}
 
-		if(Settings->bOutputCollectionIndex)
+		if (Settings->bOutputCollectionIndex)
 		{
 			PCGExData::WriteMark(PointIO->GetOut()->Metadata, Settings->CollectionIndexAttributeName, BatchIndex);
 		}
-		
+
 		StartParallelLoopForPoints();
 
 		return true;

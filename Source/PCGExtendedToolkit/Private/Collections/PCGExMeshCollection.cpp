@@ -1,7 +1,7 @@
 // Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetSelectors/PCGExMeshCollection.h"
+#include "Collections/PCGExMeshCollection.h"
 
 #include "PCGEx.h"
 #include "PCGExMacros.h"
@@ -17,7 +17,7 @@ bool FPCGExMeshCollectionEntry::Validate(const UPCGExAssetCollection* ParentColl
 void FPCGExMeshCollectionEntry::UpdateStaging(const UPCGExAssetCollection* OwningCollection, const bool bRecursive)
 {
 	if (bIsSubCollection)
-	{		
+	{
 		Staging.Path = SubCollection.ToSoftObjectPath();
 		if (bRecursive && SubCollection.LoadSynchronous()) { SubCollection.Get()->RebuildStagingData(true); }
 		Super::UpdateStaging(OwningCollection, bRecursive);

@@ -95,7 +95,7 @@ namespace PCGExData
 		{
 			RawTags.Add(Key);
 		}
-		
+
 		void Add(const FString& Key, const FString& Value)
 		{
 			Tags.Add(Key, Value);

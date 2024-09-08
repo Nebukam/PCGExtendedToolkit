@@ -97,7 +97,7 @@ public:
 	FName RelativeOverlapSubCountAttributeName = FName("RelOverlapSubCount");
 
 	//
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTagIfHasAnyOverlap = false;
 
@@ -233,7 +233,7 @@ namespace PCGExSampleOverlapStats
 		double LocalOverlapCountMax = 0;
 
 		int8 bAnyOverlap = 0;
-		
+
 		PCGEX_FOREACH_FIELD_SAMPLEOVERLAPSTATS(PCGEX_OUTPUT_DECL)
 
 	public:

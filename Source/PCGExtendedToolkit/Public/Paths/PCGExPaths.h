@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AssetSelectors/PCGExMeshCollection.h"
+#include "Collections/PCGExMeshCollection.h"
 #include "Components/SplineMeshComponent.h"
 
 #include "PCGExPaths.generated.h"

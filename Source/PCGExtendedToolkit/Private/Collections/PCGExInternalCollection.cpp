@@ -1,10 +1,9 @@
 // Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetSelectors/PCGExInternalCollection.h"
+#include "Collections/PCGExInternalCollection.h"
 
-#include "PCGEx.h"
-#include "AssetSelectors/PCGExActorCollection.h"
+#include "Collections/PCGExActorCollection.h"
 #include "Engine/AssetManager.h"
 
 bool FPCGExInternalCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)

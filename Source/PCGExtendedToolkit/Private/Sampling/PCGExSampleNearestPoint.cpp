@@ -350,8 +350,8 @@ namespace PCGExSampleNearestPoints
 	{
 		PointDataFacade->Write(AsyncManagerPtr, true);
 
-		if(LocalSettings->bTagIfHasSuccesses && bAnySuccess){ PointIO->Tags->Add(LocalSettings->HasSuccessesTag); }
-		if(LocalSettings->bTagIfHasNoSuccesses && !bAnySuccess){ PointIO->Tags->Add(LocalSettings->HasNoSuccessesTag); }
+		if (LocalSettings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasSuccessesTag); }
+		if (LocalSettings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasNoSuccessesTag); }
 	}
 }
 

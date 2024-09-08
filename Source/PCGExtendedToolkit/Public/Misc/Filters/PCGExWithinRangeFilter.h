@@ -37,6 +37,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWithinRangeFilterConfig
 	/** Whether the test should be inclusive of min/max values */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInclusive = false;
+
+	/** If enabled, invert the result of the test and pass if value is outside the given range */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
 };
 
 
@@ -69,13 +73,15 @@ namespace PCGExPointsFilter
 		PCGExData::TCache<double>* OperandA = nullptr;
 		double RealMin = 0;
 		double RealMax = 0;
+
 		bool bInclusive = false;
+		bool bInvert = false;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			if (!bInclusive) { return FMath::IsWithin(OperandA->Values[PointIndex], RealMin, RealMax); }
-			return FMath::IsWithinInclusive(OperandA->Values[PointIndex], RealMin, RealMax);
+			if (!bInclusive) { return FMath::IsWithin(OperandA->Values[PointIndex], RealMin, RealMax) ? !bInvert : bInvert; }
+			return FMath::IsWithinInclusive(OperandA->Values[PointIndex], RealMin, RealMax) ? !bInvert : bInvert;
 		}
 
 		virtual ~TWithinRangeFilter() override

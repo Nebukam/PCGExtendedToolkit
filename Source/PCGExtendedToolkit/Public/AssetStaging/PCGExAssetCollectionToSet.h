@@ -8,7 +8,7 @@
 #include "PCGEx.h"
 #include "PCGExCompare.h"
 #include "PCGExPointsProcessor.h"
-#include "AssetSelectors/PCGExAssetCollection.h"
+#include "Collections/PCGExAssetCollection.h"
 
 #include "PCGExAssetCollectionToSet.generated.h"
 

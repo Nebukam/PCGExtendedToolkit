@@ -66,6 +66,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExScaleToFitDetails
 	{
 	}
 
+	explicit FPCGExScaleToFitDetails(EPCGExFitMode DefaultFit)
+	{
+		ScaleToFitMode = DefaultFit;
+	}
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFitMode ScaleToFitMode = EPCGExFitMode::Uniform;
 

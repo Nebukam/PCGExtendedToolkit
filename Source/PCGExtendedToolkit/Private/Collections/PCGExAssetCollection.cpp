@@ -1,7 +1,7 @@
 // Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetSelectors/PCGExAssetCollection.h"
+#include "Collections/PCGExAssetCollection.h"
 
 #include "PCGEx.h"
 #include "PCGExMacros.h"
@@ -84,7 +84,7 @@ namespace PCGExAssetCollection
 		}
 		else
 		{
-			(*CategoryPtr)->RegisterStaging(Index, InStaging);;
+			(*CategoryPtr)->RegisterStaging(Index, InStaging);
 		}
 	}
 

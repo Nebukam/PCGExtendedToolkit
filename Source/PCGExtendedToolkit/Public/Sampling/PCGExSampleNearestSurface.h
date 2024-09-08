@@ -180,7 +180,7 @@ public:
 	FPCGExForwardDetails AttributesForwarding;
 
 	//
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTagIfHasSuccesses = false;
 
@@ -192,7 +192,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasNoSuccesses"))
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
-	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : public FPCGExPointsProcessorContext
@@ -240,7 +239,7 @@ namespace PCGExSampleNearestSurface
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_DECL)
 
 		int8 bAnySuccess = 0;
-		
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)

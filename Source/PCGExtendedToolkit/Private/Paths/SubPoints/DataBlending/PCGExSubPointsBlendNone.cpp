@@ -13,7 +13,6 @@ void UPCGExSubPointsBlendNone::BlendSubPoints(
 	const PCGExPaths::FPathMetricsSquared& Metrics,
 	PCGExDataBlending::FMetadataBlender* InBlender, const int32 StartIndex) const
 {
-	
 }
 
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendNone::CreateBlender(

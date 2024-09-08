@@ -25,7 +25,9 @@ bool PCGExPointsFilter::TWithinRangeFilter::Init(const FPCGContext* InContext, P
 
 	RealMin = FMath::Min(TypedFilterFactory->Config.RangeMin, TypedFilterFactory->Config.RangeMax);
 	RealMax = FMath::Max(TypedFilterFactory->Config.RangeMin, TypedFilterFactory->Config.RangeMax);
+	
 	bInclusive = TypedFilterFactory->Config.bInclusive;
+	bInvert = TypedFilterFactory->Config.bInvert;
 
 	return true;
 }
@@ -41,7 +43,7 @@ FString UPCGExWithinRangeFilterProviderSettings::GetDisplayName() const
 	DisplayName += TEXT(" .. ");
 	DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Config.RangeMax) / 1000.0));
 
-	return DisplayName + TEXT("]");;
+	return DisplayName + TEXT("]");
 }
 #endif
 

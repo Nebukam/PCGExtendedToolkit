@@ -32,6 +32,7 @@ UPCGExParamFactoryBase* UPCGExFilterGroupProviderSettings::CreateFactory(FPCGExC
 	else { NewFactory = NewObject<UPCGExFilterGroupFactoryBaseOR>(); }
 
 	NewFactory->Priority = Priority;
+	NewFactory->bInvert = bInvert;
 	NewFactory->FilterFactories;
 
 	if (!GetInputFactories(

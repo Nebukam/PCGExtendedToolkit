@@ -41,7 +41,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Tangents, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsOperation> Tangents;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
 	double ArriveScale = 1;
 

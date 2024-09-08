@@ -128,7 +128,7 @@ namespace PCGExData
 			if (bInitialized)
 			{
 				check(Writer)
-				PCGEx:: TAttributeReader<T>* TypedReader = new PCGEx:: TAttributeReader<T>(FullName);
+				PCGEx::TAttributeReader<T>* TypedReader = new PCGEx::TAttributeReader<T>(FullName);
 
 				if (bFetch) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
 				else { if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) } }
@@ -142,7 +142,7 @@ namespace PCGExData
 
 			bInitialized = true;
 
-			PCGEx:: TAttributeReader<T>* TypedReader = new PCGEx:: TAttributeReader<T>(FullName);
+			PCGEx::TAttributeReader<T>* TypedReader = new PCGEx::TAttributeReader<T>(FullName);
 
 			if (bFetch) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
 			else { if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) } }

@@ -454,5 +454,4 @@ namespace PCGEx
 		for (const T& Entry : A) { if (!B.Contains(Entry)) { return false; } }
 		return true;
 	}
-
 }

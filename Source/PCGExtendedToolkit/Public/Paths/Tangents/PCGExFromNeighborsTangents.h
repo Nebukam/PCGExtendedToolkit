@@ -25,7 +25,7 @@ public:
 		{
 		}
 	}
-	
+
 	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
 	{
 		const FVector Dir = (InPoints[1].Transform.GetLocation() - InPoints[0].Transform.GetLocation()).GetSafeNormal();

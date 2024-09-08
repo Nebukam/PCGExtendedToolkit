@@ -148,7 +148,7 @@ public:
 	/** Which actor reference points attributes to forward on points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FPCGExForwardDetails AttributesForwarding;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	bool bTraceComplex = false;
 
@@ -180,7 +180,7 @@ public:
 	FPCGExActorSelectorSettings IgnoredActorSelector;
 
 	//
-		
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTagIfHasSuccesses = false;
 
@@ -192,7 +192,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasNoSuccesses"))
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
-	
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext

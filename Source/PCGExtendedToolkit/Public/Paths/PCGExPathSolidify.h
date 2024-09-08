@@ -43,7 +43,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bScaleBounds = true;
-	
+
 	/** Align the point to the direction over the selected axis. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExMinimalAxis SolidificationAxis = EPCGExMinimalAxis::X;

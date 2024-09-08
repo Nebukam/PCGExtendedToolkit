@@ -91,7 +91,7 @@ namespace PCGExAttributeRolling
 
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade);
-		
+
 		bInlineProcessPoints = true;
 		StartParallelLoopForPoints();
 

@@ -22,7 +22,6 @@ public:
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExCatmullRomTangents* TypedOther = Cast<UPCGExCatmullRomTangents>(Other))
 		{
-			
 		}
 	}
 

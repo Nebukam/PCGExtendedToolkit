@@ -256,7 +256,7 @@ public:
 	FName NumSamplesAttributeName = FName("NumSamples");
 
 	//
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTagIfHasSuccesses = false;
 
@@ -318,7 +318,7 @@ namespace PCGExSampleNearestBounds
 		PCGExDataBlending::FMetadataBlender* Blender = nullptr;
 
 		int8 bAnySuccess = 0;
-		
+
 		PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_DECL)
 
 	public:

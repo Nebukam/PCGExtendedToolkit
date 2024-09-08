@@ -258,7 +258,7 @@ namespace PCGExCluster
 		NumRawVtx = InNodePoints.Num();
 		NumRawEdges = EdgeIO->GetNum();
 
-		PCGEx:: TAttributeReader<int64>* EndpointsReader = new PCGEx:: TAttributeReader<int64>(PCGExGraph::Tag_EdgeEndpoints);
+		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(PCGExGraph::Tag_EdgeEndpoints);
 
 		auto OnFail = [&]()
 		{

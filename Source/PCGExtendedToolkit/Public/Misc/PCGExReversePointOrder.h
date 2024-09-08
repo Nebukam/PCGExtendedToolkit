@@ -40,7 +40,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSwapAttributePairDetails
 		PCGEX_VALIDATE_NAME_C(InContext, SecondAttributeName)
 		return true;
 	}
-
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -101,7 +100,6 @@ public:
 
 namespace PCGExReversePointOrder
 {
-	
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		TArray<FPCGExSwapAttributePairDetails> SwapPairs;

@@ -44,7 +44,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPreserveEnd = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSmoothingOperation> SmoothingMethod;
 
@@ -79,7 +79,6 @@ public:
 	/** Blending settings used to smooth attributes.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
-
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSmoothContext final : public FPCGExPathProcessorContext
@@ -108,10 +107,9 @@ namespace PCGExSmooth
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-
 		FPCGExSmoothContext* LocalTypedContext = nullptr;
 		const UPCGExSmoothSettings* LocalSettings = nullptr;
-		
+
 		int32 NumPoints = 0;
 
 		PCGExData::TCache<double>* Influence = nullptr;
