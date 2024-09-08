@@ -22,16 +22,8 @@ public:
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExCatmullRomTangents* TypedOther = Cast<UPCGExCatmullRomTangents>(Other))
 		{
-			ArriveScale = TypedOther->ArriveScale;
-			LeaveScale = TypedOther->LeaveScale;
 		}
 	}
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
-	double ArriveScale = 1;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
-	double LeaveScale = 1;
 
 	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
 	{

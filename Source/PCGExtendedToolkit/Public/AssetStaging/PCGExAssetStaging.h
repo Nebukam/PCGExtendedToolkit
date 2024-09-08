@@ -7,7 +7,7 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
-#include "AssetSelectors/PCGExMeshCollection.h"
+#include "Collections/PCGExMeshCollection.h"
 #include "PCGExFitting.h"
 #include "PCGExAssetStaging.generated.h"
 

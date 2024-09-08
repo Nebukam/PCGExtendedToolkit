@@ -9,6 +9,39 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExReversePointOrder.generated.h"
 
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSwapAttributePairDetails
+{
+	GENERATED_BODY()
+
+	FPCGExSwapAttributePairDetails()
+	{
+	}
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FName FirstAttributeName = NAME_None;
+	PCGEx::FAttributeIdentity* FirstIdentity = nullptr;
+	PCGEx::FAttributeIOBase* FirstWriter = nullptr;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FName SecondAttributeName = NAME_None;
+	PCGEx::FAttributeIdentity* SecondIdentity = nullptr;
+	PCGEx::FAttributeIOBase* SecondWriter = nullptr;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bMultiplyByMinusOne = false;
+
+	bool Validate(const FPCGContext* InContext) const
+	{
+		PCGEX_VALIDATE_NAME_C(InContext, FirstAttributeName)
+		PCGEX_VALIDATE_NAME_C(InContext, SecondAttributeName)
+		return true;
+	}
+};
+
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExReversePointOrderSettings : public UPCGExPointsProcessorSettings
 {
@@ -29,6 +62,10 @@ protected:
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	TArray<FPCGExSwapAttributePairDetails> SwapAttributesValues;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderContext final : public FPCGExPointsProcessorContext
@@ -60,3 +97,27 @@ public:
 
 	virtual bool ExecuteTask() override;
 };
+
+namespace PCGExReversePointOrder
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		TArray<FPCGExSwapAttributePairDetails> SwapPairs;
+		PCGEx::FAttributesInfos* AttributesInfos = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override
+		{
+			PCGEX_DELETE(AttributesInfos)
+		}
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
+		virtual void CompleteWork() override;
+	};
+}

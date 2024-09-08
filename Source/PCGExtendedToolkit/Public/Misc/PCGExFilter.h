@@ -110,7 +110,7 @@ namespace FPCGExFilter
 		double Upscale = 1.0;
 		double Offset = 0.0;
 
-		PCGExData::FCache<double>* DataCache = nullptr;
+		PCGExData::TCache<double>* DataCache = nullptr;
 
 		FORCEINLINE int64 Filter(const int32 Index) const
 		{

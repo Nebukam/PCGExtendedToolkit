@@ -66,6 +66,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExScaleToFitDetails
 	{
 	}
 
+	explicit FPCGExScaleToFitDetails(EPCGExFitMode DefaultFit)
+	{
+		ScaleToFitMode = DefaultFit;
+	}
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFitMode ScaleToFitMode = EPCGExFitMode::Uniform;
 
@@ -184,8 +189,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="From==EPCGExJustifyFrom::Custom && FromType==EPCGExFetchType::Constant", EditConditionHides))
 	double FromConstant = 0.5;
 
-	PCGExData::FCache<double>* FromGetter = nullptr;
-	PCGExData::FCache<FVector>* SharedFromGetter = nullptr;
+	PCGExData::TCache<double>* FromGetter = nullptr;
+	PCGExData::TCache<FVector>* SharedFromGetter = nullptr;
 
 	/** Reference point inside the container bounds*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -203,8 +208,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="To==EPCGExJustifyTo::Custom && ToType==EPCGExFetchType::Constant", EditConditionHides))
 	double ToConstant = 0.5;
 
-	PCGExData::FCache<double>* ToGetter = nullptr;
-	PCGExData::FCache<FVector>* SharedToGetter = nullptr;
+	PCGExData::TCache<double>* ToGetter = nullptr;
+	PCGExData::TCache<FVector>* SharedToGetter = nullptr;
 
 	bool Init(FPCGExContext* InContext, PCGExData::FFacade* InDataFacade)
 	{
@@ -376,7 +381,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExJustificationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSharedCustomFromAttribute"))
 	FPCGAttributePropertyInputSelector CustomFromVectorAttribute;
 
-	PCGExData::FCache<FVector>* SharedFromGetter = nullptr;
+	PCGExData::TCache<FVector>* SharedFromGetter = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSharedCustomToAttribute = false;
@@ -385,7 +390,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExJustificationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSharedCustomToAttribute"))
 	FPCGAttributePropertyInputSelector CustomToVectorAttribute;
 
-	PCGExData::FCache<FVector>* SharedToGetter = nullptr;
+	PCGExData::TCache<FVector>* SharedToGetter = nullptr;
 
 	void Process(
 		const int32 Index,

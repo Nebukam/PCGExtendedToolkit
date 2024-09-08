@@ -107,10 +107,13 @@ namespace PCGExSmooth
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		FPCGExSmoothContext* LocalTypedContext = nullptr;
+		const UPCGExSmoothSettings* LocalSettings = nullptr;
+
 		int32 NumPoints = 0;
 
-		TArray<double> Smoothing;
-		TArray<double> Influence;
+		PCGExData::TCache<double>* Influence = nullptr;
+		PCGExData::TCache<double>* Smoothing = nullptr;
 
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 		UPCGExSmoothingOperation* TypedOperation = nullptr;
@@ -119,12 +122,12 @@ namespace PCGExSmooth
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints): FPointsProcessor(InPoints)
 		{
-			DefaultPointFilterValue = true;
 		}
 
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

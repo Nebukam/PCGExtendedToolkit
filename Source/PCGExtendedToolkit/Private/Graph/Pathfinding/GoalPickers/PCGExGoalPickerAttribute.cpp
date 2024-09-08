@@ -37,7 +37,7 @@ int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGExData::FPointRef& Seed) 
 
 void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
-	for (PCGExData::FCache<double>* Getter : AttributeGetters)
+	for (PCGExData::TCache<double>* Getter : AttributeGetters)
 	{
 		if (!Getter) { continue; }
 		OutIndices.Add(PCGExMath::SanitizeIndex(static_cast<int32>(Getter->Values[Seed.Index]), MaxGoalIndex, IndexSafety));

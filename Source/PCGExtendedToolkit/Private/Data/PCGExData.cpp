@@ -69,17 +69,17 @@ namespace PCGExData
 		}
 
 		if (Index == 0) { return; }
-		
+
 		OutPointsIdx.SetNum(Index);
 		OutWeights.SetNum(Index);
 		OutIOIdx.SetNum(Index);
 
-		if(Index == 1)
+		if (Index == 1)
 		{
 			OutWeights[0] = 1;
 			return;
 		}
-		
+
 		if (TotalWeight == 0)
 		{
 			const double StaticWeight = 1 / static_cast<double>(CompoundedHashSet.Num());

@@ -29,7 +29,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	const PCGExData::FPointRef& From,
 	const PCGExData::FPointRef& To,
 	const TArrayView<FPCGPoint>& SubPoints,
-	const PCGExMath::FPathMetricsSquared& Metrics,
+	const PCGExPaths::FPathMetrics& Metrics,
 	PCGExDataBlending::FMetadataBlender* InBlender,
 	const int32 StartIndex) const
 {
@@ -46,7 +46,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 
 	if (SafeBlendOver == EPCGExBlendOver::Distance)
 	{
-		PCGExMath::FPathMetricsSquared PathMetrics = PCGExMath::FPathMetricsSquared(From.Point->Transform.GetLocation());
+		PCGExPaths::FPathMetrics PathMetrics = PCGExPaths::FPathMetrics(From.Point->Transform.GetLocation());
 		for (int i = 0; i < NumPoints; i++)
 		{
 			const FVector Location = SubPoints[i].Transform.GetLocation();

@@ -28,6 +28,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBase : public UPCGExClu
 	GENERATED_BODY()
 
 public:
+	bool bInvert = false;
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
@@ -71,6 +72,7 @@ namespace PCGExFilterGroup
 		}
 
 		bool bValid = false;
+		bool bInvert = false;
 		const UPCGExFilterGroupFactoryBase* GroupFactory;
 		const TArray<UPCGExFilterFactoryBase*>* ManagedFactories;
 
@@ -114,20 +116,20 @@ namespace PCGExFilterGroup
 
 		FORCEINLINE virtual bool Test(const int32 Index) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (!Filter->Test(Index)) { return false; } }
-			return true;
+			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (!Filter->Test(Index)) { return bInvert; } }
+			return !bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (!Filter->Test(Node)) { return false; } }
-			return true;
+			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (!Filter->Test(Node)) { return bInvert; } }
+			return !bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return false; } }
-			return true;
+			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
+			return !bInvert;
 		}
 	};
 
@@ -141,20 +143,20 @@ namespace PCGExFilterGroup
 
 		FORCEINLINE virtual bool Test(const int32 Index) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (Filter->Test(Index)) { return true; } }
-			return false;
+			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (Filter->Test(Index)) { return !bInvert; } }
+			return bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (Filter->Test(Node)) { return true; } }
-			return false;
+			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (Filter->Test(Node)) { return !bInvert; } }
+			return bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (Filter->Test(Edge)) { return true; } }
-			return false;
+			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
+			return bInvert;
 		}
 	};
 }

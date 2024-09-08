@@ -145,6 +145,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(DisplayName="PhysMat", PCG_Overridable, EditCondition="bWritePhysMat"))
 	FName PhysMatAttributeName = FName("PhysMat");
 
+	/** Which actor reference points attributes to forward on points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
+	FPCGExForwardDetails AttributesForwarding;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	bool bTraceComplex = false;
 
@@ -175,9 +179,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
 
-	/** Which actor reference points attributes to forward on points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
-	FPCGExForwardDetails AttributesForwarding;
+	//
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasSuccesses = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasSuccesses"))
+	FString HasSuccessesTag = TEXT("HasSuccesses");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasNoSuccesses = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasNoSuccesses"))
+	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : public FPCGExPointsProcessorContext
@@ -215,14 +229,16 @@ namespace PCGExSampleSurfaceGuided
 	{
 		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
 
-		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
-		PCGExData::FCache<FVector>* DirectionGetter = nullptr;
+		PCGExData::TCache<double>* MaxDistanceGetter = nullptr;
+		PCGExData::TCache<FVector>* DirectionGetter = nullptr;
 
 		FPCGExSampleSurfaceGuidedContext* LocalTypedContext = nullptr;
 		const UPCGExSampleSurfaceGuidedSettings* LocalSettings = nullptr;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_DECL)
+
+		int8 bAnySuccess = 0;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

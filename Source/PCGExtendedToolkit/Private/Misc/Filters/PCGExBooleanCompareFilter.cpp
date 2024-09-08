@@ -3,6 +3,9 @@
 
 #include "Misc/Filters/PCGExBooleanCompareFilter.h"
 
+#define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
+#define PCGEX_NAMESPACE CompareFilterDefinition
+
 PCGExPointFilter::TFilter* UPCGExBooleanCompareFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TBooleanComparisonFilter(this);
@@ -33,13 +36,6 @@ bool PCGExPointsFilter::TBooleanComparisonFilter::Init(const FPCGContext* InCont
 
 	return true;
 }
-
-namespace PCGExCompareFilter
-{
-}
-
-#define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
-#define PCGEX_NAMESPACE CompareFilterDefinition
 
 PCGEX_CREATE_FILTER_FACTORY(BooleanCompare)
 

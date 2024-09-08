@@ -41,7 +41,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 			BestDist[d] = TNumericLimits<double>::Max();
 		}
 	}
-	
+
 	for (int i = 0; i < Candidates.Num(); i++)
 	{
 		const PCGExProbing::FCandidate& C = Candidates[i];
@@ -52,7 +52,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		double BatchBestDot = 0.92;
 		double BatchBestDist = TNumericLimits<double>::Max();
 		int32 BatchBest = -1;
-		
+
 		for (int d = 0; d < 16; d++)
 		{
 			const double TempDot = FVector::DotProduct(D[d], C.Direction);
@@ -67,7 +67,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 			}
 		}
 
-		if(BatchBest != -1)
+		if (BatchBest != -1)
 		{
 			BestDist[BatchBest] = BatchBestDist;
 			BestDot[BatchBest] = BatchBestDot;

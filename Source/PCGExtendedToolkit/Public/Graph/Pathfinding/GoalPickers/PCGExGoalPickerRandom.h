@@ -53,6 +53,6 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGExData::FCache<int32>* NumGoalsGetter = nullptr;
+	PCGExData::TCache<int32>* NumGoalsGetter = nullptr;
 	virtual void ApplyOverrides() override;
 };

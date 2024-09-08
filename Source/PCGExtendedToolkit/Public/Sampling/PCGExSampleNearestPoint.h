@@ -261,6 +261,21 @@ public:
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
+
+
+	//
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasSuccesses = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasSuccesses"))
+	FString HasSuccessesTag = TEXT("HasSuccesses");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasNoSuccesses = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasNoSuccesses"))
+	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : public FPCGExPointsProcessorContext
@@ -303,13 +318,15 @@ namespace PCGExSampleNearestPoints
 		FPCGExSampleNearestPointContext* LocalTypedContext = nullptr;
 		const UPCGExSampleNearestPointSettings* LocalSettings = nullptr;
 
-		PCGExData::FCache<double>* RangeMinGetter = nullptr;
-		PCGExData::FCache<double>* RangeMaxGetter = nullptr;
-		PCGExData::FCache<FVector>* LookAtUpGetter = nullptr;
+		PCGExData::TCache<double>* RangeMinGetter = nullptr;
+		PCGExData::TCache<double>* RangeMaxGetter = nullptr;
+		PCGExData::TCache<FVector>* LookAtUpGetter = nullptr;
 
 		FVector SafeUpVector = FVector::UpVector;
 
 		PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+
+		int8 bAnySuccess = 0;
 
 		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
 

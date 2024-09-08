@@ -178,6 +178,20 @@ public:
 	/** Which actor reference points attributes to forward on points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FPCGExForwardDetails AttributesForwarding;
+
+	//
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasSuccesses = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasSuccesses"))
+	FString HasSuccessesTag = TEXT("HasSuccesses");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasNoSuccesses = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasNoSuccesses"))
+	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : public FPCGExPointsProcessorContext
@@ -216,13 +230,15 @@ namespace PCGExSampleNearestSurface
 	{
 		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
 
-		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
+		PCGExData::TCache<double>* MaxDistanceGetter = nullptr;
 
 		FPCGExSampleNearestSurfaceContext* LocalTypedContext = nullptr;
 		const UPCGExSampleNearestSurfaceSettings* LocalSettings = nullptr;
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_DECL)
+
+		int8 bAnySuccess = 0;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

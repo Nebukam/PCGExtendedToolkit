@@ -23,5 +23,34 @@ public:
 		const double Smoothing,
 		const double Influence,
 		PCGExDataBlending::FMetadataBlender* MetadataBlender,
-		const bool bClosedPath) override;
+		const bool bClosedPath) override
+	{
+		const double RadiusSquared = Smoothing * Smoothing;
+		const double SmoothingInfluence = Influence;
+
+		if (SmoothingInfluence == 0) { return; }
+
+		const int32 MaxPointIndex = Path->GetNum() - 1;
+
+		const FVector Origin = Target.Point->Transform.GetLocation();
+		int32 Count = 0;
+
+		MetadataBlender->PrepareForBlending(Target);
+
+		double TotalWeight = 0;
+		for (int i = 0; i <= MaxPointIndex; i++)
+		{
+			const FPCGPoint& InPoint = Path->GetOutPoint(i);
+			const double Dist = FVector::DistSquared(Origin, InPoint.Transform.GetLocation());
+			if (Dist <= RadiusSquared)
+			{
+				const double Weight = (1 - (Dist / RadiusSquared)) * SmoothingInfluence;
+				MetadataBlender->Blend(Target, Path->GetInPointRef(i), Target, Weight);
+				Count++;
+				TotalWeight += Weight;
+			}
+		}
+
+		MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
+	}
 };

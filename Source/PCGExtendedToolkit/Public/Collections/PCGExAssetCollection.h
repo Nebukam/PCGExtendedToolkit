@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExRandom.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Engine/AssetManager.h"
@@ -762,7 +761,7 @@ namespace PCGExAssetCollection
 		UPCGExAssetCollection* Collection = nullptr;
 		FPCGExAssetDistributionDetails Details;
 
-		PCGExData::FCache<int32>* IndexGetter = nullptr;
+		PCGExData::TCache<int32>* IndexGetter = nullptr;
 
 		int32 MaxIndex = 0;
 		double MaxInputIndex = 0;

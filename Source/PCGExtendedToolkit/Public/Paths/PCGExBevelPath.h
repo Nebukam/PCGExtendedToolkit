@@ -244,8 +244,8 @@ namespace PCGExBevelPath
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;
-		PCGExData::FCache<double>* WidthGetter = nullptr;
-		PCGExData::FCache<double>* SubdivAmountGetter = nullptr;
+		PCGExData::TCache<double>* WidthGetter = nullptr;
+		PCGExData::TCache<double>* SubdivAmountGetter = nullptr;
 		double ConstantSubdivAmount = 0;
 
 		PCGEx::TAttributeWriter<bool>* EndpointsWriter = nullptr;

@@ -828,7 +828,7 @@ namespace PCGEx
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 
 
-				if (PCGEx::RequireInit(GetPropertyType(Config.Selector.GetPointProperty()))) { PCGEX_SET_NUM(Dump, NumPoints) }
+				if (RequireInit(GetPropertyType(Config.Selector.GetPointProperty()))) { PCGEX_SET_NUM(Dump, NumPoints) }
 				else { PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints) }
 
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
@@ -1456,12 +1456,11 @@ namespace PCGEx
 		FORCEINLINE virtual FString Convert(const FRotator& Value) const override { return *Value.ToString(); }
 		FORCEINLINE virtual FString Convert(const FString& Value) const override { return *Value; }
 		FORCEINLINE virtual FString Convert(const FName& Value) const override { return *Value.ToString(); }
-		
+
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 		FORCEINLINE virtual FString Convert(const FSoftClassPath& Value) const override { return Value.IsValid() ? Value.ToString() : TEXT(""); }
 		FORCEINLINE virtual FString Convert(const FSoftObjectPath& Value) const override { return Value.IsValid() ? Value.ToString() : TEXT(""); }
 #endif
-		
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FSoftObjectPathGetter final : public TAttributeGetter<FSoftObjectPath>
@@ -1477,13 +1476,13 @@ namespace PCGEx
 
 		FORCEINLINE virtual FSoftObjectPath Convert(const FString& Value) const override { return FSoftObjectPath(Value); }
 		FORCEINLINE virtual FSoftObjectPath Convert(const FName& Value) const override { return FSoftObjectPath(Value.ToString()); }
-		
+
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 		FORCEINLINE virtual FSoftObjectPath Convert(const FSoftClassPath& Value) const override { return Value; }
 #endif
 	};
 
-	
+
 #pragma endregion
 
 	static FAttributesInfos* GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError)

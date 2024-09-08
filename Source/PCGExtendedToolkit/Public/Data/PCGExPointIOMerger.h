@@ -40,7 +40,7 @@ namespace PCGExPointIOMerger
 	template <typename T>
 	static void ScopeMerge(const uint64 Scope, const PCGEx::FAttributeIdentity& Identity, PCGExData::FPointIO* SourceIO, PCGEx::TAttributeWriter<T>* Writer)
 	{
-		PCGEx:: TAttributeReader<T>* Reader = new PCGEx:: TAttributeReader<T>(Identity.Name);
+		PCGEx::TAttributeReader<T>* Reader = new PCGEx::TAttributeReader<T>(Identity.Name);
 		Reader->Bind(SourceIO);
 
 		uint32 StartIndex;

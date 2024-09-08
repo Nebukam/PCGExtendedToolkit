@@ -6,13 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 #include "PCGExSmoothingOperation.generated.h"
-
-namespace PCGExDataBlending
-{
-	struct FPropertiesBlender;
-	class FMetadataBlender;
-}
 
 /**
  * 
@@ -29,5 +24,7 @@ public:
 		const double Smoothing,
 		const double Influence,
 		PCGExDataBlending::FMetadataBlender* MetadataBlender,
-		const bool bClosedPath);
+		const bool bClosedPath)
+	{
+	}
 };

@@ -69,7 +69,7 @@ namespace PCGExGraph
 	{
 		uint32 Start = 0;
 		uint32 End = 0;
-		int bValid = 1; // int for atomic operations
+		int8 bValid = 1; // int for atomic operations
 
 		FEdge()
 		{
@@ -161,7 +161,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
-		PCGEx:: TAttributeReader<int64>* EndpointsReader = new PCGEx:: TAttributeReader<int64>(Tag_EdgeEndpoints);
+		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(Tag_EdgeEndpoints);
 		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
 		{
 			PCGEX_DELETE(EndpointsReader)
@@ -230,7 +230,7 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-WithPoints);
 		//EdgeIO.CreateInKeys();
 
-		PCGEx:: TAttributeReader<int64>* EndpointsReader = new PCGEx:: TAttributeReader<int64>(Tag_EdgeEndpoints);
+		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(Tag_EdgeEndpoints);
 
 		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
 		{

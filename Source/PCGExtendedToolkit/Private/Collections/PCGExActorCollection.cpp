@@ -1,7 +1,7 @@
 // Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "AssetSelectors/PCGExActorCollection.h"
+#include "Collections/PCGExActorCollection.h"
 
 bool FPCGExActorCollectionEntry::Validate(const UPCGExAssetCollection* ParentCollection)
 {

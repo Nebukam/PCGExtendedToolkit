@@ -101,6 +101,8 @@ namespace PCGExPrunePath
 		TArray<FPCGPoint>* OutPoints = nullptr;
 		UPCGMetadata* OutMetadata = nullptr;
 
+		TArray<PCGExData::FPointIO*> Outputs;
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)

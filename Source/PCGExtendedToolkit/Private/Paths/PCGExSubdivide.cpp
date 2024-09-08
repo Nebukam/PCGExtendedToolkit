@@ -159,7 +159,7 @@ namespace PCGExSubdivide
 
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
-		PCGExMath::FPathMetricsSquared Metrics = PCGExMath::FPathMetricsSquared(Sub.Start);
+		PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Sub.Start);
 
 		const double StepSize = Sub.Dist / static_cast<double>(Sub.NumSubdivisions);
 		const double StartOffset = (Sub.Dist - StepSize * Sub.NumSubdivisions) * 0.5;

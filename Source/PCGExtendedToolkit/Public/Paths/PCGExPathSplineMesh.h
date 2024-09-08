@@ -7,7 +7,7 @@
 #include "PCGExPathProcessor.h"
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
-#include "AssetSelectors/PCGExMeshCollection.h"
+#include "Collections/PCGExMeshCollection.h"
 
 #include "Tangents/PCGExTangentsOperation.h"
 #include "Components/SplineMeshComponent.h"
@@ -92,6 +92,21 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
 	FName LeaveTangentAttribute = "LeaveTangent";
 
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExMinimalAxis SplineMeshAxisConstant = EPCGExMinimalAxis::X;
+
+	/** If enabled, will break scaling interpolation across the spline. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyScaleToFit"))
+	FPCGExScaleToFitDetails ScaleToFit = FPCGExScaleToFitDetails(EPCGExFitMode::None);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExJustificationDetails Justification;
+
+	/** Leave tangent attribute (expects FVector) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyCustomTangents"))
+	bool bJustifyToOne = false;
+
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
@@ -130,16 +145,23 @@ namespace PCGExPathSplineMesh
 		const UPCGExPathSplineMeshSettings* LocalSettings = nullptr;
 
 		bool bClosedPath = false;
+		bool bApplyScaleToFit = false;
 
 		int32 LastIndex = 0;
 
+		int32 C1 = 1;
+		int32 C2 = 2;
+
 		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
+		FPCGExJustificationDetails Justification;
 
 		PCGEx::TAttributeIO<FVector>* ArriveReader = nullptr;
 		PCGEx::TAttributeIO<FVector>* LeaveReader = nullptr;
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
 		//TArray<USplineMeshComponent*> SplineMeshComponents;
+
+		ESplineMeshAxis::Type SplineMeshAxisConstant = ESplineMeshAxis::Type::X;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

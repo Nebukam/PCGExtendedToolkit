@@ -216,6 +216,8 @@ namespace PCGExSampleSurfaceGuided
 			else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
 
 			if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
+
+			FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
 		};
 
 		auto ProcessMultipleTraceResult = [&]()
@@ -297,6 +299,9 @@ namespace PCGExSampleSurfaceGuided
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->Write(AsyncManagerPtr, true);
+
+		if (LocalSettings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasSuccessesTag); }
+		if (LocalSettings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasNoSuccessesTag); }
 	}
 }
 

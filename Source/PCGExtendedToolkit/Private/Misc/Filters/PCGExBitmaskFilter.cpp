@@ -3,6 +3,9 @@
 
 #include "Misc/Filters/PCGExBitmaskFilter.h"
 
+#define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
+#define PCGEX_NAMESPACE CompareFilterDefinition
+
 PCGExPointFilter::TFilter* UPCGExBitmaskFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TBitmaskFilter(this);
@@ -32,13 +35,6 @@ bool PCGExPointsFilter::TBitmaskFilter::Init(const FPCGContext* InContext, PCGEx
 
 	return true;
 }
-
-namespace PCGExCompareFilter
-{
-}
-
-#define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
-#define PCGEX_NAMESPACE CompareFilterDefinition
 
 PCGEX_CREATE_FILTER_FACTORY(Bitmask)
 

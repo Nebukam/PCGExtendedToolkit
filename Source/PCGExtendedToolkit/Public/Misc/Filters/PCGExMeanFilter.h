@@ -84,7 +84,7 @@ namespace PCGExPointsFilter
 
 		const UPCGExMeanFilterFactory* TypedFilterFactory;
 
-		PCGExData::FCache<double>* Target = nullptr;
+		PCGExData::TCache<double>* Target = nullptr;
 
 		double ReferenceValue = 0;
 		double ReferenceMin = 0;

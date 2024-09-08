@@ -132,7 +132,7 @@ namespace PCGExOrient
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		PCGEX_SETTINGS(Orient)
-		
+
 		FTransform OutT;
 
 		PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);

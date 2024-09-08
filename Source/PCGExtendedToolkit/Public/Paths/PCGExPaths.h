@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AssetSelectors/PCGExMeshCollection.h"
+#include "Collections/PCGExMeshCollection.h"
 #include "Components/SplineMeshComponent.h"
 
 #include "PCGExPaths.generated.h"
@@ -64,6 +64,54 @@ namespace PCGExPaths
 {
 	const FName SourceCanCutFilters = TEXT("Can Cut Conditions");
 	const FName SourceCanBeCutFilters = TEXT("Can Be Cut Conditions");
+	
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetrics
+	{
+		FPathMetrics()
+		{
+		}
+
+		explicit FPathMetrics(const FVector& InStart)
+		{
+			Add(InStart);
+		}
+
+		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points)
+		{
+			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
+		}
+
+		FVector Start;
+		FVector Last;
+		double Length = -1;
+		int32 Count = 0;
+
+		void Reset(const FVector& InStart)
+		{
+			Start = InStart;
+			Last = InStart;
+			Length = 0;
+			Count = 1;
+		}
+
+		double Add(const FVector& Location)
+		{
+			if (Length == -1)
+			{
+				Reset(Location);
+				return 0;
+			}
+			Length += DistToLast(Location);
+			Last = Location;
+			Count++;
+			return Length;
+		}
+
+		bool IsValid() const { return Length > 0; }
+		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
+		double DistToLast(const FVector& Location) const { return FVector::Dist(Last, Location); }
+		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
+	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FMetadata
 	{
@@ -136,6 +184,8 @@ namespace PCGExPaths
 		bool bUseDegrees = true;
 		FVector UpVector = FVector::UpVector;
 
+		ESplineMeshAxis::Type SplineMeshAxis = ESplineMeshAxis::Type::X;
+
 		const FPCGExAssetStagingData* AssetStaging = nullptr;
 		FSplineMeshParams Params;
 
@@ -153,8 +203,11 @@ namespace PCGExPaths
 			if (bUseDegrees) { Component->SetEndRollDegrees(Params.EndRoll, false); }
 			else { Component->SetEndRoll(Params.EndRoll, false); }
 
-			Component->SetForwardAxis(ESplineMeshAxis::Type::X, false);
+			Component->SetForwardAxis(SplineMeshAxis, false);
 			Component->SetSplineUpDir(FVector::UpVector, false);
+
+			Component->SetStartOffset(Params.StartOffset, false);
+			Component->SetEndOffset(Params.EndOffset, false);
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 			Component->SplineParams.NaniteClusterBoundsScale = Params.NaniteClusterBoundsScale;

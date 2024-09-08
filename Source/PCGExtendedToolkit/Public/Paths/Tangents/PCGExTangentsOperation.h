@@ -24,6 +24,8 @@ public:
 	bool bClosedPath = false;
 	FName ArriveName = "ArriveTangent";
 	FName LeaveName = "LeaveTangent";
+	double ArriveScale = 1;
+	double LeaveScale = 1;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
 	{
@@ -33,6 +35,8 @@ public:
 			ArriveName = TypedOther->ArriveName;
 			LeaveName = TypedOther->LeaveName;
 			bClosedPath = TypedOther->bClosedPath;
+			ArriveScale = TypedOther->ArriveScale;
+			LeaveScale = TypedOther->LeaveScale;
 		}
 	}
 

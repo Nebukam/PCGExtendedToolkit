@@ -5,9 +5,8 @@
 
 #include "PCGExHelpers.h"
 #include "PCGExManagedResource.h"
-#include "AssetSelectors/PCGExInternalCollection.h"
+#include "Collections/PCGExInternalCollection.h"
 #include "Paths/PCGExPaths.h"
-#include "Paths/Tangents/PCGExZeroTangents.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -177,7 +176,11 @@ namespace PCGExPathSplineMesh
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
+		Justification = Settings->Justification;
+		Justification.Init(Context, PointDataFacade);
+
 		bClosedPath = Settings->bClosedPath;
+		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 
 		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(Context, PointDataFacade)) { return false; }
@@ -203,6 +206,25 @@ namespace PCGExPathSplineMesh
 
 		PCGEX_SET_NUM_UNINITIALIZED(Segments, bClosedPath ? LastIndex + 1 : LastIndex)
 		//PCGEX_SET_NUM_UNINITIALIZED(SplineMeshComponents, LastIndex)
+
+		switch (Settings->SplineMeshAxisConstant)
+		{
+		default:
+		case EPCGExMinimalAxis::None:
+		case EPCGExMinimalAxis::X:
+			SplineMeshAxisConstant = ESplineMeshAxis::X;
+			break;
+		case EPCGExMinimalAxis::Y:
+			C1 = 0;
+			C2 = 2;
+			SplineMeshAxisConstant = ESplineMeshAxis::Y;
+			break;
+		case EPCGExMinimalAxis::Z:
+			C1 = 1;
+			C2 = 0;
+			SplineMeshAxisConstant = ESplineMeshAxis::Z;
+			break;
+		}
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
@@ -232,19 +254,38 @@ namespace PCGExPathSplineMesh
 
 		if (!StagingData) { return; }
 
-		const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
+		Segment.SplineMeshAxis = SplineMeshAxisConstant;
 
+		const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
 		const FPCGPoint& NextPoint = PointIO->GetInPoint(NextIndex);
 
-		FVector Scale = Point.Transform.GetScale3D();
+		//
+
+		const FBox& StBox = StagingData->Bounds;
+		FVector OutScale = Point.Transform.GetScale3D();
+		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
+		FBox OutBounds = StBox;
+
+		LocalSettings->ScaleToFit.Process(Point, StagingData->Bounds, OutScale, OutBounds);
+
+		FVector OutTranslation = FVector::ZeroVector;
+		OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);
+
+		Justification.Process(Index, InBounds, OutBounds, OutTranslation);
+
+		//
+
 		Segment.Params.StartPos = Point.Transform.GetLocation();
-		Segment.Params.StartScale = FVector2D(Scale.Y, Scale.Z);
+		Segment.Params.StartScale = FVector2D(OutScale[C1], OutScale[C2]);
 		Segment.Params.StartRoll = Point.Transform.GetRotation().Rotator().Roll;
 
-		Scale = NextPoint.Transform.GetScale3D();
+		const FVector Scale = bApplyScaleToFit ? OutScale : NextPoint.Transform.GetScale3D();
 		Segment.Params.EndPos = NextPoint.Transform.GetLocation();
-		Segment.Params.EndScale = FVector2D(Scale.Y, Scale.Z);
+		Segment.Params.EndScale = FVector2D(Scale[C1], Scale[C2]);
 		Segment.Params.EndRoll = NextPoint.Transform.GetRotation().Rotator().Roll;
+
+		Segment.Params.StartOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
+		Segment.Params.EndOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
 
 		if (LocalSettings->bApplyCustomTangents)
 		{

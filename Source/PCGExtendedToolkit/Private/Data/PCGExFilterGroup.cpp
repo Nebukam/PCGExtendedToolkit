@@ -111,11 +111,13 @@ namespace PCGExFilterGroup
 PCGExPointFilter::TFilter* UPCGExFilterGroupFactoryBaseAND::CreateFilter() const
 {
 	PCGExFilterGroup::TFilterGroupAND* NewFilterGroup = new PCGExFilterGroup::TFilterGroupAND(this, &FilterFactories);
+	NewFilterGroup->bInvert = bInvert;
 	return NewFilterGroup;
 }
 
 PCGExPointFilter::TFilter* UPCGExFilterGroupFactoryBaseOR::CreateFilter() const
 {
 	PCGExFilterGroup::TFilterGroupOR* NewFilterGroup = new PCGExFilterGroup::TFilterGroupOR(this, &FilterFactories);
+	NewFilterGroup->bInvert = bInvert;
 	return NewFilterGroup;
 }

@@ -161,7 +161,7 @@ namespace PCGExDataBlending
 		TArray<double> Weights;
 
 		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(WriteIndex);
-		
+
 		Compound->ComputeWeights(
 			Sources, IOIndices,
 			Target, InDistanceDetails,

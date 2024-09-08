@@ -37,7 +37,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInfluenceDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bProgressiveInfluence = true;
 
-	PCGExData::FCache<double>* InfluenceCache = nullptr;
+	PCGExData::TCache<double>* InfluenceCache = nullptr;
 
 	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 	{

@@ -96,7 +96,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
 	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade);
 
-	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
+	Context->FuseDistance = Settings->FuseDistance;
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
@@ -196,7 +196,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	for (const FNavPathPoint& PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
 	PathLocations.Add(Query->GoalPosition);
 
-	PCGExMath::FPathMetricsSquared Metrics = PCGExMath::FPathMetricsSquared(PathLocations[0]);
+	PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(PathLocations[0]);
 	int32 FuseCountReduce = Settings->bAddGoalToPath ? 2 : 1;
 	for (int i = Settings->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{

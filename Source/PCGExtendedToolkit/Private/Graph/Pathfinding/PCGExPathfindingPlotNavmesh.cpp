@@ -59,7 +59,7 @@ bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(bRequireNavigableEndLocation)
 	PCGEX_FWD(PathfindingMode)
 
-	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
+	Context->FuseDistance = Settings->FuseDistance;
 
 	return true;
 }
@@ -191,11 +191,11 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 	int32 LastPlotIndex = -1;
 	TArray<int32> Milestones;
-	TArray<PCGExMath::FPathMetricsSquared> MilestonesMetrics;
+	TArray<PCGExPaths::FPathMetrics> MilestonesMetrics;
 
-	PCGExMath::FPathMetricsSquared* CurrentMetrics = nullptr;
+	PCGExPaths::FPathMetrics* CurrentMetrics = nullptr;
 
-	PCGExMath::FPathMetricsSquared Metrics = PCGExMath::FPathMetricsSquared(PathLocations[0].Position);
+	PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(PathLocations[0].Position);
 	int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
 	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{

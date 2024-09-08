@@ -35,20 +35,20 @@ public:
 		const PCGExData::FPointRef& From,
 		const PCGExData::FPointRef& To,
 		const TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathMetricsSquared& Metrics,
+		const PCGExPaths::FPathMetrics& Metrics,
 		const int32 StartIndex = -1) const override;
 
 	virtual void BlendSubPoints(
 		const PCGExData::FPointRef& From,
 		const PCGExData::FPointRef& To,
 		const TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathMetricsSquared& Metrics,
+		const PCGExPaths::FPathMetrics& Metrics,
 		PCGExDataBlending::FMetadataBlender* InBlender,
 		const int32 StartIndex = -1) const;
 
 	virtual void BlendSubPoints(
 		TArray<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathMetricsSquared& Metrics,
+		const PCGExPaths::FPathMetrics& Metrics,
 		PCGExDataBlending::FMetadataBlender* InBlender) const;
 
 	virtual void Cleanup() override;

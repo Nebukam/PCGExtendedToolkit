@@ -283,6 +283,8 @@ namespace PCGExSampleNearestSurface
 				PCGEX_OUTPUT_VALUE(IsInside, Index, bIsInside)
 				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
 				PCGEX_OUTPUT_VALUE(Success, Index, true)
+
+				FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
 			}
 			else
 			{
@@ -339,6 +341,9 @@ namespace PCGExSampleNearestSurface
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->Write(AsyncManagerPtr, true);
+
+		if (LocalSettings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasSuccessesTag); }
+		if (LocalSettings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasNoSuccessesTag); }
 	}
 }
 

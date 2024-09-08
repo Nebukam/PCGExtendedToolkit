@@ -80,8 +80,6 @@ namespace PCGExSmooth
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(MetadataBlender)
-		Smoothing.Empty();
-		Influence.Empty();
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -89,7 +87,12 @@ namespace PCGExSmooth
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSmooth::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Smooth)
 
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		LocalTypedContext = TypedContext;
+		LocalSettings = Settings;
 
 		bClosedPath = Settings->bClosedPath;
 		NumPoints = PointIO->GetNum();
@@ -97,54 +100,25 @@ namespace PCGExSmooth
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade);
 
-		Influence.SetNum(NumPoints);
-		Smoothing.SetNum(NumPoints);
-
-		double Min = 0;
-		double Max = 0;
-
 		if (Settings->InfluenceType == EPCGExFetchType::Attribute)
 		{
-			PCGEx::FLocalSingleFieldGetter* InfluenceGetter = new PCGEx::FLocalSingleFieldGetter();
-			InfluenceGetter->Capture(Settings->InfluenceAttribute);
-
-			if (!InfluenceGetter->GrabAndDump(PointIO, Influence, false, Min, Max))
+			Influence = PointDataFacade->GetScopedBroadcaster<double>(Settings->InfluenceAttribute);
+			if (!Influence)
 			{
-				PCGEX_DELETE(InfluenceGetter)
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing influence attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
 				return false;
 			}
-
-			PCGEX_DELETE(InfluenceGetter)
-		}
-		else
-		{
-			for (int i = 0; i < NumPoints; i++) { Influence[i] = Settings->InfluenceConstant; }
 		}
 
 		if (Settings->SmoothingAmountType == EPCGExFetchType::Attribute)
 		{
-			PCGEx::FLocalSingleFieldGetter* SmoothingAmountGetter = new PCGEx::FLocalSingleFieldGetter();
-			SmoothingAmountGetter->Capture(Settings->InfluenceAttribute);
-
-			if (!SmoothingAmountGetter->GrabAndDump(PointIO, Smoothing, false, Min, Max))
+			Smoothing = PointDataFacade->GetScopedBroadcaster<double>(Settings->InfluenceAttribute);
+			if (!Smoothing)
 			{
-				PCGEX_DELETE(SmoothingAmountGetter)
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing smoothing amount attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
 				return false;
 			}
-
-			PCGEX_DELETE(SmoothingAmountGetter)
-
-			for (double& Amount : Smoothing) { Amount = FMath::Clamp(Amount, 0, TNumericLimits<double>::Max()) * Settings->ScaleSmoothingAmountAttribute; }
 		}
-		else
-		{
-			for (int i = 0; i < NumPoints; i++) { Smoothing[i] = Settings->SmoothingAmountConstant; }
-		}
-
-		if (Settings->bPreserveStart) { Influence[0] = 0; }
-		if (Settings->bPreserveEnd) { Influence[Influence.Num() - 1] = 0; }
 
 		TypedOperation = Cast<UPCGExSmoothingOperation>(PrimaryOperation);
 
@@ -153,15 +127,29 @@ namespace PCGExSmooth
 		return true;
 	}
 
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
+		FilterScope(StartIndex, Count);
+	}
+
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		if (!PointFilterCache[Index]) { return; }
 
+
 		PCGExData::FPointRef PtRef = PointIO->GetOutPointRef(Index);
-		TypedOperation->SmoothSingle(
-			PointIO, PtRef,
-			Smoothing[Index], Influence[Index],
-			MetadataBlender, bClosedPath);
+		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Values[Index], 0, TNumericLimits<double>::Max()) * LocalSettings->ScaleSmoothingAmountAttribute : LocalSettings->SmoothingAmountConstant;
+
+		if ((LocalSettings->bPreserveEnd && Index == NumPoints - 1) ||
+			(LocalSettings->bPreserveStart && Index == 0))
+		{
+			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender, bClosedPath);
+			return;
+		}
+
+		const double LocalInfluence = Influence ? Influence->Values[Index] : LocalSettings->InfluenceConstant;
+		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, LocalInfluence, MetadataBlender, bClosedPath);
 	}
 
 	void FProcessor::CompleteWork()

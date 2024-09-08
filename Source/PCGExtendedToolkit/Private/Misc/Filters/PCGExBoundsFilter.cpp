@@ -3,6 +3,9 @@
 
 #include "Misc/Filters/PCGExBoundsFilter.h"
 
+#define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"
+#define PCGEX_NAMESPACE PCGExBoundsFilterDefinition
+
 bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
@@ -39,9 +42,6 @@ bool PCGExPointsFilter::TBoundsFilter::Test(const int32 PointIndex) const
 {
 	return Cloud->ContainsMinusEpsilon(PointDataFacade->Source->GetInPoint(PointIndex).Transform.GetLocation()) ? TypedFilterFactory->Config.bCheckIfInside : !TypedFilterFactory->Config.bCheckIfInside;
 }
-
-#define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"
-#define PCGEX_NAMESPACE PCGExBoundsFilterDefinition
 
 TArray<FPCGPinProperties> UPCGExBoundsFilterProviderSettings::InputPinProperties() const
 {

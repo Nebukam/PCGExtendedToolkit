@@ -96,6 +96,20 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="Relative Overlap Sub Count", PCG_Overridable, EditCondition="bWriteRelativeOverlapSubCount"))
 	FName RelativeOverlapSubCountAttributeName = FName("RelOverlapSubCount");
 
+	//
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasAnyOverlap = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasAnyOverlap"))
+	FString HasAnyOverlapTag = TEXT("HasAnyOverlap");
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bTagIfHasNoOverlap = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfHasNoOverlap"))
+	FString HasNoOverlapTag = TEXT("HasNoOverlap");
+
 private:
 	friend class FPCGExSampleOverlapStatsElement;
 };
@@ -217,6 +231,8 @@ namespace PCGExSampleOverlapStats
 		TArray<int32> OverlapCount;
 		double LocalOverlapSubCountMax = 0;
 		double LocalOverlapCountMax = 0;
+
+		int8 bAnyOverlap = 0;
 
 		PCGEX_FOREACH_FIELD_SAMPLEOVERLAPSTATS(PCGEX_OUTPUT_DECL)
 

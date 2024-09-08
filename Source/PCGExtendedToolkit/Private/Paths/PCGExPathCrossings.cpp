@@ -296,7 +296,7 @@ namespace PCGExPathCrossings
 		const int32 CrossingStartIndex = Edge->OffsetedStart + 1;
 
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
-		PCGExMath::FPathMetricsSquared Metrics = PCGExMath::FPathMetricsSquared(Positions[Edge->Start]);
+		PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Positions[Edge->Start]);
 
 		TArray<int32> Order;
 		PCGEx::ArrayOfIndices(Order, NumCrossings);

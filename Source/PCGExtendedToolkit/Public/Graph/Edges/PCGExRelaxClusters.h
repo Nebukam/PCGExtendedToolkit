@@ -76,7 +76,7 @@ namespace PCGExRelaxClusters
 		PCGExMT::FTaskGroup* IterationGroup = nullptr;
 		int32 Iterations = 10;
 
-		PCGExData::FCache<double>* InfluenceCache = nullptr;
+		PCGExData::TCache<double>* InfluenceCache = nullptr;
 
 		UPCGExRelaxClusterOperation* RelaxOperation = nullptr;
 

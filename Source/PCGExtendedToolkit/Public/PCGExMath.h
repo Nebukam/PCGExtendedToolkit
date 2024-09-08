@@ -847,6 +847,44 @@ namespace PCGExMath
 
 #pragma endregion
 
+#pragma region DoubleMult
+
+	template <typename T, typename CompilerSafety = void>
+	FORCEINLINE static T DblMult(const T& A, double M) { return A * M; } // Default, unhandled behavior.
+
+	template <typename CompilerSafety = void>
+	FORCEINLINE static bool DblMult(const bool& A, double M) { return A; }
+
+	template <typename CompilerSafety = void>
+	FORCEINLINE static FRotator DblMult(const FRotator& A, double M) { return A * M; }
+
+	template <typename CompilerSafety = void>
+	FORCEINLINE static FQuat DblMult(const FQuat& A, double M) { return (A.Rotator() * M).Quaternion(); }
+
+	template <typename CompilerSafety = void>
+	FORCEINLINE static FTransform DblMult(const FTransform& A, double M)
+	{
+		return FTransform(
+			(A.Rotator() * M).Quaternion(),
+			A.GetLocation() * M,
+			A.GetScale3D() * M);
+	}
+
+	template <typename CompilerSafety = void>
+	FORCEINLINE static FString DblMult(const FString& A, double M) { return A; }
+
+	template <typename CompilerSafety = void>
+	FORCEINLINE static FName DblMult(const FName& A, double M) { return A; }
+
+	// Unhandled, but needs to be supported as property
+	template <typename CompilerSafety = void>
+	FORCEINLINE static FSoftObjectPath DblMult(const FSoftObjectPath& A, const double M) { return A; }
+
+	template <typename CompilerSafety = void>
+	FORCEINLINE static FSoftClassPath DblMult(const FSoftClassPath& A, const double M) { return A; }
+
+#pragma endregion
+
 
 	template <typename T>
 	FORCEINLINE static T SanitizeIndex(const T& Index, const T& MaxIndex, const EPCGExIndexSafety Method)
@@ -1013,7 +1051,7 @@ namespace PCGExMath
 		return FVector::DotProduct(FVector::CrossProduct(A, B), UpVector) < 0 ? 360 - D : D;
 	}
 
-	FORCEINLINE void CheckConvex(const FVector& A, const FVector& B, const FVector& C, bool& bIsConvex, int32& OutSign, const FVector& UpVector = FVector::UpVector)
+	FORCEINLINE static void CheckConvex(const FVector& A, const FVector& B, const FVector& C, bool& bIsConvex, int32& OutSign, const FVector& UpVector = FVector::UpVector)
 	{
 		if (!bIsConvex) { return; }
 
@@ -1033,13 +1071,13 @@ namespace PCGExMath
 		}
 	};
 
-	FORCEINLINE FBox ScaledBox(const FBox& InBox, const FVector& InScale)
+	FORCEINLINE static FBox ScaledBox(const FBox& InBox, const FVector& InScale)
 	{
 		const FVector Extents = InBox.GetExtent() * InScale;
 		return FBox(-Extents, Extents);
 	}
 
-	FORCEINLINE bool IsDirectionWithinTolerance(const FVector& A, const FVector& B, const FRotator& Limits)
+	FORCEINLINE static bool IsDirectionWithinTolerance(const FVector& A, const FVector& B, const FRotator& Limits)
 	{
 		const FRotator RA = A.Rotation();
 		const FRotator RB = B.Rotation();
@@ -1048,6 +1086,30 @@ namespace PCGExMath
 			FMath::Abs(FRotator::NormalizeAxis(RA.Yaw - RB.Yaw)) <= Limits.Yaw &&
 			FMath::Abs(FRotator::NormalizeAxis(RA.Pitch - RB.Pitch)) <= Limits.Pitch &&
 			FMath::Abs(FRotator::NormalizeAxis(RA.Roll - RB.Roll)) <= Limits.Roll;
+	}
+
+	template <typename T>
+	FORCEINLINE static void AtomicMax(T& AtomicValue, T NewValue)
+	{
+		T CurrentValue = FPlatformAtomics::AtomicRead(&AtomicValue);
+		while (NewValue > CurrentValue)
+		{
+			T PrevValue = FPlatformAtomics::InterlockedCompareExchange(&AtomicValue, NewValue, CurrentValue);
+			if (PrevValue == CurrentValue) { break; } // Success: NewValue was stored
+			CurrentValue = PrevValue;                 // Retry with updated value
+		}
+	}
+
+	template <typename T>
+	FORCEINLINE static void AtomicMin(T& AtomicValue, T NewValue)
+	{
+		T CurrentValue = FPlatformAtomics::AtomicRead(&AtomicValue);
+		while (NewValue < CurrentValue)
+		{
+			T PrevValue = FPlatformAtomics::InterlockedCompareExchange(&AtomicValue, NewValue, CurrentValue);
+			if (PrevValue == CurrentValue) { break; } // Success: NewValue was stored
+			CurrentValue = PrevValue;                 // Retry with updated value
+		}
 	}
 
 #pragma region Spatialized distances
@@ -1083,122 +1145,6 @@ namespace PCGExMath
 		// EPCGExDistance::Center
 		return FromCenter;
 	}
-
-#pragma endregion
-
-#pragma region Helpers
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetricsSquared
-	{
-		FPathMetricsSquared()
-		{
-		}
-
-		explicit FPathMetricsSquared(const FVector& InStart)
-		{
-			Add(InStart);
-		}
-
-		explicit FPathMetricsSquared(const TArrayView<FPCGPoint>& Points)
-		{
-			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
-		}
-
-		FPathMetricsSquared(const FPathMetricsSquared& Other)
-			: Start(Other.Start),
-			  Last(Other.Last),
-			  Length(Other.Length),
-			  Count(Other.Count)
-		{
-		}
-
-		FVector Start;
-		FVector Last;
-		double Length = -1;
-		int32 Count = 0;
-
-		void Reset(const FVector& InStart)
-		{
-			Start = InStart;
-			Last = InStart;
-			Length = 0;
-			Count = 1;
-		}
-
-		double Add(const FVector& Location)
-		{
-			if (Length == -1)
-			{
-				Reset(Location);
-				return 0;
-			}
-			Length += DistToLast(Location);
-			Last = Location;
-			Count++;
-			return Length;
-		}
-
-		bool IsValid() const { return Length > 0; }
-		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
-		double DistToLast(const FVector& Location) const { return FVector::DistSquared(Last, Location); }
-		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
-	};
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetrics
-	{
-		FPathMetrics()
-		{
-		}
-
-		explicit FPathMetrics(const FVector& InStart)
-		{
-			Add(InStart);
-		}
-
-		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points)
-		{
-			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
-		}
-
-		explicit FPathMetrics(const FPathMetricsSquared& Other)
-			: Start(Other.Start),
-			  Last(Other.Last),
-			  Length(Other.Length),
-			  Count(Other.Count)
-		{
-		}
-
-		FVector Start;
-		FVector Last;
-		double Length = -1;
-		int32 Count = 0;
-
-		void Reset(const FVector& InStart)
-		{
-			Start = InStart;
-			Last = InStart;
-			Length = 0;
-			Count = 1;
-		}
-
-		double Add(const FVector& Location)
-		{
-			if (Length == -1)
-			{
-				Reset(Location);
-				return 0;
-			}
-			Length += DistToLast(Location);
-			Last = Location;
-			Count++;
-			return Length;
-		}
-
-		bool IsValid() const { return Length > 0; }
-		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
-		double DistToLast(const FVector& Location) const { return FVector::Dist(Last, Location); }
-		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
-	};
 
 #pragma endregion
 }

@@ -90,7 +90,7 @@ bool FPCGExBlendPathTask::ExecuteTask()
 	const PCGExData::FPointRef StartPoint = PointIO->GetOutPointRef(0);
 	const PCGExData::FPointRef EndPoint = PointIO->GetOutPointRef(PathPoints.Num() - 1);
 
-	const PCGExMath::FPathMetricsSquared* Metrics = new PCGExMath::FPathMetricsSquared(PathPoints);
+	const PCGExPaths::FPathMetrics* Metrics = new PCGExPaths::FPathMetrics(PathPoints);
 	Context->Blending->BlendSubPoints(StartPoint, EndPoint, PathPoints, *Metrics, Blender, 0);
 
 	PCGEX_DELETE(Blender);

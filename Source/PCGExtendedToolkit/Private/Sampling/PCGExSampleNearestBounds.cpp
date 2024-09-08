@@ -311,11 +311,16 @@ namespace PCGExSampleNearestBounds
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
+
+		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		PointDataFacade->Write(AsyncManagerPtr, true);
+
+		if (LocalSettings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasSuccessesTag); }
+		if (LocalSettings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasNoSuccessesTag); }
 	}
 }
 
