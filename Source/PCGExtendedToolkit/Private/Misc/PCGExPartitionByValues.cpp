@@ -226,7 +226,7 @@ namespace PCGExPartitionByValues
 		for (FPCGExPartitonRuleConfig& Config : TypedContext->RulesConfigs)
 		{
 			FPCGExFilter::FRule& NewRule = Rules.Emplace_GetRef(Config);
-			PCGExData::FCache<double>* DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
+			PCGExData::TCache<double>* DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
 
 			if (!DataCache) { Rules.Pop(); }
 

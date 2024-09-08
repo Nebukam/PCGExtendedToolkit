@@ -249,16 +249,16 @@ namespace PCGExWriteEdgeProperties
 
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 
-		PCGExData::FCache<double>* SolidificationLerpGetter = nullptr;
+		PCGExData::TCache<double>* SolidificationLerpGetter = nullptr;
 
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
 
 		bool bSolidify = false;
 
-		PCGExData::FCache<double>* VtxDirCompGetter = nullptr;
-		PCGExData::FCache<FVector>* EdgeDirCompGetter = nullptr;
+		PCGExData::TCache<double>* VtxDirCompGetter = nullptr;
+		PCGExData::TCache<FVector>* EdgeDirCompGetter = nullptr;
 
-#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGExData::FCache<double>* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
+#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGExData::TCache<double>* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 

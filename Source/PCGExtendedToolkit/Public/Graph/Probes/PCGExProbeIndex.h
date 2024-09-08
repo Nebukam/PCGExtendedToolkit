@@ -64,7 +64,7 @@ public:
 	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeConfigIndex Config;
-	PCGExData::FCache<int32>* TargetCache;
+	PCGExData::TCache<int32>* TargetCache;
 
 protected:
 	int32 MaxIndex = -1;

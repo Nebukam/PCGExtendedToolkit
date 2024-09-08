@@ -116,7 +116,7 @@ namespace PCGExSubdivide
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 		PCGEx::TAttributeWriter<bool>* FlagWriter = nullptr;
-		PCGExData::FCache<double>* AmountGetter = nullptr;
+		PCGExData::TCache<double>* AmountGetter = nullptr;
 		double ConstantAmount = 0;
 
 		bool bUseCount = false;

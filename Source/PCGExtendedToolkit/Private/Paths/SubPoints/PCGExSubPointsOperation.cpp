@@ -26,14 +26,14 @@ void UPCGExSubPointsOperation::ProcessPoints(UPCGPointData* InData) const
 	TArrayView<FPCGPoint> Path = MakeArrayView(Points.GetData(), Points.Num());
 	const PCGExData::FPointRef StartPoint = PCGExData::FPointRef(Points[0], 0);
 	const PCGExData::FPointRef EndPoint = PCGExData::FPointRef(Points.Last(), Points.Num() - 1);
-	ProcessSubPoints(StartPoint, EndPoint, Path, PCGExMath::FPathMetricsSquared());
+	ProcessSubPoints(StartPoint, EndPoint, Path, PCGExPaths::FPathMetricsSquared());
 }
 
 void UPCGExSubPointsOperation::ProcessSubPoints(
 	const PCGExData::FPointRef& From,
 	const PCGExData::FPointRef& To,
 	const TArrayView<FPCGPoint>& SubPoints,
-	const PCGExMath::FPathMetricsSquared& Metrics,
+	const PCGExPaths::FPathMetricsSquared& Metrics,
 	const int32 StartIndex) const
 {
 }

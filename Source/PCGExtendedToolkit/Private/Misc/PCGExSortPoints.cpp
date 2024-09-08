@@ -89,7 +89,7 @@ namespace PCGExSortPoints
 		for (const FPCGExSortRuleConfig& RuleConfig : RuleConfigs)
 		{
 			FPCGExSortRule* NewRule = new FPCGExSortRule();
-			PCGExData::FCache<double>* Cache = PointDataFacade->GetBroadcaster<double>(RuleConfig.Selector);
+			PCGExData::TCache<double>* Cache = PointDataFacade->GetBroadcaster<double>(RuleConfig.Selector);
 
 			if (!Cache)
 			{

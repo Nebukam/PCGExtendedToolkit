@@ -311,7 +311,7 @@ namespace PCGExSampleNearestBounds
 		FPCGExSampleNearestBoundsContext* LocalTypedContext = nullptr;
 		const UPCGExSampleNearestBoundsSettings* LocalSettings = nullptr;
 
-		PCGExData::FCache<FVector>* LookAtUpGetter = nullptr;
+		PCGExData::TCache<FVector>* LookAtUpGetter = nullptr;
 
 		FVector SafeUpVector = FVector::UpVector;
 

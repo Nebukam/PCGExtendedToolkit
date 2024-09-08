@@ -3,6 +3,9 @@
 
 #include "Misc/Filters/PCGExNumericCompareFilter.h"
 
+#define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
+#define PCGEX_NAMESPACE CompareFilterDefinition
+
 PCGExPointFilter::TFilter* UPCGExNumericCompareFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TNumericComparisonFilter(this);
@@ -33,13 +36,6 @@ bool PCGExPointsFilter::TNumericComparisonFilter::Init(const FPCGContext* InCont
 
 	return true;
 }
-
-namespace PCGExCompareFilter
-{
-}
-
-#define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
-#define PCGEX_NAMESPACE CompareFilterDefinition
 
 PCGEX_CREATE_FILTER_FACTORY(NumericCompare)
 

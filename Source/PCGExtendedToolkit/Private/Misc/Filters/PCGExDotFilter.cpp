@@ -3,6 +3,9 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
+#define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"
+#define PCGEX_NAMESPACE PCGExDotFilterDefinition
+
 bool UPCGExDotFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
@@ -38,9 +41,6 @@ bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData
 
 	return true;
 }
-
-#define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"
-#define PCGEX_NAMESPACE PCGExDotFilterDefinition
 
 PCGEX_CREATE_FILTER_FACTORY(Dot)
 

@@ -191,11 +191,11 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 	int32 LastPlotIndex = -1;
 	TArray<int32> Milestones;
-	TArray<PCGExMath::FPathMetricsSquared> MilestonesMetrics;
+	TArray<PCGExPaths::FPathMetricsSquared> MilestonesMetrics;
 
-	PCGExMath::FPathMetricsSquared* CurrentMetrics = nullptr;
+	PCGExPaths::FPathMetricsSquared* CurrentMetrics = nullptr;
 
-	PCGExMath::FPathMetricsSquared Metrics = PCGExMath::FPathMetricsSquared(PathLocations[0].Position);
+	PCGExPaths::FPathMetricsSquared Metrics = PCGExPaths::FPathMetricsSquared(PathLocations[0].Position);
 	int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
 	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{

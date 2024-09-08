@@ -14,7 +14,7 @@ namespace PCGExMath
 {
 	FORCEINLINE static FVector NRM(
 		const int32 A, const int32 B, const int32 C,
-		const TArray<FVector>& InPositions, const PCGExData::FCache<FVector>* UpVectorCache = nullptr, const FVector& UpVector = FVector::UpVector)
+		const TArray<FVector>& InPositions, const PCGExData::TCache<FVector>* UpVectorCache = nullptr, const FVector& UpVector = FVector::UpVector)
 	{
 		const FVector VA = *(InPositions.GetData() + A);
 		const FVector VB = *(InPositions.GetData() + B);

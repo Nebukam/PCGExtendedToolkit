@@ -70,7 +70,7 @@ public:
 
 	double SearchRadius = -1;
 	double SearchRadiusSquared = -1;
-	PCGExData::FCache<double>* SearchRadiusCache = nullptr;
+	PCGExData::TCache<double>* SearchRadiusCache = nullptr;
 	FPCGExProbeConfigBase* BaseConfig = nullptr;
 
 protected:

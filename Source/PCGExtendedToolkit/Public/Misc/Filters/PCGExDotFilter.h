@@ -84,8 +84,8 @@ namespace PCGExPointsFilter
 
 		FPCGExDotComparisonDetails DotComparison;
 
-		PCGExData::FCache<FVector>* OperandA = nullptr;
-		PCGExData::FCache<FVector>* OperandB = nullptr;
+		PCGExData::TCache<FVector>* OperandA = nullptr;
+		PCGExData::TCache<FVector>* OperandB = nullptr;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override

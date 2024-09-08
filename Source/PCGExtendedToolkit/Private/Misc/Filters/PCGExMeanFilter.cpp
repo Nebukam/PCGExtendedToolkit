@@ -3,6 +3,9 @@
 
 #include "Misc/Filters/PCGExMeanFilter.h"
 
+#define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"
+#define PCGEX_NAMESPACE MeanFilterDefinition
+
 PCGExPointFilter::TFilter* UPCGExMeanFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TMeanFilter(this);
@@ -81,9 +84,6 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 	ReferenceMin = FMath::Min(RMin, RMax);
 	ReferenceMax = FMath::Max(RMin, RMax);
 }
-
-#define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"
-#define PCGEX_NAMESPACE MeanFilterDefinition
 
 PCGEX_CREATE_FILTER_FACTORY(Mean)
 

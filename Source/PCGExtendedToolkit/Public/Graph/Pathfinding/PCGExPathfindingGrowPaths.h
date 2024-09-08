@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Paths/PCGExPaths.h"
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 
@@ -65,7 +66,7 @@ namespace PCGExGrowPaths
 		int32 LastGrowthIndex = 0;
 		int32 NextGrowthIndex = 0;
 		FVector GrowthDirection = FVector::UpVector;
-		PCGExMath::FPathMetrics Metrics;
+		PCGExPaths::FPathMetrics Metrics;
 
 		double MaxDistance = 0;
 		double Distance = 0;
@@ -259,10 +260,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : publ
 
 	PCGExData::FFacade* SeedsDataFacade = nullptr;
 
-	PCGExData::FCache<int32>* NumIterations = nullptr;
-	PCGExData::FCache<int32>* NumBranches = nullptr;
-	PCGExData::FCache<FVector>* GrowthDirection = nullptr;
-	PCGExData::FCache<double>* GrowthMaxDistance = nullptr;
+	PCGExData::TCache<int32>* NumIterations = nullptr;
+	PCGExData::TCache<int32>* NumBranches = nullptr;
+	PCGExData::TCache<FVector>* GrowthDirection = nullptr;
+	PCGExData::TCache<double>* GrowthMaxDistance = nullptr;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
@@ -288,13 +289,13 @@ namespace PCGExGrowPaths
 		friend class FGrowth;
 		friend class FProcessorBatch;
 
-		PCGExData::FCache<int32>* NumIterations = nullptr;
-		PCGExData::FCache<int32>* NumBranches = nullptr;
-		PCGExData::FCache<FVector>* GrowthDirection = nullptr;
-		PCGExData::FCache<double>* GrowthMaxDistance = nullptr;
+		PCGExData::TCache<int32>* NumIterations = nullptr;
+		PCGExData::TCache<int32>* NumBranches = nullptr;
+		PCGExData::TCache<FVector>* GrowthDirection = nullptr;
+		PCGExData::TCache<double>* GrowthMaxDistance = nullptr;
 
-		PCGExData::FCache<bool>* GrowthStop = nullptr;
-		PCGExData::FCache<bool>* NoGrowth = nullptr;
+		PCGExData::TCache<bool>* GrowthStop = nullptr;
+		PCGExData::TCache<bool>* NoGrowth = nullptr;
 
 	public:
 		TArray<FGrowth*> Growths;

@@ -21,7 +21,7 @@ bool FPCGExReversePointOrderElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ReversePointOrder)
 
-	for (const FPCGExSwapAttributePairDetails& OriginalPair : Settings->SwapPairs)
+	for (const FPCGExSwapAttributePairDetails& OriginalPair : Settings->SwapAttributesValues)
 	{
 		if (!OriginalPair.Validate(Context)) { return false; }
 	}
@@ -72,7 +72,7 @@ namespace PCGExReversePointOrder
 
 		AttributesInfos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
 
-		for (const FPCGExSwapAttributePairDetails& OriginalPair : Settings->SwapPairs)
+		for (const FPCGExSwapAttributePairDetails& OriginalPair : Settings->SwapAttributesValues)
 		{
 			PCGEx::FAttributeIdentity* FirstIdentity = AttributesInfos->Find(OriginalPair.FirstAttributeName);
 			PCGEx::FAttributeIdentity* SecondIdentity = AttributesInfos->Find(OriginalPair.SecondAttributeName);

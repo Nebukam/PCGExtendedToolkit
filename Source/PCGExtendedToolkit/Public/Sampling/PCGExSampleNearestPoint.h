@@ -318,9 +318,9 @@ namespace PCGExSampleNearestPoints
 		FPCGExSampleNearestPointContext* LocalTypedContext = nullptr;
 		const UPCGExSampleNearestPointSettings* LocalSettings = nullptr;
 
-		PCGExData::FCache<double>* RangeMinGetter = nullptr;
-		PCGExData::FCache<double>* RangeMaxGetter = nullptr;
-		PCGExData::FCache<FVector>* LookAtUpGetter = nullptr;
+		PCGExData::TCache<double>* RangeMinGetter = nullptr;
+		PCGExData::TCache<double>* RangeMaxGetter = nullptr;
+		PCGExData::TCache<FVector>* LookAtUpGetter = nullptr;
 
 		FVector SafeUpVector = FVector::UpVector;
 

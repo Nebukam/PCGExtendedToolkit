@@ -3,6 +3,9 @@
 
 #include "Misc/Filters/PCGExModuloCompareFilter.h"
 
+#define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
+#define PCGEX_NAMESPACE CompareFilterDefinition
+
 PCGExPointFilter::TFilter* UPCGExModuloCompareFilterFactory::CreateFilter() const
 {
 	return new PCGExPointsFilter::TModuloComparisonFilter(this);
@@ -44,13 +47,6 @@ bool PCGExPointsFilter::TModuloComparisonFilter::Init(const FPCGContext* InConte
 
 	return true;
 }
-
-namespace PCGExCompareFilter
-{
-}
-
-#define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
-#define PCGEX_NAMESPACE CompareFilterDefinition
 
 PCGEX_CREATE_FILTER_FACTORY(ModuloCompare)
 

@@ -7,6 +7,7 @@
 #include "PCGPoint.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExOperation.h"
+#include "Paths/PCGExPaths.h"
 #include "PCGExSubPointsOperation.generated.h"
 
 /**
@@ -29,6 +30,6 @@ public:
 		const PCGExData::FPointRef& From,
 		const PCGExData::FPointRef& To,
 		const TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathMetricsSquared& Metrics,
+		const PCGExPaths::FPathMetricsSquared& Metrics,
 		const int32 StartIndex = -1) const;
 };

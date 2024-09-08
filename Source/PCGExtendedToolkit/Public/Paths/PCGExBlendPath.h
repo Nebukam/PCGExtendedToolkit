@@ -11,6 +11,15 @@
 #include "PCGExBlendPath.generated.h"
 
 class UPCGExSubPointsBlendOperation;
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
+enum class EPCGExPathBlendMode : uint8
+{
+	Full UMETA(DisplayName = "Start to End", ToolTip="Blend properties & attributes of all path' points from start point to last point"),
+	Switch UMETA(DisplayName = "Switch", ToolTip="Switch between pruning/non-pruning based on filters"),
+};
+
+
 /**
  * 
  */

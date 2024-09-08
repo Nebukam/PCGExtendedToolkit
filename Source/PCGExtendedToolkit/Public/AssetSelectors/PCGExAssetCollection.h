@@ -762,7 +762,7 @@ namespace PCGExAssetCollection
 		UPCGExAssetCollection* Collection = nullptr;
 		FPCGExAssetDistributionDetails Details;
 
-		PCGExData::FCache<int32>* IndexGetter = nullptr;
+		PCGExData::TCache<int32>* IndexGetter = nullptr;
 
 		int32 MaxIndex = 0;
 		double MaxInputIndex = 0;

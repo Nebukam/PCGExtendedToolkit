@@ -65,6 +65,118 @@ namespace PCGExPaths
 	const FName SourceCanCutFilters = TEXT("Can Cut Conditions");
 	const FName SourceCanBeCutFilters = TEXT("Can Be Cut Conditions");
 
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetricsSquared
+	{
+		FPathMetricsSquared()
+		{
+		}
+
+		explicit FPathMetricsSquared(const FVector& InStart)
+		{
+			Add(InStart);
+		}
+
+		explicit FPathMetricsSquared(const TArrayView<FPCGPoint>& Points)
+		{
+			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
+		}
+
+		FPathMetricsSquared(const FPathMetricsSquared& Other)
+			: Start(Other.Start),
+			  Last(Other.Last),
+			  Length(Other.Length),
+			  Count(Other.Count)
+		{
+		}
+
+		FVector Start;
+		FVector Last;
+		double Length = -1;
+		int32 Count = 0;
+
+		void Reset(const FVector& InStart)
+		{
+			Start = InStart;
+			Last = InStart;
+			Length = 0;
+			Count = 1;
+		}
+
+		double Add(const FVector& Location)
+		{
+			if (Length == -1)
+			{
+				Reset(Location);
+				return 0;
+			}
+			Length += DistToLast(Location);
+			Last = Location;
+			Count++;
+			return Length;
+		}
+
+		bool IsValid() const { return Length > 0; }
+		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
+		double DistToLast(const FVector& Location) const { return FVector::DistSquared(Last, Location); }
+		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
+	};
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetrics
+	{
+		FPathMetrics()
+		{
+		}
+
+		explicit FPathMetrics(const FVector& InStart)
+		{
+			Add(InStart);
+		}
+
+		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points)
+		{
+			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
+		}
+
+		explicit FPathMetrics(const FPathMetricsSquared& Other)
+			: Start(Other.Start),
+			  Last(Other.Last),
+			  Length(Other.Length),
+			  Count(Other.Count)
+		{
+		}
+
+		FVector Start;
+		FVector Last;
+		double Length = -1;
+		int32 Count = 0;
+
+		void Reset(const FVector& InStart)
+		{
+			Start = InStart;
+			Last = InStart;
+			Length = 0;
+			Count = 1;
+		}
+
+		double Add(const FVector& Location)
+		{
+			if (Length == -1)
+			{
+				Reset(Location);
+				return 0;
+			}
+			Length += DistToLast(Location);
+			Last = Location;
+			Count++;
+			return Length;
+		}
+
+		bool IsValid() const { return Length > 0; }
+		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
+		double DistToLast(const FVector& Location) const { return FVector::Dist(Last, Location); }
+		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
+	};
+
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FMetadata
 	{
 		double Position = 0;

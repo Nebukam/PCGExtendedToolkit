@@ -258,7 +258,7 @@ namespace PCGExWritePathProperties
 		bool bClosedPath = false;
 
 		FVector UpConstant = FVector::ZeroVector;
-		PCGExData::FCache<FVector>* UpGetter = nullptr;
+		PCGExData::TCache<FVector>* UpGetter = nullptr;
 
 		int32 LastIndex = 0;
 

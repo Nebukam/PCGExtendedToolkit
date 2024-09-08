@@ -230,8 +230,8 @@ namespace PCGExSampleSurfaceGuided
 	{
 		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
 
-		PCGExData::FCache<double>* MaxDistanceGetter = nullptr;
-		PCGExData::FCache<FVector>* DirectionGetter = nullptr;
+		PCGExData::TCache<double>* MaxDistanceGetter = nullptr;
+		PCGExData::TCache<FVector>* DirectionGetter = nullptr;
 
 		FPCGExSampleSurfaceGuidedContext* LocalTypedContext = nullptr;
 		const UPCGExSampleSurfaceGuidedSettings* LocalSettings = nullptr;

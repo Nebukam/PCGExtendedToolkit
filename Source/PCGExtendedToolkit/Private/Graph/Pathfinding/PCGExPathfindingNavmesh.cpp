@@ -196,7 +196,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	for (const FNavPathPoint& PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
 	PathLocations.Add(Query->GoalPosition);
 
-	PCGExMath::FPathMetricsSquared Metrics = PCGExMath::FPathMetricsSquared(PathLocations[0]);
+	PCGExPaths::FPathMetricsSquared Metrics = PCGExPaths::FPathMetricsSquared(PathLocations[0]);
 	int32 FuseCountReduce = Settings->bAddGoalToPath ? 2 : 1;
 	for (int i = Settings->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{

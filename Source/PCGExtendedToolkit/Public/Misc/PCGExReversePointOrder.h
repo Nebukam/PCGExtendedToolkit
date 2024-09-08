@@ -66,7 +66,7 @@ public:
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	TArray<FPCGExSwapAttributePairDetails> SwapPairs;
+	TArray<FPCGExSwapAttributePairDetails> SwapAttributesValues;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExReversePointOrderContext final : public FPCGExPointsProcessorContext
