@@ -24,12 +24,11 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade);
-	virtual void ProcessPoints(UPCGPointData* InData) const;
 
 	virtual void ProcessSubPoints(
 		const PCGExData::FPointRef& From,
 		const PCGExData::FPointRef& To,
 		const TArrayView<FPCGPoint>& SubPoints,
-		const PCGExPaths::FPathMetricsSquared& Metrics,
+		const PCGExPaths::FPathMetrics& Metrics,
 		const int32 StartIndex = -1) const;
 };

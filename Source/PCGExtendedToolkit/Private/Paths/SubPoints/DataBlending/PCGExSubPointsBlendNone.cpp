@@ -10,7 +10,7 @@ void UPCGExSubPointsBlendNone::BlendSubPoints(
 	const PCGExData::FPointRef& From,
 	const PCGExData::FPointRef& To,
 	const TArrayView<FPCGPoint>& SubPoints,
-	const PCGExPaths::FPathMetricsSquared& Metrics,
+	const PCGExPaths::FPathMetrics& Metrics,
 	PCGExDataBlending::FMetadataBlender* InBlender, const int32 StartIndex) const
 {
 }
