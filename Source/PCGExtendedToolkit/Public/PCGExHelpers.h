@@ -8,6 +8,7 @@
 #include "PCGElement.h"
 #include "PCGExMacros.h"
 #include "PCGModule.h"
+#include "Metadata/PCGMetadataAttributeTraits.h"
 
 #include "PCGExHelpers.generated.h"
 

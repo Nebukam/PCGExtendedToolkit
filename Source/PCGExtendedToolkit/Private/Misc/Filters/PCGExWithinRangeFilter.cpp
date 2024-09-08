@@ -25,7 +25,7 @@ bool PCGExPointsFilter::TWithinRangeFilter::Init(const FPCGContext* InContext, P
 
 	RealMin = FMath::Min(TypedFilterFactory->Config.RangeMin, TypedFilterFactory->Config.RangeMax);
 	RealMax = FMath::Max(TypedFilterFactory->Config.RangeMin, TypedFilterFactory->Config.RangeMax);
-	
+
 	bInclusive = TypedFilterFactory->Config.bInclusive;
 	bInvert = TypedFilterFactory->Config.bInvert;
 

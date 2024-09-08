@@ -132,7 +132,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CompareFilterFactory, "Filter : String Compare", "Creates a filter definition that compares two attribute values.",
+		CompareFilterFactory, "Filter : Compare (String)", "Creates a filter definition that compares two string attribute values.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings

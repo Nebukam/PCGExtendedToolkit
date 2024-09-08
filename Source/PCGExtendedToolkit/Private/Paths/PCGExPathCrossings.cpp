@@ -419,7 +419,7 @@ namespace PCGExPathCrossings
 			CompoundBlender = new PCGExDataBlending::FCompoundBlender(&LocalSettings->CrossingBlending, &LocalSettings->CrossingCarryOver);
 			for (const PCGExData::FPointIO* IO : LocalTypedContext->MainPoints->Pairs)
 			{
-				if (IOIndices.Contains(IO->IOIndex)) { CompoundBlender->AddSource(LocalTypedContext->SubProcessorMap[IO]->PointDataFacade); }
+				if (IO && IOIndices.Contains(IO->IOIndex)) { CompoundBlender->AddSource(LocalTypedContext->SubProcessorMap[IO]->PointDataFacade); }
 			}
 
 			CompoundBlender->PrepareSoftMerge(PointDataFacade, CompoundList);

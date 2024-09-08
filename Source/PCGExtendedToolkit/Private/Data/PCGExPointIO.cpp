@@ -20,7 +20,16 @@ namespace PCGExData
 		IOIndex = InIndex;
 		DefaultOutputLabel = InDefaultOutputLabel;
 		NumInPoints = In ? In->GetPoints().Num() : 0;
-		Tags = InTags ? new FTags(*InTags) : Tags ? Tags : new FTags();
+
+		if (InTags)
+		{
+			PCGEX_DELETE(Tags)
+			Tags = new FTags(*InTags);
+		}
+		else if (!Tags)
+		{
+			Tags = new FTags();
+		}
 	}
 
 	void FPointIO::InitializeOutput(const EInit InitOut)

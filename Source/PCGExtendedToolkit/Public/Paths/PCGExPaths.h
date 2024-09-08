@@ -64,7 +64,7 @@ namespace PCGExPaths
 {
 	const FName SourceCanCutFilters = TEXT("Can Cut Conditions");
 	const FName SourceCanBeCutFilters = TEXT("Can Be Cut Conditions");
-	
+
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetrics
 	{
 		FPathMetrics()

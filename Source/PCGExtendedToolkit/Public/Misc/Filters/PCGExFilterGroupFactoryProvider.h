@@ -50,5 +50,4 @@ public:
 	/** Inverts the group output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	bool bInvert = false;
-
 };

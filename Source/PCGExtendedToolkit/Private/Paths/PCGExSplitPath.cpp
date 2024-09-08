@@ -155,6 +155,19 @@ namespace PCGExSplitPath
 				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionDisconnect(Index); },
 				NumPoints, ChunkSize, true);
 			break;
+		case EPCGExPathSplitAction::Partition:
+			PointDataFacade->Fetch(0, 1);
+			bLastResult = FilterManager->Test(0);
+			TaskGroup->StartRanges(
+				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionPartition(Index); },
+				NumPoints, ChunkSize, true);
+			break;
+		case EPCGExPathSplitAction::Switch:
+			bLastResult = Settings->bInitialSwitchValue;
+			TaskGroup->StartRanges(
+				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionSwitch(Index); },
+				NumPoints, ChunkSize, true);
+			break;
 		default: ;
 		}
 

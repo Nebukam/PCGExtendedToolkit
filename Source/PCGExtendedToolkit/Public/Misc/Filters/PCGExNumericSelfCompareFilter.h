@@ -11,15 +11,21 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
-#include "PCGExNumericCompareFilter.generated.h"
+#include "PCGExNumericSelfCompareFilter.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
+enum class EPCGExIndexMode : uint8
+{
+	Pick UMETA(DisplayName = "Pick", ToolTip="Index value represent a specific pick"),
+	Offset UMETA(DisplayName = "Offset", ToolTip="Index value represent an offset from current point' index"),
+};
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareFilterConfig
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSelfCompareFilterConfig
 {
 	GENERATED_BODY()
 
-	FPCGExNumericCompareFilterConfig()
+	FPCGExSelfCompareFilterConfig()
 	{
 	}
 
@@ -31,21 +37,29 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
 
+	/** Index mode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExIndexMode IndexMode = EPCGExIndexMode::Offset;
+
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
 
-	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	/** Operand B for testing -- Will be translated to `int32` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector OperandB;
+	FPCGAttributePropertyInputSelector IndexAttribute;
 
 	/** Operand B for testing */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
-	double OperandBConstant = 0;
+	int32 IndexConstant = -1;
 
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0.001;
+
+	/** Index safety */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Clamp;
 };
 
 
@@ -53,42 +67,49 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericCompareFilterConfig
  * 
  */
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterFactory : public UPCGExFilterFactoryBase
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSelfCompareFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	FPCGExNumericCompareFilterConfig Config;
+	FPCGExSelfCompareFilterConfig Config;
 
 	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::TFilter
+	class /*PCGEXTENDEDTOOLKIT_API*/ TSelfComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TNumericComparisonFilter(const UPCGExNumericCompareFilterFactory* InDefinition)
+		explicit TSelfComparisonFilter(const UPCGExSelfCompareFilterFactory* InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExNumericCompareFilterFactory* TypedFilterFactory;
+		const UPCGExSelfCompareFilterFactory* TypedFilterFactory;
 
+		PCGEx::FLocalSingleFieldGetter* ComparisonValueGetter = nullptr;
+		PCGExData::TCache<int32>* Index = nullptr;
 		PCGExData::TCache<double>* OperandA = nullptr;
-		PCGExData::TCache<double>* OperandB = nullptr;
+		bool bOffset = false;
+		int32 MaxIndex = 0;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
+			const int32 IndexValue = Index ? Index->Values[PointIndex] : TypedFilterFactory->Config.IndexConstant;
+			const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
+
 			const double A = OperandA->Values[PointIndex];
-			const double B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
+			const double B = ComparisonValueGetter->SoftGet(TargetIndex, PointDataFacade->Source->GetInPoint(TargetIndex), 0);
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 		}
 
-		virtual ~TNumericComparisonFilter() override
+		virtual ~TSelfComparisonFilter() override
 		{
 			TypedFilterFactory = nullptr;
+			PCGEX_DELETE(ComparisonValueGetter)
 		}
 	};
 }
@@ -96,7 +117,7 @@ namespace PCGExPointsFilter
 ///
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterProviderSettings : public UPCGExFilterProviderSettings
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSelfCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -104,7 +125,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		CompareFilterFactory, "Filter : Compare (Numeric)", "Creates a filter definition that compares two string attribute values.",
+		CompareFilterFactory, "Filter : Self Compare (Numeric)", "Creates a filter definition that compares an attribute value against itself at another index.",
 		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
@@ -112,7 +133,7 @@ public:
 public:
 	/** Filter Config.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExNumericCompareFilterConfig Config;
+	FPCGExSelfCompareFilterConfig Config;
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
