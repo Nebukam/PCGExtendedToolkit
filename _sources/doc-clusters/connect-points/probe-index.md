@@ -3,21 +3,20 @@ layout: page
 grand_parent: Clusters
 parent: Connect Points
 title: 🝆 Index
+name_in_editor: "Probe : Index"
 subtitle: Connects to a point at a given index
 summary: The **Index** probe ...
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg
+see_also:
+    - Connect Points
 tagged: 
     - node
     - probe
     - clusters
 nav_order: 7
-inputs:
-    -   name : None
-        desc : 
-        pin : 
 outputs:
     -   name : Probe
         desc : A single probe, to be used with the 'Connect Points' node
@@ -37,6 +36,7 @@ This probes creates a single connections to another point at a given index.
 |:-------------|:------------------|
 | Mode          | How the node is to interpret the target index value. |
 | Index Safety           | *Index safety is a recurring mechanism in PCGEx, see below for more infos.* |
+
 |: **Target Index Settings** :|
 | Target Index           | The type of value used for this probe' index source; either a `Constant` value or fetched from an`Attribute` |
 | Target Constant           | Constant index value; or constant offset depending on the selected `Mode`. |

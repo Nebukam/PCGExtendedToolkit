@@ -7,6 +7,8 @@
         <div class="pin"><div class="title"><img class="icon" src="{{ site.baseurl }}/assets/icons/icon_{{ io.pin }}.svg">{{io.name}}</div><div class="desc">{{io.desc}}</div></div>
     {% endfor %}
     </div>
+    {% else %}
+    <div class="col inputs empty"></div>
     {% endif %}
     {% if page.outputs %}
     <div class="col outputs">
@@ -14,6 +16,8 @@
         <div class="pin"><div class="title"><img class="icon" src="{{ site.baseurl }}/assets/icons/icon_{{ io.pin }}.svg">{{io.name}}</div><div class="desc">{{io.desc}}</div></div>
     {% endfor %}
     </div>
+    {% else %}
+    <div class="col outputs empty"></div>
     {% endif %}
 </div>
 {% if page.example %}

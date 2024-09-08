@@ -3,12 +3,15 @@ layout: page
 grand_parent: Clusters
 parent: Connect Points
 title: 🝆 Anisotropic
+name_in_editor: "Probe : Anisotropic"
 subtitle: Find connections in 16 directions
 summary: The **Anisotropic** probe ...
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg
+see_also:
+    - Connect Points
 tagged: 
     - node
     - probe
@@ -34,7 +37,12 @@ An anisotropic probe is a preset to find connection in 16 different directions o
 |:-------------|:------------------|
 |: **Settings** :|
 | Transform Direction          | If enabled, the direction of the probe will be adjusted by the current probing point' transform.<br>*If disabled, the direction is in world space.* |
+
 |: **Search Radius** :|
 | Search Radius Source           | The type of value used for this probe' search radius; either a `Constant` value or fetched from an`Attribute` |
 | Search Radius Constant           | Fixed radius of the probe. |
 | Search Radius Attribute           | Per-point attribute value radius of the probe.<br>*Dynamic radiuses can be super expensive if they are different for each probe: search will use the greatest radius to sample to octree for this point.* |
+
+> Contrary to {% include lk id='🝆 Direction' %}, the anisotropic probe will *always* favor alignment over distance.
+> *Because of that, it often yields more 'canon' results with grid-aligned points.*
+{: .comment }

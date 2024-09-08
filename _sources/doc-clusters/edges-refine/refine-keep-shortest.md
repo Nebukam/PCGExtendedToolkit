@@ -4,20 +4,24 @@ grand_parent: Clusters
 parent: Refine
 title: 🝔 Keep Shortest
 subtitle: Keeps the shortest edge of each node
-summary: The **Keep Shortest** refinement ...
+#summary: The **Keep Shortest** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
 preview_img: docs/splash-mst.png
 toc_img: placeholder.jpg
+see_also:
+    - Refine
+    - 🝔 Keep Longest
 tagged: 
     - edgerefining
 nav_order: 2
 ---
 
-{% include header_card_node %}
+{% include header_card_toc %}
 
-# Properties
-<br>
+This refinement **keeps a single connected edge for each point**: the one with the **shortest** length.
+{: .fs-5 .fw-400 } 
 
-> DOC TDB
-{: .warning }
+>Note that the remaining `Edge` can be the same for multiple, different `Vtx`.
+
+{% include img a='placeholder-wide.jpg' %}

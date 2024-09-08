@@ -3,6 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Clusters
 title: Refine
+name_in_editor: "Cluster : Refine"
 subtitle: Algorithmic edge refinement
 summary: The **Refine Edges** node allows for algorithmic pruning of edges, in order to enforce specific properties into your graph.
 color: blue
@@ -38,16 +39,23 @@ outputs:
 
 {% include header_card_node %}
 
+The **Cluster Refine** node lets you refine connections inside individual clusters, a.k.a Edge pruning.  
+{: .fs-5 .fw-400 } 
+
+> Refining only **removes** edges and does not create new ones.
+
+{% include img a='placeholder-wide.jpg' %}
+
 # Properties
 <br>
 
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
-| Refinement           | This property lets you select which kind of refinement you want to apply to the input clusters.<br>**Specifics of the instanced module 
-will be available under its inner Settings section.**<br>*See {% include lk id='Refining' %}.*  |
-| Output Only Edges As Points | If enabled, this node will output edges as raw points, without the usually associated cluster. |
+| Refinement           | This property lets you select which kind of refinement you want to apply to the input clusters.<br>**Specifics of the instanced module will be available under its inner Settings section, if any.**  |
+| Output Only Edges As Points | If enabled, this node will output edges as raw points, without the usually associated cluster.<br>*This can be significantly faster and less greedy depending on your need for the output edges.* |
 
+---
 ## Sanitization
 The sanitization property lets you enforce some general conditions within the graph. Note that is applied after the refinement.
 
@@ -57,11 +65,11 @@ The sanitization property lets you enforce some general conditions within the gr
 | Shortest           | If a node has no edge left, restore the shortest one.|
 | Longest           | If a node has no edge left, restore the longest one.|
 
-> Note that the sanitization options offer no guarantee that the initial interconnectivity will be preserved! 
+> Note that the **sanitization options offer no guarantee that the initial interconnectivity will be preserved!** 
 {: .warning }
 
 ---
-## Refining modules
+## Available Refining modules
 <br>
 {% include card_any tagged="edgerefining" %}
 

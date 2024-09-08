@@ -274,6 +274,10 @@ $cornerr: 5px;
 
     & .col{
 
+        &.empty{
+            visibility: hidden;
+        }
+
         &::before {
             content:"→ Inputs";
             font-size: 1em;
@@ -478,3 +482,4 @@ details {
     user-select: none;
     opacity: 0.8;
 }
+

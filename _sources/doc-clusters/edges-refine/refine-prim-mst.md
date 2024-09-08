@@ -4,28 +4,30 @@ grand_parent: Clusters
 parent: Refine
 title: 🝔 Minimum Spanning Tree
 subtitle: Implementation of Prim's Minimum Spanning Tree algorithm.
-summary: The **MST** refinement ...
+#summary: The **MST** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
 preview_img: docs/splash-mst.png
 toc_img: placeholder.jpg
+see_also:
+    - Refine
 tagged: 
     - edgerefining
 nav_order: 1
 ---
 
-{% include header_card_node %}
+{% include header_card_toc %}
 
-This module offers an implementation of [Prim's algorithm](https://en.wikipedia.org/wiki/Prim%27s_algorithm) to find the minimum spanning tree of individual clusters.  
+This module offers a highly customizable implementation of [Prim's algorithm](https://en.wikipedia.org/wiki/Prim%27s_algorithm) to find the minimum spanning tree of individual clusters.  
 *By design, the output is guaranteed to be sanitized (e.g, each cluster will retains its existing connectivity properties).*
+{: .fs-5 .fw-400 } 
 
-> Under the hood, MST leverages the {% include lk id='Local Distance' %} heuristic module -- enabling full tweaking of what is considered the "minimum-length" edge.  
-> *The default settings is the "canon" implementation.*
+> It relies on user-defined {% include lk id='🝰 Heuristics' %} in order to build the tree, providing very high level of control.
 {: .infos-hl }
 
-{% include img a='docs/refine-mst/image.png' %} 
-{% include img a='docs/refine-mst/details.png' %} 
+{% include img a='placeholder-wide.jpg' %}
 
-| Property       | Description          |
-|:-------------|:------------------|
-| Heuristics Modifiers           | See {% include lk id='🝰 Heuristic Attribute' %}.|
+---
+## Available Heuristics Modules
+<br>
+{% include card_any tagged="heuristics" %}
