@@ -42,11 +42,9 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
-	virtual bool RequiresPointFilters() const override { return true; }
-	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourceFiltersLabel; }
-
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings
 
 public:

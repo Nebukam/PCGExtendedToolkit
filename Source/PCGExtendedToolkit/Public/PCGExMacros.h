@@ -130,13 +130,12 @@ if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
 
 #pragma endregion
 
-#define PCGEX_SET_NUM(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNum(_num_); }
-#define PCGEX_SET_NUM_DEFAULT(_ARRAY, _NUM, _DEFAULT) { PCGEX_SET_NUM(_ARRAY, _NUM) for(int i = 0; i < _NUM; i++){_ARRAY[i] = _DEFAULT;} }
-#define PCGEX_SET_NUM_PTR(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY->Reserve(_num_); _ARRAY->SetNum(_num_); }
+#define PCGEX_SET_NUM(_ARRAY, _NUM) { _ARRAY.SetNum(_NUM); }
+#define PCGEX_SET_NUM_PTR(_ARRAY, _NUM) { _ARRAY->SetNum(_NUM); }
 
-#define PCGEX_SET_NUM_UNINITIALIZED(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNumUninitialized(_num_); }
-#define PCGEX_SET_NUM_NULLPTR(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY.Reserve(_num_); _ARRAY.SetNumUninitialized(_num_); for(int i = 0; i < _num_; i++){_ARRAY[i] = nullptr;} }
-#define PCGEX_SET_NUM_UNINITIALIZED_PTR(_ARRAY, _NUM) { const int32 _num_ = _NUM; _ARRAY->Reserve(_num_); _ARRAY->SetNumUninitialized(_num_); }
+#define PCGEX_SET_NUM_UNINITIALIZED(_ARRAY, _NUM) { _ARRAY.SetNumUninitialized(_NUM); }
+#define PCGEX_SET_NUM_NULLPTR(_ARRAY, _NUM) { _ARRAY.Init(nullptr, _NUM); }
+#define PCGEX_SET_NUM_UNINITIALIZED_PTR(_ARRAY, _NUM) { _ARRAY->SetNumUninitialized(_NUM); }
 
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
@@ -160,9 +159,16 @@ virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_
 virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
 #endif
 
+#define PCGEX_NODE_POINT_FILTER(_LABEL, _TOOLTIP, _TYPE, _REQUIRED) \
+virtual FName GetPointFilterLabel() const override { return _LABEL; } \
+virtual FString GetPointFilterTooltip() const override { return TEXT(_TOOLTIP); } \
+virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return _TYPE; } \
+virtual bool RequiresPointFilters() const override { return _REQUIRED; }
+
 #define PCGEX_INITIALIZE_CONTEXT(_NAME)\
 FPCGContext* FPCGEx##_NAME##Element::Initialize( const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)\
 {	FPCGEx##_NAME##Context* Context = new FPCGEx##_NAME##Context();	return InitializeContext(Context, InputData, SourceComponent, Node); }
+
 #define PCGEX_INITIALIZE_ELEMENT(_NAME)\
 PCGEX_INITIALIZE_CONTEXT(_NAME)\
 FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared<FPCGEx##_NAME##Element>();}

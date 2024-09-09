@@ -46,10 +46,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	
-	virtual bool RequiresPointFilters() const override { return true; }
-	virtual FName GetPointFilterLabel() const override { return PCGExSplitPath::SourceSplitFilters; }
-	virtual FString GetPointFilterTooltip() const override { return TEXT("Filters used to know if a point should be split"); }
+	PCGEX_NODE_POINT_FILTER(PCGExSplitPath::SourceSplitFilters, "Filters used to know if a point should be split", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings
 
 public:

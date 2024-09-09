@@ -272,7 +272,7 @@ namespace PCGExDataBlending
 		TArray<int32> IdxIO;
 		TArray<int32> IdxPt;
 		TArray<double> Weights;
-		TBitArray<> InheritedTags;
+		TArray<bool> InheritedTags;
 
 		FPCGPoint& Target = CurrentTargetData->Source->GetMutablePoint(CompoundIndex);
 
@@ -282,7 +282,6 @@ namespace PCGExDataBlending
 			IdxIO, IdxPt, Weights);
 
 		const int32 NumCompounded = IdxPt.Num();
-
 		if (NumCompounded == 0) { return; }
 
 		InheritedTags.Init(false, TagAttributes.Num());

@@ -9,8 +9,6 @@
 #define LOCTEXT_NAMESPACE "PCGExSmoothElement"
 #define PCGEX_NAMESPACE Smooth
 
-FName UPCGExSmoothSettings::GetPointFilterLabel() const { return FName("SmoothConditions"); }
-
 PCGExData::EInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(Smooth)

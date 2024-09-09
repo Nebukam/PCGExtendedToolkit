@@ -182,8 +182,8 @@ namespace PCGExAttributeRemap
 			{
 				for (FPCGExComponentRemapRule& Rule : Rules)
 				{
-					PCGEX_SET_NUM_DEFAULT(Rule.MinCache, Loops.Num(), TNumericLimits<double>::Max())
-					PCGEX_SET_NUM_DEFAULT(Rule.MaxCache, Loops.Num(), TNumericLimits<double>::Min())
+					Rule.MinCache.Init(TNumericLimits<double>::Max(), Loops.Num());
+					Rule.MaxCache.Init(TNumericLimits<double>::Min(), Loops.Num());
 				}
 			});
 

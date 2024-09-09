@@ -46,7 +46,7 @@ protected:
 
 	//~Begin UPCGExPointProcessorSettings
 public:
-	virtual FName GetPointFilterLabel() const override { return FName("FlipOrientationConditions"); }
+	PCGEX_NODE_POINT_FILTER(FName("Flip Orientation Conditions"), "Filters used to know whether an orientation should be flipped or not", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointProcessorSettings
 
 public:

@@ -33,13 +33,10 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
-	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return PCGExFactories::ClusterEdgeFilters; }
-	virtual FName GetPointFilterLabel() const override { return FName("Break Conditions"); }
-	virtual FString GetPointFilterTooltip() const override { return TEXT("Filter used to check break conditions"); }
-
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	PCGEX_NODE_POINT_FILTER(FName("Break Conditions"), "Filters used to know which points are 'break' points.", PCGExFactories::ClusterNodeFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 	/** Operation target mode */
@@ -89,7 +86,7 @@ namespace PCGExBreakClustersToPaths
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-		TBitArray<> Breakpoints;
+		TArray<bool> Breakpoints;
 
 		TArray<PCGExCluster::FNodeChain*> Chains;
 

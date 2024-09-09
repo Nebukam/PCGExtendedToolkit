@@ -39,8 +39,6 @@ public:
 #endif
 
 protected:
-	virtual bool RequiresPointFilters() const override { return true; }
-	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourceFiltersLabel; }
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -48,6 +46,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings
 
 public:

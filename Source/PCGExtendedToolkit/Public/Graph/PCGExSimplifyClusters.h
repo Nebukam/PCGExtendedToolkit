@@ -27,13 +27,10 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExEdgesProcessorSettings interface	
-	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return PCGExFactories::ClusterEdgeFilters; }
-	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourceKeepConditionLabel; }
-	virtual FString GetPointFilterTooltip() const override { return TEXT("Kept points are unaffected by the simplification."); }
-	
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceKeepConditionLabel, "Prevents vtx from being pruned by the simplification process", PCGExFactories::ClusterNodeFilters, false)
 	//~End UPCGExEdgesProcessorSettings interface
 
 	/** If enabled, only check for dead ends. */
@@ -86,7 +83,7 @@ namespace PCGExSimplifyClusters
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-		TBitArray<> Breakpoints;
+		TArray<bool> Breakpoints;
 
 		TArray<PCGExCluster::FNodeChain*> Chains;
 

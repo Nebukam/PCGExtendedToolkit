@@ -159,7 +159,7 @@ namespace PCGExConnectPoints
 		int32 NumChainedOps = 0;
 		double SharedSearchRadius = TNumericLimits<double>::Min();
 
-		TBitArray<> CanGenerate;
+		TArray<bool> CanGenerate;
 		PositionOctree* Octree = nullptr;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;

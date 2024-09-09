@@ -525,7 +525,7 @@ namespace PCGExClusterTask
 	public:
 		FFindNodeChains(PCGExData::FPointIO* InPointIO,
 		                const PCGExCluster::FCluster* InCluster,
-		                const TBitArray<>* InBreakpoints,
+		                const TArray<bool>* InBreakpoints,
 		                TArray<PCGExCluster::FNodeChain*>* InChains,
 		                const bool InSkipSingleEdgeChains = false,
 		                const bool InDeadEndsOnly = false) :
@@ -539,7 +539,7 @@ namespace PCGExClusterTask
 		}
 
 		const PCGExCluster::FCluster* Cluster = nullptr;
-		const TBitArray<>* Breakpoints = nullptr;
+		const TArray<bool>* Breakpoints = nullptr;
 		TArray<PCGExCluster::FNodeChain*>* Chains = nullptr;
 
 		const bool bSkipSingleEdgeChains = false;
@@ -553,7 +553,7 @@ namespace PCGExClusterTask
 	public:
 		FBuildChain(PCGExData::FPointIO* InPointIO,
 		            const PCGExCluster::FCluster* InCluster,
-		            const TBitArray<>* InBreakpoints,
+		            const TArray<bool>* InBreakpoints,
 		            TArray<PCGExCluster::FNodeChain*>* InChains,
 		            const int32 InStartIndex,
 		            const uint64 InAdjacencyHash) :
@@ -567,7 +567,7 @@ namespace PCGExClusterTask
 		}
 
 		const PCGExCluster::FCluster* Cluster = nullptr;
-		const TBitArray<>* Breakpoints = nullptr;
+		const TArray<bool>* Breakpoints = nullptr;
 		TArray<PCGExCluster::FNodeChain*>* Chains = nullptr;
 		int32 StartIndex = 0;
 		uint64 AdjacencyHash = 0;
@@ -577,12 +577,12 @@ namespace PCGExClusterTask
 
 	static void BuildChain(
 		PCGExCluster::FNodeChain* Chain,
-		const TBitArray<>* Breakpoints,
+		const TArray<bool>* Breakpoints,
 		const PCGExCluster::FCluster* Cluster)
 	{
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 
-		const TBitArray<>& Brkpts = *Breakpoints;
+		const TArray<bool>& Brkpts = *Breakpoints;
 		int32 LastIndex = Chain->First;
 		int32 NextIndex = Chain->Last;
 		Chain->Edges.Add(Nodes[LastIndex].GetEdgeIndex(NextIndex));

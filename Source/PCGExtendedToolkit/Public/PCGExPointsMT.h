@@ -95,7 +95,7 @@ namespace PCGExPointsMT
 		bool DefaultPointFilterValue = true;
 		bool bIsSmallPoints = false;
 
-		TBitArray<> PointFilterCache;
+		TArray<bool> PointFilterCache;
 
 		FPCGExContext* Context = nullptr;
 

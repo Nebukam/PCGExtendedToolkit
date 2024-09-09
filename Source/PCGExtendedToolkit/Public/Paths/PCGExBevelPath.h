@@ -59,11 +59,9 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
-	virtual FName GetPointFilterLabel() const override { return PCGExBevelPath::SourceBevelFilters; }
-	virtual FString GetPointFilterTooltip() const override { return TEXT("Filters used to know if a point should be Beveled"); }
-
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	PCGEX_NODE_POINT_FILTER(PCGExBevelPath::SourceBevelFilters, "Filters used to know if a point should be Beveled", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 public:

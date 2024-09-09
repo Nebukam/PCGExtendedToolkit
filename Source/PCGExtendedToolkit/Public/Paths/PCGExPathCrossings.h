@@ -157,8 +157,8 @@ namespace PCGExPathCrossings
 		PCGExPointFilter::TManager* CanCutFilterManager = nullptr;
 		PCGExPointFilter::TManager* CanBeCutFilterManager = nullptr;
 
-		TBitArray<> CanCut;
-		TBitArray<> CanBeCut;
+		TArray<bool> CanCut;
+		TArray<bool> CanBeCut;
 
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 

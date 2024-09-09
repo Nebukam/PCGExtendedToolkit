@@ -27,11 +27,9 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
-	virtual FName GetPointFilterLabel() const override { return FName("Keep Conditions"); }
-	virtual FString GetPointFilterTooltip() const override { return TEXT("List of filters that are checked to know whether a point can be removed or must be kept."); }
-
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceKeepConditionLabel, "List of filters that are checked to know whether a point can be removed or must be kept.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 

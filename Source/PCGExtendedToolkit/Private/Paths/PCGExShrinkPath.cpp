@@ -8,8 +8,6 @@
 
 PCGExData::EInit UPCGExShrinkPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExShrinkPathSettings::GetPointFilterLabel() const { return FName("StopConditions"); }
-
 PCGEX_INITIALIZE_ELEMENT(ShrinkPath)
 
 void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const

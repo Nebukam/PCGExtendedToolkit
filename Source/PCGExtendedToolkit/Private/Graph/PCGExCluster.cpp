@@ -997,7 +997,7 @@ namespace PCGExClusterTask
 
 		for (const PCGExCluster::FNode& Node : (*Cluster->Nodes))
 		{
-			const TBitArray<>& Brkpts = *Breakpoints;
+			const TArray<bool>& Brkpts = *Breakpoints;
 			if (Node.IsSimple() && !Brkpts[Node.NodeIndex]) { continue; }
 
 			const bool bIsValidStartNode =

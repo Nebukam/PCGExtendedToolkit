@@ -49,9 +49,8 @@ protected:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings
 
-	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourcePointFiltersLabel; }
-
 public:
+	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters", PCGExFactories::PointFilters, false)
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 	/** Consider paths to be closed -- processing will wrap between first and last points. */

@@ -152,7 +152,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGE
 	PCGExData::FPointIO* GoodSeeds;
 	PCGExData::FPointIO* BadSeeds;
 
-	TBitArray<> SeedQuality;
+	TArray<bool> SeedQuality;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler;

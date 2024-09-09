@@ -23,8 +23,6 @@ bool UPCGExConditionalActionOperation::PrepareForData(const FPCGContext* InConte
 	PrimaryDataFacade = InPointDataFacade;
 
 	FilterManager = new PCGExPointFilter::TManager(PrimaryDataFacade);
-	FilterManager->bCacheResults = false;
-	FilterManager->bCacheResultsPerFilter = false;
 
 	if (!FilterManager->Init(InContext, Factory->FilterFactories)) { return false; }
 

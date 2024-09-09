@@ -129,7 +129,7 @@ namespace PCGExDataBlending
 		TArray<FPCGPoint>* PrimaryPoints = nullptr;
 		const TArray<FPCGPoint>* SecondaryPoints = nullptr;
 
-		TBitArray<> FirstPointOperation;
+		TArray<bool> FirstPointOperation;
 
 		void InternalPrepareForData(
 			PCGExData::FFacade* InPrimaryFacade,

@@ -108,8 +108,9 @@ public:
 	virtual FName GetPointFilterLabel() const { return NAME_None; }
 	virtual FString GetPointFilterTooltip() const { return TEXT("Filters"); }
 	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const { return PCGExFactories::PointFilters; }
-	bool SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
 	virtual bool RequiresPointFilters() const { return false; }
+	
+	bool SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
 
 	/** Forces execution on main thread. Work is still chunked. Turning this off ensure linear order of operations, and, in most case, determinism.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(PCG_NotOverridable, AdvancedDisplay))

@@ -84,7 +84,7 @@ namespace PCGExPointFilter
 
 		bool bCacheResults = true;
 		const UPCGExFilterFactoryBase* Factory;
-		TBitArray<> Results;
+		TArray<bool> Results;
 
 		int32 FilterIndex = 0;
 
@@ -111,7 +111,7 @@ namespace PCGExPointFilter
 
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
-		TBitArray<> Results;
+		TArray<bool> Results;
 
 		bool bValid = false;
 
