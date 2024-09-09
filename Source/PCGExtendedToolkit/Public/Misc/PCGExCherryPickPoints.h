@@ -12,8 +12,8 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cherry Pick Source"))
 enum class EPCGExCherryPickSource : uint8
 {
-	Self UMETA(DisplayName = "Self", ToolTip="Read indices from an attribute on the currently cherry-picked data set."),
-	Target UMETA(DisplayName = "Targets", ToolTip="Read indices from a list of target points."),
+	Self   = 0 UMETA(DisplayName = "Self", ToolTip="Read indices from an attribute on the currently cherry-picked data set."),
+	Target = 1 UMETA(DisplayName = "Targets", ToolTip="Read indices from a list of target points."),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")

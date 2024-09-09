@@ -37,8 +37,8 @@ namespace PCGExGeo
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mesh Source Type"))
 enum class EPCGExMeshAttributeHandling : uint8
 {
-	StaticMeshSoftPath UMETA(DisplayName = "StaticMesh Soft Path", ToolTip="Read the attribute as a StaticMesh soft path."),
-	ActorReference UMETA(DisplayName = "Actor Reference", ToolTip="Read the attribute as an actor reference to extract primitive from."),
+	StaticMeshSoftPath = 0 UMETA(DisplayName = "StaticMesh Soft Path", ToolTip="Read the attribute as a StaticMesh soft path."),
+	ActorReference     = 1 UMETA(DisplayName = "Actor Reference", ToolTip="Read the attribute as an actor reference to extract primitive from."),
 };
 
 /**

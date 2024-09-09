@@ -19,9 +19,9 @@ namespace PCGExGeo
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Urquhart Site Merge Mode"))
 enum class EPCGExUrquhartSiteMergeMode : uint8
 {
-	None UMETA(DisplayName = "None", ToolTip="Do not merge sites."),
-	MergeSites UMETA(DisplayName = "Merge Sites", ToolTip="Merge site is the average of the merge."),
-	MergeEdges UMETA(DisplayName = "Merge Edges", ToolTip="Merge site is the averge of the removed edges."),
+	None       = 0 UMETA(DisplayName = "None", ToolTip="Do not merge sites."),
+	MergeSites = 1 UMETA(DisplayName = "Merge Sites", ToolTip="Merge site is the average of the merge."),
+	MergeEdges = 2 UMETA(DisplayName = "Merge Edges", ToolTip="Merge site is the averge of the removed edges."),
 };
 
 /**

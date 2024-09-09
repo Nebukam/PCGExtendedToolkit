@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
+#include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "PCGExAttributeRolling.generated.h"
@@ -13,6 +14,14 @@ namespace PCGExDataBlending
 {
 	class FMetadataBlender;
 }
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type"))
+enum class EPCGExRollingTriggerMode : uint8
+{
+	None  = 0 UMETA(DisplayName = "None", ToolTip="Ignore triggers"),
+	Hold  = 1 UMETA(DisplayName = "Hold", ToolTip="Hold value until next trigger"),
+	Reset = 2 UMETA(DisplayName = "Reset", ToolTip="Reset rolling"),
+};
 
 /**
  * 
@@ -29,6 +38,7 @@ public:
 #endif
 
 protected:
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
@@ -70,11 +80,12 @@ namespace PCGExAttributeRolling
 		FPCGExAttributeRollingContext* LocalTypedContext = nullptr;
 		const UPCGExAttributeRollingSettings* LocalSettings = nullptr;
 
+		PCGExPaths::FPathMetrics CurrentMetric;
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 
 		UPCGMetadata* OutMetadata = nullptr;
 		TArray<FPCGPoint>* OutPoints = nullptr;
-		
+
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
 			FPointsProcessor(InPoints)

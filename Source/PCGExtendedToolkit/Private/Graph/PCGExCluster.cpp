@@ -997,12 +997,13 @@ namespace PCGExClusterTask
 
 		for (const PCGExCluster::FNode& Node : (*Cluster->Nodes))
 		{
-			if (Node.IsSimple() && !*(Breakpoints->GetData() + Node.NodeIndex)) { continue; }
+			const TBitArray<>& Brkpts = *Breakpoints;
+			if (Node.IsSimple() && !Brkpts[Node.NodeIndex]) { continue; }
 
 			const bool bIsValidStartNode =
 				bDeadEndsOnly ?
-					Node.IsDeadEnd() && !*(Breakpoints->GetData() + Node.NodeIndex) :
-					(Node.IsDeadEnd() || *(Breakpoints->GetData() + Node.NodeIndex) || Node.IsComplex());
+					Node.IsDeadEnd() && !Brkpts[Node.NodeIndex] :
+					(Node.IsDeadEnd() || Brkpts[Node.NodeIndex] || Node.IsComplex());
 
 			if (!bIsValidStartNode) { continue; }
 
@@ -1016,8 +1017,8 @@ namespace PCGExClusterTask
 				if (bIsAlreadyIgnored) { continue; }
 
 				const PCGExCluster::FNode& OtherNode = NodesRefs[OtherNodeIndex];
-
-				if ((*Breakpoints)[OtherNode.NodeIndex] || OtherNode.IsDeadEnd() || OtherNode.IsComplex())
+				
+				if (Brkpts[OtherNode.NodeIndex] || OtherNode.IsDeadEnd() || OtherNode.IsComplex())
 				{
 					// Single edge chain					
 					if (bSkipSingleEdgeChains) { continue; }

@@ -18,18 +18,18 @@ enum class EPCGMetadataTypes : uint8;
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Attribute Filter"))
 enum class EPCGExAttributeFilter : uint8
 {
-	All UMETA(DisplayName = "All", ToolTip="All attributes"),
-	Exclude UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
-	Include UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
+	All     = 0 UMETA(DisplayName = "All", ToolTip="All attributes"),
+	Exclude = 1 UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
+	Include = 2 UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] String Match Mode"))
 enum class EPCGExStringMatchMode : uint8
 {
-	Equals UMETA(DisplayName = "Equals", ToolTip=""),
-	Contains UMETA(DisplayName = "Contains", ToolTip=""),
-	StartsWith UMETA(DisplayName = "Starts with", ToolTip=""),
-	EndsWith UMETA(DisplayName = "Ends with", ToolTip=""),
+	Equals     = 0 UMETA(DisplayName = "Equals", ToolTip=""),
+	Contains   = 1 UMETA(DisplayName = "Contains", ToolTip=""),
+	StartsWith = 2 UMETA(DisplayName = "Starts with", ToolTip=""),
+	EndsWith   = 3 UMETA(DisplayName = "Ends with", ToolTip=""),
 };
 
 USTRUCT(BlueprintType)

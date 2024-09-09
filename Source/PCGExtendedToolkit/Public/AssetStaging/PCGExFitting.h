@@ -13,48 +13,48 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
 enum class EPCGExFitMode : uint8
 {
-	None UMETA(DisplayName = "None", ToolTip="No fitting"),
-	Uniform UMETA(DisplayName = "Uniform", ToolTip="Uniform fit"),
-	Individual UMETA(DisplayName = "Individual", ToolTip="Per-component fit"),
+	None       = 0 UMETA(DisplayName = "None", ToolTip="No fitting"),
+	Uniform    = 1 UMETA(DisplayName = "Uniform", ToolTip="Uniform fit"),
+	Individual = 2 UMETA(DisplayName = "Individual", ToolTip="Per-component fit"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Scale to fit"))
 enum class EPCGExScaleToFit : uint8
 {
-	None UMETA(DisplayName = "None", ToolTip="No fitting"),
-	Fill UMETA(DisplayName = "Fill", ToolTip="..."),
-	Min UMETA(DisplayName = "Min", ToolTip="..."),
-	Max UMETA(DisplayName = "Max", ToolTip="..."),
-	Avg UMETA(DisplayName = "Average", ToolTip="..."),
+	None = 0 UMETA(DisplayName = "None", ToolTip="No fitting"),
+	Fill = 1 UMETA(DisplayName = "Fill", ToolTip="..."),
+	Min  = 2 UMETA(DisplayName = "Min", ToolTip="..."),
+	Max  = 3 UMETA(DisplayName = "Max", ToolTip="..."),
+	Avg  = 4 UMETA(DisplayName = "Average", ToolTip="..."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Justify From"))
 enum class EPCGExJustifyFrom : uint8
 {
-	Min UMETA(DisplayName = "Min", ToolTip="..."),
-	Center UMETA(DisplayName = "Center", ToolTip="..."),
-	Max UMETA(DisplayName = "Max", ToolTip="..."),
-	Pivot UMETA(DisplayName = "Pivot", ToolTip="..."),
-	Custom UMETA(DisplayName = "Custom", ToolTip="..."),
+	Min    = 0 UMETA(DisplayName = "Min", ToolTip="..."),
+	Center = 1 UMETA(DisplayName = "Center", ToolTip="..."),
+	Max    = 2 UMETA(DisplayName = "Max", ToolTip="..."),
+	Pivot  = 3 UMETA(DisplayName = "Pivot", ToolTip="..."),
+	Custom = 4 UMETA(DisplayName = "Custom", ToolTip="..."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Justify To"))
 enum class EPCGExJustifyTo : uint8
 {
-	Same UMETA(DisplayName = "Same", ToolTip="..."),
-	Min UMETA(DisplayName = "Min", ToolTip="..."),
-	Center UMETA(DisplayName = "Center", ToolTip="..."),
-	Max UMETA(DisplayName = "Max", ToolTip="..."),
-	Pivot UMETA(DisplayName = "Pivot", ToolTip="..."),
-	Custom UMETA(DisplayName = "Custom", ToolTip="..."),
+	Same   = 0 UMETA(DisplayName = "Same", ToolTip="..."),
+	Min    = 1 UMETA(DisplayName = "Min", ToolTip="..."),
+	Center = 2 UMETA(DisplayName = "Center", ToolTip="..."),
+	Max    = 3 UMETA(DisplayName = "Max", ToolTip="..."),
+	Pivot  = 4 UMETA(DisplayName = "Pivot", ToolTip="..."),
+	Custom = 5 UMETA(DisplayName = "Custom", ToolTip="..."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Justify From"))
 enum class EPCGExVariationMode : uint8
 {
-	Disabled UMETA(DisplayName = "Disabled", ToolTip="..."),
-	Before UMETA(DisplayName = "Before fitting", ToolTip="Variation are applied to the point that will be fitted"),
-	After UMETA(DisplayName = "After fitting", ToolTip="Variation are applied to the fitted bounds"),
+	Disabled = 0 UMETA(DisplayName = "Disabled", ToolTip="..."),
+	Before   = 1 UMETA(DisplayName = "Before fitting", ToolTip="Variation are applied to the point that will be fitted"),
+	After    = 2 UMETA(DisplayName = "After fitting", ToolTip="Variation are applied to the fitted bounds"),
 };
 
 USTRUCT(BlueprintType)

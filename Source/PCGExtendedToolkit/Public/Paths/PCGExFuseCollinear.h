@@ -27,12 +27,13 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
+	virtual FName GetPointFilterLabel() const override { return FName("Keep Conditions"); }
+	virtual FString GetPointFilterTooltip() const override { return TEXT("List of filters that are checked to know whether a point can be removed or must be kept."); }
+
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-
-	virtual FName GetPointFilterLabel() const override;
 
 public:
 	/** Angular threshold for collinearity. */
@@ -83,7 +84,16 @@ namespace PCGExFuseCollinear
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		FPCGExFuseCollinearContext* LocalTypedContext = nullptr;
+
 		bool bClosedPath = false;
+
+		TArray<FPCGPoint>* OutPoints = nullptr;
+		
+		FVector LastPosition = FVector::ZeroVector;
+		FVector CurrentDirection = FVector::ZeroVector;
+
+		int32 MaxIndex = 0;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
@@ -94,5 +104,8 @@ namespace PCGExFuseCollinear
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void CompleteWork() override;
 	};
 }

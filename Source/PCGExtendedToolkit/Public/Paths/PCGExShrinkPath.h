@@ -13,32 +13,32 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Mode"))
 enum class EPCGExPathShrinkMode : uint8
 {
-	Count UMETA(DisplayName = "Count", ToolTip="TBD"),
-	Distance UMETA(DisplayName = "Distance", ToolTip="TBD."),
+	Count    = 0 UMETA(DisplayName = "Count", ToolTip="TBD"),
+	Distance = 1 UMETA(DisplayName = "Distance", ToolTip="TBD."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type"))
 enum class EPCGExPathShrinkDistanceCutType : uint8
 {
-	NewPoint UMETA(DisplayName = "New Point", ToolTip="TBD"),
-	Previous UMETA(DisplayName = "Previous (Ceil)", ToolTip="TBD."),
-	Next UMETA(DisplayName = "Next (Floor)", ToolTip="TBD."),
-	Closest UMETA(DisplayName = "Closest (Round)", ToolTip="TBD."),
+	NewPoint = 0 UMETA(DisplayName = "New Point", ToolTip="TBD"),
+	Previous = 1 UMETA(DisplayName = "Previous (Ceil)", ToolTip="TBD."),
+	Next     = 2 UMETA(DisplayName = "Next (Floor)", ToolTip="TBD."),
+	Closest  = 3 UMETA(DisplayName = "Closest (Round)", ToolTip="TBD."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Endpoint"))
 enum class EPCGExShrinkEndpoint : uint8
 {
-	Both UMETA(DisplayName = "Start and End", ToolTip="TBD"),
-	Start UMETA(DisplayName = "Start", ToolTip="TBD."),
-	End UMETA(DisplayName = "End", ToolTip="TBD."),
+	Both  = 0 UMETA(DisplayName = "Start and End", ToolTip="TBD"),
+	Start = 1 UMETA(DisplayName = "Start", ToolTip="TBD."),
+	End   = 2 UMETA(DisplayName = "End", ToolTip="TBD."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Constant Mode"))
 enum class EPCGExShrinkConstantMode : uint8
 {
-	Shared UMETA(DisplayName = "Shared", ToolTip="Both start & end distance use the primary value."),
-	Separate UMETA(DisplayName = "Separate", ToolTip="Start will use the primary value, end will use the secondary value..")
+	Shared   = 0 UMETA(DisplayName = "Shared", ToolTip="Both start & end distance use the primary value."),
+	Separate = 1 UMETA(DisplayName = "Separate", ToolTip="Start will use the primary value, end will use the secondary value..")
 };
 
 USTRUCT(BlueprintType)

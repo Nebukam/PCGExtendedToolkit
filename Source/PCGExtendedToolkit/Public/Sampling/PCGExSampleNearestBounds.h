@@ -25,11 +25,11 @@ MACRO(NumSamples, int32)
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))
 enum class EPCGExBoundsSampleMethod : uint8
 {
-	WithinRange UMETA(DisplayName = "All", ToolTip="Process all overlapping bounds"),
-	ClosestBounds UMETA(DisplayName = "Closest Bounds", ToolTip="Picks & process the closest bounds only"),
-	FarthestBounds UMETA(DisplayName = "Farthest Bounds", ToolTip="Picks & process the farthest bounds only"),
-	LargestBounds UMETA(DisplayName = "Largest Bounds", ToolTip="Picks & process the largest bounds only (extents length)"),
-	SmallestBounds UMETA(DisplayName = "Smallest Bounds", ToolTip="Picks & process the smallest bounds only (extents length)"),
+	WithinRange    = 0 UMETA(DisplayName = "All", ToolTip="Process all overlapping bounds"),
+	ClosestBounds  = 1 UMETA(DisplayName = "Closest Bounds", ToolTip="Picks & process the closest bounds only"),
+	FarthestBounds = 2 UMETA(DisplayName = "Farthest Bounds", ToolTip="Picks & process the farthest bounds only"),
+	LargestBounds  = 3 UMETA(DisplayName = "Largest Bounds", ToolTip="Picks & process the largest bounds only (extents length)"),
+	SmallestBounds = 4 UMETA(DisplayName = "Smallest Bounds", ToolTip="Picks & process the smallest bounds only (extents length)"),
 };
 
 namespace PCGExDataBlending
@@ -142,7 +142,7 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual FName GetPointFilterLabel() const override;
+	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourcePointFiltersLabel; }
 	//~End UPCGExPointsProcessorSettings
 
 public:

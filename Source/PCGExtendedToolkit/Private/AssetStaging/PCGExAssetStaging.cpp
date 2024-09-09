@@ -173,21 +173,12 @@ namespace PCGExAssetStaging
 	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
 	{
 		PointDataFacade->Fetch(StartIndex, Count);
+		FilterScope(StartIndex, Count);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		// Note : Prototype implementation
-
-		const FPCGExAssetStagingData* StagingData = nullptr;
-
-		const int32 Seed = PCGExRandom::GetSeedFromPoint(
-			Helper->Details.SeedComponents, Point,
-			Helper->Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
-
-		Helper->GetStaging(StagingData, Index, Seed);
-
-		if (!StagingData || !StagingData->Bounds.IsValid)
+		auto InvalidPoint = [&]()
 		{
 			if (LocalSettings->bPruneEmptyPoints)
 			{
@@ -206,7 +197,25 @@ namespace PCGExAssetStaging
 				if (WeightWriter) { WeightWriter->Values[Index] = -1; }
 				else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = -1; }
 			}
+		};
 
+		if (!PointFilterCache[Index])
+		{
+			InvalidPoint();
+			return;
+		}
+
+		const FPCGExAssetStagingData* StagingData = nullptr;
+
+		const int32 Seed = PCGExRandom::GetSeedFromPoint(
+			Helper->Details.SeedComponents, Point,
+			Helper->Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
+
+		Helper->GetStaging(StagingData, Index, Seed);
+
+		if (!StagingData || !StagingData->Bounds.IsValid)
+		{
+			InvalidPoint();
 			return;
 		}
 

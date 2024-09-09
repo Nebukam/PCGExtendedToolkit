@@ -19,9 +19,9 @@ namespace PCGExProbing
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExProbeTargetMode : uint8
 {
-	Target UMETA(DisplayName = "Target", ToolTip="Target index is used as-is to create a connection"),
-	OneWayOffset UMETA(DisplayName = "One-way Offset", ToolTip="Target index is used as an offset value from the current point' index"),
-	TwoWayOffset UMETA(DisplayName = "Two-way Offset", ToolTip="Target index is used as both a positive and negative offset value from the current point' index"),
+	Target       = 0 UMETA(DisplayName = "Target", ToolTip="Target index is used as-is to create a connection"),
+	OneWayOffset = 1 UMETA(DisplayName = "One-way Offset", ToolTip="Target index is used as an offset value from the current point' index"),
+	TwoWayOffset = 2 UMETA(DisplayName = "Two-way Offset", ToolTip="Target index is used as both a positive and negative offset value from the current point' index"),
 };
 
 USTRUCT(BlueprintType)

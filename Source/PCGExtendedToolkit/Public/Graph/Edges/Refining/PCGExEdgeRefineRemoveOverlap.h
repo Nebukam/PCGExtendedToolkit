@@ -13,8 +13,8 @@ class UPCGExHeuristicDistance;
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Overlap Pick"))
 enum class EPCGExEdgeOverlapPick : uint8
 {
-	Shortest UMETA(DisplayName = "Shortest", ToolTip="Keep the shortest edge"),
-	Longest UMETA(DisplayName = "Longest", ToolTip="Keep the longest edge"),
+	Shortest = 0 UMETA(DisplayName = "Shortest", ToolTip="Keep the shortest edge"),
+	Longest  = 1 UMETA(DisplayName = "Longest", ToolTip="Keep the longest edge"),
 };
 
 namespace PCGExCluster

@@ -235,9 +235,7 @@ namespace PCGExDataBlending
 			else { Op->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource); }
 		}
 
-		FirstPointOperation.SetNum(PrimaryPoints->Num());
+		FirstPointOperation.Init(bInitFirstOperation, PrimaryPoints->Num());
 
-		if (bInitFirstOperation) { for (bool& bFirstOp : FirstPointOperation) { bFirstOp = true; } }
-		else { for (bool& bFirstOp : FirstPointOperation) { bFirstOp = false; } }
 	}
 }

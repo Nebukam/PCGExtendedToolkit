@@ -14,8 +14,8 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
 enum class EPCGExProbeDirectionPriorization : uint8
 {
-	Dot UMETA(DisplayName = "Best alignment", ToolTip="Favor the candidates that best align with the direction, as opposed to closest ones."),
-	Dist UMETA(DisplayName = "Closest position", ToolTip="Favor the candidates that are the closest, even if they were not the best aligned."),
+	Dot  = 0 UMETA(DisplayName = "Best alignment", ToolTip="Favor the candidates that best align with the direction, as opposed to closest ones."),
+	Dist = 1 UMETA(DisplayName = "Closest position", ToolTip="Favor the candidates that are the closest, even if they were not the best aligned."),
 };
 
 USTRUCT(BlueprintType)

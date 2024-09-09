@@ -28,8 +28,7 @@ namespace PCGExPointFilter
 	{
 		if (!bCacheResults) { return; }
 		const int32 NumResults = PointDataFacade->Source->GetNum();
-		Results.SetNumUninitialized(NumResults);
-		for (bool& Result : Results) { Result = false; }
+		Results.Init(false, NumResults);
 	}
 
 	bool TFilter::Test(const int32 Index) const { return DefaultResult; }
@@ -111,7 +110,6 @@ namespace PCGExPointFilter
 	void TManager::InitCache()
 	{
 		const int32 NumResults = PointDataFacade->Source->GetNum();
-		Results.SetNumUninitialized(NumResults);
-		for (bool& Result : Results) { Result = false; }
+		Results.Init(false, NumResults);
 	}
 }

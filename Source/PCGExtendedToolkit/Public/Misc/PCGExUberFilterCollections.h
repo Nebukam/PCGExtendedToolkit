@@ -14,9 +14,9 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode"))
 enum class EPCGExUberFilterCollectionsMode : uint8
 {
-	All UMETA(DisplayName = "All", ToolTip="All points must pass the filters."),
-	Any UMETA(DisplayName = "Any", ToolTip="At least one point must pass the filter."),
-	Partial UMETA(DisplayName = "Partial", ToolTip="A given amount of points must pass the filter."),
+	All     = 0 UMETA(DisplayName = "All", ToolTip="All points must pass the filters."),
+	Any     = 1 UMETA(DisplayName = "Any", ToolTip="At least one point must pass the filter."),
+	Partial = 2 UMETA(DisplayName = "Partial", ToolTip="A given amount of points must pass the filter."),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -39,7 +39,8 @@ public:
 #endif
 
 protected:
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual bool RequiresPointFilters() const override { return true; }
+	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourceFiltersLabel; }
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -115,9 +116,6 @@ namespace PCGExUberFilterCollections
 		int32 NumPoints = 0;
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
-
-
-		PCGExPointFilter::TManager* LocalFilterManager = nullptr;
 
 	public:
 		PCGExData::FPointIO* Inside = nullptr;

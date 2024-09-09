@@ -12,7 +12,6 @@
 TArray<FPCGPinProperties> UPCGExBevelPathSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExBevelPath::SourceBevelFilters, "Filters used to know if a point should be Beveled", Normal, {})
 	if (Type == EPCGExBevelProfileType::Custom) { PCGEX_PIN_POINT(PCGExBevelPath::SourceCustomProfile, "Single path used as bevel profile", Required, {}) }
 	return PinProperties;
 }
@@ -37,7 +36,6 @@ FPCGExBevelPathContext::~FPCGExBevelPathContext()
 	PCGEX_DELETE_FACADE_AND_SOURCE(CustomProfileFacade)
 
 	CustomProfilePositions.Empty();
-	BevelFilterFactories.Empty();
 }
 
 bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
@@ -45,8 +43,6 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BevelPath)
-
-	GetInputFactories(Context, PCGExBevelPath::SourceBevelFilters, Context->BevelFilterFactories, PCGExFactories::PointFilters, false);
 
 	if (Settings->bFlagEndpoints) { PCGEX_VALIDATE_NAME(Settings->EndpointsFlagName) }
 	if (Settings->bFlagStartPoint) { PCGEX_VALIDATE_NAME(Settings->StartPointFlagName) }
@@ -305,12 +301,6 @@ namespace PCGExBevelPath
 
 		PCGEX_SET_NUM_NULLPTR(Bevels, PointIO->GetNum())
 
-		if (!InitPrimaryFilters(&TypedContext->BevelFilterFactories))
-		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Some filter data is invalid or missing."));
-			return false;
-		}
-
 		if (Settings->WidthSource == EPCGExFetchType::Attribute)
 		{
 			WidthGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->WidthAttribute);
@@ -360,8 +350,7 @@ namespace PCGExBevelPath
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
-
-				if (PrimaryFilters) { for (int i = 0; i < Count; i++) { PointFilterCache[i + StartIndex] = PrimaryFilters->Test(i + StartIndex); } }
+				FilterScope(StartIndex, Count);
 
 				if (!bClosedPath)
 				{

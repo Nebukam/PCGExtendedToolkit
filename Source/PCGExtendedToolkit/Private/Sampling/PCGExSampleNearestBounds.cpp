@@ -31,8 +31,6 @@ PCGExData::EInit UPCGExSampleNearestBoundsSettings::GetMainOutputInitMode() cons
 
 int32 UPCGExSampleNearestBoundsSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
-FName UPCGExSampleNearestBoundsSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(SampleNearestBounds)
 
 FPCGExSampleNearestBoundsContext::~FPCGExSampleNearestBoundsContext()

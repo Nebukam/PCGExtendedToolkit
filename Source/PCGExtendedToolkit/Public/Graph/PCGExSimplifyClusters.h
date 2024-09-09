@@ -23,11 +23,14 @@ public:
 #endif
 
 protected:
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UPCGExEdgesProcessorSettings interface
+	//~Begin UPCGExEdgesProcessorSettings interface	
+	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return PCGExFactories::ClusterEdgeFilters; }
+	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourceKeepConditionLabel; }
+	virtual FString GetPointFilterTooltip() const override { return TEXT("Kept points are unaffected by the simplification."); }
+	
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
@@ -83,7 +86,7 @@ namespace PCGExSimplifyClusters
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-		TArray<bool> Breakpoints;
+		TBitArray<> Breakpoints;
 
 		TArray<PCGExCluster::FNodeChain*> Chains;
 

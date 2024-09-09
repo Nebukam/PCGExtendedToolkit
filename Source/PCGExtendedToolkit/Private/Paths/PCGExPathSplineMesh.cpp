@@ -234,11 +234,18 @@ namespace PCGExPathSplineMesh
 	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
 	{
 		PointDataFacade->Fetch(StartIndex, Count);
+		FilterScope(StartIndex, Count);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		if (Index == LastIndex && !bClosedPath) { return; } // Ignore last index, only used for maths reasons
+
+		if (!PointFilterCache[Index])
+		{
+			Segments[Index] = PCGExPaths::FSplineMeshSegment();
+			return;
+		}
 
 		const FPCGExAssetStagingData* StagingData = nullptr;
 

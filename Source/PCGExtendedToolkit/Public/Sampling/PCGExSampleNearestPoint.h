@@ -117,11 +117,12 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
+	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourcePointFiltersLabel; }
+
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual FName GetPointFilterLabel() const override;
 	//~End UPCGExPointsProcessorSettings
 
 public:

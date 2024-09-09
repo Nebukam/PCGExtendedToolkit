@@ -13,8 +13,8 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
 enum class EPCGExOrientUsage : uint8
 {
-	ApplyToPoint UMETA(DisplayName = "Apply to point", ToolTip="Applies the orientation transform to the point"),
-	OutputToAttribute UMETA(DisplayName = "Output to attribute", ToolTip="Output the orientation transform to an attribute"),
+	ApplyToPoint      = 0 UMETA(DisplayName = "Apply to point", ToolTip="Applies the orientation transform to the point"),
+	OutputToAttribute = 1 UMETA(DisplayName = "Output to attribute", ToolTip="Output the orientation transform to an attribute"),
 };
 
 namespace PCGExOrient

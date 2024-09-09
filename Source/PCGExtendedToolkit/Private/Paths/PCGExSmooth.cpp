@@ -137,7 +137,6 @@ namespace PCGExSmooth
 	{
 		if (!PointFilterCache[Index]) { return; }
 
-
 		PCGExData::FPointRef PtRef = PointIO->GetOutPointRef(Index);
 		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Values[Index], 0, TNumericLimits<double>::Max()) * LocalSettings->ScaleSmoothingAmountAttribute : LocalSettings->SmoothingAmountConstant;
 

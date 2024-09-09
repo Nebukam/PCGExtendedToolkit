@@ -8,13 +8,6 @@
 
 PCGExData::EInit UPCGExSampleOverlapStatsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-TArray<FPCGPinProperties> UPCGExSampleOverlapStatsSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, "Filters used to know whether a point should be considered for overlap or not.", Normal, {})
-	return PinProperties;
-}
-
 FPCGExSampleOverlapStatsContext::~FPCGExSampleOverlapStatsContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -72,8 +65,6 @@ bool FPCGExSampleOverlapStatsElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	GetInputFactories(Context, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories, PCGExFactories::PointFilters, false);
-
 	return true;
 }
 
@@ -91,7 +82,6 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>* NewBatch)
 			{
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = true;
 			},
 			PCGExMT::State_Done))
@@ -138,6 +128,8 @@ namespace PCGExSampleOverlapStats
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleOverlapStats)
 
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
@@ -151,7 +143,6 @@ namespace PCGExSampleOverlapStats
 		// 1 - Build bounds & octrees
 
 		InPoints = &PointIO->GetIn()->GetPoints();
-
 		NumPoints = InPoints->Num();
 
 		PCGEX_SET_NUM_UNINITIALIZED(LocalPointBounds, NumPoints)
@@ -160,8 +151,6 @@ namespace PCGExSampleOverlapStats
 
 		PCGExMT::FTaskGroup* BoundsPreparationTask = AsyncManager->CreateGroup();
 
-		// TODO : Optimisation for huge data set would be to first compute rough overlap
-		// and then only add points within the overlap to the octree, as opposed to every single point.
 		BoundsPreparationTask->SetOnCompleteCallback(
 			[&]()
 			{
@@ -171,6 +160,13 @@ namespace PCGExSampleOverlapStats
 					if (!PtBounds) { continue; }
 					Octree->AddElement(PtBounds);
 				}
+			});
+
+		BoundsPreparationTask->SetOnIterationRangeStartCallback(
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				PointDataFacade->Fetch(StartIndex, Count);
+				FilterScope(StartIndex, Count);
 			});
 
 		switch (Settings->BoundsSource)
@@ -219,7 +215,6 @@ namespace PCGExSampleOverlapStats
 
 		FOverlap* ManagedOverlap = ManagedOverlaps[Index];
 		const FProcessor* OtherProcessor = static_cast<FProcessor*>(*ParentBatch->SubProcessorMap->Find(ManagedOverlap->GetOther(this)->PointDataFacade->Source));
-
 
 		Octree->FindElementsWithBoundsTest(
 			FBoxCenterAndExtent(ManagedOverlap->Intersection.GetCenter(), ManagedOverlap->Intersection.GetExtent()),

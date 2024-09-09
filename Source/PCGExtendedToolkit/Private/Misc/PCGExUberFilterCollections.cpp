@@ -10,16 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExUberFilterCollections"
 #define PCGEX_NAMESPACE UberFilterCollections
 
-TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-
-	PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {})
-	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, GetPointFilterTooltip(), Required, {})
-
-	return PinProperties;
-}
-
 TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -45,14 +35,6 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilterCollections)
-
-	if (!GetInputFactories(
-		InContext, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories,
-		PCGExFactories::PointFilters, true))
-	{
-		PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(PCGExPointFilter::SourceFiltersLabel)));
-		return false;
-	}
 
 	Context->Inside = new PCGExData::FPointIOCollection(Context);
 	Context->Outside = new PCGExData::FPointIOCollection(Context);
@@ -107,7 +89,6 @@ namespace PCGExUberFilterCollections
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(LocalFilterManager)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -123,9 +104,6 @@ namespace PCGExUberFilterCollections
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		LocalFilterManager = new PCGExPointFilter::TManager(PointDataFacade);
-		if (!LocalFilterManager->Init(Context, TypedContext->FilterFactories)) { return false; }
-
 		NumPoints = PointIO->GetNum();
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -136,11 +114,12 @@ namespace PCGExUberFilterCollections
 	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
 	{
 		PointDataFacade->Fetch(StartIndex, Count);
+		FilterScope(StartIndex, Count);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		if (LocalFilterManager->Test(Index)) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
+		if (PointFilterCache[Index]) { FPlatformAtomics::InterlockedAdd(&NumInside, 1); }
 		else { FPlatformAtomics::InterlockedAdd(&NumOutside, 1); }
 	}
 

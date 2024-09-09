@@ -43,7 +43,8 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourceFiltersLabel; }
+	virtual FString GetPointFilterTooltip() const override { return TEXT("Filters used to know whether a point should be considered for overlap or not."); }
 	//~End UPCGExPointsProcessorSettings
 
 public:

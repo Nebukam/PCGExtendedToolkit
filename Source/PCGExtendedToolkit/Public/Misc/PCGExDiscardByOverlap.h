@@ -12,15 +12,15 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Overlap Test Mode"))
 enum class EPCGExOverlapTestMode : uint8
 {
-	Fast UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
-	Precise UMETA(DisplayName = "Precise", ToolTip="Test every points' bounds"),
+	Fast    = 0 UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
+	Precise = 1 UMETA(DisplayName = "Precise", ToolTip="Test every points' bounds"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Overlap Pruning Logic"))
 enum class EPCGExOverlapPruningLogic : uint8
 {
-	LowFirst UMETA(DisplayName = "Low to High", ToolTip="Lower weights are pruned first."),
-	HighFirst UMETA(DisplayName = "High to Low", ToolTip="Higher weights are pruned first."),
+	LowFirst  = 0 UMETA(DisplayName = "Low to High", ToolTip="Lower weights are pruned first."),
+	HighFirst = 1 UMETA(DisplayName = "High to Low", ToolTip="Higher weights are pruned first."),
 };
 
 USTRUCT(BlueprintType)
@@ -110,9 +110,11 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
+	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourcePointFiltersLabel; }
+	virtual FString GetPointFilterTooltip() const override { return TEXT("Filter which points can be considered for overlap."); }
+
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGExPointsProcessorSettings
 
 public:
@@ -353,13 +355,18 @@ namespace PCGExDiscardByOverlap
 		FORCEINLINE void RegisterPointBounds(const int32 Index, FPointBounds* InPointBounds)
 		{
 			const bool bValidPoint = PointFilterCache[Index];
-			if (!bValidPoint && !LocalSettings->bIncludeFilteredInMetrics) { return; }
+			if (!bValidPoint && !LocalSettings->bIncludeFilteredInMetrics)
+			{
+				PCGEX_DELETE(InPointBounds)
+				return;
+			}
 
 			const FBox& B = InPointBounds->Bounds.GetBox();
 			Bounds += B;
 			TotalVolume += B.GetVolume();
 
 			if (bValidPoint) { LocalPointBounds[Index] = InPointBounds; }
+			else { PCGEX_DELETE(InPointBounds) }
 		}
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;

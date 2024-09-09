@@ -197,7 +197,7 @@ namespace PCGExShrinkPath
 		};
 
 		int32 StartOffset = 0;
-		int32 EndOffset = 0;
+		int32 EndOffset = 1;
 
 		EPCGExShrinkEndpoint SafeShrinkFirst = Settings->ShrinkFirst;
 
@@ -261,7 +261,7 @@ namespace PCGExShrinkPath
 				}
 				else
 				{
-					if (PointFilterCache.Last(EndOffset)) { return; }
+					if (PointFilterCache[PointFilterCache.Num() - EndOffset]) { return; }
 
 					const int32 LastIndex = MutablePoints.Num() - 1;
 					if (MutablePoints.IsValidIndex(LastIndex)) { RemoveIndex = LastIndex; }

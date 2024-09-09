@@ -284,8 +284,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bOutputFilteredSeeds)
 	{
 		const int32 NumSeeds = SeedsPoints->GetNum();
-		PCGEX_SET_NUM_UNINITIALIZED(Context->SeedQuality, NumSeeds)
-		for (bool& Quality : Context->SeedQuality) { Quality = false; }
+		Context->SeedQuality.Init(false, NumSeeds);
 
 		Context->GoodSeeds = new PCGExData::FPointIO(Context, SeedsPoints);
 		Context->GoodSeeds->InitializeOutput(PCGExData::EInit::NewOutput);

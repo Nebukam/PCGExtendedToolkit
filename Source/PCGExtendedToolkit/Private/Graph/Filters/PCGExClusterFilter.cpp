@@ -32,8 +32,7 @@ namespace PCGExClusterFilter
 	{
 		if (!bCacheResults) { return; }
 		const int32 NumResults = GetFilterType() == PCGExFilters::EType::Node ? Cluster->Nodes->Num() : EdgeDataFacade->Source->GetNum();
-		Results.SetNumUninitialized(NumResults);
-		for (bool& Result : Results) { Result = false; }
+		Results.Init(false, NumResults);
 	}
 
 	TManager::TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
@@ -56,7 +55,6 @@ namespace PCGExClusterFilter
 	void TManager::InitCache()
 	{
 		const int32 NumResults = Cluster->Nodes->Num();
-		Results.SetNumUninitialized(NumResults);
-		for (bool& Result : Results) { Result = false; }
+		Results.Init(false,NumResults);
 	}
 }

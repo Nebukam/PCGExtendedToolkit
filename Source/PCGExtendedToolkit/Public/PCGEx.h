@@ -14,124 +14,124 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Ordered Field Selection"))
 enum class EPCGExOrderedFieldSelection : uint8
 {
-	X UMETA(DisplayName = "X", ToolTip="X/Roll component if it exist, raw value otherwise."),
-	Y UMETA(DisplayName = "Y (→x)", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
-	Z UMETA(DisplayName = "Z (→y)", ToolTip="Z/Yaw component if it exist, fallback to previous value otherwise."),
-	W UMETA(DisplayName = "W (→z)", ToolTip="W component if it exist, fallback to previous value otherwise."),
-	XYZ UMETA(DisplayName = "X→Y→Z", ToolTip="X, then Y, then Z. Mostly for comparisons, fallback to X/Roll otherwise"),
-	XZY UMETA(DisplayName = "X→Z→Y", ToolTip="X, then Z, then Y. Mostly for comparisons, fallback to X/Roll otherwise"),
-	YXZ UMETA(DisplayName = "Y→X→Z", ToolTip="Y, then X, then Z. Mostly for comparisons, fallback to Y/Pitch otherwise"),
-	YZX UMETA(DisplayName = "Y→Z→X", ToolTip="Y, then Z, then X. Mostly for comparisons, fallback to Y/Pitch otherwise"),
-	ZXY UMETA(DisplayName = "Z→X→Y", ToolTip="Z, then X, then Y. Mostly for comparisons, fallback to Z/Yaw otherwise"),
-	ZYX UMETA(DisplayName = "Z→Y→X", ToolTip="Z, then Y, then Z. Mostly for comparisons, fallback to Z/Yaw otherwise"),
-	Length UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
+	X      = 0 UMETA(DisplayName = "X", ToolTip="X/Roll component if it exist, raw value otherwise."),
+	Y      = 1 UMETA(DisplayName = "Y (→x)", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
+	Z      = 2 UMETA(DisplayName = "Z (→y)", ToolTip="Z/Yaw component if it exist, fallback to previous value otherwise."),
+	W      = 3 UMETA(DisplayName = "W (→z)", ToolTip="W component if it exist, fallback to previous value otherwise."),
+	XYZ    = 4 UMETA(DisplayName = "X→Y→Z", ToolTip="X, then Y, then Z. Mostly for comparisons, fallback to X/Roll otherwise"),
+	XZY    = 5 UMETA(DisplayName = "X→Z→Y", ToolTip="X, then Z, then Y. Mostly for comparisons, fallback to X/Roll otherwise"),
+	YXZ    = 6 UMETA(DisplayName = "Y→X→Z", ToolTip="Y, then X, then Z. Mostly for comparisons, fallback to Y/Pitch otherwise"),
+	YZX    = 7 UMETA(DisplayName = "Y→Z→X", ToolTip="Y, then Z, then X. Mostly for comparisons, fallback to Y/Pitch otherwise"),
+	ZXY    = 8 UMETA(DisplayName = "Z→X→Y", ToolTip="Z, then X, then Y. Mostly for comparisons, fallback to Z/Yaw otherwise"),
+	ZYX    = 9 UMETA(DisplayName = "Z→Y→X", ToolTip="Z, then Y, then Z. Mostly for comparisons, fallback to Z/Yaw otherwise"),
+	Length = 10 UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
 enum class EPCGExTransformComponent : uint8
 {
-	Position UMETA(DisplayName = "Position", ToolTip="Position component."),
-	Rotation UMETA(DisplayName = "Rotation", ToolTip="Rotation component."),
-	Scale UMETA(DisplayName = "Scale", ToolTip="Scale component."),
+	Position = 0 UMETA(DisplayName = "Position", ToolTip="Position component."),
+	Rotation = 1 UMETA(DisplayName = "Rotation", ToolTip="Rotation component."),
+	Scale    = 2 UMETA(DisplayName = "Scale", ToolTip="Scale component."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Minimal Axis"))
 enum class EPCGExMinimalAxis : uint8
 {
-	None UMETA(DisplayName = "None", ToolTip="None"),
-	X UMETA(DisplayName = "X", ToolTip="X Axis"),
-	Y UMETA(DisplayName = "Y", ToolTip="Y Axis"),
-	Z UMETA(DisplayName = "Z", ToolTip="Z Axis"),
+	None = 0 UMETA(DisplayName = "None", ToolTip="None"),
+	X    = 1 UMETA(DisplayName = "X", ToolTip="X Axis"),
+	Y    = 2 UMETA(DisplayName = "Y", ToolTip="Y Axis"),
+	Z    = 3 UMETA(DisplayName = "Z", ToolTip="Z Axis"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Single Component Selector"))
 enum class EPCGExSingleField : uint8
 {
-	X UMETA(DisplayName = "X/Roll", ToolTip="X/Roll component if it exist, raw value otherwise."),
-	Y UMETA(DisplayName = "Y/Pitch", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
-	Z UMETA(DisplayName = "Z/Yaw", ToolTip="Z/Yaw component if it exist, fallback to previous value otherwise."),
-	W UMETA(DisplayName = "W", ToolTip="W component if it exist, fallback to previous value otherwise."),
-	Length UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
+	X      = 0 UMETA(DisplayName = "X/Roll", ToolTip="X/Roll component if it exist, raw value otherwise."),
+	Y      = 1 UMETA(DisplayName = "Y/Pitch", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
+	Z      = 2 UMETA(DisplayName = "Z/Yaw", ToolTip="Z/Yaw component if it exist, fallback to previous value otherwise."),
+	W      = 3 UMETA(DisplayName = "W", ToolTip="W component if it exist, fallback to previous value otherwise."),
+	Length = 4 UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Axis Selector"))
 enum class EPCGExAxis : uint8
 {
-	Forward UMETA(DisplayName = "Default (Forward)", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
-	Backward UMETA(DisplayName = "Backward", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
-	Right UMETA(DisplayName = "Right", ToolTip="Right from Transform/FQuat/Rotator, or raw vector."),
-	Left UMETA(DisplayName = "Left", ToolTip="Left from Transform/FQuat/Rotator, or raw vector."),
-	Up UMETA(DisplayName = "Up", ToolTip="Up from Transform/FQuat/Rotator, or raw vector."),
-	Down UMETA(DisplayName = "Down", ToolTip="Down from Transform/FQuat/Rotator, or raw vector."),
-	Euler UMETA(DisplayName = "Euler", ToolTip="Fetch Euler from Transform.GetRotation/FQuat/Rotator."),
+	Forward  = 0 UMETA(DisplayName = "Default (Forward)", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
+	Backward = 1 UMETA(DisplayName = "Backward", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
+	Right    = 2 UMETA(DisplayName = "Right", ToolTip="Right from Transform/FQuat/Rotator, or raw vector."),
+	Left     = 3 UMETA(DisplayName = "Left", ToolTip="Left from Transform/FQuat/Rotator, or raw vector."),
+	Up       = 4 UMETA(DisplayName = "Up", ToolTip="Up from Transform/FQuat/Rotator, or raw vector."),
+	Down     = 5 UMETA(DisplayName = "Down", ToolTip="Down from Transform/FQuat/Rotator, or raw vector."),
+	Euler    = 6 UMETA(DisplayName = "Euler", ToolTip="Fetch Euler from Transform.GetRotation/FQuat/Rotator."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Axis Alignment Selector"))
 enum class EPCGExAxisAlign : uint8
 {
-	Forward UMETA(DisplayName = "Forward", ToolTip="..."),
-	Backward UMETA(DisplayName = "Backward", ToolTip="..."),
-	Right UMETA(DisplayName = "Right", ToolTip="..."),
-	Left UMETA(DisplayName = "Left", ToolTip="..."),
-	Up UMETA(DisplayName = "Up", ToolTip="..."),
-	Down UMETA(DisplayName = "Down", ToolTip="..."),
+	Forward  = 0 UMETA(DisplayName = "Forward", ToolTip="..."),
+	Backward = 1 UMETA(DisplayName = "Backward", ToolTip="..."),
+	Right    = 2 UMETA(DisplayName = "Right", ToolTip="..."),
+	Left     = 3 UMETA(DisplayName = "Left", ToolTip="..."),
+	Up       = 4 UMETA(DisplayName = "Up", ToolTip="..."),
+	Down     = 5 UMETA(DisplayName = "Down", ToolTip="..."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Extent Type Selector"))
 enum class EPCGExExtension : uint8
 {
-	None UMETA(DisplayName = "None", ToolTip="No Extension"),
-	Extents UMETA(DisplayName = "Extents", ToolTip="Extents"),
-	Scale UMETA(DisplayName = "Scale", ToolTip="Scale"),
-	ScaledExtents UMETA(DisplayName = "Scaled Extents", ToolTip="Scaled extents"),
+	None          = 0 UMETA(DisplayName = "None", ToolTip="No Extension"),
+	Extents       = 1 UMETA(DisplayName = "Extents", ToolTip="Extents"),
+	Scale         = 2 UMETA(DisplayName = "Scale", ToolTip="Scale"),
+	ScaledExtents = 3 UMETA(DisplayName = "Scaled Extents", ToolTip="Scaled extents"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distance Reference Selector"))
 enum class EPCGExDistance : uint8
 {
-	Center UMETA(DisplayName = "Center", ToolTip="Center"),
-	SphereBounds UMETA(DisplayName = "Sphere Bounds", ToolTip="Point sphere which radius is scaled extent"),
-	BoxBounds UMETA(DisplayName = "Box Bounds", ToolTip="Point extents"),
+	Center       = 0 UMETA(DisplayName = "Center", ToolTip="Center"),
+	SphereBounds = 1 UMETA(DisplayName = "Sphere Bounds", ToolTip="Point sphere which radius is scaled extent"),
+	BoxBounds    = 2 UMETA(DisplayName = "Box Bounds", ToolTip="Point extents"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Index Safety"))
 enum class EPCGExIndexSafety : uint8
 {
-	Ignore UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored."),
-	Tile UMETA(DisplayName = "Tile", Tooltip="Out of bounds indices are tiled."),
-	Clamp UMETA(DisplayName = "Clamp", Tooltip="Out of bounds indices are clamped."),
-	Yoyo UMETA(DisplayName = "Yoyo", Tooltip="Out of bounds indices are mirrored and back."),
+	Ignore = 0 UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored."),
+	Tile   = 1 UMETA(DisplayName = "Tile", Tooltip="Out of bounds indices are tiled."),
+	Clamp  = 2 UMETA(DisplayName = "Clamp", Tooltip="Out of bounds indices are clamped."),
+	Yoyo   = 3 UMETA(DisplayName = "Yoyo", Tooltip="Out of bounds indices are mirrored and back."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Collision Type Filter"))
 enum class EPCGExCollisionFilterType : uint8
 {
-	Channel UMETA(DisplayName = "Channel", ToolTip="Channel"),
-	ObjectType UMETA(DisplayName = "Object Type", ToolTip="Object Type"),
-	Profile UMETA(DisplayName = "Profile", ToolTip="Profile"),
+	Channel    = 0 UMETA(DisplayName = "Channel", ToolTip="Channel"),
+	ObjectType = 1 UMETA(DisplayName = "Object Type", ToolTip="Object Type"),
+	Profile    = 2 UMETA(DisplayName = "Profile", ToolTip="Profile"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Selector Type"))
 enum class EPCGExSelectorType : uint8
 {
-	SingleField UMETA(DisplayName = "Single Field", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
-	Direction UMETA(DisplayName = "Direction", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
+	SingleField = 0 UMETA(DisplayName = "Single Field", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
+	Direction   = 1 UMETA(DisplayName = "Direction", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Range Type"))
 enum class EPCGExRangeType : uint8
 {
-	FullRange UMETA(DisplayName = "Full Range", ToolTip="Normalize in the [0..1] range using [0..Max Value] range."),
-	EffectiveRange UMETA(DisplayName = "Effective Range", ToolTip="Remap the input [Min..Max] range to [0..1]."),
+	FullRange      = 0 UMETA(DisplayName = "Full Range", ToolTip="Normalize in the [0..1] range using [0..Max Value] range."),
+	EffectiveRange = 1 UMETA(DisplayName = "Effective Range", ToolTip="Remap the input [Min..Max] range to [0..1]."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Truncate Mode"))
 enum class EPCGExTruncateMode : uint8
 {
-	None UMETA(DisplayName = "None", ToolTip="None"),
-	Round UMETA(DisplayName = "Round", ToolTip="Round"),
-	Ceil UMETA(DisplayName = "Ceil", ToolTip="Ceil"),
-	Floor UMETA(DisplayName = "Floor", ToolTip="Floor"),
+	None  = 0 UMETA(DisplayName = "None", ToolTip="None"),
+	Round = 1 UMETA(DisplayName = "Round", ToolTip="Round"),
+	Ceil  = 2 UMETA(DisplayName = "Ceil", ToolTip="Ceil"),
+	Floor = 3 UMETA(DisplayName = "Floor", ToolTip="Floor"),
 };
 
 namespace PCGEx

@@ -38,36 +38,36 @@ if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Surface Source"))
 enum class EPCGExSurfaceSource : uint8
 {
-	All UMETA(DisplayName = "Any surface", ToolTip="Any surface within range will be tested"),
-	ActorReferences UMETA(DisplayName = "Actor Reference", ToolTip="Only a list of actor surfaces will be included."),
+	All             = 0 UMETA(DisplayName = "Any surface", ToolTip="Any surface within range will be tested"),
+	ActorReferences = 1 UMETA(DisplayName = "Actor Reference", ToolTip="Only a list of actor surfaces will be included."),
 };
 
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))
 enum class EPCGExSampleMethod : uint8
 {
-	WithinRange UMETA(DisplayName = "All (Within range)", ToolTip="Use RangeMax = 0 to include all targets"),
-	ClosestTarget UMETA(DisplayName = "Closest Target", ToolTip="Picks & process the closest target only"),
-	FarthestTarget UMETA(DisplayName = "Farthest Target", ToolTip="Picks & process the farthest target only"),
+	WithinRange    = 0 UMETA(DisplayName = "All (Within range)", ToolTip="Use RangeMax = 0 to include all targets"),
+	ClosestTarget  = 1 UMETA(DisplayName = "Closest Target", ToolTip="Picks & process the closest target only"),
+	FarthestTarget = 2 UMETA(DisplayName = "Farthest Target", ToolTip="Picks & process the farthest target only"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Source"))
 enum class EPCGExSampleSource : uint8
 {
-	Source UMETA(DisplayName = "Source", ToolTip="Read value on source"),
-	Target UMETA(DisplayName = "Target", ToolTip="Read value on target"),
-	Constant UMETA(DisplayName = "Constant", ToolTip="Read constant"),
+	Source   = 0 UMETA(DisplayName = "Source", ToolTip="Read value on source"),
+	Target   = 1 UMETA(DisplayName = "Target", ToolTip="Read value on target"),
+	Constant = 2 UMETA(DisplayName = "Constant", ToolTip="Read constant"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Angle Range"))
 enum class EPCGExAngleRange : uint8
 {
-	URadians UMETA(DisplayName = "Radians (0..+PI)", ToolTip="0..+PI"),
-	PIRadians UMETA(DisplayName = "Radians (-PI..+PI)", ToolTip="-PI..+PI"),
-	TAURadians UMETA(DisplayName = "Radians (0..+TAU)", ToolTip="0..TAU"),
-	UDegrees UMETA(DisplayName = "Degrees (0..+180)", ToolTip="0..+180"),
-	PIDegrees UMETA(DisplayName = "Degrees (-180..+180)", ToolTip="-180..+180"),
-	TAUDegrees UMETA(DisplayName = "Degrees (0..+360)", ToolTip="0..+360"),
+	URadians   = 0 UMETA(DisplayName = "Radians (0..+PI)", ToolTip="0..+PI"),
+	PIRadians  = 1 UMETA(DisplayName = "Radians (-PI..+PI)", ToolTip="-PI..+PI"),
+	TAURadians = 2 UMETA(DisplayName = "Radians (0..+TAU)", ToolTip="0..TAU"),
+	UDegrees   = 3 UMETA(DisplayName = "Degrees (0..+180)", ToolTip="0..+180"),
+	PIDegrees  = 4 UMETA(DisplayName = "Degrees (-180..+180)", ToolTip="-180..+180"),
+	TAUDegrees = 5 UMETA(DisplayName = "Degrees (0..+360)", ToolTip="0..+360"),
 };
 
 namespace PCGExSampling

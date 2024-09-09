@@ -265,7 +265,7 @@ namespace PCGExBuildDelaunay2D
 		TArray<bool> Hull;
 		TArray<int32> FinalSites;
 		FinalSites.Reserve(NumSites);
-		Hull.Reserve(NumSites);
+		Hull.Reserve(NumSites / 4);
 
 		for (int i = 0; i < NumSites; i++)
 		{

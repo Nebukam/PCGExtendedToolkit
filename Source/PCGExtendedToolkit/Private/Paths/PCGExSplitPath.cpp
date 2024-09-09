@@ -8,13 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExSplitPathElement"
 #define PCGEX_NAMESPACE SplitPath
 
-TArray<FPCGPinProperties> UPCGExSplitPathSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExSplitPath::SourceSplitFilters, "Filters used to know if a point should be split", Required, {})
-	return PinProperties;
-}
-
 PCGExData::EInit UPCGExSplitPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(SplitPath)
@@ -22,9 +15,6 @@ PCGEX_INITIALIZE_ELEMENT(SplitPath)
 FPCGExSplitPathContext::~FPCGExSplitPathContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	SplitFilterFactories.Empty();
-	RemoveFilterFactories.Empty();
 }
 
 bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
@@ -32,14 +22,6 @@ bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplitPath)
-
-	GetInputFactories(Context, PCGExSplitPath::SourceSplitFilters, Context->SplitFilterFactories, PCGExFactories::PointFilters, false);
-
-	if (Context->SplitFilterFactories.IsEmpty())
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing split filters"));
-		return false;
-	}
 
 	Context->MainPaths = new PCGExData::FPointIOCollection(Context);
 	Context->MainPaths->DefaultOutputLabel = Settings->GetMainOutputLabel();
@@ -71,7 +53,6 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>* NewBatch)
 			{
-				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			},
 			PCGExMT::State_Done))
 		{
@@ -99,7 +80,6 @@ namespace PCGExSplitPath
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(FilterManager)
 		PCGEX_DELETE_TARRAY(PathsIOs)
 		Paths.Empty();
 	}
@@ -109,34 +89,26 @@ namespace PCGExSplitPath
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
-
 		// Must be set before process for filters
 		PointDataFacade->bSupportsDynamic = true;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		
+		LocalTypedContext = TypedContext;
+		LocalSettings = Settings;
 
 		bClosedPath = Settings->bClosedPath;
-
-		if (!TypedContext->SplitFilterFactories.IsEmpty())
-		{
-			FilterManager = new PCGExPointFilter::TManager(PointDataFacade);
-			if (!FilterManager->Init(Context, TypedContext->SplitFilterFactories)) { PCGEX_DELETE(FilterManager) }
-		}
-
-		if (!FilterManager)
-		{
-			// TODO : Throw error/warning
-			return false;
-		}
 
 		const int32 NumPoints = PointIO->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
 
 		PCGExMT::FTaskGroup* TaskGroup = AsyncManager->CreateGroup();
 		TaskGroup->SetOnIterationRangeStartCallback(
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PointDataFacade->Fetch(StartIndex, Count); });
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				PointDataFacade->Fetch(StartIndex, Count);
+				FilterScope(StartIndex, Count);
+			});
 
 		switch (Settings->SplitAction)
 		{
@@ -157,7 +129,7 @@ namespace PCGExSplitPath
 			break;
 		case EPCGExPathSplitAction::Partition:
 			PointDataFacade->Fetch(0, 1);
-			bLastResult = FilterManager->Test(0);
+			bLastResult = PrimaryFilters->Test(0);
 			TaskGroup->StartRanges(
 				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionPartition(Index); },
 				NumPoints, ChunkSize, true);

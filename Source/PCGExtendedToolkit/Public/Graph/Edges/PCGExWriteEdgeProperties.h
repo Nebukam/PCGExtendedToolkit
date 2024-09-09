@@ -29,25 +29,25 @@ namespace PCGExWriteEdgeProperties
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Mode"))
 enum class EPCGExEdgeDirectionMethod : uint8
 {
-	EndpointsOrder UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
-	EndpointsIndices UMETA(DisplayName = "Endpoints Indices", ToolTip="Uses the edge' Start & End indices"),
-	EndpointsAttribute UMETA(DisplayName = "Endpoints Attribute", ToolTip="Uses a single-component property or attribute value on Start & End points"),
-	EdgeDotAttribute UMETA(DisplayName = "Edge Dot Attribute", ToolTip="Chooses the highest dot product against a vector property or attribute on the edge point"),
+	EndpointsOrder     = 0 UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
+	EndpointsIndices   = 1 UMETA(DisplayName = "Endpoints Indices", ToolTip="Uses the edge' Start & End indices"),
+	EndpointsAttribute = 2 UMETA(DisplayName = "Endpoints Attribute", ToolTip="Uses a single-component property or attribute value on Start & End points"),
+	EdgeDotAttribute   = 3 UMETA(DisplayName = "Edge Dot Attribute", ToolTip="Chooses the highest dot product against a vector property or attribute on the edge point"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Choice"))
 enum class EPCGExEdgeDirectionChoice : uint8
 {
-	SmallestToGreatest UMETA(DisplayName = "Smallest to Greatest", ToolTip="Direction points from smallest to greatest value"),
-	GreatestToSmallest UMETA(DisplayName = "Greatest to Smallest", ToolTip="Direction points from the greatest to smallest value")
+	SmallestToGreatest = 0 UMETA(DisplayName = "Smallest to Greatest", ToolTip="Direction points from smallest to greatest value"),
+	GreatestToSmallest = 1 UMETA(DisplayName = "Greatest to Smallest", ToolTip="Direction points from the greatest to smallest value")
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Heuristics Write Mode"))
 enum class EPCGExHeuristicsWriteMode : uint8
 {
-	EndpointsOrder UMETA(DisplayName = "Endpoints Order", ToolTip="Use endpoint order heuristics."),
-	Smallest UMETA(DisplayName = "Smallest Score", ToolTip="Compute heuristics both ways a keep smallest score"),
-	Highest UMETA(DisplayName = "Highest Score", ToolTip="Compute heuristics both ways a keep highest score."),
+	EndpointsOrder = 0 UMETA(DisplayName = "Endpoints Order", ToolTip="Use endpoint order heuristics."),
+	Smallest       = 1 UMETA(DisplayName = "Smallest Score", ToolTip="Compute heuristics both ways a keep smallest score"),
+	Highest        = 2 UMETA(DisplayName = "Highest Score", ToolTip="Compute heuristics both ways a keep highest score."),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")

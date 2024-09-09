@@ -15,34 +15,34 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Test Mode"))
 enum class EPCGExAdjacencyTestMode : uint8
 {
-	All UMETA(DisplayName = "All", Tooltip="Test a condition using all adjacent nodes."),
-	Some UMETA(DisplayName = "Some", Tooltip="Test a condition using some adjacent nodes only.")
+	All  = 0 UMETA(DisplayName = "All", Tooltip="Test a condition using all adjacent nodes."),
+	Some = 1 UMETA(DisplayName = "Some", Tooltip="Test a condition using some adjacent nodes only.")
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Gather Mode"))
 enum class EPCGExAdjacencyGatherMode : uint8
 {
-	Individual UMETA(DisplayName = "Individual", Tooltip="Test individual neighbors one by one"),
-	Average UMETA(DisplayName = "Average", Tooltip="Test against averaged value of all neighbors"),
-	Min UMETA(DisplayName = "Min", Tooltip="st against Min value of all neighbors"),
-	Max UMETA(DisplayName = "Max", Tooltip="st against Max value of all neighbors"),
-	Sum UMETA(DisplayName = "Sum", Tooltip="st against Sum value of all neighbors"),
+	Individual = 0 UMETA(DisplayName = "Individual", Tooltip="Test individual neighbors one by one"),
+	Average    = 1 UMETA(DisplayName = "Average", Tooltip="Test against averaged value of all neighbors"),
+	Min        = 2 UMETA(DisplayName = "Min", Tooltip="st against Min value of all neighbors"),
+	Max        = 3 UMETA(DisplayName = "Max", Tooltip="st against Max value of all neighbors"),
+	Sum        = 4 UMETA(DisplayName = "Sum", Tooltip="st against Sum value of all neighbors"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Mode"))
 enum class EPCGExAdjacencyThreshold : uint8
 {
-	AtLeast UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least N adjacent nodes.  (Where N is the Threshold)"),
-	AtMost UMETA(DisplayName = "At Most", Tooltip="Requirements must be met by at most N adjacent nodes.  (Where N is the Threshold)"),
-	Exactly UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly N adjacent nodes, no more, no less.  (Where N is the Threshold)")
+	AtLeast = 0 UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least N adjacent nodes.  (Where N is the Threshold)"),
+	AtMost  = 1 UMETA(DisplayName = "At Most", Tooltip="Requirements must be met by at most N adjacent nodes.  (Where N is the Threshold)"),
+	Exactly = 2 UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly N adjacent nodes, no more, no less.  (Where N is the Threshold)")
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Relative Rounding Mode"))
 enum class EPCGExRelativeThresholdRoundingMode : uint8
 {
-	Round UMETA(DisplayName = "Round", Tooltip="Rounds value to closest integer (0.1 = 0, 0.9 = 1)"),
-	Floor UMETA(DisplayName = "Floor", Tooltip="Rounds value to closest smaller integer (0.1 = 0, 0.9 = 0)"),
-	Ceil UMETA(DisplayName = "Ceil", Tooltip="Rounds value to closest highest integer (0.1 = 1, 0.9 = 1)"),
+	Round = 0 UMETA(DisplayName = "Round", Tooltip="Rounds value to closest integer (0.1 = 0, 0.9 = 1)"),
+	Floor = 1 UMETA(DisplayName = "Floor", Tooltip="Rounds value to closest smaller integer (0.1 = 0, 0.9 = 0)"),
+	Ceil  = 2 UMETA(DisplayName = "Ceil", Tooltip="Rounds value to closest highest integer (0.1 = 1, 0.9 = 1)"),
 };
 
 USTRUCT(BlueprintType)

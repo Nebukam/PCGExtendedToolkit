@@ -30,9 +30,9 @@ namespace PCGExGraph
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Refine Sanitization"))
 enum class EPCGExRefineSanitization : uint8
 {
-	None UMETA(DisplayName = "None", ToolTip="No sanitization."),
-	Shortest UMETA(DisplayName = "Shortest", ToolTip="If a node has no edge left, restore the shortest one."),
-	Longest UMETA(DisplayName = "Longest", ToolTip="If a node has no edge left, restore the longest one."),
+	None     = 0 UMETA(DisplayName = "None", ToolTip="No sanitization."),
+	Shortest = 1 UMETA(DisplayName = "Shortest", ToolTip="If a node has no edge left, restore the shortest one."),
+	Longest  = 2 UMETA(DisplayName = "Longest", ToolTip="If a node has no edge left, restore the longest one."),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")

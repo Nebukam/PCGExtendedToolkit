@@ -18,28 +18,28 @@ namespace PCGExHeuristics
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Navmesh Mode"))
 enum class EPCGExPathfindingNavmeshMode : uint8
 {
-	Regular UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
-	Hierarchical UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
+	Regular      = 0 UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
+	Hierarchical = 1 UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Goal Pick Method"))
 enum class EPCGExPathfindingGoalPickMethod : uint8
 {
-	SeedIndex UMETA(DisplayName = "Seed Index", Tooltip="Uses the seed index as goal index."),
-	LocalAttribute UMETA(DisplayName = "Attribute", Tooltip="Uses a local attribute of the seed as goal index. Value is wrapped."),
-	RandomPick UMETA(DisplayName = "Random Pick", Tooltip="Picks the goal randomly."),
-	MultipleLocalAttribute UMETA(DisplayName = "Attribute (Multiple)", Tooltip="Uses a multiple local attribute of the seed as goal indices. Each seed will create multiple paths."),
-	All UMETA(DisplayName = "All", Tooltip="Each seed will create a path for each goal."),
+	SeedIndex              = 0 UMETA(DisplayName = "Seed Index", Tooltip="Uses the seed index as goal index."),
+	LocalAttribute         = 1 UMETA(DisplayName = "Attribute", Tooltip="Uses a local attribute of the seed as goal index. Value is wrapped."),
+	RandomPick             = 2 UMETA(DisplayName = "Random Pick", Tooltip="Picks the goal randomly."),
+	MultipleLocalAttribute = 3 UMETA(DisplayName = "Attribute (Multiple)", Tooltip="Uses a multiple local attribute of the seed as goal indices. Each seed will create multiple paths."),
+	All                    = 4 UMETA(DisplayName = "All", Tooltip="Each seed will create a path for each goal."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Point Orientation"))
 enum class EPCGExPathPointOrientation : uint8
 {
-	None UMETA(DisplayName = "None", Tooltip="No orientation is applied to the point"),
-	Average UMETA(DisplayName = "Average", Tooltip="Orientation is averaged between previous and next point."),
-	Weighted UMETA(DisplayName = "Weighted", Tooltip="Orientation is weighted based on distance."),
-	WeightedInverse UMETA(DisplayName = "Weighted (Inverse)", Tooltip="Same as Weighted, but weights are swapped."),
-	LookAtNext UMETA(DisplayName = "Look at Next", Tooltip="Orientation is set so the point forward axis looks at the next point"),
+	None            = 0 UMETA(DisplayName = "None", Tooltip="No orientation is applied to the point"),
+	Average         = 1 UMETA(DisplayName = "Average", Tooltip="Orientation is averaged between previous and next point."),
+	Weighted        = 2 UMETA(DisplayName = "Weighted", Tooltip="Orientation is weighted based on distance."),
+	WeightedInverse = 2 UMETA(DisplayName = "Weighted (Inverse)", Tooltip="Same as Weighted, but weights are swapped."),
+	LookAtNext      = 4 UMETA(DisplayName = "Look at Next", Tooltip="Orientation is set so the point forward axis looks at the next point"),
 };
 
 USTRUCT(BlueprintType)

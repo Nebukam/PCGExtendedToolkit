@@ -12,9 +12,9 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Triangulation Type"))
 enum class EPCGExTriangulationType : uint8
 {
-	Raw UMETA(DisplayName = "Raw Triangles", ToolTip="Make a graph from raw triangles."),
-	Dual UMETA(DisplayName = "Dual Graph", ToolTip="Dual graph of the triangles (using triangle centroids and adjacency)."),
-	Hollow UMETA(DisplayName = "Hollow Graph", ToolTip="Connects centroid to vertices but remove triangles edges"),
+	Raw    = 0 UMETA(DisplayName = "Raw Triangles", ToolTip="Make a graph from raw triangles."),
+	Dual   = 1 UMETA(DisplayName = "Dual Graph", ToolTip="Dual graph of the triangles (using triangle centroids and adjacency)."),
+	Hollow = 2 UMETA(DisplayName = "Hollow Graph", ToolTip="Connects centroid to vertices but remove triangles edges"),
 };
 
 namespace PCGExGeo

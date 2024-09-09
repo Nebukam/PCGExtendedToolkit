@@ -28,8 +28,6 @@ PCGExData::EInit UPCGExSampleNearestSplineSettings::GetMainOutputInitMode() cons
 
 int32 UPCGExSampleNearestSplineSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
-FName UPCGExSampleNearestSplineSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSpline)
 
 FPCGExSampleNearestSplineContext::~FPCGExSampleNearestSplineContext()

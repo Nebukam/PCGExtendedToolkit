@@ -12,10 +12,10 @@ class FPCGExPointIOMerger;
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bridge Cluster Mode"))
 enum class EPCGExBridgeClusterMethod : uint8
 {
-	Delaunay3D UMETA(DisplayName = "Delaunay 3D", ToolTip="Uses Delaunay 3D graph to find connections."),
-	Delaunay2D UMETA(DisplayName = "Delaunay 2D", ToolTip="Uses Delaunay 2D graph to find connections."),
-	LeastEdges UMETA(DisplayName = "Least Edges", ToolTip="Ensure all clusters are connected using the least possible number of bridges."),
-	MostEdges UMETA(DisplayName = "Most Edges", ToolTip="Each cluster will have a bridge to every other cluster"),
+	Delaunay3D = 0 UMETA(DisplayName = "Delaunay 3D", ToolTip="Uses Delaunay 3D graph to find connections."),
+	Delaunay2D = 1 UMETA(DisplayName = "Delaunay 2D", ToolTip="Uses Delaunay 2D graph to find connections."),
+	LeastEdges = 2 UMETA(DisplayName = "Least Edges", ToolTip="Ensure all clusters are connected using the least possible number of bridges."),
+	MostEdges  = 3 UMETA(DisplayName = "Most Edges", ToolTip="Each cluster will have a bridge to every other cluster"),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")

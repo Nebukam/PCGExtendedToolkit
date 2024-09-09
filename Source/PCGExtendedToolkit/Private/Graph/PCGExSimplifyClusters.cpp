@@ -13,13 +13,6 @@
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-TArray<FPCGPinProperties> UPCGExSimplifyClustersSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, "Anchor points (won't be affected by the simplification)", Advanced, {})
-	return PinProperties;
-}
-
 #pragma endregion
 
 FPCGExSimplifyClustersContext::~FPCGExSimplifyClustersContext()
@@ -37,10 +30,6 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(GraphBuilderDetails)
 	Context->GraphBuilderDetails.bPruneIsolatedPoints = true;
-
-	GetInputFactories(
-		InContext, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories,
-		PCGExFactories::ClusterNodeFilters, false);
 
 	return true;
 }
@@ -91,7 +80,7 @@ namespace PCGExSimplifyClusters
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		PCGEX_SET_NUM_UNINITIALIZED(Breakpoints, Cluster->Nodes->Num())
+		Breakpoints.Init(false, Cluster->Nodes->Num());
 
 		if (!TypedContext->FilterFactories.IsEmpty())
 		{

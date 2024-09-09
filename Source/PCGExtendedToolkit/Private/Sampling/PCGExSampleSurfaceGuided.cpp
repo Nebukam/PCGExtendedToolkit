@@ -20,8 +20,6 @@ PCGExData::EInit UPCGExSampleSurfaceGuidedSettings::GetMainOutputInitMode() cons
 
 int32 UPCGExSampleSurfaceGuidedSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
-FName UPCGExSampleSurfaceGuidedSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(SampleSurfaceGuided)
 
 FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()

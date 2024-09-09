@@ -20,9 +20,9 @@ namespace PCGExFindContours
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Contour Shape Type Output"))
 enum class EPCGExContourShapeTypeOutput : uint8
 {
-	Both UMETA(DisplayName = "Convex & Concave", ToolTip="Output both convex and concave paths"),
-	ConvexOnly UMETA(DisplayName = "Convex Only", ToolTip="Output only convex paths"),
-	ConcaveOnly UMETA(DisplayName = "Concave Only", ToolTip="Output only concave paths")
+	Both        = 0 UMETA(DisplayName = "Convex & Concave", ToolTip="Output both convex and concave paths"),
+	ConvexOnly  = 1 UMETA(DisplayName = "Convex Only", ToolTip="Output only convex paths"),
+	ConcaveOnly = 2 UMETA(DisplayName = "Concave Only", ToolTip="Output only concave paths")
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
@@ -152,7 +152,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGE
 	PCGExData::FPointIO* GoodSeeds;
 	PCGExData::FPointIO* BadSeeds;
 
-	TArray<bool> SeedQuality;
+	TBitArray<> SeedQuality;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler;

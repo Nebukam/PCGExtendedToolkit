@@ -16,9 +16,9 @@ class UPCGPointData;
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Goal Pick Random - Amount"))
 enum class EPCGExGoalPickRandomAmount : uint8
 {
-	Single UMETA(DisplayName = "Single", Tooltip="A single random goal is picked"),
-	Fixed UMETA(DisplayName = "Multiple Fixed", Tooltip="A fixed number of random goals is picked"),
-	Random UMETA(DisplayName = "Multiple Random", Tooltip="A random number of random goals is picked."),
+	Single = 0 UMETA(DisplayName = "Single", Tooltip="A single random goal is picked"),
+	Fixed  = 1 UMETA(DisplayName = "Multiple Fixed", Tooltip="A fixed number of random goals is picked"),
+	Random = 2 UMETA(DisplayName = "Multiple Random", Tooltip="A random number of random goals is picked."),
 };
 
 /**

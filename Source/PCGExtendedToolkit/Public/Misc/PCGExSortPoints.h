@@ -14,8 +14,8 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sort Direction"))
 enum class EPCGExSortDirection : uint8
 {
-	Ascending UMETA(DisplayName = "Ascending"),
-	Descending UMETA(DisplayName = "Descending")
+	Ascending  = 0 UMETA(DisplayName = "Ascending"),
+	Descending = 1 UMETA(DisplayName = "Descending")
 };
 
 USTRUCT(BlueprintType)

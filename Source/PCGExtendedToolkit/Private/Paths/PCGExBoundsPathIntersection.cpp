@@ -78,7 +78,6 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 			},
 			[&](PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>* NewBatch)
 			{
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = Settings->OutputSettings.WillWriteAny();
 			},
 			PCGExMT::State_Done))
@@ -113,6 +112,8 @@ namespace PCGExPathIntersections
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathIntersections::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
+		PointDataFacade->bSupportsDynamic = true;
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		bClosedPath = Settings->bClosedPath;
@@ -122,7 +123,14 @@ namespace PCGExPathIntersections
 
 		Details = Settings->OutputSettings;
 
-		FindIntersectionsTaskGroup = AsyncManagerPtr->CreateGroup();
+		PCGExMT::FTaskGroup* FindIntersectionsTaskGroup = AsyncManagerPtr->CreateGroup();
+		FindIntersectionsTaskGroup->SetOnIterationRangeStartCallback(
+			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+			{
+				PointDataFacade->Fetch(StartIndex, Count);
+				FilterScope(StartIndex, Count);
+			});
+		
 		FindIntersectionsTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { FindIntersections(Index); },
 			PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -253,7 +261,7 @@ namespace PCGExPathIntersections
 
 		Segmentation->ReduceToArray();
 
-		InsertionTaskGroup = AsyncManagerPtr->CreateGroup();
+		PCGExMT::FTaskGroup* InsertionTaskGroup = AsyncManagerPtr->CreateGroup();
 		InsertionTaskGroup->SetOnCompleteCallback([&]() { OnInsertionComplete(); });
 		InsertionTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { InsertIntersections(Index); },

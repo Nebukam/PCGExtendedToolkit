@@ -15,12 +15,12 @@
 UENUM(BlueprintType)
 enum class EPCGExSubCollectionToSet : uint8
 {
-	Ignore UMETA(DisplayName = "Ignore", Tooltip="Ignore sub-collections"),
-	Expand UMETA(DisplayName = "Expand", Tooltip="Expand the entire sub-collection"),
-	PickRandom UMETA(DisplayName = "Random", Tooltip="Pick one at random"),
-	PickRandomWeighted UMETA(DisplayName = "Random weighted", Tooltip="Pick one at random, weighted"),
-	PickFirstItem UMETA(DisplayName = "First item", Tooltip="Pick the first item"),
-	PickLastItem UMETA(DisplayName = "Last item", Tooltip="Pick the last item"),
+	Ignore             = 0 UMETA(DisplayName = "Ignore", Tooltip="Ignore sub-collections"),
+	Expand             = 1 UMETA(DisplayName = "Expand", Tooltip="Expand the entire sub-collection"),
+	PickRandom         = 2 UMETA(DisplayName = "Random", Tooltip="Pick one at random"),
+	PickRandomWeighted = 3 UMETA(DisplayName = "Random weighted", Tooltip="Pick one at random, weighted"),
+	PickFirstItem      = 4 UMETA(DisplayName = "First item", Tooltip="Pick the first item"),
+	PickLastItem       = 5 UMETA(DisplayName = "Last item", Tooltip="Pick the last item"),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural))

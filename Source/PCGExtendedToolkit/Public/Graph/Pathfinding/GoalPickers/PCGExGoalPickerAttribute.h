@@ -15,8 +15,8 @@ class UPCGPointData;
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Goal Pick Attribute - Amount"))
 enum class EPCGExGoalPickAttributeAmount : uint8
 {
-	Single UMETA(DisplayName = "Single Attribute", Tooltip="Single attribute"),
-	List UMETA(DisplayName = "Multiple Attributes", Tooltip="Multiple attributes"),
+	Single = 0 UMETA(DisplayName = "Single Attribute", Tooltip="Single attribute"),
+	List   = 1 UMETA(DisplayName = "Multiple Attributes", Tooltip="Multiple attributes"),
 };
 
 /**

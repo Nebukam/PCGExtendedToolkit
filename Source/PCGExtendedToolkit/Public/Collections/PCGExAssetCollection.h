@@ -17,37 +17,37 @@ class UPCGExAssetCollection;
 UENUM(BlueprintType)
 enum class EPCGExCollectionSource : uint8
 {
-	Asset UMETA(DisplayName = "Asset", Tooltip="..."),
-	AttributeSet UMETA(DisplayName = "Attribute Set", Tooltip="..."),
+	Asset        = 0 UMETA(DisplayName = "Asset", Tooltip="..."),
+	AttributeSet = 1 UMETA(DisplayName = "Attribute Set", Tooltip="..."),
 };
 
 UENUM(BlueprintType)
 enum class EPCGExIndexPickMode : uint8
 {
-	Ascending UMETA(DisplayName = "Collection order (Ascending)", Tooltip="..."),
-	Descending UMETA(DisplayName = "Collection order (Descending)", Tooltip="..."),
-	WeightAscending UMETA(DisplayName = "Weight (Descending)", Tooltip="..."),
-	WeightDescending UMETA(DisplayName = "Weight (Ascending)", Tooltip="..."),
+	Ascending        = 0 UMETA(DisplayName = "Collection order (Ascending)", Tooltip="..."),
+	Descending       = 1 UMETA(DisplayName = "Collection order (Descending)", Tooltip="..."),
+	WeightAscending  = 2 UMETA(DisplayName = "Weight (Descending)", Tooltip="..."),
+	WeightDescending = 3 UMETA(DisplayName = "Weight (Ascending)", Tooltip="..."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distribution"))
 enum class EPCGExDistribution : uint8
 {
-	Index UMETA(DisplayName = "Index", ToolTip="Distribution by index"),
-	Random UMETA(DisplayName = "Random", ToolTip="Update the point scale so final asset matches the existing point' bounds"),
-	WeightedRandom UMETA(DisplayName = "Weighted random", ToolTip="Update the point bounds so it reflects the bounds of the final asset"),
+	Index          = 0 UMETA(DisplayName = "Index", ToolTip="Distribution by index"),
+	Random         = 1 UMETA(DisplayName = "Random", ToolTip="Update the point scale so final asset matches the existing point' bounds"),
+	WeightedRandom = 2 UMETA(DisplayName = "Weighted random", ToolTip="Update the point bounds so it reflects the bounds of the final asset"),
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Distribution"))
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Weight Output Mode"))
 enum class EPCGExWeightOutputMode : uint8
 {
-	NoOutput UMETA(DisplayName = "No Output", ToolTip="Don't output weight as an attribute"),
-	Raw UMETA(DisplayName = "Raw", ToolTip="Raw integer"),
-	Normalized UMETA(DisplayName = "Normalized", ToolTip="Normalized weight value (Weight / WeightSum)"),
-	NormalizedInverted UMETA(DisplayName = "Normalized (Inverted)", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
+	NoOutput           = 0 UMETA(DisplayName = "No Output", ToolTip="Don't output weight as an attribute"),
+	Raw                = 1 UMETA(DisplayName = "Raw", ToolTip="Raw integer"),
+	Normalized         = 2 UMETA(DisplayName = "Normalized", ToolTip="Normalized weight value (Weight / WeightSum)"),
+	NormalizedInverted = 3 UMETA(DisplayName = "Normalized (Inverted)", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
 
-	NormalizedToDensity UMETA(DisplayName = "Normalized to Density", ToolTip="Normalized weight value (Weight / WeightSum)"),
-	NormalizedInvertedToDensity UMETA(DisplayName = "Normalized (Inverted) to Density", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
+	NormalizedToDensity         = 4 UMETA(DisplayName = "Normalized to Density", ToolTip="Normalized weight value (Weight / WeightSum)"),
+	NormalizedInvertedToDensity = 5 UMETA(DisplayName = "Normalized (Inverted) to Density", ToolTip="One Minus normalized weight value (1 - (Weight / WeightSum))"),
 };
 
 namespace PCGExAssetCollection

@@ -29,15 +29,10 @@ bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExDat
 void PCGExPointsFilter::TMeanFilter::PostInit()
 {
 	const int32 NumPoints = PointDataFacade->Source->GetNum();
-	Results.SetNum(NumPoints);
+	Results.Init(false, NumPoints);
 
 	double SumValue = 0;
-
-	for (int i = 0; i < NumPoints; i++)
-	{
-		Results[i] = false;
-		SumValue += Target->Values[i];
-	}
+	for (int i = 0; i < NumPoints; i++) { SumValue += Target->Values[i]; }
 
 	if (TypedFilterFactory->Config.Measure == EPCGExMeanMeasure::Relative)
 	{

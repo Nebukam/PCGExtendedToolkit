@@ -32,16 +32,16 @@ namespace PCGExGeo
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source"))
 enum class EPCGExGraphValueSource : uint8
 {
-	Vtx UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
-	Edge UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),
+	Vtx  = 0 UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
+	Edge = 1 UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Intersection Type"))
 enum class EPCGExIntersectionType : uint8
 {
-	Unknown UMETA(DisplayName = "Unknown", ToolTip="Unknown"),
-	PointEdge UMETA(DisplayName = "Point/Edge", ToolTip="Point/Edge Intersection."),
-	EdgeEdge UMETA(DisplayName = "Edge/Edge", ToolTip="Edge/Edge Intersection."),
+	Unknown   = 0 UMETA(DisplayName = "Unknown", ToolTip="Unknown"),
+	PointEdge = 1 UMETA(DisplayName = "Point/Edge", ToolTip="Point/Edge Intersection."),
+	EdgeEdge  = 2 UMETA(DisplayName = "Edge/Edge", ToolTip="Edge/Edge Intersection."),
 };
 
 USTRUCT(BlueprintType)

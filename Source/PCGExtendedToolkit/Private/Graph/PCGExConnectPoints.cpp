@@ -135,6 +135,8 @@ namespace PCGExConnectPoints
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		const int32 NumPoints = PointIO->GetNum();
+
 		CWStackingTolerance = TypedContext->CWStackingTolerance;
 		bPreventStacking = Settings->bPreventStacking;
 
@@ -178,8 +180,8 @@ namespace PCGExConnectPoints
 		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails, 2);
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
-		CanGenerate.SetNumUninitialized(PointIO->GetNum());
-		CachedTransforms.SetNumUninitialized(PointIO->GetNum());
+		CanGenerate.Init(true, NumPoints);
+		CachedTransforms.SetNumUninitialized(NumPoints);
 
 		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
 		{
@@ -205,7 +207,6 @@ namespace PCGExConnectPoints
 		else
 		{
 			if (GeneratorsFilter) { for (int i = 0; i < InPoints->Num(); i++) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
-			else { for (bool& Gen : CanGenerate) { Gen = true; } }
 		}
 
 		PCGExMT::FTaskGroup* PrepTask = AsyncManager->CreateGroup();
@@ -216,7 +217,7 @@ namespace PCGExConnectPoints
 				PointDataFacade->Fetch(StartIndex, Count);
 			});
 
-		PrepTask->PrepareRangesOnly(PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		PrepTask->PrepareRangesOnly(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}

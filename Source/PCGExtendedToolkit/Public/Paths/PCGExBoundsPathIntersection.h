@@ -26,6 +26,7 @@ public:
 #endif
 
 protected:
+	//virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourceFiltersLabel; }
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -81,9 +82,6 @@ namespace PCGExPathIntersections
 		PCGExGeo::FSegmentation* Segmentation = nullptr;
 
 		FPCGExBoxIntersectionDetails Details;
-
-		PCGExMT::FTaskGroup* FindIntersectionsTaskGroup = nullptr;
-		PCGExMT::FTaskGroup* InsertionTaskGroup = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)

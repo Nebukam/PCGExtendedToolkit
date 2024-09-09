@@ -54,7 +54,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClustersContext final : public FPCG
 	virtual ~FPCGExPruneClustersContext() override;
 
 	PCGExGeo::FPointBoxCloud* BoxCloud = nullptr;
-	TArray<bool> ClusterState;
+	TBitArray<> ClusterState;
 
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };

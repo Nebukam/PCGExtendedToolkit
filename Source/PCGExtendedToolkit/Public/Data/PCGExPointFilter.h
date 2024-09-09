@@ -58,10 +58,18 @@ namespace PCGExPointFilter
 {
 	PCGEX_ASYNC_STATE(State_FilteringPoints)
 
-	const FName OutputFilterLabel = TEXT("Filter");
-	const FName SourceFiltersLabel = TEXT("Filters");
-	const FName OutputInsideFiltersLabel = TEXT("Inside");
-	const FName OutputOutsideFiltersLabel = TEXT("Outside");
+	const FName OutputFilterLabel = FName("Filter");
+	const FName SourceFiltersLabel = FName("Filters");
+	
+	const FName SourceFiltersConditionLabel = FName("Conditions Filters");
+	const FName SourceKeepConditionLabel =  FName("Keep Conditions");
+	
+	const FName SourcePointFiltersLabel = FName("Point Filters");
+	const FName SourceVtxFiltersLabel = FName("Vtx Filters");
+	const FName SourceEdgeFiltersLabel = FName("Edge Filters");
+	
+	const FName OutputInsideFiltersLabel = FName("Inside");
+	const FName OutputOutsideFiltersLabel = FName("Outside");
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ TFilter
 	{
@@ -76,7 +84,7 @@ namespace PCGExPointFilter
 
 		bool bCacheResults = true;
 		const UPCGExFilterFactoryBase* Factory;
-		TArray<bool> Results;
+		TBitArray<> Results;
 
 		int32 FilterIndex = 0;
 
@@ -103,7 +111,7 @@ namespace PCGExPointFilter
 
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
-		TArray<bool> Results;
+		TBitArray<> Results;
 
 		bool bValid = false;
 

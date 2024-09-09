@@ -9,6 +9,13 @@
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling
 
+TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExPaths::SourceTriggerFilters, "Filters used to check if a point triggers the select behavior.", Normal, {})
+	return PinProperties;
+}
+
 PCGExData::EInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)

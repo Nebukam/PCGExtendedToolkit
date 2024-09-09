@@ -11,8 +11,8 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Break Cluster Operation Target"))
 enum class EPCGExBreakClusterOperationTarget : uint8
 {
-	Paths UMETA(DisplayName = "Paths", ToolTip="Operate on edge chains which form paths with no crossings.  e.g, nodes with only two neighbors."),
-	Edges UMETA(DisplayName = "Edges", ToolTip="Operate on each edge individually (very expensive)"),
+	Paths = 0 UMETA(DisplayName = "Paths", ToolTip="Operate on edge chains which form paths with no crossings.  e.g, nodes with only two neighbors."),
+	Edges = 1 UMETA(DisplayName = "Edges", ToolTip="Operate on each edge individually (very expensive)"),
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
@@ -28,12 +28,15 @@ public:
 #endif
 
 protected:
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
+	virtual TSet<PCGExFactories::EType> GetPointFilterTypes() const override { return PCGExFactories::ClusterEdgeFilters; }
+	virtual FName GetPointFilterLabel() const override { return FName("Break Conditions"); }
+	virtual FString GetPointFilterTooltip() const override { return TEXT("Filter used to check break conditions"); }
+
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
@@ -86,7 +89,7 @@ namespace PCGExBreakClustersToPaths
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-		TArray<bool> Breakpoints;
+		TBitArray<> Breakpoints;
 
 		TArray<PCGExCluster::FNodeChain*> Chains;
 

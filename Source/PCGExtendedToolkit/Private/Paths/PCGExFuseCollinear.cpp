@@ -10,8 +10,6 @@
 
 PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExFuseCollinearSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
 
 FPCGExFuseCollinearContext::~FPCGExFuseCollinearContext()
@@ -28,9 +26,6 @@ bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const
 
 	Context->DotThreshold = Settings->bInvertThreshold ? PCGExMath::DegreesToDot(180 - Settings->Threshold) : PCGExMath::DegreesToDot(Settings->Threshold);
 	Context->FuseDistSquared = Settings->FuseDistance * Settings->FuseDistance;
-
-	//PCGEX_FWD(bDoBlend)
-	//PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
 	return true;
 }
@@ -94,40 +89,60 @@ namespace PCGExFuseCollinear
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseCollinear::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseCollinear)
 
+		PointDataFacade->bSupportsDynamic = true;
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
+		LocalTypedContext = TypedContext;
+
+		MaxIndex = PointIO->GetNum() - 1;
 		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
-		OutPoints.Add(InPoints[0]);
+		OutPoints = &PointIO->GetOut()->GetMutablePoints();
+		OutPoints->Reserve(MaxIndex + 1);
+		OutPoints->Add(InPoints[0]);
 
-		FVector LastPosition = InPoints[0].Transform.GetLocation();
-		FVector CurrentDirection = (InPoints[1].Transform.GetLocation() - LastPosition).GetSafeNormal();
-		const int32 MaxIndex = InPoints.Num() - 1;
+		LastPosition = InPoints[0].Transform.GetLocation();
+		CurrentDirection = (InPoints[1].Transform.GetLocation() - LastPosition).GetSafeNormal();
 
-		for (int i = 1; i < MaxIndex; i++)
-		{
-			FVector CurrentPosition = InPoints[i].Transform.GetLocation();
-			FVector NextPosition = InPoints[i + 1].Transform.GetLocation();
-			FVector DirToNext = (NextPosition - CurrentPosition).GetSafeNormal();
-
-			const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
-			const bool bWithinThreshold = Dot > TypedContext->DotThreshold;
-			if (FVector::DistSquared(CurrentPosition, LastPosition) <= TypedContext->FuseDistSquared || bWithinThreshold)
-			{
-				// Collinear with previous, keep moving
-				continue;
-			}
-
-			OutPoints.Add_GetRef(InPoints[i]);
-			CurrentDirection = DirToNext;
-			LastPosition = CurrentPosition;
-		}
-
-		OutPoints.Add(InPoints[MaxIndex]);
+		bInlineProcessPoints = true;
+		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
+		FilterScope(StartIndex, Count);
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	{
+		if (Index == 0 || Index == MaxIndex) { return; }
+
+		const FVector CurrentPosition = Point.Transform.GetLocation();
+		const FVector NextPosition = PointIO->GetInPoint(Index + 1).Transform.GetLocation();
+		const FVector DirToNext = (NextPosition - CurrentPosition).GetSafeNormal();
+
+		const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
+		const bool bWithinThreshold = Dot > LocalTypedContext->DotThreshold;
+		if (FVector::DistSquared(CurrentPosition, LastPosition) <= LocalTypedContext->FuseDistSquared || bWithinThreshold)
+		{
+			// Collinear with previous, keep moving
+			return;
+		}
+
+		OutPoints->Add_GetRef(Point);
+		CurrentDirection = DirToNext;
+		LastPosition = CurrentPosition;
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		OutPoints->Add(PointIO->GetInPoint(MaxIndex));
+		OutPoints->Shrink();
 	}
 }
 

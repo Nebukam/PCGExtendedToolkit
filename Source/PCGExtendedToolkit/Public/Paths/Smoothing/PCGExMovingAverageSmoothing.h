@@ -29,7 +29,7 @@ public:
 		const int32 SmoothingInt = Smoothing;
 		if (SmoothingInt == 0 || Influence == 0) { return; }
 
-		const double SafeWindowSize = FMath::Max(2, SmoothingInt);
+		const double SafeWindowSize = FMath::Max(1, SmoothingInt);
 		double TotalWeight = 0;
 		int32 Count = 0;
 		MetadataBlender->PrepareForBlending(Target);

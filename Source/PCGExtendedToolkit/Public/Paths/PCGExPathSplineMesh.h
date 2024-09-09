@@ -49,6 +49,8 @@ protected:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings
 
+	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourcePointFiltersLabel; }
+
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 

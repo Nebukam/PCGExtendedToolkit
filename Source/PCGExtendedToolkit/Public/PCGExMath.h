@@ -18,27 +18,27 @@ MACRO(FSoftClassPath)
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExMeanMeasure : uint8
 {
-	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. (what it means exactly depends on context. See node-specific documentation.)"),
-	Discrete UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. (what it means exactly depends on context. See node-specific documentation.)"),
+	Relative = 0 UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1, or used as a factor. (what it means exactly depends on context. See node-specific documentation.)"),
+	Discrete = 1 UMETA(DisplayName = "Discrete", ToolTip="Raw value will be used, or used as absolute. (what it means exactly depends on context. See node-specific documentation.)"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Method"))
 enum class EPCGExMeanMethod : uint8
 {
-	Average UMETA(DisplayName = "Average", ToolTip="Average"),
-	Median UMETA(DisplayName = "Median", ToolTip="Median"),
-	ModeMin UMETA(DisplayName = "Mode (Highest)", ToolTip="Mode length (~= highest most common value)"),
-	ModeMax UMETA(DisplayName = "Mode (Lowest)", ToolTip="Mode length (~= lowest most common value)"),
-	Central UMETA(DisplayName = "Central", ToolTip="Central uses the middle value between Min/Max input values."),
-	Fixed UMETA(DisplayName = "Fixed", ToolTip="Fixed threshold"),
+	Average = 0 UMETA(DisplayName = "Average", ToolTip="Average"),
+	Median  = 1 UMETA(DisplayName = "Median", ToolTip="Median"),
+	ModeMin = 2 UMETA(DisplayName = "Mode (Highest)", ToolTip="Mode length (~= highest most common value)"),
+	ModeMax = 3 UMETA(DisplayName = "Mode (Lowest)", ToolTip="Mode length (~= lowest most common value)"),
+	Central = 4 UMETA(DisplayName = "Central", ToolTip="Central uses the middle value between Min/Max input values."),
+	Fixed   = 5 UMETA(DisplayName = "Fixed", ToolTip="Fixed threshold"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source"))
 enum class EPCGExPointBoundsSource : uint8
 {
-	ScaledBounds UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
-	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
-	Bounds UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)")
+	ScaledBounds  = 0 UMETA(DisplayName = "Scaled Bounds", ToolTip="Scaled Bounds"),
+	DensityBounds = 1 UMETA(DisplayName = "Density Bounds", ToolTip="Density Bounds (scaled + steepness)"),
+	Bounds        = 2 UMETA(DisplayName = "Bounds", ToolTip="Unscaled Bounds (why?)")
 };
 
 namespace PCGExMath

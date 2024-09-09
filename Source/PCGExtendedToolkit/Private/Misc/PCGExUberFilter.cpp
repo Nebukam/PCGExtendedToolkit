@@ -10,16 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExUberFilter"
 #define PCGEX_NAMESPACE UberFilter
 
-TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-
-	PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {})
-	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, GetPointFilterTooltip(), Required, {})
-
-	return PinProperties;
-}
-
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 {
 	if (Mode == EPCGExUberFilterMode::Write) { return Super::OutputPinProperties(); }
@@ -47,14 +37,6 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
-
-	if (!GetInputFactories(
-		InContext, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories,
-		PCGExFactories::PointFilters, true))
-	{
-		PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(PCGExPointFilter::SourceFiltersLabel)));
-		return false;
-	}
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
@@ -136,14 +118,13 @@ namespace PCGExUberFilter
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExUberFilter::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(UberFilter)
 
-		LocalTypedContext = TypedContext;
-
 		// Must be set before process for filters
 		PointDataFacade->bSupportsDynamic = true;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		if (!InitPrimaryFilters(&TypedContext->FilterFactories)) { return false; }
+		LocalSettings = Settings;
+		LocalTypedContext = TypedContext;
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
@@ -154,24 +135,21 @@ namespace PCGExUberFilter
 			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
 		}
 
-		TestTaskGroup = AsyncManager->CreateGroup();
-		TestTaskGroup->SetOnIterationRangeStartCallback(
-			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PointDataFacade->Fetch(StartIndex, Count); });
-
-		if (Results)
-		{
-			TestTaskGroup->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { Results->Values[Index] = PrimaryFilters->Test(Index); },
-				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-		}
-		else
-		{
-			TestTaskGroup->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { PointFilterCache[Index] = PrimaryFilters->Test(Index); },
-				PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
-		}
+		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
+	{
+		PointDataFacade->Fetch(StartIndex, Count);
+		FilterScope(StartIndex, Count);
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
+	{
+		if (!Results) { return; }
+		Results->Values[Index] = LocalSettings->bSwap ? !PointFilterCache[Index] : PointFilterCache[Index];
 	}
 
 	PCGExData::FPointIO* FProcessor::CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const
@@ -187,11 +165,8 @@ namespace PCGExUberFilter
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUberFilterProcessor::CompleteWork);
 
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(UberFilter)
-
-		if (Settings->Mode == EPCGExUberFilterMode::Write)
+		if (LocalSettings->Mode == EPCGExUberFilterMode::Write)
 		{
-			if (Settings->bSwap) { for (bool& Result : Results->Values) { Result = !Result; } }
 			PointDataFacade->Write(AsyncManagerPtr, true);
 			return;
 		}
@@ -200,11 +175,7 @@ namespace PCGExUberFilter
 		TArray<int32> Indices;
 		PCGEX_SET_NUM_UNINITIALIZED(Indices, NumPoints)
 
-		for (int i = 0; i < NumPoints; i++)
-		{
-			if (PointFilterCache[i]) { Indices[i] = NumInside++; }
-			else { Indices[i] = NumOutside++; }
-		}
+		for (int i = 0; i < NumPoints; i++) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
 
 		if (NumInside == 0 || NumOutside == 0)
 		{

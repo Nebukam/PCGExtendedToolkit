@@ -64,6 +64,7 @@ namespace PCGExPaths
 {
 	const FName SourceCanCutFilters = TEXT("Can Cut Conditions");
 	const FName SourceCanBeCutFilters = TEXT("Can Be Cut Conditions");
+	const FName SourceTriggerFilters = TEXT("Trigger Conditions");
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPathMetrics
 	{
@@ -128,8 +129,6 @@ namespace PCGExPaths
 	{
 		int32 Start = -1;
 		int32 End = -1;
-		bool bCanBeCut = false;
-		bool bCanCut = false;
 		FBoxSphereBounds FSBounds = FBoxSphereBounds{};
 		int32 OffsetedStart = -1;
 

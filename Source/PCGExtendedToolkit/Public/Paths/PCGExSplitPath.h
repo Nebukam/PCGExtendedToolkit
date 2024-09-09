@@ -18,11 +18,11 @@ namespace PCGExSplitPath
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
 enum class EPCGExPathSplitAction : uint8
 {
-	Split UMETA(DisplayName = "Split", ToolTip="Duplicate the split point so the original becomes a new end, and the copy a new start."),
-	Remove UMETA(DisplayName = "Remove", ToolTip="Remove the split point, shrinking both the previous and next paths."),
-	Disconnect UMETA(DisplayName = "Disconnect", ToolTip="Disconnect the split point from the next one, starting a new path from the next."),
-	Partition UMETA(DisplayName = "Partition", ToolTip="Works like split but only create new data set as soon as the filter result changes from its previous result."),
-	Switch UMETA(DisplayName = "Switch", ToolTip="Use the result of the filter as a switch signal to change between keep/prune behavior."),
+	Split      = 0 UMETA(DisplayName = "Split", ToolTip="Duplicate the split point so the original becomes a new end, and the copy a new start."),
+	Remove     = 1 UMETA(DisplayName = "Remove", ToolTip="Remove the split point, shrinking both the previous and next paths."),
+	Disconnect = 2 UMETA(DisplayName = "Disconnect", ToolTip="Disconnect the split point from the next one, starting a new path from the next."),
+	Partition  = 3 UMETA(DisplayName = "Partition", ToolTip="Works like split but only create new data set as soon as the filter result changes from its previous result."),
+	Switch     = 4 UMETA(DisplayName = "Switch", ToolTip="Use the result of the filter as a switch signal to change between keep/prune behavior."),
 };
 
 /**
@@ -40,13 +40,16 @@ public:
 #endif
 
 protected:
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	
+	virtual bool RequiresPointFilters() const override { return true; }
+	virtual FName GetPointFilterLabel() const override { return PCGExSplitPath::SourceSplitFilters; }
+	virtual FString GetPointFilterTooltip() const override { return TEXT("Filters used to know if a point should be split"); }
 	//~End UPCGExPointsProcessorSettings
 
 public:
@@ -81,8 +84,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : public FPCGExPa
 
 	virtual ~FPCGExSplitPathContext() override;
 
-	TArray<UPCGExFilterFactoryBase*> SplitFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> RemoveFilterFactories;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathElement final : public FPCGExPathProcessorElement
@@ -102,6 +103,7 @@ namespace PCGExSplitPath
 {
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPath
 	{
+		bool bEven = false;
 		int32 Start = -1;
 		int32 End = -1;
 		int32 Count = 0;
@@ -116,8 +118,6 @@ namespace PCGExSplitPath
 		FPCGExSplitPathContext* LocalTypedContext = nullptr;
 		const UPCGExSplitPathSettings* LocalSettings = nullptr;
 
-		PCGExPointFilter::TManager* FilterManager = nullptr;
-
 		bool bClosedPath = false;
 
 		TArray<FPath> Paths;
@@ -126,6 +126,7 @@ namespace PCGExSplitPath
 		bool bWrapLastPath = false;
 		bool bAddOpenTag = false;
 		bool bLastResult = false;
+		bool bEven = true;
 
 		int32 LastIndex = -1;
 		int32 CurrentPath = -1;
@@ -142,7 +143,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionSplit(const int32 Index)
 		{
-			if (!FilterManager->Test(Index))
+			if (!PointFilterCache[Index])
 			{
 				if (CurrentPath == -1)
 				{
@@ -171,7 +172,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionRemove(const int32 Index)
 		{
-			if (!FilterManager->Test(Index))
+			if (!PointFilterCache[Index])
 			{
 				if (CurrentPath == -1)
 				{
@@ -196,7 +197,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionDisconnect(const int32 Index)
 		{
-			if (!FilterManager->Test(Index))
+			if (!PointFilterCache[Index])
 			{
 				if (CurrentPath == -1)
 				{
@@ -222,7 +223,7 @@ namespace PCGExSplitPath
 
 		FORCEINLINE void DoActionPartition(const int32 Index)
 		{
-			if (FilterManager->Test(Index) != bLastResult)
+			if (PointFilterCache[Index] != bLastResult)
 			{
 				bLastResult = !bLastResult;
 
@@ -238,19 +239,17 @@ namespace PCGExSplitPath
 					{
 						ClosedPath.End = Index - 1;
 					}
-				}
 
-				CurrentPath = Paths.Emplace();
-				FPath& NewPath = Paths[CurrentPath];
-				NewPath.Start = Index;
-				NewPath.Count++;
-				return;
+					CurrentPath = -1;
+				}
 			}
 
 			if (CurrentPath == -1)
 			{
 				CurrentPath = Paths.Emplace();
 				FPath& NewPath = Paths[CurrentPath];
+				NewPath.bEven = bEven;
+				bEven = !bEven;
 				NewPath.Start = Index;
 			}
 
@@ -279,7 +278,7 @@ namespace PCGExSplitPath
 				CurrentPath = -1;
 			};
 
-			if (FilterManager->Test(Index)) { bLastResult = !bLastResult; }
+			if (PointFilterCache[Index]) { bLastResult = !bLastResult; }
 
 			if (bLastResult)
 			{

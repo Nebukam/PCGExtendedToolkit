@@ -16,37 +16,37 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Direction Mode"))
 enum class EPCGExAdjacencyDirectionOrigin : uint8
 {
-	FromNode UMETA(DisplayName = "From Node to Neighbor", Tooltip="..."),
-	FromNeighbor UMETA(DisplayName = "From Neighbor to Node", Tooltip="..."),
+	FromNode     = 0 UMETA(DisplayName = "From Node to Neighbor", Tooltip="..."),
+	FromNeighbor = 1 UMETA(DisplayName = "From Neighbor to Node", Tooltip="..."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
 enum class EPCGExFetchType : uint8
 {
-	Constant UMETA(DisplayName = "Constant", Tooltip="Constant."),
-	Attribute UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
+	Constant  = 0 UMETA(DisplayName = "Constant", Tooltip="Constant."),
+	Attribute = 1 UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
 enum class EPCGExPrune : uint8
 {
-	Overlap UMETA(DisplayName = "Overlap", Tooltip="Prune if there is the slightest overlap."),
-	Contains UMETA(DisplayName = "Contains", Tooltip="Prune if is fully contained by the target."),
+	Overlap  = 0 UMETA(DisplayName = "Overlap", Tooltip="Prune if there is the slightest overlap."),
+	Contains = 1 UMETA(DisplayName = "Contains", Tooltip="Prune if is fully contained by the target."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Filter Action"))
 enum class EPCGExFilterDataAction : uint8
 {
-	Keep UMETA(DisplayName = "Keep", ToolTip="Keeps only selected data"),
-	Omit UMETA(DisplayName = "Omit", ToolTip="Omit selected data from output"),
-	Tag UMETA(DisplayName = "Tag", ToolTip="Keep all and Tag"),
+	Keep = 0 UMETA(DisplayName = "Keep", ToolTip="Keeps only selected data"),
+	Omit = 1 UMETA(DisplayName = "Omit", ToolTip="Omit selected data from output"),
+	Tag  = 2 UMETA(DisplayName = "Tag", ToolTip="Keep all and Tag"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Subdivide Mode"))
 enum class EPCGExSubdivideMode : uint8
 {
-	Distance UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on segment' length"),
-	Count UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is constant"),
+	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on segment' length"),
+	Count    = 1 UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is constant"),
 };
 
 USTRUCT(BlueprintType)
@@ -375,8 +375,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSourceFuseDetails : public FPCGExFuseDet
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision"))
 enum class EPCGExFuseMethod : uint8
 {
-	Voxel UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.Destructive toward initial topology."),
-	Octree UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology."),
+	Voxel  = 0 UMETA(DisplayName = "Voxel", Tooltip="Fast but blocky. Creates grid-looking approximation.Destructive toward initial topology."),
+	Octree = 1 UMETA(DisplayName = "Octree", Tooltip="Slow but precise. Respectful of the original topology."),
 };
 
 USTRUCT(BlueprintType)

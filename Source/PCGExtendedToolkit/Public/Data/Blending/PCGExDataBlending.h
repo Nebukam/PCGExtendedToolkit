@@ -36,9 +36,9 @@ MACRO(int32, Seed, Integer32,Seed)
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Blend Over Mode"))
 enum class EPCGExBlendOver : uint8
 {
-	Distance UMETA(DisplayName = "Distance", ToolTip="Blend is based on distance over max distance"),
-	Index UMETA(DisplayName = "Count", ToolTip="Blend is based on index over total count"),
-	Fixed UMETA(DisplayName = "Fixed", ToolTip="Fixed blend lerp/weight value"),
+	Distance = 0 UMETA(DisplayName = "Distance", ToolTip="Blend is based on distance over max distance"),
+	Index    = 1 UMETA(DisplayName = "Count", ToolTip="Blend is based on index over total count"),
+	Fixed    = 2 UMETA(DisplayName = "Fixed", ToolTip="Fixed blend lerp/weight value"),
 };
 
 namespace PCGExGraph
@@ -57,16 +57,16 @@ namespace PCGExData
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Blending Type"))
 enum class EPCGExDataBlendingType : uint8
 {
-	None        = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
-	Average     = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
-	Weight      = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
-	Min         = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
-	Max         = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
-	Copy        = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
-	Add         = 6 UMETA(DisplayName = "Add", ToolTip = "Add"),
-	WeightedAdd = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
-	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
-	Subtract    = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
+	None           = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
+	Average        = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
+	Weight         = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
+	Min            = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
+	Max            = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
+	Copy           = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
+	Add            = 6 UMETA(DisplayName = "Add", ToolTip = "Add"),
+	WeightedAdd    = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
+	Lerp           = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
+	Subtract       = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
 };
 
 USTRUCT(BlueprintType)
@@ -430,7 +430,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const override
 		{
 			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Counts.Num());
-			FinalizeValuesRangeOperation(View, Counts, TotalWeights);
+			FinalizeValuesRangeOperation(StartIndex, View, Counts, TotalWeights);
 		}
 
 		FORCEINLINE virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
@@ -460,12 +460,11 @@ namespace PCGExDataBlending
 			Writer->Values[WriteIndex] = SingleOperation(A, B, Weight);
 		}
 
-		FORCEINLINE virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
+		FORCEINLINE virtual void FinalizeValuesRangeOperation(const int32 StartIndex, TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
 		{
 			if (!bDoInterpolation) { return; }
 			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
 		}
-
 
 		FORCEINLINE virtual void PrepareOperation(const PCGMetadataEntryKey WriteKey) const override
 		{

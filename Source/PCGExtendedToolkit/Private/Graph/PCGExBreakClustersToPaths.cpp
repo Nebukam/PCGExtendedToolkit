@@ -8,13 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"
 #define PCGEX_NAMESPACE BreakClustersToPaths
 
-TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, "Break points", Advanced, {})
-	return PinProperties;
-}
-
 TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -43,10 +36,6 @@ bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 
 	Context->Paths = new PCGExData::FPointIOCollection(Context);
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
-
-	GetInputFactories(
-		InContext, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories,
-		PCGExFactories::ClusterNodeFilters, false);
 
 	return true;
 }
@@ -99,7 +88,7 @@ namespace PCGExBreakClustersToPaths
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		PCGEX_SET_NUM_UNINITIALIZED(Breakpoints, Cluster->Nodes->Num())
+		Breakpoints.Init(false, Cluster->Nodes->Num());
 
 		if (!TypedContext->FilterFactories.IsEmpty())
 		{

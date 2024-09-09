@@ -24,8 +24,6 @@ PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() con
 
 int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
-FName UPCGExSampleNearestSurfaceSettings::GetPointFilterLabel() const { return PCGExPointFilter::SourceFiltersLabel; }
-
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 
 FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()

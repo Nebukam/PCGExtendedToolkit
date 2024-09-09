@@ -10,13 +10,13 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Async Priority"))
 enum class EPCGExAsyncPriority : uint8
 {
-	Blocking UMETA(DisplayName = "Blocking", ToolTip="Position component."),
-	Highest UMETA(DisplayName = "Highest", ToolTip="Position component."),
-	High UMETA(DisplayName = "High", ToolTip="Position component."),
-	Normal UMETA(DisplayName = "Normal", ToolTip="Position component."),
-	Low UMETA(DisplayName = "Low", ToolTip="Position component."),
-	Lowest UMETA(DisplayName = "Lowest", ToolTip="Position component."),
-	Default UMETA(DisplayName = "Default", ToolTip="Position component."),
+	Blocking = 0 UMETA(DisplayName = "Blocking", ToolTip="Position component."),
+	Highest  = 1 UMETA(DisplayName = "Highest", ToolTip="Position component."),
+	High     = 2 UMETA(DisplayName = "High", ToolTip="Position component."),
+	Normal   = 3 UMETA(DisplayName = "Normal", ToolTip="Position component."),
+	Low      = 4 UMETA(DisplayName = "Low", ToolTip="Position component."),
+	Lowest   = 5 UMETA(DisplayName = "Lowest", ToolTip="Position component."),
+	Default  = 6 UMETA(DisplayName = "Default", ToolTip="Position component."),
 };
 
 

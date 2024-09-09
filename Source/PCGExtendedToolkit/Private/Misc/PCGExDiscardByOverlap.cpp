@@ -51,13 +51,6 @@ void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other
 
 PCGExData::EInit UPCGExDiscardByOverlapSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-TArray<FPCGPinProperties> UPCGExDiscardByOverlapSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPointFilter::SourceFiltersLabel, "Filters used to know whether a point should be considered for overlap or not.", Normal, {})
-	return PinProperties;
-}
-
 FPCGExDiscardByOverlapContext::~FPCGExDiscardByOverlapContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -164,8 +157,6 @@ bool FPCGExDiscardByOverlapElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	GetInputFactories(Context, PCGExPointFilter::SourceFiltersLabel, Context->FilterFactories, PCGExFactories::PointFilters, false);
-
 	return true;
 }
 
@@ -183,7 +174,6 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 			[&](PCGExData::FPointIO* Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>* NewBatch)
 			{
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
 				NewBatch->bRequiresWriteStep = true; // Not really but we need the step
 			},
 			PCGExMT::State_Processing))
@@ -270,6 +260,8 @@ namespace PCGExDiscardByOverlap
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(DiscardByOverlap)
 
+		PointDataFacade->bSupportsDynamic = true;
+		
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LocalSettings = Settings;
@@ -304,6 +296,7 @@ namespace PCGExDiscardByOverlap
 		BoundsPreparationTask->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
+				PointDataFacade->Fetch(StartIndex, Count);
 				FilterScope(StartIndex, Count);
 			});
 

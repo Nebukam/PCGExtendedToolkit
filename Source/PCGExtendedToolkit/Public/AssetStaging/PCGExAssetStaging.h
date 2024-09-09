@@ -28,6 +28,7 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual FName GetPointFilterLabel() const override { return PCGExPointFilter::SourcePointFiltersLabel; }
 	//~End UPCGSettings
 
 	//~Begin UPCGExPointsProcessorSettings

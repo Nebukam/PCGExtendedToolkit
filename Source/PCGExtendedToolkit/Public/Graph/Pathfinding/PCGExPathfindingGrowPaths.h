@@ -26,24 +26,24 @@ class UPCGExPathfindingGrowPathsSettings;
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Growth Value Source"))
 enum class EPCGExGrowthIterationMode : uint8
 {
-	Parallel UMETA(DisplayName = "Parallel", ToolTip="Does one growth iteration on each seed until none remain"),
-	Sequence UMETA(DisplayName = "Sequence", ToolTip="Grow a seed to its end, then move to the next seed"),
+	Parallel = 0 UMETA(DisplayName = "Parallel", ToolTip="Does one growth iteration on each seed until none remain"),
+	Sequence = 1 UMETA(DisplayName = "Sequence", ToolTip="Grow a seed to its end, then move to the next seed"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Growth Value Source"))
 enum class EPCGExGrowthValueSource : uint8
 {
-	Constant UMETA(DisplayName = "Constant", ToolTip="Use a single constant for all seeds"),
-	SeedAttribute UMETA(DisplayName = "Seed Attribute", ToolTip="Attribute read on the seed."),
-	VtxAttribute UMETA(DisplayName = "Vtx Attribute", ToolTip="Attribute read on the vtx."),
+	Constant      = 0 UMETA(DisplayName = "Constant", ToolTip="Use a single constant for all seeds"),
+	SeedAttribute = 1 UMETA(DisplayName = "Seed Attribute", ToolTip="Attribute read on the seed."),
+	VtxAttribute  = 2 UMETA(DisplayName = "Vtx Attribute", ToolTip="Attribute read on the vtx."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Growth Update Mode"))
 enum class EPCGExGrowthUpdateMode : uint8
 {
 	Once UMETA(DisplayName = "Once", ToolTip="Read once at the beginning of the computation."),
-	SetEachIteration UMETA(DisplayName = "Set Each Iteration", ToolTip="Set the remaining number of iteration after each iteration."),
-	AddEachIteration UMETA(DisplayName = "Add Each Iteration", ToolTip="Add to the remaning number of iterations after each iteration."),
+	SetEachIteration = 0 UMETA(DisplayName = "Set Each Iteration", ToolTip="Set the remaining number of iteration after each iteration."),
+	AddEachIteration = 1 UMETA(DisplayName = "Add Each Iteration", ToolTip="Add to the remaning number of iterations after each iteration."),
 };
 
 namespace PCGExGrowPaths

@@ -14,11 +14,11 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Debug Expression"))
 enum class EPCGExDebugExpression : uint8
 {
-	Direction UMETA(DisplayName = "Direction", ToolTip="Attribute is treated as a Normal."),
-	ConnectionToIndex UMETA(DisplayName = "Connection (Point Index)", ToolTip="Attribute is treated as a lookup index in the same data block."),
-	ConnectionToPosition UMETA(DisplayName = "Connection (Position)", ToolTip="Attribute is treated as world space position in the same data block."),
-	Point UMETA(DisplayName = "Point", ToolTip="Attribute is treated as a world space position."),
-	Boolean UMETA(DisplayName = "Boolean", ToolTip="Attribute is treated as a boolean switch between two colors.")
+	Direction            = 0 UMETA(DisplayName = "Direction", ToolTip="Attribute is treated as a Normal."),
+	ConnectionToIndex    = 1 UMETA(DisplayName = "Connection (Point Index)", ToolTip="Attribute is treated as a lookup index in the same data block."),
+	ConnectionToPosition = 2 UMETA(DisplayName = "Connection (Position)", ToolTip="Attribute is treated as world space position in the same data block."),
+	Point                = 3 UMETA(DisplayName = "Point", ToolTip="Attribute is treated as a world space position."),
+	Boolean              = 4 UMETA(DisplayName = "Boolean", ToolTip="Attribute is treated as a boolean switch between two colors.")
 };
 
 USTRUCT(BlueprintType)

@@ -38,8 +38,7 @@ bool FPCGExPruneClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_DELETE(Bounds)
 
-	Context->ClusterState.SetNumUninitialized(Context->MainEdges->Num());
-	for (bool& State : Context->ClusterState) { State = false; }
+	Context->ClusterState.Init(false, Context->MainEdges->Num());
 
 	return true;
 }

@@ -10,10 +10,10 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Orient Look At Mode"))
 enum class EPCGExOrientLookAtMode : uint8
 {
-	NextPoint UMETA(DisplayName = "Next Point", ToolTip="Look at next point in path"),
-	PreviousPoint UMETA(DisplayName = "Previous Point", ToolTip="Look at previous point in path"),
-	Direction UMETA(DisplayName = "Direction", ToolTip="Use a local vector attribute as a direction to look at"),
-	Position UMETA(DisplayName = "Position", ToolTip="Use a local vector attribtue as a world position to look at"),
+	NextPoint     = 0 UMETA(DisplayName = "Next Point", ToolTip="Look at next point in path"),
+	PreviousPoint = 1 UMETA(DisplayName = "Previous Point", ToolTip="Look at previous point in path"),
+	Direction     = 2 UMETA(DisplayName = "Direction", ToolTip="Use a local vector attribute as a direction to look at"),
+	Position      = 3 UMETA(DisplayName = "Position", ToolTip="Use a local vector attribtue as a world position to look at"),
 };
 
 /**

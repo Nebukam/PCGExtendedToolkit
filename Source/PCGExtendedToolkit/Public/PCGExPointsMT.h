@@ -95,7 +95,7 @@ namespace PCGExPointsMT
 		bool DefaultPointFilterValue = true;
 		bool bIsSmallPoints = false;
 
-		TArray<bool> PointFilterCache;
+		TBitArray<> PointFilterCache;
 
 		FPCGExContext* Context = nullptr;
 
@@ -280,13 +280,9 @@ namespace PCGExPointsMT
 	protected:
 		virtual bool InitPrimaryFilters(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
 		{
-			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
+			PointFilterCache.Init(DefaultPointFilterValue, PointIO->GetNum());
 
-			if (InFilterFactories->IsEmpty())
-			{
-				for (bool& Result : PointFilterCache) { Result = DefaultPointFilterValue; }
-				return true;
-			}
+			if (InFilterFactories->IsEmpty()) { return true; }
 
 			PrimaryFilters = new PCGExPointFilter::TManager(PointDataFacade);
 			return PrimaryFilters->Init(Context, *InFilterFactories);
@@ -294,9 +290,11 @@ namespace PCGExPointsMT
 
 		virtual void FilterScope(const int32 StartIndex, const int32 Count)
 		{
-			const int32 MaxIndex = StartIndex + Count;
-			if (PrimaryFilters) { for (int i = StartIndex; i < MaxIndex; i++) { PointFilterCache[i] = PrimaryFilters->Test(i); } }
-			else { for (int i = StartIndex; i < MaxIndex; i++) { PointFilterCache[i] = DefaultPointFilterValue; } }
+			if (PrimaryFilters)
+			{
+				const int32 MaxIndex = StartIndex + Count;
+				for (int i = StartIndex; i < MaxIndex; i++) { PointFilterCache[i] = PrimaryFilters->Test(i); }
+			}
 		}
 
 		virtual void FilterAll() { FilterScope(0, PointIO->GetNum()); }

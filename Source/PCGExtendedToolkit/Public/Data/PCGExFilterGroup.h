@@ -15,8 +15,8 @@
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Filter Group Mode"))
 enum class EPCGExFilterGroupMode : uint8
 {
-	AND UMETA(DisplayName = "And", ToolTip="All connected filters must pass."),
-	OR UMETA(DisplayName = "Or", ToolTip="Only a single connected filter must pass.")
+	AND = 0 UMETA(DisplayName = "And", ToolTip="All connected filters must pass."),
+	OR = 1 UMETA(DisplayName = "Or", ToolTip="Only a single connected filter must pass.")
 };
 
 /**

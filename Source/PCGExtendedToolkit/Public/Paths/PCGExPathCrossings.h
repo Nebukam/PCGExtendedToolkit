@@ -157,6 +157,9 @@ namespace PCGExPathCrossings
 		PCGExPointFilter::TManager* CanCutFilterManager = nullptr;
 		PCGExPointFilter::TManager* CanBeCutFilterManager = nullptr;
 
+		TBitArray<> CanCut;
+		TBitArray<> CanBeCut;
+
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 		PCGExData::FIdxCompoundList* CompoundList = nullptr;

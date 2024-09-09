@@ -145,6 +145,9 @@ namespace PCGExPathCrossings
 		PCGEX_SET_NUM_UNINITIALIZED(Edges, NumPoints)
 		PCGEX_SET_NUM_NULLPTR(Crossings, NumPoints)
 
+		CanCut.Init(true, NumPoints);
+		CanBeCut.Init(true, NumPoints);
+
 		FBox PointBounds = FBox(ForceInit);
 		for (int i = 0; i < NumPoints; i++)
 		{
@@ -167,13 +170,13 @@ namespace PCGExPathCrossings
 
 				if (!bClosedPath)
 				{
-					Edges.Last()->bCanBeCut = false;
-					Edges.Last()->bCanCut = false;
+					CanBeCut[NumPoints - 1] = false;
+					CanCut[NumPoints - 1] = false;
 				}
 
 				for (int i = 0; i < NumPoints; i++)
 				{
-					if (!Edges[i]->bCanCut) { continue; } // !!
+					if (!CanCut[i]) { continue; } // !!
 					EdgeOctree->AddElement(Edges[i]);
 				}
 			});
@@ -192,8 +195,11 @@ namespace PCGExPathCrossings
 				const double Length = FVector::DistSquared(Positions[Edge->Start], Positions[Edge->End]);
 				Lengths[Index] = Length;
 
-				Edge->bCanBeCut = Length == 0 ? false : CanBeCutFilterManager ? CanBeCutFilterManager->Test(Index) : true;
-				Edge->bCanCut = Length == 0 ? false : CanCutFilterManager ? CanCutFilterManager->Test(Index) : true;
+				if (Length > 0)
+				{
+					if (CanCutFilterManager) { CanCut[Index] = CanCutFilterManager->Test(Index); }
+					if (CanBeCutFilterManager) { CanBeCut[Index] = CanBeCutFilterManager->Test(Index); }
+				}
 
 				Edges[Index] = Edge;
 			}, NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -205,11 +211,10 @@ namespace PCGExPathCrossings
 	{
 		Crossings[Index] = nullptr;
 
+		if (!CanBeCut[Index]) { return; }
 		if (!bClosedPath && Index == LastIndex) { return; }
 
 		const PCGExPaths::FPathEdge* Edge = Edges[Index];
-
-		if (!Edge->bCanBeCut) { return; }
 
 		int32 CurrentIOIndex = PointIO->IOIndex;
 		const TArray<FVector>* P2 = &Positions;

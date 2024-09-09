@@ -23,63 +23,63 @@ MACRO(FSoftClassPath)
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExIndexMode : uint8
 {
-	Pick UMETA(DisplayName = "Pick", ToolTip="Index value represent a specific pick"),
-	Offset UMETA(DisplayName = "Offset", ToolTip="Index value represent an offset from current point' index"),
+	Pick   = 0 UMETA(DisplayName = "Pick", ToolTip="Index value represent a specific pick"),
+	Offset = 1 UMETA(DisplayName = "Offset", ToolTip="Index value represent an offset from current point' index"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Dot Units"))
 enum class EPCGExDotUnits : uint8
 {
-	Raw UMETA(DisplayName = "Normal (-1::1)", Tooltip="Read the value as a raw dot product result"),
-	Degrees UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
+	Raw     = 0 UMETA(DisplayName = "Normal (-1::1)", Tooltip="Read the value as a raw dot product result"),
+	Degrees = 1 UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Comparison"))
 enum class EPCGExComparison : uint8
 {
-	StrictlyEqual UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),
-	StrictlyNotEqual UMETA(DisplayName = " != ", Tooltip="Operand A Strictly Not Equal to Operand B"),
-	EqualOrGreater UMETA(DisplayName = " >= ", Tooltip="Operand A Equal or Greater to Operand B"),
-	EqualOrSmaller UMETA(DisplayName = " <= ", Tooltip="Operand A Equal or Smaller to Operand B"),
-	StrictlyGreater UMETA(DisplayName = " > ", Tooltip="Operand A Strictly Greater to Operand B"),
-	StrictlySmaller UMETA(DisplayName = " < ", Tooltip="Operand A Strictly Smaller to Operand B"),
-	NearlyEqual UMETA(DisplayName = " ~= ", Tooltip="Operand A Nearly Equal to Operand B"),
-	NearlyNotEqual UMETA(DisplayName = " !~= ", Tooltip="Operand A Nearly Not Equal to Operand B"),
+	StrictlyEqual    = 0 UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),
+	StrictlyNotEqual = 1 UMETA(DisplayName = " != ", Tooltip="Operand A Strictly Not Equal to Operand B"),
+	EqualOrGreater   = 2 UMETA(DisplayName = " >= ", Tooltip="Operand A Equal or Greater to Operand B"),
+	EqualOrSmaller   = 3 UMETA(DisplayName = " <= ", Tooltip="Operand A Equal or Smaller to Operand B"),
+	StrictlyGreater  = 4 UMETA(DisplayName = " > ", Tooltip="Operand A Strictly Greater to Operand B"),
+	StrictlySmaller  = 5 UMETA(DisplayName = " < ", Tooltip="Operand A Strictly Smaller to Operand B"),
+	NearlyEqual      = 6 UMETA(DisplayName = " ~= ", Tooltip="Operand A Nearly Equal to Operand B"),
+	NearlyNotEqual   = 7 UMETA(DisplayName = " !~= ", Tooltip="Operand A Nearly Not Equal to Operand B"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Equality"))
 enum class EPCGExEquality : uint8
 {
-	Equal UMETA(DisplayName = " == ", Tooltip="Operand A Equal to Operand B"),
-	NotEqual UMETA(DisplayName = " != ", Tooltip="Operand A Not Equal to Operand B"),
+	Equal    = 0 UMETA(DisplayName = " == ", Tooltip="Operand A Equal to Operand B"),
+	NotEqual = 1 UMETA(DisplayName = " != ", Tooltip="Operand A Not Equal to Operand B"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] String Comparison"))
 enum class EPCGExStringComparison : uint8
 {
-	StrictlyEqual UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),
-	StrictlyNotEqual UMETA(DisplayName = " != ", Tooltip="Operand A Strictly Not Equal to Operand B"),
-	LengthStrictlyEqual UMETA(DisplayName = " == (Length) ", Tooltip="Operand A Strictly Equal to Operand B"),
-	LengthStrictlyUnequal UMETA(DisplayName = " != (Length) ", Tooltip="Operand A Strictly Not Equal to Operand B"),
-	LengthEqualOrGreater UMETA(DisplayName = " >= (Length)", Tooltip="Operand A Equal or Greater to Operand B"),
-	LengthEqualOrSmaller UMETA(DisplayName = " <= (Length)", Tooltip="Operand A Equal or Smaller to Operand B"),
-	StrictlyGreater UMETA(DisplayName = " > (Length)", Tooltip="Operand A Strictly Greater to Operand B"),
-	StrictlySmaller UMETA(DisplayName = " < (Length)", Tooltip="Operand A Strictly Smaller to Operand B"),
-	LocaleStrictlyGreater UMETA(DisplayName = " > (Locale)", Tooltip="Operand A Locale Strictly Greater to Operand B Locale"),
-	LocaleStrictlySmaller UMETA(DisplayName = " < (Locale)", Tooltip="Operand A Locale Strictly Smaller to Operand B Locale"),
-	Contains UMETA(DisplayName = " Contains ", Tooltip="Operand A contains Operand B"),
-	StartsWith UMETA(DisplayName = " Starts With ", Tooltip="Operand A starts with Operand B"),
-	EndsWith UMETA(DisplayName = " Ends With ", Tooltip="Operand A ends with Operand B"),
+	StrictlyEqual         = 0 UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),
+	StrictlyNotEqual      = 1 UMETA(DisplayName = " != ", Tooltip="Operand A Strictly Not Equal to Operand B"),
+	LengthStrictlyEqual   = 2 UMETA(DisplayName = " == (Length) ", Tooltip="Operand A Strictly Equal to Operand B"),
+	LengthStrictlyUnequal = 3 UMETA(DisplayName = " != (Length) ", Tooltip="Operand A Strictly Not Equal to Operand B"),
+	LengthEqualOrGreater  = 4 UMETA(DisplayName = " >= (Length)", Tooltip="Operand A Equal or Greater to Operand B"),
+	LengthEqualOrSmaller  = 5 UMETA(DisplayName = " <= (Length)", Tooltip="Operand A Equal or Smaller to Operand B"),
+	StrictlyGreater       = 6 UMETA(DisplayName = " > (Length)", Tooltip="Operand A Strictly Greater to Operand B"),
+	StrictlySmaller       = 7 UMETA(DisplayName = " < (Length)", Tooltip="Operand A Strictly Smaller to Operand B"),
+	LocaleStrictlyGreater = 8 UMETA(DisplayName = " > (Locale)", Tooltip="Operand A Locale Strictly Greater to Operand B Locale"),
+	LocaleStrictlySmaller = 9 UMETA(DisplayName = " < (Locale)", Tooltip="Operand A Locale Strictly Smaller to Operand B Locale"),
+	Contains              = 10 UMETA(DisplayName = " Contains ", Tooltip="Operand A contains Operand B"),
+	StartsWith            = 11 UMETA(DisplayName = " Starts With ", Tooltip="Operand A starts with Operand B"),
+	EndsWith              = 12 UMETA(DisplayName = " Ends With ", Tooltip="Operand A ends with Operand B"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bitflag Comparison"))
 enum class EPCGExBitflagComparison : uint8
 {
-	MatchPartial UMETA(DisplayName = "Match (any)", Tooltip="Value & Mask != 0 (At least some flags in the mask are set)"),
-	MatchFull UMETA(DisplayName = "Match (all)", Tooltip="Value & Mask == Mask (All the flags in the mask are set)"),
-	MatchStrict UMETA(DisplayName = "Match (strict)", Tooltip="Value == Mask (Flags strictly equals mask)"),
-	NoMatchPartial UMETA(DisplayName = "No match (any)", Tooltip="Value & Mask == 0 (Flags does not contains any from mask)"),
-	NoMatchFull UMETA(DisplayName = "No match (all)", Tooltip="Value & Mask != Mask (Flags does not contains the mask)"),
+	MatchPartial   = 0 UMETA(DisplayName = "Match (any)", Tooltip="Value & Mask != 0 (At least some flags in the mask are set)"),
+	MatchFull      = 1 UMETA(DisplayName = "Match (all)", Tooltip="Value & Mask == Mask (All the flags in the mask are set)"),
+	MatchStrict    = 2 UMETA(DisplayName = "Match (strict)", Tooltip="Value == Mask (Flags strictly equals mask)"),
+	NoMatchPartial = 3 UMETA(DisplayName = "No match (any)", Tooltip="Value & Mask == 0 (Flags does not contains any from mask)"),
+	NoMatchFull    = 4 UMETA(DisplayName = "No match (all)", Tooltip="Value & Mask != Mask (Flags does not contains the mask)"),
 };
 
 namespace PCGExCompare
@@ -521,8 +521,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExComparisonDetails
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Direction Check Mode"))
 enum class EPCGExDirectionCheckMode : uint8
 {
-	Dot UMETA(DisplayName = "Dot (Precise)", Tooltip="Extensive comparison using Dot product"),
-	Hash UMETA(DisplayName = "Hash (Fast)", Tooltip="Simplified check using hash comparison with a destructive tolerance"),
+	Dot  = 0 UMETA(DisplayName = "Dot (Precise)", Tooltip="Extensive comparison using Dot product"),
+	Hash = 1 UMETA(DisplayName = "Hash (Fast)", Tooltip="Simplified check using hash comparison with a destructive tolerance"),
 };
 
 
@@ -672,19 +672,19 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bit Operation"))
 enum class EPCGExBitOp : uint8
 {
-	Set UMETA(DisplayName = "=", ToolTip="(Flags = Mask) Set the bit with the specified value."),
-	AND UMETA(DisplayName = "AND", ToolTip="(Flags &= Mask) Output true if boths bits == 1, otherwise false."),
-	OR UMETA(DisplayName = "OR", ToolTip="(Flags |= Mask) Output true if any of the bits == 1, otherwise false."),
-	NOT UMETA(DisplayName = "NOT", ToolTip="(Flags &= ~Mask) Like AND, but inverts the masks."),
-	XOR UMETA(DisplayName = "XOR", ToolTip="(Flags ^= Mask) Invert the flag bit where the mask == 1."),
+	Set = 0 UMETA(DisplayName = "=", ToolTip="(Flags = Mask) Set the bit with the specified value."),
+	AND = 1 UMETA(DisplayName = "AND", ToolTip="(Flags &= Mask) Output true if boths bits == 1, otherwise false."),
+	OR  = 2 UMETA(DisplayName = "OR", ToolTip="(Flags |= Mask) Output true if any of the bits == 1, otherwise false."),
+	NOT = 3 UMETA(DisplayName = "NOT", ToolTip="(Flags &= ~Mask) Like AND, but inverts the masks."),
+	XOR = 4 UMETA(DisplayName = "XOR", ToolTip="(Flags ^= Mask) Invert the flag bit where the mask == 1."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bitmask Source"))
 enum class EPCGExBitmaskMode : uint8
 {
-	Direct UMETA(DisplayName = "Direct", ToolTip="Used for easy override mostly"),
-	Individual UMETA(DisplayName = "Individual", ToolTip="Use an array to manually set the bits"),
-	Composite UMETA(DisplayName = "Composite", ToolTip="Use a ton of dropdown to set the bits"),
+	Direct     = 0 UMETA(DisplayName = "Direct", ToolTip="Used for easy override mostly"),
+	Individual = 1 UMETA(DisplayName = "Individual", ToolTip="Use an array to manually set the bits"),
+	Composite  = 2 UMETA(DisplayName = "Composite", ToolTip="Use a ton of dropdown to set the bits"),
 };
 
 #pragma region Bitmasks

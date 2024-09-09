@@ -14,8 +14,8 @@ class FPCGExPointIOMerger;
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Selector Type"))
 enum class EPCGExMergeByTagOverlapResolutionMode : uint8
 {
-	Strict UMETA(DisplayName = "Strict", ToolTip="Merge happens per-tag, and higher priority tags are removed from lower priority overlaps."),
-	ImmediateOverlap UMETA(DisplayName = "Overlap", ToolTip="Merge happens per-tag, overlapping data is merged entierely."),
+	Strict           = 0 UMETA(DisplayName = "Strict", ToolTip="Merge happens per-tag, and higher priority tags are removed from lower priority overlaps."),
+	ImmediateOverlap = 1 UMETA(DisplayName = "Overlap", ToolTip="Merge happens per-tag, overlapping data is merged entierely."),
 };
 
 namespace PCPGExMergePointsByTag
