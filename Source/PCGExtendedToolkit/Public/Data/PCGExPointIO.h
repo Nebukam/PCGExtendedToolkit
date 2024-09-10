@@ -49,6 +49,10 @@ namespace PCGExData
 		{
 		}
 
+		FPointRef()
+		{
+		}
+
 		bool IsValid() const { return Point && Index != -1; }
 		const FPCGPoint* Point = nullptr;
 		const int32 Index = -1;

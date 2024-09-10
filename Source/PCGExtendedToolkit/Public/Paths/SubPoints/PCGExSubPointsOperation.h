@@ -21,9 +21,14 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubPointsOperation : public UPCGExOperati
 public:
 	bool bClosedPath = false;
 
+	bool bPreserveTransform = false;
+	bool bPreservePosition = false;
+	bool bPreserveRotation = false;
+	bool bPreserveScale = false;
+	
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade);
+	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet);
 
 	virtual void ProcessSubPoints(
 		const PCGExData::FPointRef& From,

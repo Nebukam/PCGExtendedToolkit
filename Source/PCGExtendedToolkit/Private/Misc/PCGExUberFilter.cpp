@@ -32,6 +32,12 @@ FPCGExUberFilterContext::~FPCGExUberFilterContext()
 
 PCGEX_INITIALIZE_ELEMENT(UberFilter)
 
+FName UPCGExUberFilterSettings::GetMainOutputLabel() const
+{
+	// Ensure proper forward when node is disabled
+	return Mode == EPCGExUberFilterMode::Partition ? PCGExPointFilter::OutputInsideFiltersLabel : Super::GetMainOutputLabel();
+}
+
 bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

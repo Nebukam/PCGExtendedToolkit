@@ -106,7 +106,7 @@ namespace PCGExDataBlending
 
 	void FCompoundBlender::PrepareMerge(
 		PCGExData::FFacade* TargetData,
-		PCGExData::FIdxCompoundList* CompoundList)
+		PCGExData::FIdxCompoundList* CompoundList, const TSet<FName>* IgnoreAttributeSet)
 	{
 		CurrentCompoundList = CompoundList;
 		CurrentTargetData = TargetData;
@@ -121,6 +121,8 @@ namespace PCGExDataBlending
 		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->Writer = nullptr;
+
+			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(SrcMap->Identity.Name)) { continue; }
 
 			PCGMetadataAttribute::CallbackWithRightType(
 				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
@@ -211,7 +213,8 @@ namespace PCGExDataBlending
 
 	void FCompoundBlender::PrepareSoftMerge(
 		PCGExData::FFacade* TargetData,
-		PCGExData::FIdxCompoundList* CompoundList)
+		PCGExData::FIdxCompoundList* CompoundList,
+		const TSet<FName>* IgnoreAttributeSet)
 	{
 		CurrentCompoundList = CompoundList;
 		CurrentTargetData = TargetData;
@@ -229,7 +232,9 @@ namespace PCGExDataBlending
 		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->Writer = nullptr;
-
+			
+			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(SrcMap->Identity.Name)) { continue; }
+			
 			PCGMetadataAttribute::CallbackWithRightType(
 				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
 				{

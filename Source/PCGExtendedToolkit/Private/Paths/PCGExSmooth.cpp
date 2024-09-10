@@ -110,7 +110,7 @@ namespace PCGExSmooth
 
 		if (Settings->SmoothingAmountType == EPCGExFetchType::Attribute)
 		{
-			Smoothing = PointDataFacade->GetScopedBroadcaster<double>(Settings->InfluenceAttribute);
+			Smoothing = PointDataFacade->GetScopedBroadcaster<double>(Settings->SmoothingAmountAttribute);
 			if (!Smoothing)
 			{
 				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing smoothing amount attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));

@@ -14,8 +14,8 @@ namespace PCGExDataBlending
 	static TSet<EPCGExDataBlendingType> ResetBlend = {
 		EPCGExDataBlendingType::Average,
 		EPCGExDataBlendingType::Weight,
-		EPCGExDataBlendingType::WeightedAdd,
-		EPCGExDataBlendingType::Add,
+		EPCGExDataBlendingType::WeightedSum,
+		EPCGExDataBlendingType::Sum,
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPropertiesBlender

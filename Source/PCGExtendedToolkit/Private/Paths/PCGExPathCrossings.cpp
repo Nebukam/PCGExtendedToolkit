@@ -35,12 +35,21 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->IntersectionDetails.bWriteCrossing) { PCGEX_VALIDATE_NAME(Settings->IntersectionDetails.CrossingAttributeName) }
 	if (Settings->bWriteAlpha) { PCGEX_VALIDATE_NAME(Settings->CrossingAlphaAttributeName) }
+	if (Settings->bWriteCrossDirection) { PCGEX_VALIDATE_NAME(Settings->CrossDirectionAttributeName) }
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 	Context->Blending->bClosedPath = Settings->bClosedPath;
 
 	GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
 	GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
+
+	Context->CrossingBlending = Settings->CrossingBlending;
+
+	if (Settings->bOrientCrossing)
+	{
+		Context->CrossingBlending.PropertiesOverrides.bOverrideRotation = true;
+		Context->CrossingBlending.PropertiesOverrides.RotationBlending = EPCGExDataBlendingType::None;
+	}
 
 	return true;
 }
@@ -159,6 +168,7 @@ namespace PCGExPathCrossings
 		EdgeOctree = new TEdgeOctree(PointBounds.GetCenter(), PointBounds.GetExtent().Length() + (Details.Tolerance * 2));
 
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
+		if (Settings->bOrientCrossing) { Blending->bPreserveRotation = true; }
 
 		PCGExMT::FTaskGroup* Preparation = AsyncManager->CreateGroup();
 
@@ -229,11 +239,12 @@ namespace PCGExPathCrossings
 			const FVector& B2 = *(P2->GetData() + E2->End);
 			if (A1 == A2 || A1 == B2 || A2 == B1 || B2 == B1) { return; }
 
+			const FVector CrossDir = (B2 - A2).GetSafeNormal();
+
 			if (Details.bUseMinAngle || Details.bUseMaxAngle)
 			{
-				if (!Details.CheckDot(FMath::Abs(FVector::DotProduct((B1 - A1).GetSafeNormal(), (B2 - A2).GetSafeNormal())))) { return; }
+				if (!Details.CheckDot(FMath::Abs(FVector::DotProduct((B1 - A1).GetSafeNormal(), CrossDir)))) { return; }
 			}
-
 
 			FVector A;
 			FVector B;
@@ -248,6 +259,7 @@ namespace PCGExPathCrossings
 
 			NewCrossing->Crossings.Add(PCGEx::H64(E2->Start, CurrentIOIndex));
 			NewCrossing->Positions.Add(FMath::Lerp(A, B, 0.5));
+			NewCrossing->CrossingDirections.Add(CrossDir);
 			NewCrossing->Alphas.Add(FVector::DistSquared(A1, A) / Lengths[E1->Start]);
 		};
 
@@ -290,12 +302,11 @@ namespace PCGExPathCrossings
 		const FCrossing* Crossing = Crossings[Index];
 		const PCGExPaths::FPathEdge* Edge = Edges[Index];
 
-		if (!Crossing)
-		{
-			if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = false; }
-			if (AlphaWriter) { AlphaWriter->Values[Edge->OffsetedStart] = LocalSettings->DefaultAlpha; }
-			return;
-		}
+		if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = false; }
+		if (AlphaWriter) { AlphaWriter->Values[Edge->OffsetedStart] = LocalSettings->DefaultAlpha; }
+		if (CrossWriter) { CrossWriter->Values[Edge->OffsetedStart] = LocalSettings->DefaultCrossDirection; }
+
+		if (!Crossing) { return; }
 
 		const int32 NumCrossings = Crossing->Crossings.Num();
 		const int32 CrossingStartIndex = Edge->OffsetedStart + 1;
@@ -307,7 +318,6 @@ namespace PCGExPathCrossings
 		PCGEx::ArrayOfIndices(Order, NumCrossings);
 		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
-
 		for (int i = 0; i < NumCrossings; i++)
 		{
 			const int32 Idx = CrossingStartIndex + i;
@@ -315,6 +325,37 @@ namespace PCGExPathCrossings
 
 			const int32 OrderIdx = Order[i];
 			const FVector& V = Crossing->Positions[OrderIdx];
+			const FVector CrossDir = Crossing->CrossingDirections[OrderIdx];
+
+			if (FlagWriter) { FlagWriter->Values[Idx] = true; }
+			if (AlphaWriter) { AlphaWriter->Values[Idx] = Crossing->Alphas[OrderIdx]; }
+			if (CrossWriter) { CrossWriter->Values[Idx] = CrossDir; }
+
+			if (LocalSettings->bOrientCrossing)
+			{
+				switch (LocalSettings->CrossingOrientAxis)
+				{
+				case EPCGExAxis::Forward:
+					CrossingPt.Transform.SetRotation(FRotationMatrix::MakeFromX(CrossDir).ToQuat());
+					break;
+				case EPCGExAxis::Backward:
+					CrossingPt.Transform.SetRotation(FRotationMatrix::MakeFromX(CrossDir * -1).ToQuat());
+					break;
+				case EPCGExAxis::Right:
+					CrossingPt.Transform.SetRotation(FRotationMatrix::MakeFromY(CrossDir).ToQuat());
+					break;
+				case EPCGExAxis::Left:
+					CrossingPt.Transform.SetRotation(FRotationMatrix::MakeFromY(CrossDir * -1).ToQuat());
+					break;
+				case EPCGExAxis::Up:
+					CrossingPt.Transform.SetRotation(FRotationMatrix::MakeFromZ(CrossDir).ToQuat());
+					break;
+				case EPCGExAxis::Down:
+					CrossingPt.Transform.SetRotation(FRotationMatrix::MakeFromZ(CrossDir * -1).ToQuat());
+					break;
+				default: ;
+				}
+			}
 
 			CrossingPt.Transform.SetLocation(V);
 			Metrics.Add(V);
@@ -325,21 +366,6 @@ namespace PCGExPathCrossings
 		TArrayView<FPCGPoint> View = MakeArrayView(OutPoints.GetData() + CrossingStartIndex, NumCrossings);
 		const int32 EndIndex = Index == LastIndex ? 0 : CrossingStartIndex + NumCrossings;
 		Blending->ProcessSubPoints(PointIO->GetOutPointRef(CrossingStartIndex - 1), PointIO->GetOutPointRef(EndIndex), View, Metrics, CrossingStartIndex);
-
-		// Ensure we overwrite flag with current values if they exist already
-
-		if (FlagWriter || AlphaWriter)
-		{
-			if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = false; }
-			if (AlphaWriter) { AlphaWriter->Values[Edge->OffsetedStart] = LocalSettings->DefaultAlpha; }
-
-			for (int i = 0; i < NumCrossings; i++)
-			{
-				const int32 Idx = CrossingStartIndex + i;
-				if (FlagWriter) { FlagWriter->Values[Idx] = true; }
-				if (AlphaWriter) { AlphaWriter->Values[Idx] = Crossing->Alphas[Order[i]]; }
-			}
-		}
 	}
 
 	void FProcessor::CrossBlendPoint(const int32 Index)
@@ -416,7 +442,26 @@ namespace PCGExPathCrossings
 			}
 		}
 
-		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out);
+		// Flag last so it doesn't get captured by blenders
+		if (LocalSettings->IntersectionDetails.bWriteCrossing)
+		{
+			FlagWriter = PointDataFacade->GetWriter(LocalSettings->IntersectionDetails.CrossingAttributeName, false, true, true);
+			ProtectedAttributes.Add(LocalSettings->IntersectionDetails.CrossingAttributeName);
+		}
+
+		if (LocalSettings->bWriteAlpha)
+		{
+			AlphaWriter = PointDataFacade->GetWriter<double>(LocalSettings->CrossingAlphaAttributeName, LocalSettings->DefaultAlpha, true, true);
+			ProtectedAttributes.Add(LocalSettings->CrossingAlphaAttributeName);
+		}
+
+		if (LocalSettings->bWriteCrossDirection)
+		{
+			CrossWriter = PointDataFacade->GetWriter<FVector>(LocalSettings->CrossDirectionAttributeName, LocalSettings->DefaultCrossDirection, true, true);
+			ProtectedAttributes.Add(LocalSettings->CrossDirectionAttributeName);
+		}
+
+		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out, &ProtectedAttributes);
 
 		if (LocalSettings->bDoCrossBlending)
 		{
@@ -427,12 +472,8 @@ namespace PCGExPathCrossings
 				if (IO && IOIndices.Contains(IO->IOIndex)) { CompoundBlender->AddSource(LocalTypedContext->SubProcessorMap[IO]->PointDataFacade); }
 			}
 
-			CompoundBlender->PrepareSoftMerge(PointDataFacade, CompoundList);
+			CompoundBlender->PrepareSoftMerge(PointDataFacade, CompoundList, &ProtectedAttributes);
 		}
-
-		// Flag last so it doesn't get captured by blenders
-		if (LocalSettings->IntersectionDetails.bWriteCrossing) { FlagWriter = PointDataFacade->GetWriter(LocalSettings->IntersectionDetails.CrossingAttributeName, false, true, true); }
-		if (LocalSettings->bWriteAlpha) { AlphaWriter = PointDataFacade->GetWriter<double>(LocalSettings->CrossingAlphaAttributeName, LocalSettings->DefaultAlpha, true, true); }
 
 		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (LocalSettings->bTagIfHasCrossing) { PointIO->Tags->Add(LocalSettings->HasCrossingsTag); } }
 		else { if (LocalSettings->bTagIfHasNoCrossings) { PointIO->Tags->Add(LocalSettings->HasNoCrossingsTag); } }

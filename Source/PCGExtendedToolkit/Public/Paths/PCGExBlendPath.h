@@ -8,7 +8,14 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
+#include "PCGExPaths.h"
+#include "Data/Blending/PCGExDataBlending.h"
 #include "PCGExBlendPath.generated.h"
+
+namespace PCGExDataBlending
+{
+	class FMetadataBlender;
+}
 
 class UPCGExSubPointsBlendOperation;
 
@@ -38,27 +45,29 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UObject interface
-public:
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
 public:
-	/** Consider paths to be closed -- processing will wrap between first and last points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bClosedPath = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExBlendOver BlendOver = EPCGExBlendOver::Distance;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExBlendOver::Fixed", EditConditionHides))
+	EPCGExFetchType LerpSource = EPCGExFetchType::Constant;
+
+	/** Constant direction */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, EditCondition="BlendOver==EPCGExBlendOver::Fixed && LerpSource==EPCGExFetchType::Constant", EditConditionHides))
+	double LerpConstant = 0.5;
+
+	/** Attribute to read the direction from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExBlendOver::Fixed && LerpSource==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector LerpAttribute;
+
+	/** Blending settings used to smooth attributes.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Lerp, EPCGExDataBlendingType::None);
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathContext final : public FPCGExPathProcessorContext
@@ -66,9 +75,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathContext final : public FPCGExPa
 	friend class FPCGExBlendPathElement;
 
 	virtual ~FPCGExBlendPathContext() override;
-
-	EPCGExSubdivideMode SubdivideMethod;
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathElement final : public FPCGExPathProcessorElement
@@ -84,13 +90,36 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathTask final : public PCGExMT::FPCGExTask
+namespace PCGExBlendPath
 {
-public:
-	FPCGExBlendPathTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		const UPCGExBlendPathSettings* LocalSettings = nullptr;
+		FPCGExBlendPathContext* LocalTypedContext = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		int32 MaxIndex = 0;
+
+		PCGExPaths::FPathMetrics Metrics;
+
+		PCGExData::TCache<double>* LerpCache = nullptr;
+		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+
+		PCGExData::FPointRef* Start = nullptr;
+		PCGExData::FPointRef* End = nullptr;
+
+		TArray<double> Length;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
+		virtual void CompleteWork() override;
+	};
+}

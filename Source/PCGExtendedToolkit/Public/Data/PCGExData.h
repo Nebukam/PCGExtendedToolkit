@@ -114,11 +114,14 @@ namespace PCGExData
 				if (InSource == ESource::Out && Writer) { return Writer; }
 				if (Reader)
 				{
-#if WITH_EDITOR
-					// If this throws, we're requesting a full reader on a non-dynamic one.
-					// TODO : Read cache in full and toggle off dynamic.
-					if (bDynamicCache) { check(bFetch) }
-#endif
+					if (bDynamicCache && !bFetch)
+					{
+						// We're requesting a full reader on a non-dynamic one.
+						// Fetch all and turn dynamic off. Surprise perf hit.
+						Fetch(0, Values.Num());
+						bDynamicCache = false;
+					}
+					
 					return Reader;
 				}
 			}

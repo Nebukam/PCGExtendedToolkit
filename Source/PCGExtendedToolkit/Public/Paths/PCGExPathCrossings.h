@@ -12,7 +12,6 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExPathCrossings.generated.h"
 
-
 namespace PCGExDataBlending
 {
 	class FCompoundBlender;
@@ -69,7 +68,7 @@ public:
 
 	/** If enabled, blend in properties & attributes from external sources. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoCrossBlending"))
-	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::None);
+	FPCGExBlendingDetails CrossingBlending = FPCGExBlendingDetails(EPCGExDataBlendingType::Average, EPCGExDataBlendingType::None);
 
 	FPCGExDistanceDetails CrossingBlendingDistance;
 
@@ -80,9 +79,26 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteAlpha"))
 	FName CrossingAlphaAttributeName = "Alpha";
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteAlpha", HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteAlpha", EditConditionHides, HideEditConditionToggle))
 	double DefaultAlpha = -1;
 
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bOrientCrossing = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bOrientCrossing"))
+	EPCGExAxis CrossingOrientAxis = EPCGExAxis::Forward;
+
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteCrossDirection = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteCrossDirection"))
+	FName CrossDirectionAttributeName = "Cross";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteCrossDirection", EditConditionHides, HideEditConditionToggle))
+	FVector DefaultCrossDirection = FVector::ZeroVector;
+	
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTagIfHasCrossing = false;
@@ -107,6 +123,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCG
 	TArray<UPCGExFilterFactoryBase*> CanBeCutFilterFactories;
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
+
+	FPCGExBlendingDetails CrossingBlending;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsElement final : public FPCGExPathProcessorElement
@@ -131,6 +149,7 @@ namespace PCGExPathCrossings
 		TArray<uint64> Crossings; // Point Index | IO Index
 		TArray<FVector> Positions;
 		TArray<double> Alphas;
+		TArray<FVector> CrossingDirections;
 
 		FCrossing(const int32 InIndex):
 			Index(InIndex)
@@ -142,7 +161,7 @@ namespace PCGExPathCrossings
 	{
 		const UPCGExPathCrossingsSettings* LocalSettings = nullptr;
 		FPCGExPathCrossingsContext* LocalTypedContext = nullptr;
-
+		
 		bool bClosedPath = false;
 		bool bSelfIntersectionOnly = false;
 
@@ -160,6 +179,7 @@ namespace PCGExPathCrossings
 		TArray<bool> CanCut;
 		TArray<bool> CanBeCut;
 
+		TSet<FName> ProtectedAttributes;
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 		PCGExData::FIdxCompoundList* CompoundList = nullptr;
@@ -172,6 +192,7 @@ namespace PCGExPathCrossings
 
 		PCGEx::TAttributeWriter<bool>* FlagWriter = nullptr;
 		PCGEx::TAttributeWriter<double>* AlphaWriter = nullptr;
+		PCGEx::TAttributeWriter<FVector>* CrossWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)

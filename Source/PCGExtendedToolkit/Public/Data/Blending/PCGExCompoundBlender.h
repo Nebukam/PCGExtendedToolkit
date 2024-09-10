@@ -87,11 +87,11 @@ namespace PCGExDataBlending
 		void AddSource(PCGExData::FFacade* InFacade);
 		void AddSources(const TArray<PCGExData::FFacade*>& InFacades);
 
-		void PrepareMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList);
+		void PrepareMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList, const TSet<FName>* IgnoreAttributeSet = nullptr);
 		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
 		void MergeSingle(const int32 WriteIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails);
 
-		void PrepareSoftMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList);
+		void PrepareSoftMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList, const TSet<FName>* IgnoreAttributeSet = nullptr);
 		void SoftMergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
 		void SoftMergeSingle(const int32 CompoundIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails);
 

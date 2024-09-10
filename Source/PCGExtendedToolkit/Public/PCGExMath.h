@@ -926,8 +926,6 @@ namespace PCGExMath
 			return Quat.GetUpVector();
 		case EPCGExAxis::Down:
 			return Quat.GetUpVector() * -1;
-		case EPCGExAxis::Euler:
-			return Quat.Euler() * -1;
 		}
 	}
 
@@ -948,8 +946,6 @@ namespace PCGExMath
 			return FVector::UpVector;
 		case EPCGExAxis::Down:
 			return FVector::DownVector;
-		case EPCGExAxis::Euler:
-			return FVector::OneVector;
 		}
 	}
 

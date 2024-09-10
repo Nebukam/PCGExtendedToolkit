@@ -22,7 +22,7 @@ public:
 	EPCGExBlendOver BlendOver = EPCGExBlendOver::Distance;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExBlendOver::Fixed", EditConditionHides))
-	double Weight = 0.5;
+	double Lerp = 0.5;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
@@ -34,7 +34,7 @@ public:
 		PCGExDataBlending::FMetadataBlender* InBlender,
 		const int32 StartIndex) const override;
 
-	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override;
+	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource, const TSet<FName>* IgnoreAttributeSet) override;
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending() override;

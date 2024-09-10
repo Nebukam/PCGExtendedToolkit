@@ -59,6 +59,8 @@ public:
 			}
 		}
 
+		if (Count == 0) { return; }
+
 		MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 	}
 };

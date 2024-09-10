@@ -30,6 +30,12 @@ FPCGExUberFilterCollectionsContext::~FPCGExUberFilterCollectionsContext()
 
 PCGEX_INITIALIZE_ELEMENT(UberFilterCollections)
 
+FName UPCGExUberFilterCollectionsSettings::GetMainOutputLabel() const
+{
+	// Ensure proper forward when node is disabled
+	return PCGExPointFilter::OutputInsideFiltersLabel;
+}
+
 bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

@@ -63,7 +63,6 @@ enum class EPCGExAxis : uint8
 	Left     = 3 UMETA(DisplayName = "Left", ToolTip="Left from Transform/FQuat/Rotator, or raw vector."),
 	Up       = 4 UMETA(DisplayName = "Up", ToolTip="Up from Transform/FQuat/Rotator, or raw vector."),
 	Down     = 5 UMETA(DisplayName = "Down", ToolTip="Down from Transform/FQuat/Rotator, or raw vector."),
-	Euler    = 6 UMETA(DisplayName = "Euler", ToolTip="Fetch Euler from Transform.GetRotation/FQuat/Rotator."),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Axis Alignment Selector"))

@@ -18,7 +18,7 @@ void UPCGExSubPointsBlendNone::BlendSubPoints(
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendNone::CreateBlender(
 	PCGExData::FFacade* InPrimaryFacade,
 	PCGExData::FFacade* InSecondaryFacade,
-	const PCGExData::ESource SecondarySource)
+	const PCGExData::ESource SecondarySource, const TSet<FName>* IgnoreAttributeSet)
 {
 	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingDetails);
 	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);

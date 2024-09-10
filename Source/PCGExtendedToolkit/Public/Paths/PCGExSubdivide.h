@@ -64,11 +64,20 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubPoints = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFlagSubPoints"))
-	FName FlagName = "IsSubPoint";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bFlagSubPoints"))
+	FName SubPointFlagName = "IsSubPoint";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteAlpha = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteAlpha"))
+	FName AlphaAttributeName = "Alpha";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bWriteAlpha", EditConditionHides, HideEditConditionToggle))
+	double DefaultAlpha = 1;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSubdivideContext final : public FPCGExPathProcessorContext
@@ -101,6 +110,8 @@ namespace PCGExSubdivide
 		int32 OutStart = -1;
 		int32 OutEnd = -1;
 		double Dist = 0;
+		double StepSize = 0;
+		double StartOffset = 0;
 		FVector Start = FVector::ZeroVector;
 		FVector End = FVector::ZeroVector;
 		FVector Dir = FVector::ZeroVector;
@@ -113,10 +124,14 @@ namespace PCGExSubdivide
 
 		TArray<FSubdivision> Subdivisions;
 
+		TSet<FName> ProtectedAttributes;
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 		PCGEx::TAttributeWriter<bool>* FlagWriter = nullptr;
+		PCGEx::TAttributeWriter<double>* AlphaWriter = nullptr;
+
 		PCGExData::TCache<double>* AmountGetter = nullptr;
+
 		double ConstantAmount = 0;
 
 		bool bUseCount = false;

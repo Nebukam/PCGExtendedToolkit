@@ -26,30 +26,32 @@ public:
 		const bool bClosedPath) override
 	{
 		const double RadiusSquared = Smoothing * Smoothing;
-		const double SmoothingInfluence = Influence;
 
-		if (SmoothingInfluence == 0) { return; }
-
-		const int32 MaxPointIndex = Path->GetNum() - 1;
+		if (Influence == 0) { return; }
 
 		const FVector Origin = Target.Point->Transform.GetLocation();
 		int32 Count = 0;
 
 		MetadataBlender->PrepareForBlending(Target);
 
+		const FPCGPoint* StartData = Path->GetIn()->GetPoints().GetData();
+		
 		double TotalWeight = 0;
-		for (int i = 0; i <= MaxPointIndex; i++)
-		{
-			const FPCGPoint& InPoint = Path->GetOutPoint(i);
-			const double Dist = FVector::DistSquared(Origin, InPoint.Transform.GetLocation());
-			if (Dist <= RadiusSquared)
+		Path->GetIn()->GetOctree().FindElementsWithBoundsTest(
+			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const FPCGPointRef& Ref)
 			{
-				const double Weight = (1 - (Dist / RadiusSquared)) * SmoothingInfluence;
-				MetadataBlender->Blend(Target, Path->GetInPointRef(i), Target, Weight);
+				const double Dist = FVector::DistSquared(Origin, Ref.Point->Transform.GetLocation());
+				const int32 OtherIndex = Ref.Point - StartData;
+				if (Dist >= RadiusSquared || OtherIndex == Target.Index) { return; }
+
+				const double Weight = (1 - (Dist / RadiusSquared)) * Influence;
+				
+				MetadataBlender->Blend(Target, Path->GetInPointRef(OtherIndex), Target, Weight);
 				Count++;
 				TotalWeight += Weight;
-			}
-		}
+			});
+
+		if (Count == 0) { return; }
 
 		MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 	}

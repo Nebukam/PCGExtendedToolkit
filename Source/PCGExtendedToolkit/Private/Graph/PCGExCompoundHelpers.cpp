@@ -78,7 +78,7 @@ namespace PCGExGraph
 		TArray<FPCGPoint>& MutablePoints = CompoundFacade->GetOut()->GetMutablePoints();
 		CompoundFacade->Source->InitializeNum(NumCompoundNodes, true);
 		CompoundPointsBlender->AddSources(InFacades);
-		CompoundPointsBlender->PrepareMerge(CompoundFacade, CompoundGraph->PointsCompounds);
+		CompoundPointsBlender->PrepareMerge(CompoundFacade, CompoundGraph->PointsCompounds, nullptr); // TODO : Check if we want to ignore specific attributes
 
 		Context->SetAsyncState(State_ProcessingCompound);
 

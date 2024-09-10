@@ -28,15 +28,15 @@ if(ResetBlend.Contains(_NAME##Blending)){ bReset##_NAME=true; bRequiresPrepare =
 
 	void FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const
 	{
-		Target.Density = bResetDensity ? 0 : Default.Density;
-		Target.BoundsMin = bResetBoundsMin ? FVector::ZeroVector : Default.BoundsMin;
-		Target.BoundsMax = bResetBoundsMax ? FVector::ZeroVector : Default.BoundsMax;
-		Target.Color = bResetColor ? FVector4::Zero() : Default.Color;
-		Target.Transform.SetLocation(bResetPosition ? FVector::ZeroVector : Default.Transform.GetLocation());
-		Target.Transform.SetRotation(bResetRotation ? FQuat{} : Default.Transform.GetRotation());
-		Target.Transform.SetScale3D(bResetScale ? FVector::ZeroVector : Default.Transform.GetScale3D());
-		Target.Steepness = bResetSteepness ? 0 : Default.Steepness;
-		Target.Seed = bResetSeed ? 0 : Default.Seed;
+		if (DensityBlending != EPCGExDataBlendingType::None) { Target.Density = bResetDensity ? 0 : Default.Density; }
+		if (BoundsMinBlending != EPCGExDataBlendingType::None) { Target.BoundsMin = bResetBoundsMin ? FVector::ZeroVector : Default.BoundsMin; }
+		if (BoundsMaxBlending != EPCGExDataBlendingType::None) { Target.BoundsMax = bResetBoundsMax ? FVector::ZeroVector : Default.BoundsMax; }
+		if (ColorBlending != EPCGExDataBlendingType::None) { Target.Color = bResetColor ? FVector4::Zero() : Default.Color; }
+		if (PositionBlending != EPCGExDataBlendingType::None) { Target.Transform.SetLocation(bResetPosition ? FVector::ZeroVector : Default.Transform.GetLocation()); }
+		if (RotationBlending != EPCGExDataBlendingType::None) { Target.Transform.SetRotation(bResetRotation ? FQuat{} : Default.Transform.GetRotation()); }
+		if (ScaleBlending != EPCGExDataBlendingType::None) { Target.Transform.SetScale3D(bResetScale ? FVector::ZeroVector : Default.Transform.GetScale3D()); }
+		if (SteepnessBlending != EPCGExDataBlendingType::None) { Target.Steepness = bResetSteepness ? 0 : Default.Steepness; }
+		if (SeedBlending != EPCGExDataBlendingType::None) { Target.Seed = bResetSeed ? 0 : Default.Seed; }
 	}
 
 	void FPropertiesBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const
@@ -44,15 +44,15 @@ if(ResetBlend.Contains(_NAME##Blending)){ bReset##_NAME=true; bRequiresPrepare =
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR)\
 _TYPE Target##_NAME = Target._ACCESSOR;\
 switch (_NAME##Blending) {\
-case EPCGExDataBlendingType::None:			Target##_NAME = PCGExMath::NoBlend(A._ACCESSOR, B._ACCESSOR); break;\
+case EPCGExDataBlendingType::None:  break;\
 case EPCGExDataBlendingType::Average:		Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Min:			Target##_NAME = PCGExMath::Min(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Max:			Target##_NAME = PCGExMath::Max(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Copy:			Target##_NAME = PCGExMath::Copy(A._ACCESSOR, B._ACCESSOR);break;\
-case EPCGExDataBlendingType::Add:			Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
+case EPCGExDataBlendingType::Sum:			Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Weight:		Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
-case EPCGExDataBlendingType::WeightedAdd:	Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
-case EPCGExDataBlendingType::Lerp:	Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Weight);break; \
+case EPCGExDataBlendingType::WeightedSum:	Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
+case EPCGExDataBlendingType::Lerp:			Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Weight);break; \
 case EPCGExDataBlendingType::Subtract:		Target##_NAME = PCGExMath::Subtract(A._ACCESSOR, B._ACCESSOR);break; }
 
 		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)

@@ -63,8 +63,8 @@ enum class EPCGExDataBlendingType : uint8
 	Min            = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
 	Max            = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
 	Copy           = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
-	Add            = 6 UMETA(DisplayName = "Add", ToolTip = "Add"),
-	WeightedAdd    = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
+	Sum            = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
+	WeightedSum    = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
 	Lerp           = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
 	Subtract       = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
 };
@@ -220,6 +220,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 #define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
+	}
+
+	explicit FPCGExBlendingDetails(const EPCGExDataBlendingType InDefaultBlending, const EPCGExDataBlendingType InPositionBlending):
+		DefaultBlending(InDefaultBlending)
+	{
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
+		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
+#undef PCGEX_SET_DEFAULT_POINTPROPERTY
+		
+		PropertiesOverrides.bOverridePosition = true;
+		PropertiesOverrides.PositionBlending = InPositionBlending;
 	}
 
 	explicit FPCGExBlendingDetails(const FPCGExPropertiesBlendingDetails& InDetails):
@@ -394,7 +405,7 @@ namespace PCGExDataBlending
 			if (SourceAttribute) { Writer = InPrimaryFacade->GetWriter<T>(SourceAttribute, false); }
 			else { Writer = InPrimaryFacade->GetWriter<T>(AttributeName, T{}, true, false); }
 
-			Reader = InSecondaryFacade->GetReader<T>(AttributeName, SecondarySource); // Will return writer is sources ==
+			Reader = InSecondaryFacade->GetReader<T>(AttributeName, SecondarySource); // Will return writer if sources ==
 
 			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
 		}
