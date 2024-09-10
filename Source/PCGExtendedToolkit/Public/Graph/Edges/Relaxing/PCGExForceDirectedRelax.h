@@ -16,9 +16,30 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExForceDirectedRelax : public UPCGExRelaxCl
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExForceDirectedRelax* TypedOther = Cast<UPCGExForceDirectedRelax>(Other))
+		{
+			SpringConstant = TypedOther->SpringConstant;
+			ElectrostaticConstant = TypedOther->ElectrostaticConstant;
+		}
+	}
 
-	virtual void ProcessExpandedNode(const PCGExCluster::FExpandedNode* ExpandedNode) override;
+	virtual void ProcessExpandedNode(const PCGExCluster::FExpandedNode* ExpandedNode) override
+	{
+		const FVector Position = *(ReadBuffer->GetData() + ExpandedNode->Node->NodeIndex);
+		FVector Force = FVector::Zero();
+
+		for (const PCGExCluster::FExpandedNeighbor& Neighbor : ExpandedNode->Neighbors)
+		{
+			const FVector OtherPosition = *(ReadBuffer->GetData() + Neighbor.Node->NodeIndex);
+			CalculateAttractiveForce(Force, Position, OtherPosition);
+			CalculateRepulsiveForce(Force, Position, OtherPosition);
+		}
+
+		(*WriteBuffer)[ExpandedNode->Node->NodeIndex] = Position + Force;
+	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double SpringConstant = 0.1;

@@ -27,15 +27,34 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRelaxClusterOperation : public UPCGExOper
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExRelaxClusterOperation* TypedOther = Cast<UPCGExRelaxClusterOperation>(Other))
+		{
+		}
+	}
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
-	virtual void ProcessExpandedNode(const PCGExCluster::FExpandedNode* ExpandedNode);
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster)
+	{
+		Cluster = InCluster;
+	}
+
+	virtual void ProcessExpandedNode(const PCGExCluster::FExpandedNode* ExpandedNode)
+	{
+	}
 
 	PCGExCluster::FCluster* Cluster = nullptr;
 	TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
 	TArray<FVector>* ReadBuffer = nullptr;
 	TArray<FVector>* WriteBuffer = nullptr;
 
-	virtual void Cleanup() override;
+	virtual void Cleanup() override
+	{
+		Cluster = nullptr;
+		ReadBuffer = nullptr;
+		WriteBuffer = nullptr;
+
+		Super::Cleanup();
+	}
 };

@@ -36,7 +36,7 @@ public:
 	int32 Iterations = 100;
 
 	/** Influence Settings*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInfluenceDetails InfluenceDetails;
 
 	/** Relaxing arithmetics */
