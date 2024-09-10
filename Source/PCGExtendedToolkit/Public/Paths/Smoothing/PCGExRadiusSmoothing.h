@@ -30,12 +30,14 @@ public:
 		if (Influence == 0) { return; }
 
 		const FVector Origin = Target.Point->Transform.GetLocation();
-		int32 Count = 0;
-
-		MetadataBlender->PrepareForBlending(Target);
-
 		const FPCGPoint* StartData = Path->GetIn()->GetPoints().GetData();
-		
+
+		TArray<int32> Indices;
+		TArray<double> Weights;
+
+		Indices.Reserve(10);
+		Weights.Reserve(10);
+
 		double TotalWeight = 0;
 		Path->GetIn()->GetOctree().FindElementsWithBoundsTest(
 			FBoxCenterAndExtent(Origin, FVector(Smoothing)), [&](const FPCGPointRef& Ref)
@@ -44,15 +46,20 @@ public:
 				const int32 OtherIndex = Ref.Point - StartData;
 				if (Dist >= RadiusSquared || OtherIndex == Target.Index) { return; }
 
-				const double Weight = (1 - (Dist / RadiusSquared)) * Influence;
-				
-				MetadataBlender->Blend(Target, Path->GetInPointRef(OtherIndex), Target, Weight);
-				Count++;
-				TotalWeight += Weight;
+				Indices.Add(OtherIndex);
+				Weights.Add((1 - (Dist / RadiusSquared)) * Influence);
 			});
 
-		if (Count == 0) { return; }
+		if (Indices.IsEmpty()) { return; }
 
-		MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
+		MetadataBlender->PrepareForBlending(Target);
+
+		for (int i = 0; i < Indices.Num(); i++)
+		{
+			MetadataBlender->Blend(Target, Path->GetInPointRef(Indices[i]), Target, Weights[i]);
+			TotalWeight += Weights[i];
+		}
+
+		MetadataBlender->CompleteBlending(Target, Indices.Num(), TotalWeight);
 	}
 };
