@@ -214,7 +214,6 @@ namespace PCGExFindContours
 		friend class FProjectRangeTask;
 
 	protected:
-		PCGExMT::FTaskGroup* ProjectionTaskGroup = nullptr;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 		TArray<FVector> ProjectedPositions;
 

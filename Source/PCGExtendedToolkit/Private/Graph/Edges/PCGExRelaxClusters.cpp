@@ -106,8 +106,6 @@ namespace PCGExRelaxClusters
 		ExpandedNodes = Cluster->ExpandedNodes;
 		Iterations = Settings->Iterations;
 
-		IterationGroup = AsyncManagerPtr->CreateGroup();
-
 		if (!ExpandedNodes)
 		{
 			ExpandedNodes = Cluster->GetExpandedNodes(false);
@@ -132,6 +130,7 @@ namespace PCGExRelaxClusters
 		RelaxOperation->ReadBuffer = PrimaryBuffer;
 		RelaxOperation->WriteBuffer = SecondaryBuffer;
 
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, IterationGroup)
 		IterationGroup->SetOnCompleteCallback([&]() { StartRelaxIteration(); });
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),

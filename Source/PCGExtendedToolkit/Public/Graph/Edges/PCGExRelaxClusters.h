@@ -73,7 +73,6 @@ namespace PCGExRelaxClusters
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-		PCGExMT::FTaskGroup* IterationGroup = nullptr;
 		int32 Iterations = 10;
 
 		PCGExData::TCache<double>* InfluenceCache = nullptr;

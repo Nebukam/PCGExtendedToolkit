@@ -21,7 +21,6 @@ PCGExData::EInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() con
 FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	SitesIOMap.Empty();
 	PCGEX_DELETE(MainSites)
 }
 
@@ -48,6 +47,7 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGExContext* InContext) const
 		if (Settings->bMarkSiteHull) { PCGEX_VALIDATE_NAME(Settings->SiteHullAttributeName) }
 		Context->MainSites = new PCGExData::FPointIOCollection(Context);
 		Context->MainSites->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
+		Context->MainSites->Pairs.Init(nullptr, Context->MainPoints->Pairs.Num());
 	}
 
 	return true;
@@ -75,12 +75,6 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 					return false;
 				}
 
-				if (Context->MainSites)
-				{
-					PCGExData::FPointIO* SitesIO = Context->MainSites->Emplace_GetRef(Entry, PCGExData::EInit::NoOutput);
-					Context->SitesIOMap.Add(Entry, SitesIO);
-				}
-
 				return true;
 			},
 			[&](PCGExPointsMT::TBatch<PCGExBuildDelaunay2D::FProcessor>* NewBatch)
@@ -102,7 +96,11 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->MainPoints->OutputToContext();
-	if (Context->MainSites) { Context->MainSites->OutputToContext(); }
+	if (Context->MainSites)
+	{
+		Context->MainSites->PruneNullEntries(true);
+		Context->MainSites->OutputToContext();
+	}
 
 	return Context->TryComplete();
 }
@@ -153,8 +151,6 @@ namespace PCGExBuildDelaunay2D
 			else { Delaunay->RemoveLongestEdges(ActivePositions); }
 		}
 
-		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
-
 		ActivePositions.Empty();
 
 		if (Settings->bOutputSites)
@@ -187,7 +183,6 @@ namespace PCGExBuildDelaunay2D
 		{
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			PCGEX_DELETE(GraphBuilder)
-			PCGEX_DELETE(HullMarkPointWriter)
 			return;
 		}
 
@@ -195,7 +190,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (HullMarkPointWriter)
 		{
-			HullMarkPointWriter->BindAndSetNumUninitialized(PointIO);
+			HullMarkPointWriter = PointDataFacade->GetWriter<bool>(Settings->HullAttributeName, false, false, true);
 			StartParallelLoopForPoints();
 		}
 	}
@@ -203,7 +198,7 @@ namespace PCGExBuildDelaunay2D
 	void FProcessor::Write()
 	{
 		if (!GraphBuilder) { return; }
-		if (HullMarkPointWriter) { PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, HullMarkPointWriter) }
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 
 	bool FOutputDelaunaySites2D::ExecuteTask()
@@ -213,8 +208,10 @@ namespace PCGExBuildDelaunay2D
 		FPCGExBuildDelaunayGraph2DContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
-		PCGExData::FPointIO* SitesIO = Context->SitesIOMap[PointIO];
+		PCGExData::FPointIO* SitesIO = new PCGExData::FPointIO(Context, PointIO);
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		
+		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
@@ -252,8 +249,10 @@ namespace PCGExBuildDelaunay2D
 		FPCGExBuildDelaunayGraph2DContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
-		PCGExData::FPointIO* SitesIO = Context->SitesIOMap[PointIO];
+		PCGExData::FPointIO* SitesIO = new PCGExData::FPointIO(Context, PointIO);
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		
+		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();

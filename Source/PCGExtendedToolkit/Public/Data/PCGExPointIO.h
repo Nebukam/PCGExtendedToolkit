@@ -286,6 +286,7 @@ namespace PCGExData
 		FPointIO* Emplace_GetRef(const UPCGPointData* In, const EInit InitOut = EInit::NoOutput, const TSet<FString>* Tags = nullptr);
 		FPointIO* Emplace_GetRef(EInit InitOut = EInit::NewOutput);
 		FPointIO* Emplace_GetRef(const FPointIO* PointIO, const EInit InitOut = EInit::NoOutput);
+		FPointIO* InsertUnsafe(const int32 Index, FPointIO* PointIO);
 		FPointIO* AddUnsafe(FPointIO* PointIO);
 		void AddUnsafe(const TArray<FPointIO*>& IOs);
 

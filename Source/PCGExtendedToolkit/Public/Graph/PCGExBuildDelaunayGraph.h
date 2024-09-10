@@ -89,7 +89,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraphContext final : public
 
 	virtual ~FPCGExBuildDelaunayGraphContext() override;
 
-	TMap<PCGExData::FPointIO*, PCGExData::FPointIO*> SitesIOMap;
 	PCGExData::FPointIOCollection* MainSites = nullptr;
 };
 

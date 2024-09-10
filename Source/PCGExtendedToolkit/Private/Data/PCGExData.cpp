@@ -24,12 +24,17 @@ namespace PCGExData
 	{
 	}
 
-	FCacheBase* FFacade::FindCache(const uint64 UID)
+	FCacheBase* FFacade::FindCacheUnsafe(const uint64 UID)
 	{
-		FReadScopeLock ReadScopeLock(PoolLock);
 		FCacheBase** Found = CacheMap.Find(UID);
 		if (!Found) { return nullptr; }
 		return *Found;
+	}
+	
+	FCacheBase* FFacade::FindCache(const uint64 UID)
+	{
+		FReadScopeLock ReadScopeLock(PoolLock);
+		return FindCacheUnsafe(UID);
 	}
 
 #pragma endregion

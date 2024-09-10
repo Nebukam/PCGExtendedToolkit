@@ -123,7 +123,7 @@ namespace PCGExPathIntersections
 
 		Details = Settings->OutputSettings;
 
-		PCGExMT::FTaskGroup* FindIntersectionsTaskGroup = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, FindIntersectionsTaskGroup)
 		FindIntersectionsTaskGroup->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
@@ -261,7 +261,7 @@ namespace PCGExPathIntersections
 
 		Segmentation->ReduceToArray();
 
-		PCGExMT::FTaskGroup* InsertionTaskGroup = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, InsertionTaskGroup)
 		InsertionTaskGroup->SetOnCompleteCallback([&]() { OnInsertionComplete(); });
 		InsertionTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { InsertIntersections(Index); },

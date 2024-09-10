@@ -170,8 +170,7 @@ namespace PCGExPathCrossings
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 		if (Settings->bOrientCrossing) { Blending->bPreserveRotation = true; }
 
-		PCGExMT::FTaskGroup* Preparation = AsyncManager->CreateGroup();
-
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, Preparation)
 		Preparation->SetOnCompleteCallback(
 			[&]()
 			{
@@ -478,7 +477,7 @@ namespace PCGExPathCrossings
 		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (LocalSettings->bTagIfHasCrossing) { PointIO->Tags->Add(LocalSettings->HasCrossingsTag); } }
 		else { if (LocalSettings->bTagIfHasNoCrossings) { PointIO->Tags->Add(LocalSettings->HasNoCrossingsTag); } }
 
-		PCGExMT::FTaskGroup* FixTask = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, FixTask)
 		FixTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr, true); });
 		FixTask->StartRanges(
 			[&](const int32 FixIndex, const int32 Count, const int32 LoopIdx) { FixPoint(FixIndex); },
@@ -487,7 +486,7 @@ namespace PCGExPathCrossings
 
 	void FProcessor::CompleteWork()
 	{
-		PCGExMT::FTaskGroup* SearchTask = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, SearchTask)
 		SearchTask->SetOnCompleteCallback([&]() { OnSearchComplete(); });
 		SearchTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
@@ -502,7 +501,7 @@ namespace PCGExPathCrossings
 	{
 		if (LocalSettings->bDoCrossBlending)
 		{
-			PCGExMT::FTaskGroup* CrossBlendTask = AsyncManagerPtr->CreateGroup();
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, CrossBlendTask)
 			CrossBlendTask->StartRanges(
 				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 				{

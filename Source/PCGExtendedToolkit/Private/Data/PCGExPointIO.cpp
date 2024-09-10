@@ -296,6 +296,14 @@ namespace PCGExData
 		return Branch;
 	}
 
+	FPointIO* FPointIOCollection::InsertUnsafe(const int32 Index, FPointIO* PointIO)
+	{
+		check(!Pairs[Index]) // should be an empty spot
+		Pairs[Index] = PointIO;
+		PointIO->SetInfos(Index, DefaultOutputLabel);
+		return PointIO;
+	}
+	
 	FPointIO* FPointIOCollection::AddUnsafe(FPointIO* PointIO)
 	{
 		PointIO->SetInfos(Pairs.Add(PointIO), DefaultOutputLabel);

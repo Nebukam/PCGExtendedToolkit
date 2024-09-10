@@ -13,9 +13,9 @@ namespace PCGExMT
 		Reset();
 	}
 
-	FTaskGroup* FTaskManager::CreateGroup()
+	FTaskGroup* FTaskManager::CreateGroup(const FName& GroupName)
 	{
-		FTaskGroup* NewGroup = new FTaskGroup(this);
+		FTaskGroup* NewGroup = new FTaskGroup(this, GroupName);
 		{
 			FWriteScopeLock WriteScopeLock(ManagerLock);
 			Groups.Add(NewGroup);

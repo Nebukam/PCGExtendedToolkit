@@ -209,7 +209,7 @@ namespace PCGExConnectPoints
 			if (GeneratorsFilter) { for (int i = 0; i < InPoints->Num(); i++) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
 		}
 
-		PCGExMT::FTaskGroup* PrepTask = AsyncManager->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManager, PrepTask)
 		PrepTask->SetOnCompleteCallback([&]() { OnPreparationComplete(); });
 		PrepTask->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)

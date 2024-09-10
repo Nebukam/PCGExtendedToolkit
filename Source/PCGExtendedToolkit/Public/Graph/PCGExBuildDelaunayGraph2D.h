@@ -101,7 +101,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DContext final : publ
 
 	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
 
-	TMap<PCGExData::FPointIO*, PCGExData::FPointIO*> SitesIOMap;
 	PCGExData::FPointIOCollection* MainSites = nullptr;
 };
 

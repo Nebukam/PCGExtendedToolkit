@@ -82,7 +82,7 @@ namespace PCGExGraph
 
 		Context->SetAsyncState(State_ProcessingCompound);
 
-		PCGExMT::FTaskGroup* ProcessNodesGroup = Context->GetAsyncManager()->CreateGroup();
+		PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), ProcessNodesGroup)
 		ProcessNodesGroup->SetOnCompleteCallback(
 			[&]()
 			{
@@ -193,7 +193,7 @@ namespace PCGExGraph
 
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
 
-		PCGExMT::FTaskGroup* FindPointEdgeGroup = Context->GetAsyncManager()->CreateGroup();
+		PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), FindPointEdgeGroup)
 		FindPointEdgeGroup->SetOnCompleteCallback(
 			[&]()
 			{
@@ -205,7 +205,7 @@ namespace PCGExGraph
 
 				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out, true);
 
-				PCGExMT::FTaskGroup* BlendPointEdgeGroup = Context->GetAsyncManager()->CreateGroup();
+				PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), BlendPointEdgeGroup)
 				BlendPointEdgeGroup->SetOnCompleteCallback(
 					[&]()
 					{
@@ -237,7 +237,7 @@ namespace PCGExGraph
 
 		Context->SetAsyncState(State_ProcessingEdgeEdgeIntersections);
 
-		PCGExMT::FTaskGroup* FindEdgeEdgeGroup = Context->GetAsyncManager()->CreateGroup();
+		PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), FindEdgeEdgeGroup)
 		FindEdgeEdgeGroup->SetOnCompleteCallback(
 			[&]()
 			{
@@ -249,7 +249,7 @@ namespace PCGExGraph
 
 				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out, true);
 
-				PCGExMT::FTaskGroup* BlendEdgeEdgeGroup = Context->GetAsyncManager()->CreateGroup();
+				PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
 				BlendEdgeEdgeGroup->SetOnCompleteCallback(
 					[&]()
 					{

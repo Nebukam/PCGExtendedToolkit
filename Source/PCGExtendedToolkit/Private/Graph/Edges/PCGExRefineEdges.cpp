@@ -157,7 +157,7 @@ namespace PCGExRefineEdges
 	{
 		Cluster->GetExpandedEdges(true); //Oof
 
-		PCGExMT::FTaskGroup* SanitizeTaskGroup = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, SanitizeTaskGroup)
 		SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
 		SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
@@ -190,7 +190,7 @@ namespace PCGExRefineEdges
 
 		if (!TypedContext->PreserveEdgeFilterFactories.IsEmpty())
 		{
-			PCGExMT::FTaskGroup* FilterTaskGroup = AsyncManagerPtr->CreateGroup();
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, FilterTaskGroup)
 			FilterTaskGroup->SetOnCompleteCallback(
 				[&]()
 				{

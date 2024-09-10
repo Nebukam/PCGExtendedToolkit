@@ -78,6 +78,9 @@ namespace PCGExData
 		}
 
 		virtual bool IsDynamic() { return bDynamicCache; }
+		
+		FORCEINLINE bool GetAllowsInterpolation() const { return Attribute->AllowsInterpolation(); }
+		
 	};
 
 	template <typename T>
@@ -105,6 +108,11 @@ namespace PCGExData
 			Flush();
 		}
 
+		FORCEINLINE T& GetMutable(int32 Index) { return Values[Index]; }
+		FORCEINLINE const T& GetConst(int32 Index) const { return Values[Index]; }
+
+		FORCEINLINE TArrayView<T> GetView(int32 Start, int32 Range) { return MakeArrayView(Values.GetData() + Start, Range); }
+
 		PCGEx::TAttributeIO<T>* PrepareReader(const ESource InSource = ESource::In, const bool bFetch = false)
 		{
 			FWriteScopeLock WriteScopeLock(CacheLock);
@@ -121,7 +129,7 @@ namespace PCGExData
 						Fetch(0, Values.Num());
 						bDynamicCache = false;
 					}
-					
+
 					return Reader;
 				}
 			}
@@ -291,6 +299,7 @@ namespace PCGExData
 
 		bool bSupportsDynamic = false;
 
+		FCacheBase* FindCacheUnsafe(const uint64 UID);
 		FCacheBase* FindCache(const uint64 UID);
 
 		explicit FFacade(FPointIO* InSource):
@@ -300,6 +309,14 @@ namespace PCGExData
 
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 
+		template <typename T>
+		TCache<T>* FindCacheUnsafe(const FName FullName)
+		{
+			FCacheBase* Found = FindCacheUnsafe(CacheUID(FullName, PCGEx::GetMetadataType(T{})));
+			if (!Found) { return nullptr; }
+			return static_cast<TCache<T>*>(Found);
+		}
+		
 		template <typename T>
 		TCache<T>* FindCache(const FName FullName)
 		{
@@ -316,6 +333,10 @@ namespace PCGExData
 
 			{
 				FWriteScopeLock WriteScopeLock(PoolLock);
+
+				NewCache = FindCacheUnsafe<T>(FullName);
+				if (NewCache) { return NewCache; }
+
 				NewCache = new TCache<T>(FullName, PCGEx::GetMetadataType(T{}));
 				NewCache->Source = Source;
 				Caches.Add(NewCache);
@@ -427,28 +448,32 @@ namespace PCGExData
 			return Cache;
 		}
 
+		// TODO
+		// - Make everything a TCache
+		// - change GetWriter/GetReader for GetWritable/GetReadable  / GetScopedReadable / GetSoftReadable
+		// - make sure the Cache Values array is used by reader/writer
+		// - phase out writer entirely at some poipnt
+		// - make use of regular accessors instead of converter so we can easily update after
+
 		template <typename T>
 		PCGEx::TAttributeWriter<T>* GetWriter(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
 		{
 			TCache<T>* Cache = GetCache<T>(InAttribute->Name);
-			PCGEx::TAttributeWriter<T>* Writer = Cache->PrepareWriter(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized);
-			return Writer;
+			return Cache->PrepareWriter(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized);
 		}
 
 		template <typename T>
 		PCGEx::TAttributeWriter<T>* GetWriter(const FName InName, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
 		{
 			TCache<T>* Cache = GetCache<T>(InName);
-			PCGEx::TAttributeWriter<T>* Writer = Cache->PrepareWriter(DefaultValue, bAllowInterpolation, bUninitialized);
-			return Writer;
+			return Cache->PrepareWriter(DefaultValue, bAllowInterpolation, bUninitialized);
 		}
 
 		template <typename T>
 		PCGEx::TAttributeWriter<T>* GetWriter(const FName InName, bool bUninitialized)
 		{
 			TCache<T>* Cache = GetCache<T>(InName);
-			PCGEx::TAttributeWriter<T>* Writer = Cache->PrepareWriter(bUninitialized);
-			return Writer;
+			return Cache->PrepareWriter(bUninitialized);
 		}
 
 		template <typename T>
@@ -459,10 +484,8 @@ namespace PCGExData
 
 			if (!Reader)
 			{
-				FWriteScopeLock WriteScopeLock(PoolLock);
-				Caches.Remove(Cache);
-				CacheMap.Remove(Cache->UID);
-				PCGEX_DELETE(Cache)
+				Flush(Cache);
+				return nullptr;
 			}
 
 			return Reader;
@@ -478,10 +501,8 @@ namespace PCGExData
 
 			if (!Reader)
 			{
-				FWriteScopeLock WriteScopeLock(PoolLock);
-				Caches.Remove(Cache);
-				CacheMap.Remove(Cache->UID);
-				PCGEX_DELETE(Cache)
+				Flush(Cache);
+				return nullptr;
 			}
 
 			return Reader;
@@ -552,6 +573,15 @@ namespace PCGExData
 
 		void Fetch(const int32 StartIndex, const int32 Count) { for (FCacheBase* Cache : Caches) { Cache->Fetch(StartIndex, Count); } }
 		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }
+
+	protected:
+		void Flush(FCacheBase* Cache)
+		{
+			FWriteScopeLock WriteScopeLock(PoolLock);
+			Caches.Remove(Cache);
+			CacheMap.Remove(Cache->UID);
+			PCGEX_DELETE(Cache)
+		}
 	};
 
 	static void GetCollectionFacades(const FPointIOCollection* InCollection, TArray<FFacade*>& OutFacades)

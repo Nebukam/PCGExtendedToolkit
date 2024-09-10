@@ -87,7 +87,7 @@ namespace PCGExReversePointOrder
 
 		if (SwapPairs.IsEmpty()) { return true; }
 
-		PCGExMT::FTaskGroup* FetchWritersTask = AsyncManager->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, FetchWritersTask)
 		FetchWritersTask->SetOnCompleteCallback([&]() { StartParallelLoopForPoints(); });
 		FetchWritersTask->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)

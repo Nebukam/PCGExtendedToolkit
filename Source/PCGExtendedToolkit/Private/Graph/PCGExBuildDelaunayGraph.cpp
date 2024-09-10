@@ -16,7 +16,6 @@ PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const
 FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	SitesIOMap.Empty();
 	PCGEX_DELETE(MainSites)
 }
 
@@ -42,6 +41,7 @@ bool FPCGExBuildDelaunayGraphElement::Boot(FPCGExContext* InContext) const
 		if (Settings->bMarkSiteHull) { PCGEX_VALIDATE_NAME(Settings->SiteHullAttributeName) }
 		Context->MainSites = new PCGExData::FPointIOCollection(Context);
 		Context->MainSites->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
+		Context->MainSites->Pairs.Init(nullptr, Context->MainPoints->Num());
 	}
 
 	return true;
@@ -68,13 +68,6 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 					bInvalidInputs = true;
 					return false;
 				}
-
-				if (Context->MainSites)
-				{
-					PCGExData::FPointIO* SitesIO = Context->MainSites->Emplace_GetRef(Entry, PCGExData::EInit::NoOutput);
-					Context->SitesIOMap.Add(Entry, SitesIO);
-				}
-
 				return true;
 			},
 			[&](PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>* NewBatch)
@@ -96,7 +89,11 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 	Context->MainPoints->OutputToContext();
-	if (Context->MainSites) { Context->MainSites->OutputToContext(); }
+	if (Context->MainSites)
+	{
+		Context->MainSites->PruneNullEntries(true);
+		Context->MainSites->OutputToContext();
+	}
 
 	return Context->TryComplete();
 }
@@ -106,9 +103,7 @@ namespace PCGExBuildDelaunay
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Delaunay)
-
 		PCGEX_DELETE(GraphBuilder)
-		PCGEX_DELETE(HullMarkPointWriter)
 
 		UrquhartEdges.Empty();
 	}
@@ -142,8 +137,6 @@ namespace PCGExBuildDelaunay
 			else { Delaunay->RemoveLongestEdges(ActivePositions); }
 		}
 
-		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
-
 		ActivePositions.Empty();
 
 		if (Settings->bOutputSites)
@@ -168,21 +161,22 @@ namespace PCGExBuildDelaunay
 
 	void FProcessor::CompleteWork()
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
+
 		if (!GraphBuilder) { return; }
 
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			PCGEX_DELETE(GraphBuilder)
-			PCGEX_DELETE(HullMarkPointWriter)
 			return;
 		}
 
 		GraphBuilder->Write();
 
-		if (HullMarkPointWriter)
+		if (Settings->bMarkHull)
 		{
-			HullMarkPointWriter->BindAndSetNumUninitialized(PointIO);
+			HullMarkPointWriter = PointDataFacade->GetWriter<bool>(Settings->HullAttributeName, false, false, true);
 			StartParallelLoopForPoints();
 		}
 	}
@@ -190,7 +184,7 @@ namespace PCGExBuildDelaunay
 	void FProcessor::Write()
 	{
 		if (!GraphBuilder) { return; }
-		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 
 	bool FOutputDelaunaySites::ExecuteTask()
@@ -198,8 +192,10 @@ namespace PCGExBuildDelaunay
 		FPCGExBuildDelaunayGraphContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
-		PCGExData::FPointIO* SitesIO = Context->SitesIOMap[PointIO];
+		PCGExData::FPointIO* SitesIO = new PCGExData::FPointIO(Context, PointIO);
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
+
+		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
@@ -237,8 +233,10 @@ namespace PCGExBuildDelaunay
 		FPCGExBuildDelaunayGraphContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
-		PCGExData::FPointIO* SitesIO = Context->SitesIOMap[PointIO];
+		PCGExData::FPointIO* SitesIO = new PCGExData::FPointIO(Context, PointIO);
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
+
+		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();

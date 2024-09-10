@@ -149,8 +149,7 @@ namespace PCGExSampleOverlapStats
 		PCGEX_SET_NUM(OverlapSubCount, NumPoints)
 		PCGEX_SET_NUM(OverlapCount, NumPoints)
 
-		PCGExMT::FTaskGroup* BoundsPreparationTask = AsyncManager->CreateGroup();
-
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, BoundsPreparationTask)
 		BoundsPreparationTask->SetOnCompleteCallback(
 			[&]()
 			{
@@ -272,11 +271,11 @@ namespace PCGExSampleOverlapStats
 	{
 		// 2 - Find overlaps between large bounds, we'll be searching only there.
 
-		PCGExMT::FTaskGroup* PreparationTask = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, PreparationTask)
 		PreparationTask->SetOnCompleteCallback(
 			[&]()
 			{
-				PCGExMT::FTaskGroup* SearchTask = AsyncManagerPtr->CreateGroup();
+				PCGEX_ASYNC_GROUP(AsyncManagerPtr, SearchTask)
 				SearchTask->SetOnCompleteCallback(
 					[&]()
 					{
@@ -309,7 +308,7 @@ namespace PCGExSampleOverlapStats
 
 	void FProcessor::Write()
 	{
-		PCGExMT::FTaskGroup* SearchTask = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, SearchTask)
 		SearchTask->SetOnCompleteCallback(
 			[&]()
 			{

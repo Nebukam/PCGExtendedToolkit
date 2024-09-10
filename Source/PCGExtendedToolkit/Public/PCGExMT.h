@@ -16,6 +16,7 @@
 
 #define PCGEX_ASYNC_WRITE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::Write(_MANAGER, _TARGET); }
 #define PCGEX_ASYNC_WRITE_DELETE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::WriteAndDelete(_MANAGER, _TARGET); _TARGET = nullptr; }
+#define PCGEX_ASYNC_GROUP(_MANAGER, _NAME) PCGExMT::FTaskGroup* _NAME = _MANAGER->CreateGroup(FName(#_NAME));
 
 #pragma endregion
 
@@ -203,7 +204,7 @@ namespace PCGExMT
 		std::atomic<bool> Stopped = false;
 		std::atomic<bool> ForceSync = false;
 
-		FTaskGroup* CreateGroup();
+		FTaskGroup* CreateGroup(const FName& GroupName);
 
 		FORCEINLINE bool IsAvailable() const { return Stopped.load() || Flushing.load() ? false : true; }
 
@@ -288,14 +289,16 @@ namespace PCGExMT
 		friend class FGroupRangeIterationTask;
 		friend class FGroupRangeInlineIterationTask;
 
+		FName GroupName = NAME_None;
+		
 	public:
 		using CompletionCallback = std::function<void()>;
 		using IterationCallback = std::function<void(const int32, const int32, const int32)>;
 		using IterationRangePrepareCallback = std::function<void(const TArray<uint64>&)>;
 		using IterationRangeStartCallback = std::function<void(const int32, const int32, const int32)>;
 
-		explicit FTaskGroup(FTaskManager* InManager):
-			Manager(InManager)
+		explicit FTaskGroup(FTaskManager* InManager, const FName InGroupName):
+			GroupName(InGroupName), Manager(InManager)
 		{
 		}
 

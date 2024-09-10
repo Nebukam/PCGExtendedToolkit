@@ -419,7 +419,7 @@ namespace PCGExFindContours
 
 		PCGEX_SET_NUM_UNINITIALIZED(ProjectedPositions, VtxIO->GetNum())
 
-		ProjectionTaskGroup = AsyncManager->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManager, ProjectionTaskGroup)
 		ProjectionTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{

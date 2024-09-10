@@ -275,7 +275,7 @@ namespace PCGExDiscardByOverlap
 
 		PCGEX_SET_NUM_UNINITIALIZED(LocalPointBounds, NumPoints)
 
-		PCGExMT::FTaskGroup* BoundsPreparationTask = AsyncManager->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManager, BoundsPreparationTask)
 
 		// TODO : Optimisation for huge data set would be to first compute rough overlap
 		// and then only add points within the overlap to the octree, as opposed to every single point.
@@ -375,7 +375,7 @@ namespace PCGExDiscardByOverlap
 	{
 		// 2 - Find overlaps between large bounds, we'll be searching only there.
 
-		PCGExMT::FTaskGroup* PreparationTask = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, PreparationTask)
 		PreparationTask->SetOnCompleteCallback(
 			[&]()
 			{

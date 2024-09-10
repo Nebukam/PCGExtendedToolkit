@@ -344,7 +344,7 @@ namespace PCGExBevelPath
 			Lengths[i] = FVector::Distance(InPoints[i].Transform.GetLocation(), InPoints[i + 1 == NumPoints ? 0 : i + 1].Transform.GetLocation());
 		}
 
-		PCGExMT::FTaskGroup* Preparation = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, Preparation)
 		Preparation->SetOnCompleteCallback([&]() { StartParallelLoopForPoints(PCGExData::ESource::In); });
 		Preparation->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
@@ -505,7 +505,7 @@ namespace PCGExBevelPath
 			SubdivisionWriter = PointDataFacade->GetWriter<bool>(LocalSettings->SubdivisionFlagName, false, true, true);
 		}
 
-		PCGExMT::FTaskGroup* WriteFlagsTask = AsyncManagerPtr->CreateGroup();
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, WriteFlagsTask)
 		WriteFlagsTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr, true); });
 		WriteFlagsTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
