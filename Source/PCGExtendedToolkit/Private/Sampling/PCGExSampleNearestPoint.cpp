@@ -247,7 +247,7 @@ namespace PCGExSampleNearestPoints
 		else
 		{
 			TargetsInfos.Reserve(LocalTypedContext->NumTargets);
-			for (int i = 0; i < LocalTypedContext->NumTargets; i++) { SampleTarget(i, *(LocalTypedContext->TargetPoints->GetData() + i)); }
+			for (int i = 0; i < LocalTypedContext->NumTargets; ++i) { SampleTarget(i, *(LocalTypedContext->TargetPoints->GetData() + i)); }
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range

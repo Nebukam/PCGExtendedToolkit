@@ -57,16 +57,16 @@ namespace PCGExData
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Blending Type"))
 enum class EPCGExDataBlendingType : uint8
 {
-	None           = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
-	Average        = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
-	Weight         = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
-	Min            = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
-	Max            = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
-	Copy           = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
-	Sum            = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
-	WeightedSum    = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
-	Lerp           = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
-	Subtract       = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
+	None        = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
+	Average     = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
+	Weight      = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
+	Min         = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
+	Max         = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
+	Copy        = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
+	Sum         = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
+	WeightedSum = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
+	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
+	Subtract    = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
 };
 
 USTRUCT(BlueprintType)
@@ -228,7 +228,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 #define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
-		
+
 		PropertiesOverrides.bOverridePosition = true;
 		PropertiesOverrides.PositionBlending = InPositionBlending;
 	}
@@ -282,7 +282,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendingDetails
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
 	{
 		if (BlendingFilter == EPCGExAttributeFilter::All) { return; }
-		for (int i = 0; i < Identities.Num(); i++)
+		for (int i = 0; i < Identities.Num(); ++i)
 		{
 			if (!CanBlend(Identities[i].Name))
 			{
@@ -445,7 +445,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
 		{
-			for (int i = 0; i < Values.Num(); i++) { SinglePrepare(Values[i]); }
+			for (int i = 0; i < Values.Num(); ++i) { SinglePrepare(Values[i]); }
 		}
 
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const
@@ -453,13 +453,13 @@ namespace PCGExDataBlending
 			if (!bSupportInterpolation)
 			{
 				const T B = Reader->Values[SecondaryReadIndex];
-				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
+				for (int i = 0; i < Values.Num(); ++i) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
 				const T A = Writer->Values[PrimaryReadIndex];
 				const T B = Reader->Values[SecondaryReadIndex];
-				for (int i = 0; i < Values.Num(); i++) { Values[i] = SingleOperation(A, B, Weights[i]); }
+				for (int i = 0; i < Values.Num(); ++i) { Values[i] = SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
@@ -473,7 +473,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual void FinalizeValuesRangeOperation(const int32 StartIndex, TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
 		{
 			if (!bSupportInterpolation) { return; }
-			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
+			for (int i = 0; i < Values.Num(); ++i) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
 		}
 
 		FORCEINLINE virtual void PrepareOperation(const PCGMetadataEntryKey WriteKey) const override
@@ -520,13 +520,13 @@ namespace PCGExDataBlending
 			if (bFirstOperation || !this->bSupportInterpolation)
 			{
 				const T B = this->Reader->Values[SecondaryReadIndex];
-				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
+				for (int i = 0; i < Values.Num(); ++i) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
 				T A = this->Writer->Values[PrimaryReadIndex];
 				const T B = this->Reader->Values[SecondaryReadIndex];
-				for (int i = 0; i < Values.Num(); i++) { Values[i] = this->SingleOperation(A, B, Weights[i]); }
+				for (int i = 0; i < Values.Num(); ++i) { Values[i] = this->SingleOperation(A, B, Weights[i]); }
 			}
 		}
 

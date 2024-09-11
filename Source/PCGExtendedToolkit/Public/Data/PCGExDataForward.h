@@ -37,7 +37,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExForwardDetails : public FPCGExNameFilter
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
 	{
 		if (FilterMode == EPCGExAttributeFilter::All) { return; }
-		for (int i = 0; i < Identities.Num(); i++)
+		for (int i = 0; i < Identities.Num(); ++i)
 		{
 			if (!Test(Identities[i].Name.ToString()))
 			{

@@ -141,7 +141,7 @@ namespace PCGExDataBlending
 
 					SrcMap->Writer = Writer;
 
-					for (int i = 0; i < Sources.Num(); i++)
+					for (int i = 0; i < Sources.Num(); ++i)
 					{
 						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, Sources[i]); }
 					}
@@ -188,7 +188,7 @@ namespace PCGExDataBlending
 			int32 ValidCompounds = 0;
 			double TotalWeight = 0;
 
-			for (int k = 0; k < NumCompounded; k++)
+			for (int k = 0; k < NumCompounded; ++k)
 			{
 				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
@@ -232,9 +232,9 @@ namespace PCGExDataBlending
 		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->Writer = nullptr;
-			
+
 			if (IgnoreAttributeSet && IgnoreAttributeSet->Contains(SrcMap->Identity.Name)) { continue; }
-			
+
 			PCGMetadataAttribute::CallbackWithRightType(
 				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
 				{
@@ -242,7 +242,7 @@ namespace PCGExDataBlending
 
 					// TODO : Only prepare for data if the matching IO exists
 
-					for (int i = 0; i < Sources.Num(); i++)
+					for (int i = 0; i < Sources.Num(); ++i)
 					{
 						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->SoftPrepareForData(CurrentTargetData, Sources[i]); }
 					}
@@ -303,7 +303,7 @@ namespace PCGExDataBlending
 			int32 ValidCompounds = 0;
 			double TotalWeight = 0;
 
-			for (int k = 0; k < NumCompounded; k++)
+			for (int k = 0; k < NumCompounded; ++k)
 			{
 				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
@@ -327,13 +327,13 @@ namespace PCGExDataBlending
 
 		for (const int32 IOI : IdxIO)
 		{
-			for (int i = 0; i < TagAttributes.Num(); i++)
+			for (int i = 0; i < TagAttributes.Num(); ++i)
 			{
 				if (Sources[IOI]->Source->Tags->IsTagged(UniqueTagsList[i])) { InheritedTags[i] = true; }
 			}
 		}
 
-		for (int i = 0; i < TagAttributes.Num(); i++) { TagAttributes[i]->SetValue(Target.MetadataEntry, InheritedTags[i]); }
+		for (int i = 0; i < TagAttributes.Num(); ++i) { TagAttributes[i]->SetValue(Target.MetadataEntry, InheritedTags[i]); }
 	}
 
 	void FCompoundBlender::BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights)
@@ -344,7 +344,7 @@ namespace PCGExDataBlending
 
 		const int32 NumCompounded = IdxIO.Num();
 		double TotalWeight = 0;
-		for (int k = 0; k < NumCompounded; k++)
+		for (int k = 0; k < NumCompounded; ++k)
 		{
 			const double Weight = Weights[k];
 			PropertiesBlender->Blend(TargetPoint, Sources[IdxIO[k]]->Source->GetInPoint(IdxPt[k]), TargetPoint, Weight);

@@ -274,7 +274,7 @@ namespace PCGExPartitionByValues
 		TArray<FPCGPoint>& OutPoints = PartitionIO->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(OutPoints, Partition->Points.Num())
 
-		for (int i = 0; i < OutPoints.Num(); i++)
+		for (int i = 0; i < OutPoints.Num(); ++i)
 		{
 			OutPoints[i] = InPoints[Partition->Points[i]];
 			Metadata->InitializeOnSet(OutPoints[i].MetadataEntry);
@@ -328,7 +328,7 @@ namespace PCGExPartitionByValues
 			const int32 InsertOffset = TypedContext->MainPoints->Pairs.Num();
 
 			int32 SumPts = 0;
-			for (int i = 0; i < Partitions.Num(); i++)
+			for (int i = 0; i < Partitions.Num(); ++i)
 			{
 				Partitions[i]->IOIndex = InsertOffset + i;
 				TypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
@@ -365,7 +365,7 @@ namespace PCGExPartitionByValues
 			}
 
 			PCGEx::TAttributeWriter<int32>* KeyWriter = PointDataFacade->GetWriter(Rule.RuleConfig->KeyAttributeName, 0, false, true);
-			for (int i = 0; i < Rule.FilteredValues.Num(); i++)
+			for (int i = 0; i < Rule.FilteredValues.Num(); ++i)
 			{
 				KeyWriter->Values[i] = Rule.FilteredValues[i];
 				if (Settings->bWriteKeySum) { KeySums[i] += Rule.FilteredValues[i]; }
@@ -375,7 +375,7 @@ namespace PCGExPartitionByValues
 		if (Settings->bWriteKeySum)
 		{
 			PCGEx::TAttributeWriter<int32>* KeySumWriter = PointDataFacade->GetWriter(Settings->KeySumAttributeName, 0, false, true);
-			for (int i = 0; i < KeySums.Num(); i++) { KeySumWriter->Values[i] = KeySums[i]; }
+			for (int i = 0; i < KeySums.Num(); ++i) { KeySumWriter->Values[i] = KeySums[i]; }
 		}
 
 		PointDataFacade->Write(AsyncManagerPtr, true);

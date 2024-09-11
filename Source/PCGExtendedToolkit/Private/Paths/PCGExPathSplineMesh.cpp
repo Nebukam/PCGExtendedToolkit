@@ -337,7 +337,7 @@ namespace PCGExPathSplineMesh
 		}
 
 		/*
-		for (int i = 0; i < SplineMeshComponents.Num(); i++)
+		for (int i = 0; i < SplineMeshComponents.Num(); ++i)
 		{
 			USplineMeshComponent* SMC = SplineMeshComponents[i];
 			if (!SMC) { continue; }

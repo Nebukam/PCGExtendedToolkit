@@ -47,7 +47,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	if (SafeBlendOver == EPCGExBlendOver::Distance)
 	{
 		PCGExPaths::FPathMetrics PathMetrics = PCGExPaths::FPathMetrics(From.Point->Transform.GetLocation());
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < NumPoints; ++i)
 		{
 			const FVector Location = SubPoints[i].Transform.GetLocation();
 			Locations[i] = Location;
@@ -56,7 +56,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	}
 	else if (SafeBlendOver == EPCGExBlendOver::Index)
 	{
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < NumPoints; ++i)
 		{
 			Locations[i] = SubPoints[i].Transform.GetLocation();
 			Weights[i] = static_cast<double>(i) / NumPoints;
@@ -64,7 +64,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	}
 	else if (SafeBlendOver == EPCGExBlendOver::Fixed)
 	{
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < NumPoints; ++i)
 		{
 			Locations[i] = SubPoints[i].Transform.GetLocation();
 			Weights[i] = Lerp;
@@ -74,7 +74,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	InBlender->BlendRangeFromTo(From, To, StartIndex < 0 ? From.Index : StartIndex, Weights);
 
 	// Restore pre-blend position
-	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }
+	for (int i = 0; i < NumPoints; ++i) { SubPoints[i].Transform.SetLocation(Locations[i]); }
 }
 
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendInterpolate::CreateBlender(

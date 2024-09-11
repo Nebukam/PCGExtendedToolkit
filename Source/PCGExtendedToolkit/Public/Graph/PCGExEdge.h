@@ -177,7 +177,7 @@ namespace PCGExGraph
 		{
 			int32 EdgeIndex = 0;
 
-			for (int i = 0; i < NumEdges; i++)
+			for (int i = 0; i < NumEdges; ++i)
 			{
 				uint32 A;
 				uint32 B;
@@ -196,7 +196,7 @@ namespace PCGExGraph
 		}
 		else
 		{
-			for (int i = 0; i < NumEdges; i++)
+			for (int i = 0; i < NumEdges; ++i)
 			{
 				uint32 A;
 				uint32 B;
@@ -247,7 +247,7 @@ namespace PCGExGraph
 		{
 			int32 EdgeIndex = 0;
 
-			for (int i = 0; i < NumEdges; i++)
+			for (int i = 0; i < NumEdges; ++i)
 			{
 				uint32 A;
 				uint32 B;
@@ -269,7 +269,7 @@ namespace PCGExGraph
 		}
 		else
 		{
-			for (int i = 0; i < NumEdges; i++)
+			for (int i = 0; i < NumEdges; ++i)
 			{
 				uint32 A;
 				uint32 B;

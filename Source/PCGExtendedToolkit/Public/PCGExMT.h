@@ -146,7 +146,7 @@ namespace PCGExMT
 				CurrentIndex = -1;
 				return true;
 			}
-			for (int i = 0; i < ChunkNumIterations; i++) { LoopBody(CurrentIndex + i); }
+			for (int i = 0; i < ChunkNumIterations; ++i) { LoopBody(CurrentIndex + i); }
 			CurrentIndex += ChunkNumIterations;
 			return false;
 		}
@@ -173,7 +173,7 @@ namespace PCGExMT
 				CurrentIndex = -1;
 				return true;
 			}
-			for (int i = 0; i < ChunkNumIterations; i++) { LoopBody(CurrentIndex + i); }
+			for (int i = 0; i < ChunkNumIterations; ++i) { LoopBody(CurrentIndex + i); }
 			CurrentIndex += ChunkNumIterations;
 			return false;
 		}
@@ -290,7 +290,7 @@ namespace PCGExMT
 		friend class FGroupRangeInlineIterationTask;
 
 		FName GroupName = NAME_None;
-		
+
 	public:
 		using CompletionCallback = std::function<void()>;
 		using IterationCallback = std::function<void(const int32, const int32, const int32)>;

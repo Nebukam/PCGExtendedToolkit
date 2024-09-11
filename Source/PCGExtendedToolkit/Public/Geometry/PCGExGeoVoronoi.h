@@ -55,7 +55,7 @@ namespace PCGExGeo
 				GetCircumcenter(Positions, Site.Vtx, Circumcenters[Site.Id]);
 				GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
 
-				for (int i = 0; i < 3; i++)
+				for (int i = 0; i < 3; ++i)
 				{
 					const int32 AdjacentIdx = Site.Neighbors[i];
 
@@ -118,7 +118,7 @@ namespace PCGExGeo
 				FindSphereFrom4Points(Positions, Site.Vtx, Circumspheres[Site.Id]);
 				GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
 
-				for (int i = 0; i < 4; i++)
+				for (int i = 0; i < 4; ++i)
 				{
 					const int32 AdjacentIdx = Site.Neighbors[i];
 

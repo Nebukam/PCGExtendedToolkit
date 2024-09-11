@@ -22,7 +22,7 @@ bool PCGExPointsFilter::TStringSelfComparisonFilter::Init(const FPCGContext* InC
 
 	OperandA = new PCGEx::FLocalToStringGetter();
 	OperandA->Capture(TypedFilterFactory->Config.OperandA);
-	
+
 	if (!OperandA->SoftGrab(PointDataFacade->Source))
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandA)));

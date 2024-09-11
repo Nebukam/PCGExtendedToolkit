@@ -49,7 +49,7 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 	const TArray<FPCGPoint>& InTargetPoints = Context->Targets->GetIn()->GetPoints();
 	Context->Selectors.SetNumUninitialized(InTargetPoints.Num());
 
-	for (int i = 0; i < InTargetPoints.Num(); i++)
+	for (int i = 0; i < InTargetPoints.Num(); ++i)
 	{
 		Context->Selectors[i] = PCGExFilterCluster::FPicker(InTargetPoints[i].Transform.GetLocation());
 	}

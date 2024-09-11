@@ -261,7 +261,7 @@ namespace PCGExDiscardByOverlap
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(DiscardByOverlap)
 
 		PointDataFacade->bSupportsDynamic = true;
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LocalSettings = Settings;
@@ -415,7 +415,7 @@ namespace PCGExDiscardByOverlap
 		ManagedOverlaps.Empty();
 
 		// Sanitize stats & overlaps
-		for (int i = 0; i < Overlaps.Num(); i++)
+		for (int i = 0; i < Overlaps.Num(); ++i)
 		{
 			const FOverlap* Overlap = Overlaps[i];
 

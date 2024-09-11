@@ -272,9 +272,7 @@ namespace PCGEx
 
 		bool GetRange(TArray<T>& OutValues, const int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr, const int32 Count = -1) const
 		{
-			if (PCGEx::RequireInit(T{})) { PCGEX_SET_NUM(OutValues, Count == -1 ? NumEntries - Index : Count) }
-			else { PCGEX_SET_NUM_UNINITIALIZED(OutValues, Count == -1 ? NumEntries - Index : Count) }
-
+			PCGEx::InitMetadataArray(OutValues, Count == -1 ? NumEntries - Index : Count);
 			TArrayView<T> View(OutValues);
 			return Accessor->GetRange(View, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
@@ -436,12 +434,6 @@ namespace PCGEx
 		FORCEINLINE T GetZeroedValue() const { return T{}; }
 		FORCEINLINE bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
 
-		FORCEINLINE void SetNum(int32 Num)
-		{
-			Values.Reserve(Num);
-			Values.SetNumZeroed(Num);
-		}
-
 		virtual bool Bind(PCGExData::FPointIO* PointIO) = 0;
 
 		FORCEINLINE T operator[](int32 Index) const { return this->Values[Index]; }
@@ -506,7 +498,7 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				this->SetNum(PointIO->GetNum(PCGExData::ESource::Out));
+				PCGEx::InitMetadataArray(this->Values, PointIO->GetNum());
 				this->Accessor->GetRange(this->Values);
 				return true;
 			}
@@ -517,9 +509,7 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				if (PCGEx::RequireInit(T{})) { PCGEX_SET_NUM(this->Values, PointIO->GetNum(PCGExData::ESource::Out)) }
-				else { PCGEX_SET_NUM_UNINITIALIZED(this->Values, PointIO->GetNum(PCGExData::ESource::Out)) }
-
+				PCGEx::InitMetadataArray(this->Values, PointIO->GetNum(PCGExData::ESource::Out));
 				return true;
 			}
 			return false;
@@ -563,7 +553,7 @@ namespace PCGEx
 			PCGEX_DELETE(this->Accessor)
 			this->Accessor = FConstAttributeAccessor<T>::Find(PointIO, this->Name);
 			if (!this->Accessor) { return false; }
-			this->SetNum(PointIO->GetNum());
+			PCGEx::InitMetadataArray(this->Values, PointIO->GetNum());
 			this->Accessor->GetRange(this->Values);
 			this->UnderlyingType = PointIO->GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
@@ -574,7 +564,7 @@ namespace PCGEx
 			PCGEX_DELETE(this->Accessor)
 			this->Accessor = FConstAttributeAccessor<T>::Find(PointIO, this->Name);
 			if (!this->Accessor) { return false; }
-			this->SetNum(PointIO->GetNum());
+			PCGEx::InitMetadataArray(this->Values, PointIO->GetNum());
 			this->UnderlyingType = PointIO->GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
@@ -703,16 +693,14 @@ namespace PCGEx
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;
 
-						if (PCGEx::RequireInit(DummyValue)) { PCGEX_SET_NUM(RawValues, Count) }
-						else { PCGEX_SET_NUM_UNINITIALIZED(RawValues, Count) }
-
+						PCGEx::InitMetadataArray(RawValues, Count);
 						FPCGAttributeAccessor<RawT>* Accessor = static_cast<FPCGAttributeAccessor<RawT>*>(FetchAccessor);
 						IPCGAttributeAccessorKeys* Keys = PointIO->CreateInKeys();
 
 						TArrayView<RawT> RawView(RawValues);
 						Accessor->GetRange(RawView, StartIndex, *Keys, PCGEX_AAFLAG);
 
-						for (int i = 0; i < Count; i++) { Dump[StartIndex + i] = Convert(RawValues[i]); }
+						for (int i = 0; i < Count; ++i) { Dump[StartIndex + i] = Convert(RawValues[i]); }
 						RawValues.Empty();
 					});
 
@@ -722,7 +710,7 @@ namespace PCGEx
 			{
 				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, FetchSelector);
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = StartIndex; i < LastIndex; ++i) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
 
 				switch (FetchSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
@@ -733,7 +721,7 @@ namespace PCGEx
 				switch (FetchSelector.GetExtraProperty())
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(i); }
+					for (int i = StartIndex; i < LastIndex; ++i) { Dump[i] = Convert(i); }
 					bValid = true;
 					break;
 				default: ;
@@ -783,17 +771,8 @@ namespace PCGEx
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;
 
-						if (PCGEx::RequireInit(DummyValue))
-						{
-							PCGEX_SET_NUM(RawValues, NumPoints)
-							PCGEX_SET_NUM(Dump, NumPoints)
-						}
-						else
-						{
-							PCGEX_SET_NUM_UNINITIALIZED(RawValues, NumPoints)
-							PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints)
-						}
-
+						PCGEx::InitMetadataArray(RawValues, NumPoints);
+						PCGEx::InitMetadataArray(Dump, NumPoints);
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
 						FPCGAttributeAccessor<RawT>* Accessor = new FPCGAttributeAccessor<RawT>(TypedAttribute, InData->Metadata);
@@ -803,7 +782,7 @@ namespace PCGEx
 
 						if (bCaptureMinMax)
 						{
-							for (int i = 0; i < NumPoints; i++)
+							for (int i = 0; i < NumPoints; ++i)
 							{
 								T V = Convert(RawValues[i]);
 								OutMin = PCGExMath::Min(V, OutMin);
@@ -813,7 +792,7 @@ namespace PCGEx
 						}
 						else
 						{
-							for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(RawValues[i]); }
+							for (int i = 0; i < NumPoints; ++i) { Dump[i] = Convert(RawValues[i]); }
 						}
 
 						RawValues.Empty();
@@ -827,14 +806,12 @@ namespace PCGEx
 				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 
-
-				if (RequireInit(GetPropertyType(Selector.GetPointProperty()))) { PCGEX_SET_NUM(Dump, NumPoints) }
-				else { PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints) }
+				PCGEx::InitMetadataArray(Dump, NumPoints);
 
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
-				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) {\
+				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; ++i) {\
 						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExMath::Min(V, OutMin); OutMax = PCGExMath::Max(V, OutMax); Dump[i] = V;\
-					} } else { for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } } break;
+					} } else { for (int i = 0; i < NumPoints; ++i) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } } break;
 
 				switch (Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
@@ -845,7 +822,7 @@ namespace PCGEx
 				switch (FetchSelector.GetExtraProperty())
 				{
 				case EPCGExtraProperties::Index:
-					for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(i); }
+					for (int i = 0; i < NumPoints; ++i) { Dump[i] = Convert(i); }
 					bValid = true;
 					break;
 				default: ;
@@ -907,7 +884,7 @@ namespace PCGEx
 			if (!bMinMaxDirty) { return; }
 			ResetMinMax();
 			bMinMaxDirty = false;
-			for (int i = 0; i < Values.Num(); i++)
+			for (int i = 0; i < Values.Num(); ++i)
 			{
 				T V = Values[i];
 				Min = PCGExMath::Min(V, Min);
@@ -921,7 +898,7 @@ namespace PCGEx
 			bNormalized = true;
 			UpdateMinMax();
 			T Range = PCGExMath::Subtract(Max, Min);
-			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
+			for (int i = 0; i < Values.Num(); ++i) { Values[i] = PCGExMath::Div(Values[i], Range); }
 		}
 
 		FORCEINLINE T SoftGet(const int32 Index, const FPCGPoint& Point, const T& fallback)
@@ -1012,14 +989,14 @@ namespace PCGEx
 
 		if (bKeepSourceMetadataEntry)
 		{
-			for (int i = 0; i < NumIndices; i++)
+			for (int i = 0; i < NumIndices; ++i)
 			{
 				TargetPoints[TargetIndex + i] = SourcePoints[SourceIndices[i]];
 			}
 		}
 		else
 		{
-			for (int i = 0; i < NumIndices; i++)
+			for (int i = 0; i < NumIndices; ++i)
 			{
 				const int32 WriteIndex = TargetIndex + i;
 				const PCGMetadataEntryKey Key = TargetPoints[WriteIndex].MetadataEntry;
@@ -1056,7 +1033,7 @@ namespace PCGEx
 
 				const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
 				const int32 NumIndices = SourceIndices.Num();
-				for (int i = 0; i < NumIndices; i++)
+				for (int i = 0; i < NumIndices; ++i)
 				{
 					Writer->Values[TargetIndex + i] = SourceAttribute->GetValueFromItemKey(SourcePoints[SourceIndices[i]].MetadataEntry);
 				}

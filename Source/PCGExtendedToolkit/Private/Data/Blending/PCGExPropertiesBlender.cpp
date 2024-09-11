@@ -128,19 +128,19 @@ if (_NAME##Blending != EPCGExDataBlendingType::None){ Target._ACCESSOR = Source.
 
 	void FPropertiesBlender::BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
 	{
-		for (int i = 0; i < Targets.Num(); i++) { Blend(From, To, Targets[i], Weights[i]); }
+		for (int i = 0; i < Targets.Num(); ++i) { Blend(From, To, Targets[i], Weights[i]); }
 	}
 
 	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const
 	{
-		for (int i = 0; i < Targets.Num(); i++) { CompleteBlending(Targets[i], Counts[i], TotalWeights[i]); }
+		for (int i = 0; i < Targets.Num(); ++i) { CompleteBlending(Targets[i], Counts[i], TotalWeights[i]); }
 	}
 
 	void FPropertiesBlender::BlendRangeFromTo(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
 	{
 		if (bRequiresPrepare)
 		{
-			for (int i = 0; i < Targets.Num(); i++)
+			for (int i = 0; i < Targets.Num(); ++i)
 			{
 				FPCGPoint& Target = Targets[i];
 				PrepareBlending(Target, From);

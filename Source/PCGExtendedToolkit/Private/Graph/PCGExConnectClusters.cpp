@@ -194,7 +194,7 @@ namespace PCGExBridgeClusters
 
 		TArray<FBox> Bounds;
 		Bounds.SetNumUninitialized(NumBounds);
-		for (int i = 0; i < NumBounds; i++) { Bounds[i] = ValidClusters[i]->Bounds; }
+		for (int i = 0; i < NumBounds; ++i) { Bounds[i] = ValidClusters[i]->Bounds; }
 
 		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D)
 		{
@@ -203,7 +203,7 @@ namespace PCGExBridgeClusters
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
 
-			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
+			for (int i = 0; i < NumBounds; ++i) { Positions[i] = Bounds[i].GetCenter(); }
 
 			if (Delaunay->Process(Positions, false)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Delaunay 3D failed. Are points coplanar? If so, use Delaunay 2D instead.")); }
@@ -218,7 +218,7 @@ namespace PCGExBridgeClusters
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
 
-			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
+			for (int i = 0; i < NumBounds; ++i) { Positions[i] = Bounds[i].GetCenter(); }
 
 			if (Delaunay->Process(Positions, InContext->ProjectionDetails)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Delaunay 2D failed.")); }
@@ -229,13 +229,13 @@ namespace PCGExBridgeClusters
 		else if (SafeMethod == EPCGExBridgeClusterMethod::LeastEdges)
 		{
 			TSet<int32> VisitedEdges;
-			for (int i = 0; i < NumBounds; i++)
+			for (int i = 0; i < NumBounds; ++i)
 			{
 				VisitedEdges.Add(i); // As to not connect to self or already connected
 				double Distance = TNumericLimits<double>::Max();
 				int32 ClosestIndex = -1;
 
-				for (int j = 0; j < NumBounds; j++)
+				for (int j = 0; j < NumBounds; ++j)
 				{
 					if (i == j || VisitedEdges.Contains(j)) { continue; }
 
@@ -254,9 +254,9 @@ namespace PCGExBridgeClusters
 		}
 		else if (SafeMethod == EPCGExBridgeClusterMethod::MostEdges)
 		{
-			for (int i = 0; i < NumBounds; i++)
+			for (int i = 0; i < NumBounds; ++i)
 			{
-				for (int j = 0; j < NumBounds; j++)
+				for (int j = 0; j < NumBounds; ++j)
 				{
 					if (i == j) { continue; }
 					Bridges.Add(PCGEx::H64U(i, j));

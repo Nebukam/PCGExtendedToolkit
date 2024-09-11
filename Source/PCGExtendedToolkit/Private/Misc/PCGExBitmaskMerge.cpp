@@ -62,7 +62,7 @@ bool FPCGExBitmaskMergeElement::ExecuteInternal(FPCGContext* Context) const
 
 		const PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(Metadata);
 
-		for (int i = 0; i < Infos->Attributes.Num(); i++)
+		for (int i = 0; i < Infos->Attributes.Num(); ++i)
 		{
 			if (Infos->Identities[i].UnderlyingType != EPCGMetadataTypes::Integer64) { continue; }
 

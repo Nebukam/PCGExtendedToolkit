@@ -181,7 +181,7 @@ namespace PCGExRefineEdges
 		const TArray<FPCGPoint>& OriginalEdges = EdgesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutableEdges = EdgesIO->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(MutableEdges, ValidEdges.Num())
-		for (int i = 0; i < ValidEdges.Num(); i++) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
+		for (int i = 0; i < ValidEdges.Num(); ++i) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
 	}
 
 	void FProcessor::CompleteWork()
@@ -224,7 +224,7 @@ namespace PCGExRefineEdges
 		const int32 StartIndex = PCGEx::H64A(Scope);
 		const int32 NumIterations = PCGEx::H64B(Scope);
 
-		for (int i = 0; i < NumIterations; i++)
+		for (int i = 0; i < NumIterations; ++i)
 		{
 			PCGExGraph::FIndexedEdge& Edge = *(Processor->Cluster->Edges->GetData() + StartIndex + i);
 			if (!Edge.bValid) { Edge.bValid = Processor->FilterManager->Test(Edge.EdgeIndex); }
@@ -238,7 +238,7 @@ namespace PCGExRefineEdges
 		const int32 StartIndex = PCGEx::H64A(Scope);
 		const int32 NumIterations = PCGEx::H64B(Scope);
 
-		for (int i = 0; i < NumIterations; i++)
+		for (int i = 0; i < NumIterations; ++i)
 		{
 			const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
 			const int32 NumNeighbors = Node.Adjacency.Num();
@@ -248,7 +248,7 @@ namespace PCGExRefineEdges
 				int32 LongestEdge = -1;
 				double LongestLength = TNumericLimits<double>::Min();
 
-				for (int h = 0; h < NumNeighbors; h++)
+				for (int h = 0; h < NumNeighbors; ++h)
 				{
 					const PCGExCluster::FExpandedEdge* EEdge = *(Processor->Cluster->ExpandedEdges->GetData() + PCGEx::H64B(Node.Adjacency[h]));
 					if (((Processor->Cluster->Edges->GetData() + EEdge->Index))->bValid)
@@ -272,7 +272,7 @@ namespace PCGExRefineEdges
 				int32 ShortestEdge = -1;
 				double ShortestLength = TNumericLimits<double>::Max();
 
-				for (int h = 0; h < NumNeighbors; h++)
+				for (int h = 0; h < NumNeighbors; ++h)
 				{
 					const PCGExCluster::FExpandedEdge* EEdge = *(Processor->Cluster->ExpandedEdges->GetData() + PCGEx::H64B(Node.Adjacency[h]));
 					if (((Processor->Cluster->Edges->GetData() + EEdge->Index))->bValid)

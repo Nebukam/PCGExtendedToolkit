@@ -236,6 +236,5 @@ namespace PCGExDataBlending
 		}
 
 		FirstPointOperation.Init(bInitFirstOperation, PrimaryPoints->Num());
-
 	}
 }

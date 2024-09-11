@@ -198,7 +198,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 
 	PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(PathLocations[0]);
 	int32 FuseCountReduce = Settings->bAddGoalToPath ? 2 : 1;
-	for (int i = Settings->bAddSeedToPath; i < PathLocations.Num(); i++)
+	for (int i = Settings->bAddSeedToPath; i < PathLocations.Num(); ++i)
 	{
 		FVector CurrentLocation = PathLocations[i];
 		if (i > 0 && i < (PathLocations.Num() - FuseCountReduce))
@@ -227,7 +227,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	MutablePoints.SetNumUninitialized(NumPositions);
 
 	FVector Location;
-	for (int i = 0; i < LastPosition; i++)
+	for (int i = 0; i < LastPosition; ++i)
 	{
 		Location = PathLocations[i];
 		(MutablePoints[i] = *Seed).Transform.SetLocation(Location);

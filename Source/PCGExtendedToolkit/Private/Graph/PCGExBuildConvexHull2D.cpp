@@ -120,7 +120,7 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 		}
 		else
 		{
-			for (int i = 0; i < Edges.Num(); i++)
+			for (int i = 0; i < Edges.Num(); ++i)
 			{
 				EdgeIndex = i;
 				if (VisitedEdges.Contains(EdgeIndex)) { continue; }

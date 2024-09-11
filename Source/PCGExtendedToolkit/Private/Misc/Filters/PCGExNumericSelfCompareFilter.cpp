@@ -29,7 +29,6 @@ bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* In
 		return false;
 	}
 
-	
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{

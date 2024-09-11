@@ -178,7 +178,7 @@ namespace PCGExPointsMT
 
 			PrepareLoopScopesForPoints(Loops);
 
-			for (int i = 0; i < Loops.Num(); i++)
+			for (int i = 0; i < Loops.Num(); ++i)
 			{
 				uint32 StartIndex;
 				uint32 Count;
@@ -199,7 +199,7 @@ namespace PCGExPointsMT
 		{
 			PrepareSingleLoopScopeForPoints(StartIndex, Count);
 			TArray<FPCGPoint>& Points = PointIO->GetMutableData(Source)->GetMutablePoints();
-			for (int i = 0; i < Count; i++)
+			for (int i = 0; i < Count; ++i)
 			{
 				const int32 PtIndex = StartIndex + i;
 				ProcessSinglePoint(PtIndex, Points[PtIndex], LoopIdx, Count);
@@ -236,7 +236,7 @@ namespace PCGExPointsMT
 
 			PrepareLoopScopesForRange(Loops);
 
-			for (int i = 0; i < Loops.Num(); i++)
+			for (int i = 0; i < Loops.Num(); ++i)
 			{
 				uint32 StartIndex;
 				uint32 Count;
@@ -256,7 +256,7 @@ namespace PCGExPointsMT
 		virtual void ProcessRange(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			PrepareSingleLoopScopeForRange(StartIndex, Count);
-			for (int i = 0; i < Count; i++) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
+			for (int i = 0; i < Count; ++i) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
 		}
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
@@ -293,7 +293,7 @@ namespace PCGExPointsMT
 			if (PrimaryFilters)
 			{
 				const int32 MaxIndex = StartIndex + Count;
-				for (int i = StartIndex; i < MaxIndex; i++) { PointFilterCache[i] = PrimaryFilters->Test(i); }
+				for (int i = StartIndex; i < MaxIndex; ++i) { PointFilterCache[i] = PrimaryFilters->Test(i); }
 			}
 		}
 
@@ -370,7 +370,7 @@ namespace PCGExPointsMT
 
 		void ProcessRange(const int32 StartIndex, const int32 Iterations, const int32 LoopIdx)
 		{
-			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Iterations); }
+			for (int i = 0; i < Iterations; ++i) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Iterations); }
 		}
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
@@ -515,7 +515,7 @@ namespace PCGExPointsMT
 		{
 			if (CurrentState == PCGExMT::State_Processing)
 			{
-				for (int i = 0; i < Iterations; i++)
+				for (int i = 0; i < Iterations; ++i)
 				{
 					T* Processor = TrivialProcessors[StartIndex + i];
 					Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr);
@@ -523,7 +523,7 @@ namespace PCGExPointsMT
 			}
 			else if (CurrentState == PCGExMT::State_Completing)
 			{
-				for (int i = 0; i < Iterations; i++)
+				for (int i = 0; i < Iterations; ++i)
 				{
 					T* Processor = TrivialProcessors[StartIndex + i];
 					if (!Processor->bIsProcessorValid) { continue; }
@@ -532,7 +532,7 @@ namespace PCGExPointsMT
 			}
 			else if (CurrentState == PCGExMT::State_Writing)
 			{
-				for (int i = 0; i < Iterations; i++)
+				for (int i = 0; i < Iterations; ++i)
 				{
 					T* Processor = TrivialProcessors[StartIndex + i];
 					if (!Processor->bIsProcessorValid) { continue; }
@@ -561,7 +561,7 @@ namespace PCGExPointsMT
 				TArray<uint64> Loops;
 				PCGExMT::SubRanges(Loops, TrivialProcessors.Num(), 32);
 
-				for (int i = 0; i < Loops.Num(); i++)
+				for (int i = 0; i < Loops.Num(); ++i)
 				{
 					uint32 StartIndex;
 					uint32 LoopIterations;

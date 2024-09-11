@@ -54,7 +54,7 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 
 	const int32 NumSources = IOSources.Num();
 
-	for (int i = 0; i < NumSources; i++)
+	for (int i = 0; i < NumSources; ++i)
 	{
 		PCGExData::FPointIO* Source = IOSources[i];
 		CompositeIO->Tags->Append(Source->Tags);
@@ -65,7 +65,7 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 		const uint32 StartIndex = PCGEx::H64A(Scopes[i]);
 
 		// Copy source points -- TODO : could be made async if we split in two steps (merge points then merge attributes)
-		for (int j = 0; j < SourcePoints.Num(); j++)
+		for (int j = 0; j < SourcePoints.Num(); ++j)
 		{
 			const int32 TargetIndex = StartIndex + j;
 			const PCGMetadataEntryKey Key = MutablePoints[TargetIndex].MetadataEntry;
@@ -117,12 +117,12 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 	InCarryOverDetails->Filter(CompositeIO);
 	CompositeIO->CreateOutKeys();
 
-	for (int i = 0; i < UniqueIdentities.Num(); i++) { AsyncManager->Start<PCGExPointIOMerger::FWriteAttributeTask>(i, CompositeIO, this); }
+	for (int i = 0; i < UniqueIdentities.Num(); ++i) { AsyncManager->Start<PCGExPointIOMerger::FWriteAttributeTask>(i, CompositeIO, this); }
 }
 
 void FPCGExPointIOMerger::Write()
 {
-	for (int i = 0; i < UniqueIdentities.Num(); i++)
+	for (int i = 0; i < UniqueIdentities.Num(); ++i)
 	{
 		PCGMetadataAttribute::CallbackWithRightType(
 			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
@@ -139,7 +139,7 @@ void FPCGExPointIOMerger::Write()
 
 void FPCGExPointIOMerger::Write(PCGExMT::FTaskManager* AsyncManager)
 {
-	for (int i = 0; i < UniqueIdentities.Num(); i++)
+	for (int i = 0; i < UniqueIdentities.Num(); ++i)
 	{
 		PCGMetadataAttribute::CallbackWithRightType(
 			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
@@ -167,7 +167,7 @@ namespace PCGExPointIOMerger
 				PCGEx::TAttributeWriter<T>* TypedWriter = static_cast<PCGEx::TAttributeWriter<T>*>(Writer);
 				TypedWriter->BindAndSetNumUninitialized(PointIO);
 
-				for (int i = 0; i < Merger->IOSources.Num(); i++)
+				for (int i = 0; i < Merger->IOSources.Num(); ++i)
 				{
 					PCGExData::FPointIO* SourceIO = Merger->IOSources[i];
 					const FPCGMetadataAttributeBase* Attribute = SourceIO->GetIn()->Metadata->GetConstAttribute(Identity.Name);

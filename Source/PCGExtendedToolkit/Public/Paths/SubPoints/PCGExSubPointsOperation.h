@@ -25,7 +25,7 @@ public:
 	bool bPreservePosition = false;
 	bool bPreserveRotation = false;
 	bool bPreserveScale = false;
-	
+
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet);

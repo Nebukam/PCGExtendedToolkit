@@ -48,7 +48,7 @@ namespace PCGExPointIOMerger
 		PCGEx::H64(Scope, StartIndex, Range);
 
 		const int32 Count = static_cast<int>(Range);
-		for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
+		for (int i = 0; i < Count; ++i) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
 
 		PCGEX_DELETE(Reader);
 	}

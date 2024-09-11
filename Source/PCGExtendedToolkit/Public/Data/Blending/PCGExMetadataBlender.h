@@ -94,7 +94,7 @@ namespace PCGExDataBlending
 		void BlendRangeFromTo(const PCGExData::FPointRef& From, const PCGExData::FPointRef& To, const int32 StartIndex, const TArrayView<double>& Weights);
 
 		// Soft ops
-		
+
 		FORCEINLINE void PrepareForBlending(FPCGPoint& Target, const FPCGPoint* Defaults = nullptr) const
 		{
 			for (const FDataBlendingOperationBase* Op : OperationsToBePrepared) { Op->PrepareOperation(Target.MetadataEntry); }

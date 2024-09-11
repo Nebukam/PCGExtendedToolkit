@@ -98,7 +98,7 @@ namespace PCGExBlendPath
 		if (Settings->BlendOver == EPCGExBlendOver::Fixed && Settings->LerpSource == EPCGExFetchType::Attribute)
 		{
 			LerpCache = PointDataFacade->GetScopedBroadcaster<double>(Settings->LerpAttribute);
-			
+
 			if (!LerpCache)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Lerp attribute is invalid."));
@@ -119,7 +119,7 @@ namespace PCGExBlendPath
 		{
 			Metrics = PCGExPaths::FPathMetrics(OutPoints[0].Transform.GetLocation());
 			PCGEX_SET_NUM_UNINITIALIZED(Length, PointIO->GetNum())
-			for (int i = 0; i < PointIO->GetNum(); i++) { Length[i] = Metrics.Add(OutPoints[i].Transform.GetLocation()); }
+			for (int i = 0; i < PointIO->GetNum(); ++i) { Length[i] = Metrics.Add(OutPoints[i].Transform.GetLocation()); }
 		}
 
 		StartParallelLoopForPoints();

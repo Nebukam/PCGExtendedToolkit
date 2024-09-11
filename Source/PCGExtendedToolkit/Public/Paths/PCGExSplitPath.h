@@ -80,7 +80,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : public FPCGExPa
 	friend class FPCGExSplitPathElement;
 
 	virtual ~FPCGExSplitPathContext() override;
-
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathElement final : public FPCGExPathProcessorElement

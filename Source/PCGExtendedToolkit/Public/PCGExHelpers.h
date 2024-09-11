@@ -87,15 +87,6 @@ private:
 
 namespace PCGEx
 {
-	static const TSet<EPCGMetadataTypes> MustBeInitialized = {
-		EPCGMetadataTypes::Transform,
-		EPCGMetadataTypes::String,
-		EPCGMetadataTypes::Name,
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		EPCGMetadataTypes::SoftObjectPath,
-#endif
-	};
-
 #pragma region Metadata Type
 
 	template <typename T, typename CompilerSafety = void>
@@ -184,11 +175,12 @@ namespace PCGEx
 		}
 	}
 
-	static bool RequireInit(const EPCGMetadataTypes Type) { return MustBeInitialized.Contains(Type); }
-
 	template <typename T>
-	static bool RequireInit(const T& DummyValue) { return RequireInit(GetMetadataType(DummyValue)); }
-
+	static void InitMetadataArray(TArray<T>& MetadataValues, const int32 Num)
+	{
+		if constexpr (std::is_trivially_copyable_v<T>) { MetadataValues.SetNumUninitialized(Num); }
+		else { MetadataValues.SetNum(Num); }
+	}
 
 #pragma endregion
 }

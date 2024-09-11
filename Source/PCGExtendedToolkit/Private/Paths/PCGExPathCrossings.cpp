@@ -158,7 +158,7 @@ namespace PCGExPathCrossings
 		CanBeCut.Init(true, NumPoints);
 
 		FBox PointBounds = FBox(ForceInit);
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < NumPoints; ++i)
 		{
 			const FVector V = InPoints[i].Transform.GetLocation();
 			Positions[i] = V;
@@ -183,7 +183,7 @@ namespace PCGExPathCrossings
 					CanCut[NumPoints - 1] = false;
 				}
 
-				for (int i = 0; i < NumPoints; i++)
+				for (int i = 0; i < NumPoints; ++i)
 				{
 					if (!CanCut[i]) { continue; } // !!
 					EdgeOctree->AddElement(Edges[i]);
@@ -317,7 +317,7 @@ namespace PCGExPathCrossings
 		PCGEx::ArrayOfIndices(Order, NumCrossings);
 		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
-		for (int i = 0; i < NumCrossings; i++)
+		for (int i = 0; i < NumCrossings; ++i)
 		{
 			const int32 Idx = CrossingStartIndex + i;
 			FPCGPoint& CrossingPt = OutPoints[Idx];
@@ -381,7 +381,7 @@ namespace PCGExPathCrossings
 		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
 		PCGExData::FIdxCompound* TempCompound = new PCGExData::FIdxCompound();
-		for (int i = 0; i < NumCrossings; i++)
+		for (int i = 0; i < NumCrossings; ++i)
 		{
 			uint32 PtIdx;
 			uint32 IOIdx;
@@ -401,7 +401,7 @@ namespace PCGExPathCrossings
 	{
 		int32 NumPointsFinal = 0;
 
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < NumPoints; ++i)
 		{
 			NumPointsFinal++;
 
@@ -422,7 +422,7 @@ namespace PCGExPathCrossings
 		TSet<int32> IOIndices;
 
 		int32 Index = 0;
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < NumPoints; ++i)
 		{
 			Edges[i]->OffsetedStart = Index;
 

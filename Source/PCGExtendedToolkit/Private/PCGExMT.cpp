@@ -96,7 +96,7 @@ namespace PCGExMT
 	void FTaskGroup::DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
 	{
 		PrepareRangeIteration(StartIndex, Count, LoopIdx);
-		for (int i = 0; i < Count; i++) { OnIterationCallback(StartIndex + i, Count, LoopIdx); }
+		for (int i = 0; i < Count; ++i) { OnIterationCallback(StartIndex + i, Count, LoopIdx); }
 	}
 
 	void FTaskGroup::InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize)

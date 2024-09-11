@@ -30,7 +30,7 @@ namespace PCGExData
 		if (!Found) { return nullptr; }
 		return *Found;
 	}
-	
+
 	FCacheBase* FFacade::FindCache(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(PoolLock);

@@ -181,7 +181,7 @@ namespace PCGExUberFilter
 		TArray<int32> Indices;
 		PCGEX_SET_NUM_UNINITIALIZED(Indices, NumPoints)
 
-		for (int i = 0; i < NumPoints; i++) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
+		for (int i = 0; i < NumPoints; ++i) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
 
 		if (NumInside == 0 || NumOutside == 0)
 		{
@@ -200,7 +200,7 @@ namespace PCGExUberFilter
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(OutsidePoints, NumOutside)
 
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < NumPoints; ++i)
 		{
 			if (PointFilterCache[i]) { InsidePoints[Indices[i]] = OriginalPoints[i]; }
 			else { OutsidePoints[Indices[i]] = OriginalPoints[i]; }

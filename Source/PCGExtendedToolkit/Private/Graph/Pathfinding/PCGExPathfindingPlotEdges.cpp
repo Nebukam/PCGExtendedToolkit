@@ -56,7 +56,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 	const int32 NumPlots = InPlotPoints->GetNum();
 
-	for (int i = 1; i < NumPlots; i++)
+	for (int i = 1; i < NumPlots; ++i)
 	{
 		FVector SeedPosition = InPlotPoints->GetInPoint(i - 1).Transform.GetLocation();
 		FVector GoalPosition = InPlotPoints->GetInPoint(i).Transform.GetLocation();
@@ -159,7 +159,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
 	Context->Plots->Initialize(Sources, PCGExData::EInit::NoOutput);
 
-	for (int i = 0; i < Context->Plots->Num(); i++)
+	for (int i = 0; i < Context->Plots->Num(); ++i)
 	{
 		const PCGExData::FPointIO* Plot = Context->Plots->Pairs[i];
 		if (Plot->GetNum() < 2)
@@ -273,7 +273,7 @@ namespace PCGExPathfindingPlotEdge
 		}
 		else
 		{
-			for (int i = 0; i < TypedContext->Plots->Num(); i++)
+			for (int i = 0; i < TypedContext->Plots->Num(); ++i)
 			{
 				AsyncManagerPtr->Start<FPCGExPlotClusterPathTask>(i, VtxIO, SearchOperation, TypedContext->Plots, HeuristicsHandler, false);
 			}

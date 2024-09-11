@@ -78,7 +78,7 @@ namespace PCGExGeo
 
 			FVector LastPos = Cuts[0].Position;
 
-			for (int i = 1; i < Cuts.Num(); i++)
+			for (int i = 1; i < Cuts.Num(); ++i)
 			{
 				FVector Pos = (Cuts.GetData() + i)->Position;
 				if (Pos == LastPos)
@@ -389,7 +389,7 @@ namespace PCGExGeo
 
 			PCGEX_SET_NUM_UNINITIALIZED(Boxes, Points.Num())
 
-			for (int i = 0; i < Points.Num(); i++)
+			for (int i = 0; i < Points.Num(); ++i)
 			{
 				FPointBox* NewPointBox = new FPointBox(Points[i], i, BoundsSource, Epsilon);
 				CloudBounds += NewPointBox->Box.TransformBy(NewPointBox->Transform);

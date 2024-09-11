@@ -105,7 +105,7 @@ namespace PCGExData
 		CreateInKeys();
 		const TArray<FPCGPoint>& PointList = In->GetPoints();
 		InMap.Empty(PointList.Num());
-		for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
+		for (int i = 0; i < PointList.Num(); ++i) { InMap.Add(PointList[i].MetadataEntry, i); }
 	}
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::CreateOutKeys()
@@ -124,7 +124,7 @@ namespace PCGExData
 		{
 			TArray<FPCGPoint>& PointList = Out->GetMutablePoints();
 			InMap.Empty(PointList.Num());
-			for (int i = 0; i < PointList.Num(); i++)
+			for (int i = 0; i < PointList.Num(); ++i)
 			{
 				FPCGPoint& Point = PointList[i];
 				Out->Metadata->InitializeOnSet(Point.MetadataEntry);
@@ -137,7 +137,7 @@ namespace PCGExData
 			CreateOutKeys();
 			const TArray<FPCGPoint>& PointList = Out->GetPoints();
 			InMap.Empty(PointList.Num());
-			for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
+			for (int i = 0; i < PointList.Num(); ++i) { InMap.Add(PointList[i].MetadataEntry, i); }
 		}
 	}
 
@@ -303,7 +303,7 @@ namespace PCGExData
 		PointIO->SetInfos(Index, DefaultOutputLabel);
 		return PointIO;
 	}
-	
+
 	FPointIO* FPointIOCollection::AddUnsafe(FPointIO* PointIO)
 	{
 		PointIO->SetInfos(Pairs.Add(PointIO), DefaultOutputLabel);

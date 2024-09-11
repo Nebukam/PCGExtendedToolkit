@@ -127,7 +127,7 @@ namespace PCGExLloydRelax
 		TArray<double> Counts;
 		Sum.Append(Processor->ActivePositions);
 		Counts.SetNum(NumPoints);
-		for (int i = 0; i < NumPoints; i++) { Counts[i] = 1; }
+		for (int i = 0; i < NumPoints; ++i) { Counts[i] = 1; }
 
 		FVector Centroid;
 		for (const PCGExGeo::FDelaunaySite3& Site : Delaunay->Sites)
@@ -142,7 +142,7 @@ namespace PCGExLloydRelax
 
 		if (InfluenceSettings->bProgressiveInfluence)
 		{
-			for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i)); }
+			for (int i = 0; i < NumPoints; ++i) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i)); }
 		}
 
 		PCGEX_DELETE(Delaunay)

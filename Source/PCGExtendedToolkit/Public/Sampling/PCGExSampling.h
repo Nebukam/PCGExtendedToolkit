@@ -144,7 +144,7 @@ namespace PCGExSampling
 		}
 
 		const TArray<FPCGPoint>& TargetPoints = InFacade->GetIn()->GetPoints();
-		for (int i = 0; i < TargetPoints.Num(); i++)
+		for (int i = 0; i < TargetPoints.Num(); ++i)
 		{
 			FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], TEXT(""));
 

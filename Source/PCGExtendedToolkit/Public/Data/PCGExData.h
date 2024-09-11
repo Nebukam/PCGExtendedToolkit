@@ -179,8 +179,9 @@ namespace PCGExData
 
 			Writer = new PCGEx::TAttributeWriter<T>(FullName, DefaultValue, bAllowInterpolation);
 
-			if (bUninitialized && !PCGEx::RequireInit(Type)) { Writer->BindAndSetNumUninitialized(Source); }
+			if (bUninitialized) { Writer->BindAndSetNumUninitialized(Source); }
 			else { Writer->BindAndGet(Source); }
+
 			Attribute = Writer->Accessor->GetAttribute();
 
 			return Writer;
@@ -214,7 +215,7 @@ namespace PCGExData
 
 				Writer = new PCGEx::TAttributeWriter<T>(FullName);
 
-				if (bUninitialized && PCGEx::RequireInit(Type)) { Writer->BindAndSetNumUninitialized(Source); }
+				if (bUninitialized) { Writer->BindAndSetNumUninitialized(Source); }
 				else { Writer->BindAndGet(Source); }
 				Attribute = Writer->Accessor->GetAttribute();
 
@@ -237,8 +238,6 @@ namespace PCGExData
 			bInitialized = true;
 			bIsPureReader = true;
 
-			PCGEX_SET_NUM_UNINITIALIZED(Values, Source->GetNum(ESource::In))
-
 			Getter->GrabAndDump(Source, Values, bCaptureMinMax, Min, Max);
 			Attribute = Getter->Attribute;
 		}
@@ -256,7 +255,7 @@ namespace PCGExData
 			DynamicBroadcaster = Getter;
 			Attribute = Getter->Attribute;
 
-			PCGEX_SET_NUM_UNINITIALIZED(Values, Source->GetNum())
+			PCGEx::InitMetadataArray(Values, Source->GetNum());
 		}
 
 		virtual void Write(PCGExMT::FTaskManager* AsyncManager) override
@@ -593,7 +592,7 @@ namespace PCGExData
 	{
 		OutFacades.Empty();
 		PCGEX_SET_NUM_UNINITIALIZED(OutFacades, InCollection->Num())
-		for (int i = 0; OutFacades.Num(); i++) { OutFacades[i] = new FFacade(InCollection->Pairs[i]); }
+		for (int i = 0; OutFacades.Num(); ++i) { OutFacades[i] = new FFacade(InCollection->Pairs[i]); }
 	}
 
 #pragma endregion

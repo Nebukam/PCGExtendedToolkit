@@ -145,7 +145,7 @@ namespace PCGExPointsToBounds
 
 			double TotalWeight = 0;
 
-			for (int i = 0; i < NumPoints; i++)
+			for (int i = 0; i < NumPoints; ++i)
 			{
 				FVector Location = InPoints[i].Transform.GetLocation();
 				const double Weight = FVector::DistSquared(Center, Location) / SqrDist;

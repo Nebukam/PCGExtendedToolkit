@@ -169,7 +169,7 @@ namespace PCGExGraph
 	{
 		const int32 StartIndex = Nodes.Num();
 		Nodes.SetNum(StartIndex + NumNewNodes);
-		for (int i = 0; i < NumNewNodes; i++)
+		for (int i = 0; i < NumNewNodes; ++i)
 		{
 			FNode& Node = Nodes[StartIndex + i];
 			Node.NodeIndex = Node.PointIndex = StartIndex + i;
@@ -479,7 +479,7 @@ namespace PCGExGraphTask
 
 			// Copy any existing point properties first
 			const TArray<FPCGPoint>& InPoints = EdgeIO->GetIn()->GetPoints();
-			for (int i = 0; i < NumEdges; i++)
+			for (int i = 0; i < NumEdges; ++i)
 			{
 				PCGExGraph::FIndexedEdge& OE = Graph->Edges[EdgeDump[i]];
 				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[OE.Start].PointIndex, Graph->Nodes[OE.End].PointIndex, i);
@@ -489,7 +489,7 @@ namespace PCGExGraphTask
 		}
 		else
 		{
-			for (int i = 0; i < NumEdges; i++)
+			for (int i = 0; i < NumEdges; ++i)
 			{
 				PCGExGraph::FIndexedEdge& E = Graph->Edges[EdgeDump[i]];
 				FlattenedEdges[i] = PCGExGraph::FIndexedEdge(i, Graph->Nodes[E.Start].PointIndex, Graph->Nodes[E.End].PointIndex, i);

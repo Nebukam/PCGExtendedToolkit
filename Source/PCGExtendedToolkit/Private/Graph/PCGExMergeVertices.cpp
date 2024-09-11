@@ -27,7 +27,7 @@ void FPCGExMergeVerticesContext::OnBatchesProcessingDone()
 
 	int32 StartOffset = 0;
 
-	for (int i = 0; i < Batches.Num(); i++)
+	for (int i = 0; i < Batches.Num(); ++i)
 	{
 		PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>* Batch = static_cast<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>*>(Batches[i]);
 		Merger->Append(Batch->VtxIO);

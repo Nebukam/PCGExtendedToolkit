@@ -105,7 +105,7 @@ namespace PCGExPruneEdges
 			double RelativeMinEdgeLength = TNumericLimits<double>::Max();
 			double RelativeMaxEdgeLength = TNumericLimits<double>::Min();
 			SumEdgeLength = 0;
-			for (int i = 0; i < EdgeLengths.Num(); i++)
+			for (int i = 0; i < EdgeLengths.Num(); ++i)
 			{
 				const double Normalized = (EdgeLengths[i] /= MaxEdgeLength);
 				RelativeMinEdgeLength = FMath::Min(Normalized, RelativeMinEdgeLength);

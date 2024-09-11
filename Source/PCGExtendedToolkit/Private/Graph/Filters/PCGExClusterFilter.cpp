@@ -55,6 +55,6 @@ namespace PCGExClusterFilter
 	void TManager::InitCache()
 	{
 		const int32 NumResults = Cluster->Nodes->Num();
-		Results.Init(false,NumResults);
+		Results.Init(false, NumResults);
 	}
 }

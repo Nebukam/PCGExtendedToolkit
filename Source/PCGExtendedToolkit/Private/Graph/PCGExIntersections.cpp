@@ -436,7 +436,7 @@ namespace PCGExGraph
 		MutablePoints.SetNum(Graph->Nodes.Num());
 
 		// Now handled by intersection blending
-		//for (int i = 0; i < NewNodes.Num(); i++) { MutablePoints[NewNodes[i].NodeIndex].Transform.SetLocation(Crossings[i]->Split.Center); }
+		//for (int i = 0; i < NewNodes.Num(); ++i) { MutablePoints[NewNodes[i].NodeIndex].Transform.SetLocation(Crossings[i]->Split.Center); }
 
 		for (FEdgeEdgeProxy& EdgeProxy : Edges)
 		{

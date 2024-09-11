@@ -120,7 +120,7 @@ namespace PCGExOffsetPath
 		Positions.SetNumUninitialized(NumPoints);
 		Normals.SetNumUninitialized(NumPoints);
 
-		for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
+		for (int i = 0; i < NumPoints; ++i) { Positions[i] = Points[i].Transform.GetLocation(); }
 
 		StartParallelLoopForRange(NumPoints - 2); // Compute all normals
 

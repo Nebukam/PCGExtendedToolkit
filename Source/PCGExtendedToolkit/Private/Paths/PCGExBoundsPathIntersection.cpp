@@ -113,7 +113,7 @@ namespace PCGExPathIntersections
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
 		PointDataFacade->bSupportsDynamic = true;
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		bClosedPath = Settings->bClosedPath;
@@ -130,7 +130,7 @@ namespace PCGExPathIntersections
 				PointDataFacade->Fetch(StartIndex, Count);
 				FilterScope(StartIndex, Count);
 			});
-		
+
 		FindIntersectionsTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { FindIntersections(Index); },
 			PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -168,7 +168,7 @@ namespace PCGExPathIntersections
 	{
 		PCGExGeo::FIntersections* Intersections = Segmentation->IntersectionsList[Index];
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-		for (int i = 0; i < Intersections->Cuts.Num(); i++)
+		for (int i = 0; i < Intersections->Cuts.Num(); ++i)
 		{
 			const int32 Idx = Intersections->Start + i;
 
@@ -222,7 +222,7 @@ namespace PCGExPathIntersections
 
 		int32 Idx = 0;
 
-		for (int i = 0; i < LastIndex; i++)
+		for (int i = 0; i < LastIndex; ++i)
 		{
 			const FPCGPoint& OriginalPoint = OriginalPoints[i];
 			MutablePoints[Idx++] = OriginalPoint;
@@ -230,7 +230,7 @@ namespace PCGExPathIntersections
 			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(i, i + 1)))
 			{
 				Intersections->Start = Idx;
-				for (int j = 0; j < Intersections->Cuts.Num(); j++)
+				for (int j = 0; j < Intersections->Cuts.Num(); ++j)
 				{
 					FPCGPoint& NewPoint = MutablePoints[Idx++] = OriginalPoint;
 					NewPoint.MetadataEntry = PCGInvalidEntryKey;
@@ -247,7 +247,7 @@ namespace PCGExPathIntersections
 			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(LastIndex, 0)))
 			{
 				Intersections->Start = Idx;
-				for (int j = 0; j < Intersections->Cuts.Num(); j++)
+				for (int j = 0; j < Intersections->Cuts.Num(); ++j)
 				{
 					FPCGPoint& NewPoint = MutablePoints[Idx++] = OriginalPoint;
 					NewPoint.MetadataEntry = PCGInvalidEntryKey;

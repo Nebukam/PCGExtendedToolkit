@@ -114,7 +114,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	PCGEX_NODE_POINT_FILTER(FName("Stop Conditions"), "", PCGExFactories::PointFilters, false)	
+	PCGEX_NODE_POINT_FILTER(FName("Stop Conditions"), "", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
 public:

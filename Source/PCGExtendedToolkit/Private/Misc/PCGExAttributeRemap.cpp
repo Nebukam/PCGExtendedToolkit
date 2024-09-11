@@ -31,7 +31,7 @@ bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const
 	Context->RemapSettings[2] = Settings->Component3RemapOverride;
 	Context->RemapSettings[3] = Settings->Component4RemapOverride;
 
-	for (int i = 0; i < 4; i++) { Context->RemapSettings[i].RemapDetails.LoadCurve(); }
+	for (int i = 0; i < 4; ++i) { Context->RemapSettings[i].RemapDetails.LoadCurve(); }
 
 	Context->RemapIndices[0] = 0;
 	Context->RemapIndices[1] = Settings->bOverrideComponent2 ? 1 : 0;
@@ -151,7 +151,7 @@ namespace PCGExAttributeRemap
 		PCGEX_DELETE(Infos)
 
 		Rules.Reserve(Dimensions);
-		for (int i = 0; i < Dimensions; i++)
+		for (int i = 0; i < Dimensions; ++i)
 		{
 			FPCGExComponentRemapRule Rule = Rules.Add_GetRef(FPCGExComponentRemapRule(TypedContext->RemapSettings[TypedContext->RemapIndices[i]]));
 			Rule.RemapDetails.InMin = TNumericLimits<double>::Max();
@@ -201,11 +201,11 @@ namespace PCGExAttributeRemap
 						PCGEx::TAttributeReader<RawT>* Reader = static_cast<PCGEx::TAttributeReader<RawT>*>(CacheReader);
 
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
-						for (int i = StartIndex; i < StartIndex + Count; i++) { Writer->Values[i] = Reader->Values[i]; } // Copy range to writer
+						for (int i = StartIndex; i < StartIndex + Count; ++i) { Writer->Values[i] = Reader->Values[i]; } // Copy range to writer
 
 						// Find min/max & clamp values
 
-						for (int d = 0; d < Dimensions; d++)
+						for (int d = 0; d < Dimensions; ++d)
 						{
 							FPCGExComponentRemapRule& Rule = Rules[d];
 
@@ -214,7 +214,7 @@ namespace PCGExAttributeRemap
 
 							if (Rule.RemapDetails.bUseAbsoluteRange)
 							{
-								for (int i = StartIndex; i < StartIndex + Count; i++)
+								for (int i = StartIndex; i < StartIndex + Count; ++i)
 								{
 									RawT& V = Writer->Values[i];
 									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));
@@ -226,7 +226,7 @@ namespace PCGExAttributeRemap
 							}
 							else
 							{
-								for (int i = StartIndex; i < StartIndex + Count; i++)
+								for (int i = StartIndex; i < StartIndex + Count; ++i)
 								{
 									RawT& V = Writer->Values[i];
 									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));

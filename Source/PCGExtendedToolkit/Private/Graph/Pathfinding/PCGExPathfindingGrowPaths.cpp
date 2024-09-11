@@ -331,7 +331,7 @@ namespace PCGExGrowPaths
 
 		// Find all growth points
 		const int32 SeedCount = TypedContext->SeedsDataFacade->Source->GetNum();
-		for (int i = 0; i < SeedCount; i++)
+		for (int i = 0; i < SeedCount; ++i)
 		{
 			const FVector SeedPosition = TypedContext->SeedsDataFacade->Source->GetInPoint(i).Transform.GetLocation();
 			const int32 NodeIndex = Cluster->FindClosestNode(SeedPosition, Settings->SeedPicking.PickingMethod, 1);
@@ -410,7 +410,7 @@ namespace PCGExGrowPaths
 				StartGrowthNumBranches = FMath::Max(1, static_cast<double>(Node.Adjacency.Num()) * StartGrowthNumBranches);
 			}
 
-			for (int j = 0; j < StartGrowthNumBranches; j++)
+			for (int j = 0; j < StartGrowthNumBranches; ++j)
 			{
 				FGrowth* NewGrowth = new FGrowth(this, Settings, StartNumIterations, Node.NodeIndex, StartGrowthDirection);
 				NewGrowth->MaxDistance = StartGrowthMaxDistance;
@@ -457,7 +457,7 @@ namespace PCGExGrowPaths
 		{
 			while (!QueuedGrowths.IsEmpty())
 			{
-				for (int i = 0; i < QueuedGrowths.Num(); i++)
+				for (int i = 0; i < QueuedGrowths.Num(); ++i)
 				{
 					FGrowth* Growth = QueuedGrowths[i];
 

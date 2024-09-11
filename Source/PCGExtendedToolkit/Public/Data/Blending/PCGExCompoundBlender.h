@@ -40,7 +40,7 @@ namespace PCGExDataBlending
 		{
 			PCGEX_DELETE(TargetBlendOp)
 
-			for (int i = 0; i < BlendOps.Num(); i++)
+			for (int i = 0; i < BlendOps.Num(); ++i)
 			{
 				const FDataBlendingOperationBase* Op = BlendOps[i];
 				if (!Op) { continue; }
@@ -65,7 +65,7 @@ namespace PCGExDataBlending
 			PCGEX_SET_NUM_UNINITIALIZED(Attributes, InNum)
 			PCGEX_SET_NUM_UNINITIALIZED(BlendOps, InNum)
 
-			for (int i = 1; i <= Diff; i++)
+			for (int i = 1; i <= Diff; ++i)
 			{
 				Attributes[InNum - i] = nullptr;
 				BlendOps[InNum - i] = nullptr;

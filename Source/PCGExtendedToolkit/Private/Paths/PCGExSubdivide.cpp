@@ -160,7 +160,6 @@ namespace PCGExSubdivide
 		}
 
 		Sub.Dir = (Sub.End - Sub.Start).GetSafeNormal();
-		
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
@@ -177,7 +176,7 @@ namespace PCGExSubdivide
 		PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Sub.Start);
 
 		const int32 SubStart = Sub.OutStart + 1;
-		for (int s = 0; s < Sub.NumSubdivisions; s++)
+		for (int s = 0; s < Sub.NumSubdivisions; ++s)
 		{
 			const int32 Index = SubStart + s;
 
@@ -227,7 +226,7 @@ namespace PCGExSubdivide
 
 		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumPoints)
 
-		for (int i = 0; i < Subdivisions.Num(); i++)
+		for (int i = 0; i < Subdivisions.Num(); ++i)
 		{
 			const FSubdivision& Sub = Subdivisions[i];
 			const FPCGPoint& OriginalPoint = InPoints[i];
@@ -238,7 +237,7 @@ namespace PCGExSubdivide
 
 			const int32 SubStart = Sub.OutStart + 1;
 
-			for (int s = 0; s < Sub.NumSubdivisions; s++)
+			for (int s = 0; s < Sub.NumSubdivisions; ++s)
 			{
 				MutablePoints[SubStart + s] = OriginalPoint;
 				Metadata->InitializeOnSet(MutablePoints[SubStart + s].MetadataEntry);

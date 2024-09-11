@@ -49,7 +49,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	}
 	else
 	{
-		for (int i = 0; i < NumPoints; i++)
+		for (int i = 0; i < NumPoints; ++i)
 		{
 			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Values[i], MinValue, MaxValue, OutMin, OutMax);
 			CachedScores[i] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;

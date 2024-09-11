@@ -382,7 +382,7 @@ namespace PCGExGraph
 		{
 			PCGEX_SET_NUM(Nodes, InNumNodes)
 
-			for (int i = 0; i < InNumNodes; i++)
+			for (int i = 0; i < InNumNodes; ++i)
 			{
 				FNode& Node = Nodes[i];
 				Node.NodeIndex = Node.PointIndex = i;
@@ -502,7 +502,7 @@ namespace PCGExGraph
 		}
 
 		OutIndices.Reserve(IndexReader->Values.Num());
-		for (int i = 0; i < IndexReader->Values.Num(); i++)
+		for (int i = 0; i < IndexReader->Values.Num(); ++i)
 		{
 			uint32 A;
 			uint32 B;
@@ -563,7 +563,7 @@ namespace PCGExGraph
 		TSet<int32> UniqueVtx;
 		UniqueVtx.Reserve(OutEdgeNum * 2);
 
-		for (int i = 0; i < OutEdgeNum; i++)
+		for (int i = 0; i < OutEdgeNum; ++i)
 		{
 			uint32 A;
 			uint32 B;

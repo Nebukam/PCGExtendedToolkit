@@ -279,7 +279,7 @@ namespace PCGExSampleOverlapStats
 				SearchTask->SetOnCompleteCallback(
 					[&]()
 					{
-						for (int i = 0; i < NumPoints; i++)
+						for (int i = 0; i < NumPoints; ++i)
 						{
 							LocalOverlapSubCountMax = FMath::Max(LocalOverlapSubCountMax, OverlapSubCount[i]);
 							LocalOverlapCountMax = FMath::Max(LocalOverlapCountMax, OverlapCount[i]);

@@ -17,7 +17,7 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 
 	OperandA = new PCGEx::FLocalToStringGetter();
 	OperandA->Capture(TypedFilterFactory->Config.OperandA);
-	
+
 	if (!OperandA->SoftGrab(PointDataFacade->Source))
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA)));
@@ -28,7 +28,7 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 	{
 		OperandB = new PCGEx::FLocalToStringGetter();
 		OperandB->Capture(TypedFilterFactory->Config.OperandB);
-	
+
 		if (!OperandB->SoftGrab(PointDataFacade->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB)));

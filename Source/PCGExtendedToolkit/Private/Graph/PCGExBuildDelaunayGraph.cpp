@@ -203,7 +203,7 @@ namespace PCGExBuildDelaunay
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumSites)
-		for (int i = 0; i < NumSites; i++)
+		for (int i = 0; i < NumSites; ++i)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
@@ -221,7 +221,7 @@ namespace PCGExBuildDelaunay
 		{
 			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
-			for (int i = 0; i < NumSites; i++) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
+			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
 			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);
 		}
 
@@ -244,7 +244,7 @@ namespace PCGExBuildDelaunay
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumSites)
-		for (int i = 0; i < NumSites; i++)
+		for (int i = 0; i < NumSites; ++i)
 		{
 			const PCGExGeo::FDelaunaySite3& Site = Delaunay->Sites[i];
 
@@ -262,7 +262,7 @@ namespace PCGExBuildDelaunay
 		{
 			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
-			for (int i = 0; i < NumSites; i++) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
+			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
 			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);
 		}
 

@@ -158,7 +158,7 @@ namespace PCGExCherryPickPoints
 		const int32 NumPicked = PickedIndices.Num();
 
 		MutablePoints.SetNumUninitialized(NumPicked);
-		for (int i = 0; i < NumPicked; i++) { MutablePoints[i] = PickablePoints[PickedIndices[i]]; }
+		for (int i = 0; i < NumPicked; ++i) { MutablePoints[i] = PickablePoints[PickedIndices[i]]; }
 	}
 }
 

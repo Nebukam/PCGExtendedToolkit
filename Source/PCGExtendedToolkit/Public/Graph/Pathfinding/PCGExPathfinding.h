@@ -143,7 +143,7 @@ namespace PCGExPathfinding
 		const UPCGExGoalPicker* GoalPicker,
 		TFunction<void(int32, int32)>&& GoalFunc)
 	{
-		for (int PointIndex = 0; PointIndex < InSeedDataFacade->Source->GetNum(); PointIndex++)
+		for (int PointIndex = 0; PointIndex < InSeedDataFacade->Source->GetNum(); ++PointIndex)
 		{
 			const PCGExData::FPointRef& Seed = InSeedDataFacade->Source->GetInPointRef(PointIndex);
 

@@ -116,14 +116,14 @@ namespace PCGExAttributeRolling
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
 		OutMetadata->InitializeOnSet(Point.MetadataEntry);
-		
+
 		if (Index == 0) { return; }
 
 		bool bSkipPoint = false; // Filter driven
 
-		const FPCGPoint& PrevPoint = *(OutPoints->GetData() +(Index-1)); 
-		const FPCGPoint& InPoint = PointDataFacade->Source->GetInPoint(Index); 
-		
+		const FPCGPoint& PrevPoint = *(OutPoints->GetData() + (Index - 1));
+		const FPCGPoint& InPoint = PointDataFacade->Source->GetInPoint(Index);
+
 		MetadataBlender->PrepareForBlending(Point);
 		MetadataBlender->Blend(PrevPoint, InPoint, Point, 1);
 		MetadataBlender->CompleteBlending(Point, 2, 1);

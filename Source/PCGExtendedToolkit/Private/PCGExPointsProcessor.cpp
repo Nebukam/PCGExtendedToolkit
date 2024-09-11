@@ -38,7 +38,7 @@ bool PCGEx::FPointLoop::Advance(const TFunction<void(const int32, const PCGExDat
 	const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
 	if (ChunkNumIterations > 0)
 	{
-		for (int i = 0; i < ChunkNumIterations; i++) { LoopBody(CurrentIndex + i, PtIO); }
+		for (int i = 0; i < ChunkNumIterations; ++i) { LoopBody(CurrentIndex + i, PtIO); }
 		CurrentIndex += ChunkNumIterations;
 	}
 	if (CurrentIndex >= NumIterations)

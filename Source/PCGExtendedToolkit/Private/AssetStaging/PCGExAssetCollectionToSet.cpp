@@ -100,7 +100,7 @@ bool FPCGExAssetCollectionToSetElement::ExecuteInternal(FPCGContext* Context) co
 
 	TSet<uint64> GUIDS;
 
-	for (int i = 0; i < MainCache->Main->Order.Num(); i++)
+	for (int i = 0; i < MainCache->Main->Order.Num(); ++i)
 	{
 		GUIDS.Empty();
 		MainCollection->GetStagingAt(StagingData, i);
@@ -182,7 +182,7 @@ void FPCGExAssetCollectionToSetElement::ProcessStagingData(
 		{
 		default: ;
 		case EPCGExSubCollectionToSet::Expand:
-			for (int i = 0; i < SubCache->Main->Order.Num(); i++)
+			for (int i = 0; i < SubCache->Main->Order.Num(); ++i)
 			{
 				SubCollection->GetStagingAt(NestedStaging, i);
 				ProcessStagingData(NestedStaging, OutStagingDataList, bOmitInvalidAndEmpty, bNoDuplicates, SubHandling, GUIDS);

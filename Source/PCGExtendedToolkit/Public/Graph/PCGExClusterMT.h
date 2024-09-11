@@ -214,7 +214,7 @@ namespace PCGExClusterMT
 			if (IsTrivial())
 			{
 				TArray<PCGExCluster::FNode>& NodesRef = (*Cluster->Nodes);
-				for (int i = 0; i < NumNodes; i++) { ProcessSingleNode(i, NodesRef[i]); }
+				for (int i = 0; i < NumNodes; ++i) { ProcessSingleNode(i, NodesRef[i]); }
 				return;
 			}
 
@@ -265,7 +265,7 @@ namespace PCGExClusterMT
 		{
 			if (IsTrivial())
 			{
-				for (int i = 0; i < NumIterations; i++) { ProcessSingleRangeIteration(i); }
+				for (int i = 0; i < NumIterations; ++i) { ProcessSingleRangeIteration(i); }
 				return;
 			}
 
@@ -287,7 +287,7 @@ namespace PCGExClusterMT
 
 		virtual void ProcessView(const int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
 		{
-			for (int i = 0; i < NodeView.Num(); i++)
+			for (int i = 0; i < NodeView.Num(); ++i)
 			{
 				const int32 Index = StartIndex + i;
 				ProcessSingleNode(Index, *(Cluster->Nodes->GetData() + Index));
@@ -309,7 +309,7 @@ namespace PCGExClusterMT
 
 		virtual void ProcessRange(const int32 StartIndex, const int32 Iterations)
 		{
-			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i); }
+			for (int i = 0; i < Iterations; ++i) { ProcessSingleRangeIteration(StartIndex + i); }
 		}
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration)
@@ -482,7 +482,7 @@ namespace PCGExClusterMT
 
 		void ProcessRange(const int32 StartIndex, const int32 Iterations)
 		{
-			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i); }
+			for (int i = 0; i < Iterations; ++i) { ProcessSingleRangeIteration(StartIndex + i); }
 		}
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration)
@@ -640,7 +640,7 @@ namespace PCGExClusterMT
 		{
 			if (CurrentState == PCGExMT::State_Processing)
 			{
-				for (int i = 0; i < Iterations; i++)
+				for (int i = 0; i < Iterations; ++i)
 				{
 					T* Processor = ClosedBatchProcessors[StartIndex + i];
 					Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr);
@@ -648,7 +648,7 @@ namespace PCGExClusterMT
 			}
 			else if (CurrentState == PCGExMT::State_Completing)
 			{
-				for (int i = 0; i < Iterations; i++)
+				for (int i = 0; i < Iterations; ++i)
 				{
 					T* Processor = ClosedBatchProcessors[StartIndex + i];
 					if (!Processor->bIsProcessorValid) { continue; }
@@ -657,7 +657,7 @@ namespace PCGExClusterMT
 			}
 			else if (CurrentState == PCGExMT::State_Writing)
 			{
-				for (int i = 0; i < Iterations; i++)
+				for (int i = 0; i < Iterations; ++i)
 				{
 					T* Processor = ClosedBatchProcessors[StartIndex + i];
 					if (!Processor->bIsProcessorValid) { continue; }

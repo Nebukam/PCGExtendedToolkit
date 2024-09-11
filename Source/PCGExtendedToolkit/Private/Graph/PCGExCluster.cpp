@@ -28,7 +28,7 @@ namespace PCGExCluster
 		const int32 NumPoints = Adjacency.Num();
 
 		TArray<FNode>& Nodes = *InCluster->Nodes;
-		for (int i = 0; i < NumPoints; i++) { Centroid += InCluster->GetPos(PCGEx::H64A(Adjacency[i])); }
+		for (int i = 0; i < NumPoints; ++i) { Centroid += InCluster->GetPos(PCGEx::H64A(Adjacency[i])); }
 
 		if (Adjacency.Num() < 2)
 		{
@@ -276,7 +276,7 @@ namespace PCGExCluster
 		Nodes->Reserve(InNodePoints.Num());
 		NodeIndexLookup->Reserve(InNodePoints.Num());
 
-		for (int i = 0; i < NumEdges; i++)
+		for (int i = 0; i < NumEdges; ++i)
 		{
 			uint32 A;
 			uint32 B;
@@ -401,7 +401,7 @@ namespace PCGExCluster
 		PCGEX_DELETE(NodeOctree)
 		const FPCGPoint* StartPtr = VtxIO->GetIn()->GetPoints().GetData();
 		NodeOctree = new ClusterItemOctree(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
-		for (int i = 0; i < Nodes->Num(); i++)
+		for (int i = 0; i < Nodes->Num(); ++i)
 		{
 			const FNode* Node = Nodes->GetData() + i;
 			const FPCGPoint* Pt = StartPtr + Node->PointIndex;
@@ -427,7 +427,7 @@ namespace PCGExCluster
 
 			TArray<FExpandedEdge*>& ExpandedEdgesRef = (*ExpandedEdges);
 
-			for (int i = 0; i < Edges->Num(); i++)
+			for (int i = 0; i < Edges->Num(); ++i)
 			{
 				FExpandedEdge* NewExpandedEdge = new FExpandedEdge(this, i);
 				ExpandedEdgesRef[i] = NewExpandedEdge;
@@ -436,7 +436,7 @@ namespace PCGExCluster
 		}
 		else
 		{
-			for (int i = 0; i < Edges->Num(); i++)
+			for (int i = 0; i < Edges->Num(); ++i)
 			{
 				const FExpandedEdge* ExpandedEdge = *(ExpandedEdges->GetData() + i);
 				EdgeOctree->AddElement(
@@ -738,7 +738,7 @@ namespace PCGExCluster
 		double Max = TNumericLimits<double>::Min();
 		EdgeLengths->SetNumUninitialized(NumEdges);
 
-		for (int i = 0; i < NumEdges; i++)
+		for (int i = 0; i < NumEdges; ++i)
 		{
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[i];
 			const double Dist = GetDistSquared(NodeIndexLookupRef[Edge.Start], NodeIndexLookupRef[Edge.End]);
@@ -748,7 +748,7 @@ namespace PCGExCluster
 		}
 
 		//Normalized to 0 instead of min
-		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { LengthsRef[i] = PCGExMath::Remap(LengthsRef[i], 0, Max, 0, 1); } }
+		if (bNormalize) { for (int i = 0; i < NumEdges; ++i) { LengthsRef[i] = PCGExMath::Remap(LengthsRef[i], 0, Max, 0, 1); } }
 
 		bEdgeLengthsDirty = false;
 	}
@@ -879,7 +879,7 @@ namespace PCGExCluster
 			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedNodes, Nodes->Num())
 
 			TArray<FExpandedNode*>& ExpandedNodesRef = (*ExpandedNodes);
-			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); i++) { ExpandedNodesRef[i] = new FExpandedNode(this, i); } } // Ooof
+			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); ++i) { ExpandedNodesRef[i] = new FExpandedNode(this, i); } } // Ooof
 		}
 
 		return ExpandedNodes;
@@ -914,7 +914,7 @@ namespace PCGExCluster
 			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num())
 
 			TArray<FExpandedEdge*>& ExpandedEdgesRef = (*ExpandedEdges);
-			if (bBuild) { for (int i = 0; i < ExpandedEdges->Num(); i++) { ExpandedEdgesRef[i] = new FExpandedEdge(this, i); } } // Ooof
+			if (bBuild) { for (int i = 0; i < ExpandedEdges->Num(); ++i) { ExpandedEdgesRef[i] = new FExpandedEdge(this, i); } } // Ooof
 		}
 
 		return ExpandedEdges;
@@ -953,7 +953,7 @@ namespace PCGExCluster
 
 		const TArray<FNode>& NodesRef = *Nodes;
 		TArray<int32>& VtxPointIndicesRef = *VtxPointIndices;
-		for (int i = 0; i < VtxPointIndices->Num(); i++) { VtxPointIndicesRef[i] = NodesRef[i].PointIndex; }
+		for (int i = 0; i < VtxPointIndices->Num(); ++i) { VtxPointIndicesRef[i] = NodesRef[i].PointIndex; }
 	}
 
 	void FCluster::CreateVtxPointScopes()
@@ -1017,7 +1017,7 @@ namespace PCGExClusterTask
 				if (bIsAlreadyIgnored) { continue; }
 
 				const PCGExCluster::FNode& OtherNode = NodesRefs[OtherNodeIndex];
-				
+
 				if (Brkpts[OtherNode.NodeIndex] || OtherNode.IsDeadEnd() || OtherNode.IsComplex())
 				{
 					// Single edge chain					
@@ -1065,14 +1065,14 @@ namespace PCGExClusterTask
 	bool FExpandClusterNodes::ExecuteTask()
 	{
 		TArray<PCGExCluster::FExpandedNode*>& ExpandedNodesRef = (*Cluster->ExpandedNodes);
-		for (int i = 0; i < NumIterations; i++) { ExpandedNodesRef[TaskIndex + i] = new PCGExCluster::FExpandedNode(Cluster, TaskIndex + i); }
+		for (int i = 0; i < NumIterations; ++i) { ExpandedNodesRef[TaskIndex + i] = new PCGExCluster::FExpandedNode(Cluster, TaskIndex + i); }
 		return true;
 	}
 
 	bool FExpandClusterEdges::ExecuteTask()
 	{
 		TArray<PCGExCluster::FExpandedEdge*>& ExpandedEdgesRef = (*Cluster->ExpandedEdges);
-		for (int i = 0; i < NumIterations; i++) { ExpandedEdgesRef[TaskIndex + i] = new PCGExCluster::FExpandedEdge(Cluster, TaskIndex + i); }
+		for (int i = 0; i < NumIterations; ++i) { ExpandedEdgesRef[TaskIndex + i] = new PCGExCluster::FExpandedEdge(Cluster, TaskIndex + i); }
 		return true;
 	}
 }

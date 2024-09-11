@@ -46,7 +46,7 @@ namespace PCGExGeo
 
 			Edges.Empty();
 
-			for (int i = 0; i < Triangles.Num(); i++)
+			for (int i = 0; i < Triangles.Num(); ++i)
 			{
 				const FIntVector3& Triangle = Triangles[i];
 				DualPositions[i] = (Vertices[Triangle.X] + Vertices[Triangle.Y] + Vertices[Triangle.Z]) / 3;
@@ -76,7 +76,7 @@ namespace PCGExGeo
 
 			Edges.Empty();
 
-			for (int i = 0; i < Triangles.Num(); i++)
+			for (int i = 0; i < Triangles.Num(); ++i)
 			{
 				const FIntVector3& Triangle = Triangles[i];
 				const int32 E = StartIndex + i;
@@ -136,7 +136,7 @@ namespace PCGExGeo
 			TMap<FVector, int32> IndexedUniquePositions;
 			Edges.Empty();
 
-			//for (int i = 0; i < GSM->Vertices.Num(); i++) { GSM->Vertices[i] = FVector(VertexBuffer.VertexPosition(i)); }
+			//for (int i = 0; i < GSM->Vertices.Num(); ++i) { GSM->Vertices[i] = FVector(VertexBuffer.VertexPosition(i)); }
 
 			int32 Idx = 0;
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
@@ -237,7 +237,7 @@ namespace PCGExGeo
 			int32 ENum = EdgeAdjacency.Num();
 			PCGEX_SET_NUM_UNINITIALIZED(Adjacencies, Triangles.Num())
 
-			for (int j = 0; j < Triangles.Num(); j++)
+			for (int j = 0; j < Triangles.Num(); ++j)
 			{
 				FIntVector3 Triangle = Triangles[j];
 

@@ -130,7 +130,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				}
 
 				const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
-				for (int i = 0; i < TargetPoints.Num(); i++)
+				for (int i = 0; i < TargetPoints.Num(); ++i)
 				{
 					FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], TEXT(""));
 
@@ -200,9 +200,9 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 			const int32 GSMNums = Context->StaticMeshMap->GSMs.Num();
 			Context->GraphBuilders.SetNum(GSMNums);
-			for (int i = 0; i < GSMNums; i++) { Context->GraphBuilders[i] = nullptr; }
+			for (int i = 0; i < GSMNums; ++i) { Context->GraphBuilders[i] = nullptr; }
 
-			for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); i++)
+			for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); ++i)
 			{
 				PCGExGeo::FGeoStaticMesh* GSM = Context->StaticMeshMap->GSMs[i];
 				Context->GetAsyncManager()->Start<PCGExMeshToCluster::FExtractMeshAndBuildGraph>(i, nullptr, GSM);
@@ -283,7 +283,7 @@ namespace PCGExMeshToCluster
 		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtx, &Context->GraphBuilderDetails);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
-		for (int i = 0; i < VtxPoints.Num(); i++)
+		for (int i = 0; i < VtxPoints.Num(); ++i)
 		{
 			FPCGPoint& NewVtx = VtxPoints[i];
 			NewVtx.Transform.SetLocation(Mesh->Vertices[i]);

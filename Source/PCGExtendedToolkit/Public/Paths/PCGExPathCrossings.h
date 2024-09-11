@@ -82,14 +82,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteAlpha", EditConditionHides, HideEditConditionToggle))
 	double DefaultAlpha = -1;
 
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOrientCrossing = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="bOrientCrossing"))
 	EPCGExAxis CrossingOrientAxis = EPCGExAxis::Forward;
 
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCrossDirection = false;
 
@@ -98,7 +98,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, DisplayName=" └─ Default Value", EditCondition="bWriteCrossDirection", EditConditionHides, HideEditConditionToggle))
 	FVector DefaultCrossDirection = FVector::ZeroVector;
-	
+
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bTagIfHasCrossing = false;
@@ -161,7 +161,7 @@ namespace PCGExPathCrossings
 	{
 		const UPCGExPathCrossingsSettings* LocalSettings = nullptr;
 		FPCGExPathCrossingsContext* LocalTypedContext = nullptr;
-		
+
 		bool bClosedPath = false;
 		bool bSelfIntersectionOnly = false;
 

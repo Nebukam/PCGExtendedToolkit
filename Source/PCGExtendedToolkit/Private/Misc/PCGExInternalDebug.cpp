@@ -48,7 +48,7 @@ bool FPCGExInternalDebugElement::ExecuteInternal(FPCGContext* InContext) const
 
 			PCGEX_W(GH64, int32)
 
-			for (int i = 0; i < OutPoints.Num(); i++)
+			for (int i = 0; i < OutPoints.Num(); ++i)
 			{
 				FPCGPoint& Point = OutPoints[i];
 				GH64Writer->Values[i] = PCGEx::GH(Point.Transform.GetLocation(), Context->GHTolerance);

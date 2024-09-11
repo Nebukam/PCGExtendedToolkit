@@ -130,7 +130,7 @@ namespace PCGExBuildVoronoi
 			const PCGExData::FPointIO* SitesIO = TypedContext->SitesOutput->Pairs[BatchIndex];
 			const TArray<FPCGPoint>& OriginalSites = PointIO->GetIn()->GetPoints();
 			TArray<FPCGPoint>& MutableSites = SitesIO->GetOut()->GetMutablePoints();
-			for (int i = 0; i < OriginalSites.Num(); i++)
+			for (int i = 0; i < OriginalSites.Num(); ++i)
 			{
 				if (Voronoi->Delaunay->DelaunayHull.Contains(i)) { continue; }
 				MutableSites.Add(OriginalSites[i]);
@@ -159,7 +159,7 @@ namespace PCGExBuildVoronoi
 			RemappedIndices.SetNumUninitialized(NumSites);
 			Centroids.Reserve(NumSites);
 
-			for (int i = 0; i < NumSites; i++)
+			for (int i = 0; i < NumSites; ++i)
 			{
 				const FVector Centroid = Voronoi->Circumspheres[i].Center;
 				if (!Bounds.IsInside(Centroid))
@@ -202,7 +202,7 @@ namespace PCGExBuildVoronoi
 
 			if (Settings->Method == EPCGExCellCenter::Circumcenter)
 			{
-				for (int i = 0; i < NumSites; i++)
+				for (int i = 0; i < NumSites; ++i)
 				{
 					Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center);
 					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
@@ -210,7 +210,7 @@ namespace PCGExBuildVoronoi
 			}
 			else if (Settings->Method == EPCGExCellCenter::Centroid)
 			{
-				for (int i = 0; i < NumSites; i++)
+				for (int i = 0; i < NumSites; ++i)
 				{
 					Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]);
 					Centroids[i].Seed = PCGExRandom::ComputeSeed(Centroids[i]);
@@ -218,7 +218,7 @@ namespace PCGExBuildVoronoi
 			}
 			else if (Settings->Method == EPCGExCellCenter::Balanced)
 			{
-				for (int i = 0; i < NumSites; i++)
+				for (int i = 0; i < NumSites; ++i)
 				{
 					FVector Target = Voronoi->Circumspheres[i].Center;
 					if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }

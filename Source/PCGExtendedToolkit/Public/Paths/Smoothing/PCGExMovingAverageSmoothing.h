@@ -36,7 +36,7 @@ public:
 
 		if (bClosedPath)
 		{
-			for (int i = -SafeWindowSize; i <= SafeWindowSize; i++)
+			for (int i = -SafeWindowSize; i <= SafeWindowSize; ++i)
 			{
 				const int32 Index = PCGExMath::Tile(Target.Index + i, 0, MaxIndex);
 				const double Weight = (1 - (static_cast<double>(FMath::Abs(i)) / SafeWindowSize)) * Influence;
@@ -47,7 +47,7 @@ public:
 		}
 		else
 		{
-			for (int i = -SafeWindowSize; i <= SafeWindowSize; i++)
+			for (int i = -SafeWindowSize; i <= SafeWindowSize; ++i)
 			{
 				const int32 Index = Target.Index + i;
 				if (!FMath::IsWithin(Index, 0, NumPoints)) { continue; }

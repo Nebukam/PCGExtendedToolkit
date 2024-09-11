@@ -101,7 +101,7 @@ namespace PCGExRelaxClusters
 		TArray<FVector>& PBufferRef = (*PrimaryBuffer);
 		TArray<FVector>& SBufferRef = (*SecondaryBuffer);
 
-		for (int i = 0; i < NumNodes; i++) { PBufferRef[i] = SBufferRef[i] = Cluster->GetPos(i); }
+		for (int i = 0; i < NumNodes; ++i) { PBufferRef[i] = SBufferRef[i] = Cluster->GetPos(i); }
 
 		ExpandedNodes = Cluster->ExpandedNodes;
 		Iterations = Settings->Iterations;
@@ -197,7 +197,7 @@ namespace PCGExRelaxClusters
 		const int32 StartIndex = PCGEx::H64A(Scope);
 		const int32 NumIterations = PCGEx::H64B(Scope);
 
-		for (int i = 0; i < NumIterations; i++)
+		for (int i = 0; i < NumIterations; ++i)
 		{
 			const int32 Index = StartIndex + i;
 			Processor->ProcessSingleNode(Index, *(Processor->Cluster->Nodes->GetData() + Index));

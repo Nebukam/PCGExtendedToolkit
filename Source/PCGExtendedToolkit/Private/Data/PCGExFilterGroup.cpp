@@ -92,7 +92,7 @@ namespace PCGExFilterGroup
 		ManagedFilters.Sort([&](const PCGExPointFilter::TFilter& A, const PCGExPointFilter::TFilter& B) { return A.Factory->Priority < B.Factory->Priority; });
 
 		// Update index & post-init
-		for (int i = 0; i < ManagedFilters.Num(); i++)
+		for (int i = 0; i < ManagedFilters.Num(); ++i)
 		{
 			PCGExPointFilter::TFilter* Filter = ManagedFilters[i];
 			Filter->FilterIndex = i;

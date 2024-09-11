@@ -87,7 +87,7 @@ namespace PCGExFuseCollinear
 		bool bClosedPath = false;
 
 		TArray<FPCGPoint>* OutPoints = nullptr;
-		
+
 		FVector LastPosition = FVector::ZeroVector;
 		FVector CurrentDirection = FVector::ZeroVector;
 

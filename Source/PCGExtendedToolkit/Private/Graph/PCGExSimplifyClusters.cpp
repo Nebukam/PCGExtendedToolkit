@@ -167,7 +167,7 @@ namespace PCGExSimplifyClusters
 
 		TSet<uint64> NewEdges;
 
-		for (int i = 0; i < Chain->Nodes.Num(); i++)
+		for (int i = 0; i < Chain->Nodes.Num(); ++i)
 		{
 			const int32 CurrentIndex = Chain->Nodes[i];
 
