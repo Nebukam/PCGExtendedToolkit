@@ -13,7 +13,6 @@ namespace PCGExDataBlending
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Average; };
-		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return true; }
 
@@ -35,7 +34,6 @@ namespace PCGExDataBlending
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Sum; };
-		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 
@@ -48,7 +46,6 @@ namespace PCGExDataBlending
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Subtract; };
-		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 
@@ -77,7 +74,6 @@ namespace PCGExDataBlending
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Weight; };
-		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return true; }
 
@@ -91,7 +87,6 @@ namespace PCGExDataBlending
 	{
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::WeightedSum; };
-		FORCEINLINE virtual bool GetIsInterpolation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 

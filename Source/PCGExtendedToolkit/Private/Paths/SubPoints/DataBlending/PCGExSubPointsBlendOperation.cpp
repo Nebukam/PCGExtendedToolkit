@@ -102,7 +102,7 @@ PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlende
 {
 	BlendingDetails.DefaultBlending = GetDefaultBlending();
 	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingDetails);
-	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, false, IgnoreAttributeSet);
+	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, true, IgnoreAttributeSet);
 
 	return NewBlender;
 }

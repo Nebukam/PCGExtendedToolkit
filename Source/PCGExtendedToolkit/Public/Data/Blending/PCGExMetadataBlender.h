@@ -27,7 +27,7 @@ namespace PCGExDataBlending
 		void PrepareForData(
 			PCGExData::FFacade* InPrimaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
-			const bool bInitFirstOperation = false,
+			const bool bInitFirstOperation = true,
 			const TSet<FName>* IgnoreAttributeSet = nullptr,
 			const bool bSoftMode = false);
 
@@ -35,7 +35,7 @@ namespace PCGExDataBlending
 			PCGExData::FFacade* InPrimaryFacade,
 			PCGExData::FFacade* InSecondaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
-			const bool bInitFirstOperation = false,
+			const bool bInitFirstOperation = true,
 			const TSet<FName>* IgnoreAttributeSet = nullptr,
 			const bool bSoftMode = false);
 
@@ -56,18 +56,18 @@ namespace PCGExDataBlending
 
 		FORCEINLINE void Blend(const PCGExData::FPointRef& A, const PCGExData::FPointRef& B, const PCGExData::FPointRef& Target, const double Weight)
 		{
-			const bool IsFirstOperation = FirstPointOperation[A.Index];
+			const bool IsFirstOperation = FirstPointOperation[Target.Index];
 			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(A.Index, B.Index, Target.Index, Weight, IsFirstOperation); }
-			FirstPointOperation[A.Index] = false;
+			FirstPointOperation[Target.Index] = false;
 			if (bSkipProperties) { return; }
 			PropertiesBlender->Blend(*A.Point, *B.Point, Target.MutablePoint(), Weight);
 		}
 
 		FORCEINLINE void Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight)
 		{
-			const bool IsFirstOperation = FirstPointOperation[PrimaryIndex];
+			const bool IsFirstOperation = FirstPointOperation[TargetIndex];
 			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(PrimaryIndex, SecondaryIndex, TargetIndex, Weight, IsFirstOperation); }
-			FirstPointOperation[PrimaryIndex] = false;
+			FirstPointOperation[TargetIndex] = false;
 			if (bSkipProperties) { return; }
 			PropertiesBlender->Blend(*(PrimaryPoints->GetData() + PrimaryIndex), *(SecondaryPoints->GetData() + SecondaryIndex), (*PrimaryPoints)[TargetIndex], Weight);
 		}

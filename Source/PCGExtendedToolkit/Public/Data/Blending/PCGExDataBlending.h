@@ -328,7 +328,6 @@ namespace PCGExDataBlending
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
 		}
 
-		FORCEINLINE virtual bool GetIsInterpolation() const { return false; }
 		FORCEINLINE virtual bool GetRequiresPreparation() const { return false; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const { return false; }
 
@@ -358,7 +357,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual void FinalizeOperation(const PCGMetadataEntryKey WriteKey, const int32 Count, const double TotalWeight) const = 0;
 
 	protected:
-		bool bDoInterpolation = true;
+		bool bSupportInterpolation = true;
 		FName AttributeName = NAME_None;
 		UPCGPointData* PrimaryData = nullptr;
 		const UPCGPointData* SecondaryData = nullptr;
@@ -390,7 +389,7 @@ namespace PCGExDataBlending
 
 			Writer = static_cast<PCGEx::TAttributeWriter<T>*>(InWriter);
 
-			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
+			bSupportInterpolation = Writer->GetAllowsInterpolation();
 			SourceAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
 		}
 
@@ -407,7 +406,7 @@ namespace PCGExDataBlending
 
 			Reader = InSecondaryFacade->GetReader<T>(AttributeName, SecondarySource); // Will return writer if sources ==
 
-			bDoInterpolation = Writer->GetAllowsInterpolation() && GetIsInterpolation();
+			bSupportInterpolation = Writer->GetAllowsInterpolation();
 		}
 
 		virtual void SoftPrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
@@ -423,7 +422,7 @@ namespace PCGExDataBlending
 
 			check(TargetAttribute) // Something went wrong
 
-			bDoInterpolation = SourceAttribute->AllowsInterpolation() && GetIsInterpolation();
+			bSupportInterpolation = SourceAttribute->AllowsInterpolation();
 		}
 
 		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const override
@@ -451,7 +450,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const
 		{
-			if (!bDoInterpolation)
+			if (!bSupportInterpolation)
 			{
 				const T B = Reader->Values[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
@@ -473,7 +472,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE virtual void FinalizeValuesRangeOperation(const int32 StartIndex, TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
 		{
-			if (!bDoInterpolation) { return; }
+			if (!bSupportInterpolation) { return; }
 			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
 		}
 
@@ -518,7 +517,7 @@ namespace PCGExDataBlending
 	{
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const override
 		{
-			if (bFirstOperation || !this->bDoInterpolation)
+			if (bFirstOperation || !this->bSupportInterpolation)
 			{
 				const T B = this->Reader->Values[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value

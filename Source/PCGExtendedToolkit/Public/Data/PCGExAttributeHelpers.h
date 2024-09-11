@@ -724,7 +724,7 @@ namespace PCGEx
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = StartIndex; i < LastIndex; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } break;
 
-				switch (Config.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+				switch (FetchSelector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 				bValid = true;
 			}
@@ -828,7 +828,7 @@ namespace PCGEx
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 
 
-				if (RequireInit(GetPropertyType(Config.Selector.GetPointProperty()))) { PCGEX_SET_NUM(Dump, NumPoints) }
+				if (RequireInit(GetPropertyType(Selector.GetPointProperty()))) { PCGEX_SET_NUM(Dump, NumPoints) }
 				else { PCGEX_SET_NUM_UNINITIALIZED(Dump, NumPoints) }
 
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
@@ -836,7 +836,7 @@ namespace PCGEx
 						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExMath::Min(V, OutMin); OutMax = PCGExMath::Max(V, OutMax); Dump[i] = V;\
 					} } else { for (int i = 0; i < NumPoints; i++) { Dump[i] = Convert(InPoints[i]._ACCESSOR); } } break;
 
-				switch (Config.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+				switch (Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
 #undef PCGEX_GET_BY_ACCESSOR
 				bValid = true;
 			}
@@ -880,7 +880,7 @@ namespace PCGEx
 			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Config.Selector, InData, ExtraNames);
 			if (!Selector.IsValid()) { return false; }
 
-			ProcessExtraNames(Config.Selector.GetName(), ExtraNames);
+			ProcessExtraNames(Selector.GetName(), ExtraNames);
 
 			Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)

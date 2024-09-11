@@ -78,9 +78,8 @@ namespace PCGExData
 		}
 
 		virtual bool IsDynamic() { return bDynamicCache; }
-		
+
 		FORCEINLINE bool GetAllowsInterpolation() const { return Attribute->AllowsInterpolation(); }
-		
 	};
 
 	template <typename T>
@@ -170,7 +169,10 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteScopeLock(CacheLock);
 
-			if (bInitialized) { return Writer; } // TODO : Handle cases where we already have a reader
+			if (bInitialized)
+			{
+				if (!bIsPureReader && Writer) { return Writer; }
+			}
 
 			bInitialized = true;
 			bIsPureReader = false;
@@ -188,7 +190,10 @@ namespace PCGExData
 		{
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
-				if (bInitialized) { return Writer; } // TODO : Handle cases where we already have a reader
+				if (bInitialized)
+				{
+					if (!bIsPureReader && Writer) { return Writer; }
+				}
 			}
 
 			if (Source->GetIn())
@@ -316,7 +321,7 @@ namespace PCGExData
 			if (!Found) { return nullptr; }
 			return static_cast<TCache<T>*>(Found);
 		}
-		
+
 		template <typename T>
 		TCache<T>* FindCache(const FName FullName)
 		{

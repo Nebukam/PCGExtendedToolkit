@@ -203,7 +203,7 @@ namespace PCGExGraph
 				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomPointEdgeBlendingDetails); }
 				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingDetails); }
 
-				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out, true);
+				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out);
 
 				PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), BlendPointEdgeGroup)
 				BlendPointEdgeGroup->SetOnCompleteCallback(
@@ -247,7 +247,7 @@ namespace PCGExGraph
 				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomEdgeEdgeBlendingDetails); }
 				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingDetails); }
 
-				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out, true);
+				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out);
 
 				PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
 				BlendEdgeEdgeGroup->SetOnCompleteCallback(

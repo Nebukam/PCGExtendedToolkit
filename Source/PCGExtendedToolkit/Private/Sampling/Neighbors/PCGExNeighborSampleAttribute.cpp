@@ -48,7 +48,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 
 	Blender = new PCGExDataBlending::FMetadataBlender(&MetadataBlendingDetails);
 	Blender->bBlendProperties = false;
-	Blender->PrepareForData(InVtxDataFacade, GetSourceDataFacade(), PCGExData::ESource::In, true);
+	Blender->PrepareForData(InVtxDataFacade, GetSourceDataFacade(), PCGExData::ESource::In);
 
 	bIsValidOperation = true;
 }

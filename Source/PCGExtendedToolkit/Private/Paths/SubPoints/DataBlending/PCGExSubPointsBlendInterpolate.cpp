@@ -84,6 +84,6 @@ PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendInterpolate::CreateBlen
 	const TSet<FName>* IgnoreAttributeSet)
 {
 	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingDetails);
-	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, false, IgnoreAttributeSet);
+	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, true, IgnoreAttributeSet);
 	return NewBlender;
 }
