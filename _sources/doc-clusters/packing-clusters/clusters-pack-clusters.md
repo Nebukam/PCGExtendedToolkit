@@ -1,7 +1,7 @@
 ---
 layout: page
-#grand_parent: All Nodes
-parent: Clusters
+grand_parent: Clusters
+parent: Packing Clusters
 title: Pack Clusters
 subtitle: Pack Clusters
 summary: The **Pack Clusters** node ...

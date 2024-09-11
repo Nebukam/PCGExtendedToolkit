@@ -7,7 +7,6 @@ subtitle: Removes overlapping edges
 #summary: The **Remove Overlap** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
-preview_img: docs/splash-mst.png
 toc_img: placeholder.jpg
 see_also:
     - Refine

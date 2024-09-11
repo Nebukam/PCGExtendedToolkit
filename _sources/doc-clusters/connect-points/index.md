@@ -4,8 +4,8 @@ layout: page
 parent: Clusters
 title: Connect Points
 name_in_editor: Connect Points
-subtitle: Connect points according to user-defined probes.
-summary: The **Connect Points** node ...
+subtitle: Creates connections between points using various probes.
+summary: The **Connect Points** node creates connections between points in clusters based on user-defined probes, allowing control over how points generate and receive connections, with options for preventing overlap and projecting points for more accurate results.
 color: white
 splash: icons/icon_custom-graphs-build.svg
 preview_img: placeholder.jpg
@@ -46,6 +46,7 @@ The connect point node allows you to create connected clusters using different *
 {% include img a='placeholder-wide.jpg' %}
 
 # Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

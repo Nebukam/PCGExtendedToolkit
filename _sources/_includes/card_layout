@@ -16,12 +16,26 @@
     <div class="previews" style="--ico:url('{{ site.baseurl }}/assets/{{ child.splash }}');">
         {% assign child_pages = site.pages | where: 'parent', include.page.title %}
         {% for child in child_pages %}
+            {% assign child_file_path = child.path %}
+            {% assign child_file_name_with_extension = child_file_path | split: '/' | last %}
+            {% assign child_file_name = child_file_name_with_extension | split: '.' | first %}
             {% assign count = count | plus: 1 %}
+            {% if child.preview_img %}
             <div class="preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ child.preview_img }}');"></div>
+            {% else %}
+            <div class="preview" style="--img:url('{{ site.baseurl }}/assets/images/previews/{{ child_file_name }}.png');"></div>
+            {% endif %}
         {% endfor %}
     </div>    
     {% else %}
+    {% assign file_path = include.page.path %}
+    {% assign file_name_with_extension = file_path | split: '/' | last %}
+    {% assign file_name = file_name_with_extension | split: '.' | first %}
+    {% if include.page.preview_img %}
     <div class="previews preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ include.page.preview_img }}'); --ico:url('{{ site.baseurl }}/assets/{{ include.page.splash }}');"></div>
+    {% else %}
+    <div class="previews preview" style="--img:url('{{ site.baseurl }}/assets/images/previews/{{ file_name }}.png'); --ico:url('{{ site.baseurl }}/assets/{{ include.page.splash }}');"></div>
+    {% endif %}
     {% endif %}
     <div class="infos {{ include.page.color | default:'blue' }}" markdown="1">
 

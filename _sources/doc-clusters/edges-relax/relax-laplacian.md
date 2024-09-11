@@ -2,22 +2,24 @@
 layout: page
 grand_parent: Clusters
 parent: Relax
-title: Laplacian
+title: ☍ Laplacian
 subtitle: Laplacian / Poisson relaxation
 summary: The **Laplacian** relaxation ...
 color: white
 splash: icons/icon_edges-relax.svg
-preview_img: docs/splash-laplacian.png
 toc_img: placeholder.jpg
+see_also:
+    - Relax
 tagged: 
     - relax
 nav_order: 1
 ---
 
-{% include header_card_node %}
+{% include header_card_toc %}
 
-*This node has no specific properties.*
+Laplacian relaxation adjusts node positions iteratively based on the average positions of their neighbors, smoothing the layout by reducing irregularities and creating a more uniform structure. *See [Laplacian Relaxation on Wikipedia](https://en.wikipedia.org/wiki/Relaxation_(iterative_method))*
+{: .fs-5 .fw-400 } 
 
-The basic gist is it iteratively attempts to "uniformize" the distance between each nodes based on neighboring edges.
+{% include img a='placeholder-wide.jpg' %}
 
-See [Laplacian Relaxation on Wikipedia](https://en.wikipedia.org/wiki/Relaxation_(iterative_method))
+*This relaxation has no exposed properties.*
