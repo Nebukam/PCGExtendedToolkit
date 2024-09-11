@@ -9,8 +9,8 @@ namespace PCGExMT
 	FTaskManager::~FTaskManager()
 	{
 		Stopped = true;
-		PCGEX_DELETE_TARRAY(Groups)
 		Reset();
+		PCGEX_DELETE_TARRAY(Groups)
 	}
 
 	FTaskGroup* FTaskManager::CreateGroup(const FName& GroupName)
