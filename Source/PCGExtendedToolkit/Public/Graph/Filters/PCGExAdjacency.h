@@ -24,9 +24,9 @@ enum class EPCGExAdjacencyGatherMode : uint8
 {
 	Individual = 0 UMETA(DisplayName = "Individual", Tooltip="Test individual neighbors one by one"),
 	Average    = 1 UMETA(DisplayName = "Average", Tooltip="Test against averaged value of all neighbors"),
-	Min        = 2 UMETA(DisplayName = "Min", Tooltip="st against Min value of all neighbors"),
-	Max        = 3 UMETA(DisplayName = "Max", Tooltip="st against Max value of all neighbors"),
-	Sum        = 4 UMETA(DisplayName = "Sum", Tooltip="st against Sum value of all neighbors"),
+	Min        = 2 UMETA(DisplayName = "Min", Tooltip="Test against Min value of all neighbors"),
+	Max        = 3 UMETA(DisplayName = "Max", Tooltip="Test against Max value of all neighbors"),
+	Sum        = 4 UMETA(DisplayName = "Sum", Tooltip="Test against Sum value of all neighbors"),
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Mode"))

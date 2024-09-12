@@ -144,39 +144,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(DisplayName="PhysMat", PCG_Overridable, EditCondition="bWritePhysMat"))
 	FName PhysMatAttributeName = FName("PhysMat");
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
-	bool bTraceComplex = false;
-
-	/** Maximum distance to check for closest surface.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
-	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
-
-	/** Collision channel to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.ECollisionChannel"))
-	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_WorldDynamic;
-
-	/** Collision Object Type to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
-	int32 CollisionObjectType = ObjectTypeQuery1;
-
-	/** Collision Profile to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Profile", EditConditionHides))
-	FName CollisionProfileName = NAME_None;
-
-	/** Ignore this graph' PCG content */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
-	bool bIgnoreSelf = true;
-
-	/** Ignore a procedural selection of actors */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bIgnoreActors = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
-	FPCGExActorSelectorSettings IgnoredActorSelector;
-
 	/** Which actor reference points attributes to forward on points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FPCGExForwardDetails AttributesForwarding;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExCollisionDetails CollisionSettings;
 
 	//
 
@@ -201,10 +174,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : publ
 
 	PCGExData::FFacade* ActorReferenceDataFacade = nullptr;
 
+	FPCGExCollisionDetails CollisionSettings;
+
 	bool bUseInclude = false;
 	TMap<AActor*, int32> IncludedActors;
 	TArray<UPrimitiveComponent*> IncludedPrimitives;
-	TArray<AActor*> IgnoredActors;
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL_TOGGLE)
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_DECL_TOGGLE)

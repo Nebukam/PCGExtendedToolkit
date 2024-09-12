@@ -54,6 +54,9 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
+	Context->CollisionSettings = Settings->CollisionSettings;
+	Context->CollisionSettings.Init(Context);
+
 	return true;
 }
 
@@ -66,16 +69,6 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-
-		if (Settings->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
-
-		if (Settings->bIgnoreActors)
-		{
-			const TFunction<bool(const AActor*)> BoundsCheck = [](const AActor*) -> bool { return true; };
-			const TFunction<bool(const AActor*)> SelfIgnoreCheck = [](const AActor*) -> bool { return true; };
-			const TArray<AActor*> IgnoredActors = PCGExActorSelector::FindActors(Settings->IgnoredActorSelector, Context->SourceComponent.Get(), BoundsCheck, SelfIgnoreCheck);
-			Context->IgnoredActors.Append(IgnoredActors);
-		}
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleSurfaceGuided::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry) { return true; },
@@ -180,9 +173,8 @@ namespace PCGExSampleSurfaceGuided
 		const FVector Origin = Point.Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;
-		CollisionParams.bTraceComplex = LocalSettings->bTraceComplex;
+		LocalTypedContext->CollisionSettings.Update(CollisionParams);
 		CollisionParams.bReturnPhysicalMaterial = PhysMatWriter ? true : false;
-		CollisionParams.AddIgnoredActors(LocalTypedContext->IgnoredActors);
 
 		const FVector Trace = Direction * MaxDistance;
 		const FVector End = Origin + Trace;
@@ -231,14 +223,14 @@ namespace PCGExSampleSurfaceGuided
 			}
 		};
 
-		switch (LocalSettings->CollisionType)
+		switch (LocalTypedContext->CollisionSettings.CollisionType)
 		{
 		case EPCGExCollisionFilterType::Channel:
 			if (LocalTypedContext->bUseInclude)
 			{
 				if (LocalTypedContext->World->LineTraceMultiByChannel(
 					HitResults, Origin, End,
-					LocalSettings->CollisionChannel, CollisionParams))
+					LocalTypedContext->CollisionSettings.CollisionChannel, CollisionParams))
 				{
 					ProcessMultipleTraceResult();
 				}
@@ -247,7 +239,7 @@ namespace PCGExSampleSurfaceGuided
 			{
 				if (LocalTypedContext->World->LineTraceSingleByChannel(
 					HitResult, Origin, End,
-					LocalSettings->CollisionChannel, CollisionParams))
+					LocalTypedContext->CollisionSettings.CollisionChannel, CollisionParams))
 				{
 					ProcessTraceResult();
 				}
@@ -258,7 +250,7 @@ namespace PCGExSampleSurfaceGuided
 			{
 				if (LocalTypedContext->World->LineTraceMultiByObjectType(
 					HitResults, Origin, End,
-					FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionParams))
+					FCollisionObjectQueryParams(LocalTypedContext->CollisionSettings.CollisionObjectType), CollisionParams))
 				{
 					ProcessMultipleTraceResult();
 				}
@@ -267,7 +259,7 @@ namespace PCGExSampleSurfaceGuided
 			{
 				if (LocalTypedContext->World->LineTraceSingleByObjectType(
 					HitResult, Origin, End,
-					FCollisionObjectQueryParams(LocalSettings->CollisionObjectType), CollisionParams)) { ProcessTraceResult(); }
+					FCollisionObjectQueryParams(LocalTypedContext->CollisionSettings.CollisionObjectType), CollisionParams)) { ProcessTraceResult(); }
 			}
 			break;
 		case EPCGExCollisionFilterType::Profile:
@@ -275,7 +267,7 @@ namespace PCGExSampleSurfaceGuided
 			{
 				if (LocalTypedContext->World->LineTraceMultiByProfile(
 					HitResults, Origin, End,
-					LocalSettings->CollisionProfileName, CollisionParams))
+					LocalTypedContext->CollisionSettings.CollisionProfileName, CollisionParams))
 				{
 					ProcessMultipleTraceResult();
 				}
@@ -284,7 +276,7 @@ namespace PCGExSampleSurfaceGuided
 			{
 				if (LocalTypedContext->World->LineTraceSingleByProfile(
 					HitResult, Origin, End,
-					LocalSettings->CollisionProfileName, CollisionParams)) { ProcessTraceResult(); }
+					LocalTypedContext->CollisionSettings.CollisionProfileName, CollisionParams)) { ProcessTraceResult(); }
 			}
 			break;
 		default:

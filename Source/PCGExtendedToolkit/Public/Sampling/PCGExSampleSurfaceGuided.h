@@ -40,7 +40,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleSurfaceGuidedSettings : public UPCG
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample : Guided Trace", "Find the collision point on the nearest collidable surface in a given direction.");
+	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample : Line Trace", "Find the collision point on the nearest collidable surface in a given direction.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
 #endif
 
@@ -149,35 +149,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output (Actor Data)", meta=(EditCondition="SurfaceSource==EPCGExSurfaceSource::ActorReferences", EditConditionHides))
 	FPCGExForwardDetails AttributesForwarding;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
-	bool bTraceComplex = false;
-
-	/** Maximum distance to check for closest surface.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
-	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
-
-	/** Collision channel to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.ECollisionChannel"))
-	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_WorldDynamic;
-
-	/** Collision object type to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
-	int32 CollisionObjectType = ObjectTypeQuery1;
-
-	/** Collision profile to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Profile", EditConditionHides))
-	FName CollisionProfileName = NAME_None;
-
-	/** Ignore this graph' PCG content */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
-	bool bIgnoreSelf = true;
-
-	/** Ignore a procedural selection of actors */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bIgnoreActors = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
-	FPCGExActorSelectorSettings IgnoredActorSelector;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExCollisionDetails CollisionSettings;
 
 	//
 
@@ -204,7 +177,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : publi
 
 	bool bUseInclude = false;
 	TMap<AActor*, int32> IncludedActors;
-	TArray<AActor*> IgnoredActors;
+
+	FPCGExCollisionDetails CollisionSettings;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_DECL_TOGGLE)
