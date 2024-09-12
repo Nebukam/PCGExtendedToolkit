@@ -154,16 +154,44 @@ $cornerr: 5px;
         display: none !important;
     }
 
-    & .childCounter{
+    & .child-counter{
+        /*
         position: absolute;
-        color: #ffffff;
-        background-color: #ec1e79;
+        color: #000000; //#ffffff;
+        background-color:#d5d5d5;// #ec1e79;
         margin: 10px;
         padding: 1px 10px;
         border-radius: 3px;
         font-weight: bold;
-        bottom: 22px;
-        right: 0px;
+        top: 224px;
+        right: 25px;
+        user-select: none;
+        */
+        position: absolute;
+        color: #878787;
+        background-color: #161418;
+        margin: 10px;
+        padding: 1px 10px;
+        border-radius: 8px 8px 0 0;
+        font-weight: bold;
+        /* top: 224px; */
+        bottom: -10px;
+        right: 2px;
+        user-select: none;
+
+           & a {
+                all: unset;
+                text-decoration: none;
+                color: inherit; /* Inherits the color from its parent */
+                user-select: none;
+                cursor:zoom-in;
+                &:hover, &:focus, &:active {
+                    text-decoration: none;
+                    color: inherit;
+                }
+            }
+            
+           
     }
 }
 

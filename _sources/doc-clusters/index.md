@@ -7,9 +7,9 @@ splash: icons/icon_cat-graphs.svg
 preview_img: placeholder.jpg
 nav_order: 20
 has_children: true
+use_child_thumbnails: true
 tagged:
     - category
-use_child_thumbnails: true
 ---
 
 {% include header_card %}

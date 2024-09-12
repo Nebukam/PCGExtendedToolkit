@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body>
+<hr>
+<h2 id="adjacency">Adjacency</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Property</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><strong>Settings</strong></td>
+      <td style="text-align: left"> </td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Mode</td>
+      <td style="text-align: left">The mode lets you choose how to set the flags value, as a user.<br>- <code class="language-plaintext highlighter-rouge">Direct</code> is probably the most useful, as it can be set using an override pin.<br>- <code class="language-plaintext highlighter-rouge">Individual</code> lets you use an array where you can set individual bits by their position (index), and whether they’re true or false.<br>- <code class="language-plaintext highlighter-rouge">Composite</code> lets you set individual bits using dropdowns.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="mode--all">Mode : All</h3>
+
+<p>This mode consolidate all the connections’ values into a single one to test against.</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><strong>Consolidation</strong></td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Individual</td>
+      <td>Test individual neighbors one by one</td>
+    </tr>
+    <tr>
+      <td>Individual</td>
+      <td>Test against averaged value of all neighbors</td>
+    </tr>
+    <tr>
+      <td>Individual</td>
+      <td>Test against the Min value of all neighbors</td>
+    </tr>
+    <tr>
+      <td>Individual</td>
+      <td>Test against the Max value of all neighbors</td>
+    </tr>
+    <tr>
+      <td>Individual</td>
+      <td>Test against the Sum value of all neighbors</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote class="warning">
+  <p>DOC TBD</p>
+</blockquote>
+
+<h3 id="mode--some">Mode : Some</h3>
+
+<p>This mode test individual connections, but only <em>some</em> of them are required to pass for the entire filter to be considered a success.<br>
+How that “some” is defined relies on a comparison against a threshold: <strong>how many neighbors pass the test vs. how many neighbors there are.</strong></p>
+
+<table>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><strong>Threshold Settings</strong></td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Threshold Comparison</td>
+      <td>TBD</td>
+    </tr>
+    <tr>
+      <td>Threshold Type</td>
+      <td>TBD</td>
+    </tr>
+    <tr>
+      <td>Threshold Source</td>
+      <td>TBD</td>
+    </tr>
+    <tr>
+      <td>Discrete Threshold</td>
+      <td>TBD</td>
+    </tr>
+    <tr>
+      <td>Relative Threshold</td>
+      <td>TBD</td>
+    </tr>
+    <tr>
+      <td>Threshold Attribute</td>
+      <td>TBD</td>
+    </tr>
+    <tr>
+      <td>Threshold Source</td>
+      <td>TBD</td>
+    </tr>
+    <tr>
+      <td>Rounding</td>
+      <td>TBD</td>
+    </tr>
+    <tr>
+      <td>Threshold Tolerance</td>
+      <td>TBD</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote class="warning">
+  <p>DOC TBD</p>
+</blockquote>
+</body></html>

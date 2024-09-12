@@ -14,10 +14,6 @@ tagged:
     - filter
     - misc
 nav_order: 7
-inputs:
-    -   name : Filters
-        desc : Any number of filters
-        pin : params
 outputs:
     -   name : Filter
         desc : A single filter definition

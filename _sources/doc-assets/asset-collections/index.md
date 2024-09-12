@@ -10,8 +10,8 @@ splash: icons/icon_custom-graphs-build.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 has_children: true
-nav_order: 2
 use_child_thumbnails: true
+nav_order: 2
 tagged:
     - module
 ---

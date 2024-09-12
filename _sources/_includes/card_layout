@@ -10,6 +10,12 @@
 
 {% assign no_children = include.page.has_children | not %}
 {% assign count = 0 %}
+{% assign dots = '' %}
+{% assign child_pages = site.pages | where: 'parent', include.page.title %}
+{% for child in child_pages %}
+{% assign count = count | plus: 1 %}
+{% assign dots = dots | append: '· ' %}
+{% endfor %}
 
 <div class="card large gradient">
     {% if include.page.use_child_thumbnails %}
@@ -19,7 +25,6 @@
             {% assign child_file_path = child.path %}
             {% assign child_file_name_with_extension = child_file_path | split: '/' | last %}
             {% assign child_file_name = child_file_name_with_extension | split: '.' | first %}
-            {% assign count = count | plus: 1 %}
             {% if child.preview_img %}
             <div class="preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ child.preview_img }}');"></div>
             {% else %}
@@ -32,17 +37,17 @@
     {% assign file_name_with_extension = file_path | split: '/' | last %}
     {% assign file_name = file_name_with_extension | split: '.' | first %}
     {% if include.page.preview_img %}
-    <div class="previews preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ include.page.preview_img }}'); --ico:url('{{ site.baseurl }}/assets/{{ include.page.splash }}');"></div>
+    <div class="previews preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ include.page.preview_img }}'); --ico:url('{{ site.baseurl }}/assets/{{ include.page.splash | default:'icons/icon_plus.svg' }}');"></div>
     {% else %}
-    <div class="previews preview" style="--img:url('{{ site.baseurl }}/assets/images/previews/{{ file_name }}.png'); --ico:url('{{ site.baseurl }}/assets/{{ include.page.splash }}');"></div>
+    <div class="previews preview" style="--img:url('{{ site.baseurl }}/assets/images/previews/{{ file_name }}.png'); --ico:url('{{ site.baseurl }}/assets/{{ include.page.splash | default:'icons/icon_plus.svg' }}');"></div>
     {% endif %}
     {% endif %}
     <div class="infos {{ include.page.color | default:'blue' }}" markdown="1">
 
 {% if include.page.card_url == 'none' %}
-## {{ include.page.title }} {% if count > 0 %}· {{ count }}{% endif %}
+## {{ include.page.title }}
 {% else %}
-## [{{ include.page.title }}]({{ include.lk }}) {% if count > 0 %}· {{ count }}{% endif %}
+## [{{ include.page.title }}]({{ include.lk }}) 
 {: .no_toc }
 {% endif %}
 {{ include.page.subtitle }}
@@ -57,5 +62,6 @@
 {% else %}
 <a href="{{ include.lk }}" class="link-more {{ include.page.color | default:'blue' }}"><img class="icon" src="{{ site.baseurl }}/assets/{{ include.page.splash | default:'icons/icon_plus.svg'}}"></a>
 {% endif %}
-
+{% if count > 0 %}<div class="child-counter">
+  <a href="{{site.baseurl}}{{include.page.url}}">{{ dots }}</a></div>{% endif %}
 </div></div>

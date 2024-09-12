@@ -3,6 +3,7 @@ layout: page
 grand_parent: Clusters
 parent: Flag Nodes
 title: 🝖 Edge Direction
+name_in_editor: "Cluster Filter : Edge Direction"
 subtitle: Check if adjacent node meet specific conditions
 summary: The **Edge Direction** filter ...
 color: white
@@ -14,13 +15,9 @@ tagged:
     - clusterfilter
     - clusters
 nav_order: 7
-inputs:
-    -   name : Filters
-        desc : Conditions & filters to be tested and determine the flag behavior. Supports both regular filter and cluster filters
-        pin : params
 outputs:
-    -   name : Flag
-        desc : A single flag definition
+    -   name : Filter
+        desc : A single cluster filter definition
         pin : params
 ---
 
@@ -31,3 +28,5 @@ outputs:
 
 > DOC TDB
 {: .warning }
+
+{% include embed id='settings-adjacency' %}

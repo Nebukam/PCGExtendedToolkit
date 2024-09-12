@@ -1,7 +1,7 @@
 ---
 layout: page
-#grand_parent: All Nodes
-parent: Misc
+grand_parent: Misc
+parent: Bitmasks
 title: Bitmask
 subtitle: A simple, single bitmask attribute.
 summary: The **Bitmask** node ...
@@ -12,7 +12,8 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - misc
-nav_order: 7
+    - bitmask
+nav_order: 10
 ---
 
 {% include header_card_node %}

@@ -14,10 +14,6 @@ tagged:
     - filter
     - misc
 nav_order: 7
-inputs:
-    -   name : Bounds
-        desc : Point bounds to test against
-        pin : points
 outputs:
     -   name : Filter
         desc : A single filter definition

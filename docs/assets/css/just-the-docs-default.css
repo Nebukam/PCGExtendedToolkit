@@ -820,7 +820,11 @@ figure.highlight pre, figure.highlight code { padding: 0; margin: 0; border: 0; 
 
 .card .anchor-heading { display: none !important; }
 
-.card .childCounter { position: absolute; color: #ffffff; background-color: #ec1e79; margin: 10px; padding: 1px 10px; border-radius: 3px; font-weight: bold; bottom: 22px; right: 0px; }
+.card .child-counter { /* position: absolute; color: #000000; //#ffffff; background-color:#d5d5d5;// #ec1e79; margin: 10px; padding: 1px 10px; border-radius: 3px; font-weight: bold; top: 224px; right: 25px; user-select: none; */ position: absolute; color: #878787; background-color: #161418; margin: 10px; padding: 1px 10px; border-radius: 8px 8px 0 0; font-weight: bold; /* top: 224px; */ bottom: -10px; right: 2px; user-select: none; }
+
+.card .child-counter a { all: unset; text-decoration: none; color: inherit; /* Inherits the color from its parent */ user-select: none; cursor: zoom-in; }
+
+.card .child-counter a:hover, .card .child-counter a:focus, .card .child-counter a:active { text-decoration: none; color: inherit; }
 
 .product-header { display: flex; flex-flow: row wrap; --img: url(/assets/images/placeholder.jpg); justify-content: center; }
 

@@ -10,11 +10,11 @@ splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 has_children: true
+use_child_thumbnails: true
 tagged: 
     - clusters
     - node
 nav_order: 30
-use_child_thumbnails: true
 ---
 
 {% include header_card_node %}
@@ -24,3 +24,9 @@ use_child_thumbnails: true
 
 > DOC TDB
 {: .warning }
+
+---
+## Hulls
+<br>
+{% include card_childs tagged='clusters' %}
+

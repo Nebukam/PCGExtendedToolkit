@@ -11,11 +11,11 @@ splash: icons/icon_custom-graphs-build.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 has_children: true
+use_child_thumbnails: true
 tagged: 
     - clusters
     - node
 nav_order: 0
-use_child_thumbnails: true
 inputs:
     -   name : Points
         desc : Points that will be connected togethers

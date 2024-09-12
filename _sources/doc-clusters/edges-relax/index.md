@@ -64,6 +64,3 @@ The relax point node smoothes cluster' topology by iteratively applying a given 
 
 {% include embed id='settings-cluster-output' %}
 {% include embed id='settings-performance' %}
-
----
-# Examples

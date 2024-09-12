@@ -6,12 +6,12 @@ title: Refine
 name_in_editor: "Cluster : Refine"
 subtitle: Algorithmic edge refinement
 summary: The **Refine** node algorithmically prunes edges in a graph to enforce specific properties, allowing selection of refinement type and optional sanitization to restore edges based on predefined conditions.
-use_child_thumbnails: true
 color: blue
 splash: icons/icon_edges-refine.svg
 preview_img: docs/splash-refining.png
 toc_img: placeholder.jpg
 has_children: true
+#use_child_thumbnails: true
 tagged:
     - node
     - edges
