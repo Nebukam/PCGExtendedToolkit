@@ -46,6 +46,8 @@ void UPCGExManagedSplineMeshComponent::SetComponent(USplineMeshComponent* InComp
 
 void UPCGExManagedSplineMeshComponent::AttachTo(AActor* InTargetActor, UPCGComponent* InSourceComponent)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExManagedSplineMeshComponent::AttachTo);
+	
 	check(CachedRawComponentPtr)
 
 	bool bIsPreviewMode = false;
@@ -62,6 +64,9 @@ void UPCGExManagedSplineMeshComponent::AttachTo(AActor* InTargetActor, UPCGCompo
 
 USplineMeshComponent* UPCGExManagedSplineMeshComponent::CreateComponentOnly(AActor* InOuter, UPCGComponent* InSourceComponent, const PCGExPaths::FSplineMeshSegment& InParams)
 {
+
+	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExManagedSplineMeshComponent::CreateComponentOnly);
+	
 	if (!InParams.AssetStaging) { return nullptr; } // Booh
 
 	bool bIsPreviewMode = false;
@@ -94,6 +99,8 @@ USplineMeshComponent* UPCGExManagedSplineMeshComponent::CreateComponentOnly(AAct
 
 UPCGExManagedSplineMeshComponent* UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(AActor* InOuter, USplineMeshComponent* InSMC, UPCGComponent* InSourceComponent, uint64 SettingsUID)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent);
+	
 	UPCGExManagedSplineMeshComponent* Resource = PCGExManagedRessource::CreateResource<UPCGExManagedSplineMeshComponent>(InSourceComponent, SettingsUID);
 	Resource->SetComponent(InSMC);
 	//Resource->SetDescriptor(InParams.Descriptor);

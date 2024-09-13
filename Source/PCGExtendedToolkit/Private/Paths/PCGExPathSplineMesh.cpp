@@ -37,6 +37,8 @@ PCGExData::EInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { r
 FPCGExPathSplineMeshContext::~FPCGExPathSplineMeshContext()
 {
 	PCGEX_TERMINATE_ASYNC
+	UPCGExInternalCollection* InternalCollection = Cast<UPCGExInternalCollection>(MainCollection);
+	PCGEX_DELETE_UOBJECT(InternalCollection)
 }
 
 void FPCGExPathSplineMeshContext::RegisterAssetDependencies()
@@ -73,23 +75,16 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 		PCGEX_VALIDATE_NAME(Settings->LeaveTangentAttribute)
 	}
 
-	if (Settings->CollectionSource == EPCGExCollectionSource::Asset)
-	{
-		Context->MainCollection = Settings->AssetCollection.LoadSynchronous();
-	}
-	else
-	{
-		if (Context->MainCollection)
-		{
-			// Internal collection, assets have been loaded at this point
-			Context->MainCollection->RebuildStagingData(true);
-		}
-	}
-
 	if (!Context->MainCollection)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing asset collection."));
 		return false;
+	}
+
+	if (Settings->CollectionSource == EPCGExCollectionSource::AttributeSet)
+	{
+		// Internal collection, assets have been loaded at this point, rebuilding stage data
+		Context->MainCollection->RebuildStagingData(true);
 	}
 
 	Context->MainCollection->LoadCache(); // Make sure to load the stuff
@@ -307,6 +302,8 @@ namespace PCGExPathSplineMesh
 
 	void FProcessor::Output()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
+		
 		// TODO : Resolve per-point target actor...? irk.
 		AActor* TargetActor = LocalSettings->TargetActor.Get() ? LocalSettings->TargetActor.Get() : Context->GetTargetActor(nullptr);
 

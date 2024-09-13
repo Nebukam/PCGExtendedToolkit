@@ -47,7 +47,7 @@ public:
 		/* Does nothing, but implementation is required to support reuse. */
 	}
 
-	virtual bool SupportsComponentReset() const override { return true; }
+	virtual bool SupportsComponentReset() const override { return false; } // true once we implement it properly
 	virtual void ForgetComponent() override;
 	//~End UPCGManagedComponents interface
 
