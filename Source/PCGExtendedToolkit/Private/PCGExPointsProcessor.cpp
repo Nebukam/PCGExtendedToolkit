@@ -173,7 +173,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 		if (!IsAsyncWorkComplete()) { return false; }
 
 		MTState_PointsProcessingDone();
-		CompleteBatch(GetAsyncManager(), MainBatch);
+		MainBatch->CompleteWork();
 		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
 	}
 
@@ -185,7 +185,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 
 		if (MainBatch->bRequiresWriteStep)
 		{
-			WriteBatch(GetAsyncManager(), MainBatch);
+			MainBatch->Write();
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
 		}
 		else

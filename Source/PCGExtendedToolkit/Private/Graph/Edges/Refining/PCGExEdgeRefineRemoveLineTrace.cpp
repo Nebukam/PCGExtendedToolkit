@@ -20,7 +20,10 @@ void UPCGExEdgeRemoveLineTrace::CopySettingsFrom(const UPCGExOperation* Other)
 
 void UPCGExEdgeRemoveLineTrace::ProcessEdge(PCGExGraph::FIndexedEdge& Edge)
 {
+	if (!*(EdgesFilters->GetData() + Edge.PointIndex)) { return; }
+
 	Super::ProcessEdge(Edge);
+
 	const FVector From = Cluster->GetPos((*Cluster->NodeIndexLookup)[Edge.Start]);
 	const FVector To = Cluster->GetPos((*Cluster->NodeIndexLookup)[Edge.End]);
 

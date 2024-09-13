@@ -13,7 +13,8 @@
 namespace PCGExRefineEdges
 {
 	class FProcessorBatch;
-	const FName SourceProtectEdgeFilters = FName("PreserveFilters");
+	const FName SourceVtxFilters = FName("VtxFilters");
+	const FName SourceEdgeFilters = FName("EdgeFilters");
 }
 
 namespace PCGExHeuristics
@@ -82,7 +83,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesContext final : public FPCGEx
 
 	virtual ~FPCGExRefineEdgesContext() override;
 
-	TArray<UPCGExFilterFactoryBase*> PreserveEdgeFilterFactories;
+	TArray<UPCGExFilterFactoryBase*> VtxFilterFactories;
+	TArray<UPCGExFilterFactoryBase*> EdgeFilterFactories;
 
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
 };
@@ -108,11 +110,13 @@ namespace PCGExRefineEdges
 		friend class FFilterRangeTask;
 
 	protected:
-		PCGExPointFilter::TManager* FilterManager = nullptr;
+		PCGExPointFilter::TManager* EdgeFilterManager = nullptr;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
-
+		
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 		mutable FRWLock NodeLock;
+
+		TArray<bool> EdgeFilterCache;
 
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
@@ -123,8 +127,9 @@ namespace PCGExRefineEdges
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node) override;
-		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		void StartRefinement();
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		void Sanitize();
 		void InsertEdges() const;
 		virtual void CompleteWork() override;

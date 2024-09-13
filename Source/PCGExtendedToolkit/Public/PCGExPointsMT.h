@@ -13,64 +13,34 @@
 
 namespace PCGExPointsMT
 {
-	enum class EMode : uint8
-	{
-		None     = 0,
-		Process  = 1 << 0,
-		Complete = 1 << 1,
-		Write    = 1 << 2,
-	};
-
 	PCGEX_ASYNC_STATE(MTState_PointsProcessing)
 	PCGEX_ASYNC_STATE(MTState_PointsCompletingWork)
 	PCGEX_ASYNC_STATE(MTState_PointsWriting)
 
 	PCGEX_ASYNC_STATE(State_PointsAsyncWorkComplete)
 
-#pragma region Tasks
+#define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY)\
+	if (_INLINE_CONDITION)  { \
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, _ID##Inlined) \
+		_ID##Inlined->StartRanges( \
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { \
+				T* Processor = Processors[Index]; _BODY \
+			}, Processors.Num(), 1);\
+	} else {\
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, _ID##NonTrivial)\
+		_ID##NonTrivial->StartRanges(\
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx) {\
+				T* Processor = Processors[Index];\
+				if (Processor->IsTrivial()) { return; } _BODY \
+			}, Processors.Num(), 1); \
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, _ID##Trivial) \
+		_ID##Trivial->StartRanges(\
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx){ \
+				T* Processor = TrivialProcessors[Index]; _BODY \
+			}, TrivialProcessors.Num(), 32); \
+	}
 
-#define PCGEX_POINTS_MT_TASK(_NAME, _BODY)\
-	template <typename T>\
-	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
-		public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
-		T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
-
-#define PCGEX_POINTS_MT_TASK_RANGE_INLINE(_NAME, _BODY)\
-	template <typename T> \
-	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask {\
-		public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InPerNumIterations, const uint64 InTotalIterations, const PCGExData::ESource InSource = PCGExData::ESource::Out, const int32 InLoopIdx = 0)\
-		: PCGExMT::FPCGExTask(InPointIO), Target(InTarget), PerNumIterations(InPerNumIterations), TotalIterations(InTotalIterations), Source(InSource), LoopIdx(InLoopIdx){}\
-		T* Target = nullptr; uint64 PerNumIterations = 0; uint64 TotalIterations = 0; const PCGExData::ESource Source; const int32 LoopIdx;\
-		virtual bool ExecuteTask() override {\
-		const uint64 RemainingIterations = TotalIterations - TaskIndex;\
-		uint64 Iterations = FMath::Min(PerNumIterations, RemainingIterations); _BODY \
-		int32 NextIndex = TaskIndex + Iterations; if (NextIndex >= TotalIterations) { return true; }\
-		InternalStart<_NAME>(NextIndex, nullptr, Target, PerNumIterations, TotalIterations, Source, LoopIdx+1);\
-		return true; } };
-
-#define PCGEX_POINTS_MT_TASK_RANGE(_NAME, _BODY)\
-	template <typename T>\
-		class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
-			public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations, const PCGExData::ESource InSource = PCGExData::ESource::Out, const int32 InLoopIdx = 0) \
-			: PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations), Source(InSource), LoopIdx(InLoopIdx){} \
-			T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source; const int32 LoopIdx; virtual bool ExecuteTask() override{_BODY return true; }}; \
-	PCGEX_POINTS_MT_TASK_RANGE_INLINE(_NAME##Inline, _BODY)
-
-	PCGEX_POINTS_MT_TASK(FStartPointsBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
-
-	PCGEX_POINTS_MT_TASK(FAsyncProcess, { Target->Process(Manager); })
-
-	PCGEX_POINTS_MT_TASK(FAsyncProcessWithUpdate, { Target->bIsProcessorValid = Target->Process(Manager); })
-
-	PCGEX_POINTS_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
-
-	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessPointRange, { Target->ProcessPoints(Source, TaskIndex, Iterations, LoopIdx);})
-
-	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessRange, { Target->ProcessRange(TaskIndex, Iterations, LoopIdx);})
-
-	PCGEX_POINTS_MT_TASK_RANGE(FAsyncClosedBatchProcessRange, {Target->ProcessClosedBatchRange(TaskIndex, Iterations, LoopIdx);})
-
-#pragma endregion
+#define PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(_ID, _INLINE_CONDITION, _BODY) PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, if(Processor->bIsProcessorValid){ _BODY })
 
 	class FPointsProcessorBatchBase;
 
@@ -84,6 +54,8 @@ namespace PCGExPointsMT
 		bool bInlineProcessPoints = false;
 		bool bInlineProcessRange = false;
 
+		PCGExData::ESource CurrentProcessingSource = PCGExData::ESource::Out;
+
 	public:
 		FPointsProcessorBatchBase* ParentBatch = nullptr;
 
@@ -93,7 +65,7 @@ namespace PCGExPointsMT
 
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
-		bool bIsSmallPoints = false;
+		bool bIsTrivial = false;
 
 		TArray<bool> PointFilterCache;
 
@@ -126,7 +98,7 @@ namespace PCGExPointsMT
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(Context); }
 
-		virtual bool IsTrivial() const { return bIsSmallPoints; }
+		virtual bool IsTrivial() const { return bIsTrivial; }
 
 		void SetPointsFilterData(TArray<UPCGExFilterFactoryBase*>* InFactories)
 		{
@@ -156,35 +128,23 @@ namespace PCGExPointsMT
 
 		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::Out, const int32 PerLoopIterations = -1)
 		{
+			CurrentProcessingSource = Source;
 			const int32 NumPoints = PointIO->GetNum(Source);
 
 			if (IsTrivial())
 			{
 				PrepareLoopScopesForPoints({PCGEx::H64(0, NumPoints)});
-				ProcessPoints(Source, 0, NumPoints, 0);
+				ProcessPoints(0, NumPoints, 0);
 				return;
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations);
 
-			if (bInlineProcessPoints)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessPointRangeInline<FPointsProcessor>>(0, nullptr, this, PLI, NumPoints, Source);
-				return;
-			}
-
-			TArray<uint64> Loops;
-			PCGExMT::SubRanges(Loops, NumPoints, PLI);
-
-			PrepareLoopScopesForPoints(Loops);
-
-			for (int i = 0; i < Loops.Num(); ++i)
-			{
-				uint32 StartIndex;
-				uint32 Count;
-				PCGEx::H64(Loops[i], StartIndex, Count);
-				AsyncManagerPtr->Start<FAsyncProcessPointRange<FPointsProcessor>>(StartIndex, nullptr, this, Count, Source, i);
-			}
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
+			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForPoints(Loops); });
+			ParallelLoop->SetOnIterationRangeStartCallback(
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessPoints(StartIndex, Count, LoopIdx); });
+			ParallelLoop->PrepareRangesOnly(NumPoints, PLI, bInlineProcessPoints);
 		}
 
 		virtual void PrepareLoopScopesForPoints(const TArray<uint64>& Loops)
@@ -195,10 +155,10 @@ namespace PCGExPointsMT
 		{
 		}
 
-		virtual void ProcessPoints(const PCGExData::ESource Source, const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		virtual void ProcessPoints(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			PrepareSingleLoopScopeForPoints(StartIndex, Count);
-			TArray<FPCGPoint>& Points = PointIO->GetMutableData(Source)->GetMutablePoints();
+			TArray<FPCGPoint>& Points = PointIO->GetMutableData(CurrentProcessingSource)->GetMutablePoints();
 			for (int i = 0; i < Count; ++i)
 			{
 				const int32 PtIndex = StartIndex + i;
@@ -218,34 +178,21 @@ namespace PCGExPointsMT
 		{
 			if (IsTrivial())
 			{
-				PrepareLoopScopesForRange({PCGEx::H64(0, NumIterations)});
+				PrepareLoopScopesForRanges({PCGEx::H64(0, NumIterations)});
 				ProcessRange(0, NumIterations, 0);
 				return;
 			}
 
-			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations);
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			if (bInlineProcessRange)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessRangeInline<FPointsProcessor>>(0, nullptr, this, PLI, NumIterations);
-				return;
-			}
-
-			TArray<uint64> Loops;
-			PCGExMT::SubRanges(Loops, NumIterations, PLI);
-
-			PrepareLoopScopesForRange(Loops);
-
-			for (int i = 0; i < Loops.Num(); ++i)
-			{
-				uint32 StartIndex;
-				uint32 Count;
-				PCGEx::H64(Loops[i], StartIndex, Count);
-				AsyncManagerPtr->Start<FAsyncProcessRange<FPointsProcessor>>(StartIndex, nullptr, this, Count, PCGExData::ESource::Out, i);
-			}
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
+			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
+			ParallelLoop->SetOnIterationRangeStartCallback(
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); });
+			ParallelLoop->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
 		}
 
-		virtual void PrepareLoopScopesForRange(const TArray<uint64>& Loops)
+		virtual void PrepareLoopScopesForRanges(const TArray<uint64>& Loops)
 		{
 		}
 
@@ -309,6 +256,7 @@ namespace PCGExPointsMT
 	public:
 		bool bInlineProcessing = false;
 		bool bInlineCompletion = false;
+		bool bInlineWrite = false;
 		bool bRequiresWriteStep = false;
 		TArray<PCGExData::FFacade*> ProcessorFacades;
 		TMap<PCGExData::FPointIO*, FPointsProcessor*>* SubProcessorMap = nullptr;
@@ -354,26 +302,6 @@ namespace PCGExPointsMT
 		}
 
 		virtual void Write()
-		{
-		}
-
-		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
-		{
-			PCGExMT::SubRanges(
-				NumIterations, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations),
-				[&](const int32 Index, const int32 Count)
-				{
-					AsyncManagerPtr->Start<FAsyncProcessRange<FPointsProcessorBatchBase>>(
-						Index, nullptr, this, Count);
-				});
-		}
-
-		void ProcessRange(const int32 StartIndex, const int32 Iterations, const int32 LoopIdx)
-		{
-			for (int i = 0; i < Iterations; ++i) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Iterations); }
-		}
-
-		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 		{
 		}
 
@@ -429,9 +357,11 @@ namespace PCGExPointsMT
 				T* NewProcessor = new T(IO);
 				NewProcessor->Context = Context;
 				NewProcessor->ParentBatch = this;
+				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 
 				if (!PrepareSingle(NewProcessor))
 				{
+					Processors.Pop();
 					PCGEX_DELETE(NewProcessor)
 					continue;
 				}
@@ -442,22 +372,12 @@ namespace PCGExPointsMT
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
 				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }
 
-				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 
-				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize) { NewProcessor->bIsSmallPoints = true; }
-
-				if (bInlineProcessing)
-				{
-					NewProcessor->bIsProcessorValid = NewProcessor->Process(AsyncManagerPtr);
-					continue;
-					///////
-				}
-
+				NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize;
 				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor); }
-				else { AsyncManager->Start<FAsyncProcessWithUpdate<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
 
-			if (!bInlineProcessing) { StartClosedBatchProcessing(); }
+			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr); })
 		}
 
 		virtual bool PrepareSingle(T* PointsProcessor)
@@ -468,77 +388,15 @@ namespace PCGExPointsMT
 		virtual void CompleteWork() override
 		{
 			CurrentState = PCGExMT::State_Completing;
-			if (bInlineCompletion)
-			{
-				for (T* Processor : Processors)
-				{
-					if (!Processor->bIsProcessorValid) { continue; }
-					Processor->CompleteWork();
-				}
-			}
-			else
-			{
-				for (T* Processor : Processors)
-				{
-					if (!Processor->bIsProcessorValid || Processor->IsTrivial()) { continue; }
-					AsyncManagerPtr->Start<FAsyncCompleteWork<T>>(-1, nullptr, Processor);
-				}
-
-				StartClosedBatchProcessing();
-			}
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
+			FPointsProcessorBatchBase::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
 			CurrentState = PCGExMT::State_Writing;
-			if (bInlineCompletion)
-			{
-				for (T* Processor : Processors)
-				{
-					if (!Processor->bIsProcessorValid) { continue; }
-					Processor->Write();
-				}
-			}
-			else
-			{
-				for (T* Processor : Processors)
-				{
-					if (!Processor->bIsProcessorValid || Processor->IsTrivial()) { continue; }
-					PCGExMT::Write<T>(AsyncManagerPtr, Processor);
-				}
-
-				StartClosedBatchProcessing();
-			}
-		}
-
-		void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations, const int32 LoopIdx)
-		{
-			if (CurrentState == PCGExMT::State_Processing)
-			{
-				for (int i = 0; i < Iterations; ++i)
-				{
-					T* Processor = TrivialProcessors[StartIndex + i];
-					Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr);
-				}
-			}
-			else if (CurrentState == PCGExMT::State_Completing)
-			{
-				for (int i = 0; i < Iterations; ++i)
-				{
-					T* Processor = TrivialProcessors[StartIndex + i];
-					if (!Processor->bIsProcessorValid) { continue; }
-					Processor->CompleteWork();
-				}
-			}
-			else if (CurrentState == PCGExMT::State_Writing)
-			{
-				for (int i = 0; i < Iterations; ++i)
-				{
-					T* Processor = TrivialProcessors[StartIndex + i];
-					if (!Processor->bIsProcessorValid) { continue; }
-					Processor->Write();
-				}
-			}
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
+			FPointsProcessorBatchBase::Write();
 		}
 
 		virtual void Output() override
@@ -549,46 +407,5 @@ namespace PCGExPointsMT
 				Processor->Output();
 			}
 		}
-
-	protected:
-		void StartClosedBatchProcessing()
-		{
-			const int32 NumTrivial = TrivialProcessors.Num();
-			if (NumTrivial > 0)
-			{
-				TRACE_CPUPROFILER_EVENT_SCOPE(FPointsBatch::TrivialBatchProcessing);
-
-				TArray<uint64> Loops;
-				PCGExMT::SubRanges(Loops, TrivialProcessors.Num(), 32);
-
-				for (int i = 0; i < Loops.Num(); ++i)
-				{
-					uint32 StartIndex;
-					uint32 LoopIterations;
-					PCGEx::H64(Loops[i], StartIndex, LoopIterations);
-					AsyncManagerPtr->Start<FAsyncClosedBatchProcessRange<TBatch<T>>>(StartIndex, nullptr, this, LoopIterations, PCGExData::ESource::Out, i);
-				}
-			}
-		}
 	};
-
-	static void ScheduleBatch(PCGExMT::FTaskManager* Manager, FPointsProcessorBatchBase* Batch)
-	{
-		Manager->Start<FStartPointsBatchProcessing<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
-	}
-
-	static void CompleteBatch(PCGExMT::FTaskManager* Manager, FPointsProcessorBatchBase* Batch)
-	{
-		Manager->Start<FAsyncCompleteWork<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
-	}
-
-	static void WriteBatch(PCGExMT::FTaskManager* Manager, FPointsProcessorBatchBase* Batch)
-	{
-		PCGEX_ASYNC_WRITE(Manager, Batch)
-	}
 }
-
-
-#undef PCGEX_POINTS_MT_TASK
-#undef PCGEX_POINTS_MT_TASK_RANGE_INLINE
-#undef PCGEX_POINTS_MT_TASK_RANGE

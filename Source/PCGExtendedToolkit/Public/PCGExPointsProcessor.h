@@ -15,6 +15,7 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsMT.h"
+#include "RenderGraphResources.h"
 
 #include "PCGExPointsProcessor.generated.h"
 
@@ -287,8 +288,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 			TypedBatch->SetPointsFilterData(&FilterFactories);
 		}
 
-		ScheduleBatch(GetAsyncManager(), MainBatch);
 		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
+		if(MainBatch->PrepareProcessing()){ MainBatch->Process(GetAsyncManager()); }
 
 		return true;
 	}

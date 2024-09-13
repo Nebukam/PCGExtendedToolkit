@@ -27,53 +27,7 @@ namespace PCGExClusterMT
 	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
 		T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
 
-#define PCGEX_CLUSTER_MT_TASK_RANGE_INLINE(_NAME, _BODY)\
-	template <typename T> \
-	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask {\
-	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InPerNumIterations, const uint64 InTotalIterations)\
-	: PCGExMT::FPCGExTask(InPointIO), Target(InTarget), PerNumIterations(InPerNumIterations), TotalIterations(InTotalIterations){}\
-		T* Target = nullptr; uint64 PerNumIterations = 0; uint64 TotalIterations = 0;\
-		virtual bool ExecuteTask() override {\
-		const uint64 RemainingIterations = TotalIterations - TaskIndex;\
-		uint64 Iterations = FMath::Min(PerNumIterations, RemainingIterations); _BODY \
-		int32 NextIndex = TaskIndex + Iterations; if (NextIndex >= TotalIterations) { return true; }\
-		InternalStart<_NAME>(NextIndex, nullptr, Target, PerNumIterations, TotalIterations);\
-		return true; } };
-
-#define PCGEX_CLUSTER_MT_TASK_RANGE(_NAME, _BODY)\
-	template <typename T>\
-	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
-	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InIterations) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Iterations(InIterations){} \
-		T* Target = nullptr; uint64 Iterations = 0; virtual bool ExecuteTask() override{_BODY return true; }};\
-	PCGEX_CLUSTER_MT_TASK_RANGE_INLINE(_NAME##Inline, _BODY)
-
-#define PCGEX_CLUSTER_MT_TASK_SCOPE(_NAME, _BODY)\
-	template <typename T>\
-	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
-	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const TArray<uint64>& InScopes) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget), Scopes(InScopes){} \
-	T* Target = nullptr; TArray<uint64> Scopes; virtual bool ExecuteTask() override{_BODY return true; }};
-
 	PCGEX_CLUSTER_MT_TASK(FStartClusterBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
-
-	PCGEX_CLUSTER_MT_TASK(FStartClusterBatchCompleteWork, { Target->CompleteWork(); })
-
-	PCGEX_CLUSTER_MT_TASK(FAsyncProcess, { Target->Process(Manager); })
-
-	PCGEX_CLUSTER_MT_TASK(FAsyncProcessWithUpdate, { Target->bIsProcessorValid = Target->Process(Manager); })
-
-	PCGEX_CLUSTER_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
-
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessNodeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Nodes->GetData() + TaskIndex, Iterations));})
-
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessEdgeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Edges->GetData() + TaskIndex, Iterations));})
-
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations);})
-
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessScope, {Target->ProcessScope(Iterations);})
-
-	PCGEX_CLUSTER_MT_TASK_SCOPE(FAsyncProcessScopeList, {for(const uint64 Scope: Scopes ){ Target->ProcessScope(Scope);}})
-
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncBatchProcessClosedRange, {Target->ProcessClosedBatchRange(TaskIndex, Iterations);})
 
 #pragma endregion
 
@@ -120,7 +74,7 @@ namespace PCGExClusterMT
 
 		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
-		bool bIsSmallCluster = false;
+		bool bIsTrivial = false;
 		bool bIsOneToOne = false;
 
 		const TArray<int32>* VtxPointIndicesCache = nullptr;
@@ -162,7 +116,7 @@ namespace PCGExClusterMT
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(Context); }
 
-		bool IsTrivial() const { return bIsSmallCluster; }
+		bool IsTrivial() const { return bIsTrivial; }
 
 		void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
 
@@ -213,156 +167,119 @@ namespace PCGExClusterMT
 		{
 			if (IsTrivial())
 			{
-				TArray<PCGExCluster::FNode>& NodesRef = (*Cluster->Nodes);
-				for (int i = 0; i < NumNodes; ++i) { ProcessSingleNode(i, NodesRef[i]); }
+				PrepareLoopScopesForNodes({PCGEx::H64(0, NumNodes)});
+				ProcessNodes(0, NumNodes, 0);
 				return;
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
-			if (bInlineProcessNodes)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessNodeRangeInline<FClusterProcessor>>(
-					0, nullptr, this, PLI, NumNodes);
-				return;
-			}
 
-			PCGExMT::SubRanges(
-				NumNodes, PLI,
-				[&](const int32 Index, const int32 Count)
-				{
-					AsyncManagerPtr->Start<FAsyncProcessNodeRange<FClusterProcessor>>(
-						Index, nullptr, this, Count);
-				});
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
+			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForNodes(Loops); });
+			ParallelLoop->SetOnIterationRangeStartCallback(
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessNodes(StartIndex, Count, LoopIdx); });
+			ParallelLoop->PrepareRangesOnly(NumNodes, PLI, bInlineProcessNodes);
+		}
+
+		virtual void PrepareLoopScopesForNodes(const TArray<uint64>& Loops)
+		{
+		}
+
+		virtual void PrepareSingleLoopScopeForNodes(const uint32 StartIndex, const int32 Count)
+		{
+		}
+
+		virtual void ProcessNodes(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		{
+			PrepareSingleLoopScopeForNodes(StartIndex, Count);
+			TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
+			for (int i = 0; i < Count; ++i)
+			{
+				const int32 PtIndex = StartIndex + i;
+				ProcessSingleNode(PtIndex, Nodes[PtIndex], LoopIdx, Count);
+			}
+		}
+
+		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
+		{
 		}
 
 		void StartParallelLoopForEdges(const int32 PerLoopIterations = -1)
 		{
 			if (IsTrivial())
 			{
-				for (PCGExGraph::FIndexedEdge& Edge : (*Cluster->Edges)) { ProcessSingleEdge(Edge); }
+				PrepareLoopScopesForEdges({PCGEx::H64(0, NumEdges)});
+				ProcessEdges(0, NumEdges, 0);
 				return;
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			if (bInlineProcessEdges)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessEdgeRangeInline<FClusterProcessor>>(
-					0, nullptr, this, PLI, NumEdges);
-				return;
-			}
-
-			PCGExMT::SubRanges(
-				NumEdges, PLI,
-				[&](const int32 Index, const int32 Count)
-				{
-					AsyncManagerPtr->Start<FAsyncProcessEdgeRange<FClusterProcessor>>(
-						Index, nullptr, this, Count);
-				});
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
+			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForEdges(Loops); });
+			ParallelLoop->SetOnIterationRangeStartCallback(
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessEdges(StartIndex, Count, LoopIdx); });
+			ParallelLoop->PrepareRangesOnly(NumEdges, PLI, bInlineProcessEdges);
 		}
+
+		virtual void PrepareLoopScopesForEdges(const TArray<uint64>& Loops)
+		{
+		}
+
+		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count)
+		{
+		}
+
+		virtual void ProcessEdges(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		{
+			PrepareSingleLoopScopeForEdges(StartIndex, Count);
+			TArray<PCGExGraph::FIndexedEdge>& ClusterEdges = *Cluster->Edges;
+			for (int i = 0; i < Count; ++i)
+			{
+				const int32 PtIndex = StartIndex + i;
+				ProcessSingleEdge(PtIndex, ClusterEdges[PtIndex], LoopIdx, Count);
+			}
+		}
+
+		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
+		{
+		}
+
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
 			if (IsTrivial())
 			{
-				for (int i = 0; i < NumIterations; ++i) { ProcessSingleRangeIteration(i); }
+				PrepareLoopScopesForRanges({PCGEx::H64(0, NumIterations)});
+				ProcessRange(0, NumIterations, 0);
 				return;
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			if (bInlineProcessRange)
-			{
-				AsyncManagerPtr->Start<FAsyncProcessRangeInline<FClusterProcessor>>(0, nullptr, this, PLI, NumIterations);
-				return;
-			}
-
-			PCGExMT::SubRanges(
-				NumIterations, PLI,
-				[&](const int32 Index, const int32 Count)
-				{
-					AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessor>>(Index, nullptr, this, Count);
-				});
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
+			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
+			ParallelLoop->SetOnIterationRangeStartCallback(
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); });
+			ParallelLoop->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
 		}
 
-		virtual void ProcessView(const int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
-		{
-			for (int i = 0; i < NodeView.Num(); ++i)
-			{
-				const int32 Index = StartIndex + i;
-				ProcessSingleNode(Index, *(Cluster->Nodes->GetData() + Index));
-			}
-		}
-
-		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
+		virtual void PrepareLoopScopesForRanges(const TArray<uint64>& Loops)
 		{
 		}
 
-		virtual void ProcessView(const int32 StartIndex, const TArrayView<PCGExGraph::FIndexedEdge> EdgeView)
-		{
-			for (PCGExGraph::FIndexedEdge& Edge : EdgeView) { ProcessSingleEdge(Edge); }
-		}
-
-		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
+		virtual void PrepareSingleLoopScopeForRange(const uint32 StartIndex, const int32 Count)
 		{
 		}
 
-		virtual void ProcessRange(const int32 StartIndex, const int32 Iterations)
+		virtual void ProcessRange(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
-			for (int i = 0; i < Iterations; ++i) { ProcessSingleRangeIteration(StartIndex + i); }
+			PrepareSingleLoopScopeForRange(StartIndex, Count);
+			for (int i = 0; i < Count; ++i) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
 		}
 
-		virtual void ProcessSingleRangeIteration(const int32 Iteration)
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 		{
-		}
-
-		void StartParallelLoopForScopes(const TArrayView<const uint64>& InScopes)
-		{
-			if (IsTrivial())
-			{
-				for (const uint64 Scope : InScopes) { ProcessScope(Scope); }
-				return;
-			}
-
-			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(-1);
-
-			TArray<uint64> Scopes;
-			Scopes.Reserve(PLI);
-
-			int32 CurrentSum = 0;
-
-			for (uint64 Scope : InScopes)
-			{
-				uint32 Count = PCGEx::H64B(Scope);
-				CurrentSum += Count;
-				if (CurrentSum > PLI)
-				{
-					if (Scopes.IsEmpty())
-					{
-						AsyncManagerPtr->Start<FAsyncProcessScope<FClusterProcessor>>(-1, nullptr, this, Scope);
-					}
-					else
-					{
-						AsyncManagerPtr->Start<FAsyncProcessScopeList<FClusterProcessor>>(-1, nullptr, this, Scopes);
-					}
-					Scopes.Reset();
-					CurrentSum = 0;
-					continue;
-				}
-
-				Scopes.Add(Scope);
-			}
-			if (!Scopes.IsEmpty())
-			{
-				if (Scopes.Num() == 1)
-				{
-					AsyncManagerPtr->Start<FAsyncProcessScope<FClusterProcessor>>(-1, nullptr, this, Scopes[0]);
-				}
-				else
-				{
-					AsyncManagerPtr->Start<FAsyncProcessScopeList<FClusterProcessor>>(-1, nullptr, this, Scopes);
-				}
-			}
 		}
 
 		virtual void ProcessScope(const uint64 Scope)
@@ -423,6 +340,7 @@ namespace PCGExClusterMT
 
 		bool bInlineProcessing = false;
 		bool bInlineCompletion = false;
+		bool bInlineWrite = false;
 
 		FClusterProcessorBatchBase(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
 			Context(InContext), VtxIO(InVtx)
@@ -466,29 +384,6 @@ namespace PCGExClusterMT
 			AsyncManagerPtr = AsyncManager;
 		}
 
-		virtual void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations)
-		{
-		}
-
-		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
-		{
-			PCGExMT::SubRanges(
-				NumIterations, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations),
-				[&](const int32 Index, const int32 Count)
-				{
-					AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessorBatchBase>>(Index, nullptr, this, Count);
-				});
-		}
-
-		void ProcessRange(const int32 StartIndex, const int32 Iterations)
-		{
-			for (int i = 0; i < Iterations; ++i) { ProcessSingleRangeIteration(StartIndex + i); }
-		}
-
-		virtual void ProcessSingleRangeIteration(const int32 Iteration)
-		{
-		}
-
 		virtual void CompleteWork()
 		{
 		}
@@ -508,7 +403,7 @@ namespace PCGExClusterMT
 	{
 	public:
 		TArray<T*> Processors;
-		TArray<T*> ClosedBatchProcessors;
+		TArray<T*> TrivialProcessors;
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
@@ -536,7 +431,7 @@ namespace PCGExClusterMT
 			PCGEX_DELETE_TARRAY(Processors)
 			PCGEX_DELETE(GraphBuilder)
 
-			ClosedBatchProcessors.Empty();
+			TrivialProcessors.Empty();
 		}
 
 		virtual bool PrepareProcessing() override
@@ -568,102 +463,32 @@ namespace PCGExClusterMT
 
 				if (!PrepareSingle(NewProcessor))
 				{
+					Processors.Pop();
 					PCGEX_DELETE(NewProcessor)
 					continue;
 				}
 
-				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
-				{
-					NewProcessor->bIsSmallCluster = true;
-					ClosedBatchProcessors.Add(NewProcessor);
-				}
-
-				if (bInlineProcessing) { NewProcessor->bIsProcessorValid = NewProcessor->Process(AsyncManagerPtr); }
-				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcessWithUpdate<T>>(IO->IOIndex, IO, NewProcessor); }
+				NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
+				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor); }
 			}
 
-			StartClosedBatchProcessing();
+			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr); })
 		}
 
-		virtual bool PrepareSingle(T* ClusterProcessor) { return true; };
+		virtual bool PrepareSingle(T* ClusterProcessor) { return true; }
 
 		virtual void CompleteWork() override
 		{
 			CurrentState = PCGExMT::State_Completing;
-
-			if (bInlineCompletion)
-			{
-				for (T* Processor : Processors)
-				{
-					if (!Processor->bIsProcessorValid) { continue; }
-					Processor->CompleteWork();
-				}
-			}
-			else
-			{
-				for (T* Processor : Processors)
-				{
-					if (!Processor->bIsProcessorValid || Processor->IsTrivial()) { continue; }
-					AsyncManagerPtr->Start<FAsyncCompleteWork<T>>(-1, nullptr, Processor);
-				}
-
-				StartClosedBatchProcessing();
-			}
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
+			FClusterProcessorBatchBase::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
 			CurrentState = PCGExMT::State_Writing;
-			if (bInlineCompletion)
-			{
-				for (T* Processor : Processors)
-				{
-					if (!Processor->bIsProcessorValid) { continue; }
-					Processor->Write();
-				}
-			}
-			else
-			{
-				for (T* Processor : Processors)
-				{
-					if (!Processor->bIsProcessorValid || Processor->IsTrivial()) { continue; }
-					PCGExMT::Write<T>(AsyncManagerPtr, Processor);
-				}
-
-				StartClosedBatchProcessing();
-			}
-
+			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
 			FClusterProcessorBatchBase::Write();
-		}
-
-		virtual void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations) override
-		{
-			if (CurrentState == PCGExMT::State_Processing)
-			{
-				for (int i = 0; i < Iterations; ++i)
-				{
-					T* Processor = ClosedBatchProcessors[StartIndex + i];
-					Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr);
-				}
-			}
-			else if (CurrentState == PCGExMT::State_Completing)
-			{
-				for (int i = 0; i < Iterations; ++i)
-				{
-					T* Processor = ClosedBatchProcessors[StartIndex + i];
-					if (!Processor->bIsProcessorValid) { continue; }
-					Processor->CompleteWork();
-				}
-			}
-			else if (CurrentState == PCGExMT::State_Writing)
-			{
-				for (int i = 0; i < Iterations; ++i)
-				{
-					T* Processor = ClosedBatchProcessors[StartIndex + i];
-					if (!Processor->bIsProcessorValid) { continue; }
-					Processor->Write();
-				}
-			}
 		}
 
 		virtual void Output() override
@@ -672,22 +497,6 @@ namespace PCGExClusterMT
 			{
 				if (!Processor->bIsProcessorValid) { continue; }
 				Processor->Output();
-			}
-		}
-
-	protected:
-		void StartClosedBatchProcessing()
-		{
-			const int32 NumTrivial = ClosedBatchProcessors.Num();
-			if (NumTrivial > 0)
-			{
-				PCGExMT::SubRanges(
-					NumTrivial,
-					GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(),
-					[&](const int32 Index, const int32 Count)
-					{
-						AsyncManagerPtr->Start<FAsyncBatchProcessClosedRange<FClusterProcessorBatchBase>>(Index, nullptr, this, Count);
-					});
 			}
 		}
 	};
@@ -731,29 +540,16 @@ namespace PCGExClusterMT
 		Manager->Start<FStartClusterBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 
-	static void CompleteBatch(PCGExMT::FTaskManager* Manager, FClusterProcessorBatchBase* Batch)
-	{
-		Manager->Start<FStartClusterBatchCompleteWork<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
-	}
-
 	static void CompleteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
 	{
-		for (FClusterProcessorBatchBase* Batch : Batches) { CompleteBatch(Manager, Batch); }
-	}
-
-	static void WriteBatch(PCGExMT::FTaskManager* Manager, FClusterProcessorBatchBase* Batch)
-	{
-		PCGEX_ASYNC_WRITE(Manager, Batch)
+		for (FClusterProcessorBatchBase* Batch : Batches) { Batch->CompleteWork(); }
 	}
 
 	static void WriteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
 	{
-		for (FClusterProcessorBatchBase* Batch : Batches) { WriteBatch(Manager, Batch); }
+		for (FClusterProcessorBatchBase* Batch : Batches) { Batch->Write(); }
 	}
 }
 
 
 #undef PCGEX_CLUSTER_MT_TASK
-#undef PCGEX_CLUSTER_MT_TASK_RANGE_INLINE
-#undef PCGEX_CLUSTER_MT_TASK_RANGE
-#undef PCGEX_CLUSTER_MT_TASK_SCOPE

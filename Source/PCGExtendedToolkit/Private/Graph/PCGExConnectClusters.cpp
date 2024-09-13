@@ -103,7 +103,7 @@ namespace PCGExBridgeClusters
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 		PCGEX_SETTINGS(ConnectClusters)
 	}

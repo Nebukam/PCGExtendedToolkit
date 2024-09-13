@@ -156,12 +156,12 @@ namespace PCGExFuseClusters
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		FORCEINLINE virtual void ProcessSingleRangeIteration(const int32 Iteration) override
+		FORCEINLINE virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override
 		{
-			ProcessSingleEdge(IndexedEdges[Iteration]);
+			ProcessSingleEdge(Iteration, IndexedEdges[Iteration], LoopIdx, Count);
 		}
 
-		FORCEINLINE virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override
+		FORCEINLINE virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::ProcessSingleEdge);
 

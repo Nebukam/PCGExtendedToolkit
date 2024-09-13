@@ -141,7 +141,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 		{
 			if (!IsAsyncWorkComplete()) { return false; }
 
-			CompleteBatch(GetAsyncManager(), CurrentBatch);
+			CurrentBatch->CompleteWork();
 			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
 		}
 

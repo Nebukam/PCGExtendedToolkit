@@ -75,7 +75,7 @@ namespace PCGExMT
 			TArray<uint64> Loops;
 			NumStarted += SubRanges(Loops, MaxItems, SanitizedChunkSize);
 			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
-			InternalStartInlineRange(0, MaxItems, SanitizedChunkSize);
+			InternalStartInlineRange<FGroupRangeInlineIterationTask>(0, MaxItems, SanitizedChunkSize);
 		}
 		else
 		{
@@ -83,9 +83,21 @@ namespace PCGExMT
 		}
 	}
 
-	void FTaskGroup::PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize)
+	void FTaskGroup::PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline)
 	{
-		StartRanges<FGroupPrepareRangeTask>(MaxItems, ChunkSize, nullptr);
+		if (!Manager->IsAvailable()) { return; }
+		
+		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
+		
+		if (bInline)
+		{
+			TArray<uint64> Loops;
+			NumStarted += SubRanges(Loops, MaxItems, SanitizedChunkSize);
+			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
+			InternalStartInlineRange<FGroupPrepareRangeInlineTask>(0, MaxItems, SanitizedChunkSize);
+			
+		}
+		else { StartRanges<FGroupPrepareRangeTask>(MaxItems, SanitizedChunkSize, nullptr); }
 	}
 
 	void FTaskGroup::PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
@@ -97,17 +109,6 @@ namespace PCGExMT
 	{
 		PrepareRangeIteration(StartIndex, Count, LoopIdx);
 		for (int i = 0; i < Count; ++i) { OnIterationCallback(StartIndex + i, Count, LoopIdx); }
-	}
-
-	void FTaskGroup::InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize)
-	{
-		FAsyncTask<FGroupRangeInlineIterationTask>* NextRange = new FAsyncTask<FGroupRangeInlineIterationTask>(nullptr);
-		NextRange->GetTask().Group = this;
-		NextRange->GetTask().MaxItems = MaxItems;
-		NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);
-
-		if (Manager->ForceSync) { Manager->StartSynchronousTask<FGroupRangeInlineIterationTask>(NextRange, Index); }
-		else { Manager->StartBackgroundTask<FGroupRangeInlineIterationTask>(NextRange, Index); }
 	}
 
 	void FTaskGroup::OnTaskCompleted()
@@ -141,6 +142,26 @@ namespace PCGExMT
 		return true;
 	}
 
+	bool FGroupPrepareRangeInlineTask::ExecuteTask()
+	{
+		check(Group)
+
+		TArray<uint64> Loops;
+		SubRanges(Loops, MaxItems, ChunkSize);
+
+		uint32 StartIndex;
+		uint32 Count;
+		PCGEx::H64(Loops[TaskIndex], StartIndex, Count);
+
+		Group->PrepareRangeIteration(StartIndex, Count, TaskIndex);
+		
+		if (!Loops.IsValidIndex(TaskIndex + 1)) { return false; }
+
+		Group->InternalStartInlineRange<FGroupPrepareRangeInlineTask>(TaskIndex + 1, MaxItems, ChunkSize);
+
+		return true;
+	}
+
 	bool FGroupRangeInlineIterationTask::ExecuteTask()
 	{
 		check(Group)
@@ -156,7 +177,7 @@ namespace PCGExMT
 
 		if (!Loops.IsValidIndex(TaskIndex + 1)) { return false; }
 
-		Group->InternalStartInlineRange(TaskIndex + 1, MaxItems, ChunkSize);
+		Group->InternalStartInlineRange<FGroupRangeInlineIterationTask>(TaskIndex + 1, MaxItems, ChunkSize);
 
 		return true;
 	}

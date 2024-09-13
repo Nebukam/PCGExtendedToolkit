@@ -101,7 +101,7 @@ namespace PCGExSimplifyClusters
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 
-		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};

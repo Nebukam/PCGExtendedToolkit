@@ -14,7 +14,13 @@ void UPCGExEdgeRemoveLongest::ProcessNode(PCGExCluster::FNode& Node)
 
 	for (const uint64 AdjacencyHash : Node.Adjacency)
 	{
-		const double Dist = Cluster->GetDistSquared(Node.NodeIndex, PCGEx::H64A(AdjacencyHash));
+		uint32 OtherNodeIndex;
+		uint32 EdgeIndex;
+		PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
+		
+		if (!*(EdgesFilters->GetData() + EdgeIndex)) { continue; }
+		
+		const double Dist = Cluster->GetDistSquared(Node.NodeIndex, OtherNodeIndex);
 		if (Dist > LongestDist)
 		{
 			LongestDist = Dist;

@@ -203,7 +203,7 @@ namespace PCGExFindContours
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		virtual void ProcessSingleRangeIteration(int32 Iteration) override;
+		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;

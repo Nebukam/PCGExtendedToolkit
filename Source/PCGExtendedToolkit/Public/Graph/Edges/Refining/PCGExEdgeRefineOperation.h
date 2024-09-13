@@ -41,12 +41,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefineOperation : public UPCGExOperat
 	GENERATED_BODY()
 
 public:
+	virtual bool SupportFilters() { return true; }
 	virtual bool InvalidateAllEdgesBeforeProcessing() { return false; }
 	virtual bool RequiresNodeOctree() { return false; }
 	virtual bool RequiresEdgeOctree() { return false; }
 	virtual bool RequiresHeuristics() { return false; }
 	virtual bool RequiresIndividualNodeProcessing() { return false; }
 	virtual bool RequiresIndividualEdgeProcessing() { return false; }
+
+	TArray<bool>* VtxFilters = nullptr;
+	TArray<bool>* EdgesFilters = nullptr;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
 

@@ -287,6 +287,7 @@ namespace PCGExMT
 		friend class FGroupRangeCallbackTask;
 		friend class FGroupPrepareRangeTask;
 		friend class FGroupRangeIterationTask;
+		friend class FGroupPrepareRangeInlineTask;
 		friend class FGroupRangeInlineIterationTask;
 
 		FName GroupName = NAME_None;
@@ -360,7 +361,7 @@ namespace PCGExMT
 
 		void StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false, const bool bExecuteSmallSynchronously = true);
 
-		void PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize);
+		void PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline = false);
 
 	protected:
 		FTaskManager* Manager;
@@ -381,7 +382,19 @@ namespace PCGExMT
 
 		void PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
 		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
-		void InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize);
+
+		template <typename T>
+		void InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize)
+		{
+			FAsyncTask<T>* NextRange = new FAsyncTask<T>(nullptr);
+			NextRange->GetTask().Group = this;
+			NextRange->GetTask().MaxItems = MaxItems;
+			NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);
+
+			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(NextRange, Index); }
+			else { Manager->StartBackgroundTask<T>(NextRange, Index); }
+		}
+
 
 		void OnTaskCompleted();
 	};
@@ -484,6 +497,19 @@ namespace PCGExMT
 		}
 
 		uint64 Scope = 0;
+		virtual bool ExecuteTask() override;
+	};
+
+	class FGroupPrepareRangeInlineTask : public FPCGExTask
+	{
+	public:
+		explicit FGroupPrepareRangeInlineTask(PCGExData::FPointIO* InPointIO):
+			FPCGExTask(InPointIO)
+		{
+		}
+
+		int32 MaxItems = 0;
+		int32 ChunkSize = 0;
 		virtual bool ExecuteTask() override;
 	};
 

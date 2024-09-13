@@ -24,6 +24,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefi
 	GENERATED_BODY()
 
 public:
+	virtual bool SupportFilters() override { return false; }
 	virtual bool InvalidateAllEdgesBeforeProcessing() override { return true; }
 	virtual bool RequiresHeuristics() override { return true; }
 	virtual void Process() override;

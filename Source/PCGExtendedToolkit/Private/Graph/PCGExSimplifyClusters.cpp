@@ -121,7 +121,7 @@ namespace PCGExSimplifyClusters
 		StartParallelLoopForRange(Chains.Num());
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
 		PCGExCluster::FNodeChain* Chain = Chains[Iteration];
 		if (!Chain) { return; }

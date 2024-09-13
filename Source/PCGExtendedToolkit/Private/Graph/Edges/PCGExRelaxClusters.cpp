@@ -137,12 +137,12 @@ namespace PCGExRelaxClusters
 			nullptr, this);
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
 		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration);
 	}
 
-	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node)
+	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
 	{
 		RelaxOperation->ProcessExpandedNode(*(ExpandedNodes->GetData() + Index));
 
@@ -200,7 +200,7 @@ namespace PCGExRelaxClusters
 		for (int i = 0; i < NumIterations; ++i)
 		{
 			const int32 Index = StartIndex + i;
-			Processor->ProcessSingleNode(Index, *(Processor->Cluster->Nodes->GetData() + Index));
+			Processor->ProcessSingleNode(Index, *(Processor->Cluster->Nodes->GetData() + Index), TaskIndex, NumIterations);
 		}
 
 		return true;

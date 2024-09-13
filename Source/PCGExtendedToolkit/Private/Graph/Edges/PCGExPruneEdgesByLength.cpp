@@ -150,12 +150,12 @@ namespace PCGExPruneEdges
 		return true;
 	}
 
-	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
+	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
 		Edge.bValid = FMath::IsWithin(EdgeLengths[Edge.EdgeIndex], ReferenceMin, ReferenceMax);
 	}
 
-	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration) { ProcessSingleEdge(IndexedEdges[Iteration]); }
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) { ProcessSingleEdge(Iteration, IndexedEdges[Iteration], LoopIdx, Count); }
 
 	void FProcessor::CompleteWork()
 	{
