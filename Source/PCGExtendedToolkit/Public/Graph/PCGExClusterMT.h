@@ -169,16 +169,18 @@ namespace PCGExClusterMT
 			{
 				PrepareLoopScopesForNodes({PCGEx::H64(0, NumNodes)});
 				ProcessNodes(0, NumNodes, 0);
+				OnNodesProcessingComplete();
 				return;
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
-			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForNodes(Loops); });
-			ParallelLoop->SetOnIterationRangeStartCallback(
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoopForNodes)
+			ParallelLoopForNodes->SetOnCompleteCallback([&]() { OnNodesProcessingComplete(); });
+			ParallelLoopForNodes->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForNodes(Loops); });
+			ParallelLoopForNodes->SetOnIterationRangeStartCallback(
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessNodes(StartIndex, Count, LoopIdx); });
-			ParallelLoop->PrepareRangesOnly(NumNodes, PLI, bInlineProcessNodes);
+			ParallelLoopForNodes->PrepareRangesOnly(NumNodes, PLI, bInlineProcessNodes);
 		}
 
 		virtual void PrepareLoopScopesForNodes(const TArray<uint64>& Loops)
@@ -204,22 +206,30 @@ namespace PCGExClusterMT
 		{
 		}
 
+		virtual void OnNodesProcessingComplete()
+		{
+		}
+
+		
+
 		void StartParallelLoopForEdges(const int32 PerLoopIterations = -1)
 		{
 			if (IsTrivial())
 			{
 				PrepareLoopScopesForEdges({PCGEx::H64(0, NumEdges)});
 				ProcessEdges(0, NumEdges, 0);
+				OnEdgesProcessingComplete();
 				return;
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
-			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForEdges(Loops); });
-			ParallelLoop->SetOnIterationRangeStartCallback(
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoopForEdges)
+			ParallelLoopForEdges->SetOnCompleteCallback([&]() { OnEdgesProcessingComplete(); });
+			ParallelLoopForEdges->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForEdges(Loops); });
+			ParallelLoopForEdges->SetOnIterationRangeStartCallback(
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessEdges(StartIndex, Count, LoopIdx); });
-			ParallelLoop->PrepareRangesOnly(NumEdges, PLI, bInlineProcessEdges);
+			ParallelLoopForEdges->PrepareRangesOnly(NumEdges, PLI, bInlineProcessEdges);
 		}
 
 		virtual void PrepareLoopScopesForEdges(const TArray<uint64>& Loops)
@@ -245,6 +255,9 @@ namespace PCGExClusterMT
 		{
 		}
 
+		virtual void OnEdgesProcessingComplete()
+		{
+		}
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
@@ -252,16 +265,18 @@ namespace PCGExClusterMT
 			{
 				PrepareLoopScopesForRanges({PCGEx::H64(0, NumIterations)});
 				ProcessRange(0, NumIterations, 0);
+				OnRangeProcessingComplete();
 				return;
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
-			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
-			ParallelLoop->SetOnIterationRangeStartCallback(
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoopForRanges)
+			ParallelLoopForRanges->SetOnCompleteCallback([&]() { OnRangeProcessingComplete(); });
+			ParallelLoopForRanges->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
+			ParallelLoopForRanges->SetOnIterationRangeStartCallback(
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); });
-			ParallelLoop->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
+			ParallelLoopForRanges->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
 		}
 
 		virtual void PrepareLoopScopesForRanges(const TArray<uint64>& Loops)
@@ -282,10 +297,10 @@ namespace PCGExClusterMT
 		{
 		}
 
-		virtual void ProcessScope(const uint64 Scope)
+		virtual void OnRangeProcessingComplete()
 		{
 		}
-
+		
 #pragma endregion
 
 		virtual void CompleteWork()
@@ -472,6 +487,12 @@ namespace PCGExClusterMT
 				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor); }
 			}
 
+			StartProcessing();
+			
+		}
+
+		virtual void StartProcessing()
+		{
 			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManagerPtr); })
 		}
 

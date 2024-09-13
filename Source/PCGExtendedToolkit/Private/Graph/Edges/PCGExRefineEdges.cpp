@@ -16,8 +16,8 @@ TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 	if (Refinement && Refinement->RequiresHeuristics()) { PCGEX_PIN_PARAMS(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, {}) }
 	if (Refinement && Refinement->SupportFilters())
 	{
-		PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceVtxFilters, "Filters used to check if a vtx should be processed.", Normal, {})
-		PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceEdgeFilters, "Filters used to check if an edge should be processed.", Normal, {})
+		//PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceVtxFilters, "Filters used to check if a vtx should be processed.", Normal, {})
+		PCGEX_PIN_PARAMS(PCGExRefineEdges::SourceEdgeFilters, "Filters used to check if an edge point should be processed.", Normal, {})
 	}
 
 	return PinProperties;
@@ -64,7 +64,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 
 	if (Context->Refinement->SupportFilters())
 	{
-		GetInputFactories(Context, PCGExRefineEdges::SourceVtxFilters, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
+		//GetInputFactories(Context, PCGExRefineEdges::SourceVtxFilters, Context->VtxFilterFactories, PCGExFactories::ClusterNodeFilters, false);
 		GetInputFactories(Context, PCGExRefineEdges::SourceEdgeFilters, Context->EdgeFilterFactories, PCGExFactories::ClusterEdgeFilters, false);
 	}
 

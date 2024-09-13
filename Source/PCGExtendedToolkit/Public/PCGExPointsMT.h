@@ -135,16 +135,18 @@ namespace PCGExPointsMT
 			{
 				PrepareLoopScopesForPoints({PCGEx::H64(0, NumPoints)});
 				ProcessPoints(0, NumPoints, 0);
+				OnPointsProcessingComplete();
 				return;
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
-			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForPoints(Loops); });
-			ParallelLoop->SetOnIterationRangeStartCallback(
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoopForPoints)
+			ParallelLoopForPoints->SetOnCompleteCallback([&]() { OnPointsProcessingComplete(); });
+			ParallelLoopForPoints->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForPoints(Loops); });
+			ParallelLoopForPoints->SetOnIterationRangeStartCallback(
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessPoints(StartIndex, Count, LoopIdx); });
-			ParallelLoop->PrepareRangesOnly(NumPoints, PLI, bInlineProcessPoints);
+			ParallelLoopForPoints->PrepareRangesOnly(NumPoints, PLI, bInlineProcessPoints);
 		}
 
 		virtual void PrepareLoopScopesForPoints(const TArray<uint64>& Loops)
@@ -170,6 +172,10 @@ namespace PCGExPointsMT
 		{
 		}
 
+		virtual void OnPointsProcessingComplete()
+		{
+		}
+
 #pragma endregion
 
 #pragma region Simple range loop
@@ -180,16 +186,18 @@ namespace PCGExPointsMT
 			{
 				PrepareLoopScopesForRanges({PCGEx::H64(0, NumIterations)});
 				ProcessRange(0, NumIterations, 0);
+				OnRangeProcessingComplete(); 
 				return;
 			}
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoop)
-			ParallelLoop->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
-			ParallelLoop->SetOnIterationRangeStartCallback(
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoopForRanges)
+			ParallelLoopForRanges->SetOnCompleteCallback([&]() { OnRangeProcessingComplete(); });
+			ParallelLoopForRanges->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
+			ParallelLoopForRanges->SetOnIterationRangeStartCallback(
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); });
-			ParallelLoop->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
+			ParallelLoopForRanges->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
 		}
 
 		virtual void PrepareLoopScopesForRanges(const TArray<uint64>& Loops)
@@ -204,6 +212,10 @@ namespace PCGExPointsMT
 		{
 			PrepareSingleLoopScopeForRange(StartIndex, Count);
 			for (int i = 0; i < Count; ++i) { ProcessSingleRangeIteration(StartIndex + i, LoopIdx, Count); }
+		}
+
+		virtual void OnRangeProcessingComplete()
+		{
 		}
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)

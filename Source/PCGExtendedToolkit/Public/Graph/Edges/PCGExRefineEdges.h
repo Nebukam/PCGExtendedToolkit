@@ -166,4 +166,20 @@ namespace PCGExRefineEdges
 		uint64 Scope = 0;
 		virtual bool ExecuteTask() override;
 	};
+
+	/*
+	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+		friend class FProcessor;
+				
+	public:
+		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		virtual ~FProcessorBatch() override;
+
+		virtual bool PrepareProcessing() override;
+		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		//virtual void CompleteWork() override;
+		virtual void Write() override;
+	};
+	*/
 }
