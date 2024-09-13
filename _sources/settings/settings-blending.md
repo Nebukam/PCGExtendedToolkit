@@ -6,6 +6,7 @@ nav_exclude: true
 
 ---
 ## Blending Settings
+<br>
 
 > WIP
 {: .warning-hl }

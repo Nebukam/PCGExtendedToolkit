@@ -6,6 +6,7 @@ nav_exclude: true
 
 ---
 ## Performance Settings
+<br>
 
 |**Performance Settings**||
 |Do Async Processing| Checked by default, you can toggle it off to force synchronous/unparallelized execution of the code. *It's usually a bad idea performance-wise.*<br> > Note that synchronous execution still processes data in *chunks*, it just does it with guaranteed order, as opposed to parallel processing. |

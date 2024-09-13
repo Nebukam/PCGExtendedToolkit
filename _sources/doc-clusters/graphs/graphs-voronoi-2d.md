@@ -3,6 +3,7 @@ layout: page
 grand_parent: Clusters
 parent: Graphs
 title: Voronoi 2D
+name_in_editor: "Cluster : Voronoi 2D"
 subtitle: Outputs a 2D Voronoi graph.
 summary: The **Voronoi 2D** node outputs a 2D Voronoi graph with options like balanced, canon, or centroid positioning. Adjust bounds, prune sites, and mark edges on the hull. 
 color: blue
@@ -13,7 +14,7 @@ tagged:
     - node
     - clusters
     - graphs
-nav_order: 6
+nav_order: 2
 see_also:
     - Working with Clusters
 example: EdgesAndGraphs/PCGEx_Graph_Voronoi-2D
@@ -32,34 +33,40 @@ outputs:
 
 {% include header_card_node %}
 
+This node creates a 2D Voronoi diagram from the input points. If you'd like to know more about Voronoi intrinsic properties, check out the [Wikipedia article](https://en.wikipedia.org/wiki/Voronoi_diagram)!  
+{: .fs-5 .fw-400 } 
+
+{% include img a='placeholder-wide.jpg' %}
+
 # Properties
 <br>
 
-> If you'd like to know more about Voronoi intrinsic properties, check out the [Wikipedia article](https://en.wikipedia.org/wiki/Voronoi_diagram)!
-
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
-| Method           | The method used to position Voronoi' sites. See [Method](#method)  |
-| Bounds Cutoff           | If enabled, voronoi sites outside of the input points' bounds will be pruned. Bounds are expanded by this property.<br>*Activating this will enable graph output settings, as the graph is no longer guaranteed to be complete. See {% include lk id='Working with Clusters' a='#graph-output-settings-' %}.*  |
+|: **Settings** :|
+| Method           | Defines how the position of the Voronoi site is computed. *See below for more infos.* |
+| Expand Bounds           | Value added on each axis of the initial input points bounds, used for maths & processes involving bounds. |
+| Prune Out of Bounds           | Depending on the selected method, the diagram will produce out-of-bounds points *(up to ±inf)*. Enabling this option lets you remove those points from the output. |
+| Hull Attribute Name<br>`Boolean`          | If enabled, will flag output `Vtx` points that lie on the convex hull of the underlying Delaunay diagram.<br>*Note that this is not the exact hull, but rather an approximation.* |
+| Mark Edge on Touch          | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* |
 
-|**Hull Identification**||
-| **Hull** Attribute Name           | Name of the attribute to write the "is on hull" flag to. |
-| Mark Edge on Touch           | If enabled, edges that *connects to a hull point without being on the hull themselves* will be considered as "on hull". |
-|**Projection Settings**| Projection settings allow you to control the projection plane used to compute the graph in 2D. See [Projection Settings](#settings-projection)|
-
-> Note that the hull is *optimized* and will ignore points that *lie* on the hull but don't mathematically influence it *(i.e collinear/coplanar points)*.
+> Note that enabling `Prune Out of Bounds` points has a theorical risk of creating more than one finite cluster as a result.
 {: .warning }
 
 ---
-## Method
+## Voronoi site position
+<br>
 
-There are three available methods to drive Voronoi' site position in space.
+{% include img a='placeholder-wide.jpg' %}
 
-| Method       | Description          |
+| Mode       | |
 |:-------------|:------------------|
-| Balanced           | Uses `Canon` site location when site is within bounds, and fallbacks to `Centroid` otherwise. |
-| Canon           | Uses the real, computed voronoi site position.<br>**Sites on the outskirts of the graph usually have extreme deformations.**  |
-| Centroid           | Uses the delaunay' triangulation centroid instead of the real position.<br>*This is usually good looking, but can lead to overlapping edges.*  |
+| {% include img a='placeholder.jpg' %} | **Centroid**<br>Uses the centroid of the Delaunay site.<br>*While more visually pleasing, some concave sites may appear depending on the initial topology.* |
+| {% include img a='placeholder.jpg' %} | **Canon (Circumcenter)**<br>Uses the [circumcenter](https://en.wikipedia.org/wiki/Circumcircle) of the Delaunay triangle.<br>*This is the true voronoi algorithm, it guarantees only convex sites.* |
+| {% include img a='placeholder.jpg' %} | **Centroid**<br>Uses the centroid of the Delaunay site for the point that are outside the bounds, otherwise use circumcenters.<br>*Best of both worlds, or worst of both worlds; depending on how you look at it.* |
+
 
 {% include embed id='settings-projection' %}
+
+
+{% include embed id='settings-cluster-output' %}

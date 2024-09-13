@@ -3,6 +3,7 @@ layout: page
 grand_parent: Clusters
 parent: Graphs
 title: Delaunay 2D
+name_in_editor: "Cluster : Delaunay 2D"
 subtitle: Outputs a 2D Delaunay triangulation.
 summary: The **Delaunay 2D** node outputs a 2D Delaunay triangulation with options like Urquhart graph, hull identification, and projection settings.
 color: blue
@@ -13,7 +14,7 @@ tagged:
     - node
     - clusters
     - graphs
-nav_order: 5
+nav_order: 1
 see_also:
     - Working with Clusters
 example: EdgesAndGraphs/PCGEx_Graph_Delaunay-2D
@@ -28,25 +29,70 @@ outputs:
     -   name : Edges
         desc : Edges associated with the output Vtxs
         pin : points
+    -   name : Sites
+        desc : Delaunay Sites
+        pin : points
 ---
 
+
 {% include header_card_node %}
+
+This node creates a 2D Delaunay graph from the input points. If you'd like to know more about Delaunay intrinsic properties, check out the [Wikipedia article](https://en.wikipedia.org/wiki/Delaunay_triangulation)!  
+It has very *very* interesting properties, and this node also offers the ability to output the [Urquhart](https://en.wikipedia.org/wiki/Urquhart_graph) alternative; which is even more fascinating.
+{: .fs-5 .fw-400 } 
+
+{% include img a='placeholder-wide.jpg' %}
 
 # Properties
 <br>
 
-> If you'd like to know more about Delaunay intrinsic properties, check out the [Wikipedia article](https://en.wikipedia.org/wiki/Delaunay_triangulation)!
-
 | Property       | Description          |
 |:-------------|:------------------|
-|**Settings**||
-| Urquhart           | If enabled, outputs the [Urquhart](https://en.wikipedia.org/wiki/Urquhart_graph) graph instead of Delaunay.  |
-|**Hull Identification**||
-| **Hull** Attribute Name           | Name of the attribute to write the "is on hull" flag to. |
-| Mark Edge on Touch           | If enabled, edges that *connects to a hull point without being on the hull themselves* will be considered as "on hull". |
-|**Projection Settings**| Projection settings allow you to control the projection plane used to compute the graph in 2D. See [Projection Settings](#settings-projection)|
+|: **Settings** :|
+| Urquhart           | If enabled, the node will output the Urquhart version of the Delaunay graph.<br>*This enables additional options for site output.* |
+| Hull Attribute Name<br>`Boolean`          | If enabled, will flag output `Vtx` points that lie on the convex hull of the graph. |
+| Mark Edge on Touch          | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* |
 
-> Note that the hull is *optimized* and will ignore points that *lie* on the hull but don't mathematically influence it *(i.e collinear/coplanar points)*.
-{: .warning }
+---
+## Sites
+<br>
+
+{% include img a='placeholder-wide.jpg' %}
+
+| Output Sites           | If enabled, the node will output the Delaunay Sites.<br>*Each site is the centroid of a Delaunay triangle.* |
+| Site Hull Attribute Name<br>`Boolean`          | If enabled, will flag output site points that have at least an edge that lie on the convex hull of the graph. |
+| Urquhart Sites Merge         | Defines if and how Delaunay Sites should be merged when they are part of a single "Urquhart" cell. |
+
+### Urquhart Sites Merge
+
+| Mode       | |
+|:-------------|:------------------|
+| {% include img a='placeholder.jpg' %} | **None**<br>Outputs canon Delaunay sites. |
+| {% include img a='placeholder.jpg' %} | **Merge Sites**<br>The output site is the average of all the canon Delaunay sites that are abstracted by the Urquhart pass. |
+| {% include img a='placeholder.jpg' %} | **Merge Edges**<br>The output site is the average of all the edges removed by the Urquhart pass. |
+
+> Which merge mode to use, if any, depends on your final intent. **If your goal is find the contours of an Urquhart "cell", then Merge Edges offer usually more interesting sites positions.**
+{: .infos-hl }
+
 
 {% include embed id='settings-projection' %}
+
+
+{% include embed id='settings-cluster-output' %}
+
+
+---
+## Tips
+
+The delaunay algorithm creates a convex hull of very, *very* long edges, so you'll often need to remove them to "clean" the graph. There are multiple approaches to to that, the two most straighfoward approaches being:
+
+### Hull pruning
+- Simply enable the Hull mark, filter these `Vtx` out and sanitize the cluster afterward.
+
+{% include img a='placeholder-wide.jpg' %}
+
+### Prune by Length
+- Use {% include lk id='Prune edges by Length' %} to remove outliers. This is a more conversative approach compared to the one above, as it will keep the smaller hull edges.
+
+{% include img a='placeholder-wide.jpg' %}
+

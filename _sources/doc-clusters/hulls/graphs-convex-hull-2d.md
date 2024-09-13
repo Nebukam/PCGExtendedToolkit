@@ -26,22 +26,25 @@ outputs:
     -   name : Edges
         desc : Edges associated with the output Vtxs
         pin : points
+    -   name : Paths
+        desc : Hull points ordered as a path
+        pin : points
 ---
 
 {% include header_card_node %}
 
+The 2D Convex Hull node capture the convex bounding shape of a set of point in two dimensions.  
+Under-the-hood the points are first projected on a plane, and the hull is deducted from that projection.
+{: .fs-5 .fw-400 } 
+
+The node outputs a single cluster that contains the unordered hull & its edges, as well as an actual "canon" path, whose points are ordered in clockwise order.
+
+{% include img a='placeholder-wide.jpg' %}
+
 # Properties
 <br>
 
-| Property       | Description          |
-|:-------------|:------------------|
-|**Settings**||
-| Prune Points           | If enabled, `Vtx` that aren't part of the hull are pruned from the output.   |
-| **Hull** Attribute Name           | Name of the attribute to write the "is on hull" flag to.<br>*Disabled if points are pruned, since the output in that case will be exclusively hull points.* |
-|**Projection Settings**| Projection settings allow you to control the projection plane used to compute the graph in 2D. See [Projection Settings](#settings-projection)|
-
-> Note that the hull is *optimized* and will ignore points that *lie* on the hull but don't mathematically influence it *(i.e collinear/coplanar points)*.
-{: .warning }
-
 {% include embed id='settings-projection' %}
+
+{% include embed id='settings-cluster-output' %}
 

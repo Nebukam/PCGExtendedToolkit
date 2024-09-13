@@ -2,10 +2,10 @@
 layout: page
 #grand_parent: All Nodes
 parent: Sampling
-title: Guided Trace
+title: Line Trace
 subtitle: Sample environment using line casting
 color: white
-summary: The **Guided Trace** node performs a single line trace for each point, using a local attribute or property as direction & size.
+summary: The **Line Trace** node performs a single line trace for each point, using a local attribute or property as direction & size.
 splash: icons/icon_sampling-guided.svg
 preview_img: docs/splash-sample-guided.png
 toc_img: placeholder.jpg
@@ -46,21 +46,4 @@ outputs:
 | **Normal** Attribute Name     | Writes the normal of the surface at the sampled, as an `FVector`. |
 | **Distance** Attribute Name     | Writes the distance between the point and the sampled location, as a `double`. |
 
-|**Collision Settings**||
-| Max Distance          | The maximum distance to search for a collision, from the point location in world space.<br>*In other words, the radius of the query sphere.* |
-| Collision Type          | The type of collison to sample.<br>*See [Collision Types](#collision-types)*. |
-| Collision Details          | Additional properties are available based on the selected `Collision Type`. |
-| Ignore Self          | Ignore the Actor owning the outer PCG graph. |
-| Ignored Actor Selector          | In-depth actor filtering.<br>*Uses native PCG' actor filter. See Unreal documentation.*|
-
-## Collision Types
-### Channel
-
-|**Extra properties**||
-|:-------------|:------------------|
-|**Channel**||
-| Collision Channel          | Project-specific. Selects a single collision channel to test against. |
-|**Object Type**||
-| Collision Object Type          | Same as Collision Channel, but work with a **flag**, allowing for a combination of types to test against. |
-|**Profile**||
-| Collision Profile Name          | Name of the collision profile to test against. |
+{% include embed id='settings-collisions' %}

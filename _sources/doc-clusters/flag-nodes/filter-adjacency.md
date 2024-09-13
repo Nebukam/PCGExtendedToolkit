@@ -29,6 +29,7 @@ The adjacency filter does a simple numeric comparison on each individual connect
 {% include img a='placeholder-wide.jpg' %}
 
 # Properties
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

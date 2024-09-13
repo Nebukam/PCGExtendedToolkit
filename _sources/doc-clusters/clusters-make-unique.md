@@ -3,7 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Clusters
 title: Make Unique
-subtitle: Forward clusters with a new pair of unique tags. Like a copy, only much faster.
+subtitle: Forward clusters with a new unique pair of tags. It's like creating a copy, only much faster.
 summary: The **Make Clusters Unique** ...
 color: white
 splash: icons/icon_graphs-sanitize.svg

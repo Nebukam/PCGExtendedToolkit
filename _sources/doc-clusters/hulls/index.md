@@ -17,16 +17,14 @@ tagged:
 nav_order: 30
 ---
 
-{% include header_card_node %}
+{% include header_card_toc %}
 
-# Properties
-<br>
-
-> DOC TDB
-{: .warning }
+Hulls capture the convex bounding shape of a set of point.  
+The current implementation is based on an underlying Delaunay Graph.
+{: .fs-5 .fw-400 } 
 
 ---
-## Hulls
+## Available Hulls
 <br>
 {% include card_childs tagged='clusters' %}
 

@@ -30,14 +30,12 @@ outputs:
 
 {% include header_card_node %}
 
+The 3D Convex Hull node capture the convex bounding shape of a set of point in three dimensions.
+{: .fs-5 .fw-400 } 
+
+{% include img a='placeholder-wide.jpg' %}
+
 # Properties
 <br>
 
-| Property       | Description          |
-|:-------------|:------------------|
-|**Settings**||
-| Prune Points           | If enabled, `Vtx` that aren't part of the hull are pruned from the output.   |
-| **Hull** Attribute Name           | Name of the attribute to write the "is on hull" flag to.<br>*Disabled if points are pruned, since the output in that case will be exclusively hull points.* |
-
-> Note that the hull is *optimized* and will ignore points that *lie* on the hull but don't mathematically influence it *(i.e collinear/coplanar points)*.
-{: .warning }
+{% include embed id='settings-cluster-output' %}

@@ -6,6 +6,7 @@ nav_exclude: true
 
 ---
 ### Dot Comparison Details
+<br>
 
 | Comparison          | Which comparison to use.<br>*See [Comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
 | Dot Units             | Let you choose to work either with normalized dot range (`-1 / 1`) or degrees.<br>*This affects how the attribute Dot value will be interpreted as well.* |
