@@ -11,6 +11,14 @@
 #include "Graph/PCGExIntersections.h"
 #include "PCGExFindClustersData.generated.h"
 
+UENUM(BlueprintType, meta=(BDisplayName="[PCGEx] Cluster Data Search Mode"))
+enum class EPCGExClusterDataSearchMode : uint8
+{
+	All          = 0 UMETA(DisplayName = "All"),
+	VtxFromEdges = 1 UMETA(DisplayName = "Vtx from Edges"),
+	EdgesFromVtx = 2 UMETA(DisplayName = "Edges from Vtx"),
+};
+
 /**
  * 
  */
@@ -22,7 +30,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFindClustersDataSettings : public UPCGExP
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FindClustersData, "Find Clusters", "Find vtx/edge pairs among a soup of data collections");
+	PCGEX_NODE_INFOS(FindClustersData, "Find Clusters", "Find vtx/edge pairs inside a soup of data collections");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorEdge; }
 #endif
 
@@ -36,8 +44,13 @@ protected:
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
+	FName GetSearchOutputLabel() const { return SearchMode == EPCGExClusterDataSearchMode::VtxFromEdges ? FName("Edges") : FName("Vtx"); }
 	//~End UPCGExPointsProcessorSettings
 
+	/** Search mode. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	EPCGExClusterDataSearchMode SearchMode = EPCGExClusterDataSearchMode::VtxFromEdges;
+	
 	/** Warning about inputs mismatch and triage */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	bool bSkipTrivialWarnings = false;
@@ -53,6 +66,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindClustersDataContext final : public F
 
 	virtual ~FPCGExFindClustersDataContext() override;
 
+	FString SearchKey = TEXT("");
+	PCGExData::FPointIO* SearchKeyIO = nullptr;
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 };
 

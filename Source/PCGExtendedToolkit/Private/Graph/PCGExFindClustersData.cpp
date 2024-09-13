@@ -11,6 +11,10 @@ TArray<FPCGPinProperties> UPCGExFindClustersDataSettings::InputPinProperties() c
 {
 	TArray<FPCGPinProperties> PinProperties;
 	PCGEX_PIN_ANY(GetMainInputLabel(), "The point data to be processed.", Required, {})
+	if (SearchMode != EPCGExClusterDataSearchMode::All)
+	{
+		PCGEX_PIN_POINT(GetSearchOutputLabel(), "The search data to match against.", Required, {})
+	}
 	return PinProperties;
 }
 
@@ -29,6 +33,7 @@ FPCGExFindClustersDataContext::~FPCGExFindClustersDataContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	PCGEX_DELETE(SearchKeyIO)
 	PCGEX_DELETE(MainEdges)
 }
 
@@ -41,6 +46,35 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 	Context->MainEdges = new PCGExData::FPointIOCollection(Context);
 	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
+	if (Settings->SearchMode != EPCGExClusterDataSearchMode::All)
+	{
+		Context->SearchKeyIO = PCGExData::TryGetSingleInput(Context, Settings->GetSearchOutputLabel(), true);
+		if (!Context->SearchKeyIO)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid reference input."));
+			return false;
+		}
+
+		if (Settings->SearchMode == EPCGExClusterDataSearchMode::EdgesFromVtx)
+		{
+			if(!Context->SearchKeyIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid reference input (not a Vtx group)."));
+				return false;
+			}
+		}
+		else if (Settings->SearchMode == EPCGExClusterDataSearchMode::VtxFromEdges)
+		{
+			if(!Context->SearchKeyIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
+			{
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid reference input. (not an Edges group)"));
+				return false;
+			}
+		}
+
+		Context->SearchKeyIO->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, Context->SearchKey);
+	}
+
 	return true;
 }
 
@@ -52,6 +86,80 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_CONTEXT_AND_SETTINGS(FindClustersData)
 
 	if (!Boot(Context)) { return true; }
+
+	if (Settings->SearchMode == EPCGExClusterDataSearchMode::EdgesFromVtx)
+	{
+		// We have a single Vtx input, find matching edges
+		FString OtherKey = TEXT("");
+		for (int i = 0; i < Context->MainPoints->Pairs.Num(); i++)
+		{
+			PCGExData::FPointIO* InputIO = Context->MainPoints->Pairs[i];
+			if (!InputIO->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, OtherKey) || OtherKey != Context->SearchKey) { continue; }
+			if (!InputIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges)) { continue; }
+
+			// Remove found edges from main points
+			Context->MainPoints->Pairs.RemoveAt(i);
+			i--;
+
+			// Add to main edges & forward
+			Context->MainEdges->AddUnsafe(InputIO);
+			InputIO->InitializeOutput(PCGExData::EInit::Forward);
+		}
+
+		if (Context->MainEdges->IsEmpty())
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Could not find any match."));
+			return true;
+		}
+
+		// Add vtx key to main output & forward
+		Context->MainPoints->AddUnsafe(Context->SearchKeyIO);
+		Context->SearchKeyIO->InitializeOutput(PCGExData::EInit::Forward);
+		Context->SearchKeyIO = nullptr;
+
+		Context->MainPoints->OutputToContext();
+		Context->MainEdges->OutputToContext();
+
+		Context->Done();
+
+		return Context->TryComplete();
+	}
+
+	if (Settings->SearchMode == EPCGExClusterDataSearchMode::VtxFromEdges)
+	{
+		// We have a single Edge input, find (first) matching Vtx
+		bool bFoundMatch = false;
+		FString OtherKey = TEXT("");
+		for (int i = 0; i < Context->MainPoints->Pairs.Num(); i++)
+		{
+			PCGExData::FPointIO* InputIO = Context->MainPoints->Pairs[i];
+			if (!InputIO->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, OtherKey) || OtherKey != Context->SearchKey) { continue; }
+			if (!InputIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx)) { continue; }
+
+			// Output vtx
+			InputIO->InitializeOutput(PCGExData::EInit::Forward);
+			bFoundMatch = true;
+			break;
+		}
+
+		if (!bFoundMatch)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Could not find any match."));
+			return true;
+		}
+
+		// Move edge key to edges output and forward
+		Context->MainEdges->AddUnsafe(Context->SearchKeyIO);
+		Context->SearchKeyIO->InitializeOutput(PCGExData::EInit::Forward);
+		Context->SearchKeyIO = nullptr;
+
+		Context->MainPoints->OutputToContext();
+		Context->MainEdges->OutputToContext();
+
+		Context->Done();
+
+		return Context->TryComplete();
+	}
 
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = new PCGExData::FPointIOTaggedDictionary(PCGExGraph::TagStr_ClusterPair);
 
