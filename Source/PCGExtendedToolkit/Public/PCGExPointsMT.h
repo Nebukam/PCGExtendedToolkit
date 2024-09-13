@@ -186,7 +186,7 @@ namespace PCGExPointsMT
 			{
 				PrepareLoopScopesForRanges({PCGEx::H64(0, NumIterations)});
 				ProcessRange(0, NumIterations, 0);
-				OnRangeProcessingComplete(); 
+				OnRangeProcessingComplete();
 				return;
 			}
 

@@ -112,7 +112,7 @@ namespace PCGExRefineEdges
 	protected:
 		PCGExPointFilter::TManager* EdgeFilterManager = nullptr;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
-		
+
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 		mutable FRWLock NodeLock;
 

@@ -288,7 +288,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 			TypedBatch->SetPointsFilterData(&FilterFactories);
 		}
 
-		if(MainBatch->PrepareProcessing()){ MainBatch->Process(GetAsyncManager()); }
+		if (MainBatch->PrepareProcessing()) { MainBatch->Process(GetAsyncManager()); }
 		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
 
 		return true;

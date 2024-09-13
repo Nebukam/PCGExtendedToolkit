@@ -17,7 +17,7 @@ void UPCGExEdgeRemoveHighestScore::ProcessNode(PCGExCluster::FNode& Node)
 		uint32 OtherNodeIndex;
 		uint32 EdgeIndex;
 		PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
-		
+
 		if (!*(EdgesFilters->GetData() + EdgeIndex)) { continue; }
 
 		const double Score = Heuristics->GetEdgeScore(Node, *(Cluster->Nodes->GetData() + OtherNodeIndex), *(Cluster->Edges->GetData() + EdgeIndex), Node, *(Cluster->Nodes->GetData() + OtherNodeIndex));

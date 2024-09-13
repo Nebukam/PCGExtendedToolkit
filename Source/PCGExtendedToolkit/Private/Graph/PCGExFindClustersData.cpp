@@ -57,7 +57,7 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 
 		if (Settings->SearchMode == EPCGExClusterDataSearchMode::EdgesFromVtx)
 		{
-			if(!Context->SearchKeyIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
+			if (!Context->SearchKeyIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid reference input (not a Vtx group)."));
 				return false;
@@ -65,7 +65,7 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 		}
 		else if (Settings->SearchMode == EPCGExClusterDataSearchMode::VtxFromEdges)
 		{
-			if(!Context->SearchKeyIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
+			if (!Context->SearchKeyIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid reference input. (not an Edges group)"));
 				return false;

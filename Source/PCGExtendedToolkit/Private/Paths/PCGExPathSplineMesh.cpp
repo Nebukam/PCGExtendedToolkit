@@ -303,7 +303,7 @@ namespace PCGExPathSplineMesh
 	void FProcessor::Output()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
-		
+
 		// TODO : Resolve per-point target actor...? irk.
 		AActor* TargetActor = LocalSettings->TargetActor.Get() ? LocalSettings->TargetActor.Get() : Context->GetTargetActor(nullptr);
 

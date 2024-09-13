@@ -27,7 +27,7 @@ public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
 	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExCollisionDetails CollisionSettings;
 

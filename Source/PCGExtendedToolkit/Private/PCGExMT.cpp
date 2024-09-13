@@ -86,16 +86,15 @@ namespace PCGExMT
 	void FTaskGroup::PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline)
 	{
 		if (!Manager->IsAvailable()) { return; }
-		
+
 		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
-		
+
 		if (bInline)
 		{
 			TArray<uint64> Loops;
 			NumStarted += SubRanges(Loops, MaxItems, SanitizedChunkSize);
 			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 			InternalStartInlineRange<FGroupPrepareRangeInlineTask>(0, MaxItems, SanitizedChunkSize);
-			
 		}
 		else { StartRanges<FGroupPrepareRangeTask>(MaxItems, SanitizedChunkSize, nullptr); }
 	}
@@ -154,7 +153,7 @@ namespace PCGExMT
 		PCGEx::H64(Loops[TaskIndex], StartIndex, Count);
 
 		Group->PrepareRangeIteration(StartIndex, Count, TaskIndex);
-		
+
 		if (!Loops.IsValidIndex(TaskIndex + 1)) { return false; }
 
 		Group->InternalStartInlineRange<FGroupPrepareRangeInlineTask>(TaskIndex + 1, MaxItems, ChunkSize);

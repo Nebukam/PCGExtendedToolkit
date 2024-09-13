@@ -210,7 +210,6 @@ namespace PCGExClusterMT
 		{
 		}
 
-		
 
 		void StartParallelLoopForEdges(const int32 PerLoopIterations = -1)
 		{
@@ -300,7 +299,7 @@ namespace PCGExClusterMT
 		virtual void OnRangeProcessingComplete()
 		{
 		}
-		
+
 #pragma endregion
 
 		virtual void CompleteWork()
@@ -488,7 +487,6 @@ namespace PCGExClusterMT
 			}
 
 			StartProcessing();
-			
 		}
 
 		virtual void StartProcessing()

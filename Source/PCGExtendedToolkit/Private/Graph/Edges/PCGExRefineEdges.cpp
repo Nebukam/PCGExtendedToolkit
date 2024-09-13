@@ -147,7 +147,7 @@ namespace PCGExRefineEdges
 
 		Refinement = TypedContext->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
 		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
-		
+
 		EdgeFilterCache.Init(true, EdgeDataFacade->Source->GetNum());
 		Refinement->EdgesFilters = &EdgeFilterCache;
 
