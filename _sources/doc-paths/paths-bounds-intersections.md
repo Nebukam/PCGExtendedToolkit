@@ -6,7 +6,7 @@ title: Path × Bounds Intersections
 subtitle: Find intersections with points bounds.
 summary: The **Path × Bounds Intersection** node ...
 color: white
-splash: icons/icon_paths-orient.svg
+splash: icons/icon_edges-intersections.svg
 tagged: 
     - node
     - paths

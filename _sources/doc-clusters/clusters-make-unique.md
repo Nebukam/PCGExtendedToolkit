@@ -7,7 +7,7 @@ name_in_editor: "Cluster : Make Unique"
 subtitle: Forward clusters with a new unique pair of tags. It's like creating a copy, only much faster.
 summary: The **Make Unique** node assigns new unique IDs to clusters without duplicating the data, enabling advanced operations like copying and modifying existing clusters before merging them with the original.
 color: white
-splash: icons/icon_graphs-sanitize.svg
+splash: icons/icon_edges-extras.svg
 tagged:
     - node
     - clusters

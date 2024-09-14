@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Keep Shortest
 subtitle: Keeps the shortest edge of each node
 #summary: The **Keep Shortest** refinement ...
-color: white
+color: red
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

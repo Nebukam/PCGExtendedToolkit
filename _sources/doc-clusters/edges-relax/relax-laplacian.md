@@ -5,7 +5,7 @@ parent: Relax
 title: ☍ Laplacian
 subtitle: Laplacian / Poisson relaxation
 summary: The **Laplacian** relaxation ...
-color: white
+color: blue
 splash: icons/icon_edges-relax.svg
 see_also:
     - Relax

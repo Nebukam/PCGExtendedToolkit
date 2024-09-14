@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Remove Shortest
 subtitle: Removes the shortest edge of each node
 #summary: The **Remove Shortest** refinement ...
-color: white
+color: red
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

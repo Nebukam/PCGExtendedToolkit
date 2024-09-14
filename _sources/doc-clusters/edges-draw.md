@@ -5,7 +5,7 @@ parent: Clusters
 title: Draw Edges
 subtitle: Draw debug edge lines of a given vtx/edge pair.
 summary: The **Draw Edges** node ...
-color: red
+color: blue
 splash: icons/icon_edges-draw.svg
 tagged: 
     - node

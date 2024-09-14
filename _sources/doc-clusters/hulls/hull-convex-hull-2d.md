@@ -5,7 +5,7 @@ parent: Hulls
 title: Convex Hull 2D
 subtitle: Outputs a 2D convex hull.
 summary: The **Convex Hull 2D** outputs the edges/graph of a 2D convex hull. Prune points to exclude non-hull vertices. Specify attributes and projection settings for customization.
-color: blue
+color: white
 splash: icons/icon_graphs-convex-hull.svg
 tagged: 
     - node

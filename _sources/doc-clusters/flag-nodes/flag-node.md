@@ -6,12 +6,12 @@ title: Node Flag
 name_in_editor: "Cluster : Node Flag"
 subtitle: A single flag definition
 summary: The **Node Flag** uses a variety of filters to perform bitmask-based flag operations that can be set in three modes; Direct, Individual, or Composite, with various logical operations like AND, OR, NOT, and XOR.
-color: white
-splash: icons/icon_misc-write-index.svg
+color: blue
+splash: icons/icon_edges-extras.svg
 see_also:
     - Working with Clusters
     - Flag Nodes
-    - Uber Filter
+    - Filter Ecosystem
 tagged: 
     - node
     - clusters

@@ -6,7 +6,7 @@ summary: This section is dedicated to broader pathfinding topics & modules. Node
 color: white
 splash: icons/icon_cat-pathfinding.svg
 preview_img: previews/index-pathfinding.png
-nav_order: 30
+nav_order: 21
 has_children: true
 ---
 

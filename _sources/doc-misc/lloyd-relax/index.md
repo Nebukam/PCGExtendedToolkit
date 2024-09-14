@@ -6,7 +6,7 @@ title: Lloyd Relax
 subtitle: Two nodes to conveniently relax point data.
 #summary: TBD
 color: white
-splash: icons/icon_misc-write-index.svg
+splash: icons/icon_edges-relax.svg
 has_children: true
 use_child_thumbnails: true
 tagged: 

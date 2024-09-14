@@ -12,7 +12,7 @@ tagged:
     - pathfinder
 see_also: 
     - Blending
-nav_order: 4
+nav_order: 6
 inputs:
     -   name : Plots
         desc : Plot points in the form of points collections.

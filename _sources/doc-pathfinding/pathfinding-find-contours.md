@@ -6,7 +6,7 @@ title: Find Contours
 subtitle: Find edge contours & outlines
 summary: The **Find Contours** node finds hole/outlines contours in a graph, using points as proximity seeds.
 color: white
-splash: icons/icon_edges-extras.svg
+splash: icons/icon_custom-graphs-find-clusters.svg
 tagged: 
     - node
     - edges

@@ -6,7 +6,7 @@ title: Refine
 name_in_editor: "Cluster : Refine"
 subtitle: Algorithmic edge refinement
 summary: The **Refine** node algorithmically prunes edges in a graph to enforce specific properties, allowing selection of refinement type and optional sanitization to restore edges based on predefined conditions.
-color: blue
+color: red
 splash: icons/icon_edges-refine.svg
 preview_img: previews/index-refine.png
 has_children: true
@@ -17,7 +17,8 @@ tagged:
 see_also: 
     - Working with Clusters
     - Refining
-nav_order: 12
+    - Filter Ecosystem
+nav_order: 10
 inputs:
     -   name : Vtx
         desc : Endpoints of the input Edges

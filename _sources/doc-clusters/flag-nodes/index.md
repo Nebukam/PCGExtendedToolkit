@@ -6,14 +6,14 @@ title: Flag Nodes
 name_in_editor: "Cluster : Flag Nodes"
 subtitle: Find conditional-based states to nodes within a graph
 summary: The **Flag Nodes** node identifies and marks complex, non-mutually exclusive states within a cluster by applying filters and conditions to bitmask attributes, allowing for fine-tuned control over node selection and flagging based on specific criteria.
-color: white
-splash: icons/icon_misc-write-index.svg
+color: blue
+splash: icons/icon_edges-extras.svg
 preview_img: previews/index-flag-nodes.png
 has_children: true
 see_also:
     - Working with Clusters
     - Node Flag
-    - Uber Filter
+    - Filter Ecosystem
 tagged: 
     - node
     - clusters
@@ -43,7 +43,7 @@ The **Flag Nodes** node helps you find & mark complex, non-mutually exclusive st
 Output attribute can then be filtered using {% include lk id='🝖 Bitmask' %}, and works with the {% include lk id='Bitmasks' %} toolset.
 {: .fs-5 .fw-400 } 
 
-Bitmasks & bit fields can be obscure to work with if it's not something you're used to. Sadly the [Wikipedia article](https://en.wikipedia.org/wiki/Mask_(computing)) on the topic isn't super helpful, and digging into the specifics wouldn't be very helpful. If you have a user-friendly resources I could add to the doc, please poke me.  
+Bitmasks & bit fields can be obscure to work with if it's not something you're used to. Sadly the [Wikipedia article](https://en.wikipedia.org/wiki/Mask_(computing)) on the topic isn't super helpful, and digging into the specifics wouldn't be very productive either. *If you have a user-friendly resources I could add to the doc, please poke me.*  
 
 > Bitmasks fields in PCGEx are using a `int64`, which **loosely translate as storing 63 boolean values on a single attribute**.
 {: .infos }

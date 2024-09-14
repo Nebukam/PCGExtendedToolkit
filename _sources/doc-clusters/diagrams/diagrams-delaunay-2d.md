@@ -6,7 +6,7 @@ title: Delaunay 2D
 name_in_editor: "Cluster : Delaunay 2D"
 subtitle: Outputs a 2D Delaunay triangulation.
 summary: The **Delaunay 2D** node outputs a 2D Delaunay triangulation with options like Urquhart graph, hull identification, and projection settings.
-color: blue
+color: white
 splash: icons/icon_graphs-delaunay.svg
 tagged: 
     - node

@@ -6,14 +6,15 @@ title: Break to Paths
 name_in_editor: "Cluster : Break to Paths"
 subtitle: Breaks clusters edge chains into individual paths
 summary: The **Break Clusters to Paths** node converts edge chains into individual paths, offering a quick way to extract paths or splines from a refined topology without requiring complex pathfinding, but is less suited for dense clusters with highly connected vertices.
-color: blue
-splash: icons/icon_graphs-convex-hull.svg
+color: white
+splash: icons/icon_cat-edges.svg
 tagged: 
     - node
     - clusters
-nav_order: 20
+nav_order: 50
 see_also:
     - Working with Clusters
+    - Filter Ecosystem
 inputs:
     -   name : Vtx
         desc : Endpoints of the input Edges

@@ -6,7 +6,7 @@ title: 🝘 Sort Rule
 subtitle: An individual sorting rule
 color: white
 summary: TBD
-splash: icons/icon_misc-write-index.svg
+splash: icons/icon_misc-sort-points.svg
 preview_img: docs/splash-sort-points.png
 tagged: 
     - node

@@ -5,7 +5,7 @@ subtitle: Data from nearest points, polylines, surfaces, ...
 summary: Extract data from surroundings
 splash: icons/icon_cat-sampling.svg
 preview_img: previews/index-sampling.png
-nav_order: 50
+nav_order: 40
 has_children: true
 tagged:
     - category

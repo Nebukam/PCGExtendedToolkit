@@ -4,7 +4,6 @@ title: Clusters
 subtitle: Arithmetic vtx/edge clusters generation & operations
 summary: Easily generate relational structures from points
 splash: icons/icon_cat-graphs.svg
-preview_img: previews/index-clusters.png
 nav_order: 20
 has_children: true
 #use_child_thumbnails: true

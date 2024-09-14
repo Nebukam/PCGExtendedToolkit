@@ -6,7 +6,7 @@ subtitle: All-around, generic utility nodes.
 color: white
 splash: icons/icon_cat-custom-graphs.svg
 preview_img: previews/index-misc.png
-nav_order: 40
+nav_order: 35
 has_children: true
 use_child_thumbnails: true
 ---

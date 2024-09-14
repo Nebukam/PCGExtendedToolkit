@@ -5,7 +5,7 @@ parent: Relax
 title: ☍ Force Directed
 subtitle: Force-directed relaxation
 summary: The **Force-directed** relaxation ...
-color: white
+color: blue
 splash: icons/icon_edges-relax.svg
 see_also:
     - Relax

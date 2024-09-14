@@ -10,7 +10,7 @@ splash: icons/icon_pathfinding-navmesh.svg
 tagged: 
     - node
     - pathfinder
-nav_order: 3
+nav_order: 5
 inputs:
     -   name : Seeds
         desc : Seed points

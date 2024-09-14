@@ -6,15 +6,15 @@ title: "Properties : Edge"
 name_in_editor: "Cluster : Edge Properties"
 subtitle: Compute edge extra data from its vertices
 summary: The **Edge Properties** node allows you to compute and write additional cluster-related data for edges, as well as "solidify" their bounds, giving them a more defined shape. The direction of the edge, from start to end, is determined by the chosen direction method and is used to influence outputs.
-color: white
-splash: icons/icon_edges-extras.svg
+color: blue
+splash: icons/icon_custom-graphs-promote-edges.svg
 tagged: 
     - node
     - edges
 see_also: 
     - Working with Clusters
     - Interpolate
-nav_order: 10
+nav_order: 5
 inputs:
     -   name : Vtx
         desc : Endpoints of the input Edges

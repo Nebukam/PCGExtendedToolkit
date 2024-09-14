@@ -16,7 +16,7 @@ Since this node merges multiple inputs together, "Carry over" settings lets you 
 *Both Attributes & Tags share the same string-based filters.*
 
 > Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions.
-{: .warning }
+{: .comment }
 
 ### Filter Details
 

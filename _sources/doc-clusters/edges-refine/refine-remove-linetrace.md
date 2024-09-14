@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Remove by Collision
 subtitle: Removes edges by doing linetrace and checking for collisions.
 #summary: The **Remove Overlap** refinement ...
-color: white
+color: red
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

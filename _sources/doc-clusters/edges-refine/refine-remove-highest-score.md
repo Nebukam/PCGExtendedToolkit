@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Remove Highest Score
 subtitle: Removes edges with the highest heuristic scores
 #summary: The **Remove Highest Score** refinement ...
-color: white
+color: red
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

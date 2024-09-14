@@ -6,7 +6,7 @@ title: Offset
 subtitle: Offset path along a direction
 color: white
 summary: The **Offset** node moves path points in a given direction
-splash: icons/icon_path-fuse.svg
+splash: icons/icon_sampling-guided.svg
 tagged: 
     - node
     - paths

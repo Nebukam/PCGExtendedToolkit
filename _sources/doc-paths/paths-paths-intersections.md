@@ -6,7 +6,7 @@ title: Path × Path Crossings
 subtitle: Find crossings within & against paths.
 summary: The **Path × Path Crossings** node ...
 color: white
-splash: icons/icon_paths-orient.svg
+splash: icons/icon_edges-intersections.svg
 tagged: 
     - node
     - paths

@@ -12,38 +12,52 @@
       <td style="text-align: left">Edge Position</td>
       <td style="text-align: left">If enabled, edge point’ position will be the result of that value used as a lerp between its start and end <code class="language-plaintext highlighter-rouge">Vtx</code> point.</td>
     </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
     <tr>
-      <td style="text-align: center" colspan="2"><strong>Pruning</strong></td>
+      <td colspan="2" style="text-align: center"><strong>Pruning</strong></td>
       
     </tr>
     <tr>
-      <td style="text-align: left">Min Vtx Count</td>
-      <td style="text-align: left">If enabled, only ouputs clusters that have more ( &gt; ) <code class="language-plaintext highlighter-rouge">Vtx</code> than the specified number.</td>
+      <td>Min Vtx Count</td>
+      <td>If enabled, only ouputs clusters that have more ( &gt; ) <code class="language-plaintext highlighter-rouge">Vtx</code> than the specified number.</td>
     </tr>
     <tr>
-      <td style="text-align: left">Max Vtx Count</td>
-      <td style="text-align: left">If enabled, only ouputs clusters that have less ( &lt; ) <code class="language-plaintext highlighter-rouge">Vtx</code> than the specified number.</td>
+      <td>Max Vtx Count</td>
+      <td>If enabled, only ouputs clusters that have less ( &lt; ) <code class="language-plaintext highlighter-rouge">Vtx</code> than the specified number.</td>
     </tr>
     <tr>
-      <td style="text-align: left">Min Edge Count</td>
-      <td style="text-align: left">If enabled, only ouputs clusters that have more ( &gt; ) <code class="language-plaintext highlighter-rouge">Edge</code> than the specified number.</td>
+      <td>Min Edge Count</td>
+      <td>If enabled, only ouputs clusters that have more ( &gt; ) <code class="language-plaintext highlighter-rouge">Edge</code> than the specified number.</td>
     </tr>
     <tr>
-      <td style="text-align: left">Max Edge Count</td>
-      <td style="text-align: left">If enabled, only ouputs clusters that have less ( &lt; ) <code class="language-plaintext highlighter-rouge">Edge</code> than the specified number.</td>
+      <td>Max Edge Count</td>
+      <td>If enabled, only ouputs clusters that have less ( &lt; ) <code class="language-plaintext highlighter-rouge">Edge</code> than the specified number.</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td colspan="2" style="text-align: center"><strong>Misc</strong></td>
+      
     </tr>
     <tr>
-      <td style="text-align: left">Refresh Edge Seed</td>
-      <td style="text-align: left">If enabled, <code class="language-plaintext highlighter-rouge">Edge</code> points gets a fresh seed.</td>
+      <td>Refresh Edge Seed</td>
+      <td>If enabled, <code class="language-plaintext highlighter-rouge">Edge</code> points gets a fresh seed.</td>
     </tr>
     <tr>
-      <td style="text-align: left">Build and Cache Cluster</td>
-      <td style="text-align: left">If enabled, pre-build and cache cluster along with the point data.<br><strong>This has a slight memory cost associated to it, but can offer tremendous performance improvement.</strong><br><em>If disabled, cluster processors that comes down the line have to rebuild clusters from point data, which is very costly as they are also tested for errors and possible disconnections in the process.</em>
+      <td>Build and Cache Cluster</td>
+      <td>If enabled, pre-build and cache cluster along with the point data.<br><strong>This has a slight memory cost associated to it, but can offer tremendous performance improvement.</strong><br><em>If disabled, cluster processors that comes down the line have to rebuild clusters from point data, which is very costly as they are also tested for errors and possible disconnections in the process.</em>
 </td>
     </tr>
     <tr>
-      <td style="text-align: left">Expand Clusters</td>
-      <td style="text-align: left">If enabled, also build &amp; cache another layer of cache data.<br><strong>This can have a significant memory cost, as well as a minimal performance overhead, but can greatly improve certain specific operations down the line.</strong>
+      <td>Expand Clusters</td>
+      <td>If enabled, also build &amp; cache another layer of cache data.<br><strong>This can have a significant memory cost, as well as a minimal performance overhead, but can greatly improve certain specific operations down the line.</strong>
 </td>
     </tr>
   </tbody>

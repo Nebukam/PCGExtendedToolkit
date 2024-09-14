@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Keep Highest Score
 subtitle: Keeps edges with the highest heuristic scores
 #summary: The **Keep Highest Score** refinement ...
-color: white
+color: red
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

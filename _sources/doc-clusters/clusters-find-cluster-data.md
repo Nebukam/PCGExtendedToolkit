@@ -7,13 +7,13 @@ name_in_editor: "Find Clusters"
 subtitle: Find matching cluster data.
 summary: The **Find Clusters** node locates matching `Vtx` and `Edges` pairs from disordered data collections, helping streamline operations when working with individual clusters.
 color: white
-splash: icons/icon_graphs-sanitize.svg
+splash: icons/icon_misc-draw-attributes.svg
 tagged:
     - node
     - clusters
 see_also:
     - Working with Clusters
-nav_order: 20
+nav_order: 40
 inputs:
     -   name : Vtx
         desc : Endpoints of the input Edges

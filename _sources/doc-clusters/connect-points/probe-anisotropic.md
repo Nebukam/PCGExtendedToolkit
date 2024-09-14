@@ -7,7 +7,7 @@ name_in_editor: "Probe : Anisotropic"
 subtitle: Find connections in 16 directions
 summary: The **Anisotropic** probe ...
 color: white
-splash: icons/icon_misc-write-index.svg
+splash: icons/icon_path-to-edges.svg
 see_also:
     - Connect Points
 tagged: 

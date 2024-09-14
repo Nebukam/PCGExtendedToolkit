@@ -6,7 +6,7 @@ title: 🝊 Special Edges
 name_in_editor: "Vtx : Special Edges"
 subtitle: Gather infos from special-case edges
 summary: The **Special Edges** property outputs data about the two most extreme edges connected to a vertex — the shortest and longest — allowing users to capture attributes like direction, length, and indices for both, with an additional option to average all connected edges.
-color: white
+color: blue
 splash: icons/icon_misc-write-index.svg
 see_also: 
     - Working with Clusters

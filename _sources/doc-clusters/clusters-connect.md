@@ -6,7 +6,7 @@ title: Connect Clusters
 name_in_editor: "Cluster : Connect"
 subtitle: Connects clusters together.
 summary: The **Connect Clusters** node creates bridge edges between clusters using methods like Delaunay, Least Edges, or Most Edges, always connecting the closest points between clusters to form a larger, unified cluster.
-color: blue
+color: white
 splash: icons/icon_edges-bridge.svg
 tagged: 
     - node

@@ -3,16 +3,17 @@ layout: page
 #grand_parent: All Nodes
 parent: Clusters
 title: Fuse Clusters
+name_in_editor: "Cluster : Fuse"
 subtitle: Fuse clusters together by finding Point/Edge and Edge/Edge intersections.
 summary: The **Fuse Clusters** node ...
 color: white
-splash: icons/icon_graphs-sanitize.svg
+splash: icons/icon_edges-intersections.svg
 tagged:
     - node
     - clusters
 see_also:
     - Working with Clusters
-nav_order: 21
+nav_order: 30
 has_children: false
 inputs:
     -   name : Vtx

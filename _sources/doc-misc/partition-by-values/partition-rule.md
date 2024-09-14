@@ -6,7 +6,7 @@ title: 🝗 Partition Rule
 subtitle: An individual partition rule
 summary: TBD
 color: white
-splash: icons/icon_misc-write-index.svg
+splash: icons/icon_misc-partition-by-values.svg
 tagged: 
     - node
     - partition

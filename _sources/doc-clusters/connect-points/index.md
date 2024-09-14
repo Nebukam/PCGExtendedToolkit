@@ -7,7 +7,7 @@ name_in_editor: Connect Points
 subtitle: Creates connections between points using various probes.
 summary: The **Connect Points** node creates connections between points in clusters based on user-defined probes, allowing control over how points generate and receive connections, with options for preventing overlap and projecting points for more accurate results.
 color: white
-splash: icons/icon_custom-graphs-build.svg
+splash: icons/icon_path-to-edges.svg
 preview_img: previews/index-connect-points.png
 has_children: true
 #use_child_thumbnails: true
@@ -15,6 +15,9 @@ tagged:
     - clusters
     - node
 nav_order: 0
+see_also:
+    - Working with Clusters
+    - Filter Ecosystem
 inputs:
     -   name : Points
         desc : Points that will be connected togethers
@@ -55,7 +58,7 @@ The connect point node allows you to create connected clusters using different *
 
 ---
 ## Generators & Connectables
-These two inputs accept any of filters available for the {% include lk id='Uber Filter' %} node.  
+These two inputs accept any of filters available as part of the {% include lk id='Filter Ecosystem' %}.  
 - **Generators** are points that will use the probes to find neighbors they can connect to.
 - **Connectables** are points that will be seen by the probes.
 All points
