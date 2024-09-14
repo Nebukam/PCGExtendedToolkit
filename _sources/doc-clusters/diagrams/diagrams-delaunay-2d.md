@@ -8,7 +8,6 @@ subtitle: Outputs a 2D Delaunay triangulation.
 summary: The **Delaunay 2D** node outputs a 2D Delaunay triangulation with options like Urquhart graph, hull identification, and projection settings.
 color: blue
 splash: icons/icon_graphs-delaunay.svg
-preview_img: docs/splash-delaunay-2D.png
 tagged: 
     - node
     - clusters

@@ -12,10 +12,6 @@ tagged:
     - partition
     - misc
 nav_order: 1
-inputs:
-    -   name : None
-        desc : 
-        pin : 
 outputs:
     -   name : Partition Rule
         desc : A single partition rule

@@ -7,7 +7,6 @@ summary: The **2D Lloyd Relaxation** node applies the Lloyd Relaxation algorithm
 color: white
 summary: Applies any number of Lloyd relaxation passes, in 3D space.
 splash: icons/icon_edges-relax.svg
-preview_img: docs/splash-lloyd-3d.png
 tagged: 
     - node
     - misc

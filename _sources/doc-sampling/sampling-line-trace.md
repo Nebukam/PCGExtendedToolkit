@@ -2,7 +2,7 @@
 layout: page
 #grand_parent: All Nodes
 parent: Sampling
-title: Line Trace
+title: Sample Line Trace
 subtitle: Sample environment using line casting
 color: white
 summary: The **Line Trace** node performs a single line trace for each point, using a local attribute or property as direction & size.

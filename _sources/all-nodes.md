@@ -18,11 +18,6 @@ nav_order: 200
 {% include card_childs reference="Clusters" tagged='clusters' %}
 
 ---
-## Edges Nodes
-<br>
-{% include card_childs reference="Edges" tagged='edges' %}
-
----
 ## Pathfinding Nodes
 <br>
 {% include card_childs reference="Pathfinding" tagged='pathfinder' %}
@@ -46,3 +41,8 @@ nav_order: 200
 ## Staging Nodes
 <br>
 {% include card_childs reference="Staging" tagged='staging' %}
+
+---
+## Staging Nodes
+<br>
+{% include card_childs reference="Transforms" tagged='transform' %}

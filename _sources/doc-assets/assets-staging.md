@@ -7,7 +7,7 @@ name_in_editor: Asset Staging
 subtitle: Prepare points before spawning.
 summary: The **Asset Staging** node lets your prepare points for spawning assets.
 color: white
-splash: icons/icon_paths-orient.svg
+splash: icons/icon_component.svg
 see_also: 
     - Asset Collection
 tagged: 

@@ -12,10 +12,6 @@ tagged:
     - neighborsample
     - clusters
 nav_order: 7
-inputs:
-    -   name : None
-        desc : 
-        pin : 
 outputs:
     -   name : Sampler
         desc : A single sampler definition

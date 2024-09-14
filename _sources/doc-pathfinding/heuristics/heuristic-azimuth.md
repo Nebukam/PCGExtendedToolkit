@@ -5,15 +5,10 @@ parent: 🝰 Heuristics
 title: 🝰 Azimuth
 subtitle: Subtitle
 summary: The **Azimuth** heuristic node ...
-splash: icons/icon_component.svg
-color: white
+splash: icons/icon_pathfinding-edges.svg
 tagged: 
     - heuristics
 nav_order: 3
-inputs:
-    -   name : None
-        desc : 
-        pin : 
 outputs:
     -   name : Heuristics
         desc : A single heuristics definition

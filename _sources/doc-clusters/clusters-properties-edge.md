@@ -8,7 +8,6 @@ subtitle: Compute edge extra data from its vertices
 summary: The **Edge Properties** node allows you to compute and write additional cluster-related data for edges, as well as "solidify" their bounds, giving them a more defined shape. The direction of the edge, from start to end, is determined by the chosen direction method and is used to influence outputs.
 color: white
 splash: icons/icon_edges-extras.svg
-preview_img: docs/splash-edges-extras.png
 tagged: 
     - node
     - edges

@@ -8,7 +8,6 @@ subtitle: Outputs a 3D Delaunay tetrahedralization.
 summary: The **Delaunay 3D** node outputs a 3D Delaunay tetrahedralization with options like Urquhart graph, hull identification, and projection settings.
 color: blue
 splash: icons/icon_graphs-delaunay.svg
-preview_img: docs/splash-delaunay-3D.png
 tagged: 
     - node
     - clusters

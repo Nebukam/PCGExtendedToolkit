@@ -13,10 +13,6 @@ tagged:
     - sorting
     - misc
 nav_order: 1
-inputs:
-    -   name : None
-        desc : 
-        pin : 
 outputs:
     -   name : Sorting Rule
         desc : A single sorting rule

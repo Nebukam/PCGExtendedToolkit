@@ -5,14 +5,10 @@ parent: 🝰 Heuristics
 title: 🝰 Heuristic Attribute
 subtitle: Attribute-driven heuristics
 summary: The **Heuristic Attribute** heuristic node ...
-splash: icons/icon_component.svg
+splash: icons/icon_pathfinding-edges.svg
 nav_order: -1
 tagged:
     - heuristics
-inputs:
-    -   name : None
-        desc : 
-        pin : 
 outputs:
     -   name : Heuristics
         desc : A single heuristics definition

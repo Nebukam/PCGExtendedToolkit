@@ -5,15 +5,10 @@ parent: 🝰 Heuristics
 title: 🝰 Steepness
 subtitle: Favor flat paths
 summary: The **Steepness** heuristic node ...
-color: white
-splash: icons/icon_component.svg
+splash: icons/icon_pathfinding-edges.svg
 tagged: 
     - heuristics
 nav_order: 3
-inputs:
-    -   name : None
-        desc : 
-        pin : 
 outputs:
     -   name : Heuristics
         desc : A single heuristics definition

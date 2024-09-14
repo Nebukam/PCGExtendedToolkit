@@ -15,10 +15,6 @@ inputs:
     -   name : Paths
         desc : Paths to be used for SplineMesh
         pin : points
-outputs:
-    -   name : None
-        desc : 
-        pin : none
 ---
 
 {% include header_card_node %}
