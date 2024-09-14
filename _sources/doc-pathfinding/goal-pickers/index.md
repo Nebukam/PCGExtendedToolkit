@@ -6,7 +6,7 @@ subtitle: An inventory of the available goal pickers modules.
 #summary: The **Write Index** picker ...
 color: white
 splash: icons/icon_placement-center.svg
-preview_img: placeholder.jpg
+preview_img: previews/index-goal-pickers.png
 nav_order: 30
 has_children: true
 tagged: 

@@ -7,7 +7,6 @@ subtitle: The **Bounds Filter** check if a point is inside or outside provided b
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - filter

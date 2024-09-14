@@ -7,7 +7,6 @@ subtitle: Glorified Data Tables
 summary: Asset Collection represent collections of things (meshes, actors) that can be used with the **Asset Staging** node.
 color: white
 splash: icons/icon_custom-graphs-build.svg
-preview_img: placeholder.jpg
 has_children: true
 use_child_thumbnails: true
 nav_order: 2

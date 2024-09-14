@@ -8,7 +8,7 @@ subtitle: Find conditional-based states to nodes within a graph
 summary: The **Flag Nodes** node identifies and marks complex, non-mutually exclusive states within a cluster by applying filters and conditions to bitmask attributes, allowing for fine-tuned control over node selection and flagging based on specific criteria.
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
+preview_img: previews/index-flag-nodes.png
 has_children: true
 see_also:
     - Working with Clusters

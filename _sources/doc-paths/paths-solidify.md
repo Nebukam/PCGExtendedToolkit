@@ -7,7 +7,6 @@ subtitle: Solidify paths into "edges"
 summary: The **Solidify Path** node ...
 color: white
 splash: icons/icon_paths-orient.svg
-preview_img: docs/splash-orienting.png
 tagged: 
     - node
     - paths

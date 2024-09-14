@@ -7,7 +7,6 @@ subtitle: Dijkstra's Algorithm
 summary: The **Dijkstra's Algorithm** search mode ...
 color: white
 splash: icons/icon_pathfinding-navmesh.svg
-preview_img: docs/splash-search-dijkstra.png
 tagged: 
     - module
     - search

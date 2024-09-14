@@ -7,7 +7,6 @@ subtitle: Subtitle
 summary: The **Shortest Distance** heuristic node ...
 color: white
 splash: icons/icon_component.svg
-preview_img: docs/splash-search-shortest.png
 tagged: 
     - heuristics
 nav_order: 2

@@ -7,7 +7,6 @@ subtitle: Convert paths to clusters.
 color: white
 summary: The **Paths to Clusters** node converts multiple input paths into edge clusters by fusing points but preserving edge relationships.
 splash: icons/icon_path-to-edges.svg
-preview_img: docs/splash-path-to-edges.png
 tagged: 
     - node
     - paths

@@ -7,7 +7,6 @@ subtitle: The **Mean Value Filter** compares the mean statistical value of two a
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - filter

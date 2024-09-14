@@ -7,7 +7,6 @@ subtitle: Compute overlap statistics between point collections
 color: white
 summary: The **Sample Overlap Stats** node check points for overlap against other collections.
 splash: icons/icon_sampling-point.svg
-preview_img: docs/splash-sample-nearest-points.png
 tagged: 
     - node
     - sampling

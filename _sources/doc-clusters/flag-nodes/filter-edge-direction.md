@@ -8,7 +8,6 @@ subtitle: Check if adjacent node meet specific conditions
 summary: The **Edge Direction** filter compares the direction of connections using a dot product, providing precise control over how many directions meet the set conditions, allowing tests against both discrete and relative number of connections.
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - clusterfilter

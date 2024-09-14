@@ -5,7 +5,6 @@ title: Basics
 subtitle: General concepts & disambiguation
 summary: An overview of the concepts PCGEx uses, and assumption around the meaning of certain keywords.
 splash: icons/icon_view-grid.svg
-preview_img: placeholder.jpg
 nav_order: 0
 tagged:
     - basics

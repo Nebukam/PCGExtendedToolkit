@@ -7,7 +7,6 @@ subtitle: Average between previous and next
 color: white
 #summary: summary_goes_here
 splash: icons/icon_paths-orient.svg
-preview_img: docs/splash-orient-average.png
 tagged: 
     - pathsorient
 nav_order: 1

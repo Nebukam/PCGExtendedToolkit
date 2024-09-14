@@ -4,7 +4,7 @@ title: ∷ General
 subtitle: Notes & informations
 summary: This section is dedicated to broader & shared documentation topics. Node specifics can be found on the dedicated node page.
 splash: icons/icon_view-grid.svg
-preview_img: placeholder.jpg
+preview_img: previews/index-general.png
 nav_order: 10
 has_children: true
 ---

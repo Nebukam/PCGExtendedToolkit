@@ -7,7 +7,6 @@ subtitle: Match seeds to goals at a random index.
 summary: The **Random** picker ...
 color: white
 splash: icons/icon_placement-center.svg
-preview_img: docs/splash-picker-random.png
 tagged: 
     - module
     - goalpicker

@@ -7,7 +7,6 @@ subtitle: Draw debug edge lines of a given vtx/edge pair.
 summary: The **Draw Edges** node ...
 color: red
 splash: icons/icon_edges-draw.svg
-preview_img: docs/splash-edges-draw.png
 tagged: 
     - node
     - edges

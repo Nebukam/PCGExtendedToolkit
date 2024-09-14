@@ -7,7 +7,6 @@ subtitle: Reverse current points order.
 summary: The **Reverse Points Order** node ...
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - misc

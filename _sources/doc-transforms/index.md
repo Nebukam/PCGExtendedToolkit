@@ -4,7 +4,7 @@ title: Transforms
 subtitle: Various unusual transform ...
 summary: Manipulate point positions & transforms
 splash: icons/icon_cat-clusters.svg
-preview_img: placeholder.jpg
+preview_img: previews/index-transforms.png
 nav_order: 31
 has_children: true
 tagged:

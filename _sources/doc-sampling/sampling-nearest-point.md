@@ -7,7 +7,6 @@ subtitle: Sample points within a spherical range
 color: white
 summary: The **Sample Nearest Points** node explore points within a range using various methods. Define sampling range, weight targets, and obtain useful attributes.
 splash: icons/icon_sampling-point.svg
-preview_img: docs/splash-sample-nearest-points.png
 tagged: 
     - node
     - sampling

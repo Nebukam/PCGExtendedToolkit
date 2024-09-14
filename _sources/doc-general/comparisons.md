@@ -5,7 +5,6 @@ title: Comparisons
 subtitle: PCGEx' comparison overview
 summary: This page lists the comparison used by a bunch of different nodes.
 splash: icons/icon_view-grid.svg
-preview_img: placeholder.jpg
 nav_order: 10
 tagged:
     - basics

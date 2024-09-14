@@ -7,7 +7,6 @@ subtitle: Sample the navmesh to find a path that goes through multiple chained p
 summary: The **Plot Navmesh** node ...
 color: white
 splash: icons/icon_pathfinding-navmesh-plot.svg
-preview_img: docs/splash-navmesh-plot.png
 tagged: 
     - node
     - pathfinder

@@ -6,7 +6,7 @@ subtitle: An inventory of the available search modules.
 #summary: summary_goes_here
 color: white
 splash: icons/icon_pathfinding-navmesh.svg
-preview_img: placeholder.jpg
+preview_img: previews/index-search.png
 nav_order: 10
 has_children: true
 tagged: 

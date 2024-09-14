@@ -8,7 +8,6 @@ subtitle: Gather infos from special-case neighbors
 summary: The **Special Neighbors** property outputs information about two key neighbors of a vertex — the one with the most connections (Largest Neighbor) and the one with the fewest connections (Smallest Neighbor). You can extract various attributes, such as edge direction, length, and vertex indices, for both of these special neighbors.
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 see_also: 
     - Working with Clusters
     - "Properties : Vtx"

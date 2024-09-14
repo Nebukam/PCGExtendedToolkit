@@ -7,7 +7,6 @@ subtitle: Remove edges from a cluster using length data.
 summary: The **Prune by Length** node offers a very circumvoluted approach to removing edges using length-based statistics.
 color: blue
 splash: icons/icon_edges-prune-by-length.svg
-preview_img: docs/splash-edges-prune.png
 tagged:
     - node
     - edges

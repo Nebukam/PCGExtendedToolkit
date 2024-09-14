@@ -7,7 +7,6 @@ subtitle: Kindda like self-pruning but for collections.
 summary: The **Discard Points by Overlap** node ...
 color: white
 splash: icons/icon_misc-discard-by-overlap.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - misc

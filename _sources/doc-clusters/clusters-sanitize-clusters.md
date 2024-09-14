@@ -7,7 +7,6 @@ subtitle: Ensure clusters are clean and complete
 summary: The **Sanitize Clusters** ensures clusters are pathfinding-friendly. Fix broken connections, create new clusters as needed. Customize settings for isolated points, edge positions, and cluster sizes.
 color: white
 splash: icons/icon_graphs-sanitize.svg
-preview_img: docs/splash-sanitize.png
 tagged:
     - node
     - clusters

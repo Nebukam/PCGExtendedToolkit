@@ -7,7 +7,6 @@ subtitle: Sample the navmesh to find paths
 summary: The **Navmesh** node ...
 color: white
 splash: icons/icon_pathfinding-navmesh.svg
-preview_img: docs/splash-navmesh.png
 tagged: 
     - node
     - pathfinder

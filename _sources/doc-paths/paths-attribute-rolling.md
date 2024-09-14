@@ -7,7 +7,6 @@ subtitle: Does a rolling operation over properties & attributes along a path
 color: white
 summary: The **Attribute Rolling** nodes allows to do "rolling" operations, where the base value of each operation is the result of the previous one.
 splash: icons/icon_path-fuse.svg
-preview_img: docs/splash-path-collinear.png
 tagged: 
     - node
     - paths

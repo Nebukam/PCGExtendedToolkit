@@ -7,7 +7,6 @@ subtitle: Sample information from the nearest mesh collision
 color: white
 summary: The **Sample Nearest Points** node fetches all collisions within a given radius, and find the closest point on the closest collision. Works with simple colliders only.
 splash: icons/icon_sampling-surface.svg
-preview_img: docs/splash-sample-nearest-surface.png
 warning: This node works with collisions and as such can be very expensive on large datasets.
 tagged: 
     - node

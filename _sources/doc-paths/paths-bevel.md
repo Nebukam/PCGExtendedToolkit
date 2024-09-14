@@ -7,7 +7,6 @@ subtitle: Fuse collinear points on a path
 color: white
 summary: The **Fuse Collinear** node removes points that are collinear, with control over thresholds. It can also optionally fuse points based on their proximity.
 splash: icons/icon_path-fuse.svg
-preview_img: docs/splash-path-collinear.png
 tagged: 
     - node
     - paths

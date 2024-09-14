@@ -8,7 +8,6 @@ subtitle: Outputs a 2D Voronoi graph.
 summary: The **Voronoi 2D** node outputs a 2D Voronoi graph with options like balanced, canon, or centroid positioning. Adjust bounds, prune sites, and mark edges on the hull. 
 color: blue
 splash: icons/icon_graphs-voronoi.svg
-preview_img: docs/splash-voronoi-2D.png
 tagged:
     - node
     - clusters

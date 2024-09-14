@@ -5,7 +5,6 @@ title: Working with Clusters
 subtitle: Vtx? Edges? 
 summary: A summary of what "graph" means and entails in the context of PCGEx.
 splash: icons/icon_edges-refine.svg
-preview_img: docs/splash-working-with-graph.png
 nav_order: 3
 tagged:
     - basics

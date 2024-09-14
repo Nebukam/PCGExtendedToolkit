@@ -7,7 +7,7 @@ subtitle: Draw lines and points from attributes
 summary: This node is used in 100% of the screenshots of this documentation.
 color: red
 splash: icons/icon_misc-draw-attributes.svg
-preview_img: docs/splash-debug.png
+preview_img: previews/debug.png
 tagged: 
     - node
     - misc

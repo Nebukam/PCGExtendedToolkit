@@ -7,7 +7,6 @@ subtitle: Fuse clusters together by finding Point/Edge and Edge/Edge intersectio
 summary: The **Fuse Clusters** node ...
 color: white
 splash: icons/icon_graphs-sanitize.svg
-preview_img: placeholder.jpg
 tagged:
     - node
     - clusters

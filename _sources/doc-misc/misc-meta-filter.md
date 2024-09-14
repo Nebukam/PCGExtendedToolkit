@@ -7,7 +7,6 @@ subtitle: Filter point collections based on tags & attributes using string queri
 summary: The **Meta Filter** node ...
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - misc

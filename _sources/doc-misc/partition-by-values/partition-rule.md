@@ -7,8 +7,6 @@ subtitle: An individual partition rule
 summary: TBD
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: docs/splash-partition-by-values.png
-toc_img: docs/splash-partition-by-values.png
 tagged: 
     - node
     - partition

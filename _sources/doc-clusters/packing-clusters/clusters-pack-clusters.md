@@ -8,7 +8,6 @@ subtitle: Pack Clusters
 summary: The **Pack Clusters** node combines individual vertex-edge pairs into a single data set for storage and reuse, allowing for selective attribute and tag preservation, but must be unpacked to be used as a cluster.
 color: blue
 splash: icons/icon_graphs-convex-hull.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - clusters

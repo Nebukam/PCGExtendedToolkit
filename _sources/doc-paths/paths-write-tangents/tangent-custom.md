@@ -7,7 +7,6 @@ subtitle: Custom attribute-based tangents
 color: white
 #summary: Radius & position-based sampling
 splash: icons/icon_path-tangents.svg
-preview_img: docs/splash-tangent-custom.png
 tagged: 
     - pathstangents
 nav_order: 2

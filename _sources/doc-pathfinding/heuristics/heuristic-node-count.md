@@ -4,10 +4,9 @@ grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Least Nodes
 subtitle: Subtitle
-color: white
 summary: The **Least Nodes** heuristic node ...
+color: white
 splash: icons/icon_component.svg
-preview_img: docs/splash-search-least-nodes.png
 tagged: 
     - heuristics
 nav_order: 5

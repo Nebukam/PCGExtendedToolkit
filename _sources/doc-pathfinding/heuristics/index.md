@@ -6,7 +6,7 @@ subtitle: An inventory of the available heuristics modules.
 #summary: summary_goes_here
 color: white
 splash: icons/icon_component.svg
-preview_img: placeholder.jpg
+preview_img: previews/index-heuristics.png
 nav_order: 20
 has_children: true
 tagged: 

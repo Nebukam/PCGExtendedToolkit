@@ -5,7 +5,6 @@ title: Blending
 subtitle: PCGEx' blendings overview
 summary: This page lists the blending used by a bunch of different nodes.
 splash: icons/icon_view-grid.svg
-preview_img: placeholder.jpg
 nav_order: 11
 tagged:
     - basics

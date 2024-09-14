@@ -7,7 +7,6 @@ subtitle: Find paths connecting seeds to goals.
 summary: The **Edges Pathfinding** mode ...
 color: white
 splash: icons/icon_pathfinding-edges.svg
-preview_img: docs/splash-edges-pathfinding.png
 tagged: 
     - node
     - pathfinder

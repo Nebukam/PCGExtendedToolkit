@@ -7,7 +7,6 @@ subtitle: Not to confuse with Points to Bounds
 summary: The **Bounds to Points** node...
 color: white
 splash: icons/icon_paths-orient.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - transform

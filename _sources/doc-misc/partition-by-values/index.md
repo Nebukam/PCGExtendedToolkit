@@ -7,8 +7,7 @@ subtitle: Create complex partitions from multiple criteria
 summary: The **Partition by Values** node offer enhanced control over sub-group creation using multiple criteria, with rules specifying attributes for partitioning and optional pre-processing. 
 color: white
 splash: icons/icon_misc-partition-by-values.svg
-preview_img: docs/splash-partition-by-values.png
-toc_img: docs/splash-partition-by-values.png
+preview_img: previews/index-partition.png
 has_children: true
 tagged: 
     - node

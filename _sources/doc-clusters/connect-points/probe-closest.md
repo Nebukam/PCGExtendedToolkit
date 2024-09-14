@@ -8,7 +8,6 @@ subtitle: Connects to the closest point within a given radius
 summary: The **Closest** probe ...
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 see_also:
     - Connect Points
 tagged: 

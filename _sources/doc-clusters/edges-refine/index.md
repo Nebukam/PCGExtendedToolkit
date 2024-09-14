@@ -8,7 +8,7 @@ subtitle: Algorithmic edge refinement
 summary: The **Refine** node algorithmically prunes edges in a graph to enforce specific properties, allowing selection of refinement type and optional sanitization to restore edges based on predefined conditions.
 color: blue
 splash: icons/icon_edges-refine.svg
-preview_img: docs/splash-refining.png
+preview_img: previews/index-refine.png
 has_children: true
 #use_child_thumbnails: true
 tagged:

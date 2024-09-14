@@ -9,7 +9,6 @@ summary: The **Edge Match** property identifies and outputs the properties of th
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 see_also: 
     - Working with Clusters
     - "Properties : Vtx"

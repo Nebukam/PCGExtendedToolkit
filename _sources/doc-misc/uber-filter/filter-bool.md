@@ -7,7 +7,6 @@ subtitle: The **Bool Filter** does a simple bool comparison
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - filter

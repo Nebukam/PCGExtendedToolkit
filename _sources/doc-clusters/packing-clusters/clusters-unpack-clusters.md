@@ -8,7 +8,6 @@ subtitle: Unpack Clusters
 summary: The **Unpack Clusters** node restores individual vertex-edge pairs from packed data, making clusters usable again after being processed by the Pack Clusters node.
 color: blue
 splash: icons/icon_graphs-convex-hull.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - clusters

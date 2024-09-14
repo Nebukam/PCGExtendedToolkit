@@ -8,9 +8,9 @@ subtitle: Creates connections between points using various probes.
 summary: The **Connect Points** node creates connections between points in clusters based on user-defined probes, allowing control over how points generate and receive connections, with options for preventing overlap and projecting points for more accurate results.
 color: white
 splash: icons/icon_custom-graphs-build.svg
-preview_img: placeholder.jpg
+preview_img: previews/index-connect-points.png
 has_children: true
-use_child_thumbnails: true
+#use_child_thumbnails: true
 tagged: 
     - clusters
     - node

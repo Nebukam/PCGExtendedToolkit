@@ -3,11 +3,11 @@ layout: page
 #grand_parent: All Nodes
 parent: Clusters
 title: Make Unique
+name_in_editor: "Cluster : Make Unique"
 subtitle: Forward clusters with a new unique pair of tags. It's like creating a copy, only much faster.
-summary: The **Make Clusters Unique** ...
+summary: The **Make Unique** node assigns new unique IDs to clusters without duplicating the data, enabling advanced operations like copying and modifying existing clusters before merging them with the original.
 color: white
 splash: icons/icon_graphs-sanitize.svg
-preview_img: placeholder.jpg
 tagged:
     - node
     - clusters
@@ -32,9 +32,6 @@ outputs:
 
 {% include header_card_node %}
 
-*This node has no specific properties.*
+The **Make Unique** node is a handy helper to slap a new pair of unique IDs to an existing cluster pair, without actually duplicating the data. This node primarily exists to allow certain advanced operations such as copying an existing cluster configuration, modify it and then fuse it with the original one.
+{: .fs-5 .fw-400 } 
 
-> This node creates a duplicate of the input data with new unique cluster tags.
-{: .infos-hl }
-
-This node primarily exists to allow certain advanced operations such as copying an existing cluster configuration, modify it and then fuse it with the original one.  

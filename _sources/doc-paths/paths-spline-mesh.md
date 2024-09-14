@@ -7,7 +7,6 @@ subtitle: Create SplineMesh components from paths
 summary: The **Path Spline Mesh** node ...
 color: white
 splash: icons/icon_paths-orient.svg
-preview_img: docs/splash-orienting.png
 tagged: 
     - node
     - paths

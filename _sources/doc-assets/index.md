@@ -4,7 +4,7 @@ title: Staging
 subtitle: Data Asset & Staging nodes
 summary: Prepare points for spawning meshes & actors
 splash: icons/icon_cat-clusters.svg
-preview_img: placeholder.jpg
+preview_img: previews/index-assets.png
 nav_order: 31
 has_children: true
 tagged:

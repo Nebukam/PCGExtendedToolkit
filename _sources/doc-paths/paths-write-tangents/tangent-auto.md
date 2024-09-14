@@ -7,7 +7,6 @@ subtitle: Neighbor-based tangents
 color: white
 #summary: Index-based moving-average sampling
 splash: icons/icon_path-tangents.svg
-preview_img: docs/splash-tangent-auto.png
 tagged: 
     - pathstangents
 nav_order: 1

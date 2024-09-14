@@ -7,7 +7,7 @@ subtitle: Unified approach to Match & Set.
 summary: The **Conditional Actions** node is executing "actions" based on filters.
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
+preview_img: previews/index-conditional-actions.png
 has_children: true
 tagged: 
     - node

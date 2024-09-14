@@ -7,7 +7,6 @@ subtitle: Match seeds to goals at the same index.
 summary: The **Default** picker ...
 color: white
 splash: icons/icon_placement-center.svg
-preview_img: docs/splash-picker-default.png
 tagged: 
     - module
     - goalpicker

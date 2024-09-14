@@ -8,7 +8,6 @@ subtitle: Converts an asset collection to an attribute set.
 summary: The **Asset Collection to Set** offers a variety of options & settings to turn an Asset Collection to a more common Attribute Set.
 color: white
 splash: icons/icon_paths-orient.svg
-preview_img: placeholder.jpg
 see_also: 
     - Asset Collection
 tagged: 

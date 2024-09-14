@@ -7,7 +7,6 @@ subtitle: Sample within bounds
 color: white
 summary: The **Sample Nearest Bounds** node explore points within input bounds.
 splash: icons/icon_sampling-point.svg
-preview_img: docs/splash-sample-nearest-points.png
 tagged: 
     - node
     - sampling

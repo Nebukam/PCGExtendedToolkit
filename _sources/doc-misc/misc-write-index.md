@@ -7,7 +7,6 @@ subtitle: Write current point index to an attribute
 summary: The **Write Index** node write point index as an attribute, either discrete or normalized. Don't laugh, this is actually much more useful that you'd think.
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: docs/splash-write-index.png
 tagged: 
     - node
     - misc

@@ -7,7 +7,6 @@ subtitle: Convex hull algorithms
 summary: TBD
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 has_children: true
 use_child_thumbnails: true
 tagged: 

@@ -7,7 +7,6 @@ subtitle: Merge points based on shared tags
 summary: The **Merge Points by Tags** node ...
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - misc

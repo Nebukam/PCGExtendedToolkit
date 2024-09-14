@@ -7,7 +7,6 @@ subtitle: Proximity-based point pruning and blending.
 summary: The **Fuse Points** reduces the number of point within a group by merging points that are within a set radius of each others; and allows you to control how the resulting properties and attributes are blended.
 color: white
 splash: icons/icon_misc-fuse-points.svg
-preview_img: docs/splash-point-blending.png
 tagged: 
     - node
     - misc

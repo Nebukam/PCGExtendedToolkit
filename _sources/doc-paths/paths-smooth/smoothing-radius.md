@@ -7,7 +7,6 @@ subtitle: Radius & position-based sampling
 color: white
 #summary: Radius & position-based sampling
 splash: icons/icon_path-smooth.svg
-preview_img: docs/splash-smooth-radius.png
 tagged: 
     - pathsmoothing
 nav_order: 1

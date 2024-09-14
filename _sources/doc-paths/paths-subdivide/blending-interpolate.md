@@ -7,7 +7,6 @@ subtitle: Interpolates values between first and last point.
 color: white
 summary: Processed subpoints properties & attributes will lerp between the first and last subpoints.
 splash: icons/icon_sampling-point.svg
-preview_img: docs/splash-blend-interpolate.png
 tagged: 
     - blending
 nav_order: 1

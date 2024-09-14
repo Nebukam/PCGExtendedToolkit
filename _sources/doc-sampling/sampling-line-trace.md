@@ -7,7 +7,6 @@ subtitle: Sample environment using line casting
 color: white
 summary: The **Line Trace** node performs a single line trace for each point, using a local attribute or property as direction & size.
 splash: icons/icon_sampling-guided.svg
-preview_img: docs/splash-sample-guided.png
 warning: This node works with collisions and as such can be very expensive on large datasets.
 tagged: 
     - node

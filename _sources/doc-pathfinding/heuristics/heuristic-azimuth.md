@@ -5,9 +5,8 @@ parent: 🝰 Heuristics
 title: 🝰 Azimuth
 subtitle: Subtitle
 summary: The **Azimuth** heuristic node ...
-color: white
 splash: icons/icon_component.svg
-preview_img: docs/splash-search-direction.png
+color: white
 tagged: 
     - heuristics
 nav_order: 3

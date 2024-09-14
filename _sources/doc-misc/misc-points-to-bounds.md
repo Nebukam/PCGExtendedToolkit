@@ -7,7 +7,6 @@ subtitle: Convert point clouds to a single bounding point
 summary: The **Points to Bounds** node ...
 color: white
 splash: icons/icon_misc-points-to-bounds.svg
-preview_img: docs/splash-points-to-bounds.png
 tagged:
     - node
     - misc

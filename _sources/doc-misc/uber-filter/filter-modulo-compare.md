@@ -7,7 +7,6 @@ subtitle: The **Modulo Comparison Filter** compares the module value of two attr
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - filter

@@ -7,7 +7,6 @@ subtitle: Keep/Remove tags & attributes using string queries
 summary: The **Meta Filter** node ...
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 tagged: 
     - node
     - misc

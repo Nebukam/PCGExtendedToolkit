@@ -7,7 +7,7 @@ subtitle: Create sub-points between existing points
 color: white
 summary: The **Subdivide Path** nodes create new point between existing ones on a path. Define closure behavior, choose a subdivide method (Distance or Count), and specify an amount. Opt for blending options to refine subpoints further.
 splash: icons/icon_path-subdivide.svg
-preview_img: docs/splash-path-subdivide.png
+preview_img: previews/index-subdivide.png
 tagged: 
     - node
     - paths

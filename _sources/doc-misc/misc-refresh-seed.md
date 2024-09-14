@@ -7,7 +7,6 @@ subtitle: Refreshes point seeds based on their position.
 summary: The **Refresh Seed** node ...
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: docs/splash-seed-refresh.png
 tagged: 
     - node
     - misc

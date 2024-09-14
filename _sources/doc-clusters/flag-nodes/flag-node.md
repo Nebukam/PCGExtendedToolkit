@@ -8,7 +8,6 @@ subtitle: A single flag definition
 summary: The **Node Flag** uses a variety of filters to perform bitmask-based flag operations that can be set in three modes; Direct, Individual, or Composite, with various logical operations like AND, OR, NOT, and XOR.
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 see_also:
     - Working with Clusters
     - Flag Nodes

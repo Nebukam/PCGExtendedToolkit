@@ -7,7 +7,6 @@ subtitle: Look at next
 color: white
 #summary: summary_goes_here
 splash: icons/icon_paths-orient.svg
-preview_img: docs/splash-orient-lookat.png
 tagged: 
     - pathsorient
 nav_order: 1

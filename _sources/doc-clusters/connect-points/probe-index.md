@@ -8,7 +8,6 @@ subtitle: Connects to a point at a given index
 summary: The **Index** probe ...
 color: white
 splash: icons/icon_misc-write-index.svg
-preview_img: placeholder.jpg
 see_also:
     - Connect Points
 tagged: 
