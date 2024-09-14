@@ -9,7 +9,6 @@ summary: The **Asset Collection to Set** offers a variety of options & settings 
 color: white
 splash: icons/icon_paths-orient.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 see_also: 
     - Asset Collection
 tagged: 

@@ -8,7 +8,6 @@ summary: The **Mesh Collection** DataAsset is a list of Meshes with ISM/HISM Des
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 see_also: 
     - Asset Collection
 tagged: 

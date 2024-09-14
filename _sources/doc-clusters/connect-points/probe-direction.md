@@ -9,7 +9,6 @@ summary: The **Direction** probe ...
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 see_also:
     - Connect Points
 tagged: 

@@ -8,7 +8,6 @@ color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
 preview_img: docs/splash-sort-points.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - sorting

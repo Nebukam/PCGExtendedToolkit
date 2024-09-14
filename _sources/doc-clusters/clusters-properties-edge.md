@@ -9,7 +9,6 @@ summary: The **Edge Properties** node allows you to compute and write additional
 color: white
 splash: icons/icon_edges-extras.svg
 preview_img: docs/splash-edges-extras.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - edges

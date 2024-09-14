@@ -4,10 +4,6 @@ has_children: false
 nav_exclude: true
 ---
 
----
-## Cluster Output Settings
-*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
-<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

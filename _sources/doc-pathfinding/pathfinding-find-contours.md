@@ -8,7 +8,6 @@ summary: The **Find Contours** node finds hole/outlines contours in a graph, usi
 color: white
 splash: icons/icon_edges-extras.svg
 preview_img: docs/splash-edges-extras.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - edges
@@ -37,5 +36,7 @@ outputs:
 > DOC TDB
 {: .warning }
 
+---
+## Projection Settings
+<br>
 {% include embed id='settings-projection' %}
-{% include embed id='settings-performance' %}

@@ -8,7 +8,6 @@ summary: The **Fuse Points** reduces the number of point within a group by mergi
 color: white
 splash: icons/icon_misc-fuse-points.svg
 preview_img: docs/splash-point-blending.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - misc

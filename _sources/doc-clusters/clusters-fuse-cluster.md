@@ -8,7 +8,6 @@ summary: The **Fuse Clusters** node ...
 color: white
 splash: icons/icon_graphs-sanitize.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 tagged:
     - node
     - clusters

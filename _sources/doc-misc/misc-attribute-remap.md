@@ -8,7 +8,6 @@ summary: The **Attribute Remap** allows you to easily do component-wise attribut
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: docs/splash-remap.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - misc

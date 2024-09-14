@@ -8,7 +8,6 @@ color: white
 #summary: Index-based moving-average sampling
 splash: icons/icon_path-tangents.svg
 preview_img: docs/splash-tangent-auto.png
-toc_img: placeholder.jpg
 tagged: 
     - pathstangents
 nav_order: 1

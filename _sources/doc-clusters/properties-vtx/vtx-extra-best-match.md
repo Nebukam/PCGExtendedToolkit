@@ -10,7 +10,6 @@ color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 see_also: 
     - Working with Clusters
     - "Properties : Vtx"
@@ -44,6 +43,10 @@ The **Edge Match** property outputs the properties of the single connected edges
 | Direction Attribute | Per-point direction attribute. |
 | Transform Direction | If enabled, will transform the input direction (either `Constant` or `Attribute`) using the point' transform. |
 
+---
+## Dot Comparison Details
+<br>
+### Dot Comparison Details
 {% include embed id='settings-dot-comparison' %}
 
 ---

@@ -8,7 +8,6 @@ summary: The **2D Lloyd Relaxation** node applies any number of Lloyd relaxation
 color: white
 splash: icons/icon_edges-relax.svg
 preview_img: docs/splash-lloyd-2d.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - misc

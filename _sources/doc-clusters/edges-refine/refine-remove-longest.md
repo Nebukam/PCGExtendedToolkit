@@ -7,13 +7,12 @@ subtitle: Removes the longest edge of each node
 #summary: The **Remove Longest** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
-toc_img: placeholder.jpg
 see_also:
     - Refine
     - 🝔 Remove Shortest
 tagged: 
     - edgerefining
-nav_order: 2
+nav_order: 22
 ---
 
 {% include header_card_toc %}

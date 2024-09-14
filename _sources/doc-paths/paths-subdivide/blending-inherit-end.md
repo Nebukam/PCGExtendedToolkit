@@ -8,7 +8,6 @@ color: white
 summary: Processed subpoints will inherit from the last properties & attributes. Nothing fancy about it.
 splash: icons/icon_sampling-point.svg
 preview_img: docs/splash-blend-end.png
-toc_img: placeholder.jpg
 tagged: 
     - blending
 nav_order: 3

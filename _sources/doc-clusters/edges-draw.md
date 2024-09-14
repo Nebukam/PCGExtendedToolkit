@@ -8,7 +8,6 @@ summary: The **Draw Edges** node ...
 color: red
 splash: icons/icon_edges-draw.svg
 preview_img: docs/splash-edges-draw.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - edges

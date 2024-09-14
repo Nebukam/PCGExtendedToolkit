@@ -8,7 +8,6 @@ color: white
 #summary: summary_goes_here
 splash: icons/icon_path-tangents.svg
 preview_img: docs/splash-tangents.png
-toc_img: placeholder.jpg
 has_children: true
 tagged: 
     - node

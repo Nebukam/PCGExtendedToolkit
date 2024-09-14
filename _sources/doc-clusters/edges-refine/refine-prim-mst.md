@@ -7,7 +7,6 @@ subtitle: Implementation of Prim's Minimum Spanning Tree algorithm.
 #summary: The **MST** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
-toc_img: placeholder.jpg
 see_also:
     - Refine
 tagged: 

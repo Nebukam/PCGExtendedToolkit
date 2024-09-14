@@ -4,9 +4,6 @@ has_children: false
 nav_exclude: true
 ---
 
----
-## Projection Settings
-<br>
 
 The projection settings control how the point position is translated to a 2D space before the graph is computed; *and how this projection will translate back to the original space, if relevant.*  
 

@@ -8,7 +8,6 @@ color: white
 summary: The **Sample Nearest Bounds** node explore points within input bounds.
 splash: icons/icon_sampling-point.svg
 preview_img: docs/splash-sample-nearest-points.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - sampling
@@ -75,6 +74,9 @@ outputs:
 | Farthest Target          | Sample the single farthest target within the specified range. |
 | Target Extents          | Reverse the sampling mechanisms so points will sample the targets which `Extents` contains them.<br>**At the time of writing, will only check targets which position in world space is within range.**<br>*It is recommend to use a max range of `0` with this method.* |
 
+---
+### Weighting
+<br>
 {% include embed id='settings-weighting' %}
 
 ---

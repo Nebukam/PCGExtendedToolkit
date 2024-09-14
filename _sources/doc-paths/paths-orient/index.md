@@ -8,7 +8,6 @@ color: white
 summary: The **Orient** node compute individual point transforms & orientation based on its next & previous neighbors.
 splash: icons/icon_paths-orient.svg
 preview_img: docs/splash-orienting.png
-toc_img: placeholder.jpg
 has_children: true
 tagged: 
     - node

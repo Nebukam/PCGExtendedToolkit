@@ -8,7 +8,6 @@ summary: The **Random** picker ...
 color: white
 splash: icons/icon_placement-center.svg
 preview_img: docs/splash-picker-random.png
-toc_img: placeholder.jpg
 tagged: 
     - module
     - goalpicker
@@ -46,4 +45,5 @@ Random will connect to a fixed number of random goals, specified in `Num Goals`.
 Random will connect to a random number of random goals.  
 The number of connection will be between `0` and `Num Goals`
 
+### Index Safety
 {% include embed id='settings-index-safety' %}

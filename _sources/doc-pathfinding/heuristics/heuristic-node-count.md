@@ -8,7 +8,6 @@ color: white
 summary: The **Least Nodes** heuristic node ...
 splash: icons/icon_component.svg
 preview_img: docs/splash-search-least-nodes.png
-toc_img: placeholder.jpg
 tagged: 
     - heuristics
 nav_order: 5
@@ -17,7 +16,7 @@ inputs:
         desc : 
         pin : 
 outputs:
-    -   name : 🝰 Heuristics
+    -   name : Heuristics
         desc : A single heuristics definition
         pin : params
 ---

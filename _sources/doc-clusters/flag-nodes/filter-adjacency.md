@@ -9,7 +9,6 @@ summary: The **Adjacency** filter performs numeric comparisons on each connectio
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 tagged: 
     - node
     - clusterfilter

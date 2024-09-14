@@ -8,7 +8,6 @@ summary: The **Flat Projection** node...
 color: white
 splash: icons/icon_paths-orient.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 tagged: 
     - node
     - transform

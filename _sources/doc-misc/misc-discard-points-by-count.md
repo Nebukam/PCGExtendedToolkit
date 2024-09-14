@@ -8,7 +8,6 @@ summary: The **Discard Points by Count** node ...
 color: white
 splash: icons/icon_misc-discard-by-count.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 tagged: 
     - node
     - misc

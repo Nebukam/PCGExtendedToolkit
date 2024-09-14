@@ -8,7 +8,6 @@ summary: The **Prune by Length** node offers a very circumvoluted approach to re
 color: blue
 splash: icons/icon_edges-prune-by-length.svg
 preview_img: docs/splash-edges-prune.png
-toc_img: placeholder.jpg
 tagged:
     - node
     - edges
@@ -149,5 +148,8 @@ Measure: `Absolute`, Mean Method: `Fixed`, Mean Value: `500`, Prune Above : `0`.
 Measure: `Absolute`, Mean Method: `Fixed`, Mean Value: `42`, Prune Below : `0`.
 *This basically prune all edges which length is below `42 - 0`.*
 
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
 {% include embed id='settings-cluster-output' %}
-{% include embed id='settings-performance' %}

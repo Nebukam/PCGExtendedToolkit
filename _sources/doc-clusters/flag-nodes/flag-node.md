@@ -9,7 +9,6 @@ summary: The **Node Flag** uses a variety of filters to perform bitmask-based fl
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 see_also:
     - Working with Clusters
     - Flag Nodes
@@ -101,6 +100,6 @@ This lets you set the full width of the `int64` using a single dropdown per byte
 {% include card_any tagged="clusterfilter" %}
 
 ---
-## Available Regular Filters
+## Available Filters
 <br>
 {% include card_any tagged="filter" %}

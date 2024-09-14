@@ -9,7 +9,6 @@ summary: The **Special Neighbors** property outputs information about two key ne
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 see_also: 
     - Working with Clusters
     - "Properties : Vtx"

@@ -8,7 +8,6 @@ summary: The **Convex Hull 2D** outputs the edges/graph of a 2D convex hull. Pru
 color: blue
 splash: icons/icon_graphs-convex-hull.svg
 preview_img: docs/splash-convex-hull-2D.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - clusters
@@ -44,7 +43,14 @@ The node outputs a single cluster that contains the unordered hull & its edges, 
 # Properties
 <br>
 
+---
+## Projection Settings
+<br>
 {% include embed id='settings-projection' %}
 
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
 {% include embed id='settings-cluster-output' %}
 

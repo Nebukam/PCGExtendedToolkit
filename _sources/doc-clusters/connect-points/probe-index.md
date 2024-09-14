@@ -9,7 +9,6 @@ summary: The **Index** probe ...
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 see_also:
     - Connect Points
 tagged: 
@@ -42,12 +41,13 @@ This probes creates a single connections to another point at a given index.
 | Target Constant           | Constant index value; or constant offset depending on the selected `Mode`. |
 | Target Attribute           | Per-point attribute value for the index/offset. |
 
-## Mode
+### Mode
 
-|: Favor     ||
+|: Mode     | Description|
 |:-------------|:------------------|
 | Target           | Use the target index value as a raw index to connect to. |
 | One-way Offset         | Use the target index value as an offset to the currently probed point' index. |
 | Two-way Offset         | Use the target index value as an offset to the currently probed point' index; and creates a second connection but this time using the **target index value multiplied by -1.** |
 
+### Index Safety
 {% include embed id='settings-index-safety' %}

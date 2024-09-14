@@ -8,7 +8,6 @@ summary: The **Convex Hull 3D** outputs the edges/graph of a 3D convex hull. Pru
 color: blue
 splash: icons/icon_graphs-convex-hull.svg
 preview_img: docs/splash-convex-hull-3D.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - clusters
@@ -38,4 +37,8 @@ The 3D Convex Hull node capture the convex bounding shape of a set of point in t
 # Properties
 <br>
 
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
 {% include embed id='settings-cluster-output' %}

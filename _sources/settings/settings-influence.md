@@ -4,9 +4,6 @@ has_children: false
 nav_exclude: true
 ---
 
----
-## Influence Settings
-<br>
 
 | Property       | Description          |
 |:-------------|:------------------|

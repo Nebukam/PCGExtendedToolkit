@@ -8,7 +8,6 @@ summary: The **Conditional Actions** node is executing "actions" based on filter
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 has_children: true
 tagged: 
     - node

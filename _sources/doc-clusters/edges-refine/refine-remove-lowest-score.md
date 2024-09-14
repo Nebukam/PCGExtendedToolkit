@@ -7,13 +7,12 @@ subtitle: Removes edges with the lowest heuristic scores
 #summary: The **Remove Lowest Score** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
-toc_img: placeholder.jpg
 see_also:
     - Refine
     - 🝔 Remove Highest Score
 tagged: 
     - edgerefining
-nav_order: 2
+nav_order: 13
 ---
 
 {% include header_card_toc %}

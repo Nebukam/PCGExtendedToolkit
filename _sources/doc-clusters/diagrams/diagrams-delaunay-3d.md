@@ -1,7 +1,7 @@
 ---
 layout: page
 grand_parent: Clusters
-parent: Graphs
+parent: Diagrams
 title: Delaunay 3D
 name_in_editor: "Cluster : Delaunay 3D"
 subtitle: Outputs a 3D Delaunay tetrahedralization.
@@ -9,7 +9,6 @@ summary: The **Delaunay 3D** node outputs a 3D Delaunay tetrahedralization with 
 color: blue
 splash: icons/icon_graphs-delaunay.svg
 preview_img: docs/splash-delaunay-3D.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - clusters
@@ -64,9 +63,16 @@ It has very *very* interesting properties, and this node also offers the ability
 {% include img a='placeholder-wide.jpg' %}
 
 
+---
+## Projection Settings
+<br>
 {% include embed id='settings-projection' %}
 
 
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
 {% include embed id='settings-cluster-output' %}
 
 

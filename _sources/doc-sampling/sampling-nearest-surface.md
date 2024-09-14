@@ -9,7 +9,6 @@ summary: The **Sample Nearest Points** node fetches all collisions within a give
 splash: icons/icon_sampling-surface.svg
 preview_img: docs/splash-sample-nearest-surface.png
 warning: This node works with collisions and as such can be very expensive on large datasets.
-toc_img: placeholder.jpg
 tagged: 
     - node
     - sampling
@@ -48,6 +47,10 @@ outputs:
 | **Normal** Attribute Name     | Writes the normal of the surface at the sampled, as an `FVector`. |
 | **Distance** Attribute Name     | Writes the distance between the point and the sampled location, as a `double`. |
 
+---
+## Collision Settings
+<br>
+### Collision Settings
 {% include embed id='settings-collisions' %}
 
 > Important note: under the hood this find the closest point on the closest collider -- this feature **is only supported for simple collider and won't work on complex ones**.

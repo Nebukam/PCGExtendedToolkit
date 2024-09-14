@@ -9,7 +9,6 @@ summary: The **Refine** node algorithmically prunes edges in a graph to enforce 
 color: blue
 splash: icons/icon_edges-refine.svg
 preview_img: docs/splash-refining.png
-toc_img: placeholder.jpg
 has_children: true
 #use_child_thumbnails: true
 tagged:
@@ -26,8 +25,11 @@ inputs:
     -   name : Edges
         desc : Edges associated with the input Vtxs
         pin : points
-    -   name : 🝰 Heuristics
+    -   name : Heuristics
         desc : Heuristic nodes, if required by the selected refinement.
+        pin : params
+    -   name : Edge Filters
+        desc : Point filter input used to filter which edge points can be processed.
         pin : params
 outputs:
     -   name : Vtx
@@ -47,6 +49,9 @@ The **Cluster Refine** node lets you refine connections inside individual cluste
 
 {% include img a='placeholder-wide.jpg' %}
 
+> The filters determine which edge can be pruned. **Any filter that doesn't pass will ensure the edge is preserved.**
+{: .infos-hl }
+
 # Properties
 <br>
 
@@ -58,7 +63,8 @@ The **Cluster Refine** node lets you refine connections inside individual cluste
 
 ---
 ## Sanitization
-The sanitization property lets you enforce some general conditions within the graph. Note that is applied after the refinement.
+The sanitization property lets you enforce some general conditions within the graph. Note that is applied after the refinement.  
+*Note that this is not mutually exclusive with filters: sanitization happens has a post-process after the "raw" refinement is completed.*
 
 | Sanitization       | Description          |
 |:-------------|:------------------|
@@ -74,5 +80,14 @@ The sanitization property lets you enforce some general conditions within the gr
 <br>
 {% include card_any tagged="edgerefining" %}
 
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
 {% include embed id='settings-cluster-output' %}
-{% include embed id='settings-performance' %}
+
+
+---
+## Available Filters
+<br>
+{% include card_any tagged="filter" %}

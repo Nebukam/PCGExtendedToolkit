@@ -8,7 +8,6 @@ color: white
 #summary: Radius & position-based sampling
 splash: icons/icon_path-tangents.svg
 preview_img: docs/splash-tangent-custom.png
-toc_img: placeholder.jpg
 tagged: 
     - pathstangents
 nav_order: 2

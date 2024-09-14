@@ -8,7 +8,6 @@ color: white
 summary: The **Sample Nearest Polyline** node explore polylines within a range using various methods. Define sampling range, weight targets, and obtain useful attributes.
 splash: icons/icon_sampling-line.svg
 preview_img: docs/splash-sample-nearest-polyline.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - sampling
@@ -77,6 +76,9 @@ outputs:
 | Farthest Target          | Sample the single farthest polyline within the specified range. |
 | Target Extents          | Reverse the sampling mechanisms so points will sample the targets which `Extents` contains them.<br>**At the time of writing, will only check targets which position in world space is within range.**<br>*It is recommend to use a max range of `0` with this method.* |
 
+---
+### Weighting
+<br>
 {% include embed id='settings-weighting' %}
 
 ---

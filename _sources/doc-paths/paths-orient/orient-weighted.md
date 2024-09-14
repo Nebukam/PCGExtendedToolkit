@@ -8,7 +8,6 @@ color: white
 #summary: summary_goes_here
 splash: icons/icon_paths-orient.svg
 preview_img: docs/splash-orient-weighted.png
-toc_img: placeholder.jpg
 tagged: 
     - pathsorient
 nav_order: 1

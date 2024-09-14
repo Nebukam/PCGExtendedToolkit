@@ -8,7 +8,6 @@ color: white
 summary: The **Line Trace** node performs a single line trace for each point, using a local attribute or property as direction & size.
 splash: icons/icon_sampling-guided.svg
 preview_img: docs/splash-sample-guided.png
-toc_img: placeholder.jpg
 warning: This node works with collisions and as such can be very expensive on large datasets.
 tagged: 
     - node
@@ -46,4 +45,8 @@ outputs:
 | **Normal** Attribute Name     | Writes the normal of the surface at the sampled, as an `FVector`. |
 | **Distance** Attribute Name     | Writes the distance between the point and the sampled location, as a `double`. |
 
+---
+## Collision Settings
+<br>
+### Collision Settings
 {% include embed id='settings-collisions' %}

@@ -8,7 +8,6 @@ summary: The **Uber Filter** node is a one-stop node for all your filtering need
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 has_children: true
 tagged: 
     - node

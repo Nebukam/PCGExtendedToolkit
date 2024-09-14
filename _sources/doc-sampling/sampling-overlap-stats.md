@@ -8,7 +8,6 @@ color: white
 summary: The **Sample Overlap Stats** node check points for overlap against other collections.
 splash: icons/icon_sampling-point.svg
 preview_img: docs/splash-sample-nearest-points.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - sampling

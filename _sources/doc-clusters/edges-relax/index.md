@@ -9,7 +9,6 @@ summary: The **Relax** node smooths a graph's point positions by applying iterat
 color: blue
 splash: icons/icon_edges-relax.svg
 preview_img: previews/index-edges-relax.png
-toc_img: placeholder.jpg
 has_children: true
 tagged: 
     - node
@@ -55,6 +54,9 @@ The relax point node smoothes cluster' topology by iteratively applying a given 
 | Local Influence           | If enabled, will use a per-point attribute value as *Influence*. |
 | Progressive Influence           | Switchs betweeen factoring the influence after each *per-iteration* (progressive) or once all iterations have been processed.<br>*This yields vastly different results, so don't hesite to try it.* |
 
+---
+## Influence Settings
+<br>
 {% include embed id='settings-influence' %}
 
 ---
@@ -62,5 +64,9 @@ The relax point node smoothes cluster' topology by iteratively applying a given 
 <br>
 {% include card_any tagged="relax" %}
 
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
 {% include embed id='settings-cluster-output' %}
-{% include embed id='settings-performance' %}
+

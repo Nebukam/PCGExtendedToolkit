@@ -8,7 +8,6 @@ color: white
 summary: Applies any number of Lloyd relaxation passes, in 3D space.
 splash: icons/icon_edges-relax.svg
 preview_img: docs/splash-lloyd-3d.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - misc

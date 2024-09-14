@@ -4,7 +4,11 @@ has_children: false
 nav_exclude: true
 ---
 
-|**Extra Weighting**||
+
+### Extra Weighting
+
+| Property       | Description          |
+|:-------------|:------------------|
 |Weight up Visited| If enabled, points and edges will accumulate additional weight are paths are found.<br>This allows you to make "already in use" points & edges either more or less desirable for the next internal execution. |
 |Visited Points Weight Factor| The weight to add to points that have been visited. This is a multiplier of the Heuristic' Modifiers `Reference Weight`.<br>*The weight is added each time a point is used.*|
 |Visited Edges Weight Factor| The weight to add to edges that have been visited. This is a multiplier of the Heuristic' Modifiers `Reference Weight`.<br>*The weight is added each time an edge is used.*|

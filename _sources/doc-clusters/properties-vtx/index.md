@@ -9,7 +9,6 @@ color: white
 summary: The **Vtx Properties** node allows you to compute and write additional data for vertices within a cluster. It utilizes external nodes to define individual property outputs. You can input multiple property nodes, ensuring unique names for each to avoid overwriting issues.
 splash: icons/icon_edges-extras.svg
 preview_img: docs/splash-edges-extras.png
-toc_img: placeholder.jpg
 has_children: true
 see_also: 
     - Working with Clusters

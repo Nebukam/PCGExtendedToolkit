@@ -7,13 +7,12 @@ subtitle: Keeps edges with the lowest heuristic scores
 #summary: The **Keep Lowest Score** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
-toc_img: placeholder.jpg
 see_also:
     - Refine
     - 🝔 Keep Highest Score
 tagged: 
     - edgerefining
-nav_order: 2
+nav_order: 11
 ---
 
 {% include header_card_toc %}

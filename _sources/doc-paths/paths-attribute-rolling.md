@@ -8,7 +8,6 @@ color: white
 summary: The **Attribute Rolling** nodes allows to do "rolling" operations, where the base value of each operation is the result of the previous one.
 splash: icons/icon_path-fuse.svg
 preview_img: docs/splash-path-collinear.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - paths

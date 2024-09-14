@@ -8,7 +8,6 @@ summary: The **Default** picker ...
 color: white
 splash: icons/icon_placement-center.svg
 preview_img: docs/splash-picker-default.png
-toc_img: placeholder.jpg
 tagged: 
     - module
     - goalpicker
@@ -28,4 +27,5 @@ Seed index `0` will be matched to goal index `0`, and so on.
 |**Settings**||
 | Index Safety           | Failsafe method if there are more `Seeds` than there are `Goals`.<br>Note that extra `Goals` are simply ignored.<br>*See [Index Safety](#index-safety)* |
 
+### Index Safety
 {% include embed id='settings-index-safety' %}

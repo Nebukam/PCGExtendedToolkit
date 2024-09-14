@@ -1,5 +1,6 @@
 ---
 layout: page
+parent: Misc
 title: Bitmasks
 subtitle: TBD
 summary: TBD

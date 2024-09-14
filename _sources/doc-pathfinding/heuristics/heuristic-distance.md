@@ -8,7 +8,6 @@ summary: The **Shortest Distance** heuristic node ...
 color: white
 splash: icons/icon_component.svg
 preview_img: docs/splash-search-shortest.png
-toc_img: placeholder.jpg
 tagged: 
     - heuristics
 nav_order: 2
@@ -17,7 +16,7 @@ inputs:
         desc : 
         pin : 
 outputs:
-    -   name : 🝰 Heuristics
+    -   name : Heuristics
         desc : A single heuristics definition
         pin : params
 ---

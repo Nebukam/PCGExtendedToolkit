@@ -8,7 +8,6 @@ summary: The **Path × Path Crossings** node ...
 color: white
 splash: icons/icon_paths-orient.svg
 preview_img: docs/splash-orienting.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - paths

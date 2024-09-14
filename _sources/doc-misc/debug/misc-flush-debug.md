@@ -8,7 +8,6 @@ summary: Flush persistent debug lines, to be used at the start of a PCG graph.
 color: red
 splash: icons/icon_hidden.svg
 preview_img: docs/splash-flush-debug.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - misc

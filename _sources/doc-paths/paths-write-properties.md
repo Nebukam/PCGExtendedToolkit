@@ -8,7 +8,6 @@ color: white
 summary: Writes a variety of path statistics such as length, time, normals, centroids etc
 splash: icons/icon_edges-extras.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 tagged: 
     - node
     - paths

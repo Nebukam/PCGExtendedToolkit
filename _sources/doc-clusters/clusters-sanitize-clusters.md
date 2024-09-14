@@ -8,7 +8,6 @@ summary: The **Sanitize Clusters** ensures clusters are pathfinding-friendly. Fi
 color: white
 splash: icons/icon_graphs-sanitize.svg
 preview_img: docs/splash-sanitize.png
-toc_img: placeholder.jpg
 tagged:
     - node
     - clusters
@@ -36,9 +35,8 @@ outputs:
 # Properties
 <br>
 
-| Property       | Description          |
-|:-------------|:------------------|
-| Prune Isolated Points           | If enabled, input points that are not part of a valid cluster *(either no edges or pruned cluster)* will be omitted from the `Vtx` output.<br>If disabled, the input points are forwarded as-is in the `Vtx` output (with added attributes).  |
-| Edge Position           | If enabled, this sets the position of the `Edge` points to a lerp between their `Start` and `End` points.<br>*By default, `Edges` point are placed at the center between their two `Vtx`.*|
-| Min Cluster Size           | If enabled, any cluster with less **edges** than specified will be pruned from the output.  |
-| Max Cluster Size           | If enabled, any cluster with more **edges** than specified will be pruned from the output.  |
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
+{% include embed id='settings-cluster-output' %}

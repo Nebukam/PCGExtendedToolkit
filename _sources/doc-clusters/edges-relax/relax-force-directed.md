@@ -7,7 +7,6 @@ subtitle: Force-directed relaxation
 summary: The **Force-directed** relaxation ...
 color: white
 splash: icons/icon_edges-relax.svg
-toc_img: placeholder.jpg
 see_also:
     - Relax
 tagged: 

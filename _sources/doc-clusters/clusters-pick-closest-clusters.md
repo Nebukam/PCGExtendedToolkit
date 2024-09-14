@@ -7,7 +7,6 @@ summary: The **Pick Closest Clusters** node filters out input clusters based on 
 color: white
 splash: icons/icon_graphs-sanitize.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 tagged:
     - node
     - clusters

@@ -9,7 +9,6 @@ summary: The **Asset Staging** node lets your prepare points for spawning assets
 color: white
 splash: icons/icon_paths-orient.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 see_also: 
     - Asset Collection
 tagged: 
@@ -160,6 +159,7 @@ is used.
 | Remap Index to Collection Size           | If enabled, the input index is first remapped to the size of the collection.<br>**This enable the use of basically any input value and distribute the entierety of the collection over its range.**<br>*Note that this can have a noticeable performance impact since all input indices must be loaded in memory first to find the min/max range.*|
 | Truncate Remap           | Lets you choose how the remapped value (floating point) should be truncated to an integer. |
 
+### Index Safety
 {% include embed id='settings-index-safety' %}
 
 ---

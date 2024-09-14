@@ -8,7 +8,6 @@ summary: The **Points to Bounds** node ...
 color: white
 splash: icons/icon_misc-points-to-bounds.svg
 preview_img: docs/splash-points-to-bounds.png
-toc_img: placeholder.jpg
 tagged:
     - node
     - misc

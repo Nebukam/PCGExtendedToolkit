@@ -8,7 +8,6 @@ summary: The **Sort Points** node organize points based on rules. Key elements i
 color: white
 splash: icons/icon_misc-sort-points.svg
 preview_img: docs/splash-sort-points.png
-toc_img: placeholder.jpg
 tagged:
     - node
     - misc

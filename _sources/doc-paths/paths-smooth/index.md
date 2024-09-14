@@ -8,7 +8,6 @@ color: white
 summary: The **Smooth** node enhances path appearance. Customize closed paths, protect start and end points. Adjust global influence for overall smoothing. Use local influence to tailor per-point impact. Explore different smoothing types for varied effects.
 splash: icons/icon_path-smooth.svg
 preview_img: docs/splash-smoothing.png
-toc_img: placeholder.jpg
 has_children: true
 tagged: 
     - node

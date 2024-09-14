@@ -8,7 +8,6 @@ summary: The **A* Algorithm** search mode ...
 color: white
 splash: icons/icon_pathfinding-navmesh.svg
 preview_img: docs/splash-search-astar.png
-toc_img: placeholder.jpg
 tagged: 
     - module
     - search

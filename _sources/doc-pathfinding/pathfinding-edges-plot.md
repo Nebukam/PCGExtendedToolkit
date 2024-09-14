@@ -8,7 +8,6 @@ summary: The **Plot Edges Pathfinding** mode ...
 color: white
 splash: icons/icon_pathfinding-edges-plot.svg
 preview_img: docs/splash-plot-edges-pathfinding.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - pathfinder
@@ -53,6 +52,7 @@ outputs:
 |**Heuristics**| The base heuristics module that will be used during pathfinding.<br>*Each module has individual settings and documentation -- See [Available Heuristics](#available--heuristics-modules).* |
 |**Heuristics Modifiers**| This property group is available no matter what **Heuristics** have been picked.<br>*See {% include lk id='🝰 Heuristic Attribute' %}.*|
   
+### Statistics
 {% include embed id='settings-statistics' %}
 
 |**Extra Weighting**||

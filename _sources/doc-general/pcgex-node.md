@@ -50,7 +50,7 @@ Under the hood, all PCG node come with the ability to cache their result; but th
 {: .warning }
 
 ### Flatten Output
-Flatten the output of this node. On `5.3` this is an absurdly expensive operation, it's better in `5.4` and should be even faster in `5.5`.  Flattening ensure all inherited attribute values are copied to the output, and metadata parenting/inheritance is forfeited in the process. **This is a required step to ensure attribute values are properly saved to PCG Data Assets!**
+Flatten the output of this node. On `5.3` this is a very expensive operation, it's better in `5.4` and should be even faster in `5.5`.  Flattening ensure all inherited attribute values are copied to the output, and metadata parenting/inheritance is forfeited in the process. **This is a required step to ensure attribute values are properly saved to PCG Data Assets!**
 
 ---
 ## Input Pruning & De-duping

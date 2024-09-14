@@ -8,7 +8,6 @@ summary: Asset Collection represent collections of things (meshes, actors) that 
 color: white
 splash: icons/icon_custom-graphs-build.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 has_children: true
 use_child_thumbnails: true
 nav_order: 2

@@ -1,7 +1,7 @@
 ---
 layout: page
 grand_parent: Clusters
-parent: Graphs
+parent: Diagrams
 title: Voronoi 3D
 name_in_editor: "Cluster : Voronoi 3D"
 subtitle: Outputs a 3D Voronoi graph.
@@ -9,7 +9,6 @@ summary: The **Voronoi 3D** node outputs a 3D Voronoi graph with options like ba
 color: blue
 splash: icons/icon_graphs-voronoi.svg
 preview_img: docs/splash-voronoi-3D.png
-toc_img: placeholder.jpg
 tagged:
     - node
     - clusters
@@ -66,4 +65,8 @@ This node creates a 3D Voronoi diagram from the input points. If you'd like to k
 | {% include img a='placeholder.jpg' %} | **Centroid**<br>Uses the centroid of the Delaunay site for the point that are outside the bounds, otherwise use circumcenters.<br>*Best of both worlds, or worst of both worlds; depending on how you look at it.* |
 
 
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
 {% include embed id='settings-cluster-output' %}

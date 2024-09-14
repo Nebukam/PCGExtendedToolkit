@@ -4,7 +4,7 @@ has_children: false
 nav_exclude: true
 ---
 
-### Index Safety
+
 The index safety property controls how invalid/out of bounds input values are handled.
 
 | Safety method       ||

@@ -8,7 +8,6 @@ summary: The **Plot Navmesh** node ...
 color: white
 splash: icons/icon_pathfinding-navmesh-plot.svg
 preview_img: docs/splash-navmesh-plot.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - pathfinder

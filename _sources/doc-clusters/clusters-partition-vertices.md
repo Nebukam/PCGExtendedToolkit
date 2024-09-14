@@ -8,7 +8,6 @@ summary: The **Partition Vertices** splits input vtx into separate output groups
 color: white
 splash: icons/icon_graphs-sanitize.svg
 preview_img: docs/splash-partition-vertices.png
-toc_img: placeholder.jpg
 tagged:
     - node
     - clusters

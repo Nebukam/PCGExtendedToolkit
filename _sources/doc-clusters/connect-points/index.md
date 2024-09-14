@@ -9,7 +9,6 @@ summary: The **Connect Points** node creates connections between points in clust
 color: white
 splash: icons/icon_custom-graphs-build.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 has_children: true
 use_child_thumbnails: true
 tagged: 
@@ -62,7 +61,7 @@ These two inputs accept any of filters available for the {% include lk id='Uber 
 All points
 
 ---
-## Probes
+## Available Probes
 
 Probes are at the core of the **Connect Points** node.  
 You can connect as many probes as you'd like to the `Probes` input.
@@ -74,8 +73,17 @@ You can connect as many probes as you'd like to the `Probes` input.
 
 {% include card_childs tagged='probe' %}
 
-{% include embed id='settings-cluster-output' %}
-
 ---
 
 {% include img a='placeholder-wide.jpg' %}
+
+## Available Filters
+*You can use the regular filters for Generators & Connectables :*  
+
+{% include card_any tagged="filter" %}
+
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
+{% include embed id='settings-cluster-output' %}

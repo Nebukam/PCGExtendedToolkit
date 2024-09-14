@@ -1,7 +1,7 @@
 ---
 layout: page
 grand_parent: Clusters
-parent: Graphs
+parent: Diagrams
 title: Delaunay 2D
 name_in_editor: "Cluster : Delaunay 2D"
 subtitle: Outputs a 2D Delaunay triangulation.
@@ -9,7 +9,6 @@ summary: The **Delaunay 2D** node outputs a 2D Delaunay triangulation with optio
 color: blue
 splash: icons/icon_graphs-delaunay.svg
 preview_img: docs/splash-delaunay-2D.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - clusters
@@ -75,9 +74,16 @@ It has very *very* interesting properties, and this node also offers the ability
 {: .infos-hl }
 
 
+---
+## Projection Settings
+<br>
 {% include embed id='settings-projection' %}
 
 
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
 {% include embed id='settings-cluster-output' %}
 
 

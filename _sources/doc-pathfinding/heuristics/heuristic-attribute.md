@@ -15,7 +15,7 @@ inputs:
         desc : 
         pin : 
 outputs:
-    -   name : 🝰 Heuristics
+    -   name : Heuristics
         desc : A single heuristics definition
         pin : params
 #has_children: true

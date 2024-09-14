@@ -2,13 +2,13 @@
 layout: page
 #grand_parent: All Nodes
 parent: Clusters
-title: Connect
+title: Connect Clusters
+name_in_editor: "Cluster : Connect"
 subtitle: Connects clusters together.
-summary: The **Bridge Clusters** node merge clusters using methods like Delaunay for organic results, Least Edges for minimal bridges, or Most Edges for comprehensive connections. Regardless of method, bridges always connect the two nearest cluster points.
+summary: The **Connect Clusters** node creates bridge edges between clusters using methods like Delaunay, Least Edges, or Most Edges, always connecting the closest points between clusters to form a larger, unified cluster.
 color: blue
 splash: icons/icon_edges-bridge.svg
 preview_img: docs/splash-edges-bridge.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - edges
@@ -33,7 +33,10 @@ outputs:
 
 {% include header_card_node %}
 
-{% include img a='details/details-bridge-clusters.png' %} 
+The **Connect Clusters** creates "bridge" edges between all input clusters and outputs a single bigger one as a result.
+{: .fs-5 .fw-400 } 
+
+{% include img a='placeholder-wide.jpg' %}
 
 # Properties
 <br>
@@ -45,16 +48,29 @@ outputs:
 > Note that no matter what method is selected, **a bridge will always connect the two closest points between two clusters.**  The chosen method only drives which cluster is connected to which other cluster.
 {: .comment }
 
----
-## Bridge Methods
+### Bridge Methods
 
 | Method       | Description          |
 |:-------------|:------------------|
-|**Delaunay**||
-| {% include img a='docs/bridge/method-delaunay.png' %}           | When using this method, each cluster is abstracted into a single bounding box that encapsulates all its vertices. A 3D Delaunay is generated using each bounding box center as an input, and the resulting delaunay edges are used as bridges.|
-|**Least Edges**||
-| {% include img a='docs/bridge/method-least.png' %}           | When using this method, the algorithm will generate the least possible amount of bridge in order to connect all the clusters together.<br>*Careful because it can easily look like a minimum spanning tree, but it's not.*|
-|**Most Edges**||
-| {% include img a='docs/bridge/method-most.png' %}           | When using this method, the algorithm will create a bridge from each cluster to every other cluster.|
+| {% include img a='docs/bridge/method-delaunay.png' %}           | **Delaunay**<br>When using this method, each cluster is abstracted into a single bounding box that encapsulates all its vertices. A 3D Delaunay is generated using each bounding box center as an input, and the resulting delaunay edges are used as bridges.|
+| {% include img a='docs/bridge/method-least.png' %}           | **Least Edges**<br>When using this method, the algorithm will generate the least possible amount of bridge in order to connect all the clusters together.<br>*Careful because it can easily look like a minimum spanning tree, but it's not.*|
+| {% include img a='docs/bridge/method-most.png' %}           | **Most Edges**<br>When using this method, the algorithm will create a bridge from each cluster to every other cluster.|
 
-{% include embed id='settings-performance' %}
+
+---
+## Projection Settings
+<br>
+{% include embed id='settings-projection' %}
+
+
+---
+## Carry Over Settings
+<br>
+{% include embed id='settings-carry-over' %}
+
+
+---
+## Cluster Output Settings
+*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
+<br>
+{% include embed id='settings-cluster-output' %}

@@ -2,13 +2,12 @@
 layout: page
 grand_parent: Misc
 parent: Uber Filter
-title: 🝖 Numeric Comparison
-subtitle: The **Numeric Comparison Filter** compares the arithmetic value of two attributes
+title: 🝖 String Compare
+subtitle: The **Compare String Filter** compares two strings
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 tagged: 
     - node
     - filter

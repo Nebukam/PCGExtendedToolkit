@@ -8,7 +8,6 @@ summary: The **Goal from Attribute** picker ...
 color: white
 splash: icons/icon_placement-center.svg
 preview_img: docs/splash-picker-attribute.png
-toc_img: placeholder.jpg
 tagged: 
     - module
     - goalpicker
@@ -32,4 +31,5 @@ nav_order: 1
 >The attribute is fetched on the `Seed` input.
 {: .infos } 
 
+### Index Safety
 {% include embed id='settings-index-safety' %}

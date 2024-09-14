@@ -5,11 +5,10 @@ parent: Flag Nodes
 title: 🝖 Edge Direction
 name_in_editor: "Cluster Filter : Edge Direction"
 subtitle: Check if adjacent node meet specific conditions
-summary: The **Edge Direction** filter ...
+summary: The **Edge Direction** filter compares the direction of connections using a dot product, providing precise control over how many directions meet the set conditions, allowing tests against both discrete and relative number of connections.
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 tagged: 
     - node
     - clusterfilter
@@ -49,5 +48,9 @@ The Edge Direction filter does a simple dot product comparison on each individua
 | Transform Direction           | TBD |
 | Operand B (Neighbor)           | TBD |
 
+---
+## Dot Comparison Details
+<br>
+### Dot Comparison Details
 {% include embed id='settings-dot-comparison' %}
 

@@ -8,7 +8,6 @@ summary: The **Write Index** node write point index as an attribute, either disc
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: docs/splash-write-index.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - misc

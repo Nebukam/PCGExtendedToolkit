@@ -7,12 +7,11 @@ subtitle: Removes overlapping edges
 #summary: The **Remove Overlap** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
-toc_img: placeholder.jpg
 see_also:
     - Refine
 tagged: 
     - edgerefining
-nav_order: 2
+nav_order: 3
 ---
 
 {% include header_card_toc %}

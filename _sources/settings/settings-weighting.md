@@ -4,9 +4,6 @@ has_children: false
 nav_exclude: true
 ---
 
----
-## Weighting
-<br>
 
 There is two weighting method available. `Full Range` and `Effective Range`.
 Each method outputs a `[0..1]` value that will be used to sample the `Weight Over Distance` curve.  

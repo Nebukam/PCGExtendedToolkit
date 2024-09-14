@@ -7,13 +7,12 @@ subtitle: Keeps the longest edge of each node
 #summary: The **Keep Longest** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
-toc_img: placeholder.jpg
 see_also:
     - Refine
     - 🝔 Keep Shortest
 tagged: 
     - edgerefining
-nav_order: 2
+nav_order: 20
 ---
 
 {% include header_card_toc %}

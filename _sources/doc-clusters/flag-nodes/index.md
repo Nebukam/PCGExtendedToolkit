@@ -9,7 +9,6 @@ summary: The **Flag Nodes** node identifies and marks complex, non-mutually excl
 color: white
 splash: icons/icon_misc-write-index.svg
 preview_img: placeholder.jpg
-toc_img: placeholder.jpg
 has_children: true
 see_also:
     - Working with Clusters
@@ -76,3 +75,8 @@ What this means is higher priorities have the ability to radically change the en
 ## Available Cluster Filters
 <br>
 {% include card_any tagged="clusterfilter" %}
+
+---
+## Available Regular Filters
+<br>
+{% include card_any tagged="filter" %}

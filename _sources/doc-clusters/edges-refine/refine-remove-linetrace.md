@@ -7,7 +7,6 @@ subtitle: Removes edges by doing linetrace and checking for collisions.
 #summary: The **Remove Overlap** refinement ...
 color: white
 splash: icons/icon_edges-refine.svg
-toc_img: placeholder.jpg
 see_also:
     - Refine
 tagged: 
@@ -31,6 +30,10 @@ This does linetraces using the edge' start & end point.
 | Two Way Check           | If enabled, when the first linecast (From the edge' start to end) fails, it tries the other way around (From the edge' end to start).<br>*While expensive, this ensures the refinement doesn't fail on backface hits.*|
 
 
+---
+## Collision Settings
+<br>
+### Collision Settings
 {% include embed id='settings-collisions' %}
 
 

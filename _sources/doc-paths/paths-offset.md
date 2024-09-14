@@ -8,7 +8,6 @@ color: white
 summary: The **Offset** node moves path points in a given direction
 splash: icons/icon_path-fuse.svg
 preview_img: docs/splash-path-collinear.png
-toc_img: placeholder.jpg
 tagged: 
     - node
     - paths
