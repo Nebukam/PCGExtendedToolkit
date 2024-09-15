@@ -103,8 +103,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		const bool bDoInline = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
-		if (!Context->StartProcessingClusters<
-			PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>(
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>* NewBatch)
 			{

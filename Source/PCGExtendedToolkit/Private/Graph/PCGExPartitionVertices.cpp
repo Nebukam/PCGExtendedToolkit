@@ -57,7 +57,7 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 			return true;
 		}
 
-		Context->VtxPartitions->Pairs.Reserve(Context->GetTotalNumProcessors());
+		Context->VtxPartitions->Pairs.Reserve(Context->GetClusterProcessorsNum());
 	}
 
 	if (!Context->ProcessClusters()) { return false; }

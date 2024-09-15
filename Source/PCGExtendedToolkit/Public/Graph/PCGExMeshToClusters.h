@@ -88,7 +88,7 @@ public:
 
 	/** Static mesh path attribute type*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))
-	EPCGExMeshAttributeHandling AttributeHandling;
+	EPCGExMeshAttributeHandling AttributeHandling; // TODO : Refactor this to support both. We care about primitives, not where they come from.
 
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

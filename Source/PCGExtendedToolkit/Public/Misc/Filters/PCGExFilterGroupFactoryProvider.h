@@ -41,7 +41,7 @@ public:
 
 	/** Filter Priority.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
-	int32 Priority;
+	int32 Priority = 0;
 
 	/** Filter Priority.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))

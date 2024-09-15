@@ -80,13 +80,24 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 
 	bool bWaitingOnClusterProjection = false;
 
-	int32 GetTotalNumProcessors() const
+	int32 GetClusterProcessorsNum() const
 	{
 		int32 Num = 0;
 		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Num += Batch->GetNumProcessors(); }
 		return Num;
 	}
 
+	template<typename T>
+	void GatherClusterProcessors(TArray<T*> OutProcessors)
+	{
+		OutProcessors.Reserve(GetClusterProcessorsNum());
+		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
+		{
+			const PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<const PCGExClusterMT::TBatch<T>*>(Batch); 
+			OutProcessors.Append(TypedBatch->Processors);
+		}
+	}
+	
 	void OutputBatches() const
 	{
 		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->Output(); }

@@ -306,6 +306,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	{
 	}
 
+	template <typename T>
+	void GatherProcessors(TArray<T*> OutProcessors)
+	{
+		OutProcessors.Reserve(MainBatch->GetNumProcessors());
+		PCGExPointsMT::TBatch<T>* TypedBatch = static_cast<PCGExPointsMT::TBatch<T>*>(MainBatch);
+		OutProcessors.Append(TypedBatch->Processors);
+	}
+
 #pragma endregion
 
 protected:

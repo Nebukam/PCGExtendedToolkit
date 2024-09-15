@@ -299,6 +299,15 @@ namespace PCGExCluster
 		void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const;
 
 		FORCEINLINE FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const { return (GetPos(FromIndex) - GetPos(ToIndex)).GetSafeNormal(); }
+		FORCEINLINE FVector GetClosestPointOnEdge(const int32 FromIndex, const int32 ToIndex, const FVector& Position) const
+		{
+			return FMath::ClosestPointOnSegment(Position, GetPos(FromIndex), GetPos(ToIndex));
+		}
+
+		FORCEINLINE FVector GetClosestPointOnEdge(const int32 EdgeIndex, const FVector& Position) const
+		{
+			return GetClosestPointOnEdge((*NodeIndexLookup)[(Edges->GetData() + EdgeIndex)->Start], (*NodeIndexLookup)[(Edges->GetData() + EdgeIndex)->End], Position);
+		}
 
 		FORCEINLINE FVector GetCentroid(const int32 NodeIndex) const
 		{

@@ -120,7 +120,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 				Selector.SetAttributeName(Settings->StaticMeshAttribute);
 
-				PCGEx::FLocalToStringGetter* PathGetter = new PCGEx::FLocalToStringGetter();
+				PCGEx::FSoftObjectPathGetter* PathGetter = new PCGEx::FSoftObjectPathGetter();
 				PathGetter->Capture(Selector);
 				if (!PathGetter->SoftGrab(Context->MainPoints->Pairs[0]))
 				{
@@ -132,7 +132,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
 				for (int i = 0; i < TargetPoints.Num(); ++i)
 				{
-					FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], TEXT(""));
+					FSoftObjectPath Path = PathGetter->SoftGet(i, TargetPoints[i], FSoftObjectPath());
 
 					if (!Path.IsValid())
 					{

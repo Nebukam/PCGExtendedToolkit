@@ -350,7 +350,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TCache<T>* GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, bool bCaptureMinMax = false)
+		TCache<T>* GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false)
 		{
 			PCGEx::TAttributeGetter<T>* Getter;
 
@@ -398,6 +398,14 @@ namespace PCGExData
 			PCGEX_DELETE(Getter)
 
 			return Cache;
+		}
+		
+		template <typename T>
+		TCache<T>* GetBroadcaster(const FName& InName, const bool bCaptureMinMax = false)
+		{
+			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
+			Selector.SetAttributeName(InName);
+			return GetBroadcaster<T>(Selector, bCaptureMinMax);
 		}
 
 		template <typename T>
@@ -450,6 +458,14 @@ namespace PCGExData
 			Cache->SetDynamicGetter(Getter);
 
 			return Cache;
+		}
+		
+		template <typename T>
+		TCache<T>* GetScopedBroadcaster(const FName& InName, const bool bCaptureMinMax = false)
+		{
+			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
+			Selector.SetAttributeName(InName);
+			return GetBroadcaster<T>(Selector, bCaptureMinMax);
 		}
 
 		// TODO

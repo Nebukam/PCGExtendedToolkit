@@ -51,40 +51,6 @@ enum class EPCGExSubdivideMode : uint8
 };
 
 USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointFilterActionDetails
-{
-	GENERATED_BODY()
-
-	FPCGExPointFilterActionDetails()
-	{
-	}
-
-	/** Action type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExFilterDataAction Action = EPCGExFilterDataAction::Keep;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
-	FName KeepTag = NAME_None;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
-	FName OmitTag = NAME_None;
-
-	bool Validate(const FPCGContext* Context) const
-	{
-		if (Action == EPCGExFilterDataAction::Tag)
-		{
-			PCGEX_VALIDATE_NAME_C(Context, KeepTag)
-			PCGEX_VALIDATE_NAME_C(Context, OmitTag)
-			return true;
-		}
-
-		return true;
-	}
-};
-
-USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExClampDetails
 {
 	GENERATED_BODY()

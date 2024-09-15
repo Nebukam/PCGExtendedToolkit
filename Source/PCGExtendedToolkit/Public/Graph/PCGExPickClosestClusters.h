@@ -5,27 +5,19 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDetails.h"
+#include "Data/PCGExDataForward.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"
 
+
 class FPCGExPointIOMerger;
 
-namespace PCGExFilterCluster
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Pick Mode"))
+enum class EPCGExClusterClosestPickMode : uint8
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FPicker
-	{
-		int32 VtxIndex = -1;
-		int32 EdgesIndex = -1;
-		double ClosestDistance = TNumericLimits<double>::Max();
-
-		FVector Position;
-
-		explicit FPicker(const FVector& InPosition)
-			: Position(InPosition)
-		{
-		}
-	};
-}
+	OnlyBest = 0 UMETA(DisplayName = "Only Best", ToolTip="Allows duplicate picks for multiple targets"),
+	NextBest = 1 UMETA(DisplayName = "Next Best", ToolTip="If a cluster was already the closest pick of another target, pick the nest best candidate."),
+};
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPickClosestClustersSettings : public UPCGExEdgesProcessorSettings
@@ -55,13 +47,29 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExClusterClosestSearchMode SearchMode = EPCGExClusterClosestSearchMode::Node;
 
-	/** What to do with the selection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
-	FPCGExPointFilterActionDetails FilterActions;
-
-	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or slightly slower. */
+	/** Whether to allow the same pick for multiple targets or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bUseOctreeSearch = false;
+	EPCGExClusterClosestPickMode PickMode = EPCGExClusterClosestPickMode::OnlyBest;
+
+	/** Action type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExFilterDataAction Action = EPCGExFilterDataAction::Keep;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
+	FName KeepTag = NAME_None;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
+	FName OmitTag = NAME_None;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExAttributeToTagDetails TargetAttributesToPathTags;
+
+	/** Which Seed attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExForwardDetails TargetForwarding;
 
 private:
 	friend class FPCGExPickClosestClustersElement;
@@ -73,11 +81,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : publi
 
 	virtual ~FPCGExPickClosestClustersContext() override;
 
-	PCGExData::FPointIO* Targets = nullptr;
-	TArray<PCGExFilterCluster::FPicker> Selectors;
+	PCGExData::FFacade* TargetDataFacade = nullptr;
 
-	TMap<int32, TSet<int32>*> VtxEdgeMap;
-	TSet<int32>* CurrentEdgeMap = nullptr;
+	FString KeepTag = TEXT("");
+	FString OmitTag = TEXT("");
+
+	FPCGExAttributeToTagDetails TargetAttributesToPathTags;
+	PCGExData::FDataForwardHandler* TargetForwardHandler = nullptr;
+
+	virtual void OnBatchesProcessingDone() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersElement final : public FPCGExEdgesProcessorElement
@@ -92,3 +104,44 @@ protected:
 	virtual bool Boot(FPCGExContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExPickClosestClusters
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		friend class FProcessorBatch;
+
+		const UPCGExPickClosestClustersSettings* LocalSettings = nullptr;
+		FPCGExPickClosestClustersContext* LocalTypedContext = nullptr;
+
+	public:
+		TArray<double> Distances;
+
+		int32 Picker = -1;
+
+		explicit FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
+			: FClusterProcessor(InVtx, InEdges)
+		{
+		}
+
+		virtual ~FProcessor() override;
+
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+	};
+
+
+	//
+
+
+	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+	public:
+		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+			PCGExClusterMT::TBatch<FProcessor>(InContext, InVtx, InEdges)
+		{
+		}
+
+		virtual void Output() override;
+	};
+}
