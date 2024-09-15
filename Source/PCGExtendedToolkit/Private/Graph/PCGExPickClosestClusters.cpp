@@ -78,7 +78,7 @@ FPCGExPickClosestClustersContext::~FPCGExPickClosestClustersContext()
 	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE_FACADE_AND_SOURCE(TargetDataFacade)
 	PCGEX_DELETE(TargetForwardHandler)
-	TargetAttributesToPathTags.Cleanup();
+	TargetAttributesToTags.Cleanup();
 }
 
 
@@ -93,9 +93,9 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 
 	Context->TargetDataFacade = new PCGExData::FFacade(Targets);
 
-	PCGEX_FWD(TargetAttributesToPathTags)
+	PCGEX_FWD(TargetAttributesToTags)
 
-	if (!Context->TargetAttributesToPathTags.Init(Context, Context->TargetDataFacade)) { return false; }
+	if (!Context->TargetAttributesToTags.Init(Context, Context->TargetDataFacade)) { return false; }
 
 	Context->TargetForwardHandler = Settings->TargetForwarding.GetHandler(Context->TargetDataFacade);
 
@@ -229,8 +229,8 @@ namespace PCGExPickClosestClusters
 			LocalTypedContext->TargetForwardHandler->Forward(Picker, VtxDataFacade);
 		}
 
-		LocalTypedContext->TargetAttributesToPathTags.Tag(Picker, EdgeDataFacade->Source);
-		LocalTypedContext->TargetAttributesToPathTags.Tag(Picker, VtxDataFacade->Source);
+		LocalTypedContext->TargetAttributesToTags.Tag(Picker, EdgeDataFacade->Source);
+		LocalTypedContext->TargetAttributesToTags.Tag(Picker, VtxDataFacade->Source);
 	}
 
 	void FProcessorBatch::Output()

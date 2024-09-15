@@ -65,7 +65,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExAttributeToTagDetails TargetAttributesToPathTags;
+	FPCGExAttributeToTagDetails TargetAttributesToTags;
 
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -86,7 +86,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : publi
 	FString KeepTag = TEXT("");
 	FString OmitTag = TEXT("");
 
-	FPCGExAttributeToTagDetails TargetAttributesToPathTags;
+	FPCGExAttributeToTagDetails TargetAttributesToTags;
 	PCGExData::FDataForwardHandler* TargetForwardHandler = nullptr;
 
 	virtual void OnBatchesProcessingDone() override;
