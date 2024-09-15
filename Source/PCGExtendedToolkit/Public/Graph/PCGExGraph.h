@@ -53,15 +53,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 	{
 	}
 
-	explicit FPCGExGraphBuilderDetails(const bool PrunePoints)
-		: bPruneIsolatedPoints(PrunePoints)
-	{
-	}
-
-	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
-	//UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
-	bool bPruneIsolatedPoints = true;
-
 	/** Don't output Clusters if they have less points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgePosition = true;
@@ -467,8 +458,6 @@ namespace PCGExGraph
 
 			EdgesIO = new PCGExData::FPointIOCollection(InPointIO->GetContext());
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
-
-			bPrunePoints = OutputDetails->bPruneIsolatedPoints;
 		}
 
 		void CompileAsync(PCGExMT::FTaskManager* AsyncManager, FGraphMetadataDetails* MetadataDetails = nullptr);

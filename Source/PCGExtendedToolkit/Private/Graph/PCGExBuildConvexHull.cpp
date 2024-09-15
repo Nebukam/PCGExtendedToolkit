@@ -32,8 +32,6 @@ bool FPCGExBuildConvexHullElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull)
 
-	if (!Settings->GraphBuilderDetails.bPruneIsolatedPoints) { PCGEX_VALIDATE_NAME(Settings->HullAttributeName) }
-
 	return true;
 }
 
@@ -88,9 +86,7 @@ namespace PCGExConvexHull
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Delaunay)
-
 		PCGEX_DELETE(GraphBuilder)
-		PCGEX_DELETE(HullMarkPointWriter)
 
 		Edges.Empty();
 	}
@@ -121,22 +117,10 @@ namespace PCGExConvexHull
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		if (!Settings->GraphBuilderDetails.bPruneIsolatedPoints && Settings->bMarkHull)
-		{
-			HullMarkPointWriter = new PCGEx::TAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-			HullMarkPointWriter->BindAndSetNumUninitialized(PointIO);
-			StartParallelLoopForPoints();
-		}
-
 		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;
-	}
-
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
-	{
-		HullMarkPointWriter->Values[Index] = Delaunay->DelaunayHull.Contains(Index);
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
@@ -175,12 +159,10 @@ namespace PCGExConvexHull
 		{
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			PCGEX_DELETE(GraphBuilder)
-			PCGEX_DELETE(HullMarkPointWriter)
 			return;
 		}
 
 		GraphBuilder->Write();
-		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
 	}
 }
 
