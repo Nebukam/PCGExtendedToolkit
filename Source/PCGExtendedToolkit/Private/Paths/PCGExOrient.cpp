@@ -32,7 +32,7 @@ bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
 		PCGEX_VALIDATE_NAME(Settings->DotAttribute);
 	}
 
-	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientAverage)
+	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientOperation)
 	Context->Orientation->bClosedPath = Settings->bClosedPath;
 	Context->Orientation->OrientAxis = Settings->OrientAxis;
 	Context->Orientation->UpAxis = Settings->UpAxis;

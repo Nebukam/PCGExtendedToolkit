@@ -42,6 +42,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Tangents, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsOperation> Tangents;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Tangents, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault, EditCondition="!bClosedPath"))
+	TObjectPtr<UPCGExTangentsOperation> StartTangents;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Tangents, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault, EditCondition="!bClosedPath"))
+	TObjectPtr<UPCGExTangentsOperation> EndTangents;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
 	double ArriveScale = 1;
 
@@ -56,6 +62,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsContext final : public FPCG
 	virtual ~FPCGExWriteTangentsContext() override;
 
 	UPCGExTangentsOperation* Tangents = nullptr;
+	UPCGExTangentsOperation* StartTangents = nullptr;
+	UPCGExTangentsOperation* EndTangents = nullptr;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement
@@ -76,6 +84,8 @@ namespace PCGExWriteTangents
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		const UPCGExWriteTangentsSettings* LocalSettings = nullptr;
+		FPCGExWriteTangentsContext* LocalTypedContext = nullptr;
+		
 		bool bClosedPath = false;
 		int32 LastIndex = 0;
 
@@ -83,6 +93,8 @@ namespace PCGExWriteTangents
 		PCGEx::TAttributeWriter<FVector>* LeaveWriter = nullptr;
 
 		UPCGExTangentsOperation* Tangents = nullptr;
+		UPCGExTangentsOperation* StartTangents = nullptr;
+		UPCGExTangentsOperation* EndTangents = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

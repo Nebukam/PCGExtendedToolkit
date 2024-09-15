@@ -40,16 +40,26 @@ public:
 		}
 	}
 
-	virtual void PrepareForData(PCGExData::FFacade* InDataFacade)
+	virtual void PrepareForData()
 	{
 	}
 
 	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
 	{
+		const FVector A = InPoints[0].Transform.GetLocation();
+		const FVector B = InPoints[1].Transform.GetLocation();
+		const FVector Dir = (B - A).GetSafeNormal() * (FVector::Dist(A, B));
+		OutArrive = Dir * ArriveScale;
+		OutLeave = Dir * LeaveScale;
 	}
 
 	FORCEINLINE virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const
 	{
+		const FVector A = InPoints.Last().Transform.GetLocation();
+		const FVector B = InPoints.Last(1).Transform.GetLocation();
+		const FVector Dir = (A - B).GetSafeNormal() * (FVector::Dist(A, B));
+		OutArrive = Dir * ArriveScale;
+		OutLeave = Dir * LeaveScale;
 	}
 
 	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const

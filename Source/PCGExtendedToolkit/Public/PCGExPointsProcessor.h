@@ -222,21 +222,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 #pragma endregion
 
 	template <typename T>
-	T* RegisterOperation(UPCGExOperation* Operation = nullptr)
+	T* RegisterOperation(UPCGExOperation* BaseOperation)
 	{
-		T* RetValue;
-		if (!Operation)
-		{
-			FGCScopeGuard GCGuarded;
-			RetValue = NewObject<T>();
-			RetValue->AddToRoot();
-			OwnedProcessorOperations.Add(RetValue);
-		}
-		else
-		{
-			RetValue = static_cast<T*>(Operation);
-			PCGEX_SETTINGS_LOCAL(PointsProcessor)
-		}
+		BaseOperation->BindContext(this); // Temp so Copy doesn't crash
+		
+		T* RetValue = BaseOperation->CopyOperation<T>();
+		OwnedProcessorOperations.Add(RetValue);
 		RetValue->BindContext(this);
 		return RetValue;
 	}

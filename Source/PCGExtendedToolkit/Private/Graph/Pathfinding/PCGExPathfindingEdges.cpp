@@ -126,8 +126,8 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingEdges)
 
-	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
+	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPicker)
+	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation)
 
 	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIO* GoalsPoints = nullptr;

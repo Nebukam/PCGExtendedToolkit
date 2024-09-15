@@ -47,7 +47,7 @@ bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotNavmesh)
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
 

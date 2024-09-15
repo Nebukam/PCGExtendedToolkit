@@ -151,7 +151,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
-	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
+	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation)
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
 	Context->Plots = new PCGExData::FPointIOCollection(Context);

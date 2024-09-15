@@ -112,7 +112,7 @@ namespace PCGExRefineEdges
 	protected:
 		PCGExPointFilter::TManager* EdgeFilterManager = nullptr;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
-
+		
 		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
 		mutable FRWLock NodeLock;
 
@@ -127,8 +127,9 @@ namespace PCGExRefineEdges
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
-		void StartRefinement();
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
+
+		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		void Sanitize();
 		void InsertEdges() const;

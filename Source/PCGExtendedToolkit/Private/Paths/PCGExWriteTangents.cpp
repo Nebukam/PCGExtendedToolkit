@@ -21,9 +21,27 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 
-	PCGEX_OPERATION_BIND(Tangents, UPCGExZeroTangents)
-
+	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsOperation)
 	Context->Tangents->bClosedPath = Settings->bClosedPath;
+	Context->Tangents->ArriveScale = Settings->ArriveScale;
+	Context->Tangents->LeaveScale = Settings->LeaveScale;
+
+	if (Settings->StartTangents)
+	{
+		Context->StartTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->StartTangents);
+		Context->StartTangents->bClosedPath = Settings->bClosedPath;
+		Context->StartTangents->ArriveScale = Settings->ArriveScale;
+		Context->StartTangents->LeaveScale = Settings->LeaveScale;
+	}
+
+	if (Settings->EndTangents)
+	{
+		Context->EndTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->EndTangents);
+		Context->EndTangents->bClosedPath = Settings->bClosedPath;
+		Context->EndTangents->ArriveScale = Settings->ArriveScale;
+		Context->EndTangents->LeaveScale = Settings->LeaveScale;
+	}
+
 
 	PCGEX_VALIDATE_NAME(Settings->ArriveName)
 	PCGEX_VALIDATE_NAME(Settings->LeaveName)
@@ -82,6 +100,8 @@ namespace PCGExWriteTangents
 {
 	FProcessor::~FProcessor()
 	{
+		if (LocalTypedContext->StartTangents) { PCGEX_DELETE_OPERATION(StartTangents) }
+		if (LocalTypedContext->EndTangents) { PCGEX_DELETE_OPERATION(EndTangents) }
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -93,10 +113,28 @@ namespace PCGExWriteTangents
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		LocalSettings = Settings;
+		LocalTypedContext = TypedContext;
+		
 		bClosedPath = Settings->bClosedPath;
 
 		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
-		Tangents->PrepareForData(PointDataFacade);
+		Tangents->PrepareForData();
+
+		if (TypedContext->StartTangents)
+		{
+			StartTangents = TypedContext->StartTangents->CopyOperation<UPCGExTangentsOperation>();
+			StartTangents->PrimaryDataFacade = PointDataFacade;
+			StartTangents->PrepareForData();
+		}
+		else { StartTangents = Tangents; }
+
+		if (TypedContext->EndTangents)
+		{
+			EndTangents = TypedContext->EndTangents->CopyOperation<UPCGExTangentsOperation>();
+			EndTangents->PrimaryDataFacade = PointDataFacade;
+			EndTangents->PrepareForData();
+		}
+		else { EndTangents = Tangents; }
 
 		ArriveWriter = PointDataFacade->GetWriter(Settings->ArriveName, FVector::ZeroVector, true, false);
 		LeaveWriter = PointDataFacade->GetWriter(Settings->LeaveName, FVector::ZeroVector, true, false);
@@ -130,17 +168,17 @@ namespace PCGExWriteTangents
 		}
 		else
 		{
-			if (PrevIndex >= 0 && NextIndex <= LastIndex)
+			if (Index == 0)
+			{
+				StartTangents->ProcessFirstPoint(PointIO->GetIn()->GetPoints(), OutArrive, OutLeave);
+			}
+			else if (Index == LastIndex)
+			{
+				EndTangents->ProcessLastPoint(PointIO->GetIn()->GetPoints(), OutArrive, OutLeave);
+			}
+			else
 			{
 				Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, OutArrive, OutLeave);
-			}
-			else if (PrevIndex < 0)
-			{
-				Tangents->ProcessFirstPoint(PointIO->GetIn()->GetPoints(), OutArrive, OutLeave);
-			}
-			else if (NextIndex > LastIndex)
-			{
-				Tangents->ProcessLastPoint(PointIO->GetIn()->GetPoints(), OutArrive, OutLeave);
 			}
 		}
 

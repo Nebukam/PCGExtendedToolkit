@@ -37,7 +37,7 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bWriteAlpha) { PCGEX_VALIDATE_NAME(Settings->CrossingAlphaAttributeName) }
 	if (Settings->bWriteCrossDirection) { PCGEX_VALIDATE_NAME(Settings->CrossDirectionAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
 	Context->Blending->bClosedPath = Settings->bClosedPath;
 
 	GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);

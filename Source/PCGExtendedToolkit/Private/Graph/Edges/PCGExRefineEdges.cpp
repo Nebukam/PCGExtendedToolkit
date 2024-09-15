@@ -53,7 +53,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
-	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefinePrimMST)
+	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefineOperation)
 	PCGEX_FWD(GraphBuilderDetails)
 
 	if (Context->Refinement->RequiresHeuristics() && !Context->bHasValidHeuristics)
@@ -157,46 +157,58 @@ namespace PCGExRefineEdges
 			if (!EdgeFilterManager->Init(Context, TypedContext->EdgeFilterFactories)) { return false; }
 		}
 
-		if (EdgeFilterManager)
+		if (Refinement->RequiresIndividualEdgeProcessing())
+		{
+			StartParallelLoopForEdges();
+		}
+		else
 		{
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 
 			PCGEX_ASYNC_GROUP(AsyncManagerPtr, FilteredLoop)
-			FilteredLoop->SetOnCompleteCallback([&]() { StartRefinement(); });
-			FilteredLoop->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			FilteredLoop->SetOnCompleteCallback(
+				[&]()
 				{
-					EdgeFilterCache[Index] = EdgeFilterManager->Test(Index);
-				}, EdgesIO->GetNum(), PLI);
-		}
-		else
-		{
-			StartRefinement();
+					if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
+					else { Refinement->Process(); }
+				});
+			FilteredLoop->SetOnIterationRangeStartCallback(
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PrepareSingleLoopScopeForEdges(StartIndex, Count); });
 		}
 
 		return true;
 	}
 
-	void FProcessor::StartRefinement()
-	{
-		if (Refinement->InvalidateAllEdgesBeforeProcessing())
-		{
-			TArray<PCGExGraph::FIndexedEdge>& Edges = *Cluster->Edges;
-			for (int i = 0; i < Cluster->Edges->Num(); i++)
-			{
-				PCGExGraph::FIndexedEdge& Edge = Edges[i];
-				Edge.bValid = !EdgeFilterCache[i];
-			}
-		}
-
-		if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
-		else if (Refinement->RequiresIndividualEdgeProcessing()) { StartParallelLoopForEdges(); }
-		else { Refinement->Process(); }
-	}
-
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
 	{
 		Refinement->ProcessNode(Node);
+	}
+
+	void FProcessor::PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count)
+	{
+		const int32 MaxIndex = StartIndex + Count;
+
+		if (EdgeFilterManager)
+		{
+			if (Refinement->InvalidateAllEdgesBeforeProcessing())
+			{
+				TArray<PCGExGraph::FIndexedEdge>& Edges = *Cluster->Edges;
+				for (int i = StartIndex; i < MaxIndex; i++)
+				{
+					EdgeFilterCache[i] = EdgeFilterManager->Test(i);
+					Edges[i].bValid = !EdgeFilterCache[i];
+				}
+			}
+			else
+			{
+				for (int i = StartIndex; i < MaxIndex; i++) { EdgeFilterCache[i] = EdgeFilterManager->Test(i); }
+			}
+		}
+		else if (Refinement->InvalidateAllEdgesBeforeProcessing())
+		{
+			TArray<PCGExGraph::FIndexedEdge>& Edges = *Cluster->Edges;
+			for (int i = StartIndex; i < MaxIndex; i++) { Edges[i].bValid = !EdgeFilterCache[i]; }
+		}
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)

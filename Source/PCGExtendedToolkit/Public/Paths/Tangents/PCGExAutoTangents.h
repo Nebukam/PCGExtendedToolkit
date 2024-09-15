@@ -29,30 +29,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
 	double Scale = 1;
 
-	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
-	{
-		PCGExGeo::FApex Apex = PCGExGeo::FApex::FromStartOnly(
-			InPoints[0].Transform.GetLocation(),
-			InPoints[0].Transform.GetLocation());
-
-		Apex.Scale(Scale);
-		OutArrive = Apex.TowardStart;
-		OutLeave = Apex.TowardEnd * -1;
-	}
-
-	FORCEINLINE virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
-	{
-		const int32 Index = InPoints.Num() - 1;
-		const int32 PrevIndex = Index - 1;
-		PCGExGeo::FApex Apex = PCGExGeo::FApex::FromEndOnly(
-			InPoints[PrevIndex].Transform.GetLocation(),
-			InPoints[Index].Transform.GetLocation());
-
-		Apex.Scale(Scale);
-		OutArrive = Apex.TowardStart;
-		OutLeave = Apex.TowardEnd * -1;
-	}
-
 	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const override
 	{
 		PCGExGeo::FApex Apex = PCGExGeo::FApex(
@@ -61,8 +37,8 @@ public:
 			InPoints[Index].Transform.GetLocation());
 
 		Apex.Scale(Scale);
-		OutArrive = Apex.TowardStart;
-		OutLeave = Apex.TowardEnd * -1;
+		OutArrive = Apex.TowardStart * ArriveScale;
+		OutLeave = Apex.TowardEnd * -1 * LeaveScale;
 	}
 
 protected:

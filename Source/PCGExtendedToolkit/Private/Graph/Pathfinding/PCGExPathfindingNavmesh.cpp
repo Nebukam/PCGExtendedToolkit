@@ -64,8 +64,8 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingNavmesh)
 
-	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPicker)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
 
 	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIO* GoalsPoints = nullptr;

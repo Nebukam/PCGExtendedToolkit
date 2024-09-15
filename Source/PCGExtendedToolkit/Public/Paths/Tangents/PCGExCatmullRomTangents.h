@@ -25,28 +25,6 @@ public:
 		}
 	}
 
-	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
-	{
-		const FVector A = InPoints[0].Transform.GetLocation();
-		const FVector C = InPoints[1].Transform.GetLocation();
-
-		const FVector Dir = (C - A);
-
-		OutArrive = (Dir * 0.5f) * ArriveScale;
-		OutLeave = (Dir * 0.5f) * LeaveScale;
-	}
-
-	FORCEINLINE virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
-	{
-		const FVector A = InPoints.Last().Transform.GetLocation();
-		const FVector C = InPoints.Last(1).Transform.GetLocation();
-
-		const FVector Dir = (C - A);
-
-		OutArrive = (Dir * 0.5f) * ArriveScale;
-		OutLeave = (Dir * 0.5f) * LeaveScale;
-	}
-
 	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const override
 	{
 		const FVector A = InPoints[PrevIndex].Transform.GetLocation();

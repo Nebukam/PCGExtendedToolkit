@@ -27,7 +27,7 @@ bool FPCGExSubdivideElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Settings->SubPointFlagName) }
 	if (Settings->bWriteAlpha) { PCGEX_VALIDATE_NAME(Settings->AlphaAttributeName) }
 
-	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
 	Context->Blending->bClosedPath = Settings->bClosedPath;
 
 	return true;
