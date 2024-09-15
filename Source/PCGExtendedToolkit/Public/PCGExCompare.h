@@ -20,7 +20,7 @@ MACRO(FSoftClassPath)
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Index Mode"))
 enum class EPCGExIndexMode : uint8
 {
 	Pick   = 0 UMETA(DisplayName = "Pick", ToolTip="Index value represent a specific pick"),

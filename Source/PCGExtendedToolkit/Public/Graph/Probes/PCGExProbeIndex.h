@@ -16,7 +16,7 @@ namespace PCGExProbing
 	struct FCandidate;
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Probe Target Mode"))
 enum class EPCGExProbeTargetMode : uint8
 {
 	Target       = 0 UMETA(DisplayName = "Target", ToolTip="Target index is used as-is to create a connection"),
