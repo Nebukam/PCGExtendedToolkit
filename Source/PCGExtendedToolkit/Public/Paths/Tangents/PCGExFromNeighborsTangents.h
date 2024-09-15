@@ -18,15 +18,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFromNeighborsTangents : public UPCGExTang
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
-	{
-		Super::CopySettingsFrom(Other);
-		if (const UPCGExFromNeighborsTangents* TypedOther = Cast<UPCGExFromNeighborsTangents>(Other))
-		{
-		}
-	}
-
-	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessPoint(
+		const TArray<FPCGPoint>& InPoints,
+		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
+		const FVector& ArriveScale, FVector& OutArrive,
+		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const FVector PrevDir = (InPoints[PrevIndex].Transform.GetLocation() - InPoints[Index].Transform.GetLocation()) * -1;
 		const FVector NextDir = InPoints[NextIndex].Transform.GetLocation() - InPoints[Index].Transform.GetLocation();

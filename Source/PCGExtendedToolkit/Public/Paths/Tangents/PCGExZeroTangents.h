@@ -16,19 +16,29 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExZeroTangents : public UPCGExTangentsOpera
 	GENERATED_BODY()
 
 public:
-	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessFirstPoint(
+		const TArray<FPCGPoint>& InPoints,
+		const FVector& ArriveScale, FVector& OutArrive,
+		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		OutArrive = FVector::ZeroVector;
 		OutLeave = FVector::ZeroVector;
 	}
 
-	FORCEINLINE virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessLastPoint(
+		const TArray<FPCGPoint>& InPoints,
+		const FVector& ArriveScale, FVector& OutArrive,
+		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		OutArrive = FVector::ZeroVector;
 		OutLeave = FVector::ZeroVector;
 	}
 
-	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessPoint(
+		const TArray<FPCGPoint>& InPoints,
+		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
+		const FVector& ArriveScale, FVector& OutArrive,
+		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		OutArrive = FVector::ZeroVector;
 		OutLeave = FVector::ZeroVector;

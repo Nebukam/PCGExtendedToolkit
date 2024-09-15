@@ -30,21 +30,31 @@ public:
 		}
 	}
 
-	FORCEINLINE virtual void ProcessFirstPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessFirstPoint(
+		const TArray<FPCGPoint>& InPoints,
+		const FVector& ArriveScale, FVector& OutArrive,
+		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const FVector Dir = PCGExMath::GetDirection(InPoints[0].Transform.GetRotation(), Axis);
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
 	}
 
-	FORCEINLINE virtual void ProcessLastPoint(const TArray<FPCGPoint>& InPoints, FVector& OutArrive, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessLastPoint(
+		const TArray<FPCGPoint>& InPoints,
+		const FVector& ArriveScale, FVector& OutArrive,
+		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const FVector Dir = PCGExMath::GetDirection(InPoints.Last().Transform.GetRotation(), Axis);
 		OutArrive = Dir * ArriveScale;
 		OutLeave = Dir * LeaveScale;
 	}
 
-	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessPoint(
+		const TArray<FPCGPoint>& InPoints,
+		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
+		const FVector& ArriveScale, FVector& OutArrive,
+		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const FVector Dir = PCGExMath::GetDirection(InPoints[Index].Transform.GetRotation(), Axis);
 		OutArrive = Dir * ArriveScale;

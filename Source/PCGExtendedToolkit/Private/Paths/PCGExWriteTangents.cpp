@@ -10,6 +10,15 @@
 
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
 
+UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+#if WITH_EDITOR
+	if (ArriveScaleAttribute.GetName() == FName("@Last")) { ArriveScaleAttribute.Update(TEXT("$Scale")); }
+	if (LeaveScaleAttribute.GetName() == FName("@Last")) { LeaveScaleAttribute.Update(TEXT("$Scale")); }
+#endif
+}
+
 FPCGExWriteTangentsContext::~FPCGExWriteTangentsContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -21,30 +30,23 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 
+	PCGEX_VALIDATE_NAME(Settings->ArriveName)
+	PCGEX_VALIDATE_NAME(Settings->LeaveName)
+
 	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsOperation)
 	Context->Tangents->bClosedPath = Settings->bClosedPath;
-	Context->Tangents->ArriveScale = Settings->ArriveScale;
-	Context->Tangents->LeaveScale = Settings->LeaveScale;
 
 	if (Settings->StartTangents)
 	{
 		Context->StartTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->StartTangents);
 		Context->StartTangents->bClosedPath = Settings->bClosedPath;
-		Context->StartTangents->ArriveScale = Settings->ArriveScale;
-		Context->StartTangents->LeaveScale = Settings->LeaveScale;
 	}
 
 	if (Settings->EndTangents)
 	{
 		Context->EndTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->EndTangents);
 		Context->EndTangents->bClosedPath = Settings->bClosedPath;
-		Context->EndTangents->ArriveScale = Settings->ArriveScale;
-		Context->EndTangents->LeaveScale = Settings->LeaveScale;
 	}
-
-
-	PCGEX_VALIDATE_NAME(Settings->ArriveName)
-	PCGEX_VALIDATE_NAME(Settings->LeaveName)
 
 	return true;
 }
@@ -114,11 +116,34 @@ namespace PCGExWriteTangents
 
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
-		
+
 		bClosedPath = Settings->bClosedPath;
 
 		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
 		Tangents->PrepareForData();
+
+		ConstantArriveScale = FVector(Settings->ArriveScaleConstant);
+		ConstantLeaveScale = FVector(Settings->LeaveScaleConstant);
+
+		if (Settings->ArriveScaleType == EPCGExFetchType::Attribute)
+		{
+			ArriveScaleReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->ArriveScaleAttribute);
+			if (!ArriveScaleReader)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Invalid Arrive Scale attribute"));
+				return false;
+			}
+		}
+
+		if (Settings->LeaveScaleType == EPCGExFetchType::Attribute)
+		{
+			LeaveScaleReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LeaveScaleAttribute);
+			if (!LeaveScaleReader)
+			{
+				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Invalid Arrive Scale attribute"));
+				return false;
+			}
+		}
 
 		if (TypedContext->StartTangents)
 		{
@@ -159,26 +184,29 @@ namespace PCGExWriteTangents
 		FVector OutArrive = FVector::ZeroVector;
 		FVector OutLeave = FVector::ZeroVector;
 
+		const FVector& ArriveScale = ArriveScaleReader ? ArriveScaleReader->Values[Index] : ConstantArriveScale;
+		const FVector& LeaveScale = LeaveScaleReader ? LeaveScaleReader->Values[Index] : ConstantLeaveScale;
+
 		if (bClosedPath)
 		{
 			if (PrevIndex < 0) { PrevIndex = LastIndex; }
 			if (NextIndex > LastIndex) { NextIndex = 0; }
 
-			Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, OutArrive, OutLeave);
+			Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, ArriveScale, OutArrive, LeaveScale, OutLeave);
 		}
 		else
 		{
 			if (Index == 0)
 			{
-				StartTangents->ProcessFirstPoint(PointIO->GetIn()->GetPoints(), OutArrive, OutLeave);
+				StartTangents->ProcessFirstPoint(PointIO->GetIn()->GetPoints(), ArriveScale, OutArrive, LeaveScale, OutLeave);
 			}
 			else if (Index == LastIndex)
 			{
-				EndTangents->ProcessLastPoint(PointIO->GetIn()->GetPoints(), OutArrive, OutLeave);
+				EndTangents->ProcessLastPoint(PointIO->GetIn()->GetPoints(), ArriveScale, OutArrive, LeaveScale, OutLeave);
 			}
 			else
 			{
-				Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, OutArrive, OutLeave);
+				Tangents->ProcessPoint(PointIO->GetIn()->GetPoints(), Index, NextIndex, PrevIndex, ArriveScale, OutArrive, LeaveScale, OutLeave);
 			}
 		}
 

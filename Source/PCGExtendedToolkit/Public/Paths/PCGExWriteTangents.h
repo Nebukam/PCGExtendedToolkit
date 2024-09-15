@@ -18,6 +18,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWriteTangentsSettings : public UPCGExPath
 {
 	GENERATED_BODY()
 
+	UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer);
+
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
@@ -39,20 +41,34 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName LeaveName = "LeaveTangent";
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Tangents, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExTangentsOperation> Tangents;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Tangents, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault, EditCondition="!bClosedPath"))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault, EditCondition="!bClosedPath"))
 	TObjectPtr<UPCGExTangentsOperation> StartTangents;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Tangents, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault, EditCondition="!bClosedPath"))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault, EditCondition="!bClosedPath"))
 	TObjectPtr<UPCGExTangentsOperation> EndTangents;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
-	double ArriveScale = 1;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Tangents, meta=(PCG_Overridable))
-	double LeaveScale = 1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_NotOverridable))
+	EPCGExFetchType ArriveScaleType = EPCGExFetchType::Constant;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_Overridable, EditCondition="ArriveScaleType==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector ArriveScaleAttribute;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_Overridable, EditCondition="ArriveScaleType==EPCGExFetchType::Constant", EditConditionHides))
+	double ArriveScaleConstant = 1;
+
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_NotOverridable))
+	EPCGExFetchType LeaveScaleType = EPCGExFetchType::Constant;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_Overridable, EditCondition="LeaveScaleType==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector LeaveScaleAttribute;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Scaling", meta=(PCG_Overridable, EditCondition="LeaveScaleType==EPCGExFetchType::Constant", EditConditionHides))
+	double LeaveScaleConstant = 1;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsContext final : public FPCGExPathProcessorContext
@@ -85,9 +101,14 @@ namespace PCGExWriteTangents
 	{
 		const UPCGExWriteTangentsSettings* LocalSettings = nullptr;
 		FPCGExWriteTangentsContext* LocalTypedContext = nullptr;
-		
+
 		bool bClosedPath = false;
 		int32 LastIndex = 0;
+
+		PCGExData::TCache<FVector>* ArriveScaleReader = nullptr;
+		PCGExData::TCache<FVector>* LeaveScaleReader = nullptr;
+		FVector ConstantArriveScale = FVector::OneVector;
+		FVector ConstantLeaveScale = FVector::OneVector;
 
 		PCGEx::TAttributeWriter<FVector>* ArriveWriter = nullptr;
 		PCGEx::TAttributeWriter<FVector>* LeaveWriter = nullptr;

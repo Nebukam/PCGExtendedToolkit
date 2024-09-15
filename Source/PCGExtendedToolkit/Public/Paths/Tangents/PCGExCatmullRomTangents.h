@@ -17,15 +17,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExCatmullRomTangents : public UPCGExTangent
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
-	{
-		Super::CopySettingsFrom(Other);
-		if (const UPCGExCatmullRomTangents* TypedOther = Cast<UPCGExCatmullRomTangents>(Other))
-		{
-		}
-	}
-
-	FORCEINLINE virtual void ProcessPoint(const TArray<FPCGPoint>& InPoints, const int32 Index, const int32 NextIndex, const int32 PrevIndex, FVector& OutArrive, FVector& OutLeave) const override
+	FORCEINLINE virtual void ProcessPoint(
+		const TArray<FPCGPoint>& InPoints,
+		const int32 Index, const int32 NextIndex, const int32 PrevIndex,
+		const FVector& ArriveScale, FVector& OutArrive,
+		const FVector& LeaveScale, FVector& OutLeave) const override
 	{
 		const FVector A = InPoints[PrevIndex].Transform.GetLocation();
 		const FVector B = InPoints[Index].Transform.GetLocation();
@@ -35,13 +31,5 @@ public:
 
 		OutArrive = (Dir * 0.5f) * ArriveScale;
 		OutLeave = (Dir * 0.5f) * LeaveScale;
-	}
-
-protected:
-	virtual void ApplyOverrides() override
-	{
-		Super::ApplyOverrides();
-		PCGEX_OVERRIDE_OP_PROPERTY(ArriveScale, FName(TEXT("Tangents/ArriveScale")), EPCGMetadataTypes::Double);
-		PCGEX_OVERRIDE_OP_PROPERTY(LeaveScale, FName(TEXT("Tangents/LeaveScale")), EPCGMetadataTypes::Double);
 	}
 };
