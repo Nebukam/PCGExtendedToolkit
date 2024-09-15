@@ -84,20 +84,22 @@ namespace PCGExPointsFilter
 
 		const UPCGExMeanFilterFactory* TypedFilterFactory;
 
-		PCGExData::TCache<double>* Target = nullptr;
+		TArray<double> Values;
 
+		double DataMin = 0;
+		double DataMax = 0;
+		
 		double ReferenceValue = 0;
 		double ReferenceMin = 0;
 		double ReferenceMax = 0;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual void PostInit() override;
+
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			return FMath::IsWithin(Target->Values[PointIndex], ReferenceMin, ReferenceMax);
+			return FMath::IsWithin(Values[PointIndex], ReferenceMin, ReferenceMax);
 		}
-
-
-		virtual void PostInit() override;
 
 		virtual ~TMeanFilter() override
 		{

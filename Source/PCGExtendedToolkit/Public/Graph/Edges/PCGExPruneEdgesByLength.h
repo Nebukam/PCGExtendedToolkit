@@ -14,8 +14,8 @@ namespace PCGExCluster
 	struct FCluster;
 }
 
-UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
+UCLASS(MinimalAPI, BlueprintType, Deprecated, ClassGroup = (Procedural), Category="PCGEx|Graph", meta = (DeprecatedNode, DeprecationMessage = "Prune edges by Length has been deprecated. Use a combination of Edge Properties (write length), Refine Edge (Remove by Filter) and a Mean filter on Length attribute instead. See doc for the replacement setup."))
+class /*PCGEXTENDEDTOOLKIT_API*/ UDEPRECATED_PCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -83,7 +83,7 @@ public:
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneEdgesByLengthContext final : public FPCGExEdgesProcessorContext
 {
-	friend class UPCGExPruneEdgesByLengthSettings;
+	friend class UDEPRECATED_PCGExPruneEdgesByLengthSettings;
 	friend class FPCGExPruneEdgesByLengthElement;
 
 	virtual ~FPCGExPruneEdgesByLengthContext() override;

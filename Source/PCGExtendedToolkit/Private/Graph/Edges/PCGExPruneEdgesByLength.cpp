@@ -10,8 +10,8 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetMainOutputInitMode() const { return GraphBuilderDetails.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UDEPRECATED_PCGExPruneEdgesByLengthSettings::GetMainOutputInitMode() const { return GraphBuilderDetails.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UDEPRECATED_PCGExPruneEdgesByLengthSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 #pragma endregion
 
@@ -20,13 +20,13 @@ FPCGExPruneEdgesByLengthContext::~FPCGExPruneEdgesByLengthContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-PCGEX_INITIALIZE_ELEMENT(PruneEdgesByLength)
+PCGEX_INITIALIZE_CONTEXT(PruneEdgesByLength) FPCGElementPtr UDEPRECATED_PCGExPruneEdgesByLengthSettings::CreateElement() const{ return MakeShared<FPCGExPruneEdgesByLengthElement>();}
 
 bool FPCGExPruneEdgesByLengthElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(PruneEdgesByLength)
+	PCGEX_CONTEXT(PruneEdgesByLength) const UDEPRECATED_PCGExPruneEdgesByLengthSettings* Settings = Context->GetInputSettings<UDEPRECATED_PCGExPruneEdgesByLengthSettings>(); check(Settings);
 	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_C(Mean, double)
 
 	PCGEX_FWD(GraphBuilderDetails)
@@ -38,7 +38,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPruneEdgesByLengthElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(PruneEdgesByLength)
+	PCGEX_CONTEXT(PruneEdgesByLength)
 
 	if (Context->IsSetup())
 	{
@@ -74,7 +74,7 @@ namespace PCGExPruneEdges
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPruneEdges::Process);
-		PCGEX_SETTINGS(PruneEdgesByLength)
+		const UDEPRECATED_PCGExPruneEdgesByLengthSettings* Settings = Context->GetInputSettings<UDEPRECATED_PCGExPruneEdgesByLengthSettings>(); check(Settings);
 
 		AsyncManagerPtr = AsyncManager;
 

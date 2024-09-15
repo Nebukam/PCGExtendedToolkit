@@ -108,6 +108,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 				PCGExMT::State_Done))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+				
 				return true;
 			}
 		}
@@ -153,7 +154,7 @@ namespace PCGExRefineEdges
 
 		if (!TypedContext->EdgeFilterFactories.IsEmpty())
 		{
-			EdgeFilterManager = new PCGExClusterFilter::TManager(Cluster, VtxDataFacade, EdgeDataFacade);
+			EdgeFilterManager = new PCGExPointFilter::TManager(EdgeDataFacade);
 			if (!EdgeFilterManager->Init(Context, TypedContext->EdgeFilterFactories)) { return false; }
 		}
 
