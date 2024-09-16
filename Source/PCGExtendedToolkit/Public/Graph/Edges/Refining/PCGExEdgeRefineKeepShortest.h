@@ -5,15 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
+#include "Graph/PCGExCluster.h"
 #include "PCGExEdgeRefineKeepShortest.generated.h"
 
 class UPCGExHeuristicLocalDistance;
 class UPCGExHeuristicDistance;
-
-namespace PCGExCluster
-{
-	struct FNode;
-}
 
 /**
  * 
@@ -24,7 +20,31 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeKeepShortest : public UPCGExEdgeRefin
 	GENERATED_BODY()
 
 public:
-	virtual bool InvalidateAllEdgesBeforeProcessing() override { return true; }
+	virtual bool GetDefaultEdgeValidity() override { return false; }
 	virtual bool RequiresIndividualNodeProcessing() override { return true; }
-	virtual void ProcessNode(PCGExCluster::FNode& Node) override;
+
+	virtual void ProcessNode(PCGExCluster::FNode& Node) override
+	{
+		int32 BestIndex = -1;
+		double ShortestDist = TNumericLimits<double>::Max();
+
+		for (const uint64 AdjacencyHash : Node.Adjacency)
+		{
+			uint32 OtherNodeIndex;
+			uint32 EdgeIndex;
+			PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
+
+			const double Dist = Cluster->GetDistSquared(Node.NodeIndex, OtherNodeIndex);
+			if (Dist < ShortestDist)
+			{
+				ShortestDist = Dist;
+				BestIndex = EdgeIndex;
+			}
+		}
+
+		if (BestIndex == -1) { return; }
+		//if (!*(EdgesFilters->GetData() + BestIndex)) { return; }
+
+		FPlatformAtomics::InterlockedExchange(&(Cluster->Edges->GetData() + BestIndex)->bValid, 1);
+	}
 };

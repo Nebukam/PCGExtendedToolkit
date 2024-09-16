@@ -21,11 +21,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveByFilter : public UPCGExEdgeRef
 	GENERATED_BODY()
 
 public:
+	virtual bool SupportFilters() override { return true; }
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
-	
+
 	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
 	{
-		FPlatformAtomics::InterlockedExchange(&Edge.bValid, *(EdgesFilters->GetData() + Edge.EdgeIndex) ? 1 : 0);	
+		FPlatformAtomics::InterlockedExchange(&Edge.bValid, *(EdgesFilters->GetData() + Edge.EdgeIndex) ? 0 : 1);
 	}
-
 };

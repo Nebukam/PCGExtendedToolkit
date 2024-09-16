@@ -5,10 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
+#include "Graph/PCGExCluster.h"
 #include "PCGExEdgeRefineRemoveOverlap.generated.h"
-
-class UPCGExHeuristicLocalDistance;
-class UPCGExHeuristicDistance;
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Overlap Pick"))
 enum class EPCGExEdgeOverlapPick : uint8
@@ -16,11 +14,6 @@ enum class EPCGExEdgeOverlapPick : uint8
 	Shortest = 0 UMETA(DisplayName = "Shortest", ToolTip="Keep the shortest edge"),
 	Longest  = 1 UMETA(DisplayName = "Longest", ToolTip="Keep the longest edge"),
 };
-
-namespace PCGExCluster
-{
-	struct FNode;
-}
 
 /**
  * 
@@ -33,9 +26,82 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveOverlap : public UPCGExEdgeRefi
 public:
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
 	virtual bool RequiresEdgeOctree() override { return true; }
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics) override;
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override;
+
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics) override
+	{
+		Super::PrepareForCluster(InCluster, InHeuristics);
+		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
+		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : -1;
+		ToleranceSquared = Tolerance * Tolerance;
+		Cluster->GetExpandedEdges(true); // Let's hope it was cached ^_^
+	}
+
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExEdgeRemoveOverlap* TypedOther = Cast<UPCGExEdgeRemoveOverlap>(Other))
+		{
+			Keep = TypedOther->Keep;
+			Tolerance = TypedOther->Tolerance;
+			bUseMinAngle = TypedOther->bUseMinAngle;
+			MinAngle = TypedOther->MinAngle;
+			bUseMaxAngle = TypedOther->bUseMaxAngle;
+			MaxAngle = TypedOther->MaxAngle;
+		}
+	}
+
+	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
+	{
+		const PCGExCluster::FExpandedEdge* EEdge = *(Cluster->ExpandedEdges->GetData() + Edge.EdgeIndex);
+		const double Length = EEdge->GetEdgeLengthSquared(Cluster);
+
+		auto ProcessOverlap = [&](const PCGExCluster::FClusterItemRef& ItemRef)
+		{
+			//if (!Edge.bValid) { return false; }
+
+			const PCGExCluster::FExpandedEdge* OtherEEdge = *(Cluster->ExpandedEdges->GetData() + ItemRef.ItemIndex);
+
+			if (EEdge == OtherEEdge ||
+				EEdge->Start == OtherEEdge->Start || EEdge->Start == OtherEEdge->End ||
+				EEdge->End == OtherEEdge->End || EEdge->End == OtherEEdge->Start) { return true; }
+
+
+			if (bUseMinAngle || bUseMaxAngle)
+			{
+				const double Dot = FMath::Abs(FVector::DotProduct(Cluster->GetDir(*EEdge->Start, *EEdge->End), Cluster->GetDir(*OtherEEdge->Start, *OtherEEdge->End)));
+				if (!(Dot >= MaxDot && Dot <= MinDot)) { return true; }
+			}
+
+			const double OtherLength = OtherEEdge->GetEdgeLengthSquared(Cluster);
+
+			FVector A;
+			FVector B;
+			if (Cluster->EdgeDistToEdgeSquared(EEdge->GetNodes(), OtherEEdge->GetNodes(), A, B) >= ToleranceSquared) { return true; }
+
+			// Overlap!
+			if (Keep == EPCGExEdgeOverlapPick::Longest)
+			{
+				if (OtherLength > Length)
+				{
+					FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
+					return false;
+				}
+			}
+			else
+			{
+				if (OtherLength < Length)
+				{
+					FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
+					return false;
+				}
+			}
+
+			return true;
+		};
+
+		Cluster->EdgeOctree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(EEdge->Bounds), ProcessOverlap);
+	}
+
 	//virtual void Process() override;
 
 	/** Which edge to keep when doing comparison. */

@@ -5,15 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
+#include "Graph/PCGExCluster.h"
 #include "PCGExEdgeRefineRemoveLineTrace.generated.h"
-
-class UPCGExHeuristicLocalDistance;
-class UPCGExHeuristicDistance;
-
-namespace PCGExCluster
-{
-	struct FNode;
-}
 
 /**
  * 
@@ -24,9 +17,35 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveLineTrace : public UPCGExEdgeRe
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
+	{
+		Super::CopySettingsFrom(Other);
+		if (const UPCGExEdgeRemoveLineTrace* TypedOther = Cast<UPCGExEdgeRemoveLineTrace>(Other))
+		{
+			bTwoWayCheck = TypedOther->bTwoWayCheck;
+			InitializedCollisionSettings = TypedOther->CollisionSettings;
+			InitializedCollisionSettings.Init(TypedOther->Context);
+		}
+	}
+
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
-	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override;
+
+	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
+	{
+
+		Super::ProcessEdge(Edge);
+
+		const FVector From = Cluster->GetPos((*Cluster->NodeIndexLookup)[Edge.Start]);
+		const FVector To = Cluster->GetPos((*Cluster->NodeIndexLookup)[Edge.End]);
+
+		FHitResult HitResult;
+		if (!InitializedCollisionSettings.Linecast(From, To, HitResult))
+		{
+			if (!bTwoWayCheck || !InitializedCollisionSettings.Linecast(To, From, HitResult)) { return; }
+		}
+
+		FPlatformAtomics::InterlockedExchange(&Edge.bValid, 0);
+	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExCollisionDetails CollisionSettings;

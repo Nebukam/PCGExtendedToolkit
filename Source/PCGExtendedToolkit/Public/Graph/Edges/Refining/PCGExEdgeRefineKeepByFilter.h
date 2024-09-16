@@ -7,11 +7,6 @@
 #include "PCGExEdgeRefineOperation.h"
 #include "PCGExEdgeRefineKeepByFilter.generated.h"
 
-namespace PCGExCluster
-{
-	struct FNode;
-}
-
 /**
  * 
  */
@@ -21,10 +16,12 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeKeepByFilter : public UPCGExEdgeRefin
 	GENERATED_BODY()
 
 public:
+	virtual bool SupportFilters() override { return true; }
+	virtual bool GetDefaultEdgeValidity() override { return false; }
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
 
 	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
 	{
-		FPlatformAtomics::InterlockedExchange(&Edge.bValid, *(EdgesFilters->GetData() + Edge.EdgeIndex) ? 0 : 1);
+		FPlatformAtomics::InterlockedExchange(&Edge.bValid, *(EdgesFilters->GetData() + Edge.EdgeIndex) ? 1 : 0);
 	}
 };

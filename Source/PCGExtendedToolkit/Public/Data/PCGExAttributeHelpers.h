@@ -758,6 +758,8 @@ namespace PCGEx
 			ProcessExtraNames(Selector.GetName(), ExtraNames);
 
 			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
+			PCGEx::InitMetadataArray(Dump, NumPoints);
+
 			Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)
 			{
@@ -772,7 +774,6 @@ namespace PCGEx
 						TArray<RawT> RawValues;
 
 						PCGEx::InitMetadataArray(RawValues, NumPoints);
-						PCGEx::InitMetadataArray(Dump, NumPoints);
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
 						FPCGAttributeAccessor<RawT>* Accessor = new FPCGAttributeAccessor<RawT>(TypedAttribute, InData->Metadata);
@@ -806,8 +807,6 @@ namespace PCGEx
 				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 
-				PCGEx::InitMetadataArray(Dump, NumPoints);
-
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
 				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; ++i) {\
 						T V = Convert(InPoints[i]._ACCESSOR); OutMin = PCGExMath::Min(V, OutMin); OutMax = PCGExMath::Max(V, OutMax); Dump[i] = V;\
@@ -818,7 +817,7 @@ namespace PCGEx
 				bValid = true;
 			}
 			else if (Selection == EPCGAttributePropertySelection::ExtraProperty)
-			{
+			{				
 				switch (FetchSelector.GetExtraProperty())
 				{
 				case EPCGExtraProperties::Index:
