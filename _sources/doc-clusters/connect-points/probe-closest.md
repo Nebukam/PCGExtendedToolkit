@@ -37,6 +37,11 @@ This probes creates unique connections to the closest points within a radius, up
 | Max Connection Constant           | Fixed maximum connections for every point. |
 | Max Connection Attribute           | Per-point attribute value maximum. |
 
+|: **Coincidence** :|
+| Coincidence Prevention Tolerance          | If enabled, prevents multiple connections from happening in the same direction, within that tolerance.<br>*This avoids the creation of overlapping edges when testing in near-collinear situations.* |
+
+> Note that connections skipped due to coincidence don't count toward the maximum.
+
 |: **Search Radius** :|
 | Search Radius Source           | The type of value used for this probe' search radius; either a `Constant` value or fetched from an`Attribute` |
 | Search Radius Constant           | Fixed radius of the probe. |

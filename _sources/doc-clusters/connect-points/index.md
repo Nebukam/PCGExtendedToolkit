@@ -52,7 +52,7 @@ The connect point node allows you to create connected clusters using different *
 
 | Property       | Description          |
 |:-------------|:------------------|
-| Stacking Prevention Tolerance           | When enabled, the node will prevent multiple connections from happening in the same direction, within that tolerance.<br>*This avoids the creation of overlapping edges when testing in near-collinear situations.* |
+| Coincidence Prevention Tolerance           | When enabled, the node will prevent multiple connections from happening in the same direction, within that tolerance.<br>*This avoids the creation of overlapping edges when testing in near-collinear situations.* |
 | Project Points           | If enabled, points will be projected on a plane under-the-hood before looking for connections.<br>*This is especially desirable when working with landscapes* |
 | Projection normal           | The normal of the plane to project points to, if enabled.<br>*Unless you're doing very custom stuff, the default value is usually fine as it project points as if "seen from top view"* |
 

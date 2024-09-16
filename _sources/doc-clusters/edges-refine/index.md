@@ -30,7 +30,10 @@ inputs:
         desc : Heuristic nodes, if required by the selected refinement.
         pin : params
     -   name : Edge Filters
-        desc : Point filter input used to filter which edge points can be processed.
+        desc : Point filter input used by some refinements
+        pin : params
+    -   name : Sanitization Filters
+        desc : Point filter input used to preserve edges as a sanitization step
         pin : params
 outputs:
     -   name : Vtx
@@ -72,6 +75,7 @@ The sanitization property lets you enforce some general conditions within the gr
 | None           | No sanitization.  |
 | Shortest           | If a node has no edge left, restore the shortest one.|
 | Longest           | If a node has no edge left, restore the longest one.|
+| Filters           | Use per-point filters to ensure edge preservation.|
 
 > Note that the **sanitization options offer no guarantee that the initial interconnectivity will be preserved!** 
 {: .warning }
