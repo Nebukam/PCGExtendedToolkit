@@ -144,8 +144,28 @@ namespace PCGExBreakClustersToPaths
 		const int32 ChainSize = Chain->Nodes.Num() + 2;
 
 		const TArray<int32>& VtxPointsIndicesRef = *VtxPointIndicesCache;
-		PCGExGraph::FIndexedEdge ChainDir = PCGExGraph::FIndexedEdge(Iteration, VtxPointsIndicesRef[Chain->First], VtxPointsIndicesRef[Chain->Last]);
-		if (DirectionSettings.SortEndpoints(Cluster, ChainDir)) { Algo::Reverse(Chain->Nodes); }
+
+		int32 StartIdx = VtxPointsIndicesRef[Chain->First];
+		int32 EndIdx = VtxPointsIndicesRef[Chain->Last];
+
+		bool bReverse = false;
+
+		if (DirectionSettings.DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
+		{
+			PCGExGraph::FIndexedEdge ChainDir = PCGExGraph::FIndexedEdge((*Cluster->Nodes)[Chain->First].GetEdgeIndex(Chain->Last), StartIdx, EndIdx);
+			bReverse = DirectionSettings.SortEndpoints(Cluster, ChainDir);
+		}
+		else
+		{
+			PCGExGraph::FIndexedEdge ChainDir = PCGExGraph::FIndexedEdge(Iteration, StartIdx, EndIdx);
+			bReverse = DirectionSettings.SortEndpoints(Cluster, ChainDir);
+		}
+
+		if (bReverse)
+		{
+			Algo::Reverse(Chain->Nodes);
+			std::swap(StartIdx, EndIdx);
+		}
 
 		if (ChainSize < LocalSettings->MinPointCount) { return; }
 		if (LocalSettings->bOmitAbovePointCount && ChainSize > LocalSettings->MaxPointCount) { return; }
@@ -156,9 +176,9 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints.SetNumUninitialized(ChainSize);
 		int32 PointCount = 0;
 
-		MutablePoints[PointCount++] = PathIO->GetInPoint(ChainDir.Start);
+		MutablePoints[PointCount++] = PathIO->GetInPoint(StartIdx);
 		for (const int32 NodeIndex : Chain->Nodes) { MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[NodeIndex]); }
-		MutablePoints[PointCount] = PathIO->GetInPoint(ChainDir.End);
+		MutablePoints[PointCount] = PathIO->GetInPoint(EndIdx);
 
 		PathIO->InitializeNum(ChainSize, true);
 	}
@@ -170,9 +190,9 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints.SetNumUninitialized(2);
 
 		DirectionSettings.SortEndpoints(Cluster, Edge);
-		
+
 		MutablePoints[0] = PathIO->GetInPoint(Edge.Start);
-		MutablePoints[1] = PathIO->GetInPoint(Edge.End);		
+		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
 
 		PathIO->InitializeNum(2, true);
 	}
