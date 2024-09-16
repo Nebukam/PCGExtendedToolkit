@@ -31,12 +31,12 @@ bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 		}
 	}
 
-	CWStackingTolerance = FVector(1 / Config.StackingPreventionTolerance);
+	CWCoincidenceTolerance = FVector(1 / Config.CoincidencePreventionTolerance);
 
 	return true;
 }
 
-void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges)
+void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const int32 MaxIterations = FMath::Min(MaxConnectionsCache ? MaxConnectionsCache->Values[Index] : MaxConnections, Candidates.Num());
@@ -44,22 +44,22 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 
 	if (MaxIterations <= 0) { return; }
 
-	TSet<uint32> LocalConnectedSet;
+	TSet<FInt32Vector> LocalCoincidence;
 	int32 Additions = 0;
 
 	for (PCGExProbing::FCandidate& C : Candidates)
 	{
 		if (C.Distance > R) { return; } // Candidates are sorted, stop there.
 
-		if (ConnectedSet)
+		if (Coincidence)
 		{
-			ConnectedSet->Add(C.GH, &bIsAlreadyConnected);
+			Coincidence->Add(C.GH, &bIsAlreadyConnected);
 			if (bIsAlreadyConnected) { continue; }
 		}
 
-		if (Config.bPreventStacking)
+		if (Config.bPreventCoincidence)
 		{
-			LocalConnectedSet.Add(PCGEx::GH(C.Direction, CWStackingTolerance), &bIsAlreadyConnected);
+			LocalCoincidence.Add(PCGEx::I323(C.Direction, CWCoincidenceTolerance), &bIsAlreadyConnected);
 			if (bIsAlreadyConnected) { continue; }
 		}
 
@@ -72,7 +72,7 @@ void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& P
 	}
 }
 
-void UPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges)
+void UPCGExProbeClosest::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	Super::ProcessNode(Index, Point, nullptr, FVector::ZeroVector, OutEdges);
 }

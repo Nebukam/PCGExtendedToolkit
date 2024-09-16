@@ -29,7 +29,7 @@ bool UPCGExProbeIndex::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 	return true;
 }
 
-void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges)
+void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	// TODO : Implement Stacking mngmt
 	int32 Value = TargetCache ? TargetCache->Values[Index] : Config.TargetConstant;

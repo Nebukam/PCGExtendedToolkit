@@ -53,10 +53,10 @@ public:
 public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bPreventStacking = true;
+	bool bPreventCoincidence = true;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPreventStacking", ClampMin=0.00001, ClampMax=1))
-	double StackingPreventionTolerance = 0.001;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPreventCoincidence", ClampMin=0.00001, ClampMax=1))
+	double CoincidenceTolerance = 0.001;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -79,12 +79,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : public FPCG
 
 	TArray<UPCGExProbeFactoryBase*> ProbeFactories;
 	TArray<UPCGExFilterFactoryBase*> GeneratorsFiltersFactories;
-	TArray<UPCGExFilterFactoryBase*> ConnetablesFiltersFactories;
+	TArray<UPCGExFilterFactoryBase*> ConnectablesFiltersFactories;
 
 	PCGExData::FPointIOCollection* MainVtx = nullptr;
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 
-	FVector CWStackingTolerance = FVector::OneVector;
+	FVector CWCoincidenceTolerance = FVector::OneVector;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsElement final : public FPCGExPointsProcessorElement
@@ -168,9 +168,9 @@ namespace PCGExConnectPoints
 		TArray<TSet<uint64>*> DistributedEdgesSet;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-		bool bPreventStacking = false;
+		bool bPreventCoincidence = false;
 		bool bUseProjection = false;
-		FVector CWStackingTolerance = FVector::OneVector;
+		FVector CWCoincidenceTolerance = FVector::OneVector;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)

@@ -255,20 +255,36 @@ namespace PCGEx
 
 	FORCEINLINE static uint32 GH(const FInt64Vector3& Seed) { return GetTypeHash(Seed); }
 
+	FORCEINLINE static FInt32Vector3 I323(const FVector& Seed, const FVector& Tolerance)
+	{
+		return FInt32Vector3(
+			FMath::RoundToDouble(Seed.X * Tolerance.X),
+			FMath::RoundToDouble(Seed.Y * Tolerance.Y),
+			FMath::RoundToDouble(Seed.Z * Tolerance.Z));
+	}
+
+	FORCEINLINE static FInt32Vector3 I323(const FVector& Seed, const FInt32Vector3& Tolerance)
+	{
+		return FInt32Vector3(
+			FMath::RoundToDouble(Seed.X * Tolerance.X),
+			FMath::RoundToDouble(Seed.Y * Tolerance.Y),
+			FMath::RoundToDouble(Seed.Z * Tolerance.Z));
+	}
+	
 	FORCEINLINE static FInt64Vector3 I643(const FVector& Seed, const FVector& Tolerance)
 	{
 		return FInt64Vector3(
-			FMath::FloorToInt64(Seed.X * Tolerance.X),
-			FMath::FloorToInt64(Seed.Y * Tolerance.Y),
-			FMath::FloorToInt64(Seed.Z * Tolerance.Z));
+			FMath::RoundToDouble(Seed.X * Tolerance.X),
+			FMath::RoundToDouble(Seed.Y * Tolerance.Y),
+			FMath::RoundToDouble(Seed.Z * Tolerance.Z));
 	}
 
 	FORCEINLINE static FInt64Vector3 I643(const FVector& Seed, const FInt64Vector3& Tolerance)
 	{
 		return FInt64Vector3(
-			FMath::FloorToInt64(Seed.X * Tolerance.X),
-			FMath::FloorToInt64(Seed.Y * Tolerance.Y),
-			FMath::FloorToInt64(Seed.Z * Tolerance.Z));
+			FMath::RoundToDouble(Seed.X * Tolerance.X),
+			FMath::RoundToDouble(Seed.Y * Tolerance.Y),
+			FMath::RoundToDouble(Seed.Z * Tolerance.Z));
 	}
 
 	FORCEINLINE static uint32 GH(const FVector& Seed, const FInt64Vector3& Tolerance) { return GetTypeHash(I643(Seed, Tolerance)); }

@@ -41,7 +41,7 @@ FPCGExConnectPointsContext::~FPCGExConnectPointsContext()
 
 	ProbeFactories.Empty();
 	GeneratorsFiltersFactories.Empty();
-	ConnetablesFiltersFactories.Empty();
+	ConnectablesFiltersFactories.Empty();
 
 	PCGEX_DELETE(MainVtx);
 }
@@ -63,10 +63,10 @@ bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 		Context, PCGExGraph::SourceFilterGenerators, Context->GeneratorsFiltersFactories,
 		PCGExFactories::PointFilters, false);
 	GetInputFactories(
-		Context, PCGExGraph::SourceFilterConnectables, Context->ConnetablesFiltersFactories,
+		Context, PCGExGraph::SourceFilterConnectables, Context->ConnectablesFiltersFactories,
 		PCGExFactories::PointFilters, false);
 
-	Context->CWStackingTolerance = FVector(1 / Settings->StackingPreventionTolerance);
+	Context->CWCoincidenceTolerance = FVector(1 / Settings->CoincidenceTolerance);
 
 	return true;
 }
@@ -137,8 +137,8 @@ namespace PCGExConnectPoints
 
 		const int32 NumPoints = PointIO->GetNum();
 
-		CWStackingTolerance = TypedContext->CWStackingTolerance;
-		bPreventStacking = Settings->bPreventStacking;
+		CWCoincidenceTolerance = TypedContext->CWCoincidenceTolerance;
+		bPreventCoincidence = Settings->bPreventCoincidence;
 
 		if (Settings->bProjectPoints)
 		{
@@ -189,10 +189,10 @@ namespace PCGExConnectPoints
 			GeneratorsFilter->Init(Context, TypedContext->GeneratorsFiltersFactories);
 		}
 
-		if (!TypedContext->ConnetablesFiltersFactories.IsEmpty())
+		if (!TypedContext->ConnectablesFiltersFactories.IsEmpty())
 		{
 			ConnectableFilter = new PCGExPointFilter::TManager(PointDataFacade);
-			ConnectableFilter->Init(Context, TypedContext->ConnetablesFiltersFactories);
+			ConnectableFilter->Init(Context, TypedContext->ConnectablesFiltersFactories);
 		}
 
 		bUseProjection = Settings->bProjectPoints;
@@ -278,8 +278,8 @@ namespace PCGExConnectPoints
 		if (!CanGenerate[Index]) { return; } // Not a generator
 
 		TSet<uint64>* UniqueEdges = DistributedEdgesSet[LoopIdx];
-		TSet<uint64>* LocalConnectionStack = nullptr;
-		if (bPreventStacking) { LocalConnectionStack = new TSet<uint64>(); }
+		TSet<FInt32Vector>* LocalCoincidence = nullptr;
+		if (bPreventCoincidence) { LocalCoincidence = new TSet<FInt32Vector>(); }
 
 		FPCGPoint PointCopy = Point;
 
@@ -321,29 +321,29 @@ namespace PCGExConnectPoints
 					OtherPointIndex,
 					Dir,
 					FVector::DistSquared(Position, Origin),
-					bPreventStacking ? PCGEx::GH(Dir, CWStackingTolerance) : 0);
+					bPreventCoincidence ? PCGEx::I323(Dir, CWCoincidenceTolerance) : FInt32Vector::ZeroValue);
 
 				if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; ++i) { ChainProbeOperations[i]->ProcessCandidateChained(i, PointCopy, EmplaceIndex, Candidates[EmplaceIndex], BestCandidates[i]); } }
 			};
 
 			Octree->FindElementsWithBoundsTest(FBoxCenterAndExtent(Origin, FVector(MaxRadius)), ProcessPoint);
 
-			if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; ++i) { ChainProbeOperations[i]->ProcessBestCandidate(Index, PointCopy, BestCandidates[i], Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); } }
+			if (NumChainedOps > 0) { for (int i = 0; i < NumChainedOps; ++i) { ChainProbeOperations[i]->ProcessBestCandidate(Index, PointCopy, BestCandidates[i], Candidates, LocalCoincidence, CWCoincidenceTolerance, UniqueEdges); } }
 
 			if (!Candidates.IsEmpty())
 			{
 				Algo::Sort(Candidates, [&](const PCGExProbing::FCandidate& A, const PCGExProbing::FCandidate& B) { return A.Distance < B.Distance; });
-				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
+				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalCoincidence, CWCoincidenceTolerance, UniqueEdges); }
 			}
 			else
 			{
-				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
+				for (UPCGExProbeOperation* Op : SharedProbeOperations) { Op->ProcessCandidates(Index, PointCopy, Candidates, LocalCoincidence, CWCoincidenceTolerance, UniqueEdges); }
 			}
 		}
 
-		for (UPCGExProbeOperation* Op : DirectProbeOperations) { Op->ProcessNode(Index, PointCopy, LocalConnectionStack, CWStackingTolerance, UniqueEdges); }
+		for (UPCGExProbeOperation* Op : DirectProbeOperations) { Op->ProcessNode(Index, PointCopy, LocalCoincidence, CWCoincidenceTolerance, UniqueEdges); }
 
-		PCGEX_DELETE(LocalConnectionStack)
+		PCGEX_DELETE(LocalCoincidence)
 	}
 
 	void FProcessor::CompleteWork()

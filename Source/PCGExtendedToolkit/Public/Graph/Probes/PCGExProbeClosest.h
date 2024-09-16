@@ -37,11 +37,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExProbeConfigClosest : public FPCGExProbeC
 
 	/** Attempts to prevent connections that are roughly in the same direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bPreventStacking = true;
+	bool bPreventCoincidence = true;
 
 	/** Attempts to prevent connections that are roughly in the same direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPreventStacking", ClampMin=0.00001))
-	double StackingPreventionTolerance = 0.001;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bPreventCoincidence", ClampMin=0.00001))
+	double CoincidencePreventionTolerance = 0.001;
 
 	/** Unbounded means this probe will sample ALL points to find a match. This is uber expensive. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -59,8 +59,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeClosest : public UPCGExProbeOperatio
 public:
 	virtual bool RequiresDirectProcessing() override;
 	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
-	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges) override;
-	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges) override;
+	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
+	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeConfigClosest Config;
 
@@ -68,7 +68,7 @@ public:
 	PCGExData::TCache<int32>* MaxConnectionsCache = nullptr;
 
 protected:
-	FVector CWStackingTolerance = FVector::ZeroVector;
+	FVector CWCoincidenceTolerance = FVector::ZeroVector;
 };
 
 ////

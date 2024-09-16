@@ -14,7 +14,7 @@ bool UPCGExProbeAnisotropic::PrepareForPoints(const PCGExData::FPointIO* InPoint
 	return true;
 }
 
-void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges)
+void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
@@ -47,7 +47,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		const PCGExProbing::FCandidate& C = Candidates[i];
 
 		if (C.Distance > R) { break; }
-		if (ConnectedSet && ConnectedSet->Contains(C.GH)) { continue; }
+		if (Coincidence && Coincidence->Contains(C.GH)) { continue; }
 
 		double BatchBestDot = 0.92;
 		double BatchBestDist = TNumericLimits<double>::Max();
@@ -80,9 +80,9 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		if (BestCandidate[d] == -1) { continue; }
 		const PCGExProbing::FCandidate& C = Candidates[BestCandidate[d]];
 
-		if (ConnectedSet)
+		if (Coincidence)
 		{
-			ConnectedSet->Add(C.GH, &bIsAlreadyConnected);
+			Coincidence->Add(C.GH, &bIsAlreadyConnected);
 			if (bIsAlreadyConnected) { continue; }
 		}
 

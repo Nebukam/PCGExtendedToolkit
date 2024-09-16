@@ -156,12 +156,14 @@ namespace PCGExNodeAdjacency
 		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
 
 		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Config.DirectionConstant;
-		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
+		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }
 
+		RefDir.Normalize();
+		
 		const FVector CWTolerance = HashComparison.GetCWTolerance(PointIndex);
-		const uint32 A = PCGEx::GH(RefDir, CWTolerance);
+		const FInt32Vector A = PCGEx::I323(RefDir, CWTolerance);
 
-		TArray<uint32> Hashes;
+		TArray<FInt32Vector> Hashes;
 		Hashes.SetNumUninitialized(Node.Adjacency.Num());
 
 		// Precompute all dot products
@@ -170,20 +172,20 @@ namespace PCGExNodeAdjacency
 		{
 			for (int i = 0; i < Hashes.Num(); ++i)
 			{
-				Hashes[i] = PCGEx::GH(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
+				Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Hashes.Num(); ++i)
 			{
-				Hashes[i] = PCGEx::GH(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
+				Hashes[i] = PCGEx::I323(Cluster->GetDir(Node.NodeIndex, PCGEx::H64A(Node.Adjacency[i])), CWTolerance);
 			}
 		}
 
 		if (Adjacency.bTestAllNeighbors)
 		{
-			for (const double Hash : Hashes) { if (A != Hash) { return false; } }
+			for (const FInt32Vector Hash : Hashes) { if (A != Hash) { return false; } }
 			return true;
 		}
 
@@ -194,7 +196,7 @@ namespace PCGExNodeAdjacency
 		if (Threshold == -1) { return false; }
 
 		int32 LocalSuccessCount = 0;
-		for (const double Hash : Hashes) { if (A == Hash) { LocalSuccessCount++; } }
+		for (const FInt32Vector Hash : Hashes) { if (A == Hash) { LocalSuccessCount++; } }
 
 		return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold);
 	}

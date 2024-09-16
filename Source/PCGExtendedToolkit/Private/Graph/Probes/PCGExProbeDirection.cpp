@@ -35,7 +35,7 @@ bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 	return true;
 }
 
-void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* ConnectedSet, const FVector& ST, TSet<uint64>* OutEdges)
+void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
 	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
@@ -51,7 +51,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 		const PCGExProbing::FCandidate& C = Candidates[i];
 
 		if (C.Distance > R) { break; }
-		if (ConnectedSet && ConnectedSet->Contains(C.GH)) { continue; }
+		if (Coincidence && Coincidence->Contains(C.GH)) { continue; }
 		//if (OutEdges->Contains(PCGEx::H64U(Index, C.PointIndex))) { continue; }
 
 		double Dot = 0;
@@ -90,9 +90,9 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 	{
 		const PCGExProbing::FCandidate& C = Candidates[BestCandidateIndex];
 
-		if (ConnectedSet)
+		if (Coincidence)
 		{
-			ConnectedSet->Add(C.GH, &bIsAlreadyConnected);
+			Coincidence->Add(C.GH, &bIsAlreadyConnected);
 			if (bIsAlreadyConnected) { return; }
 		}
 
@@ -147,16 +147,16 @@ void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCG
 	}
 }
 
-void UPCGExProbeDirection::ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<uint64>* Stacks, const FVector& ST, TSet<uint64>* OutEdges)
+void UPCGExProbeDirection::ProcessBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	if (InBestCandidate.BestIndex == -1) { return; }
 
 	const PCGExProbing::FCandidate& C = Candidates[InBestCandidate.BestIndex];
 
 	bool bIsAlreadyConnected;
-	if (Stacks)
+	if (Coincidence)
 	{
-		Stacks->Add(C.GH, &bIsAlreadyConnected);
+		Coincidence->Add(C.GH, &bIsAlreadyConnected);
 		if (bIsAlreadyConnected) { return; }
 	}
 
