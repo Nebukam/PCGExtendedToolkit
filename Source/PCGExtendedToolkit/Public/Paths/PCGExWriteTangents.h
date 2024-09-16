@@ -31,6 +31,8 @@ protected:
 	//~End UPCGSettings
 
 public:
+	virtual FName GetPointFilterLabel() const override;
+	
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
