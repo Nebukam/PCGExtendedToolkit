@@ -138,11 +138,11 @@ namespace PCGExBevelVertices
 		StateFlags = nullptr;
 	}
 
-	bool FProcessorBatch::PrepareProcessing()
+	bool FProcessorBatch::PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelVertices)
 
-		if (!TBatch::PrepareProcessing()) { return false; }
+		if (!TBatch::PrepareProcessing(AsyncManager)) { return false; }
 
 		PCGEx::TAttributeWriter<int64>* Writer = VtxDataFacade->GetWriter(Settings->FlagAttribute, Settings->InitialFlags, false, false);
 		StateFlags = &Writer->Values;

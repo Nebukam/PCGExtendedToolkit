@@ -27,7 +27,7 @@ namespace PCGExClusterMT
 	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
 		T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
 
-	PCGEX_CLUSTER_MT_TASK(FStartClusterBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
+	PCGEX_CLUSTER_MT_TASK(FStartClusterBatchProcessing, { if (Target->PrepareProcessing(Manager)) { Target->Process(Manager); } })
 
 #pragma endregion
 
@@ -37,6 +37,7 @@ namespace PCGExClusterMT
 
 	protected:
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
+
 		bool bBuildCluster = true;
 		bool bRequiresHeuristics = false;
 		bool bCacheVtxPointIndices = false;
@@ -46,6 +47,8 @@ namespace PCGExClusterMT
 		bool bInlineProcessEdges = false;
 		bool bInlineProcessRange = false;
 
+		template <typename T>
+		T* GetParentBatch() { return static_cast<T*>(ParentBatch); }
 
 		int32 NumNodes = 0;
 		int32 NumEdges = 0;
@@ -65,6 +68,8 @@ namespace PCGExClusterMT
 		}
 
 	public:
+		FClusterProcessorBatchBase* ParentBatch = nullptr;
+
 		PCGExData::FFacade* VtxDataFacade = nullptr;
 		PCGExData::FFacade* EdgeDataFacade = nullptr;
 
@@ -380,7 +385,7 @@ namespace PCGExClusterMT
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(Context); }
 
-		virtual bool PrepareProcessing()
+		virtual bool PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
 		{
 			VtxIO->CreateInKeys();
 			PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
@@ -448,9 +453,9 @@ namespace PCGExClusterMT
 			TrivialProcessors.Empty();
 		}
 
-		virtual bool PrepareProcessing() override
+		virtual bool PrepareProcessing(PCGExMT::FTaskManager* AsyncManager) override
 		{
-			return FClusterProcessorBatchBase::PrepareProcessing();
+			return FClusterProcessorBatchBase::PrepareProcessing(AsyncManager);
 		}
 
 		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override
@@ -466,6 +471,7 @@ namespace PCGExClusterMT
 				IO->CreateInKeys();
 
 				T* NewProcessor = new T(VtxIO, IO);
+				NewProcessor->ParentBatch = this;
 				NewProcessor->Context = Context;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;

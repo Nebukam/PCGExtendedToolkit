@@ -26,22 +26,6 @@ namespace PCGExWriteEdgeProperties
 	class FProcessorBatch;
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Mode"))
-enum class EPCGExEdgeDirectionMethod : uint8
-{
-	EndpointsOrder     = 0 UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
-	EndpointsIndices   = 1 UMETA(DisplayName = "Endpoints Indices", ToolTip="Uses the edge' Start & End indices"),
-	EndpointsAttribute = 2 UMETA(DisplayName = "Endpoints Attribute", ToolTip="Uses a single-component property or attribute value on Start & End points"),
-	EdgeDotAttribute   = 3 UMETA(DisplayName = "Edge Dot Attribute", ToolTip="Chooses the highest dot product against a vector property or attribute on the edge point"),
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Choice"))
-enum class EPCGExEdgeDirectionChoice : uint8
-{
-	SmallestToGreatest = 0 UMETA(DisplayName = "Smallest to Greatest", ToolTip="Direction points from smallest to greatest value"),
-	GreatestToSmallest = 1 UMETA(DisplayName = "Greatest to Smallest", ToolTip="Direction points from the greatest to smallest value")
-};
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Heuristics Write Mode"))
 enum class EPCGExHeuristicsWriteMode : uint8
 {
@@ -71,18 +55,10 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/** Method to pick the edge direction amongst various possibilities.*/
+	/** Defines the direction in which points will be ordered to form the final paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
-
-	/** Further refine the direction method. Not all methods make use of this property.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
-
-	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute || DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector DirSourceAttribute;
-
+	FPCGExEdgeDirectionSettings DirectionSettings;
+	
 	/** Output Edge Length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgeLength = false;
@@ -243,7 +219,8 @@ namespace PCGExWriteEdgeProperties
 	{
 		const UPCGExWriteEdgePropertiesSettings* LocalSettings = nullptr;
 
-		bool bAscendingDesired = true;
+		FPCGExEdgeDirectionSettings DirectionSettings;
+		
 		double StartWeight = 0;
 		double EndWeight = 1;
 
@@ -254,9 +231,6 @@ namespace PCGExWriteEdgeProperties
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
 
 		bool bSolidify = false;
-
-		PCGExData::TCache<double>* VtxDirCompGetter = nullptr;
-		PCGExData::TCache<FVector>* EdgeDirCompGetter = nullptr;
 
 #define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGExData::TCache<double>* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
@@ -271,7 +245,25 @@ namespace PCGExWriteEdgeProperties
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
+		virtual void Write() override;
+	};
+
+	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+		friend class FProcessor;
+		
+		FPCGExEdgeDirectionSettings DirectionSettings;
+		
+	public:
+		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+			PCGExClusterMT::TBatch<FProcessor>(InContext, InVtx, InEdges)
+		{
+		}
+		
+		virtual bool PrepareProcessing(PCGExMT::FTaskManager* AsyncManager) override;
+
 	};
 }

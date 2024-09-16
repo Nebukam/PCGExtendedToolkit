@@ -126,11 +126,11 @@ namespace PCGExWriteVtxProperties
 		for (UPCGExVtxPropertyOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
 	}
 
-	bool FProcessorBatch::PrepareProcessing()
+	bool FProcessorBatch::PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxProperties)
 
-		if (!TBatch::PrepareProcessing()) { return false; }
+		if (!TBatch::PrepareProcessing(AsyncManager)) { return false; }
 
 		{
 			PCGExData::FFacade* OutputFacade = VtxDataFacade;

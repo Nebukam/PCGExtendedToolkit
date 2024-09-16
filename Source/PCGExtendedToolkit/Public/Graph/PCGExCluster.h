@@ -459,11 +459,24 @@ namespace PCGExCluster
 
 		uint64 GetUniqueHash() const
 		{
+			if (SingleEdge != -1) { return SingleEdge; }
+
+			if (First > Last)
+			{
+				if (Nodes.Num() == 1) { return HashCombineFast(HashCombineFast(Last, First), Nodes[0]); }
+				return HashCombineFast(HashCombineFast(Last, First), HashCombineFast(Nodes.Last(), Nodes[0]));
+			}
+
+			if (Nodes.Num() == 1) { return HashCombineFast(HashCombineFast(First, Last), Nodes[0]); }
+			return HashCombineFast(HashCombineFast(First, Last), HashCombineFast(Nodes[0], Nodes.Last()));
+
+			/*
 			const uint32 BaseHash = First > Last ? HashCombineFast(GetTypeHash(Last), GetTypeHash(First)) : HashCombineFast(GetTypeHash(First), GetTypeHash(Last));
 			if (SingleEdge != -1) { return BaseHash; }
 			if (Nodes.Num() == 1) { return HashCombineFast(BaseHash, GetTypeHash(Nodes[0])); }
 			const uint32 NodeBaseHash = Nodes[0] > Nodes[1] ? HashCombineFast(GetTypeHash(Nodes[1]), GetTypeHash(Nodes[0])) : HashCombineFast(GetTypeHash(Nodes[0]), GetTypeHash(Nodes[1]));
 			return HashCombineFast(BaseHash, NodeBaseHash);
+			*/
 		}
 	};
 
@@ -669,3 +682,34 @@ namespace PCGExClusterTask
 		virtual bool ExecuteTask() override;
 	};
 }
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionSettings
+{
+	GENERATED_BODY()
+
+	/** Method to pick the edge direction amongst various possibilities.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
+
+	/** Further refine the direction method. Not all methods make use of this property.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
+
+	/** Attribute picker for the selected Direction Method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute || DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector DirSourceAttribute;
+
+	bool bAscendingDesired = false;
+	PCGExData::TCache<double>* EndpointsReader = nullptr;
+	PCGExData::TCache<FVector>* EdgeDirReader = nullptr;
+
+	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InEndpointsFacade);
+	bool InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, PCGExData::FFacade* InEdgeDataFacade);
+
+	bool RequiresEndpointsMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute; }
+	bool RequiresEdgeMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute; }
+
+	bool SortEndpoints(const PCGExCluster::FCluster* InCluster, PCGExGraph::FIndexedEdge& InEdge) const;
+		
+};

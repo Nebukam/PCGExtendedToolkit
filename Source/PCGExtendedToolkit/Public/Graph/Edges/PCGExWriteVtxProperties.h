@@ -119,7 +119,7 @@ namespace PCGExWriteVtxProperties
 		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
 		virtual ~FProcessorBatch() override;
 
-		virtual bool PrepareProcessing() override;
+		virtual bool PrepareProcessing(PCGExMT::FTaskManager* AsyncManager) override;
 		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
 		//virtual void CompleteWork() override;
 		virtual void Write() override;

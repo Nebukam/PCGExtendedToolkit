@@ -1076,3 +1076,79 @@ namespace PCGExClusterTask
 		return true;
 	}
 }
+
+bool FPCGExEdgeDirectionSettings::Init(const FPCGContext* InContext, PCGExData::FFacade* InEndpointsFacade)
+{
+	bAscendingDesired = DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
+	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
+	{
+		EndpointsReader = InEndpointsFacade->GetScopedBroadcaster<double>(DirSourceAttribute);
+		if (!EndpointsReader)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Some vtx don't have the specified DirSource Attribute \"{0}\"."), FText::FromName(DirSourceAttribute.GetName())));
+			return false;
+		}
+	}
+	return true;
+}
+
+bool FPCGExEdgeDirectionSettings::InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, PCGExData::FFacade* InEdgeDataFacade)
+{
+	DirectionMethod = ParentSettings.DirectionMethod;
+	DirectionChoice = ParentSettings.DirectionChoice;
+
+	bAscendingDesired = ParentSettings.bAscendingDesired;
+
+	EndpointsReader = ParentSettings.EndpointsReader;
+
+	if (DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
+	{
+		EdgeDirReader = InEdgeDataFacade->GetScopedBroadcaster<FVector>(DirSourceAttribute);
+		if (!EdgeDirReader)
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Some edges don't have the specified DirSource Attribute \"{0}\"."), FText::FromName(DirSourceAttribute.GetName())));
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* InCluster, PCGExGraph::FIndexedEdge& InEdge) const
+{
+	const uint32 Start = InEdge.Start;
+	const uint32 End = InEdge.End;
+
+	bool bAscending = true;
+
+	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsOrder)
+	{
+	}
+	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsIndices)
+	{
+		bAscending = (Start < End);
+	}
+	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
+	{
+		bAscending = EndpointsReader->Values[Start] < EndpointsReader->Values[End];
+	}
+	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
+	{
+		// TODO : Might be faster to use the EndpointLookup with GetPos ?
+		const FVector A = InCluster->VtxIO->GetInPoint(Start).Transform.GetLocation();
+		const FVector B = InCluster->VtxIO->GetInPoint(End).Transform.GetLocation();
+
+		const FVector& EdgeDir = (A - B).GetSafeNormal();
+		const FVector& CounterDir = EdgeDirReader->Values[InEdge.EdgeIndex];
+		bAscending = CounterDir.Dot(EdgeDir * -1) < CounterDir.Dot(EdgeDir); // TODO : Do we really need both dots?
+	}
+
+	if (bAscending != bAscendingDesired)
+	{
+		InEdge.Start = End;
+		InEdge.End = Start;
+		return true;
+	}
+
+	return false;
+}

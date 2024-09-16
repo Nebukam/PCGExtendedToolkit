@@ -51,9 +51,9 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExBreakClustersToPaths::FProcessor>>(
+		if (!Context->StartProcessingClusters<PCGExBreakClustersToPaths::FProcessorBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatch<PCGExBreakClustersToPaths::FProcessor>* NewBatch)
+			[&](PCGExBreakClustersToPaths::FProcessorBatch* NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -89,6 +89,11 @@ namespace PCGExBreakClustersToPaths
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		Breakpoints.Init(false, Cluster->Nodes->Num());
+
+		if (!DirectionSettings.InitFromParent(Context, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade))
+		{
+			return false;
+		}
 
 		if (!TypedContext->FilterFactories.IsEmpty())
 		{
@@ -138,6 +143,10 @@ namespace PCGExBreakClustersToPaths
 
 		const int32 ChainSize = Chain->Nodes.Num() + 2;
 
+		const TArray<int32>& VtxPointsIndicesRef = *VtxPointIndicesCache;
+		PCGExGraph::FIndexedEdge ChainDir = PCGExGraph::FIndexedEdge(Iteration, VtxPointsIndicesRef[Chain->First], VtxPointsIndicesRef[Chain->Last]);
+		if (DirectionSettings.SortEndpoints(Cluster, ChainDir)) { Algo::Reverse(Chain->Nodes); }
+
 		if (ChainSize < LocalSettings->MinPointCount) { return; }
 		if (LocalSettings->bOmitAbovePointCount && ChainSize > LocalSettings->MaxPointCount) { return; }
 
@@ -147,11 +156,9 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints.SetNumUninitialized(ChainSize);
 		int32 PointCount = 0;
 
-		const TArray<int32>& VtxPointsIndicesRef = *VtxPointIndicesCache;
-
-		MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[Chain->First]);
+		MutablePoints[PointCount++] = PathIO->GetInPoint(ChainDir.Start);
 		for (const int32 NodeIndex : Chain->Nodes) { MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[NodeIndex]); }
-		MutablePoints[PointCount] = PathIO->GetInPoint(VtxPointsIndicesRef[Chain->Last]);
+		MutablePoints[PointCount] = PathIO->GetInPoint(ChainDir.End);
 
 		PathIO->InitializeNum(ChainSize, true);
 	}
@@ -162,10 +169,46 @@ namespace PCGExBreakClustersToPaths
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 
+		DirectionSettings.SortEndpoints(Cluster, Edge);
+		
 		MutablePoints[0] = PathIO->GetInPoint(Edge.Start);
-		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
+		MutablePoints[1] = PathIO->GetInPoint(Edge.End);		
 
 		PathIO->InitializeNum(2, true);
+	}
+
+	bool FProcessorBatch::PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
+	{
+		if (!TBatch<FProcessor>::PrepareProcessing(AsyncManager)) { return false; }
+
+		VtxDataFacade->bSupportsDynamic = true;
+
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
+
+		DirectionSettings = Settings->DirectionSettings;
+		if (!DirectionSettings.Init(Context, VtxDataFacade))
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
+			return false;
+		}
+
+		if (DirectionSettings.RequiresEndpointsMetadata())
+		{
+			// Fetch attributes while processors are searching for chains
+
+			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
+
+			PCGEX_ASYNC_GROUP(AsyncManager, FetchVtxTask)
+			FetchVtxTask->SetOnIterationRangeStartCallback(
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+				{
+					VtxDataFacade->Fetch(StartIndex, Count);
+				});
+
+			FetchVtxTask->PrepareRangesOnly(VtxIO->GetNum(), PLI);
+		}
+
+		return true;
 	}
 }
 
