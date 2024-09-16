@@ -36,26 +36,16 @@ outputs:
 The **Edge Properties** node lets you extract & write cluster-related properties to individual Edges points, as well as "solidify" the edge points (i.e giving their bounds an decent shape).
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-edge-properties/lead.png' %}
 
 # Properties
 <br>
 
-| Property       | Description          |
-|:-------------|:------------------|
-|**Settings**||
-| Direction Method     |  Defines which endpoints "order" will be used to define the edge' direction for the ouputs. |
-| Direction Choice | Further refines the direction method, based on the above selection.<br>-`Smallest to Greatest` will order direction reference metrics in ascending order.<br>-`Greatest to Smallest` will order direction reference metrics in descending order.<br>*Really it's how the endpoint reference value is sorted, but I couldn't call that Direction' direction.*|
+---
+## Direction
 
-### Direction Method
-
-The `Direction method`, combined with the `Direction Choice` determine which endpoint should be considered the `Start` & `End` of the edge. **The "direction" of the edge used for computing outputs & properties is the safe normal going from the start to the end of the edge.**
-
-|<span class="ebit">Endpoints order</span>    | Will use the endpoints' point as ordered during cluster construction.<br>*This method offers no control.* |
-|<span class="ebit">Endpoints indices</span> | Will use the endpoints' point index<br>*This method offers no real control, cluster indices, while deterministic, are mostly random.* |
-|<span class="ebit">Endpoints Attribute</span> | Will use an attribute (converted to a `Double`) from the endpoints'<br>*This method, combined with `Direction Choice` offers full control over direction.* |
-| <span class="ebit">Edge Dot Attribute</span> | Will use an attribute (converted to an `FVector`) from the endpoints' and do a Dot Product with the edge' direction.<br>*This method, combined with `Direction Choice` offers full control over direction.* |
-{: .enum }
+{% include embed id='settings-edge-direction' %}
+{% include img_link a='explainers/edge-direction-method.png' %}
 
 ---
 ## Outputs
@@ -63,8 +53,8 @@ The `Direction method`, combined with the `Direction Choice` determine which end
 | Property       | Description          |
 |:-------------|:------------------|
 |**Outputs**||
-| Edge Length     |  |
-| Edge Direction |  |
+| Edge Length<br>`double`     |  |
+| Edge Direction<br>`FVector` |  |
 | Endpoints Blending |  |
 | Endpoints Weights |  |
 | Blending Settings | Defines how each enpoint' property (`Start` and `End` Vtx) is blended into the edge.<br>*See {% include lk id='Blending' %}*. |
@@ -83,7 +73,7 @@ Solidifying an edge means computing its bounds so they visually connect the star
 This makes edge point incredibly more useful than just "data holders"!
 {: .fs-5 .fw-400 }
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img_link a='details/clusters-edge-properties/solidifcation.png' %}
 
 Solidification is fairly straightforward on paper, but in order to be flexible it also exposes an overwhelming amount of parameters.  
 <br>
@@ -108,7 +98,6 @@ Solidification is fairly straightforward on paper, but in order to be flexible i
 
 When a solidification axis is selected, lets you set the edge bounds' remaining two axis as "radiuses".  
 Each component shares the same following properties:  
-
 
 | Enabled    |  |
 | Radius Type |  |

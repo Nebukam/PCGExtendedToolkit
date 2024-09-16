@@ -26,3 +26,5 @@ outputs:
 
 > DOC TDB
 {: .warning }
+
+{% include img a='details/filter-ecosystem/filter-compare-modulo-lead.png' %}

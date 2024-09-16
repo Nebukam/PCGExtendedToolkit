@@ -35,7 +35,7 @@ outputs:
 The **Partition Vertices** node converts processes the input clusters and outputs matching pairs of dataset for each cluster. This guarantees that each `Edges` have a single, **unshared** `Vtx` dataset.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-partition-vertices/lead.png' %}
 
 > Contrary to other edge & cluster processors, this node does **not** produce a sanitized result.  
 > *If the input is unsanitized, you may have unexpected results.*  

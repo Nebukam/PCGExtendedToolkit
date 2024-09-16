@@ -19,7 +19,7 @@ nav_order: 2
 Force-directed relaxation simulates physical forces on connected nodes, adjusting their positions iteratively to minimize energy, balancing attractive and repulsive forces to reveal an optimal topology. *See [Force-directed graph drawing on Wikipedia](https://en.wikipedia.org/wiki/Force-directed_graph_drawing)*
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/edge-relax/relax-force-directed-lead.png' %}
 
 # Properties
 

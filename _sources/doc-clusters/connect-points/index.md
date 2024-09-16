@@ -45,7 +45,7 @@ outputs:
 The connect point node allows you to create connected clusters using different **probes**. Each point will go through each probe' rules to find neighboring points to connect to.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/connect-points/lead.png' %}
 
 # Properties
 <br>
@@ -77,8 +77,6 @@ You can connect as many probes as you'd like to the `Probes` input.
 {% include card_childs tagged='probe' %}
 
 ---
-
-{% include img a='placeholder-wide.jpg' %}
 
 ## Available Filters
 *You can use the regular filters for Generators & Connectables :*  

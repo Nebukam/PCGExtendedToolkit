@@ -23,7 +23,7 @@ On top of static properties, point can have **Dynamic attributes**, which are cu
 > PCGEx leverages attributes a lot, and doesn't deal too much in properties except for blending.
 {: .comment }  
 
-> Some PCGEx nodes uses attributes to store internal data. These are prefixed `PCGEx/`. Try not do modify these unless you know exactly what you're doing -- most of them are more complex data stored as `uint64`.
+> Some PCGEx nodes uses attributes to store internal data. These are prefixed `PCGEx/`. Try not do modify these unless you know exactly what you're doing -- most of them are data packed inside an `int64`.
 {: .warning }
 
 ---

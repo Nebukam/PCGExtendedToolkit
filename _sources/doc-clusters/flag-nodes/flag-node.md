@@ -38,7 +38,7 @@ outputs:
 The **Node Flag**, *not to be confused with  {% include lk id='Flag Nodes' %}*, performs a **single per-point bitmask-based operation** on an incoming value; based on any number of input filters.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/flag-nodes/flag-node-lead.png' %}
 
 # Properties
 

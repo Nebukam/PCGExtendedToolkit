@@ -26,7 +26,7 @@ outputs:
 This probes creates a single connections to another point in a specific direction, within an angular tolerance.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/connect-points/probe-direction-lead.png' %}
 
 # Properties
 

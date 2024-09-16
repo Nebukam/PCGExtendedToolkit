@@ -39,7 +39,7 @@ This node creates a 2D Delaunay graph from the input points. If you'd like to kn
 It has very *very* interesting properties, and this node also offers the ability to output the [Urquhart](https://en.wikipedia.org/wiki/Urquhart_graph) alternative; which is even more fascinating.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/diagrams/diagrams-delaunay-2d-lead.png' %}
 
 # Properties
 <br>
@@ -55,7 +55,7 @@ It has very *very* interesting properties, and this node also offers the ability
 ## Sites
 <br>
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img_link a='details/diagrams/diagrams-delaunay-2d-sites.png' %}
 
 | Output Sites           | If enabled, the node will output the Delaunay Sites.<br>*Each site is the centroid of a Delaunay triangle.* |
 | Site Hull Attribute Name<br>`Boolean`          | If enabled, will flag output site points that have at least an edge that lie on the convex hull of the graph. |
@@ -65,9 +65,9 @@ It has very *very* interesting properties, and this node also offers the ability
 
 | Mode       | |
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %} | **None**<br>Outputs canon Delaunay sites. |
-| {% include img a='placeholder.jpg' %} | **Merge Sites**<br>The output site is the average of all the canon Delaunay sites that are abstracted by the Urquhart pass. |
-| {% include img a='placeholder.jpg' %} | **Merge Edges**<br>The output site is the average of all the edges removed by the Urquhart pass. |
+| {% include img a='details/diagrams/enum-sitemerge-none.png' %} | **None**<br>Outputs canon Delaunay sites. |
+| {% include img a='details/diagrams/enum-sitemerge-sites.png' %} | **Merge Sites**<br>The output site is the average of all the canon Delaunay sites that are abstracted by the Urquhart pass. |
+| {% include img a='details/diagrams/enum-sitemerge-edges.png' %} | **Merge Edges**<br>The output site is the average of all the edges removed by the Urquhart pass. |
 
 > Which merge mode to use, if any, depends on your final intent. **If your goal is find the contours of an Urquhart "cell", then Merge Edges offer usually more interesting sites positions.**
 {: .infos-hl }
@@ -94,10 +94,10 @@ The delaunay algorithm creates a convex hull of very, *very* long edges, so you'
 ### Hull pruning
 - Simply enable the Hull mark, filter these `Vtx` out and sanitize the cluster afterward.
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img_link a='details/diagrams/diagrams-delaunay-2d-hull-pruning.png' %}
 
 ### Prune by Length
 - Use {% include lk id='Prune edges by Length' %} to remove outliers. This is a more conversative approach compared to the one above, as it will keep the smaller hull edges.
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img_link a='details/diagrams/diagrams-delaunay-2d-hull-pruning2.png' %}
 

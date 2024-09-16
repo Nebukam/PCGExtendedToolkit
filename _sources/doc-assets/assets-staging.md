@@ -34,7 +34,7 @@ The **Asset Staging** exists for many reasons, but primarily to "pre-spawn" asse
 
 This is especially useful if you want to have pruning control on overlaps, or require very tight placement rules no matter how the assets have been authored (pivot point location etc)
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/assets-staging/lead.png' %}
 
 ---
 # Properties
@@ -57,7 +57,7 @@ When using the `Attribute Set` source, the node will create a temp, internal {% 
 ---
 ## Scale to Fit
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/assets-staging/scale-to-fit.png' %}
 
 Scale the spawned asset bounds in order to fit within the host point' bounds.  
 
@@ -70,17 +70,17 @@ You can use the following rules:
 
 |: Scale to Fit      ||
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">None</span><br>Disable the scaling rule. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Fill</span><br>Scale the asset so it fills the point' bounds. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Min</span><br>Scale the asset so it fits snuggly within the minimum point' bounds. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Max</span><br>Scale the asset so it fits snuggly within the maximum point' bounds. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Average</span><br>Scale the asset so it fits the average of the point' bounds.|
+| {% include img a='details/assets-staging/enum-stf-none.png' %}           | <span class="ebit">None</span><br>Disable the scaling rule. |
+| {% include img a='details/assets-staging/enum-stf-fill.png' %}           | <span class="ebit">Fill</span><br>Scale the asset so it fills the point' bounds. |
+| {% include img a='details/assets-staging/enum-stf-min.png' %}           | <span class="ebit">Min</span><br>Scale the asset so it fits snuggly within the minimum point' bounds. |
+| {% include img a='details/assets-staging/enum-stf-max.png' %}           | <span class="ebit">Max</span><br>Scale the asset so it fits snuggly within the maximum point' bounds. |
+| {% include img a='details/assets-staging/enum-stf-avg.png' %}           | <span class="ebit">Average</span><br>Scale the asset so it fits the average of the point' bounds.|
 {: .enum }
 
 ---
 ## Justification
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/assets-staging/justification.png' %}
 
 Offset the spawned asset bounds relative to the host point' bounds.  
 Justification is done & tweaked per-component.  
@@ -97,11 +97,11 @@ You can use the following rules for `From`:
 
 |: Justify From     ||
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Min</span><br>Uses the asset bounds' min as reference point. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Center</span><br>Uses the asset bounds' local center as reference point. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Max</span><br>Uses the asset bounds' max as reference point.|
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Pivot</span><br>Uses the asset pivot as reference point, ignoring bounds. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Custom</span><br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
+| {% include img a='details/assets-staging/enum-justify-from-center.png' %}           | <span class="ebit">Center</span><br>Uses the asset bounds' local center as reference point. |
+| {% include img a='details/assets-staging/enum-justify-from-min.png' %}           | <span class="ebit">Min</span><br>Uses the asset bounds' min as reference point. |
+| {% include img a='details/assets-staging/enum-justify-from-max.png' %}           | <span class="ebit">Max</span><br>Uses the asset bounds' max as reference point.|
+| {% include img a='details/assets-staging/enum-justify-from-pivot.png' %}           | <span class="ebit">Pivot</span><br>Uses the asset pivot as reference point, ignoring bounds. |
+| {% include img a='details/assets-staging/enum-justify-from-custom.png' %}           | <span class="ebit">Custom</span><br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
 {: .enum }
 
 ### To
@@ -109,12 +109,12 @@ You can use the following rules for `To`:
 
 |: Justify To     ||
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Same</span><br>Auto-selects the same justification as `From`, but computed against the point' bounds. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Center</span><br>Uses the point bounds' local center as reference point. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Min</span><br>Uses the point bounds' min as reference point. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Max</span><br>Uses the point bounds' max as reference point. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Pivot</span><br>Uses the point bounds' pivot, ignoring bounds. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Custom</span><br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
+| {% include img a='details/assets-staging/enum-justify-to-same.png' %}           | <span class="ebit">Same</span><br>Auto-selects the same justification as `From`, but computed against the point' bounds. |
+| {% include img a='details/assets-staging/enum-justify-to-center.png' %}           | <span class="ebit">Center</span><br>Uses the point bounds' local center as reference point. |
+| {% include img a='details/assets-staging/enum-justify-to-min.png' %}           | <span class="ebit">Min</span><br>Uses the point bounds' min as reference point. |
+| {% include img a='details/assets-staging/enum-justify-to-max.png' %}           | <span class="ebit">Max</span><br>Uses the point bounds' max as reference point. |
+| {% include img a='details/assets-staging/enum-justify-to-pivot.png' %}           | <span class="ebit">Pivot</span><br>Uses the point bounds' pivot, ignoring bounds. |
+| {% include img a='details/assets-staging/enum-justify-to-custom.png' %}           | <span class="ebit">Custom</span><br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
 {: .enum }
 
 ---

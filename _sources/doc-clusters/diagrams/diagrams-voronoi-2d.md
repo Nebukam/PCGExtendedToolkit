@@ -34,7 +34,7 @@ outputs:
 This node creates a 2D Voronoi diagram from the input points. If you'd like to know more about Voronoi intrinsic properties, check out the [Wikipedia article](https://en.wikipedia.org/wiki/Voronoi_diagram)!  
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/diagrams/diagrams-voronoi-2d-lead.png' %}
 
 # Properties
 <br>
@@ -55,7 +55,7 @@ This node creates a 2D Voronoi diagram from the input points. If you'd like to k
 ## Voronoi site position
 <br>
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/diagrams/diagrams-voronoi-2d-sites.png' %}
 
 | Mode       | |
 |:-------------|:------------------|

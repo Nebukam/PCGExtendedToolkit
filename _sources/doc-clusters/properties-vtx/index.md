@@ -43,7 +43,7 @@ outputs:
 The **Vtx Properties** node lets you extract & write cluster-related properties to individual Vtx points. Individual output definitions/settings use external nodes.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/properties-vtx/properties-vtx-lead.png' %}
 
 # Property Nodes
 

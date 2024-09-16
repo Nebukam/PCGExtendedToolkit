@@ -41,7 +41,7 @@ The **Find Clusters** node is a handy helper to find matching `Vtx` and `Edges` 
 > Note that this node is not an alternative to {% include lk id='Sanitize Clusters' %}, it only works at the collection level and doesn't inspect per-point data.
 {: .warning }
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-find-cluster-data/lead.png' %}
 
 # Properties
 <br>

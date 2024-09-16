@@ -27,7 +27,7 @@ outputs:
 The **Special Neighbor** property outputs the properties of the two "special" connected neighbors -- special in the *outlier* sense : the **Largest** connected vtx, as well as the **Smallest** connected vtx -- in terms of number of connectons.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/properties-vtx/vtx-extra-special-neighbors-lead.png' %}
 
 # Properties
 <br>

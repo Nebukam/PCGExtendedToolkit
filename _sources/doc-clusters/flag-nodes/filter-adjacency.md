@@ -7,7 +7,7 @@ name_in_editor: "Cluster Filter : Adjacency"
 subtitle: Check if adjacent node meet specific conditions
 summary: The **Adjacency** filter performs numeric comparisons on each connection of a Vtx, allowing precise control over success criteria based on the number of passed comparisons, offering the flexibility to test either discrete or relative connections.
 color: blue
-splash: icons/icon_edges-extras.svg
+splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node
     - clusterfilter
@@ -25,7 +25,7 @@ outputs:
 The adjacency filter does a simple numeric comparison on each individual connections of a `Vtx`, and offer fine grained control over what qualifies as a "success", based on how many connections passed the comparison or not. *What makes it equally useful and tricky to set-up is its ability to test against either a discrete number of connection, or relative ones.*
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/flag-nodes/filter-adjacency-lead.png' %}
 
 # Properties
 <br>
@@ -36,10 +36,10 @@ The adjacency filter does a simple numeric comparison on each individual connect
 | Priority           | Defines the order in which this flag operation will be processed.<br>*See {% include lk id='Flag Nodes' %}* |
 | Adjacency Settings          | Defines how to deal with the number of adjacent nodes *as a criteria to the filter success*.<br>*Covered in more depth later in this page* |
 
-| Compare Against           | TBD |
+| Compare Against           |  |
 | Operand A Constant           | TBD |
 | Operand A Attribute           | TBD |
-| Comparison           | How to compare Operand A against Operand B<br>*See {% include lk id='Flag Nodes' %}* |
+| Comparison           | How to compare Operand A against Operand B<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
 | Operand B Source           | TBD |
 | Operand B (Neighbor)           | TBD |
 | Tolerance           | Comparison tolerance, for non-strict comparison modes. |

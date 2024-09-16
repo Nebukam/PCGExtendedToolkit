@@ -44,7 +44,7 @@ The **Copy Clusters to points** is very much like the vanilla `Copy Points` node
 >Unlike `Copy Points`, this node outputs individual per-cluster datasets.
 {: .comment }
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-copy-to-points/lead.png' %}
 
 # Properties
 <br>

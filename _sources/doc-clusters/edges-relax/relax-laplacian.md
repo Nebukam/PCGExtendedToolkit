@@ -19,6 +19,6 @@ nav_order: 1
 Laplacian relaxation adjusts node positions iteratively based on the average positions of their neighbors, smoothing the layout by reducing irregularities and creating a more uniform structure. *See [Laplacian Relaxation on Wikipedia](https://en.wikipedia.org/wiki/Relaxation_(iterative_method))*
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/edge-relax/relax-laplacian-lead.png' %}
 
 *This relaxation has no exposed properties.*

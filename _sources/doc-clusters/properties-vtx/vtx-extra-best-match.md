@@ -28,7 +28,7 @@ outputs:
 The **Edge Match** property outputs the properties of the single connected edges that best matches a given direction.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/properties-vtx/vtx-extra-best-match-lead.png' %}
 
 # Properties
 <br>

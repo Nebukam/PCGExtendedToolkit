@@ -26,7 +26,7 @@ outputs:
 This probes creates a single connections to another point at a given index.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/connect-points/probe-index-lead.png' %}
 
 # Properties
 

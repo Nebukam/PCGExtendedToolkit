@@ -19,6 +19,8 @@ outputs:
         pin : params
 ---
 
+*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).*
+
 {% include header_card_node %}
 
 # Properties
@@ -26,3 +28,5 @@ outputs:
 
 > DOC TDB
 {: .warning }
+
+{% include img a='details/filter-ecosystem/filter-compare-numeric-lead.png' %}

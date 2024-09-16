@@ -32,7 +32,7 @@ outputs:
 The **Mesh to Cluster** node converts raw geometry from meshes (either specific reference or by sampling the scene) into Clusters, using geometry' vertices and triangles to build `Vtx` and `Edges` and copy them onto the input points, much like {% include lk id='Copy Cluster to Points' %} does.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-mesh-to-clusters/lead.png' %}
 
 > Note that the current implementation is very prototype-y : when using an actor reference, only the first primitive will be processed.
 {: .warning }
@@ -64,9 +64,9 @@ The **Mesh to Cluster** node converts raw geometry from meshes (either specific 
 
 |: Output Type    | Description |
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Raw</span><br>Uses the raw, unedited mesh topology. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Dual</span><br>Uses the dual graph of the mesh topology. |
-| {% include img a='placeholder.jpg' %}           | <span class="ebit">Hollow</span><br>Uses a special combination of both raw and dual graph to create more edges. |
+| {% include img a='details/clusters-mesh-to-clusters/enum-raw.png' %}           | <span class="ebit">Raw</span><br>Uses the raw, unedited mesh topology. |
+| {% include img a='details/clusters-mesh-to-clusters/enum-dual.png' %}           | <span class="ebit">Dual</span><br>Uses the dual graph of the mesh topology. |
+| {% include img a='details/clusters-mesh-to-clusters/enum-hollow.png' %}           | <span class="ebit">Hollow</span><br>Uses a special combination of both raw and dual graph to create more edges. |
 {: .enum }
 
 ---

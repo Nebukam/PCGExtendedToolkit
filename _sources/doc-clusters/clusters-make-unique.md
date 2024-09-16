@@ -35,3 +35,5 @@ outputs:
 The **Make Unique** node is a handy helper to slap a new pair of unique IDs to an existing cluster pair, without actually duplicating the data. This node primarily exists to allow certain advanced operations such as copying an existing cluster configuration, modify it and then fuse it with the original one.
 {: .fs-5 .fw-400 } 
 
+{% include img a='details/clusters-make-unique/lead.png' %}
+

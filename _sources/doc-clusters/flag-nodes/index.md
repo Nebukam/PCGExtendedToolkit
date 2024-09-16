@@ -49,7 +49,7 @@ Bitmasks & bit fields can be obscure to work with if it's not something you're u
 {: .infos }
 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/flag-nodes/flag-nodes-lead.png' %}
 
 # Order of operation
 

@@ -26,7 +26,7 @@ outputs:
 This probes creates unique connections to the closest points within a radius, up to a maximum number.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/connect-points/probe-closest-lead.png' %}
 
 # Properties
 

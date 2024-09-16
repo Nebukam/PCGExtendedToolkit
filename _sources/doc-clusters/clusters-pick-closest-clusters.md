@@ -37,7 +37,7 @@ outputs:
 The **Pick Closest Cluster** nodes lets you select clusters within the available one based on proximity to a target point. Each target point will select a single cluster based on proxmimity.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-pick-closest-clusters/lead.png' %}
 
 # Properties
 <br>

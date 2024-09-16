@@ -36,7 +36,7 @@ The **Pack Cluster** nodes outputs individual clusters into **a single points da
 {: .infos-hl }
 <br>
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/packing-clusters/clusters-pack-clusters-lead.png' %}
 
 ---
 ## Carry Over Settings

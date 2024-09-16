@@ -36,7 +36,7 @@ outputs:
 The **Break Cluster to Path** turns all `Edges` chains to individual paths. It's useful to quickly get a bunch of paths or splines out of a refined topology without the need for pathfinding.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-break-to-paths/lead.png' %}
 
 > It is not recommended to use this node on very dense clusters (where a lot of `Vtx` have more than two connections), as it quickly ends up creating a single point data per individual edge.
 {: .error }
@@ -48,12 +48,23 @@ The **Break Cluster to Path** turns all `Edges` chains to individual paths. It's
 | Property       | Description          |
 |:-------------|:------------------|
 | Operate On           | Lets you choose how to break cluster down.<br>- `Paths` : Operate on edge chains which form paths with no crossings.  e.g, nodes with only two neighbors.<br>- `Edges` : Operate on each edge individually (very expensive)  |
-| Normal | If enabled, output the averaged normal of the `vtx` based on all connected `edges`.<br>*This output is hardly usable for highly 3-dimensional nodes.* |
+
+---
+## Direction
+
+{% include embed id='settings-edge-direction' %}
+
+> Using `Edge Dot Attribute` only uses the first available edge in the chain to infer direction.
+{: .infos }
+
+---
+## Pruning
+
 | Min Point Count | This lets you filter out output paths that have less that the specified number of points. |
 | Max Point Count | If enabled, this lets you filter out output paths that have more that the specified number of points. |
 
 ---
-## Using Break Conditions
+# Using Break Conditions
 
 The break condition filters can be used to get tighter control over when to split a clean edge chain into more sub-paths than the default behavior. If the point pass the specified filters, it will stop whatever path was being created. If the point 
 

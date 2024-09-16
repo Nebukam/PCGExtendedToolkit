@@ -35,7 +35,7 @@ outputs:
 The **Connect Clusters** creates "bridge" edges between all input clusters and outputs a single bigger one as a result.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-connect/lead.png' %}
 
 # Properties
 <br>

@@ -37,7 +37,7 @@ Under-the-hood the points are first projected on a plane, and the hull is deduct
 
 The node outputs a single cluster that contains the unordered hull & its edges, as well as an actual "canon" path, whose points are ordered in clockwise order.
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/hulls/hull-convex-hull-2d-lead.png' %}
 
 # Properties
 <br>

@@ -37,6 +37,8 @@ outputs:
 > DOC TDB
 {: .warning }
 
+{% include img a='details/filter-ecosystem/filter-uber-filter-collection-lead.png' %}
+
 ---
 ## Available Filters
 <br>

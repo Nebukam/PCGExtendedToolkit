@@ -38,3 +38,5 @@ outputs:
 
 > DOC TBD
 {: .warning }
+
+{% include img a='details/clusters-fuse-cluster/lead.png' %}

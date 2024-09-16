@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body>
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Property</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Direction Method</td>
+      <td style="text-align: left">Defines which endpoints “order” will be used to define the direction reference for the ouputs.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Direction Choice</td>
+      <td style="text-align: left">Further refines the direction method, based on the above selection.<br>-<code class="language-plaintext highlighter-rouge">Smallest to Greatest</code> will order direction reference metrics in ascending order.<br>-<code class="language-plaintext highlighter-rouge">Greatest to Smallest</code> will order direction reference metrics in descending order.<br><em>Really it’s how the endpoint reference value is sorted, but I couldn’t call that Direction’ direction.</em>
+</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Dir Source Attribute</td>
+      <td style="text-align: left">The attribute that will be used by the selected method.</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p>If the selected method is <code class="language-plaintext highlighter-rouge">Endpoints Attribute</code>, the attribute is will be read from <code class="language-plaintext highlighter-rouge">Vtx</code> as a <code class="language-plaintext highlighter-rouge">double</code>.
+If the selected method is <code class="language-plaintext highlighter-rouge">Edge Dot Attribute</code>, the attribute will be read from <code class="language-plaintext highlighter-rouge">Edges</code> as an <code class="language-plaintext highlighter-rouge">FVector</code> direction.</p>
+</blockquote>
+
+<h3 id="method">Method</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">Direction method</code>, combined with the <code class="language-plaintext highlighter-rouge">Direction Choice</code> determine which endpoint should be considered the <code class="language-plaintext highlighter-rouge">Start</code> &amp; <code class="language-plaintext highlighter-rouge">End</code> of the edge. <strong>The “direction” of the edge used for computing outputs &amp; properties is the safe normal going from the start to the end of the edge.</strong></p>
+
+<table class="enum">
+  <thead>
+    <tr>
+      <th style="text-align: left">Mode</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><span class="ebit">Endpoints order</span></td>
+      <td style="text-align: left">Will use the endpoints’ as ordered during cluster construction.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">Endpoints indices</span></td>
+      <td style="text-align: left">Will use the endpoints’ point index.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">Endpoints Attribute</span></td>
+      <td style="text-align: left">Will use an attribute (converted to a <code class="language-plaintext highlighter-rouge">Double</code>) from the endpoints’<br><em>This method, combined with <code class="language-plaintext highlighter-rouge">Direction Choice</code> offers full control over direction.</em>
+</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">Edge Dot Attribute</span></td>
+      <td style="text-align: left">Will use an attribute (converted to an <code class="language-plaintext highlighter-rouge">FVector</code>) from the edges’ and do a Dot Product with the edge’ direction.<br><em>This method, combined with <code class="language-plaintext highlighter-rouge">Direction Choice</code> offers full control over direction.</em>
+</td>
+    </tr>
+  </tbody>
+</table>
+</body></html>

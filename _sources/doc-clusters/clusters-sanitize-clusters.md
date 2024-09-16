@@ -42,7 +42,7 @@ Additionally, if a cluster that was previously a bit interconnected topology has
 > **Rule of thumb is, if a node has a 'Cluster Output Settings' in its detail panel, it's generating clean clusters.**
 {: .infos-hl }
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/clusters-sanitize-clusters/lead.png' %}
 
 ---
 ## Cluster Output Settings

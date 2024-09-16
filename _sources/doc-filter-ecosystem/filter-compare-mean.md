@@ -24,7 +24,7 @@ outputs:
 The **Mean Filter** node is useful to filter out statistical aberrations.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/filter-ecosystem/filter-compare-mean-lead.png' %}
 
 # Properties
 <br>

@@ -27,7 +27,7 @@ outputs:
 The **Special Edges** property outputs the properties of the two "special" connected edges -- special in the *outlier* sense : the **Shortest** connected edge, as well as the **Longest** connected edge.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/properties-vtx/vtx-extra-special-edges-lead.png' %}
 
 # Properties
 <br>

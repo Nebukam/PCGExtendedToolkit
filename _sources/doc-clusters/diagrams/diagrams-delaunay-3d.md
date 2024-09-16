@@ -35,7 +35,7 @@ This node creates a 3D Delaunay tetrahedralization from the input points. If you
 It has very *very* interesting properties, and this node also offers the ability to output the [Urquhart](https://en.wikipedia.org/wiki/Urquhart_graph) alternative; which is even more fascinating.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/diagrams/diagrams-delaunay-3d-lead.png' %}
 
 # Properties
 <br>
@@ -51,16 +51,13 @@ It has very *very* interesting properties, and this node also offers the ability
 ## Sites
 <br>
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img_link a='details/diagrams/diagrams-delaunay-3d-sites.png' %}
 
 | Output Sites           | If enabled, the node will output the Delaunay Sites.<br>*Each site is the centroid of a Delaunay triangle.* |
 | Site Hull Attribute Name<br>`Boolean`          | If enabled, will flag output site points that have at least an edge that lie on the convex hull of the graph. |
 
 > Contrary to the {% include lk id='Delaunay 2D' %} node, the 3D version does not offer site-merging. Not only is it not trivial, it's all also of very little use as its main appeal is to find contours, which works poorly (if at all) on complex 3D topologies.
 {: .comment }
-
-{% include img a='placeholder-wide.jpg' %}
-
 
 ---
 ## Projection Settings

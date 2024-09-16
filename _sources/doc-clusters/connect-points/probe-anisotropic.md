@@ -27,7 +27,7 @@ An anisotropic probe is a preset to find connection in 16 different directions o
 *Anisotropic pathfinding is a popular approach to finding high-level plots, it made sense to have an hardcoded version as opposed to hand crafting 16 directional probes to the same effect*
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/connect-points/probe-anisotropic-lead.png' %}
 
 # Properties
 

@@ -24,7 +24,7 @@ outputs:
 The **Bitmask Filter** lets you check whether certain flags are set or not in an `int64` bitmask attribute.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/filter-ecosystem/filter-bitmask-lead.png' %}
 
 ---
 # Properties

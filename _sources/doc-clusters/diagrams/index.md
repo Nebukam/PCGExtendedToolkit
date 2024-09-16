@@ -25,6 +25,6 @@ Delaunay & Voronoi are two of the most popular algorithms to achieve that; as th
 {: .warning }
 
 ---
-## Classic Graphs
+## Available Diagrams
 <br>
 {% include card_childs tagged='node' %}

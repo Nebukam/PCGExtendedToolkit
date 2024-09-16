@@ -31,7 +31,7 @@ outputs:
 The 3D Convex Hull node capture the convex bounding shape of a set of point in three dimensions.
 {: .fs-5 .fw-400 } 
 
-{% include img a='placeholder-wide.jpg' %}
+{% include img a='details/hulls/hull-convex-hull-3d-lead.png' %}
 
 # Properties
 <br>
