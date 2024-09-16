@@ -32,8 +32,17 @@ outputs:
 
 {% include header_card_node %}
 
-# Properties
-<br>
+The **Sanitize Cluster** is an imperative post-processing node when you "manually" remove `Vtx` or `Edge` from datasets. It ensure that the cluster data is properly usable inside PCGEx' ecosystem of cluster-related nodes.
+{: .fs-5 .fw-400 } 
+
+As mentionned in the {% include lk id='Working with Clusters' %} page, `Vtx` and `Edge` points are storing critical attributes & informations about the topology of a cluster. **Sanitize** removes `Edges` which `Vtx` have been removed, as well as prune `Vtx` that aren't participating to any `Edge`.  
+Additionally, if a cluster that was previously a bit interconnected topology has been split into smaller groups, this will be reflected in the `Edges` output with additional point datasets.
+
+> Note that all cluster nodes output sanitized clusters by design, so there is no need to use this node after "official" PCGEx operations.
+> **Rule of thumb is, if a node has a 'Cluster Output Settings' in its detail panel, it's generating clean clusters.**
+{: .infos-hl }
+
+{% include img a='placeholder-wide.jpg' %}
 
 ---
 ## Cluster Output Settings

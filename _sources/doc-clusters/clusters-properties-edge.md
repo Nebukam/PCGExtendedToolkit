@@ -51,10 +51,10 @@ The **Edge Properties** node lets you extract & write cluster-related properties
 
 The `Direction method`, combined with the `Direction Choice` determine which endpoint should be considered the `Start` & `End` of the edge. **The "direction" of the edge used for computing outputs & properties is the safe normal going from the start to the end of the edge.**
 
-| Endpoints order     | Will use the endpoints' point index<br>*This method offers no real control, cluster indices, while deterministic, are mostly random.* |
-| Endpoints indices | Will use the endpoints' point index<br>*This method offers no real control, cluster indices, while deterministic, are mostly random.* |
-| Endpoints Attribute | Will use an attribute (converted to a `Double`) from the endpoints'<br>*This method, combined with `Direction Choice` offers full control over direction.* |
-| Edge Dot Attribute | Will use an attribute (converted to an `FVector`) from the endpoints' and do a Dot Product with the edge' direction.<br>*This method, combined with `Direction Choice` offers full control over direction.* |
+|<span class="ebit">Endpoints order</span>    | Will use the endpoints' point as ordered during cluster construction.<br>*This method offers no control.* |
+|<span class="ebit">Endpoints indices</span> | Will use the endpoints' point index<br>*This method offers no real control, cluster indices, while deterministic, are mostly random.* |
+|<span class="ebit">Endpoints Attribute</span> | Will use an attribute (converted to a `Double`) from the endpoints'<br>*This method, combined with `Direction Choice` offers full control over direction.* |
+| <span class="ebit">Edge Dot Attribute</span> | Will use an attribute (converted to an `FVector`) from the endpoints' and do a Dot Product with the edge' direction.<br>*This method, combined with `Direction Choice` offers full control over direction.* |
 {: .enum }
 
 ---

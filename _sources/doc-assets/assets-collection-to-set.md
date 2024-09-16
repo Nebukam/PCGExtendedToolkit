@@ -41,12 +41,12 @@ It's a very straightfoward node that takes an Asset Collection as input and outp
 
 |: Handling     ||
 |:-------------|:------------------|
-| Ignore           | Skips entry. |
-| Expand           | Recursively add sub-collection entries. |
-| Random           | Picks a random entry from the sub-collection, recursive until it's a non-collection entry. |
-| Random Weighted           | Picks a random weighted entry from the sub-collection, recursive until it's a non-collection entry. |
-| First Item           | Picks the first entry from the sub-collection, recursive until it's a non-collection entry. |
-| Last Item           | Picks the first entry from the sub-collection, recursive until it's a non-collection entry. |
+| <span class="ebit">Ignore</span>           | Skips entry. |
+| <span class="ebit">Expand</span>           | Recursively add sub-collection entries. |
+| <span class="ebit">Random</span>           | Picks a random entry from the sub-collection, recursive until it's a non-collection entry. |
+| <span class="ebit">Random Weighted</span>           | Picks a random weighted entry from the sub-collection, recursive until it's a non-collection entry. |
+| <span class="ebit">First Item</span>           | Picks the first entry from the sub-collection, recursive until it's a non-collection entry. |
+| <span class="ebit">Last Item</span>           | Picks the first entry from the sub-collection, recursive until it's a non-collection entry. |
 {: .enum }
 
 ### Outputs

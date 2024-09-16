@@ -21,8 +21,18 @@ outputs:
 
 {% include header_card_node %}
 
+The **Bitmask Filter** lets you check whether certain flags are set or not in an `int64` bitmask attribute.
+{: .fs-5 .fw-400 } 
+
+{% include img a='placeholder-wide.jpg' %}
+
+---
 # Properties
 <br>
 
-> DOC TDB
-{: .warning }
+| Property       | Description          |
+|:-------------|:------------------|
+| Flags Attributes          | The is the name of the attribtue which value will be tested.<br>*It is expected to be an `int64`.* |
+| Comparison | If enabled, output the averaged normal of the `vtx` based on all connected `edges`.<br>*This output is hardly usable for highly 3-dimensional nodes.* |
+| Min Point Count | This lets you filter out output paths that have less that the specified number of points. |
+| Max Point Count | If enabled, this lets you filter out output paths that have more that the specified number of points. |

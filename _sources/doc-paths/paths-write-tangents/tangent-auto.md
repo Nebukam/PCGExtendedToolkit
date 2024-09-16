@@ -14,10 +14,7 @@ nav_order: 1
 
 {% include header_card_node %}
 
-# Properties
-<br>
+The **Auto Tangents** compute tangents by using neighboring points.
+{: .fs-5 .fw-400 } 
 
-| Property       | Description          |
-|:-------------|:------------------|
-|**Settings**||
-| TBD           | See{% include lk id='Tangents' a='#common-properties' %} *(Common properties)* |
+{% include img a='placeholder-wide.jpg' %}

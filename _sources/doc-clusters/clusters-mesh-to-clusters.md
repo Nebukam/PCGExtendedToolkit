@@ -64,9 +64,9 @@ The **Mesh to Cluster** node converts raw geometry from meshes (either specific 
 
 |: Output Type    | Description |
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %}           | **Raw**<br>Uses the raw, unedited mesh topology. |
-| {% include img a='placeholder.jpg' %}           | **Dual**<br>Uses the dual graph of the mesh topology. |
-| {% include img a='placeholder.jpg' %}           | **Hollow**<br>Uses a special combination of both raw and dual graph to create more edges. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Raw</span><br>Uses the raw, unedited mesh topology. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Dual</span><br>Uses the dual graph of the mesh topology. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Hollow</span><br>Uses a special combination of both raw and dual graph to create more edges. |
 {: .enum }
 
 ---

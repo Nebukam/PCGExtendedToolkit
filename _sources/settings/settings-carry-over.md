@@ -32,7 +32,8 @@ Since this node merges multiple inputs together, "Carry over" settings lets you 
 
 | Mode       | Description          |
 |:-------------|:------------------|
-| Equals        | Checks for strict equality of the filtered value and the associated string.  |
-| Contains      | Checks if the filtered value contains the associated string. |
-| Starts With    | Checks if the filtered value is prefixed with the associated string. |
-| Ends With     | Checks if the filtered value is suffixed with the associated string. |
+| <span class="ebit">Equals</span>        | Checks for strict equality of the filtered value and the associated string.  |
+| <span class="ebit">Contains</span>      | Checks if the filtered value contains the associated string. |
+| <span class="ebit">Starts With</span>    | Checks if the filtered value is prefixed with the associated string. |
+| <span class="ebit">Ends With</span>     | Checks if the filtered value is suffixed with the associated string. |
+{: .enum }

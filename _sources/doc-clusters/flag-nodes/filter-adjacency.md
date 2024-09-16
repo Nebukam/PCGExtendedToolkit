@@ -12,7 +12,8 @@ tagged:
     - node
     - clusterfilter
     - clusters
-nav_order: 7
+    - filter
+nav_order: 100
 outputs:
     -   name : Filter
         desc : A single cluster filter definition

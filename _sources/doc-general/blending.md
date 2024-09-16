@@ -35,14 +35,14 @@ When a node creates new points, the final point' properties and attributes is us
 
 |: Blend Mode    ||
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %}           | **None**<br>No blending is applied, keep the original value. |
-| {% include img a='placeholder.jpg' %}           | **Average**<br>Average all sampled values. |
-| {% include img a='placeholder.jpg' %}           | **Weight**<br>Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead. |
-| {% include img a='placeholder.jpg' %}           | **Min**<br>Component-wise MIN operation.<br>*Keeps the smallest value of all inputs, per-component.* |
-| {% include img a='placeholder.jpg' %}           | **Max**<br>Component-wise MAX operation.<br>*Keeps the largest value of all inputs, per-component.* |
-| {% include img a='placeholder.jpg' %}           | **Copy**<br>Copy the latest incoming value, in no particular order. |
-| {% include img a='placeholder.jpg' %}           | **Sum**<br>Component-wise sum of all the inputs. |
-| {% include img a='placeholder.jpg' %}           | **Weighted Sum**<br>Component-wise weighted sum of all the inputs.<br>*What qualify as weight depends on context*. |
-| {% include img a='placeholder.jpg' %}           | **Lerp**<br>Uses weight as lerp. If the results are unexpected, try 'Weight' instead.<br>*Lerp only works properly for nodes that do a simple two-point blending.*. |
-| {% include img a='placeholder.jpg' %}           | **Substract**<br>Opposite of `Sum`, but substract all inputs. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">None</span><br>No blending is applied, keep the original value. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Average</span><br>Average all sampled values. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Weight</span><br>Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Min</span><br>Component-wise MIN operation.<br>*Keeps the smallest value of all inputs, per-component.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Max</span><br>Component-wise MAX operation.<br>*Keeps the largest value of all inputs, per-component.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Copy</span><br>Copy the latest incoming value, in no particular order. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Sum</span><br>Component-wise sum of all the inputs. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Weighted Sum</span><br>Component-wise weighted sum of all the inputs.<br>*What qualify as weight depends on context*. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Lerp</span><br>Uses weight as lerp. If the results are unexpected, try 'Weight' instead.<br>*Lerp only works properly for nodes that do a simple two-point blending.*. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Substract</span><br>Opposite of `Sum`, but substract all inputs. |
 {: .enum }

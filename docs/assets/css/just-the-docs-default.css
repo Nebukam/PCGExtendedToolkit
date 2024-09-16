@@ -842,6 +842,8 @@ figure.highlight pre, figure.highlight code { padding: 0; margin: 0; border: 0; 
 
 .kbkey.ico { padding: 1px 5px; }
 
+.ebit { padding: 3px 8px; /* margin: 0px 3px; */ /* border-radius: 3px; */ background-color: rgba(0, 0, 0, 0.25); display: inline-block; /* -webkit-box-shadow: 0px 3px 0px 1px rgba(0, 0, 0, 0.5); */ /* box-shadow: 0px 3px 0px 1px rgba(0, 0, 0, 0.5); */ /* border-bottom: 1px solid #5c5962; */ font-family: monospace; }
+
 .toc-ctnr { display: flex; flex-flow: row wrap; grid-gap: 20px; }
 
 .node-io { display: flex; flex-direction: row; align-content: flex-start; justify-content: flex-start; flex-wrap: nowrap; align-items: flex-start; gap: 10px; margin-bottom: 40px; }

@@ -31,7 +31,7 @@ outputs:
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
-| Closed Path           | If enabled, will process input paths as closed, effectively wrapping last and first point.  |
+| Closed Path           | If enabled, will process input paths as closed, effectively wrapping first and last point.  |
 | **Orientation**           | This property lets you select which kind of orientation arithmetics you want to apply to the input paths.<br>*See [Available Orientation Modules](#available-orienting-modules).*|
 
 ---

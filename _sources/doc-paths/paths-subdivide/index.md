@@ -31,7 +31,7 @@ outputs:
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
-| Closed Path           | If enabled, will process input paths as closed, effectively wrapping last and first point.  |
+| Closed Path           | If enabled, will process input paths as closed, effectively wrapping first and last point.  |
 | Subdivide Method      | Method to be used to define how many points are going to be inserted between existing ones.<br>See [Subdivide Method](#subdivide-method)   |
 | Distance *or* Count      | Based on the method, specifies how many points will be created. |
 | **Blending**           | This property lets you select which kind of blending you want to apply to the input paths.<br>*See [Available Blending Modules](#available-blending-modules).*|

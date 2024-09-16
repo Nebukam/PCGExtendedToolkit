@@ -31,7 +31,7 @@ outputs:
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
-| Closed Path           | If enabled, will process input paths as closed, effectively wrapping last and first point.  |
+| Closed Path           | If enabled, will process input paths as closed, effectively wrapping first and last point.  |
 | Preserve Start           | If enabled, the first point will be unaffected by the smoothing<br>*Same as if its local influence was `0`.* |
 | Preserve End           | If enabled, the last point will be unaffected by the smoothing<br>*Same as if its local influence was `0`.* |
 | Influence           | Global influence.<br>This is used as a value to lerp the smoothed points properties with the unsmoothed one.<br>- `0` = Not smoothed<br>- `1` = Fully smoothed |

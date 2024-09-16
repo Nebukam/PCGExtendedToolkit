@@ -66,9 +66,9 @@ As such you will need to trigger a manual refresh from to time. You can do so us
 
 | Button       | Effect          |
 |:-------------|:------------------|
-| {% include kbkey keys="Rebuild Staging" %} | Rebuilds the currently open Asset Collection |
-| {% include kbkey keys="Rebuild Staging (Recursive)" %} | Rebuild the currently open Asset Collection, as well as any sub-collections; recursively. |
-| {% include kbkey keys="Rebuild Staging (Project)" %} | Rebuild ALL the project' Asset Collection.<br>Use carefully as assets needs to be loaded temporarily in memory in order to compute their bounds. |
+| <span class="ebit">Rebuild Staging</span> | Rebuilds the currently open Asset Collection |
+| <span class="ebit">Rebuild Staging (Recursive)</span> | Rebuild the currently open Asset Collection, as well as any sub-collections; recursively. |
+| <span class="ebit">Rebuild Staging (Project)</span> | Rebuild ALL the project' Asset Collection.<br>Use carefully as assets needs to be loaded temporarily in memory in order to compute their bounds. |
 
 ---
 ## Available Collections

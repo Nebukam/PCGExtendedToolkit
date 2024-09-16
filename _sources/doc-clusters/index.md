@@ -14,7 +14,7 @@ tagged:
 
 {% include header_card %}
 
-> This section contains simple cluster generators and utilities. Make sure to check out {% include lk id='Working with Clusters' %} first.  
+> This section contains all the nodes that contribute to PCGEx' cluster ecosystem, such as generators and utilities. Make sure to check out {% include lk id='Working with Clusters' %} first.  
 > It is tightly related to {% include lk id='Edges' %} and {% include lk id='Pathfinding' %}
 
 ---

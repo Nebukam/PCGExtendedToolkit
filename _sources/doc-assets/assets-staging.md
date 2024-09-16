@@ -70,11 +70,11 @@ You can use the following rules:
 
 |: Scale to Fit      ||
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %}           | **None**<br>Disable the scaling rule. |
-| {% include img a='placeholder.jpg' %}           | **Fill**<br>Scale the asset so it fills the point' bounds. |
-| {% include img a='placeholder.jpg' %}           | **Min**<br>Scale the asset so it fits snuggly within the minimum point' bounds. |
-| {% include img a='placeholder.jpg' %}           | **Max**<br>Scale the asset so it fits snuggly within the maximum point' bounds. |
-| {% include img a='placeholder.jpg' %}           | **Average**<br>Scale the asset so it fits the average of the point' bounds.|
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">None</span><br>Disable the scaling rule. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Fill</span><br>Scale the asset so it fills the point' bounds. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Min</span><br>Scale the asset so it fits snuggly within the minimum point' bounds. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Max</span><br>Scale the asset so it fits snuggly within the maximum point' bounds. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Average</span><br>Scale the asset so it fits the average of the point' bounds.|
 {: .enum }
 
 ---
@@ -97,11 +97,11 @@ You can use the following rules for `From`:
 
 |: Justify From     ||
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %}           | **Min**<br>Uses the asset bounds' min as reference point. |
-| {% include img a='placeholder.jpg' %}           | **Center**<br>Uses the asset bounds' local center as reference point. |
-| {% include img a='placeholder.jpg' %}           | **Max**<br>Uses the asset bounds' max as reference point.|
-| {% include img a='placeholder.jpg' %}           | **Pivot**<br>Uses the asset pivot as reference point, ignoring bounds. |
-| {% include img a='placeholder.jpg' %}           | **Custom**<br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Min</span><br>Uses the asset bounds' min as reference point. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Center</span><br>Uses the asset bounds' local center as reference point. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Max</span><br>Uses the asset bounds' max as reference point.|
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Pivot</span><br>Uses the asset pivot as reference point, ignoring bounds. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Custom</span><br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
 {: .enum }
 
 ### To
@@ -109,12 +109,12 @@ You can use the following rules for `To`:
 
 |: Justify To     ||
 |:-------------|:------------------|
-| {% include img a='placeholder.jpg' %}           | **Same**<br>Auto-selects the same justification as `From`, but computed against the point' bounds. |
-| {% include img a='placeholder.jpg' %}           | **Min**<br>Uses the point bounds' min as reference point. |
-| {% include img a='placeholder.jpg' %}           | **Center**<br>Uses the point bounds' local center as reference point. |
-| {% include img a='placeholder.jpg' %}           | **Max**<br>Uses the point bounds' max as reference point. |
-| {% include img a='placeholder.jpg' %}           | **Pivot**<br>Uses the point bounds' pivot, ignoring bounds. |
-| {% include img a='placeholder.jpg' %}           | **Custom**<br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Same</span><br>Auto-selects the same justification as `From`, but computed against the point' bounds. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Center</span><br>Uses the point bounds' local center as reference point. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Min</span><br>Uses the point bounds' min as reference point. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Max</span><br>Uses the point bounds' max as reference point. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Pivot</span><br>Uses the point bounds' pivot, ignoring bounds. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Custom</span><br>Uses a lerped reference point between the asset bounds' min & max.<br>*Value is expected to be in the range 0-1 but isn't clamped.* |
 {: .enum }
 
 ---
@@ -129,20 +129,19 @@ When to apply the asset' variations, if any, as defined in the Source.
 
 Distribution drives how assets are selected within the collection & assigned to points.
 
-|: Seed components      ||
-| Seed components lets you choose which seed source you want to combined to drive randomness.   ||
-| None           | Will only use the point' seed. |
-| Local           | The local user-set seed *see property below* |
-| Settings           | This node' Settings seed. |
-| Component           | The parent PCG component' seed. |
+|: Seed components      | *Seed components lets you choose which seed source you want to combined to drive randomness.*   |
+| <span class="ebit">None</span>           | Will only use the point' seed. |
+| <span class="ebit">Local</span>           | The local user-set seed *see property below* |
+| <span class="ebit">Settings</span>           | This node' Settings seed. |
+| <span class="ebit">Component</span>           | The parent PCG component' seed. |
 {: .enum }
 
 ### Distribution
 
 |: Distribution     ||
-| Index           | Index-based selection within the collection.<br>*Enable a lot of additional options.*|
-| Random           | Plain old random selection. |
-| Weighted Random           | Weighted random selection, using entries' `Weight` property. |
+| <span class="ebit">Index</span>           | Index-based selection within the collection.<br>*Enable a lot of additional options.*|
+| <span class="ebit">Random</span>           | Plain old random selection. |
+| <span class="ebit">Weighted Random</span>          | Weighted random selection, using entries' `Weight` property. |
 {: .enum }
 
 ### Index Settings
