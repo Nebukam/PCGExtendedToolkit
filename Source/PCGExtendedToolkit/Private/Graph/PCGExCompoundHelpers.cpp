@@ -188,38 +188,16 @@ namespace PCGExGraph
 
 	void FCompoundProcessor::FindPointEdgeIntersections()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::FindPointEdgeIntersections);
+
 		PointEdgeIntersections = new FPointEdgeIntersections(
 			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, &PointEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
 
 		PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), FindPointEdgeGroup)
-		FindPointEdgeGroup->SetOnCompleteCallback(
-			[&]()
-			{
-				PointEdgeIntersections->Insert(); // TODO : Async?
-				CompoundFacade->Source->CleanupKeys();
 
-				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomPointEdgeBlendingDetails); }
-				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingDetails); }
-
-				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out);
-
-				PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), BlendPointEdgeGroup)
-				BlendPointEdgeGroup->SetOnCompleteCallback(
-					[&]()
-					{
-						if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager(), true); }
-						PCGEX_DELETE(PointEdgeIntersections)
-					});
-
-				BlendPointEdgeGroup->StartRanges(
-					[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-					{
-						// TODO
-					}, PointEdgeIntersections->Edges.Num(), 256);
-			});
-
+		FindPointEdgeGroup->SetOnCompleteCallback([&]() { FindPointEdgeIntersectionsFound(); });
 		FindPointEdgeGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
@@ -230,40 +208,48 @@ namespace PCGExGraph
 			GraphBuilder->Graph->Edges.Num(), 256);
 	}
 
+	void FCompoundProcessor::FindPointEdgeIntersectionsFound()
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::FindPointEdgeIntersectionsFound);
+
+		PCGEX_ASYNC_GROUP_CHECKED(Context->GetAsyncManager(), BlendPointEdgeGroup)
+		
+		PointEdgeIntersections->Insert(); // TODO : Async?
+		CompoundFacade->Source->CleanupKeys();
+
+		if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomPointEdgeBlendingDetails); }
+		else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingDetails); }
+
+		MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out);
+
+		BlendPointEdgeGroup->SetOnCompleteCallback([&]() { FindPointEdgeIntersectionsComplete(); });
+		BlendPointEdgeGroup->StartRanges(
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				// TODO
+			}, PointEdgeIntersections->Edges.Num(), 256);
+	}
+
+	void FCompoundProcessor::FindPointEdgeIntersectionsComplete()
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::FindPointEdgeIntersectionsComplete);
+
+		if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager(), true); }
+		PCGEX_DELETE(PointEdgeIntersections)
+	}
+
 	void FCompoundProcessor::FindEdgeEdgeIntersections()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::FindEdgeEdgeIntersections);
+
 		EdgeEdgeIntersections = new FEdgeEdgeIntersections(
 			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, &EdgeEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingEdgeEdgeIntersections);
 
 		PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), FindEdgeEdgeGroup)
-		FindEdgeEdgeGroup->SetOnCompleteCallback(
-			[&]()
-			{
-				EdgeEdgeIntersections->Insert(); // TODO : Async?
-				CompoundFacade->Source->CleanupKeys();
 
-				if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomEdgeEdgeBlendingDetails); }
-				else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingDetails); }
-
-				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out);
-
-				PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
-				BlendEdgeEdgeGroup->SetOnCompleteCallback(
-					[&]()
-					{
-						if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager(), true); }
-						PCGEX_DELETE(EdgeEdgeIntersections)
-					});
-
-				BlendEdgeEdgeGroup->StartRanges(
-					[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-					{
-						EdgeEdgeIntersections->BlendIntersection(Index, MetadataBlender);
-					}, EdgeEdgeIntersections->Crossings.Num(), 256);
-			});
-
+		FindEdgeEdgeGroup->SetOnCompleteCallback([&]() { OnEdgeEdgeIntersectionsFound(); });
 		FindEdgeEdgeGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
@@ -272,6 +258,37 @@ namespace PCGExGraph
 				FindOverlappingEdges(EdgeEdgeIntersections, Index);
 			},
 			GraphBuilder->Graph->Edges.Num(), 256);
+	}
+
+	void FCompoundProcessor::OnEdgeEdgeIntersectionsFound()
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::OnEdgeEdgeIntersectionsFound);
+
+		PCGEX_ASYNC_GROUP_CHECKED(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
+		
+		EdgeEdgeIntersections->Insert(); // TODO : Async?
+		CompoundFacade->Source->CleanupKeys();
+
+		if (bUseCustomPointEdgeBlending) { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&CustomEdgeEdgeBlendingDetails); }
+		else { MetadataBlender = new PCGExDataBlending::FMetadataBlender(&DefaultPointsBlendingDetails); }
+
+		MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out);
+
+		BlendEdgeEdgeGroup->SetOnCompleteCallback([&]() { OnEdgeEdgeIntersectionsComplete(); });
+		BlendEdgeEdgeGroup->StartRanges(
+			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				EdgeEdgeIntersections->BlendIntersection(Index, MetadataBlender);
+			}, EdgeEdgeIntersections->Crossings.Num(), 256);
+			
+	}
+
+	void FCompoundProcessor::OnEdgeEdgeIntersectionsComplete()
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::OnEdgeEdgeIntersectionsComplete);
+
+		if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager(), true); }
+		PCGEX_DELETE(EdgeEdgeIntersections)
 	}
 
 	void FCompoundProcessor::WriteClusters()

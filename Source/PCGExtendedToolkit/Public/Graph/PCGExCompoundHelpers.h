@@ -80,7 +80,12 @@ namespace PCGExGraph
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 
 		void FindPointEdgeIntersections();
+		void FindPointEdgeIntersectionsFound();
+		void FindPointEdgeIntersectionsComplete();
+		
 		void FindEdgeEdgeIntersections();
+		void OnEdgeEdgeIntersectionsFound();
+		void OnEdgeEdgeIntersectionsComplete();
 		void WriteClusters();
 	};
 }

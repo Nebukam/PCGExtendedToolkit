@@ -365,6 +365,8 @@ namespace PCGExGraph
 
 	void FPointEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPointEdgeIntersections::BlendIntersection);
+
 		const FPointEdgeProxy& PointEdgeProxy = Edges[Index];
 
 		if (PointEdgeProxy.CollinearPoints.IsEmpty()) { return; }
@@ -427,6 +429,8 @@ namespace PCGExGraph
 
 	void FEdgeEdgeIntersections::Insert()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::Insert);
+
 		FIndexedEdge NewEdge = FIndexedEdge{};
 
 		// Insert new nodes
@@ -476,15 +480,17 @@ namespace PCGExGraph
 
 	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::BlendIntersection);
+
 		const FEECrossing* Crossing = Crossings[Index];
 
-		const PCGExData::FPointRef Target = PointIO->GetOutPointRef(Graph->Nodes[Crossing->NodeIndex].PointIndex);
+		const int32 Target = Graph->Nodes[Crossing->NodeIndex].PointIndex;
 		Blender->PrepareForBlending(Target);
 
-		const PCGExData::FPointRef A1 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeA].Start].PointIndex);
-		const PCGExData::FPointRef A2 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeA].End].PointIndex);
-		const PCGExData::FPointRef B1 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeB].Start].PointIndex);
-		const PCGExData::FPointRef B2 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeB].End].PointIndex);
+		const int32 A1 = Graph->Nodes[Graph->Edges[Crossing->EdgeA].Start].PointIndex;
+		const int32 A2 = Graph->Nodes[Graph->Edges[Crossing->EdgeA].End].PointIndex;
+		const int32 B1 = Graph->Nodes[Graph->Edges[Crossing->EdgeB].Start].PointIndex;
+		const int32 B2 = Graph->Nodes[Graph->Edges[Crossing->EdgeB].End].PointIndex;
 
 		Blender->Blend(Target, A1, Target, Crossing->Split.TimeA);
 		Blender->Blend(Target, A2, Target, 1 - Crossing->Split.TimeA);
@@ -493,7 +499,7 @@ namespace PCGExGraph
 
 		Blender->CompleteBlending(Target, 4, 2);
 
-		PointIO->GetMutablePoint(Target.Index).Transform.SetLocation(Crossing->Split.Center);
+		PointIO->GetMutablePoint(Target).Transform.SetLocation(Crossing->Split.Center);
 	}
 }
 

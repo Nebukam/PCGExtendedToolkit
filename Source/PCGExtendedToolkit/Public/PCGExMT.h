@@ -17,6 +17,7 @@
 #define PCGEX_ASYNC_WRITE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::Write(_MANAGER, _TARGET); }
 #define PCGEX_ASYNC_WRITE_DELETE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::WriteAndDelete(_MANAGER, _TARGET); _TARGET = nullptr; }
 #define PCGEX_ASYNC_GROUP(_MANAGER, _NAME) PCGExMT::FTaskGroup* _NAME = _MANAGER->CreateGroup(FName(#_NAME));
+#define PCGEX_ASYNC_GROUP_CHECKED(_MANAGER, _NAME) if(!_MANAGER->IsAvailable()){ return; } PCGExMT::FTaskGroup* _NAME = _MANAGER->CreateGroup(FName(#_NAME));
 
 #pragma endregion
 
@@ -200,13 +201,14 @@ namespace PCGExMT
 		EQueuedWorkPriority WorkPriority = EQueuedWorkPriority::Normal;
 
 		mutable FRWLock ManagerLock;
+		mutable FRWLock GroupLock;
 		FPCGContext* Context;
-		std::atomic<bool> Stopped = false;
-		std::atomic<bool> ForceSync = false;
+		int8 Stopped = 0;
+		int8 ForceSync = 0;
 
 		FTaskGroup* CreateGroup(const FName& GroupName);
 
-		FORCEINLINE bool IsAvailable() const { return Stopped.load() || Flushing.load() ? false : true; }
+		FORCEINLINE bool IsAvailable() const { return Stopped || Flushing ? false : true; }
 
 		template <typename T, typename... Args>
 		void Start(const int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
@@ -227,7 +229,7 @@ namespace PCGExMT
 		void StartBackgroundTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
 			if (!IsAvailable()) { return; }
-			++NumStarted;
+			FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
 
 			{
 				FWriteScopeLock WriteLock(ManagerLock);
@@ -272,9 +274,9 @@ namespace PCGExMT
 		T* GetContext() { return static_cast<T*>(Context); }
 
 	protected:
-		std::atomic<bool> Flushing = {false};
-		std::atomic<int32> NumStarted = {0};
-		std::atomic<int32> NumCompleted = {0};
+		int8 Flushing = 0;
+		int32 NumStarted = 0;
+		int32 NumCompleted = 0;
 		TArray<FAsyncTaskBase*> QueuedTasks;
 		TArray<FTaskGroup*> Groups;
 	};
@@ -330,7 +332,7 @@ namespace PCGExMT
 		{
 			if (!Manager->IsAvailable()) { return; }
 
-			++NumStarted;
+			FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
 			FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
 			ATask->GetTask().Group = this;
 			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, TaskIndex); }
@@ -343,7 +345,7 @@ namespace PCGExMT
 			if (!Manager->IsAvailable()) { return; }
 
 			TArray<uint64> Loops;
-			NumStarted += SubRanges(Loops, MaxItems, ChunkSize);
+			FPlatformAtomics::InterlockedAdd(&NumStarted, SubRanges(Loops, MaxItems, ChunkSize));
 
 			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 
@@ -377,8 +379,8 @@ namespace PCGExMT
 		bool bHasOnIterationRangeStartCallback = false;
 		IterationRangeStartCallback OnIterationRangeStartCallback;
 
-		std::atomic<int> NumStarted = {0};
-		std::atomic<int> NumCompleted = {0};
+		int32 NumStarted = 0;
+		int32 NumCompleted = 0;
 
 		void PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
 		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;

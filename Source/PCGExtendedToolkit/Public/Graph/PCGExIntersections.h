@@ -460,6 +460,8 @@ namespace PCGExGraph
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FEESplit
 	{
+		int32 A = -1;
+		int32 B = -1;
 		double TimeA = -1;
 		double TimeB = -1;
 		FVector Center = FVector::ZeroVector;
@@ -536,7 +538,7 @@ namespace PCGExGraph
 			Intersections.Empty();
 		}
 
-		FORCEINLINE bool FindSplit(const FEdgeEdgeProxy& OtherEdge, FEESplit& OutSplit) const
+		FORCEINLINE bool FindSplit(const FEdgeEdgeProxy& OtherEdge, TArray<FEESplit>& OutSplits) const
 		{
 			if (!Box.Intersect(OtherEdge.Box) || Start == OtherEdge.Start || Start == OtherEdge.End ||
 				End == OtherEdge.End || End == OtherEdge.Start) { return false; }
@@ -552,9 +554,11 @@ namespace PCGExGraph
 
 			if (FVector::DistSquared(A, B) >= ToleranceSquared) { return false; }
 
-			OutSplit.Center = FMath::Lerp(A, B, 0.5);
-			OutSplit.TimeA = FVector::DistSquared(Start, A) / LengthSquared;
-			OutSplit.TimeB = FVector::DistSquared(OtherEdge.Start, B) / OtherEdge.LengthSquared;
+			FEESplit& NewSplit = OutSplits.Emplace_GetRef();
+			NewSplit.B = OtherEdge.EdgeIndex;
+			NewSplit.Center = FMath::Lerp(A, B, 0.5);
+			NewSplit.TimeA = FVector::DistSquared(Start, A) / LengthSquared;
+			NewSplit.TimeB = FVector::DistSquared(OtherEdge.Start, B) / OtherEdge.LengthSquared;
 
 			return true;
 		}
@@ -620,20 +624,30 @@ namespace PCGExGraph
 			return CheckedPairs.Contains(Key);
 		}
 
-		FORCEINLINE void Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split)
+		FORCEINLINE void Add(const FEESplit& Split)
 		{
-			FWriteScopeLock WriteLock(InsertionLock);
+			bool bAlreadySet = false;
+			CheckedPairs.Add(PCGEx::H64U(Split.A, Split.B), &bAlreadySet);
 
-			CheckedPairs.Add(PCGEx::H64U(EdgeIndex, OtherEdgeIndex));
+			if (bAlreadySet) { return; }
 
 			FEECrossing* OutSplit = new FEECrossing(Split);
 
 			OutSplit->NodeIndex = Crossings.Add(OutSplit) + Graph->Nodes.Num();
-			OutSplit->EdgeA = FMath::Min(EdgeIndex, OtherEdgeIndex);
-			OutSplit->EdgeB = FMath::Max(EdgeIndex, OtherEdgeIndex);
 
-			Edges[EdgeIndex].Intersections.AddUnique(OutSplit);
-			Edges[OtherEdgeIndex].Intersections.AddUnique(OutSplit);
+			if (Split.A < Split.B)
+			{
+				OutSplit->EdgeA = Split.A;
+				OutSplit->EdgeB = Split.B;
+			}
+			else
+			{
+				OutSplit->EdgeA = Split.B;
+				OutSplit->EdgeB = Split.A;
+			}
+
+			Edges[Split.A].Intersections.AddUnique(OutSplit);
+			Edges[Split.B].Intersections.AddUnique(OutSplit);
 		}
 
 		void Insert();
@@ -655,7 +669,7 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FindOverlappingEdges);
 
 		const FEdgeEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
-		FEESplit Split = FEESplit{};
+		TArray<FEESplit> OutSplits;
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
@@ -668,21 +682,17 @@ namespace PCGExGraph
 
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
-				if (InIntersections->AlreadyChecked(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { return; }
-
 				if (InIntersections->Details->bUseMinAngle || InIntersections->Details->bUseMaxAngle)
 				{
 					if (!InIntersections->Details->CheckDot(FMath::Abs(FVector::DotProduct((Edge.Start - Edge.End).GetSafeNormal(), (OtherEdge.Start - OtherEdge.End).GetSafeNormal())))) { return; }
 				}
-
-				if (!Edge.FindSplit(OtherEdge, Split)) { return; }
 
 				// Check overlap last as it's the most expensive op
 				if (InIntersections->CompoundGraph->PointsCompounds->IOIndexOverlap(
 					FGraphEdgeMetadata::GetRootIndex(OtherEdge.EdgeIndex, InIntersections->Graph->EdgeMetadata),
 					RootIOIndices)) { return; }
 
-				InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
+				if (!Edge.FindSplit(OtherEdge, OutSplits)) { return; }
 			};
 
 			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
@@ -695,13 +705,19 @@ namespace PCGExGraph
 
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
-				if (InIntersections->AlreadyChecked(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { return; }
-				if (!Edge.FindSplit(OtherEdge, Split)) { return; }
-
-				InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
+				if (!Edge.FindSplit(OtherEdge, OutSplits)) { return; }
 			};
 
 			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
+		}
+
+		{
+			FWriteScopeLock WriteLock(InIntersections->InsertionLock);
+			for (FEESplit& Split : OutSplits)
+			{
+				Split.A = EdgeIndex;
+				InIntersections->Add(Split);
+			}
 		}
 	}
 
