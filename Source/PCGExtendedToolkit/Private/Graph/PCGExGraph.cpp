@@ -51,10 +51,16 @@ namespace PCGExGraph
 		return -1;
 	}
 
-	bool FGraph::InsertEdge(const int32 A, const int32 B, FIndexedEdge& OutEdge, const int32 IOIndex)
+	void FGraph::ReserveForEdges(const int32 UpcomingAdditionCount)
 	{
-		FWriteScopeLock WriteLock(GraphLock);
+		const int32 NewMax = Edges.Num() + UpcomingAdditionCount;
+		UniqueEdges.Reserve(NewMax);
+		Edges.Reserve(NewMax);
+		EdgeMetadata.Reserve(UpcomingAdditionCount);
+	}
 
+	bool FGraph::InsertEdgeUnsafe(const int32 A, const int32 B, FIndexedEdge& OutEdge, const int32 IOIndex)
+	{
 		bool bAlreadyExists;
 		const uint64 Hash = PCGEx::H64U(A, B);
 
@@ -70,10 +76,14 @@ namespace PCGExGraph
 		return true;
 	}
 
-	bool FGraph::InsertEdge(const FIndexedEdge& Edge)
+	bool FGraph::InsertEdge(const int32 A, const int32 B, FIndexedEdge& OutEdge, const int32 IOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
+		return InsertEdgeUnsafe(A, B, OutEdge, IOIndex);
+	}
 
+	bool FGraph::InsertEdgeUnsafe(const FIndexedEdge& Edge)
+	{
 		bool bAlreadyExists;
 		const uint64 Hash = Edge.H64U();
 
@@ -90,6 +100,12 @@ namespace PCGExGraph
 		Nodes[Edge.End].Add(NewEdge.EdgeIndex);
 
 		return true;
+	}
+
+	bool FGraph::InsertEdge(const FIndexedEdge& Edge)
+	{
+		FWriteScopeLock WriteLock(GraphLock);
+		return InsertEdgeUnsafe(Edge);
 	}
 
 	void FGraph::InsertEdges(const TArray<uint64>& InEdges, const int32 InIOIndex)
@@ -112,38 +128,14 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraph::InsertEdges(const TSet<uint64>& InEdges, const int32 InIOIndex)
+	int32 FGraph::InsertEdges(const TArray<FIndexedEdge>& InEdges)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		InsertEdgesUnsafe(InEdges, InIOIndex);
+		const int32 StartIndex = Edges.Num();
+		for (const FIndexedEdge& E : InEdges) { InsertEdgeUnsafe(E); }
+		return StartIndex;
 	}
 
-#define PCGEX_EDGE_INSERT\
-	if (!E.bValid || !Nodes.IsValidIndex(E.Start) || !Nodes.IsValidIndex(E.End)) { continue; }\
-	const uint64 Hash = E.H64U(); if (UniqueEdges.Contains(Hash)) { continue; }\
-	UniqueEdges.Add(Hash); const FIndexedEdge& Edge = Edges.Emplace_GetRef(Edges.Num(), E.Start, E.End);\
-	Nodes[E.Start].Add(Edge.EdgeIndex);	Nodes[E.End].Add(Edge.EdgeIndex);
-
-	void FGraph::InsertEdges(const TArray<FUnsignedEdge>& InEdges, const int32 InIOIndex)
-	{
-		FWriteScopeLock WriteLock(GraphLock);
-		for (const FUnsignedEdge& E : InEdges)
-		{
-			PCGEX_EDGE_INSERT
-			Edges[Edge.EdgeIndex].IOIndex = InIOIndex;
-		}
-	}
-
-	void FGraph::InsertEdges(const TArray<FIndexedEdge>& InEdges)
-	{
-		FWriteScopeLock WriteLock(GraphLock);
-		for (const FIndexedEdge& E : InEdges)
-		{
-			PCGEX_EDGE_INSERT
-			Edges[Edge.EdgeIndex].IOIndex = E.IOIndex;
-			Edges[Edge.EdgeIndex].PointIndex = E.PointIndex;
-		}
-	}
 
 	void FGraph::InsertEdgesUnsafe(const TSet<uint64>& InEdges, const int32 InIOIndex)
 	{
@@ -163,7 +155,11 @@ namespace PCGExGraph
 		}
 	}
 
-#undef PCGEX_EDGE_INSERT
+	void FGraph::InsertEdges(const TSet<uint64>& InEdges, const int32 InIOIndex)
+	{
+		FWriteScopeLock WriteLock(GraphLock);
+		InsertEdgesUnsafe(InEdges, InIOIndex);
+	}
 
 	TArrayView<FNode> FGraph::AddNodes(const int32 NumNewNodes)
 	{
@@ -184,30 +180,27 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::BuildSubGraphs);
 
-		TSet<int32> VisitedNodes;
-		VisitedNodes.Reserve(Nodes.Num());
-
-		bool bIsAlreadyInSet = false;
+		TArray<bool> VisitedNodes;
+		VisitedNodes.SetNum(Nodes.Num());
+		int32 VisitedNum =0; 
 
 		for (int i = 0; i < Nodes.Num(); ++i)
 		{
-			if (VisitedNodes.Contains(i)) { continue; }
-
 			const FNode& CurrentNode = Nodes[i];
-			if (!CurrentNode.bValid || CurrentNode.Adjacency.IsEmpty())
-			{
-				VisitedNodes.Add(i);
-				continue;
-			}
+
+			if (VisitedNodes[i]) { continue; }
+
+			VisitedNodes[i] = true;
+			VisitedNum++;
+
+			if (!CurrentNode.bValid || CurrentNode.Adjacency.IsEmpty()) { continue; }
 
 			FSubGraph* SubGraph = new FSubGraph();
 			SubGraph->ParentGraph = this;
 
 			TArray<int32> Stack;
-			Stack.Reserve(Nodes.Num() - VisitedNodes.Num());
+			Stack.Reserve(Nodes.Num() - VisitedNum);
 			Stack.Add(i);
-
-			VisitedNodes.Add(i); // Mark node as visited as soon as it's enqueued
 
 			while (Stack.Num() > 0)
 			{
@@ -224,14 +217,19 @@ namespace PCGExGraph
 					const FIndexedEdge& Edge = Edges[E];
 					if (!Edge.bValid) { continue; }
 
-					int32 OtherIndex = Edge.Other(NextIndex);
+					const int32 OtherIndex = Edge.Other(NextIndex);
 					if (!Nodes[OtherIndex].bValid) { continue; }
 
 					Node.NumExportedEdges++;
 					SubGraph->Add(Edge, this);
 
-					VisitedNodes.Add(OtherIndex, &bIsAlreadyInSet);
-					if (!bIsAlreadyInSet) { Stack.Add(OtherIndex); } // Only enqueue if not already visited
+					if (!VisitedNodes[OtherIndex]) // Only enqueue if not already visited
+					{
+						VisitedNodes[OtherIndex] = true;
+						VisitedNum++;
+						
+						Stack.Add(OtherIndex);
+					}
 				}
 			}
 

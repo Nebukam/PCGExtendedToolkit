@@ -130,7 +130,7 @@ namespace PCGExRelaxClusters
 		RelaxOperation->ReadBuffer = PrimaryBuffer;
 		RelaxOperation->WriteBuffer = SecondaryBuffer;
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, IterationGroup)
+		PCGEX_ASYNC_GROUP_CHECKED(AsyncManagerPtr, IterationGroup)
 		IterationGroup->SetOnCompleteCallback([&]() { StartRelaxIteration(); });
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),

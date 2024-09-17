@@ -69,6 +69,8 @@ namespace PCGExGraph
 	protected:
 		bool bRunning = false;
 
+		int32 NewEdgesNum = 0;
+
 		FPCGExBlendingDetails DefaultPointsBlendingDetails;
 		FPCGExBlendingDetails DefaultEdgesBlendingDetails;
 

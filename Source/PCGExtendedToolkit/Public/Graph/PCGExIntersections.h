@@ -371,8 +371,6 @@ namespace PCGExGraph
 			PCGExData::FPointIO* InPointIO,
 			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
-		void FindIntersections(FPCGExPointsProcessorContext* InContext);
-
 		FORCEINLINE void Add(const int32 EdgeIndex, const FPESplit& Split)
 		{
 			FWriteScopeLock WriteLock(InsertionLock);
@@ -616,8 +614,6 @@ namespace PCGExGraph
 			PCGExData::FPointIO* InPointIO,
 			const FPCGExEdgeEdgeIntersectionDetails* InDetails);
 
-		void FindIntersections(FPCGExPointsProcessorContext* InContext);
-
 		FORCEINLINE bool AlreadyChecked(const uint64 Key) const
 		{
 			FReadScopeLock ReadLock(InsertionLock);
@@ -650,7 +646,8 @@ namespace PCGExGraph
 			Edges[Split.B].Intersections.AddUnique(OutSplit);
 		}
 
-		void Insert();
+		void InsertNodes() const;
+		void InsertEdges();
 
 		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
 
@@ -720,72 +717,6 @@ namespace PCGExGraph
 			}
 		}
 	}
-
-#pragma endregion
-}
-
-namespace PCGExGraphTask
-{
-#pragma region Intersections tasks
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FFindPointEdgeIntersections final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FFindPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
-		                            PCGExGraph::FPointEdgeIntersections* InIntersectionList)
-			: FPCGExTask(InPointIO),
-			  IntersectionList(InIntersectionList)
-		{
-		}
-
-		PCGExGraph::FPointEdgeIntersections* IntersectionList = nullptr;
-		virtual bool ExecuteTask() override;
-	};
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FInsertPointEdgeIntersections final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FInsertPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
-		                              PCGExGraph::FPointEdgeIntersections* InIntersectionList)
-			: FPCGExTask(InPointIO),
-			  IntersectionList(InIntersectionList)
-		{
-		}
-
-		PCGExGraph::FPointEdgeIntersections* IntersectionList = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FFindEdgeEdgeIntersections final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FFindEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,
-		                           PCGExGraph::FEdgeEdgeIntersections* InIntersectionList)
-			: FPCGExTask(InPointIO),
-			  IntersectionList(InIntersectionList)
-		{
-		}
-
-		PCGExGraph::FEdgeEdgeIntersections* IntersectionList = nullptr;
-		virtual bool ExecuteTask() override;
-	};
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FInsertEdgeEdgeIntersections final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FInsertEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,
-		                             PCGExGraph::FEdgeEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
-			: FPCGExTask(InPointIO),
-			  IntersectionList(InIntersectionList)
-		{
-		}
-
-		PCGExGraph::FEdgeEdgeIntersections* IntersectionList = nullptr;
-		TMap<int32, PCGExGraph::FGraphNodeMetadata*>* OutMetadata = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
 
 #pragma endregion
 }

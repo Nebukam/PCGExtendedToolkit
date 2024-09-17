@@ -313,15 +313,6 @@ namespace PCGExGraph
 		}
 	}
 
-	void FPointEdgeIntersections::FindIntersections(FPCGExPointsProcessorContext* InContext)
-	{
-		for (const FIndexedEdge& Edge : Graph->Edges)
-		{
-			if (!Edge.bValid) { continue; }
-			InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindPointEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
-		}
-	}
-
 	void FPointEdgeIntersections::Insert()
 	{
 		FIndexedEdge NewEdge = FIndexedEdge{};
@@ -330,16 +321,11 @@ namespace PCGExGraph
 		{
 			if (PointEdgeProxy.CollinearPoints.IsEmpty()) { continue; }
 
-			FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
-			SplitEdge.bValid = false; // Invalidate existing edge
-			PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
-
-			const int32 FirstIndex = SplitEdge.Start;
-			const int32 LastIndex = SplitEdge.End;
+			const FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 
 			int32 NodeIndex = -1;
 
-			int32 PrevIndex = FirstIndex;
+			int32 PrevIndex = SplitEdge.Start;
 			for (const FPESplit Split : PointEdgeProxy.CollinearPoints)
 			{
 				NodeIndex = Split.NodeIndex;
@@ -359,7 +345,7 @@ namespace PCGExGraph
 				}
 			}
 
-			Graph->InsertEdge(NodeIndex, LastIndex, NewEdge, SplitEdge.IOIndex); // Insert last edge
+			Graph->InsertEdge(NodeIndex, SplitEdge.End, NewEdge, SplitEdge.IOIndex); // Insert last edge
 		}
 	}
 
@@ -418,53 +404,38 @@ namespace PCGExGraph
 		}
 	}
 
-	void FEdgeEdgeIntersections::FindIntersections(FPCGExPointsProcessorContext* InContext)
+	void FEdgeEdgeIntersections::InsertNodes() const
 	{
-		for (const FIndexedEdge& Edge : Graph->Edges)
-		{
-			if (!Edge.bValid) { continue; }
-			InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindEdgeEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
-		}
+		// Insert new nodes
+		Graph->AddNodes(Crossings.Num()); 
+
+		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		const int32 StartIndex = MutablePoints.Num();
+		MutablePoints.SetNum(Graph->Nodes.Num());
+
+		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+		for (int i = StartIndex; i < MutablePoints.Num(); i++) { Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry); }
 	}
 
-	void FEdgeEdgeIntersections::Insert()
+	void FEdgeEdgeIntersections::InsertEdges()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::Insert);
 
 		FIndexedEdge NewEdge = FIndexedEdge{};
 
-		// Insert new nodes
-		Graph->AddNodes(Crossings.Num()); //const TArrayView<FNode> NewNodes = 
-
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-		MutablePoints.SetNum(Graph->Nodes.Num());
-
-		// Now handled by intersection blending
-		//for (int i = 0; i < NewNodes.Num(); ++i) { MutablePoints[NewNodes[i].NodeIndex].Transform.SetLocation(Crossings[i]->Split.Center); }
-
 		for (FEdgeEdgeProxy& EdgeProxy : Edges)
 		{
 			if (EdgeProxy.Intersections.IsEmpty()) { continue; }
 
-			Graph->Edges[EdgeProxy.EdgeIndex].bValid = false; // Invalidate existing edge
 			const FIndexedEdge SplitEdge = Graph->Edges[EdgeProxy.EdgeIndex];
 
-			EdgeProxy.Intersections.Sort(
-				[&](const FEECrossing& A, const FEECrossing& B)
-				{
-					return A.GetTime(EdgeProxy.EdgeIndex) > B.GetTime(EdgeProxy.EdgeIndex);
-				});
-
-			const int32 FirstIndex = SplitEdge.Start;
-			const int32 LastIndex = SplitEdge.End;
-
 			int32 NodeIndex = -1;
+			int32 PrevIndex = SplitEdge.Start;
 
-			int32 PrevIndex = FirstIndex;
 			for (const FEECrossing* Crossing : EdgeProxy.Intersections)
 			{
 				NodeIndex = Crossing->NodeIndex;
-				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: this is the wrong edge IOIndex
+				Graph->InsertEdgeUnsafe(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: this is the wrong edge IOIndex
 				PrevIndex = NodeIndex;
 
 				FGraphNodeMetadata* NodeMetadata = FGraphNodeMetadata::GetOrCreate(NodeIndex, Graph->NodeMetadata);
@@ -474,7 +445,7 @@ namespace PCGExGraph
 				EdgeMetadata->Type = EPCGExIntersectionType::EdgeEdge;
 			}
 
-			Graph->InsertEdge(NodeIndex, LastIndex, NewEdge, SplitEdge.IOIndex); // Insert last edge
+			Graph->InsertEdgeUnsafe(NodeIndex, SplitEdge.End, NewEdge, SplitEdge.IOIndex); // Insert last edge
 		}
 	}
 
@@ -500,32 +471,5 @@ namespace PCGExGraph
 		Blender->CompleteBlending(Target, 4, 2);
 
 		PointIO->GetMutablePoint(Target).Transform.SetLocation(Crossing->Split.Center);
-	}
-}
-
-namespace PCGExGraphTask
-{
-	bool FFindPointEdgeIntersections::ExecuteTask()
-	{
-		FindCollinearNodes(IntersectionList, TaskIndex, PointIO->GetOutIn());
-		return true;
-	}
-
-	bool FInsertPointEdgeIntersections::ExecuteTask()
-	{
-		IntersectionList->Insert();
-		return true;
-	}
-
-	bool FFindEdgeEdgeIntersections::ExecuteTask()
-	{
-		FindOverlappingEdges(IntersectionList, TaskIndex);
-		return true;
-	}
-
-	bool FInsertEdgeEdgeIntersections::ExecuteTask()
-	{
-		IntersectionList->Insert();
-		return true;
 	}
 }

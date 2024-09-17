@@ -275,7 +275,7 @@ namespace PCGExSampleOverlapStats
 		PreparationTask->SetOnCompleteCallback(
 			[&]()
 			{
-				PCGEX_ASYNC_GROUP(AsyncManagerPtr, SearchTask)
+				PCGEX_ASYNC_GROUP_CHECKED(AsyncManagerPtr, SearchTask)
 				SearchTask->SetOnCompleteCallback(
 					[&]()
 					{
