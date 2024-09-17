@@ -43,9 +43,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClustersContext final : public F
 	friend class FPCGExSanitizeClustersElement;
 
 	virtual ~FPCGExSanitizeClustersContext() override;
-
-	TArray<PCGExGraph::FGraphBuilder*> Builders;
-	TArray<TMap<uint32, int32>> EndpointsLookups;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClustersElement final : public FPCGExEdgesProcessorElement
@@ -61,32 +58,31 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClusterTask final : public PCGExMT::FPCGExTask
+namespace PCGExSanitizeClusters
 {
-public:
-	FPCGExSanitizeClusterTask(PCGExData::FPointIO* InPointIO,
-	                          PCGExData::FPointIOTaggedEntries* InTaggedEdges) :
-		FPCGExTask(InPointIO),
-		TaggedEdges(InTaggedEdges)
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-	}
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
+			: FClusterProcessor(InVtx, InEdges)
+		{
+			bBuildCluster = false;
+		}
 
-	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
+		virtual ~FProcessor() override;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+	};
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeInsertTask final : public PCGExMT::FPCGExTask
-{
-public:
-	FPCGExSanitizeInsertTask(PCGExData::FPointIO* InPointIO,
-	                         PCGExData::FPointIO* InEdgeIO) :
-		FPCGExTask(InPointIO),
-		EdgeIO(InEdgeIO)
+	class FProcessorBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
 	{
-	}
+	public:
+		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+			PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>(InContext, InVtx, InEdges)
+		{
+		}
 
-	PCGExData::FPointIO* EdgeIO = nullptr;
-
-	virtual bool ExecuteTask() override;
-};
+		virtual void CompleteWork() override;
+		virtual void Output() override;
+	};
+}
