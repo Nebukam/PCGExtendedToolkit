@@ -180,9 +180,12 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::BuildSubGraphs);
 
-		TArray<bool> VisitedNodes;
-		VisitedNodes.SetNum(Nodes.Num());
-		int32 VisitedNum =0; 
+		TBitArray<> VisitedNodes;
+		TBitArray<> VisitedEdges;
+		VisitedNodes.Init(false, Nodes.Num());
+		VisitedEdges.Init(false, Edges.Num());
+
+		int32 VisitedNum = 0;
 
 		for (int i = 0; i < Nodes.Num(); ++i)
 		{
@@ -214,7 +217,12 @@ namespace PCGExGraph
 
 				for (const int32 E : Node.Adjacency)
 				{
+					if (VisitedEdges[E]) { continue; }
+
+					VisitedEdges[E] = true;
+					
 					const FIndexedEdge& Edge = Edges[E];
+					
 					if (!Edge.bValid) { continue; }
 
 					const int32 OtherIndex = Edge.Other(NextIndex);
@@ -227,7 +235,7 @@ namespace PCGExGraph
 					{
 						VisitedNodes[OtherIndex] = true;
 						VisitedNum++;
-						
+
 						Stack.Add(OtherIndex);
 					}
 				}
@@ -481,6 +489,8 @@ namespace PCGExGraphTask
 		}
 		else
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CreatePoints);
+			
 			for (int i = 0; i < NumEdges; ++i)
 			{
 				PCGExGraph::FIndexedEdge& E = Graph->Edges[EdgeDump[i]];
