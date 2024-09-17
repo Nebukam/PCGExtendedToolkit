@@ -162,9 +162,11 @@ namespace PCGExGeo
 			}
 		}
 
-		void GetMergedSites(const int32 SiteIndex, const TSet<uint64>& EdgeConnectors, TSet<int32>& OutMerged, TSet<uint64>& OutUEdges)
+		void GetMergedSites(const int32 SiteIndex, const TSet<uint64>& EdgeConnectors, TSet<int32>& OutMerged, TSet<uint64>& OutUEdges, TBitArray<>& VisitedSites)
 		{
 			TArray<int32> Stack;
+
+			VisitedSites[SiteIndex] = false;
 			Stack.Add(SiteIndex);
 
 			while (!Stack.IsEmpty())
@@ -175,16 +177,17 @@ namespace PCGExGeo
 				const int32 NextIndex = Stack.Pop(EAllowShrinking::No);
 #endif
 
-				bool bAlreadyProcessed;
-				OutMerged.Add(NextIndex, &bAlreadyProcessed);
-				if (bAlreadyProcessed) { continue; }
+				if (VisitedSites[NextIndex]) { continue; }
+
+				OutMerged.Add(NextIndex);
+				VisitedSites[NextIndex] = true;
 
 				const FDelaunaySite2* Site = (Sites.GetData() + NextIndex);
 
 				for (int i = 0; i < 3; ++i)
 				{
 					const int32 OtherIndex = Site->Neighbors[i];
-					if (OtherIndex == -1 || OutMerged.Contains(OtherIndex)) { continue; }
+					if (OtherIndex == -1 || VisitedSites[OtherIndex]) { continue; }
 					const FDelaunaySite2* NeighborSite = Sites.GetData() + OtherIndex;
 					if (const uint64 SharedEdge = Site->GetSharedEdge(NeighborSite); EdgeConnectors.Contains(SharedEdge))
 					{
@@ -193,6 +196,8 @@ namespace PCGExGeo
 					}
 				}
 			}
+
+			VisitedSites[SiteIndex] = true;
 		}
 	};
 

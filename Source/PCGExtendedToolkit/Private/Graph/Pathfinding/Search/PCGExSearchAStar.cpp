@@ -33,7 +33,9 @@ bool UPCGExSearchAStar::FindPath(
 
 	// Basic A* implementation TODO:Optimize
 
-	TSet<int32> Visited;
+	TBitArray<> Visited;
+	Visited.Init(false, NumNodes);
+
 	TArray<uint64> TravelStack;
 	TArray<double> GScore;
 
@@ -63,7 +65,6 @@ bool UPCGExSearchAStar::FindPath(
 
 	int32 CurrentNodeIndex;
 	double CurrentFScore;
-	bool bAlreadyVisited;
 	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentFScore))
 	{
 		if (CurrentNodeIndex == GoalNode.NodeIndex) { break; } // Exit early
@@ -71,8 +72,8 @@ bool UPCGExSearchAStar::FindPath(
 		const double CurrentGScore = GScore[CurrentNodeIndex];
 		const PCGExCluster::FNode& Current = NodesRef[CurrentNodeIndex];
 
-		Visited.Add(CurrentNodeIndex, &bAlreadyVisited);
-		if (bAlreadyVisited) { continue; }
+		if (Visited[CurrentNodeIndex]) { continue; }
+		Visited[CurrentNodeIndex] = true;
 
 		for (const uint64 AdjacencyHash : Current.Adjacency)
 		{
@@ -80,7 +81,7 @@ bool UPCGExSearchAStar::FindPath(
 			uint32 EdgeIndex;
 			PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
 
-			if (Visited.Contains(NeighborIndex)) { continue; }
+			if (Visited[NeighborIndex]) { continue; }
 
 			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];

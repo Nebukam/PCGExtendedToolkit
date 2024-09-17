@@ -26,8 +26,8 @@ public:
 		const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
 		const int32 NumNodes = Cluster->Nodes->Num();
 
-		TSet<int32> Visited;
-		Visited.Reserve(NumNodes);
+		TBitArray<> Visited;
+		Visited.Init(false, NumNodes);
 
 		PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(NumNodes, 0, 0);
 
@@ -47,7 +47,7 @@ public:
 		while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentNodeScore))
 		{
 			const PCGExCluster::FNode& Current = *(Cluster->Nodes->GetData() + CurrentNodeIndex);
-			Visited.Add(CurrentNodeIndex);
+			Visited[CurrentNodeIndex] = true;
 
 			for (const uint64 AdjacencyHash : Current.Adjacency)
 			{
@@ -55,7 +55,7 @@ public:
 				uint32 EdgeIndex;
 				PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
 
-				if (Visited.Contains(NeighborIndex)) { continue; } // Exit early
+				if (Visited[NeighborIndex]) { continue; } // Exit early
 
 				const PCGExCluster::FNode& AdjacentNode = *(Cluster->Nodes->GetData() + NeighborIndex);
 				PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + EdgeIndex);
