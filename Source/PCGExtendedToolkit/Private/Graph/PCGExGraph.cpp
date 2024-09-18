@@ -220,9 +220,9 @@ namespace PCGExGraph
 					if (VisitedEdges[E]) { continue; }
 
 					VisitedEdges[E] = true;
-					
+
 					const FIndexedEdge& Edge = Edges[E];
-					
+
 					if (!Edge.bValid) { continue; }
 
 					const int32 OtherIndex = Edge.Other(NextIndex);
@@ -490,7 +490,7 @@ namespace PCGExGraphTask
 		else
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CreatePoints);
-			
+
 			for (int i = 0; i < NumEdges; ++i)
 			{
 				PCGExGraph::FIndexedEdge& E = Graph->Edges[EdgeDump[i]];

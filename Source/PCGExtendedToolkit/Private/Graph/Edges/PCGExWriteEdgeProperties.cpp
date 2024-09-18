@@ -281,9 +281,8 @@ namespace PCGExWriteEdgeProperties
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
-
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
-		
+
 		VtxDataFacade->bSupportsDynamic = true;
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)

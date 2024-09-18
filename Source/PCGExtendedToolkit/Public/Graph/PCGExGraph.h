@@ -385,13 +385,13 @@ namespace PCGExGraph
 
 		bool InsertEdgeUnsafe(int32 A, int32 B, FIndexedEdge& OutEdge, int32 IOIndex);
 		bool InsertEdge(const int32 A, const int32 B, FIndexedEdge& OutEdge, const int32 IOIndex = -1);
-		
+
 		bool InsertEdgeUnsafe(const FIndexedEdge& Edge);
 		bool InsertEdge(const FIndexedEdge& Edge);
-		
+
 		void InsertEdgesUnsafe(const TSet<uint64>& InEdges, int32 InIOIndex);
 		void InsertEdges(const TSet<uint64>& InEdges, int32 InIOIndex);
-		
+
 		void InsertEdges(const TArray<uint64>& InEdges, int32 InIOIndex);
 		int32 InsertEdges(const TArray<FIndexedEdge>& InEdges);
 

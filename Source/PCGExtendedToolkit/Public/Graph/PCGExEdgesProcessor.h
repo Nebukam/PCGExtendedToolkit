@@ -87,17 +87,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 		return Num;
 	}
 
-	template<typename T>
+	template <typename T>
 	void GatherClusterProcessors(TArray<T*>& OutProcessors)
 	{
 		OutProcessors.Reserve(GetClusterProcessorsNum());
 		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
 		{
-			const PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<const PCGExClusterMT::TBatch<T>*>(Batch); 
+			const PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<const PCGExClusterMT::TBatch<T>*>(Batch);
 			OutProcessors.Append(TypedBatch->Processors);
 		}
 	}
-	
+
 	void OutputBatches() const
 	{
 		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->Output(); }

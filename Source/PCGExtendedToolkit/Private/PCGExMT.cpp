@@ -15,7 +15,7 @@ namespace PCGExMT
 	FTaskGroup* FTaskManager::CreateGroup(const FName& GroupName)
 	{
 		check(IsAvailable())
-		
+
 		FTaskGroup* NewGroup = new FTaskGroup(this, GroupName);
 		{
 			FWriteScopeLock WriteLock(GroupLock);
@@ -39,15 +39,15 @@ namespace PCGExMT
 	void FTaskManager::Reset()
 	{
 		FPlatformAtomics::InterlockedExchange(&Stopped, 1);
-		
+
 		FWriteScopeLock WriteLock(ManagerLock);
-		
+
 		for (FAsyncTaskBase* Task : QueuedTasks)
 		{
 			if (Task && !Task->Cancel()) { Task->EnsureCompletion(); }
 			delete Task;
 		}
-		
+
 		FPlatformAtomics::InterlockedExchange(&Stopped, 0);
 
 		QueuedTasks.Empty();
@@ -122,7 +122,7 @@ namespace PCGExMT
 
 		{
 			FWriteScopeLock WriteScopeLock(GroupLock);
-			
+
 			NumCompleted++;
 
 			if (NumCompleted == NumStarted)

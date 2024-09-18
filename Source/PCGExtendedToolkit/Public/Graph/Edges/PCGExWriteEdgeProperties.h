@@ -58,7 +58,7 @@ public:
 	/** Defines the direction in which points will be ordered to form the final paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExEdgeDirectionSettings DirectionSettings;
-	
+
 	/** Output Edge Length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgeLength = false;
@@ -220,7 +220,7 @@ namespace PCGExWriteEdgeProperties
 		const UPCGExWriteEdgePropertiesSettings* LocalSettings = nullptr;
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
-		
+
 		double StartWeight = 0;
 		double EndWeight = 1;
 
@@ -254,16 +254,15 @@ namespace PCGExWriteEdgeProperties
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		friend class FProcessor;
-		
+
 		FPCGExEdgeDirectionSettings DirectionSettings;
-		
+
 	public:
 		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
-			PCGExClusterMT::TBatch<FProcessor>(InContext, InVtx, InEdges)
+			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}
-		
-		virtual void OnProcessingPreparationComplete() override;
 
+		virtual void OnProcessingPreparationComplete() override;
 	};
 }

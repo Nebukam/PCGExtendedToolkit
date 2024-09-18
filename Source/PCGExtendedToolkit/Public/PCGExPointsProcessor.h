@@ -225,7 +225,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	T* RegisterOperation(UPCGExOperation* BaseOperation)
 	{
 		BaseOperation->BindContext(this); // Temp so Copy doesn't crash
-		
+
 		T* RetValue = BaseOperation->CopyOperation<T>();
 		OwnedProcessorOperations.Add(RetValue);
 		RetValue->BindContext(this);

@@ -338,7 +338,7 @@ namespace PCGExGraph
 
 		SortCrossingsGroup->SetOnCompleteCallback(
 			[&]()
-			{				
+			{
 				PCGEX_ASYNC_GROUP_CHECKED(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
 
 				GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);

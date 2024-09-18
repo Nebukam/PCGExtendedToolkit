@@ -144,7 +144,7 @@ namespace PCGExFlagNodes
 
 		PCGEx::TAttributeWriter<int64>* Writer = VtxDataFacade->GetWriter(Settings->FlagAttribute, Settings->InitialFlags, false, false);
 		StateFlags = &Writer->Values;
-		
+
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 

@@ -133,7 +133,7 @@ namespace PCGExBridgeClusters
 		//const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(Context);
 
 		ConsolidatedEdges = TypedContext->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
-		
+
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 

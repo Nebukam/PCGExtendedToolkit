@@ -38,7 +38,7 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	PCGEX_NODE_POINT_FILTER(FName("Break Conditions"), "Filters used to know which points are 'break' points.", PCGExFactories::ClusterNodeFilters, false)
 	//~End UPCGExPointsProcessorSettings
-	
+
 	/** Operation target mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExBreakClusterOperationTarget OperateOn;
@@ -46,7 +46,7 @@ public:
 	/** Defines the direction in which points will be ordered to form the final paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExEdgeDirectionSettings DirectionSettings;
-	
+
 	/** Do not output paths that have less points that this value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=2))
 	int32 MinPointCount = 2;
@@ -98,7 +98,7 @@ namespace PCGExBreakClustersToPaths
 		const UPCGExBreakClustersToPathsSettings* LocalSettings = nullptr;
 
 		FPCGExEdgeDirectionSettings DirectionSettings;
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
@@ -116,20 +116,19 @@ namespace PCGExBreakClustersToPaths
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
-	
+
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		friend class FProcessor;
-		
+
 		FPCGExEdgeDirectionSettings DirectionSettings;
-		
+
 	public:
 		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
-			PCGExClusterMT::TBatch<FProcessor>(InContext, InVtx, InEdges)
+			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}
-		
-		virtual void OnProcessingPreparationComplete() override;
 
+		virtual void OnProcessingPreparationComplete() override;
 	};
 }

@@ -127,7 +127,7 @@ namespace PCGExWriteVtxProperties
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
-	{		
+	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxProperties)
 
 		{

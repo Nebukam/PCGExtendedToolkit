@@ -88,7 +88,7 @@ namespace PCGExPointsFilter
 
 		double DataMin = 0;
 		double DataMax = 0;
-		
+
 		double ReferenceValue = 0;
 		double ReferenceMin = 0;
 		double ReferenceMax = 0;

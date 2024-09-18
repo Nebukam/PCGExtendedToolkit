@@ -185,7 +185,7 @@ namespace PCGExWriteTangents
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
 		if (!PointFilterCache[Index]) { return; }
-		
+
 		int32 PrevIndex = Index - 1;
 		int32 NextIndex = Index + 1;
 

@@ -817,7 +817,7 @@ namespace PCGEx
 				bValid = true;
 			}
 			else if (Selection == EPCGAttributePropertySelection::ExtraProperty)
-			{				
+			{
 				switch (FetchSelector.GetExtraProperty())
 				{
 				case EPCGExtraProperties::Index:

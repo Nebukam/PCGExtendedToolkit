@@ -19,7 +19,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeRemoveLowestScore : public UPCGExEdge
 public:
 	virtual bool RequiresHeuristics() override { return true; }
 	virtual bool RequiresIndividualNodeProcessing() override { return true; }
-	virtual void ProcessNode(PCGExCluster::FNode& Node) override{
+
+	virtual void ProcessNode(PCGExCluster::FNode& Node) override
+	{
 		int32 BestIndex = -1;
 		double LowestScore = TNumericLimits<double>::Max();
 

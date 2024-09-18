@@ -25,7 +25,7 @@ namespace PCGExClusterMT
 	class FStartClusterBatchProcessing final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FStartClusterBatchProcessing(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO), Target(InTarget)
+		FStartClusterBatchProcessing(PCGExData::FPointIO* InPointIO, T* InTarget) : FPCGExTask(InPointIO), Target(InTarget)
 		{
 		}
 

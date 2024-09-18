@@ -13,7 +13,8 @@ FPCGExPruneEdgesByLengthContext::~FPCGExPruneEdgesByLengthContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-PCGEX_INITIALIZE_CONTEXT(PruneEdgesByLength) FPCGElementPtr UDEPRECATED_PCGExPruneEdgesByLengthSettings::CreateElement() const{ return MakeShared<FPCGExPruneEdgesByLengthElement>();}
+PCGEX_INITIALIZE_CONTEXT(PruneEdgesByLength)
+FPCGElementPtr UDEPRECATED_PCGExPruneEdgesByLengthSettings::CreateElement() const { return MakeShared<FPCGExPruneEdgesByLengthElement>(); }
 
 bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) const
 {

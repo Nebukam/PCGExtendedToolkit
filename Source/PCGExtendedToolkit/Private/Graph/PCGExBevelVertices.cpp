@@ -140,7 +140,6 @@ namespace PCGExBevelVertices
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
-		
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelVertices)
 
 		PCGEx::TAttributeWriter<int64>* Writer = VtxDataFacade->GetWriter(Settings->FlagAttribute, Settings->InitialFlags, false, false);

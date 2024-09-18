@@ -32,7 +32,6 @@ public:
 
 	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
 	{
-
 		Super::ProcessEdge(Edge);
 
 		const FVector From = Cluster->GetPos((*Cluster->NodeIndexLookup)[Edge.Start]);

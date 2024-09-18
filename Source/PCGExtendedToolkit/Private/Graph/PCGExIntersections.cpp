@@ -407,7 +407,7 @@ namespace PCGExGraph
 	void FEdgeEdgeIntersections::InsertNodes() const
 	{
 		// Insert new nodes
-		Graph->AddNodes(Crossings.Num()); 
+		Graph->AddNodes(Crossings.Num());
 
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 		const int32 StartIndex = MutablePoints.Num();

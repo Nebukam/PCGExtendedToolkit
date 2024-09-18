@@ -62,7 +62,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bExpandSearchOutsideTargetBounds = true;
-	
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
 	FName KeepTag = NAME_None;
@@ -147,7 +147,7 @@ namespace PCGExPickClosestClusters
 	{
 	public:
 		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
-			PCGExClusterMT::TBatch<FProcessor>(InContext, InVtx, InEdges)
+			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}
 

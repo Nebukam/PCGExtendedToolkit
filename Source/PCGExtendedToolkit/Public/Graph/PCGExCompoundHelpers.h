@@ -84,7 +84,7 @@ namespace PCGExGraph
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();
 		void FindPointEdgeIntersectionsComplete();
-		
+
 		void FindEdgeEdgeIntersections();
 		void OnEdgeEdgeIntersectionsFound();
 		void OnEdgeEdgeIntersectionsComplete();

@@ -159,7 +159,7 @@ namespace PCGExNodeAdjacency
 		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }
 
 		RefDir.Normalize();
-		
+
 		const FVector CWTolerance = HashComparison.GetCWTolerance(PointIndex);
 		const FInt32Vector A = PCGEx::I323(RefDir, CWTolerance);
 

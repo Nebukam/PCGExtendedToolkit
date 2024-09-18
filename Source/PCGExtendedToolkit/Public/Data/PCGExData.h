@@ -399,7 +399,7 @@ namespace PCGExData
 
 			return Cache;
 		}
-		
+
 		template <typename T>
 		TCache<T>* GetBroadcaster(const FName& InName, const bool bCaptureMinMax = false)
 		{
@@ -459,7 +459,7 @@ namespace PCGExData
 
 			return Cache;
 		}
-		
+
 		template <typename T>
 		TCache<T>* GetScopedBroadcaster(const FName& InName, const bool bCaptureMinMax = false)
 		{

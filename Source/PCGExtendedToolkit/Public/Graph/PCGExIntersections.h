@@ -689,7 +689,9 @@ namespace PCGExGraph
 					FGraphEdgeMetadata::GetRootIndex(OtherEdge.EdgeIndex, InIntersections->Graph->EdgeMetadata),
 					RootIOIndices)) { return; }
 
-				if (!Edge.FindSplit(OtherEdge, OutSplits)) { return; }
+				if (!Edge.FindSplit(OtherEdge, OutSplits))
+				{
+				}
 			};
 
 			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
@@ -702,7 +704,9 @@ namespace PCGExGraph
 
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
-				if (!Edge.FindSplit(OtherEdge, OutSplits)) { return; }
+				if (!Edge.FindSplit(OtherEdge, OutSplits))
+				{
+				}
 			};
 
 			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);

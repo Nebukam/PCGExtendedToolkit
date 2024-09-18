@@ -262,7 +262,7 @@ namespace PCGExBuildDelaunay2D
 
 		TBitArray<> VisitedSites;
 		VisitedSites.Init(false, NumSites);
-		
+
 		TArray<bool> Hull;
 		TArray<int32> FinalSites;
 		FinalSites.Reserve(NumSites);
@@ -270,7 +270,7 @@ namespace PCGExBuildDelaunay2D
 
 		for (int i = 0; i < NumSites; ++i)
 		{
-			if(VisitedSites[i]){continue;}
+			if (VisitedSites[i]) { continue; }
 			VisitedSites[i] = true;
 
 			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
@@ -284,7 +284,7 @@ namespace PCGExBuildDelaunay2D
 
 			TArray<uint64> QueuedEdges = QueuedEdgesSet.Array();
 			QueueSet.Empty();
-			
+
 			FVector Centroid = FVector::ZeroVector;
 			bool bOnHull = Site.bOnHull;
 
@@ -325,7 +325,7 @@ namespace PCGExBuildDelaunay2D
 			}
 
 			const int32 VIndex = FinalSites.Add(Site.Vtx[0]);
-			
+
 			Hull.Add(bOnHull);
 			MutablePoints[VIndex] = OriginalPoints[Site.Vtx[0]];
 			MutablePoints[VIndex].Transform.SetLocation(Centroid);
