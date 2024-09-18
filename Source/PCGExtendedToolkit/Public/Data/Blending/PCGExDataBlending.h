@@ -67,6 +67,7 @@ enum class EPCGExDataBlendingType : uint8
 	WeightedSum = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
 	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
 	Subtract    = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
+	Hold        = 10 UMETA(DisplayName = "Hold", ToolTip="Hold."),
 };
 
 USTRUCT(BlueprintType)

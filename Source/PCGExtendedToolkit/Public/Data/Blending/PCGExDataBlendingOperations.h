@@ -15,7 +15,8 @@ PCGEX_BLEND_CASE(WeightedSum)\
 PCGEX_BLEND_CASE(Min)\
 PCGEX_BLEND_CASE(Max)\
 PCGEX_BLEND_CASE(Sum)\
-PCGEX_BLEND_CASE(Lerp)
+PCGEX_BLEND_CASE(Lerp)\
+PCGEX_BLEND_CASE(Hold)
 
 namespace PCGExDataBlending
 {
@@ -38,6 +39,14 @@ namespace PCGExDataBlending
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Copy; };
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return B; }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingHold final : public TDataBlendingOperation<T>
+	{
+	public:
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Hold; };
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
 	};
 
 	template <typename T>
@@ -143,7 +152,6 @@ namespace PCGExDataBlending
 	static FDataBlendingOperationBase* CreateOperationWithDefaults(const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
 	{
 		EPCGExDataBlendingTypeDefault GlobalDefaultType = EPCGExDataBlendingTypeDefault::Default;
-		EPCGExDataBlendingType OutType = DefaultType;
 
 #define PCGEX_DEF_SET(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : GlobalDefaultType = GetDefault<UPCGExGlobalSettings>()->Default##_NAME##BlendMode; break;
 
@@ -154,21 +162,18 @@ namespace PCGExDataBlending
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DEF_SET)
 		}
 
-#define PCGEX_BLEND_CASE(_ID) case EPCGExDataBlendingTypeDefault::_ID: OutType = EPCGExDataBlendingType::_ID; break;
-		switch (GlobalDefaultType)
-		{
-		default:
-			OutType = DefaultType;
-			break;
-		PCGEX_FOREACH_BLEND(PCGEX_BLEND_CASE)
-		}
-
-		return CreateOperation(OutType, Identity);
+		if (GlobalDefaultType == EPCGExDataBlendingTypeDefault::Default) { return CreateOperation(DefaultType, Identity); }
+		return CreateOperation(static_cast<EPCGExDataBlendingType>(static_cast<uint8>(GlobalDefaultType)), Identity);
 
 #undef PCGEX_DEF_SET
 #undef PCGEX_BLEND_CASE
 	}
 
+
+	static FDataBlendingOperationBase* CreateOperation(const EPCGExDataBlendingType* Type, const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
+	{
+		return Type ? CreateOperation(*Type, Identity) : CreateOperationWithDefaults(DefaultType, Identity);
+	}
 
 #undef PCGEX_FOREACH_BLEND
 }

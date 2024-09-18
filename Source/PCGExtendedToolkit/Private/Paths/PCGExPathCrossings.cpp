@@ -394,6 +394,7 @@ namespace PCGExPathCrossings
 			TempCompound->Add(IOIdx, SecondIndex);
 			CompoundBlender->SoftMergeSingle(Edge->OffsetedStart + i + 1, TempCompound, LocalSettings->CrossingBlendingDistance);
 		}
+		
 		PCGEX_DELETE(TempCompound)
 	}
 
