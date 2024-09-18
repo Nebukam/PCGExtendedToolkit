@@ -221,7 +221,11 @@ namespace PCGExDataBlending
 
 			FDataBlendingOperationBase* Op;
 			if (PCGEx::IsPCGExAttribute(Identity.Name)) { Op = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
-			else { Op = CreateOperation(TypePtr ? *TypePtr : BlendingDetails->DefaultBlending, Identity); }
+			else
+			{
+				if (TypePtr) { Op = CreateOperation(*TypePtr, Identity); }
+				else { Op = CreateOperationWithDefaults(BlendingDetails->DefaultBlending, Identity); }
+			}
 
 			if (!Op) { continue; }
 

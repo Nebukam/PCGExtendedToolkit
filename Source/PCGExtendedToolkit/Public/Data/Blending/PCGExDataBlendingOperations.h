@@ -6,6 +6,17 @@
 #include "CoreMinimal.h"
 #include "PCGExDataBlending.h"
 
+#define PCGEX_FOREACH_BLEND(MACRO)\
+PCGEX_BLEND_CASE(None)\
+PCGEX_BLEND_CASE(Copy)\
+PCGEX_BLEND_CASE(Average)\
+PCGEX_BLEND_CASE(Weight)\
+PCGEX_BLEND_CASE(WeightedSum)\
+PCGEX_BLEND_CASE(Min)\
+PCGEX_BLEND_CASE(Max)\
+PCGEX_BLEND_CASE(Sum)\
+PCGEX_BLEND_CASE(Lerp)
+
 namespace PCGExDataBlending
 {
 	template <typename T>
@@ -113,16 +124,6 @@ namespace PCGExDataBlending
 	{
 #define PCGEX_SAO_NEW(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : NewOperation = new TDataBlending##_ID<_TYPE>(); break;
 #define PCGEX_BLEND_CASE(_ID) case EPCGExDataBlendingType::_ID: switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_NEW, _ID) } break;
-#define PCGEX_FOREACH_BLEND(MACRO)\
-PCGEX_BLEND_CASE(None)\
-PCGEX_BLEND_CASE(Copy)\
-PCGEX_BLEND_CASE(Average)\
-PCGEX_BLEND_CASE(Weight)\
-PCGEX_BLEND_CASE(WeightedSum)\
-PCGEX_BLEND_CASE(Min)\
-PCGEX_BLEND_CASE(Max)\
-PCGEX_BLEND_CASE(Sum)\
-PCGEX_BLEND_CASE(Lerp)
 
 		FDataBlendingOperationBase* NewOperation = nullptr;
 
@@ -137,6 +138,37 @@ PCGEX_BLEND_CASE(Lerp)
 
 #undef PCGEX_SAO_NEW
 #undef PCGEX_BLEND_CASE
-#undef PCGEX_FOREACH_BLEND
 	}
+
+	static FDataBlendingOperationBase* CreateOperationWithDefaults(const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
+	{
+		EPCGExDataBlendingTypeDefault GlobalDefaultType = EPCGExDataBlendingTypeDefault::Default;
+		EPCGExDataBlendingType OutType = DefaultType;
+
+#define PCGEX_DEF_SET(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : GlobalDefaultType = GetDefault<UPCGExGlobalSettings>()->Default##_NAME##BlendMode; break;
+
+		switch (Identity.UnderlyingType)
+		{
+		default:
+			break;
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_DEF_SET)
+		}
+
+#define PCGEX_BLEND_CASE(_ID) case EPCGExDataBlendingTypeDefault::_ID: OutType = EPCGExDataBlendingType::_ID; break;
+		switch (GlobalDefaultType)
+		{
+		default:
+			OutType = DefaultType;
+			break;
+		PCGEX_FOREACH_BLEND(PCGEX_BLEND_CASE)
+		}
+
+		return CreateOperation(OutType, Identity);
+
+#undef PCGEX_DEF_SET
+#undef PCGEX_BLEND_CASE
+	}
+
+
+#undef PCGEX_FOREACH_BLEND
 }

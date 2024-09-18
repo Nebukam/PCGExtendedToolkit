@@ -85,7 +85,11 @@ namespace PCGExDataBlending
 				Map->DefaultValuesSource = SourceAttribute; // TODO : Find a better way to choose this?
 
 				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
-				else { Map->TargetBlendOp = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingDetails->DefaultBlending, Identity); }
+				else
+				{
+					if (BlendTypePtr) { Map->TargetBlendOp = CreateOperation(*BlendTypePtr, Identity); }
+					else { Map->TargetBlendOp = CreateOperationWithDefaults(BlendingDetails->DefaultBlending, Identity); }
+				}
 
 				AttributeSourceMaps.Add(Map);
 			}
