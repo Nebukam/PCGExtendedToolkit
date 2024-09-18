@@ -223,7 +223,7 @@ namespace PCGExFindContours
 		{
 		}
 
-		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void Process() override;
 		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
 	};
 

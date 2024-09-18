@@ -138,16 +138,15 @@ namespace PCGExBevelVertices
 		StateFlags = nullptr;
 	}
 
-	bool FProcessorBatch::PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
+	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
+		
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelVertices)
-
-		if (!TBatch::PrepareProcessing(AsyncManager)) { return false; }
 
 		PCGEx::TAttributeWriter<int64>* Writer = VtxDataFacade->GetWriter(Settings->FlagAttribute, Settings->InitialFlags, false, false);
 		StateFlags = &Writer->Values;
 
-		return true;
+		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)

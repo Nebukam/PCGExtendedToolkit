@@ -101,7 +101,7 @@ namespace PCGExCopyClusters
 		}
 
 		virtual ~FBatch() override;
-		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void Process() override;
 		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
 	};
 }

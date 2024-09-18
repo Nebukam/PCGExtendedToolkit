@@ -110,7 +110,7 @@ namespace PCGExBevelVertices
 		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
 		virtual ~FProcessorBatch() override;
 
-		virtual bool PrepareProcessing(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void OnProcessingPreparationComplete() override;
 		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
 	};
 }

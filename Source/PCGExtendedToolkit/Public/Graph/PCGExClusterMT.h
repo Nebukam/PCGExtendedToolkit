@@ -21,13 +21,22 @@ namespace PCGExClusterMT
 
 #pragma region Tasks
 
-#define PCGEX_CLUSTER_MT_TASK(_NAME, _BODY)\
-	template <typename T>\
-	class /*PCGEXTENDEDTOOLKIT_API*/ _NAME final : public PCGExMT::FPCGExTask	{\
-	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO),Target(InTarget){} \
-		T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
+	template <typename T>
+	class FStartClusterBatchProcessing final : public PCGExMT::FPCGExTask
+	{
+	public:
+		FStartClusterBatchProcessing(PCGExData::FPointIO* InPointIO, T* InTarget) : PCGExMT::FPCGExTask(InPointIO), Target(InTarget)
+		{
+		}
 
-	PCGEX_CLUSTER_MT_TASK(FStartClusterBatchProcessing, { if (Target->PrepareProcessing(Manager)) { Target->Process(Manager); } })
+		T* Target = nullptr;
+
+		virtual bool ExecuteTask() override
+		{
+			Target->PrepareProcessing(Manager);
+			return true;
+		}
+	};
 
 #pragma endregion
 
@@ -325,9 +334,13 @@ namespace PCGExClusterMT
 	protected:
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 
+		const FPCGMetadataAttribute<int64>* RawLookupAttribute = nullptr;
+		TArray<uint32> ReverseLookup;
+
 		TMap<uint32, int32> EndpointsLookup;
 		TArray<int32> ExpectedAdjacency;
 
+		bool bPreparationSuccessful = false;
 		bool bRequiresHeuristics = false;
 		bool bRequiresGraphBuilder = false;
 
@@ -353,6 +366,7 @@ namespace PCGExClusterMT
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
+		bool PreparationSuccessful() const { return bPreparationSuccessful; }
 		bool RequiresGraphBuilder() const { return bRequiresGraphBuilder; }
 		bool RequiresHeuristics() const { return bRequiresHeuristics; }
 		virtual void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
@@ -385,22 +399,91 @@ namespace PCGExClusterMT
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(Context); }
 
-		virtual bool PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
-		{
-			VtxIO->CreateInKeys();
-			PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
-
-			if (RequiresGraphBuilder())
-			{
-				GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderDetails, 6, EdgeCollection);
-			}
-
-			return true;
-		}
-
-		virtual void Process(PCGExMT::FTaskManager* AsyncManager)
+		virtual void PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
 		{
 			AsyncManagerPtr = AsyncManager;
+
+			VtxIO->CreateInKeys();
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 4
+
+			PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
+			if (RequiresGraphBuilder()) { GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderDetails, 6, EdgeCollection); }
+
+			OnProcessingPreparationComplete();
+
+#else
+			
+			const int32 NumVtx = VtxIO->GetNum();
+			
+			if (NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
+			{
+				// Trivial
+				PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
+				if (RequiresGraphBuilder()) { GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderDetails, 6, EdgeCollection); }
+				
+				OnProcessingPreparationComplete();				
+			}
+			else
+			{
+				// Spread
+				PCGEX_ASYNC_GROUP_CHECKED(AsyncManagerPtr, BuildEndpointLookupTask)
+
+				PCGEX_SET_NUM_UNINITIALIZED(ReverseLookup, NumVtx)
+				PCGEX_SET_NUM_UNINITIALIZED(ExpectedAdjacency, NumVtx)
+
+				RawLookupAttribute = VtxIO->GetIn()->Metadata->GetConstTypedAttribute<int64>(PCGExGraph::Tag_VtxEndpoint);
+				if (!RawLookupAttribute) { return; } // FAIL
+
+				BuildEndpointLookupTask->SetOnCompleteCallback(
+					[&]()
+					{
+						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Complete);
+												
+						const int32 Num = VtxIO->GetNum();
+						EndpointsLookup.Reserve(Num);
+						for (int i = 0; i < Num; i++) { EndpointsLookup.Add(ReverseLookup[i], i); }
+						ReverseLookup.Empty();
+
+						if (RequiresGraphBuilder())
+						{
+							GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderDetails, 6, EdgeCollection);
+						}
+
+						OnProcessingPreparationComplete();
+					});
+
+				BuildEndpointLookupTask->SetOnIterationRangeStartCallback(
+					[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+					{
+						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
+						
+						const TArray<FPCGPoint>& InKeys = VtxIO->GetIn()->GetPoints();
+
+						const int32 MaxIndex = StartIndex + Count;
+						for (int i = StartIndex; i < MaxIndex; i++)
+						{
+							uint32 A;
+							uint32 B;
+							PCGEx::H64(RawLookupAttribute->GetValueFromItemKey(InKeys[i].MetadataEntry), A, B);
+
+							ReverseLookup[i] = A;
+							ExpectedAdjacency[i] = B;
+						}
+					});
+				BuildEndpointLookupTask->PrepareRangesOnly(VtxIO->GetNum(), 4096);
+			}
+			
+#endif
+		}
+
+		virtual void OnProcessingPreparationComplete()
+		{
+			Process();
+		}
+
+		virtual void Process()
+		{
 		}
 
 		virtual void CompleteWork()
@@ -453,14 +536,9 @@ namespace PCGExClusterMT
 			TrivialProcessors.Empty();
 		}
 
-		virtual bool PrepareProcessing(PCGExMT::FTaskManager* AsyncManager) override
+		virtual void Process() override
 		{
-			return FClusterProcessorBatchBase::PrepareProcessing(AsyncManager);
-		}
-
-		virtual void Process(PCGExMT::FTaskManager* AsyncManager) override
-		{
-			FClusterProcessorBatchBase::Process(AsyncManager);
+			FClusterProcessorBatchBase::Process();
 
 			if (VtxIO->GetNum() <= 1) { return; }
 
@@ -575,6 +653,3 @@ namespace PCGExClusterMT
 		for (FClusterProcessorBatchBase* Batch : Batches) { Batch->Write(); }
 	}
 }
-
-
-#undef PCGEX_CLUSTER_MT_TASK

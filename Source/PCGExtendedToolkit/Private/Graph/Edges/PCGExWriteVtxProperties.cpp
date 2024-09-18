@@ -126,11 +126,9 @@ namespace PCGExWriteVtxProperties
 		for (UPCGExVtxPropertyOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
 	}
 
-	bool FProcessorBatch::PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
-	{
+	void FProcessorBatch::OnProcessingPreparationComplete()
+	{		
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxProperties)
-
-		if (!TBatch::PrepareProcessing(AsyncManager)) { return false; }
 
 		{
 			PCGExData::FFacade* OutputFacade = VtxDataFacade;
@@ -149,7 +147,7 @@ namespace PCGExWriteVtxProperties
 			ExtraOperations.Add(NewOperation);
 		}
 
-		return true;
+		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)

@@ -409,7 +409,7 @@ namespace PCGExFindContours
 		}
 	}
 
-	void FBatch::Process(PCGExMT::FTaskManager* AsyncManager)
+	void FBatch::Process()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindContours)
 
@@ -419,7 +419,7 @@ namespace PCGExFindContours
 
 		PCGEX_SET_NUM_UNINITIALIZED(ProjectedPositions, VtxIO->GetNum())
 
-		PCGEX_ASYNC_GROUP(AsyncManager, ProjectionTaskGroup)
+		PCGEX_ASYNC_GROUP(AsyncManagerPtr, ProjectionTaskGroup)
 		ProjectionTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
@@ -427,7 +427,7 @@ namespace PCGExFindContours
 			},
 			VtxIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
-		TBatch<FProcessor>::Process(AsyncManager);
+		TBatch<FProcessor>::Process();
 	}
 
 	bool FBatch::PrepareSingle(FProcessor* ClusterProcessor)

@@ -197,10 +197,8 @@ namespace PCGExBreakClustersToPaths
 		PathIO->InitializeNum(2, true);
 	}
 
-	bool FProcessorBatch::PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
+	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
-		if (!TBatch<FProcessor>::PrepareProcessing(AsyncManager)) { return false; }
-
 		VtxDataFacade->bSupportsDynamic = true;
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
@@ -209,7 +207,7 @@ namespace PCGExBreakClustersToPaths
 		if (!DirectionSettings.Init(Context, VtxDataFacade))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
-			return false;
+			return;
 		}
 
 		if (DirectionSettings.RequiresEndpointsMetadata())
@@ -218,7 +216,7 @@ namespace PCGExBreakClustersToPaths
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 
-			PCGEX_ASYNC_GROUP(AsyncManager, FetchVtxTask)
+			PCGEX_ASYNC_GROUP(AsyncManagerPtr, FetchVtxTask)
 			FetchVtxTask->SetOnIterationRangeStartCallback(
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
@@ -228,7 +226,7 @@ namespace PCGExBreakClustersToPaths
 			FetchVtxTask->PrepareRangesOnly(VtxIO->GetNum(), PLI);
 		}
 
-		return true;
+		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 }
 

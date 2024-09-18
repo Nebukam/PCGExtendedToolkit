@@ -127,23 +127,21 @@ namespace PCGExBridgeClusters
 		Bridges.Empty();
 	}
 
-	bool FProcessorBatch::PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
+	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
 		//const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(Context);
 
 		ConsolidatedEdges = TypedContext->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
-
-		if (!TBatch::PrepareProcessing(AsyncManager)) { return false; }
-
-		return true;
+		
+		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
-	void FProcessorBatch::Process(PCGExMT::FTaskManager* AsyncManager)
+	void FProcessorBatch::Process()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
 
-		TBatch<FProcessor>::Process(AsyncManager);
+		TBatch<FProcessor>::Process();
 
 		// Start merging right away
 		TSet<FName> IgnoreAttributes = {PCGExGraph::Tag_ClusterId};

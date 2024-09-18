@@ -135,7 +135,7 @@ namespace PCGExCopyClusters
 	{
 	}
 
-	void FBatch::Process(PCGExMT::FTaskManager* AsyncManager)
+	void FBatch::Process()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
@@ -158,10 +158,10 @@ namespace PCGExCopyClusters
 			VtxDupes[i] = VtxDupe;
 			VtxTag.Add(OutId);
 
-			AsyncManager->Start<PCGExGeoTasks::FTransformPointIO>(i, TypedContext->Targets, VtxDupe, &TypedContext->TransformDetails);
+			AsyncManagerPtr->Start<PCGExGeoTasks::FTransformPointIO>(i, TypedContext->Targets, VtxDupe, &TypedContext->TransformDetails);
 		}
 
-		TBatch<FProcessor>::Process(AsyncManager);
+		TBatch<FProcessor>::Process();
 	}
 
 	bool FBatch::PrepareSingle(FProcessor* ClusterProcessor)

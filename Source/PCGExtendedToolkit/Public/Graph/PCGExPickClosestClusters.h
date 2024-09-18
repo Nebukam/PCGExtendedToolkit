@@ -56,6 +56,14 @@ public:
 	EPCGExFilterDataAction Action = EPCGExFilterDataAction::Keep;
 
 	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	double TargetBoundsExpansion = 10;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bExpandSearchOutsideTargetBounds = true;
+	
+	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
 	FName KeepTag = NAME_None;
 
@@ -127,6 +135,7 @@ namespace PCGExPickClosestClusters
 		virtual ~FProcessor() override;
 
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		void Search();
 		virtual void CompleteWork() override;
 	};
 

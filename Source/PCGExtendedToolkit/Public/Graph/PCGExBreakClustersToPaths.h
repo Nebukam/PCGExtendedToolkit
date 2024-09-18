@@ -129,7 +129,7 @@ namespace PCGExBreakClustersToPaths
 		{
 		}
 		
-		virtual bool PrepareProcessing(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual void OnProcessingPreparationComplete() override;
 
 	};
 }
