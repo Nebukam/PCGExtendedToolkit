@@ -55,7 +55,7 @@ This node creates a 2D Voronoi diagram from the input points. If you'd like to k
 ## Voronoi site position
 <br>
 
-{% include img a='details/diagrams/diagrams-voronoi-2d-sites.png' %}
+{% include img a='details/diagrams/diagrams-voronoi-3d-sites.png' %}
 
 | Mode       | |
 |:-------------|:------------------|
@@ -72,6 +72,4 @@ This node creates a 2D Voronoi diagram from the input points. If you'd like to k
 
 ---
 ## Cluster Output Settings
-*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
-<br>
-{% include embed id='settings-cluster-output' %}
+*See [Working with Clusters - Cluster Output Settings](/PCGExtendedToolkit/doc-general/working-with-clusters.html#cluster-output-settings).*

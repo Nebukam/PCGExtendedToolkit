@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body>
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Property</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Target Distance</td>
+      <td style="text-align: left">Target Distance reference..<br><em>Whether to consider point bounds, and if so, how.</em>
+</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Fuse Method</td>
+      <td style="text-align: left">Lets you choose the method for finding neighbors &amp; collocated points</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Voxel Grid Offset</td>
+      <td style="text-align: left">Offset the voxelized grid by an constant amount.<br><em>By default the center of the grid is 0,0,0, which may look like an undersirable offset. That offset can be manually compensated using this parameter.</em>
+</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Inline Insertion</td>
+      <td style="text-align: left">
+<strong>Using the Octree fuse method is not deterministic by default.</strong><br>Enabling inlined insertion will make it so, at the cost of speed.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Source Distance</td>
+      <td style="text-align: left">Source Distance reference.<br><em>Whether to consider point bounds, and if so, how.</em>
+</td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>Tolerance</strong></td>
+      
+    </tr>
+    <tr>
+      <td>Component Wise Tolerance</td>
+      <td>If enabled, lets you set individual tolerance in world space for each <code class="language-plaintext highlighter-rouge">X</code>, <code class="language-plaintext highlighter-rouge">Y</code> and <code class="language-plaintext highlighter-rouge">Z</code> axis.</td>
+    </tr>
+    <tr>
+      <td>Tolerance</td>
+      <td>Uniform tolerance. This represent the radius within which elements will be considered in fuse range.</td>
+    </tr>
+    <tr>
+      <td>Tolerances</td>
+      <td>If enabled, represent individual axis’ radius within which elements will be considered in fuse range.</td>
+    </tr>
+    <tr>
+      <td>Local Tolerance</td>
+      <td>If enabled, lets your use per-point tolerance value.<br><strong>NOT IMPLEMENTED</strong>
+</td>
+    </tr>
+  </tbody>
+</table>
+</body></html>

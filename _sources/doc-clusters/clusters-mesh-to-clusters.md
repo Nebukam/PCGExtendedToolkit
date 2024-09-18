@@ -71,9 +71,7 @@ The **Mesh to Cluster** node converts raw geometry from meshes (either specific 
 
 ---
 ## Cluster Output Settings
-*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
-<br>
-{% include embed id='settings-cluster-output' %}
+*See [Working with Clusters - Cluster Output Settings](/PCGExtendedToolkit/doc-general/working-with-clusters.html#cluster-output-settings).*
 
 ---
 ## Attribute Forwarding

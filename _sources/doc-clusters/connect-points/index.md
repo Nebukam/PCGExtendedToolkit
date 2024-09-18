@@ -85,6 +85,4 @@ You can connect as many probes as you'd like to the `Probes` input.
 
 ---
 ## Cluster Output Settings
-*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
-<br>
-{% include embed id='settings-cluster-output' %}
+*See [Working with Clusters - Cluster Output Settings](/PCGExtendedToolkit/doc-general/working-with-clusters.html#cluster-output-settings).*

@@ -22,7 +22,7 @@ PCGEx leverage PCG' point data as data holders in order to enable easy tweaking 
 `Edges` points stores the indices of their `start` and `end` point in the matching `Vtx` group.
 {: .fs-5 .fw-400 } 
 
->Because of that approach, nodes that work with graph require `Vtx` and `Edges` as separate inputs. Data Tags are used to mark which edges match which vertices, so you will see additional tags appear on your data, formatted as `PCGEx/Cluster::UID`.
+>Because of that approach, nodes that work with graph require `Vtx` and `Edges` as separate inputs. Data Tags are used to mark which edges match which vertices, so you will see additional tags appear on your data, formatted as `PCGEx/XXX`.
 
 >**Rule of thumb** : If you manually alter *(as in add or remove points)* the content of a `Vtx` or `Edges` created by a PCGEx Node, make sure to use the {% include lk id='Sanitize Clusters' %} node before using them as inputs for other PCGEx nodes.
 {: .infos-hl }
@@ -33,27 +33,14 @@ PCGEx leverage PCG' point data as data holders in order to enable easy tweaking 
 {:toc}
 
 ---
-## Vtx
+## Packed data
+The `PCGEx/VtxEndpoint` attribute first 32 bits are that `Vtx` unique ID from the cluster perspective, while the last 32 bits contains the number of `Edges` this `Vtx` is connected to. It makes up the identity of the `Vtx`. Alternatively, `Edges` have a `PCGEx/EdgeEndpoints` attribute whose first 32 bits matches their start' `Vtx` unique ID, and the last 32 bits are the edge' end `Vtx` unique ID.  
 
-A `Vtx` has one important piece of data written on it, and their position in space is relied upon for edge metrics -- `Vtx` being edges' start and end points.
-### Cached Index
-The `PCGEx/CachedIndex` attribute hold the index of the `Vtx` when it was written into a graph. This is the index `PCGEx/EdgeStart` and `PCGEx/EdgeEnd` refers to on the `Edges` points.  
-It is primarily useful to know whether the vtx structure has been altered or not, and ensure the graph is safe to use to avoid exceptions.
-
-### Cached Edge Num
-The `PCGEx/CachedEdgeNum` attribute hold the number of edges connected to that `Vtx` when it was written into a graph. It is solely used for validation purposes when rebuilding a cluster to process it.
-
->Note that this attribute can be reliably fetched to know how many unique edges are connected to a `Vtx` ;)
-
----
-## Edges
+Put together, this data is used to rebuild clusters in memory. If you manually alter (*read : using native nodes*) the number of points in either `Vtx` or `Edges` dataset, make sure to use {% include lk id='Sanitize Clusters' %} to restore the coherence of these attributes.
 
 >**Rule of thumb** : The only information that matter on `Edges` for clusters is their `start` and `end` attribute. Their position in space is ignored so feel free to use those points if they can be relevant to you. 
 {: .infos-hl }
 
-`Edges` have a single important piece of data written on them, and everything else is pretty much ignored by PCGEx -- meaning you can use the set of point *almost* as you see fit.
-### Edge Endpoints
-The `PCGEx/Endpoints` attribute hold the *cached index* of its start `Vtx` when it was written into a cluster.
 
 ---
 ## Clusters
@@ -64,26 +51,23 @@ A graph usually has a single set of vertices, but will output as many edge datas
 
 {% include imgc a='docs/vtx-edge-cluster-tag.png' %}  
 
->If you're unhappy with how clusters have been split in your graph, {% include lk id='Bridge Clusters' %} is here to save your day!
+>If you find yourself with unexpected disconnections that ruin your pathfinding, check out {% include lk id='Connect Clusters' %} or {% include lk id='Fuse Clusters' %}.
 {: .infos }
 
 ---
-## Graph Output Settings 📌
+## Cluster Output Settings
 <br>
-{% include imgc a='docs/graph-output-settings.png' %}  
+This group of settings is present on all PCGEx nodes that output cluster data. They're used to prune undesired ouputs and include a few very specific optimization options.
 
-This is a setting block you will see in a form or another on nodes that output sanitized clusters. They expose controls/filters over the `Vtx/Edges` output of the node to make sure the output is **sanitized, i.e, that it can be safely traversed by pathfinding search algorithms.**
-
-See the {% include lk id='Sanitize Clusters' %} node for more infos, as it encapsulate the sanitization behavior embedded in many other nodes.
-
-> If you want more fleshed out controls over `Edges` data & positioning, check out {% include lk id='Write Extras' %} Node!
-{: .infos }
+{% include embed id='settings-cluster-output' %}
 
 ---
 # Important Notes
 
->Altering `PCGEx/CachedIndex`, `PCGEx/CachedEdgeNum`, `PCGEx/EdgeStart` or `PCGEx/EdgeEnd` voids the guarantee that PCGEx nodes will work as expected.
+>Altering `PCGEx/VtxEndpoints`, `PCGEx/ClusterId` voids the guarantee that PCGEx nodes will work as expected.
 {: .warning }
 
->The `UID` used for the tagging is **NOT** deterministic, and will change *at each execution* of the graph, and for *each node*. It is used under the hood only, and should not be edited, nor relied upon for any kind of tag-related operations. For the same reason, if you create custom tags starting with `PCGEx/Cluster::`, it will break existing vtx/edge associations.  
->**Because of the reliance on the tagging system, if you edit `Vtx` and `Edges` before using them with a PCGEx node, make sure tags are preserved.**
+>The `UID` used for the tagging is **NOT** deterministic, and will change *at each execution* of the graph, and for *each node*. It is used under the hood only, and should not be edited, nor relied upon for any kind of tag-related operations. For the same reason, if you create custom tags starting with `PCGEx/`, it will break existing vtx/edge associations.  
+>**Because of the reliance on the tagging system, if you edit `Vtx` and `Edges` before using them with a PCGEx node, make sure tags are preserved.**  
+
+*I'm working on more robust way to assciate the data beyond tags, but sadly tagging is the most bulletproof and reliable method I found. Underlying data types are always at the risk of not being preserved if they're not properly duplicated, which can happen in earlier/experimental version of PCG that this plugin is supporting.*

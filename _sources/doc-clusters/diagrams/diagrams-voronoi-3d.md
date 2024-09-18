@@ -66,6 +66,4 @@ This node creates a 3D Voronoi diagram from the input points. If you'd like to k
 
 ---
 ## Cluster Output Settings
-*See [Working with Clusters](/PCGExtendedToolkit/doc-general/working-with-clusters.html).*
-<br>
-{% include embed id='settings-cluster-output' %}
+*See [Working with Clusters - Cluster Output Settings](/PCGExtendedToolkit/doc-general/working-with-clusters.html#cluster-output-settings).*

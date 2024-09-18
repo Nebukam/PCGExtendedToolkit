@@ -25,24 +25,29 @@ The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Pr
 # All Nodes
 
 ---
-## Clusters Nodes
+## {% include lk id='Filter Ecosystem' %}
+<br>
+{% include card_childs reference="Filter Ecosystem" tagged='filter-ecosystem' %}
+
+---
+## {% include lk id='Clusters' %}
 <br>
 {% include card_childs reference="Clusters" tagged='clusters' %}
 
 ---
-## Edges Nodes
-<br>
-{% include card_childs reference="Edges" tagged='edges' %}
-
----
-## Pathfinding Nodes
+## {% include lk id='Pathfinding' %}
 <br>
 {% include card_childs reference="Pathfinding" tagged='pathfinder' %}
 
 ---
-## Paths Nodes
+## {% include lk id='Paths' %}
 <br>
 {% include card_childs reference="Paths" tagged='paths' %}
+
+---
+## ## {% include lk id='Staging' %}
+<br>
+{% include card_childs reference="Staging" tagged='staging' %}
 
 ---
 ## Misc Nodes
@@ -53,3 +58,10 @@ The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Pr
 ## Sampling Nodes
 <br>
 {% include card_childs reference="Sampling" tagged='sampling' %}
+
+
+---
+## Individual Filters
+*There are here to enable `ctrl+f` users. You can find all about them in the {% include lk id='Filter Ecosystem' %} section.*
+<br>
+{% include card_any tagged='filter' %}
