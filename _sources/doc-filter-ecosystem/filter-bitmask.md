@@ -4,7 +4,7 @@ layout: page
 parent: Filter Ecosystem
 title: 🝖 Bitmask
 name_in_editor: "Filter : Bitmask"
-subtitle: The **Bitmask Filter** compares a bitmask against another
+subtitle: The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result.
 color: white
 summary: TBD
 splash: icons/icon_misc-sort-points.svg
@@ -33,6 +33,8 @@ The **Bitmask Filter** lets you check whether certain flags are set or not in an
 | Property       | Description          |
 |:-------------|:------------------|
 | Flags Attributes          | The is the name of the attribtue which value will be tested.<br>*It is expected to be an `int64`.* |
-| Comparison | If enabled, output the averaged normal of the `vtx` based on all connected `edges`.<br>*This output is hardly usable for highly 3-dimensional nodes.* |
-| Min Point Count | This lets you filter out output paths that have less that the specified number of points. |
-| Max Point Count | If enabled, this lets you filter out output paths that have more that the specified number of points. |
+| Mask Type | Type of source mask. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
+| Comparison | *See [Bitmask comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#bitmask-comparisons).* |
+| Bitmask Attribute | Attribute that contains the per-point mask value.<br>*Strictly expects an `int64`.* |
+| Bitmask | Constant bitmask value. |
+| Invert Result | If enabled, invert the result of the filter. |

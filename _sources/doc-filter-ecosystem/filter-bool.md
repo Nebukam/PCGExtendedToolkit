@@ -21,10 +21,23 @@ outputs:
 
 {% include header_card_node %}
 
+The **Bool Filter** lets you do a simple boolean comparison.
+{: .fs-5 .fw-400 } 
+
+Numeric values will be converted following these rules:
+- `true` if the value is > 0
+- `false` if the value is <= 0
+
+{% include img a='details/filter-ecosystem/filter-bool-lead.png' %}
+
+---
 # Properties
 <br>
 
-> DOC TDB
-{: .warning }
-
-{% include img a='details/filter-ecosystem/filter-bool-lead.png' %}
+| Property       | Description          |
+|:-------------|:------------------|
+| Operand A          | The first attribute of the comparison |
+| Comparison | How to compare the two operand A & B. Either `Equal` (A == B) or `Not Equal` (A != B) |
+| Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
+| Operand B | Attribute that contains the per-point operand B value. |
+| Operand B Constant | Constant operand B value. |

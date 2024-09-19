@@ -47,6 +47,9 @@ The **Pick Closest Cluster** nodes lets you select clusters within the available
 | Search Mode          | Whether to validate closest distance for the closest `Vtx` or the closest `Edge`. |
 | Pick Mode          | Defines how many clusters will get picked.<br>-`Only Best` selects only the best pick, even if multiple targets have the same pick. The first best (bestest best) pick will be accounted for for forwarding.<br>-`Next Best` guarantees each target will pick a cluster, unless there are less clusters than there are targets. |
 | Action          | Defines how the selection will be processed.<br>-`Keep` keeps the selected clusters, and omits unselected ones from the output.<br>-`Omit` remove the selected clusters from the output.<br>-`Tag` tags the data based on whether they're selected or not. |
+| Target Bounds Expansion         | Expands the target bounds for the purposes of testing.<br>*Expansion is the same for all components, and unaffected by scale.* |
+| Expand Search Outside Target Bounds         | If enabled, removes the need for an overlap with the targets for a pick to happen. |
+| Search Mode          | Whether to validate closest distance for the closest `Vtx` or the closest `Edge`. |
 | Keep Tag          | Tag to add to the data if it's selected. |
 | Omit Tag          | Tag to add to the data if it's not selected. |
 

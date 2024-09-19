@@ -5,7 +5,7 @@ parent: Clusters
 title: Fuse Clusters
 name_in_editor: "Cluster : Fuse"
 subtitle: Fuse clusters together by finding Point/Edge and Edge/Edge intersections.
-summary: The **Fuse Clusters** node ...
+summary: The Fuse Clusters node merges clusters by combining collocated vertices and edges, while detecting point/edge and edge/edge intersections, creating larger and more complex clusters through a multi-stage blending process.
 color: white
 splash: icons/icon_edges-intersections.svg
 tagged:

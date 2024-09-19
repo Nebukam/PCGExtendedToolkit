@@ -523,7 +523,7 @@
   },"87": {
     "doc": "All Nodes",
     "title": "🝖 Bitmask",
-    "content": "The Bitmask Filter compares a bitmask against another . ",
+    "content": "The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html#bitmask",
     "relUrl": "/all-nodes.html#bitmask"
   },"88": {
@@ -955,7 +955,7 @@
   },"159": {
     "doc": "Break to Paths",
     "title": "🝖 Bitmask",
-    "content": "The Bitmask Filter compares a bitmask against another . ",
+    "content": "The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-break-to-paths.html#bitmask",
     "relUrl": "/doc-clusters/clusters-break-to-paths.html#bitmask"
   },"160": {
@@ -1123,7 +1123,7 @@
   },"187": {
     "doc": "Fuse Clusters",
     "title": "Fuse Clusters",
-    "content": "PCGEx | Cluster : Fuse Fuse clusters together by finding Point/Edge and Edge/Edge intersections. The Fuse Clusters node … . VtxEndpoints of the input Edges EdgesEdges associated with the input Vtxs VtxEndpoints of the output Edges EdgesEdges associated with the output Vtxs . Related . | Working with Clusters | . Table of content . | Properties . | Point/Point Intersections | Point/Edge Intersections | Edge/Edge Intersections | Blending | Meta Filters | Cluster Output Settings | . | . The Fuse Cluster merges &amp; fuse all input cluster together: collocated Vtx and their connected Edges are merged to create bigger islands. Additionally, the node can find point/edge and edge/edge intersections, creating even more complex clusters and supporting some advanced scenarios. Be careful with this node, it can quickly become very expensive! . ",
+    "content": "PCGEx | Cluster : Fuse Fuse clusters together by finding Point/Edge and Edge/Edge intersections. The Fuse Clusters node merges clusters by combining collocated vertices and edges, while detecting point/edge and edge/edge intersections, creating larger and more complex clusters through a multi-stage blending process. VtxEndpoints of the input Edges EdgesEdges associated with the input Vtxs VtxEndpoints of the output Edges EdgesEdges associated with the output Vtxs . Related . | Working with Clusters | . Table of content . | Properties . | Point/Point Intersections | Point/Edge Intersections | Edge/Edge Intersections | Blending | Meta Filters | Cluster Output Settings | . | . The Fuse Cluster merges &amp; fuse all input cluster together: collocated Vtx and their connected Edges are merged to create bigger islands. Additionally, the node can find point/edge and edge/edge intersections, creating even more complex clusters and supporting some advanced scenarios. Be careful with this node, it can quickly become very expensive! . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-fuse-cluster.html#fuse-clusters",
     "relUrl": "/doc-clusters/clusters-fuse-cluster.html#fuse-clusters"
   },"188": {
@@ -1261,7 +1261,7 @@
   },"210": {
     "doc": "Pick Closest Cluster",
     "title": "Properties",
-    "content": ". | Property | Description | . | Search Mode | Whether to validate closest distance for the closest Vtx or the closest Edge. | . | Pick Mode | Defines how many clusters will get picked.-Only Best selects only the best pick, even if multiple targets have the same pick. The first best (bestest best) pick will be accounted for for forwarding.-Next Best guarantees each target will pick a cluster, unless there are less clusters than there are targets. | . | Action | Defines how the selection will be processed.-Keep keeps the selected clusters, and omits unselected ones from the output.-Omit remove the selected clusters from the output.-Tag tags the data based on whether they’re selected or not. | . | Keep Tag | Tag to add to the data if it’s selected. | . | Omit Tag | Tag to add to the data if it’s not selected. | . ",
+    "content": ". | Property | Description | . | Search Mode | Whether to validate closest distance for the closest Vtx or the closest Edge. | . | Pick Mode | Defines how many clusters will get picked.-Only Best selects only the best pick, even if multiple targets have the same pick. The first best (bestest best) pick will be accounted for for forwarding.-Next Best guarantees each target will pick a cluster, unless there are less clusters than there are targets. | . | Action | Defines how the selection will be processed.-Keep keeps the selected clusters, and omits unselected ones from the output.-Omit remove the selected clusters from the output.-Tag tags the data based on whether they’re selected or not. | . | Target Bounds Expansion | Expands the target bounds for the purposes of testing.*Expansion is the same for all components, and unaffected by scale.* | . | Expand Search Outside Target Bounds | If enabled, removes the need for an overlap with the targets for a pick to happen. | . | Search Mode | Whether to validate closest distance for the closest Vtx or the closest Edge. | . | Keep Tag | Tag to add to the data if it’s selected. | . | Omit Tag | Tag to add to the data if it’s not selected. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-pick-closest-clusters.html#properties",
     "relUrl": "/doc-clusters/clusters-pick-closest-clusters.html#properties"
   },"211": {
@@ -1579,13 +1579,13 @@
   },"263": {
     "doc": "🝖 Bitmask",
     "title": "🝖 Bitmask",
-    "content": "PCGEx | Filter : Bitmask The **Bitmask Filter compares a bitmask against another** . TBD . FilterA single filter definition . Table of content . | Properties | . The Bitmask Filter lets you check whether certain flags are set or not in an int64 bitmask attribute. ",
+    "content": "PCGEx | Filter : Bitmask The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result. TBD . FilterA single filter definition . Table of content . | Properties | . The Bitmask Filter lets you check whether certain flags are set or not in an int64 bitmask attribute. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-filter-ecosystem/filter-bitmask.html#bitmask",
     "relUrl": "/doc-filter-ecosystem/filter-bitmask.html#bitmask"
   },"264": {
     "doc": "🝖 Bitmask",
     "title": "Properties",
-    "content": ". | Property | Description | . | Flags Attributes | The is the name of the attribtue which value will be tested.*It is expected to be an int64.* | . | Comparison | If enabled, output the averaged normal of the vtx based on all connected edges.*This output is hardly usable for highly 3-dimensional nodes.* | . | Min Point Count | This lets you filter out output paths that have less that the specified number of points. | . | Max Point Count | If enabled, this lets you filter out output paths that have more that the specified number of points. | . ",
+    "content": ". | Property | Description | . | Flags Attributes | The is the name of the attribtue which value will be tested.*It is expected to be an int64.* | . | Mask Type | Type of source mask. Can be a per-point Attribute, or an easily overridable Constant. | . | Comparison | *See [Bitmask comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#bitmask-comparisons).* | . | Bitmask Attribute | Attribute that contains the per-point mask value.*Strictly expects an int64.* | . | Bitmask | Constant bitmask value. | . | Invert Result | If enabled, invert the result of the filter. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-filter-ecosystem/filter-bitmask.html#properties",
     "relUrl": "/doc-filter-ecosystem/filter-bitmask.html#properties"
   },"265": {
@@ -1597,13 +1597,13 @@
   },"266": {
     "doc": "🝖 Bool",
     "title": "🝖 Bool",
-    "content": "PCGEx | Filter : Bool Compare The **Bool Filter does a simple bool comparison** . TBD . FilterA single filter definition . Table of content . | Properties | . ",
+    "content": "PCGEx | Filter : Bool Compare The **Bool Filter does a simple bool comparison** . TBD . FilterA single filter definition . Table of content . | Properties | . The Bool Filter lets you do a simple boolean comparison. Numeric values will be converted following these rules: . | true if the value is &gt; 0 | false if the value is &lt;= 0 | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-filter-ecosystem/filter-bool.html#bool",
     "relUrl": "/doc-filter-ecosystem/filter-bool.html#bool"
   },"267": {
     "doc": "🝖 Bool",
     "title": "Properties",
-    "content": ". DOC TDB . ",
+    "content": ". | Property | Description | . | Operand A | The first attribute of the comparison | . | Comparison | How to compare the two operand A &amp; B. Either Equal (A == B) or Not Equal (A != B) | . | Compare Against | Type of operand B. Can be a per-point Attribute, or an easily overridable Constant. | . | Operand B | Attribute that contains the per-point operand B value. | . | Operand B Constant | Constant operand B value. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-filter-ecosystem/filter-bool.html#properties",
     "relUrl": "/doc-filter-ecosystem/filter-bool.html#properties"
   },"268": {
@@ -1615,13 +1615,13 @@
   },"269": {
     "doc": "🝖 Bounds",
     "title": "🝖 Bounds",
-    "content": "PCGEx | Filter : Bounds The **Bounds Filter check if a point is inside or outside provided bounds** . TBD . FilterA single filter definition . Table of content . | Properties | . ",
+    "content": "PCGEx | Filter : Bounds The **Bounds Filter check if a point is inside or outside provided bounds** . TBD . BoundsSet of points which bounds will be checked against. FilterA single filter definition . Table of content . | Properties | . The Bounds Filter checks whether the test points are inside the provided bounds. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-filter-ecosystem/filter-bounds.html#bounds",
     "relUrl": "/doc-filter-ecosystem/filter-bounds.html#bounds"
   },"270": {
     "doc": "🝖 Bounds",
     "title": "Properties",
-    "content": ". DOC TDB . ",
+    "content": ". | Property | Description | . | Bounds Source | Lets you pick which point’ bounds will be used for the Bounds inputs.-Scaled Bounds is closest to what you see using a Debug node.-Density Bounds are the same as Scaled Bounds but factor in the local density of the point.-Bounds uses unscaled bounds. | . | Check if Inside | If enabled, the filter **passes if the tested point is inside the provided bounds**; otherwise it passes if the tested point is **outside**. | . | Inside Epsilon | Lets you set a small value that will be used to expand the bounds in order to rule out perfect surface overlaps. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-filter-ecosystem/filter-bounds.html#properties",
     "relUrl": "/doc-filter-ecosystem/filter-bounds.html#properties"
   },"271": {
@@ -2011,7 +2011,7 @@
   },"335": {
     "doc": "Node Flag",
     "title": "🝖 Bitmask",
-    "content": "The Bitmask Filter compares a bitmask against another . ",
+    "content": "The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/flag-nodes/flag-node.html#bitmask",
     "relUrl": "/doc-clusters/flag-nodes/flag-node.html#bitmask"
   },"336": {
@@ -2419,7 +2419,7 @@
   },"403": {
     "doc": "Flag Nodes",
     "title": "🝖 Bitmask",
-    "content": "The Bitmask Filter compares a bitmask against another . ",
+    "content": "The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/flag-nodes/#bitmask",
     "relUrl": "/doc-clusters/flag-nodes/#bitmask"
   },"404": {
@@ -3295,7 +3295,7 @@
   },"549": {
     "doc": "Filter Ecosystem",
     "title": "🝖 Bitmask",
-    "content": "The Bitmask Filter compares a bitmask against another . ",
+    "content": "The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-filter-ecosystem/#bitmask",
     "relUrl": "/doc-filter-ecosystem/#bitmask"
   },"550": {
@@ -3493,7 +3493,7 @@
   },"582": {
     "doc": "Refine",
     "title": "🝖 Bitmask",
-    "content": "The Bitmask Filter compares a bitmask against another . ",
+    "content": "The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/edges-refine/#bitmask",
     "relUrl": "/doc-clusters/edges-refine/#bitmask"
   },"583": {
@@ -4057,7 +4057,7 @@
   },"676": {
     "doc": "Connect Points",
     "title": "🝖 Bitmask",
-    "content": "The Bitmask Filter compares a bitmask against another . ",
+    "content": "The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/connect-points/#bitmask",
     "relUrl": "/doc-clusters/connect-points/#bitmask"
   },"677": {
@@ -4651,7 +4651,7 @@
   },"775": {
     "doc": "PCG Extended Toolkit",
     "title": "🝖 Bitmask",
-    "content": "The Bitmask Filter compares a bitmask against another . ",
+    "content": "The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/#bitmask",
     "relUrl": "/#bitmask"
   },"776": {
