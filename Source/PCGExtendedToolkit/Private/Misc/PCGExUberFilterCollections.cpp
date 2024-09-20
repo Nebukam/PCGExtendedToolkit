@@ -112,6 +112,18 @@ namespace PCGExUberFilterCollections
 
 		NumPoints = PointIO->GetNum();
 
+		if (LocalSettings->Measure == EPCGExMeanMeasure::Discrete)
+		{
+			if ((LocalSettings->Comparison == EPCGExComparison::StrictlyGreater ||
+					LocalSettings->Comparison == EPCGExComparison::EqualOrGreater) &&
+				NumPoints < LocalSettings->IntThreshold)
+			{
+				// Not enough points to meet requirements.
+				LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward);
+				return true;
+			}
+		}
+
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
 		return true;

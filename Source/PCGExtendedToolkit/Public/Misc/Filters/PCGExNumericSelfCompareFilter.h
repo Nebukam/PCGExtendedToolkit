@@ -30,6 +30,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericSelfCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
 
+	/** Rounding mode for relative measures */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	double Tolerance = 0.001;
+	
 	/** Index mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexMode IndexMode = EPCGExIndexMode::Offset;
@@ -38,17 +42,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericSelfCompareFilterConfig
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExFetchType CompareAgainst = EPCGExFetchType::Constant;
 
-	/** Operand B for testing -- Will be translated to `int32` under the hood. */
+	/** Index value to use according to the selected Index Mode -- Will be translated to `int32` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector IndexAttribute;
 
-	/** Operand B for testing */
+	/** Const Index value to use according to the selected Index Mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
 	int32 IndexConstant = -1;
-
-	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
-	double Tolerance = 0.001;
 
 	/** Index safety */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
