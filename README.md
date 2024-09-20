@@ -13,9 +13,9 @@ It also comes with a set of lower-level, more generic features to manipulate att
 * **[Example Project](https://github.com/Nebukam/PCGExExampleProject)**
 * **[Full documentation](https://nebukam.github.io/PCGExtendedToolkit/)**
 * [Installation](https://nebukam.github.io/PCGExtendedToolkit/installation/) in your own project
-* Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)
+* Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)!
 
-Question & support : [head to github discussions](https://github.com/Nebukam/PCGExtendedToolkit/discussions)!
+For questions & support, joint the [PCGEx Discord Server](https://discord.gg/wTep9jjaBK)!
 
 # Highlights
 ### Vtx/Edge structures
@@ -39,7 +39,6 @@ A lot of simple yet powerful utility nodes ranging from complex sorting, complex
 ![hl-misc](https://raw.githubusercontent.com/Nebukam/PCGExtendedToolkit/docs/_sources/assets/misc/highlight-miscjpg.jpg)
 
 #### *And so much more -- PCGEx has 100+ nodes!*
-
 
 ### Disclaimer
 This software is provided under the MIT License. It is freely available for use & modifications, and may be incorporated into commercial products without the necessity of attribution (*though it is appreciated*). **The contents of this project are entirely original, comprising no AI-generated materials or third-party content, including but not limited to code and assets.**
