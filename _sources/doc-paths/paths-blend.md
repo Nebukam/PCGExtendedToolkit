@@ -26,10 +26,9 @@ outputs:
 # Properties
 <br> 
 
-| Property       | Description          |
-|:-------------|:------------------|
+{% include embed id='settings-index-safety' %}
+
 |**Settings**||
-| Closed Path           | If enabled, will process input paths as closed, effectively wrapping first and last point.  |
 | **Blending**           | This property lets you select which kind of blending you want to apply to the input paths.<br>*See [Available Blending Modules](#available-blending-modules).*|
 
 ---

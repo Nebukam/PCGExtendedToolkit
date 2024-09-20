@@ -5,7 +5,7 @@ parent: Paths
 title: Write Tangents
 subtitle: TBD
 color: white
-summary: The **Write Tangents** node computes and assign custom tangents to path points, with options for tangent math modules, scaling, and handling closed paths.
+summary: The **Write Tangents** node computes and assign custom tangents to path points, with options for tangent math modules, scaling, and handling closed loops.
 splash: icons/icon_path-tangents.svg
 preview_img: previews/index-subdivide.png
 has_children: true
@@ -36,10 +36,9 @@ The **Write Tangents** help you compute & write custom tangents on your paths so
 # Properties
 <br>
 
-| Property       | Description          |
-|:-------------|:------------------|
+{% include embed id='settings-index-safety' %}
+
 |**Settings**||
-| Closed Path           | If enabled, will process input paths as closed, effectively wrapping first and last point.  |
 | Arrive Name<br>*FVector*           | Attribute to write the `Arrive` tangent to.  |
 | Leave Name<br>*FVector*           | Attribute to write the `Leave` tangent to.  |
 

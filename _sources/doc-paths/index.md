@@ -20,7 +20,7 @@ Like every other PCGEx thing, **Paths** are really just Points Dataset -- howeve
 
 > Paths nodes accept any inputs, **and do not rely on any custom attributes to work.**.
 
-All path nodes have a `Closed Path` checkbox to indicate whether it should process its input as closed or open paths. 
+All path nodes have `Closed Loop` settings to indicate whether they should be processed as closed or open paths.
 
 > At the time of writing, there is no way to handler per-input closed/open state. **Either all inputs are considered closed, or they are not.**. 
 > This will change in the future, and will likely rely on user-defined tags to know whether a path is to be considered closed or not.

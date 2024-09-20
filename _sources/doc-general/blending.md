@@ -45,4 +45,8 @@ When a node creates new points, the final point' properties and attributes is us
 | {% include img a='placeholder.jpg' %}           | <span class="ebit">Weighted Sum</span><br>Component-wise weighted sum of all the inputs.<br>*What qualify as weight depends on context*. |
 | {% include img a='placeholder.jpg' %}           | <span class="ebit">Lerp</span><br>Uses weight as lerp. If the results are unexpected, try 'Weight' instead.<br>*Lerp only works properly for nodes that do a simple two-point blending.*. |
 | {% include img a='placeholder.jpg' %}           | <span class="ebit">Substract</span><br>Opposite of `Sum`, but substract all inputs. |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Unsigned Min</span><br>Component-wise MIN operation on the **absolute** values, but writes the signed value.<br>*Keeps the smallest value of all inputs, per-component.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Unsigned Max</span><br>Component-wise MAX operation on the **absolute** values, but writes the signed value.<br>*Keeps the smallest value of all inputs, per-component.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Absolute Min</span><br>Component-wise MIN operation on the **absolute** values.<br>*Keeps the smallest value of all inputs, per-component.* |
+| {% include img a='placeholder.jpg' %}           | <span class="ebit">Absolute Max</span><br>Component-wise MAX operation on the **absolute** values.<br>*Keeps the smallest value of all inputs, per-component.* |
 {: .enum }
