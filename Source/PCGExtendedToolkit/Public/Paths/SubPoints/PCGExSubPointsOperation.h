@@ -19,7 +19,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSubPointsOperation : public UPCGExOperati
 	GENERATED_BODY()
 
 public:
-	bool bClosedPath = false;
+	bool bClosedLoop = false;
 
 	bool bPreserveTransform = false;
 	bool bPreservePosition = false;

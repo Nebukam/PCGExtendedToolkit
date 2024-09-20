@@ -71,7 +71,7 @@ namespace PCGExPathSolidify
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 		LastIndex = PointIO->GetNum() - 1;
 
 		LocalSettings = Settings;
@@ -98,7 +98,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 			}
 		}
 
-		if (!bClosedPath && Settings->bRemoveLastPoint) { PointIO->GetOut()->GetMutablePoints().RemoveAt(LastIndex); }
+		if (!bClosedLoop && Settings->bRemoveLastPoint) { PointIO->GetOut()->GetMutablePoints().RemoveAt(LastIndex); }
 
 		StartParallelLoopForPoints();
 
@@ -112,7 +112,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		if (!bClosedPath && Index == LastIndex) { return; } // Skip last point
+		if (!bClosedLoop && Index == LastIndex) { return; } // Skip last point
 
 		const FVector Position = Point.Transform.GetLocation();
 		const FVector NextPosition = PointIO->GetInPoint(Index == LastIndex ? 0 : Index + 1).Transform.GetLocation();

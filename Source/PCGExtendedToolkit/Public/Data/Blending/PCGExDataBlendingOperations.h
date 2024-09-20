@@ -16,7 +16,10 @@ PCGEX_BLEND_CASE(Min)\
 PCGEX_BLEND_CASE(Max)\
 PCGEX_BLEND_CASE(Sum)\
 PCGEX_BLEND_CASE(Lerp)\
-PCGEX_BLEND_CASE(Hold)
+PCGEX_BLEND_CASE(UnsignedMin)\
+PCGEX_BLEND_CASE(UnsignedMax)\
+PCGEX_BLEND_CASE(AbsoluteMin)\
+PCGEX_BLEND_CASE(AbsoluteMax)
 
 namespace PCGExDataBlending
 {
@@ -39,14 +42,6 @@ namespace PCGExDataBlending
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Copy; };
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return B; }
-	};
-
-	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingHold final : public TDataBlendingOperation<T>
-	{
-	public:
-		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Hold; };
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
 	};
 
 	template <typename T>
@@ -127,6 +122,38 @@ namespace PCGExDataBlending
 	{
 	public:
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedMax final : public FDataBlendingOperationWithFirstInit<T>
+	{
+	public:
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::UnsignedMax; };
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::UnsignedMax(A, B); }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingUnsignedMin final : public FDataBlendingOperationWithFirstInit<T>
+	{
+	public:
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::UnsignedMin; };
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::UnsignedMin(A, B); }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAbsoluteMax final : public FDataBlendingOperationWithFirstInit<T>
+	{
+	public:
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::AbsoluteMax; };
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::AbsoluteMax(A, B); }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingAbsoluteMin final : public FDataBlendingOperationWithFirstInit<T>
+	{
+	public:
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::AbsoluteMin; };
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::AbsoluteMin(A, B); }
 	};
 
 	static FDataBlendingOperationBase* CreateOperation(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)

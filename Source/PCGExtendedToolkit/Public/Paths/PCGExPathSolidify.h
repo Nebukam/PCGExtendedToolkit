@@ -33,7 +33,7 @@ public:
 
 public:
 	/** If the path is not closed, the last point cannot be solidified, thus it's usually preferable to remove it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bClosedPath"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bClosedLoop"))
 	bool bRemoveLastPoint = true;
 
 	/** */
@@ -138,7 +138,7 @@ namespace PCGExPathSolidify
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 
 		int32 LastIndex = 0;
 

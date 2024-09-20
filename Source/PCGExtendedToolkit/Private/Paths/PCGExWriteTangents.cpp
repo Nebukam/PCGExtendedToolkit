@@ -111,10 +111,10 @@ namespace PCGExWriteTangents
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
 		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
-		Tangents->bClosedPath = bClosedPath;
+		Tangents->bClosedLoop = bClosedLoop;
 		Tangents->PrepareForData();
 
 		ConstantArriveScale = FVector(Settings->ArriveScaleConstant);
@@ -143,7 +143,7 @@ namespace PCGExWriteTangents
 		if (TypedContext->StartTangents)
 		{
 			StartTangents = TypedContext->StartTangents->CopyOperation<UPCGExTangentsOperation>();
-			StartTangents->bClosedPath = bClosedPath;
+			StartTangents->bClosedLoop = bClosedLoop;
 			StartTangents->PrimaryDataFacade = PointDataFacade;
 			StartTangents->PrepareForData();
 		}
@@ -152,7 +152,7 @@ namespace PCGExWriteTangents
 		if (TypedContext->EndTangents)
 		{
 			EndTangents = TypedContext->EndTangents->CopyOperation<UPCGExTangentsOperation>();
-			EndTangents->bClosedPath = bClosedPath;
+			EndTangents->bClosedLoop = bClosedLoop;
 			EndTangents->PrimaryDataFacade = PointDataFacade;
 			EndTangents->PrepareForData();
 		}
@@ -187,7 +187,7 @@ namespace PCGExWriteTangents
 		const FVector& ArriveScale = ArriveScaleReader ? ArriveScaleReader->Values[Index] : ConstantArriveScale;
 		const FVector& LeaveScale = LeaveScaleReader ? LeaveScaleReader->Values[Index] : ConstantLeaveScale;
 
-		if (bClosedPath)
+		if (bClosedLoop)
 		{
 			if (PrevIndex < 0) { PrevIndex = LastIndex; }
 			if (NextIndex > LastIndex) { NextIndex = 0; }

@@ -75,7 +75,7 @@ namespace PCGExWritePathProperties
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
 		LastIndex = PointIO->GetNum() - 1;
 
@@ -128,8 +128,8 @@ namespace PCGExWritePathProperties
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		const int32 PrevIndex = Index == 0 ? bClosedPath ? LastIndex : Index : Index - 1;
-		const int32 NextIndex = Index == LastIndex ? bClosedPath ? 0 : Index : Index + 1;
+		const int32 PrevIndex = Index == 0 ? bClosedLoop ? LastIndex : Index : Index - 1;
+		const int32 NextIndex = Index == LastIndex ? bClosedLoop ? 0 : Index : Index + 1;
 
 		FPointDetails& Current = Details[Index];
 		const FPointDetails& Prev = Details[PrevIndex];
@@ -140,7 +140,7 @@ namespace PCGExWritePathProperties
 		Current.ToPrev = (Prev.Position - Current.Position).GetSafeNormal();
 		Current.ToNext = (Next.Position - Current.Position).GetSafeNormal();
 
-		if (!bClosedPath)
+		if (!bClosedLoop)
 		{
 			if (Index == LastIndex) { Current.ToNext = Current.ToPrev * -1; }
 			else if (Index == 0) { Current.ToPrev = Current.ToNext * -1; }
@@ -200,8 +200,8 @@ namespace PCGExWritePathProperties
 		double TraversedDistance = 0;
 		for (int i = 0; i <= LastIndex; ++i)
 		{
-			const int32 PrevIndex = i == 0 ? bClosedPath ? LastIndex : i : i - 1;
-			const int32 NextIndex = i == LastIndex ? bClosedPath ? 0 : i : i + 1;
+			const int32 PrevIndex = i == 0 ? bClosedLoop ? LastIndex : i : i - 1;
+			const int32 NextIndex = i == LastIndex ? bClosedLoop ? 0 : i : i + 1;
 
 			if (LocalSettings->bTagConcave || LocalSettings->bTagConvex) { CheckConvex(PrevIndex, i, NextIndex); }
 
@@ -217,7 +217,7 @@ namespace PCGExWritePathProperties
 			PathCentroid += Detail.Position;
 		}
 
-		if (!bClosedPath)
+		if (!bClosedLoop)
 		{
 			PCGEX_OUTPUT_VALUE(Dot, 0, 0);
 			PCGEX_OUTPUT_VALUE(Angle, 0, 0);
@@ -230,8 +230,8 @@ namespace PCGExWritePathProperties
 		{
 			for (int i = 0; i <= LastIndex; ++i)
 			{
-				const int32 PrevIndex = i == 0 ? bClosedPath ? LastIndex : i : i - 1;
-				const int32 NextIndex = i == LastIndex ? bClosedPath ? 0 : i : i + 1;
+				const int32 PrevIndex = i == 0 ? bClosedLoop ? LastIndex : i : i - 1;
+				const int32 NextIndex = i == LastIndex ? bClosedLoop ? 0 : i : i + 1;
 
 				PCGEX_OUTPUT_VALUE(PointNormal, i, ((Details[PrevIndex].Normal + Details[i].Normal + Details[NextIndex].Normal) / 3).GetSafeNormal());
 				PCGEX_OUTPUT_VALUE(PointBinormal, i, ((Details[PrevIndex].Binormal + Details[i].Binormal + Details[NextIndex].Binormal) / 3).GetSafeNormal());

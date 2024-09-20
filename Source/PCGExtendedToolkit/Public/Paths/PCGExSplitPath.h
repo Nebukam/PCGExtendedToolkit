@@ -113,7 +113,7 @@ namespace PCGExSplitPath
 		FPCGExSplitPathContext* LocalTypedContext = nullptr;
 		const UPCGExSplitPathSettings* LocalSettings = nullptr;
 
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 
 		TArray<FPath> Paths;
 		TArray<PCGExData::FPointIO*> PathsIOs;

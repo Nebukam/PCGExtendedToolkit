@@ -236,7 +236,7 @@ namespace PCGExBevelPath
 		TArray<FBevel*> Bevels;
 		TArray<int32> StartIndices;
 
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;

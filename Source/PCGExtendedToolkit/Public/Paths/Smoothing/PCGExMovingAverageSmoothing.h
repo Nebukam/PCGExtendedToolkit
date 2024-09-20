@@ -22,7 +22,7 @@ public:
 		const double Smoothing,
 		const double Influence,
 		PCGExDataBlending::FMetadataBlender* MetadataBlender,
-		const bool bClosedPath) override
+		const bool bClosedLoop) override
 	{
 		const int32 NumPoints = Path->GetNum();
 		const int32 MaxIndex = NumPoints - 1;
@@ -34,7 +34,7 @@ public:
 		int32 Count = 0;
 		MetadataBlender->PrepareForBlending(Target);
 
-		if (bClosedPath)
+		if (bClosedLoop)
 		{
 			for (int i = -SafeWindowSize; i <= SafeWindowSize; ++i)
 			{

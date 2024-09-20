@@ -100,7 +100,7 @@ namespace PCGExSplitPath
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
 		const int32 NumPoints = PointIO->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
@@ -186,7 +186,7 @@ namespace PCGExSplitPath
 
 		if (Paths.IsEmpty()) { return; }
 
-		if (bClosedPath)
+		if (bClosedLoop)
 		{
 			if (Paths.Num() >= 2) { bWrapLastPath = Paths[0].Start == 0 && Paths.Last().End == -1; }
 			if (Paths.Num() > 1 || Paths[0].End != -1 || Paths[0].Start != 0) { bAddOpenTag = true; }

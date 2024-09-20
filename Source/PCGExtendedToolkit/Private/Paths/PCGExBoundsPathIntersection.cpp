@@ -116,7 +116,7 @@ namespace PCGExPathIntersections
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 		LastIndex = PointIO->GetNum() - 1;
 		Segmentation = new PCGExGeo::FSegmentation();
 		Cloud = TypedContext->BoundsDataFacade->GetCloud(Settings->OutputSettings.BoundsSource, Settings->OutputSettings.InsideEpsilon);
@@ -146,7 +146,7 @@ namespace PCGExPathIntersections
 
 		if (Index == LastIndex)
 		{
-			if (bClosedPath) { NextIndex = 0; }
+			if (bClosedLoop) { NextIndex = 0; }
 			else { return; }
 		}
 
@@ -242,7 +242,7 @@ namespace PCGExPathIntersections
 		const FPCGPoint& OriginalPoint = OriginalPoints[LastIndex];
 		MutablePoints[Idx++] = OriginalPoint;
 
-		if (bClosedPath)
+		if (bClosedLoop)
 		{
 			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(LastIndex, 0)))
 			{

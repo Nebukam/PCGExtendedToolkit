@@ -67,7 +67,10 @@ enum class EPCGExDataBlendingType : uint8
 	WeightedSum = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
 	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
 	Subtract    = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
-	Hold        = 10 UMETA(DisplayName = "Hold", ToolTip="Hold."),
+	UnsignedMin = 10 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
+	UnsignedMax = 11 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
+	AbsoluteMin = 12 UMETA(DisplayName = "Absolute Min", ToolTip="Component-wise MIN of absolute value."),
+	AbsoluteMax = 13 UMETA(DisplayName = "Absolute Max", ToolTip="Component-wise MAX of absolute value."),
 };
 
 USTRUCT(BlueprintType)
@@ -486,7 +489,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE virtual void DoOperation(const PCGMetadataEntryKey PrimaryReadKey, const PCGMetadataEntryKey SecondaryReadKey, const PCGMetadataEntryKey WriteKey, const double Weight, const bool bFirstOperation) const override
 		{
-			TargetAttribute->SetValue(WriteKey, SingleOperation(SourceAttribute->GetValueFromItemKey(SecondaryReadKey), TargetAttribute->GetValueFromItemKey(PrimaryReadKey), Weight));
+			TargetAttribute->SetValue(WriteKey, SingleOperation(TargetAttribute->GetValueFromItemKey(PrimaryReadKey), SourceAttribute->GetValueFromItemKey(SecondaryReadKey), Weight));
 		};
 
 		FORCEINLINE virtual void FinalizeOperation(const PCGMetadataEntryKey WriteKey, const int32 Count, const double TotalWeight) const override

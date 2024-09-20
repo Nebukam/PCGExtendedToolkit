@@ -91,7 +91,7 @@ namespace PCGExOffsetPath
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
 		UpConstant = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
@@ -145,7 +145,7 @@ namespace PCGExOffsetPath
 		const int32 LastIndex = NumPoints - 1;
 
 		// Update first & last Normals
-		if (bClosedPath)
+		if (bClosedLoop)
 		{
 			Normals[0] = PCGExMath::NRM(LastIndex, 0, 1, Positions, UpGetter, UpConstant);
 			Normals[LastIndex] = PCGExMath::NRM(NumPoints - 2, LastIndex, 0, Positions, UpGetter, UpConstant);

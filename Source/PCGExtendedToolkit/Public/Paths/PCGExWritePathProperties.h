@@ -250,7 +250,7 @@ namespace PCGExWritePathProperties
 
 		TArray<FPointDetails> Details;
 
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 
 		FVector UpConstant = FVector::ZeroVector;
 		PCGExData::TCache<FVector>* UpGetter = nullptr;

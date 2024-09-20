@@ -17,7 +17,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOrientOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	bool bClosedPath = false;
+	bool bClosedLoop = false;
 	EPCGExAxis OrientAxis = EPCGExAxis::Forward;
 	EPCGExAxis UpAxis = EPCGExAxis::Up;
 

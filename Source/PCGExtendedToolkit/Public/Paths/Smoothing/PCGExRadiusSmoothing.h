@@ -23,7 +23,7 @@ public:
 		const double Smoothing,
 		const double Influence,
 		PCGExDataBlending::FMetadataBlender* MetadataBlender,
-		const bool bClosedPath) override
+		const bool bClosedLoop) override
 	{
 		const double RadiusSquared = Smoothing * Smoothing;
 

@@ -158,7 +158,7 @@ namespace PCGExPathCrossings
 		const UPCGExPathCrossingsSettings* LocalSettings = nullptr;
 		FPCGExPathCrossingsContext* LocalTypedContext = nullptr;
 
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 		bool bSelfIntersectionOnly = false;
 
 		int32 NumPoints = 0;
@@ -178,6 +178,7 @@ namespace PCGExPathCrossings
 		TSet<FName> ProtectedAttributes;
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
+		TSet<int32> CrossIOIndices;
 		PCGExData::FIdxCompoundList* CompoundList = nullptr;
 		PCGExDataBlending::FCompoundBlender* CompoundBlender = nullptr;
 

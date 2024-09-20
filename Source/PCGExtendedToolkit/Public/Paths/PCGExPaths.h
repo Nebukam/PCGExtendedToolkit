@@ -31,7 +31,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
 
 	/** Comma separated tags */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Scope!=EPCGExInputScope::All", EditConditionHides))
-	FString CommaSeparatedTags = TEXT("");
+	FString CommaSeparatedTags = TEXT("Closed");
 
 	TArray<FString> Tags;
 
@@ -55,11 +55,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopUpdateDetails
 
 	/** Tags to be added to closed paths that are broken into open paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Add Open Tags"))
-	FString CommaSeparatedAddTags = TEXT("");
+	FString CommaSeparatedAddTags = TEXT("Open");
 
 	/** Tags to be removed from closed paths that are broken into open paths */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Remove Open Tags"))
-	FString CommaSeparatedRemoveTags = TEXT("");
+	FString CommaSeparatedRemoveTags = TEXT("Closed");
 
 	TArray<FString> AddTags;
 	TArray<FString> RemoveTags;

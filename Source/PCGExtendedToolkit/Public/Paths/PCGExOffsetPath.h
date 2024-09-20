@@ -85,7 +85,7 @@ namespace PCGExOffsetPath
 	{
 		int32 NumPoints = 0;
 
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 		
 		double OffsetConstant = 0;
 		FVector UpConstant = FVector::UpVector;

@@ -24,7 +24,7 @@ public:
 		const double Smoothing,
 		const double Influence,
 		PCGExDataBlending::FMetadataBlender* MetadataBlender,
-		const bool bClosedPath)
+		const bool bClosedLoop)
 	{
 	}
 };

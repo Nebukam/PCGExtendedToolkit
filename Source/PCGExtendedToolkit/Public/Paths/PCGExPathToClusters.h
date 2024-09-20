@@ -139,7 +139,7 @@ namespace PCGExPathToClusters
 
 	class FNonFusingProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 		
 	public:
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
@@ -162,7 +162,7 @@ namespace PCGExPathToClusters
 
 	class FFusingProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 
 		int32 IOIndex = 0;
 		int32 LastIndex = 0;

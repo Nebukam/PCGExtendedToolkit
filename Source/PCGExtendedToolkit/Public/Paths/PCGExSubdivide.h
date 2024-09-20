@@ -120,7 +120,7 @@ namespace PCGExSubdivide
 
 		TArray<FSubdivision> Subdivisions;
 
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 		
 		TSet<FName> ProtectedAttributes;
 		UPCGExSubPointsBlendOperation* Blending = nullptr;

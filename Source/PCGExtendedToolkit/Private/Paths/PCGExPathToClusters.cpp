@@ -196,7 +196,7 @@ namespace PCGExPathToClusters
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
 		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails, 2);
 
@@ -207,14 +207,14 @@ namespace PCGExPathToClusters
 
 		TArray<PCGExGraph::FIndexedEdge> Edges;
 
-		Edges.SetNumUninitialized(bClosedPath ? NumPoints : NumPoints - 1);
+		Edges.SetNumUninitialized(bClosedLoop ? NumPoints : NumPoints - 1);
 
 		for (int i = 0; i < Edges.Num(); ++i)
 		{
 			Edges[i] = PCGExGraph::FIndexedEdge(i, i, i + 1, PointIO->IOIndex);
 		}
 
-		if (bClosedPath)
+		if (bClosedLoop)
 		{
 			const int32 LastIndex = Edges.Num() - 1;
 			Edges[LastIndex] = PCGExGraph::FIndexedEdge(LastIndex, LastIndex, 0, PointIO->IOIndex);
@@ -261,7 +261,7 @@ namespace PCGExPathToClusters
 		if (NumPoints < 2) { return false; }
 
 		CompoundGraph = TypedContext->CompoundGraph;
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 		bInlineProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -274,7 +274,7 @@ namespace PCGExPathToClusters
 		const int32 NextIndex = Index + 1;
 		if (NextIndex > LastIndex)
 		{
-			if (bClosedPath) { CompoundGraph->InsertEdge(*(InPoints->GetData() + LastIndex), IOIndex, LastIndex, *InPoints->GetData(), IOIndex, 0); }
+			if (bClosedLoop) { CompoundGraph->InsertEdge(*(InPoints->GetData() + LastIndex), IOIndex, LastIndex, *InPoints->GetData(), IOIndex, 0); }
 			return;
 		}
 		CompoundGraph->InsertEdge(*(InPoints->GetData() + Index), IOIndex, Index, *(InPoints->GetData() + NextIndex), IOIndex, NextIndex);

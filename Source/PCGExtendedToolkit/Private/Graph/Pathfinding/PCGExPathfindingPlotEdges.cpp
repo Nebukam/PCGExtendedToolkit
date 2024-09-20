@@ -73,7 +73,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		SeedPosition = GoalPosition;
 	}
 
-	if (Settings->bClosedPath)
+	if (Settings->bClosedLoop)
 	{
 		const FVector SeedPosition = InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1).Transform.GetLocation();
 		const FVector GoalPosition = InPlotPoints->GetInPoint(0).Transform.GetLocation();
@@ -124,7 +124,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		LastIndex = VtxIndex;
 	}
 
-	if (Settings->bAddGoalToPath && !Settings->bClosedPath)
+	if (Settings->bAddGoalToPath && !Settings->bClosedLoop)
 	{
 		MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey;
 	}

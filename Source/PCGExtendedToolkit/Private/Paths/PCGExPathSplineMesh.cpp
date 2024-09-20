@@ -25,14 +25,7 @@ TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() con
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	// No output
-	return PinProperties;
-}
-
-PCGExData::EInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExPathSplineMeshContext::~FPCGExPathSplineMeshContext()
 {
@@ -88,6 +81,13 @@ bool FPCGExPathSplineMeshElement::Boot(FPCGExContext* InContext) const
 	}
 
 	Context->MainCollection->LoadCache(); // Make sure to load the stuff
+
+	PCGEX_VALIDATE_NAME(Settings->AssetPathAttributeName)
+
+	if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw || Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
+	{
+		PCGEX_VALIDATE_NAME(Settings->WeightAttributeName)
+	}
 
 	return true;
 }
@@ -147,6 +147,8 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
+	Context->MainPoints->OutputToContext();
+	
 	return Context->TryComplete();
 }
 
@@ -174,7 +176,7 @@ namespace PCGExPathSplineMesh
 		Justification = Settings->Justification;
 		Justification.Init(Context, PointDataFacade);
 
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 
 		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
@@ -199,7 +201,7 @@ namespace PCGExPathSplineMesh
 
 		LastIndex = PointIO->GetNum() - 1;
 
-		PCGEX_SET_NUM_UNINITIALIZED(Segments, bClosedPath ? LastIndex + 1 : LastIndex)
+		PCGEX_SET_NUM_UNINITIALIZED(Segments, bClosedLoop ? LastIndex + 1 : LastIndex)
 		//PCGEX_SET_NUM_UNINITIALIZED(SplineMeshComponents, LastIndex)
 
 		switch (Settings->SplineMeshAxisConstant)
@@ -221,7 +223,26 @@ namespace PCGExPathSplineMesh
 			break;
 		}
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
+		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
+		bOneMinusWeight = Settings->WeightToAttribute == EPCGExWeightOutputMode::NormalizedInverted || Settings->WeightToAttribute == EPCGExWeightOutputMode::NormalizedInvertedToDensity;
+
+		if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw)
+		{
+			WeightWriter = PointDataFacade->GetWriter<int32>(Settings->WeightAttributeName, true);
+		}
+		else if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
+		{
+			NormalizedWeightWriter = PointDataFacade->GetWriter<double>(Settings->WeightAttributeName, true);
+		}
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		PathWriter = PointDataFacade->GetWriter<FSoftObjectPath>(Settings->AssetPathAttributeName, false);
+#else
+		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
+#endif
+
+		StartParallelLoopForPoints();
 
 		return true;
 	}
@@ -234,11 +255,32 @@ namespace PCGExPathSplineMesh
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		if (Index == LastIndex && !bClosedPath) { return; } // Ignore last index, only used for maths reasons
+		auto InvalidPoint = [&]()
+		{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+			PathWriter->Values[Index] = FSoftObjectPath{};
+#else
+			PathWriter->Values[Index] = TEXT("");
+#endif
+
+			if (bOutputWeight)
+			{
+				if (WeightWriter) { WeightWriter->Values[Index] = -1; }
+				else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = -1; }
+			}
+		};
+
+		if (Index == LastIndex && !bClosedLoop)
+		{
+			// Ignore last index, only used for maths reasons
+			InvalidPoint();
+			return;
+		}
 
 		if (!PointFilterCache[Index])
 		{
 			Segments[Index] = PCGExPaths::FSplineMeshSegment();
+			InvalidPoint();
 			return;
 		}
 
@@ -254,7 +296,30 @@ namespace PCGExPathSplineMesh
 		PCGExPaths::FSplineMeshSegment& Segment = Segments[Index];
 		Segment.AssetStaging = StagingData;
 
-		if (!StagingData) { return; }
+		if (!StagingData)
+		{
+			InvalidPoint();
+			return;
+		}
+
+		//
+
+		if (bOutputWeight)
+		{
+			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(LocalTypedContext->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
+			if (bOneMinusWeight) { Weight = 1 - Weight; }
+			if (WeightWriter) { WeightWriter->Values[Index] = Weight; }
+			else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = Weight; }
+			else { Point.Density = Weight; }
+		}
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		PathWriter->Values[Index] = StagingData->Path;
+#else
+		PathWriter->Values[Index] = StagingData->Path.ToString();
+#endif
+
+		//
 
 		Segment.SplineMeshAxis = SplineMeshAxisConstant;
 
@@ -298,6 +363,7 @@ namespace PCGExPathSplineMesh
 
 	void FProcessor::CompleteWork()
 	{
+		PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 
 	void FProcessor::Output()

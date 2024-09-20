@@ -59,7 +59,7 @@ public:
 	bool bAddPlotPointsToPath = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bClosedPath = false;
+	bool bClosedLoop = false;
 
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Node Picking", meta=(PCG_Overridable))

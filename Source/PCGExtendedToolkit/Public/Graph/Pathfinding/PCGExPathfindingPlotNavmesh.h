@@ -62,7 +62,7 @@ public:
 	bool bAddPlotPointsToPath = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bClosedPath = false;
+	bool bClosedLoop = false;
 
 	/** Whether the pathfinding requires a naviguable end location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

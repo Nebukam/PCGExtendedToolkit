@@ -113,7 +113,7 @@ namespace PCGExSmooth
 
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 		UPCGExSmoothingOperation* TypedOperation = nullptr;
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints): FPointsProcessor(InPoints)

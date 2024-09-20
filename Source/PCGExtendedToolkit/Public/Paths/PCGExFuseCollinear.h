@@ -84,7 +84,7 @@ namespace PCGExFuseCollinear
 	{
 		FPCGExFuseCollinearContext* LocalTypedContext = nullptr;
 
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 
 		TArray<FPCGPoint>* OutPoints = nullptr;
 

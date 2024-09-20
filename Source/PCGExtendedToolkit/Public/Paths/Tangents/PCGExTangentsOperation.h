@@ -21,14 +21,14 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExTangentsOperation : public UPCGExOperatio
 	GENERATED_BODY()
 
 public:
-	bool bClosedPath = false;
+	bool bClosedLoop = false;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override
 	{
 		Super::CopySettingsFrom(Other);
 		if (const UPCGExTangentsOperation* TypedOther = Cast<UPCGExTangentsOperation>(Other))
 		{
-			bClosedPath = TypedOther->bClosedPath;
+			bClosedLoop = TypedOther->bClosedLoop;
 		}
 	}
 

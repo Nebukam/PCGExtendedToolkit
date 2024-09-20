@@ -72,7 +72,7 @@ namespace PCGExPathIntersections
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		bool bClosedPath = false;
+		bool bClosedLoop = false;
 		int32 LastIndex = 0;
 		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
 		PCGExGeo::FSegmentation* Segmentation = nullptr;

@@ -92,7 +92,7 @@ namespace PCGExSmooth
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 		NumPoints = PointIO->GetNum();
 
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
@@ -141,12 +141,12 @@ namespace PCGExSmooth
 		if ((LocalSettings->bPreserveEnd && Index == NumPoints - 1) ||
 			(LocalSettings->bPreserveStart && Index == 0))
 		{
-			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender, bClosedPath);
+			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender, bClosedLoop);
 			return;
 		}
 
 		const double LocalInfluence = Influence ? Influence->Values[Index] : LocalSettings->InfluenceConstant;
-		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, LocalInfluence, MetadataBlender, bClosedPath);
+		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, LocalInfluence, MetadataBlender, bClosedLoop);
 	}
 
 	void FProcessor::CompleteWork()

@@ -297,7 +297,7 @@ namespace PCGExBevelPath
 
 
 		bInlineProcessPoints = true;
-		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
 		PCGEX_SET_NUM_NULLPTR(Bevels, PointIO->GetNum())
 
@@ -352,7 +352,7 @@ namespace PCGExBevelPath
 				PointDataFacade->Fetch(StartIndex, Count);
 				FilterScope(StartIndex, Count);
 
-				if (!bClosedPath)
+				if (!bClosedLoop)
 				{
 					// Ensure bevel is disabled on start/end points
 					PointFilterCache[0] = false;

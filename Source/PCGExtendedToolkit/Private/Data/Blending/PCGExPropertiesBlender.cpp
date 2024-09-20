@@ -45,15 +45,19 @@ if(ResetBlend.Contains(_NAME##Blending)){ bReset##_NAME=true; bRequiresPrepare =
 _TYPE Target##_NAME = Target._ACCESSOR;\
 switch (_NAME##Blending) {\
 case EPCGExDataBlendingType::None:  break;\
-case EPCGExDataBlendingType::Average:		Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
-case EPCGExDataBlendingType::Min:			Target##_NAME = PCGExMath::Min(A._ACCESSOR, B._ACCESSOR);break;\
-case EPCGExDataBlendingType::Max:			Target##_NAME = PCGExMath::Max(A._ACCESSOR, B._ACCESSOR);break;\
-case EPCGExDataBlendingType::Copy:			Target##_NAME = PCGExMath::Copy(A._ACCESSOR, B._ACCESSOR);break;\
-case EPCGExDataBlendingType::Sum:			Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
-case EPCGExDataBlendingType::Weight:		Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
-case EPCGExDataBlendingType::WeightedSum:	Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
-case EPCGExDataBlendingType::Lerp:			Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Weight);break; \
-case EPCGExDataBlendingType::Subtract:		Target##_NAME = PCGExMath::Subtract(A._ACCESSOR, B._ACCESSOR);break; }
+case EPCGExDataBlendingType::Average:			Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
+case EPCGExDataBlendingType::Min:				Target##_NAME = PCGExMath::Min(A._ACCESSOR, B._ACCESSOR);break;\
+case EPCGExDataBlendingType::Max:				Target##_NAME = PCGExMath::Max(A._ACCESSOR, B._ACCESSOR);break;\
+case EPCGExDataBlendingType::Copy:				Target##_NAME = PCGExMath::Copy(A._ACCESSOR, B._ACCESSOR);break;\
+case EPCGExDataBlendingType::Sum:				Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
+case EPCGExDataBlendingType::Weight:			Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
+case EPCGExDataBlendingType::WeightedSum:		Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
+case EPCGExDataBlendingType::Lerp:				Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Weight);break; \
+case EPCGExDataBlendingType::Subtract:			Target##_NAME = PCGExMath::Subtract(A._ACCESSOR, B._ACCESSOR);break; \
+case EPCGExDataBlendingType::UnsignedMin:		Target##_NAME = PCGExMath::UnsignedMin(A._ACCESSOR, B._ACCESSOR);break; \
+case EPCGExDataBlendingType::UnsignedMax:		Target##_NAME = PCGExMath::UnsignedMax(A._ACCESSOR, B._ACCESSOR);break; \
+case EPCGExDataBlendingType::AbsoluteMin:		Target##_NAME = PCGExMath::AbsoluteMin(A._ACCESSOR, B._ACCESSOR);break; \
+case EPCGExDataBlendingType::AbsoluteMax:		Target##_NAME = PCGExMath::AbsoluteMax(A._ACCESSOR, B._ACCESSOR);break;		}
 
 		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
 #undef PCGEX_BLEND_PROPDECL
