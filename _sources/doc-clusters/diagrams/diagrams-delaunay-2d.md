@@ -15,7 +15,6 @@ tagged:
 nav_order: 1
 see_also:
     - Working with Clusters
-example: EdgesAndGraphs/PCGEx_Graph_Delaunay-2D
 inputs:
     -   name : In
         desc : Points clouds that will be triangulated

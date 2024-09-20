@@ -51,6 +51,5 @@ The Edge Direction filter does a simple dot product comparison on each individua
 ---
 ## Dot Comparison Details
 <br>
-### Dot Comparison Details
 {% include embed id='settings-dot-comparison' %}
 

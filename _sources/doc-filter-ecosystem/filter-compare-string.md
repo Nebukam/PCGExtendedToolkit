@@ -4,7 +4,7 @@ layout: page
 parent: Filter Ecosystem
 title: 🝖 Compare (String)
 name_in_editor: "Filter : Compare (String)"
-subtitle: The **Compare String Filter** compares two strings
+subtitle: Compares two string-like attributes against each other.
 color: white
 summary: TBD
 splash: icons/icon_misc-sort-points.svg
@@ -19,14 +19,31 @@ outputs:
         pin : params
 ---
 
-*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#string-comparisons).*
-
 {% include header_card_node %}
+
+The **Compare (String)** compares two string-like attributes against each other.
+{: .fs-5 .fw-400 } 
+
+{% include img a='details/filter-ecosystem/filter-compare-string-lead.png' %}
 
 # Properties
 <br>
 
-> DOC TDB
-{: .warning }
+| Property       | Description          |
+|:-------------|:------------------|
+| **Operand A**          ||
+| Operand A          | The first attribute of the comparison. |
 
-{% include img a='details/filter-ecosystem/filter-compare-string-lead.png' %}
+| **Comparison**          ||
+| Comparison | How to compare A against B.<br>*See [String comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#string-comparisons).* |
+
+| **Operand B**          ||
+| Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
+| Operand B (Attribute) | Attribute to use as Operand B. |
+| Operand B (Constant) | Constant value to use as Operand B. |
+| Tolerance | Equality tolerance using an approximative comparison. |
+
+---
+## Comparison modes
+<br>
+{% include embed id='settings-compare-string' %}

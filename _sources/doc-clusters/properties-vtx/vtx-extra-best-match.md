@@ -45,7 +45,6 @@ The **Edge Match** property outputs the properties of the single connected edges
 ---
 ## Dot Comparison Details
 <br>
-### Dot Comparison Details
 {% include embed id='settings-dot-comparison' %}
 
 ---

@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body>
+<table class="enum">
+  <thead>
+    <tr>
+      <th style="text-align: left">Comparison</th>
+      <th style="text-align: left">Data</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><span class="ebit">Match (any)</span></td>
+      <td style="text-align: left">Value &amp; Mask != 0 (At least some flags in the mask are set)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">Match (all)</span></td>
+      <td style="text-align: left">Value &amp; Mask == Mask (All the flags in the mask are set)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">Match (strict)</span></td>
+      <td style="text-align: left">Value == Mask (Flags strictly equals mask)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">No Match (any)</span></td>
+      <td style="text-align: left">Value &amp; Mask == 0 (Flags does not contains any from mask)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">No Match (all)</span></td>
+      <td style="text-align: left">Value &amp; Mask != Mask (Flags does not contains the mask)</td>
+    </tr>
+  </tbody>
+</table>
+</body></html>

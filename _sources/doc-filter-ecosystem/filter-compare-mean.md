@@ -75,6 +75,8 @@ Relative values = {0.0083, 0.016, 0.025, 0.03, 0.041, 0.041, 0.045, 0.05, 1, 0.4
 ### Average (Arithmetic mean)
 Average mean is, well, the averaged value of all the values.  
 
+{% include img a='details/filter-ecosystem/filter-compare-mean-average.png' %}
+
 ```cpp
 Absolute Average Mean = 201.5
 Relative Average Mean = 0.125
@@ -82,6 +84,8 @@ Relative Average Mean = 0.125
 
 ### Median
 Median uses the median value of all the available lengths, sorted.  
+
+{% include img a='details/filter-ecosystem/filter-compare-mean-median.png' %}
 
 ```cpp
 Sorted Absolute values = [10, 20, 30, 40, 50, 50, 55, 60, 500, 1200]
@@ -94,7 +98,9 @@ Relative Median Mean = 0.041 // [.., 0.041, 0.041, ...]
 ### Mode (Shortest or Longest)
 See [Mode (statitics) on Wikipedia](https://en.wikipedia.org/wiki/Mode_(statistics)).
 
-If there are concurrent mode values (multiple buckets containing the same amount of values), the selected mode variant allows you to select either the mode with the *smalles* values, or the one with the *largest* out of the available conflicting modes.
+If there are concurrent mode values (multiple buckets containing the same amount of values), the selected mode variant allows you to select either the mode with the *smallest* values, or the one with the *largest* out of the available conflicting modes.
+
+{% include img a='details/filter-ecosystem/filter-compare-mean-mode.png' %}
 
 ```cpp
 Absolute Mode Mean = 50 // [50, 50] is the largest bucket of equal values
@@ -107,6 +113,8 @@ Absolute Mode Mean = 0.041 // [0.041, 0.041] is the largest bucket of equal valu
 ### Central
 Central uses the middle value between the `smallest` and `largest` values as mean.
 
+{% include img a='details/filter-ecosystem/filter-compare-mean-central.png' %}
+
 ```cpp
 Absolute Central Mean = 605 // 10 + (1200-10)/2
 Relative Central Mean = 0.504 // 0.0083 + (1-0.0083)/2
@@ -117,3 +125,10 @@ Fixed mean is basically **user-defined** mean.
 This is the way to go if you don't care about statistics or if you have a consistent, metrics-driven setup.  
 
 > This is the least flexible but most performant approach as there is no need to compute any statistics prior to pruning.
+
+{% include img a='details/filter-ecosystem/filter-compare-mean-fixed.png' %}
+
+---
+## Comparison modes
+<br>
+{% include embed id='settings-compare-numeric' %}

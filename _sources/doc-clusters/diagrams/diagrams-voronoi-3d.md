@@ -15,7 +15,6 @@ tagged:
 nav_order: 4
 see_also:
     - Working with Clusters
-example: EdgesAndGraphs/PCGEx_Graph_Voronoi-3D
 inputs:
     -   name : In
         desc : Points clouds that will be triangulated

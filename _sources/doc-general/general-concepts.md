@@ -27,12 +27,12 @@ On top of static properties, point can have **Dynamic attributes**, which are cu
 {: .warning }
 
 ---
-## Dataset
+## Data / Dataset / Collection
 Often *Point* Datasets, they are container for a single type of more atomic data -- i.e, points.  Contrary to points that share a common set of static properties, each Dataset can have its own custom list of attributes; with per-point values. Most PCGEx nodes can take multiple *Dataset* as input, and will process them in parallel.  
 
 Some very specific nodes are processing Dataset against each others, but it's clear when they do so. It's important to understand that most PCGEx nodes will do their biding on individual Datasets, ignoring what's going on with others processed in parallel : things like min/max values for example are computed *per* Dataset, and never against the entierety of the inputs.
 
-> As a rule of thumb, PCGEx will always process Dataset in solation of the others, and **output Dataset in the same order as they are in the input**.
+> As a rule of thumb, PCGEx will always process Dataset in solation of the others, and **output Datas in the same order as they are in the input**.
 {: .comment }
 
 ---

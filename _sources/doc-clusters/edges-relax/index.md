@@ -39,7 +39,7 @@ outputs:
 The relax point node smoothes cluster' topology by iteratively applying a given **relaxation** algorithm.
 {: .fs-5 .fw-400 } 
 
-{% include img a='details/edge-relax/edge-relax-lead.png' %}
+{% include img a='details/edges-relax/edges-relax-lead.png' %}
 
 # Properties
 <br>

@@ -4,7 +4,7 @@ layout: page
 parent: Filter Ecosystem
 title: 🝖 Bitmask
 name_in_editor: "Filter : Bitmask"
-subtitle: The Bitmask Filter evaluates an int64 bitmask attribute to check specific flags, with configurable mask types, comparisons, and an option to invert the result.
+subtitle: Checks specific flags in an int64 bitmask attribute with configurable mask types, comparisons, and an option to invert results.
 color: white
 summary: TBD
 splash: icons/icon_misc-sort-points.svg
@@ -38,3 +38,8 @@ The **Bitmask Filter** lets you check whether certain flags are set or not in an
 | Bitmask Attribute | Attribute that contains the per-point mask value.<br>*Strictly expects an `int64`.* |
 | Bitmask | Constant bitmask value. |
 | Invert Result | If enabled, invert the result of the filter. |
+
+---
+## Comparison modes
+<br>
+{% include embed id='settings-compare-bitmask' %}

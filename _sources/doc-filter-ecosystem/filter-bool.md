@@ -4,7 +4,7 @@ layout: page
 parent: Filter Ecosystem
 title: 🝖 Bool
 name_in_editor: "Filter : Bool Compare"
-subtitle: The **Bool Filter** does a simple bool comparison
+subtitle: Performs a simple boolean comparison, converting numeric values to true (> 0) or false (<= 0).
 color: white
 summary: TBD
 splash: icons/icon_misc-sort-points.svg
@@ -36,8 +36,11 @@ Numeric values will be converted following these rules:
 
 | Property       | Description          |
 |:-------------|:------------------|
+| **Operand A**          ||
 | Operand A          | The first attribute of the comparison |
 | Comparison | How to compare the two operand A & B. Either `Equal` (A == B) or `Not Equal` (A != B) |
 | Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
+
+| **Operand B**          ||
 | Operand B | Attribute that contains the per-point operand B value. |
 | Operand B Constant | Constant operand B value. |

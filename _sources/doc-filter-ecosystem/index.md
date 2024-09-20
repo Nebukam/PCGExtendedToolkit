@@ -18,7 +18,7 @@ nav_order: 11
 > PCGEx comes with its own filter ecosystem, that is used by a lot of nodes to check if specific conditions or requirements are met on a node in order to process it. It also has two standalone, very powerful nodes that lets you combine any number of filters in the same spot.
 {: .infos-hl }
 
-PCGEx' filter system is slightly slower than the regular filters but saves a LOT of the extra nodes that would be required to achieve the same results.
+PCGEx' filter system can be slightly slower than the regular filters but saves a LOT of the extra nodes that would be required to achieve the same results. 
 
 ---
 ## Filtering Nodes
@@ -32,6 +32,9 @@ PCGEx' filter system is slightly slower than the regular filters but saves a LOT
 
 ---
 ## Optimizing 
+
+> The biggest overhead of filtering is fetching attribute values : testing a lot of different attributes if much more expensive that a lot of different tests on the same attributes, as PCGEx caches attribute values before testing!
+{: .infos-hl }
 
 All filters come with a `Priority` property: that property is used internally to order filters **in ascending order**.  
 The default filtering behavior is to exit the test loop as soon as possible, whether it has an `OR` or `AND` behavior. **Because of that, you should always order the tests that are the most likely to fail first**.  

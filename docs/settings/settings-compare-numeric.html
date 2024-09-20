@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body>
+<table class="enum">
+  <thead>
+    <tr>
+      <th style="text-align: left">Comparison</th>
+      <th style="text-align: left">Data</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><span class="ebit">==</span></td>
+      <td style="text-align: left">Strictly equal.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">!=</span></td>
+      <td style="text-align: left">Strictly not equal.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit"> &gt;=</span></td>
+      <td style="text-align: left">Equal or greater.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">&lt;=</span></td>
+      <td style="text-align: left">Equal or smaller.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit"> &gt;</span></td>
+      <td style="text-align: left">Strictly greater.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">&lt; </span></td>
+      <td style="text-align: left">Strictly smaller.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">~=</span></td>
+      <td style="text-align: left">Nearly equal.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><span class="ebit">!~=</span></td>
+      <td style="text-align: left">Nearly not equal.</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote class="infos">
+  <p>Approximative comparison will reveal an additional parameter, dubbed <code class="language-plaintext highlighter-rouge">Tolerance</code>. This represents the size of acceptable approximation for the comparison to pass.
+For example, when checking if <code class="language-plaintext highlighter-rouge">0.5 ~= 0.4</code> with a tolerance of <code class="language-plaintext highlighter-rouge">0.1</code> will return <code class="language-plaintext highlighter-rouge">true</code>.</p>
+</blockquote>
+
+<blockquote class="comment">
+  <p>Large tolerances can be a great, cheap way to achieve results akin to a “within range” comparison!</p>
+</blockquote>
+</body></html>

@@ -4,7 +4,7 @@ layout: page
 parent: Filter Ecosystem
 title: 🝖 Dot Product
 name_in_editor: "Filter : Dot"
-subtitle: The **Dot Product Filter** compares the dot product of two direction vectors
+subtitle: Compares the dot product of two direction vectors against a third value.
 color: white
 summary: TBD
 splash: icons/icon_misc-sort-points.svg
@@ -21,10 +21,34 @@ outputs:
 
 {% include header_card_node %}
 
+The **Dot Filter** compares the dot product value of two directions.
+{: .fs-5 .fw-400 } 
+
+
+{% include img a='details/filter-ecosystem/filter-compare-dot-lead.png' %}
+
 # Properties
 <br>
 
-> DOC TDB
-{: .warning }
+| Property       | Description          |
+|:-------------|:------------------|
+| **Operand A**          ||
+| Operand A          | The first attribute of the comparison.<br>*Read as `FVector` direction.* |
+| Transform Operand A          | If enabled, the Operand A direction will be transformed by the tested' point transform. |
+| Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
 
-{% include img a='details/filter-ecosystem/filter-compare-dot-lead.png' %}
+| **Operand B**          ||
+| Operand B | Attribute that contains the per-point operand B value.<br>*Read as `FVector` direction.* |
+| Operand B Constant | Constant operand B value.<br>*Read as `FVector` direction.* |
+| Transform Operand A          | If enabled, the Operand A direction will be transformed by the tested' point transform. |
+
+---
+## Dot Comparison Details
+<br>
+{% include embed id='settings-dot-comparison' %}
+
+---
+## Comparison modes
+<br>
+{% include embed id='settings-compare-numeric' %}
+

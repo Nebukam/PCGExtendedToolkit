@@ -19,14 +19,34 @@ outputs:
         pin : params
 ---
 
-*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).*
-
 {% include header_card_node %}
+
+The **Compare (Numeric)** compares two attributes against each other.
+{: .fs-5 .fw-400 } 
+
+> Note that each value is converted to a `double` under the hood, so you can't compare multi-component value with it.
+{: .warning }
+
+{% include img a='details/filter-ecosystem/filter-compare-numeric-lead.png' %}
 
 # Properties
 <br>
 
-> DOC TDB
-{: .warning }
+| Property       | Description          |
+|:-------------|:------------------|
+| **Operand A**          ||
+| Operand A          | The first attribute of the comparison. |
 
-{% include img a='details/filter-ecosystem/filter-compare-numeric-lead.png' %}
+| **Comparison**          ||
+| Comparison | How to compare A against B.<br>*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* |
+
+| **Operand B**          ||
+| Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
+| Operand B (Attribute) | Attribute to use as Operand B. |
+| Operand B (Constant) | Constant value to use as Operand B. |
+| Tolerance | Equality tolerance using an approximative comparison. |
+
+---
+## Comparison modes
+<br>
+{% include embed id='settings-compare-numeric' %}

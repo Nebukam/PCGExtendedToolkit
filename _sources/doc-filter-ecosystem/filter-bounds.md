@@ -4,7 +4,7 @@ layout: page
 parent: Filter Ecosystem
 title: 🝖 Bounds
 name_in_editor: "Filter : Bounds"
-subtitle: The **Bounds Filter** check if a point is inside or outside provided bounds
+subtitle: Checks if a point is inside or outside the provided bounds, with options for bounds types and an epsilon adjustment.
 color: white
 summary: TBD
 splash: icons/icon_misc-sort-points.svg

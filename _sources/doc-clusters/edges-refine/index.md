@@ -51,7 +51,7 @@ The **Cluster Refine** node lets you refine connections inside individual cluste
 
 > Refining only **removes** edges and does not create new ones.
 
-{% include img a='details/edge-refine/edge-refine-lead.png' %}
+{% include img a='details/edges-refine/edges-refine-lead.png' %}
 
 > The filters determine which edge can be pruned. **Any filter that doesn't pass will ensure the edge is preserved.**
 {: .infos-hl }
