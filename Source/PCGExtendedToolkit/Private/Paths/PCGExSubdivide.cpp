@@ -28,7 +28,6 @@ bool FPCGExSubdivideElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bWriteAlpha) { PCGEX_VALIDATE_NAME(Settings->AlphaAttributeName) }
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
-	Context->Blending->bClosedPath = Settings->bClosedPath;
 
 	return true;
 }
@@ -102,6 +101,8 @@ namespace PCGExSubdivide
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
+		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+
 		if (Settings->ValueSource == EPCGExFetchType::Attribute)
 		{
 			AmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
@@ -119,6 +120,7 @@ namespace PCGExSubdivide
 		bUseCount = Settings->SubdivideMethod == EPCGExSubdivideMode::Count;
 
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
+		Blending->bClosedPath = bClosedPath;
 
 		PCGEX_SET_NUM(Subdivisions, PointIO->GetNum())
 
@@ -199,7 +201,7 @@ namespace PCGExSubdivide
 	void FProcessor::CompleteWork()
 	{
 		int32 NumPoints = 0;
-		if (!LocalSettings->bClosedPath) { Subdivisions[Subdivisions.Num() - 1].NumSubdivisions = 0; }
+		if (!bClosedPath) { Subdivisions[Subdivisions.Num() - 1].NumSubdivisions = 0; }
 
 		for (FSubdivision& Sub : Subdivisions)
 		{
@@ -208,7 +210,7 @@ namespace PCGExSubdivide
 			Sub.OutEnd = NumPoints;
 		}
 
-		if (LocalSettings->bClosedPath) { Subdivisions[Subdivisions.Num() - 1].OutEnd = 0; }
+		if (bClosedPath) { Subdivisions[Subdivisions.Num() - 1].OutEnd = 0; }
 		else { Subdivisions[Subdivisions.Num() - 1].NumSubdivisions = 0; }
 
 		if (NumPoints == PointIO->GetNum())

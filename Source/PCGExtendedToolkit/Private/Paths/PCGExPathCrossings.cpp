@@ -38,7 +38,6 @@ bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bWriteCrossDirection) { PCGEX_VALIDATE_NAME(Settings->CrossDirectionAttributeName) }
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
-	Context->Blending->bClosedPath = Settings->bClosedPath;
 
 	GetInputFactories(Context, PCGExPaths::SourceCanCutFilters, Context->CanCutFilterFactories, PCGExFactories::PointFilters, false);
 	GetInputFactories(Context, PCGExPaths::SourceCanBeCutFilters, Context->CanBeCutFilterFactories, PCGExFactories::PointFilters, false);
@@ -133,7 +132,7 @@ namespace PCGExPathCrossings
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
-		bClosedPath = Settings->bClosedPath;
+		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
 		Details = Settings->IntersectionDetails;
 		Details.Init();
@@ -168,6 +167,7 @@ namespace PCGExPathCrossings
 		EdgeOctree = new TEdgeOctree(PointBounds.GetCenter(), PointBounds.GetExtent().Length() + (Details.Tolerance * 2));
 
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
+		Blending->bClosedPath = bClosedPath;
 		if (Settings->bOrientCrossing) { Blending->bPreserveRotation = true; }
 
 		PCGEX_ASYNC_GROUP(AsyncManagerPtr, Preparation)

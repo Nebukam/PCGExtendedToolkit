@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExPathProcessor.generated.h"
@@ -27,6 +28,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPathProcessorSettings : public UPCGExPoin
 	GENERATED_BODY()
 
 public:
+	UPCGExPathProcessorSettings(const FObjectInitializer& ObjectInitializer);
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPath; }
@@ -39,7 +42,15 @@ public:
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourcePathsLabel; }
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputPathsLabel; }
 	virtual FString GetPointFilterTooltip() const override { return TEXT("Path points processing filters"); }
+
 	//~End UPCGExPointsProcessorSettings
+
+	UPROPERTY()
+	bool bSupportClosedLoops = true;
+	
+	/** Closed loop handling.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="bSupportClosedLoops", EditConditionHides, HideEditConditionToggle))
+	FPCGExPathClosedLoopDetails ClosedLoop;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
@@ -48,6 +59,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessorContext : public FPCGExPoin
 
 	virtual ~FPCGExPathProcessorContext() override;
 
+	FPCGExPathClosedLoopDetails ClosedLoop;
 	PCGExData::FPointIOCollection* MainPaths = nullptr;
 };
 

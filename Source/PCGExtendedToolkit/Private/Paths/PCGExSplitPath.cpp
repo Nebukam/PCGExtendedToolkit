@@ -23,6 +23,9 @@ bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplitPath)
 
+	PCGEX_FWD(UpdateTags)
+	Context->UpdateTags.Init();
+	
 	Context->MainPaths = new PCGExData::FPointIOCollection(Context);
 	Context->MainPaths->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
@@ -97,7 +100,7 @@ namespace PCGExSplitPath
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
-		bClosedPath = Settings->bClosedPath;
+		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
 		const int32 NumPoints = PointIO->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
@@ -186,7 +189,7 @@ namespace PCGExSplitPath
 		if (bClosedPath)
 		{
 			if (Paths.Num() >= 2) { bWrapLastPath = Paths[0].Start == 0 && Paths.Last().End == -1; }
-			if (Paths.Num() > 1 || Paths[0].End != -1 || Paths[0].Start != 0) { bAddOpenTag = Settings->OpenPathTag.IsEmpty() ? false : true; }
+			if (Paths.Num() > 1 || Paths[0].End != -1 || Paths[0].Start != 0) { bAddOpenTag = true; }
 		}
 
 		PCGEX_SET_NUM_NULLPTR(PathsIOs, Paths.Num())
@@ -203,7 +206,7 @@ namespace PCGExSplitPath
 		for (PCGExData::FPointIO* PathIO : PathsIOs)
 		{
 			if (!PathIO) { continue; }
-			if (bAddOpenTag) { PathIO->Tags->Add(Settings->OpenPathTag); }
+			if (bAddOpenTag) { LocalTypedContext->UpdateTags.Update(PathIO); }
 			LocalTypedContext->MainPaths->AddUnsafe(PathIO);
 		}
 

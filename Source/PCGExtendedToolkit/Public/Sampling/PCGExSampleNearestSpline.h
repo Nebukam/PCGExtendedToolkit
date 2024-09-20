@@ -21,7 +21,8 @@ MACRO(SignedDistance, double)\
 MACRO(Angle, double)\
 MACRO(Time, double)\
 MACRO(NumInside, int32)\
-MACRO(NumSamples, int32)
+MACRO(NumSamples, int32)\
+MACRO(ClosedLoop, bool)
 
 class UPCGExFilterFactoryBase;
 
@@ -120,7 +121,7 @@ public:
 public:
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
+	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange; 
 
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
@@ -264,6 +265,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="NumSamples", PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
 
+	/** Write the whether the sampled spline is closed or not. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteClosedLoop = false;
+
+	/** Name of the 'bool' attribute to write whether a closed spline was sampled or not.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="ClosedLoop", PCG_Overridable, EditCondition="bWriteClosedLoop"))
+	FName ClosedLoopAttributeName = FName("ClosedLoop");
+	
 	//
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))

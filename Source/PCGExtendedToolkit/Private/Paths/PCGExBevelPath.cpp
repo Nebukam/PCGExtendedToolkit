@@ -297,7 +297,7 @@ namespace PCGExBevelPath
 
 
 		bInlineProcessPoints = true;
-		bClosedPath = Settings->bClosedPath;
+		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
 		PCGEX_SET_NUM_NULLPTR(Bevels, PointIO->GetNum())
 

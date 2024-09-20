@@ -50,14 +50,10 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
-	/** Consider paths to be closed -- processing will wrap between first and last points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bClosedPath = false;
-
-	/** When closed path is enabled, paths that aren't closed anymore will be tagged. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClosedPath", EditConditionHides))
-	FString OpenPathTag = "Open";
-
+	/** When processing closed loop paths, paths that aren't looping anymore will be tagged. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
+	FPCGExPathClosedLoopUpdateDetails UpdateTags;
+	
 	/** If both split and remove are true, the selected behavior takes priority */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
@@ -80,6 +76,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : public FPCGExPa
 	friend class FPCGExSplitPathElement;
 
 	virtual ~FPCGExSplitPathContext() override;
+
+	FPCGExPathClosedLoopUpdateDetails UpdateTags;
+	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathElement final : public FPCGExPathProcessorElement

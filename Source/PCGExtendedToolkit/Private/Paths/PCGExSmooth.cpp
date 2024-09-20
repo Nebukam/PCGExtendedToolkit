@@ -92,7 +92,7 @@ namespace PCGExSmooth
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
-		bClosedPath = Settings->bClosedPath;
+		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 		NumPoints = PointIO->GetNum();
 
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);

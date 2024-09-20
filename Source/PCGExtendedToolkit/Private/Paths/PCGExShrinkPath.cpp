@@ -6,6 +6,13 @@
 #define LOCTEXT_NAMESPACE "PCGExShrinkPathElement"
 #define PCGEX_NAMESPACE ShrinkPath
 
+UPCGExShrinkPathSettings::UPCGExShrinkPathSettings(
+		const FObjectInitializer& ObjectInitializer)
+		: Super(ObjectInitializer)
+{
+	bSupportClosedLoops = false;		
+}
+
 PCGExData::EInit UPCGExShrinkPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(ShrinkPath)

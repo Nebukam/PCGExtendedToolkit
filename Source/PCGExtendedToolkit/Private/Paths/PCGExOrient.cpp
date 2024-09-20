@@ -33,7 +33,6 @@ bool FPCGExOrientElement::Boot(FPCGExContext* InContext) const
 	}
 
 	PCGEX_OPERATION_BIND(Orientation, UPCGExOrientOperation)
-	Context->Orientation->bClosedPath = Settings->bClosedPath;
 	Context->Orientation->OrientAxis = Settings->OrientAxis;
 	Context->Orientation->UpAxis = Settings->UpAxis;
 
@@ -106,6 +105,7 @@ namespace PCGExOrient
 
 		LastIndex = PointIO->GetNum() - 1;
 		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
+		Orient->bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 		if (!Orient->PrepareForData(PointDataFacade)) { return false; }
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)

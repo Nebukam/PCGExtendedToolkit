@@ -34,10 +34,6 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
-	/** Consider paths to be closed -- processing will wrap between first and last points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bClosedPath = false;
-
 	/** Offset type.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExFetchType OffsetType = EPCGExFetchType::Constant;
@@ -89,6 +85,8 @@ namespace PCGExOffsetPath
 	{
 		int32 NumPoints = 0;
 
+		bool bClosedPath = false;
+		
 		double OffsetConstant = 0;
 		FVector UpConstant = FVector::UpVector;
 

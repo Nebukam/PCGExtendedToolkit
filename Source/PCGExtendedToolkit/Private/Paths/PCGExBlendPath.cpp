@@ -8,6 +8,12 @@
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
 #define PCGEX_NAMESPACE BlendPath
 
+UPCGExBlendPathSettings::UPCGExBlendPathSettings(
+		const FObjectInitializer& ObjectInitializer)
+		: Super(ObjectInitializer)
+{
+	bSupportClosedLoops = false;		
+}
 
 PCGExData::EInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 

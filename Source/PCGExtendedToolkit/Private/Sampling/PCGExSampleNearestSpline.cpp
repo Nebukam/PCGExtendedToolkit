@@ -178,6 +178,7 @@ namespace PCGExSampleNearestSpline
 			PCGEX_OUTPUT_VALUE(Time, Index, -1)
 			PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
 			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+			PCGEX_OUTPUT_VALUE(ClosedLoop, Index, false)
 		};
 
 		if (!PointFilterCache[Index])
@@ -188,6 +189,7 @@ namespace PCGExSampleNearestSpline
 
 
 		int32 NumInside = 0;
+		bool bClosed = false;
 
 		double RangeMin = FMath::Pow(RangeMinGetter ? RangeMinGetter->Values[Index] : LocalSettings->RangeMin, 2);
 		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Values[Index] : LocalSettings->RangeMax, 2);
@@ -200,7 +202,7 @@ namespace PCGExSampleNearestSpline
 		PCGExPolyLine::FTargetsCompoundInfos TargetsCompoundInfos;
 
 		FVector Origin = Point.Transform.GetLocation();
-		auto ProcessTarget = [&](const FTransform& Transform, const double& Time)
+		auto ProcessTarget = [&](const FTransform& Transform, const double& Time, const FPCGSplineStruct& InSpline)
 		{
 			const FVector ModifiedOrigin = PCGExMath::GetSpatializedCenter(LocalSettings->DistanceSettings, Point, Origin, Transform.GetLocation());
 			const double Dist = FVector::DistSquared(ModifiedOrigin, Transform.GetLocation());
@@ -213,6 +215,8 @@ namespace PCGExSampleNearestSpline
 			{
 				NumInside++;
 			}
+
+			if (InSpline.bClosedLoop) { bClosed = true; }
 
 			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 				LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
@@ -233,7 +237,7 @@ namespace PCGExSampleNearestSpline
 				FTransform SampledTransform;
 				double Time = Line->SplineStruct.FindInputKeyClosestToWorldLocation(Origin);
 				SampledTransform = Line->SplineStruct.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
-				ProcessTarget(SampledTransform, Time);
+				ProcessTarget(SampledTransform, Time, Line->SplineStruct);
 			}
 		}
 		else
@@ -243,7 +247,7 @@ namespace PCGExSampleNearestSpline
 				FTransform SampledTransform;
 				double Time = Line->SplineStruct.FindInputKeyClosestToWorldLocation(Origin);
 				SampledTransform = Line->SplineStruct.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
-				ProcessTarget(SampledTransform, Time);
+				ProcessTarget(SampledTransform, Time, Line->SplineStruct);
 			}
 		}
 
@@ -335,6 +339,7 @@ namespace PCGExSampleNearestSpline
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(Time, Index, WeightedTime)
 		PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
+		PCGEX_OUTPUT_VALUE(ClosedLoop, Index, bClosed)
 
 		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
 	}

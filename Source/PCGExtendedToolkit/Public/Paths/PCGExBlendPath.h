@@ -36,6 +36,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBlendPathSettings : public UPCGExPathProc
 	GENERATED_BODY()
 
 public:
+	UPCGExBlendPathSettings(const FObjectInitializer& ObjectInitializer);
+	
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BlendPath, "Path : Blend", "Blend path individual points between its start and end points.");

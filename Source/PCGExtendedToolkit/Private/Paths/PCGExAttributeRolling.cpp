@@ -9,6 +9,13 @@
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling
 
+UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
+		const FObjectInitializer& ObjectInitializer)
+		: Super(ObjectInitializer)
+{
+	bSupportClosedLoops = false;		
+}
+
 TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

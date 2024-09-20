@@ -9,6 +9,74 @@
 
 #include "PCGExPaths.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Input Scope"))
+enum class EPCGExInputScope : uint8
+{
+	All          = 0 UMETA(DisplayName = "All", Tooltip="All paths are considered to have the same open or closed status."),
+	AllButTagged = 2 UMETA(DisplayName = "All but tagged", Tooltip="All paths are considered open or closed by default, except the ones with the specified tags which will use the opposite value."),
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
+{
+	GENERATED_BODY()
+
+	/** Define whether the input dataset should be considered open or closed. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExInputScope Scope = EPCGExInputScope::All;
+
+	/** Whether the paths are closed loops. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bClosedLoop = false;
+
+	/** Comma separated tags */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Scope!=EPCGExInputScope::All", EditConditionHides))
+	FString CommaSeparatedTags = TEXT("");
+
+	TArray<FString> Tags;
+
+	void Init()
+	{
+		Tags = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedTags);
+	}
+
+	bool IsClosedLoop(const PCGExData::FPointIO* InPointIO)
+	{
+		if (Tags.IsEmpty()) { return bClosedLoop; }
+		for (const FString& Tag : Tags) { if (InPointIO->Tags->IsTagged(Tag)) { return !bClosedLoop; } }
+		return bClosedLoop;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopUpdateDetails
+{
+	GENERATED_BODY()
+
+	/** Tags to be added to closed paths that are broken into open paths */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Add Open Tags"))
+	FString CommaSeparatedAddTags = TEXT("");
+
+	/** Tags to be removed from closed paths that are broken into open paths */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Remove Open Tags"))
+	FString CommaSeparatedRemoveTags = TEXT("");
+
+	TArray<FString> AddTags;
+	TArray<FString> RemoveTags;
+
+	void Init()
+	{
+		AddTags = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedAddTags);
+		RemoveTags = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedRemoveTags);
+	}
+
+	void Update(const PCGExData::FPointIO* InPointIO)
+	{
+		for (const FString& Add : AddTags) { InPointIO->Tags->Add(Add); }
+		for (const FString& Rem : RemoveTags) { InPointIO->Tags->Remove(Rem); }
+	}
+};
+
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathEdgeIntersectionDetails
 {

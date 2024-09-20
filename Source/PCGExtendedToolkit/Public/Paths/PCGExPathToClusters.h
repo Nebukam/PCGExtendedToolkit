@@ -47,10 +47,6 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
-	/** Consider paths to be closed -- processing will wrap between first and last points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bClosedPath = false;
-
 	/** Whether to fuse paths into a single graph or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, NoEditInline))
 	bool bFusePaths = true;
@@ -143,6 +139,8 @@ namespace PCGExPathToClusters
 
 	class FNonFusingProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		bool bClosedPath = false;
+		
 	public:
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 

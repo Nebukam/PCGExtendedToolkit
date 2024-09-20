@@ -39,19 +39,8 @@ bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_VALIDATE_NAME(Settings->LeaveName)
 
 	PCGEX_OPERATION_BIND(Tangents, UPCGExTangentsOperation)
-	Context->Tangents->bClosedPath = Settings->bClosedPath;
-
-	if (Settings->StartTangents)
-	{
-		Context->StartTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->StartTangents);
-		Context->StartTangents->bClosedPath = Settings->bClosedPath;
-	}
-
-	if (Settings->EndTangents)
-	{
-		Context->EndTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->EndTangents);
-		Context->EndTangents->bClosedPath = Settings->bClosedPath;
-	}
+	if (Settings->StartTangents) { Context->StartTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->StartTangents); }
+	if (Settings->EndTangents) { Context->EndTangents = Context->RegisterOperation<UPCGExTangentsOperation>(Settings->EndTangents); }
 
 	return true;
 }
@@ -122,9 +111,10 @@ namespace PCGExWriteTangents
 		LocalSettings = Settings;
 		LocalTypedContext = TypedContext;
 
-		bClosedPath = Settings->bClosedPath;
+		bClosedPath = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
 		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
+		Tangents->bClosedPath = bClosedPath;
 		Tangents->PrepareForData();
 
 		ConstantArriveScale = FVector(Settings->ArriveScaleConstant);
@@ -153,6 +143,7 @@ namespace PCGExWriteTangents
 		if (TypedContext->StartTangents)
 		{
 			StartTangents = TypedContext->StartTangents->CopyOperation<UPCGExTangentsOperation>();
+			StartTangents->bClosedPath = bClosedPath;
 			StartTangents->PrimaryDataFacade = PointDataFacade;
 			StartTangents->PrepareForData();
 		}
@@ -161,6 +152,7 @@ namespace PCGExWriteTangents
 		if (TypedContext->EndTangents)
 		{
 			EndTangents = TypedContext->EndTangents->CopyOperation<UPCGExTangentsOperation>();
+			EndTangents->bClosedPath = bClosedPath;
 			EndTangents->PrimaryDataFacade = PointDataFacade;
 			EndTangents->PrepareForData();
 		}
