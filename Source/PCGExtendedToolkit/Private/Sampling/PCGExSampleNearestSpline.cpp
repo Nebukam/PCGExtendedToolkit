@@ -19,7 +19,6 @@ UPCGExSampleNearestSplineSettings::UPCGExSampleNearestSplineSettings(
 TArray<FPCGPinProperties> UPCGExSampleNearestSplineSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POLYLINES(PCGEx::SourceTargetsLabel, "The spline data set to check against.", Required, {})
 	PCGEX_PIN_PARAMS(PCGEx::SourcePointFilters, "Filter which points will be processed.", Advanced, {})
 	return PinProperties;
 }
