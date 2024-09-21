@@ -14,5 +14,5 @@ nav_exclude: true
 | Max Angle                 | If enabled, only considers edges to be intersecting if their angle is smaller than the specified value.  |
 
 | **Outputs** ||
-| Crossing Attribute Name<br>`bool`        | If enabled, flag the edges' intersection point. |
+| <span class="eout">Crossing Attribute Name</span><br>`bool`        | If enabled, flag the edges' intersection point. |
 | Flag Crossing    | **NOT IMPLEMENTED**. |

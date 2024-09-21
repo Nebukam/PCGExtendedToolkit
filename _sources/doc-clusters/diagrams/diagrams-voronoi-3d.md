@@ -44,7 +44,7 @@ This node creates a 3D Voronoi diagram from the input points. If you'd like to k
 | Method           | Defines how the position of the Voronoi site is computed. *See below for more infos.* |
 | Expand Bounds           | Value added on each axis of the initial input points bounds, used for maths & processes involving bounds. |
 | Prune Out of Bounds           | Depending on the selected method, the diagram will produce out-of-bounds points *(up to ±inf)*. Enabling this option lets you remove those points from the output. |
-| Hull Attribute Name<br>`Boolean`          | If enabled, will flag output `Vtx` points that lie on the convex hull of the underlying Delaunay diagram.<br>*Note that this is not the exact hull, but rather an approximation.* |
+| <span class="eout">Hull Attribute Name</span><br>`Boolean`          | If enabled, will flag output `Vtx` points that lie on the convex hull of the underlying Delaunay diagram.<br>*Note that this is not the exact hull, but rather an approximation.* |
 | Mark Edge on Touch          | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* |
 
 > Note that enabling `Prune Out of Bounds` points has a theorical risk of creating more than one finite cluster as a result.

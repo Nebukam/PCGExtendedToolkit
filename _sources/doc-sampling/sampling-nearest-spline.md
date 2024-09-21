@@ -3,6 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Sampling
 title: Sample Nearest Spline
+name_in_editor: "Sample : Nearest Spline"
 subtitle: Sample informations from the nearest spline
 color: white
 summary: The **Sample Nearest Polyline** node explore polylines within a range using various methods. Define sampling range, weight targets, and obtain useful attributes.
@@ -15,6 +16,9 @@ inputs:
     -   name : In
         desc : Points that will sample data from targets
         pin : points
+    -   name : Point Filters
+        desc : Points filters used to determine which points will be processed. Filtered out points will be treated as failed sampling.
+        pin : params
     -   name : Targets
         desc : Target splines to read data from
         pin : points

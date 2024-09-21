@@ -37,24 +37,24 @@ The **Special Edges** property outputs the properties of the two "special" conne
 
 | Output       | Description          |
 |:-------------|:------------------|
-| Direction Attribute<br>`FVector`           | If enabled, writes the Shortest `Edge`' direction to the specified attribute. |
+| <span class="eout">Direction Attribute</span><br>`FVector`           | If enabled, writes the Shortest `Edge`' direction to the specified attribute. |
 | *Invert Direction* | *If enabled, will invert (`*-1`) the direction output above.* |
-| Length Attribute<br>`Double` | If enabled, writes the Shortest `Edge`'' length to the specified attribute. |
-| Edge Index Attribute<br>`Int32` | If enabled, writes the Shortest `Edge`'' point index to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
-| Vtx Index Attribute<br>`Int32` | If enabled, writes the `Vtx`' point index the Shortest `Edge`' connects to, to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
-| Neighbor Count Attribute<br>`Int32` | If enabled, writes the `Vtx`' point neighbor count the Shortest `Edge`' connects to, to the specified attribute.<br>*Amongst other things, this can come in handy to drive the {% include lk id='🝰 Heuristic Attribute' %}.* |
+| <span class="eout">Length Attribute</span><br>`Double` | If enabled, writes the Shortest `Edge`'' length to the specified attribute. |
+| <span class="eout">Edge Index Attribute</span><br>`Int32` | If enabled, writes the Shortest `Edge`'' point index to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
+| <span class="eout">Vtx Index Attribute</span><br>`Int32` | If enabled, writes the `Vtx`' point index the Shortest `Edge`' connects to, to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
+| <span class="eout">Neighbor Count Attribute</span><br>`Int32` | If enabled, writes the `Vtx`' point neighbor count the Shortest `Edge`' connects to, to the specified attribute.<br>*Amongst other things, this can come in handy to drive the {% include lk id='🝰 Heuristic Attribute' %}.* |
 
 ---
 ## Longest Edge
 
 | Output       | Description          |
 |:-------------|:------------------|
-| Direction Attribute<br>`FVector`           | If enabled, writes the Longest `Edge`' direction to the specified attribute. |
+| <span class="eout">Direction Attribute</span><br>`FVector`           | If enabled, writes the Longest `Edge`' direction to the specified attribute. |
 | *Invert Direction* | *If enabled, will invert (`*-1`) the direction output above.* |
-| Length Attribute<br>`Double` | If enabled, writes the Longest `Edge`'' length to the specified attribute. |
-| Edge Index Attribute<br>`Int32` | If enabled, writes the Longest `Edge`'' point index to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
-| Vtx Index Attribute<br>`Int32` | If enabled, writes the `Vtx`' point index the Longest `Edge`' connects to, to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
-| Neighbor Count Attribute<br>`Int32` | If enabled, writes the `Vtx`' point neighbor count the Longest `Edge`' connects to, to the specified attribute.<br>*Amongst other things, this can come in handy to drive the {% include lk id='🝰 Heuristic Attribute' %}.* |
+| <span class="eout">Length Attribute</span><br>`Double` | If enabled, writes the Longest `Edge`'' length to the specified attribute. |
+| <span class="eout">Edge Index Attribute</span><br>`Int32` | If enabled, writes the Longest `Edge`'' point index to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
+| <span class="eout">Vtx Index Attribute</span><br>`Int32` | If enabled, writes the `Vtx`' point index the Longest `Edge`' connects to, to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
+| <span class="eout">Neighbor Count Attribute</span><br>`Int32` | If enabled, writes the `Vtx`' point neighbor count the Longest `Edge`' connects to, to the specified attribute.<br>*Amongst other things, this can come in handy to drive the {% include lk id='🝰 Heuristic Attribute' %}.* |
 
 ---
 ## Average Edge
@@ -63,6 +63,6 @@ A sub-selection of all connected' edges  average.
 
 | Output       | Description          |
 |:-------------|:------------------|
-| Direction Attribute<br>`FVector`           | If enabled, writes the averaged direction of all connected edges. |
+| <span class="eout">Direction Attribute</span><br>`FVector`           | If enabled, writes the averaged direction of all connected edges. |
 | *Invert Direction* | *If enabled, will invert (`*-1`) the direction output above.* |
-| Length Attribute<br>`Double` | If enabled, writes the averaged length of all connected edges. |
+| <span class="eout">Length Attribute</span><br>`Double` | If enabled, writes the averaged length of all connected edges. |

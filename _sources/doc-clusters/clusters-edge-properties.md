@@ -53,8 +53,8 @@ The **Edge Properties** node lets you extract & write cluster-related properties
 | Property       | Description          |
 |:-------------|:------------------|
 |**Outputs**||
-| Edge Length<br>`double`     |  |
-| Edge Direction<br>`FVector` |  |
+| <span class="eout">Edge Length</span><br>`double`     |  |
+| <span class="eout">Edge Direction</span><br>`FVector` |  |
 | Endpoints Blending |  |
 | Endpoints Weights |  |
 | Blending Settings | Defines how each enpoint' property (`Start` and `End` Vtx) is blended into the edge.<br>*See {% include lk id='Blending' %}*. |

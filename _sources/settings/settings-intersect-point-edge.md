@@ -17,4 +17,4 @@ nav_exclude: true
 
 | **Outputs** ||
 | Snap on Edge        | If enabled, snap the intersection position onto the original edge, as opposed to the reverse. |
-| Intersector Attribute Name<br>`bool`    | If enabled, flag the points that intersected with an edge. |
+| <span class="eout">Intersector Attribute Name</span><br>`bool`    | If enabled, flag the points that intersected with an edge. |

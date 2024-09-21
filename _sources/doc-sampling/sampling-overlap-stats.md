@@ -3,6 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Sampling
 title: Sample Overlap Stats
+name_in_editor: "Sample : Overlap Stats"
 subtitle: Compute overlap statistics between point collections
 color: white
 summary: The **Sample Overlap Stats** node check points for overlap against other collections.

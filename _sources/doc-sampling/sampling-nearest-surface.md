@@ -3,6 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Sampling
 title: Sample Nearest Surface
+name_in_editor: "Sample : Nearest Surface"
 subtitle: Sample information from the nearest mesh collision
 color: white
 summary: The **Sample Nearest Points** node fetches all collisions within a given radius, and find the closest point on the closest collision. Works with simple colliders only.
@@ -16,6 +17,9 @@ inputs:
     -   name : In
         desc : Points that will be used as origin for finding & sampling the nearest surface
         pin : points
+    -   name : Point Filters
+        desc : Points filters used to determine which points will be processed. Filtered out points will be treated as failed sampling.
+        pin : params
 outputs:
     -   name : Out
         desc : In with extra attributes and properties
@@ -49,7 +53,6 @@ outputs:
 ---
 ## Collision Settings
 <br>
-### Collision Settings
 {% include embed id='settings-collisions' %}
 
 > Important note: under the hood this find the closest point on the closest collider -- this feature **is only supported for simple collider and won't work on complex ones**.

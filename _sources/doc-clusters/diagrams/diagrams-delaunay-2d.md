@@ -47,7 +47,7 @@ It has very *very* interesting properties, and this node also offers the ability
 |:-------------|:------------------|
 |: **Settings** :|
 | Urquhart           | If enabled, the node will output the Urquhart version of the Delaunay graph.<br>*This enables additional options for site output.* |
-| Hull Attribute Name<br>`Boolean`          | If enabled, will flag output `Vtx` points that lie on the convex hull of the graph. |
+| <span class="eout">Hull Attribute Name</span><br>`Boolean`          | If enabled, will flag output `Vtx` points that lie on the convex hull of the graph. |
 | Mark Edge on Touch          | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* |
 
 ---
@@ -57,7 +57,7 @@ It has very *very* interesting properties, and this node also offers the ability
 {% include img_link a='details/diagrams/diagrams-delaunay-2d-sites.png' %}
 
 | Output Sites           | If enabled, the node will output the Delaunay Sites.<br>*Each site is the centroid of a Delaunay triangle.* |
-| Site Hull Attribute Name<br>`Boolean`          | If enabled, will flag output site points that have at least an edge that lie on the convex hull of the graph. |
+| <span class="eout">Site Hull Attribute Name</span><br>`Boolean`          | If enabled, will flag output site points that have at least an edge that lie on the convex hull of the graph. |
 | Urquhart Sites Merge         | Defines if and how Delaunay Sites should be merged when they are part of a single "Urquhart" cell. |
 
 ### Urquhart Sites Merge

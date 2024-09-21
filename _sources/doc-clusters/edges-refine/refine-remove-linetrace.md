@@ -33,7 +33,6 @@ This does linetraces using the edge' start & end point.
 ---
 ## Collision Settings
 <br>
-### Collision Settings
 {% include embed id='settings-collisions' %}
 
 

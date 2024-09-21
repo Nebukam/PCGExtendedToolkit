@@ -1021,7 +1021,7 @@
   },"170": {
     "doc": "Connect Clusters",
     "title": "Carry Over Settings",
-    "content": ". Since this node merges multiple inputs together, “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . | Attributes | Lets you pick and choose which attributes to keep or dismiss. | . | Tags | Lets you pick and choose which attributes to keep or dismiss. | . Both Attributes &amp; Tags share the same string-based filters. Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
+    "content": ". “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . | Attributes | Lets you pick and choose which attributes to keep or dismiss. | . | Tags | Lets you pick and choose which attributes to keep or dismiss. | . Both Attributes &amp; Tags share the same string-based filters. Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-connect.html#carry-over-settings",
     "relUrl": "/doc-clusters/clusters-connect.html#carry-over-settings"
   },"171": {
@@ -1075,7 +1075,7 @@
   },"179": {
     "doc": "Properties : Edge",
     "title": "Outputs",
-    "content": "| Property | Description | . | **Outputs**| |   | . | Edge Lengthdouble |   | . | Edge DirectionFVector |   | . | Endpoints Blending |   | . | Endpoints Weights |   | . | Blending Settings | Defines how each enpoint’ property (Start and End Vtx) is blended into the edge.*See Blending*. | . | Heuristics | If enabled, will reveal a new Heuristic input.**This is used to ouput &amp; debug the heuristic score of each edge.***Note that heuristics that require external parameters won’t work correctly and output a constant value.* | . Note on blending: this is a 2-point blend, hence Lerp yields more accurate results than Weight. ",
+    "content": "| Property | Description | . | **Outputs**| |   | . | &lt;span class=\"eout\"&gt;Edge Length&lt;/span&gt;double |   | . | &lt;span class=\"eout\"&gt;Edge Direction&lt;/span&gt;FVector |   | . | Endpoints Blending |   | . | Endpoints Weights |   | . | Blending Settings | Defines how each enpoint’ property (Start and End Vtx) is blended into the edge.*See Blending*. | . | Heuristics | If enabled, will reveal a new Heuristic input.**This is used to ouput &amp; debug the heuristic score of each edge.***Note that heuristics that require external parameters won’t work correctly and output a constant value.* | . Note on blending: this is a 2-point blend, hence Lerp yields more accurate results than Weight. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-edge-properties.html#outputs",
     "relUrl": "/doc-clusters/clusters-edge-properties.html#outputs"
   },"180": {
@@ -1159,7 +1159,7 @@
   },"193": {
     "doc": "Fuse Clusters",
     "title": "Meta Filters",
-    "content": "Meta filters lets you choose separately which attributes &amp; tags should carry over from their original data to the new output. Since this node merges multiple inputs together, “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . | Attributes | Lets you pick and choose which attributes to keep or dismiss. | . | Tags | Lets you pick and choose which attributes to keep or dismiss. | . Both Attributes &amp; Tags share the same string-based filters. Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
+    "content": "Meta filters lets you choose separately which attributes &amp; tags should carry over from their original data to the new output. “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . | Attributes | Lets you pick and choose which attributes to keep or dismiss. | . | Tags | Lets you pick and choose which attributes to keep or dismiss. | . Both Attributes &amp; Tags share the same string-based filters. Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-fuse-cluster.html#meta-filters",
     "relUrl": "/doc-clusters/clusters-fuse-cluster.html#meta-filters"
   },"194": {
@@ -1213,7 +1213,7 @@
   },"202": {
     "doc": "Mesh to Clusters",
     "title": "Attribute Forwarding",
-    "content": ". Note that at the time of writing, attribute forwarding is not implemented . Since this node merges multiple inputs together, “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Enabled | Whether attribute forwarding is enabled or not. | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
+    "content": ". Note that at the time of writing, attribute forwarding is not implemented . “Forwarding” settings lets you pick-and-choose which attributes &amp; tags carry over from some data to another. | Property | Description | . | Enabled | Whether attribute forwarding is enabled or not. | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-mesh-to-clusters.html#attribute-forwarding",
     "relUrl": "/doc-clusters/clusters-mesh-to-clusters.html#attribute-forwarding"
   },"203": {
@@ -1231,7 +1231,7 @@
   },"205": {
     "doc": "Pack Clusters",
     "title": "Carry Over Settings",
-    "content": ". Since this node merges multiple inputs together, “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . | Attributes | Lets you pick and choose which attributes to keep or dismiss. | . | Tags | Lets you pick and choose which attributes to keep or dismiss. | . Both Attributes &amp; Tags share the same string-based filters. Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
+    "content": ". “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . | Attributes | Lets you pick and choose which attributes to keep or dismiss. | . | Tags | Lets you pick and choose which attributes to keep or dismiss. | . Both Attributes &amp; Tags share the same string-based filters. Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/packing-clusters/clusters-pack-clusters.html#carry-over-settings",
     "relUrl": "/doc-clusters/packing-clusters/clusters-pack-clusters.html#carry-over-settings"
   },"206": {
@@ -1261,19 +1261,19 @@
   },"210": {
     "doc": "Pick Closest Cluster",
     "title": "Properties",
-    "content": ". | Property | Description | . | Search Mode | Whether to validate closest distance for the closest Vtx or the closest Edge. | . | Pick Mode | Defines how many clusters will get picked.-Only Best selects only the best pick, even if multiple targets have the same pick. The first best (bestest best) pick will be accounted for for forwarding.-Next Best guarantees each target will pick a cluster, unless there are less clusters than there are targets. | . | Action | Defines how the selection will be processed.-Keep keeps the selected clusters, and omits unselected ones from the output.-Omit remove the selected clusters from the output.-Tag tags the data based on whether they’re selected or not. | . | Target Bounds Expansion | Expands the target bounds for the purposes of testing.*Expansion is the same for all components, and unaffected by scale.* | . | Expand Search Outside Target Bounds | If enabled, removes the need for an overlap with the targets for a pick to happen. | . | Search Mode | Whether to validate closest distance for the closest Vtx or the closest Edge. | . | Keep Tag | Tag to add to the data if it’s selected. | . | Omit Tag | Tag to add to the data if it’s not selected. | . ",
+    "content": ". | Property | Description | . | Search Mode | Whether to validate closest distance for the closest Vtx or the closest Edge. | . | Pick Mode | Defines how many clusters will get picked.-Only Best selects only the best pick, even if multiple targets have the same pick. The first best (bestest best) pick will be accounted for for forwarding.-Next Best guarantees each target will pick a cluster, unless there are less clusters than there are targets. | . | Action | Defines how the selection will be processed.-Keep keeps the selected clusters, and omits unselected ones from the output.-Omit remove the selected clusters from the output.-Tag tags the data based on whether they’re selected or not. | . | Target Bounds Expansion | Expands the target bounds for the purposes of testing.*Expansion is the same for all components, and unaffected by scale.* | . | Expand Search Outside Target Bounds | If enabled, removes the need for an overlap with the targets for a pick to happen. | . | Search Mode | Whether to validate closest distance for the closest Vtx or the closest Edge. | . | &lt;span class=\"etag\"&gt;Keep Tag&lt;/span&gt; | Tag to add to the data if it’s selected. | . | &lt;span class=\"etag\"&gt;Omit Tag&lt;/span&gt; | Tag to add to the data if it’s not selected. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-pick-closest-clusters.html#properties",
     "relUrl": "/doc-clusters/clusters-pick-closest-clusters.html#properties"
   },"211": {
     "doc": "Pick Closest Cluster",
     "title": "Target Attributes to Tags",
-    "content": ". Since this node merges multiple inputs together, “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Enabled | Whether attribute forwarding is enabled or not. | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
+    "content": ". “Forwarding” settings lets you pick-and-choose which attributes &amp; tags carry over from some data to another. | Property | Description | . | Enabled | Whether attribute forwarding is enabled or not. | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-pick-closest-clusters.html#target-attributes-to-tags",
     "relUrl": "/doc-clusters/clusters-pick-closest-clusters.html#target-attributes-to-tags"
   },"212": {
     "doc": "Pick Closest Cluster",
     "title": "Target Forwarding",
-    "content": ". Since this node merges multiple inputs together, “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Enabled | Whether attribute forwarding is enabled or not. | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
+    "content": ". “Forwarding” settings lets you pick-and-choose which attributes &amp; tags carry over from some data to another. | Property | Description | . | Enabled | Whether attribute forwarding is enabled or not. | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/clusters-pick-closest-clusters.html#target-forwarding",
     "relUrl": "/doc-clusters/clusters-pick-closest-clusters.html#target-forwarding"
   },"213": {
@@ -1399,13 +1399,13 @@
   },"233": {
     "doc": "Delaunay 2D",
     "title": "Properties",
-    "content": ". | Property | Description | . | : **Settings** : |   | . | Urquhart | If enabled, the node will output the Urquhart version of the Delaunay graph.*This enables additional options for site output.* | . | Hull Attribute NameBoolean | If enabled, will flag output Vtx points that lie on the convex hull of the graph. | . | Mark Edge on Touch | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* | . ",
+    "content": ". | Property | Description | . | : **Settings** : |   | . | Urquhart | If enabled, the node will output the Urquhart version of the Delaunay graph.*This enables additional options for site output.* | . | &lt;span class=\"eout\"&gt;Hull Attribute Name&lt;/span&gt;Boolean | If enabled, will flag output Vtx points that lie on the convex hull of the graph. | . | Mark Edge on Touch | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/diagrams/diagrams-delaunay-2d.html#properties",
     "relUrl": "/doc-clusters/diagrams/diagrams-delaunay-2d.html#properties"
   },"234": {
     "doc": "Delaunay 2D",
     "title": "Sites",
-    "content": ". | Output Sites | If enabled, the node will output the Delaunay Sites.*Each site is the centroid of a Delaunay triangle.* | . | Site Hull Attribute NameBoolean | If enabled, will flag output site points that have at least an edge that lie on the convex hull of the graph. | . | Urquhart Sites Merge | Defines if and how Delaunay Sites should be merged when they are part of a single \"Urquhart\" cell. | . Urquhart Sites Merge . | Mode |   | . | | **None**Outputs canon Delaunay sites. | . | | **Merge Sites**The output site is the average of all the canon Delaunay sites that are abstracted by the Urquhart pass. | . | | **Merge Edges**The output site is the average of all the edges removed by the Urquhart pass. | . Which merge mode to use, if any, depends on your final intent. If your goal is find the contours of an Urquhart “cell”, then Merge Edges offer usually more interesting sites positions. ",
+    "content": ". | Output Sites | If enabled, the node will output the Delaunay Sites.*Each site is the centroid of a Delaunay triangle.* | . | &lt;span class=\"eout\"&gt;Site Hull Attribute Name&lt;/span&gt;Boolean | If enabled, will flag output site points that have at least an edge that lie on the convex hull of the graph. | . | Urquhart Sites Merge | Defines if and how Delaunay Sites should be merged when they are part of a single \"Urquhart\" cell. | . Urquhart Sites Merge . | Mode |   | . | | **None**Outputs canon Delaunay sites. | . | | **Merge Sites**The output site is the average of all the canon Delaunay sites that are abstracted by the Urquhart pass. | . | | **Merge Edges**The output site is the average of all the edges removed by the Urquhart pass. | . Which merge mode to use, if any, depends on your final intent. If your goal is find the contours of an Urquhart “cell”, then Merge Edges offer usually more interesting sites positions. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/diagrams/diagrams-delaunay-2d.html#sites",
     "relUrl": "/doc-clusters/diagrams/diagrams-delaunay-2d.html#sites"
   },"235": {
@@ -1441,13 +1441,13 @@
   },"240": {
     "doc": "Delaunay 3D",
     "title": "Properties",
-    "content": ". | Property | Description | . | : **Settings** : |   | . | Urquhart | If enabled, the node will output the Urquhart version of the Delaunay graph. | . | Hull Attribute NameBoolean | If enabled, will flag output Vtx points that lie on the convex hull of the graph. | . | Mark Edge on Touch | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* | . ",
+    "content": ". | Property | Description | . | : **Settings** : |   | . | Urquhart | If enabled, the node will output the Urquhart version of the Delaunay graph. | . | &lt;span class=\"eout\"&gt;Hull Attribute Name&lt;/span&gt;Boolean | If enabled, will flag output Vtx points that lie on the convex hull of the graph. | . | Mark Edge on Touch | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/diagrams/diagrams-delaunay-3d.html#properties",
     "relUrl": "/doc-clusters/diagrams/diagrams-delaunay-3d.html#properties"
   },"241": {
     "doc": "Delaunay 3D",
     "title": "Sites",
-    "content": ". | Output Sites | If enabled, the node will output the Delaunay Sites.*Each site is the centroid of a Delaunay triangle.* | . | Site Hull Attribute NameBoolean | If enabled, will flag output site points that have at least an edge that lie on the convex hull of the graph. | . Contrary to the Delaunay 2D node, the 3D version does not offer site-merging. Not only is it not trivial, it’s all also of very little use as its main appeal is to find contours, which works poorly (if at all) on complex 3D topologies. ",
+    "content": ". | Output Sites | If enabled, the node will output the Delaunay Sites.*Each site is the centroid of a Delaunay triangle.* | . | &lt;span class=\"eout\"&gt;Site Hull Attribute Name&lt;/span&gt;Boolean | If enabled, will flag output site points that have at least an edge that lie on the convex hull of the graph. | . Contrary to the Delaunay 2D node, the 3D version does not offer site-merging. Not only is it not trivial, it’s all also of very little use as its main appeal is to find contours, which works poorly (if at all) on complex 3D topologies. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/diagrams/diagrams-delaunay-3d.html#sites",
     "relUrl": "/doc-clusters/diagrams/diagrams-delaunay-3d.html#sites"
   },"242": {
@@ -1477,7 +1477,7 @@
   },"246": {
     "doc": "Voronoi 2D",
     "title": "Properties",
-    "content": ". | Property | Description | . | : **Settings** : |   | . | Method | Defines how the position of the Voronoi site is computed. *See below for more infos.* | . | Expand Bounds | Value added on each axis of the initial input points bounds, used for maths &amp; processes involving bounds. | . | Prune Out of Bounds | Depending on the selected method, the diagram will produce out-of-bounds points *(up to ±inf)*. Enabling this option lets you remove those points from the output. | . | Hull Attribute NameBoolean | If enabled, will flag output Vtx points that lie on the convex hull of the underlying Delaunay diagram.*Note that this is not the exact hull, but rather an approximation.* | . | Mark Edge on Touch | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* | . Note that enabling Prune Out of Bounds points has a theorical risk of creating more than one finite cluster as a result. ",
+    "content": ". | Property | Description | . | : **Settings** : |   | . | Method | Defines how the position of the Voronoi site is computed. *See below for more infos.* | . | Expand Bounds | Value added on each axis of the initial input points bounds, used for maths &amp; processes involving bounds. | . | Prune Out of Bounds | Depending on the selected method, the diagram will produce out-of-bounds points *(up to ±inf)*. Enabling this option lets you remove those points from the output. | . | &lt;span class=\"eout\"&gt;Hull Attribute Name&lt;/span&gt;Boolean | If enabled, will flag output Vtx points that lie on the convex hull of the underlying Delaunay diagram.*Note that this is not the exact hull, but rather an approximation.* | . | Mark Edge on Touch | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* | . Note that enabling Prune Out of Bounds points has a theorical risk of creating more than one finite cluster as a result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/diagrams/diagrams-voronoi-2d.html#properties",
     "relUrl": "/doc-clusters/diagrams/diagrams-voronoi-2d.html#properties"
   },"247": {
@@ -1513,7 +1513,7 @@
   },"252": {
     "doc": "Voronoi 3D",
     "title": "Properties",
-    "content": ". | Property | Description | . | : **Settings** : |   | . | Method | Defines how the position of the Voronoi site is computed. *See below for more infos.* | . | Expand Bounds | Value added on each axis of the initial input points bounds, used for maths &amp; processes involving bounds. | . | Prune Out of Bounds | Depending on the selected method, the diagram will produce out-of-bounds points *(up to ±inf)*. Enabling this option lets you remove those points from the output. | . | Hull Attribute NameBoolean | If enabled, will flag output Vtx points that lie on the convex hull of the underlying Delaunay diagram.*Note that this is not the exact hull, but rather an approximation.* | . | Mark Edge on Touch | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* | . Note that enabling Prune Out of Bounds points has a theorical risk of creating more than one finite cluster as a result. ",
+    "content": ". | Property | Description | . | : **Settings** : |   | . | Method | Defines how the position of the Voronoi site is computed. *See below for more infos.* | . | Expand Bounds | Value added on each axis of the initial input points bounds, used for maths &amp; processes involving bounds. | . | Prune Out of Bounds | Depending on the selected method, the diagram will produce out-of-bounds points *(up to ±inf)*. Enabling this option lets you remove those points from the output. | . | &lt;span class=\"eout\"&gt;Hull Attribute Name&lt;/span&gt;Boolean | If enabled, will flag output Vtx points that lie on the convex hull of the underlying Delaunay diagram.*Note that this is not the exact hull, but rather an approximation.* | . | Mark Edge on Touch | If enabled, edges that have at least a point on the Hull as marked as being on the hull; *as opposed to only be marked as hull edges if both endpoints are on the hull.* | . Note that enabling Prune Out of Bounds points has a theorical risk of creating more than one finite cluster as a result. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/diagrams/diagrams-voronoi-3d.html#properties",
     "relUrl": "/doc-clusters/diagrams/diagrams-voronoi-3d.html#properties"
   },"253": {
@@ -3595,7 +3595,7 @@
   },"599": {
     "doc": "Sample Neighbors",
     "title": "Sample Neighbors",
-    "content": "Sample points based on edge connections . VtxEndpoints of the input Edges EdgesEdges associated with the input Vtxs VtxEndpoints of the output Edges EdgesEdges associated with the output Vtxs . Table of content . | Properties | . ",
+    "content": "PCGEx | Cluster : Sample Neighbors Sample points based on edge connections . VtxEndpoints of the input Edges EdgesEdges associated with the input Vtxs VtxEndpoints of the output Edges EdgesEdges associated with the output Vtxs . Table of content . | Properties | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-neighbors/#sample-neighbors",
     "relUrl": "/doc-sampling/sampling-neighbors/#sample-neighbors"
   },"600": {
@@ -3667,7 +3667,7 @@
   },"611": {
     "doc": "Sampling",
     "title": "Sampling",
-    "content": "Data from nearest points, polylines, surfaces, … . Extract data from surroundings . This section contains raw data samplers. They’re mostly helpers/boilerplate code to sample and write data to attribute without providing immediate mean of using of the results. ",
+    "content": "Data from nearest points, polylines, surfaces, … . Extract data from surroundings . PCGEx comes with a collection of “sampling” node, which may comes out as a bit of a misnomer. They’re basically all designed to extract information &amp; data from their surroundings, one way or another – from overlaps, to line traces, to bounds or proximity. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/#sampling",
     "relUrl": "/doc-sampling/#sampling"
   },"612": {
@@ -4453,7 +4453,7 @@
   },"742": {
     "doc": "Partition by Values",
     "title": "Properties",
-    "content": ". | Property | Description | . | **Settings**| |   | . | Split Output | Whether to output individual partitions or simply write the unique partition key to an attribute. | . | **Rules** | A list of ordered individual rules used for sorting the points. | . | Key Sum | Outputs the sum of all partition keys to a int64 attribute.**This value is unlikely to be unique, but can come in handy for filtering purposes.**See [Key Sum](#key-sum) | . Partition Rule . | Property | Description | . | Enabled | Whether that rule is enabled or not. *Helpful for trial and error without removing the configuration from the array.* | . | Selector | An attribute or property that will be used for partitioning. See Attribute Selectors. | . | Filter Size | The size of the partition in relation the attribute or property uses.*Higher values means fewer larger partitions; smaller values means more smaller partitions.* | . | **Input pre-processing**| |   | . | Upscale | A scale factor to apply to the selected attribute value before partitioning.*This is especially useful when working with smaller range of values like Density.*See [Why upscale?](#why-upscale). | . | Offset | An offset value added to the selected attribute value before partitioning.**Offset is added to the Upscaled value.***This allow to shift separation ‘lines’ when using spatial values for partitioning.* | . | **Partition Key Attribute**| |   | . | **Key** Attribute Name | Whether that rule is enabled or not. *Helpful for trial and error without removing the configuration from the array.* | . | Use Partition Index as Key | Whether to use the partition Index as a key *(starting at 0, up to N partitions)* or the default output *(actual under-the-hood value used to distinguish unique buckets)*.See [How partition Index works](#how-partition-index-works). | . | **Partition Tagging***Only if Split Output is enabled*| |   | . | Tag Prefix Name | Tag the data with the partition key, using the format Prefix::PartitionKey or Prefix::PartitionIndex | . | Tag Use Partition Index as Key | Whether to use the partition Index as a key.See [How partition Index works](#how-partition-index-works). | . When selecting a value to compare, keep in mind that it will be broadcasted to a double type. This means that if you don’t specify which component to use on multi-component type (Vectors, Transforms, etc), it will default to the first one (X). ",
+    "content": ". | Property | Description | . | **Settings**| |   | . | Split Output | Whether to output individual partitions or simply write the unique partition key to an attribute. | . | **Rules** | A list of ordered individual rules used for sorting the points. | . | Key Sum | Outputs the sum of all partition keys to a int64 attribute.**This value is unlikely to be unique, but can come in handy for filtering purposes.**See [Key Sum](#key-sum) | . Partition Rule . | Property | Description | . | Enabled | Whether that rule is enabled or not. *Helpful for trial and error without removing the configuration from the array.* | . | Selector | An attribute or property that will be used for partitioning. See Attribute Selectors. | . | Filter Size | The size of the partition in relation the attribute or property uses.*Higher values means fewer larger partitions; smaller values means more smaller partitions.* | . | **Input pre-processing**| |   | . | Upscale | A scale factor to apply to the selected attribute value before partitioning.*This is especially useful when working with smaller range of values like Density.*See [Why upscale?](#why-upscale). | . | Offset | An offset value added to the selected attribute value before partitioning.**Offset is added to the Upscaled value.***This allow to shift separation ‘lines’ when using spatial values for partitioning.* | . | **Partition Key Attribute**| |   | . | **Key** Attribute Name | Whether that rule is enabled or not. *Helpful for trial and error without removing the configuration from the array.* | . | Use Partition Index as Key | Whether to use the partition Index as a key *(starting at 0, up to N partitions)* or the default output *(actual under-the-hood value used to distinguish unique buckets)*.See [How partition Index works](#how-partition-index-works). | . | **Partition Tagging***Only if Split Output is enabled*| |   | . | &lt;span class=\"etag\"&gt;Tag Prefix Name&lt;/span&gt; | Tag the data with the partition key, using the format Prefix::PartitionKey or Prefix::PartitionIndex | . | Tag Use Partition Index as Key | Whether to use the partition Index as a key.See [How partition Index works](#how-partition-index-works). | . When selecting a value to compare, keep in mind that it will be broadcasted to a double type. This means that if you don’t specify which component to use on multi-component type (Vectors, Transforms, etc), it will default to the first one (X). ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-misc/partition-by-values/#properties",
     "relUrl": "/doc-misc/partition-by-values/#properties"
   },"743": {
@@ -5335,7 +5335,7 @@
   },"889": {
     "doc": "Partition by Values (Static)",
     "title": "Properties",
-    "content": ". | Property | Description | . | **Settings**| |   | . | Split Output | Whether to output individual partitions or simply write the unique partition key to an attribute. | . | **Rules** | A list of ordered individual rules used for sorting the points. | . | Key Sum | Outputs the sum of all partition keys to a int64 attribute.**This value is unlikely to be unique, but can come in handy for filtering purposes.**See [Key Sum](#key-sum) | . Partition Rule . | Property | Description | . | Enabled | Whether that rule is enabled or not. *Helpful for trial and error without removing the configuration from the array.* | . | Selector | An attribute or property that will be used for partitioning. See Attribute Selectors. | . | Filter Size | The size of the partition in relation the attribute or property uses.*Higher values means fewer larger partitions; smaller values means more smaller partitions.* | . | **Input pre-processing**| |   | . | Upscale | A scale factor to apply to the selected attribute value before partitioning.*This is especially useful when working with smaller range of values like Density.*See [Why upscale?](#why-upscale). | . | Offset | An offset value added to the selected attribute value before partitioning.**Offset is added to the Upscaled value.***This allow to shift separation ‘lines’ when using spatial values for partitioning.* | . | **Partition Key Attribute**| |   | . | **Key** Attribute Name | Whether that rule is enabled or not. *Helpful for trial and error without removing the configuration from the array.* | . | Use Partition Index as Key | Whether to use the partition Index as a key *(starting at 0, up to N partitions)* or the default output *(actual under-the-hood value used to distinguish unique buckets)*.See [How partition Index works](#how-partition-index-works). | . | **Partition Tagging***Only if Split Output is enabled*| |   | . | Tag Prefix Name | Tag the data with the partition key, using the format Prefix::PartitionKey or Prefix::PartitionIndex | . | Tag Use Partition Index as Key | Whether to use the partition Index as a key.See [How partition Index works](#how-partition-index-works). | . When selecting a value to compare, keep in mind that it will be broadcasted to a double type. This means that if you don’t specify which component to use on multi-component type (Vectors, Transforms, etc), it will default to the first one (X). ",
+    "content": ". | Property | Description | . | **Settings**| |   | . | Split Output | Whether to output individual partitions or simply write the unique partition key to an attribute. | . | **Rules** | A list of ordered individual rules used for sorting the points. | . | Key Sum | Outputs the sum of all partition keys to a int64 attribute.**This value is unlikely to be unique, but can come in handy for filtering purposes.**See [Key Sum](#key-sum) | . Partition Rule . | Property | Description | . | Enabled | Whether that rule is enabled or not. *Helpful for trial and error without removing the configuration from the array.* | . | Selector | An attribute or property that will be used for partitioning. See Attribute Selectors. | . | Filter Size | The size of the partition in relation the attribute or property uses.*Higher values means fewer larger partitions; smaller values means more smaller partitions.* | . | **Input pre-processing**| |   | . | Upscale | A scale factor to apply to the selected attribute value before partitioning.*This is especially useful when working with smaller range of values like Density.*See [Why upscale?](#why-upscale). | . | Offset | An offset value added to the selected attribute value before partitioning.**Offset is added to the Upscaled value.***This allow to shift separation ‘lines’ when using spatial values for partitioning.* | . | **Partition Key Attribute**| |   | . | **Key** Attribute Name | Whether that rule is enabled or not. *Helpful for trial and error without removing the configuration from the array.* | . | Use Partition Index as Key | Whether to use the partition Index as a key *(starting at 0, up to N partitions)* or the default output *(actual under-the-hood value used to distinguish unique buckets)*.See [How partition Index works](#how-partition-index-works). | . | **Partition Tagging***Only if Split Output is enabled*| |   | . | &lt;span class=\"etag\"&gt;Tag Prefix Name&lt;/span&gt; | Tag the data with the partition key, using the format Prefix::PartitionKey or Prefix::PartitionIndex | . | Tag Use Partition Index as Key | Whether to use the partition Index as a key.See [How partition Index works](#how-partition-index-works). | . When selecting a value to compare, keep in mind that it will be broadcasted to a double type. This means that if you don’t specify which component to use on multi-component type (Vectors, Transforms, etc), it will default to the first one (X). ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-misc/partition-by-values/misc-partition-by-values-static.html#properties",
     "relUrl": "/doc-misc/partition-by-values/misc-partition-by-values-static.html#properties"
   },"890": {
@@ -6547,7 +6547,7 @@
   },"1091": {
     "doc": "🝔 Remove by Collision",
     "title": "🝔 Remove by Collision",
-    "content": "Removes edges by doing linetrace and checking for collisions. Related . | Refine | . Table of content . | Properties . | Collision Settings . | Collision Settings | . | . | . This does linetraces using the edge’ start &amp; end point. ",
+    "content": "Removes edges by doing linetrace and checking for collisions. Related . | Refine | . Table of content . | Properties . | Collision Settings | . | . This does linetraces using the edge’ start &amp; end point. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/edges-refine/refine-remove-linetrace.html#remove-by-collision",
     "relUrl": "/doc-clusters/edges-refine/refine-remove-linetrace.html#remove-by-collision"
   },"1092": {
@@ -6559,7 +6559,7 @@
   },"1093": {
     "doc": "🝔 Remove by Collision",
     "title": "Collision Settings",
-    "content": ". Collision Settings . These settings drive which objects will be ignored during the collision checks. | Property | Description | . | Trace Complex | Whether to collide against complex or simple collision.Note that this setting may not be supported everywhere. | . | Collision Type | The type of collision check. Can be one of:-Channel-ObjectType-ProfileThe selected mode changes which settings are available. | . | Collision Channel | Lets you pick the collision channel to check against. | . | Collision Object Type | Lets you pick the object type to check against. | . | Collision Profile Name | Lets you set a custom profile name to check against. | . | Ignore Self | If enabled, will ignore the current PCG Component’ actor owner. | . | Ignored Actor Selector | Vanilla PCG Actor Selector. | . This refinement can be rather expensive depending on the number of edges. ",
+    "content": ". These settings drive which objects will be ignored during the collision checks. | Property | Description | . | Trace Complex | Whether to collide against complex or simple collision.Note that this setting may not be supported everywhere. | . | Collision Type | The type of collision check. Can be one of:-Channel-ObjectType-ProfileThe selected mode changes which settings are available. | . | Collision Channel | Lets you pick the collision channel to check against. | . | Collision Object Type | Lets you pick the object type to check against. | . | Collision Profile Name | Lets you set a custom profile name to check against. | . | Ignore Self | If enabled, will ignore the current PCG Component’ actor owner. | . | Ignored Actor Selector | Vanilla PCG Actor Selector. | . This refinement can be rather expensive depending on the number of edges. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/edges-refine/refine-remove-linetrace.html#collision-settings",
     "relUrl": "/doc-clusters/edges-refine/refine-remove-linetrace.html#collision-settings"
   },"1094": {
@@ -6703,586 +6703,616 @@
   },"1117": {
     "doc": "Sample Line Trace",
     "title": "Sample Line Trace",
-    "content": "Sample environment using line casting . The Line Trace node performs a single line trace for each point, using a local attribute or property as direction &amp; size. InPoints that will be used as origin for line tracing OutIn with extra attributes and properties . This node works with collisions and as such can be very expensive on large datasets. Table of content . | Properties . | Collision Settings . | Collision Settings | . | . | . ",
+    "content": "PCGEx | Sample : Line Trace Sample environment using line casting . The Line Trace node performs a single line trace for each point, using a local attribute or property as direction &amp; size. InPoints that will be used as origin for line tracing Point FiltersPoints filters used to determine which points will be processed. Filtered out points will be treated as failed sampling. Actor ReferencesPoints containing actor references, if that mode is selected. OutIn with extra attributes and properties . This node works with collisions and as such can be very expensive on large datasets. Table of content . | Properties | Outputs | Extra properties . | Forwarding | Tagging | Collision Settings | . | . PCGEx comes with a collection of “sampling” node, which may comes out as a bit of a misnomer. They’re basically all designed to extract information &amp; data from their surroundings, one way or another – from overlaps, to line traces, to bounds or proximity. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-line-trace.html#sample-line-trace",
     "relUrl": "/doc-sampling/sampling-line-trace.html#sample-line-trace"
   },"1118": {
     "doc": "Sample Line Trace",
     "title": "Properties",
-    "content": ". Each output property is written individually for each point. | Property | Description | . | **Settings**| |   | . | Direction | Select which property or attribute should be used as direction for the line trace. | . | Max Distance | Maximum trace distance. | . | Local Max Distance | If enabled, will use a local property or attribute as Max Distance. | . | **Outputs**| |   | . | **Success** Attribute Name | Writes a boolean attribute to each point specifying whether the sampling has been successful (true) or not (false).*Sampling is considered unsuccessful if there was no point within the specified range.* | . | **Location** Attribute Name | Writes the sampled location, as an FVector. | . | **Look at** Attribute Name | Writes the direction from the point to the sampled location, as an FVector. | . | **Normal** Attribute Name | Writes the normal of the surface at the sampled, as an FVector. | . | **Distance** Attribute Name | Writes the distance between the point and the sampled location, as a double. | . ",
+    "content": ". | Property | Description | . | **Settings**| |   | . | Surface Source | Select where you want to read surfaces from: either All (revealing additional actors picking parameters), or Actor References, to sample only specific actors. | . | Actor Reference | Attribute to read actor reference from the Actor References input data. | . | **Trace**| |   | . | Direction | FVector attribute to read per-point trace direction from. | . | Max Distance | Maximum distance for the trace | . | Local Max Distance | If enabled, fetches the max distance on a per-point basis using the specified attribute. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-line-trace.html#properties",
     "relUrl": "/doc-sampling/sampling-line-trace.html#properties"
   },"1119": {
     "doc": "Sample Line Trace",
+    "title": "Outputs",
+    "content": "Outputs are values extracted from the line trace, and written to attributes on the output points. | Output | Description | . | **Generic**| |   | . | &lt;span class=\"eout\"&gt;Success&lt;/span&gt;bool | TBD | . | **Spatial Data**| |   | . | &lt;span class=\"eout\"&gt;Location&lt;/span&gt;FVector | TBD | . | &lt;span class=\"eout\"&gt;Look At&lt;/span&gt;FVector | TBD | . | &lt;span class=\"eout\"&gt;Normal&lt;/span&gt;FVector | TBD | . | &lt;span class=\"eout\"&gt;Distance&lt;/span&gt;double | TBD | . | &lt;span class=\"eout\"&gt;Is Inside&lt;/span&gt;bool | TBD | . | **Actor Data**| |   | . | &lt;span class=\"eout\"&gt;Actor Reference&lt;/span&gt;FSoftObjectPath | TBD | . | &lt;span class=\"eout\"&gt;Phys Mat&lt;/span&gt;FSoftObjectPath | TBD | . ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-line-trace.html#outputs",
+    "relUrl": "/doc-sampling/sampling-line-trace.html#outputs"
+  },"1120": {
+    "doc": "Sample Line Trace",
+    "title": "Extra properties",
+    "content": " ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-line-trace.html#extra-properties",
+    "relUrl": "/doc-sampling/sampling-line-trace.html#extra-properties"
+  },"1121": {
+    "doc": "Sample Line Trace",
+    "title": "Forwarding",
+    "content": "Data forwarding settings from the Actor References input points, if enabled. “Forwarding” settings lets you pick-and-choose which attributes &amp; tags carry over from some data to another. | Property | Description | . | Enabled | Whether attribute forwarding is enabled or not. | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default. | . Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters out the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.The only caveat is that you can only pick a unique match mode used for each entry. | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | Equals | Checks for strict equality of the filtered value and the associated string. | . | Contains | Checks if the filtered value contains the associated string. | . | Starts With | Checks if the filtered value is prefixed with the associated string. | . | Ends With | Checks if the filtered value is suffixed with the associated string. | . ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-line-trace.html#forwarding",
+    "relUrl": "/doc-sampling/sampling-line-trace.html#forwarding"
+  },"1122": {
+    "doc": "Sample Line Trace",
+    "title": "Tagging",
+    "content": "Some high level tags may be applied to the data based on overal sampling. | Tag | Description | . | &lt;span class=\"etag\"&gt;Has Successes Tag&lt;/span&gt; | If enabled, add the specified tag to the output data **if at least a single line trace** has been successful. | . | &lt;span class=\"etag\"&gt;Has No Successes Tag&lt;/span&gt; | If enabled, add the specified tag to the output data **if all line trace** failed. | . Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-line-trace.html#tagging",
+    "relUrl": "/doc-sampling/sampling-line-trace.html#tagging"
+  },"1123": {
+    "doc": "Sample Line Trace",
     "title": "Collision Settings",
-    "content": ". Collision Settings . These settings drive which objects will be ignored during the collision checks. | Property | Description | . | Trace Complex | Whether to collide against complex or simple collision.Note that this setting may not be supported everywhere. | . | Collision Type | The type of collision check. Can be one of:-Channel-ObjectType-ProfileThe selected mode changes which settings are available. | . | Collision Channel | Lets you pick the collision channel to check against. | . | Collision Object Type | Lets you pick the object type to check against. | . | Collision Profile Name | Lets you set a custom profile name to check against. | . | Ignore Self | If enabled, will ignore the current PCG Component’ actor owner. | . | Ignored Actor Selector | Vanilla PCG Actor Selector. | . ",
+    "content": ". These settings drive which objects will be ignored during the collision checks. | Property | Description | . | Trace Complex | Whether to collide against complex or simple collision.Note that this setting may not be supported everywhere. | . | Collision Type | The type of collision check. Can be one of:-Channel-ObjectType-ProfileThe selected mode changes which settings are available. | . | Collision Channel | Lets you pick the collision channel to check against. | . | Collision Object Type | Lets you pick the object type to check against. | . | Collision Profile Name | Lets you set a custom profile name to check against. | . | Ignore Self | If enabled, will ignore the current PCG Component’ actor owner. | . | Ignored Actor Selector | Vanilla PCG Actor Selector. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-line-trace.html#collision-settings",
     "relUrl": "/doc-sampling/sampling-line-trace.html#collision-settings"
-  },"1120": {
+  },"1124": {
     "doc": "Sample Line Trace",
     "title": "Sample Line Trace",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-line-trace.html",
     "relUrl": "/doc-sampling/sampling-line-trace.html"
-  },"1121": {
+  },"1125": {
     "doc": "Sample Nearest Bounds",
     "title": "Sample Nearest Bounds",
-    "content": "Sample within bounds . The Sample Nearest Bounds node explore points within input bounds. InPoints that will sample data from targets BoundsPoint bounds to read data from OutIn with extra attributes and properties . Table of content . | Properties . | Sampling Methods . | Weighting | . | Weighting | . | . ",
+    "content": "PCGEx | Sample : Nearest Bounds Sample within bounds . The Sample Nearest Bounds node explore points within input bounds. InPoints that will sample data from targets Point FiltersPoints filters used to determine which points will be processed. Filtered out points will be treated as failed sampling. BoundsPoint bounds to read data from OutIn with extra attributes and properties . Table of content . | Sampling . | Sampling Methods | Weighting | . | Blending | Outputs . | Tagging | . | . The Sample Nearest Point grabs and blends attributes &amp; properties from a target dataset, as well as other spatial relationship outputs. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-bounds.html#sample-nearest-bounds",
     "relUrl": "/doc-sampling/sampling-nearest-bounds.html#sample-nearest-bounds"
-  },"1122": {
+  },"1126": {
     "doc": "Sample Nearest Bounds",
-    "title": "Properties",
-    "content": ". Each output property is written individually for each point. | Property | Description | . | **Sampling**| |   | . | Sample Method | Selects the sampling method. See [Sampling Methods](#sampling-methods). | . | Range Min | Minimum sampling range. | . | Range Max | Maximum sampling range.**Use 0 to sample all targets.** | . Points that are not within range are ignored. If no point is found within the specified range, the sampling for that point will be marked as Usuccessful. | **Weighting**| |   | . | Weight Method | Selects the method used to compute the weight of each target.*See [Weighting](#weighting)*. | . | Weight Over Distance | Curve used to sample the final weight of each target. | . | **Outputs**| |   | . | **Success** Attribute Name | Writes a boolean attribute to each point specifying whether the sampling has been successful (true) or not (false). | . | **Location** Attribute Name | Writes the sampled location, as an FVector. | . | **Look at** Attribute Name | Writes the direction from the point to the sampled location, as an FVector. | . | **Normal** Attribute Name | Writes the normal of the point at the sampled location, as an FVector. | . | Normal Source | Which direction to use as an Up vector for the Normal cross-product maths. | . | **Distance** Attribute Name | Writes the distance between the point and the sampled location, as a double. | . | **Signed Distance** Attribute Name | Writes the signed distance between the point and the sampled location, as a double. | . | Signed Distance Axis | Which axis to use to determine whether the distance is positive or negative (toward/away).*Currently based on point Transform, this will likely change in the future to an attribute selector.* | . | **Angle** Attribute Name | Writes the angle between the point and the sampled location, as a double. | . | Angle Axis | Which axis to use to determine the angle sign/range (toward/away) | . | Angle Range | The output range for the Angle value. | . Based on the selected Sample method, the output values are a weighted average of all the sampled target. See Weighting. ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-bounds.html#properties",
-    "relUrl": "/doc-sampling/sampling-nearest-bounds.html#properties"
-  },"1123": {
+    "title": "Sampling",
+    "content": ". | Property | Description | . | **Settings**| |   | . | Sample Method | Selects the sampling method. See [Sampling Methods](#sampling-methods). | . | Bounds Source | TBD | . | Weight Remap | TBD | . Sampling Methods . | Method | Description | . | &lt;span class=\"ebit\"&gt;All&lt;/span&gt; | TBD | . | &lt;span class=\"ebit\"&gt;Closest Bounds&lt;/span&gt; | TBD | . | &lt;span class=\"ebit\"&gt;Farthest Bounds&lt;/span&gt; | TBD | . | &lt;span class=\"ebit\"&gt;Largest Bounds&lt;/span&gt; | TBD | . | &lt;span class=\"ebit\"&gt;Smallest Bounds&lt;/span&gt; | TBD | . Weighting . There is two weighting method available. Full Range and Effective Range. Each method outputs a [0..1] value that will be used to sample the Weight Over Distance curve. However, there is a critical nuance between the two: . | Full Range is a simple normalization, each target distance is divided by the longest one. As such, it’s very unlikely the curve will get sampled close to x=0. | Effective Range remaps each target distance using the shortest &amp; longest distance as min/max. As such, the shortest sampled distance will sample the curve at x=0, and the longest at x=1. | . Note that the Effective Range method tends to spread/scale the input set of values – but allows one to leverage the full range of the curve no matter the min/max input values. Hence, using Full Range with only high (or low) input value will only sample a very narrow portion of the curve. Important note: when using the Within range sample method, some outputs will use the final weighted position/transforms for their calculations; although mathematically correct, this may yield unusuable/innacurate results. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-bounds.html#sampling",
+    "relUrl": "/doc-sampling/sampling-nearest-bounds.html#sampling"
+  },"1127": {
     "doc": "Sample Nearest Bounds",
-    "title": "Sampling Methods",
-    "content": "| Method | Description | . | Within Range | Samples all points within the specified range. | . | Closest Target | Sample the single closest target within the specified range. | . | Farthest Target | Sample the single farthest target within the specified range. | . | Target Extents | Reverse the sampling mechanisms so points will sample the targets which Extents contains them.**At the time of writing, will only check targets which position in world space is within range.***It is recommend to use a max range of 0 with this method.* | . Weighting . There is two weighting method available. Full Range and Effective Range. Each method outputs a [0..1] value that will be used to sample the Weight Over Distance curve. However, there is a critical nuance between the two: . | Full Range is a simple normalization, each target distance is divided by the longest one. As such, it’s very unlikely the curve will get sampled close to x=0. | Effective Range remaps each target distance using the shortest &amp; longest distance as min/max. As such, the shortest sampled distance will sample the curve at x=0, and the longest at x=1. | . Important note: when using the Within range sample method, some outputs will use the final weighted position/transforms for their calculations; although mathematically correct, this may yield unusuable/innacurate results. ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-bounds.html#sampling-methods",
-    "relUrl": "/doc-sampling/sampling-nearest-bounds.html#sampling-methods"
-  },"1124": {
+    "title": "Blending",
+    "content": ". | Properties | Description | . | Target Attributes | A Name::Blendmode map of the attributes to grab from the target points, and which blendmode to use. | . | Point Propeprties Blending Settings | If enabled, lets you pick &amp; choose which point properties you want to grab from the targets, and which blendmode to use.Use None to prevent a specific property from being grabbed. | . See Working with Clusters - Cluster Output Settings. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-bounds.html#blending",
+    "relUrl": "/doc-sampling/sampling-nearest-bounds.html#blending"
+  },"1128": {
     "doc": "Sample Nearest Bounds",
-    "title": "Weighting",
-    "content": ". Note that the Effective Range method tends to spread/scale the input set of values – but allows one to leverage the full range of the curve no matter the min/max input values. Hence, using Full Range with only high (or low) input value will only sample a very narrow portion of the curve. ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-bounds.html#weighting-1",
-    "relUrl": "/doc-sampling/sampling-nearest-bounds.html#weighting-1"
-  },"1125": {
+    "title": "Outputs",
+    "content": "Outputs are values extracted from the neighbor(s), and written to attributes on the output points. | Output | Description | . | **Generic**| |   | . | &lt;span class=\"eout\"&gt;Success&lt;/span&gt;bool | TBD | . | **Spatial Data**| |   | . | &lt;span class=\"eout\"&gt;Transform&lt;/span&gt;FTransform | TBD | . | &lt;span class=\"eout\"&gt;Look At&lt;/span&gt;FVector | TBD | . | └─ Align | TBD | . | └─ Use Up from… | TBD | . | └─ Up Vector | TBD | . | &lt;span class=\"eout\"&gt;Distance&lt;/span&gt;double | TBD | . | &lt;span class=\"eout\"&gt;Signed Distance&lt;/span&gt;double | TBD | . | └─ Axis | TBD | . | &lt;span class=\"eout\"&gt;Angle&lt;/span&gt;double | TBD | . | └─ Axis | TBD | . | └─ Range | TBD | . | &lt;span class=\"eout\"&gt;Num Samples&lt;/span&gt;int32 | TBD | . Based on the selected Sample method, the output values are a weighted average of all the sampled target. See Weighting. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-bounds.html#outputs",
+    "relUrl": "/doc-sampling/sampling-nearest-bounds.html#outputs"
+  },"1129": {
+    "doc": "Sample Nearest Bounds",
+    "title": "Tagging",
+    "content": "Some high level tags may be applied to the data based on overal sampling. | Tag | Description | . | &lt;span class=\"etag\"&gt;Has Successes Tag&lt;/span&gt; | If enabled, add the specified tag to the output data **if at least a single line trace** has been successful. | . | &lt;span class=\"etag\"&gt;Has No Successes Tag&lt;/span&gt; | If enabled, add the specified tag to the output data **if all line trace** failed. | . Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-bounds.html#tagging",
+    "relUrl": "/doc-sampling/sampling-nearest-bounds.html#tagging"
+  },"1130": {
     "doc": "Sample Nearest Bounds",
     "title": "Sample Nearest Bounds",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-bounds.html",
     "relUrl": "/doc-sampling/sampling-nearest-bounds.html"
-  },"1126": {
+  },"1131": {
     "doc": "Sample Nearest Points",
     "title": "Sample Nearest Points",
-    "content": "Sample points within a spherical range . The Sample Nearest Points node explore points within a range using various methods. Define sampling range, weight targets, and obtain useful attributes. InPoints that will sample data from targets TargetsTarget points to read data from OutIn with extra attributes and properties . Table of content . | Properties . | Sampling Methods . | Weighting | . | Weighting | . | . ",
+    "content": "PCGEx | Sample : Nearest Point Sample points within a spherical range . The Sample Nearest Points node explore points within a range using various methods. Define sampling range, weight targets, and obtain useful attributes. InPoints that will sample data from targets Point FiltersPoints filters used to determine which points will be processed. Filtered out points will be treated as failed sampling. TargetsTarget points to read data from OutIn with extra attributes and properties . Table of content . | Sampling . | Sampling Methods | Weighting | . | Blending | Outputs . | Tagging | . | . The Sample Nearest Point grabs and blends attributes &amp; properties from a target dataset, as well as other spatial relationship outputs. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-point.html#sample-nearest-points",
     "relUrl": "/doc-sampling/sampling-nearest-point.html#sample-nearest-points"
-  },"1127": {
+  },"1132": {
     "doc": "Sample Nearest Points",
-    "title": "Properties",
-    "content": ". Each output property is written individually for each point. | Property | Description | . | **Sampling**| |   | . | Sample Method | Selects the sampling method. See [Sampling Methods](#sampling-methods). | . | Range Min | Minimum sampling range. | . | Range Max | Maximum sampling range.**Use 0 to sample all targets.** | . Points that are not within range are ignored. If no point is found within the specified range, the sampling for that point will be marked as Usuccessful. | **Weighting**| |   | . | Weight Method | Selects the method used to compute the weight of each target.*See [Weighting](#weighting)*. | . | Weight Over Distance | Curve used to sample the final weight of each target. | . | **Outputs**| |   | . | **Success** Attribute Name | Writes a boolean attribute to each point specifying whether the sampling has been successful (true) or not (false). | . | **Location** Attribute Name | Writes the sampled location, as an FVector. | . | **Look at** Attribute Name | Writes the direction from the point to the sampled location, as an FVector. | . | **Normal** Attribute Name | Writes the normal of the point at the sampled location, as an FVector. | . | Normal Source | Which direction to use as an Up vector for the Normal cross-product maths. | . | **Distance** Attribute Name | Writes the distance between the point and the sampled location, as a double. | . | **Signed Distance** Attribute Name | Writes the signed distance between the point and the sampled location, as a double. | . | Signed Distance Axis | Which axis to use to determine whether the distance is positive or negative (toward/away).*Currently based on point Transform, this will likely change in the future to an attribute selector.* | . | **Angle** Attribute Name | Writes the angle between the point and the sampled location, as a double. | . | Angle Axis | Which axis to use to determine the angle sign/range (toward/away) | . | Angle Range | The output range for the Angle value. | . Based on the selected Sample method, the output values are a weighted average of all the sampled target. See Weighting. ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-point.html#properties",
-    "relUrl": "/doc-sampling/sampling-nearest-point.html#properties"
-  },"1128": {
+    "title": "Sampling",
+    "content": ". | Property | Description | . | **Settings**| |   | . | Sample Method | Selects the sampling method. See [Sampling Methods](#sampling-methods). | . | Range Min | Minimum sampling range. | . | Range Max | Maximum sampling range.**Use 0 to sample all targets.** | . | Local Range Min | If enabled, uses a per-point minimum sampling range. | . | Local Range Max | If enabled, uses a per-point maximum sampling range. | . Points that are not within range are ignored. If no point is found within the specified range, the sampling for that point will be marked as Usuccessful. | **Distance Details**| |   | . | Source | TBD | . | Target | TBD | . | **Weighting**| |   | . | Weight Method | Selects the method used to compute the weight of each target.*See [Weighting](#weighting)*. | . | Weight Over Distance | Curve used to sample the final weight of each target. | . Sampling Methods . | Method | Description | . | &lt;span class=\"ebit\"&gt;Within Range&lt;/span&gt; | Samples all points within the specified range. | . | &lt;span class=\"ebit\"&gt;Closest Target&lt;/span&gt; | Sample the single closest target within the specified range. | . | &lt;span class=\"ebit\"&gt;Farthest Target&lt;/span&gt; | Sample the single farthest target within the specified range. | . Weighting . There is two weighting method available. Full Range and Effective Range. Each method outputs a [0..1] value that will be used to sample the Weight Over Distance curve. However, there is a critical nuance between the two: . | Full Range is a simple normalization, each target distance is divided by the longest one. As such, it’s very unlikely the curve will get sampled close to x=0. | Effective Range remaps each target distance using the shortest &amp; longest distance as min/max. As such, the shortest sampled distance will sample the curve at x=0, and the longest at x=1. | . Note that the Effective Range method tends to spread/scale the input set of values – but allows one to leverage the full range of the curve no matter the min/max input values. Hence, using Full Range with only high (or low) input value will only sample a very narrow portion of the curve. Important note: when using the Within range sample method, some outputs will use the final weighted position/transforms for their calculations; although mathematically correct, this may yield unusuable/innacurate results. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-point.html#sampling",
+    "relUrl": "/doc-sampling/sampling-nearest-point.html#sampling"
+  },"1133": {
     "doc": "Sample Nearest Points",
-    "title": "Sampling Methods",
-    "content": "| Method | Description | . | Within Range | Samples all points within the specified range. | . | Closest Target | Sample the single closest target within the specified range. | . | Farthest Target | Sample the single farthest target within the specified range. | . | Target Extents | Reverse the sampling mechanisms so points will sample the targets which Extents contains them.**At the time of writing, will only check targets which position in world space is within range.***It is recommend to use a max range of 0 with this method.* | . Weighting . There is two weighting method available. Full Range and Effective Range. Each method outputs a [0..1] value that will be used to sample the Weight Over Distance curve. However, there is a critical nuance between the two: . | Full Range is a simple normalization, each target distance is divided by the longest one. As such, it’s very unlikely the curve will get sampled close to x=0. | Effective Range remaps each target distance using the shortest &amp; longest distance as min/max. As such, the shortest sampled distance will sample the curve at x=0, and the longest at x=1. | . Important note: when using the Within range sample method, some outputs will use the final weighted position/transforms for their calculations; although mathematically correct, this may yield unusuable/innacurate results. ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-point.html#sampling-methods",
-    "relUrl": "/doc-sampling/sampling-nearest-point.html#sampling-methods"
-  },"1129": {
+    "title": "Blending",
+    "content": ". | Properties | Description | . | Target Attributes | A Name::Blendmode map of the attributes to grab from the target points, and which blendmode to use. | . | Point Propeprties Blending Settings | If enabled, lets you pick &amp; choose which point properties you want to grab from the targets, and which blendmode to use.Use None to prevent a specific property from being grabbed. | . See Working with Clusters - Cluster Output Settings. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-point.html#blending",
+    "relUrl": "/doc-sampling/sampling-nearest-point.html#blending"
+  },"1134": {
     "doc": "Sample Nearest Points",
-    "title": "Weighting",
-    "content": ". Note that the Effective Range method tends to spread/scale the input set of values – but allows one to leverage the full range of the curve no matter the min/max input values. Hence, using Full Range with only high (or low) input value will only sample a very narrow portion of the curve. ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-point.html#weighting-1",
-    "relUrl": "/doc-sampling/sampling-nearest-point.html#weighting-1"
-  },"1130": {
+    "title": "Outputs",
+    "content": "Outputs are values extracted from the neighbor(s), and written to attributes on the output points. | Output | Description | . | **Generic**| |   | . | &lt;span class=\"eout\"&gt;Success&lt;/span&gt;bool | TBD | . | **Spatial Data**| |   | . | &lt;span class=\"eout\"&gt;Transform&lt;/span&gt;FTransform | TBD | . | &lt;span class=\"eout\"&gt;Look At&lt;/span&gt;FVector | TBD | . | └─ Align | TBD | . | └─ Use Up from… | TBD | . | └─ Up Vector | TBD | . | &lt;span class=\"eout\"&gt;Distance&lt;/span&gt;double | TBD | . | &lt;span class=\"eout\"&gt;Signed Distance&lt;/span&gt;double | TBD | . | └─ Axis | TBD | . | &lt;span class=\"eout\"&gt;Angle&lt;/span&gt;double | TBD | . | └─ Axis | TBD | . | └─ Range | TBD | . | &lt;span class=\"eout\"&gt;Num Samples&lt;/span&gt;int32 | TBD | . Based on the selected Sample method, the output values are a weighted average of all the sampled target. See Weighting. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-point.html#outputs",
+    "relUrl": "/doc-sampling/sampling-nearest-point.html#outputs"
+  },"1135": {
+    "doc": "Sample Nearest Points",
+    "title": "Tagging",
+    "content": "Some high level tags may be applied to the data based on overal sampling. | Tag | Description | . | &lt;span class=\"etag\"&gt;Has Successes Tag&lt;/span&gt; | If enabled, add the specified tag to the output data **if at least a single line trace** has been successful. | . | &lt;span class=\"etag\"&gt;Has No Successes Tag&lt;/span&gt; | If enabled, add the specified tag to the output data **if all line trace** failed. | . Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-point.html#tagging",
+    "relUrl": "/doc-sampling/sampling-nearest-point.html#tagging"
+  },"1136": {
     "doc": "Sample Nearest Points",
     "title": "Sample Nearest Points",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-point.html",
     "relUrl": "/doc-sampling/sampling-nearest-point.html"
-  },"1131": {
+  },"1137": {
     "doc": "Sample Nearest Spline",
     "title": "Sample Nearest Spline",
-    "content": "Sample informations from the nearest spline . The Sample Nearest Polyline node explore polylines within a range using various methods. Define sampling range, weight targets, and obtain useful attributes. InPoints that will sample data from targets TargetsTarget splines to read data from OutIn with extra attributes and properties . Table of content . | Properties . | Sampling Methods . | Weighting | . | Weighting | . | . ",
+    "content": "PCGEx | Sample : Nearest Spline Sample informations from the nearest spline . The Sample Nearest Polyline node explore polylines within a range using various methods. Define sampling range, weight targets, and obtain useful attributes. InPoints that will sample data from targets Point FiltersPoints filters used to determine which points will be processed. Filtered out points will be treated as failed sampling. TargetsTarget splines to read data from OutIn with extra attributes and properties . Table of content . | Properties . | Sampling Methods . | Weighting | . | Weighting | . | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-spline.html#sample-nearest-spline",
     "relUrl": "/doc-sampling/sampling-nearest-spline.html#sample-nearest-spline"
-  },"1132": {
+  },"1138": {
     "doc": "Sample Nearest Spline",
     "title": "Properties",
     "content": ". Each output property is written individually for each point. Each polyline will yield a single sample point: the closest point on the closest segment, within the specified range. | Property | Description | . | **Sampling**| |   | . | Sample Method | Selects the sampling method. See [Sampling Methods](#sampling-methods). | . | Range Min | Minimum sampling range. | . | Range Max | Maximum sampling range.**Use 0 to sample all segments.** | . Segments that are not within range are ignored. If no polyline segment is found within the specified range, the sampling for that point will be marked as Usuccessful. | **Weighting**| |   | . | Weight Method | Selects the method used to compute the weight of each target.*See [Weighting](#weighting)*. | . | Weight Over Distance | Curve used to sample the final weight of each target. | . | **Outputs**| |   | . | **Success** Attribute Name | Writes a boolean attribute to each point specifying whether the sampling has been successful (true) or not (false). | . | **Location** Attribute Name | Writes the location sampled on the polyline, as an FVector. | . | **Look at** Attribute Name | Writes the direction from the point to the location sampled on the polyline, as an FVector. | . | **Normal** Attribute Name | Writes the normal of the point at the location sampled on the polyline, as an FVector. | . | Normal Source | Which direction to use as an Up vector for the Normal cross-product maths. | . | **Distance** Attribute Name | Writes the distance between the point and the location sampled on the polyline, as a double. | . | **Signed Distance** Attribute Name | Writes the signed distance between the point and the location sampled on the polyline, as a double. | . | Signed Distance Axis | Which axis to use to determine whether the distance is positive or negative (toward/away).*Currently based on point Transform, this will likely change in the future to an attribute selector.* | . | **Angle** Attribute Name | Writes the angle between the point and the transform sampled on the polyline, as a double. | . | Angle Axis | Which axis to use to determine the angle sign/range (toward/away) | . | Angle Range | The output range for the Angle value. | . | **Time** Attribute Name | Writes the time (*in Spline terms*) of the location sampled on the polyline, as a double. | . Based on the selected Sample method, the output values are a weighted average of all the sampled positions. See Weighting. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-spline.html#properties",
     "relUrl": "/doc-sampling/sampling-nearest-spline.html#properties"
-  },"1133": {
+  },"1139": {
     "doc": "Sample Nearest Spline",
     "title": "Sampling Methods",
-    "content": "| Method | Description | . | Within Range | Samples all polylines within the specified range. | . | Closest Target | Sample the single closest polyline within the specified range. | . | Farthest Target | Sample the single farthest polyline within the specified range. | . | Target Extents | Reverse the sampling mechanisms so points will sample the targets which Extents contains them.**At the time of writing, will only check targets which position in world space is within range.***It is recommend to use a max range of 0 with this method.* | . Weighting . There is two weighting method available. Full Range and Effective Range. Each method outputs a [0..1] value that will be used to sample the Weight Over Distance curve. However, there is a critical nuance between the two: . | Full Range is a simple normalization, each target distance is divided by the longest one. As such, it’s very unlikely the curve will get sampled close to x=0. | Effective Range remaps each target distance using the shortest &amp; longest distance as min/max. As such, the shortest sampled distance will sample the curve at x=0, and the longest at x=1. | . Important note: when using the Within range sample method, some outputs will use the final weighted position/transforms for their calculations; although mathematically correct, this may yield unusuable/innacurate results. ",
+    "content": "| Method | Description | . | Within Range | Samples all polylines within the specified range. | . | Closest Target | Sample the single closest polyline within the specified range. | . | Farthest Target | Sample the single farthest polyline within the specified range. | . | Target Extents | Reverse the sampling mechanisms so points will sample the targets which Extents contains them.**At the time of writing, will only check targets which position in world space is within range.***It is recommend to use a max range of 0 with this method.* | . Weighting . There is two weighting method available. Full Range and Effective Range. Each method outputs a [0..1] value that will be used to sample the Weight Over Distance curve. However, there is a critical nuance between the two: . | Full Range is a simple normalization, each target distance is divided by the longest one. As such, it’s very unlikely the curve will get sampled close to x=0. | Effective Range remaps each target distance using the shortest &amp; longest distance as min/max. As such, the shortest sampled distance will sample the curve at x=0, and the longest at x=1. | . Note that the Effective Range method tends to spread/scale the input set of values – but allows one to leverage the full range of the curve no matter the min/max input values. Hence, using Full Range with only high (or low) input value will only sample a very narrow portion of the curve. Important note: when using the Within range sample method, some outputs will use the final weighted position/transforms for their calculations; although mathematically correct, this may yield unusuable/innacurate results. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-spline.html#sampling-methods",
     "relUrl": "/doc-sampling/sampling-nearest-spline.html#sampling-methods"
-  },"1134": {
+  },"1140": {
     "doc": "Sample Nearest Spline",
     "title": "Weighting",
     "content": ". Note that the Effective Range method tends to spread/scale the input set of values – but allows one to leverage the full range of the curve no matter the min/max input values. Hence, using Full Range with only high (or low) input value will only sample a very narrow portion of the curve. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-spline.html#weighting-1",
     "relUrl": "/doc-sampling/sampling-nearest-spline.html#weighting-1"
-  },"1135": {
+  },"1141": {
     "doc": "Sample Nearest Spline",
     "title": "Sample Nearest Spline",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-spline.html",
     "relUrl": "/doc-sampling/sampling-nearest-spline.html"
-  },"1136": {
+  },"1142": {
     "doc": "Sample Nearest Surface",
     "title": "Sample Nearest Surface",
-    "content": "Sample information from the nearest mesh collision . The Sample Nearest Points node fetches all collisions within a given radius, and find the closest point on the closest collision. Works with simple colliders only. InPoints that will be used as origin for finding &amp; sampling the nearest surface OutIn with extra attributes and properties . This node works with collisions and as such can be very expensive on large datasets. Table of content . | Properties . | Collision Settings . | Collision Settings | . | . | . Note that this only works with simple collisions – ‘use complex as simple’ won’t work either. ",
+    "content": "PCGEx | Sample : Nearest Surface Sample information from the nearest mesh collision . The Sample Nearest Points node fetches all collisions within a given radius, and find the closest point on the closest collision. Works with simple colliders only. InPoints that will be used as origin for finding &amp; sampling the nearest surface Point FiltersPoints filters used to determine which points will be processed. Filtered out points will be treated as failed sampling. OutIn with extra attributes and properties . This node works with collisions and as such can be very expensive on large datasets. Table of content . | Properties . | Collision Settings | . | . Note that this only works with simple collisions – ‘use complex as simple’ won’t work either. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-surface.html#sample-nearest-surface",
     "relUrl": "/doc-sampling/sampling-nearest-surface.html#sample-nearest-surface"
-  },"1137": {
+  },"1143": {
     "doc": "Sample Nearest Surface",
     "title": "Properties",
     "content": ". Each output property is written individually for each point. | Property | Description | . | **Settings**| |   | . | Max Distance | Maximum surface search distance. | . | Local Max Distance | If enabled, will use a local property or attribute as Max Distance. | . | **Outputs**| |   | . | **Success** Attribute Name | Writes a boolean attribute to each point specifying whether the sampling has been successful (true) or not (false).*Sampling is considered unsuccessful if there was no point within the specified range.* | . | **Location** Attribute Name | Writes the sampled location, as an FVector. | . | **Look at** Attribute Name | Writes the direction from the point to the sampled location, as an FVector. | . | **Normal** Attribute Name | Writes the normal of the surface at the sampled, as an FVector. | . | **Distance** Attribute Name | Writes the distance between the point and the sampled location, as a double. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-surface.html#properties",
     "relUrl": "/doc-sampling/sampling-nearest-surface.html#properties"
-  },"1138": {
+  },"1144": {
     "doc": "Sample Nearest Surface",
     "title": "Collision Settings",
-    "content": ". Collision Settings . These settings drive which objects will be ignored during the collision checks. | Property | Description | . | Trace Complex | Whether to collide against complex or simple collision.Note that this setting may not be supported everywhere. | . | Collision Type | The type of collision check. Can be one of:-Channel-ObjectType-ProfileThe selected mode changes which settings are available. | . | Collision Channel | Lets you pick the collision channel to check against. | . | Collision Object Type | Lets you pick the object type to check against. | . | Collision Profile Name | Lets you set a custom profile name to check against. | . | Ignore Self | If enabled, will ignore the current PCG Component’ actor owner. | . | Ignored Actor Selector | Vanilla PCG Actor Selector. | . Important note: under the hood this find the closest point on the closest collider – this feature is only supported for simple collider and won’t work on complex ones. ",
+    "content": ". These settings drive which objects will be ignored during the collision checks. | Property | Description | . | Trace Complex | Whether to collide against complex or simple collision.Note that this setting may not be supported everywhere. | . | Collision Type | The type of collision check. Can be one of:-Channel-ObjectType-ProfileThe selected mode changes which settings are available. | . | Collision Channel | Lets you pick the collision channel to check against. | . | Collision Object Type | Lets you pick the object type to check against. | . | Collision Profile Name | Lets you set a custom profile name to check against. | . | Ignore Self | If enabled, will ignore the current PCG Component’ actor owner. | . | Ignored Actor Selector | Vanilla PCG Actor Selector. | . Important note: under the hood this find the closest point on the closest collider – this feature is only supported for simple collider and won’t work on complex ones. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-surface.html#collision-settings",
     "relUrl": "/doc-sampling/sampling-nearest-surface.html#collision-settings"
-  },"1139": {
+  },"1145": {
     "doc": "Sample Nearest Surface",
     "title": "Sample Nearest Surface",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-nearest-surface.html",
     "relUrl": "/doc-sampling/sampling-nearest-surface.html"
-  },"1140": {
+  },"1146": {
     "doc": "Sample Overlap Stats",
     "title": "Sample Overlap Stats",
-    "content": "Compute overlap statistics between point collections . The Sample Overlap Stats node check points for overlap against other collections. InPoint collections to be checked against each other OutIn with extra attributes and properties . Table of content . | Properties | . ",
+    "content": "PCGEx | Sample : Overlap Stats Compute overlap statistics between point collections . The Sample Overlap Stats node check points for overlap against other collections. InPoint collections to be checked against each other OutIn with extra attributes and properties . Table of content . | Properties | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-overlap-stats.html#sample-overlap-stats",
     "relUrl": "/doc-sampling/sampling-overlap-stats.html#sample-overlap-stats"
-  },"1141": {
+  },"1147": {
     "doc": "Sample Overlap Stats",
     "title": "Properties",
     "content": ". DOC TDB . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-overlap-stats.html#properties",
     "relUrl": "/doc-sampling/sampling-overlap-stats.html#properties"
-  },"1142": {
+  },"1148": {
     "doc": "Sample Overlap Stats",
     "title": "Sample Overlap Stats",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-sampling/sampling-overlap-stats.html",
     "relUrl": "/doc-sampling/sampling-overlap-stats.html"
-  },"1143": {
+  },"1149": {
     "doc": "A* Star",
     "title": "A* Star",
     "content": "A* Algorithm . The A* Algorithm search mode … . Table of content . A* on Wikipedia . DOC TDB . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/search/search-astar.html#a-star",
     "relUrl": "/doc-pathfinding/search/search-astar.html#a-star"
-  },"1144": {
+  },"1150": {
     "doc": "A* Star",
     "title": "A* Star",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/search/search-astar.html",
     "relUrl": "/doc-pathfinding/search/search-astar.html"
-  },"1145": {
+  },"1151": {
     "doc": "Dijkstra",
     "title": "Dijkstra",
     "content": "Dijkstra’s Algorithm . The Dijkstra’s Algorithm search mode … . Table of content . Dijkstra on Wikipedia . DOC TDB . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/search/search-djikstra.html#dijkstra",
     "relUrl": "/doc-pathfinding/search/search-djikstra.html#dijkstra"
-  },"1146": {
+  },"1152": {
     "doc": "Dijkstra",
     "title": "Dijkstra",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/search/search-djikstra.html",
     "relUrl": "/doc-pathfinding/search/search-djikstra.html"
-  },"1147": {
+  },"1153": {
     "doc": "settings-adjacency",
     "title": "Adjacency",
     "content": "| Property | Description | . | : **Settings** : |   | . | Mode | The mode lets you choose how to set the flags value, as a user.- Direct is probably the most useful, as it can be set using an override pin.- Individual lets you use an array where you can set individual bits by their position (index), and whether they’re true or false.- Composite lets you set individual bits using dropdowns. | . Mode : All . This mode consolidate all the connections’ values into a single one to test against. | : **Consolidation** : |   | . | Individual | Test individual neighbors one by one | . | Individual | Test against averaged value of all neighbors | . | Individual | Test against the Min value of all neighbors | . | Individual | Test against the Max value of all neighbors | . | Individual | Test against the Sum value of all neighbors | . DOC TBD . Mode : Some . This mode test individual connections, but only some of them are required to pass for the entire filter to be considered a success. How that “some” is defined relies on a comparison against a threshold: how many neighbors pass the test vs. how many neighbors there are. | : **Threshold Settings** : |   | . | Threshold Comparison | TBD | . | Threshold Type | TBD | . | Threshold Source | TBD | . | Discrete Threshold | TBD | . | Relative Threshold | TBD | . | Threshold Attribute | TBD | . | Threshold Source | TBD | . | Rounding | TBD | . | Threshold Tolerance | TBD | . DOC TBD . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/flag-nodes/settings-adjacency.html#adjacency",
     "relUrl": "/doc-clusters/flag-nodes/settings-adjacency.html#adjacency"
-  },"1148": {
+  },"1154": {
     "doc": "settings-adjacency",
     "title": "settings-adjacency",
     "content": ". ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/flag-nodes/settings-adjacency.html",
     "relUrl": "/doc-clusters/flag-nodes/settings-adjacency.html"
-  },"1149": {
+  },"1155": {
     "doc": "settings-attribute-to-tags",
     "title": "settings-attribute-to-tags",
-    "content": "Attribute to tags settings lets you pick attributes on references points that will be converted to tags on the data they are matched to. | Property | Description | . | Add Index Tag | Use reference point index to tag output data. | . | Index Tag Prefix | If Add Index Tag is enabled, lets you set a prefix to the reference index. | . | Attributes | List of attributes on reference points to turn into tags. | . Note that while any attribute type is supported, they will be converted to a string under the hood, which may yield unexpected values. ",
+    "content": "Attribute to tags settings lets you pick attributes on references points that will be converted to tags on the data they are matched to. | Property | Description | . | Add Index Tag | Use reference point index to tag output data. | . | &lt;span class=\"etag\"&gt;Index Tag Prefix&lt;/span&gt; | If Add Index Tag is enabled, lets you set a prefix to the reference index. | . | Attributes | List of attributes on reference points to turn into tags. | . Note that while any attribute type is supported, they will be converted to a string under the hood, which may yield unexpected values. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-attribute-to-tags.html",
     "relUrl": "/settings/settings-attribute-to-tags.html"
-  },"1150": {
-    "doc": "settings-blending",
-    "title": "Blending Settings",
-    "content": ". WIP . ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-blending-reduced.html#blending-settings",
-    "relUrl": "/settings/settings-blending-reduced.html#blending-settings"
-  },"1151": {
-    "doc": "settings-blending",
-    "title": "settings-blending",
-    "content": ". ",
-    "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-blending-reduced.html",
-    "relUrl": "/settings/settings-blending-reduced.html"
-  },"1152": {
+  },"1156": {
+    "doc": "settings-blending-sampling",
+    "title": "settings-blending-sampling",
+    "content": "| Properties | Description | . | &lt;span class=\"eout\"&gt;Target Attributes&lt;/span&gt; | A Name::Blendmode map of the attributes to grab from the target points, and which blendmode to use. | . | **Point Propeprties Blending Settings** | If enabled, lets you pick &amp; choose which point properties you want to grab from the targets, and which blendmode to use.*Use None to prevent a specific property from being grabbed.* | . See Working with Clusters - Cluster Output Settings. ",
+    "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-blending-sampling.html",
+    "relUrl": "/settings/settings-blending-sampling.html"
+  },"1157": {
     "doc": "settings-blending",
     "title": "Blending Settings",
     "content": ". WIP . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-blending.html#blending-settings",
     "relUrl": "/settings/settings-blending.html#blending-settings"
-  },"1153": {
+  },"1158": {
     "doc": "settings-blending",
     "title": "settings-blending",
     "content": ". ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-blending.html",
     "relUrl": "/settings/settings-blending.html"
-  },"1154": {
+  },"1159": {
     "doc": "settings-carry-over",
     "title": "settings-carry-over",
-    "content": "Since this node merges multiple inputs together, “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.*This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default.* | . | **Attributes** | Lets you pick and choose which attributes to keep or dismiss. | . | **Tags** | Lets you pick and choose which attributes to keep or dismiss. | . Both Attributes &amp; Tags share the same string-based filters. Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters *out* the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.*The only caveat is that you can only pick a unique match mode used for each entry.* | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | &lt;span class=\"ebit\"&gt;Equals&lt;/span&gt; | Checks for strict equality of the filtered value and the associated string. | . | &lt;span class=\"ebit\"&gt;Contains&lt;/span&gt; | Checks if the filtered value contains the associated string. | . | &lt;span class=\"ebit\"&gt;Starts With&lt;/span&gt; | Checks if the filtered value is prefixed with the associated string. | . | &lt;span class=\"ebit\"&gt;Ends With&lt;/span&gt; | Checks if the filtered value is suffixed with the associated string. | . ",
+    "content": "“Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.*This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default.* | . | **Attributes** | Lets you pick and choose which attributes to keep or dismiss. | . | &lt;span class=\"etag\"&gt;**Tags**&lt;/span&gt; | Lets you pick and choose which attributes to keep or dismiss. | . Both Attributes &amp; Tags share the same string-based filters. Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters *out* the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.*The only caveat is that you can only pick a unique match mode used for each entry.* | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | &lt;span class=\"ebit\"&gt;Equals&lt;/span&gt; | Checks for strict equality of the filtered value and the associated string. | . | &lt;span class=\"ebit\"&gt;Contains&lt;/span&gt; | Checks if the filtered value contains the associated string. | . | &lt;span class=\"ebit\"&gt;Starts With&lt;/span&gt; | Checks if the filtered value is prefixed with the associated string. | . | &lt;span class=\"ebit\"&gt;Ends With&lt;/span&gt; | Checks if the filtered value is suffixed with the associated string. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-carry-over.html",
     "relUrl": "/settings/settings-carry-over.html"
-  },"1155": {
+  },"1160": {
     "doc": "settings-closed-loop",
     "title": "settings-closed-loop",
     "content": "| Property | Description | . | **Closed loop**| |   | . | Scope | The scope/selection of input data that are to be processed as closed paths or not.-All processes all input as selected below.-All but tagged inverts the scope based on tags. | . | Closed Loop | Whether to consider input data that are part of the scope as closed loop or not. | . | Comma Separated Tags | Tags to check for. Any match uses the inverse of the above value. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-closed-loop.html",
     "relUrl": "/settings/settings-closed-loop.html"
-  },"1156": {
+  },"1161": {
     "doc": "settings-cluster-output",
     "title": "settings-cluster-output",
     "content": "| Property | Description | . | Edge Position | If enabled, edge point’ position will be the result of that value used as a lerp between its start and end Vtx point. | . | : **Pruning** :| |   | . | Min Vtx Count | If enabled, only ouputs clusters that have more ( &gt; ) Vtx than the specified number. | . | Max Vtx Count | If enabled, only ouputs clusters that have less ( &lt; ) Vtx than the specified number. | . | Min Edge Count | If enabled, only ouputs clusters that have more ( &gt; ) Edge than the specified number. | . | Max Edge Count | If enabled, only ouputs clusters that have less ( &lt; ) Edge than the specified number. | . | : **Misc** :| |   | . | Refresh Edge Seed | If enabled, Edge points gets a fresh seed. | . | Build and Cache Cluster | If enabled, pre-build and cache cluster along with the point data.**This has a slight memory cost associated to it, but can offer tremendous performance improvement.***If disabled, cluster processors that comes down the line have to rebuild clusters from point data, which is very costly as they are also tested for errors and possible disconnections in the process.* | . | Expand Clusters | If enabled, also build &amp; cache another layer of cache data.**This can have a significant memory cost, as well as a minimal performance overhead, but can greatly improve certain specific operations down the line.** | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-cluster-output.html",
     "relUrl": "/settings/settings-cluster-output.html"
-  },"1157": {
+  },"1162": {
     "doc": "settings-col-asset",
     "title": "settings-col-asset",
     "content": ". Common properties . Common properties are properties shared amonst all asset collection’ entries . | Property | Description | . | : **Sub Collection** :| |   | . | Sub Collection | If Is Sub Collection is enabled, lets you pick an **Asset Collection** that will work like a list of alternative choices for this entry. | . | Is Sub Collection | Whether this entry is a sub-collection or not.Enabling this option will reveal the **Asset Collection** picker. | . | : **Settings** :| |   | . | Weight | The weight of this entry, relative to the others in the list.Higher weights means higher chance of being picked, if the context is using weighted random selection. | . | Category | A category associated with this entry. *Think of it as a unique tag.* | . An entry Weight is not only used for Weighted Random selection, but is also used to sort entries in certain cases; among which Indexed Weight (Ascending/Descending) distribution mode of the Asset Staging node. Variations . Optionally, you may enter a few random ranges for staging nodes to use, should you want to. This can come in handy if you want to have high-level, per-asset variations. | : **Positions** : | *Additive* | . | Offset Min | Minimum offset range. | . | Offset Max | Maximum offset range. | . | Absolute offset | Whether the offset should be applied in world space, or \"local\" to the point’ transform. | . | : **Rotation** : | *Additive* | . | Rotation Min | Minimum rotation offset range. | . | Rotation Max | Maximum rotation offset range. | . | : **Scale** : | *Multiplicative* | . | Scale Min | Minimum scale multiplier range. | . | Scale Max | Maximum scale multiplier range. | . | Uniform Scale | Whether the random scale multiplier should be applied per-component or uniformly (*in which case it uses X for all components*). | . Note that variations are never applied by default by any nodes, and are considered an advanced tweak. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-assets/asset-collections/settings-col-asset.html",
     "relUrl": "/doc-assets/asset-collections/settings-col-asset.html"
-  },"1158": {
+  },"1163": {
     "doc": "settings-collisions",
     "title": "settings-collisions",
     "content": "These settings drive which objects will be ignored during the collision checks. | Property | Description | . | Trace Complex | Whether to collide against complex or simple collision.*Note that this setting may not be supported everywhere.* | . | Collision Type | The type of collision check. Can be one of:-Channel-ObjectType-Profile*The selected mode changes which settings are available.* | . | Collision Channel | Lets you pick the collision channel to check against. | . | Collision Object Type | Lets you pick the object type to check against. | . | Collision Profile Name | Lets you set a custom profile name to check against. | . | Ignore Self | If enabled, will ignore the current PCG Component’ actor owner. | . | Ignored Actor Selector | Vanilla PCG Actor Selector. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-collisions.html",
     "relUrl": "/settings/settings-collisions.html"
-  },"1159": {
+  },"1164": {
     "doc": "settings-compare-bitmask",
     "title": "settings-compare-bitmask",
     "content": "| Comparison | Data | . | &lt;span class=\"ebit\"&gt;Match (any)&lt;/span&gt; | Value &amp; Mask != 0 (At least some flags in the mask are set) | . | &lt;span class=\"ebit\"&gt;Match (all)&lt;/span&gt; | Value &amp; Mask == Mask (All the flags in the mask are set) | . | &lt;span class=\"ebit\"&gt;Match (strict)&lt;/span&gt; | Value == Mask (Flags strictly equals mask) | . | &lt;span class=\"ebit\"&gt;No Match (any)&lt;/span&gt; | Value &amp; Mask == 0 (Flags does not contains any from mask) | . | &lt;span class=\"ebit\"&gt;No Match (all)&lt;/span&gt; | Value &amp; Mask != Mask (Flags does not contains the mask) | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-compare-bitmask.html",
     "relUrl": "/settings/settings-compare-bitmask.html"
-  },"1160": {
+  },"1165": {
     "doc": "settings-compare-numeric",
     "title": "settings-compare-numeric",
     "content": "| Comparison | Data | . | &lt;span class=\"ebit\"&gt;==&lt;/span&gt; | Strictly equal. | . | &lt;span class=\"ebit\"&gt;!=&lt;/span&gt; | Strictly not equal. | . | &lt;span class=\"ebit\"&gt; &gt;=&lt;/span&gt; | Equal or greater. | . | &lt;span class=\"ebit\"&gt;&lt;=&lt;/span&gt; | Equal or smaller. | . | &lt;span class=\"ebit\"&gt; &gt;&lt;/span&gt; | Strictly greater. | . | &lt;span class=\"ebit\"&gt;&lt; &lt;/span&gt; | Strictly smaller. | . | &lt;span class=\"ebit\"&gt;~=&lt;/span&gt; | Nearly equal. | . | &lt;span class=\"ebit\"&gt;!~=&lt;/span&gt; | Nearly not equal. | . Approximative comparison will reveal an additional parameter, dubbed Tolerance. This represents the size of acceptable approximation for the comparison to pass. For example, when checking if 0.5 ~= 0.4 with a tolerance of 0.1 will return true. Large tolerances can be a great, cheap way to achieve results akin to a “within range” comparison! . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-compare-numeric.html",
     "relUrl": "/settings/settings-compare-numeric.html"
-  },"1161": {
+  },"1166": {
     "doc": "settings-compare-string",
     "title": "settings-compare-string",
     "content": "| Comparison | Data | . | &lt;span class=\"ebit\"&gt;==&lt;/span&gt; | Strictly equal. | . | &lt;span class=\"ebit\"&gt;!=&lt;/span&gt; | Strictly not equal. | . | &lt;span class=\"ebit\"&gt;== (Length)&lt;/span&gt; | String lengths are strictly equal. | . | &lt;span class=\"ebit\"&gt;!= (Length)&lt;/span&gt; | String lengths are strictly not equal. | . | &lt;span class=\"ebit\"&gt; &gt;= (Length)&lt;/span&gt; | String length is equal or greater. | . | &lt;span class=\"ebit\"&gt;&lt;= (Length)&lt;/span&gt; | String lengths are is equal or smaller. | . | &lt;span class=\"ebit\"&gt; &gt; (Length)&lt;/span&gt; | String lengths is strictly greater. | . | &lt;span class=\"ebit\"&gt;&lt; (Length)&lt;/span&gt; | String lengths is Strictly smaller. | . | &lt;span class=\"ebit\"&gt; &gt; (Locale)&lt;/span&gt; | String locale is strictly greater.*In alphabetical order. (Z is greater than A)* | . | &lt;span class=\"ebit\"&gt;&lt; (Locale)&lt;/span&gt; | String locale is strictly smaller.*In alphabetical order. (A is smaller than Z)* | . | &lt;span class=\"ebit\"&gt;Contains&lt;/span&gt; | Check if string is contained in another one.*Useful if you have solid naming conventions.* | . | &lt;span class=\"ebit\"&gt;Starts With&lt;/span&gt; | Check if the string starts with another one.*Useful for prefixes.* | . | &lt;span class=\"ebit\"&gt;Ends With&lt;/span&gt; | Check if the string ends with another one.*Useful for suffixes.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-compare-string.html",
     "relUrl": "/settings/settings-compare-string.html"
-  },"1162": {
+  },"1167": {
     "doc": "settings-dot-comparison",
     "title": "settings-dot-comparison",
     "content": "| Property | Description | . | Comparison | Which comparison to use.*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* | . | Dot Units | Let you choose to work either with normalized dot range (-1 / 1) or degrees.*This affects how the attribute Dot value will be interpreted as well.* | . | Unsigned Dot | When enabled, the comparison will occur against an absolute dot value.*This is especially useful when testing against undirected lines.* | . | Dot Value | The type of value used for this probe’ search radius; either a Constant value or fetched from anAttribute | . | *(Dot or Degrees)* Constant | Constant to compare against. | . | *(Dot or Degrees)* Attribute | Constant to compare against. | . | *(Dot or Degrees)* Tolerance | Comparison tolerance, if the selected comparison is an approximative (~) one. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-dot-comparison.html",
     "relUrl": "/settings/settings-dot-comparison.html"
-  },"1163": {
+  },"1168": {
     "doc": "settings-edge-direction",
     "title": "settings-edge-direction",
     "content": "| Property | Description | . | Direction Method | Defines which endpoints \"order\" will be used to define the direction reference for the ouputs. | . | Direction Choice | Further refines the direction method, based on the above selection.-Smallest to Greatest will order direction reference metrics in ascending order.-Greatest to Smallest will order direction reference metrics in descending order.*Really it’s how the endpoint reference value is sorted, but I couldn’t call that Direction’ direction.* | . | Dir Source Attribute | The attribute that will be used by the selected method. | . If the selected method is Endpoints Attribute, the attribute is will be read from Vtx as a double. If the selected method is Edge Dot Attribute, the attribute will be read from Edges as an FVector direction. Method . The Direction method, combined with the Direction Choice determine which endpoint should be considered the Start &amp; End of the edge. The “direction” of the edge used for computing outputs &amp; properties is the safe normal going from the start to the end of the edge. | Mode | Description | . | &lt;span class=\"ebit\"&gt;Endpoints order&lt;/span&gt; | Will use the endpoints’ as ordered during cluster construction. | . | &lt;span class=\"ebit\"&gt;Endpoints indices&lt;/span&gt; | Will use the endpoints’ point index. | . | &lt;span class=\"ebit\"&gt;Endpoints Attribute&lt;/span&gt; | Will use an attribute (converted to a Double) from the endpoints’*This method, combined with Direction Choice offers full control over direction.* | . | &lt;span class=\"ebit\"&gt;Edge Dot Attribute&lt;/span&gt; | Will use an attribute (converted to an FVector) from the edges’ and do a Dot Product with the edge’ direction.*This method, combined with Direction Choice offers full control over direction.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-edge-direction.html",
     "relUrl": "/settings/settings-edge-direction.html"
-  },"1164": {
+  },"1169": {
     "doc": "settings-extra-weight",
     "title": "settings-extra-weight",
     "content": "Extra Weighting . | Property | Description | . | Weight up Visited | If enabled, points and edges will accumulate additional weight are paths are found.This allows you to make \"already in use\" points &amp; edges either more or less desirable for the next internal execution. | . | Visited Points Weight Factor | The weight to add to points that have been visited. This is a multiplier of the Heuristic’ Modifiers Reference Weight.*The weight is added each time a point is used.* | . | Visited Edges Weight Factor | The weight to add to edges that have been visited. This is a multiplier of the Heuristic’ Modifiers Reference Weight.*The weight is added each time an edge is used.* | . Important note on weighting up visited Vtx and Edges: . | The weight is only computed for the pathfinding node and isn’t carried over or cached. | Enabling this feature breaks parallelism. Task are still ran asynchronously, but each path must wait for the previous one to be computed. Impact is usually negligible, but if you have lots of paths, it may take noticeably more time to process. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-extra-weight.html",
     "relUrl": "/settings/settings-extra-weight.html"
-  },"1165": {
+  },"1170": {
     "doc": "settings-forward",
     "title": "settings-forward",
-    "content": "Since this node merges multiple inputs together, “Carry over” settings lets you pick-and-choose which attributes &amp; tags carry over to the new data. | Property | Description | . | Enabled | Whether attribute forwarding is enabled or not. | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.*This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default.* | . Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters *out* the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.*The only caveat is that you can only pick a unique match mode used for each entry.* | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | &lt;span class=\"ebit\"&gt;Equals&lt;/span&gt; | Checks for strict equality of the filtered value and the associated string. | . | &lt;span class=\"ebit\"&gt;Contains&lt;/span&gt; | Checks if the filtered value contains the associated string. | . | &lt;span class=\"ebit\"&gt;Starts With&lt;/span&gt; | Checks if the filtered value is prefixed with the associated string. | . | &lt;span class=\"ebit\"&gt;Ends With&lt;/span&gt; | Checks if the filtered value is suffixed with the associated string. | . ",
+    "content": "“Forwarding” settings lets you pick-and-choose which attributes &amp; tags carry over from some data to another. | Property | Description | . | Enabled | Whether attribute forwarding is enabled or not. | . | Preserve Attributes Default Value | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.*This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default.* | . Note that the filters look for a single valid match amongst the list; you cannot create and/or conditions. Filter Details . | Property | Description | . | Filter Mode | Chooses how the filter operates.- All let everything pass.- Exclude filters *out* the result of the filter.- Include only allows the items that pass the filters. | . | Matches | Lets you define a list of checks pairs: a string value, and a Match Mode. | . | Comma Separated Names | Easy to override, lets you specify a list of comma-separated names.*The only caveat is that you can only pick a unique match mode used for each entry.* | . | Comma Separated Names Filter | Which filter will be used along the Comma Separated Names. | . | Preserve PCGEx Data | Most of the time you’ll want to leave it to its default value. It ensures PCGEx/ prefixed data are not captured by the filter. | . Filter Modes . | Mode | Description | . | &lt;span class=\"ebit\"&gt;Equals&lt;/span&gt; | Checks for strict equality of the filtered value and the associated string. | . | &lt;span class=\"ebit\"&gt;Contains&lt;/span&gt; | Checks if the filtered value contains the associated string. | . | &lt;span class=\"ebit\"&gt;Starts With&lt;/span&gt; | Checks if the filtered value is prefixed with the associated string. | . | &lt;span class=\"ebit\"&gt;Ends With&lt;/span&gt; | Checks if the filtered value is suffixed with the associated string. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-forward.html",
     "relUrl": "/settings/settings-forward.html"
-  },"1166": {
+  },"1171": {
     "doc": "settings-projection",
     "title": "settings-projection",
     "content": "| Property | Description | . | Target Distance | Target Distance reference..*Whether to consider point bounds, and if so, how.* | . | Fuse Method | Lets you choose the method for finding neighbors &amp; collocated points | . | Voxel Grid Offset | Offset the voxelized grid by an constant amount.*By default the center of the grid is 0,0,0, which may look like an undersirable offset. That offset can be manually compensated using this parameter.* | . | Inline Insertion | **Using the Octree fuse method is not deterministic by default.**Enabling inlined insertion will make it so, at the cost of speed. | . | Source Distance | Source Distance reference.*Whether to consider point bounds, and if so, how.* | . | **Tolerance** | |   | . | Component Wise Tolerance | If enabled, lets you set individual tolerance in world space for each X, Y and Z axis. | . | Tolerance | Uniform tolerance. This represent the radius within which elements will be considered in fuse range. | . | Tolerances | If enabled, represent individual axis’ radius within which elements will be considered in fuse range. | . | Local Tolerance | If enabled, lets your use per-point tolerance value.**NOT IMPLEMENTED** | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-fuse-details.html",
     "relUrl": "/settings/settings-fuse-details.html"
-  },"1167": {
+  },"1172": {
     "doc": "settings-index-safety",
     "title": "settings-index-safety",
     "content": "The index safety property controls how invalid/out of bounds input values are handled. | Safety method | |   | . | &lt;span class=\"ebit\"&gt;Ignore&lt;/span&gt; | Invalid indices will be ignored and won’t be processed further. | . | &lt;span class=\"ebit\"&gt;Tile&lt;/span&gt; | Index is tiled (*wrapped around*) the context’ valid min/max range. | . | &lt;span class=\"ebit\"&gt;Clamp&lt;/span&gt; | Index is clamped between the context’ valid min/max range. | . | &lt;span class=\"ebit\"&gt;Yoyo&lt;/span&gt; | Index bounces back and forth between the context’ valid min/max range. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-index-safety.html",
     "relUrl": "/settings/settings-index-safety.html"
-  },"1168": {
+  },"1173": {
     "doc": "settings-blending",
     "title": "settings-blending",
     "content": "| Property | Description | . | **Settings**| |   | . | Influence | Interpolate between the original position and the final, relaxed position.- 1.0 means fully relaxed- 0.0 means the original position is preserved. | . | **Local Influence** | When enabled, this allows you to use a per-point influence value.*This is especially useful for \"pinning\" specific points.* | . | Progressive Influence | When enabled, Influence is **applied between each iteration**, instead of once after all iterations have been processed.*This is more expensive but yield more good looking results, especially with non-uniform local influence.* | . Note that while the default Influence is clamped, the local influence is purposefully not clamped, allowing for undershooting or overshooting the influence’ interpolation between the relaxed and original position. Use carefully. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-influence.html",
     "relUrl": "/settings/settings-influence.html"
-  },"1169": {
+  },"1174": {
     "doc": "settings-intersect-edge-edge",
     "title": "settings-intersect-edge-edge",
-    "content": "| Property | Description | . | Enable Self Intersection | If enabled, a cluster will test if intersection exists against itself. Otherwise, only check against other clusters. | . | **Tolerance** | |   | . | Tolerance | Uniform tolerance. This represent the radius within which elements will be considered in fuse range. | . | Min Angle | If enabled, only considers edges to be intersecting if their angle is greater than the specified value. | . | Max Angle | If enabled, only considers edges to be intersecting if their angle is smaller than the specified value. | . | **Outputs** | |   | . | Crossing Attribute Namebool | If enabled, flag the edges’ intersection point. | . | Flag Crossing | **NOT IMPLEMENTED**. | . ",
+    "content": "| Property | Description | . | Enable Self Intersection | If enabled, a cluster will test if intersection exists against itself. Otherwise, only check against other clusters. | . | **Tolerance** | |   | . | Tolerance | Uniform tolerance. This represent the radius within which elements will be considered in fuse range. | . | Min Angle | If enabled, only considers edges to be intersecting if their angle is greater than the specified value. | . | Max Angle | If enabled, only considers edges to be intersecting if their angle is smaller than the specified value. | . | **Outputs** | |   | . | &lt;span class=\"eout\"&gt;Crossing Attribute Name&lt;/span&gt;bool | If enabled, flag the edges’ intersection point. | . | Flag Crossing | **NOT IMPLEMENTED**. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-intersect-edge-edge.html",
     "relUrl": "/settings/settings-intersect-edge-edge.html"
-  },"1170": {
+  },"1175": {
     "doc": "settings-projection",
     "title": "settings-projection",
-    "content": "| Property | Description | . | Enable Self Intersection | If enabled, a cluster will test if intersection exists against itself. Otherwise, only check against other clusters. | . | **Fuse Details** | |   | . | Source Distance | Source Distance reference.*Whether to consider point bounds, and if so, how.* | . | Component Wise Tolerance | If enabled, lets you set individual tolerance in world space for each X, Y and Z axis. | . | Tolerance | Uniform tolerance. This represent the radius within which elements will be considered in fuse range. | . | Tolerances | If enabled, represent individual axis’ radius within which elements will be considered in fuse range. | . | Local Tolerance | If enabled, lets your use per-point tolerance value.**NOT IMPLEMENTED** | . | **Outputs** | |   | . | Snap on Edge | If enabled, snap the intersection position onto the original edge, as opposed to the reverse. | . | Intersector Attribute Namebool | If enabled, flag the points that intersected with an edge. | . ",
+    "content": "| Property | Description | . | Enable Self Intersection | If enabled, a cluster will test if intersection exists against itself. Otherwise, only check against other clusters. | . | **Fuse Details** | |   | . | Source Distance | Source Distance reference.*Whether to consider point bounds, and if so, how.* | . | Component Wise Tolerance | If enabled, lets you set individual tolerance in world space for each X, Y and Z axis. | . | Tolerance | Uniform tolerance. This represent the radius within which elements will be considered in fuse range. | . | Tolerances | If enabled, represent individual axis’ radius within which elements will be considered in fuse range. | . | Local Tolerance | If enabled, lets your use per-point tolerance value.**NOT IMPLEMENTED** | . | **Outputs** | |   | . | Snap on Edge | If enabled, snap the intersection position onto the original edge, as opposed to the reverse. | . | &lt;span class=\"eout\"&gt;Intersector Attribute Name&lt;/span&gt;bool | If enabled, flag the points that intersected with an edge. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-intersect-point-edge.html",
     "relUrl": "/settings/settings-intersect-point-edge.html"
-  },"1171": {
+  },"1176": {
     "doc": "settings-intersect-point-point",
     "title": "settings-intersect-point-point",
-    "content": "| Property | Description | . | **Fuse Details** | |   | . | Target Distance | Target Distance reference..*Whether to consider point bounds, and if so, how.* | . | Fuse Method | Lets you choose the method for finding neighbors &amp; collocated points | . | Voxel Grid Offset | Offset the voxelized grid by an constant amount.*By default the center of the grid is 0,0,0, which may look like an undersirable offset. That offset can be manually compensated using this parameter.* | . | Inline Insertion | **Using the Octree fuse method is not deterministic by default.**Enabling inlined insertion will make it so, at the cost of speed. | . | Source Distance | Source Distance reference.*Whether to consider point bounds, and if so, how.* | . | **Tolerance** | |   | . | Component Wise Tolerance | If enabled, lets you set individual tolerance in world space for each X, Y and Z axis. | . | Tolerance | Uniform tolerance. This represent the radius within which elements will be considered in fuse range. | . | Tolerances | If enabled, represent individual axis’ radius within which elements will be considered in fuse range. | . | Local Tolerance | If enabled, lets your use per-point tolerance value.**NOT IMPLEMENTED** | . | **Outputs** | |   | . | Compounded Attribute Namebool | If enabled, writes a bool flag. true if the point is the result of a merge, false if it’s the \"original\" one. | . | Compound Size Attribute Nameint32 | If enabled, writes the numbers of points that have been compounded/merged into it. | . ",
+    "content": "| Property | Description | . | **Fuse Details** | |   | . | Target Distance | Target Distance reference..*Whether to consider point bounds, and if so, how.* | . | Fuse Method | Lets you choose the method for finding neighbors &amp; collocated points | . | Voxel Grid Offset | Offset the voxelized grid by an constant amount.*By default the center of the grid is 0,0,0, which may look like an undersirable offset. That offset can be manually compensated using this parameter.* | . | Inline Insertion | **Using the Octree fuse method is not deterministic by default.**Enabling inlined insertion will make it so, at the cost of speed. | . | Source Distance | Source Distance reference.*Whether to consider point bounds, and if so, how.* | . | **Tolerance** | |   | . | Component Wise Tolerance | If enabled, lets you set individual tolerance in world space for each X, Y and Z axis. | . | Tolerance | Uniform tolerance. This represent the radius within which elements will be considered in fuse range. | . | Tolerances | If enabled, represent individual axis’ radius within which elements will be considered in fuse range. | . | Local Tolerance | If enabled, lets your use per-point tolerance value.**NOT IMPLEMENTED** | . | **Outputs** | |   | . | &lt;span class=\"eout\"&gt;Compounded Attribute Name&lt;/span&gt;bool | If enabled, writes a bool flag. true if the point is the result of a merge, false if it’s the \"original\" one. | . | &lt;span class=\"eout\"&gt;Compound Size Attribute Name&lt;/span&gt;int32 | If enabled, writes the numbers of points that have been compounded/merged into it. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-intersect-point-point.html",
     "relUrl": "/settings/settings-intersect-point-point.html"
-  },"1172": {
+  },"1177": {
     "doc": "settings-projection",
     "title": "settings-projection",
     "content": "The projection settings control how the point position is translated to a 2D space before the graph is computed; and how this projection will translate back to the original space, if relevant. | Property | Description | . | Projection Normal | Normal vector of the plane used for projection.By default, the projection plan normal is Up; so the graph is computed over the X Y plane. | . | Local Projection Normal | If enabled, uses a per-point projection vector. | . | Local Normal | Attribute ti read normal from, | . Local projection normal is very powerful but can also be very clunky to use – it’s very easy to end up with singularities that will prevent the graph from being properly computed. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-projection.html",
     "relUrl": "/settings/settings-projection.html"
-  },"1173": {
+  },"1178": {
     "doc": "settings-statistics",
     "title": "settings-statistics",
     "content": "| **Statistics** | |   | . | — | ![wip](https://img.shields.io/badge/WIP-c8860e) | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-statistics.html",
     "relUrl": "/settings/settings-statistics.html"
-  },"1174": {
+  },"1179": {
     "doc": "settings-weighting",
     "title": "settings-weighting",
-    "content": "There is two weighting method available. Full Range and Effective Range. Each method outputs a [0..1] value that will be used to sample the Weight Over Distance curve. However, there is a critical nuance between the two: . | Full Range is a simple normalization, each target distance is divided by the longest one. As such, it’s very unlikely the curve will get sampled close to x=0. | Effective Range remaps each target distance using the shortest &amp; longest distance as min/max. As such, the shortest sampled distance will sample the curve at x=0, and the longest at x=1. | . Important note: when using the Within range sample method, some outputs will use the final weighted position/transforms for their calculations; although mathematically correct, this may yield unusuable/innacurate results. ",
+    "content": "There is two weighting method available. Full Range and Effective Range. Each method outputs a [0..1] value that will be used to sample the Weight Over Distance curve. However, there is a critical nuance between the two: . | Full Range is a simple normalization, each target distance is divided by the longest one. As such, it’s very unlikely the curve will get sampled close to x=0. | Effective Range remaps each target distance using the shortest &amp; longest distance as min/max. As such, the shortest sampled distance will sample the curve at x=0, and the longest at x=1. | . Note that the Effective Range method tends to spread/scale the input set of values – but allows one to leverage the full range of the curve no matter the min/max input values. Hence, using Full Range with only high (or low) input value will only sample a very narrow portion of the curve. Important note: when using the Within range sample method, some outputs will use the final weighted position/transforms for their calculations; although mathematically correct, this may yield unusuable/innacurate results. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/settings/settings-weighting.html",
     "relUrl": "/settings/settings-weighting.html"
-  },"1175": {
+  },"1180": {
     "doc": "Moving Average",
     "title": "Moving Average",
     "content": "Index-based moving-average sampling . Table of content . | Properties | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-smooth/smoothing-moving-average.html#moving-average",
     "relUrl": "/doc-paths/paths-smooth/smoothing-moving-average.html#moving-average"
-  },"1176": {
+  },"1181": {
     "doc": "Moving Average",
     "title": "Properties",
     "content": ". | Property | Description | . | **Settings**| |   | . | Window Size | The number of leading &amp; trailing points to sample.*The larger the window, the more uniform the result.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-smooth/smoothing-moving-average.html#properties",
     "relUrl": "/doc-paths/paths-smooth/smoothing-moving-average.html#properties"
-  },"1177": {
+  },"1182": {
     "doc": "Moving Average",
     "title": "Moving Average",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-smooth/smoothing-moving-average.html",
     "relUrl": "/doc-paths/paths-smooth/smoothing-moving-average.html"
-  },"1178": {
+  },"1183": {
     "doc": "Radius",
     "title": "Radius",
     "content": "Radius &amp; position-based sampling . Table of content . | Properties | . Note that because of how the maths works for this module, it can be used with any input data: whether the points are ordered as paths or not doesn’t matter. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-smooth/smoothing-radius.html#radius",
     "relUrl": "/doc-paths/paths-smooth/smoothing-radius.html#radius"
-  },"1179": {
+  },"1184": {
     "doc": "Radius",
     "title": "Properties",
     "content": ". | Property | Description | . | **Settings**| |   | . | Blend Radius | Radius within which neighbor points will be sampled. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-smooth/smoothing-radius.html#properties",
     "relUrl": "/doc-paths/paths-smooth/smoothing-radius.html#properties"
-  },"1180": {
+  },"1185": {
     "doc": "Radius",
     "title": "Radius",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-smooth/smoothing-radius.html",
     "relUrl": "/doc-paths/paths-smooth/smoothing-radius.html"
-  },"1181": {
+  },"1186": {
     "doc": "🝘 Sort Rule",
     "title": "🝘 Sort Rule",
     "content": "An individual sorting rule . TBD . Sorting RuleA single sorting rule . Table of content . | Properties | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-misc/sort-points/sort-rule.html#sort-rule",
     "relUrl": "/doc-misc/sort-points/sort-rule.html#sort-rule"
-  },"1182": {
+  },"1187": {
     "doc": "🝘 Sort Rule",
     "title": "Properties",
     "content": ". DOC TDB . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-misc/sort-points/sort-rule.html#properties",
     "relUrl": "/doc-misc/sort-points/sort-rule.html#properties"
-  },"1183": {
+  },"1188": {
     "doc": "🝘 Sort Rule",
     "title": "🝘 Sort Rule",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-misc/sort-points/sort-rule.html",
     "relUrl": "/doc-misc/sort-points/sort-rule.html"
-  },"1184": {
+  },"1189": {
     "doc": "∢ Auto Tangents",
     "title": "∢ Auto Tangents",
     "content": "Neighbor-based tangents . Table of content . The Auto Tangents compute tangents by using neighboring points. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-write-tangents/tangent-auto.html#auto-tangents",
     "relUrl": "/doc-paths/paths-write-tangents/tangent-auto.html#auto-tangents"
-  },"1185": {
+  },"1190": {
     "doc": "∢ Auto Tangents",
     "title": "∢ Auto Tangents",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-write-tangents/tangent-auto.html",
     "relUrl": "/doc-paths/paths-write-tangents/tangent-auto.html"
-  },"1186": {
+  },"1191": {
     "doc": "∢ Catmull-Rom",
     "title": "∢ Catmull-Rom",
     "content": "Neighbor-based tangents . Table of content . The Catmull-Rom compute tangents as the direction from the previous point to the next. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-write-tangents/tangent-catmull-rom.html#catmull-rom",
     "relUrl": "/doc-paths/paths-write-tangents/tangent-catmull-rom.html#catmull-rom"
-  },"1187": {
+  },"1192": {
     "doc": "∢ Catmull-Rom",
     "title": "∢ Catmull-Rom",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-write-tangents/tangent-catmull-rom.html",
     "relUrl": "/doc-paths/paths-write-tangents/tangent-catmull-rom.html"
-  },"1188": {
+  },"1193": {
     "doc": "∢ From Transform",
     "title": "∢ From Transform",
     "content": "Transform-based tangents . Table of content . | Properties | . The From Transform writes the selected transform axis (in world space) of the point as a tangent. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-write-tangents/tangent-from-transform.html#from-transform",
     "relUrl": "/doc-paths/paths-write-tangents/tangent-from-transform.html#from-transform"
-  },"1189": {
+  },"1194": {
     "doc": "∢ From Transform",
     "title": "Properties",
     "content": ". | Property | Description | . | **Settings**| |   | . | Axis | Lets you pick the transform axis | . | **Axis**| |   | . | Forward | Transform forward axis.*Positive X* | . | Backward | Transform backward axis.*Negative X* | . | Right | Transform right axis.*Positive Y* | . | Left | Transform left axis.*Negative Y* | . | Up | Transform up axis.*Positive Z* | . | Down | Transform down axis.*Negative Z* | . Note that as the time of writing, this tangent require scaling as it’s using a normalized vector. Additional scaling options will be exposed in order to make it easier to scale when used specifically for start/end points. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-write-tangents/tangent-from-transform.html#properties",
     "relUrl": "/doc-paths/paths-write-tangents/tangent-from-transform.html#properties"
-  },"1190": {
+  },"1195": {
     "doc": "∢ From Transform",
     "title": "∢ From Transform",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-write-tangents/tangent-from-transform.html",
     "relUrl": "/doc-paths/paths-write-tangents/tangent-from-transform.html"
-  },"1191": {
+  },"1196": {
     "doc": "∢ Zero Tangents",
     "title": "∢ Zero Tangents",
     "content": "No tangents . Table of content . The Zero Tangents writes a 0,0,0 FVector to the tangents. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-write-tangents/tangent-zero.html#zero-tangents",
     "relUrl": "/doc-paths/paths-write-tangents/tangent-zero.html#zero-tangents"
-  },"1192": {
+  },"1197": {
     "doc": "∢ Zero Tangents",
     "title": "∢ Zero Tangents",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-paths/paths-write-tangents/tangent-zero.html",
     "relUrl": "/doc-paths/paths-write-tangents/tangent-zero.html"
-  },"1193": {
+  },"1198": {
     "doc": "🝊 Edge Match",
     "title": "🝊 Edge Match",
     "content": "PCGEx | Vtx : Edge Match Find the neighbors that best match a given direction . TBD . PropertyA single property writer . Related . | Working with Clusters | Properties : Vtx | . Table of content . | Properties . | Dot Comparison Details | Outputs | . | . The Edge Match property outputs the properties of the single connected edges that best matches a given direction. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-best-match.html#edge-match",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-best-match.html#edge-match"
-  },"1194": {
+  },"1199": {
     "doc": "🝊 Edge Match",
     "title": "Properties",
     "content": ". | Property | Description | . | **Settings**| |   | . | Origin | Defines how the base direction is computed, either from the Node to the neighbor (*going outward*), or from the Neighbor to the node (*going inward*). | . | Direction Source | Select where to read the direction to compare to from; either Constant or Attribute. | . | Direction Constant | Fixed test direction. | . | Direction Attribute | Per-point direction attribute. | . | Transform Direction | If enabled, will transform the input direction (either Constant or Attribute) using the point’ transform. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-best-match.html#properties",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-best-match.html#properties"
-  },"1195": {
+  },"1200": {
     "doc": "🝊 Edge Match",
     "title": "Dot Comparison Details",
     "content": ". | Property | Description | . | Comparison | Which comparison to use.*See [Numeric comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#numeric-comparisons).* | . | Dot Units | Let you choose to work either with normalized dot range (-1 / 1) or degrees.*This affects how the attribute Dot value will be interpreted as well.* | . | Unsigned Dot | When enabled, the comparison will occur against an absolute dot value.*This is especially useful when testing against undirected lines.* | . | Dot Value | The type of value used for this probe’ search radius; either a Constant value or fetched from anAttribute | . | *(Dot or Degrees)* Constant | Constant to compare against. | . | *(Dot or Degrees)* Attribute | Constant to compare against. | . | *(Dot or Degrees)* Tolerance | Comparison tolerance, if the selected comparison is an approximative (~) one. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-best-match.html#dot-comparison-details",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-best-match.html#dot-comparison-details"
-  },"1196": {
+  },"1201": {
     "doc": "🝊 Edge Match",
     "title": "Outputs",
-    "content": "| Output | Description | . | Direction AttributeFVector | If enabled, writes the Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | Length AttributeDouble | If enabled, writes the Edge’ length to the specified attribute. | . | Edge Index AttributeInt32 | If enabled, writes the Edge’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Vtx Index AttributeInt32 | If enabled, writes the Vtx’ point index the selected Edge connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Neighbor Count AttributeInt32 | If enabled, writes the Vtx’ point neighbor count the selected Edge connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
+    "content": "| Output | Description | . | &lt;span class=\"eout\"&gt;Direction Attribute&lt;/span&gt;FVector | If enabled, writes the Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | &lt;span class=\"eout\"&gt;Length Attribute&lt;/span&gt;Double | If enabled, writes the Edge’ length to the specified attribute. | . | &lt;span class=\"eout\"&gt;Edge Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Edge’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Vtx Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point index the selected Edge connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Neighbor Count Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point neighbor count the selected Edge connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-best-match.html#outputs",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-best-match.html#outputs"
-  },"1197": {
+  },"1202": {
     "doc": "🝊 Edge Match",
     "title": "🝊 Edge Match",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-best-match.html",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-best-match.html"
-  },"1198": {
+  },"1203": {
     "doc": "🝊 Special Edges",
     "title": "🝊 Special Edges",
     "content": "PCGEx | Vtx : Special Edges Gather infos from special-case edges . The Special Edges property outputs data about the two most extreme edges connected to a vertex — the shortest and longest — allowing users to capture attributes like direction, length, and indices for both, with an additional option to average all connected edges. PropertyA single property writer . Related . | Working with Clusters | Properties : Vtx | . Table of content . | Properties . | Shortest Edge | Longest Edge | Average Edge | . | . The Special Edges property outputs the properties of the two “special” connected edges – special in the outlier sense : the Shortest connected edge, as well as the Longest connected edge. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-edges.html#special-edges",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-edges.html#special-edges"
-  },"1199": {
+  },"1204": {
     "doc": "🝊 Special Edges",
     "title": "Properties",
     "content": ". ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-edges.html#properties",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-edges.html#properties"
-  },"1200": {
+  },"1205": {
     "doc": "🝊 Special Edges",
     "title": "Shortest Edge",
-    "content": "| Output | Description | . | Direction AttributeFVector | If enabled, writes the Shortest Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | Length AttributeDouble | If enabled, writes the Shortest Edge’’ length to the specified attribute. | . | Edge Index AttributeInt32 | If enabled, writes the Shortest Edge’’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Vtx Index AttributeInt32 | If enabled, writes the Vtx’ point index the Shortest Edge’ connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Neighbor Count AttributeInt32 | If enabled, writes the Vtx’ point neighbor count the Shortest Edge’ connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
+    "content": "| Output | Description | . | &lt;span class=\"eout\"&gt;Direction Attribute&lt;/span&gt;FVector | If enabled, writes the Shortest Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | &lt;span class=\"eout\"&gt;Length Attribute&lt;/span&gt;Double | If enabled, writes the Shortest Edge’’ length to the specified attribute. | . | &lt;span class=\"eout\"&gt;Edge Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Shortest Edge’’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Vtx Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point index the Shortest Edge’ connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Neighbor Count Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point neighbor count the Shortest Edge’ connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-edges.html#shortest-edge",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-edges.html#shortest-edge"
-  },"1201": {
+  },"1206": {
     "doc": "🝊 Special Edges",
     "title": "Longest Edge",
-    "content": "| Output | Description | . | Direction AttributeFVector | If enabled, writes the Longest Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | Length AttributeDouble | If enabled, writes the Longest Edge’’ length to the specified attribute. | . | Edge Index AttributeInt32 | If enabled, writes the Longest Edge’’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Vtx Index AttributeInt32 | If enabled, writes the Vtx’ point index the Longest Edge’ connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Neighbor Count AttributeInt32 | If enabled, writes the Vtx’ point neighbor count the Longest Edge’ connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
+    "content": "| Output | Description | . | &lt;span class=\"eout\"&gt;Direction Attribute&lt;/span&gt;FVector | If enabled, writes the Longest Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | &lt;span class=\"eout\"&gt;Length Attribute&lt;/span&gt;Double | If enabled, writes the Longest Edge’’ length to the specified attribute. | . | &lt;span class=\"eout\"&gt;Edge Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Longest Edge’’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Vtx Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point index the Longest Edge’ connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Neighbor Count Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point neighbor count the Longest Edge’ connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-edges.html#longest-edge",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-edges.html#longest-edge"
-  },"1202": {
+  },"1207": {
     "doc": "🝊 Special Edges",
     "title": "Average Edge",
-    "content": "A sub-selection of all connected’ edges average. | Output | Description | . | Direction AttributeFVector | If enabled, writes the averaged direction of all connected edges. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | Length AttributeDouble | If enabled, writes the averaged length of all connected edges. | . ",
+    "content": "A sub-selection of all connected’ edges average. | Output | Description | . | &lt;span class=\"eout\"&gt;Direction Attribute&lt;/span&gt;FVector | If enabled, writes the averaged direction of all connected edges. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | &lt;span class=\"eout\"&gt;Length Attribute&lt;/span&gt;Double | If enabled, writes the averaged length of all connected edges. | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-edges.html#average-edge",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-edges.html#average-edge"
-  },"1203": {
+  },"1208": {
     "doc": "🝊 Special Edges",
     "title": "🝊 Special Edges",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-edges.html",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-edges.html"
-  },"1204": {
+  },"1209": {
     "doc": "🝊 Special Neighbors",
     "title": "🝊 Special Neighbors",
     "content": "PCGEx | Vtx : Special Neighbors Gather infos from special-case neighbors . The Special Neighbors property outputs information about two key neighbors of a vertex — the one with the most connections (Largest Neighbor) and the one with the fewest connections (Smallest Neighbor). You can extract various attributes, such as edge direction, length, and vertex indices, for both of these special neighbors. PropertyA single property writer . Related . | Working with Clusters | Properties : Vtx | . Table of content . | Properties . | Largest Neighbor | Smallest Neighbor | . | . The Special Neighbor property outputs the properties of the two “special” connected neighbors – special in the outlier sense : the Largest connected vtx, as well as the Smallest connected vtx – in terms of number of connectons. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html#special-neighbors",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html#special-neighbors"
-  },"1205": {
+  },"1210": {
     "doc": "🝊 Special Neighbors",
     "title": "Properties",
     "content": ". ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html#properties",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html#properties"
-  },"1206": {
+  },"1211": {
     "doc": "🝊 Special Neighbors",
     "title": "Largest Neighbor",
-    "content": "The Largest Neighbor is the connected Vtx with the largest number of connections. | Output | Description | . | Direction AttributeFVector | If enabled, writes the Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | Length AttributeDouble | If enabled, writes the Edge’’ length to the specified attribute. | . | Edge Index AttributeInt32 | If enabled, writes the Edge’’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Vtx Index AttributeInt32 | If enabled, writes the Vtx’ point index the Edge’ connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Neighbor Count AttributeInt32 | If enabled, writes the Vtx’ point neighbor count the Edge’ connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
+    "content": "The Largest Neighbor is the connected Vtx with the largest number of connections. | Output | Description | . | &lt;span class=\"eout\"&gt;Direction Attribute&lt;/span&gt;FVector | If enabled, writes the Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | &lt;span class=\"eout\"&gt;Length Attribute&lt;/span&gt;Double | If enabled, writes the Edge’’ length to the specified attribute. | . | &lt;span class=\"eout\"&gt;Edge Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Edge’’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Vtx Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point index the Edge’ connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Neighbor Count Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point neighbor count the Edge’ connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html#largest-neighbor",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html#largest-neighbor"
-  },"1207": {
+  },"1212": {
     "doc": "🝊 Special Neighbors",
     "title": "Smallest Neighbor",
-    "content": "The Smallest Neighbor is the connected Vtx with the smallest number of connections. | Output | Description | . | Direction AttributeFVector | If enabled, writes the Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | Length AttributeDouble | If enabled, writes the Edge’’ length to the specified attribute. | . | Edge Index AttributeInt32 | If enabled, writes the Edge’’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Vtx Index AttributeInt32 | If enabled, writes the Vtx’ point index the Edge’ connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | Neighbor Count AttributeInt32 | If enabled, writes the Vtx’ point neighbor count the Edge’ connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
+    "content": "The Smallest Neighbor is the connected Vtx with the smallest number of connections. | Output | Description | . | &lt;span class=\"eout\"&gt;Direction Attribute&lt;/span&gt;FVector | If enabled, writes the Edge’ direction to the specified attribute. | . | *Invert Direction* | *If enabled, will invert (*-1) the direction output above.* | . | &lt;span class=\"eout\"&gt;Length Attribute&lt;/span&gt;Double | If enabled, writes the Edge’’ length to the specified attribute. | . | &lt;span class=\"eout\"&gt;Edge Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Edge’’ point index to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Vtx Index Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point index the Edge’ connects to, to the specified attribute.*This is useful for targeted/cherry-picking manipulations.* | . | &lt;span class=\"eout\"&gt;Neighbor Count Attribute&lt;/span&gt;Int32 | If enabled, writes the Vtx’ point neighbor count the Edge’ connects to, to the specified attribute.*Amongst other things, this can come in handy to drive the 🝰 Heuristic Attribute.* | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html#smallest-neighbor",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html#smallest-neighbor"
-  },"1208": {
+  },"1213": {
     "doc": "🝊 Special Neighbors",
     "title": "🝊 Special Neighbors",
     "content": " ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html",
     "relUrl": "/doc-clusters/properties-vtx/vtx-extra-special-neighbors.html"
-  },"1209": {
+  },"1214": {
     "doc": "Working with Clusters",
     "title": "Working with Clusters",
     "content": "Vtx? Edges? . A summary of what “graph” means and entails in the context of PCGEx. One of the main focus of PCGEx is working with Clusters : vtx &amp; edge-based “graph” structures. They’re akin to a mesh without faces: a bunch of vertices connected by a bunch of edges. PCGEx leverage PCG’ point data as data holders in order to enable easy tweaking and manipulation of edge/vertice data using existing vanilla nodes. In short, a graph is represented by at least two separate set of points: the first, Vtx represent individual vertices; others, Edges, represent interconnected clusters. Edges points stores the indices of their start and end point in the matching Vtx group. Because of that approach, nodes that work with graph require Vtx and Edges as separate inputs. Data Tags are used to mark which edges match which vertices, so you will see additional tags appear on your data, formatted as PCGEx/XXX. Rule of thumb : If you manually alter (as in add or remove points) the content of a Vtx or Edges created by a PCGEx Node, make sure to use the Sanitize Clusters node before using them as inputs for other PCGEx nodes. Checklist . | Packed data | Clusters | Cluster Output Settings | Important Notes | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-general/working-with-clusters.html#working-with-clusters",
     "relUrl": "/doc-general/working-with-clusters.html#working-with-clusters"
-  },"1210": {
+  },"1215": {
     "doc": "Working with Clusters",
     "title": "Packed data",
     "content": "The PCGEx/VtxEndpoint attribute first 32 bits are that Vtx unique ID from the cluster perspective, while the last 32 bits contains the number of Edges this Vtx is connected to. It makes up the identity of the Vtx. Alternatively, Edges have a PCGEx/EdgeEndpoints attribute whose first 32 bits matches their start’ Vtx unique ID, and the last 32 bits are the edge’ end Vtx unique ID. Put together, this data is used to rebuild clusters in memory. If you manually alter (read : using native nodes) the number of points in either Vtx or Edges dataset, make sure to use Sanitize Clusters to restore the coherence of these attributes. Rule of thumb : The only information that matter on Edges for clusters is their start and end attribute. Their position in space is ignored so feel free to use those points if they can be relevant to you. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-general/working-with-clusters.html#packed-data",
     "relUrl": "/doc-general/working-with-clusters.html#packed-data"
-  },"1211": {
+  },"1216": {
     "doc": "Working with Clusters",
     "title": "Clusters",
     "content": "In PCGEx terms, a cluster is “a set of Vtx and Edges that are interconnected in a finite way” – in other words, there is a guaranteed way inside a cluster that a path can be found between any Vtx to any other Vtx when passing through Edges. A graph usually has a single set of vertices, but will output as many edge datasets as there are clusters. These will be then rebuilt inside the nodes to be processed. If you find yourself with unexpected disconnections that ruin your pathfinding, check out Connect Clusters or Fuse Clusters. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-general/working-with-clusters.html#clusters",
     "relUrl": "/doc-general/working-with-clusters.html#clusters"
-  },"1212": {
+  },"1217": {
     "doc": "Working with Clusters",
     "title": "Cluster Output Settings",
     "content": "This group of settings is present on all PCGEx nodes that output cluster data. They’re used to prune undesired ouputs and include a few very specific optimization options. | Property | Description | . | Edge Position | If enabled, edge point’ position will be the result of that value used as a lerp between its start and end Vtx point. | . | : **Pruning** :| |   | . | Min Vtx Count | If enabled, only ouputs clusters that have more ( &gt; ) Vtx than the specified number. | . | Max Vtx Count | If enabled, only ouputs clusters that have less ( &lt; ) Vtx than the specified number. | . | Min Edge Count | If enabled, only ouputs clusters that have more ( &gt; ) Edge than the specified number. | . | Max Edge Count | If enabled, only ouputs clusters that have less ( &lt; ) Edge than the specified number. | . | : **Misc** :| |   | . | Refresh Edge Seed | If enabled, Edge points gets a fresh seed. | . | Build and Cache Cluster | If enabled, pre-build and cache cluster along with the point data.**This has a slight memory cost associated to it, but can offer tremendous performance improvement.***If disabled, cluster processors that comes down the line have to rebuild clusters from point data, which is very costly as they are also tested for errors and possible disconnections in the process.* | . | Expand Clusters | If enabled, also build &amp; cache another layer of cache data.**This can have a significant memory cost, as well as a minimal performance overhead, but can greatly improve certain specific operations down the line.** | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-general/working-with-clusters.html#cluster-output-settings",
     "relUrl": "/doc-general/working-with-clusters.html#cluster-output-settings"
-  },"1213": {
+  },"1218": {
     "doc": "Working with Clusters",
     "title": "Important Notes",
     "content": "Altering PCGEx/VtxEndpoints, PCGEx/ClusterId voids the guarantee that PCGEx nodes will work as expected. The UID used for the tagging is NOT deterministic, and will change at each execution of the graph, and for each node. It is used under the hood only, and should not be edited, nor relied upon for any kind of tag-related operations. For the same reason, if you create custom tags starting with PCGEx/, it will break existing vtx/edge associations. Because of the reliance on the tagging system, if you edit Vtx and Edges before using them with a PCGEx node, make sure tags are preserved. I’m working on more robust way to assciate the data beyond tags, but sadly tagging is the most bulletproof and reliable method I found. Underlying data types are always at the risk of not being preserved if they’re not properly duplicated, which can happen in earlier/experimental version of PCG that this plugin is supporting. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-general/working-with-clusters.html#important-notes",
     "relUrl": "/doc-general/working-with-clusters.html#important-notes"
-  },"1214": {
+  },"1219": {
     "doc": "Working with Clusters",
     "title": "Working with Clusters",
     "content": " ",

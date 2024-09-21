@@ -3,6 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Sampling
 title: Sample Nearest Points
+name_in_editor: "Sample : Nearest Point"
 subtitle: Sample points within a spherical range
 color: white
 summary: The **Sample Nearest Points** node explore points within a range using various methods. Define sampling range, weight targets, and obtain useful attributes.
@@ -15,9 +16,12 @@ inputs:
     -   name : In
         desc : Points that will sample data from targets
         pin : points
+    -   name : Point Filters
+        desc : Points filters used to determine which points will be processed. Filtered out points will be treated as failed sampling.
+        pin : params
     -   name : Targets
         desc : Target points to read data from
-        pin : points
+        pin : point
 outputs:
     -   name : Out
         desc : In with extra attributes and properties
@@ -26,63 +30,97 @@ outputs:
 
 {% include header_card_node %}
 
-# Properties
-<br>
+The **Sample Nearest Point** grabs and blends attributes & properties from a target dataset, as well as other spatial relationship outputs.
+{: .fs-5 .fw-400 } 
 
-> Each output property is written individually for each point.
-{: .comment }
+{% include img a='details/sampling-nearest-point/lead.png' %}
+
+# Sampling
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Sampling**||
+|**Settings**||
 | Sample Method          | Selects the sampling method. See [Sampling Methods](#sampling-methods). |
 | Range Min          | Minimum sampling range. |
 | Range Max          | Maximum sampling range.<br>**Use `0` to sample all targets.** |
+| Local Range Min          | If enabled, uses a per-point minimum sampling range. |
+| Local Range Max          | If enabled, uses a per-point maximum sampling range. |
 
 > Points that are not within range are ignored.
 > If no point is found within the specified range, the sampling for that point will be marked as **Usuccessful**.
 {: .infos }
+<br>
+
+|**Distance Details**||
+| Source          | TBD |
+| Target          | TBD |
 
 |**Weighting**||
 | Weight Method          | Selects the method used to compute the weight of each target.<br>*See [Weighting](#weighting)*. |
 | Weight Over Distance          | Curve used to sample the final weight of each target. |
 
-|**Outputs**||
-| **Success** Attribute Name     | Writes a boolean attribute to each point specifying whether the sampling has been successful (`true`) or not (`false`). |
-| **Location** Attribute Name     | Writes the sampled location, as an `FVector`. |
-| **Look at** Attribute Name     | Writes the direction from the point to the sampled location, as an `FVector`. |
-| **Normal** Attribute Name     | Writes the normal of the point at the sampled location, as an `FVector`. |
-| Normal Source | Which direction to use as an Up vector for the Normal cross-product maths. |
-| **Distance** Attribute Name     | Writes the distance between the point and the sampled location, as a `double`. |
-| **Signed Distance** Attribute Name     | Writes the signed distance between the point and the sampled location, as a `double`. |
-| Signed Distance Axis | Which axis to use to determine whether the distance is positive or negative (toward/away).<br>*Currently based on point Transform, this will likely change in the future to an attribute selector.* |
-| **Angle** Attribute Name     | Writes the angle between the point and the sampled location, as a `double`. |
-| Angle Axis | Which axis to use to determine the angle sign/range (toward/away) |
-| Angle Range | The output range for the `Angle` value. |
+---
+### Sampling Methods
+<br>
+
+| Method       | Description          |
+|:-------------|:------------------|
+| <span class="ebit">Within Range</span>          | Samples all points within the specified range. |
+| <span class="ebit">Closest Target</span>          | Sample the single closest target within the specified range. |
+| <span class="ebit">Farthest Target</span>          | Sample the single farthest target within the specified range. |
+
+---
+### Weighting
+<br>
+
+{% include img a='details/sampling-nearest-point/weighting.png' %}
+
+{% include embed id='settings-weighting' %}
+
+---
+# Blending
+<br>
+{% include embed id='settings-blending-sampling' %}
+
+---
+# Outputs
+Outputs are values extracted from the neighbor(s), and written to attributes on the output points.
+{: .fs-5 .fw-400 }  
+
+| Output       | Description          |
+|:-------------|:------------------|
+|**Generic**||
+| <span class="eout">Success</span><br>`bool` | TBD |
+{: .soutput }
+
+|**Spatial Data**||
+| <span class="eout">Transform</span><br>`FTransform`    | TBD |
+| <span class="eout">Look At</span><br>`FVector`     | TBD |
+| └─ Align | TBD |
+| └─ Use Up from... | TBD |
+| └─ Up Vector | TBD |
+| <span class="eout">Distance</span><br>`double`     | TBD |
+| <span class="eout">Signed Distance</span><br>`double`     | TBD |
+| └─ Axis | TBD |
+| <span class="eout">Angle</span><br>`double`     | TBD |
+| └─ Axis | TBD |
+| └─ Range | TBD |
+| <span class="eout">Num Samples</span><br>`int32`     | TBD |
 
 > Based on the selected `Sample method`, the output values are a **weighted average** of all the sampled target. 
 > *See [Weighting](#weighting)*.
 {: .infos-hl }
 
-## Sampling Methods
-
-| Method       | Description          |
-|:-------------|:------------------|
-| Within Range          | Samples all points within the specified range. |
-| Closest Target          | Sample the single closest target within the specified range. |
-| Farthest Target          | Sample the single farthest target within the specified range. |
-| Target Extents          | Reverse the sampling mechanisms so points will sample the targets which `Extents` contains them.<br>**At the time of writing, will only check targets which position in world space is within range.**<br>*It is recommend to use a max range of `0` with this method.* |
-
 ---
-### Weighting
+## Tagging
+Some high level tags may be applied to the data based on overal sampling.
 <br>
-{% include embed id='settings-weighting' %}
 
----
-## Weighting
+| Tag       | Description          |
+|:-------------|:------------------|
+| <span class="etag">Has Successes Tag</span>     | If enabled, add the specified tag to the output data **if at least a single line trace** has been successful. |
+| <span class="etag">Has No Successes Tag</span>     | If enabled, add the specified tag to the output data **if all line trace** failed. |
 
-{% include img a='docs/relax/range.png' %} 
-
-> Note that the `Effective Range` method tends to spread/scale the input set of values -- but allows one to leverage the full range of the curve no matter the min/max input values.  
-> **Hence, using `Full Range` with only high (or low) input value will only sample a very narrow portion of the curve.**
-{: .infos-hl }
+> Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails.
+{: .warning }

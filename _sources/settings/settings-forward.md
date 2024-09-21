@@ -5,7 +5,7 @@ nav_exclude: true
 ---
 
 
-Since this node merges multiple inputs together, "Carry over" settings lets you pick-and-choose which attributes & tags carry over to the new data.
+"Forwarding" settings lets you pick-and-choose which attributes & tags carry over from some data to another.
 
 | Property       | Description          |
 |:-------------|:------------------|

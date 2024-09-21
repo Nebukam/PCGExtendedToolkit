@@ -39,12 +39,12 @@ The **Special Neighbor** property outputs the properties of the two "special" co
 
 | Output       | Description          |
 |:-------------|:------------------|
-| Direction Attribute<br>`FVector`           | If enabled, writes the `Edge`' direction to the specified attribute. |
+| <span class="eout">Direction Attribute</span><br>`FVector`           | If enabled, writes the `Edge`' direction to the specified attribute. |
 | *Invert Direction* | *If enabled, will invert (`*-1`) the direction output above.* |
-| Length Attribute<br>`Double` | If enabled, writes the `Edge`'' length to the specified attribute. |
-| Edge Index Attribute<br>`Int32` | If enabled, writes the `Edge`'' point index to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
-| Vtx Index Attribute<br>`Int32` | If enabled, writes the `Vtx`' point index the `Edge`' connects to, to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
-| Neighbor Count Attribute<br>`Int32` | If enabled, writes the `Vtx`' point neighbor count the `Edge`' connects to, to the specified attribute.<br>*Amongst other things, this can come in handy to drive the {% include lk id='🝰 Heuristic Attribute' %}.* |
+| <span class="eout">Length Attribute</span><br>`Double` | If enabled, writes the `Edge`'' length to the specified attribute. |
+| <span class="eout">Edge Index Attribute</span><br>`Int32` | If enabled, writes the `Edge`'' point index to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
+| <span class="eout">Vtx Index Attribute</span><br>`Int32` | If enabled, writes the `Vtx`' point index the `Edge`' connects to, to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
+| <span class="eout">Neighbor Count Attribute</span><br>`Int32` | If enabled, writes the `Vtx`' point neighbor count the `Edge`' connects to, to the specified attribute.<br>*Amongst other things, this can come in handy to drive the {% include lk id='🝰 Heuristic Attribute' %}.* |
 
 ---
 ## Smallest Neighbor
@@ -53,9 +53,9 @@ The **Special Neighbor** property outputs the properties of the two "special" co
 
 | Output       | Description          |
 |:-------------|:------------------|
-| Direction Attribute<br>`FVector`           | If enabled, writes the `Edge`' direction to the specified attribute. |
+| <span class="eout">Direction Attribute</span><br>`FVector`           | If enabled, writes the `Edge`' direction to the specified attribute. |
 | *Invert Direction* | *If enabled, will invert (`*-1`) the direction output above.* |
-| Length Attribute<br>`Double` | If enabled, writes the `Edge`'' length to the specified attribute. |
-| Edge Index Attribute<br>`Int32` | If enabled, writes the `Edge`'' point index to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
-| Vtx Index Attribute<br>`Int32` | If enabled, writes the `Vtx`' point index the `Edge`' connects to, to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
-| Neighbor Count Attribute<br>`Int32` | If enabled, writes the `Vtx`' point neighbor count the `Edge`' connects to, to the specified attribute.<br>*Amongst other things, this can come in handy to drive the {% include lk id='🝰 Heuristic Attribute' %}.* |
+| <span class="eout">Length Attribute</span><br>`Double` | If enabled, writes the `Edge`'' length to the specified attribute. |
+| <span class="eout">Edge Index Attribute</span><br>`Int32` | If enabled, writes the `Edge`'' point index to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
+| <span class="eout">Vtx Index Attribute</span><br>`Int32` | If enabled, writes the `Vtx`' point index the `Edge`' connects to, to the specified attribute.<br>*This is useful for targeted/cherry-picking manipulations.* |
+| <span class="eout">Neighbor Count Attribute</span><br>`Int32` | If enabled, writes the `Vtx`' point neighbor count the `Edge`' connects to, to the specified attribute.<br>*Amongst other things, this can come in handy to drive the {% include lk id='🝰 Heuristic Attribute' %}.* |

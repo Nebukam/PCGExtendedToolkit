@@ -13,8 +13,8 @@ tagged:
 
 {% include header_card %}
 
-> This section contains raw data samplers.  
-> *They're mostly helpers/boilerplate code to sample and write data to attribute without providing immediate mean of using of the results.*
+PCGEx comes with a collection of "sampling" node, which may comes out as a bit of a misnomer. They're basically all **designed to extract information & data from their surroundings**, one way or another -- from overlaps, to line traces, to bounds or proximity.
+{: .fs-5 .fw-400 } 
 
 ---
 ## Sampling Nodes

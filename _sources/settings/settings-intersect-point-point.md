@@ -20,5 +20,5 @@ nav_exclude: true
 | Local Tolerance           | If enabled, lets your use per-point tolerance value.<br>**NOT IMPLEMENTED**  |
 
 | **Outputs** ||
-| Compounded Attribute Name<br>`bool`        | If enabled, writes a `bool` flag. `true` if the point is the result of a merge, `false` if it's the "original" one. |
-| Compound Size Attribute Name<br>`int32`    | If enabled, writes the numbers of points that have been compounded/merged into it. |
+| <span class="eout">Compounded Attribute Name</span><br>`bool`        | If enabled, writes a `bool` flag. `true` if the point is the result of a merge, `false` if it's the "original" one. |
+| <span class="eout">Compound Size Attribute Name</span><br>`int32`    | If enabled, writes the numbers of points that have been compounded/merged into it. |

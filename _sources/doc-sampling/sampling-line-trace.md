@@ -3,6 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Sampling
 title: Sample Line Trace
+name_in_editor: "Sample : Line Trace"
 subtitle: Sample environment using line casting
 color: white
 summary: The **Line Trace** node performs a single line trace for each point, using a local attribute or property as direction & size.
@@ -16,6 +17,12 @@ inputs:
     -   name : In
         desc : Points that will be used as origin for line tracing
         pin : points
+    -   name : Point Filters
+        desc : Points filters used to determine which points will be processed. Filtered out points will be treated as failed sampling.
+        pin : params
+    -   name : Actor References
+        desc : Points containing actor references, if that mode is selected.
+        pin : point
 outputs:
     -   name : Out
         desc : In with extra attributes and properties
@@ -24,28 +31,72 @@ outputs:
 
 {% include header_card_node %}
 
+PCGEx comes with a collection of "sampling" node, which may comes out as a bit of a misnomer. They're basically all **designed to extract information & data from their surroundings**, one way or another -- from overlaps, to line traces, to bounds or proximity.
+{: .fs-5 .fw-400 } 
+
+{% include img a='details/sampling-line-trace/lead.png' %}
+
 # Properties
 <br>
-
-> Each output property is written individually for each point.
-{: .comment }
 
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
-| Direction     | Select which property or attribute should be used as direction for the line trace. |
-| Max Distance     | Maximum trace distance. |
-| Local Max Distance     | If enabled, will use a local property or attribute as `Max Distance`. |
+| Surface Source     | Select where you want to read surfaces from: either `All` (revealing additional actors picking parameters), or `Actor References`, to sample only specific actors. |
+| Actor Reference     | Attribute to read actor reference from the Actor References input data. |
 
-|**Outputs**||
-| **Success** Attribute Name     | Writes a boolean attribute to each point specifying whether the sampling has been successful (`true`) or not (`false`).<br>*Sampling is considered unsuccessful if there was no point within the specified range.* |
-| **Location** Attribute Name     | Writes the sampled location, as an `FVector`. |
-| **Look at** Attribute Name     | Writes the direction from the point to the sampled location, as an `FVector`. |
-| **Normal** Attribute Name     | Writes the normal of the surface at the sampled, as an `FVector`. |
-| **Distance** Attribute Name     | Writes the distance between the point and the sampled location, as a `double`. |
+|**Trace**||
+| Direction     | `FVector` attribute to read per-point trace direction from. |
+| Max Distance     | Maximum distance for the trace |
+| Local Max Distance     | If enabled, fetches the max distance on a per-point basis using the specified attribute. |
+
+---
+# Outputs
+Outputs are values extracted from the line trace, and written to attributes on the output points.
+{: .fs-5 .fw-400 }  
+
+
+| Output       | Description          |
+|:-------------|:------------------|
+|**Generic**||
+| <span class="eout">Success</span><br>`bool` | TBD |
+{: .soutput }
+
+|**Spatial Data**||
+| <span class="eout">Location</span><br>`FVector`     | TBD |
+| <span class="eout">Look At</span><br>`FVector`     | TBD |
+| <span class="eout">Normal</span><br>`FVector`     | TBD |
+| <span class="eout">Distance</span><br>`double`     | TBD |
+| <span class="eout">Is Inside</span><br>`bool`     | TBD |
+{: .soutput }
+
+|**Actor Data**||
+| <span class="eout">Actor Reference</span><br>`FSoftObjectPath`     | TBD |
+| <span class="eout">Phys Mat</span><br>`FSoftObjectPath`     | TBD |
+{: .soutput }
+
+---
+# Extra properties
+
+## Forwarding
+*Data forwarding settings from the Actor References input points, if enabled.*
+<br>
+{% include embed id='settings-forward' %}
+
+---
+## Tagging
+Some high level tags may be applied to the data based on overal sampling.
+<br>
+
+| Tag       | Description          |
+|:-------------|:------------------|
+| <span class="etag">Has Successes Tag</span>     | If enabled, add the specified tag to the output data **if at least a single line trace** has been successful. |
+| <span class="etag">Has No Successes Tag</span>     | If enabled, add the specified tag to the output data **if all line trace** failed. |
+
+> Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails.
+{: .warning }
 
 ---
 ## Collision Settings
 <br>
-### Collision Settings
 {% include embed id='settings-collisions' %}

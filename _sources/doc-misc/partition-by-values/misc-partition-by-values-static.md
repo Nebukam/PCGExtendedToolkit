@@ -54,7 +54,7 @@ outputs:
 | Use Partition Index as Key           | Whether to use the partition `Index` as a key *(starting at 0, up to N partitions)* or the default output *(actual under-the-hood value used to distinguish unique buckets)*.<br>See [How partition Index works](#how-partition-index-works). |
 
 |**Partition Tagging**<br>*Only if `Split Output` is enabled*||
-| Tag Prefix Name           | Tag the data with the partition key, using the format `Prefix::PartitionKey` or `Prefix::PartitionIndex` |
+| <span class="etag">Tag Prefix Name</span>           | Tag the data with the partition key, using the format `Prefix::PartitionKey` or `Prefix::PartitionIndex` |
 | Tag Use Partition Index as Key           | Whether to use the partition `Index` as a key.<br>See [How partition Index works](#how-partition-index-works). |
 
 

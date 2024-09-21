@@ -12,6 +12,11 @@ Each method outputs a <code class="language-plaintext highlighter-rouge">[0..1]<
 </li>
 </ul>
 
+<blockquote class="infos-hl">
+  <p>Note that the <code class="language-plaintext highlighter-rouge">Effective Range</code> method tends to spread/scale the input set of values – but allows one to leverage the full range of the curve no matter the min/max input values.<br>
+<strong>Hence, using <code class="language-plaintext highlighter-rouge">Full Range</code> with only high (or low) input value will only sample a very narrow portion of the curve.</strong></p>
+</blockquote>
+
 <blockquote class="error">
   <p>Important note: when using the <code class="language-plaintext highlighter-rouge">Within range</code> sample method, some outputs will use the final weighted position/transforms for their calculations; although mathematically correct, <strong>this may yield unusuable/innacurate results</strong>.</p>
 </blockquote>
