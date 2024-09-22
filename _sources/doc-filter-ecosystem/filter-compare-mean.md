@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Mean Value
 name_in_editor: "Filter : Mean"
 subtitle: The **Mean Value Filter** compares per-point values of an attribute against the mean statistical value of that same attribute.
-color: white
+color: param
 summary: The **Mean Value Filter** compares per-point values of an attribute against its mean statistical value, allowing you to exclude points above or below the mean using various calculation methods such as Average, Median, Mode, Central, or Fixed, with options for relative or absolute measures.
 splash: icons/icon_misc-sort-points.svg
 tagged: 

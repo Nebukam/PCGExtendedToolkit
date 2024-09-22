@@ -10,7 +10,7 @@ nav_exclude: true
 | Property       | Description          |
 |:-------------|:------------------|
 | Preserve Attributes Default Value      | If enabled, the node will attempt to create attributes on the data in a way that preserve the original, underlying default value of the attribute.<br>*This can be critical in order to identify which data originally belonged to which, as well as properly initializing flags to a desirable default.*  |
-| **Attributes**           | Lets you pick and choose which attributes to keep or dismiss. |
+| <span class="eout">Attributes</span>           | Lets you pick and choose which attributes to keep or dismiss. |
 | <span class="etag">**Tags**</span>           | Lets you pick and choose which attributes to keep or dismiss. |
 
 *Both Attributes & Tags share the same string-based filters.*

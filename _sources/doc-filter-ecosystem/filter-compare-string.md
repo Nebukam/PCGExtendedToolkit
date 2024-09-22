@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Compare (String)
 name_in_editor: "Filter : Compare (String)"
 subtitle: Compares two string-like attributes against each other.
-color: white
+color: param
 summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 

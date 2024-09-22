@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Dot Product
 name_in_editor: "Filter : Dot"
 subtitle: Compares the dot product of two direction vectors against a third value.
-color: white
+color: param
 summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 

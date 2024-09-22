@@ -1,5 +1,5 @@
 ---
-title: settings-blending
+title: settings-influence
 has_children: false
 nav_exclude: true
 ---

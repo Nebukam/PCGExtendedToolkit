@@ -7,6 +7,7 @@ title: 🝰 Feedback
 subtitle: Subtitle
 summary: The **Feedback** heuristic node ...
 splash: icons/icon_pathfinding-edges.svg
+color: param
 tagged: 
     - heuristics
 nav_order: 3

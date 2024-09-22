@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Compare (Numeric)
 name_in_editor: "Filter : Compare (Numeric)"
 subtitle: The **Numeric Comparison Filter** compares the arithmetic value of two attributes
-color: white
+color: param
 summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 

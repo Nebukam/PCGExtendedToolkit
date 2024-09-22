@@ -7,7 +7,7 @@ title: 🝆 Closest
 name_in_editor: "Probe : Closests"
 subtitle: Connects to the closest point within a given radius
 summary: The **Closest** probe ...
-color: white
+color: param
 splash: icons/icon_path-to-edges.svg
 see_also:
     - Connect Points

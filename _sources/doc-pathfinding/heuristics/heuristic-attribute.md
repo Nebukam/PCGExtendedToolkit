@@ -8,6 +8,7 @@ subtitle: Attribute-driven heuristics
 summary: The **Heuristic Attribute** heuristic node ...
 splash: icons/icon_pathfinding-edges.svg
 nav_order: -1
+color: param
 tagged:
     - heuristics
 outputs:

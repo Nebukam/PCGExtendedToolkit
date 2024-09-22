@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Bitmask
 name_in_editor: "Filter : Bitmask"
 subtitle: Checks specific flags in an int64 bitmask attribute with configurable mask types, comparisons, and an option to invert results.
-color: white
+color: param
 summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 

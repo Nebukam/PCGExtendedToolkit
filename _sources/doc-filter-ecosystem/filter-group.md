@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 AND / OR (Group)
 name_in_editor: "Filter Group"
 subtitle: Group multiple filters to set up complex AND/OR branches.
-color: white
+color: param
 summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 

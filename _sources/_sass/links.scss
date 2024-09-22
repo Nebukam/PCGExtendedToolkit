@@ -62,6 +62,13 @@
       filter: invert(100%);
     }
   }
+
+  &.param {
+    background-color: var(--var-node-color-Param);
+    &:hover {
+      background-color: var(--var-node-color-Param);
+    }
+  }
 }
 
 .link-btn {

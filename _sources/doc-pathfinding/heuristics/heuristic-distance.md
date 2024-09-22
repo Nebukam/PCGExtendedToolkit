@@ -7,6 +7,7 @@ title: 🝰 Shortest Distance
 subtitle: Subtitle
 summary: The **Shortest Distance** heuristic node ...
 splash: icons/icon_pathfinding-edges.svg
+color: param
 tagged: 
     - heuristics
 nav_order: 2

@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Within Range
 name_in_editor: "Filter : Within Range"
 subtitle: Checks if an attribute value falls within a specified range.
-color: white
+color: param
 summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 

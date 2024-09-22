@@ -25,7 +25,7 @@ outputs:
 
 {% include header_card_node %}
 
-The **Write Path Properties** nodes outputs a variety of useful points data, as well as path-level data; like direction between path neighboring points, averaged path direction, whether a path is concave or convex; that kind of stuff.
+The **Write Path Properties** node outputs a variety of useful points data, as well as path-level data; like direction between path neighboring points, averaged path direction, whether a path is concave or convex; that kind of stuff.
 {: .fs-5 .fw-400 } 
 
 {% include img a='details/paths-write-properties/lead.png' %}

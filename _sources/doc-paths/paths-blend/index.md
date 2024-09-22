@@ -13,6 +13,7 @@ tagged:
     - node
     - paths
 nav_order: 2
+has_children: true
 inputs:
     -   name : Paths
         desc : Paths which points attributes & properties will be blended
@@ -34,8 +35,6 @@ outputs:
 | **Blending**           | This property lets you select which kind of blending you want to apply to the input paths.<br>*See [Available Blending Modules](#available-blending-modules).*|
 
 ---
-# Modules
-
-## Available {% include lk id='Blending' %} Modules
+## Available Blending Modules
 <br>
-{% include card_any tagged="blending" %}
+{% include card_childs tagged="blending" %}

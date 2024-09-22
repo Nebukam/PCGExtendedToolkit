@@ -7,7 +7,7 @@ title: 🝗 Partition Rule
 name_in_editor: "Rule : Partition"
 subtitle: An individual partition rule
 summary: TBD
-color: white
+color: param
 splash: icons/icon_misc-partition-by-values.svg
 tagged: 
     - node

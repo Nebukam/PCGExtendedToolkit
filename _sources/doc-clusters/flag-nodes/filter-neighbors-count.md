@@ -7,7 +7,7 @@ title: 🝖 Neighbors Count
 name_in_editor: "Cluster Filter : Neighbors Count"
 subtitle: Check a node' neighbors count
 summary: The **Neighbors Count** filter compares the number of neighbors a node has against a specified value, offering a faster alternative to writing and comparing neighbor counts as attributes.
-color: blue
+color: param
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node

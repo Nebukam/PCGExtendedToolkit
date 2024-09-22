@@ -6,7 +6,7 @@ parent: Conditional Actions
 title: 🝐 Write Result
 name_in_editor: "Action : Write Result"
 subtitle: The **Write Results** action...
-color: white
+color: param
 summary: TBD
 splash: icons/icon_misc-write-index.svg
 tagged: 

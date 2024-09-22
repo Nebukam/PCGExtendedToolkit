@@ -7,7 +7,7 @@ title: 🝊 Edge Match
 name_in_editor: "Vtx : Edge Match"
 subtitle: Find the neighbors that best match a given direction
 summary: The **Edge Match** property identifies and outputs the properties of the edge connected to a vertex that best aligns with a specified direction, offering options for customizing direction sources and writing edge attributes like length, direction, and indices.
-color: white
+color: param
 summary: TBD
 splash: icons/icon_misc-write-index.svg
 see_also: 

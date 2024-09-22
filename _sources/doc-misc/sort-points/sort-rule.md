@@ -6,7 +6,7 @@ parent: Sort Points
 title: 🝘 Sorting Rule
 name_in_editor: "Rule : Sorting"
 subtitle: An individual sorting rule
-color: white
+color: param
 summary: TBD
 splash: icons/icon_misc-sort-points.svg
 preview_img: docs/splash-sort-points.png

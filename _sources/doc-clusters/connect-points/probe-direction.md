@@ -7,7 +7,7 @@ title: 🝆 Direction
 name_in_editor: "Probe : Direction"
 subtitle: Connects to the closest point in a given direction
 summary: The **Direction** probe ...
-color: white
+color: param
 splash: icons/icon_path-to-edges.svg
 see_also:
     - Connect Points

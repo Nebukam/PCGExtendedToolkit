@@ -1,7 +1,7 @@
 ---
 layout: page
 grand_parent: Paths
-parent: Subdivide
+parent: Blend
 title: ⋰ Interpolate
 subtitle: Interpolates values between first and last point.
 color: blue

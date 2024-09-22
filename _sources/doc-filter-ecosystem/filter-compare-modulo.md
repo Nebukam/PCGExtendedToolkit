@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Modulo Comparison
 name_in_editor: "Filter : Modulo Compare"
 subtitle: Compares the modulo of two attributes against a third operand, with configurable comparisons and tolerance.
-color: white
+color: param
 summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 

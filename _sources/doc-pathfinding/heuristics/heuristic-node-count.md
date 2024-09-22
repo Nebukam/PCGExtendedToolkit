@@ -7,6 +7,7 @@ title: 🝰 Least Nodes
 subtitle: Subtitle
 summary: The **Least Nodes** heuristic node ...
 splash: icons/icon_pathfinding-edges.svg
+color: param
 tagged: 
     - heuristics
 nav_order: 5

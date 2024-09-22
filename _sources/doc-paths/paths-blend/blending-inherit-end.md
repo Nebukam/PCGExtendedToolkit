@@ -1,7 +1,7 @@
 ---
 layout: page
 grand_parent: Paths
-parent: Subdivide
+parent: Blend
 title: ⋰ Inherit Last
 subtitle: Copy the last point' values
 color: blue

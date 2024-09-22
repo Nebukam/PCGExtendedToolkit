@@ -7,7 +7,7 @@ title: 🝖 Adjacency
 name_in_editor: "Cluster Filter : Adjacency"
 subtitle: Check if adjacent node meet specific conditions
 summary: The **Adjacency** filter performs numeric comparisons on each connection of a Vtx, allowing precise control over success criteria based on the number of passed comparisons, offering the flexibility to test either discrete or relative connections.
-color: blue
+color: param
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node

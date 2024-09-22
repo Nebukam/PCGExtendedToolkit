@@ -15,4 +15,3 @@ nav_exclude: true
 
 | **Outputs** ||
 | <span class="eout">Crossing Attribute Name</span><br>`bool`        | If enabled, flag the edges' intersection point. |
-| Flag Crossing    | **NOT IMPLEMENTED**. |

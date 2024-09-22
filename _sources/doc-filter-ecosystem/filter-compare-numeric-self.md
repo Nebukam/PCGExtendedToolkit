@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Self Compare (Numeric)
 name_in_editor: "Filter : Self Compare (Numeric)"
 subtitle: Compares the numeric value at one index against the same attribute at another index.
-color: white
+color: param
 summary: "-" 
 splash: icons/icon_misc-sort-points.svg
 tagged: 

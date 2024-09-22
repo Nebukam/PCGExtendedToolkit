@@ -7,6 +7,7 @@ title: 🝰 Azimuth
 subtitle: Subtitle
 summary: The **Azimuth** heuristic node ...
 splash: icons/icon_pathfinding-edges.svg
+color: param
 tagged: 
     - heuristics
 nav_order: 3

@@ -7,7 +7,7 @@ title: 🝖 Edge Direction
 name_in_editor: "Cluster Filter : Edge Direction"
 subtitle: Check if adjacent node meet specific conditions
 summary: The **Edge Direction** filter compares the direction of connections using a dot product, providing precise control over how many directions meet the set conditions, allowing tests against both discrete and relative number of connections.
-color: blue
+color: param
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node

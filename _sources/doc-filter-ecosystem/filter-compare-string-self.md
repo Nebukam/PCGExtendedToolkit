@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Self Compare (String)
 name_in_editor: "Filter : Self Compare (String)"
 subtitle: Compares the string value at one index against the same attribute at another index.
-color: white
+color: param
 summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 

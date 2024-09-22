@@ -6,7 +6,7 @@ parent: Filter Ecosystem
 title: 🝖 Bool
 name_in_editor: "Filter : Bool Compare"
 subtitle: Performs a simple boolean comparison, converting numeric values to true (> 0) or false (<= 0).
-color: white
+color: param
 summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 

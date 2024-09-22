@@ -7,6 +7,7 @@ title: 🝰 Inertia
 subtitle: Subtitle
 summary: The **Inertia** heuristic node ...
 splash: icons/icon_pathfinding-edges.svg
+color: param
 tagged: 
     - heuristics
 nav_order: 3

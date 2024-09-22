@@ -4,7 +4,7 @@ grand_parent: Clusters
 parent: Find Node States
 title: 🝢 Neighbors Properties
 subtitle: A specific rule for one or multiple neighbor properties sampling
-color: white
+color: param
 summary: TBD
 splash: icons/icon_misc-write-index.svg
 tagged: 

@@ -7,6 +7,7 @@ title: 🝰 Steepness
 subtitle: Favor flat paths
 summary: The **Steepness** heuristic node ...
 splash: icons/icon_pathfinding-edges.svg
+color: param
 tagged: 
     - heuristics
 nav_order: 3

@@ -7,7 +7,7 @@ title: 🝆 Index
 name_in_editor: "Probe : Index"
 subtitle: Connects to a point at a given index
 summary: The **Index** probe ...
-color: white
+color: param
 splash: icons/icon_path-to-edges.svg
 see_also:
     - Connect Points

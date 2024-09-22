@@ -14,15 +14,17 @@ tagged:
     - node
     - paths
 nav_order: 4
-has_children: true
 inputs:
     -   name : Paths
         desc : Paths which segments will be subdivided
         pin : points
+    -   name : Point Filters
+        desc : Filter which segments will be subdivided.
+        pin : params
 outputs:
     -   name : Paths
         desc : Subdivided paths
-        pin : points
+        pin : points        
 ---
 
 {% include header_card_node %}
@@ -47,8 +49,6 @@ outputs:
 > `Distance` will create more uniform looking subdivisions, while `Count` is more predictable.
 
 ---
-# Modules
-
-## {% include lk id='Blending' %}
+## Available Blending Modules
 <br>
-{% include card_any tagged="blending" %}
+{% include card_any reference='Blend' tagged='blending' %}

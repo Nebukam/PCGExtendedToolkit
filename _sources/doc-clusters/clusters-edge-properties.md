@@ -88,9 +88,8 @@ Solidification is fairly straightforward on paper, but in order to be flexible i
 | Write Edge Position          | |
 | Edge Position Lerp          | |
 | Solidification Axis          | |
-| Solidification Lerp Operand          | |
-| Solidification Lerp Constant          | |
-| Radiuses          | |
+| Soldification Lerp Operand          | |
+| Soldification Lerp <br>*(Constant or Attribute)*          | |
 
 > Note that if solidification is enabled, the specified `Edge Position Lerp` will override the `Endpoints Weights` specified for Outputs, to enforce consistency.
 {: .warning }
@@ -100,7 +99,7 @@ Solidification is fairly straightforward on paper, but in order to be flexible i
 When a solidification axis is selected, lets you set the edge bounds' remaining two axis as "radiuses".  
 Each component shares the same following properties:  
 
-| Enabled    |  |
+| Write Radius X/Y/Z    |  |
 | Radius Type |  |
 | Radius Constant |  |
 | Radius Attribute |  |

@@ -117,6 +117,10 @@ $cornerr: 5px;
         &.white {
             border-color: white;
         }
+
+        &.param {
+            border-color: var(--var-node-color-Param);
+        }
     }
 
     &:hover {

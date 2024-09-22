@@ -6,7 +6,7 @@ parent: Conditional Actions
 title: 🝐 Write Attributes
 name_in_editor: "Action : Write Attributes"
 subtitle: The **Write Attribute** action...
-color: white
+color: param
 summary: TBD
 splash: icons/icon_misc-write-index.svg
 tagged: 
