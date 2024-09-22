@@ -208,11 +208,14 @@ namespace PCGExSampleNearestSpline
 
 			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
 
+			int32 NumInsideIncrement = 0;
+
+
 			if (FVector::DotProduct(
 				(Transform.GetLocation() - ModifiedOrigin).GetSafeNormal(),
 				Transform.GetRotation().GetRightVector()) > 0)
 			{
-				NumInside++;
+				if (!LocalSettings->bOnlyIncrementInsideNumIfClosed || InSpline.bClosedLoop) { NumInsideIncrement = 1; }
 			}
 
 			bool IsNewClosest = false;
@@ -221,17 +224,26 @@ namespace PCGExSampleNearestSpline
 			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget)
 			{
 				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, Dist, Time), IsNewClosest, IsNewFarthest);
-				if (IsNewClosest) { bClosed = InSpline.bClosedLoop; }
+				if (IsNewClosest)
+				{
+					bClosed = InSpline.bClosedLoop;
+					NumInside = NumInsideIncrement;
+				}
 				return;
 			}
 
 			if (LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
 				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, Dist, Time), IsNewClosest, IsNewFarthest);
-				if (IsNewFarthest) { bClosed = InSpline.bClosedLoop; }
+				if (IsNewFarthest)
+				{
+					bClosed = InSpline.bClosedLoop;
+					NumInside = NumInsideIncrement;
+				}
 				return;
 			}
 
+			NumInside += NumInsideIncrement;
 			if (InSpline.bClosedLoop) { bClosed = true; }
 
 			const PCGExPolyLine::FSampleInfos& Infos = TargetsInfos.Emplace_GetRef(Transform, Dist, Time);
