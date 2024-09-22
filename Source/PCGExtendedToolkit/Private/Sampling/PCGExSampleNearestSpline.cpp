@@ -208,7 +208,7 @@ namespace PCGExSampleNearestSpline
 
 		if (!PointFilterCache[Index])
 		{
-			SamplingFailed();
+			if (LocalSettings->bProcessFilteredOutAsFails) { SamplingFailed(); }
 			return;
 		}
 

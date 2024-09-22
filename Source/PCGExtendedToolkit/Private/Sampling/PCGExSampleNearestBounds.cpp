@@ -175,7 +175,7 @@ namespace PCGExSampleNearestBounds
 	{
 		if (!PointFilterCache[Index])
 		{
-			SamplingFailed(Index, Point);
+			if (LocalSettings->bProcessFilteredOutAsFails) { SamplingFailed(Index, Point); }
 			return;
 		}
 

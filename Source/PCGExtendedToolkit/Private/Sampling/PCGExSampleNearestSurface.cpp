@@ -178,7 +178,8 @@ namespace PCGExSampleNearestSurface
 
 		if (!PointFilterCache[Index])
 		{
-			SamplingFailed();
+			
+			if (LocalSettings->bProcessFilteredOutAsFails) { SamplingFailed(); }
 			return;
 		}
 
