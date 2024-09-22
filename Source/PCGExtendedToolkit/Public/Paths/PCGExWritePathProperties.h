@@ -9,22 +9,22 @@
 #include "PCGExWritePathProperties.generated.h"
 
 #define PCGEX_FOREACH_FIELD_PATH(MACRO)\
-MACRO(Dot, double)\
-MACRO(Angle, double)\
-MACRO(DistanceToNext, double)\
-MACRO(DistanceToPrev, double)\
-MACRO(DistanceToStart, double)\
-MACRO(DistanceToEnd, double)\
-MACRO(PointTime, double)\
-MACRO(PointNormal, FVector)\
-MACRO(PointBinormal, FVector)\
-MACRO(DirectionToNext, FVector)\
-MACRO(DirectionToPrev, FVector)
+MACRO(Dot, double, 0)\
+MACRO(Angle, double, 0)\
+MACRO(DistanceToNext, double, 0)\
+MACRO(DistanceToPrev, double, 0)\
+MACRO(DistanceToStart, double, 0)\
+MACRO(DistanceToEnd, double, 0)\
+MACRO(PointTime, double, 0)\
+MACRO(PointNormal, FVector, FVector::OneVector)\
+MACRO(PointBinormal, FVector, FVector::OneVector)\
+MACRO(DirectionToNext, FVector, FVector::OneVector)\
+MACRO(DirectionToPrev, FVector, FVector::OneVector)
 
 #define PCGEX_FOREACH_FIELD_PATH_MARKS(MACRO)\
-MACRO(PathLength, double)\
-MACRO(PathDirection, FVector)\
-MACRO(PathCentroid, FVector)
+MACRO(PathLength, double, 0)\
+MACRO(PathDirection, FVector, FVector::OneVector)\
+MACRO(PathCentroid, FVector, FVector::ZeroVector)
 
 /**
  * 

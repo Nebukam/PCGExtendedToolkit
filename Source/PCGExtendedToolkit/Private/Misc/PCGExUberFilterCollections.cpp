@@ -106,7 +106,7 @@ namespace PCGExUberFilterCollections
 		LocalTypedContext = TypedContext;
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

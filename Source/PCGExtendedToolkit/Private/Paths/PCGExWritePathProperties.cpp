@@ -71,7 +71,7 @@ namespace PCGExWritePathProperties
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathProperties)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

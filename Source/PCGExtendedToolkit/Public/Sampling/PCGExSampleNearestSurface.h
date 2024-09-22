@@ -14,18 +14,27 @@
 
 #include "PCGExSampleNearestSurface.generated.h"
 
-
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
 #define PCGEX_FOREACH_FIELD_NEARESTSURFACE(MACRO)\
-MACRO(Success, bool)\
-MACRO(Location, FVector)\
-MACRO(LookAt, FVector)\
-MACRO(Normal, FVector)\
-MACRO(IsInside, bool)\
-MACRO(Distance, double)
-
-#define PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(MACRO)\
-MACRO(ActorReference, FString)\
-MACRO(PhysMat, FString)
+MACRO(Success, bool, false)\
+MACRO(Location, FVector, FVector::ZeroVector)\
+MACRO(LookAt, FVector, FVector::OneVector)\
+MACRO(Normal, FVector, FVector::OneVector)\
+MACRO(IsInside, bool, false)\
+MACRO(Distance, double, 0)
+MACRO(ActorReference, FString, TEXT(""))\
+MACRO(PhysMat, FString, TEXT(""))
+#else
+#define PCGEX_FOREACH_FIELD_NEARESTSURFACE(MACRO)\
+MACRO(Success, bool, false)\
+MACRO(Location, FVector, FVector::ZeroVector)\
+MACRO(LookAt, FVector, FVector::OneVector)\
+MACRO(Normal, FVector, FVector::OneVector)\
+MACRO(IsInside, bool, false)\
+MACRO(Distance, double, 0)\
+MACRO(ActorReference, FSoftObjectPath, FSoftObjectPath())\
+MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())
+#endif
 
 class UPCGExFilterFactoryBase;
 
@@ -187,7 +196,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : publ
 	TArray<UPrimitiveComponent*> IncludedPrimitives;
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL_TOGGLE)
-	PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceElement final : public FPCGExPointsProcessorElement
@@ -215,7 +223,6 @@ namespace PCGExSampleNearestSurface
 		const UPCGExSampleNearestSurfaceSettings* LocalSettings = nullptr;
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
-		PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_DECL)
 
 		int8 bAnySuccess = 0;
 

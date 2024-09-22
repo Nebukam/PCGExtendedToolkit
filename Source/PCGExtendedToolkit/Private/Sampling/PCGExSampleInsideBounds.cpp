@@ -63,7 +63,7 @@ bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on targets: {0}."), FText::FromName(Id))); }
 
 
-	PCGEX_FOREACH_FIELD_InsideBounds(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_INSIDEBOUNDS(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 	if (!Context->WeightCurve)
@@ -141,7 +141,7 @@ namespace PCGExSampleInsideBoundss
 
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade;
-			PCGEX_FOREACH_FIELD_InsideBounds(PCGEX_OUTPUT_INIT)
+			PCGEX_FOREACH_FIELD_INSIDEBOUNDS(PCGEX_OUTPUT_INIT)
 		}
 
 		if (!TypedContext->BlendingDetails.FilteredAttributes.IsEmpty() ||

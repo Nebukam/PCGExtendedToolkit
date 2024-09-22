@@ -12,10 +12,10 @@
 #include "PCGExSampleOverlapStats.generated.h"
 
 #define PCGEX_FOREACH_FIELD_SAMPLEOVERLAPSTATS(MACRO)\
-MACRO(OverlapCount, int32)\
-MACRO(OverlapSubCount, int32)\
-MACRO(RelativeOverlapCount, double)\
-MACRO(RelativeOverlapSubCount, double)
+MACRO(OverlapCount, int32, 0)\
+MACRO(OverlapSubCount, int32, 0)\
+MACRO(RelativeOverlapCount, double, 0)\
+MACRO(RelativeOverlapSubCount, double, 0)
 
 namespace PCGExSampleOverlapStats
 {

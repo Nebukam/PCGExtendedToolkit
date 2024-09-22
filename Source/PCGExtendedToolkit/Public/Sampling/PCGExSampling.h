@@ -9,29 +9,18 @@
 #include "PCGExSampling.generated.h"
 
 // Declaration & use pair, boolean will be set by name validation
-#define PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE) bool bWrite##_NAME = false;
-#define PCGEX_OUTPUT_DECL(_NAME, _TYPE) PCGEx:: TAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
-#define PCGEX_OUTPUT_DECL_AND_TOGGLE(_NAME, _TYPE) PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE) PCGEX_OUTPUT_DECL(_NAME, _TYPE)
-
-// Create writer in context
-#define PCGEX_OUTPUT_FWD_C(_NAME, _TYPE) if(Context->bWrite##_NAME){ Context->_NAME##Writer =  new PCGEx:: TAttributeWriter<_TYPE>(Settings->_NAME##AttributeName); }
-
-// Create writer in root
-#define PCGEX_OUTPUT_FWD(_NAME, _TYPE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = new PCGEx:: TAttributeWriter<_TYPE>(Settings->_NAME##AttributeName); }
+#define PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE, _DEFAULT_VALUE) bool bWrite##_NAME = false;
+#define PCGEX_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT_VALUE) PCGEx:: TAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
+#define PCGEX_OUTPUT_DECL_AND_TOGGLE(_NAME, _TYPE, _DEFAULT_VALUE) PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE, _DEFAULT_VALUE) PCGEX_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT_VALUE)
 
 // Simply validate name from settings
-#define PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_C(_NAME, _TYPE)\
-if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
-{ PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME )); }
-
-// Simply validate name from settings
-#define PCGEX_OUTPUT_VALIDATE_NAME(_NAME, _TYPE)\
+#define PCGEX_OUTPUT_VALIDATE_NAME(_NAME, _TYPE, _DEFAULT_VALUE)\
 Context->bWrite##_NAME = Settings->bWrite##_NAME; \
 if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
 { PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME )); Context->bWrite##_NAME = false; }
 
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->Values[_INDEX] = _VALUE; }
-#define PCGEX_OUTPUT_INIT(_NAME, _TYPE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWriter<_TYPE>(Settings->_NAME##AttributeName, false); }
+#define PCGEX_OUTPUT_INIT(_NAME, _TYPE, _DEFAULT_VALUE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWriter<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT_VALUE, true, false); }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Surface Source"))
 enum class EPCGExSurfaceSource : uint8

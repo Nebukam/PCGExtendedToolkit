@@ -11,8 +11,9 @@
 #include "PCGExWriteVtxProperties.generated.h"
 
 #define PCGEX_FOREACH_FIELD_VTXEXTRAS(MACRO) \
-MACRO(VtxNormal, FVector) \
-MACRO(VtxEdgeCount, int32)
+MACRO(VtxNormal, FVector, FVector::OneVector) \
+MACRO(VtxEdgeCount, int32, 0)
+
 class UPCGExVtxPropertyOperation;
 class UPCGExVtxPropertyFactoryBase;
 

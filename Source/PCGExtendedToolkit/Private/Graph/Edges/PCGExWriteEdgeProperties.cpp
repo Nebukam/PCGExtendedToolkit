@@ -83,7 +83,7 @@ namespace PCGExWriteEdgeProperties
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteEdgeProperties::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
 
-		EdgeDataFacade->bSupportsDynamic = true;
+		EdgeDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
@@ -281,11 +281,11 @@ namespace PCGExWriteEdgeProperties
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
+		
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 
-		VtxDataFacade->bSupportsDynamic = true;
-
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
+		VtxDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		DirectionSettings = Settings->DirectionSettings;
 		if (!DirectionSettings.Init(Context, VtxDataFacade))

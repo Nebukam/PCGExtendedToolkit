@@ -105,7 +105,7 @@ namespace PCGExSampleSurfaceGuided
 		SurfacesForward = TypedContext->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(TypedContext->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -154,11 +154,10 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1)
 			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
-			PCGEX_OUTPUT_VALUE(IsInside, Index, false)
-			PCGEX_OUTPUT_VALUE(Success, Index, false)
-
-			PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
-			PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
+			//PCGEX_OUTPUT_VALUE(IsInside, Index, false)
+			//PCGEX_OUTPUT_VALUE(Success, Index, false)
+			//PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT(""))
+			//PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT(""))
 		};
 
 		if (!PointFilterCache[Index])
@@ -192,15 +191,23 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(IsInside, Index, FVector::DotProduct(Direction, HitResult.ImpactNormal) > 0)
 			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
 			if (const AActor* HitActor = HitResult.GetActor())
 			{
 				HitIndex = LocalTypedContext->IncludedActors.Find(HitActor);
 				PCGEX_OUTPUT_VALUE(ActorReference, Index, HitActor->GetPathName())
 			}
-			else { PCGEX_OUTPUT_VALUE(ActorReference, Index, TEXT("")) }
 
 			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
-			else { PCGEX_OUTPUT_VALUE(PhysMat, Index, TEXT("")) }
+#else
+			if (const AActor* HitActor = HitResult.GetActor())
+			{
+				HitIndex = LocalTypedContext->IncludedActors.Find(HitActor);
+				PCGEX_OUTPUT_VALUE(ActorReference, Index, FSoftObjectPath(HitActor->GetPathName()))
+			}
+
+			if (const UPhysicalMaterial* PhysMat = HitResult.PhysMaterial.Get()) { PCGEX_OUTPUT_VALUE(PhysMat, Index, FSoftObjectPath(PhysMat->GetPathName())) }
+#endif
 
 			if (SurfacesForward && HitIndex) { SurfacesForward->Forward(*HitIndex, Index); }
 

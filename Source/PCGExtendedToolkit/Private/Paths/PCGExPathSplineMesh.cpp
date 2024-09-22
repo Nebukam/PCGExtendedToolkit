@@ -166,7 +166,7 @@ namespace PCGExPathSplineMesh
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathSplineMesh)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

@@ -13,16 +13,16 @@
 #include "PCGExSampleNearestSpline.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(MACRO)\
-MACRO(Success, bool)\
-MACRO(Transform, FTransform)\
-MACRO(LookAtTransform, FTransform)\
-MACRO(Distance, double)\
-MACRO(SignedDistance, double)\
-MACRO(Angle, double)\
-MACRO(Time, double)\
-MACRO(NumInside, int32)\
-MACRO(NumSamples, int32)\
-MACRO(ClosedLoop, bool)
+MACRO(Success, bool, false)\
+MACRO(Transform, FTransform, FTransform::Identity)\
+MACRO(LookAtTransform, FTransform, FTransform::Identity)\
+MACRO(Distance, double, 0)\
+MACRO(SignedDistance, double, 0)\
+MACRO(Angle, double, 0)\
+MACRO(Time, double, 0)\
+MACRO(NumInside, int32, 0)\
+MACRO(NumSamples, int32, 0)\
+MACRO(ClosedLoop, bool, false)
 
 class UPCGExFilterFactoryBase;
 

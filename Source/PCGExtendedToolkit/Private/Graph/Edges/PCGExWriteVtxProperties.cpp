@@ -156,7 +156,7 @@ namespace PCGExWriteVtxProperties
 
 		ClusterProcessor->ExtraOperations = &ExtraOperations;
 
-#define PCGEX_FWD_VTX(_NAME, _TYPE) ClusterProcessor->_NAME##Writer = _NAME##Writer;
+#define PCGEX_FWD_VTX(_NAME, _TYPE, _DEFAULT_VALUE) ClusterProcessor->_NAME##Writer = _NAME##Writer;
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_FWD_VTX)
 #undef PCGEX_ASSIGN_AXIS_GETTER
 

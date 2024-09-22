@@ -104,7 +104,7 @@ namespace PCGExWriteTangents
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteTangents)
 
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

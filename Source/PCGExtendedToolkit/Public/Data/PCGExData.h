@@ -48,7 +48,7 @@ namespace PCGExData
 		mutable FRWLock CacheLock;
 		mutable FRWLock WriteLock;
 		bool bInitialized = false;
-		bool bDynamicCache = false;
+		bool bScopedCache = false;
 
 		int32 ReadyNum = 0;
 
@@ -77,7 +77,7 @@ namespace PCGExData
 		{
 		}
 
-		virtual bool IsDynamic() { return bDynamicCache; }
+		virtual bool IsScoped() { return bScopedCache; }
 
 		FORCEINLINE bool GetAllowsInterpolation() const { return Attribute->AllowsInterpolation(); }
 	};
@@ -93,9 +93,9 @@ namespace PCGExData
 
 		PCGEx::TAttributeIO<T>* Reader = nullptr;
 		PCGEx::TAttributeWriter<T>* Writer = nullptr;
-		PCGEx::TAttributeGetter<T>* DynamicBroadcaster = nullptr;
+		PCGEx::TAttributeGetter<T>* ScopedBroadcaster = nullptr;
 
-		virtual bool IsDynamic() override { return bDynamicCache || DynamicBroadcaster; }
+		virtual bool IsScoped() override { return bScopedCache || ScopedBroadcaster; }
 
 		TCache(const FName InFullName, const EPCGMetadataTypes InType):
 			FCacheBase(InFullName, InType)
@@ -112,7 +112,7 @@ namespace PCGExData
 
 		FORCEINLINE TArrayView<T> GetView(int32 Start, int32 Range) { return MakeArrayView(Values.GetData() + Start, Range); }
 
-		PCGEx::TAttributeIO<T>* PrepareReader(const ESource InSource = ESource::In, const bool bFetch = false)
+		PCGEx::TAttributeIO<T>* PrepareReader(const ESource InSource = ESource::In, const bool bScoped = false)
 		{
 			FWriteScopeLock WriteScopeLock(CacheLock);
 
@@ -121,26 +121,26 @@ namespace PCGExData
 				if (InSource == ESource::Out && Writer) { return Writer; }
 				if (Reader)
 				{
-					if (bDynamicCache && !bFetch)
+					if (bScopedCache && !bScoped)
 					{
-						// We're requesting a full reader on a non-dynamic one.
-						// Fetch all and turn dynamic off. Surprise perf hit.
+						// We're requesting a full reader on a non-scoped one.
+						// Fetch all and turn scoped get off. Surprise perf hit.
 						Fetch(0, Values.Num());
-						bDynamicCache = false;
+						bScopedCache = false;
 					}
 
 					return Reader;
 				}
 			}
 
-			bDynamicCache = bFetch;
+			bScopedCache = bScoped;
 
 			if (bInitialized)
 			{
 				check(Writer)
 				PCGEx::TAttributeReader<T>* TypedReader = new PCGEx::TAttributeReader<T>(FullName);
 
-				if (bFetch) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
+				if (bScoped) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
 				else { if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) } }
 
 				Attribute = TypedReader->Accessor->GetAttribute();
@@ -154,7 +154,7 @@ namespace PCGExData
 
 			PCGEx::TAttributeReader<T>* TypedReader = new PCGEx::TAttributeReader<T>(FullName);
 
-			if (bFetch) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
+			if (bScoped) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
 			else { if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) } }
 
 			bInitialized = TypedReader ? true : false;
@@ -230,7 +230,7 @@ namespace PCGExData
 			if (bInitialized)
 			{
 #if WITH_EDITOR
-				check(!DynamicBroadcaster)
+				check(!ScopedBroadcaster)
 #endif
 				return;
 			}
@@ -242,7 +242,7 @@ namespace PCGExData
 			Attribute = Getter->Attribute;
 		}
 
-		void SetDynamicGetter(PCGEx::TAttributeGetter<T>* Getter)
+		void SetScopedGetter(PCGEx::TAttributeGetter<T>* Getter)
 		{
 			FWriteScopeLock WriteScopeLock(CacheLock);
 
@@ -251,8 +251,8 @@ namespace PCGExData
 			bInitialized = true;
 			bIsPureReader = true;
 
-			bDynamicCache = true;
-			DynamicBroadcaster = Getter;
+			bScopedCache = true;
+			ScopedBroadcaster = Getter;
 			Attribute = Getter->Attribute;
 
 			PCGEx::InitMetadataArray(Values, Source->GetNum());
@@ -275,8 +275,8 @@ namespace PCGExData
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
 		{
-			if (!IsDynamic()) { return; }
-			if (DynamicBroadcaster) { DynamicBroadcaster->Fetch(Source, Values, StartIndex, Count); }
+			if (!IsScoped()) { return; }
+			if (ScopedBroadcaster) { ScopedBroadcaster->Fetch(Source, Values, StartIndex, Count); }
 			else if (Reader) { Reader->Fetch(StartIndex, Count); }
 		}
 
@@ -286,7 +286,7 @@ namespace PCGExData
 			Values.Empty();
 			PCGEX_DELETE(Reader)
 			PCGEX_DELETE(Writer)
-			PCGEX_DELETE(DynamicBroadcaster)
+			PCGEX_DELETE(ScopedBroadcaster)
 		}
 	};
 
@@ -301,7 +301,7 @@ namespace PCGExData
 		TMap<uint64, FCacheBase*> CacheMap;
 		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
 
-		bool bSupportsDynamic = false;
+		bool bSupportsScopedGet = false;
 
 		FCacheBase* FindCacheUnsafe(const uint64 UID);
 		FCacheBase* FindCache(const uint64 UID);
@@ -411,7 +411,7 @@ namespace PCGExData
 		template <typename T>
 		TCache<T>* GetScopedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector)
 		{
-			if (!bSupportsDynamic) { return GetBroadcaster<T>(InSelector); }
+			if (!bSupportsScopedGet) { return GetBroadcaster<T>(InSelector); }
 
 			PCGEx::TAttributeGetter<T>* Getter;
 
@@ -455,7 +455,7 @@ namespace PCGExData
 			}
 
 			TCache<T>* Cache = GetCache<T>(Getter->FullName);
-			Cache->SetDynamicGetter(Getter);
+			Cache->SetScopedGetter(Getter);
 
 			return Cache;
 		}
@@ -514,7 +514,7 @@ namespace PCGExData
 		template <typename T>
 		PCGEx::TAttributeIO<T>* GetScopedReader(const FName InName)
 		{
-			if (!bSupportsDynamic) { return GetReader<T>(InName); }
+			if (!bSupportsScopedGet) { return GetReader<T>(InName); }
 
 			TCache<T>* Cache = GetCache<T>(InName);
 			PCGEx::TAttributeIO<T>* Reader = Cache->PrepareReader(ESource::In, true);

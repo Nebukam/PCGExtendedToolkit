@@ -82,7 +82,7 @@ namespace PCGExClusterMT
 		PCGExData::FFacade* VtxDataFacade = nullptr;
 		PCGExData::FFacade* EdgeDataFacade = nullptr;
 
-		bool bAllowFetchOnEdgesDataFacade = false;
+		bool bAllowEdgesDataFacadeScopedGet = false;
 
 		bool bIsProcessorValid = false;
 
@@ -111,7 +111,7 @@ namespace PCGExClusterMT
 		{
 			PCGEX_LOG_CTR(FClusterProcessor)
 			EdgeDataFacade = new PCGExData::FFacade(InEdges);
-			EdgeDataFacade->bSupportsDynamic = bAllowFetchOnEdgesDataFacade;
+			EdgeDataFacade->bSupportsScopedGet = bAllowEdgesDataFacadeScopedGet;
 		}
 
 		virtual ~FClusterProcessor()
@@ -346,7 +346,7 @@ namespace PCGExClusterMT
 
 	public:
 		PCGExData::FFacade* VtxDataFacade = nullptr;
-		bool bAllowFetchOnVtxDataFacade = false;
+		bool bAllowVtxDataFacadeScopedGet = false;
 
 		bool bRequiresWriteStep = false;
 		bool bWriteVtxDataFacade = false;
@@ -380,7 +380,7 @@ namespace PCGExClusterMT
 		{
 			Edges.Append(InEdges);
 			VtxDataFacade = new PCGExData::FFacade(InVtx);
-			VtxDataFacade->bSupportsDynamic = bAllowFetchOnVtxDataFacade;
+			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet;
 		}
 
 		virtual ~FClusterProcessorBatchBase()

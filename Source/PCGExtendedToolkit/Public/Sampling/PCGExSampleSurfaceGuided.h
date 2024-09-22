@@ -13,15 +13,27 @@
 
 #include "PCGExSampleSurfaceGuided.generated.h"
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
 #define PCGEX_FOREACH_FIELD_SURFACEGUIDED(MACRO)\
-MACRO(Success, bool)\
-MACRO(Location, FVector)\
-MACRO(LookAt, FVector)\
-MACRO(Normal, FVector)\
-MACRO(Distance, double)\
-MACRO(IsInside, bool)\
-MACRO(ActorReference, FString)\
-MACRO(PhysMat, FString)
+MACRO(Success, bool, false)\
+MACRO(Location, FVector, FVector::ZeroVector)\
+MACRO(LookAt, FVector, FVector::OneVector)\
+MACRO(Normal, FVector, FVector::OneVector)\
+MACRO(Distance, double, 0)\
+MACRO(IsInside, bool, false)\
+MACRO(ActorReference, FString, TEXT(""))\
+MACRO(PhysMat, FString, TEXT(""))
+#else
+#define PCGEX_FOREACH_FIELD_SURFACEGUIDED(MACRO)\
+MACRO(Success, bool, false)\
+MACRO(Location, FVector, FVector::ZeroVector)\
+MACRO(LookAt, FVector, FVector::OneVector)\
+MACRO(Normal, FVector, FVector::OneVector)\
+MACRO(Distance, double, 0)\
+MACRO(IsInside, bool, false)\
+MACRO(ActorReference, FSoftObjectPath, FSoftObjectPath())\
+MACRO(PhysMat, FSoftObjectPath, FSoftObjectPath())
+#endif
 
 class UPCGExFilterFactoryBase;
 

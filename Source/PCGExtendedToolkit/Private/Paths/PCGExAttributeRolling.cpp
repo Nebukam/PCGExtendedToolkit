@@ -96,7 +96,7 @@ namespace PCGExAttributeRolling
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeRolling::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(AttributeRolling)
 
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

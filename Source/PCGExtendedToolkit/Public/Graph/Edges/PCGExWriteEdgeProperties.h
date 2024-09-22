@@ -11,9 +11,9 @@
 #include "PCGExWriteEdgeProperties.generated.h"
 
 #define PCGEX_FOREACH_FIELD_EDGEEXTRAS(MACRO) \
-MACRO(EdgeLength, double) \
-MACRO(EdgeDirection, FVector) \
-MACRO(Heuristics, double)
+MACRO(EdgeLength, double, 0) \
+MACRO(EdgeDirection, FVector, FVector::OneVector) \
+MACRO(Heuristics, double, 0)
 
 namespace PCGExDataBlending
 {

@@ -89,7 +89,7 @@ namespace PCGExFuseCollinear
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseCollinear::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseCollinear)
 
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

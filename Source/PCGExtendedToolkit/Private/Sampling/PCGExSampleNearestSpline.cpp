@@ -131,7 +131,7 @@ namespace PCGExSampleNearestSpline
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestSpline::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSpline)
 
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

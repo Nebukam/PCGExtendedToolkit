@@ -260,7 +260,7 @@ namespace PCGExDiscardByOverlap
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(DiscardByOverlap)
 
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

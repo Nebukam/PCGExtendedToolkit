@@ -14,13 +14,13 @@
 #include "PCGExSampleNearestPoint.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTPOINT(MACRO)\
-MACRO(Success, bool)\
-MACRO(Transform, FTransform)\
-MACRO(LookAtTransform, FTransform)\
-MACRO(Distance, double)\
-MACRO(SignedDistance, double)\
-MACRO(Angle, double)\
-MACRO(NumSamples, int32)
+MACRO(Success, bool, false)\
+MACRO(Transform, FTransform, FTransform::Identity)\
+MACRO(LookAtTransform, FTransform, FTransform::Identity)\
+MACRO(Distance, double, 0)\
+MACRO(SignedDistance, double, 0)\
+MACRO(Angle, double, 0)\
+MACRO(NumSamples, int32, 0)
 
 namespace PCGExDataBlending
 {

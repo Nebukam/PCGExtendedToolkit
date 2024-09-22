@@ -112,7 +112,7 @@ namespace PCGExPathIntersections
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathIntersections::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
-		PointDataFacade->bSupportsDynamic = true;
+		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
