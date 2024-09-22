@@ -146,6 +146,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 {
 	friend class FPCGExPointsProcessorElement;
 
+	bool bScopedAttributeGet = false;
 	virtual ~FPCGExPointsProcessorContext() override;
 
 	UWorld* World = nullptr;
@@ -312,6 +313,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 #pragma endregion
 
 protected:
+	
 	PCGExMT::FAsyncParallelLoop* AsyncLoop = nullptr;
 	PCGExMT::FTaskManager* AsyncManager = nullptr;
 

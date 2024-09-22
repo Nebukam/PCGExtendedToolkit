@@ -128,7 +128,7 @@ namespace PCGExSampleOverlapStats
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleOverlapStats)
 
-		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

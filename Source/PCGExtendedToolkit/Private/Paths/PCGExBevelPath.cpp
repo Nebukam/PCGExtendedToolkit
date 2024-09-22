@@ -291,7 +291,7 @@ namespace PCGExBevelPath
 		LocalSettings = Settings;
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

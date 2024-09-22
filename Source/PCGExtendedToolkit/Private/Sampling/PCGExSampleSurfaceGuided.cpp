@@ -105,7 +105,7 @@ namespace PCGExSampleSurfaceGuided
 		SurfacesForward = TypedContext->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(TypedContext->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

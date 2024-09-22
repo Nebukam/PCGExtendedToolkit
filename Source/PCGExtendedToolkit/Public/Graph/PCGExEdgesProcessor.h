@@ -37,6 +37,10 @@ public:
 
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings
+	
+	/** Whether scoped attribute read is enabled or not. Disabling this on small dataset may greatly improve performance. It's enabled by default for legacy reasons. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
+	bool bScopedIndexLookupBuild = false;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
@@ -46,9 +50,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 
 	virtual ~FPCGExEdgesProcessorContext() override;
 
-	bool bDeterministicClusters = false;
 	bool bBuildEndpointsLookup = true;
-
+	
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
 
@@ -107,7 +110,8 @@ protected:
 	virtual bool ProcessClusters();
 
 	TArray<PCGExClusterMT::FClusterProcessorBatchBase*> Batches;
-
+	
+	bool bScopedIndexLookupBuild = false;
 	bool bHasValidHeuristics = false;
 
 	PCGExMT::AsyncState TargetState_ClusterProcessingDone;
@@ -176,7 +180,7 @@ protected:
 			}
 
 			Batches.Add(NewBatch);
-			if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch); }
+			if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch, bScopedIndexLookupBuild); }
 		}
 
 		if (Batches.IsEmpty()) { return false; }

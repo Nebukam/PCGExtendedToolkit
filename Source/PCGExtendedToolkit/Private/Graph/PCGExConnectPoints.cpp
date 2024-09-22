@@ -131,7 +131,7 @@ namespace PCGExConnectPoints
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

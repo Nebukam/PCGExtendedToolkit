@@ -349,6 +349,8 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)
 
+	Context->bScopedAttributeGet = Settings->bScopedAttributeGet;
+	
 	if (Context->bAssetLoadError)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("An error occured while loading asset dependencies."));

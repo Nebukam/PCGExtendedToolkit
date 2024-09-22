@@ -25,15 +25,16 @@ namespace PCGExClusterMT
 	class FStartClusterBatchProcessing final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FStartClusterBatchProcessing(PCGExData::FPointIO* InPointIO, T* InTarget) : FPCGExTask(InPointIO), Target(InTarget)
+		FStartClusterBatchProcessing(PCGExData::FPointIO* InPointIO, T* InTarget, bool bScoped) : FPCGExTask(InPointIO), Target(InTarget), bScopedIndexLookupBuild(bScoped)
 		{
 		}
 
 		T* Target = nullptr;
+		bool bScopedIndexLookupBuild = false;
 
 		virtual bool ExecuteTask() override
 		{
-			Target->PrepareProcessing(Manager);
+			Target->PrepareProcessing(Manager, bScopedIndexLookupBuild);
 			return true;
 		}
 	};
@@ -399,30 +400,20 @@ namespace PCGExClusterMT
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(Context); }
 
-		virtual void PrepareProcessing(PCGExMT::FTaskManager* AsyncManager)
+		virtual void PrepareProcessing(PCGExMT::FTaskManager* AsyncManager, const bool bScopedIndexLookupBuild)
 		{
 			AsyncManagerPtr = AsyncManager;
 
 			VtxIO->CreateInKeys();
-
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 4
-
-			PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
-			if (RequiresGraphBuilder()) { GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderDetails, 6, EdgeCollection); }
-
-			OnProcessingPreparationComplete();
-
-#else
-			
 			const int32 NumVtx = VtxIO->GetNum();
-			
-			if (NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
+
+			if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 			{
 				// Trivial
 				PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
 				if (RequiresGraphBuilder()) { GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderDetails, 6, EdgeCollection); }
-				
-				OnProcessingPreparationComplete();				
+
+				OnProcessingPreparationComplete();
 			}
 			else
 			{
@@ -439,7 +430,7 @@ namespace PCGExClusterMT
 					[&]()
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Complete);
-												
+
 						const int32 Num = VtxIO->GetNum();
 						EndpointsLookup.Reserve(Num);
 						for (int i = 0; i < Num; i++) { EndpointsLookup.Add(ReverseLookup[i], i); }
@@ -457,7 +448,7 @@ namespace PCGExClusterMT
 					[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
-						
+
 						const TArray<FPCGPoint>& InKeys = VtxIO->GetIn()->GetPoints();
 
 						const int32 MaxIndex = StartIndex + Count;
@@ -473,8 +464,6 @@ namespace PCGExClusterMT
 					});
 				BuildEndpointLookupTask->PrepareRangesOnly(VtxIO->GetNum(), 4096);
 			}
-			
-#endif
 		}
 
 		virtual void OnProcessingPreparationComplete()
@@ -638,9 +627,9 @@ namespace PCGExClusterMT
 		}
 	};
 
-	static void ScheduleBatch(PCGExMT::FTaskManager* Manager, FClusterProcessorBatchBase* Batch)
+	static void ScheduleBatch(PCGExMT::FTaskManager* Manager, FClusterProcessorBatchBase* Batch, const bool bScopedIndexLookupBuild)
 	{
-		Manager->Start<FStartClusterBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
+		Manager->Start<FStartClusterBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch, bScopedIndexLookupBuild);
 	}
 
 	static void CompleteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)

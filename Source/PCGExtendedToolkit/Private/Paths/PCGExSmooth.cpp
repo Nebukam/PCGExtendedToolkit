@@ -85,7 +85,7 @@ namespace PCGExSmooth
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSmooth::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Smooth)
 
-		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

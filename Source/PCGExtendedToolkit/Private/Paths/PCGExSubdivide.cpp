@@ -94,7 +94,7 @@ namespace PCGExSubdivide
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

@@ -256,7 +256,7 @@ void FPCGExEdgesProcessorContext::AdvanceBatch()
 	else
 	{
 		CurrentBatch = Batches[CurrentBatchIndex];
-		ScheduleBatch(GetAsyncManager(), CurrentBatch);
+		ScheduleBatch(GetAsyncManager(), CurrentBatch, bScopedIndexLookupBuild);
 		SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing);
 	}
 }
@@ -310,6 +310,8 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	FPCGExPointsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
+
+	Context->bScopedIndexLookupBuild = Settings->bScopedIndexLookupBuild;
 
 	if (!Settings->bEnabled) { return Context; }
 

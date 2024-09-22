@@ -94,7 +94,7 @@ namespace PCGExBlendPath
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBlendPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BlendPath)
 
-		PointDataFacade->bSupportsScopedGet = Settings->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
