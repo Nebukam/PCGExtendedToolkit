@@ -26,6 +26,14 @@ MACRO(ClosedLoop, bool)
 
 class UPCGExFilterFactoryBase;
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Surface Source"))
+enum class EPCGExSplineSamplingIncludeMode : uint8
+{
+	All            = 0 UMETA(DisplayName = "All", ToolTip="Sample all input splines"),
+	ClosedLoopOnly = 1 UMETA(DisplayName = "Closed loops only", ToolTip="Sample only closed loops"),
+	OpenSplineOnly = 2 UMETA(DisplayName = "Open splines only", ToolTip="Sample only open splines"),
+};
+
 namespace PCGExPolyLine
 {
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FSampleInfos
@@ -121,6 +129,10 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 public:
+	/** Sample inputs.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
+
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
@@ -227,6 +239,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance", EditConditionHides, HideEditConditionToggle))
 	EPCGExAxis SignAxis = EPCGExAxis::Forward;
 
+	/** Only sign the distance if at least one sampled spline is a bClosedLoop spline. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Spline", EditCondition="bWriteSignedDistance && SampleInputs==EPCGExSplineSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
+	bool bOnlySignIfClosed = false;
+
 	/** Write the sampled angle. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAngle = false;
@@ -259,8 +275,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="NumInside", PCG_Overridable, EditCondition="bWriteNumInside"))
 	FName NumInsideAttributeName = FName("NumInside");
 
-	/** Only increment num inside count if it comes from a bClosedLoop spline. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Spline", EditCondition="bWriteNumInside", EditConditionHides, HideEditConditionToggle))
+	/** Only increment num inside count when comes from a bClosedLoop spline. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Only if Closed Spline", EditCondition="bWriteNumInside && SampleInputs==EPCGExSplineSamplingIncludeMode::All", EditConditionHides, HideEditConditionToggle))
 	bool bOnlyIncrementInsideNumIfClosed = false;
 
 	/** Write the sampled distance. */
@@ -337,6 +353,9 @@ namespace PCGExSampleNearestSpline
 
 		FVector SafeUpVector = FVector::UpVector;
 		int8 bAnySuccess = 0;
+
+		bool bOnlySignIfClosed = false;
+		bool bOnlyIncrementInsideNumIfClosed = false;
 
 		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
 

@@ -52,7 +52,21 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 		{
 			const UPCGSplineData* SplineData = Cast<UPCGSplineData>(TaggedData.Data);
 			if (!SplineData) { continue; }
-			Context->Targets.Add(const_cast<UPCGSplineData*>(SplineData));
+			UPCGSplineData* MutableSplineData = const_cast<UPCGSplineData*>(SplineData);
+
+			switch (Settings->SampleInputs)
+			{
+			default:
+			case EPCGExSplineSamplingIncludeMode::All:
+				Context->Targets.Add(MutableSplineData);
+				break;
+			case EPCGExSplineSamplingIncludeMode::ClosedLoopOnly:
+				if (MutableSplineData->SplineStruct.bClosedLoop) { Context->Targets.Add(MutableSplineData); }
+				break;
+			case EPCGExSplineSamplingIncludeMode::OpenSplineOnly:
+				if (!MutableSplineData->SplineStruct.bClosedLoop) { Context->Targets.Add(MutableSplineData); }
+				break;
+			}
 		}
 
 		Context->NumTargets = Context->Targets.Num();
@@ -117,12 +131,24 @@ namespace PCGExSampleNearestSpline
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestSpline::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSpline)
 
+		PointDataFacade->bSupportsDynamic = true;
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
-		// TODO : Add Scoped Fetch
+		if (Settings->SampleInputs != EPCGExSplineSamplingIncludeMode::All)
+		{
+			bOnlySignIfClosed = Settings->bOnlySignIfClosed;
+			bOnlyIncrementInsideNumIfClosed = Settings->bOnlyIncrementInsideNumIfClosed;
+		}
+		else
+		{
+			bOnlySignIfClosed = false;
+			bOnlyIncrementInsideNumIfClosed = false;
+		}
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade;
@@ -188,6 +214,7 @@ namespace PCGExSampleNearestSpline
 
 
 		int32 NumInside = 0;
+		int32 NumInClosed = 0;
 		bool bClosed = false;
 
 		double RangeMin = FMath::Pow(RangeMinGetter ? RangeMinGetter->Values[Index] : LocalSettings->RangeMin, 2);
@@ -210,12 +237,11 @@ namespace PCGExSampleNearestSpline
 
 			int32 NumInsideIncrement = 0;
 
-
 			if (FVector::DotProduct(
 				(Transform.GetLocation() - ModifiedOrigin).GetSafeNormal(),
 				Transform.GetRotation().GetRightVector()) > 0)
 			{
-				if (!LocalSettings->bOnlyIncrementInsideNumIfClosed || InSpline.bClosedLoop) { NumInsideIncrement = 1; }
+				if (!bOnlyIncrementInsideNumIfClosed || InSpline.bClosedLoop) { NumInsideIncrement = 1; }
 			}
 
 			bool IsNewClosest = false;
@@ -228,6 +254,7 @@ namespace PCGExSampleNearestSpline
 				{
 					bClosed = InSpline.bClosedLoop;
 					NumInside = NumInsideIncrement;
+					NumInClosed = NumInsideIncrement;
 				}
 				return;
 			}
@@ -239,12 +266,17 @@ namespace PCGExSampleNearestSpline
 				{
 					bClosed = InSpline.bClosedLoop;
 					NumInside = NumInsideIncrement;
+					NumInClosed = NumInsideIncrement;
 				}
 				return;
 			}
 
 			NumInside += NumInsideIncrement;
-			if (InSpline.bClosedLoop) { bClosed = true; }
+			if (InSpline.bClosedLoop)
+			{
+				NumInClosed++;
+				bClosed = true;
+			}
 
 			const PCGExPolyLine::FSampleInfos& Infos = TargetsInfos.Emplace_GetRef(Transform, Dist, Time);
 			TargetsCompoundInfos.UpdateCompound(Infos, IsNewClosest, IsNewFarthest);
@@ -356,7 +388,7 @@ namespace PCGExSampleNearestSpline
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, LocalSettings->LookAtAxisAlign))
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
-		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
+		PCGEX_OUTPUT_VALUE(SignedDistance, Index, (!bOnlySignIfClosed || NumInClosed > 0) ? FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance : WeightedDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(Time, Index, WeightedTime)
 		PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
