@@ -9,6 +9,7 @@ subtitle: Blend individual points between from paths' start and end points.
 summary: The **Path Blend** node...
 color: white
 splash: icons/icon_paths-orient.svg
+preview_img: previews/paths-blend.png
 tagged: 
     - node
     - paths
