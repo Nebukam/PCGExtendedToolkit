@@ -33,7 +33,7 @@ public:
 
 public:
 	/** If the path is not closed, the last point cannot be solidified, thus it's usually preferable to remove it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bClosedLoop"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bRemoveLastPoint = true;
 
 	/** */
