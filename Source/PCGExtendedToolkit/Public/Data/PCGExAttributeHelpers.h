@@ -460,6 +460,8 @@ namespace PCGEx
 		bool bOverrideParent;
 		bool bOverwriteIfTypeMismatch;
 
+		bool bIsNewAttribute = false;
+
 	public:
 		explicit TAttributeWriter(const FName& InName)
 			: TAttributeIO<T>(InName),
@@ -487,19 +489,30 @@ namespace PCGEx
 		virtual bool Bind(PCGExData::FPointIO* PointIO) override
 		{
 			PCGEX_DELETE(this->Accessor)
+
+			const FPCGMetadataAttribute<T>* Att = PointIO->GetOut()->Metadata->GetConstTypedAttribute<T>(this->Name);
+			bIsNewAttribute = Att ? false : true;
+
 			this->Accessor = FAttributeAccessor<T>::FindOrCreate(
 				PointIO, this->Name, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 			this->UnderlyingType = PointIO->GetOut()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
-
+		
 		bool BindAndGet(PCGExData::FPointIO* PointIO)
 		{
 			if (Bind(PointIO))
 			{
 				PCGEx::InitMetadataArray(this->Values, PointIO->GetNum());
-				this->Accessor->GetRange(this->Values);
+				
+				// Only get range if the attribute is known to exist.
+				if (!bIsNewAttribute) { this->Accessor->GetRange(this->Values); }
+				else
+				{
+					const T Default = this->Accessor->GetDefaultValue();
+					for (T& V : this->Values) { V = Default; }
+				}
 				return true;
 			}
 			return false;

@@ -135,7 +135,6 @@ namespace PCGExSampleNearestSurface
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_INIT)
-			PCGEX_FOREACH_FIELD_NEARESTSURFACE_ACTOR(PCGEX_OUTPUT_INIT_DEFAULT)
 		}
 
 		if (Settings->bUseLocalMaxDistance)

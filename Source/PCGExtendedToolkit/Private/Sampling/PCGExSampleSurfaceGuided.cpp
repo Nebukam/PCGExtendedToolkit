@@ -33,7 +33,6 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME)
-	PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	Context->bUseInclude = Settings->SurfaceSource == EPCGExSurfaceSource::ActorReferences;
 	if (Context->bUseInclude)
@@ -121,7 +120,6 @@ namespace PCGExSampleSurfaceGuided
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_INIT)
-			PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_INIT_DEFAULT)
 		}
 
 		if (Settings->bUseLocalMaxDistance)

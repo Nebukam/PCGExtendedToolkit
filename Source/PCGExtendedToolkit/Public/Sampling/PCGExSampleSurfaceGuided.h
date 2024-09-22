@@ -19,12 +19,9 @@ MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
 MACRO(Distance, double)\
-MACRO(IsInside, bool)
-
-#define PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(MACRO)\
+MACRO(IsInside, bool)\
 MACRO(ActorReference, FString)\
 MACRO(PhysMat, FString)
-
 
 class UPCGExFilterFactoryBase;
 
@@ -181,7 +178,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : publi
 	FPCGExCollisionDetails CollisionSettings;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
-	PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
@@ -210,7 +206,6 @@ namespace PCGExSampleSurfaceGuided
 		const UPCGExSampleSurfaceGuidedSettings* LocalSettings = nullptr;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
-		PCGEX_FOREACH_FIELD_SURFACEGUIDED_ACTOR(PCGEX_OUTPUT_DECL)
 
 		int8 bAnySuccess = 0;
 
