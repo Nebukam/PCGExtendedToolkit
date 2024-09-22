@@ -125,3 +125,11 @@ Some high level tags may be applied to the data based on overal sampling.
 
 > Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails.
 {: .warning }
+
+---
+## Advanced
+<br>
+
+| Property       | Description          |
+|:-------------|:------------------|
+| Process Filtered Out As Fails    | If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether.<br>**Only uncheck this if you want to ensure existing attribute values are preserved.**<br>Default is set to true, as it should be on a first-pass sampling. |

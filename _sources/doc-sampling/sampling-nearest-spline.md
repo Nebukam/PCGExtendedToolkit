@@ -42,6 +42,7 @@ The **Sample Nearest Splines** finds nearest(s) target splines and extract relat
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
+| Sample Inputs          | Choose which input splines are to be sampled based on whether they're closed loop or not. |
 | Sample Method          | Selects the sampling method. See [Sampling Methods](#sampling-methods). |
 | Range Min          | Minimum sampling range. |
 | Range Max          | Maximum sampling range.<br>**Use `0` to sample all targets.** |
@@ -96,11 +97,13 @@ Outputs are values extracted from the neighbor(s), and written to attributes on 
 | <span class="eout">Distance</span><br>`double`     | TBD |
 | <span class="eout">Signed Distance</span><br>`double`     | TBD |
 | └─ Axis | TBD |
+| └─ Only if Closed | TBD |
 | <span class="eout">Angle</span><br>`double`     | TBD |
 | └─ Axis | TBD |
 | └─ Range | TBD |
 | <span class="eout">Time</span><br>`double`     | TBD |
 | <span class="eout">Num Inside</span><br>`int32`     | TBD |
+| └─ Only if Closed | TBD |
 | <span class="eout">Num Samples</span><br>`int32`     | TBD |
 | <span class="eout">Closed Loop</span><br>`bool`     | TBD |
 
@@ -120,3 +123,11 @@ Some high level tags may be applied to the data based on overal sampling.
 
 > Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails.
 {: .warning }
+
+---
+## Advanced
+<br>
+
+| Property       | Description          |
+|:-------------|:------------------|
+| Process Filtered Out As Fails    | If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether.<br>**Only uncheck this if you want to ensure existing attribute values are preserved.**<br>Default is set to true, as it should be on a first-pass sampling. |
