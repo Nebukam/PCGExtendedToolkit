@@ -132,6 +132,7 @@ namespace PCGExSubdivide
 	void FProcessor::PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count)
 	{
 		PointDataFacade->Fetch(StartIndex, Count);
+		FilterScope(StartIndex, Count);
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
@@ -145,6 +146,8 @@ namespace PCGExSubdivide
 		Sub.End = PointIO->GetInPoint(Index + 1 == PointIO->GetNum() ? 0 : Index + 1).Transform.GetLocation();
 
 		Sub.Dist = FVector::Distance(Sub.Start, Sub.End);
+
+		if (!PointFilterCache[Index]) { return; }
 
 		double Amount = AmountGetter ? AmountGetter->Values[Index] : ConstantAmount;
 
