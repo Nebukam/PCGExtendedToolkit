@@ -215,17 +215,27 @@ namespace PCGExSampleNearestSpline
 				NumInside++;
 			}
 
-			if (InSpline.bClosedLoop) { bClosed = true; }
+			bool IsNewClosest = false;
+			bool IsNewFarthest = false;
 
-			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
-				LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+			if (LocalSettings->SampleMethod == EPCGExSampleMethod::ClosestTarget)
 			{
-				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, Dist, Time));
+				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, Dist, Time), IsNewClosest, IsNewFarthest);
+				if (IsNewClosest) { bClosed = InSpline.bClosedLoop; }
 				return;
 			}
 
+			if (LocalSettings->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+			{
+				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, Dist, Time), IsNewClosest, IsNewFarthest);
+				if (IsNewFarthest) { bClosed = InSpline.bClosedLoop; }
+				return;
+			}
+
+			if (InSpline.bClosedLoop) { bClosed = true; }
+
 			const PCGExPolyLine::FSampleInfos& Infos = TargetsInfos.Emplace_GetRef(Transform, Dist, Time);
-			TargetsCompoundInfos.UpdateCompound(Infos);
+			TargetsCompoundInfos.UpdateCompound(Infos, IsNewClosest, IsNewFarthest);
 		};
 
 		// First: Sample all possible targets

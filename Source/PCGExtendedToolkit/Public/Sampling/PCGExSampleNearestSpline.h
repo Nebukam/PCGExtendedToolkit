@@ -60,7 +60,7 @@ namespace PCGExPolyLine
 		FSampleInfos Closest;
 		FSampleInfos Farthest;
 
-		FORCEINLINE void UpdateCompound(const FSampleInfos& Infos)
+		FORCEINLINE void UpdateCompound(const FSampleInfos& Infos, bool& IsNewClosest, bool& IsNewFarthest)
 		{
 			UpdateCount++;
 
@@ -68,12 +68,14 @@ namespace PCGExPolyLine
 			{
 				Closest = Infos;
 				SampledRangeMin = Infos.Distance;
+				IsNewClosest = true;
 			}
 
 			if (Infos.Distance > SampledRangeMax)
 			{
 				Farthest = Infos;
 				SampledRangeMax = Infos.Distance;
+				IsNewFarthest = true;
 			}
 
 			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
@@ -121,7 +123,7 @@ public:
 public:
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange; 
+	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
@@ -272,7 +274,7 @@ public:
 	/** Name of the 'bool' attribute to write whether a closed spline was sampled or not.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName="ClosedLoop", PCG_Overridable, EditCondition="bWriteClosedLoop"))
 	FName ClosedLoopAttributeName = FName("ClosedLoop");
-	
+
 	//
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, InlineEditConditionToggle))
