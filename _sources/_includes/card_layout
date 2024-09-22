@@ -17,7 +17,7 @@
 {% assign dots = dots | append: '· ' %}
 {% endfor %}
 
-<div class="card large gradient">
+<div class="card large gradient"  style="--ncol:var(--var-node-color-{{include.page.family | default:'None'}});">
     {% if include.page.use_child_thumbnails %}
     <div class="previews" style="--ico:url('{{ site.baseurl }}/assets/{{ child.splash }}');">
         {% assign child_pages = site.pages | where: 'parent', include.page.title %}

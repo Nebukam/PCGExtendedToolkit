@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Filter
 #grand_parent: Misc
 parent: Filter Ecosystem
 title: 🝖 Within Range
 name_in_editor: "Filter : Within Range"
 subtitle: Checks if an attribute value falls within a specified range.
 color: white
-summary: TBD
+summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node

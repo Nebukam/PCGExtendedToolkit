@@ -3,7 +3,7 @@ layout: page
 title: Filter Ecosystem
 subtitle: Combine multiple filters
 summary: The **Uber Filter** node is a one-stop node for all your filtering needs.
-color: white
+color: red
 splash: icons/icon_misc-sort-points.svg
 preview_img: previews/index-filter-ecosystem.png
 has_children: true

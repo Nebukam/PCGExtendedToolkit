@@ -4,7 +4,7 @@ grand_parent: Paths
 parent: Subdivide
 title: ⋰ Interpolate
 subtitle: Interpolates values between first and last point.
-color: white
+color: blue
 summary: Processed subpoints properties & attributes will lerp between the first and last subpoints.
 splash: icons/icon_path-subdivide.svg
 tagged: 

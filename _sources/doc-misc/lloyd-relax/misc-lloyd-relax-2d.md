@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Misc
 grand_parent: Misc
 parent: Lloyd Relax
 title: 2D Lloyd Relaxation
+name_in_editor: "Lloyd Relax 2D"
 subtitle: Applies the Lloyd Relaxation algorithm.
 summary: The **2D Lloyd Relaxation** node applies any number of Lloyd relaxation passes, in 2D space.
 color: white

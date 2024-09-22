@@ -1,8 +1,10 @@
 ---
 layout: page
+family: MiscRemove
 #grand_parent: All Nodes
 parent: Misc
 title: Cherry Pick Points
+name_in_editor: "Cherry Pick Points"
 subtitle: Cherry pick points using their indices.
 summary: The **Cherry Pick Points** node ...
 color: white

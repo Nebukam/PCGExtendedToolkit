@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Filter
 #grand_parent: Misc
 parent: Filter Ecosystem
 title: 🝖 AND / OR (Group)
 name_in_editor: "Filter Group"
 subtitle: Group multiple filters to set up complex AND/OR branches.
 color: white
-summary: TBD
+summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node

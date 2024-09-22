@@ -4,7 +4,7 @@ grand_parent: Paths
 parent: Write Tangents
 title: ∢ Auto Tangents
 subtitle: Neighbor-based tangents
-color: white
+color: blue
 #summary: Index-based moving-average sampling
 splash: icons/icon_path-tangents.svg
 tagged: 

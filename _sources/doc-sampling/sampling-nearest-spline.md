@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Sampler
 #grand_parent: All Nodes
 parent: Sampling
 title: Sample Nearest Spline
 name_in_editor: "Sample : Nearest Spline"
 subtitle: Sample informations from the nearest spline
 color: white
-summary: The **Sample Nearest Polyline** node explore polylines within a range using various methods. Define sampling range, weight targets, and obtain useful attributes.
+summary: The **Sample Nearest Spline** node retrieves and blends spatial data from the target splines within a defined range, enabling fine-tuned sampling methods and weighting for tasks such as spline-based proximity analysis, spatial alignment, and extracting relational data.
 splash: icons/icon_sampling-line.svg
 tagged: 
     - node
@@ -21,7 +22,7 @@ inputs:
         pin : params
     -   name : Targets
         desc : Target splines to read data from
-        pin : points
+        pin : splines
 outputs:
     -   name : Out
         desc : In with extra attributes and properties
@@ -30,65 +31,92 @@ outputs:
 
 {% include header_card_node %}
 
-# Properties
-<br>
+The **Sample Nearest Splines** finds nearest(s) target splines and extract relational spatial data from them.
+{: .fs-5 .fw-400 } 
 
-> Each output property is written individually for each point.  
-> *Each polyline will yield a single sample point: the closest point on the closest segment, within the specified range.*
-{: .comment }
+{% include img a='details/sampling-nearest-spline/lead.png' %}
+
+# Sampling
+<br>
 
 | Property       | Description          |
 |:-------------|:------------------|
-|**Sampling**||
+|**Settings**||
 | Sample Method          | Selects the sampling method. See [Sampling Methods](#sampling-methods). |
 | Range Min          | Minimum sampling range. |
-| Range Max          | Maximum sampling range.<br>**Use `0` to sample all segments.** |
+| Range Max          | Maximum sampling range.<br>**Use `0` to sample all targets.** |
+| Local Range Min          | If enabled, uses a per-point `double` attribute value as minimum sampling range. |
+| Local Range Max          | If enabled, uses a per-point `double` attribute value as maximum sampling range. |
+| Distance Settings          | TBD |
 
-> Segments that are not within range are ignored.
-> If no polyline segment is found within the specified range, the sampling for that point will be marked as **Usuccessful**.
+> Splines that are not within range are ignored.
+> If no spline is found within the specified range, the sampling for that point will be marked as **Usuccessful**.
 {: .infos }
+<br>
 
 |**Weighting**||
 | Weight Method          | Selects the method used to compute the weight of each target.<br>*See [Weighting](#weighting)*. |
 | Weight Over Distance          | Curve used to sample the final weight of each target. |
 
-|**Outputs**||
-| **Success** Attribute Name     | Writes a boolean attribute to each point specifying whether the sampling has been successful (`true`) or not (`false`). |
-| **Location** Attribute Name     | Writes the location sampled on the polyline, as an `FVector`. |
-| **Look at** Attribute Name     | Writes the direction from the point to the location sampled on the polyline, as an `FVector`. |
-| **Normal** Attribute Name     | Writes the normal of the point at the location sampled on the polyline, as an `FVector`. |
-| Normal Source | Which direction to use as an Up vector for the Normal cross-product maths. |
-| **Distance** Attribute Name     | Writes the distance between the point and the location sampled on the polyline, as a `double`. |
-| **Signed Distance** Attribute Name     | Writes the signed distance between the point and the location sampled on the polyline, as a `double`. |
-| Signed Distance Axis | Which axis to use to determine whether the distance is positive or negative (toward/away).<br>*Currently based on point Transform, this will likely change in the future to an attribute selector.* |
-| **Angle** Attribute Name     | Writes the angle between the point and the transform sampled on the polyline, as a `double`. |
-| Angle Axis | Which axis to use to determine the angle sign/range (toward/away) |
-| Angle Range | The output range for the `Angle` value. |
-| **Time** Attribute Name     | Writes the time (*in `Spline` terms*) of the location sampled on the polyline, as a `double`. |
-
-> Based on the selected `Sample method`, the output values are a **weighted average** of all the sampled positions. 
-> *See [Weighting](#weighting)*.
-{: .infos-hl }
-
-## Sampling Methods
+---
+### Sampling Methods
+<br>
 
 | Method       | Description          |
 |:-------------|:------------------|
-| Within Range          | Samples all polylines within the specified range. |
-| Closest Target          | Sample the single closest polyline within the specified range. |
-| Farthest Target          | Sample the single farthest polyline within the specified range. |
-| Target Extents          | Reverse the sampling mechanisms so points will sample the targets which `Extents` contains them.<br>**At the time of writing, will only check targets which position in world space is within range.**<br>*It is recommend to use a max range of `0` with this method.* |
+| <span class="ebit">All (Within Range)</span>          | Samples all splines within the specified range. |
+| <span class="ebit">Closest Target</span>          | Sample the single closest target spline within the specified range. |
+| <span class="ebit">Farthest Target</span>          | Sample the single farthest target spline within the specified range. |
 
 ---
 ### Weighting
 <br>
+
+{% include img a='details/sampling-nearest-spline/weighting.png' %}
+
 {% include embed id='settings-weighting' %}
 
 ---
-## Weighting
+# Outputs
+Outputs are values extracted from the neighbor(s), and written to attributes on the output points.
+{: .fs-5 .fw-400 }  
 
-{% include img a='docs/relax/range.png' %} 
+| Output       | Description          |
+|:-------------|:------------------|
+|**Generic**||
+| <span class="eout">Success</span><br>`bool` | TBD |
+{: .soutput }
 
-> Note that the `Effective Range` method tends to spread/scale the input set of values -- but allows one to leverage the full range of the curve no matter the min/max input values.  
-> **Hence, using `Full Range` with only high (or low) input value will only sample a very narrow portion of the curve.**
+|**Spatial Data**||
+| <span class="eout">Transform</span><br>`FTransform`    | TBD |
+| <span class="eout">Look At</span><br>`FVector`     | TBD |
+| └─ Align | TBD |
+| └─ Use Up from... | TBD |
+| └─ Up Vector | TBD |
+| <span class="eout">Distance</span><br>`double`     | TBD |
+| <span class="eout">Signed Distance</span><br>`double`     | TBD |
+| └─ Axis | TBD |
+| <span class="eout">Angle</span><br>`double`     | TBD |
+| └─ Axis | TBD |
+| └─ Range | TBD |
+| <span class="eout">Time</span><br>`double`     | TBD |
+| <span class="eout">Num Inside</span><br>`int32`     | TBD |
+| <span class="eout">Num Samples</span><br>`int32`     | TBD |
+| <span class="eout">Closed Loop</span><br>`bool`     | TBD |
+
+> Based on the selected `Sample method`, the output values are a **weighted average** of all the sampled targets. 
+> *See [Weighting](#weighting)*.
 {: .infos-hl }
+
+---
+## Tagging
+Some high level tags may be applied to the data based on overal sampling.
+<br>
+
+| Tag       | Description          |
+|:-------------|:------------------|
+| <span class="etag">Has Successes Tag</span>     | If enabled, add the specified tag to the output data **if at least a single spline** has been sampled. |
+| <span class="etag">Has No Successes Tag</span>     | If enabled, add the specified tag to the output data **if no spline** was found within range. |
+
+> Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails.
+{: .warning }

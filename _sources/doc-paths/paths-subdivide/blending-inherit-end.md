@@ -4,7 +4,7 @@ grand_parent: Paths
 parent: Subdivide
 title: ⋰ Inherit Last
 subtitle: Copy the last point' values
-color: white
+color: blue
 summary: Processed subpoints will inherit from the last properties & attributes. Nothing fancy about it.
 splash: icons/icon_path-subdivide.svg
 tagged: 

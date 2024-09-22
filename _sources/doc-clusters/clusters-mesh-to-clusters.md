@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Cluster
 #grand_parent: All Nodes
 parent: Clusters
 title: Mesh to Clusters
@@ -45,7 +46,7 @@ The **Mesh to Cluster** node converts raw geometry from meshes (either specific 
 |:-------------|:------------------|
 | Graph Output Type          | Defines how the raw geometry will be converted to `Vtx` & `Edges` |
 | Static Mesh Source          | Select the source for the mesh(es) to be converted.<br>- `Constant` is a single StaticMesh picker that will be used for each of the input points.<br>- `Attribute` on the other end lets you pick an attribute on the input points that contains an object path to either a StaticMesh or an Actor reference. |
-| Static Mesh Constant          | The static mesh to convert to a graph & copy to input points. |
+| Static Mesh          | The static mesh to convert to a graph & copy to input points. |
 | Static Mesh Attribute          | The name of the attribute that contains a path to a StaticMesh or Actor.<br>*`FSoftObjectPath` is preferred, but supports `Fname`, `FString`* |
 | Attribute Handling         | Lets you pick how the soft path should be handled, either as StaticMesh or an ActorReference.<br>*Note that this is legacy is will be removed in an upcoming update to support both. Meanwhile, you still need to choose one.* |
 

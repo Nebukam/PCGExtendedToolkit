@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Probe
 grand_parent: Clusters
 parent: Connect Points
 title: 🝆 Direction
@@ -39,8 +40,7 @@ This probes creates a single connections to another point in a specific directio
 
 |: **Direction settings** :|
 | Direction Source           | The type of value used for this probe' direction; either a `Constant` value or fetched from an`Attribute` |
-| Direction Constant           | Constant direction, in world space. |
-| Direction Attribute           | Per-point attribute value direction of the probe, in world space. |
+| Direction <br>*(Constant or Attribute)*           | Direction of the probe, in world space. |
 | Transform Direction           | If enabled, the probe direction will be transformed by the probed point' transform.<br>*This is effectively turning world space direction to point-local space ones.* |
 
 |: **Other Settings** :|
@@ -49,8 +49,7 @@ This probes creates a single connections to another point in a specific directio
 
 |: **Search Radius** :|
 | Search Radius Source           | The type of value used for this probe' search radius; either a `Constant` value or fetched from an`Attribute` |
-| Search Radius Constant           | Fixed radius of the probe. |
-| Search Radius Attribute           | Per-point attribute value radius of the probe.<br>*Dynamic radiuses can be super expensive if they are different for each probe: search will use the greatest radius to sample to octree for this point.* |
+| Search Radius <br>*(Constant or Attribute)*           | Radius of the probe.<br>*Dynamic radiuses can be super expensive if they are different for each probe: search will use the greatest radius to sample to octree for this point.* |
 
 ---
 ## Favor distance vs alignment

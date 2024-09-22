@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Remove Lowest Score
 subtitle: Removes edges with the lowest heuristic scores
 #summary: The **Remove Lowest Score** refinement ...
-color: red
+color: blue
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

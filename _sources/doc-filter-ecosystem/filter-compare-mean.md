@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Filter
 #grand_parent: Misc
 parent: Filter Ecosystem
 title: 🝖 Mean Value

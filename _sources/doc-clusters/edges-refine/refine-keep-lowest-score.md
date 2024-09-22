@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Keep Lowest Score
 subtitle: Keeps edges with the lowest heuristic scores
 #summary: The **Keep Lowest Score** refinement ...
-color: red
+color: blue
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

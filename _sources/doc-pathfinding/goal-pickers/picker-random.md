@@ -5,7 +5,7 @@ parent: 🝓 Goal Pickers
 title: 🝓 Random
 subtitle: Match seeds to goals at a random index.
 summary: The **Random** picker ...
-color: white
+color: blue
 splash: icons/icon_placement-center.svg
 tagged: 
     - module

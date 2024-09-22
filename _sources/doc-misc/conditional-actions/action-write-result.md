@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Misc
 grand_parent: Misc
 parent: Conditional Actions
 title: 🝐 Write Result
+name_in_editor: "Action : Write Result"
 subtitle: The **Write Results** action...
 color: white
 summary: TBD

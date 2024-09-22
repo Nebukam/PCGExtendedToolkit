@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Path × Bounds Intersections
+name_in_editor: "Path × Bounds Intersection"
 subtitle: Find intersections with points bounds.
 summary: The **Path × Bounds Intersection** node ...
 color: white

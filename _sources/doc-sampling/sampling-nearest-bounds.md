@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Sampler
 #grand_parent: All Nodes
 parent: Sampling
 title: Sample Nearest Bounds
 name_in_editor: "Sample : Nearest Bounds"
 subtitle: Sample within bounds
 color: white
-summary: The **Sample Nearest Bounds** node explore points within input bounds.
+summary: The **Sample Nearest Bounds** node samples points within given bounds, blending spatial attributes from the nearest targets based on selected methods, and outputs the processed points with additional properties and tags.
 splash: icons/icon_sampling-point.svg
 tagged: 
     - node
@@ -25,15 +26,16 @@ inputs:
 outputs:
     -   name : Out
         desc : In with extra attributes and properties
-        pin : points
+        pin : point
 ---
 
 {% include header_card_node %}
 
-The **Sample Nearest Point** grabs and blends attributes & properties from a target dataset, as well as other spatial relationship outputs.
+The **Sample Nearest Point** grabs and blends attributes & properties from a target dataset as well as other spatial relationship outputs.  
+**Input points sample the targets which bounds contains them, not the other way around.** See {% include lk id='Sample Inside Bounds' %} if that's what you were looking for.
 {: .fs-5 .fw-400 } 
 
-{% include img a='details/sampling-nearest-point/lead.png' %}
+{% include img a='details/sampling-nearest-bounds/lead.png' %}
 
 # Sampling
 <br>
@@ -58,21 +60,13 @@ The **Sample Nearest Point** grabs and blends attributes & properties from a tar
 | <span class="ebit">Smallest Bounds</span>          | TBD |
 
 ---
-### Weighting
-<br>
-
-{% include img a='details/sampling-nearest-point/weighting.png' %}
-
-{% include embed id='settings-weighting' %}
-
----
 # Blending
 <br>
 {% include embed id='settings-blending-sampling' %}
 
 ---
 # Outputs
-Outputs are values extracted from the neighbor(s), and written to attributes on the output points.
+Outputs are values extracted from the bounds that encapsulate a given point, and written to attributes on the output points.
 {: .fs-5 .fw-400 }  
 
 | Output       | Description          |
@@ -95,7 +89,7 @@ Outputs are values extracted from the neighbor(s), and written to attributes on 
 | └─ Range | TBD |
 | <span class="eout">Num Samples</span><br>`int32`     | TBD |
 
-> Based on the selected `Sample method`, the output values are a **weighted average** of all the sampled target. 
+> Based on the selected `Sample method`, the output values are a **weighted average** of all the sampled targets. 
 > *See [Weighting](#weighting)*.
 {: .infos-hl }
 
@@ -106,8 +100,8 @@ Some high level tags may be applied to the data based on overal sampling.
 
 | Tag       | Description          |
 |:-------------|:------------------|
-| <span class="etag">Has Successes Tag</span>     | If enabled, add the specified tag to the output data **if at least a single line trace** has been successful. |
-| <span class="etag">Has No Successes Tag</span>     | If enabled, add the specified tag to the output data **if all line trace** failed. |
+| <span class="etag">Has Successes Tag</span>     | If enabled, add the specified tag to the output data **if at least a single target** has been sampled. |
+| <span class="etag">Has No Successes Tag</span>     | If enabled, add the specified tag to the output data **if no target** has been sampled. |
 
 > Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails.
 {: .warning }

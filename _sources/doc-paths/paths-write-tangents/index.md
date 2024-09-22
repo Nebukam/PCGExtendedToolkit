@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Write Tangents
+name_in_editor: "Path : Write Tangents"
 subtitle: TBD
 color: white
 summary: The **Write Tangents** node computes and assign custom tangents to path points, with options for tangent math modules, scaling, and handling closed loops.
@@ -49,13 +51,11 @@ The **Write Tangents** help you compute & write custom tangents on your paths so
 
 | **Arrive Scale**           ||
 | Arrive Scale Type           | Let you choose to scale the arrive tangents with either a `Constant` value or an `Attribute`.|
-| Arrive Scale Attribute           | Attribute that will be used to scale the arrive tangent with.<br>*Will be broadcasted to FVector.* |
-| Arrive Scale Constant           | Attribute that will be used to scale the arrive tangent with.<br>*Will be broadcasted to FVector.* |
+| Arrive Scale <br>*(Constant or Attribute)*          | Value used to scale the arrive tangent with.<br>*Will be broadcasted to FVector.* |
 
 | **Leave Scale**           ||
 | Leave Scale Type           | Let you choose to scale the leave tangents with either a `Constant` value or an `Attribute`.|
-| Leave Scale Attribute           | Attribute that will be used to scale the leave tangent with.<br>*Will be broadcasted to FVector.* |
-| Leave Scale Constant           | Attribute that will be used to scale the leave tangent with.<br>*Will be broadcasted to FVector.* |
+| Leave Scale <br>*(Constant or Attribute)*           | Value used to scale the leave tangent with.<br>*Will be broadcasted to FVector.* |
 
 ---
 ## Tangents modules

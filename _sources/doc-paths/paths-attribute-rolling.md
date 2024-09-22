@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Attribute Rolling
+name_in_editor: "Path : Attribute Rolling"
 subtitle: Does a rolling operation over properties & attributes along a path
 color: white
 summary: The **Attribute Rolling** nodes allows to do "rolling" operations, where the base value of each operation is the result of the previous one.

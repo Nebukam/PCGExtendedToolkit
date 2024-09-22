@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Edge
 #grand_parent: All Nodes
 parent: Clusters
 title: Refine
 name_in_editor: "Cluster : Refine"
 subtitle: Algorithmic edge refinement
 summary: The **Refine** node algorithmically prunes edges in a graph to enforce specific properties, allowing selection of refinement type and optional sanitization to restore edges based on predefined conditions.
-color: red
+color: white
 splash: icons/icon_edges-refine.svg
 preview_img: previews/index-refine.png
 has_children: true

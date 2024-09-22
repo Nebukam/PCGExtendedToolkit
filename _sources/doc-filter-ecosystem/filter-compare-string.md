@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Filter
 #grand_parent: Misc
 parent: Filter Ecosystem
 title: 🝖 Compare (String)
 name_in_editor: "Filter : Compare (String)"
 subtitle: Compares two string-like attributes against each other.
 color: white
-summary: TBD
+summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node
@@ -39,8 +40,7 @@ The **Compare (String)** compares two string-like attributes against each other.
 
 | **Operand B**          ||
 | Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
-| Operand B (Attribute) | Attribute to use as Operand B. |
-| Operand B (Constant) | Constant value to use as Operand B. |
+| Operand B <br>*(Constant or Attribute)* | Operand B' value. |
 | Tolerance | Equality tolerance using an approximative comparison. |
 
 ---

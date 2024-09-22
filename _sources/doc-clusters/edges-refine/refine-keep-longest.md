@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Keep Longest
 subtitle: Keeps the longest edge of each node
 #summary: The **Keep Longest** refinement ...
-color: red
+color: blue
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

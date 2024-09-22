@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Heuristics
 grand_parent: Pathfinding
 parent: 🝰 Heuristics
 title: 🝰 Feedback

@@ -17,18 +17,3 @@ has_children: true
 <br>
 
 {% include card_childs tagged="basics" wrappercss="duo" %}
-
----
-<br>
-Some topics and their modules are more complex, and have a dedicated section:
-- {% include lk id='Pathfinding' %}
-- {% include lk id='Clusters' %} 
-{: .fs-6 .fw-300 } 
-<br>
-
----
-## Modules & Sub-processors
-Modules and sub-processors are instanced classes used across a variety of nodes.  
-<br>
-{% include card_childs tagged="module" wrappercss="duo" %}
-

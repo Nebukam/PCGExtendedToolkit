@@ -1,11 +1,13 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Write Paths Properties
+name_in_editor: "Path : Properties"
 subtitle: Compute extra path informations
 color: white
-summary: Writes a variety of path statistics such as length, time, normals, centroids etc
+summary: The **Write Path Properties** node enhances path data by computing both point-level details (e.g., distances, normals, and directions) and path-level attributes like averaged direction, convexity, centroids, and additional spatial insights.
 splash: icons/icon_edges-extras.svg
 tagged: 
     - node
@@ -23,15 +25,55 @@ outputs:
 
 {% include header_card_node %}
 
+The **Write Path Properties** nodes outputs a variety of useful points data, as well as path-level data; like direction between path neighboring points, averaged path direction, whether a path is concave or convex; that kind of stuff.
+{: .fs-5 .fw-400 } 
+
+{% include img a='details/paths-write-properties/lead.png' %}
+
 # Properties
 <br>
 
-> DOC TDB
-{: .warning }
+{% include embed id='settings-closed-loop' %}
 
-| Property       | Description          |
+# Outputs
+## Output - Path
+<br>
+
+| Output       | Description          |
 |:-------------|:------------------|
-|**Blending Settings**| When enabled, the edge will inherit properties and attributes from its `Start` and `End` point.<br>It uses {% include lk id='Interpolate' %} blending under the hood. |
+| <span class="eout">Path Length</span><br>`double` | TBD |
+| <span class="eout">Path Direction</span><br>`FVector` | TBD |
+| <span class="eout">Path Centroid</span><br>`FVector` | TBD |
+{: .soutput }
 
-| **Output**           ||
-| **Edge Length** Attribute Name           | When enabled, the `length` of the edge will be written to the specified attribute.<br>*The length of an edge is the distance between its start and end point.* |
+---
+## Output - Points
+<br>
+
+| Output       | Description          |
+|:-------------|:------------------|
+| Up Vector Type | Type of Up Vector source. Either a `Constant` or a per-point `Attribute`. |
+| Up Vector <br>*(Constant or Attribute)* | Up vector used for computing spatial data. |
+| Average Normals | Whether normals should be averaged or not. |
+| <span class="eout">Dot</span><br>`double` | TBD |
+| <span class="eout">Angle</span><br>`double` | TBD |
+| └─ Range | TBD |
+| <span class="eout">Distance To Next</span><br>`FVector` | TBD |
+| <span class="eout">Distance To Prev</span><br>`FVector` | TBD |
+| <span class="eout">Distance To Start</span><br>`FVector` | TBD |
+| <span class="eout">Distance To End</span><br>`FVector` | TBD |
+| <span class="eout">Point Time</span><br>`FVector` | TBD |
+| <span class="eout">Point Normal</span><br>`FVector` | TBD |
+| <span class="eout">Point Binormal</span><br>`FVector` | TBD |
+| <span class="eout">Direction To Next</span><br>`FVector` | TBD |
+| <span class="eout">Direction To Prev</span><br>`FVector` | TBD |
+{: .soutput }
+
+---
+## Tagging
+<br>
+
+| Tag       | Description          |
+|:-------------|:------------------|
+| <span class="etag">Concave Tag</span>     | If enabled, add the specified tag to the output data **if the path is concave**. |
+| <span class="etag">Convex Tag</span>     | If enabled, add the specified tag to the output data **if the path is convex**. |

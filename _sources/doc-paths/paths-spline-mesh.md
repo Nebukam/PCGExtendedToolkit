@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Path Spline Mesh
+name_in_editor: "Path : Spline Mesh"
 subtitle: Create SplineMesh components from paths
 summary: The **Path Spline Mesh** node ...
 color: white

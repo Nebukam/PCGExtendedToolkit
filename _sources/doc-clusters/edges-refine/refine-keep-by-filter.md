@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Keep by Filter
 subtitle: Keeps edges that pass the input filters.
 #summary: The **Keep Highest Score** refinement ...
-color: red
+color: blue
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

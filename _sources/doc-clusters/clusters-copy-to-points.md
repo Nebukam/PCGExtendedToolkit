@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Cluster
 #grand_parent: All Nodes
 parent: Clusters
 title: Copy Cluster to Points

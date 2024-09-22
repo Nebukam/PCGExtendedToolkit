@@ -5,7 +5,7 @@ parent: Clusters
 title: Diagrams
 subtitle: Delaunay 2D / 3D, Voronoi 2D / 3D
 summary: TBD
-color: white
+color: red
 splash: icons/icon_graphs-delaunay.svg
 has_children: true
 use_child_thumbnails: true

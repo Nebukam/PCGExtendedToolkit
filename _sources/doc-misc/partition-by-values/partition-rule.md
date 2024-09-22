@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Misc
 grand_parent: Misc
 parent: Partition by Values
 title: 🝗 Partition Rule
+name_in_editor: "Rule : Partition"
 subtitle: An individual partition rule
 summary: TBD
 color: white

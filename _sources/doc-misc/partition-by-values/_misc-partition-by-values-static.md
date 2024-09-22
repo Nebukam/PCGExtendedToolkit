@@ -1,5 +1,6 @@
 ---
 layout: page
+family: MiscAdd
 grand_parent: Misc
 parent: Partition by Values
 title: Partition by Values (Static)
@@ -8,6 +9,7 @@ summary: The **Partition by Values** node offer enhanced control over sub-group 
 color: white
 splash: icons/icon_misc-partition-by-values.svg
 preview_img: previews/index-partition.png
+nav_exclude: true
 tagged: 
     - node
     - misc

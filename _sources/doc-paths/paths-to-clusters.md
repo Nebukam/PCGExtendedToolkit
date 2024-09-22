@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Paths to Clusters
+name_in_editor: "Path : To Clusters"
 subtitle: Convert paths to clusters.
 color: white
 summary: The **Paths to Clusters** node converts multiple input paths into edge clusters by fusing points but preserving edge relationships.

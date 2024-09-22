@@ -3,7 +3,7 @@ layout: page
 title: Paths
 subtitle: Smooth, orient, tangents, ...
 summary: Manipulate points as linearily ordered datasets
-splash: icons/icon_cat-clusters.svg
+splash: icons/icon_path-subdivide.svg
 nav_order: 22
 has_children: true
 preview_img: previews/index-paths.png

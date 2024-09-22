@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Cluster
 #grand_parent: All Nodes
 parent: Clusters
 title: Sanitize Clusters
 name_in_editor: "Cluster : Sanitize"
 subtitle: Ensure clusters are clean and complete
 summary: The **Sanitize Clusters** ensures clusters are pathfinding-friendly. Fix broken connections, create new clusters as needed. Customize settings for isolated points, edge positions, and cluster sizes.
-color: red
+color: white
 splash: icons/icon_graphs-sanitize.svg
 tagged:
     - node

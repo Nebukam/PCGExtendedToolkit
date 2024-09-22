@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Remove Longest
 subtitle: Removes the longest edge of each node
 #summary: The **Remove Longest** refinement ...
-color: red
+color: blue
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

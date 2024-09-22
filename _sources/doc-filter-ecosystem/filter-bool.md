@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Filter
 #grand_parent: Misc
 parent: Filter Ecosystem
 title: 🝖 Bool
 name_in_editor: "Filter : Bool Compare"
 subtitle: Performs a simple boolean comparison, converting numeric values to true (> 0) or false (<= 0).
 color: white
-summary: TBD
+summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node
@@ -42,5 +43,4 @@ Numeric values will be converted following these rules:
 | Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
 
 | **Operand B**          ||
-| Operand B | Attribute that contains the per-point operand B value. |
-| Operand B Constant | Constant operand B value. |
+| Operand B <br>*(Constant or Attribute)* | Operand B value, the second value to be tested. |

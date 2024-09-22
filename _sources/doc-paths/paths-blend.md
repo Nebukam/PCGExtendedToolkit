@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Blend
+name_in_editor: "Path : Blend"
 subtitle: Blend individual points between from paths' start and end points.
 summary: The **Path Blend** node...
 color: white

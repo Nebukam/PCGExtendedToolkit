@@ -4,7 +4,7 @@ grand_parent: Paths
 parent: Smooth
 title: Moving Average
 subtitle: Index-based moving-average sampling
-color: white
+color: blue
 #summary: Index-based moving-average sampling
 splash: icons/icon_path-smooth.svg
 tagged: 

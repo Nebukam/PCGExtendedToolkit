@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Edge
 grand_parent: Clusters
 parent: Flag Nodes
 title: Node Flag

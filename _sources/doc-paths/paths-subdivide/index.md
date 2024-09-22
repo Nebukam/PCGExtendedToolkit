@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Subdivide
+name_in_editor: "Path : Subdivide"
 subtitle: Create sub-points between existing points
 color: white
 summary: The **Subdivide Path** nodes create new point between existing ones on a path. Define closure behavior, choose a subdivide method (Distance or Count), and specify an amount. Opt for blending options to refine subpoints further.

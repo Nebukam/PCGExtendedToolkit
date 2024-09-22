@@ -1,5 +1,6 @@
 ---
 layout: page
+family: ClusterGen
 grand_parent: Clusters
 parent: Hulls
 title: Convex Hull 3D

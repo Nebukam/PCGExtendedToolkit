@@ -5,7 +5,7 @@ parent: Clusters
 title: Packing Clusters
 subtitle: Two nodes to conveniently pack/unpack cluster data.
 summary: TBD
-color: white
+color: red
 splash: icons/icon_edges-extras.svg
 has_children: true
 use_child_thumbnails: true

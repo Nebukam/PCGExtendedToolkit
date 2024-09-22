@@ -5,7 +5,7 @@ parent: Asset Collection
 title: 🝱 Actor Collection
 subtitle: Actor Collection DataAsset
 summary: The **Actor Collection** DataAsset is a list of Actors, that comes with all the Asset Collection goodies.
-color: white
+color: blue
 splash: icons/icon_custom-graphs-params.svg
 see_also: 
     - Asset Collection

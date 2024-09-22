@@ -4,7 +4,7 @@ grand_parent: Paths
 parent: Orient
 title: ⋋ Weighted
 subtitle: Distance-weighted interpolation
-color: white
+color: blue
 #summary: summary_goes_here
 splash: icons/icon_paths-orient.svg
 tagged: 

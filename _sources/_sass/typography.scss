@@ -12,7 +12,8 @@ h1,
 h2,
 .text-beta {
   @include fs-6;
-  color: #92b8ff; //$nkmblue-000;
+  color: #fff; //$nkmblue-000;
+  text-shadow: 0px 3px 7px #000000;
 }
 
 h3,

@@ -1,8 +1,10 @@
 ---
 layout: page
+family: MiscRemove
 #grand_parent: All Nodes
 parent: Misc
-title: Discard Points by Count
+title: Discard by Points Count
+name_in_editor: "Discard By Points Count"
 subtitle: Filter point dataset by their point count.
 summary: The **Discard Points by Count** node ...
 color: white

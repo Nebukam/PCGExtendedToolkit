@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Offset
+name_in_editor: "Path : Offset"
 subtitle: Offset path along a direction
 color: white
 summary: The **Offset** node moves path points in a given direction

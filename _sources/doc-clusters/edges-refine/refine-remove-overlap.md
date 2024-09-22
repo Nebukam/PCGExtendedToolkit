@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Remove Overlap
 subtitle: Removes overlapping edges
 #summary: The **Remove Overlap** refinement ...
-color: red
+color: blue
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

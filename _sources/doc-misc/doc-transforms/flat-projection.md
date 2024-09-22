@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Transform
 grand_parent: Misc
 parent: Transforms
 title: Flat Projection
+name_in_editor: Flat Projection
 subtitle: TBD
 summary: The **Flat Projection** node...
 color: white

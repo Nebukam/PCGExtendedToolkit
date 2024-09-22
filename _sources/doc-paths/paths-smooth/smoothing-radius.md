@@ -4,7 +4,7 @@ grand_parent: Paths
 parent: Smooth
 title: Radius
 subtitle: Radius & position-based sampling
-color: white
+color: blue
 #summary: Radius & position-based sampling
 splash: icons/icon_path-smooth.svg
 tagged: 

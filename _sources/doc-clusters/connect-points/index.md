@@ -1,5 +1,6 @@
 ---
 layout: page
+family: ClusterGen
 #grand_parent: All Nodes
 parent: Clusters
 title: Connect Points

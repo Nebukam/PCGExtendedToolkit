@@ -1,8 +1,10 @@
 ---
 layout: page
+family: MiscRemove
 #grand_parent: All Nodes
 parent: Misc
-title: Discard Points by Overlap
+title: Discard by Overlap
+name_in_editor: "Discard By Overlap"
 subtitle: Kindda like self-pruning but for collections.
 summary: The **Discard Points by Overlap** node ...
 color: white

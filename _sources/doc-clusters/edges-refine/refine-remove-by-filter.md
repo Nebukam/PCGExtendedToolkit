@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Remove by Filter
 subtitle: Removes edges that pass the filters
 #summary: The **Remove Highest Score** refinement ...
-color: red
+color: blue
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Sampler
 #grand_parent: All Nodes
 parent: Sampling
 title: Sample Line Trace
@@ -8,7 +9,7 @@ subtitle: Sample environment using line casting
 color: white
 summary: The **Line Trace** node performs a single line trace for each point, using a local attribute or property as direction & size.
 splash: icons/icon_sampling-guided.svg
-warning: This node works with collisions and as such can be very expensive on large datasets.
+#warning: This node works with collisions and as such can be very expensive on large datasets.
 tagged: 
     - node
     - sampling
@@ -31,8 +32,11 @@ outputs:
 
 {% include header_card_node %}
 
-PCGEx comes with a collection of "sampling" node, which may comes out as a bit of a misnomer. They're basically all **designed to extract information & data from their surroundings**, one way or another -- from overlaps, to line traces, to bounds or proximity.
+The **Line Trace** node allows you to perform a single per-point line trace and output data from that trace.
 {: .fs-5 .fw-400 } 
+
+> Please note that this node is **not** tracking traced actors. If you change the sampled environment you will need to manually regenerate the graph unless something else already triggers a refresh in editor.
+{: .comment }
 
 {% include img a='details/sampling-line-trace/lead.png' %}
 

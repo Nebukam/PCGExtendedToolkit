@@ -1,5 +1,6 @@
 ---
 layout: page
+family: MiscWrite
 #grand_parent: All Nodes
 parent: Misc
 title: Sort Points
@@ -28,6 +29,8 @@ outputs:
 
 {% include header_card_node %}
 
+{% include img a='details/sort-points/rule.png' %} 
+
 # Properties
 <br>
 
@@ -44,7 +47,7 @@ The sorting goes through each rules until it finds a valid comparison (*non-equa
 
 ### Sorting Rule
 
-{% include img a='details/details-sort-points-rule.png' %} 
+
 
 | Property       | Description          |
 |:-------------|:------------------|

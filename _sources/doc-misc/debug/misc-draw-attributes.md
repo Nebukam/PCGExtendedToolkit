@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Debug
 grand_parent: Misc
 parent: Debug
 title: Draw Attributes
+name_in_editor: "Draw Attributes"
 subtitle: Draw lines and points from attributes
 summary: This node is used in 100% of the screenshots of this documentation.
 color: red

@@ -5,7 +5,7 @@ parent: Refine
 title: 🝔 Minimum Spanning Tree
 subtitle: Implementation of Prim's Minimum Spanning Tree algorithm.
 #summary: The **MST** refinement ...
-color: red
+color: blue
 splash: icons/icon_edges-refine.svg
 see_also:
     - Refine

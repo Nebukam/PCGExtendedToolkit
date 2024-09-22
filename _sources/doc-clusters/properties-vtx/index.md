@@ -1,11 +1,12 @@
 ---
 layout: page
+family: SamplerNeighbor
 grand_parent: All Nodes
 parent: Clusters
 title: "Properties : Vtx"
 name_in_editor: "Cluster : Vtx Properties"
 subtitle: Compute vtx extra data
-color: blue
+color: white
 summary: The **Vtx Properties** node allows you to compute and write additional data for vertices within a cluster. It utilizes external nodes to define individual property outputs. You can input multiple property nodes, ensuring unique names for each to avoid overwriting issues.
 splash: icons/icon_edges-extras.svg
 preview_img: previews/index-vtx-properties.png

@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Filter
 #grand_parent: Misc
 parent: Filter Ecosystem
 title: 🝖 Bitmask
 name_in_editor: "Filter : Bitmask"
 subtitle: Checks specific flags in an int64 bitmask attribute with configurable mask types, comparisons, and an option to invert results.
 color: white
-summary: TBD
+summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node
@@ -35,8 +36,7 @@ The **Bitmask Filter** lets you check whether certain flags are set or not in an
 | Flags Attributes          | The is the name of the attribtue which value will be tested.<br>*It is expected to be an `int64`.* |
 | Mask Type | Type of source mask. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
 | Comparison | *See [Bitmask comparisons](/PCGExtendedToolkit/doc-general/comparisons.html#bitmask-comparisons).* |
-| Bitmask Attribute | Attribute that contains the per-point mask value.<br>*Strictly expects an `int64`.* |
-| Bitmask | Constant bitmask value. |
+| Bitmask <br>*(Constant or Attribute)* | Mask value.<br>*Strictly expects an `int64`.* |
 | Invert Result | If enabled, invert the result of the filter. |
 
 ---

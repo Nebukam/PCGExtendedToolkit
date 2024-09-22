@@ -1,9 +1,11 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
-title: Fuse Collinear
-subtitle: Fuse collinear points on a path
+title: Bevel
+name_in_editor: "Path : Bevel"
+subtitle: Bevel path points
 color: white
 summary: The **Fuse Collinear** node removes points that are collinear, with control over thresholds. It can also optionally fuse points based on their proximity.
 splash: icons/icon_path-fuse.svg

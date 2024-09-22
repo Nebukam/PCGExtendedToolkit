@@ -2,7 +2,7 @@
 <div class="product-header" style="--img:url('{{ site.baseurl }}/assets/{{ page.splash }}');"><div class="infos" markdown="1">
 # {{ page.title }} {% if page.WIP %} ![wip](https://img.shields.io/badge/WIP-c8860e) {% endif %}
 {: .no_toc }
-{% if page.name_in_editor %} <div class="name-in-editor" title="Name in editor">PCGEx | {{page.name_in_editor}}</div>{% endif %}  
+{% if page.name_in_editor %} <div class="name-in-editor" title="Name in editor" style="--ncol:var(--var-node-color-{{page.family}});">PCGEx | {{page.name_in_editor}}</div>{% endif %}  
 
 **{{ page.subtitle }}**  
 {: .fs-6 .fw-300 }
@@ -13,7 +13,7 @@
 
 # {{ page.title }} {% if page.WIP %} ![wip](https://img.shields.io/badge/WIP-c8860e) {% endif %}
 {: .no_toc }
-{% if page.name_in_editor %} <div class="name-in-editor" title="Name in editor">PCGEx | {{page.name_in_editor}}</div>{% endif %}  
+{% if page.name_in_editor %} <div class="name-in-editor" title="Name in editor" style="--ncol:var(--var-node-color-{{ page.family }});">PCGEx | {{page.name_in_editor}}</div>{% endif %}  
 
 **{{ page.subtitle }}**  
 {: .fs-6 .fw-300 }

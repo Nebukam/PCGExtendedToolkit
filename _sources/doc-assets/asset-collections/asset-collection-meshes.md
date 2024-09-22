@@ -5,7 +5,7 @@ parent: Asset Collection
 title: 🝱 Mesh Collection
 subtitle: Mesh Collection DataAsset
 summary: The **Mesh Collection** DataAsset is a list of Meshes with ISM/HISM Descriptors, that comes with all the Asset Collection goodies.
-color: white
+color: blue
 splash: icons/icon_custom-graphs-params.svg
 see_also: 
     - Asset Collection

@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Transform
 grand_parent: Misc
 parent: Transforms
 title: Bounds to Points
+name_in_editor: "Bounds To Points"
 subtitle: Not to confuse with Points to Bounds
 summary: The **Bounds to Points** node...
 color: white

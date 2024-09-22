@@ -1,5 +1,6 @@
 ---
 layout: page
+family: MiscAdd
 #grand_parent: All Nodes
 parent: Misc
 title: Partition by Values

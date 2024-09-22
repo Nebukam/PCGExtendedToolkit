@@ -1,12 +1,13 @@
 ---
 layout: page
+family: SamplerNeighbor
 grand_parent: Clusters
 parent: "Properties : Vtx"
 title: 🝊 Special Neighbors
 name_in_editor: "Vtx : Special Neighbors"
 subtitle: Gather infos from special-case neighbors
 summary: The **Special Neighbors** property outputs information about two key neighbors of a vertex — the one with the most connections (Largest Neighbor) and the one with the fewest connections (Smallest Neighbor). You can extract various attributes, such as edge direction, length, and vertex indices, for both of these special neighbors.
-color: blue
+color: white
 splash: icons/icon_misc-write-index.svg
 see_also: 
     - Working with Clusters

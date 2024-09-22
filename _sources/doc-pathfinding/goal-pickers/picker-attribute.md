@@ -5,7 +5,7 @@ parent: 🝓 Goal Pickers
 title: 🝓 Goal from Attribute
 subtitle: Match seed with goals picked at an attribute-specified index.
 summary: The **Goal from Attribute** picker ...
-color: white
+color: blue
 splash: icons/icon_placement-center.svg
 tagged: 
     - module

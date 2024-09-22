@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Cluster
 grand_parent: Clusters
 parent: Packing Clusters
 title: Pack Clusters
 name_in_editor: "Cluster : Pack"
 subtitle: Pack Clusters
 summary: The **Pack Clusters** node combines individual vertex-edge pairs into a single data set for storage and reuse, allowing for selective attribute and tag preservation, but must be unpacked to be used as a cluster.
-color: red
+color: white
 splash: icons/icon_edges-extras.svg
 tagged: 
     - node

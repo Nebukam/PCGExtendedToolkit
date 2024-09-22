@@ -33,17 +33,17 @@ nav_order: 200
 {% include card_childs reference="Paths" tagged='paths' %}
 
 ---
-## ## {% include lk id='Staging' %}
+## {% include lk id='Staging' %}
 <br>
 {% include card_childs reference="Staging" tagged='staging' %}
 
 ---
-## Misc Nodes
+## {% include lk id='Misc' %}
 <br>
 {% include card_childs reference="Misc" tagged='misc' %}
 
 ---
-## Sampling Nodes
+## {% include lk id='Sampling' %}
 <br>
 {% include card_childs reference="Sampling" tagged='sampling' %}
 

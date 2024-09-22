@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Cluster
 #grand_parent: All Nodes
 parent: Clusters
 title: Partition Vertices
 name_in_editor: "Cluster : Partition Vtx"
 subtitle: Create per-cluster Vtx datasets
 summary: The **Partition Vertices** splits input vtx into separate output groups, so that each Edge dataset is associated to a unique Vtx dataset (as opposed to a shared Vtx dataset for multiple edge groups)
-color: red
+color: white
 splash: icons/icon_misc-partition-by-values.svg
 tagged:
     - node

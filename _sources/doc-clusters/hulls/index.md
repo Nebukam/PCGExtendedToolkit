@@ -5,7 +5,7 @@ parent: Clusters
 title: Hulls
 subtitle: Convex hull algorithms
 summary: TBD
-color: white
+color: red
 splash: icons/icon_misc-write-index.svg
 has_children: true
 use_child_thumbnails: true

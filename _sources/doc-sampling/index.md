@@ -13,8 +13,12 @@ tagged:
 
 {% include header_card %}
 
-PCGEx comes with a collection of "sampling" node, which may comes out as a bit of a misnomer. They're basically all **designed to extract information & data from their surroundings**, one way or another -- from overlaps, to line traces, to bounds or proximity.
+PCGEx comes with a collection of "sampling" nodes. They're basically all **designed to extract information & data from their surroundings**, one way or another -- from overlaps, to line traces, to bounds or proximity.  
+The general philosophy behind sampling nodes is to expose data, and makes no assumption about their possible usage; *hence they all write new data but never modify existing ones; unless you enable blending operations on capable nodes*.
 {: .fs-5 .fw-400 } 
+
+> "Sampling" may comes out as a bit of a misnomer : contrary to vanilla PCG *Sampler* nodes, PCGEx' *Sampling* nodes **do not generate new points**, and instead relies on existing points as spatial references to drive queries.
+{: .infos-hl }
 
 ---
 ## Sampling Nodes

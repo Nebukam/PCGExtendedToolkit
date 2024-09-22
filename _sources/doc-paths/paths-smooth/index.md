@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Smooth
+name_in_editor: "Path : Smooth"
 subtitle: Smooth points properties and attributes
 color: white
 summary: The **Smooth** node enhances path appearance. Customize closed paths, protect start and end points. Adjust global influence for overall smoothing. Use local influence to tailor per-point impact. Explore different smoothing types for varied effects.

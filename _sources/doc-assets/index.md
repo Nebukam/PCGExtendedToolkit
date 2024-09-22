@@ -5,6 +5,7 @@ subtitle: Data Asset & Staging nodes
 summary: Prepare points for spawning meshes & actors
 splash: icons/icon_component.svg
 preview_img: previews/index-assets.png
+color: red
 nav_order: 30
 has_children: true
 tagged:

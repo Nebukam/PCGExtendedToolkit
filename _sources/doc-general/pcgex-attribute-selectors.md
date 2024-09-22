@@ -5,7 +5,7 @@ title: Attribute Selectors
 subtitle: Selecting sub-components and fields
 summary: Attribute selection are not just names, but also provide additional way to select more specific data from a given attribute.
 splash: icons/icon_ltr.svg
-nav_order: 2
+nav_order: 20
 tagged:
     - basics
 #has_children: true

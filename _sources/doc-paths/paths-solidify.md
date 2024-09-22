@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Solidify Path
+name_in_editor: "Path : Solidify"
 subtitle: Solidify paths into "edges"
 summary: The **Solidify Path** node ...
 color: white

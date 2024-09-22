@@ -1,8 +1,10 @@
 ---
 layout: page
+family: MiscAdd
 #grand_parent: All Nodes
 parent: Misc
 title: Conditional Actions
+name_in_editor: "Conditional Actions"
 subtitle: Unified approach to Match & Set.
 summary: The **Conditional Actions** node is executing "actions" based on filters.
 color: white

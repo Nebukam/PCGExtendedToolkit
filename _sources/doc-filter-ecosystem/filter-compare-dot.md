@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Filter
 #grand_parent: Misc
 parent: Filter Ecosystem
 title: 🝖 Dot Product
 name_in_editor: "Filter : Dot"
 subtitle: Compares the dot product of two direction vectors against a third value.
 color: white
-summary: TBD
+summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node
@@ -35,11 +36,10 @@ The **Dot Filter** compares the dot product value of two directions.
 | **Operand A**          ||
 | Operand A          | The first attribute of the comparison.<br>*Read as `FVector` direction.* |
 | Transform Operand A          | If enabled, the Operand A direction will be transformed by the tested' point transform. |
-| Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
 
 | **Operand B**          ||
-| Operand B | Attribute that contains the per-point operand B value.<br>*Read as `FVector` direction.* |
-| Operand B Constant | Constant operand B value.<br>*Read as `FVector` direction.* |
+| Compare Against | Type of operand B. Can be a per-point `Attribute`, or an easily overridable `Constant`. |
+| Operand B<br>*(Constant or Attribute)* | Operand B value, used to compute the dot product with.<br>*Read as `FVector` direction.* |
 | Transform Operand A          | If enabled, the Operand A direction will be transformed by the tested' point transform. |
 
 ---

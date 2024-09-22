@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Transform
 grand_parent: Misc
 parent: Transforms
 title: Move Pivot
+name_in_editor: "Move Pivot"
 subtitle: TBD
 summary: The **Move Pivot** node...
 color: white

@@ -4,7 +4,7 @@ grand_parent: Paths
 parent: Orient
 title: ⋋ Average
 subtitle: Average between previous and next
-color: white
+color: blue
 #summary: summary_goes_here
 splash: icons/icon_paths-orient.svg
 tagged: 

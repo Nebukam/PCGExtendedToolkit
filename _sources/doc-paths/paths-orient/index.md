@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Orient
+name_in_editor: "Path : Orient"
 subtitle: Orient points in relation to their neighbors
 color: white
 summary: The **Orient** node compute individual point transforms & orientation based on its next & previous neighbors.

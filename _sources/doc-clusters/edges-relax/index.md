@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Edge
 #grand_parent: All Nodes
 parent: Clusters
 title: Relax
 name_in_editor: "Cluster : Relax"
 subtitle: Relax points positions of a graph.
 summary: The **Relax** node smooths a graph's point positions by applying iterative relaxation algorithms, allowing control over the number of iterations, type of relaxation, and influence settings for fine-tuning results.
-color: blue
+color: white
 splash: icons/icon_edges-relax.svg
 preview_img: previews/index-edges-relax.png
 has_children: true

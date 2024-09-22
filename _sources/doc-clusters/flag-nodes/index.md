@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Edge
 #grand_parent: All Nodes
 parent: Clusters
 title: Flag Nodes
 name_in_editor: "Cluster : Flag Nodes"
 subtitle: Find conditional-based states to nodes within a graph
 summary: The **Flag Nodes** node identifies and marks complex, non-mutually exclusive states within a cluster by applying filters and conditions to bitmask attributes, allowing for fine-tuned control over node selection and flagging based on specific criteria.
-color: blue
+color: red
 splash: icons/icon_edges-extras.svg
 preview_img: previews/index-flag-nodes.png
 has_children: true

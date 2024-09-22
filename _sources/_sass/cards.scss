@@ -2,6 +2,33 @@
 // Cards
 //
 
+body{
+--var-node-color-Debug : #FF0000;
+--var-node-color-Misc : #FF9748;
+--var-node-color-MiscWrite : #FF5100;
+--var-node-color-MiscAdd : #00FF4C;
+--var-node-color-MiscRemove : #0D0303;
+--var-node-color-Sampler : #FF0026;
+--var-node-color-SamplerNeighbor : #720011;
+--var-node-color-ClusterGen: #0051FF;
+--var-node-color-Cluster: #009DFF;
+--var-node-color-Probe : #2CAEFF;
+--var-node-color-SocketState : #004068;
+--var-node-color-Pathfinding : #00FFAB;
+--var-node-color-Heuristics : #3E935F;
+--var-node-color-HeuristicsAtt : #7F833F;
+--var-node-color-ClusterFilter : #5ABEA5;
+--var-node-color-Edge : #00ABC2;
+--var-node-color-ClusterState : #004068;
+--var-node-color-Path : #003D29;
+--var-node-color-FilterHub: #3AFF00;
+--var-node-color-Filter: #50BE2F;
+--var-node-color-Primitives: #0011FF;
+--var-node-color-Transform: #FF002F;
+--var-node-color-Param: #c37d28;
+--var-node-color-None: rgba(0,0,0,0);
+}
+
 .card-ctnr {
     //display: flex;
     display: grid;
@@ -63,6 +90,17 @@ $cornerr: 5px;
         padding: 10px 20px 10px;
 
         border-top: 1px solid;
+
+        &::before{
+            content: "";
+            width: 20px;
+            height: 5px;
+            position: absolute;
+            background-color: var(--ncol);
+            border-radius: 3px;
+            margin-top: -13px;
+            margin-left: -23px;
+        }
 
         &.red {
             border-color: $nkmred-100;
@@ -293,12 +331,22 @@ $cornerr: 5px;
 .eout {
 
     padding: 3px 8px;
-    background-color: rgba(133, 153, 0, 0.15);
+    background-color: rgba(195, 125, 40, 0.15);
     display: inline-block;
-    border-left: 1px solid #859900;
+    border-left: 1px solid #c37d28;
     font-family: monospace;
     
 
+}
+
+.eout ~ code {
+    margin: 7px;
+    border: none;
+    border-left: 1px solid #c37d28;
+    font-style: italic;
+    border-radius: 0;
+    padding: 3px 5px;
+    opacity: 0.5;
 }
 
 .toc-ctnr {
@@ -334,7 +382,15 @@ $cornerr: 5px;
     & .col{
 
         &.empty{
-            visibility: hidden;
+            //visibility: hidden;
+            align-self: stretch;
+            /* opacity: 1; */
+            background-color: transparent;
+            background-image: url(../../assets/images/cross-pattern.png);
+            background-attachment: fixed;
+            &::before {
+                content:"";
+            }
         }
 
         &::before {
@@ -540,5 +596,26 @@ details {
     font-size: 80%;
     user-select: none;
     opacity: 0.8;
+    padding-left: 25px;
+
+    &::before{
+        content:"";
+        background-color: var(--ncol);
+        position: absolute;
+        border-radius: 100%;
+        width: 10px;
+        height: 10px;
+        margin-left: -17px;
+        margin-top: 5px;
+    }
+
+    &::after{
+        content:"(editor name)";
+        position: absolute;
+        font-style: italic;
+        margin-left: 14px;
+        opacity: 0.5;
+    }
+
 }
 

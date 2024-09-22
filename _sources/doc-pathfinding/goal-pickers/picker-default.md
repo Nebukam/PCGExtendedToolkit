@@ -5,7 +5,7 @@ parent: 🝓 Goal Pickers
 title: 🝓 Default
 subtitle: Match seeds to goals at the same index.
 summary: The **Default** picker ...
-color: white
+color: blue
 splash: icons/icon_placement-center.svg
 tagged: 
     - module

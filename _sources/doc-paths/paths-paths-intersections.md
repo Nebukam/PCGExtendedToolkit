@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Path
 #grand_parent: All Nodes
 parent: Paths
 title: Path × Path Crossings
+name_in_editor: "Path × Path Crossings"
 subtitle: Find crossings within & against paths.
 summary: The **Path × Path Crossings** node ...
 color: white

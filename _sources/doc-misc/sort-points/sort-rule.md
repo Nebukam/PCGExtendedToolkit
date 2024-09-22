@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Misc
 grand_parent: Misc
 parent: Sort Points
-title: 🝘 Sort Rule
+title: 🝘 Sorting Rule
+name_in_editor: "Rule : Sorting"
 subtitle: An individual sorting rule
 color: white
 summary: TBD
@@ -20,6 +22,8 @@ outputs:
 ---
 
 {% include header_card_node %}
+
+{% include img a='details/sort-points/rule.png' %} 
 
 # Properties
 <br>

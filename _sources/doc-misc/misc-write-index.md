@@ -1,8 +1,10 @@
 ---
 layout: page
+family: MiscWrite
 #grand_parent: All Nodes
 parent: Misc
 title: Write Index
+name_in_editor: "Write Index"
 subtitle: Write current point index to an attribute
 summary: The **Write Index** node write point index as an attribute, either discrete or normalized. Don't laugh, this is actually much more useful that you'd think.
 color: white

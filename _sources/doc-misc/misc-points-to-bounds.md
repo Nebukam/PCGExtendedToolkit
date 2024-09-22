@@ -1,8 +1,10 @@
 ---
 layout: page
+family: MiscAdd
 #grand_parent: All Nodes
 parent: Misc
 title: Points to Bounds
+name_in_editor: "Points to Bounds"
 subtitle: Convert point clouds to a single bounding point
 summary: The **Points to Bounds** node ...
 color: white

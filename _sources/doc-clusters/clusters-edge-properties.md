@@ -1,5 +1,6 @@
 ---
 layout: page
+family: SamplerNeighbor
 grand_parent: All Nodes
 parent: Clusters
 title: "Properties : Edge"

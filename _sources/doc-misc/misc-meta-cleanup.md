@@ -1,8 +1,10 @@
 ---
 layout: page
+family: MiscRemove
 #grand_parent: All Nodes
 parent: Misc
 title: Meta Cleanup
+name_in_editor: "Meta Cleanup"
 subtitle: Keep/Remove tags & attributes using string queries
 summary: The **Meta Filter** node ...
 color: white

@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Pathfinding
 #grand_parent: All Nodes
 parent: Pathfinding
 title: Find Contours

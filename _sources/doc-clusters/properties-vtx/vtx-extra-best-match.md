@@ -1,12 +1,13 @@
 ---
 layout: page
+family: SamplerNeighbor
 grand_parent: Clusters
 parent: "Properties : Vtx"
 title: 🝊 Edge Match
 name_in_editor: "Vtx : Edge Match"
 subtitle: Find the neighbors that best match a given direction
 summary: The **Edge Match** property identifies and outputs the properties of the edge connected to a vertex that best aligns with a specified direction, offering options for customizing direction sources and writing edge attributes like length, direction, and indices.
-color: blue
+color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
 see_also: 
@@ -38,8 +39,7 @@ The **Edge Match** property outputs the properties of the single connected edges
 |**Settings**||
 | Origin           | Defines how the base direction is computed, either from the Node to the neighbor (*going outward*), or from the Neighbor to the node (*going inward*).  |
 | Direction Source | Select where to read the direction to compare to from; either `Constant` or `Attribute`. |
-| Direction Constant | Fixed test direction. |
-| Direction Attribute | Per-point direction attribute. |
+| Direction <br>*(Constant or Attribute)* | Test Direction. |
 | Transform Direction | If enabled, will transform the input direction (either `Constant` or `Attribute`) using the point' transform. |
 
 ---

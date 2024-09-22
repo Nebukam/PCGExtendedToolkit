@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Sampler
 #grand_parent: All Nodes
 parent: Sampling
 title: Sample Nearest Points
 name_in_editor: "Sample : Nearest Point"
 subtitle: Sample points within a spherical range
 color: white
-summary: The **Sample Nearest Points** node explore points within a range using various methods. Define sampling range, weight targets, and obtain useful attributes.
+summary: The **Sample Nearest Points** node extracts and blends data from nearby target points within a customizable range, allowing you to fine-tune sampling methods, apply filters, and compute weighted outputs, making it ideal for tasks like proximity-based data collection.
 splash: icons/icon_sampling-point.svg
 tagged: 
     - node
@@ -44,8 +45,8 @@ The **Sample Nearest Point** grabs and blends attributes & properties from a tar
 | Sample Method          | Selects the sampling method. See [Sampling Methods](#sampling-methods). |
 | Range Min          | Minimum sampling range. |
 | Range Max          | Maximum sampling range.<br>**Use `0` to sample all targets.** |
-| Local Range Min          | If enabled, uses a per-point minimum sampling range. |
-| Local Range Max          | If enabled, uses a per-point maximum sampling range. |
+| Local Range Min          | If enabled, uses a per-point `double` attribute value as minimum sampling range. |
+| Local Range Max          | If enabled, uses a per-point `double` attribute value as maximum sampling range. |
 
 > Points that are not within range are ignored.
 > If no point is found within the specified range, the sampling for that point will be marked as **Usuccessful**.
@@ -66,7 +67,7 @@ The **Sample Nearest Point** grabs and blends attributes & properties from a tar
 
 | Method       | Description          |
 |:-------------|:------------------|
-| <span class="ebit">Within Range</span>          | Samples all points within the specified range. |
+| <span class="ebit">All (Within Range)</span>          | Samples all points within the specified range. |
 | <span class="ebit">Closest Target</span>          | Sample the single closest target within the specified range. |
 | <span class="ebit">Farthest Target</span>          | Sample the single farthest target within the specified range. |
 
@@ -108,7 +109,7 @@ Outputs are values extracted from the neighbor(s), and written to attributes on 
 | └─ Range | TBD |
 | <span class="eout">Num Samples</span><br>`int32`     | TBD |
 
-> Based on the selected `Sample method`, the output values are a **weighted average** of all the sampled target. 
+> Based on the selected `Sample method`, the output values are a **weighted average** of all the sampled targets. 
 > *See [Weighting](#weighting)*.
 {: .infos-hl }
 
@@ -119,8 +120,8 @@ Some high level tags may be applied to the data based on overal sampling.
 
 | Tag       | Description          |
 |:-------------|:------------------|
-| <span class="etag">Has Successes Tag</span>     | If enabled, add the specified tag to the output data **if at least a single line trace** has been successful. |
-| <span class="etag">Has No Successes Tag</span>     | If enabled, add the specified tag to the output data **if all line trace** failed. |
+| <span class="etag">Has Successes Tag</span>     | If enabled, add the specified tag to the output data **if at least a single target** has been sampled. |
+| <span class="etag">Has No Successes Tag</span>     | If enabled, add the specified tag to the output data **if no target** has been sampled. |
 
 > Note that fail/success tagging will be affected by points filter as well; since filtered out points are considered fails.
 {: .warning }

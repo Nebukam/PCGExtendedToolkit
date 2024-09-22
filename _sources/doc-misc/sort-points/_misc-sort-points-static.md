@@ -1,5 +1,6 @@
 ---
 layout: page
+family: MiscWrite
 grand_parent: Misc
 parent: Sort Points
 title: Sort Points (Static)
@@ -8,6 +9,7 @@ summary: The **Sort Points** node organize points based on rules. Key elements i
 color: white
 splash: icons/icon_misc-sort-points.svg
 preview_img: previews/index-sort.png
+nav_exclude: true
 tagged:
     - node
     - misc

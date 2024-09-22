@@ -1,5 +1,6 @@
 ---
 layout: page
+family: ClusterFilter
 grand_parent: Clusters
 parent: Flag Nodes
 title: 🝖 Neighbors Count

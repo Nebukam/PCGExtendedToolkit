@@ -1,5 +1,6 @@
 ---
 layout: page
+family: ClusterGen
 grand_parent: Clusters
 parent: Diagrams
 title: Voronoi 3D

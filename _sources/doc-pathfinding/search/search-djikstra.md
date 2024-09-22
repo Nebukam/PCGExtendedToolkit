@@ -5,7 +5,7 @@ parent: ⊚ Search
 title: Dijkstra
 subtitle: Dijkstra's Algorithm
 summary: The **Dijkstra's Algorithm** search mode ...
-color: white
+color: blue
 splash: icons/icon_pathfinding-navmesh.svg
 tagged: 
     - module

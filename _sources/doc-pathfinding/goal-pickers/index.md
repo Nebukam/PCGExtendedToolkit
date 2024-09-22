@@ -4,13 +4,14 @@ parent: Pathfinding
 title: 🝓 Goal Pickers
 subtitle: An inventory of the available goal pickers modules.
 #summary: The **Write Index** picker ...
-color: white
+color: red
 splash: icons/icon_placement-center.svg
 preview_img: previews/index-goal-pickers.png
 nav_order: 30
 has_children: true
 tagged: 
     - module
+    - node
 ---
 
 {% include header_card %}

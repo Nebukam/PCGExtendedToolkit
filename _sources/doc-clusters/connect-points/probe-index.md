@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Probe
 grand_parent: Clusters
 parent: Connect Points
 title: 🝆 Index
@@ -37,8 +38,7 @@ This probes creates a single connections to another point at a given index.
 
 |: **Target Index Settings** :|
 | Target Index           | The type of value used for this probe' index source; either a `Constant` value or fetched from an`Attribute` |
-| Target Constant           | Constant index value; or constant offset depending on the selected `Mode`. |
-| Target Attribute           | Per-point attribute value for the index/offset. |
+| Target <br>*(Constant or Attribute)*           | Index pick or constant offset depending on the selected `Mode`. |
 
 ### Mode
 

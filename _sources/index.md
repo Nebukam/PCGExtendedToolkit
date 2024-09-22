@@ -11,6 +11,7 @@ The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Pr
    
 {% include link_btn title="Installation" color="red" link="installation" %} 
 {% include link_btn title="Guides" color="blue" link="guides" icon="left" %}
+{% include link_btn title="Discord" color="white" link="https://discord.gg/XKtqxNM7" icon="left" %}
 </div></div>
 
 --- 
@@ -45,17 +46,17 @@ The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Pr
 {% include card_childs reference="Paths" tagged='paths' %}
 
 ---
-## ## {% include lk id='Staging' %}
+## {% include lk id='Staging' %}
 <br>
 {% include card_childs reference="Staging" tagged='staging' %}
 
 ---
-## Misc Nodes
+## {% include lk id='Misc' %}
 <br>
 {% include card_childs reference="Misc" tagged='misc' %}
 
 ---
-## Sampling Nodes
+## {% include lk id='Sampling' %}
 <br>
 {% include card_childs reference="Sampling" tagged='sampling' %}
 

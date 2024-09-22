@@ -7,9 +7,11 @@ subtitle: An inventory of the available heuristics modules.
 splash: icons/icon_pathfinding-edges.svg
 preview_img: previews/index-heuristics.png
 nav_order: 20
+color: red
 has_children: true
 tagged: 
     - module
+    - node
 ---
 
 {% include header_card %}

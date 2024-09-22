@@ -1,12 +1,13 @@
 ---
 layout: page
+family: Filter
 #grand_parent: Misc
 parent: Filter Ecosystem
 title: 🝖 Bounds
 name_in_editor: "Filter : Bounds"
 subtitle: Checks if a point is inside or outside the provided bounds, with options for bounds types and an epsilon adjustment.
 color: white
-summary: TBD
+summary: "-"
 splash: icons/icon_misc-sort-points.svg
 tagged: 
     - node

@@ -4,13 +4,14 @@ parent: Pathfinding
 title: ⊚ Search
 subtitle: An inventory of the available search modules.
 #summary: summary_goes_here
-color: white
+color: red
 splash: icons/icon_pathfinding-navmesh.svg
 preview_img: previews/index-search.png
 nav_order: 10
 has_children: true
 tagged: 
     - module
+    - node
 ---
 
 {% include header_card %}

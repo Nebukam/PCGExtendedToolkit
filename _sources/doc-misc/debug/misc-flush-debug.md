@@ -1,8 +1,10 @@
 ---
 layout: page
+family: Debug
 grand_parent: Misc
 parent: Debug
 title: Flush Debug
+name_in_editor: "Flush Debug"
 subtitle: Flushes persistent debug lines
 summary: Flush persistent debug lines, to be used at the start of a PCG graph.
 color: red

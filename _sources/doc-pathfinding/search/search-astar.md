@@ -5,7 +5,7 @@ parent: ⊚ Search
 title: A* Star
 subtitle: A* Algorithm
 summary: The **A* Algorithm** search mode ...
-color: white
+color: blue
 splash: icons/icon_pathfinding-navmesh.svg
 tagged: 
     - module

@@ -4,7 +4,7 @@ grand_parent: Paths
 parent: Orient
 title: ⋋ Look At
 subtitle: Look at next
-color: white
+color: blue
 #summary: summary_goes_here
 splash: icons/icon_paths-orient.svg
 tagged: 

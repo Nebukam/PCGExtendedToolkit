@@ -1,5 +1,6 @@
 ---
 layout: page
+family: Probe
 grand_parent: Clusters
 parent: Connect Points
 title: 🝆 Closest
@@ -44,5 +45,4 @@ This probes creates unique connections to the closest points within a radius, up
 
 |: **Search Radius** :|
 | Search Radius Source           | The type of value used for this probe' search radius; either a `Constant` value or fetched from an`Attribute` |
-| Search Radius Constant           | Fixed radius of the probe. |
-| Search Radius Attribute           | Per-point attribute value radius of the probe.<br>*Dynamic radiuses can be super expensive if they are different for each probe: search will use the greatest radius to sample to octree for this point.* |
+| Search Radius <br>*(Constant or Attribute)*           | Radius of the probe.<br>*Dynamic radiuses can be super expensive if they are different for each probe: search will use the greatest radius to sample to octree for this point.* |

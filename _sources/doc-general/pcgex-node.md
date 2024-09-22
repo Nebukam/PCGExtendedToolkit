@@ -5,7 +5,7 @@ title: PCGEx Nodes
 subtitle: Shared concepts
 summary: A summary of the informations & parameters available on every PCGEx node.
 splash: icons/icon_component.svg
-nav_order: 1
+nav_order: 2
 tagged:
     - basics
 #has_children: true
