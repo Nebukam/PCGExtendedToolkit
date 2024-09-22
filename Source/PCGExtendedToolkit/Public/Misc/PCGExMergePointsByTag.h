@@ -7,15 +7,25 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExSortPoints.h"
 #include "PCGExMergePointsByTag.generated.h"
 
 class FPCGExPointIOMerger;
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Selector Type"))
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Merge by Tag | Reoslution Mode"))
 enum class EPCGExMergeByTagOverlapResolutionMode : uint8
 {
 	Strict           = 0 UMETA(DisplayName = "Strict", ToolTip="Merge happens per-tag, and higher priority tags are removed from lower priority overlaps."),
 	ImmediateOverlap = 1 UMETA(DisplayName = "Overlap", ToolTip="Merge happens per-tag, overlapping data is merged entierely."),
+	Flatten          = 2 UMETA(DisplayName = "Flatten", ToolTip="Flatten all tags into a unique identifier and match-merge based on that identifier."),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Merge by Tag | Fallback Behavior"))
+enum class EPCGExMergeByTagFallbackBehavior : uint8
+{
+	Omit    = 0 UMETA(DisplayName = "Omit", ToolTip="Do not output data that didn't pass filters"),
+	Merge   = 1 UMETA(DisplayName = "Merge", ToolTip="Merge all data that didn't pass filter in a single blob"),
+	Forward = 2 UMETA(DisplayName = "Forward", ToolTip="Forward data that didn't pass filter without merging them"),
 };
 
 namespace PCPGExMergePointsByTag
@@ -54,7 +64,7 @@ namespace PCPGExMergePointsByTag
 
 		void Distribute(PCGExData::FPointIO* IO, const FPCGExNameFiltersDetails& Filters);
 		void AddToReverseMap(PCGExData::FPointIO* IO, FTagBucket* Bucket);
-		void BuildMergeLists(EPCGExMergeByTagOverlapResolutionMode Mode, TArray<FMergeList*>& OutLists, const TArray<FString>& Priorities);
+		void BuildMergeLists(EPCGExMergeByTagOverlapResolutionMode Mode, TArray<FMergeList*>& OutLists, const TArray<FString>& Priorities, const EPCGExSortDirection SortDirection);
 	};
 }
 
@@ -84,6 +94,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable))
 	EPCGExMergeByTagOverlapResolutionMode Mode = EPCGExMergeByTagOverlapResolutionMode::Strict;
 
+	/** Sorting direction */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode!=EPCGExMergeByTagOverlapResolutionMode::Flatten", EditConditionHides))
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Descending;
+
+	/** Fallback behavior */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExMergeByTagOverlapResolutionMode::Flatten", EditConditionHides))
+	EPCGExMergeByTagFallbackBehavior FallbackBehavior = EPCGExMergeByTagFallbackBehavior::Omit;
+	
 	/** Tags to be processed or ignored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNameFiltersDetails TagFilters;
@@ -106,6 +124,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsByTagContext final : public F
 	FPCGExNameFiltersDetails TagFilters;
 	FPCGExCarryOverDetails CarryOverDetails;
 
+	PCPGExMergePointsByTag::FMergeList* FallbackMergeList = nullptr;
+	TMap<uint32, PCPGExMergePointsByTag::FMergeList*> MergeMap;
 	TArray<PCPGExMergePointsByTag::FMergeList*> MergeLists;
 };
 
