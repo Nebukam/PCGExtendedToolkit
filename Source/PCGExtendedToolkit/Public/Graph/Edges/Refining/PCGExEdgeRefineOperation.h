@@ -5,32 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
+#include "Graph/PCGExCluster.h"
 #include "PCGExEdgeRefineOperation.generated.h"
-
-namespace PCGExGraph
-{
-	struct FIndexedEdge;
-}
-
-namespace PCGExCluster
-{
-	struct FNode;
-}
-
-namespace PCGExHeuristics
-{
-	class THeuristicsHandler;
-}
-
-namespace PCGExGraph
-{
-	class FGraph;
-}
-
-namespace PCGExCluster
-{
-	struct FCluster;
-}
 
 /**
  * 
