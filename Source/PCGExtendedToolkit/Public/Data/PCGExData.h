@@ -154,6 +154,23 @@ namespace PCGExData
 			bScopedBuffer = bScoped;
 		}
 
+		void PrepareForWrite(FPCGMetadataAttributeBase* Attribute)
+		{
+			if (OutValues) { return; }
+
+			TArray<FPCGPoint>& OutPts = Source->GetOut()->GetMutablePoints();
+			const int32 NumPoints = OutPts.Num();
+			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
+
+			OutKeys = Source->CreateOutKeys();
+
+			OutValues = new TArray<T>();
+			PCGEx::InitMetadataArray(*OutValues, NumPoints);
+
+			OutAttribute = Attribute;
+			TypedOutAttribute = Attribute ? static_cast<FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
+		}
+
 		bool PrepareRead(const ESource InSource = ESource::In, const bool bScoped = false)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
@@ -214,12 +231,6 @@ namespace PCGExData
 
 			if (OutValues) { return true; }
 
-			TArray<FPCGPoint>& OutPts = Source->GetOut()->GetMutablePoints();
-			const int32 NumPoints = OutPts.Num();
-			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
-
-			OutKeys = Source->CreateOutKeys();
-
 			UPCGMetadata* OutMetadata = Source->GetOut()->Metadata;
 			TypedOutAttribute = OutMetadata->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
 			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, OutMetadata);
@@ -231,8 +242,7 @@ namespace PCGExData
 				return false;
 			}
 
-			OutValues = new TArray<T>();
-			PCGEx::InitMetadataArray(*OutValues, NumPoints);
+			PrepareForWrite(TypedOutAttribute);
 
 			if (!bUninitialized)
 			{
@@ -240,7 +250,7 @@ namespace PCGExData
 				{
 					// TODO : Scoped get would be better here
 					// Get existing values
-					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), NumPoints);
+					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
 					OutAccessor->GetRange(OutRange, 0, *OutKeys, EPCGAttributeAccessorFlags::StrictType);
 				}
 			}
