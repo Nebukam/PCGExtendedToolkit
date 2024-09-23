@@ -199,10 +199,11 @@ namespace PCGExSampleNearestSpline
 			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
 			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
 			PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
+			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
 			PCGEX_OUTPUT_VALUE(Angle, Index, 0)
 			PCGEX_OUTPUT_VALUE(Time, Index, -1)
 			PCGEX_OUTPUT_VALUE(NumInside, Index, -1)
-			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+			PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
 			PCGEX_OUTPUT_VALUE(ClosedLoop, Index, false)
 		};
 
@@ -214,6 +215,7 @@ namespace PCGExSampleNearestSpline
 
 
 		int32 NumInside = 0;
+		int32 NumSampled = 0;
 		int32 NumInClosed = 0;
 		bool bClosed = false;
 
@@ -345,6 +347,8 @@ namespace PCGExSampleNearestSpline
 			WeightedAngleAxis += PCGExMath::GetDirection(Quat, LocalSettings->AngleAxis) * Weight;
 			WeightedTime += TargetInfos.Time * Weight;
 			TotalWeight += Weight;
+
+			NumSampled++;
 		};
 
 
@@ -392,6 +396,7 @@ namespace PCGExSampleNearestSpline
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(Time, Index, WeightedTime)
 		PCGEX_OUTPUT_VALUE(NumInside, Index, NumInside)
+		PCGEX_OUTPUT_VALUE(NumSamples, Index, NumSampled)
 		PCGEX_OUTPUT_VALUE(ClosedLoop, Index, bClosed)
 
 		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
