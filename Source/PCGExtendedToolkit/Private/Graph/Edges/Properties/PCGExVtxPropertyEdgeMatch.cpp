@@ -76,7 +76,7 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 	int32 IBest = -1;
 	const double DotB = Config.DotComparisonDetails.GetDot(Node.PointIndex);
 
-	FVector NodeDirection = DirCache ? DirCache->Values[Node.PointIndex].GetSafeNormal() : Config.DirectionConstant;
+	FVector NodeDirection = DirCache ? DirCache->Read(Node.PointIndex).GetSafeNormal() : Config.DirectionConstant;
 	if (Config.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
 
 	for (int i = 0; i < Adjacency.Num(); ++i)

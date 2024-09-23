@@ -75,8 +75,8 @@ namespace PCGExWriteIndex
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		double NumPoints = 0;
-		PCGEx::TAttributeWriter<int32>* IntWriter = nullptr;
-		PCGEx::TAttributeWriter<double>* DoubleWriter = nullptr;
+		PCGExData::TCache<int32>* IntWriter = nullptr;
+		PCGExData::TCache<double>* DoubleWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

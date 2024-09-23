@@ -149,7 +149,7 @@ namespace PCGExSubdivide
 
 		if (!PointFilterCache[Index]) { return; }
 
-		double Amount = AmountGetter ? AmountGetter->Values[Index] : ConstantAmount;
+		double Amount = AmountGetter ? AmountGetter->Read(Index) : ConstantAmount;
 
 		if (bUseCount)
 		{
@@ -171,8 +171,8 @@ namespace PCGExSubdivide
 	{
 		const FSubdivision& Sub = Subdivisions[Iteration];
 
-		if (FlagWriter) { FlagWriter->Values[Sub.OutStart] = false; }
-		if (AlphaWriter) { AlphaWriter->Values[Sub.OutStart] = LocalSettings->DefaultAlpha; }
+		if (FlagWriter) { FlagWriter->GetMutable(Sub.OutStart) = false; }
+		if (AlphaWriter) { AlphaWriter->GetMutable(Sub.OutStart) = LocalSettings->DefaultAlpha; }
 
 		if (Sub.NumSubdivisions == 0) { return; }
 
@@ -185,12 +185,12 @@ namespace PCGExSubdivide
 		{
 			const int32 Index = SubStart + s;
 
-			if (FlagWriter) { FlagWriter->Values[Index] = true; }
+			if (FlagWriter) { FlagWriter->GetMutable(Index) = true; }
 
 			const FVector Position = Sub.Start + Sub.Dir * (Sub.StartOffset + s * Sub.StepSize);
 			MutablePoints[Index].Transform.SetLocation(Position);
 			const double Alpha = Metrics.Add(Position) / Sub.Dist;
-			if (AlphaWriter) { AlphaWriter->Values[SubStart + s] = Alpha; }
+			if (AlphaWriter) { AlphaWriter->GetMutable(SubStart + s) = Alpha; }
 		}
 
 		Metrics.Add(Sub.End);
@@ -251,13 +251,13 @@ namespace PCGExSubdivide
 
 		if (LocalSettings->bFlagSubPoints)
 		{
-			FlagWriter = PointDataFacade->GetWriter<bool>(LocalSettings->SubPointFlagName, false, false, true);
+			FlagWriter = PointDataFacade->GetWritable<bool>(LocalSettings->SubPointFlagName, false, false, true);
 			ProtectedAttributes.Add(LocalSettings->SubPointFlagName);
 		}
 
 		if (LocalSettings->bWriteAlpha)
 		{
-			AlphaWriter = PointDataFacade->GetWriter<double>(LocalSettings->AlphaAttributeName, LocalSettings->DefaultAlpha, true, true);
+			AlphaWriter = PointDataFacade->GetWritable<double>(LocalSettings->AlphaAttributeName, LocalSettings->DefaultAlpha, true, true);
 			ProtectedAttributes.Add(LocalSettings->AlphaAttributeName);
 		}
 

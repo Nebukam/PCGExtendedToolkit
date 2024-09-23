@@ -77,8 +77,8 @@ namespace PCGExBitwiseOperation
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		PCGEx::TAttributeIO<int64>* Reader = nullptr;
-		PCGEx::TAttributeWriter<int64>* Writer = nullptr;
+		PCGExData::TCache<int64>* Reader = nullptr;
+		PCGExData::TCache<int64>* Writer = nullptr;
 
 		int64 Mask = 0;
 		EPCGExBitOp Op = EPCGExBitOp::Set;

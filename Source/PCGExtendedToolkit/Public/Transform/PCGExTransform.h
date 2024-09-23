@@ -104,9 +104,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	FVector GetUVW(const int32 PointIndex) const
 	{
 		return FVector(
-			UGetter ? UGetter->Values[PointIndex] : UConstant,
-			VGetter ? VGetter->Values[PointIndex] : VConstant,
-			WGetter ? WGetter->Values[PointIndex] : WConstant);
+			UGetter ? UGetter->Read(PointIndex) : UConstant,
+			VGetter ? VGetter->Read(PointIndex) : VConstant,
+			WGetter ? WGetter->Read(PointIndex) : WConstant);
 	}
 
 	FVector GetPosition(const PCGExData::FPointRef& PointRef) const

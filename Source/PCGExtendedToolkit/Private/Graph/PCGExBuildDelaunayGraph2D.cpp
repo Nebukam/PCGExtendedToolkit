@@ -170,7 +170,7 @@ namespace PCGExBuildDelaunay2D
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		HullMarkPointWriter->Values[Index] = Delaunay->DelaunayHull.Contains(Index);
+		HullMarkPointWriter->GetMutable(Index) = Delaunay->DelaunayHull.Contains(Index);
 	}
 
 	void FProcessor::CompleteWork()
@@ -190,7 +190,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (HullMarkPointWriter)
 		{
-			HullMarkPointWriter = PointDataFacade->GetWriter<bool>(Settings->HullAttributeName, false, false, true);
+			HullMarkPointWriter = PointDataFacade->GetWritable<bool>(Settings->HullAttributeName, false, false, true);
 			StartParallelLoopForPoints();
 		}
 	}

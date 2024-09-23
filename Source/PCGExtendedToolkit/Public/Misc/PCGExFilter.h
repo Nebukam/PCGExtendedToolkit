@@ -114,7 +114,7 @@ namespace FPCGExFilter
 
 		FORCEINLINE int64 Filter(const int32 Index) const
 		{
-			const double Upscaled = DataCache->Values[Index] * Upscale + (Offset);
+			const double Upscaled = DataCache->Read(Index) * Upscale + (Offset);
 			const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize + PCGExMath::SignPlus(Upscaled);
 			return static_cast<int64>(Filtered);
 		}

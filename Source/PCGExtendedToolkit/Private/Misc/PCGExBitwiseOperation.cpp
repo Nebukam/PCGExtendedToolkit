@@ -86,11 +86,11 @@ namespace PCGExBitwiseOperation
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		Writer = PointDataFacade->GetWriter<int64>(Settings->FlagAttribute, 0, false, false);
+		Writer = PointDataFacade->GetWritable<int64>(Settings->FlagAttribute, 0, false, false);
 
 		if (Settings->MaskType == EPCGExFetchType::Attribute)
 		{
-			Reader = PointDataFacade->GetScopedReader<int64>(Settings->MaskAttribute);
+			Reader = PointDataFacade->GetScopedReadable<int64>(Settings->MaskAttribute);
 			if (!Reader) { return false; }
 		}
 		else
@@ -107,7 +107,7 @@ namespace PCGExBitwiseOperation
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExBitmask::Do(Op, Writer->Values[Index], Reader ? Reader->Values[Index] : Mask);
+		PCGExBitmask::Do(Op, Writer->GetMutable(Index), Reader ? Reader->Read(Index) : Mask);
 	}
 
 	void FProcessor::CompleteWork()

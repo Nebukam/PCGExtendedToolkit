@@ -98,7 +98,7 @@ namespace PCGExUberFilter
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
 
-		PCGEx::TAttributeWriter<bool>* Results = nullptr;
+		PCGExData::TCache<bool>* Results = nullptr;
 
 	public:
 		PCGExData::FPointIO* Inside = nullptr;

@@ -194,7 +194,7 @@ namespace PCGExSampleNearestSpline
 	{
 		auto SamplingFailed = [&]()
 		{
-			const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Values[Index]) : LocalSettings->RangeMax;
+			const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Read(Index)) : LocalSettings->RangeMax;
 			PCGEX_OUTPUT_VALUE(Success, Index, false)
 			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
 			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
@@ -217,8 +217,8 @@ namespace PCGExSampleNearestSpline
 		int32 NumInClosed = 0;
 		bool bClosed = false;
 
-		double RangeMin = FMath::Pow(RangeMinGetter ? RangeMinGetter->Values[Index] : LocalSettings->RangeMin, 2);
-		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Values[Index] : LocalSettings->RangeMax, 2);
+		double RangeMin = FMath::Pow(RangeMinGetter ? RangeMinGetter->Read(Index) : LocalSettings->RangeMin, 2);
+		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Read(Index) : LocalSettings->RangeMax, 2);
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
@@ -324,7 +324,7 @@ namespace PCGExSampleNearestSpline
 		WeightedTransform.SetScale3D(FVector::ZeroVector);
 
 		FVector WeightedUp = SafeUpVector;
-		if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Values[Index]; }
+		if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
 
 		FVector WeightedSignAxis = FVector::Zero();
 		FVector WeightedAngleAxis = FVector::Zero();

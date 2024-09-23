@@ -60,7 +60,7 @@ namespace PCGExNodeAdjacency
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 		//const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *CapturedCluster->Edges;
 
-		const double A = OperandA->Values[Node.PointIndex];
+		const double A = OperandA->Read(Node.PointIndex);
 		double B = 0;
 
 		if (Adjacency.bTestAllNeighbors)
@@ -72,7 +72,7 @@ namespace PCGExNodeAdjacency
 				{
 					for (const uint64 AdjacencyHash : Node.Adjacency)
 					{
-						B = OperandA->Values[NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex];
+						B = OperandA->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex);
 						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
 					}
 				}
@@ -80,7 +80,7 @@ namespace PCGExNodeAdjacency
 				{
 					for (const uint64 AdjacencyHash : Node.Adjacency)
 					{
-						B = OperandA->Values[PCGEx::H64B(AdjacencyHash)];
+						B = OperandA->Read(PCGEx::H64B(AdjacencyHash));
 						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
 					}
 				}
@@ -94,11 +94,11 @@ namespace PCGExNodeAdjacency
 			case EPCGExAdjacencyGatherMode::Average:
 				if (bCaptureFromNodes)
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Values[NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex]; }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex); }
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Values[PCGEx::H64B(AdjacencyHash)]; }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Read(PCGEx::H64B(AdjacencyHash)); }
 				}
 				B /= Node.Adjacency.Num();
 				break;
@@ -106,32 +106,32 @@ namespace PCGExNodeAdjacency
 				B = TNumericLimits<double>::Max();
 				if (bCaptureFromNodes)
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Values[NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex]); }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Values[PCGEx::H64B(AdjacencyHash)]); }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
 				}
 				break;
 			case EPCGExAdjacencyGatherMode::Max:
 				B = TNumericLimits<double>::Min();
 				if (bCaptureFromNodes)
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Values[NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex]); }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Values[PCGEx::H64B(AdjacencyHash)]); }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
 				}
 				break;
 			case EPCGExAdjacencyGatherMode::Sum:
 				if (bCaptureFromNodes)
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Values[NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex]); }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Values[PCGEx::H64B(AdjacencyHash)]); }
+					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
 				}
 				break;
 			default:
@@ -156,7 +156,7 @@ namespace PCGExNodeAdjacency
 		{
 			for (const uint64 AdjacencyHash : Node.Adjacency)
 			{
-				B = OperandA->Values[NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex];
+				B = OperandA->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex);
 				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
 			}
 		}
@@ -164,7 +164,7 @@ namespace PCGExNodeAdjacency
 		{
 			for (const uint64 AdjacencyHash : Node.Adjacency)
 			{
-				B = OperandA->Values[PCGEx::H64B(AdjacencyHash)];
+				B = OperandA->Read(PCGEx::H64B(AdjacencyHash));
 				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
 			}
 		}

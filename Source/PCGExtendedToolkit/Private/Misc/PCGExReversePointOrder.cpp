@@ -100,8 +100,8 @@ namespace PCGExReversePointOrder
 					static_cast<uint16>(WorkingPair.FirstIdentity->UnderlyingType), [&](auto DummyValue) -> void
 					{
 						using RawT = decltype(DummyValue);
-						WorkingPair.FirstWriter = PointDataFacade->GetWriter<RawT>(WorkingPair.FirstAttributeName, false);
-						WorkingPair.SecondWriter = PointDataFacade->GetWriter<RawT>(WorkingPair.SecondAttributeName, false);
+						WorkingPair.FirstWriter = PointDataFacade->GetWritable<RawT>(WorkingPair.FirstAttributeName, false);
+						WorkingPair.SecondWriter = PointDataFacade->GetWritable<RawT>(WorkingPair.SecondAttributeName, false);
 					});
 			});
 
@@ -119,17 +119,17 @@ namespace PCGExReversePointOrder
 				static_cast<uint16>(WorkingPair.FirstIdentity->UnderlyingType), [&](auto DummyValue) -> void
 				{
 					using RawT = decltype(DummyValue);
-					PCGEx::TAttributeWriter<RawT>* FirstWriter = static_cast<PCGEx::TAttributeWriter<RawT>*>(WorkingPair.FirstWriter);
-					PCGEx::TAttributeWriter<RawT>* SecondWriter = static_cast<PCGEx::TAttributeWriter<RawT>*>(WorkingPair.SecondWriter);
+					PCGExData::TCache<RawT>* FirstWriter = static_cast<PCGExData::TCache<RawT>*>(WorkingPair.FirstWriter);
+					PCGExData::TCache<RawT>* SecondWriter = static_cast<PCGExData::TCache<RawT>*>(WorkingPair.SecondWriter);
 
 					if (WorkingPair.bMultiplyByMinusOne)
 					{
 						for (int i = 0; i < Count; ++i)
 						{
 							const int32 Index = StartIndex + i;
-							const RawT FirstValue = FirstWriter->Values[Index];
-							FirstWriter->Values[Index] = PCGExMath::DblMult(SecondWriter->Values[Index], -1);
-							SecondWriter->Values[Index] = PCGExMath::DblMult(FirstValue, -1);
+							const RawT FirstValue = FirstWriter->Read(Index);
+							FirstWriter->GetMutable(Index) = PCGExMath::DblMult(SecondWriter->GetMutable(Index), -1);
+							SecondWriter->GetMutable(Index) = PCGExMath::DblMult(FirstValue, -1);
 						}
 					}
 					else
@@ -137,9 +137,9 @@ namespace PCGExReversePointOrder
 						for (int i = 0; i < Count; ++i)
 						{
 							const int32 Index = StartIndex + i;
-							const RawT FirstValue = FirstWriter->Values[Index];
-							FirstWriter->Values[Index] = SecondWriter->Values[Index];
-							SecondWriter->Values[Index] = FirstValue;
+							const RawT FirstValue = FirstWriter->Read(Index);
+							FirstWriter->GetMutable(Index) = SecondWriter->GetMutable(Index);
+							SecondWriter->GetMutable(Index) = FirstValue;
 						}
 					}
 				});

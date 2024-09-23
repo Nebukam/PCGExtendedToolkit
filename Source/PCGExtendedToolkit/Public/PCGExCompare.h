@@ -572,7 +572,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExVectorHashComparisonDetails
 
 	FVector GetCWTolerance(const int32 PointIndex) const
 	{
-		return bUseLocalTolerance ? FVector(1 / LocalOperand->Values[PointIndex]) : CWTolerance;
+		return bUseLocalTolerance ? FVector(1 / LocalOperand->Read(PointIndex)) : CWTolerance;
 	}
 };
 
@@ -655,9 +655,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 			{
 			default: ;
 			case EPCGExDotUnits::Raw:
-				return LocalOperand->Values[PointIndex];
+				return LocalOperand->Read(PointIndex);
 			case EPCGExDotUnits::Degrees:
-				return PCGExMath::DegreesToDotForComparison(LocalOperand->Values[PointIndex] * 0.5);
+				return PCGExMath::DegreesToDotForComparison(LocalOperand->Read(PointIndex) * 0.5);
 			}
 		}
 		return DotConstant;

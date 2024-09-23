@@ -93,10 +93,10 @@ namespace PCGExPointsFilter
 			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
 			const FVector A = TypedFilterFactory->Config.bTransformOperandA ?
-				                  OperandA->Values[PointIndex] :
-				                  Point.Transform.TransformVectorNoScale(OperandA->Values[PointIndex]);
+				                  OperandA->Read(PointIndex) :
+				                  Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex));
 
-			FVector B = OperandB ? OperandB->Values[PointIndex].GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
+			FVector B = OperandB ? OperandB->Read(PointIndex).GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
 			if (TypedFilterFactory->Config.bTransformOperandB) { B = Point.Transform.TransformVectorNoScale(B); }
 
 			const double Dot = DotComparison.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);

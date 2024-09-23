@@ -136,8 +136,8 @@ namespace PCGExAttributeRemap
 
 		TArray<FPCGExComponentRemapRule> Rules;
 
-		PCGEx::FAttributeIOBase* CacheWriter = nullptr;
-		PCGEx::FAttributeIOBase* CacheReader = nullptr;
+		PCGExData::FCacheBase* CacheWriter = nullptr;
+		PCGExData::FCacheBase* CacheReader = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
@@ -154,7 +154,7 @@ namespace PCGExAttributeRemap
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
 
-			PCGEx::TAttributeWriter<T>* Writer = static_cast<PCGEx::TAttributeWriter<T>*>(CacheWriter);
+			PCGExData::TCache<T>* Writer = static_cast<PCGExData::TCache<T>*>(CacheWriter);
 
 			for (int d = 0; d < Dimensions; ++d)
 			{
@@ -168,7 +168,7 @@ namespace PCGExAttributeRemap
 					{
 						for (int i = StartIndex; i < StartIndex + Count; ++i)
 						{
-							T& V = Writer->Values[i];
+							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
 							VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL)) * PCGExMath::SignPlus(VAL);
 							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
@@ -180,7 +180,7 @@ namespace PCGExAttributeRemap
 					{
 						for (int i = StartIndex; i < StartIndex + Count; ++i)
 						{
-							T& V = Writer->Values[i];
+							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
 							VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL));
 							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
@@ -195,7 +195,7 @@ namespace PCGExAttributeRemap
 					{
 						for (int i = StartIndex; i < StartIndex + Count; ++i)
 						{
-							T& V = Writer->Values[i];
+							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
 							VAL = Rule.RemapDetails.GetRemappedValue(VAL);
 							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
@@ -207,7 +207,7 @@ namespace PCGExAttributeRemap
 					{
 						for (int i = StartIndex; i < StartIndex + Count; ++i)
 						{
-							T& V = Writer->Values[i];
+							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
 							VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL));
 							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);

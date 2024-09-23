@@ -74,8 +74,8 @@ namespace PCGExPointsFilter
 
 		const UPCGExBitmaskFilterFactory* TypedFilterFactory;
 
-		PCGEx::TAttributeIO<int64>* FlagsReader = nullptr;
-		PCGEx::TAttributeIO<int64>* MaskReader = nullptr;
+		PCGExData::TCache<int64>* FlagsReader = nullptr;
+		PCGExData::TCache<int64>* MaskReader = nullptr;
 
 		int64 Bitmask;
 
@@ -85,8 +85,8 @@ namespace PCGExPointsFilter
 		{
 			const bool Result = PCGExCompare::Compare(
 				TypedFilterFactory->Config.Comparison,
-				FlagsReader->Values[PointIndex],
-				MaskReader ? MaskReader->Values[PointIndex] : Bitmask);
+				FlagsReader->Read(PointIndex),
+				MaskReader ? MaskReader->Read(PointIndex) : Bitmask);
 
 			return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
 		}

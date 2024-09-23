@@ -15,7 +15,7 @@ bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExDat
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	const PCGExData::TCache<double>* Target = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, true);
+	PCGExData::TCache<double>* Target = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, true);
 
 	if (!Target)
 	{
@@ -26,8 +26,8 @@ bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExDat
 	DataMin = Target->Min;
 	DataMax = Target->Max;
 
-	Values.Reserve(Target->Values.Num());
-	Values.Append(Target->Values);
+	Values.Reserve(Target->GetInValues()->Num());
+	Values.Append(*Target->GetInValues());
 
 	return true;
 }

@@ -55,7 +55,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInfluenceDetails
 
 	FORCEINLINE double GetInfluence(const int32 PointIndex) const
 	{
-		return InfluenceCache ? InfluenceCache->Values[PointIndex] : Influence;
+		return InfluenceCache ? InfluenceCache->Read(PointIndex) : Influence;
 	}
 };
 

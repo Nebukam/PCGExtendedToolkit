@@ -159,7 +159,7 @@ namespace PCGExSampleNearestSurface
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : LocalSettings->MaxDistance;
+		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : LocalSettings->MaxDistance;
 
 		auto SamplingFailed = [&]()
 		{

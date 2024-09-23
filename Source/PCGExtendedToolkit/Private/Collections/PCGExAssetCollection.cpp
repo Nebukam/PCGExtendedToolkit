@@ -263,7 +263,7 @@ namespace PCGExAssetCollection
 		}
 		else
 		{
-			double PickedIndex = IndexGetter->Values[PointIndex];
+			double PickedIndex = IndexGetter->Read(PointIndex);
 			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
 				PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);

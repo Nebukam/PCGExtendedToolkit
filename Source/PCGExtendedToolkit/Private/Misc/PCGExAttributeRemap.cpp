@@ -144,8 +144,8 @@ namespace PCGExAttributeRemap
 			static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
 			{
 				using RawT = decltype(DummyValue);
-				CacheWriter = PointDataFacade->GetWriter<RawT>(Settings->TargetAttributeName, true);
-				CacheReader = PointDataFacade->GetScopedReader<RawT>(Identity->Name);
+				CacheWriter = PointDataFacade->GetWritable<RawT>(Settings->TargetAttributeName, true);
+				CacheReader = PointDataFacade->GetScopedReadable<RawT>(Identity->Name);
 			});
 
 		PCGEX_DELETE(Infos)
@@ -197,11 +197,11 @@ namespace PCGExAttributeRemap
 					static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
 					{
 						using RawT = decltype(DummyValue);
-						PCGEx::TAttributeWriter<RawT>* Writer = static_cast<PCGEx::TAttributeWriter<RawT>*>(CacheWriter);
-						PCGEx::TAttributeReader<RawT>* Reader = static_cast<PCGEx::TAttributeReader<RawT>*>(CacheReader);
+						PCGExData::TCache<RawT>* Writer = static_cast<PCGExData::TCache<RawT>*>(CacheWriter);
+						PCGExData::TCache<RawT>* Reader = static_cast<PCGExData::TCache<RawT>*>(CacheReader);
 
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
-						for (int i = StartIndex; i < StartIndex + Count; ++i) { Writer->Values[i] = Reader->Values[i]; } // Copy range to writer
+						for (int i = StartIndex; i < StartIndex + Count; ++i) { Writer->GetMutable(i) = Reader->Read(i); } // Copy range to writer
 
 						// Find min/max & clamp values
 
@@ -216,7 +216,7 @@ namespace PCGExAttributeRemap
 							{
 								for (int i = StartIndex; i < StartIndex + Count; ++i)
 								{
-									RawT& V = Writer->Values[i];
+									RawT& V = Writer->GetMutable(i);
 									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));
 									PCGExMath::SetComponent(V, d, VAL);
 
@@ -228,7 +228,7 @@ namespace PCGExAttributeRemap
 							{
 								for (int i = StartIndex; i < StartIndex + Count; ++i)
 								{
-									RawT& V = Writer->Values[i];
+									RawT& V = Writer->GetMutable(i);
 									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));
 									PCGExMath::SetComponent(V, d, VAL);
 

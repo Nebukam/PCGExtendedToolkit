@@ -34,7 +34,7 @@ int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FPointRef& Seed) con
 
 void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
-	int32 Picks = NumGoalsGetter ? NumGoalsGetter->Values[Seed.Index] : NumGoals;
+	int32 Picks = NumGoalsGetter ? NumGoalsGetter->Read(Seed.Index) : NumGoals;
 
 	if (GoalCount == EPCGExGoalPickRandomAmount::Random)
 	{

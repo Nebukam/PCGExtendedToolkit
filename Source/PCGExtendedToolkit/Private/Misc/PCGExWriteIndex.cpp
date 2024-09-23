@@ -73,11 +73,11 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputNormalizedIndex)
 		{
-			DoubleWriter = PointDataFacade->GetWriter<double>(Settings->OutputAttributeName, -1, false, false);
+			DoubleWriter = PointDataFacade->GetWritable<double>(Settings->OutputAttributeName, -1, false, false);
 		}
 		else
 		{
-			IntWriter = PointDataFacade->GetWriter<int32>(Settings->OutputAttributeName, -1, false, false);
+			IntWriter = PointDataFacade->GetWritable<int32>(Settings->OutputAttributeName, -1, false, false);
 		}
 
 		if (Settings->bOutputCollectionIndex)
@@ -92,8 +92,8 @@ namespace PCGExWriteIndex
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		if (DoubleWriter) { DoubleWriter->Values[Index] = static_cast<double>(Index) / NumPoints; }
-		else { IntWriter->Values[Index] = Index; }
+		if (DoubleWriter) { DoubleWriter->GetMutable(Index) = static_cast<double>(Index) / NumPoints; }
+		else { IntWriter->GetMutable(Index) = Index; }
 	}
 
 	void FProcessor::CompleteWork()

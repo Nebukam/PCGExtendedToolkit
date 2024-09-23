@@ -110,12 +110,12 @@ namespace PCGExOrient
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
 		{
-			TransformWriter = PointDataFacade->GetWriter<FTransform>(Settings->OutputAttribute, false);
+			TransformWriter = PointDataFacade->GetWritable<FTransform>(Settings->OutputAttribute, false);
 		}
 
 		if (Settings->bOutputDot)
 		{
-			DotWriter = PointDataFacade->GetWriter<double>(Settings->DotAttribute, false);
+			DotWriter = PointDataFacade->GetWritable<double>(Settings->DotAttribute, false);
 		}
 
 		StartParallelLoopForPoints();
@@ -141,17 +141,17 @@ namespace PCGExOrient
 			const PCGExData::FPointRef Previous = Index == 0 ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index - 1);
 			const PCGExData::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(0) : PointIO->GetInPointRef(Index + 1);
 			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
-			if (Settings->bOutputDot) { DotWriter->Values[Index] = DotProduct(Current, Previous, Next); }
+			if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = DotProduct(Current, Previous, Next); }
 		}
 		else
 		{
 			const PCGExData::FPointRef Previous = Index == 0 ? Current : PointIO->GetInPointRef(Index - 1);
 			const PCGExData::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index + 1);
 			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
-			if (Settings->bOutputDot) { DotWriter->Values[Index] = DotProduct(Current, Previous, Next); }
+			if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = DotProduct(Current, Previous, Next); }
 		}
 
-		if (TransformWriter) { TransformWriter->Values[Index] = OutT; }
+		if (TransformWriter) { TransformWriter->GetMutable(Index) = OutT; }
 		else { Point.Transform = OutT; }
 	}
 

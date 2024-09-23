@@ -38,12 +38,12 @@ bool UPCGExProbeDirection::PrepareForPoints(const PCGExData::FPointIO* InPointIO
 void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
-	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
+	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
 	double BestDot = -1;
 	double BestDist = TNumericLimits<double>::Max();
 	int32 BestCandidateIndex = -1;
 
-	FVector Dir = DirectionCache ? DirectionCache->Values[Index].GetSafeNormal() : Direction;
+	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
 	if (Config.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
 
 	for (int i = 0; i < Candidates.Num(); ++i)
@@ -109,8 +109,8 @@ void UPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FPCGPoi
 
 void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)
 {
-	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
-	FVector Dir = DirectionCache ? DirectionCache->Values[Index].GetSafeNormal() : Direction;
+	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
+	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
 	if (Config.bTransformDirection) { Dir = Point.Transform.TransformVectorNoScale(Dir); }
 
 	if (Candidate.Distance > R) { return; }

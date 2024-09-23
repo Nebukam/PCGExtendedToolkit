@@ -108,8 +108,8 @@ namespace PCGExWriteTangents
 		FVector ConstantArriveScale = FVector::OneVector;
 		FVector ConstantLeaveScale = FVector::OneVector;
 
-		PCGEx::TAttributeWriter<FVector>* ArriveWriter = nullptr;
-		PCGEx::TAttributeWriter<FVector>* LeaveWriter = nullptr;
+		PCGExData::TCache<FVector>* ArriveWriter = nullptr;
+		PCGExData::TCache<FVector>* LeaveWriter = nullptr;
 
 		UPCGExTangentsOperation* Tangents = nullptr;
 		UPCGExTangentsOperation* StartTangents = nullptr;

@@ -65,7 +65,7 @@ namespace PCGExGrowPaths
 
 			if (Settings->bUseNoGrowth)
 			{
-				bool bNoGrowth = Processor->NoGrowth ? Processor->NoGrowth->Values[OtherNode.PointIndex] : Settings->bInvertNoGrowth;
+				bool bNoGrowth = Processor->NoGrowth ? Processor->NoGrowth->Read(OtherNode.PointIndex) : Settings->bInvertNoGrowth;
 				if (Settings->bInvertNoGrowth) { bNoGrowth = !bNoGrowth; }
 
 				if (bNoGrowth) { continue; }
@@ -118,11 +118,11 @@ namespace PCGExGrowPaths
 		{
 			if (Settings->NumIterationsUpdateMode == EPCGExGrowthUpdateMode::SetEachIteration)
 			{
-				SoftMaxIterations = Processor->NumIterations->Values[NextNode.PointIndex];
+				SoftMaxIterations = Processor->NumIterations->Read(NextNode.PointIndex);
 			}
 			else if (Settings->NumIterationsUpdateMode == EPCGExGrowthUpdateMode::AddEachIteration)
 			{
-				SoftMaxIterations += Processor->NumIterations->Values[NextNode.PointIndex];
+				SoftMaxIterations += Processor->NumIterations->Read(NextNode.PointIndex);
 			}
 		}
 
@@ -130,11 +130,11 @@ namespace PCGExGrowPaths
 		{
 			if (Settings->GrowthDirectionUpdateMode == EPCGExGrowthUpdateMode::SetEachIteration)
 			{
-				GrowthDirection = Processor->GrowthDirection->Values[NextNode.PointIndex];
+				GrowthDirection = Processor->GrowthDirection->Read(NextNode.PointIndex);
 			}
 			else if (Settings->GrowthDirectionUpdateMode == EPCGExGrowthUpdateMode::AddEachIteration)
 			{
-				GrowthDirection = (GrowthDirection + Processor->GrowthDirection->Values[NextNode.PointIndex]).GetSafeNormal();
+				GrowthDirection = (GrowthDirection + Processor->GrowthDirection->Read(NextNode.PointIndex)).GetSafeNormal();
 			}
 		}
 
@@ -142,7 +142,7 @@ namespace PCGExGrowPaths
 
 		if (Settings->bUseGrowthStop)
 		{
-			bool bStopGrowth = Processor->GrowthStop ? Processor->GrowthStop->Values[NextNode.PointIndex] : Settings->bInvertGrowthStop;
+			bool bStopGrowth = Processor->GrowthStop ? Processor->GrowthStop->Read(NextNode.PointIndex) : Settings->bInvertGrowthStop;
 			if (Settings->bInvertGrowthStop) { bStopGrowth = !bStopGrowth; }
 			if (bStopGrowth) { SoftMaxIterations = -1; }
 		}
@@ -354,10 +354,10 @@ namespace PCGExGrowPaths
 				StartGrowthNumBranches = Settings->NumBranchesConstant;
 				break;
 			case EPCGExGrowthValueSource::SeedAttribute:
-				StartGrowthNumBranches = TypedContext->NumBranches->Values[i];
+				StartGrowthNumBranches = TypedContext->NumBranches->Read(i);
 				break;
 			case EPCGExGrowthValueSource::VtxAttribute:
-				StartGrowthNumBranches = NumBranches->Values[Node.PointIndex];
+				StartGrowthNumBranches = NumBranches->Read(Node.PointIndex);
 				break;
 			}
 
@@ -368,10 +368,10 @@ namespace PCGExGrowPaths
 				StartNumIterations = Settings->NumIterationsConstant;
 				break;
 			case EPCGExGrowthValueSource::SeedAttribute:
-				StartNumIterations = TypedContext->NumIterations->Values[i];
+				StartNumIterations = TypedContext->NumIterations->Read(i);
 				break;
 			case EPCGExGrowthValueSource::VtxAttribute:
-				StartNumIterations = NumIterations->Values[Node.PointIndex];
+				StartNumIterations = NumIterations->Read(Node.PointIndex);
 				break;
 			}
 
@@ -382,10 +382,10 @@ namespace PCGExGrowPaths
 				StartGrowthMaxDistance = Settings->GrowthMaxDistanceConstant;
 				break;
 			case EPCGExGrowthValueSource::SeedAttribute:
-				StartGrowthMaxDistance = TypedContext->GrowthMaxDistance->Values[i];
+				StartGrowthMaxDistance = TypedContext->GrowthMaxDistance->Read(i);
 				break;
 			case EPCGExGrowthValueSource::VtxAttribute:
-				StartGrowthMaxDistance = GrowthMaxDistance->Values[Node.PointIndex];
+				StartGrowthMaxDistance = GrowthMaxDistance->Read(Node.PointIndex);
 				break;
 			}
 
@@ -396,10 +396,10 @@ namespace PCGExGrowPaths
 				StartGrowthDirection = Settings->GrowthDirectionConstant;
 				break;
 			case EPCGExGrowthValueSource::SeedAttribute:
-				StartGrowthDirection = TypedContext->GrowthDirection->Values[i];
+				StartGrowthDirection = TypedContext->GrowthDirection->Read(i);
 				break;
 			case EPCGExGrowthValueSource::VtxAttribute:
-				StartGrowthDirection = GrowthDirection->Values[Node.PointIndex];
+				StartGrowthDirection = GrowthDirection->Read(Node.PointIndex);
 				break;
 			}
 

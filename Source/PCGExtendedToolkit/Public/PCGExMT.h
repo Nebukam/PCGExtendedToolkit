@@ -437,14 +437,26 @@ namespace PCGExMT
 		void DoWork()
 		{
 			if (bWorkDone) { return; }
-			PCGEX_ASYNC_CHECKPOINT_VOID
+
 			bWorkDone = true;
+
+			if (!Checkpoint())
+			{
+				Cleanup();
+				return;
+			}
+
 			const bool bResult = ExecuteTask();
 			if (Group) { Group->OnTaskCompleted(); }
 			Manager->OnAsyncTaskExecutionComplete(this, bResult);
+			Cleanup();
 		}
 
 		virtual bool ExecuteTask() = 0;
+
+		virtual void Cleanup()
+		{
+		}
 
 	protected:
 		bool bWorkDone = false;
@@ -566,8 +578,13 @@ namespace PCGExMT
 		virtual bool ExecuteTask() override
 		{
 			Operation->Write();
-			PCGEX_DELETE(Operation)
 			return false;
+		}
+
+		virtual void Cleanup() override
+		{
+			// Ensure deletion even if task was cancelled, as this is a fire-and-forget task
+			PCGEX_DELETE(Operation)
 		}
 	};
 

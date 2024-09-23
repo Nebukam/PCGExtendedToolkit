@@ -85,7 +85,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 		return true;
 	}
 
-#define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) PCGEx:: TAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
+#define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) PCGExData::TCache<_TYPE>* _NAME##Writer = nullptr;
 	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_DECL)
 #undef PCGEX_LOCAL_DETAIL_DECL
 
@@ -99,7 +99,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 		IntersectionForwardHandler = IntersectionForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
 		InsideForwardHandler = InsideForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
 
-#define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetWriter( _NAME##AttributeName, _DEFAULT, false, false); }
+#define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetWritable( _NAME##AttributeName, _DEFAULT, false, false); }
 		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WRITER)
 #undef PCGEX_LOCAL_DETAIL_WRITER
 	}
@@ -129,21 +129,21 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 	void SetIsInside(const int32 PointIndex, const bool bIsInside, const int32 BoundIndex) const
 	{
 		if (InsideForwardHandler && bIsInside) { InsideForwardHandler->Forward(BoundIndex, PointIndex); }
-		if (IsInsideWriter) { IsInsideWriter->Values[PointIndex] = bIsInside; }
+		if (IsInsideWriter) { IsInsideWriter->GetMutable(PointIndex) = bIsInside; }
 	}
 
 	void SetIsInside(const int32 PointIndex, const bool bIsInside) const
 	{
-		if (IsInsideWriter) { IsInsideWriter->Values[PointIndex] = bIsInside; }
+		if (IsInsideWriter) { IsInsideWriter->GetMutable(PointIndex) = bIsInside; }
 	}
 
 	void SetIntersection(const int32 PointIndex, const FVector& Normal, const int32 BoundIndex) const
 	{
 		if (IntersectionForwardHandler) { IntersectionForwardHandler->Forward(BoundIndex, PointIndex); }
 
-		if (IsIntersectionWriter) { IsIntersectionWriter->Values[PointIndex] = true; }
-		if (NormalWriter) { NormalWriter->Values[PointIndex] = Normal; }
-		if (BoundIndexWriter) { BoundIndexWriter->Values[PointIndex] = BoundIndex; }
+		if (IsIntersectionWriter) { IsIntersectionWriter->GetMutable(PointIndex) = true; }
+		if (NormalWriter) { NormalWriter->GetMutable(PointIndex) = Normal; }
+		if (BoundIndexWriter) { BoundIndexWriter->GetMutable(PointIndex) = BoundIndex; }
 	}
 };
 

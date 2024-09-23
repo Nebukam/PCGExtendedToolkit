@@ -80,8 +80,8 @@ namespace PCGExPointsFilter
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			if (!bInclusive) { return FMath::IsWithin(OperandA->Values[PointIndex], RealMin, RealMax) ? !bInvert : bInvert; }
-			return FMath::IsWithinInclusive(OperandA->Values[PointIndex], RealMin, RealMax) ? !bInvert : bInvert;
+			if (!bInclusive) { return FMath::IsWithin(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert; }
+			return FMath::IsWithinInclusive(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert;
 		}
 
 		virtual ~TWithinRangeFilter() override

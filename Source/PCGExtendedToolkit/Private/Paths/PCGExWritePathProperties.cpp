@@ -146,7 +146,7 @@ namespace PCGExWritePathProperties
 			else if (Index == 0) { Current.ToPrev = Current.ToNext * -1; }
 		}
 
-		Current.Normal = FVector::CrossProduct(Current.ToNext, FVector::CrossProduct(UpGetter ? UpGetter->Values[Index] : UpConstant, Current.ToNext)).GetSafeNormal();
+		Current.Normal = FVector::CrossProduct(Current.ToNext, FVector::CrossProduct(UpGetter ? UpGetter->Read(Index) : UpConstant, Current.ToNext)).GetSafeNormal();
 		Current.Binormal = FVector::CrossProduct(Current.ToNext, Current.Normal).GetSafeNormal();
 
 		if (!LocalSettings->bAverageNormals)

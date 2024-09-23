@@ -158,8 +158,8 @@ namespace PCGExWriteTangents
 		}
 		else { EndTangents = Tangents; }
 
-		ArriveWriter = PointDataFacade->GetWriter(Settings->ArriveName, FVector::ZeroVector, true, false);
-		LeaveWriter = PointDataFacade->GetWriter(Settings->LeaveName, FVector::ZeroVector, true, false);
+		ArriveWriter = PointDataFacade->GetWritable(Settings->ArriveName, FVector::ZeroVector, true, false);
+		LeaveWriter = PointDataFacade->GetWritable(Settings->LeaveName, FVector::ZeroVector, true, false);
 
 		LastIndex = PointIO->GetNum() - 1;
 
@@ -184,8 +184,8 @@ namespace PCGExWriteTangents
 		FVector OutArrive = FVector::ZeroVector;
 		FVector OutLeave = FVector::ZeroVector;
 
-		const FVector& ArriveScale = ArriveScaleReader ? ArriveScaleReader->Values[Index] : ConstantArriveScale;
-		const FVector& LeaveScale = LeaveScaleReader ? LeaveScaleReader->Values[Index] : ConstantLeaveScale;
+		const FVector& ArriveScale = ArriveScaleReader ? ArriveScaleReader->Read(Index) : ConstantArriveScale;
+		const FVector& LeaveScale = LeaveScaleReader ? LeaveScaleReader->Read(Index) : ConstantLeaveScale;
 
 		if (bClosedLoop)
 		{
@@ -210,8 +210,8 @@ namespace PCGExWriteTangents
 			}
 		}
 
-		ArriveWriter->Values[Index] = OutArrive;
-		LeaveWriter->Values[Index] = OutLeave;
+		ArriveWriter->GetMutable(Index) = OutArrive;
+		LeaveWriter->GetMutable(Index) = OutLeave;
 	}
 
 	void FProcessor::CompleteWork()

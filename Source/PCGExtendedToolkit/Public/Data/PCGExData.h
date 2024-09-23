@@ -47,19 +47,25 @@ namespace PCGExData
 	protected:
 		mutable FRWLock CacheLock;
 		mutable FRWLock WriteLock;
-		bool bInitialized = false;
+
 		bool bScopedCache = false;
 
-		int32 ReadyNum = 0;
+		TArrayView<const FPCGPoint> InPoints;
+		FPCGAttributeAccessorKeysPoints* InKeys = nullptr;
+
+		TArrayView<FPCGPoint> OutPoints;
+		FPCGAttributeAccessorKeysPoints* OutKeys = nullptr;
 
 	public:
 		FName FullName = NAME_None;
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
-		FPCGMetadataAttributeBase* Attribute = nullptr;
+
+		const FPCGMetadataAttributeBase* InAttribute = nullptr;
+		FPCGMetadataAttributeBase* OutAttribute = nullptr;
+
 		const uint64 UID;
 		FPointIO* Source = nullptr;
 
-		bool bIsPureReader = false;
 
 		FCacheBase(const FName InFullName, const EPCGMetadataTypes InType):
 			FullName(InFullName), Type(InType), UID(CacheUID(FullName, Type))
@@ -68,31 +74,38 @@ namespace PCGExData
 
 		virtual ~FCacheBase() = default;
 
-		void IncrementWriteReadyNum();
-		void ReadyWrite(PCGExMT::FTaskManager* AsyncManager);
-
-		virtual void Write(PCGExMT::FTaskManager* AsyncManager);
+		virtual void Write()
+		{
+		}
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count)
 		{
 		}
 
 		virtual bool IsScoped() { return bScopedCache; }
+		virtual bool IsWritable() { return false; }
+		virtual bool IsReadable() { return false; }
 
-		FORCEINLINE bool GetAllowsInterpolation() const { return Attribute->AllowsInterpolation(); }
+		FORCEINLINE bool GetAllowsInterpolation() const { return OutAttribute ? OutAttribute->AllowsInterpolation() : InAttribute ? InAttribute->AllowsInterpolation() : false; }
 	};
 
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TCache : public FCacheBase
 	{
-	public:
-		TArray<T> Values;
+	protected:
+		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor;
+		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
 
+		TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor;
+		FPCGMetadataAttribute<T>* TypedOutAttribute = nullptr;
+
+		TArray<T>* InValues = nullptr;
+		TArray<T>* OutValues = nullptr;
+
+	public:
 		T Min = T{};
 		T Max = T{};
 
-		PCGEx::TAttributeIO<T>* Reader = nullptr;
-		PCGEx::TAttributeWriter<T>* Writer = nullptr;
 		PCGEx::TAttributeGetter<T>* ScopedBroadcaster = nullptr;
 
 		virtual bool IsScoped() override { return bScopedCache || ScopedBroadcaster; }
@@ -107,185 +120,193 @@ namespace PCGExData
 			Flush();
 		}
 
-		FORCEINLINE T& GetMutable(int32 Index) { return Values[Index]; }
-		FORCEINLINE const T& GetConst(int32 Index) const { return Values[Index]; }
+		virtual bool IsWritable() override { return OutValues ? true : false; }
+		virtual bool IsReadable() override { return InValues ? true : false; }
 
-		FORCEINLINE TArrayView<T> GetView(int32 Start, int32 Range) { return MakeArrayView(Values.GetData() + Start, Range); }
+		TArray<T>* GetInValues() { return InValues; }
+		TArray<T>* GetOutValues() { return OutValues; }
+		const FPCGMetadataAttribute<T>* GetTypedInAttribute() const { return TypedInAttribute; }
+		FPCGMetadataAttribute<T>* GetTypedOutAttribute() { return TypedOutAttribute; }
 
-		PCGEx::TAttributeIO<T>* PrepareReader(const ESource InSource = ESource::In, const bool bScoped = false)
+		FORCEINLINE T& GetMutable(const int32 Index) { return *(OutValues->GetData() + Index); }
+		FORCEINLINE const T& Read(const int32 Index) const { return *(InValues->GetData() + Index); }
+		FORCEINLINE const T& ReadImmediate(const int32 Index) const { return TypedInAttribute->GetValueFromItemKey(InPoints[Index]); }
+
+		FORCEINLINE void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
+		FORCEINLINE void SetImmediate(const int32 Index, const T& Value) { TypedOutAttribute->SetValue(InPoints[Index], Value); }
+
+		void PrepareForRead(const bool bScoped, const FPCGMetadataAttributeBase* Attribute)
+		{
+			if (InValues) { return; }
+
+			const TArray<FPCGPoint>& InPts = Source->GetIn()->GetPoints();
+			const int32 NumPoints = InPts.Num();
+			InPoints = MakeArrayView(InPts.GetData(), NumPoints);
+
+			InKeys = Source->CreateInKeys();
+
+			InValues = new TArray<T>();
+			PCGEx::InitMetadataArray(*InValues, NumPoints);
+
+			InAttribute = Attribute;
+			TypedInAttribute = Attribute ? static_cast<const FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
+
+			bScopedCache = bScoped;
+		}
+
+		bool PrepareRead(const ESource InSource = ESource::In, const bool bScoped = false)
 		{
 			FWriteScopeLock WriteScopeLock(CacheLock);
 
-			if (bInitialized)
+			if (InValues)
 			{
-				if (InSource == ESource::Out && Writer) { return Writer; }
-				if (Reader)
+				if (bScopedCache && !bScoped)
 				{
-					if (bScopedCache && !bScoped)
-					{
-						// We're requesting a full reader on a non-scoped one.
-						// Fetch all and turn scoped get off. Surprise perf hit.
-						Fetch(0, Values.Num());
-						bScopedCache = false;
-					}
+					// Un-scoping reader.
+					Fetch(0, InValues->Num());
+					bScopedCache = false;
+				}
 
-					return Reader;
+				if (InSource == ESource::In && OutValues && InValues == OutValues)
+				{
+					// Out-source Reader was created before writer, this is bad?
+					InValues = nullptr;
+				}
+				else
+				{
+					return true;
 				}
 			}
 
-			bScopedCache = bScoped;
-
-			if (bInitialized)
+			if (InSource == ESource::Out)
 			{
-				check(Writer)
-				PCGEx::TAttributeReader<T>* TypedReader = new PCGEx::TAttributeReader<T>(FullName);
-
-				if (bScoped) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
-				else { if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) } }
-
-				Attribute = TypedReader->Accessor->GetAttribute();
-				Reader = TypedReader;
-				bIsPureReader = false;
-
-				return Reader;
+				// Reading from output
+				check(OutValues)
+				InValues = OutValues;
+				return true;
 			}
 
-			bInitialized = true;
+			UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
+			TypedInAttribute = InMetadata->GetConstTypedAttribute<T>(FullName);
+			InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
 
-			PCGEx::TAttributeReader<T>* TypedReader = new PCGEx::TAttributeReader<T>(FullName);
+			if (!TypedInAttribute || !InAccessor.IsValid())
+			{
+				TypedInAttribute = nullptr;
+				InAccessor = nullptr;
+				return false;
+			}
 
-			if (bScoped) { if (!TypedReader->BindForFetch(Source)) { PCGEX_DELETE(TypedReader) } }
-			else { if (!TypedReader->Bind(Source)) { PCGEX_DELETE(TypedReader) } }
+			PrepareForRead(bScoped, TypedInAttribute);
 
-			bInitialized = TypedReader ? true : false;
-			Attribute = TypedReader ? TypedReader->Accessor->GetAttribute() : nullptr;
-			bIsPureReader = true;
+			if (!bScopedCache)
+			{
+				TArrayView<T> InRange = MakeArrayView(InValues->GetData(), InValues->Num());
+				InAccessor->GetRange(InRange, 0, *InKeys, EPCGAttributeAccessorFlags::StrictType);
+			}
 
-			Reader = TypedReader;
-			return Reader;
+			return true;
 		}
 
-		PCGEx::TAttributeWriter<T>* PrepareWriter(T DefaultValue, bool bAllowInterpolation, const bool bUninitialized = false)
+		bool PrepareWrite(T DefaultValue, bool bAllowInterpolation, const bool bUninitialized = false)
 		{
 			FWriteScopeLock WriteScopeLock(CacheLock);
 
-			if (bInitialized)
+			if (OutValues) { return true; }
+
+			TArray<FPCGPoint>& OutPts = Source->GetOut()->GetMutablePoints();
+			const int32 NumPoints = OutPts.Num();
+			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
+
+			OutKeys = Source->CreateOutKeys();
+
+			UPCGMetadata* OutMetadata = Source->GetOut()->Metadata;
+			TypedOutAttribute = OutMetadata->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
+			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, OutMetadata);
+
+			if (!TypedOutAttribute || !OutAccessor.IsValid())
 			{
-				if (!bIsPureReader && Writer) { return Writer; }
+				TypedOutAttribute = nullptr;
+				OutAccessor = nullptr;
+				return false;
 			}
 
-			bInitialized = true;
-			bIsPureReader = false;
+			OutValues = new TArray<T>();
+			PCGEx::InitMetadataArray(*OutValues, NumPoints);
 
-			Writer = new PCGEx::TAttributeWriter<T>(FullName, DefaultValue, bAllowInterpolation);
+			if (!bUninitialized)
+			{
+				if (Source->GetIn() && Source->GetIn()->Metadata->GetConstTypedAttribute<T>(FullName))
+				{
+					// TODO : Scoped get would be better here
+					// Get existing values
+					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), NumPoints);
+					OutAccessor->GetRange(OutRange, 0, *OutKeys, EPCGAttributeAccessorFlags::StrictType);
+				}
+			}
 
-			if (bUninitialized) { Writer->BindAndSetNumUninitialized(Source); }
-			else { Writer->BindAndGet(Source); }
-
-			Attribute = Writer->Accessor->GetAttribute();
-
-			return Writer;
+			return true;
 		}
 
-		PCGEx::TAttributeWriter<T>* PrepareWriter(const bool bUninitialized = false)
+		bool PrepareWrite(const bool bUninitialized = false)
 		{
 			{
 				FWriteScopeLock WriteScopeLock(CacheLock);
-				if (bInitialized)
-				{
-					if (!bIsPureReader && Writer) { return Writer; }
-				}
+				if (OutValues) { return true; }
 			}
 
 			if (Source->GetIn())
 			{
 				if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->GetConstTypedAttribute<T>(FullName))
 				{
-					return PrepareWriter(
+					return PrepareWrite(
 						ExistingAttribute->GetValue(PCGDefaultValueKey),
 						ExistingAttribute->AllowsInterpolation(),
 						bUninitialized);
 				}
 			}
 
-			{
-				FWriteScopeLock WriteScopeLock(CacheLock);
-				bInitialized = true;
-				bIsPureReader = false;
-
-				Writer = new PCGEx::TAttributeWriter<T>(FullName);
-
-				if (bUninitialized) { Writer->BindAndSetNumUninitialized(Source); }
-				else { Writer->BindAndGet(Source); }
-				Attribute = Writer->Accessor->GetAttribute();
-
-				return Writer;
-			}
-		}
-
-		void Grab(PCGEx::TAttributeGetter<T>* Getter, bool bCaptureMinMax = false)
-		{
-			FWriteScopeLock WriteScopeLock(CacheLock);
-
-			if (bInitialized)
-			{
-#if WITH_EDITOR
-				check(!ScopedBroadcaster)
-#endif
-				return;
-			}
-
-			bInitialized = true;
-			bIsPureReader = true;
-
-			Getter->GrabAndDump(Source, Values, bCaptureMinMax, Min, Max);
-			Attribute = Getter->Attribute;
+			return PrepareWrite(T{}, true, bUninitialized);
 		}
 
 		void SetScopedGetter(PCGEx::TAttributeGetter<T>* Getter)
 		{
 			FWriteScopeLock WriteScopeLock(CacheLock);
 
-			if (bInitialized) { return; }
-
-			bInitialized = true;
-			bIsPureReader = true;
-
-			bScopedCache = true;
+			PrepareForRead(true, Getter->Attribute);
 			ScopedBroadcaster = Getter;
-			Attribute = Getter->Attribute;
 
-			PCGEx::InitMetadataArray(Values, Source->GetNum());
+			PCGEx::InitMetadataArray(*InValues, Source->GetNum());
 		}
 
-		virtual void Write(PCGExMT::FTaskManager* AsyncManager) override
+		virtual void Write() override
 		{
-			if (!Writer) { return; }
-
-			if (AsyncManager && !GetDefault<UPCGExGlobalSettings>()->IsSmallPointSize(Source->GetNum(ESource::Out)))
-			{
-				PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Writer);
-			}
-			else
-			{
-				Writer->Write();
-				PCGEX_DELETE(Writer)
-			}
+			if (!IsWritable()) { return; }
+			TArrayView<const T> View(*OutValues);
+			OutAccessor->SetRange(View, 0, *OutKeys, EPCGAttributeAccessorFlags::StrictType);
 		}
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
 		{
 			if (!IsScoped()) { return; }
-			if (ScopedBroadcaster) { ScopedBroadcaster->Fetch(Source, Values, StartIndex, Count); }
-			else if (Reader) { Reader->Fetch(StartIndex, Count); }
+			if (ScopedBroadcaster) { ScopedBroadcaster->Fetch(Source, *InValues, StartIndex, Count); }
+			if (InAccessor.IsValid())
+			{
+				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + StartIndex, Count);
+				InAccessor->GetRange(ReadRange, StartIndex, *InKeys, EPCGAttributeAccessorFlags::StrictType);
+			}
+
+			//if (OutAccessor.IsValid())
+			//{
+			//	TArrayView<T> WriteRange = MakeArrayView(OutValues->GetData() + StartIndex, Count);
+			//	OutAccessor->GetRange(WriteRange, StartIndex, *InKeys, EPCGAttributeAccessorFlags::StrictType);
+			//}
 		}
 
 		void Flush()
 		{
-			bInitialized = false;
-			Values.Empty();
-			PCGEX_DELETE(Reader)
-			PCGEX_DELETE(Writer)
+			if (InValues) { if (InValues != OutValues) { PCGEX_DELETE(InValues) } }
+			PCGEX_DELETE(OutValues)
 			PCGEX_DELETE(ScopedBroadcaster)
 		}
 	};
@@ -394,7 +415,13 @@ namespace PCGExData
 			}
 
 			TCache<T>* Cache = GetCache<T>(Getter->FullName);
-			Cache->Grab(Getter, bCaptureMinMax);
+
+			{
+				FWriteScopeLock WriteScopeLock(Cache->CacheLock);
+				Cache->PrepareForRead(false, Getter->Attribute);
+				Getter->GrabAndDump(Source, *Cache->GetInValues(), bCaptureMinMax, Cache->Min, Cache->Max);
+			}
+
 			PCGEX_DELETE(Getter)
 
 			return Cache;
@@ -468,64 +495,53 @@ namespace PCGExData
 			return GetBroadcaster<T>(Selector, bCaptureMinMax);
 		}
 
-		// TODO
-		// - Make everything a TCache
-		// - change GetWriter/GetReader for GetWritable/GetReadable  / GetScopedReadable / GetSoftReadable
-		// - make sure the Cache Values array is used by reader/writer
-		// - phase out writer entirely at some poipnt
-		// - make use of regular accessors instead of converter so we can easily update after
-
 		template <typename T>
-		PCGEx::TAttributeWriter<T>* GetWriter(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
+		TCache<T>* GetWritable(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
 		{
 			TCache<T>* Cache = GetCache<T>(InAttribute->Name);
-			return Cache->PrepareWriter(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized);
+			return Cache->PrepareWrite(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized) ? Cache : nullptr;
 		}
 
 		template <typename T>
-		PCGEx::TAttributeWriter<T>* GetWriter(const FName InName, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
+		TCache<T>* GetWritable(const FName InName, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
 		{
 			TCache<T>* Cache = GetCache<T>(InName);
-			return Cache->PrepareWriter(DefaultValue, bAllowInterpolation, bUninitialized);
+			return Cache->PrepareWrite(DefaultValue, bAllowInterpolation, bUninitialized) ? Cache : nullptr;
 		}
 
 		template <typename T>
-		PCGEx::TAttributeWriter<T>* GetWriter(const FName InName, bool bUninitialized)
+		TCache<T>* GetWritable(const FName InName, bool bUninitialized)
 		{
 			TCache<T>* Cache = GetCache<T>(InName);
-			return Cache->PrepareWriter(bUninitialized);
+			return Cache->PrepareWrite(bUninitialized) ? Cache : nullptr;
 		}
 
 		template <typename T>
-		PCGEx::TAttributeIO<T>* GetReader(const FName InName, const ESource InSource = ESource::In)
+		TCache<T>* GetReadable(const FName InName, const ESource InSource = ESource::In)
 		{
 			TCache<T>* Cache = GetCache<T>(InName);
-			PCGEx::TAttributeIO<T>* Reader = Cache->PrepareReader(InSource, false);
-
-			if (!Reader)
+			if (!Cache->PrepareRead(InSource, false))
 			{
 				Flush(Cache);
 				return nullptr;
 			}
 
-			return Reader;
+			return Cache;
 		}
 
 		template <typename T>
-		PCGEx::TAttributeIO<T>* GetScopedReader(const FName InName)
+		TCache<T>* GetScopedReadable(const FName InName)
 		{
-			if (!bSupportsScopedGet) { return GetReader<T>(InName); }
+			if (!bSupportsScopedGet) { return GetReadable<T>(InName); }
 
 			TCache<T>* Cache = GetCache<T>(InName);
-			PCGEx::TAttributeIO<T>* Reader = Cache->PrepareReader(ESource::In, true);
-
-			if (!Reader)
+			if (!Cache->PrepareRead(ESource::In, true))
 			{
 				Flush(Cache);
 				return nullptr;
 			}
 
-			return Reader;
+			return Cache;
 		}
 
 		FPCGMetadataAttributeBase* FindMutableAttribute(const FName InName, const ESource InSource = ESource::In) const
@@ -587,7 +603,27 @@ namespace PCGExData
 
 		void Write(PCGExMT::FTaskManager* AsyncManager, const bool bFlush)
 		{
-			for (FCacheBase* Cache : Caches) { Cache->Write(AsyncManager); }
+			if (AsyncManager)
+			{
+				for (int i = 0; i < Caches.Num(); i++)
+				{
+					FCacheBase* Cache = Caches[i];
+					if (Cache->IsWritable())
+					{
+						if (bFlush)
+						{
+							PCGExMT::WriteAndDelete(AsyncManager, Cache);
+							Caches[i] = nullptr;
+						}
+						else { Cache->Write(); }
+					}
+				}
+			}
+			else
+			{
+				for (FCacheBase* Cache : Caches) { Cache->Write(); }
+			}
+
 			if (bFlush) { Flush(); }
 		}
 

@@ -364,18 +364,18 @@ namespace PCGExPartitionByValues
 				IndiceMap.Empty();
 			}
 
-			PCGEx::TAttributeWriter<int32>* KeyWriter = PointDataFacade->GetWriter(Rule.RuleConfig->KeyAttributeName, 0, false, true);
+			PCGExData::TCache<int32>* KeyWriter = PointDataFacade->GetWritable(Rule.RuleConfig->KeyAttributeName, 0, false, true);
 			for (int i = 0; i < Rule.FilteredValues.Num(); ++i)
 			{
-				KeyWriter->Values[i] = Rule.FilteredValues[i];
+				KeyWriter->GetMutable(i) = Rule.FilteredValues[i];
 				if (Settings->bWriteKeySum) { KeySums[i] += Rule.FilteredValues[i]; }
 			}
 		}
 
 		if (Settings->bWriteKeySum)
 		{
-			PCGEx::TAttributeWriter<int32>* KeySumWriter = PointDataFacade->GetWriter(Settings->KeySumAttributeName, 0, false, true);
-			for (int i = 0; i < KeySums.Num(); ++i) { KeySumWriter->Values[i] = KeySums[i]; }
+			PCGExData::TCache<int32>* KeySumWriter = PointDataFacade->GetWritable(Settings->KeySumAttributeName, 0, false, true);
+			for (int i = 0; i < KeySums.Num(); ++i) { KeySumWriter->GetMutable(i) = KeySums[i]; }
 		}
 
 		PointDataFacade->Write(AsyncManagerPtr, true);

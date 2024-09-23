@@ -131,7 +131,7 @@ namespace PCGExOffsetPath
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		Point.Transform.SetLocation(Positions[Index] + (Normals[Index].GetSafeNormal() * (OffsetGetter ? OffsetGetter->Values[Index] : OffsetConstant)));
+		Point.Transform.SetLocation(Positions[Index] + (Normals[Index].GetSafeNormal() * (OffsetGetter ? OffsetGetter->Read(Index) : OffsetConstant)));
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)

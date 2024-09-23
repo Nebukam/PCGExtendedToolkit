@@ -116,8 +116,8 @@ namespace PCGExSortPoints
 			int Result = 0;
 			for (const FPCGExSortRule* Rule : Rules)
 			{
-				const double ValueA = Rule->Cache->Values[PointIndices[A.MetadataEntry]];
-				const double ValueB = Rule->Cache->Values[PointIndices[B.MetadataEntry]];
+				const double ValueA = Rule->Cache->Read(PointIndices[A.MetadataEntry]);
+				const double ValueB = Rule->Cache->Read(PointIndices[B.MetadataEntry]);
 				Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
 				if (Result != 0)
 				{

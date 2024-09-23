@@ -58,7 +58,7 @@ namespace PCGExNodeAdjacency
 
 		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
 
-		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Config.DirectionConstant;
+		FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : TypedFilterFactory->Config.DirectionConstant;
 		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
 		const double A = DotComparison.GetDot(PointIndex);
@@ -155,7 +155,7 @@ namespace PCGExNodeAdjacency
 
 		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
 
-		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Config.DirectionConstant;
+		FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : TypedFilterFactory->Config.DirectionConstant;
 		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }
 
 		RefDir.Normalize();

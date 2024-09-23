@@ -84,8 +84,8 @@ namespace PCGExFlatProjection
 		bool bProjectLocalTransform = false;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-		PCGEx::TAttributeWriter<FTransform>* TransformWriter = nullptr;
-		PCGEx::TAttributeIO<FTransform>* TransformReader = nullptr;
+		PCGExData::TCache<FTransform>* TransformWriter = nullptr;
+		PCGExData::TCache<FTransform>* TransformReader = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

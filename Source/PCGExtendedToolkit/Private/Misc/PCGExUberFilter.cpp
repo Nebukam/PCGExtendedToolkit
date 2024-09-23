@@ -134,7 +134,7 @@ namespace PCGExUberFilter
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
-			Results = PointDataFacade->GetWriter<bool>(Settings->ResultAttributeName, false, false, true);
+			Results = PointDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, false, true);
 		}
 		else
 		{
@@ -155,7 +155,7 @@ namespace PCGExUberFilter
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
 		if (!Results) { return; }
-		Results->Values[Index] = LocalSettings->bSwap ? !PointFilterCache[Index] : PointFilterCache[Index];
+		Results->GetMutable(Index) = LocalSettings->bSwap ? !PointFilterCache[Index] : PointFilterCache[Index];
 	}
 
 	PCGExData::FPointIO* FProcessor::CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const

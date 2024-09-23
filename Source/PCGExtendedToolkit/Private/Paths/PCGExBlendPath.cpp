@@ -157,7 +157,7 @@ namespace PCGExBlendPath
 		}
 		else
 		{
-			Alpha = LerpCache ? LerpCache->Values[Index] : LocalSettings->LerpConstant;
+			Alpha = LerpCache ? LerpCache->Read(Index) : LocalSettings->LerpConstant;
 		}
 
 		MetadataBlender->Blend(*Start, *End, Current, Alpha);

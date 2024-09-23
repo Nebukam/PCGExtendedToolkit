@@ -1130,7 +1130,7 @@ bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* In
 	}
 	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
 	{
-		bAscending = EndpointsReader->Values[Start] < EndpointsReader->Values[End];
+		bAscending = EndpointsReader->Read(Start) < EndpointsReader->Read(End);
 	}
 	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 	{
@@ -1139,7 +1139,7 @@ bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* In
 		const FVector B = InCluster->VtxIO->GetInPoint(End).Transform.GetLocation();
 
 		const FVector& EdgeDir = (A - B).GetSafeNormal();
-		const FVector& CounterDir = EdgeDirReader->Values[InEdge.EdgeIndex];
+		const FVector& CounterDir = EdgeDirReader->Read(InEdge.EdgeIndex);
 		bAscending = CounterDir.Dot(EdgeDir * -1) < CounterDir.Dot(EdgeDir); // TODO : Do we really need both dots?
 	}
 

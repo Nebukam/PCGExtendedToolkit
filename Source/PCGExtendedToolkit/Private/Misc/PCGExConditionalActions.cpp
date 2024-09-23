@@ -134,7 +134,7 @@ namespace PCGExConditionalActions
 				{
 					using T = decltype(DummyValue);
 					const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-					PointDataFacade->GetWriter<T>(TypedAttribute, false);
+					PointDataFacade->GetWritable<T>(TypedAttribute, false);
 				});
 		}
 
@@ -170,12 +170,11 @@ namespace PCGExConditionalActions
 		{
 			for (const PCGExData::FCacheBase* DataCache : PointDataFacade->Caches)
 			{
-				if (!DataCache->bIsPureReader ||
-					!DataCache->Attribute ||
-					!Settings->ConsumeProcessedAttributes.Test(DataCache->Attribute) ||
+				if (!DataCache->InAttribute ||
+					!Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) ||
 					PCGEx::IsPCGExAttribute(DataCache->FullName)) { continue; }
 
-				Metadata->DeleteAttribute(DataCache->Attribute->Name);
+				Metadata->DeleteAttribute(DataCache->InAttribute->Name);
 			}
 		}
 

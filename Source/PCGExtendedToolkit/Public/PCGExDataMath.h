@@ -23,9 +23,9 @@ namespace PCGExMath
 		FVector UpAverage = UpVector;
 		if (UpVectorCache)
 		{
-			UpAverage += *(UpVectorCache->Values.GetData() + A);
-			UpAverage += *(UpVectorCache->Values.GetData() + B);
-			UpAverage += *(UpVectorCache->Values.GetData() + C);
+			UpAverage += UpVectorCache->Read(A);
+			UpAverage += UpVectorCache->Read(B);
+			UpAverage += UpVectorCache->Read(C);
 			UpAverage /= 3;
 			UpAverage = UpAverage.GetSafeNormal();
 		}

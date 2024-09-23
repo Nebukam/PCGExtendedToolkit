@@ -27,12 +27,12 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 		if (LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx)
 		{
 			LocalWeightMultiplier.SetNumZeroed(InCluster->Nodes->Num());
-			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.NodeIndex] = LocalWeightCache->Values[Node.PointIndex]; }
+			for (const PCGExCluster::FNode& Node : (*InCluster->Nodes)) { LocalWeightMultiplier[Node.NodeIndex] = LocalWeightCache->Read(Node.PointIndex); }
 		}
 		else
 		{
 			LocalWeightMultiplier.SetNumZeroed(NumPoints);
-			for (int i = 0; i < NumPoints; ++i) { LocalWeightMultiplier[i] = LocalWeightCache->Values[i]; }
+			for (int i = 0; i < NumPoints; ++i) { LocalWeightMultiplier[i] = LocalWeightCache->Read(i); }
 		}
 
 		bHasCustomLocalWeightMultiplier = true;

@@ -7,23 +7,6 @@ namespace PCGExData
 {
 #pragma region Pools & cache
 
-	void FCacheBase::IncrementWriteReadyNum()
-	{
-		FWriteScopeLock WriteScopeLock(WriteLock);
-		ReadyNum++;
-	}
-
-	void FCacheBase::ReadyWrite(PCGExMT::FTaskManager* AsyncManager)
-	{
-		FWriteScopeLock WriteScopeLock(WriteLock);
-		ReadyNum--;
-		if (ReadyNum <= 0) { Write(AsyncManager); }
-	}
-
-	void FCacheBase::Write(PCGExMT::FTaskManager* AsyncManager)
-	{
-	}
-
 	FCacheBase* FFacade::FindCacheUnsafe(const uint64 UID)
 	{
 		FCacheBase** Found = CacheMap.Find(UID);

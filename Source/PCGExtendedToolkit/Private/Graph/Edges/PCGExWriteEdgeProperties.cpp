@@ -206,7 +206,7 @@ namespace PCGExWriteEdgeProperties
 			FVector TargetBoundsMin = MutableTarget.BoundsMin;
 			FVector TargetBoundsMax = MutableTarget.BoundsMax;
 
-			const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Values[Edge.PointIndex] : LocalSettings->SolidificationLerpConstant, 0, 1);
+			const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Read(Edge.PointIndex) : LocalSettings->SolidificationLerpConstant, 0, 1);
 			const double EdgeLerpInv = 1 - EdgeLerp;
 			bool bProcessAxis;
 
@@ -219,8 +219,8 @@ namespace PCGExWriteEdgeProperties
 					}else{\
 						double Rad = Rad##_AXIS##Constant;\
 						if(SolidificationRad##_AXIS){\
-						if (LocalSettings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Values[Edge.Start], SolidificationRad##_AXIS->Values[Edge.End], EdgeLerp); }\
-						else { Rad = SolidificationRad##_AXIS->Values[Edge.PointIndex]; }}\
+						if (LocalSettings->Radius##_AXIS##Source == EPCGExGraphValueSource::Vtx) { Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Edge.Start), SolidificationRad##_AXIS->Read(Edge.End), EdgeLerp); }\
+						else { Rad = SolidificationRad##_AXIS->Read(Edge.PointIndex); }}\
 						TargetBoundsMin._AXIS = -Rad;\
 						TargetBoundsMax._AXIS = Rad;\
 					}}

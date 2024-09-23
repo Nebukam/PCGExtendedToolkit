@@ -43,7 +43,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	{
 		for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
 		{
-			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Values[Node.PointIndex], MinValue, MaxValue, OutMin, OutMax);
+			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Read(Node.PointIndex), MinValue, MaxValue, OutMin, OutMax);
 			CachedScores[Node.NodeIndex] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
 		}
 	}
@@ -51,7 +51,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	{
 		for (int i = 0; i < NumPoints; ++i)
 		{
-			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Values[i], MinValue, MaxValue, OutMin, OutMax);
+			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Read(i), MinValue, MaxValue, OutMin, OutMax);
 			CachedScores[i] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
 		}
 	}

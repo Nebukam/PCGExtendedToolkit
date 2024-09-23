@@ -147,7 +147,7 @@ namespace PCGExBevelPath
 		ArriveDir = (PrevLocation - Corner).GetSafeNormal();
 		LeaveDir = (NextLocation - Corner).GetSafeNormal();
 
-		Width = InProcessor->WidthGetter ? InProcessor->WidthGetter->Values[Index] : InProcessor->LocalSettings->WidthConstant;
+		Width = InProcessor->WidthGetter ? InProcessor->WidthGetter->Read(Index) : InProcessor->LocalSettings->WidthConstant;
 
 		const double ArriveLen = InProcessor->Len(ArriveIdx);
 		const double LeaveLen = InProcessor->Len(Index);
@@ -206,7 +206,7 @@ namespace PCGExBevelPath
 
 		if (!InProcessor->bSubdivide) { return; }
 
-		const double Amount = InProcessor->SubdivAmountGetter ? InProcessor->SubdivAmountGetter->Values[Index] : InProcessor->ConstantSubdivAmount;
+		const double Amount = InProcessor->SubdivAmountGetter ? InProcessor->SubdivAmountGetter->Read(Index) : InProcessor->ConstantSubdivAmount;
 
 		if (!InProcessor->bArc) { SubdivideLine(Amount, InProcessor->bSubdivideCount); }
 		else { SubdivideArc(Amount, InProcessor->bSubdivideCount); }
@@ -429,15 +429,15 @@ namespace PCGExBevelPath
 
 		if (EndpointsWriter)
 		{
-			EndpointsWriter->Values[Bevel->StartOutputIndex] = true;
-			EndpointsWriter->Values[Bevel->EndOutputIndex] = true;
+			EndpointsWriter->GetMutable(Bevel->StartOutputIndex) = true;
+			EndpointsWriter->GetMutable(Bevel->EndOutputIndex) = true;
 		}
 
-		if (StartPointWriter) { StartPointWriter->Values[Bevel->StartOutputIndex] = true; }
+		if (StartPointWriter) { StartPointWriter->GetMutable(Bevel->StartOutputIndex) = true; }
 
-		if (EndPointWriter) { EndPointWriter->Values[Bevel->EndOutputIndex] = true; }
+		if (EndPointWriter) { EndPointWriter->GetMutable(Bevel->EndOutputIndex) = true; }
 
-		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); ++i) { SubdivisionWriter->Values[Bevel->StartOutputIndex + i] = true; } }
+		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); ++i) { SubdivisionWriter->GetMutable(Bevel->StartOutputIndex + i) = true; } }
 	}
 
 	void FProcessor::CompleteWork()
@@ -487,22 +487,22 @@ namespace PCGExBevelPath
 	{
 		if (LocalSettings->bFlagEndpoints)
 		{
-			EndpointsWriter = PointDataFacade->GetWriter<bool>(LocalSettings->EndpointsFlagName, false, true, true);
+			EndpointsWriter = PointDataFacade->GetWritable<bool>(LocalSettings->EndpointsFlagName, false, true, true);
 		}
 
 		if (LocalSettings->bFlagStartPoint)
 		{
-			StartPointWriter = PointDataFacade->GetWriter<bool>(LocalSettings->StartPointFlagName, false, true, true);
+			StartPointWriter = PointDataFacade->GetWritable<bool>(LocalSettings->StartPointFlagName, false, true, true);
 		}
 
 		if (LocalSettings->bFlagEndPoint)
 		{
-			EndPointWriter = PointDataFacade->GetWriter<bool>(LocalSettings->EndPointFlagName, false, true, true);
+			EndPointWriter = PointDataFacade->GetWritable<bool>(LocalSettings->EndPointFlagName, false, true, true);
 		}
 
 		if (LocalSettings->bFlagSubdivision)
 		{
-			SubdivisionWriter = PointDataFacade->GetWriter<bool>(LocalSettings->SubdivisionFlagName, false, true, true);
+			SubdivisionWriter = PointDataFacade->GetWritable<bool>(LocalSettings->SubdivisionFlagName, false, true, true);
 		}
 
 		PCGEX_ASYNC_GROUP(AsyncManagerPtr, WriteFlagsTask)

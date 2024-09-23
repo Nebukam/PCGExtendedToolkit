@@ -152,15 +152,15 @@ namespace PCGExAssetStaging
 
 		if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw)
 		{
-			WeightWriter = PointDataFacade->GetWriter<int32>(Settings->WeightAttributeName, true);
+			WeightWriter = PointDataFacade->GetWritable<int32>(Settings->WeightAttributeName, true);
 		}
 		else if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
 		{
-			NormalizedWeightWriter = PointDataFacade->GetWriter<double>(Settings->WeightAttributeName, true);
+			NormalizedWeightWriter = PointDataFacade->GetWritable<double>(Settings->WeightAttributeName, true);
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PathWriter = PointDataFacade->GetWriter<FSoftObjectPath>(Settings->AssetPathAttributeName, false);
+		PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, false);
 #else
 		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
 #endif
@@ -187,15 +187,15 @@ namespace PCGExAssetStaging
 			}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-			PathWriter->Values[Index] = FSoftObjectPath{};
+			PathWriter->GetMutable(Index) = FSoftObjectPath{};
 #else
-			PathWriter->Values[Index] = TEXT("");
+			PathWriter->GetMutable(Index) = TEXT("");
 #endif
 
 			if (bOutputWeight)
 			{
-				if (WeightWriter) { WeightWriter->Values[Index] = -1; }
-				else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = -1; }
+				if (WeightWriter) { WeightWriter->GetMutable(Index) = -1; }
+				else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = -1; }
 			}
 		};
 
@@ -223,15 +223,15 @@ namespace PCGExAssetStaging
 		{
 			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(LocalTypedContext->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
 			if (bOneMinusWeight) { Weight = 1 - Weight; }
-			if (WeightWriter) { WeightWriter->Values[Index] = Weight; }
-			else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = Weight; }
+			if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
+			else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
 			else { Point.Density = Weight; }
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PathWriter->Values[Index] = StagingData->Path;
+		PathWriter->GetMutable(Index) = StagingData->Path;
 #else
-		PathWriter->Values[Index] = StagingData->Path.ToString();
+		PathWriter->GetMutable(Index) = StagingData->Path.ToString();
 #endif
 
 

@@ -136,7 +136,7 @@ namespace PCGExSmooth
 		if (!PointFilterCache[Index]) { return; }
 
 		PCGExData::FPointRef PtRef = PointIO->GetOutPointRef(Index);
-		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Values[Index], 0, TNumericLimits<double>::Max()) * LocalSettings->ScaleSmoothingAmountAttribute : LocalSettings->SmoothingAmountConstant;
+		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Read(Index), 0, TNumericLimits<double>::Max()) * LocalSettings->ScaleSmoothingAmountAttribute : LocalSettings->SmoothingAmountConstant;
 
 		if ((LocalSettings->bPreserveEnd && Index == NumPoints - 1) ||
 			(LocalSettings->bPreserveStart && Index == 0))
@@ -145,7 +145,7 @@ namespace PCGExSmooth
 			return;
 		}
 
-		const double LocalInfluence = Influence ? Influence->Values[Index] : LocalSettings->InfluenceConstant;
+		const double LocalInfluence = Influence ? Influence->Read(Index) : LocalSettings->InfluenceConstant;
 		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, LocalInfluence, MetadataBlender, bClosedLoop);
 	}
 

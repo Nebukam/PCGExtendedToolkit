@@ -125,7 +125,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		FVector TargetBoundsMin = Point.BoundsMin;
 		FVector TargetBoundsMax = Point.BoundsMax;
 
-		const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Values[Index] : LocalSettings->SolidificationLerpConstant, 0, 1);
+		const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Read(Index) : LocalSettings->SolidificationLerpConstant, 0, 1);
 		const double EdgeLerpInv = 1 - EdgeLerp;
 		bool bProcessAxis;
 
@@ -137,7 +137,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 				TargetBoundsMax._AXIS = (Length * EdgeLerp)* Scale._AXIS;\
 			}else{\
 				double Rad = Rad##_AXIS##Constant;\
-				if(SolidificationRad##_AXIS){Rad = FMath::Lerp(SolidificationRad##_AXIS->Values[Index], SolidificationRad##_AXIS->Values[Index], EdgeLerp); }\
+				if(SolidificationRad##_AXIS){Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Index), SolidificationRad##_AXIS->Read(Index), EdgeLerp); }\
 				else{Rad=LocalSettings->Radius##_AXIS##Constant;}\
 				TargetBoundsMin._AXIS = -Rad;\
 				TargetBoundsMax._AXIS = Rad;\

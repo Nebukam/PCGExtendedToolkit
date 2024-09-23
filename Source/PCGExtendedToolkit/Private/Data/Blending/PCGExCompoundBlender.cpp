@@ -129,14 +129,14 @@ namespace PCGExDataBlending
 				{
 					using T = decltype(DummyValue);
 
-					PCGEx::TAttributeWriter<T>* Writer;
+					PCGExData::TCache<T>* Writer;
 					if (const FPCGMetadataAttribute<T>* ExistingAttribute = CurrentTargetData->FindConstAttribute<T>(SrcMap->Identity.Name))
 					{
-						Writer = CurrentTargetData->GetWriter<T>(ExistingAttribute, false);
+						Writer = CurrentTargetData->GetWritable<T>(ExistingAttribute, false);
 					}
 					else
 					{
-						Writer = CurrentTargetData->GetWriter<T>(static_cast<FPCGMetadataAttribute<T>*>(SrcMap->DefaultValuesSource), false);
+						Writer = CurrentTargetData->GetWritable<T>(static_cast<FPCGMetadataAttribute<T>*>(SrcMap->DefaultValuesSource), false);
 					}
 
 					SrcMap->Writer = Writer;

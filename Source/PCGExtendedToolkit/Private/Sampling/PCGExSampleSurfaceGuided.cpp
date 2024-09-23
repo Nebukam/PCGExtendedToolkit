@@ -145,8 +145,8 @@ namespace PCGExSampleSurfaceGuided
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Values[Index] : LocalSettings->MaxDistance;
-		const FVector Direction = DirectionGetter->Values[Index].GetSafeNormal();
+		const double MaxDistance = MaxDistanceGetter ? MaxDistanceGetter->Read(Index) : LocalSettings->MaxDistance;
+		const FVector Direction = DirectionGetter->Read(Index).GetSafeNormal();
 
 		auto SamplingFailed = [&]()
 		{

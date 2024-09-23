@@ -77,13 +77,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 
 	FORCEINLINE FQuat GetQuat(const int32 PointIndex) const
 	{
-		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Values[PointIndex].GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector) :
+		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Read(PointIndex).GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector) :
 			       ProjectionQuat;
 	}
 
 	FORCEINLINE FVector Project(const FVector& InPosition, const int32 PointIndex) const
 	{
-		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Values[PointIndex].GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector).RotateVector(InPosition) :
+		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Read(PointIndex).GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector).RotateVector(InPosition) :
 			       ProjectionQuat.RotateVector(InPosition);
 	}
 
@@ -132,7 +132,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 			for (int i = 0; i < NumVectors; ++i)
 			{
 				OutPositions[i] = FQuat::FindBetweenNormals(
-					NormalGetter->Values[i].GetSafeNormal(1E-08, FVector::UpVector),
+					NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
 					FVector::UpVector).RotateVector(InPositions[i]);
 			}
 		}
@@ -163,7 +163,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 			{
 				OutPositions[i] = FVector2D(
 					FQuat::FindBetweenNormals(
-						NormalGetter->Values[i].GetSafeNormal(1E-08, FVector::UpVector),
+						NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
 						FVector::UpVector).RotateVector(InPositions[i]));
 			}
 		}
@@ -193,7 +193,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 			for (int i = 0; i < NumVectors; ++i)
 			{
 				OutPositions[i] = FQuat::FindBetweenNormals(
-					NormalGetter->Values[i].GetSafeNormal(1E-08, FVector::UpVector),
+					NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
 					FVector::UpVector).RotateVector(InPoints[i].Transform.GetLocation());
 			}
 		}

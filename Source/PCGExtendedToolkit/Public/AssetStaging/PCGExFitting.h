@@ -296,8 +296,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 
 		const double HalfOutSize = OutSize[Axis] * 0.5;
 		const double HalfInSize = InSize[Axis] * 0.5;
-		const double FromValue = SharedFromGetter ? SharedFromGetter->Values[Index][Axis] : FromGetter ? FromGetter->Values[Index] : FromConstant;
-		const double ToValue = SharedToGetter ? SharedToGetter->Values[Index][Axis] : ToGetter ? ToGetter->Values[Index] : ToConstant;
+		const double FromValue = SharedFromGetter ? SharedFromGetter->Read(Index)[Axis] : FromGetter ? FromGetter->Read(Index) : FromConstant;
+		const double ToValue = SharedToGetter ? SharedToGetter->Read(Index)[Axis] : ToGetter ? ToGetter->Read(Index) : ToConstant;
 
 		switch (From)
 		{

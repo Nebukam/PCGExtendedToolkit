@@ -36,7 +36,7 @@ namespace PCGExNodeNeighborsCount
 	bool FNeighborsCountFilter::Test(const PCGExCluster::FNode& Node) const
 	{
 		const double A = Node.Adjacency.Num();
-		const double B = LocalCount ? LocalCount->Values[Node.PointIndex] : TypedFilterFactory->Config.Count;
+		const double B = LocalCount ? LocalCount->Read(Node.PointIndex) : TypedFilterFactory->Config.Count;
 		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 	}
 }

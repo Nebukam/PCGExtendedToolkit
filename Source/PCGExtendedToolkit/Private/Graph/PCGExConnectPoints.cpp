@@ -303,7 +303,7 @@ namespace PCGExConnectPoints
 			if (!bUseVariableRadius) { MaxRadius = SharedSearchRadius; }
 			else
 			{
-				for (UPCGExProbeOperation* Op : ProbeOperations) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Values[Index] : Op->SearchRadius); }
+				for (UPCGExProbeOperation* Op : ProbeOperations) { MaxRadius = FMath::Max(MaxRadius, Op->SearchRadiusCache ? Op->SearchRadiusCache->Read(Index) : Op->SearchRadius); }
 			}
 
 			const FVector Origin = CachedTransforms[Index].GetLocation();

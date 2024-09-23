@@ -120,7 +120,7 @@ namespace PCGExSampleInsideBoundss
 
 	void FProcessor::SamplingFailed(const int32 Index, FPCGPoint& Point) const
 	{
-		const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Values[Index]) : LocalSettings->RangeMax;
+		const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Read(Index)) : LocalSettings->RangeMax;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
 		PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
 		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
@@ -193,8 +193,8 @@ namespace PCGExSampleInsideBoundss
 
 		const FVector SourceCenter = Point.Transform.GetLocation();
 
-		double RangeMin = FMath::Pow(RangeMaxGetter ? RangeMinGetter->Values[Index] : LocalSettings->RangeMin, 2);
-		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Values[Index] : LocalSettings->RangeMax, 2);
+		double RangeMin = FMath::Pow(RangeMaxGetter ? RangeMinGetter->Read(Index) : LocalSettings->RangeMin, 2);
+		double RangeMax = FMath::Pow(RangeMaxGetter ? RangeMaxGetter->Read(Index) : LocalSettings->RangeMax, 2);
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
@@ -263,7 +263,7 @@ namespace PCGExSampleInsideBoundss
 		FTransform WeightedTransform = FTransform::Identity;
 		WeightedTransform.SetScale3D(FVector::ZeroVector);
 		FVector WeightedUp = SafeUpVector;
-		if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Values[Index]; }
+		if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
 
 		FVector WeightedSignAxis = FVector::Zero();
 		FVector WeightedAngleAxis = FVector::Zero();
@@ -282,7 +282,7 @@ namespace PCGExSampleInsideBoundss
 			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (TargetTransform.GetScale3D() * Weight));
 			WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (TargetTransform.GetLocation() * Weight));
 
-			if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Values[TargetInfos.Index] : SafeUpVector) * Weight; }
+			if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector) * Weight; }
 
 			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, LocalSettings->SignAxis) * Weight;
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, LocalSettings->AngleAxis) * Weight;

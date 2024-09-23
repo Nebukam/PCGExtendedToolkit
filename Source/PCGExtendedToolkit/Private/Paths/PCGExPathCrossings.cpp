@@ -301,9 +301,9 @@ namespace PCGExPathCrossings
 		const FCrossing* Crossing = Crossings[Index];
 		const PCGExPaths::FPathEdge* Edge = Edges[Index];
 
-		if (FlagWriter) { FlagWriter->Values[Edge->OffsetedStart] = false; }
-		if (AlphaWriter) { AlphaWriter->Values[Edge->OffsetedStart] = LocalSettings->DefaultAlpha; }
-		if (CrossWriter) { CrossWriter->Values[Edge->OffsetedStart] = LocalSettings->DefaultCrossDirection; }
+		if (FlagWriter) { FlagWriter->GetMutable(Edge->OffsetedStart) = false; }
+		if (AlphaWriter) { AlphaWriter->GetMutable(Edge->OffsetedStart) = LocalSettings->DefaultAlpha; }
+		if (CrossWriter) { CrossWriter->GetMutable(Edge->OffsetedStart) = LocalSettings->DefaultCrossDirection; }
 
 		if (!Crossing) { return; }
 
@@ -326,9 +326,9 @@ namespace PCGExPathCrossings
 			const FVector& V = Crossing->Positions[OrderIdx];
 			const FVector CrossDir = Crossing->CrossingDirections[OrderIdx];
 
-			if (FlagWriter) { FlagWriter->Values[Idx] = true; }
-			if (AlphaWriter) { AlphaWriter->Values[Idx] = Crossing->Alphas[OrderIdx]; }
-			if (CrossWriter) { CrossWriter->Values[Idx] = CrossDir; }
+			if (FlagWriter) { FlagWriter->GetMutable(Idx) = true; }
+			if (AlphaWriter) { AlphaWriter->GetMutable(Idx) = Crossing->Alphas[OrderIdx]; }
+			if (CrossWriter) { CrossWriter->GetMutable(Idx) = CrossDir; }
 
 			if (LocalSettings->bOrientCrossing)
 			{
@@ -421,19 +421,19 @@ namespace PCGExPathCrossings
 		// Flag last so it doesn't get captured by blenders
 		if (LocalSettings->IntersectionDetails.bWriteCrossing)
 		{
-			FlagWriter = PointDataFacade->GetWriter(LocalSettings->IntersectionDetails.CrossingAttributeName, false, true, true);
+			FlagWriter = PointDataFacade->GetWritable(LocalSettings->IntersectionDetails.CrossingAttributeName, false, true, true);
 			ProtectedAttributes.Add(LocalSettings->IntersectionDetails.CrossingAttributeName);
 		}
 
 		if (LocalSettings->bWriteAlpha)
 		{
-			AlphaWriter = PointDataFacade->GetWriter<double>(LocalSettings->CrossingAlphaAttributeName, LocalSettings->DefaultAlpha, true, true);
+			AlphaWriter = PointDataFacade->GetWritable<double>(LocalSettings->CrossingAlphaAttributeName, LocalSettings->DefaultAlpha, true, true);
 			ProtectedAttributes.Add(LocalSettings->CrossingAlphaAttributeName);
 		}
 
 		if (LocalSettings->bWriteCrossDirection)
 		{
-			CrossWriter = PointDataFacade->GetWriter<FVector>(LocalSettings->CrossDirectionAttributeName, LocalSettings->DefaultCrossDirection, true, true);
+			CrossWriter = PointDataFacade->GetWritable<FVector>(LocalSettings->CrossDirectionAttributeName, LocalSettings->DefaultCrossDirection, true, true);
 			ProtectedAttributes.Add(LocalSettings->CrossDirectionAttributeName);
 		}
 

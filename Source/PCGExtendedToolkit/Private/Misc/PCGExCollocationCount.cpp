@@ -68,11 +68,11 @@ namespace PCGExCollocationCount
 		NumPoints = PointIO->GetNum();
 		ToleranceConstant = Settings->Tolerance;
 
-		CollocationWriter = PointDataFacade->GetWriter(Settings->CollicationNumAttributeName, 0, true, true);
+		CollocationWriter = PointDataFacade->GetWritable(Settings->CollicationNumAttributeName, 0, true, true);
 
 		if (Settings->bWriteLinearOccurences)
 		{
-			LinearOccurencesWriter = PointDataFacade->GetWriter(Settings->LinearOccurencesAttributeName, 0, true, true);
+			LinearOccurencesWriter = PointDataFacade->GetWritable(Settings->LinearOccurencesAttributeName, 0, true, true);
 		}
 
 		Octree = &PointDataFacade->Source->GetIn()->GetOctree();
@@ -88,7 +88,7 @@ namespace PCGExCollocationCount
 		const double Tolerance = ToleranceConstant;
 		FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Center, FVector(Tolerance));
 
-		CollocationWriter->Values[Index] = 0;
+		CollocationWriter->GetMutable(Index) = 0;
 
 		auto ProcessNeighbors = [&](const FPCGPointRef& Other)
 		{
@@ -96,7 +96,7 @@ namespace PCGExCollocationCount
 			if (OtherIndex == Index) { return; }
 			if (FVector::Dist(Center, Other.Point->Transform.GetLocation()) > Tolerance) { return; }
 
-			CollocationWriter->Values[Index] += 1;
+			CollocationWriter->GetMutable(Index) += 1;
 		};
 
 		auto ProcessNeighbors2 = [&](const FPCGPointRef& Other)
@@ -105,14 +105,14 @@ namespace PCGExCollocationCount
 			if (OtherIndex == Index) { return; }
 			if (FVector::Dist(Center, Other.Point->Transform.GetLocation()) > Tolerance) { return; }
 
-			CollocationWriter->Values[Index] += 1;
+			CollocationWriter->GetMutable(Index) += 1;
 
-			if (OtherIndex < Index) { LinearOccurencesWriter->Values[Index] += 1; }
+			if (OtherIndex < Index) { LinearOccurencesWriter->GetMutable(Index) += 1; }
 		};
 
 		if (LinearOccurencesWriter)
 		{
-			LinearOccurencesWriter->Values[Index] = 0;
+			LinearOccurencesWriter->GetMutable(Index) = 0;
 			Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbors2);
 		}
 		else
