@@ -75,7 +75,7 @@ namespace PCGExRelaxClusters
 	{
 		int32 Iterations = 10;
 
-		PCGExData::TCache<double>* InfluenceCache = nullptr;
+		PCGExData::TBuffer<double>* InfluenceCache = nullptr;
 
 		UPCGExRelaxClusterOperation* RelaxOperation = nullptr;
 

@@ -10,7 +10,7 @@
 
 // Declaration & use pair, boolean will be set by name validation
 #define PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE, _DEFAULT_VALUE) bool bWrite##_NAME = false;
-#define PCGEX_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT_VALUE) PCGExData::TCache<_TYPE>* _NAME##Writer = nullptr;
+#define PCGEX_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT_VALUE) PCGExData::TBuffer<_TYPE>* _NAME##Writer = nullptr;
 #define PCGEX_OUTPUT_DECL_AND_TOGGLE(_NAME, _TYPE, _DEFAULT_VALUE) PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE, _DEFAULT_VALUE) PCGEX_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT_VALUE)
 
 // Simply validate name from settings

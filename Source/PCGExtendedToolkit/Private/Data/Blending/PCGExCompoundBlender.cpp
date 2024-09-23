@@ -129,7 +129,7 @@ namespace PCGExDataBlending
 				{
 					using T = decltype(DummyValue);
 
-					PCGExData::TCache<T>* Writer;
+					PCGExData::TBuffer<T>* Writer;
 					if (const FPCGMetadataAttribute<T>* ExistingAttribute = CurrentTargetData->FindConstAttribute<T>(SrcMap->Identity.Name))
 					{
 						Writer = CurrentTargetData->GetWritable<T>(ExistingAttribute, false);

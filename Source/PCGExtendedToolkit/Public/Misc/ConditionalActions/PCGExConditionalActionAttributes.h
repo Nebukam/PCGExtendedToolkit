@@ -42,9 +42,9 @@ public:
 
 protected:
 	TArray<FPCGMetadataAttributeBase*> SuccessAttributes;
-	TArray<PCGExData::FCacheBase*> SuccessWriters;
+	TArray<PCGExData::FBufferBase*> SuccessWriters;
 	TArray<FPCGMetadataAttributeBase*> FailAttributes;
-	TArray<PCGExData::FCacheBase*> FailWriters;
+	TArray<PCGExData::FBufferBase*> FailWriters;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

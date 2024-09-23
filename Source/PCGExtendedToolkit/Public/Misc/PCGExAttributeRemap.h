@@ -136,8 +136,8 @@ namespace PCGExAttributeRemap
 
 		TArray<FPCGExComponentRemapRule> Rules;
 
-		PCGExData::FCacheBase* CacheWriter = nullptr;
-		PCGExData::FCacheBase* CacheReader = nullptr;
+		PCGExData::FBufferBase* CacheWriter = nullptr;
+		PCGExData::FBufferBase* CacheReader = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
@@ -154,7 +154,7 @@ namespace PCGExAttributeRemap
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
 
-			PCGExData::TCache<T>* Writer = static_cast<PCGExData::TCache<T>*>(CacheWriter);
+			PCGExData::TBuffer<T>* Writer = static_cast<PCGExData::TBuffer<T>*>(CacheWriter);
 
 			for (int d = 0; d < Dimensions; ++d)
 			{

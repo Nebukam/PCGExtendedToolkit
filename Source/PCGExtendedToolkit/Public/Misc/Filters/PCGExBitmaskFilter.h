@@ -74,8 +74,8 @@ namespace PCGExPointsFilter
 
 		const UPCGExBitmaskFilterFactory* TypedFilterFactory;
 
-		PCGExData::TCache<int64>* FlagsReader = nullptr;
-		PCGExData::TCache<int64>* MaskReader = nullptr;
+		PCGExData::TBuffer<int64>* FlagsReader = nullptr;
+		PCGExData::TBuffer<int64>* MaskReader = nullptr;
 
 		int64 Bitmask;
 

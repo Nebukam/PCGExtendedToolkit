@@ -119,8 +119,8 @@ namespace PCGExReversePointOrder
 				static_cast<uint16>(WorkingPair.FirstIdentity->UnderlyingType), [&](auto DummyValue) -> void
 				{
 					using RawT = decltype(DummyValue);
-					PCGExData::TCache<RawT>* FirstWriter = static_cast<PCGExData::TCache<RawT>*>(WorkingPair.FirstWriter);
-					PCGExData::TCache<RawT>* SecondWriter = static_cast<PCGExData::TCache<RawT>*>(WorkingPair.SecondWriter);
+					PCGExData::TBuffer<RawT>* FirstWriter = static_cast<PCGExData::TBuffer<RawT>*>(WorkingPair.FirstWriter);
+					PCGExData::TBuffer<RawT>* SecondWriter = static_cast<PCGExData::TBuffer<RawT>*>(WorkingPair.SecondWriter);
 
 					if (WorkingPair.bMultiplyByMinusOne)
 					{

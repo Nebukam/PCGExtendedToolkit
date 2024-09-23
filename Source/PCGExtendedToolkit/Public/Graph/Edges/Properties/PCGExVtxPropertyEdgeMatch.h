@@ -87,7 +87,7 @@ protected:
 
 	mutable FRWLock FilterLock;
 
-	PCGExData::TCache<FVector>* DirCache = nullptr;
+	PCGExData::TBuffer<FVector>* DirCache = nullptr;
 	TArray<PCGExPointFilter::TManager*> FilterManagers;
 };
 

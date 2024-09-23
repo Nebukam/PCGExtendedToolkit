@@ -197,8 +197,8 @@ namespace PCGExAttributeRemap
 					static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
 					{
 						using RawT = decltype(DummyValue);
-						PCGExData::TCache<RawT>* Writer = static_cast<PCGExData::TCache<RawT>*>(CacheWriter);
-						PCGExData::TCache<RawT>* Reader = static_cast<PCGExData::TCache<RawT>*>(CacheReader);
+						PCGExData::TBuffer<RawT>* Writer = static_cast<PCGExData::TBuffer<RawT>*>(CacheWriter);
+						PCGExData::TBuffer<RawT>* Reader = static_cast<PCGExData::TBuffer<RawT>*>(CacheReader);
 
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
 						for (int i = StartIndex; i < StartIndex + Count; ++i) { Writer->GetMutable(i) = Reader->Read(i); } // Copy range to writer

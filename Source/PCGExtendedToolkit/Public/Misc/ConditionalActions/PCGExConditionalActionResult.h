@@ -34,7 +34,7 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGExData::TCache<bool>* ResultWriter = nullptr;
+	PCGExData::TBuffer<bool>* ResultWriter = nullptr;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

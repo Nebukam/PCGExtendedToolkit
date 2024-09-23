@@ -7,17 +7,17 @@ namespace PCGExData
 {
 #pragma region Pools & cache
 
-	FCacheBase* FFacade::FindCacheUnsafe(const uint64 UID)
+	FBufferBase* FFacade::FindBufferUnsafe(const uint64 UID)
 	{
-		FCacheBase** Found = CacheMap.Find(UID);
+		FBufferBase** Found = BufferMap.Find(UID);
 		if (!Found) { return nullptr; }
 		return *Found;
 	}
 
-	FCacheBase* FFacade::FindCache(const uint64 UID)
+	FBufferBase* FFacade::FindBuffer(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(PoolLock);
-		return FindCacheUnsafe(UID);
+		return FindBufferUnsafe(UID);
 	}
 
 #pragma endregion

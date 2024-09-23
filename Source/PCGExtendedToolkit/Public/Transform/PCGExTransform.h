@@ -60,9 +60,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", EditConditionHides, DisplayName="W"))
 	FPCGAttributePropertyInputSelector WAttribute;
 
-	PCGExData::TCache<double>* UGetter = nullptr;
-	PCGExData::TCache<double>* VGetter = nullptr;
-	PCGExData::TCache<double>* WGetter = nullptr;
+	PCGExData::TBuffer<double>* UGetter = nullptr;
+	PCGExData::TBuffer<double>* VGetter = nullptr;
+	PCGExData::TBuffer<double>* WGetter = nullptr;
 
 	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InDataFacade)
 	{

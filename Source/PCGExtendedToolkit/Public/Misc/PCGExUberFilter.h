@@ -98,7 +98,7 @@ namespace PCGExUberFilter
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
 
-		PCGExData::TCache<bool>* Results = nullptr;
+		PCGExData::TBuffer<bool>* Results = nullptr;
 
 	public:
 		PCGExData::FPointIO* Inside = nullptr;

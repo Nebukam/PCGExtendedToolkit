@@ -103,7 +103,7 @@ namespace PCGExBlendPath
 
 		PCGExPaths::FPathMetrics Metrics;
 
-		PCGExData::TCache<double>* LerpCache = nullptr;
+		PCGExData::TBuffer<double>* LerpCache = nullptr;
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 
 		PCGExData::FPointRef* Start = nullptr;

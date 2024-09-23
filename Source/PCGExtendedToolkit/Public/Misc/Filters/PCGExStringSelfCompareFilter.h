@@ -79,7 +79,7 @@ namespace PCGExPointsFilter
 		const UPCGExStringSelfCompareFilterFactory* TypedFilterFactory;
 
 		PCGEx::FLocalToStringGetter* OperandA = nullptr;
-		PCGExData::TCache<int32>* Index = nullptr;
+		PCGExData::TBuffer<int32>* Index = nullptr;
 		bool bOffset = false;
 		int32 MaxIndex = 0;
 

@@ -701,8 +701,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionSettings
 	FPCGAttributePropertyInputSelector DirSourceAttribute;
 
 	bool bAscendingDesired = false;
-	PCGExData::TCache<double>* EndpointsReader = nullptr;
-	PCGExData::TCache<FVector>* EdgeDirReader = nullptr;
+	PCGExData::TBuffer<double>* EndpointsReader = nullptr;
+	PCGExData::TBuffer<FVector>* EdgeDirReader = nullptr;
 
 	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InEndpointsFacade);
 	bool InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, PCGExData::FFacade* InEdgeDataFacade);

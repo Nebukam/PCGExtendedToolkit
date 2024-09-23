@@ -33,22 +33,22 @@ namespace PCGExData
 {
 	PCGEX_ASYNC_STATE(State_MergingData);
 
-#pragma region Pool & cache
+#pragma region Pool & Buffers
 
-	static uint64 CacheUID(const FName FullName, const EPCGMetadataTypes Type)
+	static uint64 BufferUID(const FName FullName, const EPCGMetadataTypes Type)
 	{
 		return PCGEx::H64(GetTypeHash(FullName), static_cast<int32>(Type));
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCacheBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ FBufferBase
 	{
 		friend class FFacade;
 
 	protected:
-		mutable FRWLock CacheLock;
+		mutable FRWLock BufferLock;
 		mutable FRWLock WriteLock;
 
-		bool bScopedCache = false;
+		bool bScopedBuffer = false;
 
 		TArrayView<const FPCGPoint> InPoints;
 		FPCGAttributeAccessorKeysPoints* InKeys = nullptr;
@@ -67,12 +67,12 @@ namespace PCGExData
 		FPointIO* Source = nullptr;
 
 
-		FCacheBase(const FName InFullName, const EPCGMetadataTypes InType):
-			FullName(InFullName), Type(InType), UID(CacheUID(FullName, Type))
+		FBufferBase(const FName InFullName, const EPCGMetadataTypes InType):
+			FullName(InFullName), Type(InType), UID(BufferUID(FullName, Type))
 		{
 		}
 
-		virtual ~FCacheBase() = default;
+		virtual ~FBufferBase() = default;
 
 		virtual void Write()
 		{
@@ -82,7 +82,7 @@ namespace PCGExData
 		{
 		}
 
-		virtual bool IsScoped() { return bScopedCache; }
+		virtual bool IsScoped() { return bScopedBuffer; }
 		virtual bool IsWritable() { return false; }
 		virtual bool IsReadable() { return false; }
 
@@ -90,7 +90,7 @@ namespace PCGExData
 	};
 
 	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ TCache : public FCacheBase
+	class /*PCGEXTENDEDTOOLKIT_API*/ TBuffer : public FBufferBase
 	{
 	protected:
 		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor;
@@ -108,14 +108,14 @@ namespace PCGExData
 
 		PCGEx::TAttributeGetter<T>* ScopedBroadcaster = nullptr;
 
-		virtual bool IsScoped() override { return bScopedCache || ScopedBroadcaster; }
+		virtual bool IsScoped() override { return bScopedBuffer || ScopedBroadcaster; }
 
-		TCache(const FName InFullName, const EPCGMetadataTypes InType):
-			FCacheBase(InFullName, InType)
+		TBuffer(const FName InFullName, const EPCGMetadataTypes InType):
+			FBufferBase(InFullName, InType)
 		{
 		}
 
-		virtual ~TCache() override
+		virtual ~TBuffer() override
 		{
 			Flush();
 		}
@@ -151,20 +151,20 @@ namespace PCGExData
 			InAttribute = Attribute;
 			TypedInAttribute = Attribute ? static_cast<const FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
 
-			bScopedCache = bScoped;
+			bScopedBuffer = bScoped;
 		}
 
 		bool PrepareRead(const ESource InSource = ESource::In, const bool bScoped = false)
 		{
-			FWriteScopeLock WriteScopeLock(CacheLock);
+			FWriteScopeLock WriteScopeLock(BufferLock);
 
 			if (InValues)
 			{
-				if (bScopedCache && !bScoped)
+				if (bScopedBuffer && !bScoped)
 				{
 					// Un-scoping reader.
 					Fetch(0, InValues->Num());
-					bScopedCache = false;
+					bScopedBuffer = false;
 				}
 
 				if (InSource == ESource::In && OutValues && InValues == OutValues)
@@ -199,7 +199,7 @@ namespace PCGExData
 
 			PrepareForRead(bScoped, TypedInAttribute);
 
-			if (!bScopedCache)
+			if (!bScopedBuffer)
 			{
 				TArrayView<T> InRange = MakeArrayView(InValues->GetData(), InValues->Num());
 				InAccessor->GetRange(InRange, 0, *InKeys, EPCGAttributeAccessorFlags::StrictType);
@@ -210,7 +210,7 @@ namespace PCGExData
 
 		bool PrepareWrite(T DefaultValue, bool bAllowInterpolation, const bool bUninitialized = false)
 		{
-			FWriteScopeLock WriteScopeLock(CacheLock);
+			FWriteScopeLock WriteScopeLock(BufferLock);
 
 			if (OutValues) { return true; }
 
@@ -251,7 +251,7 @@ namespace PCGExData
 		bool PrepareWrite(const bool bUninitialized = false)
 		{
 			{
-				FWriteScopeLock WriteScopeLock(CacheLock);
+				FWriteScopeLock WriteScopeLock(BufferLock);
 				if (OutValues) { return true; }
 			}
 
@@ -271,7 +271,7 @@ namespace PCGExData
 
 		void SetScopedGetter(PCGEx::TAttributeGetter<T>* Getter)
 		{
-			FWriteScopeLock WriteScopeLock(CacheLock);
+			FWriteScopeLock WriteScopeLock(BufferLock);
 
 			PrepareForRead(true, Getter->Attribute);
 			ScopedBroadcaster = Getter;
@@ -318,14 +318,14 @@ namespace PCGExData
 
 	public:
 		FPointIO* Source = nullptr;
-		TArray<FCacheBase*> Caches;
-		TMap<uint64, FCacheBase*> CacheMap;
+		TArray<FBufferBase*> Buffers;
+		TMap<uint64, FBufferBase*> BufferMap;
 		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
 
 		bool bSupportsScopedGet = false;
 
-		FCacheBase* FindCacheUnsafe(const uint64 UID);
-		FCacheBase* FindCache(const uint64 UID);
+		FBufferBase* FindBufferUnsafe(const uint64 UID);
+		FBufferBase* FindBuffer(const uint64 UID);
 
 		explicit FFacade(FPointIO* InSource):
 			Source(InSource)
@@ -335,43 +335,43 @@ namespace PCGExData
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 
 		template <typename T>
-		TCache<T>* FindCacheUnsafe(const FName FullName)
+		TBuffer<T>* FindBufferUnsafe(const FName FullName)
 		{
-			FCacheBase* Found = FindCacheUnsafe(CacheUID(FullName, PCGEx::GetMetadataType(T{})));
+			FBufferBase* Found = FindBufferUnsafe(BufferUID(FullName, PCGEx::GetMetadataType(T{})));
 			if (!Found) { return nullptr; }
-			return static_cast<TCache<T>*>(Found);
+			return static_cast<TBuffer<T>*>(Found);
 		}
 
 		template <typename T>
-		TCache<T>* FindCache(const FName FullName)
+		TBuffer<T>* FindBuffer(const FName FullName)
 		{
-			FCacheBase* Found = FindCache(CacheUID(FullName, PCGEx::GetMetadataType(T{})));
+			FBufferBase* Found = FindBuffer(BufferUID(FullName, PCGEx::GetMetadataType(T{})));
 			if (!Found) { return nullptr; }
-			return static_cast<TCache<T>*>(Found);
+			return static_cast<TBuffer<T>*>(Found);
 		}
 
 		template <typename T>
-		TCache<T>* GetCache(FName FullName)
+		TBuffer<T>* GetBuffer(FName FullName)
 		{
-			TCache<T>* NewCache = FindCache<T>(FullName);
-			if (NewCache) { return NewCache; }
+			TBuffer<T>* NewBuffer = FindBuffer<T>(FullName);
+			if (NewBuffer) { return NewBuffer; }
 
 			{
 				FWriteScopeLock WriteScopeLock(PoolLock);
 
-				NewCache = FindCacheUnsafe<T>(FullName);
-				if (NewCache) { return NewCache; }
+				NewBuffer = FindBufferUnsafe<T>(FullName);
+				if (NewBuffer) { return NewBuffer; }
 
-				NewCache = new TCache<T>(FullName, PCGEx::GetMetadataType(T{}));
-				NewCache->Source = Source;
-				Caches.Add(NewCache);
-				CacheMap.Add(NewCache->UID, NewCache);
-				return NewCache;
+				NewBuffer = new TBuffer<T>(FullName, PCGEx::GetMetadataType(T{}));
+				NewBuffer->Source = Source;
+				Buffers.Add(NewBuffer);
+				BufferMap.Add(NewBuffer->UID, NewBuffer);
+				return NewBuffer;
 			}
 		}
 
 		template <typename T>
-		TCache<T>* GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false)
+		TBuffer<T>* GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false)
 		{
 			PCGEx::TAttributeGetter<T>* Getter;
 
@@ -414,21 +414,21 @@ namespace PCGExData
 				return nullptr;
 			}
 
-			TCache<T>* Cache = GetCache<T>(Getter->FullName);
+			TBuffer<T>* Buffer = GetBuffer<T>(Getter->FullName);
 
 			{
-				FWriteScopeLock WriteScopeLock(Cache->CacheLock);
-				Cache->PrepareForRead(false, Getter->Attribute);
-				Getter->GrabAndDump(Source, *Cache->GetInValues(), bCaptureMinMax, Cache->Min, Cache->Max);
+				FWriteScopeLock WriteScopeLock(Buffer->BufferLock);
+				Buffer->PrepareForRead(false, Getter->Attribute);
+				Getter->GrabAndDump(Source, *Buffer->GetInValues(), bCaptureMinMax, Buffer->Min, Buffer->Max);
 			}
 
 			PCGEX_DELETE(Getter)
 
-			return Cache;
+			return Buffer;
 		}
 
 		template <typename T>
-		TCache<T>* GetBroadcaster(const FName& InName, const bool bCaptureMinMax = false)
+		TBuffer<T>* GetBroadcaster(const FName& InName, const bool bCaptureMinMax = false)
 		{
 			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 			Selector.SetAttributeName(InName);
@@ -436,7 +436,7 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TCache<T>* GetScopedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector)
+		TBuffer<T>* GetScopedBroadcaster(const FPCGAttributePropertyInputSelector& InSelector)
 		{
 			if (!bSupportsScopedGet) { return GetBroadcaster<T>(InSelector); }
 
@@ -481,14 +481,14 @@ namespace PCGExData
 				return nullptr;
 			}
 
-			TCache<T>* Cache = GetCache<T>(Getter->FullName);
-			Cache->SetScopedGetter(Getter);
+			TBuffer<T>* Buffer = GetBuffer<T>(Getter->FullName);
+			Buffer->SetScopedGetter(Getter);
 
-			return Cache;
+			return Buffer;
 		}
 
 		template <typename T>
-		TCache<T>* GetScopedBroadcaster(const FName& InName, const bool bCaptureMinMax = false)
+		TBuffer<T>* GetScopedBroadcaster(const FName& InName, const bool bCaptureMinMax = false)
 		{
 			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 			Selector.SetAttributeName(InName);
@@ -496,52 +496,52 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		TCache<T>* GetWritable(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
+		TBuffer<T>* GetWritable(const FPCGMetadataAttribute<T>* InAttribute, bool bUninitialized)
 		{
-			TCache<T>* Cache = GetCache<T>(InAttribute->Name);
-			return Cache->PrepareWrite(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized) ? Cache : nullptr;
+			TBuffer<T>* Buffer = GetBuffer<T>(InAttribute->Name);
+			return Buffer->PrepareWrite(InAttribute->GetValue(PCGDefaultValueKey), InAttribute->AllowsInterpolation(), bUninitialized) ? Buffer : nullptr;
 		}
 
 		template <typename T>
-		TCache<T>* GetWritable(const FName InName, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
+		TBuffer<T>* GetWritable(const FName InName, T DefaultValue, bool bAllowInterpolation, bool bUninitialized)
 		{
-			TCache<T>* Cache = GetCache<T>(InName);
-			return Cache->PrepareWrite(DefaultValue, bAllowInterpolation, bUninitialized) ? Cache : nullptr;
+			TBuffer<T>* Buffer = GetBuffer<T>(InName);
+			return Buffer->PrepareWrite(DefaultValue, bAllowInterpolation, bUninitialized) ? Buffer : nullptr;
 		}
 
 		template <typename T>
-		TCache<T>* GetWritable(const FName InName, bool bUninitialized)
+		TBuffer<T>* GetWritable(const FName InName, bool bUninitialized)
 		{
-			TCache<T>* Cache = GetCache<T>(InName);
-			return Cache->PrepareWrite(bUninitialized) ? Cache : nullptr;
+			TBuffer<T>* Buffer = GetBuffer<T>(InName);
+			return Buffer->PrepareWrite(bUninitialized) ? Buffer : nullptr;
 		}
 
 		template <typename T>
-		TCache<T>* GetReadable(const FName InName, const ESource InSource = ESource::In)
+		TBuffer<T>* GetReadable(const FName InName, const ESource InSource = ESource::In)
 		{
-			TCache<T>* Cache = GetCache<T>(InName);
-			if (!Cache->PrepareRead(InSource, false))
+			TBuffer<T>* Buffer = GetBuffer<T>(InName);
+			if (!Buffer->PrepareRead(InSource, false))
 			{
-				Flush(Cache);
+				Flush(Buffer);
 				return nullptr;
 			}
 
-			return Cache;
+			return Buffer;
 		}
 
 		template <typename T>
-		TCache<T>* GetScopedReadable(const FName InName)
+		TBuffer<T>* GetScopedReadable(const FName InName)
 		{
 			if (!bSupportsScopedGet) { return GetReadable<T>(InName); }
 
-			TCache<T>* Cache = GetCache<T>(InName);
-			if (!Cache->PrepareRead(ESource::In, true))
+			TBuffer<T>* Buffer = GetBuffer<T>(InName);
+			if (!Buffer->PrepareRead(ESource::In, true))
 			{
-				Flush(Cache);
+				Flush(Buffer);
 				return nullptr;
 			}
 
-			return Cache;
+			return Buffer;
 		}
 
 		FPCGMetadataAttributeBase* FindMutableAttribute(const FName InName, const ESource InSource = ESource::In) const
@@ -597,46 +597,46 @@ namespace PCGExData
 
 		void Flush()
 		{
-			PCGEX_DELETE_TARRAY(Caches)
-			CacheMap.Empty();
+			PCGEX_DELETE_TARRAY(Buffers)
+			BufferMap.Empty();
 		}
 
 		void Write(PCGExMT::FTaskManager* AsyncManager, const bool bFlush)
 		{
 			if (AsyncManager)
 			{
-				for (int i = 0; i < Caches.Num(); i++)
+				for (int i = 0; i < Buffers.Num(); i++)
 				{
-					FCacheBase* Cache = Caches[i];
-					if (Cache->IsWritable())
+					FBufferBase* Buffer = Buffers[i];
+					if (Buffer->IsWritable())
 					{
 						if (bFlush)
 						{
-							PCGExMT::WriteAndDelete(AsyncManager, Cache);
-							Caches[i] = nullptr;
+							PCGExMT::WriteAndDelete(AsyncManager, Buffer);
+							Buffers[i] = nullptr;
 						}
-						else { Cache->Write(); }
+						else { Buffer->Write(); }
 					}
 				}
 			}
 			else
 			{
-				for (FCacheBase* Cache : Caches) { Cache->Write(); }
+				for (FBufferBase* Buffer : Buffers) { Buffer->Write(); }
 			}
 
 			if (bFlush) { Flush(); }
 		}
 
-		void Fetch(const int32 StartIndex, const int32 Count) { for (FCacheBase* Cache : Caches) { Cache->Fetch(StartIndex, Count); } }
+		void Fetch(const int32 StartIndex, const int32 Count) { for (FBufferBase* Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }
 		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }
 
 	protected:
-		void Flush(FCacheBase* Cache)
+		void Flush(FBufferBase* Buffer)
 		{
 			FWriteScopeLock WriteScopeLock(PoolLock);
-			Caches.Remove(Cache);
-			CacheMap.Remove(Cache->UID);
-			PCGEX_DELETE(Cache)
+			Buffers.Remove(Buffer);
+			BufferMap.Remove(Buffer->UID);
+			PCGEX_DELETE(Buffer)
 		}
 	};
 

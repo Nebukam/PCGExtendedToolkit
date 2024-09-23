@@ -23,7 +23,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	InPoints->CreateInKeys();
 	CachedScores.SetNumZeroed(NumPoints);
 
-	PCGExData::TCache<double>* ModifiersCache = DataFacade->GetBroadcaster<double>(Attribute, true);
+	PCGExData::TBuffer<double>* ModifiersCache = DataFacade->GetBroadcaster<double>(Attribute, true);
 
 	if (!ModifiersCache)
 	{

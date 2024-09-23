@@ -108,8 +108,8 @@ namespace PCGExSmooth
 
 		int32 NumPoints = 0;
 
-		PCGExData::TCache<double>* Influence = nullptr;
-		PCGExData::TCache<double>* Smoothing = nullptr;
+		PCGExData::TBuffer<double>* Influence = nullptr;
+		PCGExData::TBuffer<double>* Smoothing = nullptr;
 
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 		UPCGExSmoothingOperation* TypedOperation = nullptr;

@@ -126,10 +126,10 @@ namespace PCGExSubdivide
 		TSet<FName> ProtectedAttributes;
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
-		PCGExData::TCache<bool>* FlagWriter = nullptr;
-		PCGExData::TCache<double>* AlphaWriter = nullptr;
+		PCGExData::TBuffer<bool>* FlagWriter = nullptr;
+		PCGExData::TBuffer<double>* AlphaWriter = nullptr;
 
-		PCGExData::TCache<double>* AmountGetter = nullptr;
+		PCGExData::TBuffer<double>* AmountGetter = nullptr;
 
 		double ConstantAmount = 0;
 

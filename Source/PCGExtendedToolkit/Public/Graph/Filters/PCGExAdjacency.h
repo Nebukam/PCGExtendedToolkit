@@ -98,7 +98,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 	bool bUseDiscreteMeasure = false;
 	bool bUseLocalThreshold = false;
 
-	PCGExData::TCache<double>* LocalThreshold = nullptr;
+	PCGExData::TBuffer<double>* LocalThreshold = nullptr;
 
 	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPrimaryDataFacade)
 	{

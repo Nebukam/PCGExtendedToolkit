@@ -168,7 +168,7 @@ namespace PCGExConditionalActions
 
 		if (Settings->bDoConsumeProcessedAttributes)
 		{
-			for (const PCGExData::FCacheBase* DataCache : PointDataFacade->Caches)
+			for (const PCGExData::FBufferBase* DataCache : PointDataFacade->Buffers)
 			{
 				if (!DataCache->InAttribute ||
 					!Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) ||

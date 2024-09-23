@@ -226,7 +226,7 @@ namespace PCGExPartitionByValues
 		for (FPCGExPartitonRuleConfig& Config : TypedContext->RulesConfigs)
 		{
 			FPCGExFilter::FRule& NewRule = Rules.Emplace_GetRef(Config);
-			PCGExData::TCache<double>* DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
+			PCGExData::TBuffer<double>* DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
 
 			if (!DataCache) { Rules.Pop(); }
 
@@ -364,7 +364,7 @@ namespace PCGExPartitionByValues
 				IndiceMap.Empty();
 			}
 
-			PCGExData::TCache<int32>* KeyWriter = PointDataFacade->GetWritable(Rule.RuleConfig->KeyAttributeName, 0, false, true);
+			PCGExData::TBuffer<int32>* KeyWriter = PointDataFacade->GetWritable(Rule.RuleConfig->KeyAttributeName, 0, false, true);
 			for (int i = 0; i < Rule.FilteredValues.Num(); ++i)
 			{
 				KeyWriter->GetMutable(i) = Rule.FilteredValues[i];
@@ -374,7 +374,7 @@ namespace PCGExPartitionByValues
 
 		if (Settings->bWriteKeySum)
 		{
-			PCGExData::TCache<int32>* KeySumWriter = PointDataFacade->GetWritable(Settings->KeySumAttributeName, 0, false, true);
+			PCGExData::TBuffer<int32>* KeySumWriter = PointDataFacade->GetWritable(Settings->KeySumAttributeName, 0, false, true);
 			for (int i = 0; i < KeySums.Num(); ++i) { KeySumWriter->GetMutable(i) = KeySums[i]; }
 		}
 

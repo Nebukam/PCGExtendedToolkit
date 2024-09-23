@@ -253,7 +253,7 @@ namespace PCGExWritePathProperties
 		bool bClosedLoop = false;
 
 		FVector UpConstant = FVector::ZeroVector;
-		PCGExData::TCache<FVector>* UpGetter = nullptr;
+		PCGExData::TBuffer<FVector>* UpGetter = nullptr;
 
 		int32 LastIndex = 0;
 

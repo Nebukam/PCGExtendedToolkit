@@ -142,7 +142,7 @@ namespace PCGExFlagNodes
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 
-		PCGExData::TCache<int64>* Writer = VtxDataFacade->GetWritable(Settings->FlagAttribute, Settings->InitialFlags, false, false);
+		PCGExData::TBuffer<int64>* Writer = VtxDataFacade->GetWritable(Settings->FlagAttribute, Settings->InitialFlags, false, false);
 		StateFlags = Writer->GetOutValues();
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();

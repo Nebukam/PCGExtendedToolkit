@@ -16,7 +16,7 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 		PCGExData::FFacade* DataFacade = LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
 		const int32 NumPoints = PointIO->GetNum();
-		PCGExData::TCache<double>* LocalWeightCache = DataFacade->GetBroadcaster<double>(WeightMultiplierAttribute);
+		PCGExData::TBuffer<double>* LocalWeightCache = DataFacade->GetBroadcaster<double>(WeightMultiplierAttribute);
 
 		if (!LocalWeightCache)
 		{

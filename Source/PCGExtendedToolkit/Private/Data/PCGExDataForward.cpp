@@ -65,8 +65,8 @@ namespace PCGExData
 				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					PCGExData::TCache<T>* Reader = SourceDataFacade->GetReadable<T>(Identity.Name);
-					PCGExData::TCache<T>* Writer = TargetDataFacade->GetWritable<T>(Reader->GetTypedInAttribute(), false);
+					PCGExData::TBuffer<T>* Reader = SourceDataFacade->GetReadable<T>(Identity.Name);
+					PCGExData::TBuffer<T>* Writer = TargetDataFacade->GetWritable<T>(Reader->GetTypedInAttribute(), false);
 					Readers[i] = Reader;
 					Writers[i] = Writer;
 				});
@@ -85,8 +85,8 @@ namespace PCGExData
 				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					PCGExData::TCache<T>* Reader = static_cast<PCGExData::TCache<T>*>(Readers[i]);
-					PCGExData::TCache<T>* Writer = static_cast<PCGExData::TCache<T>*>(Writers[i]);
+					PCGExData::TBuffer<T>* Reader = static_cast<PCGExData::TBuffer<T>*>(Readers[i]);
+					PCGExData::TBuffer<T>* Writer = static_cast<PCGExData::TBuffer<T>*>(Writers[i]);
 					Writer->GetMutable(TargetIndex) = Reader->Read(SourceIndex);
 				});
 		}
@@ -106,7 +106,7 @@ namespace PCGExData
 						using T = decltype(DummyValue);
 						const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
 
-						PCGExData::TCache<T>* Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, true);
+						PCGExData::TBuffer<T>* Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, true);
 
 						const T ForwardValue = SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry);
 						TArray<T>& Values = *Writer->GetOutValues();

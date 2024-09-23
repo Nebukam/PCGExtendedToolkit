@@ -87,9 +87,9 @@ namespace PCGExPointsFilter
 
 		const UPCGExModuloCompareFilterFactory* TypedFilterFactory;
 
-		PCGExData::TCache<double>* OperandA = nullptr;
-		PCGExData::TCache<double>* OperandB = nullptr;
-		PCGExData::TCache<double>* OperandC = nullptr;
+		PCGExData::TBuffer<double>* OperandA = nullptr;
+		PCGExData::TBuffer<double>* OperandB = nullptr;
+		PCGExData::TBuffer<double>* OperandC = nullptr;
 
 		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override

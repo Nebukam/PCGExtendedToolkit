@@ -187,9 +187,9 @@ namespace PCGExPathCrossings
 
 		FPCGExPathEdgeIntersectionDetails Details;
 
-		PCGExData::TCache<bool>* FlagWriter = nullptr;
-		PCGExData::TCache<double>* AlphaWriter = nullptr;
-		PCGExData::TCache<FVector>* CrossWriter = nullptr;
+		PCGExData::TBuffer<bool>* FlagWriter = nullptr;
+		PCGExData::TBuffer<double>* AlphaWriter = nullptr;
+		PCGExData::TBuffer<FVector>* CrossWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints)

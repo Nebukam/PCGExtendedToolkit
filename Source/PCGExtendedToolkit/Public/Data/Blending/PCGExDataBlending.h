@@ -320,7 +320,7 @@ namespace PCGExDataBlending
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
 		}
 
-		virtual void PrepareForData(PCGExData::FCacheBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		virtual void PrepareForData(PCGExData::FBufferBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
 			PrimaryData = nullptr;
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
@@ -385,13 +385,13 @@ namespace PCGExDataBlending
 
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::None; };
 
-		virtual void PrepareForData(PCGExData::FCacheBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(PCGExData::FBufferBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 
 			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
 
-			Writer = static_cast<PCGExData::TCache<T>*>(InWriter);
+			Writer = static_cast<PCGExData::TBuffer<T>*>(InWriter);
 
 			bSupportInterpolation = Writer->GetAllowsInterpolation();
 			SourceAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
@@ -512,8 +512,8 @@ namespace PCGExDataBlending
 	protected:
 		const FPCGMetadataAttribute<T>* SourceAttribute = nullptr;
 		FPCGMetadataAttribute<T>* TargetAttribute = nullptr;
-		PCGExData::TCache<T>* Writer = nullptr;
-		PCGExData::TCache<T>* Reader = nullptr;
+		PCGExData::TBuffer<T>* Writer = nullptr;
+		PCGExData::TBuffer<T>* Reader = nullptr;
 	};
 
 	template <typename T>

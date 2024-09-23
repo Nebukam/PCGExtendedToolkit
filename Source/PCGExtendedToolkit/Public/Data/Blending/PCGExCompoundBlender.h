@@ -27,7 +27,7 @@ namespace PCGExDataBlending
 		bool AllowsInterpolation = true;
 
 		FDataBlendingOperationBase* TargetBlendOp = nullptr;
-		PCGExData::FCacheBase* Writer = nullptr;
+		PCGExData::FBufferBase* Writer = nullptr;
 
 		explicit FAttributeSourceMap(const PCGEx::FAttributeIdentity InIdentity)
 			: Identity(InIdentity)

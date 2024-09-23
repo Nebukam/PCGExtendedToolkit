@@ -131,7 +131,7 @@ namespace PCGExBuildDelaunay2D
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-		PCGExData::TCache<bool>* HullMarkPointWriter = nullptr;
+		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):
