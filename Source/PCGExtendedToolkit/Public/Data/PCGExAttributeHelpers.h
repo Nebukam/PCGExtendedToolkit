@@ -1468,7 +1468,7 @@ namespace PCGEx
 		FORCEINLINE virtual FSoftObjectPath Convert(const FName& Value) const override { return FSoftObjectPath(Value.ToString()); }
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		FORCEINLINE virtual FSoftObjectPath Convert(const FSoftClassPath& Value) const override { return Value; }
+		FORCEINLINE virtual FSoftObjectPath Convert(const FSoftObjectPath& Value) const override { return Value; }
 #endif
 	};
 
