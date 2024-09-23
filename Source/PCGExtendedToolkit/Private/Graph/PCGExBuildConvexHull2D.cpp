@@ -93,8 +93,8 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 	TSet<uint64> UniqueEdges;
 	const TArray<PCGExGraph::FIndexedEdge>& Edges = GraphBuilder->Graph->Edges;
 
-	const TArray<FPCGPoint>& InPoints = GraphBuilder->PointIO->GetIn()->GetPoints();
-	const PCGExData::FPointIO* PathIO = PathsIO->Emplace_GetRef(GraphBuilder->PointIO, PCGExData::EInit::NewOutput);
+	const TArray<FPCGPoint>& InPoints = GraphBuilder->NodeDataFacade->GetIn()->GetPoints();
+	const PCGExData::FPointIO* PathIO = PathsIO->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetIn(), PCGExData::EInit::NewOutput);
 
 	TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
 	TSet<int32> VisitedEdges;
@@ -178,7 +178,7 @@ namespace PCGExConvexHull2D
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;
@@ -211,7 +211,7 @@ namespace PCGExConvexHull2D
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
-		GraphBuilder->CompileAsync(AsyncManagerPtr);
+		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
 		TypedContext->BuildPath(GraphBuilder);
 	}
 
@@ -221,11 +221,13 @@ namespace PCGExConvexHull2D
 
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
+			bIsProcessorValid = false;
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			PCGEX_DELETE(GraphBuilder)
 			return;
 		}
 
+		PointDataFacade->Write(AsyncManagerPtr);
 		GraphBuilder->Write();
 	}
 }

@@ -173,7 +173,7 @@ namespace PCGExUberFilter
 
 		if (LocalSettings->Mode == EPCGExUberFilterMode::Write)
 		{
-			PointDataFacade->Write(AsyncManagerPtr, true);
+			PointDataFacade->Write(AsyncManagerPtr);
 			return;
 		}
 

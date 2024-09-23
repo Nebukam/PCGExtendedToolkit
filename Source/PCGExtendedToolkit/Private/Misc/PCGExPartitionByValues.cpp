@@ -378,7 +378,7 @@ namespace PCGExPartitionByValues
 			for (int i = 0; i < KeySums.Num(); ++i) { KeySumWriter->GetMutable(i) = KeySums[i]; }
 		}
 
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr);
 	}
 }
 

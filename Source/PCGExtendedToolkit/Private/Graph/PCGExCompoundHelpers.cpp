@@ -88,7 +88,7 @@ namespace PCGExGraph
 			{
 				PCGEX_DELETE(CompoundPointsBlender)
 
-				CompoundFacade->Write(Context->GetAsyncManager(), true);
+				CompoundFacade->Write(Context->GetAsyncManager());
 				Context->SetAsyncState(PCGExMT::State_CompoundWriting);
 
 				bRunning = true;
@@ -97,7 +97,7 @@ namespace PCGExGraph
 				GraphMetadataDetails.Grab(Context, PointEdgeIntersectionDetails);
 				GraphMetadataDetails.Grab(Context, EdgeEdgeIntersectionDetails);
 
-				GraphBuilder = new FGraphBuilder(CompoundFacade->Source, &InBuilderDetails, 4);
+				GraphBuilder = new FGraphBuilder(CompoundFacade, &InBuilderDetails, 4);
 
 				TSet<uint64> UniqueEdges;
 				CompoundGraph->GetUniqueEdges(UniqueEdges);
@@ -274,7 +274,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::FindPointEdgeIntersectionsComplete);
 
-		if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager(), true); }
+		if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager()); }
 		PCGEX_DELETE(PointEdgeIntersections)
 	}
 
@@ -377,7 +377,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::OnEdgeEdgeIntersectionsComplete);
 
-		if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager(), true); }
+		if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager()); }
 		PCGEX_DELETE(EdgeEdgeIntersections)
 	}
 
@@ -386,6 +386,6 @@ namespace PCGExGraph
 	void FCompoundProcessor::WriteClusters()
 	{
 		Context->SetAsyncState(State_WritingClusters);
-		GraphBuilder->CompileAsync(Context->GetAsyncManager(), &GraphMetadataDetails);
+		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true, &GraphMetadataDetails);
 	}
 }

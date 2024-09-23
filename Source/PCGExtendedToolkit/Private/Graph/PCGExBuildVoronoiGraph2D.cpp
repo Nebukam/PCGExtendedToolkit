@@ -73,7 +73,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 			},
 			[&](PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>* NewBatch)
 			{
-				//NewBatch->bRequiresWriteStep = true;
+				NewBatch->bRequiresWriteStep = true;
 			},
 			PCGExMT::State_Done))
 		{
@@ -187,7 +187,7 @@ namespace PCGExBuildVoronoi2D
 			//ExtractValidSites();
 			PCGEX_DELETE(Voronoi)
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 
 			ValidEdges.Empty();
@@ -226,14 +226,14 @@ namespace PCGExBuildVoronoi2D
 				}
 			}
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 			//ExtractValidSites();
 			PCGEX_DELETE(Voronoi)
 		}
 
-		GraphBuilder->CompileAsync(AsyncManagerPtr);
+		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
 
 		return true;
 	}
@@ -245,20 +245,19 @@ namespace PCGExBuildVoronoi2D
 
 	void FProcessor::CompleteWork()
 	{
-		if (!GraphBuilder) { return; }
-
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
+			bIsProcessorValid = false;
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 
 		GraphBuilder->Write();
-		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
 	}
 
 	void FProcessor::Write()
 	{
+		PointDataFacade->Write(AsyncManagerPtr);
 	}
 }
 

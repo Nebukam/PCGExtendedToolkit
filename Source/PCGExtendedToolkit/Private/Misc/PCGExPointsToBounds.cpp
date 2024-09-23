@@ -162,7 +162,7 @@ namespace PCGExPointsToBounds
 
 		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, NumPoints); }
 
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr);
 	}
 
 	bool FComputeIOBoundsTask::ExecuteTask()

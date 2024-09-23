@@ -177,8 +177,8 @@ namespace PCGExConnectPoints
 
 		if (ProbeOperations.IsEmpty() && DirectProbeOperations.IsEmpty()) { return false; }
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails, 2);
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails, 2);
 
 		CanGenerate.Init(true, NumPoints);
 		CachedTransforms.SetNumUninitialized(NumPoints);
@@ -356,7 +356,7 @@ namespace PCGExConnectPoints
 
 		DistributedEdgesSet.Empty();
 
-		GraphBuilder->CompileAsync(AsyncManagerPtr);
+		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
 	}
 
 	void FProcessor::Write()
@@ -367,8 +367,8 @@ namespace PCGExConnectPoints
 			return;
 		}
 
+		PointDataFacade->Write(AsyncManagerPtr);
 		GraphBuilder->Write();
-		FPointsProcessor::Write();
 	}
 }
 

@@ -146,7 +146,7 @@ namespace PCGExSampleNeighbors
 	void FProcessor::Write()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
-		EdgeDataFacade->Write(AsyncManagerPtr, true);
+		EdgeDataFacade->Write(AsyncManagerPtr);
 	}
 }
 

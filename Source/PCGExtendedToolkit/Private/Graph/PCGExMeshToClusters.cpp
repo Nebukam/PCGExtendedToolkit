@@ -274,13 +274,16 @@ namespace PCGExMeshToCluster
 			break;
 		}
 
-
 		PCGExData::FPointIO* RootVtx = Context->RootVtx->Emplace_GetRef<UPCGExClusterNodesData>();
 		RootVtx->IOIndex = TaskIndex;
 		RootVtx->InitializeNum(Mesh->Vertices.Num());
 		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtx, &Context->GraphBuilderDetails);
+		PCGExData::FFacade* RootVtxFacade = new PCGExData::FFacade(RootVtx);
+		
+		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtxFacade, &Context->GraphBuilderDetails);
+		GraphBuilder->bOwnsNodeDataFacade = true; // !important
+		
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
 		for (int i = 0; i < VtxPoints.Num(); ++i)
@@ -290,7 +293,7 @@ namespace PCGExMeshToCluster
 		}
 
 		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
-		GraphBuilder->CompileAsync(Context->GetAsyncManager());
+		GraphBuilder->CompileAsync(Context->GetAsyncManager(), true);
 
 		return true;
 	}

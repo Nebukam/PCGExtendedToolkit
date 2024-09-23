@@ -138,7 +138,7 @@ namespace PCGExAttributeRolling
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr);
 	}
 }
 

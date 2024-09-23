@@ -117,7 +117,7 @@ namespace PCGExConvexHull
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;
@@ -146,22 +146,20 @@ namespace PCGExConvexHull
 
 	void FProcessor::CompleteWork()
 	{
-		if (!GraphBuilder) { return; }
-
-		GraphBuilder->CompileAsync(AsyncManagerPtr);
+		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
 	}
 
 	void FProcessor::Write()
 	{
-		if (!GraphBuilder) { return; }
-
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
+			bIsProcessorValid = false;
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			PCGEX_DELETE(GraphBuilder)
 			return;
 		}
 
+		PointDataFacade->Write(AsyncManagerPtr);
 		GraphBuilder->Write();
 	}
 }

@@ -506,7 +506,7 @@ namespace PCGExBevelPath
 		}
 
 		PCGEX_ASYNC_GROUP(AsyncManagerPtr, WriteFlagsTask)
-		WriteFlagsTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr, true); });
+		WriteFlagsTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr); });
 		WriteFlagsTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{

@@ -153,18 +153,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 		{
 			if (!IsAsyncWorkComplete()) { return false; }
 
-			// TODO : This is a mess, look into it
-
-			if (!bDoClusterBatchGraphBuilding) { AdvanceBatch(); }
-			else
-			{
-				bClusterBatchInlined = false;
-				for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
-				{
-					Batch->GraphBuilder->CompileAsync(GetAsyncManager());
-				}
-				SetAsyncState(PCGExGraph::State_Compiling);
-			}
+			AdvanceBatch();
 		}
 	}
 	else
@@ -184,23 +173,12 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 			OnBatchesCompletingWorkDone();
 
-			if (!bDoClusterBatchGraphBuilding)
+			if (bDoClusterBatchWritingStep)
 			{
-				if (bDoClusterBatchWritingStep)
-				{
-					WriteBatches(GetAsyncManager(), Batches);
-					SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
-				}
-				else { SetState(TargetState_ClusterProcessingDone); }
+				WriteBatches(GetAsyncManager(), Batches);
+				SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
 			}
-			else
-			{
-				for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
-				{
-					Batch->GraphBuilder->CompileAsync(GetAsyncManager());
-				}
-				SetAsyncState(PCGExGraph::State_Compiling);
-			}
+			else { SetState(TargetState_ClusterProcessingDone); }
 		}
 
 		if (IsState(PCGExGraph::State_Compiling))

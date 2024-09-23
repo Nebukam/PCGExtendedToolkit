@@ -267,7 +267,7 @@ namespace PCGExSubdivide
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr);
 	}
 }
 

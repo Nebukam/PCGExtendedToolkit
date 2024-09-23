@@ -145,9 +145,9 @@ namespace PCGExBuildDelaunay
 			else { AsyncManagerPtr->Start<FOutputDelaunaySites>(BatchIndex, PointIO, this); }
 		}
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
-		GraphBuilder->CompileAsync(AsyncManagerPtr);
+		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
 
 		if (!Settings->bMarkHull && !Settings->bOutputSites) { PCGEX_DELETE(Delaunay) }
 
@@ -167,7 +167,8 @@ namespace PCGExBuildDelaunay
 
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
-			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			bIsProcessorValid = false;
+			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);			
 			PCGEX_DELETE(GraphBuilder)
 			return;
 		}
@@ -183,8 +184,7 @@ namespace PCGExBuildDelaunay
 
 	void FProcessor::Write()
 	{
-		if (!GraphBuilder) { return; }
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr);
 	}
 
 	bool FOutputDelaunaySites::ExecuteTask()

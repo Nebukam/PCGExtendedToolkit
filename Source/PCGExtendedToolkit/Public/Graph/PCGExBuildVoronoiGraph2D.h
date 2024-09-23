@@ -112,7 +112,7 @@ namespace PCGExBuildVoronoi2D
 		PCGExGeo::TVoronoi2* Voronoi = nullptr;
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-		PCGEx::TAttributeWriter<bool>* HullMarkPointWriter = nullptr;
+		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
 
 	public:
 		explicit FProcessor(PCGExData::FPointIO* InPoints):

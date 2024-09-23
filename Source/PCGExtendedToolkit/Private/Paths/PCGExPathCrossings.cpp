@@ -443,7 +443,7 @@ namespace PCGExPathCrossings
 		else { if (LocalSettings->bTagIfHasNoCrossings) { PointIO->Tags->Add(LocalSettings->HasNoCrossingsTag); } }
 
 		PCGEX_ASYNC_GROUP(AsyncManagerPtr, FixTask)
-		FixTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr, true); });
+		FixTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr); });
 		FixTask->StartRanges(
 			[&](const int32 FixIndex, const int32 Count, const int32 LoopIdx) { FixPoint(FixIndex); },
 			NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());

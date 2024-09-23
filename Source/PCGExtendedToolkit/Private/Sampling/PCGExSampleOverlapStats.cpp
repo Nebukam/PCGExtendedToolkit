@@ -312,7 +312,7 @@ namespace PCGExSampleOverlapStats
 		SearchTask->SetOnCompleteCallback(
 			[&]()
 			{
-				PointDataFacade->Write(AsyncManagerPtr, true);
+				PointDataFacade->Write(AsyncManagerPtr);
 
 				if (LocalSettings->bTagIfHasAnyOverlap && bAnyOverlap) { PointIO->Tags->Add(LocalSettings->HasAnyOverlapTag); }
 				if (LocalSettings->bTagIfHasNoOverlap && !bAnyOverlap) { PointIO->Tags->Add(LocalSettings->HasNoOverlapTag); }

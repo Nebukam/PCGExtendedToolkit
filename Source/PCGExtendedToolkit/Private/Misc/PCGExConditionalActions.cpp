@@ -178,7 +178,7 @@ namespace PCGExConditionalActions
 			}
 		}
 
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr);
 	}
 }
 

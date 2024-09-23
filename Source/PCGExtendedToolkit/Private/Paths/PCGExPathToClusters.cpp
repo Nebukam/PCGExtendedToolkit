@@ -198,7 +198,7 @@ namespace PCGExPathToClusters
 
 		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails, 2);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails, 2);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
@@ -223,7 +223,7 @@ namespace PCGExPathToClusters
 		GraphBuilder->Graph->InsertEdges(Edges);
 		Edges.Empty();
 
-		GraphBuilder->CompileAsync(AsyncManagerPtr);
+		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
 
 		return true;
 	}
@@ -232,11 +232,13 @@ namespace PCGExPathToClusters
 	{
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
+			bIsProcessorValid = false;
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 
 		GraphBuilder->Write();
+		PointDataFacade->Write(AsyncManagerPtr);
 	}
 
 #pragma endregion

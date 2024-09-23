@@ -232,7 +232,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		if (Settings->bTagConvex && bIsConvex) { PathIO->Tags->Add(Settings->ConvexTag); }
 	}
 
-	PathDataFacade->Write(ClusterProcessor->AsyncManagerPtr, true);
+	PathDataFacade->Write(ClusterProcessor->AsyncManagerPtr);
 	PCGEX_DELETE(PathDataFacade)
 
 	if (Settings->bOutputFilteredSeeds) { ClusterProcessor->LocalTypedContext->SeedQuality[SeedIndex] = true; }

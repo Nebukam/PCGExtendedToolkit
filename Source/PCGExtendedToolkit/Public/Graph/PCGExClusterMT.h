@@ -411,7 +411,7 @@ namespace PCGExClusterMT
 			{
 				// Trivial
 				PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
-				if (RequiresGraphBuilder()) { GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderDetails, 6, EdgeCollection); }
+				if (RequiresGraphBuilder()) { GraphBuilder = new PCGExGraph::FGraphBuilder(VtxDataFacade, &GraphBuilderDetails, 6, EdgeCollection); }
 
 				OnProcessingPreparationComplete();
 			}
@@ -438,7 +438,7 @@ namespace PCGExClusterMT
 
 						if (RequiresGraphBuilder())
 						{
-							GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &GraphBuilderDetails, 6, EdgeCollection);
+							GraphBuilder = new PCGExGraph::FGraphBuilder(VtxDataFacade, &GraphBuilderDetails, 6, EdgeCollection);
 						}
 
 						OnProcessingPreparationComplete();
@@ -481,7 +481,7 @@ namespace PCGExClusterMT
 
 		virtual void Write()
 		{
-			if (bWriteVtxDataFacade) { VtxDataFacade->Write(AsyncManagerPtr, true); }
+			if (bWriteVtxDataFacade) { VtxDataFacade->Write(AsyncManagerPtr); }
 		}
 
 		virtual void Output()

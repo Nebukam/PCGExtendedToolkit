@@ -251,7 +251,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	Context->SeedForwardHandler->Forward(Query->SeedIndex, PathDataFacade);
 	Context->GoalForwardHandler->Forward(Query->GoalIndex, PathDataFacade);
 
-	PathDataFacade->Write(Manager, true);
+	PathDataFacade->Write(Manager);
 	PCGEX_DELETE(PathDataFacade)
 
 	return true;

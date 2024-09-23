@@ -266,7 +266,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 	PCGEX_DELETE(TempBlender)
 
-	PathDataFacade->Write(Manager, true);
+	PathDataFacade->Write(Manager);
 	PCGEX_DELETE(PathDataFacade)
 
 	MilestonesMetrics.Empty();

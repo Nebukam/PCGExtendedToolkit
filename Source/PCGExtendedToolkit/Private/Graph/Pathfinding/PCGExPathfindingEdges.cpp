@@ -76,7 +76,7 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	SeedForwardHandler->Forward(Query->SeedIndex, PathDataFacade);
 	GoalForwardHandler->Forward(Query->GoalIndex, PathDataFacade);
 
-	PathDataFacade->Write(GetAsyncManager(), true);
+	PathDataFacade->Write(GetAsyncManager());
 	PCGEX_DELETE(PathDataFacade)
 }
 

@@ -86,14 +86,14 @@ namespace PCGExSanitizeClusters
 
 	void FProcessorBatch::CompleteWork()
 	{
-		GraphBuilder->Compile(AsyncManagerPtr);
+		GraphBuilder->Compile(AsyncManagerPtr, true);
 		//TBatchWithGraphBuilder<FProcessor>::CompleteWork();
 	}
 
 	void FProcessorBatch::Output()
 	{
 		if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->Write(); }
-		else { GraphBuilder->PointIO->InitializeOutput(PCGExData::EInit::NoOutput); }
+		else { GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput); }
 		//TBatchWithGraphBuilder<FProcessor>::Output();
 	}
 }

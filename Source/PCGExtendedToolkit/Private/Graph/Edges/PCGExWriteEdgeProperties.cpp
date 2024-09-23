@@ -271,12 +271,12 @@ namespace PCGExWriteEdgeProperties
 			return;
 		}
 
-		EdgeDataFacade->Write(AsyncManagerPtr, true);
+		EdgeDataFacade->Write(AsyncManagerPtr);
 	}
 
 	void FProcessor::Write()
 	{
-		EdgeDataFacade->Write(AsyncManagerPtr, true);
+		EdgeDataFacade->Write(AsyncManagerPtr);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

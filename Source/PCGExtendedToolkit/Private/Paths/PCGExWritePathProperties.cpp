@@ -252,7 +252,7 @@ namespace PCGExWritePathProperties
 			if (Settings->bTagConvex && bIsConvex) { PointIO->Tags->Add(Settings->ConvexTag); }
 		}
 
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManagerPtr);
 	}
 }
 

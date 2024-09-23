@@ -51,10 +51,7 @@ namespace PCGExData
 		bool bScopedBuffer = false;
 
 		TArrayView<const FPCGPoint> InPoints;
-		FPCGAttributeAccessorKeysPoints* InKeys = nullptr;
-
 		TArrayView<FPCGPoint> OutPoints;
-		FPCGAttributeAccessorKeysPoints* OutKeys = nullptr;
 
 	public:
 		FName FullName = NAME_None;
@@ -143,8 +140,6 @@ namespace PCGExData
 			const int32 NumPoints = InPts.Num();
 			InPoints = MakeArrayView(InPts.GetData(), NumPoints);
 
-			InKeys = Source->CreateInKeys();
-
 			InValues = new TArray<T>();
 			PCGEx::InitMetadataArray(*InValues, NumPoints);
 
@@ -161,8 +156,6 @@ namespace PCGExData
 			TArray<FPCGPoint>& OutPts = Source->GetOut()->GetMutablePoints();
 			const int32 NumPoints = OutPts.Num();
 			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
-
-			OutKeys = Source->CreateOutKeys();
 
 			OutValues = new TArray<T>();
 			PCGEx::InitMetadataArray(*OutValues, NumPoints);
@@ -219,7 +212,7 @@ namespace PCGExData
 			if (!bScopedBuffer)
 			{
 				TArrayView<T> InRange = MakeArrayView(InValues->GetData(), InValues->Num());
-				InAccessor->GetRange(InRange, 0, *InKeys, EPCGAttributeAccessorFlags::StrictType);
+				InAccessor->GetRange(InRange, 0, *Source->CreateInKeys(), EPCGAttributeAccessorFlags::StrictType);
 			}
 
 			return true;
@@ -251,7 +244,7 @@ namespace PCGExData
 					// TODO : Scoped get would be better here
 					// Get existing values
 					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
-					OutAccessor->GetRange(OutRange, 0, *OutKeys, EPCGAttributeAccessorFlags::StrictType);
+					OutAccessor->GetRange(OutRange, 0, *Source->CreateOutKeys(), EPCGAttributeAccessorFlags::StrictType);
 				}
 			}
 
@@ -293,7 +286,7 @@ namespace PCGExData
 		{
 			if (!IsWritable()) { return; }
 			TArrayView<const T> View(*OutValues);
-			OutAccessor->SetRange(View, 0, *OutKeys, EPCGAttributeAccessorFlags::StrictType);
+			OutAccessor->SetRange(View, 0, *Source->CreateOutKeys(), EPCGAttributeAccessorFlags::StrictType);
 		}
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
@@ -303,7 +296,7 @@ namespace PCGExData
 			if (InAccessor.IsValid())
 			{
 				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + StartIndex, Count);
-				InAccessor->GetRange(ReadRange, StartIndex, *InKeys, EPCGAttributeAccessorFlags::StrictType);
+				InAccessor->GetRange(ReadRange, StartIndex, *Source->CreateInKeys(), EPCGAttributeAccessorFlags::StrictType);
 			}
 
 			//if (OutAccessor.IsValid())
@@ -611,30 +604,15 @@ namespace PCGExData
 			BufferMap.Empty();
 		}
 
-		void Write(PCGExMT::FTaskManager* AsyncManager, const bool bFlush)
+		void Write(PCGExMT::FTaskManager* AsyncManager)
 		{
-			if (AsyncManager)
-			{
-				for (int i = 0; i < Buffers.Num(); i++)
-				{
-					FBufferBase* Buffer = Buffers[i];
-					if (Buffer->IsWritable())
-					{
-						if (bFlush)
-						{
-							PCGExMT::WriteAndDelete(AsyncManager, Buffer);
-							Buffers[i] = nullptr;
-						}
-						else { Buffer->Write(); }
-					}
-				}
-			}
-			else
-			{
-				for (FBufferBase* Buffer : Buffers) { Buffer->Write(); }
-			}
+			check(AsyncManager)
 
-			if (bFlush) { Flush(); }
+			for (int i = 0; i < Buffers.Num(); i++)
+			{
+				FBufferBase* Buffer = Buffers[i];
+				if (Buffer->IsWritable()) { PCGEX_ASYNC_WRITE(AsyncManager, Buffer) }
+			}
 		}
 
 		void Fetch(const int32 StartIndex, const int32 Count) { for (FBufferBase* Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }

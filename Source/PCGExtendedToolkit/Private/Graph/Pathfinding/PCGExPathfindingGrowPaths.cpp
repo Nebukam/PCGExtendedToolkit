@@ -173,7 +173,7 @@ namespace PCGExGrowPaths
 		Context->SeedAttributesToPathTags.Tag(SeedPointIndex, PathIO);
 		Context->SeedForwardHandler->Forward(SeedPointIndex, PathDataFacade);
 
-		PathDataFacade->Write(Processor->AsyncManagerPtr, true);
+		PathDataFacade->Write(Processor->AsyncManagerPtr);
 		PCGEX_DELETE(PathDataFacade)
 	}
 

@@ -115,7 +115,6 @@ protected:
 	bool bHasValidHeuristics = false;
 
 	PCGExMT::AsyncState TargetState_ClusterProcessingDone;
-	bool bDoClusterBatchGraphBuilding = false;
 	bool bDoClusterBatchWritingStep = false;
 
 	bool bClusterRequiresHeuristics = false;
@@ -136,7 +135,6 @@ protected:
 		TargetState_ClusterProcessingDone = InState;
 
 		bClusterRequiresHeuristics = true;
-		bDoClusterBatchGraphBuilding = false;
 		bDoClusterBatchWritingStep = false;
 		bBuildEndpointsLookup = false;
 
@@ -168,14 +166,13 @@ protected:
 
 			if (NewBatch->bRequiresWriteStep)
 			{
-				bDoClusterBatchWritingStep = true;
+				//bDoClusterBatchWritingStep = true; // TODO : CHECK THIS!!
 			}
 
 			NewBatch->EdgeCollection = MainEdges;
 
 			if (NewBatch->RequiresGraphBuilder())
 			{
-				bDoClusterBatchGraphBuilding = true;
 				NewBatch->GraphBuilderDetails = GraphBuilderDetails;
 			}
 
