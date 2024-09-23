@@ -469,7 +469,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
-			const T A = Writer->Read(PrimaryReadIndex);
+			const T A = Writer->GetMutable(PrimaryReadIndex);
 			const T B = SourceAttribute ? SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
 			Writer->GetMutable(WriteIndex) = SingleOperation(A, B, Weight);
 		}
@@ -528,7 +528,7 @@ namespace PCGExDataBlending
 			}
 			else
 			{
-				T A = this->Writer->Read(PrimaryReadIndex);
+				T A = this->Writer->GetMutable(PrimaryReadIndex);
 				const T B = this->Reader->Read(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); ++i) { Values[i] = this->SingleOperation(A, B, Weights[i]); }
 			}
@@ -536,7 +536,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
-			const T A = this->Writer->Read(PrimaryReadIndex);
+			const T A = this->Writer->GetMutable(PrimaryReadIndex);
 			const T B = this->SourceAttribute ? this->SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
 
 			if (bFirstOperation)
