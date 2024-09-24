@@ -28,7 +28,7 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE_TARRAY(VtxFacades)
+	VtxFacades.Empty();
 	PCGEX_DELETE_FACADE_AND_SOURCE(CompoundFacade)
 
 	PCGEX_DELETE(CompoundProcessor)
@@ -121,20 +121,20 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExGraph::State_PreparingCompound))
 	{
 		Context->VtxFacades.Reserve(Context->Batches.Num());
+		TArray<PCGExData::FFacade*> VtxFacadesPtrs;
+		VtxFacadesPtrs.Reserve(Context->Batches.Num());
+		
 		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch :
 		     Context->Batches)
 		{
-			Context->VtxFacades.Add(Batch->VtxDataFacade.Get());
-			Batch->VtxDataFacade = nullptr; // Remove ownership of facade
-			// before deleting the processor
+			VtxFacadesPtrs.Add(Batch->VtxDataFacade.Get());
+			Context->VtxFacades.Add(MoveTemp(Batch->VtxDataFacade)); // take ownership of facades
 		}
-
-		PCGEX_DELETE_TARRAY(Context->Batches);
 
 		if (!Context->CompoundProcessor->StartExecution(
 			Context->CompoundGraph,
 			Context->CompoundFacade,
-			Context->VtxFacades,
+			VtxFacadesPtrs,
 			Settings->GraphBuilderDetails,
 			&Settings->VtxCarryOverDetails)) { return true; }
 	}

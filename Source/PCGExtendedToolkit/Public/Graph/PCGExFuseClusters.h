@@ -109,7 +109,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : public FPCGE
 
 	virtual ~FPCGExFuseClustersContext() override;
 
-	TArray<PCGExData::FFacade*> VtxFacades;
+	TArray<TUniquePtr<PCGExData::FFacade>> VtxFacades;
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FFacade* CompoundFacade = nullptr;
 
