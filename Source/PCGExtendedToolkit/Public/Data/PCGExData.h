@@ -93,7 +93,6 @@ namespace PCGExData
 		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor;
 		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
 
-		TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor;
 		FPCGMetadataAttribute<T>* TypedOutAttribute = nullptr;
 
 		TArray<T>* InValues = nullptr;
@@ -212,7 +211,7 @@ namespace PCGExData
 			if (!bScopedBuffer)
 			{
 				TArrayView<T> InRange = MakeArrayView(InValues->GetData(), InValues->Num());
-				InAccessor->GetRange(InRange, 0, *Source->CreateInKeys(), EPCGAttributeAccessorFlags::StrictType);
+				InAccessor->GetRange(InRange, 0, *Source->CreateInKeys());
 			}
 
 			return true;
@@ -226,12 +225,11 @@ namespace PCGExData
 
 			UPCGMetadata* OutMetadata = Source->GetOut()->Metadata;
 			TypedOutAttribute = OutMetadata->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
-			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, OutMetadata);
+			TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, OutMetadata);
 
 			if (!TypedOutAttribute || !OutAccessor.IsValid())
 			{
 				TypedOutAttribute = nullptr;
-				OutAccessor = nullptr;
 				return false;
 			}
 
@@ -244,7 +242,7 @@ namespace PCGExData
 					// TODO : Scoped get would be better here
 					// Get existing values
 					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
-					OutAccessor->GetRange(OutRange, 0, *Source->CreateOutKeys(), EPCGAttributeAccessorFlags::StrictType);
+					OutAccessor->GetRange(OutRange, 0, *Source->CreateOutKeys());
 				}
 			}
 
@@ -285,8 +283,11 @@ namespace PCGExData
 		virtual void Write() override
 		{
 			if (!IsWritable()) { return; }
-			TArrayView<const T> View(*OutValues);
-			OutAccessor->SetRange(View, 0, *Source->CreateOutKeys(), EPCGAttributeAccessorFlags::StrictType);
+			
+			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
+			TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
+
+			OutAccessor->SetRange(View, 0, *Source->CreateOutKeys());
 		}
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
@@ -296,19 +297,19 @@ namespace PCGExData
 			if (InAccessor.IsValid())
 			{
 				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + StartIndex, Count);
-				InAccessor->GetRange(ReadRange, StartIndex, *Source->CreateInKeys(), EPCGAttributeAccessorFlags::StrictType);
+				InAccessor->GetRange(ReadRange, StartIndex, *Source->CreateInKeys());
 			}
 
 			//if (OutAccessor.IsValid())
 			//{
 			//	TArrayView<T> WriteRange = MakeArrayView(OutValues->GetData() + StartIndex, Count);
-			//	OutAccessor->GetRange(WriteRange, StartIndex, *InKeys, EPCGAttributeAccessorFlags::StrictType);
+			//	OutAccessor->GetRange(WriteRange, StartIndex, *InKeys);
 			//}
 		}
 
 		void Flush()
 		{
-			if (InValues) { if (InValues != OutValues) { PCGEX_DELETE(InValues) } }
+			if (InValues && InValues != OutValues) { PCGEX_DELETE(InValues) }
 			PCGEX_DELETE(OutValues)
 			PCGEX_DELETE(ScopedBroadcaster)
 		}

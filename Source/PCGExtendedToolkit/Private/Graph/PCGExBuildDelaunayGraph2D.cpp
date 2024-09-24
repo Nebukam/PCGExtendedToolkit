@@ -111,8 +111,6 @@ namespace PCGExBuildDelaunay2D
 	{
 		PCGEX_DELETE(Delaunay)
 		PCGEX_DELETE(GraphBuilder)
-		PCGEX_DELETE(HullMarkPointWriter)
-
 		UrquhartEdges.Empty();
 	}
 
@@ -187,7 +185,7 @@ namespace PCGExBuildDelaunay2D
 			return;
 		}
 
-		GraphBuilder->Write();
+		GraphBuilder->OutputEdgesToContext();
 
 		if (HullMarkPointWriter)
 		{
@@ -233,10 +231,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
-			HullWriter->BindAndSetNumUninitialized(SitesIO);
-			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
-			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);
+			for (int i = 0; i < NumSites; ++i) { Processor->HullMarkPointWriter->GetMutable(i) = Delaunay->Sites[i].bOnHull; }
 		}
 
 		return true;
@@ -335,10 +330,7 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
-			HullWriter->BindAndSetNumUninitialized(SitesIO);
-			for (int i = 0; i < Hull.Num(); ++i) { HullWriter->Values[i] = Hull[i]; }
-			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);
+			for (int i = 0; i < Hull.Num(); ++i) { Processor->HullMarkPointWriter->GetMutable(i) = Hull[i]; }
 		}
 
 		return true;

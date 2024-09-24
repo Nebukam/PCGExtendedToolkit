@@ -113,7 +113,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 PCGExData::EInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
-{
+{	
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(AsyncLoop)

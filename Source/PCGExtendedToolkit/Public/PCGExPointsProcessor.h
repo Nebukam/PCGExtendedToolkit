@@ -145,7 +145,7 @@ protected:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
-
+	
 	bool bScopedAttributeGet = false;
 	virtual ~FPCGExPointsProcessorContext() override;
 

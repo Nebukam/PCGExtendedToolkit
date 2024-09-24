@@ -173,7 +173,7 @@ namespace PCGExBuildDelaunay
 			return;
 		}
 
-		GraphBuilder->Write();
+		GraphBuilder->OutputEdgesToContext();
 
 		if (Settings->bMarkHull)
 		{

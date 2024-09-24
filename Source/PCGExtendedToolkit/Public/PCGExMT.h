@@ -268,7 +268,7 @@ namespace PCGExMT
 		void OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess);
 		bool IsAsyncWorkComplete() const;
 
-		void Reset();
+		void Reset(const bool bStop = false);
 
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(Context); }

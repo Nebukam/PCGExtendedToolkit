@@ -251,7 +251,7 @@ namespace PCGExBuildVoronoi
 			return;
 		}
 
-		GraphBuilder->Write();
+		GraphBuilder->OutputEdgesToContext();
 	}
 
 	void FProcessor::Write()

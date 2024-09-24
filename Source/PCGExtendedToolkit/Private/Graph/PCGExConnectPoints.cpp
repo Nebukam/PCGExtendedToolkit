@@ -368,7 +368,7 @@ namespace PCGExConnectPoints
 		}
 
 		PointDataFacade->Write(AsyncManagerPtr);
-		GraphBuilder->Write();
+		GraphBuilder->OutputEdgesToContext();
 	}
 }
 

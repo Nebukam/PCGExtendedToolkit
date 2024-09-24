@@ -237,9 +237,9 @@ namespace PCGExPathSplineMesh
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, false);
+		PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
 #else
-		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
+		PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, true);
 #endif
 
 		StartParallelLoopForPoints();
@@ -260,7 +260,7 @@ namespace PCGExPathSplineMesh
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 			PathWriter->GetMutable(Index) = FSoftObjectPath{};
 #else
-			PathWriter->Values[Index] = TEXT("");
+			PathWriter->GetMutable(Index) = TEXT("");
 #endif
 
 			if (bOutputWeight)

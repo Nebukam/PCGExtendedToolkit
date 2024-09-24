@@ -21,7 +21,7 @@ MACRO(Location, FVector, FVector::ZeroVector)\
 MACRO(LookAt, FVector, FVector::OneVector)\
 MACRO(Normal, FVector, FVector::OneVector)\
 MACRO(IsInside, bool, false)\
-MACRO(Distance, double, 0)
+MACRO(Distance, double, 0)\
 MACRO(ActorReference, FString, TEXT(""))\
 MACRO(PhysMat, FString, TEXT(""))
 #else

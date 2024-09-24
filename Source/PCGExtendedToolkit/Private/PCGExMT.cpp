@@ -8,8 +8,7 @@ namespace PCGExMT
 {
 	FTaskManager::~FTaskManager()
 	{
-		FPlatformAtomics::InterlockedExchange(&Stopped, 1);
-		Reset();
+		Reset(true);
 	}
 
 	FTaskGroup* FTaskManager::CreateGroup(const FName& GroupName)
@@ -36,7 +35,7 @@ namespace PCGExMT
 		return NumCompleted == NumStarted;
 	}
 
-	void FTaskManager::Reset()
+	void FTaskManager::Reset(const bool bStop)
 	{
 		FPlatformAtomics::InterlockedExchange(&Stopped, 1);
 
@@ -48,7 +47,7 @@ namespace PCGExMT
 			delete Task;
 		}
 
-		FPlatformAtomics::InterlockedExchange(&Stopped, 0);
+		if(!bStop){ FPlatformAtomics::InterlockedExchange(&Stopped, 0); }
 
 		QueuedTasks.Empty();
 		NumStarted = 0;

@@ -189,7 +189,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
 			{
-				if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(); }
+				if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->OutputEdgesToContext(); }
 			}
 
 			OnBatchesCompilationDone(true);

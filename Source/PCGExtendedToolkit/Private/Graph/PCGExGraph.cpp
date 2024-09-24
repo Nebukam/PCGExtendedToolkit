@@ -290,6 +290,7 @@ namespace PCGExGraph
 	{
 		AsyncManagerPtr = AsyncManager;
 		MetadataDetailsPtr = MetadataDetails;
+		bWriteVtxDataFacadeWithCompile = bWriteNodeFacade;
 
 		TRACE_CPUPROFILER_EVENT_SCOPE(FGraphBuilder::Compile);
 
@@ -300,10 +301,6 @@ namespace PCGExGraph
 			bCompiledSuccessfully = false;
 			return;
 		}
-
-
-		// Be clever: we need to know when the shitstorm is finished to start the write operation
-		// of the Vtxs
 
 		NodeDataFacade->Source->CleanupKeys(); //Ensure fresh keys later on
 
@@ -353,7 +350,7 @@ namespace PCGExGraph
 				}
 			}
 		}
-
+		
 		PCGExData::TBuffer<int64>* VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Tag_VtxEndpoint, 0, false, true);
 
 		const uint64 BaseGUID = NodeDataFacade->GetOut()->UID;
@@ -370,7 +367,7 @@ namespace PCGExGraph
 			MACRO(CompoundSize, int32, 0, CompoundSize) \
 			MACRO(Intersector, bool, false, IsIntersector()) \
 			MACRO(Crossing, bool, false, IsCrossing())
-#define PCGEX_NODE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) PCGExData::TBuffer<_TYPE>* _NAME##Buffer = MetadataDetails->bWrite##_NAME ? NodeDataFacade->GetWritable<_TYPE>(Tag_VtxEndpoint, _DEFAULT, true, true) : nullptr;
+#define PCGEX_NODE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) PCGExData::TBuffer<_TYPE>* _NAME##Buffer = MetadataDetails->bWrite##_NAME ? NodeDataFacade->GetWritable<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, true, true) : nullptr;
 #define PCGEX_NODE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(PointIndex) = NodeMeta->_ACCESSOR;}
 
 			PCGEX_FOREACH_NODE_METADATA(PCGEX_NODE_METADATA_DECL)
@@ -397,8 +394,6 @@ namespace PCGExGraph
 
 		TArray<FSubGraph*> SmallSubGraphs;
 
-		EdgeDataFacades.Reserve(Graph->SubGraphs.Num());
-
 		for (FSubGraph* SubGraph : Graph->SubGraphs)
 		{
 			PCGExData::FPointIO* EdgeIO;
@@ -412,16 +407,14 @@ namespace PCGExGraph
 				EdgeIO = EdgesIO->Emplace_GetRef<UPCGExClusterEdgesData>(PCGExData::EInit::NewOutput);
 			}
 
-			PCGExData::FFacade* EdgesDataFacade = new PCGExData::FFacade(EdgeIO);
-			EdgeDataFacades.Add(EdgesDataFacade);
+			SubGraph->UID = EdgeIO->GetOut()->UID;
 
 			SubGraph->VtxDataFacade = NodeDataFacade;
-			SubGraph->EdgesDataFacade = EdgesDataFacade;
+			SubGraph->EdgesDataFacade = new PCGExData::FFacade(EdgeIO);
 
 			MarkClusterEdges(EdgeIO, PairIdStr);
-			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, Tag_ClusterId, EdgeIO->GetOut()->UID);
 		}
-
+		
 		MarkClusterVtx(NodeDataFacade->Source, PairIdStr);
 
 		PCGEX_ASYNC_GROUP_CHECKED(AsyncManager, ProcessSubGraphTask)
@@ -429,7 +422,7 @@ namespace PCGExGraph
 			[&]()
 			{
 				// Schedule facades for writing
-				NodeDataFacade->Write(AsyncManagerPtr); // this one we might want to hold onto
+				if (bWriteVtxDataFacadeWithCompile) { NodeDataFacade->Write(AsyncManagerPtr); }
 				for (const FSubGraph* SubGraph : Graph->SubGraphs) { SubGraph->EdgesDataFacade->Write(AsyncManagerPtr); }
 			});
 		ProcessSubGraphTask->StartRanges(
@@ -440,7 +433,7 @@ namespace PCGExGraph
 			}, Graph->SubGraphs.Num(), 1, false, false);
 	}
 
-	void FGraphBuilder::Write() const
+	void FGraphBuilder::OutputEdgesToContext() const
 	{
 		EdgesIO->OutputToContext();
 	}
@@ -468,6 +461,8 @@ namespace PCGExGraphTask
 
 		PCGExData::FPointIO* EdgeIO = SubGraph->EdgesDataFacade->Source;
 		UPCGMetadata* Metadata = EdgeIO->GetOut()->Metadata;
+
+		PCGExData::WriteMark(Metadata, PCGExGraph::Tag_ClusterId, SubGraph->UID);
 
 		TArray<FPCGPoint>& MutablePoints = EdgeIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(NumEdges);
@@ -501,11 +496,11 @@ namespace PCGExGraphTask
 		EdgeIO->CreateOutKeys();
 
 		PCGExData::TBuffer<int64>* NumClusterIdWriter = VtxDataFacade->GetWritable<int64>(PCGExGraph::Tag_ClusterId, -1, false, true);
-		PCGExData::TBuffer<int64>* EdgeEndpointsWriter = VtxDataFacade->GetWritable<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false, true);
+		PCGExData::TBuffer<int64>* EdgeEndpointsWriter = SubGraph->EdgesDataFacade->GetWritable<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false, true);
 
 		const FVector SeedOffset = FVector(EdgeIO->IOIndex);
 
-		const int64 ClusterId = SubGraph->EdgesDataFacade->GetOut()->UID;
+		const int64 ClusterId = SubGraph->UID;
 		const uint64 BaseGUID = VtxDataFacade->Source->GetOut()->UID;
 
 		for (const PCGExGraph::FIndexedEdge& E : FlattenedEdges)

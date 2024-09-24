@@ -160,7 +160,7 @@ namespace PCGExConvexHull
 		}
 
 		PointDataFacade->Write(AsyncManagerPtr);
-		GraphBuilder->Write();
+		GraphBuilder->OutputEdgesToContext();
 	}
 }
 

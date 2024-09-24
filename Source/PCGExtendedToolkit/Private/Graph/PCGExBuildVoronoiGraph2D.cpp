@@ -102,7 +102,6 @@ namespace PCGExBuildVoronoi2D
 		PCGEX_DELETE(Voronoi)
 
 		PCGEX_DELETE(GraphBuilder)
-		PCGEX_DELETE(HullMarkPointWriter)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -252,7 +251,7 @@ namespace PCGExBuildVoronoi2D
 			return;
 		}
 
-		GraphBuilder->Write();
+		GraphBuilder->OutputEdgesToContext();
 	}
 
 	void FProcessor::Write()

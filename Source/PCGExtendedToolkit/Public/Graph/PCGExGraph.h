@@ -315,6 +315,7 @@ namespace PCGExGraph
 		PCGExData::FFacade* VtxDataFacade = nullptr;
 		PCGExData::FFacade* EdgesDataFacade = nullptr;
 		TArray<FIndexedEdge> FlattenedEdges;
+		int64 UID = 0;
 
 		FSubGraph()
 		{
@@ -431,6 +432,7 @@ namespace PCGExGraph
 	protected:
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 		FGraphMetadataDetails* MetadataDetailsPtr = nullptr;
+		bool bWriteVtxDataFacadeWithCompile = false;
 
 	public:
 		const FPCGExGraphBuilderDetails* OutputDetails = nullptr;
@@ -442,7 +444,6 @@ namespace PCGExGraph
 		FGraph* Graph = nullptr;
 
 		PCGExData::FFacade* NodeDataFacade = nullptr;
-		TArray<PCGExData::FFacade*> EdgeDataFacades;
 
 		PCGExData::FPointIOCollection* EdgesIO = nullptr;
 		PCGExData::FPointIOCollection* SourceEdgesIO = nullptr;
@@ -472,15 +473,13 @@ namespace PCGExGraph
 		void CompileAsync(PCGExMT::FTaskManager* AsyncManager, const bool bWriteNodeFacade, FGraphMetadataDetails* MetadataDetails = nullptr);
 		void Compile(PCGExMT::FTaskManager* AsyncManager, const bool bWriteNodeFacade, FGraphMetadataDetails* MetadataDetails = nullptr);
 
-		void Write() const;
+		void OutputEdgesToContext() const;
 
 		~FGraphBuilder()
 		{
+			if (bOwnsNodeDataFacade) { PCGEX_DELETE(NodeDataFacade) }
 			PCGEX_DELETE(Graph)
 			PCGEX_DELETE(EdgesIO)
-
-			if (bOwnsNodeDataFacade) { PCGEX_DELETE(NodeDataFacade) }
-			PCGEX_DELETE_TARRAY(EdgeDataFacades)
 		}
 	};
 
