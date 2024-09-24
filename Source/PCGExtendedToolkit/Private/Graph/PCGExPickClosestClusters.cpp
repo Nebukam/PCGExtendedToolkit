@@ -168,7 +168,7 @@ namespace PCGExPickClosestClusters
 		const int32 NumTargets = LocalTypedContext->TargetDataFacade->Source->GetNum();
 		PCGEX_SET_NUM_UNINITIALIZED(Distances, NumTargets)
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, ProcessTargets)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, ProcessTargets)
 
 		if (LocalSettings->SearchMode == EPCGExClusterClosestSearchMode::Edge)
 		{

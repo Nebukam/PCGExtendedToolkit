@@ -417,7 +417,7 @@ namespace PCGExGraph
 
 		MarkClusterVtx(NodeDataFacade->Source, PairIdStr);
 
-		PCGEX_ASYNC_GROUP_CHECKED(AsyncManager, ProcessSubGraphTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ProcessSubGraphTask)
 		ProcessSubGraphTask->SetOnCompleteCallback(
 			[&]()
 			{

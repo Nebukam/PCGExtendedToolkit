@@ -82,7 +82,7 @@ namespace PCGExGraph
 
 		Context->SetAsyncState(State_ProcessingCompound);
 
-		PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), ProcessNodesGroup)
+		PCGEX_ASYNC_GROUP_CHKD_R(Context->GetAsyncManager(), ProcessNodesGroup)
 		ProcessNodesGroup->SetOnCompleteCallback(
 			[&]()
 			{
@@ -192,12 +192,12 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::FindPointEdgeIntersections);
 
+		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), FindPointEdgeGroup)
+		
 		PointEdgeIntersections = new FPointEdgeIntersections(
 			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, &PointEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
-
-		PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), FindPointEdgeGroup)
 
 		FindPointEdgeGroup->SetOnCompleteCallback([&]() { FindPointEdgeIntersectionsFound(); });
 		FindPointEdgeGroup->StartRanges(
@@ -214,7 +214,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::FindPointEdgeIntersectionsFound);
 
-		PCGEX_ASYNC_GROUP_CHECKED(Context->GetAsyncManager(), SortCrossingsGroup)
+		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), SortCrossingsGroup)
 
 		SortCrossingsGroup->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
@@ -239,7 +239,7 @@ namespace PCGExGraph
 		SortCrossingsGroup->SetOnCompleteCallback(
 			[&]()
 			{
-				PCGEX_ASYNC_GROUP_CHECKED(Context->GetAsyncManager(), BlendPointEdgeGroup)
+				PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), BlendPointEdgeGroup)
 
 				GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);
 				NewEdgesNum = 0;
@@ -286,12 +286,12 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::FindEdgeEdgeIntersections);
 
+		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), FindEdgeEdgeGroup)
+		
 		EdgeEdgeIntersections = new FEdgeEdgeIntersections(
 			GraphBuilder->Graph, CompoundGraph, CompoundFacade->Source, &EdgeEdgeIntersectionDetails);
 
 		Context->SetAsyncState(State_ProcessingEdgeEdgeIntersections);
-
-		PCGEX_ASYNC_GROUP(Context->GetAsyncManager(), FindEdgeEdgeGroup)
 
 		FindEdgeEdgeGroup->SetOnCompleteCallback([&]() { OnEdgeEdgeIntersectionsFound(); });
 		FindEdgeEdgeGroup->StartRanges(
@@ -308,7 +308,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompoundProcessor::OnEdgeEdgeIntersectionsFound);
 
-		PCGEX_ASYNC_GROUP_CHECKED(Context->GetAsyncManager(), SortCrossingsGroup)
+		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), SortCrossingsGroup)
 
 		// Insert new nodes
 		EdgeEdgeIntersections->InsertNodes(); // TODO : Async?
@@ -339,7 +339,7 @@ namespace PCGExGraph
 		SortCrossingsGroup->SetOnCompleteCallback(
 			[&]()
 			{
-				PCGEX_ASYNC_GROUP_CHECKED(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
+				PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
 
 				GraphBuilder->Graph->ReserveForEdges(NewEdgesNum);
 				NewEdgesNum = 0;

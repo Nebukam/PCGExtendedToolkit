@@ -110,7 +110,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : public FPC
 
 	virtual ~FPCGExPathToClustersContext() override;
 
-	TArray<PCGExData::FFacade*> PathsFacades;
+	TArray<TUniquePtr<PCGExData::FFacade>> PathsFacades;
 
 	FPCGExCarryOverDetails CarryOverDetails;
 
@@ -140,7 +140,7 @@ namespace PCGExPathToClusters
 	class FNonFusingProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 		bool bClosedLoop = false;
-		
+
 	public:
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 

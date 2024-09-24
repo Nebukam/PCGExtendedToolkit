@@ -139,7 +139,7 @@ namespace PCGExPointsMT
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoopForPoints)
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, ParallelLoopForPoints)
 			ParallelLoopForPoints->SetOnCompleteCallback([&]() { OnPointsProcessingComplete(); });
 			ParallelLoopForPoints->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForPoints(Loops); });
 			ParallelLoopForPoints->SetOnIterationRangeStartCallback(
@@ -190,7 +190,7 @@ namespace PCGExPointsMT
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, ParallelLoopForRanges)
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, ParallelLoopForRanges)
 			ParallelLoopForRanges->SetOnCompleteCallback([&]() { OnRangeProcessingComplete(); });
 			ParallelLoopForRanges->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
 			ParallelLoopForRanges->SetOnIterationRangeStartCallback(

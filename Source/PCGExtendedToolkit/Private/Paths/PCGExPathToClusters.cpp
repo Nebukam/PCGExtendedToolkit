@@ -33,8 +33,6 @@ FPCGExPathToClustersContext::~FPCGExPathToClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE_TARRAY(PathsFacades)
-
 	PCGEX_DELETE_FACADE_AND_SOURCE(CompoundFacade)
 
 	PCGEX_DELETE(CompoundProcessor)
@@ -49,8 +47,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(CarryOverDetails)
 	Context->CarryOverDetails.Init();
 
-	const_cast<UPCGExPathToClustersSettings*>(Settings)
-		->EdgeEdgeIntersectionDetails.Init();
+	const_cast<UPCGExPathToClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
 	Context->CompoundProcessor = new PCGExGraph::FCompoundProcessor(
 		Context,
@@ -148,14 +145,18 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (Context->IsState(PCGExGraph::State_PreparingCompound))
 		{
-			Context->PathsFacades.Reserve(Context->MainBatch->ProcessorFacades.Num());
-			Context->PathsFacades.Append(Context->MainBatch->ProcessorFacades);
+			const int32 NumFacades = Context->MainBatch->ProcessorFacades.Num();
+			TArray<PCGExData::FFacade*> PathFacadesPtrs;
+
+			Context->PathsFacades.Reserve(NumFacades);
+			PathFacadesPtrs.Reserve(NumFacades);
 
 			PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* MainBatch = static_cast<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>*>(Context->MainBatch);
 			for (PCGExPathToClusters::FFusingProcessor* Processor : MainBatch->Processors)
 			{
-				Processor->PointDataFacade = nullptr; // Remove ownership of facade
-				// before deleting the processor
+				if (!Processor->bIsProcessorValid) { continue; }
+				PathFacadesPtrs.Add(Processor->PointDataFacade.Get());
+				Context->PathsFacades.Add(MoveTemp(Processor->PointDataFacade)); // take ownership of facades
 			}
 
 			PCGEX_DELETE(Context->MainBatch);
@@ -163,7 +164,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			if (!Context->CompoundProcessor->StartExecution(
 				Context->CompoundGraph,
 				Context->CompoundFacade,
-				Context->PathsFacades,
+				PathFacadesPtrs,
 				Settings->GraphBuilderDetails,
 				&Settings->CarryOverDetails)) { return true; }
 		}

@@ -184,7 +184,7 @@ namespace PCGExClusterMT
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP_CHECKED(AsyncManagerPtr, ParallelLoopForNodes)
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, ParallelLoopForNodes)
 			ParallelLoopForNodes->SetOnCompleteCallback([&]() { OnNodesProcessingComplete(); });
 			ParallelLoopForNodes->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForNodes(Loops); });
 			ParallelLoopForNodes->SetOnIterationRangeStartCallback(
@@ -232,7 +232,7 @@ namespace PCGExClusterMT
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP_CHECKED(AsyncManagerPtr, ParallelLoopForEdges)
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, ParallelLoopForEdges)
 			ParallelLoopForEdges->SetOnCompleteCallback([&]() { OnEdgesProcessingComplete(); });
 			ParallelLoopForEdges->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForEdges(Loops); });
 			ParallelLoopForEdges->SetOnIterationRangeStartCallback(
@@ -279,7 +279,7 @@ namespace PCGExClusterMT
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
-			PCGEX_ASYNC_GROUP_CHECKED(AsyncManagerPtr, ParallelLoopForRanges)
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, ParallelLoopForRanges)
 			ParallelLoopForRanges->SetOnCompleteCallback([&]() { OnRangeProcessingComplete(); });
 			ParallelLoopForRanges->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
 			ParallelLoopForRanges->SetOnIterationRangeStartCallback(
@@ -411,7 +411,7 @@ namespace PCGExClusterMT
 			else
 			{
 				// Spread
-				PCGEX_ASYNC_GROUP_CHECKED(AsyncManagerPtr, BuildEndpointLookupTask)
+				PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, BuildEndpointLookupTask)
 
 				PCGEX_SET_NUM_UNINITIALIZED(ReverseLookup, NumVtx)
 				PCGEX_SET_NUM_UNINITIALIZED(ExpectedAdjacency, NumVtx)

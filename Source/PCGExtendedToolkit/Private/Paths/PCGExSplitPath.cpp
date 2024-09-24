@@ -105,7 +105,7 @@ namespace PCGExSplitPath
 		const int32 NumPoints = PointIO->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, TaskGroup)
+		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, TaskGroup)
 		TaskGroup->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{

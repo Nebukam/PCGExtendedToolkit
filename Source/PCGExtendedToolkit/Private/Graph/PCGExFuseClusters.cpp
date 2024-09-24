@@ -120,9 +120,11 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_PreparingCompound))
 	{
-		Context->VtxFacades.Reserve(Context->Batches.Num());
-		TArray<PCGExData::FFacade*> VtxFacadesPtrs;
-		VtxFacadesPtrs.Reserve(Context->Batches.Num());
+		const int32 NumFacades = Context->Batches.Num();
+		TArray<PCGExData::FFacade*> VtxFacadesPtrs;		
+		
+		Context->VtxFacades.Reserve(NumFacades);
+		VtxFacadesPtrs.Reserve(NumFacades);
 		
 		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch :
 		     Context->Batches)

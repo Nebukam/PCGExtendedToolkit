@@ -170,7 +170,7 @@ namespace PCGExPathCrossings
 		Blending->bClosedLoop = bClosedLoop;
 		if (Settings->bOrientCrossing) { Blending->bPreserveRotation = true; }
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, Preparation)
+		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, Preparation)
 		Preparation->SetOnCompleteCallback(
 			[&]()
 			{
@@ -442,7 +442,7 @@ namespace PCGExPathCrossings
 		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (LocalSettings->bTagIfHasCrossing) { PointIO->Tags->Add(LocalSettings->HasCrossingsTag); } }
 		else { if (LocalSettings->bTagIfHasNoCrossings) { PointIO->Tags->Add(LocalSettings->HasNoCrossingsTag); } }
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, FixTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, FixTask)
 		FixTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr); });
 		FixTask->StartRanges(
 			[&](const int32 FixIndex, const int32 Count, const int32 LoopIdx) { FixPoint(FixIndex); },
@@ -451,7 +451,7 @@ namespace PCGExPathCrossings
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, SearchTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, SearchTask)
 		SearchTask->SetOnCompleteCallback([&]() { OnSearchComplete(); });
 		SearchTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
@@ -473,7 +473,7 @@ namespace PCGExPathCrossings
 
 		CompoundBlender->PrepareSoftMerge(PointDataFacade.Get(), CompoundList, &ProtectedAttributes);
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, CrossBlendTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, CrossBlendTask)
 		CrossBlendTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{

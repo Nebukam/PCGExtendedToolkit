@@ -193,7 +193,7 @@ namespace PCGExRefineEdges
 		}
 		else
 		{
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, EdgeScopeLoop)
+			PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, EdgeScopeLoop)
 			EdgeScopeLoop->SetOnCompleteCallback(
 				[&]()
 				{
@@ -247,9 +247,11 @@ namespace PCGExRefineEdges
 
 	void FProcessor::Sanitize()
 	{
-		Cluster->GetExpandedEdges(true); //Oof
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, SanitizeTaskGroup)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, SanitizeTaskGroup)
+
+		Cluster->GetExpandedEdges(true); //Oof
+		
 		SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
 
 		if (LocalSettings->Sanitization == EPCGExRefineSanitization::Filters)

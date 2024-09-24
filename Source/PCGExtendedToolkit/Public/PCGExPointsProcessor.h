@@ -314,8 +314,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 protected:
 	
+	TUniquePtr<PCGExMT::FTaskManager> AsyncManager;
 	PCGExMT::FAsyncParallelLoop* AsyncLoop = nullptr;
-	PCGExMT::FTaskManager* AsyncManager = nullptr;
 
 	PCGExMT::AsyncState CurrentState;
 	int32 CurrentPointIOIndex = -1;

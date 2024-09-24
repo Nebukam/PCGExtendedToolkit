@@ -300,7 +300,7 @@ namespace PCGExWriteEdgeProperties
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, FetchVtxTask)
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, FetchVtxTask)
 			FetchVtxTask->SetOnIterationRangeStartCallback(
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{

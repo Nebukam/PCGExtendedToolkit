@@ -213,14 +213,15 @@ PCGExMT::FTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
 	if (!AsyncManager)
 	{
 		FWriteScopeLock WriteLock(ContextLock);
-		AsyncManager = new PCGExMT::FTaskManager();
+		AsyncManager = MakeUnique<PCGExMT::FTaskManager>();
 		AsyncManager->ForceSync = !bDoAsyncProcessing;
 		AsyncManager->Context = this;
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 		PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority);
 	}
-	return AsyncManager;
+	
+	return AsyncManager.Get();
 }
 
 void FPCGExPointsProcessorContext::ResetAsyncWork()

@@ -158,7 +158,7 @@ namespace PCGExAttributeRemap
 			Rule.RemapDetails.InMax = TNumericLimits<double>::Min();
 		}
 
-		PCGEX_ASYNC_GROUP(AsyncManager, FetchTask)
+		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManager, FetchTask)
 		FetchTask->SetOnCompleteCallback(
 			[&]()
 			{
@@ -250,7 +250,7 @@ namespace PCGExAttributeRemap
 
 	void FProcessor::OnPreparationComplete()
 	{
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, RemapTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, RemapTask)
 		RemapTask->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
