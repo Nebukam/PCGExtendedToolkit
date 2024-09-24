@@ -97,7 +97,7 @@ namespace PCGExBevelVertices
 
 		Cluster->ComputeEdgeLengths();
 
-		FilterManager = new PCGExClusterStates::FStateManager(StateFlags, Cluster, VtxDataFacade, EdgeDataFacade);
+		FilterManager = new PCGExClusterStates::FStateManager(StateFlags, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
 		FilterManager->Init(Context, TypedContext->StateFactories);
 
 		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }
@@ -108,7 +108,7 @@ namespace PCGExBevelVertices
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration);
+		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster.Get(), Iteration);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)

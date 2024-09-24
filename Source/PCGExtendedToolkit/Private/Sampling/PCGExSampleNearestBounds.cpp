@@ -138,7 +138,7 @@ namespace PCGExSampleNearestBounds
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade;
+			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
 			PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_INIT)
 		}
 
@@ -146,7 +146,7 @@ namespace PCGExSampleNearestBounds
 			!TypedContext->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
 			Blender = new PCGExDataBlending::FMetadataBlender(&TypedContext->BlendingDetails);
-			Blender->PrepareForData(PointDataFacade, TypedContext->BoundsFacade);
+			Blender->PrepareForData(PointDataFacade.Get(), TypedContext->BoundsFacade);
 		}
 
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)

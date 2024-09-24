@@ -133,7 +133,7 @@ namespace PCGExSampleOverlapStats
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade;
+			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
 			PCGEX_FOREACH_FIELD_SAMPLEOVERLAPSTATS(PCGEX_OUTPUT_INIT)
 		}
 
@@ -295,7 +295,7 @@ namespace PCGExSampleOverlapStats
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				const PCGExData::FFacade* OtherFacade = ParentBatch->ProcessorFacades[Index];
-				if (PointDataFacade == OtherFacade) { return; } // Skip self
+				if (PointDataFacade.Get() == OtherFacade) { return; } // Skip self
 
 				FProcessor* OtherProcessor = static_cast<FProcessor*>(*ParentBatch->SubProcessorMap->Find(OtherFacade->Source));
 

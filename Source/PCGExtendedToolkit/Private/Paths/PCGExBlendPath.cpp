@@ -119,7 +119,7 @@ namespace PCGExBlendPath
 		End = new PCGExData::FPointRef(PointIO->GetInPoint(MaxIndex), MaxIndex);
 
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(PointDataFacade);
+		MetadataBlender->PrepareForData(PointDataFacade.Get());
 
 		if (LocalSettings->BlendOver == EPCGExBlendOver::Distance)
 		{

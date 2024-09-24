@@ -313,7 +313,7 @@ namespace PCGExGraph
 		TSet<int32> Edges; //TODO : Test for TArray
 		TSet<int32> EdgesInIOIndices;
 		PCGExData::FFacade* VtxDataFacade = nullptr;
-		PCGExData::FFacade* EdgesDataFacade = nullptr;
+		TUniquePtr<PCGExData::FFacade> EdgesDataFacade;
 		TArray<FIndexedEdge> FlattenedEdges;
 		int64 UID = 0;
 
@@ -328,8 +328,6 @@ namespace PCGExGraph
 			FlattenedEdges.Empty();
 			EdgesInIOIndices.Empty();
 			VtxDataFacade = nullptr;
-
-			PCGEX_DELETE(EdgesDataFacade)
 		}
 
 		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph)
@@ -341,7 +339,7 @@ namespace PCGExGraph
 		}
 
 		void Invalidate(FGraph* InGraph);
-		PCGExCluster::FCluster* CreateCluster(PCGExMT::FTaskManager* AsyncManager) const;
+		TSharedPtr<PCGExCluster::FCluster> CreateCluster(PCGExMT::FTaskManager* AsyncManager) const;
 		int32 GetFirstInIOIndex();
 	};
 

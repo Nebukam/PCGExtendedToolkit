@@ -87,7 +87,7 @@ namespace PCGExWriteVtxProperties
 
 		if (!ExtraOperations->IsEmpty())
 		{
-			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster, VtxDataFacade, EdgeDataFacade); }
+			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get()); }
 		}
 
 		StartParallelLoopForNodes();
@@ -102,11 +102,11 @@ namespace PCGExWriteVtxProperties
 		if (ExtraOperations->IsEmpty()) { return; }
 
 		TArray<PCGExCluster::FAdjacencyData> Adjacency;
-		GetAdjacencyData(Cluster, Node, Adjacency);
+		GetAdjacencyData(Cluster.Get(), Node, Adjacency);
 
-		if (VtxNormalWriter) { Node.ComputeNormal(Cluster, Adjacency, VtxNormalWriter->GetMutable(Node.PointIndex)); }
+		if (VtxNormalWriter) { Node.ComputeNormal(Cluster.Get(), Adjacency, VtxNormalWriter->GetMutable(Node.PointIndex)); }
 
-		for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->ProcessNode(BatchIndex, Cluster, Node, Adjacency); }
+		for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->ProcessNode(BatchIndex, Cluster.Get(), Node, Adjacency); }
 	}
 
 	void FProcessor::CompleteWork()
@@ -131,14 +131,14 @@ namespace PCGExWriteVtxProperties
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxProperties)
 
 		{
-			PCGExData::FFacade* OutputFacade = VtxDataFacade;
+			PCGExData::FFacade* OutputFacade = VtxDataFacade.Get();
 			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
 		for (const UPCGExVtxPropertyFactoryBase* Factory : TypedContext->ExtraFactories)
 		{
 			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation();
-			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade))
+			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade.Get()))
 			{
 				PCGEX_DELETE_OPERATION(NewOperation)
 				continue;

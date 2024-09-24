@@ -134,11 +134,10 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 namespace PCGExRefineEdges
 {
-	PCGExCluster::FCluster* FProcessor::HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
+	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a light working copy with edges only, will be deleted.
-		bDeleteCluster = true;
-		return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, false, true, false);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, false, true, false);
 	}
 
 	FProcessor::~FProcessor()
@@ -161,14 +160,14 @@ namespace PCGExRefineEdges
 		Sanitization = Settings->Sanitization;
 
 		Refinement = TypedContext->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
-		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
+		Refinement->PrepareForCluster(Cluster.Get(), HeuristicsHandler);
 
 		Refinement->EdgesFilters = &EdgeFilterCache;
 		EdgeFilterCache.Init(true, EdgeDataFacade->Source->GetNum());
 
 		if (!TypedContext->EdgeFilterFactories.IsEmpty())
 		{
-			EdgeFilterManager = new PCGExPointFilter::TManager(EdgeDataFacade);
+			EdgeFilterManager = new PCGExPointFilter::TManager(EdgeDataFacade.Get());
 			if (!EdgeFilterManager->Init(Context, TypedContext->EdgeFilterFactories)) { return false; }
 		}
 		else
@@ -181,7 +180,7 @@ namespace PCGExRefineEdges
 		{
 			if (!TypedContext->SanitizationFilterFactories.IsEmpty())
 			{
-				SanitizationFilterManager = new PCGExPointFilter::TManager(EdgeDataFacade);
+				SanitizationFilterManager = new PCGExPointFilter::TManager(EdgeDataFacade.Get());
 				if (!SanitizationFilterManager->Init(Context, TypedContext->SanitizationFilterFactories)) { return false; }
 			}
 		}

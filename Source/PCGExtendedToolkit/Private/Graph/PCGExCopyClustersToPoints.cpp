@@ -108,7 +108,7 @@ namespace PCGExCopyClusters
 	void FProcessor::CompleteWork()
 	{
 		// Once work is complete, check if there are cached clusters we can forward
-		const PCGExCluster::FCluster* CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO);
+		TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO);
 
 		if (!CachedCluster) { return; }
 
@@ -123,10 +123,10 @@ namespace PCGExCopyClusters
 			UPCGExClusterEdgesData* EdgeDupeTypedData = Cast<UPCGExClusterEdgesData>(EdgeDupe->GetOut());
 			if (CachedCluster && EdgeDupeTypedData)
 			{
-				PCGExCluster::FCluster* ClusterCopy = new PCGExCluster::FCluster(
-					CachedCluster, VtxDupe, EdgeDupe, false, false, false);
-
-				EdgeDupeTypedData->SetBoundCluster(ClusterCopy, true);
+				EdgeDupeTypedData->SetBoundCluster(
+					MakeShared<PCGExCluster::FCluster>(
+						CachedCluster.Get(), VtxDupe, EdgeDupe,
+						false, false, false));
 			}
 		}
 	}

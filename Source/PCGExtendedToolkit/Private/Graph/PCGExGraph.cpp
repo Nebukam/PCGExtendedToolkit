@@ -31,9 +31,9 @@ namespace PCGExGraph
 		for (const int32 NodeIndex : Nodes) { InGraph->Nodes[NodeIndex].bValid = false; }
 	}
 
-	PCGExCluster::FCluster* FSubGraph::CreateCluster(PCGExMT::FTaskManager* AsyncManager) const
+	TSharedPtr<PCGExCluster::FCluster> FSubGraph::CreateCluster(PCGExMT::FTaskManager* AsyncManager) const
 	{
-		PCGExCluster::FCluster* NewCluster = new PCGExCluster::FCluster();
+		TSharedPtr<PCGExCluster::FCluster> NewCluster = MakeShared<PCGExCluster::FCluster>();
 		NewCluster->VtxIO = VtxDataFacade->Source;
 		NewCluster->EdgesIO = EdgesDataFacade->Source;
 
@@ -350,7 +350,7 @@ namespace PCGExGraph
 				}
 			}
 		}
-		
+
 		PCGExData::TBuffer<int64>* VtxEndpointWriter = NodeDataFacade->GetWritable<int64>(Tag_VtxEndpoint, 0, false, true);
 
 		const uint64 BaseGUID = NodeDataFacade->GetOut()->UID;
@@ -410,11 +410,11 @@ namespace PCGExGraph
 			SubGraph->UID = EdgeIO->GetOut()->UID;
 
 			SubGraph->VtxDataFacade = NodeDataFacade;
-			SubGraph->EdgesDataFacade = new PCGExData::FFacade(EdgeIO);
+			SubGraph->EdgesDataFacade = MakeUnique<PCGExData::FFacade>(EdgeIO);
 
 			MarkClusterEdges(EdgeIO, PairIdStr);
 		}
-		
+
 		MarkClusterVtx(NodeDataFacade->Source, PairIdStr);
 
 		PCGEX_ASYNC_GROUP_CHECKED(AsyncManager, ProcessSubGraphTask)
@@ -570,10 +570,10 @@ namespace PCGExGraphTask
 	bool FWriteSubGraphCluster::ExecuteTask()
 	{
 		UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
-		PCGExCluster::FCluster* Cluster = SubGraph->CreateCluster(Manager);
+		const TSharedPtr<PCGExCluster::FCluster> Cluster = SubGraph->CreateCluster(Manager);
 		if (SubGraph->ParentGraph->bExpandClusters) { Cluster->ExpandNodes(Manager); }
 
-		ClusterEdgesData->SetBoundCluster(Cluster, true);
+		ClusterEdgesData->SetBoundCluster(Cluster);
 		return true;
 	}
 

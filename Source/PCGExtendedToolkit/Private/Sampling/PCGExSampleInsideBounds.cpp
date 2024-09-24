@@ -140,7 +140,7 @@ namespace PCGExSampleInsideBoundss
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade;
+			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
 			PCGEX_FOREACH_FIELD_INSIDEBOUNDS(PCGEX_OUTPUT_INIT)
 		}
 
@@ -148,7 +148,7 @@ namespace PCGExSampleInsideBoundss
 			!TypedContext->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
 			Blender = new PCGExDataBlending::FMetadataBlender(&TypedContext->BlendingDetails);
-			Blender->PrepareForData(PointDataFacade, TypedContext->TargetsFacade);
+			Blender->PrepareForData(PointDataFacade.Get(), TypedContext->TargetsFacade);
 		}
 
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)

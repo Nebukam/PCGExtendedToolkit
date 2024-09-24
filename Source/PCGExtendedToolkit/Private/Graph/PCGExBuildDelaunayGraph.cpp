@@ -145,7 +145,7 @@ namespace PCGExBuildDelaunay
 			else { AsyncManagerPtr->Start<FOutputDelaunaySites>(BatchIndex, PointIO, this); }
 		}
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
 

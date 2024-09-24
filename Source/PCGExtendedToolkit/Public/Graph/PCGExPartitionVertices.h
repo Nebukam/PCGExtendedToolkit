@@ -65,7 +65,7 @@ namespace PCGExPartitionVertices
 		friend class FProcessorBatch;
 
 	protected:
-		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;
 
 		FPCGExPartitionVerticesContext* LocalTypedContext = nullptr;
 

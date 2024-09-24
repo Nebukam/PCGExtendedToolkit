@@ -254,7 +254,7 @@ namespace PCGExPickClosestClusters
 			EdgesIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput); }
 
-			LocalTypedContext->TargetForwardHandler->Forward(Picker, EdgeDataFacade);
+			LocalTypedContext->TargetForwardHandler->Forward(Picker, EdgeDataFacade.Get());
 			LocalTypedContext->TargetForwardHandler->Forward(Picker, VtxDataFacade);
 		}
 

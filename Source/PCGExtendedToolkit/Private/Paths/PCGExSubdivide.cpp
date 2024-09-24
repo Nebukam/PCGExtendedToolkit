@@ -261,7 +261,7 @@ namespace PCGExSubdivide
 			ProtectedAttributes.Add(LocalSettings->AlphaAttributeName);
 		}
 
-		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out, &ProtectedAttributes);
+		Blending->PrepareForData(PointDataFacade.Get(), PointDataFacade.Get(), PCGExData::ESource::Out, &ProtectedAttributes);
 		StartParallelLoopForRange(Subdivisions.Num());
 	}
 

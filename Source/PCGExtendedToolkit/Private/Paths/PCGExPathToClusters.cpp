@@ -198,7 +198,7 @@ namespace PCGExPathToClusters
 
 		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails, 2);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails, 2);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();

@@ -86,7 +86,7 @@ namespace PCGExLloydRelax
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		InfluenceDetails = Settings->InfluenceDetails;
-		if (!InfluenceDetails.Init(Context, PointDataFacade)) { return false; }
+		if (!InfluenceDetails.Init(Context, PointDataFacade.Get())) { return false; }
 
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);

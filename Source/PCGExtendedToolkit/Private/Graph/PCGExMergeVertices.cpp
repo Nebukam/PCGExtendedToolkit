@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExMergeVertices.h"
 
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -96,10 +95,10 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExMergeVertices
 {
-	PCGExCluster::FCluster* FProcessor::HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
+	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
-		return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, true, true, true);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, true, true, true);
 	}
 
 	FProcessor::~FProcessor()
@@ -117,7 +116,6 @@ namespace PCGExMergeVertices
 
 		Cluster->WillModifyVtxIO();
 
-		bDeleteCluster = false;
 		return true;
 	}
 
@@ -153,7 +151,7 @@ namespace PCGExMergeVertices
 		EdgesIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		PCGExGraph::MarkClusterEdges(EdgesIO, LocalTypedContext->OutVtxId);
 
-		ForwardCluster(true);
+		ForwardCluster();
 	}
 }
 

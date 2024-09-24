@@ -399,7 +399,7 @@ namespace PCGExDiscardByOverlap
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				const PCGExData::FFacade* OtherFacade = ParentBatch->ProcessorFacades[Index];
-				if (PointDataFacade == OtherFacade) { return; } // Skip self
+				if (PointDataFacade.Get() == OtherFacade) { return; } // Skip self
 
 				FProcessor* OtherProcessor = static_cast<FProcessor*>(*ParentBatch->SubProcessorMap->Find(OtherFacade->Source));
 

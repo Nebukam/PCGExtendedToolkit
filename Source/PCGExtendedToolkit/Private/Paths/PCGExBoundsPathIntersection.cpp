@@ -200,7 +200,7 @@ namespace PCGExPathIntersections
 				PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 
 				Details.Mark(PointIO->GetOut()->Metadata);
-				Details.Init(PointDataFacade, TypedContext->BoundsDataFacade);
+				Details.Init(PointDataFacade.Get(), TypedContext->BoundsDataFacade);
 
 				StartParallelLoopForPoints();
 			}
@@ -257,7 +257,7 @@ namespace PCGExPathIntersections
 		}
 
 		PointDataFacade->Source->CleanupKeys();
-		Details.Init(PointDataFacade, TypedContext->BoundsDataFacade);
+		Details.Init(PointDataFacade.Get(), TypedContext->BoundsDataFacade);
 
 		Segmentation->ReduceToArray();
 

@@ -95,7 +95,7 @@ namespace PCGExRelaxClusters
 
 		virtual ~FProcessor() override;
 
-		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;
 		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
 		void StartRelaxIteration();
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;

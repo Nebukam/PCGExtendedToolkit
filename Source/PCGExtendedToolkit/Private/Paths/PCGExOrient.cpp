@@ -106,7 +106,7 @@ namespace PCGExOrient
 		LastIndex = PointIO->GetNum() - 1;
 		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
 		Orient->bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
-		if (!Orient->PrepareForData(PointDataFacade)) { return false; }
+		if (!Orient->PrepareForData(PointDataFacade.Get())) { return false; }
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
 		{

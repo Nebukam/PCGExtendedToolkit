@@ -122,7 +122,7 @@ namespace PCGExBuildDelaunay2D
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(Context, PointDataFacade);
+		ProjectionDetails.Init(Context, PointDataFacade.Get());
 
 		// Build delaunay
 
@@ -157,7 +157,7 @@ namespace PCGExBuildDelaunay2D
 			else { AsyncManagerPtr->Start<FOutputDelaunaySites2D>(BatchIndex, PointIO, this); }
 		}
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
 

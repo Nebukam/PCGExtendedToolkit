@@ -82,7 +82,7 @@ namespace PCGExWritePathProperties
 		LocalSettings = Settings;
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade;
+			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
 			PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_INIT)
 		}
 

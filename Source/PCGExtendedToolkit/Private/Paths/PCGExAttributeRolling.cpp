@@ -104,7 +104,7 @@ namespace PCGExAttributeRolling
 		LocalTypedContext = TypedContext;
 
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(PointDataFacade, PCGExData::ESource::In, true, nullptr, true);
+		MetadataBlender->PrepareForData(PointDataFacade.Get(), PCGExData::ESource::In, true, nullptr, true);
 
 		OutMetadata = PointDataFacade->GetOut()->Metadata;
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();

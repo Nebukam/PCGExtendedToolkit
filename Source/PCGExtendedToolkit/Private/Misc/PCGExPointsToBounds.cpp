@@ -138,7 +138,7 @@ namespace PCGExPointsToBounds
 		if (Settings->bBlendProperties)
 		{
 			MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-			MetadataBlender->PrepareForData(PointDataFacade);
+			MetadataBlender->PrepareForData(PointDataFacade.Get());
 
 			const PCGExData::FPointRef Target = PointIO->GetOutPointRef(0);
 			MetadataBlender->PrepareForBlending(Target);

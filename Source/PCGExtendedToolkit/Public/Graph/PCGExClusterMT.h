@@ -51,7 +51,6 @@ namespace PCGExClusterMT
 		bool bBuildCluster = true;
 		bool bRequiresHeuristics = false;
 		bool bCacheVtxPointIndices = false;
-		bool bDeleteCluster = false;
 
 		bool bInlineProcessNodes = false;
 		bool bInlineProcessEdges = false;
@@ -63,17 +62,16 @@ namespace PCGExClusterMT
 		int32 NumNodes = 0;
 		int32 NumEdges = 0;
 
-		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
 		{
-			return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, false, false, false);
+			return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, false, false, false);
 		}
 
-		void ForwardCluster(const bool bAsOwner)
+		void ForwardCluster()
 		{
 			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(EdgesIO->GetOut()))
 			{
-				EdgesData->SetBoundCluster(Cluster, bAsOwner);
-				bDeleteCluster = false;
+				EdgesData->SetBoundCluster(Cluster);
 			}
 		}
 
@@ -81,7 +79,7 @@ namespace PCGExClusterMT
 		FClusterProcessorBatchBase* ParentBatch = nullptr;
 
 		PCGExData::FFacade* VtxDataFacade = nullptr;
-		PCGExData::FFacade* EdgeDataFacade = nullptr;
+		TUniquePtr<PCGExData::FFacade> EdgeDataFacade;
 
 		bool bAllowEdgesDataFacadeScopedGet = false;
 
@@ -103,7 +101,7 @@ namespace PCGExClusterMT
 		TMap<uint32, int32>* EndpointsLookup = nullptr;
 		TArray<int32>* ExpectedAdjacency = nullptr;
 
-		PCGExCluster::FCluster* Cluster = nullptr;
+		TSharedPtr<PCGExCluster::FCluster> Cluster;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
@@ -111,21 +109,17 @@ namespace PCGExClusterMT
 			VtxIO(InVtx), EdgesIO(InEdges)
 		{
 			PCGEX_LOG_CTR(FClusterProcessor)
-			EdgeDataFacade = new PCGExData::FFacade(InEdges);
+			EdgeDataFacade = MakeUnique<PCGExData::FFacade>(InEdges);
 			EdgeDataFacade->bSupportsScopedGet = bAllowEdgesDataFacadeScopedGet;
 		}
 
 		virtual ~FClusterProcessor()
 		{
 			PCGEX_LOG_DTR(FClusterProcessor)
-
 			PCGEX_DELETE(HeuristicsHandler);
-			if (bDeleteCluster) { PCGEX_DELETE(Cluster); } // Safely delete the cluster
-
+			
 			VtxIO = nullptr;
 			EdgesIO = nullptr;
-
-			PCGEX_DELETE(EdgeDataFacade)
 		}
 
 		template <typename T>
@@ -141,21 +135,21 @@ namespace PCGExClusterMT
 
 			if (!bBuildCluster) { return true; }
 
-			if (const PCGExCluster::FCluster* CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO))
+			if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO))
 			{
 				Cluster = HandleCachedCluster(CachedCluster);
 			}
 
 			if (!Cluster)
 			{
-				Cluster = new PCGExCluster::FCluster();
+				Cluster = MakeShared<PCGExCluster::FCluster>();
 				Cluster->bIsOneToOne = bIsOneToOne;
 				Cluster->VtxIO = VtxIO;
 				Cluster->EdgesIO = EdgesIO;
 
 				if (!Cluster->BuildFrom(EdgesIO, VtxIO->GetIn()->GetPoints(), *EndpointsLookup, ExpectedAdjacency))
 				{
-					PCGEX_DELETE(Cluster)
+					Cluster.Reset();
 					return false;
 				}
 			}
@@ -168,8 +162,8 @@ namespace PCGExClusterMT
 			if (bRequiresHeuristics)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProcessor::Heuristics);
-				HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context, VtxDataFacade, EdgeDataFacade);
-				HeuristicsHandler->PrepareForCluster(Cluster);
+				HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context, VtxDataFacade, EdgeDataFacade.Get());
+				HeuristicsHandler->PrepareForCluster(Cluster.Get());
 				HeuristicsHandler->CompleteClusterPreparation();
 			}
 
@@ -346,7 +340,7 @@ namespace PCGExClusterMT
 		bool bRequiresGraphBuilder = false;
 
 	public:
-		PCGExData::FFacade* VtxDataFacade = nullptr;
+		TUniquePtr<PCGExData::FFacade> VtxDataFacade;
 		bool bAllowVtxDataFacadeScopedGet = false;
 
 		bool bRequiresWriteStep = false;
@@ -380,7 +374,7 @@ namespace PCGExClusterMT
 			Context(InContext), VtxIO(InVtx)
 		{
 			Edges.Append(InEdges);
-			VtxDataFacade = new PCGExData::FFacade(InVtx);
+			VtxDataFacade = MakeUnique<PCGExData::FFacade>(InVtx);
 			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet;
 		}
 
@@ -394,7 +388,6 @@ namespace PCGExClusterMT
 			ExpectedAdjacency.Empty();
 
 			PCGEX_DELETE(GraphBuilder)
-			PCGEX_DELETE(VtxDataFacade)
 		}
 
 		template <typename T>
@@ -411,7 +404,7 @@ namespace PCGExClusterMT
 			{
 				// Trivial
 				PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
-				if (RequiresGraphBuilder()) { GraphBuilder = new PCGExGraph::FGraphBuilder(VtxDataFacade, &GraphBuilderDetails, 6, EdgeCollection); }
+				if (RequiresGraphBuilder()) { GraphBuilder = new PCGExGraph::FGraphBuilder(VtxDataFacade.Get(), &GraphBuilderDetails, 6, EdgeCollection); }
 
 				OnProcessingPreparationComplete();
 			}
@@ -438,7 +431,7 @@ namespace PCGExClusterMT
 
 						if (RequiresGraphBuilder())
 						{
-							GraphBuilder = new PCGExGraph::FGraphBuilder(VtxDataFacade, &GraphBuilderDetails, 6, EdgeCollection);
+							GraphBuilder = new PCGExGraph::FGraphBuilder(VtxDataFacade.Get(), &GraphBuilderDetails, 6, EdgeCollection);
 						}
 
 						OnProcessingPreparationComplete();
@@ -512,7 +505,7 @@ namespace PCGExClusterMT
 			for (const T* P : Processors)
 			{
 				if (!P->Cluster) { continue; }
-				ValidClusters.Add(P->Cluster);
+				ValidClusters.Add(P->Cluster.Get());
 			}
 			return ValidClusters.Num();
 		}
@@ -543,7 +536,7 @@ namespace PCGExClusterMT
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
-				NewProcessor->VtxDataFacade = VtxDataFacade;
+				NewProcessor->VtxDataFacade = VtxDataFacade.Get();
 
 				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
 				NewProcessor->SetRequiresHeuristics(RequiresHeuristics());

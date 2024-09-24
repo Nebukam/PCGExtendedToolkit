@@ -96,7 +96,7 @@ namespace PCGExSmooth
 		NumPoints = PointIO->GetNum();
 
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(PointDataFacade);
+		MetadataBlender->PrepareForData(PointDataFacade.Get());
 
 		if (Settings->InfluenceType == EPCGExFetchType::Attribute)
 		{

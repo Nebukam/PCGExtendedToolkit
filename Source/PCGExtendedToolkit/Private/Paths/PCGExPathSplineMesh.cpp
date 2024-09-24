@@ -174,13 +174,13 @@ namespace PCGExPathSplineMesh
 		LocalTypedContext = TypedContext;
 
 		Justification = Settings->Justification;
-		Justification.Init(Context, PointDataFacade);
+		Justification.Init(Context, PointDataFacade.Get());
 
 		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 
 		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
-		if (!Helper->Init(Context, PointDataFacade)) { return false; }
+		if (!Helper->Init(Context, PointDataFacade.Get())) { return false; }
 
 		if (Settings->bApplyCustomTangents)
 		{

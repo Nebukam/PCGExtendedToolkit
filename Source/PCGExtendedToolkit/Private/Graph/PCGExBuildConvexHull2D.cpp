@@ -157,7 +157,7 @@ namespace PCGExConvexHull2D
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(Context, PointDataFacade);
+		ProjectionDetails.Init(Context, PointDataFacade.Get());
 
 		// Build delaunay
 
@@ -178,7 +178,7 @@ namespace PCGExConvexHull2D
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;

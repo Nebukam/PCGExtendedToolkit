@@ -143,14 +143,14 @@ namespace PCGExConnectPoints
 		if (Settings->bProjectPoints)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			ProjectionDetails.Init(Context, PointDataFacade);
+			ProjectionDetails.Init(Context, PointDataFacade.Get());
 		}
 
 		for (const UPCGExProbeFactoryBase* Factory : TypedContext->ProbeFactories)
 		{
 			UPCGExProbeOperation* NewOperation = Factory->CreateOperation();
 			NewOperation->BindContext(Context);
-			NewOperation->PrimaryDataFacade = PointDataFacade;
+			NewOperation->PrimaryDataFacade = PointDataFacade.Get();
 
 			if (!NewOperation->PrepareForPoints(PointIO))
 			{
@@ -178,20 +178,20 @@ namespace PCGExConnectPoints
 		if (ProbeOperations.IsEmpty() && DirectProbeOperations.IsEmpty()) { return false; }
 
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails, 2);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails, 2);
 
 		CanGenerate.Init(true, NumPoints);
 		CachedTransforms.SetNumUninitialized(NumPoints);
 
 		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
 		{
-			GeneratorsFilter = new PCGExPointFilter::TManager(PointDataFacade);
+			GeneratorsFilter = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade.Get());
 			GeneratorsFilter->Init(Context, TypedContext->GeneratorsFiltersFactories);
 		}
 
 		if (!TypedContext->ConnectablesFiltersFactories.IsEmpty())
 		{
-			ConnectableFilter = new PCGExPointFilter::TManager(PointDataFacade);
+			ConnectableFilter = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade.Get());
 			ConnectableFilter->Init(Context, TypedContext->ConnectablesFiltersFactories);
 		}
 
@@ -256,9 +256,8 @@ namespace PCGExConnectPoints
 			}
 		}
 
-		PCGEX_DELETE(GeneratorsFilter)
-		PCGEX_DELETE(ConnectableFilter)
-
+		GeneratorsFilter.Reset();
+		ConnectableFilter.Reset();
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 	}

@@ -141,7 +141,7 @@ namespace PCGExConditionalActions
 		for (const UPCGExConditionalActionFactoryBase* Factory : TypedContext->ConditionalActionsFactories)
 		{
 			UPCGExConditionalActionOperation* Operation = Factory->CreateOperation();
-			if (!Operation->PrepareForData(Context, PointDataFacade)) { return false; }
+			if (!Operation->PrepareForData(Context, PointDataFacade.Get())) { return false; }
 			Operations.Add(Operation);
 		}
 

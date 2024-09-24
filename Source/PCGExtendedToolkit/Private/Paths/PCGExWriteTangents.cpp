@@ -144,7 +144,7 @@ namespace PCGExWriteTangents
 		{
 			StartTangents = TypedContext->StartTangents->CopyOperation<UPCGExTangentsOperation>();
 			StartTangents->bClosedLoop = bClosedLoop;
-			StartTangents->PrimaryDataFacade = PointDataFacade;
+			StartTangents->PrimaryDataFacade = PointDataFacade.Get();
 			StartTangents->PrepareForData();
 		}
 		else { StartTangents = Tangents; }
@@ -153,7 +153,7 @@ namespace PCGExWriteTangents
 		{
 			EndTangents = TypedContext->EndTangents->CopyOperation<UPCGExTangentsOperation>();
 			EndTangents->bClosedLoop = bClosedLoop;
-			EndTangents->PrimaryDataFacade = PointDataFacade;
+			EndTangents->PrimaryDataFacade = PointDataFacade.Get();
 			EndTangents->PrepareForData();
 		}
 		else { EndTangents = Tangents; }

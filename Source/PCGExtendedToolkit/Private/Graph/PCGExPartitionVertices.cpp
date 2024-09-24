@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExPartitionVertices.h"
 
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -71,11 +70,10 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 
 namespace PCGExPartitionVertices
 {
-	PCGExCluster::FCluster* FProcessor::HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
+	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
-		bDeleteCluster = false;
-		return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, true, true, true);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, true, true, true);
 	}
 
 	FProcessor::~FProcessor()
@@ -142,7 +140,7 @@ namespace PCGExPartitionVertices
 		PCGExGraph::SetClusterVtx(PointPartitionIO, OutId);
 		PCGExGraph::MarkClusterEdges(EdgesIO, OutId);
 
-		ForwardCluster(true);
+		ForwardCluster();
 	}
 }
 

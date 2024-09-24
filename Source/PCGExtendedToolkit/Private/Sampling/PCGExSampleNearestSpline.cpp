@@ -151,7 +151,7 @@ namespace PCGExSampleNearestSpline
 
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade;
+			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
 			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_INIT)
 		}
 

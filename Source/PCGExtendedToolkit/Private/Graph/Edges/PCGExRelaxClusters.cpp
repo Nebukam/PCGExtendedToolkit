@@ -73,10 +73,9 @@ namespace PCGExRelaxClusters
 		//if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) } // Keep those cached since we forward expanded cluster
 	}
 
-	PCGExCluster::FCluster* FProcessor::HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef)
+	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
 	{
-		bDeleteCluster = false;
-		return new PCGExCluster::FCluster(InClusterRef, VtxIO, EdgesIO, true, false, false);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, true, false, false);
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -90,7 +89,7 @@ namespace PCGExRelaxClusters
 		if (!InfluenceDetails.Init(Context, VtxDataFacade)) { return false; }
 
 		RelaxOperation = TypedContext->Relaxing->CopyOperation<UPCGExRelaxClusterOperation>();
-		RelaxOperation->PrepareForCluster(Cluster);
+		RelaxOperation->PrepareForCluster(Cluster.Get());
 
 		PrimaryBuffer = new TArray<FVector>();
 		SecondaryBuffer = new TArray<FVector>();
@@ -139,7 +138,7 @@ namespace PCGExRelaxClusters
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration);
+		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster.Get(), Iteration);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
@@ -189,7 +188,7 @@ namespace PCGExRelaxClusters
 		}
 
 		Cluster->WillModifyVtxPositions(true);
-		ForwardCluster(true);
+		ForwardCluster();
 	}
 
 	bool FRelaxRangeTask::ExecuteTask()

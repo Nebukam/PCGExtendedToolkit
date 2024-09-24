@@ -137,10 +137,10 @@ namespace PCGExPathCrossings
 		Details = Settings->IntersectionDetails;
 		Details.Init();
 
-		CanCutFilterManager = new PCGExPointFilter::TManager(PointDataFacade);
+		CanCutFilterManager = new PCGExPointFilter::TManager(PointDataFacade.Get());
 		if (!CanCutFilterManager->Init(Context, TypedContext->CanCutFilterFactories)) { PCGEX_DELETE(CanCutFilterManager) }
 
-		CanBeCutFilterManager = new PCGExPointFilter::TManager(PointDataFacade);
+		CanBeCutFilterManager = new PCGExPointFilter::TManager(PointDataFacade.Get());
 		if (!CanBeCutFilterManager->Init(Context, TypedContext->CanBeCutFilterFactories)) { PCGEX_DELETE(CanBeCutFilterManager) }
 
 		// Build edges
@@ -437,7 +437,7 @@ namespace PCGExPathCrossings
 			ProtectedAttributes.Add(LocalSettings->CrossDirectionAttributeName);
 		}
 
-		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out, &ProtectedAttributes);
+		Blending->PrepareForData(PointDataFacade.Get(), PointDataFacade.Get(), PCGExData::ESource::Out, &ProtectedAttributes);
 
 		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (LocalSettings->bTagIfHasCrossing) { PointIO->Tags->Add(LocalSettings->HasCrossingsTag); } }
 		else { if (LocalSettings->bTagIfHasNoCrossings) { PointIO->Tags->Add(LocalSettings->HasNoCrossingsTag); } }
@@ -468,10 +468,10 @@ namespace PCGExPathCrossings
 		CompoundBlender = new PCGExDataBlending::FCompoundBlender(&LocalSettings->CrossingBlending, &LocalSettings->CrossingCarryOver);
 		for (const PCGExData::FPointIO* IO : LocalTypedContext->MainPoints->Pairs)
 		{
-			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { CompoundBlender->AddSource(LocalTypedContext->SubProcessorMap[IO]->PointDataFacade); }
+			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { CompoundBlender->AddSource(LocalTypedContext->SubProcessorMap[IO]->PointDataFacade.Get()); }
 		}
 
-		CompoundBlender->PrepareSoftMerge(PointDataFacade, CompoundList, &ProtectedAttributes);
+		CompoundBlender->PrepareSoftMerge(PointDataFacade.Get(), CompoundList, &ProtectedAttributes);
 
 		PCGEX_ASYNC_GROUP(AsyncManagerPtr, CrossBlendTask)
 		CrossBlendTask->StartRanges(

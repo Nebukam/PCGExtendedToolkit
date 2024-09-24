@@ -124,7 +124,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch :
 		     Context->Batches)
 		{
-			Context->VtxFacades.Add(Batch->VtxDataFacade);
+			Context->VtxFacades.Add(Batch->VtxDataFacade.Get());
 			Batch->VtxDataFacade = nullptr; // Remove ownership of facade
 			// before deleting the processor
 		}
@@ -164,9 +164,7 @@ namespace PCGExFuseClusters
 		EdgesIOIndex = EdgesIO->IOIndex;
 
 		// Prepare insertion
-		bDeleteCluster = false;
-		const PCGExCluster::FCluster* CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO);
-		Cluster = CachedCluster ? const_cast<PCGExCluster::FCluster*>(CachedCluster) : nullptr;
+		Cluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO);
 
 		if (!Cluster)
 		{

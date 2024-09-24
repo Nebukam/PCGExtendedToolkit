@@ -124,7 +124,7 @@ namespace PCGExSampleNearestSurface
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
-		SurfacesForward = TypedContext->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(TypedContext->ActorReferenceDataFacade, PointDataFacade) : nullptr;
+		SurfacesForward = TypedContext->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(TypedContext->ActorReferenceDataFacade, PointDataFacade.Get()) : nullptr;
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
@@ -132,7 +132,7 @@ namespace PCGExSampleNearestSurface
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade;
+			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
 			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_INIT)
 		}
 

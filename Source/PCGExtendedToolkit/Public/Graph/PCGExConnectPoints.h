@@ -147,8 +147,8 @@ namespace PCGExConnectPoints
 
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		PCGExPointFilter::TManager* GeneratorsFilter = nullptr;
-		PCGExPointFilter::TManager* ConnectableFilter = nullptr;
+		TUniquePtr<PCGExPointFilter::TManager> GeneratorsFilter;
+		TUniquePtr<PCGExPointFilter::TManager> ConnectableFilter;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		TArray<UPCGExProbeOperation*> ProbeOperations;

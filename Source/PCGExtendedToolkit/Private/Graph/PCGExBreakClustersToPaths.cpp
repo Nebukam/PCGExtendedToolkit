@@ -90,14 +90,14 @@ namespace PCGExBreakClustersToPaths
 
 		Breakpoints.Init(false, Cluster->Nodes->Num());
 
-		if (!DirectionSettings.InitFromParent(Context, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade))
+		if (!DirectionSettings.InitFromParent(Context, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade.Get()))
 		{
 			return false;
 		}
 
 		if (!TypedContext->FilterFactories.IsEmpty())
 		{
-			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster, VtxDataFacade, EdgeDataFacade);
+			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
 			FilterManager->Init(Context, TypedContext->FilterFactories);
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
 			PCGEX_DELETE(FilterManager)
@@ -110,7 +110,7 @@ namespace PCGExBreakClustersToPaths
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
 			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster,
+				EdgesIO->IOIndex, nullptr, Cluster.Get(),
 				&Breakpoints, &Chains, false);
 		}
 		else
@@ -153,12 +153,12 @@ namespace PCGExBreakClustersToPaths
 		if (DirectionSettings.DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 		{
 			PCGExGraph::FIndexedEdge ChainDir = PCGExGraph::FIndexedEdge((*Cluster->Nodes)[Chain->First].GetEdgeIndex(Chain->Last), StartIdx, EndIdx);
-			bReverse = DirectionSettings.SortEndpoints(Cluster, ChainDir);
+			bReverse = DirectionSettings.SortEndpoints(Cluster.Get(), ChainDir);
 		}
 		else
 		{
 			PCGExGraph::FIndexedEdge ChainDir = PCGExGraph::FIndexedEdge(Iteration, StartIdx, EndIdx);
-			bReverse = DirectionSettings.SortEndpoints(Cluster, ChainDir);
+			bReverse = DirectionSettings.SortEndpoints(Cluster.Get(), ChainDir);
 		}
 
 		if (bReverse)
@@ -189,7 +189,7 @@ namespace PCGExBreakClustersToPaths
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 
-		DirectionSettings.SortEndpoints(Cluster, Edge);
+		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
 		MutablePoints[0] = PathIO->GetInPoint(Edge.Start);
 		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
@@ -204,7 +204,7 @@ namespace PCGExBreakClustersToPaths
 		VtxDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		DirectionSettings = Settings->DirectionSettings;
-		if (!DirectionSettings.Init(Context, VtxDataFacade))
+		if (!DirectionSettings.Init(Context, VtxDataFacade.Get()))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
 			return;

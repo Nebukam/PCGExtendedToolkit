@@ -49,7 +49,7 @@ namespace PCGExPointsMT
 		friend class FPointsProcessorBatchBase;
 
 	protected:
-		PCGExPointFilter::TManager* PrimaryFilters = nullptr;
+		TUniquePtr<PCGExPointFilter::TManager> PrimaryFilters;
 		PCGExMT::FTaskManager* AsyncManagerPtr = nullptr;
 		bool bInlineProcessPoints = false;
 		bool bInlineProcessRange = false;
@@ -61,7 +61,7 @@ namespace PCGExPointsMT
 
 		bool bIsProcessorValid = false;
 
-		PCGExData::FFacade* PointDataFacade = nullptr;
+		TUniquePtr<PCGExData::FFacade> PointDataFacade;
 
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
@@ -80,7 +80,7 @@ namespace PCGExPointsMT
 			PointIO(InPoints)
 		{
 			PCGEX_LOG_CTR(FPointsProcessor)
-			PointDataFacade = new PCGExData::FFacade(InPoints);
+			PointDataFacade = MakeUnique<PCGExData::FFacade>(InPoints);
 		}
 
 		virtual ~FPointsProcessor()
@@ -90,9 +90,7 @@ namespace PCGExPointsMT
 			PointIO = nullptr;
 			PCGEX_DELETE_OPERATION(PrimaryOperation)
 
-			PCGEX_DELETE(PrimaryFilters)
 			PointFilterCache.Empty();
-			PCGEX_DELETE(PointDataFacade)
 		}
 
 		template <typename T>
@@ -118,7 +116,7 @@ namespace PCGExPointsMT
 			if (PrimaryOperation)
 			{
 				PrimaryOperation = PrimaryOperation->CopyOperation<UPCGExOperation>();
-				PrimaryOperation->PrimaryDataFacade = PointDataFacade;
+				PrimaryOperation->PrimaryDataFacade = PointDataFacade.Get();
 			}
 
 			return true;
@@ -243,7 +241,7 @@ namespace PCGExPointsMT
 
 			if (InFilterFactories->IsEmpty()) { return true; }
 
-			PrimaryFilters = new PCGExPointFilter::TManager(PointDataFacade);
+			PrimaryFilters = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade.Get());
 			return PrimaryFilters->Init(Context, *InFilterFactories);
 		}
 
@@ -378,7 +376,7 @@ namespace PCGExPointsMT
 					continue;
 				}
 
-				ProcessorFacades.Add(NewProcessor->PointDataFacade);
+				ProcessorFacades.Add(NewProcessor->PointDataFacade.Get());
 				SubProcessorMap->Add(NewProcessor->PointDataFacade->Source, NewProcessor);
 
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }

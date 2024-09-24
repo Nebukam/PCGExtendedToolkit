@@ -77,10 +77,10 @@ namespace PCGExBoundsToPoints
 
 		Axis = Settings->SymmetryAxis;
 		UVW = Settings->UVW;
-		if (!UVW.Init(Context, PointDataFacade)) { return false; }
+		if (!UVW.Init(Context, PointDataFacade.Get())) { return false; }
 
 		PointAttributesToOutputTags = Settings->PointAttributesToOutputTags;
-		if (!PointAttributesToOutputTags.Init(Context, PointDataFacade)) { return false; }
+		if (!PointAttributesToOutputTags.Init(Context, PointDataFacade.Get())) { return false; }
 
 		NumPoints = PointIO->GetNum();
 		bGeneratePerPointData = Settings->bGeneratePerPointData;

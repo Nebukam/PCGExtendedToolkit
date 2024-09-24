@@ -187,7 +187,7 @@ namespace PCGExBuildVoronoi
 			//ExtractValidSites();
 			PCGEX_DELETE(Voronoi)
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 
 			ValidEdges.Empty();
@@ -225,7 +225,7 @@ namespace PCGExBuildVoronoi
 				}
 			}
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 			//ExtractValidSites();

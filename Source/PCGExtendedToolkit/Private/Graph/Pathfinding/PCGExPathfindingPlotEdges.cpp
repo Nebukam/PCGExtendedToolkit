@@ -254,7 +254,7 @@ namespace PCGExPathfindingPlotEdge
 		}
 
 		SearchOperation = TypedContext->SearchAlgorithm->CopyOperation<UPCGExSearchOperation>(); // Create a local copy
-		SearchOperation->PrepareForCluster(Cluster);
+		SearchOperation->PrepareForCluster(Cluster.Get());
 
 		if (IsTrivial())
 		{

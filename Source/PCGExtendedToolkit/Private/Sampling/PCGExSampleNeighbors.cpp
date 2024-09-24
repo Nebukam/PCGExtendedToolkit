@@ -100,7 +100,7 @@ namespace PCGExSampleNeighbors
 		{
 			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation();
 			SamplingOperation->BindContext(TypedContext);
-			SamplingOperation->PrepareForCluster(Context, Cluster, VtxDataFacade, EdgeDataFacade);
+			SamplingOperation->PrepareForCluster(Context, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
 
 			if (!SamplingOperation->IsOperationValid())
 			{
@@ -129,7 +129,7 @@ namespace PCGExSampleNeighbors
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		if (bBuildExpandedNodes) { (*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration); }
+		if (bBuildExpandedNodes) { (*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster.Get(), Iteration); }
 		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*(Cluster->Nodes->GetData() + Iteration)); }
 	}
 

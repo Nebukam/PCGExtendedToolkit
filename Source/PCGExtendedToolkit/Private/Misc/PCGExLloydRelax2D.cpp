@@ -86,10 +86,10 @@ namespace PCGExLloydRelax2D
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(Context, PointDataFacade);
+		ProjectionDetails.Init(Context, PointDataFacade.Get());
 
 		InfluenceDetails = Settings->InfluenceDetails;
-		if (!InfluenceDetails.Init(Context, PointDataFacade)) { return false; }
+		if (!InfluenceDetails.Init(Context, PointDataFacade.Get())) { return false; }
 
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);

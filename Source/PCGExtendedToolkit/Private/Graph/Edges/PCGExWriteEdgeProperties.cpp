@@ -89,13 +89,13 @@ namespace PCGExWriteEdgeProperties
 
 		LocalSettings = Settings;
 
-		if (!DirectionSettings.InitFromParent(Context, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade))
+		if (!DirectionSettings.InitFromParent(Context, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade.Get()))
 		{
 			return false;
 		}
 
 		{
-			PCGExData::FFacade* OutputFacade = EdgeDataFacade;
+			PCGExData::FFacade* OutputFacade = EdgeDataFacade.Get();
 			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
@@ -129,7 +129,7 @@ namespace PCGExWriteEdgeProperties
 		if (Settings->bEndpointsBlending)
 		{
 			MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingSettings));
-			MetadataBlender->PrepareForData(EdgeDataFacade, VtxDataFacade, PCGExData::ESource::In);
+			MetadataBlender->PrepareForData(EdgeDataFacade.Get(), VtxDataFacade, PCGExData::ESource::In);
 		}
 
 		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);
@@ -148,7 +148,7 @@ namespace PCGExWriteEdgeProperties
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
-		DirectionSettings.SortEndpoints(Cluster, Edge);
+		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
 		const PCGExCluster::FNode& StartNode = *(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.Start]);
 		const PCGExCluster::FNode& EndNode = *(Cluster->Nodes->GetData() + (*Cluster->NodeIndexLookup)[Edge.End]);
@@ -288,7 +288,7 @@ namespace PCGExWriteEdgeProperties
 		VtxDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		DirectionSettings = Settings->DirectionSettings;
-		if (!DirectionSettings.Init(Context, VtxDataFacade))
+		if (!DirectionSettings.Init(Context, VtxDataFacade.Get()))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
 			return;

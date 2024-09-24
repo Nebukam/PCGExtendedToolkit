@@ -32,7 +32,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 {
 	const UPCGExFindContoursSettings* Settings = ClusterProcessor->LocalSettings;
 
-	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster;
+	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster.Get();
 
 	TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = ClusterProcessor->ExpandedNodes;
 	TArray<PCGExCluster::FExpandedEdge*>* ExpandedEdges = ClusterProcessor->ExpandedEdges;
@@ -386,7 +386,7 @@ namespace PCGExFindContours
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration);
+		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster.Get(), Iteration);
 	}
 
 	void FProcessor::CompleteWork()
@@ -415,7 +415,7 @@ namespace PCGExFindContours
 
 		// Project positions
 		ProjectionDetails = Settings->ProjectionDetails;
-		if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
+		if (!ProjectionDetails.Init(Context, VtxDataFacade.Get())) { return; }
 
 		PCGEX_SET_NUM_UNINITIALIZED(ProjectedPositions, VtxIO->GetNum())
 

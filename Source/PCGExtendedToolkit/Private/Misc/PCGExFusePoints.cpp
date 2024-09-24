@@ -120,8 +120,8 @@ namespace PCGExFusePoints
 		PointIO->InitializeNum(NumCompoundNodes);
 
 		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &TypedContext->CarryOverDetails);
-		CompoundPointsBlender->AddSource(PointDataFacade);
-		CompoundPointsBlender->PrepareMerge(PointDataFacade, CompoundGraph->PointsCompounds);
+		CompoundPointsBlender->AddSource(PointDataFacade.Get());
+		CompoundPointsBlender->PrepareMerge(PointDataFacade.Get(), CompoundGraph->PointsCompounds);
 
 		StartParallelLoopForRange(NumCompoundNodes);
 	}

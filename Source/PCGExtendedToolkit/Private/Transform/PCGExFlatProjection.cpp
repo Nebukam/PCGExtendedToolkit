@@ -99,7 +99,7 @@ namespace PCGExFlatProjection
 		else if (bWriteAttribute)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			ProjectionDetails.Init(Context, PointDataFacade);
+			ProjectionDetails.Init(Context, PointDataFacade.Get());
 			TransformWriter = PointDataFacade->GetWritable<FTransform>(TypedContext->CachedTransformAttributeName, true);
 		}
 

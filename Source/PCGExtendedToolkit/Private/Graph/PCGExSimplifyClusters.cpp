@@ -83,7 +83,7 @@ namespace PCGExSimplifyClusters
 
 		if (!TypedContext->FilterFactories.IsEmpty())
 		{
-			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster, VtxDataFacade, EdgeDataFacade);
+			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
 			FilterManager->Init(Context, TypedContext->FilterFactories);
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
 			PCGEX_DELETE(FilterManager)
@@ -96,13 +96,13 @@ namespace PCGExSimplifyClusters
 		if (IsTrivial())
 		{
 			AsyncManagerPtr->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster,
+				EdgesIO->IOIndex, nullptr, Cluster.Get(),
 				&Breakpoints, &Chains, false, false);
 		}
 		else
 		{
 			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster,
+				EdgesIO->IOIndex, nullptr, Cluster.Get(),
 				&Breakpoints, &Chains, false, false);
 		}
 

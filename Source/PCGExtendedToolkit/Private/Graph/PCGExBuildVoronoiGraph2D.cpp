@@ -112,7 +112,7 @@ namespace PCGExBuildVoronoi2D
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(Context, PointDataFacade);
+		ProjectionDetails.Init(Context, PointDataFacade.Get());
 
 		// Build voronoi
 
@@ -186,7 +186,7 @@ namespace PCGExBuildVoronoi2D
 			//ExtractValidSites();
 			PCGEX_DELETE(Voronoi)
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 
 			ValidEdges.Empty();
@@ -225,7 +225,7 @@ namespace PCGExBuildVoronoi2D
 				}
 			}
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade, &Settings->GraphBuilderDetails);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 			//ExtractValidSites();

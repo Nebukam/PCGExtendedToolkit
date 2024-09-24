@@ -100,10 +100,10 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 
 		CurrentEdges->CreateInKeys();
 
-		if (const PCGExCluster::FCluster* CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO, CurrentEdges))
+		if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO, CurrentEdges))
 		{
 			CurrentCluster = new PCGExCluster::FCluster(
-				CachedCluster, CurrentIO, CurrentEdges,
+				CachedCluster.Get(), CurrentIO, CurrentEdges,
 				false, false, false);
 		}
 
