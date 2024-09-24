@@ -103,8 +103,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesContext final : public F
 
 	virtual ~FPCGExPathfindingEdgesContext() override;
 
-	PCGExData::FFacade* SeedsDataFacade = nullptr;
-	PCGExData::FFacade* GoalsDataFacade = nullptr;
+	TUniquePtr<PCGExData::FFacade> SeedsDataFacade;
+	TUniquePtr<PCGExData::FFacade> GoalsDataFacade;
 
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 

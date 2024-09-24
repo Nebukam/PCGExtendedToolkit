@@ -99,10 +99,11 @@ namespace PCGExData
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
-		explicit FPointIO(FPCGExContext* InContext, const FPointIO* InPointIO):
+		explicit FPointIO(FPCGExContext* InContext, const TSharedPtr<FPointIO>& InPointIO):
 			Context(InContext), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
+			RootIO = InPointIO;
 			Tags = MakeUnique<FTags>(InPointIO->Tags.Get());
 		}
 

@@ -99,7 +99,7 @@ namespace PCGExRelaxClusters
 
 		for (int i = 0; i < NumNodes; ++i) { PBufferRef[i] = SBufferRef[i] = Cluster->GetPos(i); }
 
-		ExpandedNodes = Cluster->ExpandedNodes;
+		ExpandedNodes = Cluster->ExpandedNodes.Get();
 		Iterations = Settings->Iterations;
 
 		if (!ExpandedNodes)

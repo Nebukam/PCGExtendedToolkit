@@ -425,7 +425,7 @@ namespace PCGExData
 			{
 				FWriteScopeLock WriteScopeLock(Buffer->BufferLock);
 				Buffer->PrepareForRead(false, Getter->Attribute);
-				Getter->GrabAndDump(Source, *Buffer->GetInValues(), bCaptureMinMax, Buffer->Min, Buffer->Max);
+				Getter->GrabAndDump(Source.Get(), *Buffer->GetInValues(), bCaptureMinMax, Buffer->Min, Buffer->Max);
 			}
 
 			PCGEX_DELETE(Getter)
@@ -481,7 +481,7 @@ namespace PCGExData
 			}
 
 			Getter->Capture(InSelector);
-			if (!Getter->InitForFetch(Source))
+			if (!Getter->InitForFetch(Source.Get()))
 			{
 				PCGEX_DELETE(Getter)
 				return nullptr;

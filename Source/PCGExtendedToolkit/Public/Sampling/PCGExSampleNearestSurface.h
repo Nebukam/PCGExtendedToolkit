@@ -187,7 +187,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : publ
 
 	virtual ~FPCGExSampleNearestSurfaceContext() override;
 
-	PCGExData::FFacade* ActorReferenceDataFacade = nullptr;
+	TUniquePtr<PCGExData::FFacade> ActorReferenceDataFacade;
 
 	FPCGExCollisionDetails CollisionSettings;
 

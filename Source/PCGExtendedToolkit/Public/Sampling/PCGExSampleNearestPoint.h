@@ -293,7 +293,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : public
 
 	virtual ~FPCGExSampleNearestPointContext() override;
 
-	PCGExData::FFacade* TargetsFacade = nullptr;
+	TUniquePtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
 
 	FPCGExBlendingDetails BlendingDetails;

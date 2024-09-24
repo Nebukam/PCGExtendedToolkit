@@ -282,7 +282,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : publi
 
 	virtual ~FPCGExSampleNearestBoundsContext() override;
 
-	PCGExData::FFacade* BoundsFacade = nullptr;
+	TUniquePtr<PCGExData::FFacade> BoundsFacade;
 
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* BoundsPoints = nullptr;

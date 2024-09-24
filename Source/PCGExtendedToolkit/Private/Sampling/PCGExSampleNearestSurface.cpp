@@ -28,7 +28,6 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE_FACADE_AND_SOURCE(ActorReferenceDataFacade)
 }
 
 bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
@@ -43,14 +42,14 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 	if (Context->bUseInclude)
 	{
 		PCGEX_VALIDATE_NAME(Settings->ActorReference)
+		
 		const TSharedPtr<PCGExData::FPointIO> ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
-
 		if (!ActorRefIO) { return false; }
 
-		Context->ActorReferenceDataFacade = new PCGExData::FFacade(ActorRefIO);
+		Context->ActorReferenceDataFacade = MakeUnique<PCGExData::FFacade>(ActorRefIO);
 
 		if (!PCGExSampling::GetIncludedActors(
-			Context, Context->ActorReferenceDataFacade,
+			Context, Context->ActorReferenceDataFacade.Get(),
 			Settings->ActorReference, Context->IncludedActors))
 		{
 			return false;
@@ -124,7 +123,7 @@ namespace PCGExSampleNearestSurface
 		LocalTypedContext = TypedContext;
 		LocalSettings = Settings;
 
-		SurfacesForward = TypedContext->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(TypedContext->ActorReferenceDataFacade, PointDataFacade.Get()) : nullptr;
+		SurfacesForward = TypedContext->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(TypedContext->ActorReferenceDataFacade.Get(), PointDataFacade.Get()) : nullptr;
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;

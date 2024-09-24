@@ -94,8 +94,8 @@ namespace PCGExClusterMT
 
 		FPCGContext* Context = nullptr;
 
-		PCGExData::FPointIO* VtxIO = nullptr;
-		PCGExData::FPointIO* EdgesIO = nullptr;
+		TSharedPtr<PCGExData::FPointIO> VtxIO;
+		TSharedPtr<PCGExData::FPointIO> EdgesIO;
 		int32 BatchIndex = -1;
 
 		TMap<uint32, int32>* EndpointsLookup = nullptr;
@@ -105,7 +105,7 @@ namespace PCGExClusterMT
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-		FClusterProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+		FClusterProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
 			VtxIO(InVtx), EdgesIO(InEdges)
 		{
 			PCGEX_LOG_CTR(FClusterProcessor)
@@ -117,7 +117,7 @@ namespace PCGExClusterMT
 		{
 			PCGEX_LOG_DTR(FClusterProcessor)
 			PCGEX_DELETE(HeuristicsHandler);
-			
+
 			VtxIO = nullptr;
 			EdgesIO = nullptr;
 		}
@@ -135,7 +135,7 @@ namespace PCGExClusterMT
 
 			if (!bBuildCluster) { return true; }
 
-			if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO))
+			if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxIO.Get(), EdgesIO.Get()))
 			{
 				Cluster = HandleCachedCluster(CachedCluster);
 			}
@@ -350,8 +350,8 @@ namespace PCGExClusterMT
 
 		FPCGContext* Context = nullptr;
 
-		PCGExData::FPointIO* VtxIO = nullptr;
-		TArray<PCGExData::FPointIO*> Edges;
+		TSharedPtr<PCGExData::FPointIO> VtxIO = nullptr;
+		TArray<TSharedPtr<PCGExData::FPointIO>> Edges;
 		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
@@ -370,7 +370,7 @@ namespace PCGExClusterMT
 		bool bInlineCompletion = false;
 		bool bInlineWrite = false;
 
-		FClusterProcessorBatchBase(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+		FClusterProcessorBatchBase(FPCGContext* InContext, TSharedPtr<PCGExData::FPointIO> InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 			Context(InContext), VtxIO(InVtx)
 		{
 			Edges.Append(InEdges);
@@ -403,7 +403,7 @@ namespace PCGExClusterMT
 			if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 			{
 				// Trivial
-				PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
+				PCGExGraph::BuildEndpointsLookup(VtxIO.Get(), EndpointsLookup, ExpectedAdjacency);
 				if (RequiresGraphBuilder()) { GraphBuilder = new PCGExGraph::FGraphBuilder(VtxDataFacade.Get(), &GraphBuilderDetails, 6, EdgeCollection); }
 
 				OnProcessingPreparationComplete();
@@ -493,7 +493,7 @@ namespace PCGExClusterMT
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
-		TBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+		TBatch(FPCGContext* InContext, TSharedPtr<PCGExData::FPointIO> InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 			FClusterProcessorBatchBase(InContext, InVtx, InEdges)
 		{
 		}
@@ -526,7 +526,7 @@ namespace PCGExClusterMT
 
 			CurrentState = PCGExMT::State_Processing;
 
-			for (PCGExData::FPointIO* IO : Edges)
+			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 			{
 				IO->CreateInKeys();
 

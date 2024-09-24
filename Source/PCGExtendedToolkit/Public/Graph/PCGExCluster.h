@@ -195,15 +195,15 @@ namespace PCGExCluster
 
 		FBox Bounds;
 
-		PCGExData::FPointIO* VtxIO = nullptr;
-		PCGExData::FPointIO* EdgesIO = nullptr;
+		TSharedPtr<PCGExData::FPointIO> VtxIO;
+		TSharedPtr<PCGExData::FPointIO> EdgesIO;
 
 		using ClusterItemOctree = TOctree2<FClusterItemRef, FClusterItemRefSemantics>;
 		TSharedPtr<ClusterItemOctree> NodeOctree;
 		TSharedPtr<ClusterItemOctree> EdgeOctree;
 
 		FCluster();
-		FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO,
+		FCluster(const FCluster* OtherCluster, const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
 		         bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);
 
 		void ClearInheritedForChanges(const bool bClearOwned = false);
@@ -213,7 +213,7 @@ namespace PCGExCluster
 		~FCluster();
 
 		bool BuildFrom(
-			const PCGExData::FPointIO* EdgeIO,
+			const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
 			const TArray<FPCGPoint>& InNodePoints,
 			const TMap<uint32, int32>& InEndpointsLookup,
 			const TArray<int32>* InExpectedAdjacency = nullptr);
@@ -513,7 +513,7 @@ namespace PCGExClusterTask
 		FBuildCluster(
 			PCGExData::FPointIO* InPointIO,
 			PCGExCluster::FCluster* InCluster,
-			const PCGExData::FPointIO* InEdgeIO,
+			const TSharedPtr<PCGExData::FPointIO>& InEdgeIO,
 			const TMap<uint32, int32>* InEndpointsLookup,
 			const TArray<int32>* InExpectedAdjacency) :
 			FPCGExTask(InPointIO),
@@ -525,7 +525,7 @@ namespace PCGExClusterTask
 		}
 
 		PCGExCluster::FCluster* Cluster = nullptr;
-		const PCGExData::FPointIO* EdgeIO = nullptr;
+		TSharedPtr<PCGExData::FPointIO> EdgeIO;
 		const TMap<uint32, int32>* EndpointsLookup = nullptr;
 		const TArray<int32>* ExpectedAdjacency = nullptr;
 

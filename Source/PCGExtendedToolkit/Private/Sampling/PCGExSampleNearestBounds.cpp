@@ -37,7 +37,6 @@ FPCGExSampleNearestBoundsContext::~FPCGExSampleNearestBoundsContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_CLEAN_SP(WeightCurve)
-	PCGEX_DELETE_FACADE_AND_SOURCE(BoundsFacade)
 }
 
 bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
@@ -47,18 +46,14 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestBounds)
 
 	TSharedPtr<PCGExData::FPointIO> Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
-	if (!Bounds)
-	{
-		PCGEX_DELETE(Bounds)
-		return false;
-	}
+	if (!Bounds) { return false; }
 
-	Context->BoundsFacade = new PCGExData::FFacade(Bounds);
+	Context->BoundsFacade = MakeUnique<PCGExData::FFacade>(Bounds);
 
 	TSet<FName> MissingTargetAttributes;
 	PCGExDataBlending::AssembleBlendingDetails(
 		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None),
-		Settings->TargetAttributes, Context->BoundsFacade->Source, Context->BlendingDetails, MissingTargetAttributes);
+		Settings->TargetAttributes, Context->BoundsFacade->Source.Get(), Context->BlendingDetails, MissingTargetAttributes);
 
 	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on targets: {0}."), FText::FromName(Id))); }
 
@@ -146,7 +141,7 @@ namespace PCGExSampleNearestBounds
 			!TypedContext->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
 			Blender = new PCGExDataBlending::FMetadataBlender(&TypedContext->BlendingDetails);
-			Blender->PrepareForData(PointDataFacade.Get(), TypedContext->BoundsFacade);
+			Blender->PrepareForData(PointDataFacade.Get(), TypedContext->BoundsFacade.Get());
 		}
 
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)

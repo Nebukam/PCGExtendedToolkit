@@ -708,7 +708,7 @@ namespace PCGEx
 
 						PCGEx::InitMetadataArray(RawValues, Count);
 						FPCGAttributeAccessor<RawT>* Accessor = static_cast<FPCGAttributeAccessor<RawT>*>(FetchAccessor);
-						IPCGAttributeAccessorKeys* Keys = PointIO->CreateInKeys();
+						IPCGAttributeAccessorKeys* Keys = PointIO->CreateInKeys().Get();
 
 						TArrayView<RawT> RawView(RawValues);
 						Accessor->GetRange(RawView, StartIndex, *Keys, PCGEX_AAFLAG);
@@ -790,7 +790,7 @@ namespace PCGEx
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
 						FPCGAttributeAccessor<RawT>* Accessor = new FPCGAttributeAccessor<RawT>(TypedAttribute, InData->Metadata);
-						IPCGAttributeAccessorKeys* Keys = const_cast<PCGExData::FPointIO*>(PointIO)->CreateInKeys();
+						IPCGAttributeAccessorKeys* Keys = const_cast<PCGExData::FPointIO*>(PointIO)->CreateInKeys().Get();
 						TArrayView<RawT> View(RawValues);
 						Accessor->GetRange(View, 0, *Keys, PCGEX_AAFLAG);
 

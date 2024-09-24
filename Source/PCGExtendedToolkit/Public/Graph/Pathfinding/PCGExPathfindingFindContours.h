@@ -148,16 +148,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGE
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	PCGExData::FFacade* SeedsDataFacade = nullptr;
 
-	PCGExData::FPointIOCollection* Paths;
-	PCGExData::FPointIO* GoodSeeds;
-	PCGExData::FPointIO* BadSeeds;
+	TUniquePtr<PCGExData::FPointIOCollection> Paths;
+	TSharedPtr<PCGExData::FPointIO> GoodSeeds;
+	TSharedPtr<PCGExData::FPointIO> BadSeeds;
 
 	TArray<bool> SeedQuality;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	PCGExData::FDataForwardHandler* SeedForwardHandler;
 
-	bool TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
+	bool TryFindContours(TSharedPtr<PCGExData::FPointIO> PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement

@@ -28,7 +28,7 @@ TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() cons
 PCGExData::EInit UPCGExFindContoursSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor)
+bool FPCGExFindContoursContext::TryFindContours(TSharedPtr<PCGExData::FPointIO> PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor)
 {
 	const UPCGExFindContoursSettings* Settings = ClusterProcessor->LocalSettings;
 
@@ -201,8 +201,8 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		if (bAlreadyExists) { return false; }
 	}
 
-	PCGExGraph::CleanupClusterTags(PathIO, true);
-	PCGExGraph::CleanupVtxData(PathIO);
+	PCGExGraph::CleanupClusterTags(PathIO.Get(), true);
+	PCGExGraph::CleanupVtxData(PathIO.Get());
 
 	PCGExData::FFacade* PathDataFacade = new PCGExData::FFacade(PathIO);
 
@@ -214,16 +214,16 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 	for (int i = 0; i < Path.Num(); ++i) { MutablePoints[i] = OriginPoints[VtxPointIndices[Path[i]]]; }
 
 	const FPCGExFindContoursContext* TypedContext = static_cast<FPCGExFindContoursContext*>(ClusterProcessor->Context);
-	TypedContext->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
+	TypedContext->SeedAttributesToPathTags.Tag(SeedIndex, PathIO.Get());
 	TypedContext->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
 
 	if (Settings->bFlagDeadEnds)
 	{
 		PathIO->CreateOutKeys();
 		PCGEx::TAttributeWriter<bool>* DeadEndWriter = new PCGEx::TAttributeWriter<bool>(Settings->DeadEndAttributeName, false, false, true);
-		DeadEndWriter->BindAndSetNumUninitialized(PathIO);
+		DeadEndWriter->BindAndSetNumUninitialized(PathIO.Get());
 		for (int i = 0; i < Path.Num(); ++i) { DeadEndWriter->Values[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
-		PCGEX_ASYNC_WRITE_DELETE(ClusterProcessor->AsyncManagerPtr, DeadEndWriter)
+		PCGExMT::WriteAndDelete(ClusterProcessor->AsyncManagerPtr, DeadEndWriter);
 	}
 
 	if (Sign != 0)
@@ -232,8 +232,7 @@ bool FPCGExFindContoursContext::TryFindContours(PCGExData::FPointIO* PathIO, con
 		if (Settings->bTagConvex && bIsConvex) { PathIO->Tags->Add(Settings->ConvexTag); }
 	}
 
-	PathDataFacade->Write(ClusterProcessor->AsyncManagerPtr);
-	PCGEX_DELETE(PathDataFacade)
+	PCGExMT::WriteAndDeleteWithManager(ClusterProcessor->AsyncManagerPtr, PathDataFacade);
 
 	if (Settings->bOutputFilteredSeeds) { ClusterProcessor->LocalTypedContext->SeedQuality[SeedIndex] = true; }
 
@@ -268,7 +267,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bFlagDeadEnds) { PCGEX_VALIDATE_NAME(Settings->DeadEndAttributeName); }
 
-	PCGExData::FPointIO* SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
+	TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
 	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
 
@@ -278,7 +277,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
 
-	Context->Paths = new PCGExData::FPointIOCollection(Context);
+	Context->Paths = MakeUnique<PCGExData::FPointIOCollection>(Context);
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	if (Settings->bOutputFilteredSeeds)
@@ -286,12 +285,12 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 		const int32 NumSeeds = SeedsPoints->GetNum();
 		Context->SeedQuality.Init(false, NumSeeds);
 
-		Context->GoodSeeds = new PCGExData::FPointIO(Context, SeedsPoints);
+		Context->GoodSeeds = MakeShared<PCGExData::FPointIO>(Context, SeedsPoints);
 		Context->GoodSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->GoodSeeds->DefaultOutputLabel = PCGExFindContours::OutputGoodSeedsLabel;
 		Context->GoodSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 
-		Context->BadSeeds = new PCGExData::FPointIO(Context, SeedsPoints);
+		Context->BadSeeds = MakeShared<PCGExData::FPointIO>(Context, SeedsPoints);
 		Context->BadSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->BadSeeds->DefaultOutputLabel = PCGExFindContours::OutputBadSeedsLabel;
 		Context->BadSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
@@ -371,7 +370,7 @@ namespace PCGExFindContours
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 		Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); // We need edge octree anyway
 
-		ExpandedNodes = Cluster->ExpandedNodes;
+		ExpandedNodes = Cluster->ExpandedNodes.Get();
 		ExpandedEdges = Cluster->GetExpandedEdges(true);
 
 		if (!ExpandedNodes)

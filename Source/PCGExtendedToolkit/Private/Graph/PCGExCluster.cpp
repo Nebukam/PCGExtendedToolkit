@@ -74,14 +74,14 @@ namespace PCGExCluster
 		Bounds = FBox(ForceInit);
 	}
 
-	FCluster::FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO,
-	                   const bool bCopyNodes, const bool bCopyEdges, const bool bCopyLookup)
+	FCluster::FCluster(const FCluster* OtherCluster,
+	                   const TSharedPtr<PCGExData::FPointIO>& InVtxIO,
+	                   const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
+	                   const bool bCopyNodes, const bool bCopyEdges, const bool bCopyLookup):
+		VtxIO(InVtxIO), EdgesIO(InEdgesIO)
 	{
 		bIsMirror = true;
 		bIsCopyCluster = false;
-
-		VtxIO = InVtxIO;
-		EdgesIO = InEdgesIO;
 
 		NumRawVtx = InVtxIO->GetNum();
 		NumRawEdges = InEdgesIO->GetNum();
@@ -170,19 +170,21 @@ namespace PCGExCluster
 	}
 
 	bool FCluster::BuildFrom(
-		const PCGExData::FPointIO* EdgeIO,
+		const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
 		const TArray<FPCGPoint>& InNodePoints,
 		const TMap<uint32, int32>& InEndpointsLookup,
 		const TArray<int32>* InExpectedAdjacency)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
+		EdgesIO = InEdgesIO;
+		
 		Nodes->Empty();
 		Edges->Empty();
 		NodeIndexLookup->Empty();
 
 		NumRawVtx = InNodePoints.Num();
-		NumRawEdges = EdgeIO->GetNum();
+		NumRawEdges = InEdgesIO->GetNum();
 
 		const TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(PCGExGraph::Tag_EdgeEndpoints);
 
@@ -193,9 +195,9 @@ namespace PCGExCluster
 			return false;
 		};
 
-		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO))) { return OnFail(); }
+		if (!EndpointsReader->Bind(InEdgesIO.Get())) { return OnFail(); }
 
-		const int32 NumEdges = EdgeIO->GetNum();
+		const int32 NumEdges = InEdgesIO->GetNum();
 
 		Edges->SetNumUninitialized(NumEdges);
 		Nodes->Reserve(InNodePoints.Num());
@@ -218,7 +220,7 @@ namespace PCGExCluster
 			StartNode.Add(EndNode, i);
 			EndNode.Add(StartNode, i);
 
-			(*Edges)[i] = PCGExGraph::FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO->IOIndex);
+			(*Edges)[i] = PCGExGraph::FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, InEdgesIO->IOIndex);
 		}
 
 		if (InExpectedAdjacency)

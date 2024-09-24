@@ -589,8 +589,38 @@ namespace PCGExMT
 	};
 
 	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAndDeleteTaskWithManager final : public FPCGExTask
+	{
+	public:
+		FWriteAndDeleteTaskWithManager(PCGExData::FPointIO* InPointIO,
+							T* InOperation)
+			: FPCGExTask(InPointIO),
+			  Operation(InOperation)
+
+		{
+		}
+
+		T* Operation = nullptr;
+
+		virtual bool ExecuteTask() override
+		{
+			Operation->Write(Manager);
+			return false;
+		}
+
+		virtual void Cleanup() override
+		{
+			// Ensure deletion even if task was cancelled, as this is a fire-and-forget task
+			PCGEX_DELETE(Operation)
+		}
+	};
+
+	template <typename T>
 	static void Write(FTaskManager* AsyncManager, T* Operation) { AsyncManager->Start<FWriteTask<T>>(-1, nullptr, Operation); }
 
 	template <typename T>
 	static void WriteAndDelete(FTaskManager* AsyncManager, T* Operation) { AsyncManager->Start<FWriteAndDeleteTask<T>>(-1, nullptr, Operation); }
+
+	template <typename T>
+	static void WriteAndDeleteWithManager(FTaskManager* AsyncManager, T* Operation) { AsyncManager->Start<FWriteAndDeleteTaskWithManager<T>>(-1, nullptr, Operation); }
 }

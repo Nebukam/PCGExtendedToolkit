@@ -37,7 +37,6 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_CLEAN_SP(WeightCurve)
-	PCGEX_DELETE_FACADE_AND_SOURCE(TargetsFacade)
 }
 
 bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
@@ -49,7 +48,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 	const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
 	if (!Targets) { return false; }
 
-	Context->TargetsFacade = new PCGExData::FFacade(Targets);
+	Context->TargetsFacade = MakeUnique<PCGExData::FFacade>(Targets);
 
 	TSet<FName> MissingTargetAttributes;
 	PCGExDataBlending::AssembleBlendingDetails(
@@ -144,7 +143,7 @@ namespace PCGExSampleNearestPoints
 			!TypedContext->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
 			Blender = new PCGExDataBlending::FMetadataBlender(&TypedContext->BlendingDetails);
-			Blender->PrepareForData(PointDataFacade.Get(), TypedContext->TargetsFacade);
+			Blender->PrepareForData(PointDataFacade.Get(), TypedContext->TargetsFacade.Get());
 		}
 
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)

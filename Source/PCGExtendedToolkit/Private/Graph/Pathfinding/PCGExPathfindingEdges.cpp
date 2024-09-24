@@ -54,12 +54,12 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 		return;
 	}
 
-	PCGExData::FPointIO* PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+	TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathIO->GetOut();
 	PCGExData::FFacade* PathDataFacade = new PCGExData::FFacade(PathIO);
 
-	PCGExGraph::CleanupClusterTags(PathIO, true);
-	PCGExGraph::CleanupVtxData(PathIO);
+	PCGExGraph::CleanupClusterTags(PathIO.Get(), true);
+	PCGExGraph::CleanupVtxData(PathIO.Get());
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO->GetIn()->GetPoints();
@@ -70,8 +70,8 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]); }
 	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
-	SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO);
-	GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO);
+	SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO.Get());
+	GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO.Get());
 
 	SeedForwardHandler->Forward(Query->SeedIndex, PathDataFacade);
 	GoalForwardHandler->Forward(Query->GoalIndex, PathDataFacade);
@@ -107,9 +107,6 @@ FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 
 	PCGEX_DELETE_TARRAY(PathQueries)
 
-	PCGEX_DELETE_FACADE_AND_SOURCE(SeedsDataFacade)
-	PCGEX_DELETE_FACADE_AND_SOURCE(GoalsDataFacade)
-
 	PCGEX_DELETE(OutputPaths)
 
 	SeedAttributesToPathTags.Cleanup();
@@ -129,43 +126,33 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPicker)
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation)
 
-	PCGExData::FPointIO* SeedsPoints = nullptr;
-	PCGExData::FPointIO* GoalsPoints = nullptr;
+	const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
+	if (!SeedsPoints) { return false; }
 
-	auto Exit = [&]()
-	{
-		PCGEX_DELETE(SeedsPoints)
-		PCGEX_DELETE(GoalsPoints)
-		return false;
-	};
+	Context->SeedsDataFacade = MakeUnique<PCGExData::FFacade>(SeedsPoints);
 
-	SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
-	if (!SeedsPoints) { return Exit(); }
+	const TSharedPtr<PCGExData::FPointIO> GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
+	if (!GoalsPoints) { return false; }
 
-	Context->SeedsDataFacade = new PCGExData::FFacade(SeedsPoints);
-
-	GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
-	if (!GoalsPoints) { return Exit(); }
-
-	Context->GoalsDataFacade = new PCGExData::FFacade(GoalsPoints);
+	Context->GoalsDataFacade = MakeUnique<PCGExData::FFacade>(GoalsPoints);
 
 	PCGEX_FWD(SeedAttributesToPathTags)
 	PCGEX_FWD(GoalAttributesToPathTags)
 
-	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
-	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade)) { return false; }
+	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade.Get())) { return false; }
+	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade.Get())) { return false; }
 
-	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
-	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade);
+	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade.Get());
+	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade.Get());
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	// Prepare path queries
 
-	Context->GoalPicker->PrepareForData(Context->SeedsDataFacade, Context->GoalsDataFacade);
+	Context->GoalPicker->PrepareForData(Context->SeedsDataFacade.Get(), Context->GoalsDataFacade.Get());
 	PCGExPathfinding::ProcessGoals(
-		Context->SeedsDataFacade, Context->GoalPicker,
+		Context->SeedsDataFacade.Get(), Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
 		{
 			Context->PathQueries.Add(
