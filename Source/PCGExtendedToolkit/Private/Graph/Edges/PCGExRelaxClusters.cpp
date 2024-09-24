@@ -65,9 +65,6 @@ namespace PCGExRelaxClusters
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(PrimaryBuffer)
-		PCGEX_DELETE(SecondaryBuffer)
-
 		PCGEX_DELETE_UOBJECT(RelaxOperation)
 
 		//if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) } // Keep those cached since we forward expanded cluster
@@ -91,11 +88,11 @@ namespace PCGExRelaxClusters
 		RelaxOperation = TypedContext->Relaxing->CopyOperation<UPCGExRelaxClusterOperation>();
 		RelaxOperation->PrepareForCluster(Cluster.Get());
 
-		PrimaryBuffer = new TArray<FVector>();
-		SecondaryBuffer = new TArray<FVector>();
+		PrimaryBuffer = MakeShared<TArray<FVector>>();
+		SecondaryBuffer = MakeShared<TArray<FVector>>();
 
-		PCGEX_SET_NUM_UNINITIALIZED_PTR(PrimaryBuffer, NumNodes)
-		PCGEX_SET_NUM_UNINITIALIZED_PTR(SecondaryBuffer, NumNodes)
+		PrimaryBuffer->SetNumUninitialized(NumNodes);
+		SecondaryBuffer->SetNumUninitialized(NumNodes);
 
 		TArray<FVector>& PBufferRef = (*PrimaryBuffer);
 		TArray<FVector>& SBufferRef = (*SecondaryBuffer);
@@ -126,8 +123,8 @@ namespace PCGExRelaxClusters
 		Iterations--;
 		std::swap(PrimaryBuffer, SecondaryBuffer);
 
-		RelaxOperation->ReadBuffer = PrimaryBuffer;
-		RelaxOperation->WriteBuffer = SecondaryBuffer;
+		RelaxOperation->ReadBuffer = PrimaryBuffer.Get();
+		RelaxOperation->WriteBuffer = SecondaryBuffer.Get();
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, IterationGroup)
 		IterationGroup->SetOnCompleteCallback([&]() { StartRelaxIteration(); });

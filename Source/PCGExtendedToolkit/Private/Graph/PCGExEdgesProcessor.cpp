@@ -36,19 +36,13 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() co
 FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(InputDictionary)
-	PCGEX_DELETE(MainEdges)
-	PCGEX_DELETE(CurrentCluster)
-
-	PCGEX_DELETE_TARRAY(Batches)
-
+	Batches.Empty();
 	EndpointsLookup.Empty();
 }
 
 bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
-	PCGEX_DELETE(CurrentCluster)
+	CurrentCluster.Reset();
 
 	CurrentEdgesIndex = -1;
 	EndpointsLookup.Empty();
@@ -102,14 +96,14 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 
 		if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO, CurrentEdges))
 		{
-			CurrentCluster = new PCGExCluster::FCluster(
+			CurrentCluster = MakeShared<PCGExCluster::FCluster>(
 				CachedCluster.Get(), CurrentIO, CurrentEdges,
 				false, false, false);
 		}
 
 		if (!CurrentCluster)
 		{
-			CurrentCluster = new PCGExCluster::FCluster();
+			CurrentCluster = MakeShared<PCGExCluster::FCluster>();
 			CurrentCluster->bIsOneToOne = (TaggedEdges->Entries.Num() == 1);
 
 			if (!CurrentCluster->BuildFrom(

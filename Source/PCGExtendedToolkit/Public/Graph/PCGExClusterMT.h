@@ -625,13 +625,13 @@ namespace PCGExClusterMT
 		Manager->Start<FStartClusterBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch, bScopedIndexLookupBuild);
 	}
 
-	static void CompleteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
+	static void CompleteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<TUniquePtr<FClusterProcessorBatchBase>> Batches)
 	{
-		for (FClusterProcessorBatchBase* Batch : Batches) { Batch->CompleteWork(); }
+		for (const TUniquePtr<FClusterProcessorBatchBase>& Batch : Batches) { Batch->CompleteWork(); }
 	}
 
-	static void WriteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
+	static void WriteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<TUniquePtr<FClusterProcessorBatchBase>> Batches)
 	{
-		for (FClusterProcessorBatchBase* Batch : Batches) { Batch->Write(); }
+		for (const TUniquePtr<FClusterProcessorBatchBase>& Batch : Batches) { Batch->Write(); }
 	}
 }

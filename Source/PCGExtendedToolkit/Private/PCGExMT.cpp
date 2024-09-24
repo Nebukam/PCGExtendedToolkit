@@ -15,12 +15,10 @@ namespace PCGExMT
 	{
 		check(IsAvailable())
 
-		FTaskGroup* NewGroup = new FTaskGroup(this, GroupName);
 		{
 			FWriteScopeLock WriteLock(GroupLock);
-			Groups.Add(NewGroup);
+			return Groups.Add_GetRef(MakeUnique<FTaskGroup>(this, GroupName)).Get();
 		}
-		return NewGroup;
 	}
 
 	void FTaskManager::OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess)
@@ -47,13 +45,13 @@ namespace PCGExMT
 			delete Task;
 		}
 
-		if(!bStop){ FPlatformAtomics::InterlockedExchange(&Stopped, 0); }
+		if (!bStop) { FPlatformAtomics::InterlockedExchange(&Stopped, 0); }
 
 		QueuedTasks.Empty();
 		NumStarted = 0;
 		NumCompleted = 0;
 
-		PCGEX_DELETE_TARRAY(Groups)
+		Groups.Empty();
 	}
 
 	void FTaskGroup::StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined, const bool bExecuteSmallSynchronously)

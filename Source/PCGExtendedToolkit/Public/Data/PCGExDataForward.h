@@ -104,7 +104,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 		{
 			PCGEx::FLocalToStringGetter* Getter = new PCGEx::FLocalToStringGetter();
 			Getter->Capture(Selector);
-			if (!Getter->SoftGrab(TagSourceFacade->Source))
+			if (!Getter->SoftGrab(TagSourceFacade->Source.Get()))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing specified Tag attribute."));
 				Cleanup();

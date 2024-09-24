@@ -68,9 +68,9 @@ namespace PCGExCluster
 
 	FCluster::FCluster()
 	{
-		NodeIndexLookup = new TMap<int32, int32>();
-		Nodes = new TArray<FNode>();
-		Edges = new TArray<PCGExGraph::FIndexedEdge>();
+		NodeIndexLookup = MakeShared<TMap<int32, int32>>();
+		Nodes = MakeShared<TArray<FNode>>();
+		Edges = MakeShared<TArray<PCGExGraph::FIndexedEdge>>();
 		Bounds = FBox(ForceInit);
 	}
 
@@ -87,23 +87,18 @@ namespace PCGExCluster
 		NumRawEdges = InEdgesIO->GetNum();
 
 		ExpandedNodes = OtherCluster->ExpandedNodes;
-		if (ExpandedNodes) { bOwnsExpandedNodes = false; }
-
 		ExpandedEdges = OtherCluster->ExpandedEdges;
-		if (ExpandedEdges) { bOwnsExpandedEdges = false; }
 
 		if (bCopyNodes)
 		{
-			Nodes = new TArray<FNode>();
+			Nodes = MakeShared<TArray<FNode>>();
 			Nodes->Reserve(OtherCluster->Nodes->Num());
 			Nodes->Append(*OtherCluster->Nodes);
 
-			ExpandedNodes = nullptr;
-			bOwnsExpandedNodes = true;
+			ExpandedNodes.Reset();
 		}
 		else
 		{
-			bOwnsNodes = false;
 			Nodes = OtherCluster->Nodes;
 		}
 
@@ -111,28 +106,25 @@ namespace PCGExCluster
 
 		if (bCopyEdges)
 		{
-			Edges = new TArray<PCGExGraph::FIndexedEdge>();
+			Edges = MakeShared<TArray<PCGExGraph::FIndexedEdge>>();
 			Edges->Reserve(OtherCluster->Edges->Num());
 			Edges->Append(*OtherCluster->Edges);
 
-			ExpandedEdges = nullptr;
-			bOwnsExpandedEdges = true;
+			ExpandedEdges.Reset();
 		}
 		else
 		{
 			Edges = OtherCluster->Edges;
-			bOwnsEdges = false;
 		}
 
 		if (bCopyLookup)
 		{
-			NodeIndexLookup = new TMap<int32, int32>();
+			NodeIndexLookup = MakeShared<TMap<int32, int32>>();
 			NodeIndexLookup->Append(*OtherCluster->NodeIndexLookup);
 		}
 		else
 		{
 			NodeIndexLookup = OtherCluster->NodeIndexLookup;
-			bOwnsNodeIndexLookup = false;
 		}
 
 		Bounds = OtherCluster->Bounds;
@@ -147,13 +139,9 @@ namespace PCGExCluster
 		*/
 
 		VtxPointIndices = OtherCluster->VtxPointIndices;
-		if (VtxPointIndices) { bOwnsVtxPointIndices = false; }
 
 		NodeOctree = OtherCluster->NodeOctree;
-		if (NodeOctree) { bOwnsNodeOctree = false; }
-
 		EdgeOctree = OtherCluster->EdgeOctree;
-		if (EdgeOctree) { bOwnsEdgeOctree = false; }
 	}
 
 	void FCluster::ClearInheritedForChanges(const bool bClearOwned)
@@ -164,82 +152,20 @@ namespace PCGExCluster
 
 	void FCluster::WillModifyVtxIO(const bool bClearOwned)
 	{
-		if (!bOwnsVtxPointIndices)
-		{
-			VtxPointIndices = nullptr;
-			bOwnsVtxPointIndices = true;
-		}
-		else if (bClearOwned && VtxPointIndices)
-		{
-			PCGEX_DELETE(VtxPointIndices)
-		}
+		VtxPointIndices.Reset();
 	}
 
 	void FCluster::WillModifyVtxPositions(const bool bClearOwned)
 	{
-		if (!bOwnsLengths)
-		{
-			EdgeLengths = nullptr;
-			bOwnsLengths = true;
-		}
-		else if (bClearOwned && EdgeLengths)
-		{
-			PCGEX_DELETE(EdgeLengths)
-		}
-
-		if (!bOwnsNodeOctree)
-		{
-			NodeOctree = nullptr;
-			bOwnsNodeOctree = true;
-		}
-		else if (bClearOwned && NodeOctree)
-		{
-			PCGEX_DELETE(NodeOctree)
-		}
-
-		if (!bOwnsEdgeOctree)
-		{
-			EdgeOctree = nullptr;
-			bOwnsEdgeOctree = true;
-		}
-		else if (bClearOwned && EdgeOctree)
-		{
-			PCGEX_DELETE(EdgeOctree)
-		}
-
-		if (!bOwnsExpandedNodes)
-		{
-			ExpandedNodes = nullptr;
-			bOwnsExpandedNodes = true;
-		}
-		else if (bClearOwned && ExpandedNodes)
-		{
-			PCGEX_DELETE_TARRAY_FULL(ExpandedNodes)
-		}
-
-		if (!bOwnsExpandedEdges)
-		{
-			ExpandedEdges = nullptr;
-			bOwnsExpandedEdges = true;
-		}
-		else if (bClearOwned && ExpandedEdges)
-		{
-			PCGEX_DELETE_TARRAY_FULL(ExpandedEdges)
-		}
+		EdgeLengths.Reset();
+		NodeOctree.Reset();
+		EdgeOctree.Reset();
+		ExpandedNodes.Reset();
+		ExpandedEdges.Reset();
 	}
 
 	FCluster::~FCluster()
 	{
-		if (bOwnsNodeIndexLookup) { PCGEX_DELETE(NodeIndexLookup) }
-		if (bOwnsNodes) { PCGEX_DELETE(Nodes) }
-		if (bOwnsEdges) { PCGEX_DELETE(Edges) }
-		if (bOwnsLengths) { PCGEX_DELETE(EdgeLengths) }
-		if (bOwnsVtxPointIndices) { PCGEX_DELETE(VtxPointIndices) }
-		if (bOwnsNodeOctree) { PCGEX_DELETE(NodeOctree) }
-		if (bOwnsEdgeOctree) { PCGEX_DELETE(EdgeOctree) }
-		if (bOwnsExpandedNodes) { PCGEX_DELETE(ExpandedNodes) }
-		if (bOwnsExpandedEdges) { PCGEX_DELETE(ExpandedEdges) }
-
 		NodePositions.Empty();
 	}
 
@@ -258,13 +184,12 @@ namespace PCGExCluster
 		NumRawVtx = InNodePoints.Num();
 		NumRawEdges = EdgeIO->GetNum();
 
-		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(PCGExGraph::Tag_EdgeEndpoints);
+		const TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(PCGExGraph::Tag_EdgeEndpoints);
 
 		auto OnFail = [&]()
 		{
 			Nodes->Empty();
 			Edges->Empty();
-			PCGEX_DELETE(EndpointsReader)
 			return false;
 		};
 
@@ -353,11 +278,11 @@ namespace PCGExCluster
 	{
 		{
 			FReadScopeLock ReadScopeLock(ClusterLock);
-			if (VtxPointIndices) { return VtxPointIndices; }
+			if (VtxPointIndices) { return VtxPointIndices.Get(); }
 		}
 
 		CreateVtxPointIndices();
-		return VtxPointIndices;
+		return VtxPointIndices.Get();
 	}
 
 	const TArray<int32>& FCluster::GetVtxPointIndices()
@@ -398,9 +323,8 @@ namespace PCGExCluster
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCluster::RebuildNodeOctree);
 
-		PCGEX_DELETE(NodeOctree)
 		const FPCGPoint* StartPtr = VtxIO->GetIn()->GetPoints().GetData();
-		NodeOctree = new ClusterItemOctree(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
+		NodeOctree = MakeShared<ClusterItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 		for (int i = 0; i < Nodes->Num(); ++i)
 		{
 			const FNode* Node = Nodes->GetData() + i;
@@ -415,14 +339,11 @@ namespace PCGExCluster
 
 		check(Bounds.GetExtent().Length() != 0)
 
-		PCGEX_DELETE(EdgeOctree)
-
-		EdgeOctree = new ClusterItemOctree(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
+		EdgeOctree = MakeShared<ClusterItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 
 		if (!ExpandedEdges)
 		{
-			bOwnsExpandedEdges = true;
-			ExpandedEdges = new TArray<FExpandedEdge*>();
+			ExpandedEdges = MakeShared<TArray<FExpandedEdge*>>();
 			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num());
 
 			TArray<FExpandedEdge*>& ExpandedEdgesRef = (*ExpandedEdges);
@@ -726,7 +647,7 @@ namespace PCGExCluster
 	{
 		if (EdgeLengths) { return; }
 
-		EdgeLengths = new TArray<double>();
+		EdgeLengths = MakeShared<TArray<double>>();
 		TArray<double>& LengthsRef = *EdgeLengths;
 
 		const TArray<FNode>& NodesRef = *Nodes;
@@ -869,28 +790,26 @@ namespace PCGExCluster
 	{
 		{
 			FReadScopeLock ReadScopeLock(ClusterLock);
-			if (ExpandedNodes) { return ExpandedNodes; }
+			if (ExpandedNodes) { return ExpandedNodes.Get(); }
 		}
 		{
 			FWriteScopeLock WriteScopeLock(ClusterLock);
 
-			bOwnsExpandedNodes = true;
-			ExpandedNodes = new TArray<FExpandedNode*>();
+			ExpandedNodes = MakeShared<TArray<FExpandedNode*>>();
 			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedNodes, Nodes->Num())
 
 			TArray<FExpandedNode*>& ExpandedNodesRef = (*ExpandedNodes);
 			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); ++i) { ExpandedNodesRef[i] = new FExpandedNode(this, i); } } // Ooof
 		}
 
-		return ExpandedNodes;
+		return ExpandedNodes.Get();
 	}
 
 	void FCluster::ExpandNodes(PCGExMT::FTaskManager* AsyncManager)
 	{
 		if (ExpandedNodes) { return; }
 
-		bOwnsExpandedNodes = true;
-		ExpandedNodes = new TArray<FExpandedNode*>();
+		ExpandedNodes = MakeShared<TArray<FExpandedNode*>>();
 		PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedNodes, Nodes->Num())
 
 		PCGExMT::SubRanges(
@@ -904,28 +823,26 @@ namespace PCGExCluster
 	{
 		{
 			FReadScopeLock ReadScopeLock(ClusterLock);
-			if (ExpandedEdges) { return ExpandedEdges; }
+			if (ExpandedEdges) { return ExpandedEdges.Get(); }
 		}
 		{
 			FWriteScopeLock WriteScopeLock(ClusterLock);
 
-			bOwnsExpandedEdges = true;
-			ExpandedEdges = new TArray<FExpandedEdge*>();
+			ExpandedEdges = MakeShared<TArray<FExpandedEdge*>>();
 			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num())
 
 			TArray<FExpandedEdge*>& ExpandedEdgesRef = (*ExpandedEdges);
 			if (bBuild) { for (int i = 0; i < ExpandedEdges->Num(); ++i) { ExpandedEdgesRef[i] = new FExpandedEdge(this, i); } } // Ooof
 		}
 
-		return ExpandedEdges;
+		return ExpandedEdges.Get();
 	}
 
 	void FCluster::ExpandEdges(PCGExMT::FTaskManager* AsyncManager)
 	{
 		if (ExpandedEdges) { return; }
 
-		bOwnsExpandedEdges = true;
-		ExpandedEdges = new TArray<FExpandedEdge*>();
+		ExpandedEdges = MakeShared<TArray<FExpandedEdge*>>();
 		PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num())
 
 		PCGExMT::SubRanges(
@@ -948,7 +865,7 @@ namespace PCGExCluster
 	{
 		FWriteScopeLock WriteScopeLock(ClusterLock);
 
-		VtxPointIndices = new TArray<int32>();
+		VtxPointIndices = MakeShared<TArray<int32>>();
 		VtxPointIndices->SetNum(Nodes->Num());
 
 		const TArray<FNode>& NodesRef = *Nodes;

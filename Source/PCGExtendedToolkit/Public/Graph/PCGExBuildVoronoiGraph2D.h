@@ -85,7 +85,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraph2DContext final : publi
 
 	virtual ~FPCGExBuildVoronoiGraph2DContext() override;
 
-	PCGExData::FPointIOCollection* SitesOutput = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> SitesOutput;
 };
 
 
@@ -109,8 +109,8 @@ namespace PCGExBuildVoronoi2D
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-		PCGExGeo::TVoronoi2* Voronoi = nullptr;
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<PCGExGeo::TVoronoi2> Voronoi;
+		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
 

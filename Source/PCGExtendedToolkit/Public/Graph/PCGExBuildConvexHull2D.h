@@ -59,7 +59,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : public 
 
 	virtual ~FPCGExBuildConvexHull2DContext() override;
 
-	PCGExData::FPointIOCollection* PathsIO;
+	TUniquePtr<PCGExData::FPointIOCollection> PathsIO;
 
 	void BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const;
 };
@@ -85,8 +85,8 @@ namespace PCGExConvexHull2D
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-		PCGExGeo::TDelaunay2* Delaunay = nullptr;
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
+		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;
 

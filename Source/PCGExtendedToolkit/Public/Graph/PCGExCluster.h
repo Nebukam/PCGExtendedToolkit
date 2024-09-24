@@ -168,19 +168,10 @@ namespace PCGExCluster
 	{
 	protected:
 		bool bIsMirror = false;
-		bool bOwnsNodes = true;
-		bool bOwnsEdges = true;
-		bool bOwnsNodeIndexLookup = true;
-		bool bOwnsNodeOctree = true;
-		bool bOwnsEdgeOctree = true;
-		bool bOwnsLengths = true;
-		bool bOwnsVtxPointIndices = true;
-		bool bOwnsExpandedNodes = true;
-		bool bOwnsExpandedEdges = true;
 
 		bool bEdgeLengthsDirty = true;
 		bool bIsCopyCluster = false;
-		TArray<int32>* VtxPointIndices = nullptr;
+		TSharedPtr<TArray<int32>> VtxPointIndices;
 		TArray<uint64>* VtxPointScopes = nullptr;
 
 		mutable FRWLock ClusterLock;
@@ -193,13 +184,13 @@ namespace PCGExCluster
 		bool bIsOneToOne = false; // Whether the input data has a single set of edges for a single set of vtx
 
 		int32 ClusterID = -1;
-		TMap<int32, int32>* NodeIndexLookup = nullptr; // Node index -> Point Index
+		TSharedPtr<TMap<int32, int32>> NodeIndexLookup; // Node index -> Point Index
 		//TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
-		TArray<FNode>* Nodes = nullptr;
-		TArray<FExpandedNode*>* ExpandedNodes = nullptr;
-		TArray<FExpandedEdge*>* ExpandedEdges = nullptr;
-		TArray<PCGExGraph::FIndexedEdge>* Edges = nullptr;
-		TArray<double>* EdgeLengths = nullptr;
+		TSharedPtr<TArray<FNode>> Nodes;
+		TSharedPtr<TArray<FExpandedNode*>> ExpandedNodes;
+		TSharedPtr<TArray<FExpandedEdge*>> ExpandedEdges;
+		TSharedPtr<TArray<PCGExGraph::FIndexedEdge>> Edges;
+		TSharedPtr<TArray<double>> EdgeLengths;
 		TArray<FVector> NodePositions;
 
 		FBox Bounds;
@@ -208,8 +199,8 @@ namespace PCGExCluster
 		PCGExData::FPointIO* EdgesIO = nullptr;
 
 		using ClusterItemOctree = TOctree2<FClusterItemRef, FClusterItemRefSemantics>;
-		ClusterItemOctree* NodeOctree = nullptr;
-		ClusterItemOctree* EdgeOctree = nullptr;
+		TSharedPtr<ClusterItemOctree> NodeOctree;
+		TSharedPtr<ClusterItemOctree> EdgeOctree;
 
 		FCluster();
 		FCluster(const FCluster* OtherCluster, PCGExData::FPointIO* InVtxIO, PCGExData::FPointIO* InEdgesIO,

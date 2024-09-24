@@ -110,6 +110,6 @@ namespace PCGExDataBlending
 
 		PCGExData::FIdxCompoundList* CurrentCompoundList = nullptr;
 		PCGExData::FFacade* CurrentTargetData = nullptr;
-		FPropertiesBlender* PropertiesBlender = nullptr;
+		TUniquePtr<FPropertiesBlender> PropertiesBlender;
 	};
 }

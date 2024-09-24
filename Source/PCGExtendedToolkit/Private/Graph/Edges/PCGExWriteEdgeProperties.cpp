@@ -75,7 +75,6 @@ namespace PCGExWriteEdgeProperties
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(MetadataBlender)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -128,7 +127,7 @@ namespace PCGExWriteEdgeProperties
 
 		if (Settings->bEndpointsBlending)
 		{
-			MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingSettings));
+			MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingSettings));
 			MetadataBlender->PrepareForData(EdgeDataFacade.Get(), VtxDataFacade, PCGExData::ESource::In);
 		}
 

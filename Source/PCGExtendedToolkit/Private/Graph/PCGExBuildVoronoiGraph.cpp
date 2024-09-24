@@ -23,8 +23,6 @@ PCGExData::EInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const 
 FPCGExBuildVoronoiGraphContext::~FPCGExBuildVoronoiGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(SitesOutput)
 }
 
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties() const
@@ -45,7 +43,7 @@ bool FPCGExBuildVoronoiGraphElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	Context->SitesOutput = new PCGExData::FPointIOCollection(Context);
+	Context->SitesOutput = MakeUnique<PCGExData::FPointIOCollection>(Context);
 	Context->SitesOutput->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
 
 	return true;
@@ -104,8 +102,6 @@ namespace PCGExBuildVoronoi
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Voronoi)
-		PCGEX_DELETE(GraphBuilder)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -120,7 +116,7 @@ namespace PCGExBuildVoronoi
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
 
-		Voronoi = new PCGExGeo::TVoronoi3();
+		Voronoi = MakeUnique<PCGExGeo::TVoronoi3>();
 
 		/*
 		auto ExtractValidSites = [&]()
@@ -139,7 +135,6 @@ namespace PCGExBuildVoronoi
 		if (!Voronoi->Process(ActivePositions))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Voronoi 2D instead."));
-			PCGEX_DELETE(Voronoi)
 			return false;
 		}
 
@@ -185,9 +180,9 @@ namespace PCGExBuildVoronoi
 
 			RemappedIndices.Empty();
 			//ExtractValidSites();
-			PCGEX_DELETE(Voronoi)
+			Voronoi.Reset();
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 
 			ValidEdges.Empty();
@@ -225,11 +220,11 @@ namespace PCGExBuildVoronoi
 				}
 			}
 
-			GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 			//ExtractValidSites();
-			PCGEX_DELETE(Voronoi)
+			Voronoi.Reset();
 		}
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr, false);

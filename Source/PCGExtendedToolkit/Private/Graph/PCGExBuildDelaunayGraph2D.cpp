@@ -21,7 +21,6 @@ PCGExData::EInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() con
 FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE(MainSites)
 }
 
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraph2DSettings::OutputPinProperties() const
@@ -45,7 +44,7 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bOutputSites)
 	{
 		if (Settings->bMarkSiteHull) { PCGEX_VALIDATE_NAME(Settings->SiteHullAttributeName) }
-		Context->MainSites = new PCGExData::FPointIOCollection(Context);
+		Context->MainSites = MakeUnique<PCGExData::FPointIOCollection>(Context);
 		Context->MainSites->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
 		Context->MainSites->Pairs.Init(nullptr, Context->MainPoints->Pairs.Num());
 	}
@@ -109,8 +108,6 @@ namespace PCGExBuildDelaunay2D
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Delaunay)
-		PCGEX_DELETE(GraphBuilder)
 		UrquhartEdges.Empty();
 	}
 
@@ -129,12 +126,11 @@ namespace PCGExBuildDelaunay2D
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
 
-		Delaunay = new PCGExGeo::TDelaunay2();
+		Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
 
 		if (!Delaunay->Process(ActivePositions, ProjectionDetails))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results."));
-			PCGEX_DELETE(Delaunay)
 			return false;
 		}
 
@@ -157,11 +153,11 @@ namespace PCGExBuildDelaunay2D
 			else { AsyncManagerPtr->Start<FOutputDelaunaySites2D>(BatchIndex, PointIO, this); }
 		}
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
 
-		if (!Settings->bMarkHull && !Settings->bOutputSites) { PCGEX_DELETE(Delaunay) }
+		if (!Settings->bMarkHull && !Settings->bOutputSites) { Delaunay.Reset(); }
 
 		return true;
 	}
@@ -181,7 +177,6 @@ namespace PCGExBuildDelaunay2D
 		{
 			bIsProcessorValid = false;
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
-			PCGEX_DELETE(GraphBuilder)
 			return;
 		}
 
@@ -213,7 +208,7 @@ namespace PCGExBuildDelaunay2D
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
-		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay;
+		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
 		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumSites)
@@ -254,7 +249,7 @@ namespace PCGExBuildDelaunay2D
 
 		const TArray<FPCGPoint>& OriginalPoints = SitesIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
-		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay;
+		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumSites)
 

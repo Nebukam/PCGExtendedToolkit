@@ -85,7 +85,7 @@ namespace PCGExPointStates
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
 	protected:
-		PCGExPointFilter::TManager* Manager = nullptr;
+		TUniquePtr<PCGExPointFilter::TManager> Manager;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExPointFilter::TManager

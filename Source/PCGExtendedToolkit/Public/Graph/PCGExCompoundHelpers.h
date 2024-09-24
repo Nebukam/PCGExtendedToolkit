@@ -36,7 +36,7 @@ namespace PCGExGraph
 
 		FCompoundGraph* CompoundGraph = nullptr;
 		PCGExData::FFacade* CompoundFacade = nullptr;
-		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
+		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundPointsBlender;
 
 		explicit FCompoundProcessor(
 			FPCGExPointsProcessorContext* InContext,
@@ -74,12 +74,12 @@ namespace PCGExGraph
 		FPCGExBlendingDetails DefaultPointsBlendingDetails;
 		FPCGExBlendingDetails DefaultEdgesBlendingDetails;
 
-		FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<FGraphBuilder> GraphBuilder;
 
 		FGraphMetadataDetails GraphMetadataDetails;
-		FPointEdgeIntersections* PointEdgeIntersections = nullptr;
-		FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		TUniquePtr<FPointEdgeIntersections> PointEdgeIntersections;
+		TUniquePtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();

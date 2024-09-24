@@ -74,8 +74,8 @@ namespace PCGExConvexHull
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	protected:
-		PCGExGeo::TDelaunay3* Delaunay = nullptr;
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay;
+		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;
 

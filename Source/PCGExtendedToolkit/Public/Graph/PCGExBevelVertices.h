@@ -81,7 +81,7 @@ namespace PCGExBevelVertices
 	{
 		friend class FProcessorBatch;
 		TArray<int64>* StateFlags = nullptr;
-		PCGExClusterFilter::TManager* FilterManager = nullptr;
+		TUniquePtr<PCGExClusterFilter::TManager> FilterManager;
 
 		bool bBuildExpandedNodes = false;
 		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;

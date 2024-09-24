@@ -554,7 +554,7 @@ protected:
 	UPROPERTY()
 	bool bCacheNeedsRebuild = true;
 
-	PCGExAssetCollection::FCache* Cache = nullptr;
+	TUniquePtr<PCGExAssetCollection::FCache> Cache;
 
 	template <typename T>
 	bool BuildCache(TArray<T>& InEntries)

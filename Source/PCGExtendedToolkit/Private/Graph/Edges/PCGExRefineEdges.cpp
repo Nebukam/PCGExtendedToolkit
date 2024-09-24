@@ -143,8 +143,6 @@ namespace PCGExRefineEdges
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE_OPERATION(Refinement)
-		PCGEX_DELETE(EdgeFilterManager);
-		PCGEX_DELETE(SanitizationFilterManager);
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -167,7 +165,7 @@ namespace PCGExRefineEdges
 
 		if (!TypedContext->EdgeFilterFactories.IsEmpty())
 		{
-			EdgeFilterManager = new PCGExPointFilter::TManager(EdgeDataFacade.Get());
+			EdgeFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade.Get());
 			if (!EdgeFilterManager->Init(Context, TypedContext->EdgeFilterFactories)) { return false; }
 		}
 		else
@@ -180,7 +178,7 @@ namespace PCGExRefineEdges
 		{
 			if (!TypedContext->SanitizationFilterFactories.IsEmpty())
 			{
-				SanitizationFilterManager = new PCGExPointFilter::TManager(EdgeDataFacade.Get());
+				SanitizationFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade.Get());
 				if (!SanitizationFilterManager->Init(Context, TypedContext->SanitizationFilterFactories)) { return false; }
 			}
 		}

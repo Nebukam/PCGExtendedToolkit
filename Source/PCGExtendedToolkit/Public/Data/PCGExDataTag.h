@@ -47,7 +47,7 @@ namespace PCGExData
 			}
 		}
 
-		explicit FTags(const FTags& InTags)
+		explicit FTags(const FTags* InTags)
 			: FTags()
 		{
 			Reset(InTags);
@@ -66,12 +66,12 @@ namespace PCGExData
 			Tags.Empty();
 		}
 
-		void Reset(const FTags& InTags)
+		void Reset(const FTags* InTags)
 		{
 			FWriteScopeLock WriteScopeLock(TagsLock);
 			Reset();
-			RawTags.Append(InTags.RawTags);
-			Tags.Append(InTags.Tags);
+			RawTags.Append(InTags->RawTags);
+			Tags.Append(InTags->Tags);
 		}
 
 		void Dump(TSet<FString>& InTags) const

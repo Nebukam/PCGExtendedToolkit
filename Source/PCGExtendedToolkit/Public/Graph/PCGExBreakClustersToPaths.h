@@ -69,7 +69,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsContext final : publ
 
 	virtual ~FPCGExBreakClustersToPathsContext() override;
 
-	PCGExData::FPointIOCollection* Paths = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> Paths;
 	TArray<PCGExCluster::FNodeChain*> Chains;
 };
 

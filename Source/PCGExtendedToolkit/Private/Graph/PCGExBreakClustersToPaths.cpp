@@ -24,7 +24,6 @@ FPCGExBreakClustersToPathsContext::~FPCGExBreakClustersToPathsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(Paths)
 	PCGEX_DELETE_TARRAY(Chains)
 }
 
@@ -34,7 +33,7 @@ bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-	Context->Paths = new PCGExData::FPointIOCollection(Context);
+	Context->Paths = MakeUnique<PCGExData::FPointIOCollection>(Context);
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	return true;
@@ -95,12 +94,10 @@ namespace PCGExBreakClustersToPaths
 			return false;
 		}
 
-		if (!TypedContext->FilterFactories.IsEmpty())
+		const TUniquePtr<PCGExClusterFilter::TManager> FilterManager = MakeUnique<PCGExClusterFilter::TManager>(Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
+		if (!TypedContext->FilterFactories.IsEmpty() && FilterManager->Init(Context, TypedContext->FilterFactories))
 		{
-			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
-			FilterManager->Init(Context, TypedContext->FilterFactories);
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
-			PCGEX_DELETE(FilterManager)
 		}
 		else
 		{
@@ -200,7 +197,7 @@ namespace PCGExBreakClustersToPaths
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
-		
+
 		VtxDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
 
 		DirectionSettings = Settings->DirectionSettings;

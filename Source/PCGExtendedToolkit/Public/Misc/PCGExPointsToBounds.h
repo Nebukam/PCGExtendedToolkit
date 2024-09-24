@@ -106,11 +106,11 @@ namespace PCGExPointsToBounds
 		TArray<FBounds*>& OutBounds,
 		const EPCGExPointBoundsSource BoundsSource)
 	{
-		for (PCGExData::FPointIO* PointIO : IOGroup->Pairs)
+		for (TSharedPtr<PCGExData::FPointIO> PointIO : IOGroup->Pairs)
 		{
-			FBounds* Bounds = new FBounds(PointIO);
+			FBounds* Bounds = new FBounds(PointIO.Get());
 			OutBounds.Add(Bounds);
-			Manager->Start<FComputeIOBoundsTask>(PointIO->IOIndex, PointIO, BoundsSource, Bounds);
+			Manager->Start<FComputeIOBoundsTask>(PointIO->IOIndex, PointIO.Get(), BoundsSource, Bounds);
 		}
 	}
 

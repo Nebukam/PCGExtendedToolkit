@@ -79,8 +79,8 @@ namespace PCGExRelaxClusters
 
 		UPCGExRelaxClusterOperation* RelaxOperation = nullptr;
 
-		TArray<FVector>* PrimaryBuffer = nullptr;
-		TArray<FVector>* SecondaryBuffer = nullptr;
+		TSharedPtr<TArray<FVector>> PrimaryBuffer;
+		TSharedPtr<TArray<FVector>> SecondaryBuffer;
 
 		FPCGExInfluenceDetails InfluenceDetails;
 

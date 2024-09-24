@@ -120,7 +120,7 @@ namespace PCGExDataBlending
 
 	protected:
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
-		const FPropertiesBlender* PropertiesBlender = nullptr;
+		TUniquePtr<FPropertiesBlender> PropertiesBlender;
 		bool bSkipProperties = false;
 		TArray<FDataBlendingOperationBase*> Operations;
 		TArray<FDataBlendingOperationBase*> OperationsToBePrepared;

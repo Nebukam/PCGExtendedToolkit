@@ -123,7 +123,7 @@ namespace PCGExSampling
 
 		PCGEx::FLocalToStringGetter* PathGetter = new PCGEx::FLocalToStringGetter();
 		PathGetter->Capture(Selector);
-		if (!PathGetter->SoftGrab(InFacade->Source))
+		if (!PathGetter->SoftGrab(InFacade->Source.Get()))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Actor reference attribute does not exist."));
 			PCGEX_DELETE(PathGetter)

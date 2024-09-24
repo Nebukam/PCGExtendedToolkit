@@ -101,7 +101,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DContext final : publ
 
 	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
 
-	PCGExData::FPointIOCollection* MainSites = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> MainSites;
 };
 
 
@@ -126,9 +126,9 @@ namespace PCGExBuildDelaunay2D
 		friend class FOutputDelaunayUrquhartSites2D;
 
 	protected:
-		PCGExGeo::TDelaunay2* Delaunay = nullptr;
+		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
+		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;

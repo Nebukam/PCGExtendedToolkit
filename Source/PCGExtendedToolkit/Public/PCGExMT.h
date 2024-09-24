@@ -16,9 +16,8 @@
 
 #define PCGEX_ASYNC_WRITE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::Write(_MANAGER, _TARGET); }
 #define PCGEX_ASYNC_WRITE_DELETE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::WriteAndDelete(_MANAGER, _TARGET); _TARGET = nullptr; }
-#define PCGEX_ASYNC_GROUP(_MANAGER, _NAME) PCGExMT::FTaskGroup* _NAME = _MANAGER->CreateGroup(FName(#_NAME));
-#define PCGEX_ASYNC_GROUP_CHKD(_MANAGER, _NAME) if(!_MANAGER->IsAvailable()){ return; } PCGEX_ASYNC_GROUP(_MANAGER, _NAME)
-#define PCGEX_ASYNC_GROUP_CHKD_R(_MANAGER, _NAME) if(!_MANAGER->IsAvailable()){ return false; } PCGEX_ASYNC_GROUP(_MANAGER, _NAME)
+#define PCGEX_ASYNC_GROUP_CHKD(_MANAGER, _NAME) if(!_MANAGER->IsAvailable()){ return; } PCGExMT::FTaskGroup* _NAME = _MANAGER->CreateGroup(FName(#_NAME));
+#define PCGEX_ASYNC_GROUP_CHKD_R(_MANAGER, _NAME) if(!_MANAGER->IsAvailable()){ return false; } PCGExMT::FTaskGroup* _NAME = _MANAGER->CreateGroup(FName(#_NAME));
 
 #pragma endregion
 
@@ -279,7 +278,7 @@ namespace PCGExMT
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
 		TArray<FAsyncTaskBase*> QueuedTasks;
-		TArray<FTaskGroup*> Groups;
+		TArray<TUniquePtr<FTaskGroup>> Groups;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup

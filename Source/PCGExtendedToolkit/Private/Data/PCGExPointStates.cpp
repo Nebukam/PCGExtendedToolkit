@@ -17,14 +17,14 @@ namespace PCGExPointStates
 {
 	FState::~FState()
 	{
-		PCGEX_DELETE(Manager)
+		
 	}
 
 	bool FState::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
 	{
 		if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-		Manager = new PCGExPointFilter::TManager(InPointDataFacade);
+		Manager = MakeUnique<PCGExPointFilter::TManager>(InPointDataFacade);
 		Manager->bCacheResults = true;
 		return true;
 	}

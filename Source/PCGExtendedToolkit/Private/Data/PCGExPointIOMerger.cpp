@@ -41,7 +41,7 @@ void FPCGExPointIOMerger::Append(const TArray<PCGExData::FPointIO*>& InData)
 
 void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
 {
-	for (const PCGExData::FPointIO* PointIO : InCollection->Pairs) { Append(const_cast<PCGExData::FPointIO*>(PointIO)); }
+	for (const TSharedPtr<PCGExData::FPointIO> PointIO : InCollection->Pairs) { Append(PointIO.Get()); }
 }
 
 void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
@@ -57,7 +57,7 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 	for (int i = 0; i < NumSources; ++i)
 	{
 		PCGExData::FPointIO* Source = IOSources[i];
-		CompositeIO->Tags->Append(Source->Tags);
+		CompositeIO->Tags->Append(Source->Tags.Get());
 		Source->CreateInKeys();
 
 		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();

@@ -85,9 +85,6 @@ namespace PCGExConvexHull
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Delaunay)
-		PCGEX_DELETE(GraphBuilder)
-
 		Edges.Empty();
 	}
 
@@ -103,12 +100,11 @@ namespace PCGExConvexHull
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
 
-		Delaunay = new PCGExGeo::TDelaunay3();
+		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 
 		if (!Delaunay->Process(ActivePositions, false))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
-			PCGEX_DELETE(Delaunay)
 			return false;
 		}
 
@@ -117,7 +113,7 @@ namespace PCGExConvexHull
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;
@@ -155,7 +151,6 @@ namespace PCGExConvexHull
 		{
 			bIsProcessorValid = false;
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
-			PCGEX_DELETE(GraphBuilder)
 			return;
 		}
 

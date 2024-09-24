@@ -97,12 +97,12 @@ namespace PCGExAssetCollection
 
 PCGExAssetCollection::FCache* UPCGExAssetCollection::LoadCache()
 {
-	if (bCacheNeedsRebuild) { PCGEX_DELETE(Cache) }
-	if (Cache) { return Cache; }
-	Cache = new PCGExAssetCollection::FCache();
+	if (bCacheNeedsRebuild) { Cache.Reset(); }
+	if (Cache) { return Cache.Get(); }
+	Cache = MakeUnique<PCGExAssetCollection::FCache>();
 	BuildCache();
 	Cache->Compile();
-	return Cache;
+	return Cache.Get();
 }
 
 void UPCGExAssetCollection::PostLoad()
@@ -189,7 +189,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 
 void UPCGExAssetCollection::BeginDestroy()
 {
-	PCGEX_DELETE(Cache)
+	Cache.Reset();
 	Super::BeginDestroy();
 }
 

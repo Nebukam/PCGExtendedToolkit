@@ -46,7 +46,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestBounds)
 
-	PCGExData::FPointIO* Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
+	TSharedPtr<PCGExData::FPointIO> Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
 	if (!Bounds)
 	{
 		PCGEX_DELETE(Bounds)

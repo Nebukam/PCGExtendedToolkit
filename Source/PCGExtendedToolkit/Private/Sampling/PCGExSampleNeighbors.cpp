@@ -112,7 +112,7 @@ namespace PCGExSampleNeighbors
 			if (SamplingOperation->ValueFilters) { OpsWithValueTest.Add(SamplingOperation); }
 		}
 
-		ExpandedNodes = Cluster->ExpandedNodes;
+		ExpandedNodes = Cluster->ExpandedNodes.Get();
 
 		if (!ExpandedNodes)
 		{

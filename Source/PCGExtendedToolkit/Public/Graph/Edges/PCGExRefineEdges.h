@@ -116,8 +116,8 @@ namespace PCGExRefineEdges
 		const UPCGExRefineEdgesSettings* LocalSettings = nullptr;
 		FPCGExRefineEdgesContext* LocalTypedContext = nullptr;
 
-		PCGExPointFilter::TManager* EdgeFilterManager = nullptr;
-		PCGExPointFilter::TManager* SanitizationFilterManager = nullptr;
+		TUniquePtr<PCGExPointFilter::TManager> EdgeFilterManager;
+		TUniquePtr<PCGExPointFilter::TManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;

@@ -28,7 +28,6 @@ namespace PCGExDataBlending
 		UniqueTags.Empty();
 		UniqueTagsList.Empty();
 		TagAttributes.Empty();
-		PCGEX_DELETE(PropertiesBlender)
 		PCGEX_DELETE_TARRAY(AttributeSourceMaps)
 	}
 
@@ -111,9 +110,8 @@ namespace PCGExDataBlending
 		CurrentCompoundList = CompoundList;
 		CurrentTargetData = TargetData;
 
-		PCGEX_DELETE(PropertiesBlender)
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
-		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : new FPropertiesBlender(PropertiesBlendingDetails);
+		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : MakeUnique<FPropertiesBlender>(PropertiesBlendingDetails);
 
 		CurrentTargetData->Source->CreateOutKeys();
 
@@ -219,9 +217,8 @@ namespace PCGExDataBlending
 		CurrentCompoundList = CompoundList;
 		CurrentTargetData = TargetData;
 
-		PCGEX_DELETE(PropertiesBlender)
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
-		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : new FPropertiesBlender(PropertiesBlendingDetails);
+		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : MakeUnique<FPropertiesBlender>(PropertiesBlendingDetails);
 
 		CurrentTargetData->Source->CreateOutKeys();
 		CarryOverDetails->Reduce(UniqueTags);

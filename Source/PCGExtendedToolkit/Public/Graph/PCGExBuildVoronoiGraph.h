@@ -81,7 +81,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraphContext final : public 
 
 	virtual ~FPCGExBuildVoronoiGraphContext() override;
 
-	PCGExData::FPointIOCollection* SitesOutput = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> SitesOutput;
 };
 
 
@@ -103,8 +103,8 @@ namespace PCGExBuildVoronoi
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	protected:
-		PCGExGeo::TVoronoi3* Voronoi = nullptr;
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<PCGExGeo::TVoronoi3> Voronoi;
+		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
 

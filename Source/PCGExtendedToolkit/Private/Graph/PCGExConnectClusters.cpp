@@ -121,8 +121,6 @@ namespace PCGExBridgeClusters
 
 	FProcessorBatch::~FProcessorBatch()
 	{
-		PCGEX_DELETE(Merger)
-
 		ConsolidatedEdges = nullptr;
 		Bridges.Empty();
 	}
@@ -146,7 +144,7 @@ namespace PCGExBridgeClusters
 		// Start merging right away
 		TSet<FName> IgnoreAttributes = {PCGExGraph::Tag_ClusterId};
 
-		Merger = new FPCGExPointIOMerger(ConsolidatedEdges);
+		Merger = MakeUnique<FPCGExPointIOMerger>(ConsolidatedEdges);
 		Merger->Append(Edges);
 		Merger->Merge(AsyncManagerPtr, &TypedContext->CarryOverDetails);
 	}
@@ -154,7 +152,7 @@ namespace PCGExBridgeClusters
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
 	{
 		PCGEX_SETTINGS(ConnectClusters)
-		ConsolidatedEdges->Tags->Append(ClusterProcessor->EdgesIO->Tags);
+		ConsolidatedEdges->Tags->Append(ClusterProcessor->EdgesIO->Tags.Get());
 
 		return true;
 	}
@@ -196,7 +194,7 @@ namespace PCGExBridgeClusters
 
 		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D)
 		{
-			PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
+			TUniquePtr<PCGExGeo::TDelaunay3> Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
@@ -207,11 +205,10 @@ namespace PCGExBridgeClusters
 			else { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Delaunay 3D failed. Are points coplanar? If so, use Delaunay 2D instead.")); }
 
 			Positions.Empty();
-			PCGEX_DELETE(Delaunay)
 		}
 		else if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay2D)
 		{
-			PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
+			TUniquePtr<PCGExGeo::TDelaunay2> Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
 
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
@@ -222,7 +219,6 @@ namespace PCGExBridgeClusters
 			else { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Delaunay 2D failed.")); }
 
 			Positions.Empty();
-			PCGEX_DELETE(Delaunay)
 		}
 		else if (SafeMethod == EPCGExBridgeClusterMethod::LeastEdges)
 		{

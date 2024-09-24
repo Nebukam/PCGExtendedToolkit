@@ -77,7 +77,6 @@ namespace PCGExBevelVertices
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(FilterManager)
 	}
 
 	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
@@ -97,7 +96,7 @@ namespace PCGExBevelVertices
 
 		Cluster->ComputeEdgeLengths();
 
-		FilterManager = new PCGExClusterStates::FStateManager(StateFlags, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
+		FilterManager = MakeUnique<PCGExClusterStates::FStateManager>(StateFlags, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
 		FilterManager->Init(Context, TypedContext->StateFactories);
 
 		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }

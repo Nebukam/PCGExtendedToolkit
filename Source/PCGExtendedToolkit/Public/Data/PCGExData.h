@@ -60,6 +60,7 @@ namespace PCGExData
 		const FPCGMetadataAttributeBase* InAttribute = nullptr;
 		FPCGMetadataAttributeBase* OutAttribute = nullptr;
 
+		int32 BufferIndex = -1;
 		const uint64 UID;
 		FPointIO* Source = nullptr;
 
@@ -283,7 +284,7 @@ namespace PCGExData
 		virtual void Write() override
 		{
 			if (!IsWritable()) { return; }
-			
+
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
 			TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
 
@@ -321,8 +322,8 @@ namespace PCGExData
 		mutable FRWLock CloudLock;
 
 	public:
-		FPointIO* Source = nullptr;
-		TArray<FBufferBase*> Buffers;
+		TSharedPtr<FPointIO> Source;
+		TArray<TUniquePtr<FBufferBase>> Buffers;
 		TMap<uint64, FBufferBase*> BufferMap;
 		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
 
@@ -331,7 +332,7 @@ namespace PCGExData
 		FBufferBase* FindBufferUnsafe(const uint64 UID);
 		FBufferBase* FindBuffer(const uint64 UID);
 
-		explicit FFacade(FPointIO* InSource):
+		explicit FFacade(const TSharedPtr<FPointIO>& InSource):
 			Source(InSource)
 		{
 		}
@@ -366,9 +367,10 @@ namespace PCGExData
 				NewBuffer = FindBufferUnsafe<T>(FullName);
 				if (NewBuffer) { return NewBuffer; }
 
-				NewBuffer = new TBuffer<T>(FullName, PCGEx::GetMetadataType(T{}));
+				NewBuffer = Buffers.Add_GetRef(MakeUnique<TBuffer<T>>(FullName, PCGEx::GetMetadataType(T{})));
+				NewBuffer->BufferIndex = Buffers.Num() - 1;
 				NewBuffer->Source = Source;
-				Buffers.Add(NewBuffer);
+
 				BufferMap.Add(NewBuffer->UID, NewBuffer);
 				return NewBuffer;
 			}
@@ -412,7 +414,7 @@ namespace PCGExData
 			}
 
 			Getter->Capture(InSelector);
-			if (!Getter->SoftGrab(Source))
+			if (!Getter->SoftGrab(Source.Get()))
 			{
 				PCGEX_DELETE(Getter)
 				return nullptr;
@@ -601,7 +603,7 @@ namespace PCGExData
 
 		void Flush()
 		{
-			PCGEX_DELETE_TARRAY(Buffers)
+			Buffers.Empty();
 			BufferMap.Empty();
 		}
 
@@ -611,21 +613,21 @@ namespace PCGExData
 
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
-				FBufferBase* Buffer = Buffers[i];
+				FBufferBase* Buffer = Buffers[i].Get();
 				if (Buffer->IsWritable()) { PCGEX_ASYNC_WRITE(AsyncManager, Buffer) }
 			}
 		}
 
-		void Fetch(const int32 StartIndex, const int32 Count) { for (FBufferBase* Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }
+		void Fetch(const int32 StartIndex, const int32 Count) { for (const TUniquePtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }
 		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }
 
 	protected:
 		void Flush(FBufferBase* Buffer)
 		{
 			FWriteScopeLock WriteScopeLock(PoolLock);
-			Buffers.Remove(Buffer);
+			Buffers.RemoveAt(Buffer->BufferIndex);
 			BufferMap.Remove(Buffer->UID);
-			PCGEX_DELETE(Buffer)
+			for (int i = 0; i < Buffers.Num(); i++) { Buffers[i].Get()->BufferIndex = i; }
 		}
 	};
 

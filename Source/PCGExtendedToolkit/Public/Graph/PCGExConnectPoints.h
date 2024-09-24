@@ -81,9 +81,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : public FPCG
 	TArray<UPCGExFilterFactoryBase*> GeneratorsFiltersFactories;
 	TArray<UPCGExFilterFactoryBase*> ConnectablesFiltersFactories;
 
-	PCGExData::FPointIOCollection* MainVtx = nullptr;
-	PCGExData::FPointIOCollection* MainEdges = nullptr;
-
 	FVector CWCoincidenceTolerance = FVector::OneVector;
 };
 
@@ -150,7 +147,8 @@ namespace PCGExConnectPoints
 		TUniquePtr<PCGExPointFilter::TManager> GeneratorsFilter;
 		TUniquePtr<PCGExPointFilter::TManager> ConnectableFilter;
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		
 		TArray<UPCGExProbeOperation*> ProbeOperations;
 		TArray<UPCGExProbeOperation*> DirectProbeOperations;
 		TArray<UPCGExProbeOperation*> ChainProbeOperations;
@@ -160,7 +158,7 @@ namespace PCGExConnectPoints
 		double SharedSearchRadius = TNumericLimits<double>::Min();
 
 		TArray<bool> CanGenerate;
-		PositionOctree* Octree = nullptr;
+		TUniquePtr<PositionOctree> Octree;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		TArray<FTransform> CachedTransforms;

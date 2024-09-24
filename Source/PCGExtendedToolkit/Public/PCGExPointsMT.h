@@ -21,19 +21,19 @@ namespace PCGExPointsMT
 
 #define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY)\
 	if (_INLINE_CONDITION)  { \
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, _ID##Inlined) \
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, _ID##Inlined) \
 		_ID##Inlined->StartRanges( \
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { \
 				T* Processor = Processors[Index]; _BODY \
 			}, Processors.Num(), 1, true, false);\
 	} else {\
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, _ID##NonTrivial)\
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, _ID##NonTrivial)\
 		_ID##NonTrivial->StartRanges(\
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) {\
 				T* Processor = Processors[Index];\
 				if (Processor->IsTrivial()) { return; } _BODY \
 			}, Processors.Num(), 1, false, false); \
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, _ID##Trivial) \
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, _ID##Trivial) \
 		_ID##Trivial->StartRanges(\
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx){ \
 				T* Processor = TrivialProcessors[Index]; _BODY \

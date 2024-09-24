@@ -15,8 +15,6 @@ PCGExData::EInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const 
 FPCGExBuildConvexHull2DContext::~FPCGExBuildConvexHull2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(PathsIO)
 }
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
@@ -35,7 +33,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
-	Context->PathsIO = new PCGExData::FPointIOCollection(Context);
+	Context->PathsIO = MakeUnique<PCGExData::FPointIOCollection>(Context);
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	return true;
@@ -142,10 +140,6 @@ namespace PCGExConvexHull2D
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Delaunay)
-
-		PCGEX_DELETE(GraphBuilder)
-
 		Edges.Empty();
 	}
 
@@ -164,12 +158,11 @@ namespace PCGExConvexHull2D
 		TArray<FVector> ActivePositions;
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
 
-		Delaunay = new PCGExGeo::TDelaunay2();
+		Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
 
 		if (!Delaunay->Process(ActivePositions, ProjectionDetails))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
-			PCGEX_DELETE(Delaunay)
 			return false;
 		}
 
@@ -178,7 +171,7 @@ namespace PCGExConvexHull2D
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;
@@ -212,7 +205,7 @@ namespace PCGExConvexHull2D
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
-		TypedContext->BuildPath(GraphBuilder);
+		TypedContext->BuildPath(GraphBuilder.Get());
 	}
 
 	void FProcessor::Write()
@@ -223,7 +216,6 @@ namespace PCGExConvexHull2D
 		{
 			bIsProcessorValid = false;
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
-			PCGEX_DELETE(GraphBuilder)
 			return;
 		}
 

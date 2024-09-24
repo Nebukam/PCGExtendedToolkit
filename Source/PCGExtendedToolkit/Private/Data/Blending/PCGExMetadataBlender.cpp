@@ -129,7 +129,7 @@ namespace PCGExDataBlending
 		FirstPointOperation.Empty();
 		OperationIdMap.Empty();
 
-		PCGEX_DELETE(PropertiesBlender)
+		PropertiesBlender = nullptr;
 
 		PCGEX_DELETE_TARRAY(Operations)
 
@@ -153,11 +153,11 @@ namespace PCGExDataBlending
 		bSkipProperties = !bBlendProperties;
 		if (!bSkipProperties)
 		{
-			PropertiesBlender = new FPropertiesBlender(BlendingDetails->GetPropertiesBlendingDetails());
+			PropertiesBlender = MakeUnique<FPropertiesBlender>(BlendingDetails->GetPropertiesBlendingDetails());
 			if (PropertiesBlender->bHasNoBlending)
 			{
 				bSkipProperties = true;
-				PCGEX_DELETE(PropertiesBlender)
+				PropertiesBlender.Reset();
 			}
 		}
 

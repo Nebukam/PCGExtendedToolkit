@@ -104,7 +104,7 @@ namespace PCGExBridgeClusters
 	{
 	public:
 		PCGExData::FPointIO* ConsolidatedEdges = nullptr;
-		FPCGExPointIOMerger* Merger = nullptr;
+		TUniquePtr<FPCGExPointIOMerger> Merger;
 		TSet<uint64> Bridges;
 
 		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);

@@ -52,10 +52,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 
 	bool bBuildEndpointsLookup = true;
 	
-	PCGExData::FPointIOCollection* MainEdges = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> MainEdges;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
 
-	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
+	TUniquePtr<PCGExData::FPointIOTaggedDictionary> InputDictionary;
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
 	TMap<uint32, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;
@@ -63,7 +63,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;
 	virtual bool AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys = true); // Advance edges within current points
 
-	PCGExCluster::FCluster* CurrentCluster = nullptr;
+	TSharedPtr<PCGExCluster::FCluster> CurrentCluster;
 
 	void OutputPointsAndEdges() const;
 
@@ -86,7 +86,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	int32 GetClusterProcessorsNum() const
 	{
 		int32 Num = 0;
-		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Num += Batch->GetNumProcessors(); }
+		for (const TUniquePtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Num += Batch->GetNumProcessors(); }
 		return Num;
 	}
 
@@ -94,7 +94,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	void GatherClusterProcessors(TArray<T*>& OutProcessors)
 	{
 		OutProcessors.Reserve(GetClusterProcessorsNum());
-		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
+		for (const TUniquePtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches)
 		{
 			const PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<const PCGExClusterMT::TBatch<T>*>(Batch);
 			OutProcessors.Append(TypedBatch->Processors);
@@ -103,13 +103,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 
 	void OutputBatches() const
 	{
-		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->Output(); }
+		for (const TUniquePtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Output(); }
 	}
 
 protected:
 	virtual bool ProcessClusters();
 
-	TArray<PCGExClusterMT::FClusterProcessorBatchBase*> Batches;
+	TArray<TUniquePtr<PCGExClusterMT::FClusterProcessorBatchBase>> Batches;
 	
 	bool bScopedIndexLookupBuild = false;
 	bool bHasValidHeuristics = false;
@@ -128,7 +128,7 @@ protected:
 	{
 		ResetAsyncWork();
 
-		PCGEX_DELETE_TARRAY(Batches)
+		Batches.Empty();
 
 		bClusterBatchInlined = bInlined;
 		CurrentBatchIndex = -1;

@@ -16,8 +16,6 @@ PCGExData::EInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() con
 FPCGExCopyClustersToPointsContext::~FPCGExCopyClustersToPointsContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(Targets)
 }
 
 PCGEX_INITIALIZE_ELEMENT(CopyClustersToPoints)
