@@ -7,8 +7,6 @@
 #include "Data/Blending/PCGExCompoundBlender.h"
 
 
-
-
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
 
@@ -33,7 +31,6 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 	PCGEX_TERMINATE_ASYNC
 
 	VtxFacades.Empty();
-	PCGEX_DELETE_FACADE_AND_SOURCE(CompoundFacade)
 }
 
 PCGEX_INITIALIZE_ELEMENT(FuseClusters)
@@ -55,7 +52,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	const_cast<UPCGExFuseClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
-	Context->CompoundProcessor = new PCGExGraph::FCompoundProcessor(
+	Context->CompoundProcessor = MakeUnique<PCGExGraph::FCompoundProcessor>(
 		Context,
 		Settings->PointPointIntersectionDetails,
 		Settings->DefaultPointsBlendingDetails,
@@ -77,13 +74,13 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 			&Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
-	PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(Context);
+	TSharedPtr<PCGExData::FPointIO> CompoundPoints = MakeShared<PCGExData::FPointIO>(Context);
 	CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
 	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
-	Context->CompoundFacade = new PCGExData::FFacade(CompoundPoints);
+	Context->CompoundFacade = MakeShared<PCGExData::FFacade>(CompoundPoints);
 
-	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
+	Context->CompoundGraph = MakeShared<PCGExGraph::FCompoundGraph>(
 		Settings->PointPointIntersectionDetails.FuseDetails,
 		Context->MainPoints->GetInBounds().ExpandBy(10));
 
@@ -123,22 +120,18 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExGraph::State_PreparingCompound))
 	{
 		const int32 NumFacades = Context->Batches.Num();
-		TArray<PCGExData::FFacade*> VtxFacadesPtrs;		
-		
+
 		Context->VtxFacades.Reserve(NumFacades);
-		VtxFacadesPtrs.Reserve(NumFacades);
-		
-		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch :
-		     Context->Batches)
+
+		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
 		{
-			VtxFacadesPtrs.Add(Batch->VtxDataFacade.Get());
-			Context->VtxFacades.Add(MoveTemp(Batch->VtxDataFacade)); // take ownership of facades
+			Context->VtxFacades.Add(Batch->VtxDataFacade);
 		}
 
 		if (!Context->CompoundProcessor->StartExecution(
 			Context->CompoundGraph,
 			Context->CompoundFacade,
-			VtxFacadesPtrs,
+			Context->VtxFacades,
 			Settings->GraphBuilderDetails,
 			&Settings->VtxCarryOverDetails)) { return true; }
 	}

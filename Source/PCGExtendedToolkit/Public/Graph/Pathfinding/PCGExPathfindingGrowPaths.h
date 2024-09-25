@@ -57,7 +57,7 @@ namespace PCGExGrowPaths
 	public:
 		const TSharedPtr<FProcessor> Processor;
 		const PCGExCluster::FNode* SeedNode = nullptr;
-		PCGExCluster::FNode* GoalNode = nullptr;
+		TUniquePtr<PCGExCluster::FNode> GoalNode;
 
 		int32 SeedPointIndex = -1;
 		int32 MaxIterations = 0;
@@ -85,8 +85,6 @@ namespace PCGExGrowPaths
 
 		~FGrowth()
 		{
-			Path.Empty();
-			PCGEX_DELETE(GoalNode)
 		}
 
 	protected:
@@ -265,7 +263,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : publ
 	TSharedPtr<PCGExData::TBuffer<double>> GrowthMaxDistance;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
-	TUniquePtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement

@@ -9,8 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "Geometry/PCGExGeo.h"
 #include "PCGExBevelPath.generated.h"
 
@@ -165,7 +163,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathContext final : public FPCGExPa
 
 	virtual ~FPCGExBevelPathContext() override;
 
-	PCGExData::FFacade* CustomProfileFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> CustomProfileFacade;
 
 	TArray<FVector> CustomProfilePositions;
 	double CustomLength;
@@ -234,21 +232,21 @@ namespace PCGExBevelPath
 
 		TArray<double> Lengths;
 
-		TArray<FBevel*> Bevels;
+		TArray<TUniquePtr<FBevel>> Bevels;
 		TArray<int32> StartIndices;
 
 		bool bClosedLoop = false;
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;
-		PCGExData::TBuffer<double>* WidthGetter = nullptr;
-		PCGExData::TBuffer<double>* SubdivAmountGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> WidthGetter;
+		TSharedPtr<PCGExData::TBuffer<double>> SubdivAmountGetter;
 		double ConstantSubdivAmount = 0;
 
-		PCGExData::TBuffer<bool>* EndpointsWriter = nullptr;
-		PCGExData::TBuffer<bool>* StartPointWriter = nullptr;
-		PCGExData::TBuffer<bool>* EndPointWriter = nullptr;
-		PCGExData::TBuffer<bool>* SubdivisionWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> EndpointsWriter;
+		TSharedPtr<PCGExData::TBuffer<bool>> StartPointWriter;
+		TSharedPtr<PCGExData::TBuffer<bool>> EndPointWriter;
+		TSharedPtr<PCGExData::TBuffer<bool>> SubdivisionWriter;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)

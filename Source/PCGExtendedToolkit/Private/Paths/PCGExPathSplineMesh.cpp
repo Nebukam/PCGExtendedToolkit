@@ -8,8 +8,6 @@
 #include "Collections/PCGExInternalCollection.h"
 
 
-
-
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshElement"
@@ -152,7 +150,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 
 	Context->MainPoints->OutputToContext();
-	
+
 	return Context->TryComplete();
 }
 
@@ -160,21 +158,16 @@ namespace PCGExPathSplineMesh
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Helper)
 		//for (USplineMeshComponent* SMC : SplineMeshComponents) { PCGEX_DELETE_UOBJECT(SMC) }
 		//SplineMeshComponents.Empty();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
-
-		
-		
 
 		Justification = Settings->Justification;
 		Justification.Init(ExecutionContext, PointDataFacade.Get());
@@ -182,7 +175,7 @@ namespace PCGExPathSplineMesh
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 
-		Helper = new PCGExAssetCollection::FDistributionHelper(Context->MainCollection, Settings->DistributionSettings);
+		Helper = MakeUnique<PCGExAssetCollection::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(ExecutionContext, PointDataFacade.Get())) { return false; }
 
 		if (Settings->bApplyCustomTangents)

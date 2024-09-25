@@ -6,8 +6,6 @@
 #include "Data/PCGExData.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
@@ -72,8 +70,6 @@ namespace PCGExPointsToBounds
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(MetadataBlender)
-		PCGEX_DELETE(Bounds)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -82,7 +78,7 @@ namespace PCGExPointsToBounds
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		Bounds = new FBounds(PointIO);
+		Bounds = MakeShared<FBounds>(PointIO);
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 
 		switch (Settings->BoundsSource)
@@ -119,7 +115,6 @@ namespace PCGExPointsToBounds
 
 	void FProcessor::CompleteWork()
 	{
-
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		UPCGPointData* OutData = PointIO->GetOut();
 
@@ -138,8 +133,8 @@ namespace PCGExPointsToBounds
 
 		if (Settings->bBlendProperties)
 		{
-			MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-			MetadataBlender->PrepareForData(PointDataFacade.Get());
+			MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
+			MetadataBlender->PrepareForData(PointDataFacade);
 
 			const PCGExData::FPointRef Target = PointIO->GetOutPointRef(0);
 			MetadataBlender->PrepareForBlending(Target);

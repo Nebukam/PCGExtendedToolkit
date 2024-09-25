@@ -10,8 +10,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
-
-
 #include "PCGExSortPoints.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sort Direction"))
@@ -55,7 +53,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSortRule
 	{
 	}
 
-	PCGExData::TBuffer<double>* Cache = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> Cache;
 
 	double Tolerance = 0.0001f;
 	bool bInvertRule = false;

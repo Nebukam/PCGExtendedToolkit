@@ -73,8 +73,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterContext final : public FPCGExP
 	friend class FPCGExUberFilterElement;
 	virtual ~FPCGExUberFilterContext() override;
 
-	PCGExData::FPointIOCollection* Inside = nullptr;
-	PCGExData::FPointIOCollection* Outside = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> Inside;
+	TUniquePtr<PCGExData::FPointIOCollection> Outside;
 
 	int32 NumPairs = 0;
 };
@@ -98,11 +98,11 @@ namespace PCGExUberFilter
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
 
-		PCGExData::TBuffer<bool>* Results = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> Results;
 
 	public:
-		PCGExData::FPointIO* Inside = nullptr;
-		PCGExData::FPointIO* Outside = nullptr;
+		TSharedPtr<PCGExData::FPointIO> Inside;
+		TSharedPtr<PCGExData::FPointIO> Outside;
 
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
 			TPointsProcessor(InPoints)
@@ -114,7 +114,7 @@ namespace PCGExUberFilter
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
-		PCGExData::FPointIO* CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const;
+		TSharedPtr<PCGExData::FPointIO> CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const;
 		virtual void CompleteWork() override;
 	};
 }

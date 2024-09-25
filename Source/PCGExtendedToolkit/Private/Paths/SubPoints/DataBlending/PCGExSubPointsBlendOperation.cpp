@@ -53,7 +53,7 @@ void UPCGExSubPointsBlendOperation::PrepareForData(
 		BlendingDetails.PropertiesOverrides.ScaleBlending = EPCGExDataBlendingType::None;
 	}
 
-	PCGEX_DELETE(InternalBlender)
+	InternalBlender.Reset();
 	InternalBlender = CreateBlender(InPrimaryFacade, InSecondaryFacade, SecondarySource, IgnoreAttributeSet);
 }
 
@@ -64,7 +64,7 @@ void UPCGExSubPointsBlendOperation::ProcessSubPoints(
 	const PCGExPaths::FPathMetrics& Metrics,
 	const int32 StartIndex) const
 {
-	BlendSubPoints(From, To, SubPoints, Metrics, InternalBlender, StartIndex);
+	BlendSubPoints(From, To, SubPoints, Metrics, InternalBlender.Get(), StartIndex);
 }
 
 void UPCGExSubPointsBlendOperation::BlendSubPoints(

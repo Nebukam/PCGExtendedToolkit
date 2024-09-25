@@ -5,9 +5,6 @@
 #include "Misc/PCGExSortPoints.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExSortPoints"
 #define PCGEX_NAMESPACE SortPoints
 
@@ -77,14 +74,15 @@ namespace PCGExSortPoints
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSortPoints::Process);
-		PCGEX_SETTINGS(SortPointsBase)
+		const UPCGExSortPointsBaseSettings* Settings = ExecutionContext->GetInputSettings<UPCGExSortPointsBaseSettings>();
+		check(Settings);
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
 		Settings->GetSortingRules(ExecutionContext, RuleConfigs);
 
-		TArray<FPCGExSortRule*> Rules;
+		TArray<TSharedPtr<FPCGExSortRule>> Rules;
 		Rules.Reserve(RuleConfigs.Num());
 
 		TMap<PCGMetadataEntryKey, int32> PointIndices;
@@ -92,13 +90,12 @@ namespace PCGExSortPoints
 
 		for (const FPCGExSortRuleConfig& RuleConfig : RuleConfigs)
 		{
-			FPCGExSortRule* NewRule = new FPCGExSortRule();
-			PCGExData::TBuffer<double>* Cache = PointDataFacade->GetBroadcaster<double>(RuleConfig.Selector);
+			TSharedPtr<FPCGExSortRule> NewRule = MakeShared<FPCGExSortRule>();
+			const TSharedPtr<PCGExData::TBuffer<double>> Cache = PointDataFacade->GetBroadcaster<double>(RuleConfig.Selector);
 
 			if (!Cache)
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
-				delete NewRule;
 				continue;
 			}
 
@@ -118,7 +115,7 @@ namespace PCGExSortPoints
 		auto SortPredicate = [&](const FPCGPoint& A, const FPCGPoint& B)
 		{
 			int Result = 0;
-			for (const FPCGExSortRule* Rule : Rules)
+			for (const TSharedPtr<FPCGExSortRule>& Rule : Rules)
 			{
 				const double ValueA = Rule->Cache->Read(PointIndices[A.MetadataEntry]);
 				const double ValueB = Rule->Cache->Read(PointIndices[B.MetadataEntry]);
@@ -137,8 +134,6 @@ namespace PCGExSortPoints
 		PointIO->GetOut()->GetMutablePoints().Sort(SortPredicate);
 
 		PointIndices.Empty();
-		PCGEX_DELETE_TARRAY(Rules)
-
 		return true;
 	}
 

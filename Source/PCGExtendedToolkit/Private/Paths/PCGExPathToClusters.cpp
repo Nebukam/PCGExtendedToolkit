@@ -6,10 +6,6 @@
 #include "Data/Blending/PCGExCompoundBlender.h"
 
 
-
-
-
-
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
 
@@ -38,10 +34,6 @@ PCGEX_INITIALIZE_ELEMENT(PathToClusters)
 FPCGExPathToClustersContext::~FPCGExPathToClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE_FACADE_AND_SOURCE(CompoundFacade)
-
-	PCGEX_DELETE(CompoundProcessor)
 }
 
 bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
@@ -55,7 +47,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 	const_cast<UPCGExPathToClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
-	Context->CompoundProcessor = new PCGExGraph::FCompoundProcessor(
+	Context->CompoundProcessor = MakeUnique<PCGExGraph::FCompoundProcessor>(
 		Context,
 		Settings->PointPointIntersectionDetails,
 		Settings->DefaultPointsBlendingDetails,
@@ -79,13 +71,13 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bFusePaths)
 	{
-		PCGExData::FPointIO* CompoundPoints = new PCGExData::FPointIO(Context);
+		TSharedPtr<PCGExData::FPointIO> CompoundPoints = MakeShared<PCGExData::FPointIO>(Context);
 		CompoundPoints->SetInfos(-1, Settings->GetMainOutputLabel());
 		CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
-		Context->CompoundFacade = new PCGExData::FFacade(CompoundPoints);
+		Context->CompoundFacade = MakeShared<PCGExData::FFacade>(CompoundPoints);
 
-		Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
+		Context->CompoundGraph = MakeShared<PCGExGraph::FCompoundGraph>(
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			Context->MainPoints->GetInBounds().ExpandBy(10));
 	}
@@ -152,25 +144,21 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		if (Context->IsState(PCGExGraph::State_PreparingCompound))
 		{
 			const int32 NumFacades = Context->MainBatch->ProcessorFacades.Num();
-			TArray<PCGExData::FFacade*> PathFacadesPtrs;
-
 			Context->PathsFacades.Reserve(NumFacades);
-			PathFacadesPtrs.Reserve(NumFacades);
 
-			PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* MainBatch = static_cast<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>*>(Context->MainBatch);
-			for (PCGExPathToClusters::FFusingProcessor* Processor : MainBatch->Processors)
+			PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* MainBatch = static_cast<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>*>(Context->MainBatch.Get());
+			for (const TSharedPtr<PCGExPathToClusters::FFusingProcessor>& Processor : MainBatch->Processors)
 			{
 				if (!Processor->bIsProcessorValid) { continue; }
-				PathFacadesPtrs.Add(Processor->PointDataFacade.Get());
-				Context->PathsFacades.Add(MoveTemp(Processor->PointDataFacade)); // take ownership of facades
+				Context->PathsFacades.Add(Processor->PointDataFacade);
 			}
 
-			PCGEX_DELETE(Context->MainBatch);
+			Context->MainBatch.Reset();
 
 			if (!Context->CompoundProcessor->StartExecution(
 				Context->CompoundGraph,
 				Context->CompoundFacade,
-				PathFacadesPtrs,
+				Context->PathsFacades,
 				Settings->GraphBuilderDetails,
 				&Settings->CarryOverDetails)) { return true; }
 		}
@@ -194,17 +182,15 @@ namespace PCGExPathToClusters
 
 	FNonFusingProcessor::~FNonFusingProcessor()
 	{
-		PCGEX_DELETE(GraphBuilder)
 	}
 
 	bool FNonFusingProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails, 2);
+		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails, 2);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();

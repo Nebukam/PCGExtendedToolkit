@@ -47,7 +47,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionContext final 
 
 	virtual ~FPCGExBoundsClustersIntersectionContext() override;
 
-	PCGExData::FFacade* BoundsDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionElement final : public FPCGExEdgesProcessorElement

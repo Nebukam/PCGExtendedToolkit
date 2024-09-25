@@ -191,7 +191,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : publi
 
 	virtual ~FPCGExSampleSurfaceGuidedContext() override;
 
-	PCGExData::FFacade* ActorReferenceDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> ActorReferenceDataFacade;
 
 	bool bUseInclude = false;
 	TMap<AActor*, int32> IncludedActors;
@@ -218,10 +218,10 @@ namespace PCGExSampleSurfaceGuided
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleSurfaceGuidedContext, UPCGExSampleSurfaceGuidedSettings>
 	{
-		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
+		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
-		PCGExData::TBuffer<double>* MaxDistanceGetter = nullptr;
-		PCGExData::TBuffer<FVector>* DirectionGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 

@@ -37,7 +37,7 @@ public:
 
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings
-	
+
 	/** Whether scoped attribute read is enabled or not. Disabling this on small dataset may greatly improve performance. It's enabled by default for legacy reasons. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bScopedIndexLookupBuild = false;
@@ -51,7 +51,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	virtual ~FPCGExEdgesProcessorContext() override;
 
 	bool bBuildEndpointsLookup = true;
-	
+
 	TUniquePtr<PCGExData::FPointIOCollection> MainEdges;
 	TSharedPtr<PCGExData::FPointIO> CurrentEdges;
 
@@ -86,7 +86,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	int32 GetClusterProcessorsNum() const
 	{
 		int32 Num = 0;
-		for (const TUniquePtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Num += Batch->GetNumProcessors(); }
+		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Num += Batch->GetNumProcessors(); }
 		return Num;
 	}
 
@@ -94,7 +94,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	void GatherClusterProcessors(TArray<T*>& OutProcessors)
 	{
 		OutProcessors.Reserve(GetClusterProcessorsNum());
-		for (const TUniquePtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches)
+		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches)
 		{
 			const PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<const PCGExClusterMT::TBatch<T>*>(Batch);
 			OutProcessors.Append(TypedBatch->Processors);
@@ -103,14 +103,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 
 	void OutputBatches() const
 	{
-		for (const TUniquePtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Output(); }
+		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Output(); }
 	}
 
 protected:
 	virtual bool ProcessClusters();
 
-	TArray<TUniquePtr<PCGExClusterMT::FClusterProcessorBatchBase>> Batches;
-	
+	TArray<TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>> Batches;
+
 	bool bScopedIndexLookupBuild = false;
 	bool bHasValidHeuristics = false;
 
@@ -120,7 +120,7 @@ protected:
 	bool bClusterRequiresHeuristics = false;
 	bool bClusterBatchInlined = false;
 	int32 CurrentBatchIndex = -1;
-	PCGExClusterMT::FClusterProcessorBatchBase* CurrentBatch = nullptr;
+	TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase> CurrentBatch;
 
 
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
@@ -150,23 +150,13 @@ protected:
 
 			if (!ValidateEntries(TaggedEdges)) { continue; }
 
-			T* NewBatch = new T(this, CurrentIO, TaggedEdges->Entries);
+			TSharedPtr<T> NewBatch = MakeShared<T>(this, CurrentIO, TaggedEdges->Entries);
 			InitBatch(NewBatch);
 
 			if (NewBatch->RequiresHeuristics())
 			{
 				bClusterRequiresHeuristics = true;
-
-				if (!bHasValidHeuristics)
-				{
-					PCGEX_DELETE(NewBatch)
-					continue;
-				}
-			}
-
-			if (NewBatch->bRequiresWriteStep)
-			{
-				//bDoClusterBatchWritingStep = true; // TODO : CHECK THIS!!
+				if (!bHasValidHeuristics) { continue; }
 			}
 
 			NewBatch->EdgeCollection = MainEdges;
@@ -176,7 +166,7 @@ protected:
 				NewBatch->GraphBuilderDetails = GraphBuilderDetails;
 			}
 
-			Batches.Add(NewBatch);
+			Batches.Add(StaticCastSharedPtr<>(NewBatch));
 			if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch, bScopedIndexLookupBuild); }
 		}
 

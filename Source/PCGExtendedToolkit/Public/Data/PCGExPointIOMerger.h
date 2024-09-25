@@ -8,40 +8,30 @@
 #include "PCGExMT.h"
 
 
-
-
-
-
-
-
-
-
-
-
 #include "UObject/Object.h"
 
 struct FPCGExCarryOverDetails;
 
-class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final
+class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final : public TSharedFromThis<FPCGExPointIOMerger>
 {
 	friend class FPCGExAttributeMergeTask;
 
 public:
 	TArray<PCGEx::FAttributeIdentity> UniqueIdentities;
-	TSharedPtr<PCGExData::FPointIO> CompositeIO = nullptr;
+	TSharedPtr<PCGExData::FPointIO> CompositeIO;
 	TArray<TSharedPtr<PCGExData::FPointIO>> IOSources;
 	TArray<uint64> Scopes;
-	TArray<PCGEx::FAttributeIOBase*> Writers;
+	TArray<TSharedPtr<PCGEx::FAttributeIOBase>> Writers;
 
 	FPCGExPointIOMerger(TSharedPtr<PCGExData::FPointIO> OutMergedData);
 	~FPCGExPointIOMerger();
 
-	void Append(TSharedPtr<PCGExData::FPointIO> InData);
+	void Append(const TSharedPtr<PCGExData::FPointIO>& InData);
 	void Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData);
 	void Append(PCGExData::FPointIOCollection* InCollection);
-	void Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
+	void Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
 	void Write();
-	void Write(PCGExMT::FTaskManager* AsyncManager);
+	void Write(TSharedPtr<PCGExMT::FTaskManager> AsyncManager);
 
 protected:
 	int32 NumCompositePoints = 0;
@@ -50,9 +40,9 @@ protected:
 namespace PCGExPointIOMerger
 {
 	template <typename T>
-	static void ScopeMerge(const uint64 Scope, const PCGEx::FAttributeIdentity& Identity, PCGExData::FPointIO* SourceIO, PCGEx::TAttributeWriter<T>* Writer)
+	static void ScopeMerge(const uint64 Scope, const PCGEx::FAttributeIdentity& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGEx::TAttributeWriter<T>>& Writer)
 	{
-		PCGEx::TAttributeReader<T>* Reader = new PCGEx::TAttributeReader<T>(Identity.Name);
+		TUniquePtr<PCGEx::TAttributeReader<T>> Reader = MakeUnique<PCGEx::TAttributeReader<T>>(Identity.Name);
 		Reader->Bind(SourceIO);
 
 		uint32 StartIndex;
@@ -61,8 +51,6 @@ namespace PCGExPointIOMerger
 
 		const int32 Count = static_cast<int>(Range);
 		for (int i = 0; i < Count; ++i) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
-
-		PCGEX_DELETE(Reader);
 	}
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAttributeTask final : public PCGExMT::FPCGExTask
@@ -70,13 +58,13 @@ namespace PCGExPointIOMerger
 	public:
 		FWriteAttributeTask(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			FPCGExPointIOMerger* InMerger)
+			const TSharedPtr<FPCGExPointIOMerger>& InMerger)
 			: FPCGExTask(InPointIO),
 			  Merger(InMerger)
 		{
 		}
 
-		FPCGExPointIOMerger* Merger = nullptr;
+		TSharedPtr<FPCGExPointIOMerger> Merger;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
@@ -88,7 +76,7 @@ namespace PCGExPointIOMerger
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const uint64 InScope,
 			const PCGEx::FAttributeIdentity& InIdentity,
-			PCGEx::TAttributeWriter<T>* InWriter)
+			const TSharedPtr<PCGEx::TAttributeWriter<T>>& InWriter)
 			: FPCGExTask(InPointIO),
 			  Scope(InScope),
 			  Identity(InIdentity),
@@ -98,7 +86,7 @@ namespace PCGExPointIOMerger
 
 		const uint64 Scope;
 		const PCGEx::FAttributeIdentity Identity;
-		PCGEx::TAttributeWriter<T>* Writer = nullptr;
+		const TSharedPtr<PCGEx::TAttributeWriter<T>> Writer;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{

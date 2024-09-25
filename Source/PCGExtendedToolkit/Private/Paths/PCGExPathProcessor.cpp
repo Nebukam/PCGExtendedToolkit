@@ -19,8 +19,6 @@ PCGExData::EInit UPCGExPathProcessorSettings::GetMainOutputInitMode() const { re
 FPCGExPathProcessorContext::~FPCGExPathProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(MainPaths)
 }
 
 PCGEX_INITIALIZE_CONTEXT(PathProcessor)

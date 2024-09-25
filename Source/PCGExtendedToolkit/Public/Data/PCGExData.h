@@ -14,6 +14,8 @@
 #include "UObject/Object.h"
 #include "PCGExHelpers.h"
 
+
+
 #include "PCGExData.generated.h"
 
 USTRUCT(BlueprintType)
@@ -62,11 +64,11 @@ namespace PCGExData
 
 		int32 BufferIndex = -1;
 		const uint64 UID;
-		FPointIO* Source = nullptr;
+		TSharedPtr<FPointIO> Source;
 
 
-		FBufferBase(const FName InFullName, const EPCGMetadataTypes InType):
-			FullName(InFullName), Type(InType), UID(BufferUID(FullName, Type))
+		FBufferBase(const TSharedPtr<FPointIO>& InSource, const FName InFullName, const EPCGMetadataTypes InType):
+			FullName(InFullName), Type(InType), UID(BufferUID(FullName, Type)), Source(InSource)
 		{
 		}
 
@@ -107,8 +109,8 @@ namespace PCGExData
 
 		virtual bool IsScoped() override { return bScopedBuffer || ScopedBroadcaster; }
 
-		TBuffer(const FName InFullName, const EPCGMetadataTypes InType):
-			FBufferBase(InFullName, InType)
+		TBuffer(const TSharedPtr<FPointIO>& InSource, const FName InFullName, const EPCGMetadataTypes InType):
+			FBufferBase(InSource, InFullName, InType)
 		{
 		}
 
@@ -325,7 +327,7 @@ namespace PCGExData
 		TSharedPtr<FPointIO> Source;
 		TArray<TSharedPtr<FBufferBase>> Buffers;
 		TMap<uint64, TSharedPtr<FBufferBase>> BufferMap;
-		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
+		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 
 		bool bSupportsScopedGet = false;
 
@@ -367,9 +369,8 @@ namespace PCGExData
 				NewBuffer = FindBufferUnsafe<T>(FullName);
 				if (NewBuffer) { return NewBuffer; }
 
-				NewBuffer = Buffers.Add_GetRef(StaticCastSharedPtr<FBufferBase>(MakeShared<TBuffer<T>>(FullName, PCGEx::GetMetadataType(T{}))));
+				NewBuffer = Buffers.Add_GetRef(StaticCastSharedPtr<FBufferBase>(MakeShared<TBuffer<T>>(Source, FullName, PCGEx::GetMetadataType(T{}))));
 				NewBuffer->BufferIndex = Buffers.Num() - 1;
-				NewBuffer->Source = Source;
 
 				BufferMap.Add(NewBuffer->UID, NewBuffer);
 				return NewBuffer;
@@ -414,14 +415,14 @@ namespace PCGExData
 			}
 
 			Getter->Capture(InSelector);
-			if (!Getter->SoftGrab(Source.Get())) { return nullptr; }
+			if (!Getter->SoftGrab(Source)) { return nullptr; }
 
 			TBuffer<T>* Buffer = GetBuffer<T>(Getter->FullName);
 
 			{
 				FWriteScopeLock WriteScopeLock(Buffer->BufferLock);
 				Buffer->PrepareForRead(false, Getter->Attribute);
-				Getter->GrabAndDump(Source.Get(), *Buffer->GetInValues(), bCaptureMinMax, Buffer->Min, Buffer->Max);
+				Getter->GrabAndDump(Source, *Buffer->GetInValues(), bCaptureMinMax, Buffer->Min, Buffer->Max);
 			}
 
 			return Buffer;
@@ -475,7 +476,7 @@ namespace PCGExData
 			}
 
 			Getter->Capture(InSelector);
-			if (!Getter->InitForFetch(Source.Get())) { return nullptr; }
+			if (!Getter->InitForFetch(Source)) { return nullptr; }
 
 			TBuffer<T>* Buffer = GetBuffer<T>(Getter->FullName);
 			Buffer->SetScopedGetter(Getter);
@@ -570,13 +571,13 @@ namespace PCGExData
 			return Data->Metadata->GetConstTypedAttribute<T>(InName);
 		}
 
-		PCGExGeo::FPointBoxCloud* GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Epsilon = DBL_EPSILON)
+		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Epsilon = DBL_EPSILON)
 		{
 			FWriteScopeLock WriteScopeLock(CloudLock);
 
 			if (Cloud) { return Cloud; }
 
-			Cloud = new PCGExGeo::FPointBoxCloud(GetIn(), BoundsSource, Epsilon);
+			Cloud = MakeShared<PCGExGeo::FPointBoxCloud>(GetIn(), BoundsSource, Epsilon);
 			return Cloud;
 		}
 
@@ -588,7 +589,6 @@ namespace PCGExData
 		{
 			Flush();
 			Source = nullptr;
-			PCGEX_DELETE(Cloud)
 		}
 
 		void Flush()
@@ -600,7 +600,7 @@ namespace PCGExData
 		void Write(const TWeakPtr<PCGExMT::FTaskManager>& AsyncManagerPtr)
 		{
 			if (AsyncManagerPtr.Pin()) { return; }
-			
+
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
 				const TSharedPtr<FBufferBase>& Buffer = Buffers[i];
@@ -652,7 +652,7 @@ namespace PCGExData
 		int32 Num() const { return CompoundedHashSet.Num(); }
 
 		void ComputeWeights(
-			const TArray<FFacade*>& Sources,
+			const TArray<TSharedPtr<FFacade>>& Sources,
 			const TMap<uint32, int32>& SourcesIdx,
 			const FPCGPoint& Target,
 			const FPCGExDistanceDetails& InDistanceDetails,
@@ -671,18 +671,16 @@ namespace PCGExData
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FIdxCompoundList
 	{
-		TArray<FIdxCompound*> Compounds;
+		TArray<TUniquePtr<FIdxCompound>> Compounds;
 
 		FIdxCompoundList() { Compounds.Empty(); }
-		~FIdxCompoundList() { PCGEX_DELETE_TARRAY(Compounds) }
+		~FIdxCompoundList() = default;
 
 		int32 Num() const { return Compounds.Num(); }
 
 		FORCEINLINE FIdxCompound* New(const int32 IOIndex, const int32 PointIndex)
 		{
-			FIdxCompound* NewPointCompound = new FIdxCompound();
-			Compounds.Add(NewPointCompound);
-
+			FIdxCompound* NewPointCompound = Compounds.Add_GetRef(MakeUnique<FIdxCompound>()).Get();
 			NewPointCompound->IOIndices.Add(IOIndex);
 			const uint64 H = PCGEx::H64(IOIndex, PointIndex);
 			NewPointCompound->CompoundedHashSet.Add(H);
@@ -697,7 +695,7 @@ namespace PCGExData
 			return Overlap.Num() > 0;
 		}
 
-		FIdxCompound* operator[](const int32 Index) const { return this->Compounds[Index]; }
+		FORCEINLINE FIdxCompound* Get(const int32 Index) const { return Compounds[Index].Get(); }
 	};
 
 #pragma endregion

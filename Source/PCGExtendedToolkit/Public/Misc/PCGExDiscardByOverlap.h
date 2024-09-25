@@ -6,10 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 
 #include "PCGExDiscardByOverlap.generated.h"
@@ -159,11 +155,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : public F
 	virtual ~FPCGExDiscardByOverlapContext() override;
 
 	mutable FRWLock OverlapLock;
-	TMap<uint64, PCGExDiscardByOverlap::FOverlap*> OverlapMap;
+	TMap<uint64, TSharedPtr<PCGExDiscardByOverlap::FOverlap>> OverlapMap;
 
-	PCGExDiscardByOverlap::FOverlap* RegisterOverlap(
-		const TSharedPtr<PCGExDiscardByOverlap::FProcessor>& InManager,
-		const TSharedPtr<PCGExDiscardByOverlap::FProcessor>& InManaged,
+	TSharedPtr<PCGExDiscardByOverlap::FOverlap> RegisterOverlap(
+		PCGExDiscardByOverlap::FProcessor* InManager,
+		PCGExDiscardByOverlap::FProcessor* InManaged,
 		const FBox& InIntersection);
 
 	FPCGExOverlapScoresWeighting Weights;
@@ -198,7 +194,7 @@ namespace PCGExDiscardByOverlap
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
-			FPCGExDiscardByOverlapContext* Context = ManagerPtr->GetContext<FPCGExDiscardByOverlapContext>();
+			FPCGExDiscardByOverlapContext* Context = AsyncManager->GetContext<FPCGExDiscardByOverlapContext>();
 			Context->Prune();
 			return false;
 		}
@@ -257,7 +253,7 @@ namespace PCGExDiscardByOverlap
 
 		FOverlapStats Stats;
 
-		FOverlap(const TSharedPtr<FProcessor>& InManager, const TSharedPtr<FProcessor>& InManaged, const FBox& InIntersection);
+		FOverlap(FProcessor* InManager, FProcessor* InManaged, const FBox& InIntersection);
 		FORCEINLINE FProcessor* GetOther(const FProcessor* InCandidate) const { return Manager == InCandidate ? Managed : Manager; }
 	};
 
@@ -339,8 +335,8 @@ namespace PCGExDiscardByOverlap
 		}
 
 		FORCEINLINE const FBox& GetBounds() const { return Bounds; }
-		FORCEINLINE const TArray<FPointBounds*>& GetPointBounds() const { return LocalPointBounds; }
-		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree; }
+		FORCEINLINE const TArray<TSharedPtr<FPointBounds>>& GetPointBounds() const { return LocalPointBounds; }
+		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree.Get(); }
 
 		//virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
@@ -349,24 +345,19 @@ namespace PCGExDiscardByOverlap
 		FORCEINLINE bool HasOverlaps() const { return !Overlaps.IsEmpty(); }
 
 		void RegisterOverlap(FProcessor* InManaged, const FBox& Intersection);
-		void RemoveOverlap(FOverlap* InOverlap, TArray<FProcessor*>& Stack);
+		void RemoveOverlap(const TSharedPtr<FOverlap>& InOverlap, TArray<FProcessor*>& Stack);
 		void Prune(TArray<FProcessor*>& Stack);
 
-		FORCEINLINE void RegisterPointBounds(const int32 Index, FPointBounds* InPointBounds)
+		FORCEINLINE void RegisterPointBounds(const int32 Index, const TSharedPtr<FPointBounds>& InPointBounds)
 		{
 			const bool bValidPoint = PointFilterCache[Index];
-			if (!bValidPoint && !Settings->bIncludeFilteredInMetrics)
-			{
-				PCGEX_DELETE(InPointBounds)
-				return;
-			}
+			if (!bValidPoint && !Settings->bIncludeFilteredInMetrics) { return; }
 
 			const FBox& B = InPointBounds->Bounds.GetBox();
 			Bounds += B;
 			TotalVolume += B.GetVolume();
 
 			if (bValidPoint) { LocalPointBounds[Index] = InPointBounds; }
-			else { PCGEX_DELETE(InPointBounds) }
 		}
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;

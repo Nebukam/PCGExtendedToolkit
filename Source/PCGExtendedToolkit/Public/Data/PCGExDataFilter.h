@@ -173,13 +173,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCarryOverDetails
 		Tags.Init();
 	}
 
-	void Filter(const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+	void Filter(const PCGExData::FPointIO* PointIO) const
 	{
 		Filter(PointIO->GetOut()->Metadata);
 		Filter(PointIO->Tags.Get());
 	}
 
-	bool Test(const TSharedPtr<PCGExData::FPointIO>& PointIO) const
+	bool Test(const PCGExData::FPointIO* PointIO) const
 	{
 		if (!Test(PointIO->GetOut()->Metadata)) { return false; }
 		if (!Test(PointIO->Tags.Get())) { return false; }

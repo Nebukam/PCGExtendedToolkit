@@ -104,11 +104,11 @@ namespace PCGExBlendPath
 
 		PCGExPaths::FPathMetrics Metrics;
 
-		PCGExData::TBuffer<double>* LerpCache = nullptr;
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> LerpCache;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
-		PCGExData::FPointRef* Start = nullptr;
-		PCGExData::FPointRef* End = nullptr;
+		TSharedPtr<PCGExData::FPointRef> Start;
+		TSharedPtr<PCGExData::FPointRef> End;
 
 		TArray<double> Length;
 

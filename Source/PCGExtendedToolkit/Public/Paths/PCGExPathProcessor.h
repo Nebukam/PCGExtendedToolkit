@@ -60,7 +60,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessorContext : public FPCGExPoin
 	virtual ~FPCGExPathProcessorContext() override;
 
 	FPCGExPathClosedLoopDetails ClosedLoop;
-	PCGExData::FPointIOCollection* MainPaths = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> MainPaths;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessorElement : public FPCGExPointsProcessorElement

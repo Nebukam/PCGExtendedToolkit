@@ -11,8 +11,8 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 
 #include "PCGExStringCompareFilter.generated.h"
@@ -75,8 +75,8 @@ namespace PCGExPointsFilter
 
 		const UPCGExStringCompareFilterFactory* TypedFilterFactory;
 
-		PCGEx::FLocalToStringGetter* OperandA = nullptr;
-		PCGEx::FLocalToStringGetter* OperandB = nullptr;
+		TUniquePtr<PCGEx::FLocalToStringGetter> OperandA;
+		TUniquePtr<PCGEx::FLocalToStringGetter> OperandB;
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
@@ -89,9 +89,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TStringCompareFilter() override
 		{
-			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
 		}
 	};
 }

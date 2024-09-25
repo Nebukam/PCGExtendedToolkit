@@ -99,7 +99,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : publi
 	FString OmitTag = TEXT("");
 
 	FPCGExAttributeToTagDetails TargetAttributesToTags;
-	TUniquePtr<PCGExData::FDataForwardHandler> TargetForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> TargetForwardHandler;
 
 	virtual void OnBatchesProcessingDone() override;
 };

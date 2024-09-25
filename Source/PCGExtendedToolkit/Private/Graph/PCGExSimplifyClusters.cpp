@@ -4,8 +4,6 @@
 #include "Graph/PCGExSimplifyClusters.h"
 
 
-
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 
@@ -69,15 +67,12 @@ namespace PCGExSimplifyClusters
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_TARRAY(Chains)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::Process);
 
-		
-		
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
@@ -123,7 +118,7 @@ namespace PCGExSimplifyClusters
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExCluster::FNodeChain* Chain = Chains[Iteration];
+		const TSharedPtr<PCGExCluster::FNodeChain> Chain = Chains[Iteration];
 		if (!Chain) { return; }
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;

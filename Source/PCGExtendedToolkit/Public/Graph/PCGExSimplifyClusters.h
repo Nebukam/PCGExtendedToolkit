@@ -88,7 +88,7 @@ namespace PCGExSimplifyClusters
 	{
 		TArray<bool> Breakpoints;
 
-		TArray<PCGExCluster::FNodeChain*> Chains;
+		TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 
 	public:
 		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):

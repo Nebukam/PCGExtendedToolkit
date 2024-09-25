@@ -7,10 +7,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
-
-
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleInsideBoundsElement"
@@ -41,9 +37,6 @@ PCGEX_INITIALIZE_ELEMENT(SampleInsideBounds)
 FPCGExSampleInsideBoundsContext::~FPCGExSampleInsideBoundsContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_CLEAN_SP(WeightCurve)
-	PCGEX_DELETE_FACADE_AND_SOURCE(TargetsFacade)
 }
 
 bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
@@ -52,19 +45,15 @@ bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleInsideBounds)
 
-	PCGExData::FPointIO* Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
-	if (!Targets)
-	{
-		PCGEX_DELETE(Targets)
-		return false;
-	}
+	TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
+	if (!Targets) { return false; }
 
-	Context->TargetsFacade = new PCGExData::FFacade(Targets);
+	Context->TargetsFacade = MakeShared<PCGExData::FFacade>(Targets);
 
 	TSet<FName> MissingTargetAttributes;
 	PCGExDataBlending::AssembleBlendingDetails(
 		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None),
-		Settings->TargetAttributes, Context->TargetsFacade->Source, Context->BlendingDetails, MissingTargetAttributes);
+		Settings->TargetAttributes, Context->TargetsFacade->Source.Get(), Context->BlendingDetails, MissingTargetAttributes);
 
 	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on targets: {0}."), FText::FromName(Id))); }
 
@@ -121,10 +110,9 @@ namespace PCGExSampleInsideBoundss
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Blender)
 	}
 
-	void FProcessor::SamplingFailed(const int32 Index, FPCGPoint& Point) const
+	void FProcessor::SamplingFailed(const int32 Index, const FPCGPoint& Point) const
 	{
 		const double FailSafeDist = RangeMaxGetter ? FMath::Sqrt(RangeMaxGetter->Read(Index)) : Settings->RangeMax;
 		PCGEX_OUTPUT_VALUE(Success, Index, false)
@@ -149,7 +137,7 @@ namespace PCGExSampleInsideBoundss
 		if (!Context->BlendingDetails.FilteredAttributes.IsEmpty() ||
 			!Context->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
-			Blender = new PCGExDataBlending::FMetadataBlender(&Context->BlendingDetails);
+			Blender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Context->BlendingDetails);
 			Blender->PrepareForData(PointDataFacade, Context->TargetsFacade);
 		}
 

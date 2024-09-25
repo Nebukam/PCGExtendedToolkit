@@ -348,7 +348,6 @@ namespace PCGExFindContours
 {
 	FProcessor::~FProcessor()
 	{
-		if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) }
 		UniquePathsBounds.Empty();
 	}
 
@@ -362,7 +361,7 @@ namespace PCGExFindContours
 		if (Settings->bUseOctreeSearch) { Cluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 		Cluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge); // We need edge octree anyway
 
-		ExpandedNodes = Cluster->ExpandedNodes.Get();
+		ExpandedNodes = Cluster->ExpandedNodes;
 		ExpandedEdges = Cluster->GetExpandedEdges(true);
 
 		if (!ExpandedNodes)

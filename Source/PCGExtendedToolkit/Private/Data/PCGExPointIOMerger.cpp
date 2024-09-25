@@ -8,9 +8,6 @@
 #include "Data/PCGExDataFilter.h"
 
 
-
-
-
 FPCGExPointIOMerger::FPCGExPointIOMerger(TSharedPtr<PCGExData::FPointIO> OutMergedData)
 {
 	CompositeIO = OutMergedData;
@@ -18,16 +15,9 @@ FPCGExPointIOMerger::FPCGExPointIOMerger(TSharedPtr<PCGExData::FPointIO> OutMerg
 
 FPCGExPointIOMerger::~FPCGExPointIOMerger()
 {
-	CompositeIO = nullptr;
-
-	IOSources.Empty();
-	Scopes.Empty();
-	UniqueIdentities.Empty();
-
-	PCGEX_DELETE_TARRAY(Writers)
 }
 
-void FPCGExPointIOMerger::Append(TSharedPtr<PCGExData::FPointIO> InData)
+void FPCGExPointIOMerger::Append(const TSharedPtr<PCGExData::FPointIO>& InData)
 {
 	const int32 NumPoints = InData->GetNum();
 
@@ -48,7 +38,7 @@ void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
 	for (const TSharedPtr<PCGExData::FPointIO> PointIO : InCollection->Pairs) { Append(PointIO); }
 }
 
-void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
+void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
 {
 	CompositeIO->InitializeNum(NumCompositePoints);
 	TArray<FPCGPoint>& MutablePoints = CompositeIO->GetOut()->GetMutablePoints();
@@ -100,11 +90,11 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 						if (InCarryOverDetails->bPreserveAttributesDefaultValue)
 						{
 							const FPCGMetadataAttribute<T>* SourceAttribute = Metadata->GetConstTypedAttribute<T>(SourceAtt.Name);
-							Writer = new PCGEx::TAttributeWriter<T>(SourceAtt.Name, SourceAttribute->GetValue(PCGDefaultValueKey), SourceAtt.bAllowsInterpolation);
+							Writer = MakeShared<PCGEx::TAttributeWriter<T>>(SourceAtt.Name, SourceAttribute->GetValue(PCGDefaultValueKey), SourceAtt.bAllowsInterpolation);
 						}
 
-						if (!Writer) { Writer = new PCGEx::TAttributeWriter<T>(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation); }
-						Writers.Add(Writer);
+						if (!Writer) { Writer = MakeShared<PCGEx::TAttributeWriter<T>>(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation); }
+						Writers.Add(StaticCastSharedPtr<PCGEx::FAttributeIOBase>(Writer));
 						UniqueIdentities.Add(SourceAtt);
 					});
 
@@ -118,10 +108,10 @@ void FPCGExPointIOMerger::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGE
 		}
 	}
 
-	InCarryOverDetails->Filter(CompositeIO);
+	InCarryOverDetails->Filter(CompositeIO.Get());
 	CompositeIO->CreateOutKeys();
 
-	for (int i = 0; i < UniqueIdentities.Num(); ++i) { AsyncManager->Start<PCGExPointIOMerger::FWriteAttributeTask>(i, CompositeIO, this); }
+	for (int i = 0; i < UniqueIdentities.Num(); ++i) { AsyncManager->Start<PCGExPointIOMerger::FWriteAttributeTask>(i, CompositeIO, SharedThis(this)); }
 }
 
 void FPCGExPointIOMerger::Write()
@@ -141,7 +131,7 @@ void FPCGExPointIOMerger::Write()
 	Writers.Empty();
 }
 
-void FPCGExPointIOMerger::Write(PCGExMT::FTaskManager* AsyncManager)
+void FPCGExPointIOMerger::Write(TSharedPtr<PCGExMT::FTaskManager> AsyncManager)
 {
 	for (int i = 0; i < UniqueIdentities.Num(); ++i)
 	{
@@ -162,13 +152,13 @@ namespace PCGExPointIOMerger
 	bool FWriteAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		const PCGEx::FAttributeIdentity& Identity = Merger->UniqueIdentities[TaskIndex];
-		PCGEx::FAttributeIOBase* Writer = Merger->Writers[TaskIndex];
+		TSharedPtr<PCGEx::FAttributeIOBase> Writer = Merger->Writers[TaskIndex];
 
 		PCGMetadataAttribute::CallbackWithRightType(
 			Identity.GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				PCGEx::TAttributeWriter<T>* TypedWriter = static_cast<PCGEx::TAttributeWriter<T>*>(Writer);
+				PCGEx::TAttributeWriter<T>* TypedWriter = StaticCastSharedPtr<PCGEx::TAttributeWriter<T>>(Writer);
 				TypedWriter->BindAndSetNumUninitialized(PointIO);
 
 				for (int i = 0; i < Merger->IOSources.Num(); ++i)

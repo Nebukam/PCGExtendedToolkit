@@ -5,8 +5,6 @@
 #include "Collections/PCGExInternalCollection.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging
 
@@ -142,7 +140,7 @@ namespace PCGExAssetStaging
 
 		NumPoints = PointIO->GetNum();
 
-		Helper = new PCGExAssetCollection::FDistributionHelper(Context->MainCollection, Settings->DistributionSettings);
+		Helper = MakeUnique<PCGExAssetCollection::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
 		if (!Helper->Init(ExecutionContext, PointDataFacade.Get())) { return false; }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;

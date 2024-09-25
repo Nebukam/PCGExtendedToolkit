@@ -317,11 +317,11 @@ namespace PCGExSampleNearestBounds
 
 		bool bSingleSample = false;
 
-		PCGExData::TBuffer<FVector>* LookAtUpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
 
 		FVector SafeUpVector = FVector::UpVector;
 
-		PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> Blender;
 
 		int8 bAnySuccess = 0;
 

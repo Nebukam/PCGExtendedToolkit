@@ -11,8 +11,6 @@
 #include "PCGExFitting.h"
 
 
-
-
 #include "PCGExAssetStaging.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -116,15 +114,15 @@ namespace PCGExAssetStaging
 		FPCGExJustificationDetails Justification;
 		FPCGExFittingVariationsDetails Variations;
 
-		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
+		TUniquePtr<PCGExAssetCollection::FDistributionHelper> Helper;
 
-		PCGExData::TBuffer<int32>* WeightWriter = nullptr;
-		PCGExData::TBuffer<double>* NormalizedWeightWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PCGExData::TBuffer<FSoftObjectPath>* PathWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 #else
-		PCGExData::TBuffer<FString>* PathWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
 #endif
 
 	public:
@@ -135,7 +133,6 @@ namespace PCGExAssetStaging
 
 		virtual ~FProcessor() override
 		{
-			PCGEX_DELETE(Helper)
 		}
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;

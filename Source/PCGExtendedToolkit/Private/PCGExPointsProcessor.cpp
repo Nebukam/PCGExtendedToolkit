@@ -6,6 +6,8 @@
 #include "PCGPin.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
+
+
 #include "Helpers/PCGSettingsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -13,75 +15,77 @@
 
 #pragma region Loops
 
-PCGExData::FPointIO* PCGEx::FAPointLoop::GetPointIO() const { return PointIO ? PointIO : Context->CurrentIO; }
-
-bool PCGEx::FPointLoop::Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+namespace PCGEx
 {
-	if (CurrentIndex == -1)
-	{
-		PCGExData::FPointIO* PtIO = GetPointIO();
-		Initialize(PtIO);
-		NumIterations = PtIO->GetNum();
-		CurrentIndex = 0;
-	}
-	return Advance(std::move(LoopBody));
-}
+	TSharedPtr<PCGExData::FPointIO> FAPointLoop::GetPointIO() const { return PointIO ? PointIO : Context->CurrentIO; }
 
-bool PCGEx::FPointLoop::Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
-{
-	const PCGExData::FPointIO* PtIO = GetPointIO();
-	if (CurrentIndex == -1)
+	bool FPointLoop::Advance(const TFunction<void(const TSharedPtr<PCGExData::FPointIO>&)>&& Initialize, const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody)
 	{
-		NumIterations = PtIO->GetNum();
-		CurrentIndex = 0;
-	}
-	const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
-	if (ChunkNumIterations > 0)
-	{
-		for (int i = 0; i < ChunkNumIterations; ++i) { LoopBody(CurrentIndex + i, PtIO); }
-		CurrentIndex += ChunkNumIterations;
-	}
-	if (CurrentIndex >= NumIterations)
-	{
-		CurrentIndex = -1;
-		return true;
-	}
-	return false;
-}
-
-bool PCGEx::FAsyncPointLoop::Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
-{
-	if (!bAsyncEnabled) { return FPointLoop::Advance(std::move(Initialize), std::move(LoopBody)); }
-
-	PCGExData::FPointIO* PtIO = GetPointIO();
-	NumIterations = PtIO->GetNum();
-	return FPCGAsync::AsyncProcessingOneToOneEx(
-		&(Context->AsyncState), NumIterations, [&]()
+		if (CurrentIndex == -1)
 		{
+			const TSharedPtr<PCGExData::FPointIO> PtIO = GetPointIO();
 			Initialize(PtIO);
-		}, [&](const int32 ReadIndex, const int32 WriteIndex)
+			NumIterations = PtIO->GetNum();
+			CurrentIndex = 0;
+		}
+		return Advance(std::move(LoopBody));
+	}
+
+	bool FPointLoop::Advance(const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody)
+	{
+		const TSharedPtr<PCGExData::FPointIO> PtIO = GetPointIO();
+		if (CurrentIndex == -1)
 		{
-			LoopBody(ReadIndex, PtIO);
+			NumIterations = PtIO->GetNum();
+			CurrentIndex = 0;
+		}
+		const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
+		if (ChunkNumIterations > 0)
+		{
+			for (int i = 0; i < ChunkNumIterations; ++i) { LoopBody(CurrentIndex + i, PtIO); }
+			CurrentIndex += ChunkNumIterations;
+		}
+		if (CurrentIndex >= NumIterations)
+		{
+			CurrentIndex = -1;
 			return true;
-		}, true, ChunkSize);
+		}
+		return false;
+	}
+
+	bool FAsyncPointLoop::Advance(const TFunction<void(const TSharedPtr<PCGExData::FPointIO>&)>&& Initialize, const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody)
+	{
+		if (!bAsyncEnabled) { return FPointLoop::Advance(std::move(Initialize), std::move(LoopBody)); }
+
+		const TSharedPtr<PCGExData::FPointIO> PtIO = GetPointIO();
+		NumIterations = PtIO->GetNum();
+		return FPCGAsync::AsyncProcessingOneToOneEx(
+			&(Context->AsyncState), NumIterations, [&]()
+			{
+				Initialize(PtIO);
+			}, [&](const int32 ReadIndex, const int32 WriteIndex)
+			{
+				LoopBody(ReadIndex, PtIO);
+				return true;
+			}, true, ChunkSize);
+	}
+
+	bool FAsyncPointLoop::Advance(const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody)
+	{
+		if (!bAsyncEnabled) { return FPointLoop::Advance(std::move(LoopBody)); }
+
+		const TSharedPtr<PCGExData::FPointIO> PtIO = GetPointIO();
+		NumIterations = PtIO->GetNum();
+		return FPCGAsync::AsyncProcessingOneToOneEx(
+			&(Context->AsyncState), NumIterations, []()
+			{
+			}, [&](const int32 ReadIndex, const int32 WriteIndex)
+			{
+				LoopBody(ReadIndex, PtIO);
+				return true;
+			}, true, ChunkSize);
+	}
 }
-
-bool PCGEx::FAsyncPointLoop::Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
-{
-	if (!bAsyncEnabled) { return FPointLoop::Advance(std::move(LoopBody)); }
-
-	const PCGExData::FPointIO* PtIO = GetPointIO();
-	NumIterations = PtIO->GetNum();
-	return FPCGAsync::AsyncProcessingOneToOneEx(
-		&(Context->AsyncState), NumIterations, []()
-		{
-		}, [&](const int32 ReadIndex, const int32 WriteIndex)
-		{
-			LoopBody(ReadIndex, PtIO);
-			return true;
-		}, true, ChunkSize);
-}
-
 #pragma endregion
 
 #pragma region UPCGSettings interface
@@ -116,8 +120,6 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(AsyncLoop)
-
 	for (UPCGExOperation* Operation : ProcessorOperations)
 	{
 		Operation->Cleanup();
@@ -125,15 +127,12 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	}
 
 	SubProcessorMap.Empty();
-
-	PCGEX_DELETE(MainBatch)
 	BatchablePoints.Empty();
 
 	ProcessorOperations.Empty();
 	OwnedProcessorOperations.Empty();
 
 	FilterFactories.Empty();
-	PCGEX_DELETE(MainPoints)
 
 	CurrentIO = nullptr;
 	World = nullptr;

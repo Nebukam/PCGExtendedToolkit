@@ -6,8 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExFilter.h"
 #include "PCGExPointsProcessor.h"
-
-
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 
 #include "PCGExPartitionByValues.generated.h"
@@ -18,37 +18,37 @@ namespace PCGExPartition
 
 	class FKPartition;
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FKPartition
+	class /*PCGEXTENDEDTOOLKIT_API*/ FKPartition : public TSharedFromThis<FKPartition>
 	{
 	protected:
 		mutable FRWLock LayersLock;
 		mutable FRWLock PointLock;
 
 	public:
-		FKPartition(FKPartition* InParent, int64 InKey, FPCGExFilter::FRule* InRule, int32 InPartitionIndex);
+		FKPartition(const TWeakPtr<FKPartition>& InParent, int64 InKey, FPCGExFilter::FRule* InRule, int32 InPartitionIndex);
 		~FKPartition();
 
-		FKPartition* Parent = nullptr;
+		TWeakPtr<FKPartition> Parent;
 		int32 IOIndex = -1;
 		int32 PartitionIndex = 0;
 		int64 PartitionKey = 0;
 		FPCGExFilter::FRule* Rule = nullptr;
 
 		TSet<int64> UniquePartitionKeys;
-		TMap<int64, FKPartition*> SubLayers;
+		TMap<int64, TSharedPtr<FKPartition>> SubLayers;
 		TArray<int32> Points;
 
 		int32 GetNum() const { return Points.Num(); }
 		int32 GetSubPartitionsNum();
 
-		FKPartition* GetPartition(int64 Key, FPCGExFilter::FRule* InRule);
+		TSharedPtr<FKPartition> GetPartition(int64 Key, FPCGExFilter::FRule* InRule);
 		FORCEINLINE void Add(const int64 Index)
 		{
 			FWriteScopeLock WriteLock(PointLock);
 			Points.Add(Index);
 		}
 
-		void Register(TArray<FKPartition*>& Partitions);
+		void Register(TArray<TSharedPtr<FKPartition>>& Partitions);
 
 		void SortPartitions();
 	};
@@ -154,10 +154,10 @@ namespace PCGExPartitionByValues
 		TArray<FPCGExFilter::FRule> Rules;
 		TArray<int64> KeySums;
 
-		PCGExPartition::FKPartition* RootPartition = nullptr;
+		TUniquePtr<PCGExPartition::FKPartition> RootPartition;
 
 		int32 NumPartitions = -1;
-		TArray<PCGExPartition::FKPartition*> Partitions;
+		TArray<TSharedPtr<PCGExPartition::FKPartition>> Partitions;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):

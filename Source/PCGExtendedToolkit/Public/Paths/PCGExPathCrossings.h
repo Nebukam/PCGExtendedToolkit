@@ -167,11 +167,11 @@ namespace PCGExPathCrossings
 
 		TArray<FVector> Positions;
 		TArray<double> Lengths;
-		TArray<PCGExPaths::FPathEdge*> Edges;
-		TArray<FCrossing*> Crossings;
+		TArray<TUniquePtr<PCGExPaths::FPathEdge>> Edges;
+		TArray<TUniquePtr<FCrossing>> Crossings;
 
-		PCGExPointFilter::TManager* CanCutFilterManager = nullptr;
-		PCGExPointFilter::TManager* CanBeCutFilterManager = nullptr;
+		TUniquePtr<PCGExPointFilter::TManager> CanCutFilterManager;
+		TUniquePtr<PCGExPointFilter::TManager> CanBeCutFilterManager;
 
 		TArray<bool> CanCut;
 		TArray<bool> CanBeCut;
@@ -180,17 +180,17 @@ namespace PCGExPathCrossings
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 		TSet<int32> CrossIOIndices;
-		PCGExData::FIdxCompoundList* CompoundList = nullptr;
-		PCGExDataBlending::FCompoundBlender* CompoundBlender = nullptr;
+		TSharedPtr<PCGExData::FIdxCompoundList> CompoundList;
+		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundBlender;
 
 		using TEdgeOctree = TOctree2<PCGExPaths::FPathEdge*, PCGExPaths::FPathEdgeSemantics>;
-		TEdgeOctree* EdgeOctree = nullptr;
+		TUniquePtr<TEdgeOctree> EdgeOctree;
 
 		FPCGExPathEdgeIntersectionDetails Details;
 
-		PCGExData::TBuffer<bool>* FlagWriter = nullptr;
-		PCGExData::TBuffer<double>* AlphaWriter = nullptr;
-		PCGExData::TBuffer<FVector>* CrossWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> CrossWriter;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
@@ -201,7 +201,7 @@ namespace PCGExPathCrossings
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
 		virtual ~FProcessor() override;
-		const TEdgeOctree* GetEdgeOctree() const { return EdgeOctree; }
+		const TEdgeOctree* GetEdgeOctree() const { return EdgeOctree.Get(); }
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;

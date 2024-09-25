@@ -3,8 +3,8 @@
 
 #include "Misc/Filters/PCGExStringCompareFilter.h"
 
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
@@ -19,7 +19,7 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = new PCGEx::FLocalToStringGetter();
+	OperandA = MakeUnique<PCGEx::FLocalToStringGetter>();
 	OperandA->Capture(TypedFilterFactory->Config.OperandA);
 
 	if (!OperandA->SoftGrab(PointDataFacade->Source))
@@ -30,7 +30,7 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = new PCGEx::FLocalToStringGetter();
+		OperandB = MakeUnique<PCGEx::FLocalToStringGetter>();
 		OperandB->Capture(TypedFilterFactory->Config.OperandB);
 
 		if (!OperandB->SoftGrab(PointDataFacade->Source))

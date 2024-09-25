@@ -18,7 +18,6 @@
 #include "RenderGraphResources.h"
 
 
-
 #include "PCGExPointsProcessor.generated.h"
 
 struct FPCGExPointsProcessorContext;
@@ -46,10 +45,10 @@ namespace PCGEx
 		int32 CurrentIndex = -1;
 		bool bAsyncEnabled = true;
 
-		inline PCGExData::FPointIO* GetPointIO() const;
+		inline TSharedPtr<PCGExData::FPointIO> GetPointIO() const;
 
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) = 0;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) = 0;
+		virtual bool Advance(const TFunction<void(const TSharedPtr<PCGExData::FPointIO>&)>&& Initialize, const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) = 0;
+		virtual bool Advance(const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) = 0;
 
 	protected:
 		int32 GetCurrentChunkSize() const
@@ -64,8 +63,8 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const TSharedPtr<PCGExData::FPointIO>&)>&& Initialize, const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) override;
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FAsyncPointLoop : public FPointLoop
@@ -74,8 +73,8 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const TSharedPtr<PCGExData::FPointIO>&)>&& Initialize, const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) override;
 	};
 }
 
@@ -138,7 +137,7 @@ public:
 	/** Whether scoped attribute read is enabled or not. Disabling this on small dataset may greatly improve performance. It's enabled by default for legacy reasons. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bScopedAttributeGet = true;
-	
+
 protected:
 	virtual int32 GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 	//~End UPCGExPointsProcessorSettings
@@ -147,7 +146,7 @@ protected:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
-	
+
 	bool bScopedAttributeGet = false;
 	virtual ~FPCGExPointsProcessorContext() override;
 
@@ -217,9 +216,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	}
 
 	template <typename T>
-	T* MakeLoop()
+	TUniquePtr<T> MakeLoop()
 	{
-		T* Loop = new T{};
+		TUniquePtr<T> Loop = MakeUnique<T>();
 		Loop->ExecutionContext = this;
 		Loop->ChunkSize = ChunkSize;
 		Loop->bAsyncEnabled = bDoAsyncProcessing;
@@ -250,14 +249,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	bool ProcessPointsBatch();
 
 	PCGExMT::AsyncState TargetState_PointsProcessingDone;
-	PCGExPointsMT::FPointsProcessorBatchBase* MainBatch = nullptr;
+	TUniquePtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
 	TArray<TSharedPtr<PCGExData::FPointIO>> BatchablePoints;
-	TMap<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*> SubProcessorMap;
+	TMap<PCGExData::FPointIO*, TSharedPtr<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
 	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
-		PCGEX_DELETE(MainBatch)
+		MainBatch.Reset();
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 
@@ -275,7 +274,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 		if (BatchablePoints.IsEmpty()) { return false; }
 
-		MainBatch = new T(this, BatchablePoints);
+		MainBatch = MakeUnique<T>(this, BatchablePoints);
 		MainBatch->SubProcessorMap = &SubProcessorMap;
 
 		T* TypedBatch = static_cast<T*>(MainBatch);
@@ -315,9 +314,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 #pragma endregion
 
 protected:
-	
 	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
-	PCGExMT::FAsyncParallelLoop* AsyncLoop = nullptr;
+	TUniquePtr<PCGExMT::FAsyncParallelLoop> AsyncLoop;
 
 	PCGExMT::AsyncState CurrentState;
 	int32 CurrentPointIOIndex = -1;

@@ -11,6 +11,10 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
+
+
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
@@ -118,11 +122,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleOperation : public UPCGExOp
 	GENERATED_BODY()
 
 public:
-	PCGExClusterFilter::TManager* PointFilters = nullptr;
-	PCGExClusterFilter::TManager* ValueFilters = nullptr;
+	TUniquePtr<PCGExClusterFilter::TManager> PointFilters;
+	TUniquePtr<PCGExClusterFilter::TManager> ValueFilters;
 
-	PCGExData::FFacade* VtxDataFacade = nullptr;
-	PCGExData::FFacade* EdgeDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> VtxDataFacade;
+	TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 	FPCGExSamplingConfig SamplingConfig;
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
@@ -132,8 +136,8 @@ public:
 	virtual void PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, TSharedPtr<PCGExData::FFacade> InVtxDataFacade, TSharedPtr<PCGExData::FFacade> InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
-	PCGExData::FPointIO* GetSourceIO() const;
-	PCGExData::FFacade* GetSourceDataFacade() const;
+	TSharedPtr<PCGExData::FPointIO> GetSourceIO() const;
+	TSharedPtr<PCGExData::FFacade> GetSourceDataFacade() const;
 
 	virtual void ProcessNode(const int32 NodeIndex) const;
 
@@ -162,7 +166,7 @@ public:
 
 protected:
 	bool bIsValidOperation = true;
-	PCGExCluster::FCluster* Cluster = nullptr;
+	TSharedPtr<PCGExCluster::FCluster> Cluster;
 
 	FORCEINLINE virtual double SampleCurve(const double InTime) const { return WeightCurveObj->GetFloatValue(InTime); }
 };

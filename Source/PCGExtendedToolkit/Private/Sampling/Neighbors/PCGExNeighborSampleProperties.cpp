@@ -6,11 +6,6 @@
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
@@ -25,14 +20,13 @@ void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Oth
 
 void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, TSharedPtr<PCGExData::FFacade> InVtxDataFacade, TSharedPtr<PCGExData::FFacade> InEdgeDataFacade)
 {
-	PCGEX_DELETE(Blender)
-	Blender = new PCGExDataBlending::FPropertiesBlender(BlendingDetails);
+	PropertiesBlender = MakeUnique<PCGExDataBlending::FPropertiesBlender>(BlendingDetails);
 	return Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 }
 
 void UPCGExNeighborSampleProperties::Cleanup()
 {
-	PCGEX_DELETE(Blender)
+	PropertiesBlender.Reset();
 	Super::Cleanup();
 }
 

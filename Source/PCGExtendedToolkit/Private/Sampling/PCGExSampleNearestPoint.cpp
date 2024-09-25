@@ -7,10 +7,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
-
-
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
@@ -41,7 +37,6 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_CLEAN_SP(WeightCurve)
 }
 
 bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
@@ -115,7 +110,6 @@ namespace PCGExSampleNearestPoints
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Blender)
 	}
 
 	void FProcessor::SamplingFailed(const int32 Index, FPCGPoint& Point) const
@@ -143,7 +137,7 @@ namespace PCGExSampleNearestPoints
 		if (!Context->BlendingDetails.FilteredAttributes.IsEmpty() ||
 			!Context->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
-			Blender = new PCGExDataBlending::FMetadataBlender(&Context->BlendingDetails);
+			Blender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Context->BlendingDetails);
 			Blender->PrepareForData(PointDataFacade, Context->TargetsFacade);
 		}
 

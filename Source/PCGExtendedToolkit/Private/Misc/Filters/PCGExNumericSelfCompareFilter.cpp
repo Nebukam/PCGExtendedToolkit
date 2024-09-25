@@ -3,8 +3,8 @@
 
 #include "Misc/Filters/PCGExNumericSelfCompareFilter.h"
 
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
@@ -24,7 +24,7 @@ bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* In
 
 	if (MaxIndex < 0) { return false; }
 
-	OperandA = new PCGEx::FLocalSingleFieldGetter();
+	OperandA = MakeUnique<PCGEx::FLocalSingleFieldGetter>();
 	OperandA->Capture(TypedFilterFactory->Config.OperandA);
 
 	if (!OperandA->SoftGrab(PointDataFacade->Source))

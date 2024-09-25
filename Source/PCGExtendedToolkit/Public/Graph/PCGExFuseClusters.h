@@ -10,8 +10,6 @@
 #include "Data/Blending/PCGExDataBlending.h"
 
 
-
-
 #include "PCGExFuseClusters.generated.h"
 
 namespace PCGExDataBlending
@@ -113,7 +111,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : public FPCGE
 	virtual ~FPCGExFuseClustersContext() override;
 
 	TArray<TSharedPtr<PCGExData::FFacade>> VtxFacades;
-	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+	TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
 	TSharedPtr<PCGExData::FFacade> CompoundFacade;
 
 	FPCGExCarryOverDetails VtxCarryOverDetails;
@@ -148,7 +146,7 @@ namespace PCGExFuseClusters
 
 	public:
 		bool bInvalidEdges = true;
-		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+		TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
 
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
 			: TClusterProcessor(InVtx, InEdges)

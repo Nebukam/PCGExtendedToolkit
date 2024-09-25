@@ -91,8 +91,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterCollectionsContext final : pub
 	friend class FPCGExUberFilterCollectionsElement;
 	virtual ~FPCGExUberFilterCollectionsContext() override;
 
-	PCGExData::FPointIOCollection* Inside = nullptr;
-	PCGExData::FPointIOCollection* Outside = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> Inside;
+	TUniquePtr<PCGExData::FPointIOCollection> Outside;
 
 	int32 NumPairs = 0;
 };
@@ -118,8 +118,8 @@ namespace PCGExUberFilterCollections
 		int32 NumOutside = 0;
 
 	public:
-		PCGExData::FPointIO* Inside = nullptr;
-		PCGExData::FPointIO* Outside = nullptr;
+		TSharedPtr<PCGExData::FPointIO> Inside;
+		TSharedPtr<PCGExData::FPointIO> Outside;
 
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
 			TPointsProcessor(InPoints)

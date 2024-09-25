@@ -12,6 +12,7 @@
 #include "Data/Blending//PCGExDataBlendingOperations.h"
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
+
 namespace PCGExDataBlending
 {
 	FCompoundBlender::FCompoundBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails):
@@ -24,14 +25,9 @@ namespace PCGExDataBlending
 
 	FCompoundBlender::~FCompoundBlender()
 	{
-		Sources.Empty();
-		UniqueTags.Empty();
-		UniqueTagsList.Empty();
-		TagAttributes.Empty();
-		PCGEX_DELETE_TARRAY(AttributeSourceMaps)
 	}
 
-	void FCompoundBlender::AddSource(PCGExData::FFacade* InFacade)
+	void FCompoundBlender::AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade)
 	{
 		const int32 SourceIdx = Sources.Add(InFacade);
 		const int32 NumSources = Sources.Num();
@@ -39,7 +35,7 @@ namespace PCGExDataBlending
 
 		UniqueTags.Append(InFacade->Source->Tags->RawTags);
 
-		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps) { SrcMap->SetNum(NumSources); }
+		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps) { SrcMap->SetNum(NumSources); }
 
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
 		PCGEx::FAttributeIdentity::Get(InFacade->GetIn()->Metadata, SourceAttributes);
@@ -58,11 +54,11 @@ namespace PCGExDataBlending
 
 			// Search for an existing attribute map
 
-			for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
+			for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 			{
 				if (SrcMap->Identity.Name == Identity.Name)
 				{
-					Map = SrcMap;
+					Map = SrcMap.Get();
 					break;
 				}
 			}
@@ -78,19 +74,19 @@ namespace PCGExDataBlending
 			}
 			else
 			{
-				Map = new FAttributeSourceMap(Identity);
+				Map = AttributeSourceMaps.Add_GetRef(MakeUnique<FAttributeSourceMap>(Identity)).Get();
 				Map->SetNum(NumSources);
 
 				Map->DefaultValuesSource = SourceAttribute; // TODO : Find a better way to choose this?
 
-				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
-				else { Map->TargetBlendOp = CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity); }
-
-				AttributeSourceMaps.Add(Map);
+				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = MoveTemp(CreateOperation(EPCGExDataBlendingType::Copy, Identity)); }
+				else { Map->TargetBlendOp = MoveTemp(CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity)); }
 			}
 
+			check(Map)
+			
 			Map->Attributes[SourceIdx] = SourceAttribute;
-			Map->BlendOps[SourceIdx] = CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity);
+			Map->BlendOps[SourceIdx] = MoveTemp(CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity));
 
 			if (!SourceAttribute->AllowsInterpolation()) { Map->AllowsInterpolation = false; }
 		}
@@ -98,14 +94,14 @@ namespace PCGExDataBlending
 		InFacade->Source->CreateInKeys();
 	}
 
-	void FCompoundBlender::AddSources(const TArray<PCGExData::FFacade*>& InFacades)
+	void FCompoundBlender::AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades)
 	{
-		for (PCGExData::FFacade* Facade : InFacades) { AddSource(Facade); }
+		for (TSharedPtr<PCGExData::FFacade> Facade : InFacades) { AddSource(Facade); }
 	}
 
 	void FCompoundBlender::PrepareMerge(
-		PCGExData::FFacade* TargetData,
-		PCGExData::FIdxCompoundList* CompoundList, const TSet<FName>* IgnoreAttributeSet)
+		const TSharedPtr<PCGExData::FFacade>& TargetData,
+		const TSharedPtr<PCGExData::FIdxCompoundList>& CompoundList, const TSet<FName>* IgnoreAttributeSet)
 	{
 		CurrentCompoundList = CompoundList;
 		CurrentTargetData = TargetData;
@@ -116,7 +112,7 @@ namespace PCGExDataBlending
 		CurrentTargetData->Source->CreateOutKeys();
 
 		// Create blending operations
-		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
+		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->Writer = nullptr;
 
@@ -141,7 +137,7 @@ namespace PCGExDataBlending
 
 					for (int i = 0; i < Sources.Num(); ++i)
 					{
-						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, Sources[i]); }
+						if (const TUniquePtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, Sources[i]); }
 					}
 
 					SrcMap->TargetBlendOp->PrepareForData(Writer, CurrentTargetData, PCGExData::ESource::Out);
@@ -151,7 +147,7 @@ namespace PCGExDataBlending
 
 	void FCompoundBlender::MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails)
 	{
-		MergeSingle(CompoundIndex, (*CurrentCompoundList)[CompoundIndex], InDistanceDetails);
+		MergeSingle(CompoundIndex, CurrentCompoundList->Get(CompoundIndex), InDistanceDetails);
 	}
 
 	void FCompoundBlender::MergeSingle(const int32 WriteIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails)
@@ -179,7 +175,7 @@ namespace PCGExDataBlending
 
 		// Blend Attributes
 
-		for (const FAttributeSourceMap* SrcMap : AttributeSourceMaps)
+		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(WriteIndex);
 
@@ -188,7 +184,7 @@ namespace PCGExDataBlending
 
 			for (int k = 0; k < NumCompounded; ++k)
 			{
-				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[IdxIO[k]];
+				const TUniquePtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
 
 				const double Weight = Weights[k];
@@ -210,8 +206,8 @@ namespace PCGExDataBlending
 	// Soft blending
 
 	void FCompoundBlender::PrepareSoftMerge(
-		PCGExData::FFacade* TargetData,
-		PCGExData::FIdxCompoundList* CompoundList,
+		const TSharedPtr<PCGExData::FFacade>& TargetData,
+		const TSharedPtr<PCGExData::FIdxCompoundList>& CompoundList,
 		const TSet<FName>* IgnoreAttributeSet)
 	{
 		CurrentCompoundList = CompoundList;
@@ -226,7 +222,7 @@ namespace PCGExDataBlending
 		UPCGMetadata* TargetMetadata = TargetData->Source->GetOut()->Metadata;
 
 		// Create blending operations
-		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
+		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->Writer = nullptr;
 
@@ -241,7 +237,7 @@ namespace PCGExDataBlending
 
 					for (int i = 0; i < Sources.Num(); ++i)
 					{
-						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->SoftPrepareForData(CurrentTargetData, Sources[i]); }
+						if (const TUniquePtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->SoftPrepareForData(CurrentTargetData, Sources[i]); }
 					}
 
 					SrcMap->TargetBlendOp->SoftPrepareForData(CurrentTargetData, CurrentTargetData, PCGExData::ESource::Out);
@@ -265,8 +261,7 @@ namespace PCGExDataBlending
 
 	void FCompoundBlender::SoftMergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails)
 	{
-		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
-		SoftMergeSingle(CompoundIndex, Compound, InDistanceDetails);
+		SoftMergeSingle(CompoundIndex, CurrentCompoundList->Get(CompoundIndex), InDistanceDetails);
 	}
 
 	void FCompoundBlender::SoftMergeSingle(const int32 CompoundIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails)
@@ -292,7 +287,7 @@ namespace PCGExDataBlending
 		BlendProperties(Target, IdxIO, IdxPt, Weights);
 
 		// Blend Attributes
-		for (const FAttributeSourceMap* SrcMap : AttributeSourceMaps)
+		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(Target.MetadataEntry);
 
@@ -301,7 +296,7 @@ namespace PCGExDataBlending
 
 			for (int k = 0; k < NumCompounded; ++k)
 			{
-				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[IdxIO[k]];
+				const TUniquePtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
 
 				const double Weight = Weights[k];

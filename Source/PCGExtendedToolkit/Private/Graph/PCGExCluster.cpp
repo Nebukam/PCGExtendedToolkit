@@ -6,14 +6,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
-
-
-
-
-
-
-
-
 #include "Geometry/PCGExGeo.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -188,7 +180,7 @@ namespace PCGExCluster
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
 		EdgesIO = InEdgesIO;
-		
+
 		Nodes->Empty();
 		Edges->Empty();
 		NodeIndexLookup->Empty();
@@ -205,7 +197,7 @@ namespace PCGExCluster
 			return false;
 		};
 
-		if (!EndpointsReader->Bind(InEdgesIO.Get())) { return OnFail(); }
+		if (!EndpointsReader->Bind(InEdgesIO)) { return OnFail(); }
 
 		const int32 NumEdges = InEdgesIO->GetNum();
 
@@ -355,15 +347,15 @@ namespace PCGExCluster
 
 		if (!ExpandedEdges)
 		{
-			ExpandedEdges = MakeShared<TArray<FExpandedEdge*>>();
+			ExpandedEdges = MakeShared<TArray<TUniquePtr<FExpandedEdge>>>();
 			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num());
 
-			TArray<FExpandedEdge*>& ExpandedEdgesRef = (*ExpandedEdges);
+			TArray<TUniquePtr<FExpandedEdge>>& ExpandedEdgesRef = (*ExpandedEdges);
 
 			for (int i = 0; i < Edges->Num(); ++i)
 			{
-				FExpandedEdge* NewExpandedEdge = new FExpandedEdge(this, i);
-				ExpandedEdgesRef[i] = NewExpandedEdge;
+				TUniquePtr<FExpandedEdge> NewExpandedEdge = MakeUnique<FExpandedEdge>(this, i);
+				ExpandedEdgesRef[i] = MoveTemp(NewExpandedEdge);
 				EdgeOctree->AddElement(FClusterItemRef(i, NewExpandedEdge->Bounds));
 			}
 		}
@@ -371,10 +363,8 @@ namespace PCGExCluster
 		{
 			for (int i = 0; i < Edges->Num(); ++i)
 			{
-				const FExpandedEdge* ExpandedEdge = *(ExpandedEdges->GetData() + i);
-				EdgeOctree->AddElement(
-						FClusterItemRef(i, ExpandedEdge->Bounds)
-					);
+				const TUniquePtr<FExpandedEdge>& ExpandedEdge = *(ExpandedEdges->GetData() + i);
+				EdgeOctree->AddElement(FClusterItemRef(i, ExpandedEdge->Bounds));
 			}
 		}
 	}
@@ -460,7 +450,7 @@ namespace PCGExCluster
 		{
 			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
-				const FExpandedEdge* Edge = *(ExpandedEdges->GetData() + Item.ItemIndex);
+				const TUniquePtr<FExpandedEdge>& Edge = *(ExpandedEdges->GetData() + Item.ItemIndex);
 				const double Dist = FMath::PointDistToSegmentSquared(Position, GetPos(Edge->Start), GetPos(Edge->End));
 				if (Dist < MaxDistance)
 				{
@@ -473,7 +463,7 @@ namespace PCGExCluster
 		}
 		else if (ExpandedEdges)
 		{
-			for (const FExpandedEdge* Edge : (*ExpandedEdges))
+			for (const TUniquePtr<FExpandedEdge>& Edge : (*ExpandedEdges))
 			{
 				const double Dist = FMath::PointDistToSegmentSquared(Position, GetPos(Edge->Start), GetPos(Edge->End));
 				if (Dist < MaxDistance)
@@ -523,7 +513,7 @@ namespace PCGExCluster
 
 		if (ExpandedNodes)
 		{
-			const FExpandedNode* ENode = *(ExpandedNodes->GetData() + Node.NodeIndex);
+			const TUniquePtr<FExpandedNode>& ENode = *(ExpandedNodes->GetData() + Node.NodeIndex);
 
 			for (const FExpandedNeighbor& N : ENode->Neighbors)
 			{
@@ -798,30 +788,30 @@ namespace PCGExCluster
 		return Result;
 	}
 
-	TArray<FExpandedNode*>* FCluster::GetExpandedNodes(const bool bBuild)
+	TSharedPtr<TArray<TUniquePtr<FExpandedNode>>> FCluster::GetExpandedNodes(const bool bBuild)
 	{
 		{
 			FReadScopeLock ReadScopeLock(ClusterLock);
-			if (ExpandedNodes) { return ExpandedNodes.Get(); }
+			if (ExpandedNodes) { return ExpandedNodes; }
 		}
 		{
 			FWriteScopeLock WriteScopeLock(ClusterLock);
 
-			ExpandedNodes = MakeShared<TArray<FExpandedNode*>>();
+			ExpandedNodes = MakeShared<TArray<TUniquePtr<FExpandedNode>>>();
 			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedNodes, Nodes->Num())
 
-			TArray<FExpandedNode*>& ExpandedNodesRef = (*ExpandedNodes);
-			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); ++i) { ExpandedNodesRef[i] = new FExpandedNode(this, i); } } // Ooof
+			TArray<TUniquePtr<FExpandedNode>>& ExpandedNodesRef = (*ExpandedNodes);
+			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); ++i) { ExpandedNodesRef[i] = MoveTemp(MakeUnique<FExpandedNode>(this, i)); } } // Ooof
 		}
 
-		return ExpandedNodes.Get();
+		return ExpandedNodes;
 	}
 
-	void FCluster::ExpandNodes(PCGExMT::FTaskManager* AsyncManager)
+	void FCluster::ExpandNodes(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		if (ExpandedNodes) { return; }
 
-		ExpandedNodes = MakeShared<TArray<FExpandedNode*>>();
+		ExpandedNodes = MakeShared<TArray<TUniquePtr<FExpandedNode>>>();
 		PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedNodes, Nodes->Num())
 
 		PCGExMT::SubRanges(
@@ -831,30 +821,30 @@ namespace PCGExCluster
 			});
 	}
 
-	TArray<FExpandedEdge*>* FCluster::GetExpandedEdges(const bool bBuild)
+	TSharedPtr<TArray<TUniquePtr<FExpandedEdge>>> FCluster::GetExpandedEdges(const bool bBuild)
 	{
 		{
 			FReadScopeLock ReadScopeLock(ClusterLock);
-			if (ExpandedEdges) { return ExpandedEdges.Get(); }
+			if (ExpandedEdges) { return ExpandedEdges; }
 		}
 		{
 			FWriteScopeLock WriteScopeLock(ClusterLock);
 
-			ExpandedEdges = MakeShared<TArray<FExpandedEdge*>>();
-			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num())
+			ExpandedEdges = MakeShared<TArray<TUniquePtr<FExpandedEdge>>>();
+			ExpandedEdges->SetNum(Edges->Num());
 
-			TArray<FExpandedEdge*>& ExpandedEdgesRef = (*ExpandedEdges);
-			if (bBuild) { for (int i = 0; i < ExpandedEdges->Num(); ++i) { ExpandedEdgesRef[i] = new FExpandedEdge(this, i); } } // Ooof
+			TArray<TUniquePtr<FExpandedEdge>>& ExpandedEdgesRef = (*ExpandedEdges);
+			if (bBuild) { for (int i = 0; i < ExpandedEdges->Num(); ++i) { ExpandedEdgesRef[i] = MoveTemp(MakeUnique<FExpandedEdge>(this, i)); } } // Ooof
 		}
 
-		return ExpandedEdges.Get();
+		return ExpandedEdges;
 	}
 
 	void FCluster::ExpandEdges(PCGExMT::FTaskManager* AsyncManager)
 	{
 		if (ExpandedEdges) { return; }
 
-		ExpandedEdges = MakeShared<TArray<FExpandedEdge*>>();
+		ExpandedEdges = MakeShared<TArray<TUniquePtr<FExpandedEdge>>>();
 		PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num())
 
 		PCGExMT::SubRanges(
@@ -993,15 +983,15 @@ namespace PCGExClusterTask
 
 	bool FExpandClusterNodes::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		TArray<PCGExCluster::FExpandedNode*>& ExpandedNodesRef = (*Cluster->ExpandedNodes);
-		for (int i = 0; i < NumIterations; ++i) { ExpandedNodesRef[TaskIndex + i] = new PCGExCluster::FExpandedNode(Cluster, TaskIndex + i); }
+		TArray<TUniquePtr<PCGExCluster::FExpandedNode>>& ExpandedNodesRef = (*Cluster->ExpandedNodes);
+		for (int i = 0; i < NumIterations; ++i) { ExpandedNodesRef[TaskIndex + i] = MoveTemp(MakeUnique<PCGExCluster::FExpandedNode>(Cluster, TaskIndex + i)); }
 		return true;
 	}
 
 	bool FExpandClusterEdges::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		TArray<PCGExCluster::FExpandedEdge*>& ExpandedEdgesRef = (*Cluster->ExpandedEdges);
-		for (int i = 0; i < NumIterations; ++i) { ExpandedEdgesRef[TaskIndex + i] = new PCGExCluster::FExpandedEdge(Cluster, TaskIndex + i); }
+		TArray<TUniquePtr<PCGExCluster::FExpandedEdge>>& ExpandedEdgesRef = (*Cluster->ExpandedEdges);
+		for (int i = 0; i < NumIterations; ++i) { ExpandedEdgesRef[TaskIndex + i] = MoveTemp(MakeUnique<PCGExCluster::FExpandedEdge>(Cluster, TaskIndex + i)); }
 		return true;
 	}
 }

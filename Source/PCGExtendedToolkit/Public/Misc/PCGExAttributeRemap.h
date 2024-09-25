@@ -136,8 +136,8 @@ namespace PCGExAttributeRemap
 
 		TArray<FPCGExComponentRemapRule> Rules;
 
-		PCGExData::FBufferBase* CacheWriter = nullptr;
-		PCGExData::FBufferBase* CacheReader = nullptr;
+		TSharedPtr<PCGExData::FBufferBase> CacheWriter = nullptr;
+		TSharedPtr<PCGExData::FBufferBase> CacheReader = nullptr;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):

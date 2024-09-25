@@ -132,8 +132,8 @@ namespace PCGExFusePoints
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFusePointsContext, UPCGExFusePointsSettings>
 	{
 		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
-		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
+		TUniquePtr<PCGExGraph::FCompoundGraph> CompoundGraph;
+		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundPointsBlender;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)

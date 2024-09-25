@@ -326,13 +326,13 @@ namespace PCGExSampleInsideBoundss
 	{
 		bool bSingleSample = false;
 
-		PCGExData::TBuffer<double>* RangeMinGetter = nullptr;
-		PCGExData::TBuffer<double>* RangeMaxGetter = nullptr;
-		PCGExData::TBuffer<FVector>* LookAtUpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
+		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
 
 		FVector SafeUpVector = FVector::UpVector;
 
-		PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> Blender;
 
 		int8 bAnySuccess = 0;
 
@@ -347,7 +347,7 @@ namespace PCGExSampleInsideBoundss
 
 		virtual ~FProcessor() override;
 
-		void SamplingFailed(const int32 Index, FPCGPoint& Point) const;
+		void SamplingFailed(const int32 Index, const FPCGPoint& Point) const;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;

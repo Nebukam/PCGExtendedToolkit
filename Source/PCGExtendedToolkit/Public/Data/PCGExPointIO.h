@@ -12,6 +12,14 @@
 #include "PCGExContext.h"
 #include "PCGExDataTag.h"
 #include "PCGExPointData.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 namespace PCGExData
@@ -287,8 +295,8 @@ namespace PCGExData
 		TSharedPtr<FPointIO> Emplace_GetRef(const UPCGPointData* In, const EInit InitOut = EInit::NoOutput, const TSet<FString>* Tags = nullptr);
 		TSharedPtr<FPointIO> Emplace_GetRef(EInit InitOut = EInit::NewOutput);
 		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EInit InitOut = EInit::NoOutput);
-		TSharedPtr<FPointIO> InsertUnsafe(const int32 Index, TSharedPtr<FPointIO> PointIO);
-		TSharedPtr<FPointIO> AddUnsafe(TSharedPtr<FPointIO> PointIO);
+		TSharedPtr<FPointIO> InsertUnsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO);
+		TSharedPtr<FPointIO> AddUnsafe(const TSharedPtr<FPointIO>& PointIO);
 		void AddUnsafe(const TArray<TSharedPtr<FPointIO>>& IOs);
 
 

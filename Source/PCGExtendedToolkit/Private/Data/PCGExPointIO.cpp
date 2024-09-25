@@ -291,7 +291,7 @@ namespace PCGExData
 		return Branch;
 	}
 
-	TSharedPtr<FPointIO> FPointIOCollection::InsertUnsafe(const int32 Index, TSharedPtr<FPointIO> PointIO)
+	TSharedPtr<FPointIO> FPointIOCollection::InsertUnsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO)
 	{
 		check(!Pairs[Index]) // should be an empty spot
 		Pairs[Index] = PointIO;
@@ -299,7 +299,7 @@ namespace PCGExData
 		return PointIO;
 	}
 
-	TSharedPtr<FPointIO> FPointIOCollection::AddUnsafe(TSharedPtr<FPointIO> PointIO)
+	TSharedPtr<FPointIO> FPointIOCollection::AddUnsafe(const TSharedPtr<FPointIO>& PointIO)
 	{
 		PointIO->SetInfos(Pairs.Add(PointIO), DefaultOutputLabel);
 		return PointIO;

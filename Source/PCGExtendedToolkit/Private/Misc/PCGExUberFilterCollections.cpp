@@ -8,8 +8,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExUberFilterCollections"
 #define PCGEX_NAMESPACE UberFilterCollections
 
@@ -26,9 +24,6 @@ PCGExData::EInit UPCGExUberFilterCollectionsSettings::GetMainOutputInitMode() co
 FPCGExUberFilterCollectionsContext::~FPCGExUberFilterCollectionsContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(Inside)
-	PCGEX_DELETE(Outside)
 }
 
 PCGEX_INITIALIZE_ELEMENT(UberFilterCollections)
@@ -45,8 +40,8 @@ bool FPCGExUberFilterCollectionsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilterCollections)
 
-	Context->Inside = new PCGExData::FPointIOCollection(Context);
-	Context->Outside = new PCGExData::FPointIOCollection(Context);
+	Context->Inside = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->Outside = MakeUnique<PCGExData::FPointIOCollection>(Context);
 
 	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
@@ -104,8 +99,6 @@ namespace PCGExUberFilterCollections
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExUberFilterCollections::Process);
 
-		
-		
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
@@ -166,7 +159,7 @@ namespace PCGExUberFilterCollections
 			}
 			else
 			{
-				double Ratio = static_cast<double>(NumInside) / static_cast<double>(NumPoints);
+				const double Ratio = static_cast<double>(NumInside) / static_cast<double>(NumPoints);
 				if (PCGExCompare::Compare(Settings->Comparison, Ratio, Settings->DblThreshold, Settings->Tolerance)) { Context->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
 				else { Context->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
 			}

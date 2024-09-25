@@ -97,8 +97,8 @@ namespace PCGExOffsetPath
 		TArray<FVector> Positions;
 		TArray<FVector> Normals;
 
-		PCGExData::TBuffer<double>* OffsetGetter = nullptr;
-		PCGExData::TBuffer<FVector>* UpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> OffsetGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):

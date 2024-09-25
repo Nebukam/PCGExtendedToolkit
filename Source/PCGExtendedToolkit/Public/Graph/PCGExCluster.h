@@ -10,10 +10,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
-
-
-
-
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -193,8 +189,8 @@ namespace PCGExCluster
 		TSharedPtr<TMap<int32, int32>> NodeIndexLookup; // Node index -> Point Index
 		//TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
 		TSharedPtr<TArray<FNode>> Nodes;
-		TSharedPtr<TArray<FExpandedNode*>> ExpandedNodes;
-		TSharedPtr<TArray<FExpandedEdge*>> ExpandedEdges;
+		TSharedPtr<TArray<TUniquePtr<FExpandedNode>>> ExpandedNodes;
+		TSharedPtr<TArray<TUniquePtr<FExpandedEdge>>> ExpandedEdges;
 		TSharedPtr<TArray<PCGExGraph::FIndexedEdge>> Edges;
 		TSharedPtr<TArray<double>> EdgeLengths;
 		TArray<FVector> NodePositions;
@@ -318,10 +314,10 @@ namespace PCGExCluster
 
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 
-		TArray<FExpandedNode*>* GetExpandedNodes(const bool bBuild);
-		void ExpandNodes(PCGExMT::FTaskManager* AsyncManager);
+		TSharedPtr<TArray<TUniquePtr<FExpandedNode>>> GetExpandedNodes(const bool bBuild);
+		void ExpandNodes(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 
-		TArray<FExpandedEdge*>* GetExpandedEdges(const bool bBuild);
+		TSharedPtr<TArray<TUniquePtr<FExpandedEdge>>> GetExpandedEdges(const bool bBuild);
 		void ExpandEdges(PCGExMT::FTaskManager* AsyncManager);
 
 		template <typename T, class MakeFunc>
@@ -630,24 +626,19 @@ namespace PCGExClusterTask
 		Chain->Last = LastIndex;
 	}
 
-	static void DedupeChains(TArray<PCGExCluster::FNodeChain*>& InChains)
+	static void DedupeChains(TArray<TSharedPtr<PCGExCluster::FNodeChain>>& InChains)
 	{
 		TSet<uint64> Chains;
 		Chains.Reserve(InChains.Num() / 2);
 
-
 		for (int i = 0; i < InChains.Num(); ++i)
 		{
-			const PCGExCluster::FNodeChain* Chain = InChains[i];
+			const TSharedPtr<PCGExCluster::FNodeChain>& Chain = InChains[i];
 			if (!Chain) { continue; }
 
 			bool bAlreadyExists = false;
 			Chains.Add(Chain->GetUniqueHash(), &bAlreadyExists);
-			if (bAlreadyExists)
-			{
-				PCGEX_DELETE(Chain)
-				InChains[i] = nullptr;
-			}
+			if (bAlreadyExists) { InChains[i].Reset(); }
 		}
 	}
 
@@ -698,8 +689,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionSettings
 	FPCGAttributePropertyInputSelector DirSourceAttribute;
 
 	bool bAscendingDesired = false;
-	PCGExData::TBuffer<double>* EndpointsReader = nullptr;
-	PCGExData::TBuffer<FVector>* EdgeDirReader = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> EndpointsReader;
+	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
 
 	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InEndpointsFacade);
 	bool InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, PCGExData::FFacade* InEdgeDataFacade);

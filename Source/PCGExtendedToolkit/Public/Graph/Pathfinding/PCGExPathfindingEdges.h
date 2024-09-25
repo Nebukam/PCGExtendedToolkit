@@ -116,8 +116,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesContext final : public F
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
 
-	TUniquePtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
-	TUniquePtr<PCGExData::FDataForwardHandler> GoalForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> GoalForwardHandler;
 
 	TArray<TSharedPtr<PCGExPathfinding::FPathQuery>> PathQueries;
 

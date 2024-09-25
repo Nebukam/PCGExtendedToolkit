@@ -157,7 +157,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 			if (!IsAsyncWorkComplete()) { return false; }
 
 			OnBatchesProcessingDone();
-			CompleteBatches(GetAsyncManager(), Batches);
+			CompleteBatches(Batches);
 			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
 		}
 
@@ -169,7 +169,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 			if (bDoClusterBatchWritingStep)
 			{
-				WriteBatches(GetAsyncManager(), Batches);
+				WriteBatches(Batches);
 				SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
 			}
 			else { SetState(TargetState_ClusterProcessingDone); }
@@ -181,7 +181,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 			OnBatchesCompilationDone(false);
 
-			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
+			for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches)
 			{
 				if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->OutputEdgesToContext(); }
 			}
@@ -190,7 +190,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 			if (bDoClusterBatchWritingStep)
 			{
-				WriteBatches(GetAsyncManager(), Batches);
+				WriteBatches(Batches);
 				SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
 			}
 			else { SetState(TargetState_ClusterProcessingDone); }
@@ -287,18 +287,18 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 
 	if (!Settings->bEnabled) { return Context; }
 
-	Context->InputDictionary = new PCGExData::FPointIOTaggedDictionary(PCGExGraph::TagStr_ClusterPair);
+	Context->InputDictionary = MakeUnique<PCGExData::FPointIOTaggedDictionary>(PCGExGraph::TagStr_ClusterPair);
 
-	TArray<PCGExData::FPointIO*> TaggedVtx;
-	TArray<PCGExData::FPointIO*> TaggedEdges;
+	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedVtx;
+	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedEdges;
 
-	Context->MainEdges = new PCGExData::FPointIOCollection(Context);
+	Context->MainEdges = MakeUnique<PCGExData::FPointIOCollection>(Context);
 	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
 	Context->MainEdges->Initialize(Sources, Settings->GetEdgeOutputInitMode());
 
 	// Gather Vtx inputs
-	for (PCGExData::FPointIO* MainIO : Context->MainPoints->Pairs)
+	for (const TSharedPtr<PCGExData::FPointIO>& MainIO : Context->MainPoints->Pairs)
 	{
 		if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx))
 		{
@@ -328,7 +328,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	}
 
 	// Gather Edge inputs
-	for (PCGExData::FPointIO* MainIO : Context->MainEdges->Pairs)
+	for (const TSharedPtr<PCGExData::FPointIO>& MainIO : Context->MainEdges->Pairs)
 	{
 		if (MainIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExEdges))
 		{
@@ -358,7 +358,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	}
 
 
-	for (PCGExData::FPointIO* Vtx : TaggedVtx)
+	for (const TSharedPtr<PCGExData::FPointIO>& Vtx : TaggedVtx)
 	{
 		if (!PCGExGraph::IsPointDataVtxReady(Vtx->GetIn()->Metadata))
 		{
@@ -367,14 +367,14 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 			continue;
 		}
 
-		if (!Context->InputDictionary->CreateKey(*Vtx))
+		if (!Context->InputDictionary->CreateKey(Vtx))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed."));
 			Vtx->Disable();
 		}
 	}
 
-	for (PCGExData::FPointIO* Edges : TaggedEdges)
+	for (const TSharedPtr<PCGExData::FPointIO>& Edges : TaggedEdges)
 	{
 		if (!PCGExGraph::IsPointDataEdgeReady(Edges->GetIn()->Metadata))
 		{
@@ -383,7 +383,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 			continue;
 		}
 
-		if (!Context->InputDictionary->TryAddEntry(*Edges))
+		if (!Context->InputDictionary->TryAddEntry(Edges))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges have no associated vtx."));
 		}

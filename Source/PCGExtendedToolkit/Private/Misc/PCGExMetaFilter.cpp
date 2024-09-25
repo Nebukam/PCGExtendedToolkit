@@ -23,9 +23,6 @@ PCGEX_INITIALIZE_ELEMENT(MetaFilter)
 FPCGExMetaFilterContext::~FPCGExMetaFilterContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(Inside)
-	PCGEX_DELETE(Outside)
 }
 
 bool FPCGExMetaFilterElement::Boot(FPCGExContext* InContext) const
@@ -37,8 +34,8 @@ bool FPCGExMetaFilterElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(Filters)
 	Context->Filters.Init();
 
-	Context->Inside = new PCGExData::FPointIOCollection(Context);
-	Context->Outside = new PCGExData::FPointIOCollection(Context);
+	Context->Inside = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->Outside = MakeUnique<PCGExData::FPointIOCollection>(Context);
 
 	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
@@ -64,7 +61,7 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		while (Context->AdvancePointsIO())
 		{
-			PCGExData::FPointIOCollection* Target = Context->Filters.Test(Context->CurrentIO->Tags) ? Context->Inside : Context->Outside;
+			PCGExData::FPointIOCollection* Target = Context->Filters.Test(Context->CurrentIO->Tags.Get()) ? Context->Inside.Get() : Context->Outside.Get();
 			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::Forward);
 		}
 	}
@@ -72,7 +69,7 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		while (Context->AdvancePointsIO())
 		{
-			PCGExData::FPointIOCollection* Target = Context->Filters.Test(Context->CurrentIO) ? Context->Inside : Context->Outside;
+			PCGExData::FPointIOCollection* Target = Context->Filters.Test(Context->CurrentIO.Get()) ? Context->Inside.Get() : Context->Outside.Get();
 			Target->Emplace_GetRef(Context->CurrentIO, PCGExData::EInit::Forward);
 		}
 	}

@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 
 
-
-
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExSampleNeighbors.generated.h"
@@ -86,7 +84,7 @@ namespace PCGExSampleNeighbors
 		TArray<UPCGExNeighborSampleOperation*> OpsWithValueTest;
 
 		bool bBuildExpandedNodes = false;
-		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
+		TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedNode>>> ExpandedNodes;
 
 	public:
 		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):

@@ -14,6 +14,12 @@
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
+
+
+
+
+
 namespace PCGExGraph
 {
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundProcessor
@@ -57,9 +63,9 @@ namespace PCGExGraph
 			const FPCGExBlendingDetails* InOverride = nullptr);
 
 		bool StartExecution(
-			FCompoundGraph* InCompoundGraph,
-			PCGExData::FFacade* InCompoundFacade,
-			const TArray<PCGExData::FFacade*>& InFacades,
+			const TSharedPtr<FCompoundGraph>& InCompoundGraph,
+			const TSharedPtr<PCGExData::FFacade>& InCompoundFacade,
+			const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades,
 			const FPCGExGraphBuilderDetails& InBuilderDetails,
 			const FPCGExCarryOverDetails* InCarryOverDetails);
 

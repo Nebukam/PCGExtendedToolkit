@@ -8,6 +8,20 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSortPoints.h"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #include "PCGExMergePointsByTag.generated.h"
 
 class FPCGExPointIOMerger;
@@ -40,15 +54,15 @@ namespace PCPGExMergePointsByTag
 		FMergeList();
 		~FMergeList();
 
-		void Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
-		void Write(PCGExMT::FTaskManager* AsyncManager) const;
+		void Merge(TSharedPtr<PCGExMT::FTaskManager> AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
+		void Write(TSharedPtr<PCGExMT::FTaskManager> AsyncManager) const;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTagBucket
 	{
 	public:
 		FString Tag;
-		TArray<PCGExData::FPointIO*> IOs;
+		TArray<TSharedPtr<PCGExData::FPointIO>> IOs;
 		explicit FTagBucket(const FString& InTag);
 		~FTagBucket();
 	};
@@ -56,15 +70,15 @@ namespace PCPGExMergePointsByTag
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTagBuckets
 	{
 	public:
-		TArray<FTagBucket*> Buckets;
+		TArray<TSharedPtr<FTagBucket>> Buckets;
 		TMap<FString, int32> BucketsMap;
-		TMap<PCGExData::FPointIO*, TSet<FTagBucket*>*> ReverseBucketsMap;
+		TMap<PCGExData::FPointIO*, TSharedPtr<TSet<TSharedPtr<FTagBucket>>>> ReverseBucketsMap;
 		explicit FTagBuckets();
 		~FTagBuckets();
 
-		void Distribute(PCGExData::FPointIO* IO, const FPCGExNameFiltersDetails& Filters);
-		void AddToReverseMap(PCGExData::FPointIO* IO, FTagBucket* Bucket);
-		void BuildMergeLists(EPCGExMergeByTagOverlapResolutionMode Mode, TArray<FMergeList*>& OutLists, const TArray<FString>& Priorities, const EPCGExSortDirection SortDirection);
+		void Distribute(TSharedPtr<PCGExData::FPointIO> IO, const FPCGExNameFiltersDetails& Filters);
+		void AddToReverseMap(TSharedPtr<PCGExData::FPointIO> IO, const TSharedPtr<FTagBucket>& Bucket);
+		void BuildMergeLists(EPCGExMergeByTagOverlapResolutionMode Mode, TArray<TSharedPtr<FMergeList>>& OutLists, const TArray<FString>& Priorities, const EPCGExSortDirection SortDirection);
 	};
 }
 
@@ -124,9 +138,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsByTagContext final : public F
 	FPCGExNameFiltersDetails TagFilters;
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	PCPGExMergePointsByTag::FMergeList* FallbackMergeList = nullptr;
-	TMap<uint32, PCPGExMergePointsByTag::FMergeList*> MergeMap;
-	TArray<PCPGExMergePointsByTag::FMergeList*> MergeLists;
+	TSharedPtr<PCPGExMergePointsByTag::FMergeList> FallbackMergeList;
+	TMap<uint32, TSharedPtr<PCPGExMergePointsByTag::FMergeList>> MergeMap;
+	TArray<TSharedPtr<PCPGExMergePointsByTag::FMergeList>> MergeLists;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergePointsByTagElement final : public FPCGExPointsProcessorElement

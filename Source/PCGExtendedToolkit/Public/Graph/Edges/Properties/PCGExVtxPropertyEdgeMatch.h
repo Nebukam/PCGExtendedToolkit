@@ -11,12 +11,6 @@
 #include "PCGExVtxPropertyFactoryProvider.h"
 
 
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
@@ -95,8 +89,8 @@ protected:
 
 	mutable FRWLock FilterLock;
 
-	PCGExData::TBuffer<FVector>* DirCache = nullptr;
-	TArray<PCGExPointFilter::TManager*> FilterManagers;
+	TSharedPtr<PCGExData::TBuffer<FVector>> DirCache;
+	TArray<TUniquePtr<PCGExPointFilter::TManager>> FilterManagers;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

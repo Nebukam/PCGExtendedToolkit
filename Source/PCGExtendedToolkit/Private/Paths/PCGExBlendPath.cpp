@@ -4,18 +4,16 @@
 #include "Paths/PCGExBlendPath.h"
 
 
-
-
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
 #define PCGEX_NAMESPACE BlendPath
 
 UPCGExBlendPathSettings::UPCGExBlendPathSettings(
-		const FObjectInitializer& ObjectInitializer)
-		: Super(ObjectInitializer)
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
-	bSupportClosedLoops = false;		
+	bSupportClosedLoops = false;
 }
 
 PCGExData::EInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
@@ -87,9 +85,6 @@ namespace PCGExBlendPath
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Start)
-		PCGEX_DELETE(End)
-		PCGEX_DELETE(MetadataBlender)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -100,8 +95,6 @@ namespace PCGExBlendPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		
-		
 
 		if (Settings->BlendOver == EPCGExBlendOver::Fixed && Settings->LerpSource == EPCGExFetchType::Attribute)
 		{
@@ -117,11 +110,11 @@ namespace PCGExBlendPath
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
 		MaxIndex = OutPoints.Num() - 1;
 
-		Start = new PCGExData::FPointRef(PointIO->GetInPoint(0), 0);
-		End = new PCGExData::FPointRef(PointIO->GetInPoint(MaxIndex), MaxIndex);
+		Start = MakeShared<PCGExData::FPointRef>(PointIO->GetInPoint(0), 0);
+		End = MakeShared<PCGExData::FPointRef>(PointIO->GetInPoint(MaxIndex), MaxIndex);
 
-		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(PointDataFacade.Get());
+		MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
+		MetadataBlender->PrepareForData(PointDataFacade);
 
 		if (Settings->BlendOver == EPCGExBlendOver::Distance)
 		{

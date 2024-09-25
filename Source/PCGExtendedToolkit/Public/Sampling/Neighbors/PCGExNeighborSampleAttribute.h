@@ -33,7 +33,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleAttribute : public UPCGExNe
 	GENERATED_BODY()
 
 public:
-	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+	TUniquePtr<PCGExDataBlending::FMetadataBlender> Blender;
 
 	TSet<FName> SourceAttributes;
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;

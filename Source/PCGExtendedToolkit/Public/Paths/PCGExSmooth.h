@@ -109,10 +109,10 @@ namespace PCGExSmooth
 	{
 		int32 NumPoints = 0;
 
-		PCGExData::TBuffer<double>* Influence = nullptr;
-		PCGExData::TBuffer<double>* Smoothing = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> Influence;
+		TSharedPtr<PCGExData::TBuffer<double>> Smoothing;
 
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		UPCGExSmoothingOperation* TypedOperation = nullptr;
 		bool bClosedLoop = false;
 

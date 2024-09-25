@@ -15,14 +15,12 @@ void UPCGExOperation::BindContext(FPCGContext* InContext)
 		const UPCGParamData* ParamData = Cast<UPCGParamData>(InTaggedData.Data);
 
 		if (!ParamData) { continue; }
-		PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(ParamData->Metadata);
+		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(ParamData->Metadata);
 
 		for (PCGEx::FAttributeIdentity& Identity : Infos->Identities)
 		{
 			PossibleOverrides.Add(Identity.Name, ParamData->Metadata->GetMutableAttribute(Identity.Name));
 		}
-
-		PCGEX_DELETE(Infos)
 	}
 
 	ApplyOverrides();

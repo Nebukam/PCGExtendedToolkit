@@ -161,7 +161,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGE
 	TArray<bool> SeedQuality;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
-	TUniquePtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
 
 	bool TryFindContours(TSharedPtr<PCGExData::FPointIO> PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
 };
@@ -194,8 +194,8 @@ namespace PCGExFindContours
 		TArray<FVector>* ProjectedPositions = nullptr;
 
 		bool bBuildExpandedNodes = false;
-		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
-		TArray<PCGExCluster::FExpandedEdge*>* ExpandedEdges = nullptr;
+		TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedNode>>> ExpandedNodes;
+		TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedEdge>>> ExpandedEdges;
 
 	public:
 		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):

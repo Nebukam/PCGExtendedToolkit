@@ -176,12 +176,8 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
-		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(Tag_EdgeEndpoints);
-		if (!EndpointsReader->Bind(EdgeIO))
-		{
-			PCGEX_DELETE(EndpointsReader)
-			return false;
-		}
+		TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(Tag_EdgeEndpoints);
+		if (!EndpointsReader->Bind(EdgeIO)) { return false; }
 
 		bool bValid = true;
 		const int32 NumEdges = EdgeIO->GetNum();
@@ -230,8 +226,6 @@ namespace PCGExGraph
 			}
 		}
 
-		PCGEX_DELETE(EndpointsReader)
-
 		return bValid;
 	}
 
@@ -245,13 +239,9 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-WithPoints);
 		//EdgeIO.CreateInKeys();
 
-		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(Tag_EdgeEndpoints);
+		TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(Tag_EdgeEndpoints);
 
-		if (!EndpointsReader->Bind(EdgeIO))
-		{
-			PCGEX_DELETE(EndpointsReader)
-			return false;
-		}
+		if (!EndpointsReader->Bind(EdgeIO)) { return false; }
 
 		bool bValid = true;
 		const int32 NumEdges = EdgeIO->GetNum();
@@ -305,8 +295,6 @@ namespace PCGExGraph
 				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO->IOIndex);
 			}
 		}
-
-		PCGEX_DELETE(EndpointsReader)
 
 		return bValid;
 	}

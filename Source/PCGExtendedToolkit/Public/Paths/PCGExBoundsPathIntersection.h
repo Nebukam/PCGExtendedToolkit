@@ -56,7 +56,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionContext final : pu
 
 	virtual ~FPCGExBoundsPathIntersectionContext() override;
 
-	PCGExData::FFacade* BoundsDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
@@ -78,8 +78,8 @@ namespace PCGExPathIntersections
 	{
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
-		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
-		PCGExGeo::FSegmentation* Segmentation = nullptr;
+		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
+		TSharedPtr<PCGExGeo::FSegmentation> Segmentation;
 
 		FPCGExBoxIntersectionDetails Details;
 

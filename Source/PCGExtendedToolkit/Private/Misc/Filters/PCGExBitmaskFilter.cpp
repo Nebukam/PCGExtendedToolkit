@@ -3,8 +3,8 @@
 
 #include "Misc/Filters/PCGExBitmaskFilter.h"
 
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"

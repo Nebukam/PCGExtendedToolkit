@@ -23,13 +23,14 @@ public:
 
 	virtual void Process() override
 	{
-		const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
+		const TUniquePtr<PCGExCluster::FNode> NoNodePtr = MakeUnique<PCGExCluster::FNode>();
+		const PCGExCluster::FNode& NoNode = *NoNodePtr.Get();
 		const int32 NumNodes = Cluster->Nodes->Num();
 
 		TBitArray<> Visited;
 		Visited.Init(false, NumNodes);
 
-		PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(NumNodes, 0, 0);
+		const TUniquePtr<PCGExSearch::TScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::TScoredQueue>(NumNodes, 0, 0);
 
 		TArray<uint64> TravelStack;
 		TravelStack.SetNum(NumNodes);
@@ -60,7 +61,7 @@ public:
 				const PCGExCluster::FNode& AdjacentNode = *(Cluster->Nodes->GetData() + NeighborIndex);
 				PCGExGraph::FIndexedEdge& Edge = *(Cluster->Edges->GetData() + EdgeIndex);
 
-				const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode, nullptr, &TravelStack);
+				const double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, NoNode, NoNode, nullptr, &TravelStack);
 
 				if (Score >= ScoredQueue->Scores[NeighborIndex]) { continue; }
 
@@ -85,7 +86,5 @@ public:
 
 		Visited.Empty();
 		TravelStack.Empty();
-		PCGEX_DELETE(ScoredQueue)
-		PCGEX_DELETE(NoNode)
 	}
 };

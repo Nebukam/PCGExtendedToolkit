@@ -6,10 +6,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 #define PCGEX_NAMESPACE SampleSurfaceGuided
 
@@ -43,14 +39,13 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 	if (Context->bUseInclude)
 	{
 		PCGEX_VALIDATE_NAME(Settings->ActorReference)
-		PCGExData::FPointIO* ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
-
+		TSharedPtr<PCGExData::FPointIO> ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
 		if (!ActorRefIO) { return false; }
 
-		Context->ActorReferenceDataFacade = new PCGExData::FFacade(ActorRefIO);
+		Context->ActorReferenceDataFacade = MakeShared<PCGExData::FFacade>(ActorRefIO);
 
 		if (!PCGExSampling::GetIncludedActors(
-			Context, Context->ActorReferenceDataFacade,
+			Context, Context->ActorReferenceDataFacade.Get(),
 			Settings->ActorReference, Context->IncludedActors))
 		{
 			return false;
@@ -96,14 +91,13 @@ namespace PCGExSampleSurfaceGuided
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(SurfacesForward)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleSurfaceGuided::Process);
 
-		SurfacesForward = Context->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(Context->ActorReferenceDataFacade, PointDataFacade.Get()) : nullptr;
+		SurfacesForward = Context->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(Context->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;

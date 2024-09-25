@@ -26,13 +26,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSwapAttributePairDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName FirstAttributeName = NAME_None;
 	PCGEx::FAttributeIdentity* FirstIdentity = nullptr;
-	PCGExData::FBufferBase* FirstWriter = nullptr;
+	TSharedPtr<PCGExData::FBufferBase> FirstWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName SecondAttributeName = NAME_None;
 	PCGEx::FAttributeIdentity* SecondIdentity = nullptr;
-	PCGExData::FBufferBase* SecondWriter = nullptr;
+	TSharedPtr<PCGExData::FBufferBase> SecondWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -107,7 +107,7 @@ namespace PCGExReversePointOrder
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExReversePointOrderContext, UPCGExReversePointOrderSettings>
 	{
 		TArray<FPCGExSwapAttributePairDetails> SwapPairs;
-		PCGEx::FAttributesInfos* AttributesInfos = nullptr;
+		TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
@@ -117,7 +117,6 @@ namespace PCGExReversePointOrder
 
 		virtual ~FProcessor() override
 		{
-			PCGEX_DELETE(AttributesInfos)
 		}
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;

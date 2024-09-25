@@ -10,8 +10,8 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 
 #include "PCGExStringSelfCompareFilter.generated.h"
@@ -81,8 +81,8 @@ namespace PCGExPointsFilter
 
 		const UPCGExStringSelfCompareFilterFactory* TypedFilterFactory;
 
-		PCGEx::FLocalToStringGetter* OperandA = nullptr;
-		PCGExData::TBuffer<int32>* Index = nullptr;
+		TUniquePtr<PCGEx::FLocalToStringGetter> OperandA;
+		TSharedPtr<PCGExData::TBuffer<int32>> Index;
 		bool bOffset = false;
 		int32 MaxIndex = 0;
 
@@ -101,8 +101,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TStringSelfComparisonFilter() override
 		{
-			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(OperandA)
 		}
 	};
 }

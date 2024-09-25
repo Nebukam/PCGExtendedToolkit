@@ -85,14 +85,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 		return true;
 	}
 
-#define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) PCGExData::TBuffer<_TYPE>* _NAME##Writer = nullptr;
+#define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Writer;
 	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_DECL)
 #undef PCGEX_LOCAL_DETAIL_DECL
 
-	PCGExData::FDataForwardHandler* IntersectionForwardHandler = nullptr;
-	PCGExData::FDataForwardHandler* InsideForwardHandler = nullptr;
+	TSharedPtr<PCGExData::FDataForwardHandler> IntersectionForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> InsideForwardHandler;
 
-	void Init(PCGExData::FFacade* PointDataFacade, PCGExData::FFacade* BoundsDataFacade)
+	void Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade, const TSharedPtr<PCGExData::FFacade>& BoundsDataFacade)
 	{
 		PointDataFacade->Source->CreateOutKeys();
 
@@ -102,12 +102,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 #define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetWritable( _NAME##AttributeName, _DEFAULT, false, false); }
 		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WRITER)
 #undef PCGEX_LOCAL_DETAIL_WRITER
-	}
-
-	void Cleanup()
-	{
-		PCGEX_DELETE(IntersectionForwardHandler)
-		PCGEX_DELETE(InsideForwardHandler)
 	}
 
 	bool WillWriteAny() const
@@ -223,9 +217,9 @@ namespace PCGExGraph
 	{
 		TMap<uint32, FCompoundNode*> GridTree;
 
-		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
-		PCGExData::FIdxCompoundList* EdgesCompounds = nullptr;
-		TArray<FCompoundNode*> Nodes;
+		TSharedPtr<PCGExData::FIdxCompoundList> PointsCompounds;
+		TSharedPtr<PCGExData::FIdxCompoundList> EdgesCompounds;
+		TArray<TUniquePtr<FCompoundNode>> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
@@ -233,7 +227,7 @@ namespace PCGExGraph
 		FBox Bounds;
 
 		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
-		NodeOctree* Octree = nullptr;
+		TUniquePtr<NodeOctree> Octree;
 
 		mutable FRWLock CompoundLock;
 		mutable FRWLock EdgesLock;
@@ -247,19 +241,14 @@ namespace PCGExGraph
 
 			FuseDetails.Init();
 
-			PointsCompounds = new PCGExData::FIdxCompoundList();
-			EdgesCompounds = new PCGExData::FIdxCompoundList();
+			PointsCompounds = MakeShared<PCGExData::FIdxCompoundList>();
+			EdgesCompounds = MakeShared<PCGExData::FIdxCompoundList>();
 
-			if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = new NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
+			if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = MakeUnique<NodeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
 		}
 
 		~FCompoundGraph()
 		{
-			PCGEX_DELETE_TARRAY(Nodes)
-			PCGEX_DELETE(PointsCompounds)
-			PCGEX_DELETE(EdgesCompounds)
-			PCGEX_DELETE(Octree)
-			Edges.Empty();
 		}
 
 		int32 NumNodes() const { return PointsCompounds->Num(); }
@@ -601,7 +590,7 @@ namespace PCGExGraph
 
 		const FPCGExEdgeEdgeIntersectionDetails* Details;
 
-		TArray<FEECrossing*> Crossings;
+		TArray<TUniquePtr<FEECrossing>> Crossings;
 		TArray<FEdgeEdgeProxy> Edges;
 		TSet<uint64> CheckedPairs;
 
@@ -627,9 +616,8 @@ namespace PCGExGraph
 
 			if (bAlreadySet) { return; }
 
-			FEECrossing* OutSplit = new FEECrossing(Split);
-
-			OutSplit->NodeIndex = Crossings.Add(OutSplit) + Graph->Nodes.Num();
+			const TUniquePtr<FEECrossing>& OutSplit = Crossings.Add_GetRef(MakeUnique<FEECrossing>(Split));
+			OutSplit->NodeIndex = Graph->Nodes.Num() + Crossings.Num() - 1;
 
 			if (Split.A < Split.B)
 			{
@@ -642,8 +630,8 @@ namespace PCGExGraph
 				OutSplit->EdgeB = Split.A;
 			}
 
-			Edges[Split.A].Intersections.AddUnique(OutSplit);
-			Edges[Split.B].Intersections.AddUnique(OutSplit);
+			Edges[Split.A].Intersections.AddUnique(OutSplit.Get());
+			Edges[Split.B].Intersections.AddUnique(OutSplit.Get());
 		}
 
 		void InsertNodes() const;
@@ -655,7 +643,6 @@ namespace PCGExGraph
 		{
 			CheckedPairs.Empty();
 			Edges.Empty();
-			PCGEX_DELETE_TARRAY(Crossings)
 		}
 	};
 

@@ -12,7 +12,7 @@ namespace PCGExGeo
 	class /*PCGEXTENDEDTOOLKIT_API*/ TVoronoi2
 	{
 	public:
-		TDelaunay2* Delaunay = nullptr;
+		TUniquePtr<TDelaunay2> Delaunay;
 		TSet<uint64> VoronoiEdges;
 		TArray<FVector> Circumcenters;
 		TArray<FVector> Centroids;
@@ -30,7 +30,7 @@ namespace PCGExGeo
 
 		void Clear()
 		{
-			PCGEX_DELETE(Delaunay)
+			Delaunay.Reset();
 			Centroids.Empty();
 			IsValid = false;
 		}
@@ -39,7 +39,7 @@ namespace PCGExGeo
 		{
 			Clear();
 
-			Delaunay = new TDelaunay2();
+			Delaunay = MakeUnique<TDelaunay2>();
 			if (!Delaunay->Process(Positions, ProjectionDetails))
 			{
 				Clear();
@@ -73,7 +73,7 @@ namespace PCGExGeo
 	class /*PCGEXTENDEDTOOLKIT_API*/ TVoronoi3
 	{
 	public:
-		TDelaunay3* Delaunay = nullptr;
+		TUniquePtr<TDelaunay3> Delaunay;
 		TSet<uint64> VoronoiEdges;
 		TSet<int32> VoronoiHull;
 		TArray<FSphere> Circumspheres;
@@ -87,22 +87,20 @@ namespace PCGExGeo
 
 		~TVoronoi3()
 		{
-			PCGEX_DELETE(Delaunay)
 		}
 
 		void Clear()
 		{
-			PCGEX_DELETE(Delaunay)
+			Delaunay.Reset();
 			Centroids.Empty();
 			IsValid = false;
 		}
 
 		bool Process(const TArrayView<FVector>& Positions)
 		{
-			PCGEX_DELETE(Delaunay)
 			IsValid = false;
-
-			Delaunay = new TDelaunay3();
+			Delaunay = MakeUnique<TDelaunay3>();
+			
 			if (!Delaunay->Process(Positions, true))
 			{
 				Clear();

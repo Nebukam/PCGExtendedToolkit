@@ -156,12 +156,12 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::AbsoluteMin(A, B); }
 	};
 
-	static FDataBlendingOperationBase* CreateOperation(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)
+	static TUniquePtr<FDataBlendingOperationBase> CreateOperation(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)
 	{
-#define PCGEX_SAO_NEW(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : NewOperation = new TDataBlending##_ID<_TYPE>(); break;
+#define PCGEX_SAO_NEW(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : NewOperation = MakeUnique<TDataBlending##_ID<_TYPE>>(); break;
 #define PCGEX_BLEND_CASE(_ID) case EPCGExDataBlendingType::_ID: switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_NEW, _ID) } break;
 
-		FDataBlendingOperationBase* NewOperation = nullptr;
+		TUniquePtr<FDataBlendingOperationBase> NewOperation;
 
 		switch (Type)
 		{
@@ -176,7 +176,7 @@ namespace PCGExDataBlending
 #undef PCGEX_BLEND_CASE
 	}
 
-	static FDataBlendingOperationBase* CreateOperationWithDefaults(const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
+	static TUniquePtr<FDataBlendingOperationBase> CreateOperationWithDefaults(const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
 	{
 		EPCGExDataBlendingTypeDefault GlobalDefaultType = EPCGExDataBlendingTypeDefault::Default;
 
@@ -197,7 +197,7 @@ namespace PCGExDataBlending
 	}
 
 
-	static FDataBlendingOperationBase* CreateOperation(const EPCGExDataBlendingType* Type, const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
+	static TUniquePtr<FDataBlendingOperationBase> CreateOperation(const EPCGExDataBlendingType* Type, const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
 	{
 		return Type ? CreateOperation(*Type, Identity) : CreateOperationWithDefaults(DefaultType, Identity);
 	}

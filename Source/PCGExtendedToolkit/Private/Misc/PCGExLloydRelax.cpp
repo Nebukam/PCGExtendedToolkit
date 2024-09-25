@@ -4,8 +4,6 @@
 #include "Misc/PCGExLloydRelax.h"
 
 
-
-
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelaxElement"
@@ -115,7 +113,7 @@ namespace PCGExLloydRelax
 	{
 		NumIterations--;
 
-		PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
+		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 		TArray<FVector>& Positions = Processor->ActivePositions;
 
 		//FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
@@ -147,7 +145,7 @@ namespace PCGExLloydRelax
 			for (int i = 0; i < NumPoints; ++i) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->GetInfluence(i)); }
 		}
 
-		PCGEX_DELETE(Delaunay)
+		Delaunay.Reset();
 
 		if (NumIterations > 0)
 		{

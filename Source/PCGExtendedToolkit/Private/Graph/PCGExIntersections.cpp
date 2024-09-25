@@ -12,7 +12,7 @@ namespace PCGExGraph
 	FVector FCompoundNode::UpdateCenter(const PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup)
 	{
 		Center = FVector::ZeroVector;
-		PCGExData::FIdxCompound* Compound = (*PointsCompounds)[Index];
+		PCGExData::FIdxCompound* Compound = PointsCompounds->Get(Index);
 
 		const double Divider = Compound->CompoundedHashSet.Num();
 
@@ -57,9 +57,7 @@ namespace PCGExGraph
 					return Node;
 				}
 
-				Node = new FCompoundNode(Point, Origin, Nodes.Num());
-
-				Nodes.Add(Node);
+				Node = Nodes.Add_GetRef(MakeUnique<FCompoundNode>(Point, Origin, Nodes.Num())).Get();
 				PointsCompounds->New(IOIndex, PointIndex);
 				GridTree.Add(GridKey, Node);
 			}
@@ -103,19 +101,17 @@ namespace PCGExGraph
 			if (NodeIndex != -1)
 			{
 				PointsCompounds->Add(NodeIndex, IOIndex, PointIndex);
-				return Nodes[NodeIndex];
+				return Nodes[NodeIndex].Get();
 			}
 
 			// Read lock ends
 		}
 
-		Node = new FCompoundNode(Point, Origin, Nodes.Num());
-
 		{
 			// Write lock start
 			FWriteScopeLock WriteScopeLock(CompoundLock);
 
-			Nodes.Add(Node);
+			Node = Nodes.Add_GetRef(MakeUnique<FCompoundNode>(Point, Origin, Nodes.Num())).Get();
 			Octree->AddElement(Node);
 			PointsCompounds->New(IOIndex, PointIndex);
 		}
@@ -141,8 +137,7 @@ namespace PCGExGraph
 				return Node;
 			}
 
-			Node = new FCompoundNode(Point, Origin, Nodes.Num());
-			Nodes.Add(Node);
+			Node = Nodes.Add_GetRef(MakeUnique<FCompoundNode>(Point, Origin, Nodes.Num())).Get();
 			PointsCompounds->New(IOIndex, PointIndex);
 			GridTree.Add(GridKey, Node);
 
@@ -181,12 +176,10 @@ namespace PCGExGraph
 		if (NodeIndex != -1)
 		{
 			PointsCompounds->Add(NodeIndex, IOIndex, PointIndex);
-			return Nodes[NodeIndex];
+			return Nodes[NodeIndex].Get();
 		}
 
-		Node = new FCompoundNode(Point, Origin, Nodes.Num());
-
-		Nodes.Add(Node);
+		Node = Nodes.Add_GetRef(MakeUnique<FCompoundNode>(Point, Origin, Nodes.Num())).Get();
 		Octree->AddElement(Node);
 		PointsCompounds->New(IOIndex, PointIndex);
 
@@ -213,7 +206,7 @@ namespace PCGExGraph
 
 		{
 			FReadScopeLock ReadLockEdges(EdgesLock);
-			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex]; }
+			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex].Get(); }
 		}
 
 		if (EdgeIdx)
@@ -225,7 +218,7 @@ namespace PCGExGraph
 		{
 			FWriteScopeLock WriteLockEdges(EdgesLock);
 
-			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex]; }
+			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex].Get(); }
 
 			if (EdgeIdx)
 			{
@@ -255,7 +248,7 @@ namespace PCGExGraph
 		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
 		if (const FIndexedEdge* Edge = Edges.Find(H))
 		{
-			EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex];
+			EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex].Get();
 			EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
 		}
 		else
@@ -270,7 +263,7 @@ namespace PCGExGraph
 	void FCompoundGraph::GetUniqueEdges(TSet<uint64>& OutEdges)
 	{
 		OutEdges.Empty(Nodes.Num() * 4);
-		for (const FCompoundNode* Node : Nodes)
+		for (const TUniquePtr<FCompoundNode>& Node : Nodes)
 		{
 			for (const int32 OtherNodeIndex : Node->Adjacency)
 			{
@@ -282,7 +275,7 @@ namespace PCGExGraph
 
 	void FCompoundGraph::WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata)
 	{
-		for (const FCompoundNode* Node : Nodes)
+		for (const TUniquePtr<FCompoundNode>& Node : Nodes)
 		{
 			FGraphNodeMetadata* NodeMeta = FGraphNodeMetadata::GetOrCreate(Node->Index, OutMetadata);
 			NodeMeta->CompoundSize = Node->Adjacency.Num();
@@ -453,7 +446,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::BlendIntersection);
 
-		const FEECrossing* Crossing = Crossings[Index];
+		const TUniquePtr<FEECrossing>& Crossing = Crossings[Index];
 
 		const int32 Target = Graph->Nodes[Crossing->NodeIndex].PointIndex;
 		Blender->PrepareForBlending(Target);

@@ -70,7 +70,7 @@ namespace PCGExDataBlending
 		const int32 SecondaryIndex = B.Index;
 
 		const bool IsFirstOperation = FirstPointOperation[PrimaryIndex];
-		for (const FDataBlendingOperationBase* Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
+		for (const TUniquePtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
 		FirstPointOperation[PrimaryIndex] = false;
 
 		if (bSkipProperties) { return; }
@@ -129,20 +129,13 @@ namespace PCGExDataBlending
 		FirstPointOperation.Empty();
 		OperationIdMap.Empty();
 
-		PropertiesBlender = nullptr;
-
-		PCGEX_DELETE_TARRAY(Operations)
-
-		OperationsToBePrepared.Empty();
-		OperationsToBeCompleted.Empty();
-
 		PrimaryPoints = nullptr;
 		SecondaryPoints = nullptr;
 	}
 
 	void FMetadataBlender::InternalPrepareForData(
-		TSharedPtr<PCGExData::FFacade> InPrimaryFacade,
-		TSharedPtr<PCGExData::FFacade> InSecondaryFacade,
+		const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
+		const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
 		const TSet<FName>* IgnoreAttributeSet,
@@ -219,17 +212,17 @@ namespace PCGExDataBlending
 
 			const EPCGExDataBlendingType* TypePtr = BlendingDetails->AttributesOverrides.Find(Identity.Name);
 
-			FDataBlendingOperationBase* Op;
+			TUniquePtr<FDataBlendingOperationBase> Op;
 			if (PCGEx::IsPCGExAttribute(Identity.Name)) { Op = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
 			else { Op = CreateOperation(TypePtr, BlendingDetails->DefaultBlending, Identity); }
 
 			if (!Op) { continue; }
 
-			OperationIdMap.Add(Identity.Name, Op);
+			OperationIdMap.Add(Identity.Name, Op.Get());
 
-			Operations.Add(Op);
-			if (Op->GetRequiresPreparation()) { OperationsToBePrepared.Add(Op); }
-			if (Op->GetRequiresFinalization()) { OperationsToBeCompleted.Add(Op); }
+			Operations.Add(MoveTemp(Op));
+			if (Op->GetRequiresPreparation()) { OperationsToBePrepared.Add(Op.Get()); }
+			if (Op->GetRequiresFinalization()) { OperationsToBeCompleted.Add(Op.Get()); }
 
 			if (bSoftMode) { Op->SoftPrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource); }
 			else { Op->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource); }

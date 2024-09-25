@@ -6,8 +6,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
 #include "Paths/Smoothing/PCGExMovingAverageSmoothing.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSmoothElement"
@@ -81,7 +79,6 @@ namespace PCGExSmooth
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(MetadataBlender)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -92,14 +89,12 @@ namespace PCGExSmooth
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		
-		
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		NumPoints = PointIO->GetNum();
 
-		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
-		MetadataBlender->PrepareForData(PointDataFacade.Get());
+		MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
+		MetadataBlender->PrepareForData(PointDataFacade);
 
 		if (Settings->InfluenceType == EPCGExFetchType::Attribute)
 		{
@@ -144,12 +139,12 @@ namespace PCGExSmooth
 		if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
 			(Settings->bPreserveStart && Index == 0))
 		{
-			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender, bClosedLoop);
+			TypedOperation->SmoothSingle(PointIO.Get(), PtRef, LocalSmoothing, 0, MetadataBlender.Get(), bClosedLoop);
 			return;
 		}
 
 		const double LocalInfluence = Influence ? Influence->Read(Index) : Settings->InfluenceConstant;
-		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, LocalInfluence, MetadataBlender, bClosedLoop);
+		TypedOperation->SmoothSingle(PointIO.Get(), PtRef, LocalSmoothing, LocalInfluence, MetadataBlender.Get(), bClosedLoop);
 	}
 
 	void FProcessor::CompleteWork()

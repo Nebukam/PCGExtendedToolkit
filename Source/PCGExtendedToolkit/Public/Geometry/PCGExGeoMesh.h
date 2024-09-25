@@ -9,8 +9,6 @@
 #include "PCGExMath.h"
 
 
-
-
 //#include "PCGExGeoMesh.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Triangulation Type"))
@@ -277,7 +275,6 @@ namespace PCGExGeo
 
 		~FGeoStaticMesh()
 		{
-			PCGEX_CLEAN_SP(StaticMesh)
 		}
 	};
 
@@ -285,7 +282,7 @@ namespace PCGExGeo
 	{
 	public:
 		TMap<FSoftObjectPath, int32> Map;
-		TArray<FGeoStaticMesh*> GSMs;
+		TArray<TSharedPtr<FGeoStaticMesh>> GSMs;
 
 		EPCGExTriangulationType DesiredTriangulationType = EPCGExTriangulationType::Raw;
 
@@ -297,12 +294,8 @@ namespace PCGExGeo
 		{
 			if (const int32* GSMPtr = Map.Find(InPath)) { return *GSMPtr; }
 
-			FGeoStaticMesh* GSM = new FGeoStaticMesh(InPath);
-			if (!GSM->bIsValid)
-			{
-				PCGEX_DELETE(GSM);
-				return -1;
-			}
+			TSharedPtr<FGeoStaticMesh> GSM = MakeShared<FGeoStaticMesh>(InPath);
+			if (!GSM->bIsValid) { return -1; }
 
 			const int32 Index = GSMs.Add(GSM);
 			GSM->DesiredTriangulationType = DesiredTriangulationType;
@@ -310,12 +303,10 @@ namespace PCGExGeo
 			return Index;
 		}
 
-		FGeoStaticMesh* GetMesh(const int32 Index) { return GSMs[Index]; }
+		TSharedPtr<FGeoStaticMesh> GetMesh(const int32 Index) { return GSMs[Index]; }
 
 		~FGeoStaticMeshMap()
 		{
-			Map.Empty();
-			PCGEX_DELETE_TARRAY(GSMs)
 		}
 	};
 

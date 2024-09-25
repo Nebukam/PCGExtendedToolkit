@@ -78,9 +78,6 @@ namespace PCGExOffsetPath
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(OffsetGetter)
-		PCGEX_DELETE(UpGetter)
-
 		Positions.Empty();
 		Normals.Empty();
 	}
@@ -138,7 +135,7 @@ namespace PCGExOffsetPath
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		Normals[Iteration + 1] = PCGExMath::NRM(Iteration, Iteration + 1, Iteration + 2, Positions, UpGetter, UpConstant); // Offset by 1 because loop should be -1 / 0 / +1
+		Normals[Iteration + 1] = PCGExMath::NRM(Iteration, Iteration + 1, Iteration + 2, Positions, UpGetter.Get(), UpConstant); // Offset by 1 because loop should be -1 / 0 / +1
 	}
 
 	void FProcessor::CompleteWork()
@@ -148,13 +145,13 @@ namespace PCGExOffsetPath
 		// Update first & last Normals
 		if (bClosedLoop)
 		{
-			Normals[0] = PCGExMath::NRM(LastIndex, 0, 1, Positions, UpGetter, UpConstant);
-			Normals[LastIndex] = PCGExMath::NRM(NumPoints - 2, LastIndex, 0, Positions, UpGetter, UpConstant);
+			Normals[0] = PCGExMath::NRM(LastIndex, 0, 1, Positions, UpGetter.Get(), UpConstant);
+			Normals[LastIndex] = PCGExMath::NRM(NumPoints - 2, LastIndex, 0, Positions, UpGetter.Get(), UpConstant);
 		}
 		else
 		{
-			Normals[0] = PCGExMath::NRM(0, 0, 1, Positions, UpGetter, UpConstant);
-			Normals[LastIndex] = PCGExMath::NRM(NumPoints - 2, LastIndex, LastIndex, Positions, UpGetter, UpConstant);
+			Normals[0] = PCGExMath::NRM(0, 0, 1, Positions, UpGetter.Get(), UpConstant);
+			Normals[LastIndex] = PCGExMath::NRM(NumPoints - 2, LastIndex, LastIndex, Positions, UpGetter.Get(), UpConstant);
 		}
 
 		StartParallelLoopForPoints();

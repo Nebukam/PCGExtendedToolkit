@@ -132,7 +132,7 @@ namespace PCGExDataBlending
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
 		TUniquePtr<FPropertiesBlender> PropertiesBlender;
 		bool bSkipProperties = false;
-		TArray<FDataBlendingOperationBase*> Operations;
+		TArray<TUniquePtr<FDataBlendingOperationBase>> Operations;
 		TArray<FDataBlendingOperationBase*> OperationsToBePrepared;
 		TArray<FDataBlendingOperationBase*> OperationsToBeCompleted;
 
@@ -142,8 +142,8 @@ namespace PCGExDataBlending
 		TArray<bool> FirstPointOperation;
 
 		void InternalPrepareForData(
-			TSharedPtr<PCGExData::FFacade> InPrimaryFacade,
-			TSharedPtr<PCGExData::FFacade> InSecondaryFacade,
+			const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
+			const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
 			const PCGExData::ESource SecondarySource,
 			const bool bInitFirstOperation,
 			const TSet<FName>* IgnoreAttributeSet,

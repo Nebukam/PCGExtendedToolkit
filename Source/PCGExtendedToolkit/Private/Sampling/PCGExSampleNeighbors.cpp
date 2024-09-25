@@ -90,7 +90,6 @@ namespace PCGExSampleNeighbors
 	FProcessor::~FProcessor()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_OPERATION(Op) }
-		if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) }
 		SamplingOperations.Empty();
 	}
 
@@ -116,7 +115,7 @@ namespace PCGExSampleNeighbors
 			if (SamplingOperation->ValueFilters) { OpsWithValueTest.Add(SamplingOperation); }
 		}
 
-		ExpandedNodes = Cluster->ExpandedNodes.Get();
+		ExpandedNodes = Cluster->ExpandedNodes;
 
 		if (!ExpandedNodes)
 		{

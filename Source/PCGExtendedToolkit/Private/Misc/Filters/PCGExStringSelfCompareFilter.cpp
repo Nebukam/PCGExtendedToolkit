@@ -3,9 +3,6 @@
 
 #include "Misc/Filters/PCGExStringSelfCompareFilter.h"
 
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-
 
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
@@ -24,7 +21,7 @@ bool PCGExPointsFilter::TStringSelfComparisonFilter::Init(const FPCGContext* InC
 
 	if (MaxIndex < 0) { return false; }
 
-	OperandA = new PCGEx::FLocalToStringGetter();
+	OperandA = MakeUnique<PCGEx::FLocalToStringGetter>();
 	OperandA->Capture(TypedFilterFactory->Config.OperandA);
 
 	if (!OperandA->SoftGrab(PointDataFacade->Source))

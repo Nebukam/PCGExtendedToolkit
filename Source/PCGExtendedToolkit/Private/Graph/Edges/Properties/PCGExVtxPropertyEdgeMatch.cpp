@@ -29,8 +29,7 @@ void UPCGExVtxPropertyEdgeMatch::CopySettingsFrom(const UPCGExOperation* Other)
 void UPCGExVtxPropertyEdgeMatch::ClusterReserve(const int32 NumClusters)
 {
 	Super::ClusterReserve(NumClusters);
-	FilterManagers.SetNumUninitialized(NumClusters);
-	for (int i = 0; i < NumClusters; ++i) { FilterManagers[i] = nullptr; }
+	FilterManagers.SetNum(NumClusters);
 }
 
 void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, TSharedPtr<PCGExCluster::FCluster> Cluster, TSharedPtr<PCGExData::FFacade> VtxDataFacade, TSharedPtr<PCGExData::FFacade> EdgeDataFacade)
@@ -108,7 +107,6 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 
 void UPCGExVtxPropertyEdgeMatch::Cleanup()
 {
-	PCGEX_DELETE_TARRAY(FilterManagers)
 	Super::Cleanup();
 }
 

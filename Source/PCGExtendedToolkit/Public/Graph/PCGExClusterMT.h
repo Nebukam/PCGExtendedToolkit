@@ -48,7 +48,7 @@ namespace PCGExClusterMT
 		friend class FClusterProcessorBatchBase;
 
 	protected:
-		TSharedPtr<PCGExMT::FTaskManager> AsyncManager = nullptr;
+		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 		FPCGExContext* ExecutionContext = nullptr;
 
 		bool bBuildCluster = true;
@@ -88,7 +88,7 @@ namespace PCGExClusterMT
 
 		bool bIsProcessorValid = false;
 
-		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
+		TSharedPtr<PCGExHeuristics::THeuristicsHandler> HeuristicsHandler;
 
 		bool bIsTrivial = false;
 		bool bIsOneToOne = false;
@@ -104,7 +104,7 @@ namespace PCGExClusterMT
 
 		TSharedPtr<PCGExCluster::FCluster> Cluster;
 
-		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		FClusterProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
 			VtxIO(InVtx), EdgesIO(InEdges)
@@ -122,10 +122,6 @@ namespace PCGExClusterMT
 		virtual ~FClusterProcessor()
 		{
 			PCGEX_LOG_DTR(FClusterProcessor)
-			PCGEX_DELETE(HeuristicsHandler);
-
-			VtxIO = nullptr;
-			EdgesIO = nullptr;
 		}
 
 		bool IsTrivial() const { return bIsTrivial; }
@@ -165,7 +161,7 @@ namespace PCGExClusterMT
 			if (bRequiresHeuristics)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FClusterProcessor::Heuristics);
-				HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(ExecutionContext, VtxDataFacade, EdgeDataFacade);
+				HeuristicsHandler = MakeShared<PCGExHeuristics::THeuristicsHandler>(ExecutionContext, VtxDataFacade, EdgeDataFacade);
 				HeuristicsHandler->PrepareForCluster(Cluster.Get());
 				HeuristicsHandler->CompleteClusterPreparation();
 			}
@@ -381,7 +377,7 @@ namespace PCGExClusterMT
 		TArray<TSharedPtr<PCGExData::FPointIO>> Edges;
 		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
 
-		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
 		TArray<PCGExCluster::FCluster*> ValidClusters;
@@ -410,8 +406,6 @@ namespace PCGExClusterMT
 			Edges.Empty();
 			EndpointsLookup.Empty();
 			ExpectedAdjacency.Empty();
-
-			PCGEX_DELETE(GraphBuilder)
 		}
 
 		template <typename T>
@@ -428,7 +422,10 @@ namespace PCGExClusterMT
 			{
 				// Trivial
 				PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
-				if (RequiresGraphBuilder()) { GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(VtxDataFacade.Get(), &GraphBuilderDetails, 6, EdgeCollection); }
+				if (RequiresGraphBuilder())
+				{
+					GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade.Get(), &GraphBuilderDetails, 6, EdgeCollection);
+				}
 
 				OnProcessingPreparationComplete();
 			}
@@ -455,7 +452,7 @@ namespace PCGExClusterMT
 
 						if (RequiresGraphBuilder())
 						{
-							GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(VtxDataFacade.Get(), &GraphBuilderDetails, 6, EdgeCollection);
+							GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade.Get(), &GraphBuilderDetails, 6, EdgeCollection);
 						}
 
 						OnProcessingPreparationComplete();
@@ -536,10 +533,6 @@ namespace PCGExClusterMT
 
 		virtual ~TBatch() override
 		{
-			PCGEX_DELETE_TARRAY(Processors)
-			PCGEX_DELETE(GraphBuilder)
-
-			TrivialProcessors.Empty();
 		}
 
 		virtual void Process() override
@@ -643,18 +636,18 @@ namespace PCGExClusterMT
 		}
 	};
 
-	static void ScheduleBatch(PCGExMT::FTaskManager* Manager, FClusterProcessorBatchBase* Batch, const bool bScopedIndexLookupBuild)
+	static void ScheduleBatch(const TSharedPtr<PCGExMT::FTaskManager>& Manager, const TSharedPtr<FClusterProcessorBatchBase>& Batch, const bool bScopedIndexLookupBuild)
 	{
 		Manager->Start<FStartClusterBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch, bScopedIndexLookupBuild);
 	}
 
-	static void CompleteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<TUniquePtr<FClusterProcessorBatchBase>> Batches)
+	static void CompleteBatches(const TArrayView<TSharedPtr<FClusterProcessorBatchBase>> Batches)
 	{
-		for (const TUniquePtr<FClusterProcessorBatchBase>& Batch : Batches) { Batch->CompleteWork(); }
+		for (const TSharedPtr<FClusterProcessorBatchBase>& Batch : Batches) { Batch->CompleteWork(); }
 	}
 
-	static void WriteBatches(PCGExMT::FTaskManager* Manager, const TArrayView<TUniquePtr<FClusterProcessorBatchBase>> Batches)
+	static void WriteBatches(const TArrayView<TSharedPtr<FClusterProcessorBatchBase>> Batches)
 	{
-		for (const TUniquePtr<FClusterProcessorBatchBase>& Batch : Batches) { Batch->Write(); }
+		for (const TSharedPtr<FClusterProcessorBatchBase>& Batch : Batches) { Batch->Write(); }
 	}
 }

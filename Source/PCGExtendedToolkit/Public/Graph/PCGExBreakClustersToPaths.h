@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 
 
-
-
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExBreakClustersToPaths.generated.h"
@@ -74,7 +72,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsContext final : publ
 	virtual ~FPCGExBreakClustersToPathsContext() override;
 
 	TUniquePtr<PCGExData::FPointIOCollection> Paths;
-	TArray<PCGExCluster::FNodeChain*> Chains;
+	TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsElement final : public FPCGExEdgesProcessorElement
@@ -96,8 +94,7 @@ namespace PCGExBreakClustersToPaths
 	{
 		TArray<bool> Breakpoints;
 
-		TArray<PCGExCluster::FNodeChain*> Chains;
-
+		TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:

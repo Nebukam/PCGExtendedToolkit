@@ -7,8 +7,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"
 #define PCGEX_NAMESPACE BevelPath
 
@@ -35,9 +33,6 @@ void UPCGExBevelPathSettings::InitOutputFlags(const TSharedPtr<PCGExData::FPoint
 FPCGExBevelPathContext::~FPCGExBevelPathContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE_FACADE_AND_SOURCE(CustomProfileFacade)
-
 	CustomProfilePositions.Empty();
 }
 
@@ -54,17 +49,16 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->Type == EPCGExBevelProfileType::Custom)
 	{
-		PCGExData::FPointIO* CustomProfileIO = PCGExData::TryGetSingleInput(Context, PCGExBevelPath::SourceCustomProfile, true);
+		const TSharedPtr<PCGExData::FPointIO> CustomProfileIO = PCGExData::TryGetSingleInput(Context, PCGExBevelPath::SourceCustomProfile, true);
 		if (!CustomProfileIO) { return false; }
 
 		if (CustomProfileIO->GetNum() < 2)
 		{
-			PCGEX_DELETE(CustomProfileIO)
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Custom profile must have at least two points."));
 			return false;
 		}
 
-		Context->CustomProfileFacade = new PCGExData::FFacade(CustomProfileIO);
+		Context->CustomProfileFacade = MakeShared<PCGExData::FFacade>(CustomProfileIO);
 
 		const TArray<FPCGPoint>& ProfilePoints = CustomProfileIO->GetIn()->GetPoints();
 		PCGEX_SET_NUM_UNINITIALIZED(Context->CustomProfilePositions, ProfilePoints.Num())
@@ -97,7 +91,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 		bool bHasInvalidInputs = false;
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 3)
 				{
@@ -177,8 +171,8 @@ namespace PCGExBevelPath
 
 	void FBevel::Balance(const FProcessor* InProcessor)
 	{
-		const FBevel* PrevBevel = InProcessor->Bevels[ArriveIdx];
-		const FBevel* NextBevel = InProcessor->Bevels[LeaveIdx];
+		const TUniquePtr<FBevel>& PrevBevel = InProcessor->Bevels[ArriveIdx];
+		const TUniquePtr<FBevel>& NextBevel = InProcessor->Bevels[LeaveIdx];
 
 		double ArriveAlphaSum = ArriveAlpha;
 		double LeaveAlphaSum = LeaveAlpha;
@@ -280,7 +274,6 @@ namespace PCGExBevelPath
 
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_TARRAY(Bevels)
 		Lengths.Empty();
 		StartIndices.Empty();
 	}
@@ -290,8 +283,6 @@ namespace PCGExBevelPath
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelPath)
 
-		
-		
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
@@ -367,8 +358,7 @@ namespace PCGExBevelPath
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				if (!PointFilterCache[Index]) { return; }
-				FBevel* NewBevel = new FBevel(Index, this);
-				Bevels[Index] = NewBevel;
+				Bevels[Index] = MoveTemp(MakeUnique<FBevel>(Index, this)); // no need for SharedThis
 			}, PointIO->GetNum(), 64);
 
 		return true;
@@ -376,7 +366,7 @@ namespace PCGExBevelPath
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		FBevel* Bevel = Bevels[Index];
+		const TUniquePtr<FBevel>& Bevel = Bevels[Index];
 		if (!Bevel) { return; }
 
 		if (Settings->Limit == EPCGExBevelLimit::Balanced) { Bevel->Balance(this); }
@@ -387,7 +377,7 @@ namespace PCGExBevelPath
 	{
 		const int32 StartIndex = StartIndices[Iteration];
 
-		FBevel* Bevel = Bevels[Iteration];
+		const TUniquePtr<FBevel>& Bevel = Bevels[Iteration];
 		const FPCGPoint& OriginalPoint = PointIO->GetInPoint(Iteration);
 
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
@@ -427,7 +417,7 @@ namespace PCGExBevelPath
 
 	void FProcessor::WriteFlags(const int32 Index)
 	{
-		const FBevel* Bevel = Bevels[Index];
+		const TUniquePtr<FBevel>& Bevel = Bevels[Index];
 		if (!Bevel) { return; }
 
 		if (EndpointsWriter)
@@ -456,7 +446,7 @@ namespace PCGExBevelPath
 		{
 			StartIndices[i] = NumOutPoints;
 
-			if (FBevel* Bevel = Bevels[i])
+			if (const TUniquePtr<FBevel>& Bevel = Bevels[i])
 			{
 				NumBevels++;
 

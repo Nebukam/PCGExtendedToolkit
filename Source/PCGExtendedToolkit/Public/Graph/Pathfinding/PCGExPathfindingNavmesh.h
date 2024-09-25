@@ -132,8 +132,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : public
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
 
-	TUniquePtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
-	TUniquePtr<PCGExData::FDataForwardHandler> GoalForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> GoalForwardHandler;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement

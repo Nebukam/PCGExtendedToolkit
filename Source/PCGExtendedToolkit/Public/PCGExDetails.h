@@ -123,7 +123,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRemapDetails
 
 	~FPCGExRemapDetails()
 	{
-		PCGEX_CLEAN_SP(RemapCurveObj)
 	}
 
 	/** Whether or not to use only positive values to compute range.*/

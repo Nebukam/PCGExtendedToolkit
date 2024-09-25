@@ -349,18 +349,16 @@ namespace PCGExAssetCollection
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FCache
 	{
 		int32 WeightSum = 0;
-		FCategory* Main = nullptr;
-		TMap<FName, FCategory*> Categories;
+		TSharedPtr<FCategory> Main;
+		TMap<FName, TSharedPtr<FCategory>> Categories;
 
 		explicit FCache()
 		{
-			Main = new FCategory(NAME_None);
+			Main = MakeShared<FCategory>(NAME_None);
 		}
 
 		~FCache()
 		{
-			PCGEX_DELETE(Main)
-			PCGEX_DELETE_TMAP(Categories, FName)
 		}
 
 		void Compile();
@@ -596,26 +594,17 @@ protected:
 		const bool bBuildStaging = false) const
 	{
 		PCGEX_NEW_TRANSIENT(T, Collection)
-		FPCGAttributeAccessorKeysEntries* Keys = nullptr;
-
-		PCGEx::FAttributesInfos* Infos = nullptr;
-
-		auto Cleanup = [&]()
-		{
-			PCGEX_DELETE(Infos)
-			PCGEX_DELETE(Keys)
-		};
+		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys;
 
 		auto CreationFailed = [&]()
 		{
-			Cleanup();
 			PCGEX_DELETE_UOBJECT(Collection)
 			return nullptr;
 		};
 
 		const UPCGMetadata* Metadata = InAttributeSet->Metadata;
 
-		Infos = PCGEx::FAttributesInfos::Get(Metadata);
+		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
 		if (Infos->Attributes.IsEmpty()) { return CreationFailed(); }
 
 		const PCGEx::FAttributeIdentity* PathIdentity = Infos->Find(Details.AssetPathSourceAttribute);
@@ -655,9 +644,9 @@ protected:
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		Keys = new FPCGAttributeAccessorKeysEntries(Metadata);
+		Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Metadata);
 #else
-		Keys = new FPCGAttributeAccessorKeysEntries(Infos->Attributes[0]); // Probably not reliable, but make 5.3 compile -_-
+		Keys = MakeUnique<FPCGAttributeAccessorKeysEntries>(Infos->Attributes[0]); // Probably not reliable, but make 5.3 compile -_-
 #endif
 
 		const int32 NumEntries = Keys->GetNum();
@@ -685,14 +674,14 @@ protected:
 		}
 		else
 #endif
-			if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
-			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V)); })
-			}
-			else
-			{
-				PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
-			}
+		if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
+		{
+			PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V)); })
+		}
+		else
+		{
+			PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
+		}
 
 
 		// Weight value
@@ -728,8 +717,6 @@ protected:
 
 #undef PCGEX_FOREACH_COLLECTION_ENTRY
 
-		Cleanup();
-
 		if (bBuildStaging) { Collection->RebuildStagingData(false); }
 
 		return Collection;
@@ -761,7 +748,7 @@ namespace PCGExAssetCollection
 		UPCGExAssetCollection* Collection = nullptr;
 		FPCGExAssetDistributionDetails Details;
 
-		PCGExData::TBuffer<int32>* IndexGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> IndexGetter;
 
 		int32 MaxIndex = 0;
 		double MaxInputIndex = 0;

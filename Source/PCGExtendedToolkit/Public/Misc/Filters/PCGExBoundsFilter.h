@@ -9,8 +9,6 @@
 
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 
 #include "PCGExBoundsFilter.generated.h"
@@ -47,7 +45,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsFilterFactory : public UPCGExFilter
 
 public:
 	FPCGExBoundsFilterConfig Config;
-	PCGExData::FFacade* BoundsDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 	virtual bool Init(FPCGExContext* InContext) override;
 	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 
@@ -67,7 +65,7 @@ namespace PCGExPointsFilter
 
 		const UPCGExBoundsFilterFactory* TypedFilterFactory;
 
-		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
+		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;

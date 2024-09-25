@@ -5,35 +5,23 @@
 #include "Data/PCGExData.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-TUniquePtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const
+TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const
 {
-	return MakeUnique<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade);
+	return MakeShared<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade);
 }
 
-TUniquePtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
+TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
 {
 	InTargetDataFacade->Source->CreateOutKeys();
-	return MakeUnique<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade, InTargetDataFacade);
+	return MakeShared<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade, InTargetDataFacade);
 }
 
-TUniquePtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const
+TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const
 {
 	return bEnabled ? GetHandler(InSourceDataFacade) : nullptr;
 }
 
-TUniquePtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
+TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
 {
 	return bEnabled ? GetHandler(InSourceDataFacade, InTargetDataFacade) : nullptr;
 }

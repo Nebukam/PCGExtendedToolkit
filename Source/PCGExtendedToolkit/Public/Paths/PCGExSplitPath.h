@@ -119,7 +119,7 @@ namespace PCGExSplitPath
 		bool bClosedLoop = false;
 
 		TArray<FPath> Paths;
-		TArray<PCGExData::FPointIO*> PathsIOs;
+		TArray<TSharedPtr<PCGExData::FPointIO>> PathsIOs;
 
 		bool bWrapLastPath = false;
 		bool bAddOpenTag = false;

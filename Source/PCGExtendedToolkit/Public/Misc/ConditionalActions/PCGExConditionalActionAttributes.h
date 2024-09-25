@@ -10,8 +10,8 @@
 #include "PCGExFactoryProvider.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExOperation.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 #include "PCGExConditionalActionAttributes.generated.h"
 
@@ -44,9 +44,9 @@ public:
 
 protected:
 	TArray<FPCGMetadataAttributeBase*> SuccessAttributes;
-	TArray<PCGExData::FBufferBase*> SuccessWriters;
+	TArray<TSharedPtr<PCGExData::FBufferBase>> SuccessWriters;
 	TArray<FPCGMetadataAttributeBase*> FailAttributes;
-	TArray<PCGExData::FBufferBase*> FailWriters;
+	TArray<TSharedPtr<PCGExData::FBufferBase>> FailWriters;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

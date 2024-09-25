@@ -297,8 +297,8 @@ namespace PCGExPointsMT
 		bool bInlineCompletion = false;
 		bool bInlineWrite = false;
 		bool bRequiresWriteStep = false;
-		TArray<PCGExData::FFacade*> ProcessorFacades;
-		TMap<PCGExData::FPointIO*, FPointsProcessor*>* SubProcessorMap = nullptr;
+		TArray<TSharedPtr<PCGExData::FFacade>> ProcessorFacades;
+		TMap<PCGExData::FPointIO*, TSharedPtr<FPointsProcessor>>* SubProcessorMap = nullptr;
 
 		mutable FRWLock BatchLock;
 
@@ -355,8 +355,8 @@ namespace PCGExPointsMT
 	class TBatch : public FPointsProcessorBatchBase
 	{
 	public:
-		TArray<T*> Processors;
-		TArray<T*> TrivialProcessors;
+		TArray<TSharedPtr<T>> Processors;
+		TArray<TSharedPtr<T>> TrivialProcessors;
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
@@ -369,8 +369,6 @@ namespace PCGExPointsMT
 
 		virtual ~TBatch() override
 		{
-			TrivialProcessors.Empty();
-			PCGEX_DELETE_TARRAY(Processors)
 		}
 
 		void SetPointsFilterData(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
@@ -406,8 +404,8 @@ namespace PCGExPointsMT
 					continue;
 				}
 
-				ProcessorFacades.Add(NewProcessor->PointDataFacade.Get());
-				SubProcessorMap->Add(NewProcessor->PointDataFacade->Source, NewProcessor);
+				ProcessorFacades.Add(NewProcessor->PointDataFacade);
+				SubProcessorMap->Add(NewProcessor->PointDataFacade->Source.Get(), NewProcessor);
 
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
 				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }

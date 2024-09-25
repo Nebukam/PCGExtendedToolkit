@@ -76,9 +76,9 @@ namespace PCGExAssetCollection
 		Main->RegisterStaging(Index, InStaging);
 
 		// Register to sub categories
-		if (FCategory** CategoryPtr = Categories.Find(InStaging->Category); !CategoryPtr)
+		if (const TSharedPtr<FCategory>* CategoryPtr = Categories.Find(InStaging->Category); !CategoryPtr)
 		{
-			FCategory* Category = new FCategory(InStaging->Category);
+			const TSharedPtr<FCategory> Category = MakeShared<FCategory>(InStaging->Category);
 			Categories.Add(InStaging->Category, Category);
 			Category->RegisterStaging(Index, InStaging);
 		}
@@ -91,7 +91,7 @@ namespace PCGExAssetCollection
 	void FCache::Compile()
 	{
 		Main->Compile();
-		for (const TPair<FName, FCategory*>& Pair : Categories) { Pair.Value->Compile(); }
+		for (const TPair<FName, TSharedPtr<FCategory>>& Pair : Categories) { Pair.Value->Compile(); }
 	}
 }
 

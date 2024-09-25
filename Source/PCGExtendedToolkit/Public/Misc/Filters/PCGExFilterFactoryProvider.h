@@ -16,7 +16,7 @@
 #define PCGEX_CREATE_FILTER_FACTORY(_FILTERID)\
 UPCGExParamFactoryBase* UPCGEx##_FILTERID##FilterProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{\
 	UPCGEx##_FILTERID##FilterFactory* NewFactory = NewObject<UPCGEx##_FILTERID##FilterFactory>();\
-	Super::CreateFactory(InContext, InFactory); NewFactory->Config = Config; if(!NewFactory->Init(InContext)){ PCGEX_DELETE(NewFactory) };	return NewFactory; }
+	Super::CreateFactory(InContext, InFactory); NewFactory->Config = Config; if(!NewFactory->Init(InContext)){ PCGEX_DELETE_UOBJECT(NewFactory) };	return NewFactory; }
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterProviderSettings : public UPCGExFactoryProviderSettings

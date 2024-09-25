@@ -166,19 +166,19 @@ namespace PCGExPathSplineMesh
 		int32 C1 = 1;
 		int32 C2 = 2;
 
-		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
+		TUniquePtr<PCGExAssetCollection::FDistributionHelper> Helper;
 		FPCGExJustificationDetails Justification;
 
-		PCGExData::TBuffer<FVector>* ArriveReader = nullptr;
-		PCGExData::TBuffer<FVector>* LeaveReader = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveReader;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveReader;
 
-		PCGExData::TBuffer<int32>* WeightWriter = nullptr;
-		PCGExData::TBuffer<double>* NormalizedWeightWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PCGExData::TBuffer<FSoftObjectPath>* PathWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 #else
-		PCGExData::TBuffer<FString>* PathWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
 #endif
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;

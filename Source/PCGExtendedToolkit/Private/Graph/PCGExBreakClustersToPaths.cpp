@@ -4,10 +4,6 @@
 #include "Graph/PCGExBreakClustersToPaths.h"
 
 
-
-
-
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"
@@ -28,8 +24,6 @@ PCGEX_INITIALIZE_ELEMENT(BreakClustersToPaths)
 FPCGExBreakClustersToPathsContext::~FPCGExBreakClustersToPathsContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE_TARRAY(Chains)
 }
 
 bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
@@ -79,7 +73,6 @@ namespace PCGExBreakClustersToPaths
 	FProcessor::~FProcessor()
 	{
 		Breakpoints.Empty();
-		PCGEX_DELETE_TARRAY(Chains)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -95,7 +88,7 @@ namespace PCGExBreakClustersToPaths
 			return false;
 		}
 
-		const TUniquePtr<PCGExClusterFilter::TManager> FilterManager = MakeUnique<PCGExClusterFilter::TManager>(Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
+		const TUniquePtr<PCGExClusterFilter::TManager> FilterManager = MakeUnique<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
 		if (!Context->FilterFactories.IsEmpty() && FilterManager->Init(ExecutionContext, Context->FilterFactories))
 		{
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
@@ -136,7 +129,7 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExCluster::FNodeChain* Chain = Chains[Iteration];
+		const TSharedPtr<PCGExCluster::FNodeChain> Chain = Chains[Iteration];
 		if (!Chain) { return; }
 
 		const int32 ChainSize = Chain->Nodes.Num() + 2;
@@ -168,7 +161,7 @@ namespace PCGExBreakClustersToPaths
 		if (ChainSize < Settings->MinPointCount) { return; }
 		if (Settings->bOmitAbovePointCount && ChainSize > Settings->MaxPointCount) { return; }
 
-		const PCGExData::FPointIO* PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
 
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(ChainSize);
@@ -183,7 +176,7 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
-		const PCGExData::FPointIO* PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 

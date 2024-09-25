@@ -3,8 +3,8 @@
 
 #include "Misc/Filters/PCGExBoundsFilter.h"
 
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
-#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 
 
 #define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"
@@ -32,7 +32,6 @@ TSharedPtr<PCGExPointFilter::TFilter> UPCGExBoundsFilterFactory::CreateFilter() 
 
 void UPCGExBoundsFilterFactory::BeginDestroy()
 {
-	PCGEX_DELETE_FACADE_AND_SOURCE(BoundsDataFacade)
 	Super::BeginDestroy();
 }
 

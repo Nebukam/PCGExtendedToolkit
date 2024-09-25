@@ -23,7 +23,6 @@ PCGExData::EInit UPCGExBoundsClustersIntersectionSettings::GetEdgeOutputInitMode
 FPCGExBoundsClustersIntersectionContext::~FPCGExBoundsClustersIntersectionContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE_FACADE_AND_SOURCE(BoundsDataFacade)
 }
 
 PCGEX_INITIALIZE_ELEMENT(BoundsClustersIntersection)
@@ -34,10 +33,10 @@ bool FPCGExBoundsClustersIntersectionElement::Boot(FPCGExContext* InContext) con
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsClustersIntersection)
 
-	PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
+	TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
 	if (!BoundsIO) { return false; }
 
-	Context->BoundsDataFacade = new PCGExData::FFacade(BoundsIO);
+	Context->BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO);
 
 	return true;
 }

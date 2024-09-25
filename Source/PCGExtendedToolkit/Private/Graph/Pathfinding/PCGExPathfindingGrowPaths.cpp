@@ -181,14 +181,14 @@ namespace PCGExGrowPaths
 	void FGrowth::Init()
 	{
 		SeedNode = &(*Processor->Cluster->Nodes)[LastGrowthIndex];
-		GoalNode = new PCGExCluster::FNode();
+		GoalNode = MakeUnique<PCGExCluster::FNode>();
 		GoalNode->NodeIndex = Processor->Cluster->NodePositions.Add(Processor->Cluster->GetPos(SeedNode) + GrowthDirection * 100);
 		Metrics.Reset(Processor->Cluster->GetPos(SeedNode));
 	}
 
 	double FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge) const
 	{
-		return Processor->HeuristicsHandler->GetEdgeScore(From, To, Edge, *SeedNode, *GoalNode);
+		return Processor->HeuristicsHandler->GetEdgeScore(From, To, Edge, *SeedNode, *GoalNode.Get());
 	}
 }
 

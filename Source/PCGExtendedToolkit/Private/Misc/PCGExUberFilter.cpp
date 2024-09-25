@@ -8,8 +8,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExUberFilter"
 #define PCGEX_NAMESPACE UberFilter
 
@@ -28,9 +26,6 @@ PCGExData::EInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { retur
 FPCGExUberFilterContext::~FPCGExUberFilterContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(Inside)
-	PCGEX_DELETE(Outside)
 }
 
 PCGEX_INITIALIZE_ELEMENT(UberFilter)
@@ -53,8 +48,8 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 		return true;
 	}
 
-	Context->Inside = new PCGExData::FPointIOCollection(Context);
-	Context->Outside = new PCGExData::FPointIOCollection(Context);
+	Context->Inside = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->Outside = MakeUnique<PCGExData::FPointIOCollection>(Context);
 
 	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
@@ -131,8 +126,6 @@ namespace PCGExUberFilter
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		
-		
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
@@ -160,9 +153,9 @@ namespace PCGExUberFilter
 		Results->GetMutable(Index) = Settings->bSwap ? !PointFilterCache[Index] : PointFilterCache[Index];
 	}
 
-	PCGExData::FPointIO* FProcessor::CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const
+	TSharedPtr<PCGExData::FPointIO> FProcessor::CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const
 	{
-		PCGExData::FPointIO* NewPointIO = new PCGExData::FPointIO(ExecutionContext, PointIO);
+		TSharedPtr<PCGExData::FPointIO> NewPointIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointIO);
 		NewPointIO->DefaultOutputLabel = InCollection->DefaultOutputLabel;
 		NewPointIO->InitializeOutput(InitMode);
 		InCollection->Pairs[BatchIndex] = NewPointIO;
@@ -187,18 +180,18 @@ namespace PCGExUberFilter
 
 		if (NumInside == 0 || NumOutside == 0)
 		{
-			if (NumInside == 0) { Outside = CreateIO(Context->Outside, PCGExData::EInit::Forward); }
-			else { Inside = CreateIO(Context->Inside, PCGExData::EInit::Forward); }
+			if (NumInside == 0) { Outside = CreateIO(Context->Outside.Get(), PCGExData::EInit::Forward); }
+			else { Inside = CreateIO(Context->Inside.Get(), PCGExData::EInit::Forward); }
 			return;
 		}
 
 		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
 
-		Inside = CreateIO(Context->Inside, PCGExData::EInit::NewOutput);
+		Inside = CreateIO(Context->Inside.Get(), PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& InsidePoints = Inside->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(InsidePoints, NumInside)
 
-		Outside = CreateIO(Context->Outside, PCGExData::EInit::NewOutput);
+		Outside = CreateIO(Context->Outside.Get(), PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(OutsidePoints, NumOutside)
 

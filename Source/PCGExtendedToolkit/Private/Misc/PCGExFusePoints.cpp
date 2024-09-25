@@ -68,8 +68,6 @@ namespace PCGExFusePoints
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(CompoundGraph)
-		PCGEX_DELETE(CompoundPointsBlender)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -83,7 +81,7 @@ namespace PCGExFusePoints
 
 		PointIO->CreateInKeys();
 
-		CompoundGraph = new PCGExGraph::FCompoundGraph(
+		CompoundGraph = MakeUnique<PCGExGraph::FCompoundGraph>(
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			PointIO->GetIn()->GetBounds().ExpandBy(10));
 
@@ -111,7 +109,7 @@ namespace PCGExFusePoints
 		FPCGPoint& Point = MutablePoints[Iteration];
 		Point.MetadataEntry = Key; // Restore key
 
-		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, Context->MainPoints));
+		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, Context->MainPoints.Get()));
 		CompoundPointsBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
 	}
 
@@ -121,7 +119,7 @@ namespace PCGExFusePoints
 		const int32 NumCompoundNodes = CompoundGraph->Nodes.Num();
 		PointIO->InitializeNum(NumCompoundNodes);
 
-		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
+		CompoundPointsBlender = MakeUnique<PCGExDataBlending::FCompoundBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
 		CompoundPointsBlender->AddSource(PointDataFacade.Get());
 		CompoundPointsBlender->PrepareMerge(PointDataFacade.Get(), CompoundGraph->PointsCompounds);
 

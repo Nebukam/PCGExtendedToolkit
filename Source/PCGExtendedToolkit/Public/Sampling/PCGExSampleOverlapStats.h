@@ -7,8 +7,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
-
-
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 
 #include "Misc/PCGExDiscardByOverlap.h"
@@ -124,9 +124,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsContext final : public
 	virtual ~FPCGExSampleOverlapStatsContext() override;
 
 	mutable FRWLock OverlapLock;
-	TMap<uint64, PCGExSampleOverlapStats::FOverlap*> OverlapMap;
+	TMap<uint64, TSharedPtr<PCGExSampleOverlapStats::FOverlap>> OverlapMap;
 
-	PCGExSampleOverlapStats::FOverlap* RegisterOverlap(
+	TSharedPtr<PCGExSampleOverlapStats::FOverlap> RegisterOverlap(
 		PCGExSampleOverlapStats::FProcessor* InManager,
 		PCGExSampleOverlapStats::FProcessor* InManaged,
 		const FBox& InIntersection);
@@ -218,13 +218,13 @@ namespace PCGExSampleOverlapStats
 		FBox Bounds = FBox(ForceInit);
 
 		using TBoundsOctree = TOctree2<PCGExDiscardByOverlap::FPointBounds*, PCGExDiscardByOverlap::FPointBoundsSemantics>;
-		TBoundsOctree* Octree = nullptr;
+		TUniquePtr<TBoundsOctree> Octree;
 
-		TArray<PCGExDiscardByOverlap::FPointBounds*> LocalPointBounds;
+		TArray<TSharedPtr<PCGExDiscardByOverlap::FPointBounds>> LocalPointBounds;
 
 		mutable FRWLock RegistrationLock;
-		TArray<FOverlap*> Overlaps;
-		TArray<FOverlap*> ManagedOverlaps;
+		TArray<TSharedPtr<FOverlap>> Overlaps;
+		TArray<TSharedPtr<FOverlap>> ManagedOverlaps;
 
 		int32 NumPoints = 0;
 
@@ -246,14 +246,14 @@ namespace PCGExSampleOverlapStats
 		}
 
 		FORCEINLINE const FBox& GetBounds() const { return Bounds; }
-		FORCEINLINE const TArray<PCGExDiscardByOverlap::FPointBounds*>& GetPointBounds() const { return LocalPointBounds; }
-		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree; }
+		FORCEINLINE const TArray<TSharedPtr<PCGExDiscardByOverlap::FPointBounds>>& GetPointBounds() const { return LocalPointBounds; }
+		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree.Get(); }
 
 		//virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
 		virtual ~FProcessor() override;
 
-		FORCEINLINE void RegisterPointBounds(const int32 Index, PCGExDiscardByOverlap::FPointBounds* InPointBounds)
+		FORCEINLINE void RegisterPointBounds(const int32 Index, const TSharedPtr<PCGExDiscardByOverlap::FPointBounds>& InPointBounds)
 		{
 			Bounds += InPointBounds->Bounds.GetBox();
 			LocalPointBounds[Index] = InPointBounds;

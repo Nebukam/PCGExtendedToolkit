@@ -6,8 +6,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExSplitPathElement"
 #define PCGEX_NAMESPACE SplitPath
 
@@ -28,7 +26,7 @@ bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(UpdateTags)
 	Context->UpdateTags.Init();
-	
+
 	Context->MainPaths = new PCGExData::FPointIOCollection(Context);
 	Context->MainPaths->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
@@ -86,7 +84,6 @@ namespace PCGExSplitPath
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_TARRAY(PathsIOs)
 		Paths.Empty();
 	}
 
@@ -99,8 +96,6 @@ namespace PCGExSplitPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		
-		
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
@@ -165,7 +160,7 @@ namespace PCGExSplitPath
 
 		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
-		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(ExecutionContext, PointIO);
+		TSharedPtr<PCGExData::FPointIO> PathIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointIO);
 		PathIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		PathsIOs[Iteration] = PathIO;
 
@@ -203,7 +198,7 @@ namespace PCGExSplitPath
 
 	void FProcessor::Output()
 	{
-		for (PCGExData::FPointIO* PathIO : PathsIOs)
+		for (const TSharedPtr<PCGExData::FPointIO>& PathIO : PathsIOs)
 		{
 			if (!PathIO) { continue; }
 			if (bAddOpenTag) { Context->UpdateTags.Update(PathIO); }

@@ -52,9 +52,9 @@ namespace PCGExGraph
 	}
 
 	bool FCompoundProcessor::StartExecution(
-		FCompoundGraph* InCompoundGraph,
-		PCGExData::FFacade* InCompoundFacade,
-		const TArray<PCGExData::FFacade*>& InFacades,
+		const TSharedPtr<FCompoundGraph>& InCompoundGraph,
+		const TSharedPtr<PCGExData::FFacade>& InCompoundFacade,
+		const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades,
 		const FPCGExGraphBuilderDetails& InBuilderDetails,
 		const FPCGExCarryOverDetails* InCarryOverDetails)
 	{

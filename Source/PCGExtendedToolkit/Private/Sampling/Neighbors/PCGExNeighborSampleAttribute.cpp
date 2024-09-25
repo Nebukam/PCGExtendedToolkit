@@ -28,7 +28,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 {
 	Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 
-	PCGEX_DELETE(Blender)
+	Blender.Reset();
 	bIsValidOperation = false;
 
 	if (SourceAttributes.IsEmpty())
@@ -52,7 +52,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 		return;
 	}
 
-	Blender = new PCGExDataBlending::FMetadataBlender(&MetadataBlendingDetails);
+	Blender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&MetadataBlendingDetails);
 	Blender->bBlendProperties = false;
 	Blender->PrepareForData(InVtxDataFacade, GetSourceDataFacade(), PCGExData::ESource::In);
 
@@ -62,12 +62,12 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 void UPCGExNeighborSampleAttribute::FinalizeOperation()
 {
 	Super::FinalizeOperation();
-	PCGEX_DELETE(Blender)
+	Blender.Reset();
 }
 
 void UPCGExNeighborSampleAttribute::Cleanup()
 {
-	PCGEX_DELETE(Blender)
+	Blender.Reset();
 	Super::Cleanup();
 }
 

@@ -124,10 +124,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : public FPC
 
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-	PCGExData::FFacade* CompoundFacade = nullptr;
+	TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
+	TSharedPtr<PCGExData::FFacade> CompoundFacade;
 
-	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
+	TUniquePtr<PCGExGraph::FCompoundProcessor> CompoundProcessor;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersElement final : public FPCGExPathProcessorElement
@@ -152,7 +152,7 @@ namespace PCGExPathToClusters
 		bool bClosedLoop = false;
 
 	public:
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		explicit FNonFusingProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
 			: TPointsProcessor(InPoints)
@@ -180,7 +180,7 @@ namespace PCGExPathToClusters
 		const TArray<FPCGPoint>* InPoints = nullptr;
 
 	public:
-		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+		TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
 
 		explicit FFusingProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
 			: TPointsProcessor(InPoints)

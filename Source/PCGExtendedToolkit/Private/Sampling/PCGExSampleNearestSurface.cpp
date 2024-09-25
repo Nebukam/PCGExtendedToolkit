@@ -6,8 +6,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 #include "Engine/OverlapResult.h"
 #endif
@@ -45,7 +43,7 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 	if (Context->bUseInclude)
 	{
 		PCGEX_VALIDATE_NAME(Settings->ActorReference)
-		
+
 		const TSharedPtr<PCGExData::FPointIO> ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
 		if (!ActorRefIO) { return false; }
 
@@ -115,14 +113,13 @@ namespace PCGExSampleNearestSurface
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(SurfacesForward)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestSurface::Process);
 
-		SurfacesForward = Context->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(Context->ActorReferenceDataFacade.Get(), PointDataFacade.Get()) : nullptr;
+		SurfacesForward = Context->bUseInclude ? Settings->AttributesForwarding.TryGetHandler(Context->ActorReferenceDataFacade, PointDataFacade) : nullptr;
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
@@ -174,7 +171,6 @@ namespace PCGExSampleNearestSurface
 
 		if (!PointFilterCache[Index])
 		{
-			
 			if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(); }
 			return;
 		}
@@ -253,7 +249,7 @@ namespace PCGExSampleNearestSurface
 					else
 					{
 						UPhysicalMaterial* PhysMat = HitComp->GetBodyInstance()->GetSimplePhysicalMaterial();
-						
+
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
 						PCGEX_OUTPUT_VALUE(ActorReference, Index, HitComp->GetOwner()->GetPathName())
 						if (PhysMat) { PCGEX_OUTPUT_VALUE(PhysMat, Index, PhysMat->GetPathName()) }
