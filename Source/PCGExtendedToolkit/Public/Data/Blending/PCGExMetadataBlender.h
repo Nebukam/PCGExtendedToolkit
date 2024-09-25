@@ -11,15 +11,6 @@
 #include "PCGExPropertiesBlender.h"
 
 
-
-
-
-
-
-
-
-
-
 namespace PCGExDataBlending
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FMetadataBlender final
@@ -67,7 +58,7 @@ namespace PCGExDataBlending
 		FORCEINLINE void Blend(const PCGExData::FPointRef& A, const PCGExData::FPointRef& B, const PCGExData::FPointRef& Target, const double Weight)
 		{
 			const bool IsFirstOperation = FirstPointOperation[Target.Index];
-			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(A.Index, B.Index, Target.Index, Weight, IsFirstOperation); }
+			for (const TUniquePtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoOperation(A.Index, B.Index, Target.Index, Weight, IsFirstOperation); }
 			FirstPointOperation[Target.Index] = false;
 			if (bSkipProperties) { return; }
 			PropertiesBlender->Blend(*A.Point, *B.Point, Target.MutablePoint(), Weight);
@@ -76,7 +67,7 @@ namespace PCGExDataBlending
 		FORCEINLINE void Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight)
 		{
 			const bool IsFirstOperation = FirstPointOperation[TargetIndex];
-			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(PrimaryIndex, SecondaryIndex, TargetIndex, Weight, IsFirstOperation); }
+			for (const TUniquePtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoOperation(PrimaryIndex, SecondaryIndex, TargetIndex, Weight, IsFirstOperation); }
 			FirstPointOperation[TargetIndex] = false;
 			if (bSkipProperties) { return; }
 			PropertiesBlender->Blend(*(PrimaryPoints->GetData() + PrimaryIndex), *(SecondaryPoints->GetData() + SecondaryIndex), (*PrimaryPoints)[TargetIndex], Weight);
@@ -114,7 +105,7 @@ namespace PCGExDataBlending
 
 		FORCEINLINE void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight, const bool bIsFirstOperation = false)
 		{
-			for (const FDataBlendingOperationBase* Op : Operations) { Op->DoOperation(A.MetadataEntry, B.MetadataEntry, Target.MetadataEntry, Weight, bIsFirstOperation); }
+			for (const TUniquePtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoOperation(A.MetadataEntry, B.MetadataEntry, Target.MetadataEntry, Weight, bIsFirstOperation); }
 			if (bSkipProperties) { return; }
 			PropertiesBlender->Blend(A, B, Target, Weight);
 		}

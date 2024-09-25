@@ -62,7 +62,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : public 
 
 	virtual ~FPCGExBuildConvexHull2DContext() override;
 
-	TUniquePtr<PCGExData::FPointIOCollection> PathsIO;
+	TSharedPtr<PCGExData::FPointIOCollection> PathsIO;
 
 	void BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const;
 };

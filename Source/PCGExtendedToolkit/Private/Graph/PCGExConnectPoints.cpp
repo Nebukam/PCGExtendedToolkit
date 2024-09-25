@@ -135,7 +135,7 @@ namespace PCGExConnectPoints
 		if (Settings->bProjectPoints)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			ProjectionDetails.Init(ExecutionContext, PointDataFacade.Get());
+			ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 		}
 
 		for (const UPCGExProbeFactoryBase* Factory : Context->ProbeFactories)
@@ -335,10 +335,10 @@ namespace PCGExConnectPoints
 
 	void FProcessor::CompleteWork()
 	{
-		for (const TSharedPtr<TSet<uint64>>& EdgesSet : DistributedEdgesSet)
+		for (TSharedPtr<TSet<uint64>>& EdgesSet : DistributedEdgesSet)
 		{
 			GraphBuilder->Graph->InsertEdgesUnsafe(*EdgesSet, -1);
-			delete EdgesSet;
+			EdgesSet.Reset();
 		}
 
 		DistributedEdgesSet.Empty();

@@ -4,8 +4,6 @@
 #include "Graph/PCGExBuildConvexHull2D.h"
 
 
-
-
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
@@ -36,7 +34,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
-	Context->PathsIO = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->PathsIO = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	return true;
@@ -56,7 +54,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConvexHull2D::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 3)
 				{
@@ -95,7 +93,7 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 	const TArray<PCGExGraph::FIndexedEdge>& Edges = GraphBuilder->Graph->Edges;
 
 	const TArray<FPCGPoint>& InPoints = GraphBuilder->NodeDataFacade->GetIn()->GetPoints();
-	const PCGExData::FPointIO* PathIO = PathsIO->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetIn(), PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = PathsIO->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetIn(), PCGExData::EInit::NewOutput);
 
 	TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
 	TSet<int32> VisitedEdges;
@@ -153,7 +151,7 @@ namespace PCGExConvexHull2D
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(ExecutionContext, PointDataFacade.Get());
+		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 
 		// Build delaunay
 

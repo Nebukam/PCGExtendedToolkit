@@ -33,6 +33,7 @@ public:
 		const FPCGExNodeSelectionDetails* SeedSelection,
 		const FVector& GoalPosition,
 		const FPCGExNodeSelectionDetails* GoalSelection,
-		PCGExHeuristics::THeuristicsHandler* Heuristics,
-		TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) const override;
+		const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics,
+		TArray<int32>& OutPath,
+		const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const override;
 };

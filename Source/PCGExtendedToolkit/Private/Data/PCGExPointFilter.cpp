@@ -4,9 +4,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
-
 #include "Graph/PCGExCluster.h"
 
 TSharedPtr<PCGExPointFilter::TFilter> UPCGExFilterFactoryBase::CreateFilter() const
@@ -50,11 +47,7 @@ namespace PCGExPointFilter
 		{
 			TSharedPtr<TFilter> NewFilter = Factory->CreateFilter();
 			NewFilter->bCacheResults = bCacheResultsPerFilter;
-			if (!InitFilter(InContext, NewFilter))
-			{
-				delete NewFilter;
-				continue;
-			}
+			if (!InitFilter(InContext, NewFilter)) { continue; }
 			ManagedFilters.Add(NewFilter);
 		}
 

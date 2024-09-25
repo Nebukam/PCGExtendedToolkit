@@ -50,8 +50,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterContext final : public FPCGExP
 
 	FPCGExCarryOverDetails Filters;
 
-	TUniquePtr<PCGExData::FPointIOCollection> Inside;
-	TUniquePtr<PCGExData::FPointIOCollection> Outside;
+	TSharedPtr<PCGExData::FPointIOCollection> Inside;
+	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterElement final : public FPCGExPointsProcessorElement

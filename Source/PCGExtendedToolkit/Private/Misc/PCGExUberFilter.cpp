@@ -48,8 +48,8 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 		return true;
 	}
 
-	Context->Inside = MakeUnique<PCGExData::FPointIOCollection>(Context);
-	Context->Outside = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
@@ -82,7 +82,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>* NewBatch)
 			{
 			},

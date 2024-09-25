@@ -4,8 +4,6 @@
 #include "Graph/PCGExBuildDelaunayGraph.h"
 
 
-
-
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
@@ -41,7 +39,7 @@ bool FPCGExBuildDelaunayGraphElement::Boot(FPCGExContext* InContext) const
 	if (Settings->bOutputSites)
 	{
 		if (Settings->bMarkSiteHull) { PCGEX_VALIDATE_NAME(Settings->SiteHullAttributeName) }
-		Context->MainSites = MakeUnique<PCGExData::FPointIOCollection>(Context);
+		Context->MainSites = MakeShared<PCGExData::FPointIOCollection>(Context);
 		Context->MainSites->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
 		Context->MainSites->Pairs.Init(nullptr, Context->MainPoints->Num());
 	}
@@ -63,7 +61,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 4)
 				{
@@ -142,7 +140,7 @@ namespace PCGExBuildDelaunay
 			else { AsyncManager->Start<FOutputDelaunaySites>(BatchIndex, PointIO, this); }
 		}
 
-		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 		GraphBuilder->CompileAsync(AsyncManager, false);
 
@@ -181,10 +179,10 @@ namespace PCGExBuildDelaunay
 
 	bool FOutputDelaunaySites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		FPCGExBuildDelaunayGraphContext* Context = ManagerPtr->GetContext<FPCGExBuildDelaunayGraphContext>();
+		FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
-		PCGExData::FPointIO* SitesIO = new PCGExData::FPointIO(Context, PointIO);
+		const TSharedPtr<PCGExData::FPointIO> SitesIO = MakeShared<PCGExData::FPointIO>(Context, PointIO);
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
@@ -211,7 +209,7 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
+			const TSharedPtr<PCGEx::TAttributeWriter<bool>> HullWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
 			PCGExMT::Write(ManagerPtr, HullWriter);
@@ -222,10 +220,10 @@ namespace PCGExBuildDelaunay
 
 	bool FOutputDelaunayUrquhartSites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		FPCGExBuildDelaunayGraphContext* Context = ManagerPtr->GetContext<FPCGExBuildDelaunayGraphContext>();
+		FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
-		PCGExData::FPointIO* SitesIO = new PCGExData::FPointIO(Context, PointIO);
+		const TSharedPtr<PCGExData::FPointIO> SitesIO = MakeShared<PCGExData::FPointIO>(Context, PointIO);
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
@@ -252,7 +250,7 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bMarkSiteHull)
 		{
-			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
+			const TSharedPtr<PCGEx::TAttributeWriter<bool>> HullWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
 			PCGExMT::Write(ManagerPtr, HullWriter);

@@ -8,18 +8,10 @@
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExDataBlending.h"
-
-
-
-
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 
 #include "PCGExAttributeRolling.generated.h"
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type"))
 enum class EPCGExRollingTriggerMode : uint8

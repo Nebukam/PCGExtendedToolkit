@@ -32,7 +32,7 @@ bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-	Context->Paths = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	return true;
@@ -50,8 +50,8 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExBreakClustersToPaths::FProcessorBatch>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExBreakClustersToPaths::FProcessorBatch* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExBreakClustersToPaths::FProcessorBatch>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

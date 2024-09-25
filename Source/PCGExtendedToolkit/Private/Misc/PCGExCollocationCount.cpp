@@ -42,7 +42,7 @@ bool FPCGExCollocationCountElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExCollocationCount::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExCollocationCount::FProcessor>* NewBatch)
 			{
 			},

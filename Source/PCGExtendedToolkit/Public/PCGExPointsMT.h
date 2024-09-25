@@ -26,19 +26,19 @@ namespace PCGExPointsMT
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Inlined) \
 		_ID##Inlined->StartRanges( \
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { \
-				T* Processor = Processors[Index]; _BODY \
+				const TSharedPtr<T>& Processor = Processors[Index]; _BODY \
 			}, Processors.Num(), 1, true, false);\
 	} else {\
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##NonTrivial)\
 		_ID##NonTrivial->StartRanges(\
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) {\
-				T* Processor = Processors[Index];\
+				const TSharedPtr<T>& Processor = Processors[Index];\
 				if (Processor->IsTrivial()) { return; } _BODY \
 			}, Processors.Num(), 1, false, false); \
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Trivial) \
 		_ID##Trivial->StartRanges(\
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx){ \
-				T* Processor = TrivialProcessors[Index]; _BODY \
+				const TSharedPtr<T>& Processor = TrivialProcessors[Index]; _BODY \
 			}, TrivialProcessors.Num(), 32, false, false); \
 	}
 
@@ -418,7 +418,7 @@ namespace PCGExPointsMT
 			PCGEX_ASYNC_MT_LOOP_TPL(Process, bInlineProcessing, { Processor->bIsProcessorValid = Processor->Process(AsyncManager); })
 		}
 
-		virtual bool PrepareSingle(T* PointsProcessor)
+		virtual bool PrepareSingle(const TSharedPtr<T>& PointsProcessor)
 		{
 			return true;
 		};
@@ -439,7 +439,7 @@ namespace PCGExPointsMT
 
 		virtual void Output() override
 		{
-			for (T* Processor : Processors)
+			for (const TSharedPtr<T>& Processor : Processors)
 			{
 				if (!Processor->bIsProcessorValid) { continue; }
 				Processor->Output();

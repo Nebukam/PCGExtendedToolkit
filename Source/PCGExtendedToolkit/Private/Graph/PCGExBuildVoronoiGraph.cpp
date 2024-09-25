@@ -47,7 +47,7 @@ bool FPCGExBuildVoronoiGraphElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	Context->SitesOutput = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->SitesOutput = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->SitesOutput->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
 
 	return true;
@@ -67,7 +67,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildVoronoi::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 4)
 				{

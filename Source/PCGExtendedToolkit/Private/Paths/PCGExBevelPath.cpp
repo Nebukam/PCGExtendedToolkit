@@ -281,8 +281,6 @@ namespace PCGExBevelPath
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelPath::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelPath)
-
 
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
@@ -435,8 +433,6 @@ namespace PCGExBevelPath
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelPath)
-
 		PCGEX_SET_NUM_UNINITIALIZED(StartIndices, PointIO->GetNum())
 
 		int32 NumBevels = 0;

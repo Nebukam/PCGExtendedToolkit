@@ -27,7 +27,7 @@ bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(UpdateTags)
 	Context->UpdateTags.Init();
 
-	Context->MainPaths = new PCGExData::FPointIOCollection(Context);
+	Context->MainPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainPaths->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
 	return true;
@@ -45,7 +45,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 		bool bHasInvalidInputs = false;
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
@@ -179,8 +179,6 @@ namespace PCGExSplitPath
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
-
 		if (Paths.IsEmpty()) { return; }
 
 		if (bClosedLoop)

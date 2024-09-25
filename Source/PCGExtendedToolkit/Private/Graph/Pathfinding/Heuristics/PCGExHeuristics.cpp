@@ -97,10 +97,10 @@ namespace PCGExHeuristics
 		for (const UPCGExHeuristicOperation* Op : Operations) { TotalStaticWeight += Op->WeightFactor; }
 	}
 
-	TUniquePtr<FLocalFeedbackHandler> THeuristicsHandler::MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster)
+	TSharedPtr<FLocalFeedbackHandler> THeuristicsHandler::MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster)
 	{
 		if (!LocalFeedbackFactories.IsEmpty()) { return nullptr; }
-		TUniquePtr<FLocalFeedbackHandler> NewLocalFeedbackHandler = MakeUnique<FLocalFeedbackHandler>();
+		TSharedPtr<FLocalFeedbackHandler> NewLocalFeedbackHandler = MakeShared<FLocalFeedbackHandler>();
 
 		for (const UPCGExHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
 		{

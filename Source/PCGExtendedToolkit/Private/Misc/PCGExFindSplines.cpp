@@ -41,7 +41,7 @@ bool FPCGExFindSplinesElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFindSplines::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExFindSplines::FProcessor>* NewBatch)
 			{
 			},

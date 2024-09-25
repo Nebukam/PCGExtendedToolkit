@@ -6,8 +6,6 @@
 #include "Data/Blending/PCGExCompoundBlender.h"
 
 
-
-
 #include "Graph/PCGExIntersections.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
@@ -45,7 +43,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFusePoints::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExFusePoints::FProcessor>* NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
@@ -74,8 +72,6 @@ namespace PCGExFusePoints
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFusePoints::Process);
 
-		
-		
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
@@ -102,26 +98,25 @@ namespace PCGExFusePoints
 	{
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
-		PCGExGraph::FCompoundNode* CompoundNode = CompoundGraph->Nodes[Iteration];
+		PCGExGraph::FCompoundNode* CompoundNode = CompoundGraph->Nodes[Iteration].Get();
 		PCGMetadataEntryKey Key = MutablePoints[Iteration].MetadataEntry;
 		MutablePoints[Iteration] = CompoundNode->Point; // Copy "original" point properties, in case there's only one
 
 		FPCGPoint& Point = MutablePoints[Iteration];
 		Point.MetadataEntry = Key; // Restore key
 
-		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, Context->MainPoints.Get()));
+		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds.Get(), Context->MainPoints.Get()));
 		CompoundPointsBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
 	}
 
 	void FProcessor::CompleteWork()
 	{
-
 		const int32 NumCompoundNodes = CompoundGraph->Nodes.Num();
 		PointIO->InitializeNum(NumCompoundNodes);
 
 		CompoundPointsBlender = MakeUnique<PCGExDataBlending::FCompoundBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
-		CompoundPointsBlender->AddSource(PointDataFacade.Get());
-		CompoundPointsBlender->PrepareMerge(PointDataFacade.Get(), CompoundGraph->PointsCompounds);
+		CompoundPointsBlender->AddSource(PointDataFacade);
+		CompoundPointsBlender->PrepareMerge(PointDataFacade, CompoundGraph->PointsCompounds);
 
 		StartParallelLoopForRange(NumCompoundNodes);
 	}

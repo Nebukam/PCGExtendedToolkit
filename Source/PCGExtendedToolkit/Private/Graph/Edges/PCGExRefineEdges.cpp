@@ -98,8 +98,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		if (Settings->bOutputOnlyEdgesAsPoints)
 		{
 			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>(
-				[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-				[&](PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>* NewBatch)
+				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+				[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>& NewBatch)
 				{
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 				},
@@ -112,8 +112,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		else
 		{
 			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>>(
-				[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-				[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>* NewBatch)
+				[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+				[&](const TSharedPtr<PCGExClusterMT::TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>>& NewBatch)
 				{
 					NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
@@ -157,14 +157,14 @@ namespace PCGExRefineEdges
 		Sanitization = Settings->Sanitization;
 
 		Refinement = Context->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
-		Refinement->PrepareForCluster(Cluster.Get(), HeuristicsHandler);
+		Refinement->PrepareForCluster(Cluster, HeuristicsHandler);
 
 		Refinement->EdgesFilters = &EdgeFilterCache;
 		EdgeFilterCache.Init(true, EdgeDataFacade->Source->GetNum());
 
 		if (!Context->EdgeFilterFactories.IsEmpty())
 		{
-			EdgeFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade.Get());
+			EdgeFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade);
 			if (!EdgeFilterManager->Init(ExecutionContext, Context->EdgeFilterFactories)) { return false; }
 		}
 		else
@@ -177,7 +177,7 @@ namespace PCGExRefineEdges
 		{
 			if (!Context->SanitizationFilterFactories.IsEmpty())
 			{
-				SanitizationFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade.Get());
+				SanitizationFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade);
 				if (!SanitizationFilterManager->Init(ExecutionContext, Context->SanitizationFilterFactories)) { return false; }
 			}
 		}

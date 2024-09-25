@@ -154,7 +154,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 	mutable FRWLock ContextLock;
 
-	TUniquePtr<PCGExData::FPointIOCollection> MainPoints;
+	TSharedPtr<PCGExData::FPointIOCollection> MainPoints;
 	TSharedPtr<PCGExData::FPointIO> CurrentIO;
 
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
@@ -277,7 +277,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 		MainBatch = MakeUnique<T>(this, BatchablePoints);
 		MainBatch->SubProcessorMap = &SubProcessorMap;
 
-		T* TypedBatch = static_cast<T*>(MainBatch);
+		T* TypedBatch = static_cast<T*>(MainBatch.Get());
 		InitBatch(TypedBatch);
 
 		if (Settings->SupportsPointFilters())

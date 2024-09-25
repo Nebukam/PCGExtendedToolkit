@@ -71,7 +71,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsContext final : publ
 
 	virtual ~FPCGExBreakClustersToPathsContext() override;
 
-	TUniquePtr<PCGExData::FPointIOCollection> Paths;
+	TSharedPtr<PCGExData::FPointIOCollection> Paths;
 	TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 };
 
@@ -112,7 +112,6 @@ namespace PCGExBreakClustersToPaths
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -122,7 +121,7 @@ namespace PCGExBreakClustersToPaths
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+		FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

@@ -4,13 +4,6 @@
 #include "Graph/PCGExCopyClustersToPoints.h"
 
 
-
-
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -58,8 +51,8 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		if (!Boot(Context)) { return true; }
 		if (!Context->StartProcessingClusters<PCGExCopyClusters::FBatch>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExCopyClusters::FBatch* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExCopyClusters::FBatch>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -95,7 +88,7 @@ namespace PCGExCopyClusters
 		for (int i = 0; i < NumTargets; ++i)
 		{
 			// Create an edge copy per target point
-			PCGExData::FPointIO* EdgeDupe = Context->MainEdges->Emplace_GetRef(EdgesIO, PCGExData::EInit::DuplicateInput);
+			TSharedPtr<PCGExData::FPointIO> EdgeDupe = Context->MainEdges->Emplace_GetRef(EdgesIO, PCGExData::EInit::DuplicateInput);
 
 			EdgesDupes[i] = EdgeDupe;
 			PCGExGraph::MarkClusterEdges(EdgeDupe, *(VtxTag->GetData() + i));
@@ -118,8 +111,8 @@ namespace PCGExCopyClusters
 
 		for (int i = 0; i < NumTargets; ++i)
 		{
-			PCGExData::FPointIO* VtxDupe = *(VtxDupes->GetData() + i);
-			PCGExData::FPointIO* EdgeDupe = EdgesDupes[i];
+			TSharedPtr<PCGExData::FPointIO> VtxDupe = *(VtxDupes->GetData() + i);
+			TSharedPtr<PCGExData::FPointIO> EdgeDupe = EdgesDupes[i];
 
 			UPCGExClusterEdgesData* EdgeDupeTypedData = Cast<UPCGExClusterEdgesData>(EdgeDupe->GetOut());
 			if (CachedCluster && EdgeDupeTypedData)
@@ -140,8 +133,6 @@ namespace PCGExCopyClusters
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
-		
-
 		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
 		const int32 NumTargets = Targets.Num();
 
@@ -151,7 +142,7 @@ namespace PCGExCopyClusters
 		for (int i = 0; i < NumTargets; ++i)
 		{
 			// Create a vtx copy per target point
-			PCGExData::FPointIO* VtxDupe = Context->MainPoints->Emplace_GetRef(VtxIO, PCGExData::EInit::DuplicateInput);
+			TSharedPtr<PCGExData::FPointIO> VtxDupe = Context->MainPoints->Emplace_GetRef(VtxIO, PCGExData::EInit::DuplicateInput);
 
 			FString OutId;
 			PCGExGraph::SetClusterVtx(VtxDupe, OutId);
@@ -165,7 +156,7 @@ namespace PCGExCopyClusters
 		TBatch<FProcessor>::Process();
 	}
 
-	bool FBatch::PrepareSingle(FProcessor* ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
 		if (!TBatch<FProcessor>::PrepareSingle(ClusterProcessor)) { return false; }
 		ClusterProcessor->VtxDupes = &VtxDupes;

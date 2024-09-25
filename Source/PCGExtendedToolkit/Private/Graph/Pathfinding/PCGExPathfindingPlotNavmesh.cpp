@@ -49,7 +49,7 @@ bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendOperation)
 
-	Context->OutputPaths = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	PCGEX_FWD(bAddSeedToPath)
 	PCGEX_FWD(bAddGoalToPath)
@@ -261,7 +261,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
 		Context->Blending->BlendSubPoints(
 			PCGExData::FPointRef(StartPoint, StartIndex), PCGExData::FPointRef(EndPoint, EndIndex),
-			View, MilestonesMetrics[i], TempBlender, StartIndex);
+			View, MilestonesMetrics[i], TempBlender.Get(), StartIndex);
 	}
 
 	PathDataFacade->Write(ManagerPtr);

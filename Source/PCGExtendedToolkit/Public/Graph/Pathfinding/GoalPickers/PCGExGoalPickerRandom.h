@@ -57,6 +57,6 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGExData::TBuffer<int32>* NumGoalsGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> NumGoalsGetter;
 	virtual void ApplyOverrides() override;
 };

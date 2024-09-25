@@ -6,6 +6,7 @@
 
 
 
+
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialNeighbors"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialNeighbors
 
@@ -23,7 +24,7 @@ void UPCGExVtxPropertySpecialNeighbors::CopySettingsFrom(const UPCGExOperation* 
 	}
 }
 
-bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, TSharedPtr<PCGExData::FFacade> InVtxDataFacade)
+bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade)
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
@@ -34,8 +35,8 @@ bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InConte
 		return false;
 	}
 
-	Config.LargestNeighbor.Init(InVtxDataFacade);
-	Config.SmallestNeighbor.Init(InVtxDataFacade);
+	Config.LargestNeighbor.Init(InVtxDataFacade.Get());
+	Config.SmallestNeighbor.Init(InVtxDataFacade.Get());
 
 	return bIsValidOperation;
 }

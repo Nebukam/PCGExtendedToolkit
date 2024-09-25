@@ -127,10 +127,10 @@ namespace PCGExSubdivide
 		TSet<FName> ProtectedAttributes;
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
-		PCGExData::TBuffer<bool>* FlagWriter = nullptr;
-		PCGExData::TBuffer<double>* AlphaWriter = nullptr;
-
-		PCGExData::TBuffer<double>* AmountGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
+		
+		TSharedPtr<PCGExData::TBuffer<double>> AmountGetter;
 
 		double ConstantAmount = 0;
 

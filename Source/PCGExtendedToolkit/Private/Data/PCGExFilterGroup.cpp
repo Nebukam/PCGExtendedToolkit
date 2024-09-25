@@ -4,22 +4,6 @@
 #include "Data/PCGExFilterGroup.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExFilterGroup
@@ -57,18 +41,14 @@ namespace PCGExFilterGroup
 		{
 			TSharedPtr<PCGExPointFilter::TFilter> NewFilter = ManagedFactory->CreateFilter();
 			NewFilter->bCacheResults = false;
-			if (!InitManagedFilter(InContext, NewFilter))
-			{
-				delete NewFilter;
-				continue;
-			}
+			if (!InitManagedFilter(InContext, NewFilter)) { continue; }
 			ManagedFilters.Add(NewFilter);
 		}
 
 		return PostInitManaged(InContext);
 	}
 
-	bool TFilterGroup::InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter)
+	bool TFilterGroup::InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter) const
 	{
 		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return Filter->Init(InContext, PointDataFacade); }
 
@@ -76,7 +56,7 @@ namespace PCGExFilterGroup
 		{
 			if (bInitForCluster)
 			{
-				TFilterGroup* FilterGroup = static_cast<TFilterGroup*>(Filter);
+				TFilterGroup* FilterGroup = static_cast<TFilterGroup*>(Filter.Get());
 				return FilterGroup->Init(InContext, Cluster, PointDataFacade, EdgeDataCache);
 			}
 
@@ -92,7 +72,7 @@ namespace PCGExFilterGroup
 				return false;
 			}
 
-			TFilter* ClusterFilter = static_cast<TFilter*>(Filter);
+			TFilter* ClusterFilter = static_cast<TFilter*>(Filter.Get());
 			return ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataCache);
 		}
 
@@ -111,7 +91,7 @@ namespace PCGExFilterGroup
 		// Update index & post-init
 		for (int i = 0; i < ManagedFilters.Num(); ++i)
 		{
-			PCGExPointFilter::TFilter* Filter = ManagedFilters[i];
+			TSharedPtr<PCGExPointFilter::TFilter> Filter = ManagedFilters[i];
 			Filter->FilterIndex = i;
 			PostInitManagedFilter(InContext, Filter);
 		}
@@ -119,7 +99,7 @@ namespace PCGExFilterGroup
 		return true;
 	}
 
-	void TFilterGroup::PostInitManagedFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter)
+	void TFilterGroup::PostInitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter)
 	{
 		InFilter->PostInit();
 	}

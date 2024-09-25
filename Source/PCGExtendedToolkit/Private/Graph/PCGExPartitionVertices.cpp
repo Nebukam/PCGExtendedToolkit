@@ -4,9 +4,6 @@
 #include "Graph/PCGExPartitionVertices.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -29,7 +26,7 @@ bool FPCGExPartitionVerticesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionVertices)
 
-	Context->VtxPartitions = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->VtxPartitions = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->VtxPartitions->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
 	return true;
@@ -46,8 +43,8 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExPartitionVertices::FProcessor>>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatch<PCGExPartitionVertices::FProcessor>* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExPartitionVertices::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -85,11 +82,8 @@ namespace PCGExPartitionVertices
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPartitionVertices::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionVertices)
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
-
-		
 
 		Cluster->NodeIndexLookup->Empty();
 

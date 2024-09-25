@@ -6,8 +6,6 @@
 #include "PCGExRandom.h"
 
 
-
-
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
@@ -42,7 +40,7 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	Context->SitesOutput = new PCGExData::FPointIOCollection(Context);
+	Context->SitesOutput = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->SitesOutput->DefaultOutputLabel = PCGExGraph::OutputSitesLabel;
 
 	return true;
@@ -62,7 +60,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 3)
 				{
@@ -110,7 +108,7 @@ namespace PCGExBuildVoronoi2D
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(ExecutionContext, PointDataFacade.Get());
+		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 
 		// Build voronoi
 
@@ -183,7 +181,7 @@ namespace PCGExBuildVoronoi2D
 			//ExtractValidSites();
 			Voronoi.Reset();
 
-			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 
 			ValidEdges.Empty();

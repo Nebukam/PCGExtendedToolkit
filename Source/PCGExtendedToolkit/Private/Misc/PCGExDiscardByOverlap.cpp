@@ -92,9 +92,9 @@ void FPCGExDiscardByOverlapContext::Prune()
 	TArray<PCGExDiscardByOverlap::FProcessor*> Remaining;
 	Remaining.Reserve(MainBatch->GetNumProcessors());
 
-	for (const TPair<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*> Pair : SubProcessorMap)
+	for (const TPair<PCGExData::FPointIO*, TSharedPtr<PCGExPointsMT::FPointsProcessor>> Pair : SubProcessorMap)
 	{
-		PCGExDiscardByOverlap::FProcessor* P = static_cast<PCGExDiscardByOverlap::FProcessor*>(Pair.Value);
+		PCGExDiscardByOverlap::FProcessor* P = static_cast<PCGExDiscardByOverlap::FProcessor*>(Pair.Value.Get());
 		if (!P->bIsProcessorValid) { continue; }
 
 		if (P->HasOverlaps())
@@ -172,7 +172,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>* NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true; // Not really but we need the step

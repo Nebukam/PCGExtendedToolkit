@@ -80,7 +80,7 @@ namespace PCGExSanitizeClusters
 	class FProcessorBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
 	{
 	public:
-		FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+		FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 			TBatchWithGraphBuilder<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

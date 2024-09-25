@@ -14,11 +14,6 @@
 
 
 
-
-
-
-
-
 #include "PCGExVtxPropertyFactoryProvider.generated.h"
 
 #define PCGEX_VTX_EXTRA_CREATE \
@@ -53,7 +48,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 	/** Name of the attribute to output the direction to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteDirection"))
 	FName DirectionAttribute = "Direction";
-	PCGExData::TBuffer<FVector>* DirWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> DirWriter;
 
 	/** Invert the direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteDirection"))
@@ -66,7 +61,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 	/** Name of the attribute to output the length to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteLength"))
 	FName LengthAttribute = "Length";
-	PCGExData::TBuffer<double>* LengthWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> LengthWriter;
 
 	virtual bool Validate(const FPCGContext* InContext) const
 	{
@@ -119,7 +114,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteEdgeIndex", DisplayAfter="bWriteEdgeIndex"))
 	FName EdgeIndexAttribute = "EdgeIndex";
-	PCGExData::TBuffer<int32>* EIdxWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> EIdxWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="EdgeIndexAttribute"))
@@ -128,7 +123,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteVtxIndex", DisplayAfter="bWriteVtxIndex"))
 	FName VtxIndexAttribute = "VtxIndex";
-	PCGExData::TBuffer<int32>* VIdxWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> VIdxWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="VtxIndexAttribute"))
@@ -137,7 +132,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteNeighborCount", DisplayAfter="bWriteNeighborCount"))
 	FName NeighborCountAttribute = "Count";
-	PCGExData::TBuffer<int32>* NCountWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> NCountWriter;
 
 	virtual bool Validate(const FPCGContext* InContext) const override
 	{
@@ -189,7 +184,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyOperation : public UPCGExOpera
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForVtx(const FPCGContext* InContext, TSharedPtr<PCGExData::FFacade> InVtxDataFacade);
+	virtual bool PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade);
 
 	virtual void ClusterReserve(const int32 NumClusters);
 	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, TSharedPtr<PCGExCluster::FCluster> Cluster, TSharedPtr<PCGExData::FFacade> VtxDataFacade, TSharedPtr<PCGExData::FFacade> EdgeDataFacade);

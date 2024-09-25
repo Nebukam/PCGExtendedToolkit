@@ -319,7 +319,7 @@ namespace PCGEx
 		}
 
 
-		static TUniquePtr<FAttributeAccessor> FindOrCreate(
+		static TSharedPtr<FAttributeAccessor> FindOrCreate(
 			UPCGPointData* InData, FName AttributeName,
 			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
@@ -327,10 +327,10 @@ namespace PCGEx
 				AttributeName, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 
-			return MakeUnique<FAttributeAccessor<T>>(InData, InAttribute);
+			return MakeShared<FAttributeAccessor<T>>(InData, InAttribute);
 		}
 
-		static TUniquePtr<FAttributeAccessor> FindOrCreate(
+		static TSharedPtr<FAttributeAccessor> FindOrCreate(
 			UPCGPointData* InData, FName AttributeName, FPCGAttributeAccessorKeysPoints* InKeys,
 			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
@@ -338,10 +338,10 @@ namespace PCGEx
 				AttributeName, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 
-			return MakeUnique<FAttributeAccessor<T>>(InData, InAttribute, InKeys);
+			return MakeShared<FAttributeAccessor<T>>(InData, InAttribute, InKeys);
 		}
 
-		static FAttributeAccessor* FindOrCreate(
+		static TSharedPtr<FAttributeAccessor> FindOrCreate(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO, FName AttributeName,
 			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
@@ -350,7 +350,7 @@ namespace PCGEx
 				AttributeName, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 
-			return new FAttributeAccessor<T>(InData, InAttribute, InPointIO->CreateOutKeys());
+			return MakeShared<FAttributeAccessor<T>>(InData, InAttribute, InPointIO->CreateOutKeys().Get());
 		}
 	};
 
@@ -375,12 +375,12 @@ namespace PCGEx
 			this->Keys = this->InternalKeys;
 		}
 
-		static FConstAttributeAccessor* Find(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const FName AttributeName)
+		static TSharedPtr<FConstAttributeAccessor> Find(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const FName AttributeName)
 		{
 			const UPCGPointData* InData = InPointIO->GetIn();
 			if (FPCGMetadataAttributeBase* InAttribute = InData->Metadata->GetMutableAttribute(AttributeName))
 			{
-				return new FConstAttributeAccessor(InData, InAttribute, InPointIO->GetInKeys());
+				return MakeShared<FConstAttributeAccessor>(InData, InAttribute, InPointIO->GetInKeys().Get());
 			}
 			return nullptr;
 		}
@@ -413,7 +413,7 @@ namespace PCGEx
 	{
 	public:
 		TArray<T> Values;
-		TUniquePtr<FAttributeAccessorBase<T>> Accessor;
+		TSharedPtr<FAttributeAccessorBase<T>> Accessor;
 
 		explicit TAttributeIO(const FName InName):
 			FAttributeIOBase(InName)
@@ -584,7 +584,7 @@ namespace PCGEx
 		bool bMinMaxDirty = true;
 		bool bNormalized = false;
 		FPCGAttributePropertyInputSelector FetchSelector;
-		TUniquePtr<IPCGAttributeAccessor> FetchAccessor;
+		TSharedPtr<IPCGAttributeAccessor> FetchAccessor;
 
 	public:
 		TAttributeGetter()
@@ -659,7 +659,7 @@ namespace PCGEx
 					[&](auto DummyValue) -> void
 					{
 						using RawT = decltype(DummyValue);
-						FetchAccessor = new FPCGAttributeAccessor<RawT>(static_cast<FPCGMetadataAttribute<RawT>*>(Attribute), InData->Metadata);
+						FetchAccessor = MakeShared<FPCGAttributeAccessor<RawT>>(static_cast<FPCGMetadataAttribute<RawT>*>(Attribute), InData->Metadata);
 					});
 			}
 
@@ -692,7 +692,7 @@ namespace PCGEx
 						TArray<RawT> RawValues;
 
 						PCGEx::InitMetadataArray(RawValues, Count);
-						FPCGAttributeAccessor<RawT>* Accessor = static_cast<FPCGAttributeAccessor<RawT>*>(FetchAccessor);
+						FPCGAttributeAccessor<RawT>* Accessor = static_cast<FPCGAttributeAccessor<RawT>*>(FetchAccessor.Get());
 						IPCGAttributeAccessorKeys* Keys = PointIO->CreateInKeys().Get();
 
 						TArrayView<RawT> RawView(RawValues);
@@ -774,7 +774,7 @@ namespace PCGEx
 						PCGEx::InitMetadataArray(RawValues, NumPoints);
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
-						FPCGAttributeAccessor<RawT>* Accessor = new FPCGAttributeAccessor<RawT>(TypedAttribute, InData->Metadata);
+						TUniquePtr<FPCGAttributeAccessor<RawT>> Accessor = MakeUnique<FPCGAttributeAccessor<RawT>>(TypedAttribute, InData->Metadata);
 						IPCGAttributeAccessorKeys* Keys = PointIO->CreateInKeys().Get();
 						TArrayView<RawT> View(RawValues);
 						Accessor->GetRange(View, 0, *Keys, PCGEX_AAFLAG);
@@ -795,7 +795,6 @@ namespace PCGEx
 						}
 
 						RawValues.Empty();
-						delete Accessor;
 					});
 
 				bValid = true;
@@ -1007,9 +1006,9 @@ namespace PCGEx
 
 	static void CopyValues(
 		TWeakPtr<PCGExMT::FTaskManager> AsyncManager,
-		FAttributeIdentity Identity,
-		const PCGExData::FPointIO* Source,
-		PCGExData::FPointIO* Target,
+		const FAttributeIdentity& Identity,
+		const TSharedPtr<PCGExData::FPointIO>& Source,
+		const TSharedPtr<PCGExData::FPointIO>& Target,
 		const TArrayView<const int32>& SourceIndices,
 		const int32 TargetIndex = 0)
 	{

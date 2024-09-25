@@ -7,6 +7,8 @@
 #include "PCGExHeuristicFeedback.h"
 #include "PCGExHeuristicsFactoryProvider.h"
 
+
+
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 
 #include "PCGExHeuristics.generated.h"
@@ -156,6 +158,6 @@ namespace PCGExHeuristics
 			for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
 		}
 
-		TUniquePtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster);
+		TSharedPtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster);
 	};
 }

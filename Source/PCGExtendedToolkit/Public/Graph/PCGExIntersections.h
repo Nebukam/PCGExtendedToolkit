@@ -263,7 +263,7 @@ namespace PCGExGraph
 		                                          const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                          const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
-		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
+		void WriteMetadata(TMap<int32, TUniquePtr<FGraphNodeMetadata>>& OutMetadata);
 	};
 
 #pragma endregion
@@ -348,15 +348,15 @@ namespace PCGExGraph
 	{
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
-		FGraph* Graph = nullptr;
-		FCompoundGraph* CompoundGraph = nullptr;
+		TSharedPtr<FGraph> Graph;
+		TSharedPtr<FCompoundGraph> CompoundGraph;
 
 		const FPCGExPointEdgeIntersectionDetails* Details;
 		TArray<FPointEdgeProxy> Edges;
 
 		FPointEdgeIntersections(
-			FGraph* InGraph,
-			FCompoundGraph* InCompoundGraph,
+			const TSharedPtr<FGraph>& InGraph,
+			const TSharedPtr<FCompoundGraph>& InCompoundGraph,
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
@@ -585,8 +585,8 @@ namespace PCGExGraph
 	{
 		mutable FRWLock InsertionLock;
 		const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
-		FGraph* Graph = nullptr;
-		FCompoundGraph* CompoundGraph = nullptr;
+		TSharedPtr<FGraph> Graph;
+		TSharedPtr<FCompoundGraph> CompoundGraph;
 
 		const FPCGExEdgeEdgeIntersectionDetails* Details;
 
@@ -598,8 +598,8 @@ namespace PCGExGraph
 		mutable TEdgeOctree Octree;
 
 		FEdgeEdgeIntersections(
-			FGraph* InGraph,
-			FCompoundGraph* InCompoundGraph,
+			const TSharedPtr<FGraph>& InGraph,
+			const TSharedPtr<FCompoundGraph>& InCompoundGraph,
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExEdgeEdgeIntersectionDetails* InDetails);
 

@@ -40,7 +40,7 @@ bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindClustersData)
 
-	Context->MainEdges = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->MainEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
 	if (Settings->SearchMode != EPCGExClusterDataSearchMode::All)
@@ -229,7 +229,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		if (!Vtx->IsEnabled()) { continue; }
 
-		PCGExData::FPointIOTaggedEntries* EdgesEntries;
+		TSharedPtr<PCGExData::FPointIOTaggedEntries> EdgesEntries;
 
 		if (FString CurrentPairId;
 			Vtx->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, CurrentPairId))

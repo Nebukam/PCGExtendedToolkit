@@ -104,13 +104,13 @@ namespace PCGExWriteTangents
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
 
-		PCGExData::TBuffer<FVector>* ArriveScaleReader = nullptr;
-		PCGExData::TBuffer<FVector>* LeaveScaleReader = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveScaleReader;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveScaleReader;
 		FVector ConstantArriveScale = FVector::OneVector;
 		FVector ConstantLeaveScale = FVector::OneVector;
 
-		PCGExData::TBuffer<FVector>* ArriveWriter = nullptr;
-		PCGExData::TBuffer<FVector>* LeaveWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveWriter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveWriter;
 
 		UPCGExTangentsOperation* Tangents = nullptr;
 		UPCGExTangentsOperation* StartTangents = nullptr;

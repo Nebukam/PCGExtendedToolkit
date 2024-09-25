@@ -116,7 +116,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : public
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 	TSharedPtr<PCGExData::FFacade> GoalsDataFacade;
 
-	TUniquePtr<PCGExData::FPointIOCollection> OutputPaths;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
@@ -154,7 +154,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FSampleNavmeshTask final : public FPCGExPathfin
 {
 public:
 	FSampleNavmeshTask(
-		const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
+		const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TArray<TSharedPtr<PCGExPathfinding::FPathQuery>>* InQueries) :
 		FPCGExPathfindingTask(InPointIO, InQueries)
 	{
 	}

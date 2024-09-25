@@ -292,7 +292,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedVtx;
 	TArray<TSharedPtr<PCGExData::FPointIO>> TaggedEdges;
 
-	Context->MainEdges = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->MainEdges = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
 	Context->MainEdges->Initialize(Sources, Settings->GetEdgeOutputInitMode());

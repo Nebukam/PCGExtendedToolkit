@@ -311,7 +311,7 @@ FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 
 	InContext->AsyncLoop = InContext->MakeLoop<PCGExMT::FAsyncParallelLoop>();
 
-	InContext->MainPoints = MakeUnique<PCGExData::FPointIOCollection>(InContext);
+	InContext->MainPoints = MakeShared<PCGExData::FPointIOCollection>(InContext);
 	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
 	if (!Settings->bEnabled) { return InContext; }

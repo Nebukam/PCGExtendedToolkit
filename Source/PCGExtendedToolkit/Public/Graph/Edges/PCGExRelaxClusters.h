@@ -7,8 +7,6 @@
 #include "PCGExDataDetails.h"
 
 
-
-
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Relaxing/PCGExForceDirectedRelax.h"
 #include "PCGExRelaxClusters.generated.h"
@@ -79,7 +77,7 @@ namespace PCGExRelaxClusters
 	{
 		int32 Iterations = 10;
 
-		PCGExData::TBuffer<double>* InfluenceCache = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> InfluenceCache;
 
 		UPCGExRelaxClusterOperation* RelaxOperation = nullptr;
 
@@ -89,7 +87,7 @@ namespace PCGExRelaxClusters
 		FPCGExInfluenceDetails InfluenceDetails;
 
 		bool bBuildExpandedNodes = false;
-		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
+		TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedNode>>> ExpandedNodes;
 
 	public:
 		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)

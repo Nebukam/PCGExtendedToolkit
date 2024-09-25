@@ -110,7 +110,7 @@ namespace PCGExNodeAdjacency
 		FPCGExDotComparisonDetails DotComparison;
 		FPCGExVectorHashComparisonDetails HashComparison;
 
-		PCGExData::TBuffer<FVector>* OperandDirection = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> OperandDirection;
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;

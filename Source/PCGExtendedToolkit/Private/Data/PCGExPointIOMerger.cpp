@@ -85,7 +85,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 					static_cast<uint16>(SourceAtt.UnderlyingType), [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
-						PCGEx::TAttributeWriter<T>* Writer = nullptr;
+						TSharedPtr<PCGEx::TAttributeWriter<T>> Writer;
 
 						if (InCarryOverDetails->bPreserveAttributesDefaultValue)
 						{
@@ -122,9 +122,8 @@ void FPCGExPointIOMerger::Write()
 			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				PCGEx::TAttributeWriter<T>* Writer = static_cast<PCGEx::TAttributeWriter<T>*>(Writers[i]);
+				TSharedPtr<PCGEx::TAttributeWriter<T>> Writer = StaticCastSharedPtr<PCGEx::TAttributeWriter<T>>(Writers[i]);
 				Writer->Write();
-				delete Writer;
 			});
 	}
 
@@ -139,7 +138,7 @@ void FPCGExPointIOMerger::Write(TSharedPtr<PCGExMT::FTaskManager> AsyncManager)
 			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				PCGEx::TAttributeWriter<T>* Writer = static_cast<PCGEx::TAttributeWriter<T>*>(Writers[i]);
+				TSharedPtr<PCGEx::TAttributeWriter<T>> Writer = StaticCastSharedPtr<PCGEx::TAttributeWriter<T>>(Writers[i]);
 				PCGExMT::Write(AsyncManager, Writer);
 			});
 	}
@@ -158,7 +157,7 @@ namespace PCGExPointIOMerger
 			Identity.GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				PCGEx::TAttributeWriter<T>* TypedWriter = StaticCastSharedPtr<PCGEx::TAttributeWriter<T>>(Writer);
+				TSharedPtr<PCGEx::TAttributeWriter<T>> TypedWriter = StaticCastSharedPtr<PCGEx::TAttributeWriter<T>>(Writer);
 				TypedWriter->BindAndSetNumUninitialized(PointIO);
 
 				for (int i = 0; i < Merger->IOSources.Num(); ++i)

@@ -11,7 +11,6 @@
 #include "PCGExOperation.h"
 
 
-
 #include "PCGExConditionalActionResult.generated.h"
 
 class UPCGExConditionalActionResultFactory;
@@ -36,7 +35,7 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGExData::TBuffer<bool>* ResultWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<bool>> ResultWriter;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

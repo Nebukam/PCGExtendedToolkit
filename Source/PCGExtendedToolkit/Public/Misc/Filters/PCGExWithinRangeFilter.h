@@ -73,7 +73,7 @@ namespace PCGExPointsFilter
 
 		const UPCGExWithinRangeFilterFactory* TypedFilterFactory;
 
-		PCGExData::TBuffer<double>* OperandA = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
 		double RealMin = 0;
 		double RealMax = 0;
 

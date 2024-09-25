@@ -83,7 +83,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraphContext final : public 
 
 	virtual ~FPCGExBuildVoronoiGraphContext() override;
 
-	TUniquePtr<PCGExData::FPointIOCollection> SitesOutput;
+	TSharedPtr<PCGExData::FPointIOCollection> SitesOutput;
 };
 
 

@@ -65,7 +65,7 @@ public:
 	FPCGExProbeConfigClosest Config;
 
 	int32 MaxConnections = 1;
-	PCGExData::TBuffer<int32>* MaxConnectionsCache = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> MaxConnectionsCache;
 
 protected:
 	FVector CWCoincidenceTolerance = FVector::ZeroVector;

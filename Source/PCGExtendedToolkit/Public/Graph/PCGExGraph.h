@@ -98,7 +98,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGraphBuilderDetails
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bBuildAndCacheClusters"))
 	bool bExpandClusters = GetDefault<UPCGExGlobalSettings>()->bDefaultCacheExpandedClusters;
 
-	bool IsValid(const PCGExGraph::FSubGraph* InSubgraph) const;
+	bool IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const;
 };
 
 namespace PCGExGraph
@@ -233,13 +233,10 @@ namespace PCGExGraph
 		bool IsIntersector() const { return Type == EPCGExIntersectionType::PointEdge; }
 		bool IsCrossing() const { return Type == EPCGExIntersectionType::EdgeEdge; }
 
-		static FGraphNodeMetadata* GetOrCreate(const int32 NodeIndex, TMap<int32, FGraphNodeMetadata*>& InMetadata)
+		static FGraphNodeMetadata* GetOrCreate(const int32 NodeIndex, TMap<int32, TUniquePtr<FGraphNodeMetadata>>& InMetadata)
 		{
-			if (FGraphNodeMetadata** MetadataPtr = InMetadata.Find(NodeIndex)) { return *MetadataPtr; }
-
-			FGraphNodeMetadata* NewMetadata = new FGraphNodeMetadata(NodeIndex);
-			InMetadata.Add(NodeIndex, NewMetadata);
-			return NewMetadata;
+			if (const TUniquePtr<FGraphNodeMetadata>* MetadataPtr = InMetadata.Find(NodeIndex)) { return MetadataPtr->Get(); }
+			return InMetadata.Add(NodeIndex, MakeUnique<FGraphNodeMetadata>(NodeIndex)).Get();
 		}
 	};
 
@@ -254,19 +251,16 @@ namespace PCGExGraph
 		{
 		}
 
-		FORCEINLINE static FGraphEdgeMetadata* GetOrCreate(const int32 EdgeIndex, const int32 ParentIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		FORCEINLINE static FGraphEdgeMetadata* GetOrCreate(const int32 EdgeIndex, const int32 ParentIndex, TMap<int32, TUniquePtr<FGraphEdgeMetadata>>& InMetadata)
 		{
-			if (FGraphEdgeMetadata** MetadataPtr = InMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
-
-			FGraphEdgeMetadata* NewMetadata = new FGraphEdgeMetadata(EdgeIndex, ParentIndex);
-			InMetadata.Add(EdgeIndex, NewMetadata);
-			return NewMetadata;
+			if (const TUniquePtr<FGraphEdgeMetadata>* MetadataPtr = InMetadata.Find(EdgeIndex)) { return MetadataPtr->Get(); }
+			return InMetadata.Add(EdgeIndex, MakeUnique<FGraphEdgeMetadata>(EdgeIndex, ParentIndex)).Get();
 		}
 
-		FORCEINLINE static int32 GetRootIndex(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		FORCEINLINE static int32 GetRootIndex(const int32 EdgeIndex, TMap<int32, TUniquePtr<FGraphEdgeMetadata>>& InMetadata)
 		{
 			int32 ParentIndex = -1;
-			FGraphEdgeMetadata** Parent = InMetadata.Find(EdgeIndex);
+			const TUniquePtr<FGraphEdgeMetadata>* Parent = InMetadata.Find(EdgeIndex);
 			while (Parent)
 			{
 				ParentIndex = (*Parent)->EdgeIndex;
@@ -357,7 +351,7 @@ namespace PCGExGraph
 
 		TSet<uint64> UniqueEdges;
 
-		TArray<FSubGraph*> SubGraphs;
+		TArray<TSharedPtr<FSubGraph>> SubGraphs;
 
 		bool bWriteEdgePosition = true;
 		double EdgePosition = 0.5;
@@ -396,23 +390,11 @@ namespace PCGExGraph
 
 		void BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits);
 
-		void ForEachCluster(TFunction<void(FSubGraph*)>&& Func)
-		{
-			for (FSubGraph* Cluster : SubGraphs)
-			{
-				if (Cluster->Nodes.IsEmpty() || Cluster->Edges.IsEmpty()) { continue; }
-				Func(Cluster);
-			}
-		}
-
 		~FGraph()
 		{
 			Nodes.Empty();
 			UniqueEdges.Empty();
 			Edges.Empty();
-
-			for (const FSubGraph* Cluster : SubGraphs) { delete Cluster; }
-			SubGraphs.Empty();
 		}
 
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
@@ -436,7 +418,7 @@ namespace PCGExGraph
 
 		TSharedPtr<PCGExData::FFacade> NodeDataFacade;
 
-		TUniquePtr<PCGExData::FPointIOCollection> EdgesIO;
+		TSharedPtr<PCGExData::FPointIOCollection> EdgesIO;
 		PCGExData::FPointIOCollection* SourceEdgesIO = nullptr;
 
 		bool bCompiledSuccessfully = false;
@@ -456,7 +438,7 @@ namespace PCGExGraph
 			Graph->EdgePosition = OutputDetails->EdgePosition;
 			Graph->bRefreshEdgeSeed = OutputDetails->bRefreshEdgeSeed;
 
-			EdgesIO = MakeUnique<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContext());
+			EdgesIO = MakeShared<PCGExData::FPointIOCollection>(NodeDataFacade->Source->GetContext());
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
 		}
 
@@ -480,7 +462,7 @@ namespace PCGExGraph
 		PCGEX_SET_NUM_UNINITIALIZED(OutAdjacency, InPointIO->GetNum())
 		OutIndices.Empty();
 
-		TUniquePtr<PCGEx::TAttributeReader<int64>> IndexReader = MakeUnique<PCGEx::TAttributeReader<int64>>(Tag_VtxEndpoint);
+		const TUniquePtr<PCGEx::TAttributeReader<int64>> IndexReader = MakeUnique<PCGEx::TAttributeReader<int64>>(Tag_VtxEndpoint);
 		if (!IndexReader->Bind(InPointIO)) { return false; }
 
 		OutIndices.Reserve(IndexReader->Values.Num());
@@ -576,7 +558,7 @@ namespace PCGExGraphTask
 
 	static void WriteSubGraphEdges(
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		PCGExGraph::FSubGraph* SubGraph,
+		const TSharedPtr<PCGExGraph::FSubGraph>& SubGraph,
 		const PCGExGraph::FGraphMetadataDetails* MetadataDetails);
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
@@ -619,9 +601,9 @@ namespace PCGExGraphTask
 	{
 	public:
 		FCopyGraphToPoint(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                  PCGExGraph::FGraphBuilder* InGraphBuilder,
-		                  PCGExData::FPointIOCollection* InVtxCollection,
-		                  PCGExData::FPointIOCollection* InEdgeCollection,
+		                  const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
+		                  const TSharedPtr<PCGExData::FPointIOCollection>& InVtxCollection,
+		                  const TSharedPtr<PCGExData::FPointIOCollection>& InEdgeCollection,
 		                  FPCGExTransformDetails* InTransformDetails) :
 			FPCGExTask(InPointIO),
 			GraphBuilder(InGraphBuilder),
@@ -631,10 +613,10 @@ namespace PCGExGraphTask
 		{
 		}
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		PCGExData::FPointIOCollection* VtxCollection = nullptr;
-		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
+		TSharedPtr<PCGExData::FPointIOCollection> VtxCollection;
+		TSharedPtr<PCGExData::FPointIOCollection> EdgeCollection;
 
 		FPCGExTransformDetails* TransformDetails = nullptr;
 

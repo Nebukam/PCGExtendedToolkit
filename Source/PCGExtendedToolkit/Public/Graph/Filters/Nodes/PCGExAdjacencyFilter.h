@@ -100,8 +100,8 @@ namespace PCGExNodeAdjacency
 		TArray<double> CachedThreshold;
 		FPCGExAdjacencySettings Adjacency;
 
-		PCGExData::TBuffer<double>* OperandA = nullptr;
-		PCGExData::TBuffer<double>* OperandB = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 

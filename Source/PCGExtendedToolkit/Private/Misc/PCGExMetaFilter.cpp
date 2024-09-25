@@ -34,8 +34,8 @@ bool FPCGExMetaFilterElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(Filters)
 	Context->Filters.Init();
 
-	Context->Inside = MakeUnique<PCGExData::FPointIOCollection>(Context);
-	Context->Outside = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;

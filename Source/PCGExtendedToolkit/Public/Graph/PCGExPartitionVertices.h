@@ -44,7 +44,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesContext final : public 
 
 	virtual ~FPCGExPartitionVerticesContext() override;
 
-	TUniquePtr<PCGExData::FPointIOCollection> VtxPartitions;
+	TSharedPtr<PCGExData::FPointIOCollection> VtxPartitions;
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };
 

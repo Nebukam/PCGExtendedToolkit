@@ -18,8 +18,9 @@ bool UPCGExSearchDijkstra::FindPath(
 	const FPCGExNodeSelectionDetails* SeedSelection,
 	const FVector& GoalPosition,
 	const FPCGExNodeSelectionDetails* GoalSelection,
-	PCGExHeuristics::THeuristicsHandler* Heuristics,
-	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) const
+	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics,
+	TArray<int32>& OutPath,
+	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
@@ -77,7 +78,7 @@ bool UPCGExSearchDijkstra::FindPath(
 			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 
-			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback, &TravelStack);
+			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback.Get(), &TravelStack);
 			const double PreviousScore = ScoredQueue->Scores[NeighborIndex];
 			if (PreviousScore != -1 && AltScore >= PreviousScore) { continue; }
 

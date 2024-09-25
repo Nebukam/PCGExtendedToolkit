@@ -4,8 +4,6 @@
 #include "Graph/Edges/PCGExWriteVtxProperties.h"
 
 
-
-
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
@@ -55,8 +53,8 @@ bool FPCGExWriteVtxPropertiesElement::ExecuteInternal(
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExWriteVtxProperties::FProcessorBatch>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExWriteVtxProperties::FProcessorBatch* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExWriteVtxProperties::FProcessorBatch>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			},
@@ -89,7 +87,7 @@ namespace PCGExWriteVtxProperties
 
 		if (!ExtraOperations->IsEmpty())
 		{
-			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(ExecutionContext, BatchIndex, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get()); }
+			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(ExecutionContext, BatchIndex, Cluster, VtxDataFacade, EdgeDataFacade); }
 		}
 
 		StartParallelLoopForNodes();
@@ -117,7 +115,7 @@ namespace PCGExWriteVtxProperties
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
 	}
@@ -139,7 +137,7 @@ namespace PCGExWriteVtxProperties
 		for (const UPCGExVtxPropertyFactoryBase* Factory : Context->ExtraFactories)
 		{
 			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation();
-			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade.Get()))
+			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade))
 			{
 				PCGEX_DELETE_OPERATION(NewOperation)
 				continue;
@@ -151,7 +149,7 @@ namespace PCGExWriteVtxProperties
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
 
-	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
+	bool FProcessorBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
 		ClusterProcessor->ExtraOperations = &ExtraOperations;
 

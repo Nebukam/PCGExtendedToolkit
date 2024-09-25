@@ -126,8 +126,8 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 		}
 
 		if (!Context->StartProcessingClusters<PCGExPickClosestClusters::FProcessorBatch>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExPickClosestClusters::FProcessorBatch* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExPickClosestClusters::FProcessorBatch>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -257,7 +257,7 @@ namespace PCGExPickClosestClusters
 			EdgesIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput); }
 
-			Context->TargetForwardHandler->Forward(Picker, EdgeDataFacade.Get());
+			Context->TargetForwardHandler->Forward(Picker, EdgeDataFacade);
 			Context->TargetForwardHandler->Forward(Picker, VtxDataFacade);
 		}
 
@@ -270,7 +270,7 @@ namespace PCGExPickClosestClusters
 		int32 Picks = 0;
 		const int32 MaxPicks = Processors.Num();
 
-		for (const FProcessor* P : Processors) { if (P->Picker != -1) { Picks++; } }
+		for (const TSharedPtr<FProcessor>& P : Processors) { if (P->Picker != -1) { Picks++; } }
 
 		const UPCGExPickClosestClustersSettings* Stg = Processors[0]->Settings;
 		const FPCGExPickClosestClustersContext* Ctx = Processors[0]->Context;

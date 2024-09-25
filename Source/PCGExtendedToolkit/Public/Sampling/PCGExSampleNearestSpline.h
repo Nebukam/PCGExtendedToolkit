@@ -353,9 +353,9 @@ namespace PCGExSampleNearestSpline
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSplineContext, UPCGExSampleNearestSplineSettings>
 	{
-		PCGExData::TBuffer<double>* RangeMinGetter = nullptr;
-		PCGExData::TBuffer<double>* RangeMaxGetter = nullptr;
-		PCGExData::TBuffer<FVector>* LookAtUpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
+		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
 
 		FVector SafeUpVector = FVector::UpVector;
 		int8 bAnySuccess = 0;

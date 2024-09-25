@@ -4,11 +4,6 @@
 #include "Transform/PCGExFlatProjection.h"
 
 
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExFlatProjectionElement"
 #define PCGEX_NAMESPACE FlatProjection
 
@@ -49,7 +44,7 @@ bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 		bool bHasInvalidEntries = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFlatProjection::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Settings->bRestorePreviousProjection)
 				{
@@ -104,7 +99,7 @@ namespace PCGExFlatProjection
 		else if (bWriteAttribute)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			ProjectionDetails.Init(ExecutionContext, PointDataFacade.Get());
+			ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 			TransformWriter = PointDataFacade->GetWritable<FTransform>(Context->CachedTransformAttributeName, true);
 		}
 
@@ -141,7 +136,6 @@ namespace PCGExFlatProjection
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlatProjection)
 		if (bInverseExistingProjection)
 		{
 			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;

@@ -41,7 +41,7 @@ void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext,
 	}
 }
 
-bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, TSharedPtr<PCGExData::FFacade> InVtxDataFacade)
+bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade)
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
@@ -51,7 +51,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, TSh
 		return false;
 	}
 
-	if (!Config.DotComparisonDetails.Init(InContext, InVtxDataFacade))
+	if (!Config.DotComparisonDetails.Init(InContext, InVtxDataFacade.Get()))
 	{
 		bIsValidOperation = false;
 		return false;
@@ -68,7 +68,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, TSh
 		}
 	}
 
-	Config.MatchingEdge.Init(InVtxDataFacade);
+	Config.MatchingEdge.Init(InVtxDataFacade.Get());
 
 	return bIsValidOperation;
 }

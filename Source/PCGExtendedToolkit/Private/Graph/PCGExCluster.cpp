@@ -301,7 +301,7 @@ namespace PCGExCluster
 	}
 
 
-	const TArray<uint64>* FCluster::GetVtxPointScopesPtr()
+	TSharedPtr<TArray<uint64>> FCluster::GetVtxPointScopes()
 	{
 		{
 			FReadScopeLock ReadScopeLock(ClusterLock);
@@ -312,14 +312,9 @@ namespace PCGExCluster
 		return VtxPointScopes;
 	}
 
-	const TArray<uint64>& FCluster::GetVtxPointScopes()
-	{
-		return *GetVtxPointScopesPtr();
-	}
-
 	TArrayView<const uint64> FCluster::GetVtxPointScopesView()
 	{
-		GetVtxPointScopesPtr();
+		GetVtxPointScopes();
 		return MakeArrayView(VtxPointScopes->GetData(), VtxPointScopes->Num());
 	}
 
@@ -881,7 +876,7 @@ namespace PCGExCluster
 
 		{
 			FWriteScopeLock WriteScopeLock(ClusterLock);
-			VtxPointScopes = new TArray<uint64>();
+			VtxPointScopes = MakeShared<TArray<uint64>>();
 			PCGEx::ScopeIndices(*VtxPointIndices, *VtxPointScopes);
 		}
 	}
@@ -942,7 +937,7 @@ namespace PCGExClusterTask
 					// Single edge chain					
 					if (bSkipSingleEdgeChains) { continue; }
 
-					PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
+					TSharedPtr<PCGExCluster::FNodeChain> NewChain = MakeShared<PCGExCluster::FNodeChain>();
 					NewChain->First = Node.NodeIndex;
 					NewChain->Last = OtherNodeIndex;
 					NewChain->SingleEdge = EdgeIndex;
@@ -966,7 +961,7 @@ namespace PCGExClusterTask
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FBuildChain::ExecuteTask);
 
-		PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
+		const TSharedPtr<PCGExCluster::FNodeChain> NewChain = MakeShared<PCGExCluster::FNodeChain>();
 
 		uint32 NodeIndex;
 		uint32 EdgeIndex;

@@ -88,7 +88,7 @@ bool FPCGExSampleInsideBoundsElement::ExecuteInternal(FPCGContext* InContext) co
 		Context->TargetsFacade->Source->CreateInKeys();
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleInsideBoundss::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExSampleInsideBoundss::FProcessor>* NewBatch)
 			{
 			},

@@ -6,6 +6,7 @@
 
 
 
+
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialEdges"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialEdges
 
@@ -24,7 +25,7 @@ void UPCGExVtxPropertySpecialEdges::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, TSharedPtr<PCGExData::FFacade> InVtxDataFacade)
+bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade)
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
@@ -36,9 +37,9 @@ bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, 
 		return false;
 	}
 
-	Config.ShortestEdge.Init(InVtxDataFacade);
-	Config.LongestEdge.Init(InVtxDataFacade);
-	Config.AverageEdge.Init(InVtxDataFacade);
+	Config.ShortestEdge.Init(InVtxDataFacade.Get());
+	Config.LongestEdge.Init(InVtxDataFacade.Get());
+	Config.AverageEdge.Init(InVtxDataFacade.Get());
 
 	return bIsValidOperation;
 }

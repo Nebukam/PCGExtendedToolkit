@@ -64,7 +64,7 @@ namespace PCGExPartition
 	{
 		if (!SubLayers.IsEmpty())
 		{
-			for (const TPair<int64, FKPartition*>& Pair : SubLayers) { Pair.Value->Register(Partitions); }
+			for (const TPair<int64, TSharedPtr<FKPartition>>& Pair : SubLayers) { Pair.Value->Register(Partitions); }
 		}
 		else
 		{

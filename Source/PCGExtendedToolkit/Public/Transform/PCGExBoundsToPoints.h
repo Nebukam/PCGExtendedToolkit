@@ -12,8 +12,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
 #include "PCGExBoundsToPoints.generated.h"
 
 class FPCGExComputeIOBounds;
@@ -120,7 +118,7 @@ namespace PCGExBoundsToPoints
 		{
 		}
 
-		TArray<PCGExData::FPointIO*> NewOutputs;
+		TArray<TSharedPtr<PCGExData::FPointIO>> NewOutputs;
 
 		virtual ~FProcessor() override;
 

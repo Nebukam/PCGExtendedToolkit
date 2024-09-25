@@ -85,7 +85,7 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 bool FPCGExPruneClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	const FPCGExPruneClustersContext* Context = ManagerPtr->GetContext<FPCGExPruneClustersContext>();
+	const FPCGExPruneClustersContext* Context = AsyncManager->GetContext<FPCGExPruneClustersContext>();
 	PCGEX_SETTINGS(PruneClusters)
 
 	// TODO : Check against BoxCloud

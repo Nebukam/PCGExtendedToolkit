@@ -82,8 +82,8 @@ namespace PCGExCollocationCount
 	{
 		double NumPoints = 0;
 		double ToleranceConstant = 0;
-		PCGExData::TBuffer<int32>* CollocationWriter = nullptr;
-		PCGExData::TBuffer<int32>* LinearOccurencesWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> CollocationWriter;
+		TSharedPtr<PCGExData::TBuffer<int32>> LinearOccurencesWriter;
 
 		const UPCGPointData::PointOctree* Octree = nullptr;
 

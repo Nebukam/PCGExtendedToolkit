@@ -224,7 +224,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGExContext* InContext) const
 	if (!SeedsPoints) { return false; }
 
 	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints);
-	Context->OutputPaths = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	if (Settings->NumIterations == EPCGExGrowthValueSource::SeedAttribute)
 	{
@@ -265,8 +265,8 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExGrowPaths::FProcessor>>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatchWithHeuristics<PCGExGrowPaths::FProcessor>* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatchWithHeuristics<PCGExGrowPaths::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

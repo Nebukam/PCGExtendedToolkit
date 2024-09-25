@@ -4,11 +4,6 @@
 #include "Transform/PCGExBoundsToPoints.h"
 
 
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExBoundsToPointsElement"
 #define PCGEX_NAMESPACE BoundsToPoints
 
@@ -41,7 +36,7 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>* NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
@@ -65,7 +60,6 @@ namespace PCGExBoundsToPoints
 	FProcessor::~FProcessor()
 	{
 		NewOutputs.Empty();
-		PointAttributesToOutputTags.Cleanup();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -85,7 +79,7 @@ namespace PCGExBoundsToPoints
 		if (!UVW.Init(ExecutionContext, PointDataFacade.Get())) { return false; }
 
 		PointAttributesToOutputTags = Settings->PointAttributesToOutputTags;
-		if (!PointAttributesToOutputTags.Init(ExecutionContext, PointDataFacade.Get())) { return false; }
+		if (!PointAttributesToOutputTags.Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		NumPoints = PointIO->GetNum();
 		bGeneratePerPointData = Settings->bGeneratePerPointData;
@@ -127,7 +121,7 @@ namespace PCGExBoundsToPoints
 		if (bGeneratePerPointData)
 		{
 			int32 OutIndex;
-			PCGExData::FPointIO* NewOutput = NewOutputs[Index];
+			const TSharedPtr<PCGExData::FPointIO>& NewOutput = NewOutputs[Index];
 
 			FPCGPoint& A = NewOutput->CopyPoint(Point, OutIndex);
 			if (bSetExtents)
@@ -186,8 +180,6 @@ namespace PCGExBoundsToPoints
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsToPoints)
-
 		if (!bGeneratePerPointData && bSymmetry)
 		{
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();

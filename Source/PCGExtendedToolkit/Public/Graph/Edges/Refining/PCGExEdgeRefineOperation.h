@@ -28,7 +28,7 @@ public:
 	TArray<bool>* VtxFilters = nullptr;
 	TArray<bool>* EdgesFilters = nullptr;
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr)
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics = nullptr)
 	{
 		Cluster = InCluster;
 		Heuristics = InHeuristics;
@@ -55,8 +55,8 @@ public:
 	}
 
 protected:
-	PCGExCluster::FCluster* Cluster = nullptr;
-	PCGExHeuristics::THeuristicsHandler* Heuristics = nullptr;
+	TSharedPtr<PCGExCluster::FCluster> Cluster;
+	TSharedPtr<PCGExHeuristics::THeuristicsHandler> Heuristics;
 	mutable FRWLock EdgeLock;
 	mutable FRWLock NodeLock;
 };

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "PCGExEdgeRefineRemoveOverlap.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Overlap Pick"))
@@ -27,7 +28,7 @@ public:
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
 	virtual bool RequiresEdgeOctree() override { return true; }
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics) override
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics) override
 	{
 		Super::PrepareForCluster(InCluster, InHeuristics);
 		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
@@ -52,14 +53,14 @@ public:
 
 	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
 	{
-		const PCGExCluster::FExpandedEdge* EEdge = *(Cluster->ExpandedEdges->GetData() + Edge.EdgeIndex);
-		const double Length = EEdge->GetEdgeLengthSquared(Cluster);
+		const TUniquePtr<PCGExCluster::FExpandedEdge>& EEdge = *(Cluster->ExpandedEdges->GetData() + Edge.EdgeIndex);
+		const double Length = EEdge->GetEdgeLengthSquared(Cluster.Get());
 
 		auto ProcessOverlap = [&](const PCGExCluster::FClusterItemRef& ItemRef)
 		{
 			//if (!Edge.bValid) { return false; }
 
-			const PCGExCluster::FExpandedEdge* OtherEEdge = *(Cluster->ExpandedEdges->GetData() + ItemRef.ItemIndex);
+			const TUniquePtr<PCGExCluster::FExpandedEdge>& OtherEEdge = *(Cluster->ExpandedEdges->GetData() + ItemRef.ItemIndex);
 
 			if (EEdge == OtherEEdge ||
 				EEdge->Start == OtherEEdge->Start || EEdge->Start == OtherEEdge->End ||
@@ -72,7 +73,7 @@ public:
 				if (!(Dot >= MaxDot && Dot <= MinDot)) { return true; }
 			}
 
-			const double OtherLength = OtherEEdge->GetEdgeLengthSquared(Cluster);
+			const double OtherLength = OtherEEdge->GetEdgeLengthSquared(Cluster.Get());
 
 			FVector A;
 			FVector B;

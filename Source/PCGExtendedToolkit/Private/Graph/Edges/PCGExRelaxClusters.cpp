@@ -4,8 +4,6 @@
 #include "Graph/Edges/PCGExRelaxClusters.h"
 
 
-
-
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 #include "Graph/Edges/Relaxing/PCGExForceDirectedRelax.h"
 
@@ -45,8 +43,8 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExRelaxClusters::FProcessor>>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatch<PCGExRelaxClusters::FProcessor>* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExRelaxClusters::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			},
@@ -101,7 +99,7 @@ namespace PCGExRelaxClusters
 
 		for (int i = 0; i < NumNodes; ++i) { PBufferRef[i] = SBufferRef[i] = Cluster->GetPos(i); }
 
-		ExpandedNodes = Cluster->ExpandedNodes.Get();
+		ExpandedNodes = Cluster->ExpandedNodes;
 		Iterations = Settings->Iterations;
 
 		if (!ExpandedNodes)
@@ -137,12 +135,12 @@ namespace PCGExRelaxClusters
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster.Get(), Iteration);
+		(*ExpandedNodes)[Iteration] = MoveTemp(MakeUnique<PCGExCluster::FExpandedNode>(Cluster.Get(), Iteration));
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
 	{
-		RelaxOperation->ProcessExpandedNode(*(ExpandedNodes->GetData() + Index));
+		RelaxOperation->ProcessExpandedNode((ExpandedNodes->GetData() + Index)->Get());
 
 		if (!InfluenceDetails.bProgressiveInfluence) { return; }
 

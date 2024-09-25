@@ -91,8 +91,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterCollectionsContext final : pub
 	friend class FPCGExUberFilterCollectionsElement;
 	virtual ~FPCGExUberFilterCollectionsContext() override;
 
-	TUniquePtr<PCGExData::FPointIOCollection> Inside;
-	TUniquePtr<PCGExData::FPointIOCollection> Outside;
+	TSharedPtr<PCGExData::FPointIOCollection> Inside;
+	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 
 	int32 NumPairs = 0;
 };

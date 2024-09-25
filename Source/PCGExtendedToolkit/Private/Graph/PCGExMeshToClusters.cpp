@@ -4,7 +4,6 @@
 #include "Graph/PCGExMeshToClusters.h"
 
 
-
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoMesh.h"
@@ -62,12 +61,12 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	Context->StaticMeshMap = MakeUnique<PCGExGeo::FGeoStaticMeshMap>();
 	Context->StaticMeshMap->DesiredTriangulationType = Settings->GraphOutputType;
 
-	Context->RootVtx = MakeUnique<PCGExData::FPointIOCollection>(Context); // Make this pinless
+	Context->RootVtx = MakeShared<PCGExData::FPointIOCollection>(Context); // Make this pinless
 
-	Context->VtxChildCollection = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->VtxChildCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->VtxChildCollection->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
-	Context->EdgeChildCollection = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->EdgeChildCollection = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->EdgeChildCollection->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
 	return true;
@@ -114,10 +113,10 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 				Selector.SetAttributeName(Settings->StaticMeshAttribute);
 
-				TUniquePtr<PCGEx::FSoftObjectPathGetter> PathGetter = MakeUnique<PCGEx::FSoftObjectPathGetter>();
+				const TUniquePtr<PCGEx::FSoftObjectPathGetter> PathGetter = MakeUnique<PCGEx::FSoftObjectPathGetter>();
 
-				PathGetter->Capture(Selector);				
-				if (!PathGetter->SoftGrab(Context->MainPoints->Pairs[0].Get()))
+				PathGetter->Capture(Selector);
+				if (!PathGetter->SoftGrab(Context->MainPoints->Pairs[0]))
 				{
 					PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh attribute does not exists on targets."));
 					return false;
@@ -196,7 +195,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 			for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); ++i)
 			{
-				PCGExGeo::FGeoStaticMesh* GSM = Context->StaticMeshMap->GSMs[i];
+				const TSharedPtr<PCGExGeo::FGeoStaticMesh> GSM = Context->StaticMeshMap->GSMs[i];
 				Context->GetAsyncManager()->Start<PCGExMeshToCluster::FExtractMeshAndBuildGraph>(i, nullptr, GSM);
 			}
 
@@ -222,7 +221,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 			Context->GetAsyncManager()->Start<PCGExGraphTask::FCopyGraphToPoint>(
 				TargetIndex, Context->CurrentIO, Context->GraphBuilders[MeshIdx],
-				Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails);
+				Context->VtxChildCollection.Get(), Context->EdgeChildCollection.Get(), &Context->TransformDetails);
 		};
 
 		if (!Context->Process(ProcessTarget, Context->CurrentIO->GetNum())) { return false; }
@@ -247,7 +246,7 @@ namespace PCGExMeshToCluster
 {
 	bool FExtractMeshAndBuildGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		FPCGExMeshToClustersContext* Context = static_cast<FPCGExMeshToClustersContext*>(ManagerPtr->Context);
+		FPCGExMeshToClustersContext* Context = AsyncManager->GetContext<FPCGExMeshToClustersContext>();
 		PCGEX_SETTINGS(MeshToClusters)
 
 		switch (Mesh->DesiredTriangulationType)
@@ -266,16 +265,14 @@ namespace PCGExMeshToCluster
 			break;
 		}
 
-		PCGExData::FPointIO* RootVtx = Context->RootVtx->Emplace_GetRef<UPCGExClusterNodesData>();
+		TSharedPtr<PCGExData::FPointIO> RootVtx = Context->RootVtx->Emplace_GetRef<UPCGExClusterNodesData>();
 		RootVtx->IOIndex = TaskIndex;
 		RootVtx->InitializeNum(Mesh->Vertices.Num());
 		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
 
-		PCGExData::FFacade* RootVtxFacade = new PCGExData::FFacade(RootVtx);
-		
-		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtxFacade, &Context->GraphBuilderDetails);
-		GraphBuilder->bOwnsNodeDataFacade = true; // !important
-		
+		TSharedPtr<PCGExData::FFacade> RootVtxFacade = MakeShared<PCGExData::FFacade>(RootVtx);
+
+		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade, &Context->GraphBuilderDetails);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;
 
 		for (int i = 0; i < VtxPoints.Num(); ++i)

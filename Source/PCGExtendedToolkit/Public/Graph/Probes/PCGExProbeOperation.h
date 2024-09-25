@@ -70,10 +70,10 @@ public:
 
 	double SearchRadius = -1;
 	double SearchRadiusSquared = -1;
-	PCGExData::TBuffer<double>* SearchRadiusCache = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> SearchRadiusCache;
 	FPCGExProbeConfigBase* BaseConfig = nullptr;
 
 protected:
-	const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
+	TSharedPtr<PCGExData::FPointIO> PointIO;
 	TArray<double> LocalWeightMultiplier;
 };

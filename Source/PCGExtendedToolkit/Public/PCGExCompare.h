@@ -550,7 +550,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExVectorHashComparisonDetails
 	FVector CWTolerance = FVector::ZeroVector;
 
 	bool bUseLocalTolerance = false;
-	PCGExData::TBuffer<double>* LocalOperand = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> LocalOperand;
 
 	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPrimaryDataFacade)
 	{
@@ -622,7 +622,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDotComparisonDetails
 	double DegreesTolerance = 0.1;
 
 	bool bUseLocalDot = false;
-	PCGExData::TBuffer<double>* LocalOperand = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> LocalOperand;
 
 	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPrimaryDataCache)
 	{

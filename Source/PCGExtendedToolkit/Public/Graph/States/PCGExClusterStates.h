@@ -8,12 +8,6 @@
 #include "Data/PCGExPointStates.h"
 
 
-
-
-
-
-
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "Misc/PCGExBitmaskMerge.h"
 #include "Graph/PCGExCluster.h"
@@ -86,10 +80,14 @@ namespace PCGExClusterStates
 	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExClusterFilter::TManager
 	{
 		TArray<TSharedPtr<FState>> States;
-		TArray<int64>* FlagsCache = nullptr;
+		TSharedPtr<TArray<int64>> FlagsCache;
 
 	public:
-		explicit FStateManager(TArray<int64>* InFlags, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache);
+		explicit FStateManager(
+			const TSharedPtr<TArray<int64>>& InFlags,
+			const TSharedPtr<PCGExCluster::FCluster>& InCluster,
+			const TSharedPtr<PCGExData::FFacade>& InPointDataCache,
+			const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache);
 		virtual ~FStateManager() override;
 
 		FORCEINLINE virtual bool Test(const int32 Index) override

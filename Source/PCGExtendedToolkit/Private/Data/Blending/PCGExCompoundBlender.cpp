@@ -84,7 +84,7 @@ namespace PCGExDataBlending
 			}
 
 			check(Map)
-			
+
 			Map->Attributes[SourceIdx] = SourceAttribute;
 			Map->BlendOps[SourceIdx] = MoveTemp(CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity));
 
@@ -123,7 +123,7 @@ namespace PCGExDataBlending
 				{
 					using T = decltype(DummyValue);
 
-					PCGExData::TBuffer<T>* Writer;
+					TSharedPtr<PCGExData::TBuffer<T>> Writer;
 					if (const FPCGMetadataAttribute<T>* ExistingAttribute = CurrentTargetData->FindConstAttribute<T>(SrcMap->Identity.Name))
 					{
 						Writer = CurrentTargetData->GetWritable<T>(ExistingAttribute, false);

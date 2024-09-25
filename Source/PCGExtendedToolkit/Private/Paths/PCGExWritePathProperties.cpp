@@ -167,8 +167,6 @@ namespace PCGExWritePathProperties
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathProperties)
-
 		const int32 NumPoints = PointIO->GetNum();
 
 		FVector PathCentroid = FVector::ZeroVector;

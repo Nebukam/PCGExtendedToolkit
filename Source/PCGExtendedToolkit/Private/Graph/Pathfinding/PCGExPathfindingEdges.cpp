@@ -26,8 +26,8 @@ void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEven
 #endif
 void FPCGExPathfindingEdgesContext::TryFindPath(
 	const UPCGExSearchOperation* SearchOperation,
-	const PCGExPathfinding::FPathQuery* Query,
-	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler)
+	const TSharedPtr<PCGExPathfinding::FPathQuery>& Query,
+	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler)
 {
 	// TODO : Vtx OR/AND edge points
 
@@ -130,24 +130,24 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(SeedAttributesToPathTags)
 	PCGEX_FWD(GoalAttributesToPathTags)
 
-	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade.Get())) { return false; }
-	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade.Get())) { return false; }
+	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
+	if (!Context->GoalAttributesToPathTags.Init(Context, Context->GoalsDataFacade)) { return false; }
 
-	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade.Get());
-	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade.Get());
+	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
+	Context->GoalForwardHandler = Settings->GoalForwarding.GetHandler(Context->GoalsDataFacade);
 
-	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
+	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	// Prepare path queries
 
-	Context->GoalPicker->PrepareForData(Context->SeedsDataFacade.Get(), Context->GoalsDataFacade.Get());
+	Context->GoalPicker->PrepareForData(Context->SeedsDataFacade, Context->GoalsDataFacade);
 	PCGExPathfinding::ProcessGoals(
-		Context->SeedsDataFacade.Get(), Context->GoalPicker,
+		Context->SeedsDataFacade, Context->GoalPicker,
 		[&](const int32 SeedIndex, const int32 GoalIndex)
 		{
 			Context->PathQueries.Add(
-				new PCGExPathfinding::FPathQuery(
+				MakeShared<PCGExPathfinding::FPathQuery>(
 					SeedIndex, SeedsPoints->GetInPoint(SeedIndex).Transform.GetLocation(),
 					GoalIndex, GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
 		});
@@ -166,8 +166,8 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingEdge::FProcessor>>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingEdge::FProcessor>* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingEdge::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -235,7 +235,7 @@ namespace PCGExPathfindingEdge
 		if (IsTrivial())
 		{
 			// Naturally accounts for global heuristics
-			for (const PCGExPathfinding::FPathQuery* Query : Context->PathQueries)
+			for (const TSharedPtr<PCGExPathfinding::FPathQuery>& Query : Context->PathQueries)
 			{
 				Context->TryFindPath(SearchOperation, Query, HeuristicsHandler);
 			}

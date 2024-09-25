@@ -96,17 +96,17 @@ namespace PCGExPointStates
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExPointFilter::TManager
 	{
-		TArray<FState*> States;
-		TArray<int64>* FlagsCache = nullptr;
+		TArray<TSharedPtr<FState>> States;
+		TSharedPtr<TArray<int64>> FlagsCache;
 
 	public:
-		explicit FStateManager(TArray<int64>* InFlags, PCGExData::FFacade* InPointDataFacade);
+		explicit FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
 		virtual ~FStateManager() override;
 
 		virtual bool Test(const int32 Index) override;
 
 	protected:
-		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& InFilter) override;
+		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter) override;
 	};
 };
 

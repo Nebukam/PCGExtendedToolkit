@@ -273,7 +273,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FCompoundGraph::WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata)
+	void FCompoundGraph::WriteMetadata(TMap<int32, TUniquePtr<FGraphNodeMetadata>>& OutMetadata)
 	{
 		for (const TUniquePtr<FCompoundNode>& Node : Nodes)
 		{
@@ -284,8 +284,8 @@ namespace PCGExGraph
 	}
 
 	FPointEdgeIntersections::FPointEdgeIntersections(
-		FGraph* InGraph,
-		FCompoundGraph* InCompoundGraph,
+		const TSharedPtr<FGraph>& InGraph,
+		const TSharedPtr<FCompoundGraph>& InCompoundGraph,
 		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		const FPCGExPointEdgeIntersectionDetails* InDetails)
 		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)
@@ -371,8 +371,8 @@ namespace PCGExGraph
 	}
 
 	FEdgeEdgeIntersections::FEdgeEdgeIntersections(
-		FGraph* InGraph,
-		FCompoundGraph* InCompoundGraph,
+		const TSharedPtr<FGraph>& InGraph,
+		const TSharedPtr<FCompoundGraph>& InCompoundGraph,
 		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		const FPCGExEdgeEdgeIntersectionDetails* InDetails)
 		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)

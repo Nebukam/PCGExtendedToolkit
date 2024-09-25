@@ -81,8 +81,8 @@ namespace PCGExBitwiseOperation
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBitwiseOperationContext, UPCGExBitwiseOperationSettings>
 	{
-		PCGExData::TBuffer<int64>* Reader = nullptr;
-		PCGExData::TBuffer<int64>* Writer = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int64>> Reader;
+		TSharedPtr<PCGExData::TBuffer<int64>> Writer;
 
 		int64 Mask = 0;
 		EPCGExBitOp Op = EPCGExBitOp::Set;

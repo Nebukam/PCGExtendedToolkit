@@ -79,8 +79,8 @@ namespace PCGExWriteIndex
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteIndexContext, UPCGExWriteIndexSettings>
 	{
 		double NumPoints = 0;
-		PCGExData::TBuffer<int32>* IntWriter = nullptr;
-		PCGExData::TBuffer<double>* DoubleWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> IntWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> DoubleWriter;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):

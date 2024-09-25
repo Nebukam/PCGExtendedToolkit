@@ -70,7 +70,7 @@ public:
 	FPCGAttributePropertyInputSelector Attribute;
 
 protected:
-	PCGExData::FPointIO* LastPoints = nullptr;
+	TSharedPtr<PCGExData::FPointIO> LastPoints;
 	TArray<double> CachedScores;
 };
 

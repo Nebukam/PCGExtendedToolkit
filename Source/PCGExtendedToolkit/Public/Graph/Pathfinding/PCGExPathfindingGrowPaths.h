@@ -253,7 +253,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : publ
 
 	virtual ~FPCGExPathfindingGrowPathsContext() override;
 
-	TUniquePtr<PCGExData::FPointIOCollection> OutputPaths;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 

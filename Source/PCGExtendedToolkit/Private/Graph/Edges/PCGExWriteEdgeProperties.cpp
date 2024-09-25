@@ -55,8 +55,8 @@ bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExWriteEdgeProperties::FProcessorBatch>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExWriteEdgeProperties::FProcessorBatch* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExWriteEdgeProperties::FProcessorBatch>& NewBatch)
 			{
 				if (Settings->bWriteHeuristics) { NewBatch->SetRequiresHeuristics(true); }
 				if (Settings->DirectionSettings.RequiresEndpointsMetadata()) { NewBatch->bRequiresWriteStep = true; }

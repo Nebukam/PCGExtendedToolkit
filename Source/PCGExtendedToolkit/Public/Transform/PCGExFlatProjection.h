@@ -88,8 +88,8 @@ namespace PCGExFlatProjection
 		bool bProjectLocalTransform = false;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-		PCGExData::TBuffer<FTransform>* TransformWriter = nullptr;
-		PCGExData::TBuffer<FTransform>* TransformReader = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;
+		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformReader;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):

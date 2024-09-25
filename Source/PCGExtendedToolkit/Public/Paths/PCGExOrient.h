@@ -109,8 +109,8 @@ namespace PCGExOrient
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOrientContext, UPCGExOrientSettings>
 	{
-		PCGExData::TBuffer<FTransform>* TransformWriter = nullptr;
-		PCGExData::TBuffer<double>* DotWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FTransform>> TransformWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> DotWriter;
 		UPCGExOrientOperation* Orient = nullptr;
 		int32 LastIndex = 0;
 

@@ -4,19 +4,6 @@
 #include "Graph/States/PCGExClusterStates.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
@@ -82,7 +69,11 @@ namespace PCGExClusterStates
 		else if (Config.bOnTestFail && !bSuccess) { Config.FailStateFlags.DoOperation(InFlags); }
 	}
 
-	FStateManager::FStateManager(TArray<int64>* InFlags, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache)
+	FStateManager::FStateManager(
+		const TSharedPtr<TArray<int64>>& InFlags,
+		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
+		const TSharedPtr<PCGExData::FFacade>& InPointDataCache,
+		const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache)
 		: TManager(InCluster, InPointDataCache, InEdgeDataCache)
 	{
 		FlagsCache = InFlags;

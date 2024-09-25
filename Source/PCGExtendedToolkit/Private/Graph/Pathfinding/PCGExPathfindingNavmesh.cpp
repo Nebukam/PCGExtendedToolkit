@@ -77,7 +77,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 
 	Context->FuseDistance = Settings->FuseDistance;
 
-	Context->OutputPaths = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	// Prepare path queries
@@ -144,7 +144,7 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 
 	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return false; }
 
-	PCGExPathfinding::FPathQuery* Query = (*Queries)[TaskIndex];
+	TSharedPtr<PCGExPathfinding::FPathQuery> Query = (*Queries)[TaskIndex];
 
 	const FPCGPoint* Seed = Context->SeedsDataFacade->Source->TryGetInPoint(Query->SeedIndex);
 	const FPCGPoint* Goal = Context->GoalsDataFacade->Source->TryGetInPoint(Query->GoalIndex);
@@ -218,7 +218,7 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	TSharedPtr<PCGExDataBlending::FMetadataBlender> TempBlender =
 		Context->Blending->CreateBlender(PathDataFacade, Context->GoalsDataFacade);
 
-	Context->Blending->BlendSubPoints(MutablePoints, Metrics, TempBlender);
+	Context->Blending->BlendSubPoints(MutablePoints, Metrics, TempBlender.Get());
 
 	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Settings->bAddGoalToPath) { MutablePoints.Pop(); }

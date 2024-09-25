@@ -40,7 +40,7 @@ bool FPCGExPackClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(CarryOverDetails)
 	Context->CarryOverDetails.Init();
 
-	Context->PackedClusters = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->PackedClusters = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->PackedClusters->DefaultOutputLabel = PCGExGraph::OutputPackedClustersLabel;
 
 	return true;
@@ -88,13 +88,13 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	FPCGExPackClustersContext* Context = ManagerPtr->GetContext<FPCGExPackClustersContext>();
+	const FPCGExPackClustersContext* Context = AsyncManager->GetContext<FPCGExPackClustersContext>();
 	PCGEX_SETTINGS(PackClusters)
 
-	PCGEx::FAttributesInfos* VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
+	const TSharedPtr<PCGEx::FAttributesInfos> VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
 
 	InEdges->CreateInKeys();
-	PCGExData::FPointIO* PackedIO = Context->PackedClusters->Emplace_GetRef(InEdges);
+	const TSharedPtr<PCGExData::FPointIO> PackedIO = Context->PackedClusters->Emplace_GetRef(InEdges);
 	PackedIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::DuplicateInput);
 
 	int32 NumEdges = 0;
@@ -109,14 +109,14 @@ bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	PackedIO->CreateOutKeys();
 
 	const TArrayView<const int32> View = MakeArrayView(ReducedVtxIndices);
-	PCGEx::CopyPoints(PointIO, PackedIO, View, NumEdges);
+	PCGEx::CopyPoints(PointIO.Get(), PackedIO.Get(), View, NumEdges);
 
 	for (const PCGEx::FAttributeIdentity& Identity : VtxAttributes->Identities)
 	{
 		CopyValues(ManagerPtr, Identity, PointIO, PackedIO, View, NumEdges);
 	}
 
-	WriteMark(PackedIO, PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
+	WriteMark(PackedIO.Get(), PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
 
 	PCGExGraph::CleanupClusterTags(PackedIO);
 
@@ -125,8 +125,8 @@ bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 
 	InEdges->CleanupKeys();
 
-	Context->CarryOverDetails.Filter(PointIO->Tags);
-	Context->CarryOverDetails.Filter(InEdges->Tags);
+	Context->CarryOverDetails.Filter(PointIO->Tags.Get());
+	Context->CarryOverDetails.Filter(InEdges->Tags.Get());
 
 	return true;
 }

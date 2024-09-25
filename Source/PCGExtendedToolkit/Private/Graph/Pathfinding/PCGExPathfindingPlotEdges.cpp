@@ -39,7 +39,8 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 
 void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 	const UPCGExSearchOperation* SearchOperation,
-	const TSharedPtr<PCGExData::FPointIO>& InPlotPoints, PCGExHeuristics::THeuristicsHandler* HeuristicsHandler) const
+	const TSharedPtr<PCGExData::FPointIO>& InPlotPoints,
+	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler) const
 {
 	PCGEX_SETTINGS_LOCAL(PathfindingPlotEdges)
 
@@ -47,7 +48,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 
 	// TODO : Implement path-scoped extra weight management
-	const TUniquePtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
+	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
 	TArray<int32> Path;
 
 	auto Exit = [&](bool bSuccess)
@@ -64,7 +65,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 		if (!SearchOperation->FindPath(
 			SeedPosition, &Settings->SeedPicking,
-			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler.Get()))
+			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
 			if (Settings->bOmitCompletePathOnFailedPlot) { return Exit(false); }
@@ -87,7 +88,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 		if (!SearchOperation->FindPath(
 			SeedPosition, &Settings->SeedPicking,
-			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler.Get()))
+			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
 			if (Settings->bOmitCompletePathOnFailedPlot) { return Exit(false); }
@@ -151,8 +152,8 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation)
 
-	Context->OutputPaths = MakeUnique<PCGExData::FPointIOCollection>(Context);
-	Context->Plots = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->Plots = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
 	Context->Plots->Initialize(Sources, PCGExData::EInit::NoOutput);
@@ -188,8 +189,8 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
@@ -255,7 +256,7 @@ namespace PCGExPathfindingPlotEdge
 		if (IsTrivial())
 		{
 			// Naturally accounts for global heuristics
-			for (const PCGExData::FPointIO* PlotIO : Context->Plots->Pairs)
+			for (const TSharedPtr<PCGExData::FPointIO> PlotIO : Context->Plots->Pairs)
 			{
 				Context->TryFindPath(SearchOperation, PlotIO, HeuristicsHandler);
 			}
@@ -265,13 +266,13 @@ namespace PCGExPathfindingPlotEdge
 
 		if (HeuristicsHandler->HasGlobalFeedback())
 		{
-			AsyncManager->Start<FPCGExPlotClusterPathTask>(0, VtxIO, SearchOperation, Context->Plots, HeuristicsHandler, true);
+			AsyncManager->Start<FPCGExPlotClusterPathTask>(0, VtxIO, SearchOperation, Context->Plots.Get(), HeuristicsHandler, true);
 		}
 		else
 		{
 			for (int i = 0; i < Context->Plots->Num(); ++i)
 			{
-				AsyncManager->Start<FPCGExPlotClusterPathTask>(i, VtxIO, SearchOperation, Context->Plots, HeuristicsHandler, false);
+				AsyncManager->Start<FPCGExPlotClusterPathTask>(i, VtxIO, SearchOperation, Context->Plots.Get(), HeuristicsHandler, false);
 			}
 		}
 

@@ -4,11 +4,6 @@
 #include "Data/PCGExPointStates.h"
 
 
-
-
-
-
-
 TSharedPtr<PCGExPointFilter::TFilter> UPCGExPointStateFactoryBase::CreateFilter() const
 {
 	return Super::CreateFilter();
@@ -23,7 +18,6 @@ namespace PCGExPointStates
 {
 	FState::~FState()
 	{
-		
 	}
 
 	bool FState::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
@@ -52,7 +46,7 @@ namespace PCGExPointStates
 		// TODO : Implement
 	}
 
-	FStateManager::FStateManager(TArray<int64>* InFlags, PCGExData::FFacade* InPointDataFacade)
+	FStateManager::FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 		: TManager(InPointDataFacade)
 	{
 		FlagsCache = InFlags;
@@ -63,9 +57,9 @@ namespace PCGExPointStates
 		States.Empty();
 	}
 
-	void FStateManager::PostInitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& InFilter)
+	void FStateManager::PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter)
 	{
-		FState* State = static_cast<FState*>(InFilter);
+		const TSharedPtr<FState> State = StaticCastSharedPtr<FState>(InFilter);
 		State->InitInternalManager(InContext, State->StateFactory->FilterFactories);
 
 		TManager::PostInitFilter(InContext, InFilter);
@@ -76,7 +70,7 @@ namespace PCGExPointStates
 	bool FStateManager::Test(const int32 Index)
 	{
 		int64& Flags = (*FlagsCache)[Index];
-		for (const FState* State : States) { State->ProcessFlags(State->Test(Index), Flags); }
+		for (const TSharedPtr<FState>& State : States) { State->ProcessFlags(State->Test(Index), Flags); }
 		return true;
 	}
 }

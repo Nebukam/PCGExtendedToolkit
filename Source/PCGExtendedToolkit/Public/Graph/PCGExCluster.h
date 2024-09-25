@@ -10,6 +10,8 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
+
+
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -174,7 +176,7 @@ namespace PCGExCluster
 		bool bEdgeLengthsDirty = true;
 		bool bIsCopyCluster = false;
 		TSharedPtr<TArray<int32>> VtxPointIndices;
-		TArray<uint64>* VtxPointScopes = nullptr;
+		TSharedPtr<TArray<uint64>> VtxPointScopes;
 
 		mutable FRWLock ClusterLock;
 
@@ -224,12 +226,11 @@ namespace PCGExCluster
 
 		bool IsValidWith(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO) const;
 
-		const TArray<uint64>* GetVtxPointScopesPtr();
+		TSharedPtr<TArray<uint64>> GetVtxPointScopes();
 		const TArray<int32>& GetVtxPointIndices();
 		TArrayView<const int32> GetVtxPointIndicesView();
 
 		const TArray<int32>* GetVtxPointIndicesPtr();
-		const TArray<uint64>& GetVtxPointScopes();
 		TArrayView<const uint64> GetVtxPointScopesView();
 
 		FORCEINLINE FVector GetPos(const FNode& InNode) const { return *(NodePositions.GetData() + InNode.NodeIndex); }
@@ -541,7 +542,7 @@ namespace PCGExClusterTask
 		FFindNodeChains(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                const PCGExCluster::FCluster* InCluster,
 		                const TArray<bool>* InBreakpoints,
-		                TArray<PCGExCluster::FNodeChain*>* InChains,
+		                TArray<TSharedPtr<PCGExCluster::FNodeChain>>* InChains,
 		                const bool InSkipSingleEdgeChains = false,
 		                const bool InDeadEndsOnly = false) :
 			FPCGExTask(InPointIO),
@@ -555,7 +556,7 @@ namespace PCGExClusterTask
 
 		const PCGExCluster::FCluster* Cluster = nullptr;
 		const TArray<bool>* Breakpoints = nullptr;
-		TArray<PCGExCluster::FNodeChain*>* Chains = nullptr;
+		TArray<TSharedPtr<PCGExCluster::FNodeChain>>* Chains = nullptr;
 
 		const bool bSkipSingleEdgeChains = false;
 		const bool bDeadEndsOnly = false;
@@ -567,9 +568,9 @@ namespace PCGExClusterTask
 	{
 	public:
 		FBuildChain(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		            const PCGExCluster::FCluster* InCluster,
+		            const TSharedPtr<const PCGExCluster::FCluster>& InCluster,
 		            const TArray<bool>* InBreakpoints,
-		            TArray<PCGExCluster::FNodeChain*>* InChains,
+		            TArray<TSharedPtr<PCGExCluster::FNodeChain>>* InChains,
 		            const int32 InStartIndex,
 		            const uint64 InAdjacencyHash) :
 			FPCGExTask(InPointIO),
@@ -581,9 +582,9 @@ namespace PCGExClusterTask
 		{
 		}
 
-		const PCGExCluster::FCluster* Cluster = nullptr;
+		TSharedPtr<const PCGExCluster::FCluster> Cluster;
 		const TArray<bool>* Breakpoints = nullptr;
-		TArray<PCGExCluster::FNodeChain*>* Chains = nullptr;
+		TArray<TSharedPtr<PCGExCluster::FNodeChain>>* Chains = nullptr;
 		int32 StartIndex = 0;
 		uint64 AdjacencyHash = 0;
 
@@ -591,9 +592,9 @@ namespace PCGExClusterTask
 	};
 
 	static void BuildChain(
-		PCGExCluster::FNodeChain* Chain,
+		const TSharedPtr<PCGExCluster::FNodeChain>& Chain,
 		const TArray<bool>* Breakpoints,
-		const PCGExCluster::FCluster* Cluster)
+		const TSharedPtr<const PCGExCluster::FCluster>& Cluster)
 	{
 		TArray<PCGExCluster::FNode>& Nodes = *Cluster->Nodes;
 

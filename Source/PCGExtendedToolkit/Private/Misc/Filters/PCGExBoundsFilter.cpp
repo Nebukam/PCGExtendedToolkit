@@ -4,18 +4,15 @@
 #include "Misc/Filters/PCGExBoundsFilter.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"
 #define PCGEX_NAMESPACE PCGExBoundsFilterDefinition
 
 bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
-	if (PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true))
+	if (TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true))
 	{
-		BoundsDataFacade = new PCGExData::FFacade(BoundsIO);
+		BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO);
 	}
 	else
 	{

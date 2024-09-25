@@ -143,7 +143,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 		if (!Getters.IsEmpty())
 		{
 			const FPCGPoint& Point = SourceDataFacade->GetIn()->GetPoint(TagIndex);
-			for (const TUniquePtr<PCGEx::FLocalToStringGetter> Getter : Getters)
+			for (const TUniquePtr<PCGEx::FLocalToStringGetter>& Getter : Getters)
 			{
 				FString Tag = Getter->SoftGet(TagIndex, Point, TEXT(""));
 				if (Tag.IsEmpty()) { continue; }

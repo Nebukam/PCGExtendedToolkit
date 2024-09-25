@@ -40,8 +40,8 @@ void FPCGExSampleOverlapStatsContext::MTState_PointsCompletingWorkDone()
 {
 	FPCGExPointsProcessorContext::MTState_PointsCompletingWorkDone();
 
-	PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>* TypedBatch = static_cast<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>*>(MainBatch);
-	for (PCGExSampleOverlapStats::FProcessor* P : TypedBatch->Processors)
+	PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>* TypedBatch = static_cast<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>*>(MainBatch.Get());
+	for (const TSharedPtr<PCGExSampleOverlapStats::FProcessor>& P : TypedBatch->Processors)
 	{
 		if (!P->bIsProcessorValid) { continue; }
 		SharedOverlapSubCountMax = FMath::Max(SharedOverlapSubCountMax, P->LocalOverlapSubCountMax);
@@ -80,7 +80,7 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>* NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;

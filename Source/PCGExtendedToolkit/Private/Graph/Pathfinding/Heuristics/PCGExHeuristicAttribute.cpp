@@ -12,8 +12,8 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 {
 	Super::PrepareForCluster(InCluster);
 
-	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
-	PCGExData::FFacade* DataFacade = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
+	const TSharedPtr<PCGExData::FPointIO> InPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
+	const TSharedPtr<PCGExData::FFacade> DataFacade = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
 	if (LastPoints == InPoints) { return; }
 
@@ -23,7 +23,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	InPoints->CreateInKeys();
 	CachedScores.SetNumZeroed(NumPoints);
 
-	PCGExData::TBuffer<double>* ModifiersCache = DataFacade->GetBroadcaster<double>(Attribute, true);
+	const TSharedPtr<PCGExData::TBuffer<double>> ModifiersCache = DataFacade->GetBroadcaster<double>(Attribute, true);
 
 	if (!ModifiersCache)
 	{

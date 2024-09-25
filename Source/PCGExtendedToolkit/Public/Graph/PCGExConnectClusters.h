@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 
 
-
-
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExConnectClusters.generated.h"
 
@@ -91,7 +89,7 @@ protected:
 
 namespace PCGExBridgeClusters
 {
-	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExBuildVoronoiGraph2DContext, UPCGExBuildVoronoiGraph2DSettings>
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExConnectClustersContext, UPCGExConnectClustersSettings>
 	{
 	public:
 		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
@@ -107,16 +105,16 @@ namespace PCGExBridgeClusters
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
-		PCGExData::FPointIO* ConsolidatedEdges = nullptr;
+		TSharedPtr<PCGExData::FPointIO> ConsolidatedEdges;
 		TUniquePtr<FPCGExPointIOMerger> Merger;
 		TSet<uint64> Bridges;
 
-		FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges);
+		FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges);
 		virtual ~FProcessorBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;
 		virtual void Process() override;
-		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
 	};

@@ -9,8 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExBoundsPathIntersection.generated.h"
@@ -100,7 +98,7 @@ namespace PCGExPathIntersections
 		{
 			if (Details.InsideForwardHandler)
 			{
-				TArray<PCGExGeo::FPointBox*> Overlaps;
+				TArray<TSharedPtr<PCGExGeo::FPointBox>> Overlaps;
 				const bool bContained = Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation(), Overlaps); // Avoid intersections being captured
 				Details.SetIsInside(Index, bContained, bContained ? Overlaps[0]->Index : -1);
 			}

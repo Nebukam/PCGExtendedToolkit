@@ -10,23 +10,6 @@
 
 #include "PCGExPointFilter.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 
@@ -118,9 +101,9 @@ namespace PCGExFilterGroup
 		TArray<TSharedPtr<PCGExPointFilter::TFilter>> ManagedFilters;
 
 		virtual bool InitManaged(const FPCGContext* InContext);
-		bool InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter);
+		bool InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter) const;
 		virtual bool PostInitManaged(const FPCGContext* InContext);
-		virtual void PostInitManagedFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter);
+		virtual void PostInitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter);
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroupAND : public TFilterGroup

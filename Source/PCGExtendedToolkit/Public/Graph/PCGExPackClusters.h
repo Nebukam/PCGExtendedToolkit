@@ -49,7 +49,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersContext final : public FPCGE
 
 	virtual ~FPCGExPackClustersContext() override;
 
-	TUniquePtr<PCGExData::FPointIOCollection> PackedClusters;
+	TSharedPtr<PCGExData::FPointIOCollection> PackedClusters;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 

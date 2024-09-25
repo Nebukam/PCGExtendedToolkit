@@ -78,8 +78,8 @@ namespace PCGExPointsFilter
 
 		const UPCGExNumericCompareFilterFactory* TypedFilterFactory;
 
-		PCGExData::TBuffer<double>* OperandA = nullptr;
-		PCGExData::TBuffer<double>* OperandB = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override

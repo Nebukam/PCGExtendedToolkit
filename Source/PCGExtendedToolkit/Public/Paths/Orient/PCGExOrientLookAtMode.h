@@ -46,5 +46,5 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGExData::TBuffer<FVector>* LookAtGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> LookAtGetter;
 };

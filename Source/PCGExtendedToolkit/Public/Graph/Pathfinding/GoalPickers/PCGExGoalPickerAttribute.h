@@ -37,11 +37,11 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::Single", EditConditionHides))
 	FPCGAttributePropertyInputSelector SingleSelector;
-	PCGExData::TBuffer<double>* SingleGetter;
+	TSharedPtr<PCGExData::TBuffer<double>> SingleGetter;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List", EditConditionHides, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGAttributePropertyInputSelector> AttributeSelectors;
-	TArray<PCGExData::TBuffer<double>*> AttributeGetters;
+	TArray<TSharedPtr<PCGExData::TBuffer<double>>> AttributeGetters;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 

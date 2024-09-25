@@ -106,7 +106,7 @@ namespace PCGExGraph
 		ProcessNodesGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				FCompoundNode* CompoundNode = CompoundGraph->Nodes[Index];
+				FCompoundNode* CompoundNode = CompoundGraph->Nodes[Index].Get();
 				PCGMetadataEntryKey Key = MutablePoints[Index].MetadataEntry;
 				MutablePoints[Index] = CompoundNode->Point; // Copy "original" point properties, in case  there's only one
 
@@ -114,7 +114,7 @@ namespace PCGExGraph
 				Point.MetadataEntry = Key; // Restore key
 
 				Point.Transform.SetLocation(
-					CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, Context->MainPoints));
+					CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds.Get(), Context->MainPoints.Get()));
 				CompoundPointsBlender->MergeSingle(Index, PCGExDetails::GetDistanceDetails(PointPointIntersectionDetails));
 			}, NumCompoundNodes, 256, false, false);
 

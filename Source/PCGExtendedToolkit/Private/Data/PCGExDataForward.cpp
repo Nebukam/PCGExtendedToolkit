@@ -65,7 +65,7 @@ namespace PCGExData
 				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					PCGExData::TBuffer<T>* Reader = SourceDataFacade->GetReadable<T>(Identity.Name);
+					TSharedPtr<PCGExData::TBuffer<T>> Reader = SourceDataFacade->GetReadable<T>(Identity.Name);
 					Readers[i] = Reader;
 					Writers[i] = TargetDataFacade->GetWritable<T>(Reader->GetTypedInAttribute(), false);
 				});
@@ -105,7 +105,7 @@ namespace PCGExData
 						using T = decltype(DummyValue);
 						const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
 
-						PCGExData::TBuffer<T>* Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, true);
+						TSharedPtr<PCGExData::TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, true);
 
 						const T ForwardValue = SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry);
 						TArray<T>& Values = *Writer->GetOutValues();

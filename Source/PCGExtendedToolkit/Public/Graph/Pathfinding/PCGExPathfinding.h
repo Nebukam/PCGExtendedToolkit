@@ -171,11 +171,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingTask : public PCGExMT::FPCGExT
 {
 public:
 	FPCGExPathfindingTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-	                      const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
+	                      const TArray<TSharedPtr<PCGExPathfinding::FPathQuery>>* InQueries) :
 		FPCGExTask(InPointIO),
 		Queries(InQueries)
 	{
 	}
 
-	const TArray<PCGExPathfinding::FPathQuery*>* Queries = nullptr;
+	const TArray<TSharedPtr<PCGExPathfinding::FPathQuery>>* Queries = nullptr;
 };

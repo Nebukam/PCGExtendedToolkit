@@ -122,9 +122,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersContext final : public FPC
 	TUniquePtr<PCGExGeo::FGeoStaticMeshMap> StaticMeshMap;
 	TArray<int32> MeshIdx;
 
-	TUniquePtr<PCGExData::FPointIOCollection> RootVtx;
-	TUniquePtr<PCGExData::FPointIOCollection> VtxChildCollection;
-	TUniquePtr<PCGExData::FPointIOCollection> EdgeChildCollection;
+	TSharedPtr<PCGExData::FPointIOCollection> RootVtx;
+	TSharedPtr<PCGExData::FPointIOCollection> VtxChildCollection;
+	TSharedPtr<PCGExData::FPointIOCollection> EdgeChildCollection;
 
 	TArray<TSharedPtr<PCGExGraph::FGraphBuilder>> GraphBuilders;
 
@@ -152,13 +152,13 @@ namespace PCGExMeshToCluster
 	public:
 		FExtractMeshAndBuildGraph(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			PCGExGeo::FGeoStaticMesh* InMesh) :
+			const TSharedPtr<PCGExGeo::FGeoStaticMesh>& InMesh) :
 			FPCGExTask(InPointIO),
 			Mesh(InMesh)
 		{
 		}
 
-		PCGExGeo::FGeoStaticMesh* Mesh = nullptr;
+		TSharedPtr<PCGExGeo::FGeoStaticMesh> Mesh;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};

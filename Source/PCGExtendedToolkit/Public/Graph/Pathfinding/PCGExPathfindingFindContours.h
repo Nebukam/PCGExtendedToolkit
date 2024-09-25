@@ -9,8 +9,6 @@
 
 
 
-
-
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
 
@@ -154,7 +152,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGE
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 
-	TUniquePtr<PCGExData::FPointIOCollection> Paths;
+	TSharedPtr<PCGExData::FPointIOCollection> Paths;
 	TSharedPtr<PCGExData::FPointIO> GoodSeeds;
 	TSharedPtr<PCGExData::FPointIO> BadSeeds;
 
@@ -163,7 +161,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGE
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
 
-	bool TryFindContours(TSharedPtr<PCGExData::FPointIO> PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
+	bool TryFindContours(const TSharedPtr<PCGExData::FPointIO>& PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
@@ -209,7 +207,6 @@ namespace PCGExFindContours
 		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -221,13 +218,13 @@ namespace PCGExFindContours
 		TArray<FVector> ProjectedPositions;
 
 	public:
-		FBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+		FBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)
 		{
 		}
 
 		virtual void Process() override;
-		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 	};
 
 	class FProjectRangeTask : public PCGExMT::FPCGExTask

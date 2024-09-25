@@ -88,7 +88,7 @@ protected:
 	double MinDot = 0;
 	bool bUseBestDot = false;
 	FVector Direction = FVector::ForwardVector;
-	PCGExData::TBuffer<FVector>* DirectionCache = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> DirectionCache;
 };
 
 ////

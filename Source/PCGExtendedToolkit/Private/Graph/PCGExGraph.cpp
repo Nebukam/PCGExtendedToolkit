@@ -10,7 +10,7 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
-bool FPCGExGraphBuilderDetails::IsValid(const PCGExGraph::FSubGraph* InSubgraph) const
+bool FPCGExGraphBuilderDetails::IsValid(const TSharedPtr<PCGExGraph::FSubGraph>& InSubgraph) const
 {
 	if (bRemoveBigClusters)
 	{
@@ -201,7 +201,7 @@ namespace PCGExGraph
 
 			if (!CurrentNode.bValid || CurrentNode.Adjacency.IsEmpty()) { continue; }
 
-			FSubGraph* SubGraph = new FSubGraph();
+			TSharedPtr<FSubGraph> SubGraph = MakeShared<FSubGraph>();
 			SubGraph->ParentGraph = this;
 
 			TArray<int32> Stack;
@@ -245,15 +245,8 @@ namespace PCGExGraph
 			}
 
 
-			if (!Limits.IsValid(SubGraph))
-			{
-				SubGraph->Invalidate(this); // Will invalidate isolated points
-				delete SubGraph;
-			}
-			else
-			{
-				SubGraphs.Add(SubGraph);
-			}
+			if (!Limits.IsValid(SubGraph)) { SubGraph->Invalidate(this); } // Will invalidate isolated points
+			else { SubGraphs.Add(SubGraph); }
 		}
 	}
 
@@ -394,9 +387,7 @@ namespace PCGExGraph
 
 		// Subgraphs
 
-		TArray<FSubGraph*> SmallSubGraphs;
-
-		for (FSubGraph* SubGraph : Graph->SubGraphs)
+		for (const TSharedPtr<FSubGraph>& SubGraph : Graph->SubGraphs)
 		{
 			TSharedPtr<PCGExData::FPointIO> EdgeIO;
 
@@ -425,12 +416,12 @@ namespace PCGExGraph
 			{
 				// Schedule facades for writing
 				if (bWriteVtxDataFacadeWithCompile) { NodeDataFacade->Write(AsyncManager); }
-				for (const FSubGraph* SubGraph : Graph->SubGraphs) { SubGraph->EdgesDataFacade->Write(AsyncManager); }
+				for (const TSharedPtr<FSubGraph>& SubGraph : Graph->SubGraphs) { SubGraph->EdgesDataFacade->Write(AsyncManager); }
 			});
 		ProcessSubGraphTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				FSubGraph* SubGraph = Graph->SubGraphs[Index];
+				TSharedPtr<FSubGraph> SubGraph = Graph->SubGraphs[Index];
 				PCGExGraphTask::WriteSubGraphEdges(AsyncManager, SubGraph, MetadataDetailsPtr);
 			}, Graph->SubGraphs.Num(), 1, false, false);
 	}
@@ -445,7 +436,7 @@ namespace PCGExGraphTask
 {
 	void WriteSubGraphEdges(
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		PCGExGraph::FSubGraph* SubGraph,
+		const TSharedPtr<PCGExGraph::FSubGraph>& SubGraph,
 		const PCGExGraph::FGraphMetadataDetails* MetadataDetails)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);

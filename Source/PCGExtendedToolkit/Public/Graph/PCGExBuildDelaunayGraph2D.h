@@ -103,7 +103,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DContext final : publ
 
 	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
 
-	TUniquePtr<PCGExData::FPointIOCollection> MainSites;
+	TSharedPtr<PCGExData::FPointIOCollection> MainSites;
 };
 
 
@@ -133,7 +133,7 @@ namespace PCGExBuildDelaunay2D
 		TSet<uint64> UrquhartEdges;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> HullMarkPointWriter;
 
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):

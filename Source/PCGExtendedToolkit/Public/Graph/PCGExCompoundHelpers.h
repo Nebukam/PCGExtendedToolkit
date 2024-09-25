@@ -40,8 +40,8 @@ namespace PCGExGraph
 
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-		FCompoundGraph* CompoundGraph = nullptr;
-		PCGExData::FFacade* CompoundFacade = nullptr;
+		TSharedPtr<FCompoundGraph> CompoundGraph;
+		TSharedPtr<PCGExData::FFacade> CompoundFacade;
 		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundPointsBlender;
 
 		explicit FCompoundProcessor(

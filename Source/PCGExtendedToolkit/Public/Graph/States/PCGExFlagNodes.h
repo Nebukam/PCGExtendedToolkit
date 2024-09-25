@@ -7,8 +7,6 @@
 #include "PCGExClusterStates.h"
 
 
-
-
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExFlagNodes.generated.h"
@@ -79,11 +77,11 @@ namespace PCGExFlagNodes
 	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFlagNodesContext, UPCGExFlagNodesSettings>
 	{
 		friend class FProcessorBatch;
-		TArray<int64>* StateFlags = nullptr;
+		TSharedPtr<TArray<int64>> StateFlags;
 		TUniquePtr<PCGExClusterStates::FStateManager> StateManager;
 
 		bool bBuildExpandedNodes = false;
-		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
+		TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedNode>>> ExpandedNodes;
 
 	public:
 		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
@@ -103,13 +101,13 @@ namespace PCGExFlagNodes
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-		TArray<int64>* StateFlags = nullptr;
+		TSharedPtr<TArray<int64>> StateFlags;
 
 	public:
-		FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges);
+		FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges);
 		virtual ~FProcessorBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;
-		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 	};
 }

@@ -4,6 +4,11 @@
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
 
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
 
@@ -29,14 +34,17 @@ TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() cons
 PCGExData::EInit UPCGExFindContoursSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-bool FPCGExFindContoursContext::TryFindContours(TSharedPtr<PCGExData::FPointIO> PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor)
+bool FPCGExFindContoursContext::TryFindContours(
+	const TSharedPtr<PCGExData::FPointIO>& PathIO,
+	const int32 SeedIndex,
+	PCGExFindContours::FProcessor* ClusterProcessor)
 {
 	const UPCGExFindContoursSettings* Settings = ClusterProcessor->Settings;
 
 	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster.Get();
 
-	TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = ClusterProcessor->ExpandedNodes;
-	TArray<PCGExCluster::FExpandedEdge*>* ExpandedEdges = ClusterProcessor->ExpandedEdges;
+	TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedNode>>> ExpandedNodes = ClusterProcessor->ExpandedNodes;
+	TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedEdge>>> ExpandedEdges = ClusterProcessor->ExpandedEdges;
 
 	const TArray<FVector>& Positions = *ClusterProcessor->ProjectedPositions;
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
@@ -114,7 +122,7 @@ bool FPCGExFindContoursContext::TryFindContours(TSharedPtr<PCGExData::FPointIO> 
 		if (bEdgeAlreadyExists) { break; }
 
 		Path.Add(NextIndex);
-		PCGExCluster::FExpandedNode* Current = *(ExpandedNodes->GetData() + NextIndex);
+		const TUniquePtr<PCGExCluster::FExpandedNode>& Current = *(ExpandedNodes->GetData() + NextIndex);
 
 		PathBox += Cluster->GetPos(Current->Node);
 
@@ -247,7 +255,6 @@ FPCGExFindContoursContext::~FPCGExFindContoursContext()
 	PCGEX_TERMINATE_ASYNC
 
 	SeedQuality.Empty();
-	SeedAttributesToPathTags.Cleanup();
 }
 
 
@@ -263,7 +270,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 
 	TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
-	
+
 	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints);
 
 	if (!Context->ProjectionDetails.Init(Context, Context->SeedsDataFacade)) { return false; }
@@ -272,7 +279,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	if (!Context->SeedAttributesToPathTags.Init(Context, Context->SeedsDataFacade)) { return false; }
 	Context->SeedForwardHandler = Settings->SeedForwarding.GetHandler(Context->SeedsDataFacade);
 
-	Context->Paths = MakeUnique<PCGExData::FPointIOCollection>(Context);
+	Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	if (Settings->bOutputFilteredSeeds)
@@ -306,8 +313,8 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExFindContours::FBatch>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExFindContours::FBatch* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExFindContours::FBatch>& NewBatch)
 			{
 				if (Settings->bFlagDeadEnds)
 				{
@@ -376,7 +383,7 @@ namespace PCGExFindContours
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		(*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster.Get(), Iteration);
+		(*ExpandedNodes)[Iteration] = MoveTemp(MakeUnique<PCGExCluster::FExpandedNode>(Cluster.Get(), Iteration));
 	}
 
 	void FProcessor::CompleteWork()
@@ -418,7 +425,7 @@ namespace PCGExFindContours
 		TBatch<FProcessor>::Process();
 	}
 
-	bool FBatch::PrepareSingle(FProcessor* ClusterProcessor)
+	bool FBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
 		ClusterProcessor->ProjectedPositions = &ProjectedPositions;
 		TBatch<FProcessor>::PrepareSingle(ClusterProcessor);
