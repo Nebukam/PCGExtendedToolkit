@@ -7,6 +7,8 @@
 #include "Data/PCGExPointIO.h"
 
 
+
+
 void UPCGExSubPointsOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
@@ -16,7 +18,7 @@ void UPCGExSubPointsOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExSubPointsOperation::PrepareForData(PCGExData::FFacade* InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet)
+void UPCGExSubPointsOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet)
 {
 }
 

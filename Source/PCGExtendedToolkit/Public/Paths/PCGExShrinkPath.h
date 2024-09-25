@@ -7,6 +7,10 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExShrinkPath.generated.h"
 
@@ -163,8 +167,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathContext final : public FPCGExP
 {
 	friend class FPCGExShrinkPathElement;
 
-	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
-	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, uint32& Start, uint32& End) const;
+	void GetShrinkAmounts(const TSharedPtr<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
+	void GetShrinkAmounts(const TSharedPtr<PCGExData::FPointIO>& PointIO, uint32& Start, uint32& End) const;
 
 	virtual ~FPCGExShrinkPathContext() override;
 };
@@ -184,18 +188,18 @@ protected:
 
 namespace PCGExShrinkPath
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExShrinkPathContext, UPCGExShrinkPathSettings>
 	{
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 			DefaultPointFilterValue = false;
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 }

@@ -4,6 +4,12 @@
 #include "Graph/PCGExConnectClusters.h"
 
 #include "Data/PCGExPointIOMerger.h"
+
+
+
+
+
+
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExConnectClusters"
@@ -92,12 +98,12 @@ bool FPCGExConnectClustersElement::ExecuteInternal(
 
 namespace PCGExBridgeClusters
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBridgeClusters::Process);
 		PCGEX_SETTINGS(ConnectClusters)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 
 		return true;
@@ -105,7 +111,7 @@ namespace PCGExBridgeClusters
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
-		PCGEX_SETTINGS(ConnectClusters)
+		
 	}
 
 	void FProcessor::CompleteWork()
@@ -114,7 +120,7 @@ namespace PCGExBridgeClusters
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, TSharedPtr<PCGExData::FPointIO> InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
 	}
@@ -130,7 +136,7 @@ namespace PCGExBridgeClusters
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
 		//const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(Context);
 
-		ConsolidatedEdges = TypedContext->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
+		ConsolidatedEdges = Context->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 	}
@@ -146,7 +152,7 @@ namespace PCGExBridgeClusters
 
 		Merger = MakeUnique<FPCGExPointIOMerger>(ConsolidatedEdges);
 		Merger->Append(Edges);
-		Merger->Merge(AsyncManagerPtr, &TypedContext->CarryOverDetails);
+		Merger->Merge(AsyncManager, &Context->CarryOverDetails);
 	}
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
@@ -163,16 +169,16 @@ namespace PCGExBridgeClusters
 
 		if (Processors.Num() != NumValidClusters)
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx/edges groups have invalid clusters. Make sure to sanitize the input first."));
+			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some vtx/edges groups have invalid clusters. Make sure to sanitize the input first."));
 		}
 
 		if (ValidClusters.IsEmpty()) { return; } // Skip work completion entirely
 
-		Merger->Write(AsyncManagerPtr); // Write base attributes value while finding bridges		
+		Merger->Write(AsyncManager); // Write base attributes value while finding bridges		
 
 		////
 		PCGEX_SETTINGS(ConnectClusters)
-		const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(Context);
+		const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(ExecutionContext);
 
 		const int32 NumBounds = ValidClusters.Num();
 		EPCGExBridgeClusterMethod SafeMethod = Settings->BridgeMethod;
@@ -202,7 +208,7 @@ namespace PCGExBridgeClusters
 			for (int i = 0; i < NumBounds; ++i) { Positions[i] = Bounds[i].GetCenter(); }
 
 			if (Delaunay->Process(Positions, false)) { Bridges.Append(Delaunay->DelaunayEdges); }
-			else { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Delaunay 3D failed. Are points coplanar? If so, use Delaunay 2D instead.")); }
+			else { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Delaunay 3D failed. Are points coplanar? If so, use Delaunay 2D instead.")); }
 
 			Positions.Empty();
 		}
@@ -216,7 +222,7 @@ namespace PCGExBridgeClusters
 			for (int i = 0; i < NumBounds; ++i) { Positions[i] = Bounds[i].GetCenter(); }
 
 			if (Delaunay->Process(Positions, InContext->ProjectionDetails)) { Bridges.Append(Delaunay->DelaunayEdges); }
-			else { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Delaunay 2D failed.")); }
+			else { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Delaunay 2D failed.")); }
 
 			Positions.Empty();
 		}
@@ -273,7 +279,7 @@ namespace PCGExBridgeClusters
 			uint32 End;
 			PCGEx::H64(Bridge, Start, End);
 
-			AsyncManagerPtr->Start<FPCGExCreateBridgeTask>(
+			AsyncManager->Start<FPCGExCreateBridgeTask>(
 				EdgePointIndex, ConsolidatedEdges,
 				this, ValidClusters[Start], ValidClusters[End]);
 		}
@@ -282,14 +288,14 @@ namespace PCGExBridgeClusters
 		const uint64 ClusterId = VtxIO->GetOut()->UID;
 		PCGEx::TAttributeWriter<int64>* ClusterIdWriter = new PCGEx::TAttributeWriter<int64>(PCGExGraph::Tag_ClusterId);
 		for (int64& Id : ClusterIdWriter->Values) { Id = ClusterId; }
-		PCGEX_ASYNC_WRITE_DELETE(AsyncManagerPtr, ClusterIdWriter);
+		PCGExMT::Write(AsyncManager, ClusterIdWriter);
 
 		TBatch<FProcessor>::Write();
 		// TODO : OPTIM : We can easily build this batch' cluster by appending existing ones into a big one and just add edges
 	}
 
 
-	bool FPCGExCreateBridgeTask::ExecuteTask()
+	bool FPCGExCreateBridgeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		int32 IndexA = -1;
 		int32 IndexB = -1;

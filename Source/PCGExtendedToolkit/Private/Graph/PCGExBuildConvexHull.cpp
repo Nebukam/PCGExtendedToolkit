@@ -3,6 +3,9 @@
 
 #include "Graph/PCGExBuildConvexHull.h"
 
+
+
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
@@ -88,12 +91,11 @@ namespace PCGExConvexHull
 		Edges.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConvexHull::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildConvexHull)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		// Build delaunay
 
@@ -104,7 +106,7 @@ namespace PCGExConvexHull
 
 		if (!Delaunay->Process(ActivePositions, false))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
+			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
 			return false;
 		}
 
@@ -142,7 +144,7 @@ namespace PCGExConvexHull
 
 	void FProcessor::CompleteWork()
 	{
-		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
+		GraphBuilder->CompileAsync(AsyncManager, false);
 	}
 
 	void FProcessor::Write()
@@ -154,7 +156,7 @@ namespace PCGExConvexHull
 			return;
 		}
 
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 		GraphBuilder->OutputEdgesToContext();
 	}
 }

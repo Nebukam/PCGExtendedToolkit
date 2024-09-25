@@ -7,6 +7,8 @@
 #include "PCGExPointsProcessor.h"
 
 
+
+
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
@@ -120,7 +122,7 @@ protected:
 
 namespace PCGExBuildDelaunay2D
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildDelaunayGraph2DContext, UPCGExBuildDelaunayGraph2DSettings>
 	{
 		friend class FOutputDelaunaySites2D;
 		friend class FOutputDelaunayUrquhartSites2D;
@@ -134,14 +136,14 @@ namespace PCGExBuildDelaunay2D
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
@@ -150,7 +152,7 @@ namespace PCGExBuildDelaunay2D
 	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunaySites2D final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FOutputDelaunaySites2D(PCGExData::FPointIO* InPointIO,
+		FOutputDelaunaySites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                       FProcessor* InProcessor) :
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
@@ -159,13 +161,13 @@ namespace PCGExBuildDelaunay2D
 
 		FProcessor* Processor = nullptr;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FOutputDelaunayUrquhartSites2D final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FOutputDelaunayUrquhartSites2D(PCGExData::FPointIO* InPointIO,
+		FOutputDelaunayUrquhartSites2D(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                               FProcessor* InProcessor) :
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
@@ -174,6 +176,6 @@ namespace PCGExBuildDelaunay2D
 
 		FProcessor* Processor = nullptr;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

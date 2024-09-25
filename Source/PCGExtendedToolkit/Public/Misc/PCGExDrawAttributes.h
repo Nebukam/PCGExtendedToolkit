@@ -116,7 +116,7 @@ public:
 
 	bool bValid = false;
 
-	bool Bind(const PCGExData::FPointIO* PointIO);
+	bool Bind(const TSharedPtr<PCGExData::FPointIO>& PointIO);
 
 	double GetSize(const PCGExData::FPointRef& Point) const;
 	FColor GetColor(const PCGExData::FPointRef& Point) const;

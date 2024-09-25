@@ -4,6 +4,7 @@
 
 #include "Misc/PCGExAttributeRemap.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExAttributeRemap"
 #define PCGEX_NAMESPACE AttributeRemap
 
@@ -76,22 +77,17 @@ namespace PCGExAttributeRemap
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(AttributeRemap)
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
-
-		PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
+		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
 		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->SourceAttributeName);
 
 		if (!Identity)
 		{
-			PCGEX_DELETE(Infos)
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Some inputs are missing the specified source attribute."));
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Some inputs are missing the specified source attribute."));
 			return false;
 		}
 
@@ -128,14 +124,13 @@ namespace PCGExAttributeRemap
 
 		if (Dimensions == -1)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Source attribute type cannot be remapped."));
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Source attribute type cannot be remapped."));
 			return false;
 		}
 
 		if (!Identity)
 		{
-			PCGEX_DELETE(Infos)
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Some inputs are missing the specified source attribute."));
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Some inputs are missing the specified source attribute."));
 			return false;
 		}
 
@@ -148,17 +143,15 @@ namespace PCGExAttributeRemap
 				CacheReader = PointDataFacade->GetScopedReadable<RawT>(Identity->Name);
 			});
 
-		PCGEX_DELETE(Infos)
-
 		Rules.Reserve(Dimensions);
 		for (int i = 0; i < Dimensions; ++i)
 		{
-			FPCGExComponentRemapRule Rule = Rules.Add_GetRef(FPCGExComponentRemapRule(TypedContext->RemapSettings[TypedContext->RemapIndices[i]]));
+			FPCGExComponentRemapRule Rule = Rules.Add_GetRef(FPCGExComponentRemapRule(Context->RemapSettings[Context->RemapIndices[i]]));
 			Rule.RemapDetails.InMin = TNumericLimits<double>::Max();
 			Rule.RemapDetails.InMax = TNumericLimits<double>::Min();
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManager, FetchTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchTask)
 		FetchTask->SetOnCompleteCallback(
 			[&]()
 			{
@@ -250,7 +243,7 @@ namespace PCGExAttributeRemap
 
 	void FProcessor::OnPreparationComplete()
 	{
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, RemapTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, RemapTask)
 		RemapTask->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
@@ -266,7 +259,7 @@ namespace PCGExAttributeRemap
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

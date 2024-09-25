@@ -82,8 +82,8 @@ namespace PCGExHeuristics
 	class /*PCGEXTENDEDTOOLKIT_API*/ THeuristicsHandler
 	{
 	public:
-		PCGExData::FFacade* VtxDataFacade = nullptr;
-		PCGExData::FFacade* EdgeDataFacade = nullptr;
+		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
+		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 		TArray<UPCGExHeuristicOperation*> Operations;
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
@@ -97,8 +97,8 @@ namespace PCGExHeuristics
 
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 
-		explicit THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade);
-		explicit THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);
+		explicit THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
+		explicit THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);
 		~THeuristicsHandler();
 
 		void BuildFrom(FPCGContext* InContext, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);
@@ -156,6 +156,6 @@ namespace PCGExHeuristics
 			for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
 		}
 
-		FLocalFeedbackHandler* MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster);
+		TUniquePtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster);
 	};
 }

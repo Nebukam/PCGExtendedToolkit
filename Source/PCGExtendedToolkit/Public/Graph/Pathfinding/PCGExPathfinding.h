@@ -139,7 +139,7 @@ namespace PCGExPathfinding
 	};
 
 	static void ProcessGoals(
-		const PCGExData::FFacade* InSeedDataFacade,
+		const TSharedPtr<PCGExData::FFacade>& InSeedDataFacade,
 		const UPCGExGoalPicker* GoalPicker,
 		TFunction<void(int32, int32)>&& GoalFunc)
 	{
@@ -170,7 +170,7 @@ namespace PCGExPathfinding
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingTask : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExPathfindingTask(PCGExData::FPointIO* InPointIO,
+	FPCGExPathfindingTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 	                      const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
 		FPCGExTask(InPointIO),
 		Queries(InQueries)

@@ -3,15 +3,19 @@
 
 #include "Misc/Filters/PCGExBooleanCompareFilter.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGExPointFilter::TFilter* UPCGExBooleanCompareFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExBooleanCompareFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TBooleanComparisonFilter(this);
+	return MakeShared<PCGExPointsFilter::TBooleanComparisonFilter>(this);
 }
 
-bool PCGExPointsFilter::TBooleanComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TBooleanComparisonFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 

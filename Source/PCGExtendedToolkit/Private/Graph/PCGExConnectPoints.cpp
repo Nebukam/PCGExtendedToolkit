@@ -3,6 +3,9 @@
 
 #include "Graph/PCGExConnectPoints.h"
 
+
+
+
 #include "Graph/PCGExGraph.h"
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
@@ -119,31 +122,30 @@ namespace PCGExConnectPoints
 		CanGenerate.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConnectPoints::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const int32 NumPoints = PointIO->GetNum();
 
-		CWCoincidenceTolerance = TypedContext->CWCoincidenceTolerance;
+		CWCoincidenceTolerance = Context->CWCoincidenceTolerance;
 		bPreventCoincidence = Settings->bPreventCoincidence;
 
 		if (Settings->bProjectPoints)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			ProjectionDetails.Init(Context, PointDataFacade.Get());
+			ProjectionDetails.Init(ExecutionContext, PointDataFacade.Get());
 		}
 
-		for (const UPCGExProbeFactoryBase* Factory : TypedContext->ProbeFactories)
+		for (const UPCGExProbeFactoryBase* Factory : Context->ProbeFactories)
 		{
 			UPCGExProbeOperation* NewOperation = Factory->CreateOperation();
-			NewOperation->BindContext(Context);
+			NewOperation->BindContext(ExecutionContext);
 			NewOperation->PrimaryDataFacade = PointDataFacade.Get();
 
 			if (!NewOperation->PrepareForPoints(PointIO))
@@ -177,16 +179,16 @@ namespace PCGExConnectPoints
 		CanGenerate.Init(true, NumPoints);
 		CachedTransforms.SetNumUninitialized(NumPoints);
 
-		if (!TypedContext->GeneratorsFiltersFactories.IsEmpty())
+		if (!Context->GeneratorsFiltersFactories.IsEmpty())
 		{
 			GeneratorsFilter = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade.Get());
-			GeneratorsFilter->Init(Context, TypedContext->GeneratorsFiltersFactories);
+			GeneratorsFilter->Init(ExecutionContext, Context->GeneratorsFiltersFactories);
 		}
 
-		if (!TypedContext->ConnectablesFiltersFactories.IsEmpty())
+		if (!Context->ConnectablesFiltersFactories.IsEmpty())
 		{
 			ConnectableFilter = MakeUnique<PCGExPointFilter::TManager>(PointDataFacade.Get());
-			ConnectableFilter->Init(Context, TypedContext->ConnectablesFiltersFactories);
+			ConnectableFilter->Init(ExecutionContext, Context->ConnectablesFiltersFactories);
 		}
 
 		bUseProjection = Settings->bProjectPoints;
@@ -203,7 +205,7 @@ namespace PCGExConnectPoints
 			if (GeneratorsFilter) { for (int i = 0; i < InPoints->Num(); ++i) { CanGenerate[i] = GeneratorsFilter->Test(i); } }
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManager, PrepTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
 		PrepTask->SetOnCompleteCallback([&]() { OnPreparationComplete(); });
 		PrepTask->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
@@ -258,8 +260,6 @@ namespace PCGExConnectPoints
 
 	void FProcessor::PrepareLoopScopesForPoints(const TArray<uint64>& Loops)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectPoints)
-
 		FPointsProcessor::PrepareLoopScopesForPoints(Loops);
 		for (int i = 0; i < Loops.Num(); ++i) { DistributedEdgesSet.Add(new TSet<uint64>()); }
 	}
@@ -348,7 +348,7 @@ namespace PCGExConnectPoints
 
 		DistributedEdgesSet.Empty();
 
-		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
+		GraphBuilder->CompileAsync(AsyncManager, false);
 	}
 
 	void FProcessor::Write()
@@ -359,7 +359,7 @@ namespace PCGExConnectPoints
 			return;
 		}
 
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 		GraphBuilder->OutputEdgesToContext();
 	}
 }

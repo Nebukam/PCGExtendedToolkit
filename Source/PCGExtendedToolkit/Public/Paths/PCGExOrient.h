@@ -7,6 +7,10 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
 #include "Orient/PCGExOrientOperation.h"
 #include "PCGExOrient.generated.h"
 
@@ -103,7 +107,7 @@ protected:
 
 namespace PCGExOrient
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOrientContext, UPCGExOrientSettings>
 	{
 		PCGExData::TBuffer<FTransform>* TransformWriter = nullptr;
 		PCGExData::TBuffer<double>* DotWriter = nullptr;
@@ -111,14 +115,14 @@ namespace PCGExOrient
 		int32 LastIndex = 0;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

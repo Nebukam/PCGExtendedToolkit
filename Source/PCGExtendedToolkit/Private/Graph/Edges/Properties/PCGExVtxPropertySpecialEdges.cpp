@@ -3,6 +3,9 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertySpecialEdges.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialEdges"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialEdges
 
@@ -21,7 +24,7 @@ void UPCGExVtxPropertySpecialEdges::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade)
+bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, TSharedPtr<PCGExData::FFacade> InVtxDataFacade)
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 

@@ -5,6 +5,12 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExRandom.h"
+
+
+
+
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -410,14 +416,14 @@ namespace PCGExGraph
 			SubGraph->UID = EdgeIO->GetOut()->UID;
 
 			SubGraph->VtxDataFacade = NodeDataFacade;
-			SubGraph->EdgesDataFacade = MakeUnique<PCGExData::FFacade>(EdgeIO);
+			SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO);
 
 			MarkClusterEdges(EdgeIO, PairIdStr);
 		}
 
 		MarkClusterVtx(NodeDataFacade->Source, PairIdStr);
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, ProcessSubGraphTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphTask)
 		ProcessSubGraphTask->SetOnCompleteCallback(
 			[&]()
 			{
@@ -567,25 +573,25 @@ namespace PCGExGraphTask
 		}
 	}
 
-	bool FWriteSubGraphCluster::ExecuteTask()
+	bool FWriteSubGraphCluster::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(SubGraph->EdgesDataFacade->GetOut());
-		const TSharedPtr<PCGExCluster::FCluster> Cluster = SubGraph->CreateCluster(Manager);
-		if (SubGraph->ParentGraph->bExpandClusters) { Cluster->ExpandNodes(Manager); }
+		const TSharedPtr<PCGExCluster::FCluster> Cluster = SubGraph->CreateCluster(ManagerPtr);
+		if (SubGraph->ParentGraph->bExpandClusters) { Cluster->ExpandNodes(ManagerPtr); }
 
 		ClusterEdgesData->SetBoundCluster(Cluster);
 		return true;
 	}
 
-	bool FCompileGraph::ExecuteTask()
+	bool FCompileGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
 
-		Builder->Compile(Manager, bWriteNodeFacade, MetadataDetails);
+		Builder->Compile(ManagerPtr, bWriteNodeFacade, MetadataDetails);
 		return true;
 	}
 
-	bool FCopyGraphToPoint::ExecuteTask()
+	bool FCopyGraphToPoint::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		if (!GraphBuilder->bCompiledSuccessfully) { return false; }
 

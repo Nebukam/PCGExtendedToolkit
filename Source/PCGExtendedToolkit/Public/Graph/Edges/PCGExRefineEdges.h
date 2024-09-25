@@ -4,6 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+
+
+
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
@@ -107,15 +111,12 @@ protected:
 
 namespace PCGExRefineEdges
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExRefineEdgesContext, UPCGExRefineEdgesSettings>
 	{
 		friend class FSanitizeRangeTask;
 		friend class FFilterRangeTask;
 
 	protected:
-		const UPCGExRefineEdgesSettings* LocalSettings = nullptr;
-		FPCGExRefineEdgesContext* LocalTypedContext = nullptr;
-
 		TUniquePtr<PCGExPointFilter::TManager> EdgeFilterManager;
 		TUniquePtr<PCGExPointFilter::TManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
@@ -126,14 +127,14 @@ namespace PCGExRefineEdges
 		TArray<bool> EdgeFilterCache;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-			: FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
+			: TClusterProcessor<FPCGExRefineEdgesContext, UPCGExRefineEdgesSettings>(InVtx, InEdges)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
 
 		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
@@ -148,7 +149,7 @@ namespace PCGExRefineEdges
 	class FSanitizeRangeTask : public PCGExMT::FPCGExTask
 	{
 	public:
-		FSanitizeRangeTask(PCGExData::FPointIO* InPointIO,
+		FSanitizeRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                   FProcessor* InProcessor):
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
@@ -157,6 +158,6 @@ namespace PCGExRefineEdges
 
 		FProcessor* Processor = nullptr;
 		uint64 Scope = 0;
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

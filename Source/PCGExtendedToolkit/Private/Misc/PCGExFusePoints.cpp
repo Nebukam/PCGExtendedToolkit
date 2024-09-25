@@ -4,6 +4,10 @@
 #include "Misc/PCGExFusePoints.h"
 
 #include "Data/Blending/PCGExCompoundBlender.h"
+
+
+
+
 #include "Graph/PCGExIntersections.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
@@ -68,15 +72,14 @@ namespace PCGExFusePoints
 		PCGEX_DELETE(CompoundPointsBlender)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFusePoints::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FusePoints)
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
+		
+		
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		PointIO->CreateInKeys();
 
@@ -108,18 +111,17 @@ namespace PCGExFusePoints
 		FPCGPoint& Point = MutablePoints[Iteration];
 		Point.MetadataEntry = Key; // Restore key
 
-		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, LocalTypedContext->MainPoints));
-		CompoundPointsBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(LocalSettings->PointPointIntersectionDetails));
+		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds, Context->MainPoints));
+		CompoundPointsBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FusePoints)
 
 		const int32 NumCompoundNodes = CompoundGraph->Nodes.Num();
 		PointIO->InitializeNum(NumCompoundNodes);
 
-		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &TypedContext->CarryOverDetails);
+		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
 		CompoundPointsBlender->AddSource(PointDataFacade.Get());
 		CompoundPointsBlender->PrepareMerge(PointDataFacade.Get(), CompoundGraph->PointsCompounds);
 
@@ -128,7 +130,7 @@ namespace PCGExFusePoints
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

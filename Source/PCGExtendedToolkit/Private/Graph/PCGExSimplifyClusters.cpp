@@ -3,6 +3,9 @@
 
 #include "Graph/PCGExSimplifyClusters.h"
 
+
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 
@@ -69,24 +72,22 @@ namespace PCGExSimplifyClusters
 		PCGEX_DELETE_TARRAY(Chains)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
+		
+		
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Breakpoints.Init(false, Cluster->Nodes->Num());
 
-		if (!TypedContext->FilterFactories.IsEmpty())
+		if (!Context->FilterFactories.IsEmpty())
 		{
-			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
-			FilterManager->Init(Context, TypedContext->FilterFactories);
+			TUniquePtr<PCGExClusterFilter::TManager> FilterManager = MakeUnique<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
+			FilterManager->Init(ExecutionContext, Context->FilterFactories);
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
-			PCGEX_DELETE(FilterManager)
 		}
 		else
 		{
@@ -95,13 +96,13 @@ namespace PCGExSimplifyClusters
 
 		if (IsTrivial())
 		{
-			AsyncManagerPtr->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
+			AsyncManager->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
 				EdgesIO->IOIndex, nullptr, Cluster.Get(),
 				&Breakpoints, &Chains, false, false);
 		}
 		else
 		{
-			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
+			AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
 				EdgesIO->IOIndex, nullptr, Cluster.Get(),
 				&Breakpoints, &Chains, false, false);
 		}
@@ -130,9 +131,9 @@ namespace PCGExSimplifyClusters
 
 		const bool bIsDeadEnd = NodesRef[Chain->First].Adjacency.Num() == 1 || NodesRef[Chain->Last].Adjacency.Num() == 1;
 
-		if (LocalSettings->bPruneDeadEnds && bIsDeadEnd) { return; }
+		if (Settings->bPruneDeadEnds && bIsDeadEnd) { return; }
 
-		if (LocalSettings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
+		if (Settings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
 		{
 			// Dump edges
 			if (Chain->SingleEdge != -1) { GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]); }
@@ -141,10 +142,10 @@ namespace PCGExSimplifyClusters
 		}
 
 		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
-		const double DotThreshold = PCGExMath::DegreesToDot(LocalSettings->AngularThreshold);
+		const double DotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 
-		if (!LocalSettings->bMergeAboveAngularThreshold)
+		if (!Settings->bMergeAboveAngularThreshold)
 		{
 			GraphBuilder->Graph->InsertEdge(
 				NodesRef[Chain->First].PointIndex,
@@ -177,7 +178,7 @@ namespace PCGExSimplifyClusters
 			const FVector A = Cluster->GetDir(PrevNode, CurrentNode).GetSafeNormal();
 			const FVector B = Cluster->GetDir(CurrentNode, NextNode).GetSafeNormal();
 
-			if (!LocalSettings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { continue; } }
+			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { continue; } }
 			else { if (FVector::DotProduct(A, B) < DotThreshold) { continue; } }
 
 			NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[CurrentIndex].PointIndex));

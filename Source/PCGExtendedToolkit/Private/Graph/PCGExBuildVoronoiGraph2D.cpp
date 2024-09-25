@@ -4,6 +4,10 @@
 #include "Graph/PCGExBuildVoronoiGraph2D.h"
 
 #include "PCGExRandom.h"
+
+
+
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
@@ -99,15 +103,14 @@ namespace PCGExBuildVoronoi2D
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi2D::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(Context, PointDataFacade.Get());
+		ProjectionDetails.Init(ExecutionContext, PointDataFacade.Get());
 
 		// Build voronoi
 
@@ -119,7 +122,7 @@ namespace PCGExBuildVoronoi2D
 		/*
 		auto ExtractValidSites = [&]()
 		{
-			const PCGExData::FPointIO* SitesIO = TypedContext->SitesOutput->Pairs[BatchIndex];
+			const PCGExData::FPointIO* SitesIO = Context->SitesOutput->Pairs[BatchIndex];
 			const TArray<FPCGPoint>& OriginalSites = PointIO->GetIn()->GetPoints();
 			TArray<FPCGPoint>& MutableSites = SitesIO->GetOut()->GetMutablePoints();
 			for (int i = 0; i < OriginalSites.Num(); ++i)
@@ -132,7 +135,7 @@ namespace PCGExBuildVoronoi2D
 
 		if (!Voronoi->Process(ActivePositions, ProjectionDetails))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results."));
+			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results."));
 			return false;
 		}
 
@@ -226,7 +229,7 @@ namespace PCGExBuildVoronoi2D
 			Voronoi.Reset();
 		}
 
-		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
+		GraphBuilder->CompileAsync(AsyncManager, false);
 
 		return true;
 	}
@@ -250,7 +253,7 @@ namespace PCGExBuildVoronoi2D
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

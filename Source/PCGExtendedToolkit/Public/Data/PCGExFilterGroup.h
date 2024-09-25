@@ -9,6 +9,24 @@
 #include "PCGExFactoryProvider.h"
 
 #include "PCGExPointFilter.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 #include "PCGExFilterGroup.generated.h"
 
@@ -32,7 +50,7 @@ public:
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override { return nullptr; }
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override { return nullptr; }
 };
 
 /**
@@ -45,7 +63,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseAND : public UPCGEx
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 /**
@@ -58,7 +76,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBaseOR : public UPCGExF
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExFilterGroup
@@ -76,14 +94,14 @@ namespace PCGExFilterGroup
 		const UPCGExFilterGroupFactoryBase* GroupFactory;
 		const TArray<UPCGExFilterFactoryBase*>* ManagedFactories;
 
-		PCGExCluster::FCluster* Cluster = nullptr;
-		PCGExData::FFacade* EdgeDataCache = nullptr;
+		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExData::FFacade> EdgeDataCache;
 
 
 		virtual PCGExFilters::EType GetFilterType() const override { return PCGExFilters::EType::Group; }
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 
 		virtual void PostInit() override;
 
@@ -94,14 +112,13 @@ namespace PCGExFilterGroup
 		virtual ~TFilterGroup() override
 		{
 			Results.Empty();
-			PCGEX_DELETE_TARRAY(ManagedFilters)
 		}
 
 	protected:
-		TArray<PCGExPointFilter::TFilter*> ManagedFilters;
+		TArray<TSharedPtr<PCGExPointFilter::TFilter>> ManagedFilters;
 
 		virtual bool InitManaged(const FPCGContext* InContext);
-		bool InitManagedFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* Filter);
+		bool InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter);
 		virtual bool PostInitManaged(const FPCGContext* InContext);
 		virtual void PostInitManagedFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter);
 	};
@@ -116,19 +133,19 @@ namespace PCGExFilterGroup
 
 		FORCEINLINE virtual bool Test(const int32 Index) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (!Filter->Test(Index)) { return bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (!Filter->Test(Index)) { return bInvert; } }
 			return !bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (!Filter->Test(Node)) { return bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (!Filter->Test(Node)) { return bInvert; } }
 			return !bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (!Filter->Test(Edge)) { return bInvert; } }
 			return !bInvert;
 		}
 	};
@@ -143,19 +160,19 @@ namespace PCGExFilterGroup
 
 		FORCEINLINE virtual bool Test(const int32 Index) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (Filter->Test(Index)) { return !bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (Filter->Test(Index)) { return !bInvert; } }
 			return bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExCluster::FNode& Node) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (Filter->Test(Node)) { return !bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (Filter->Test(Node)) { return !bInvert; } }
 			return bInvert;
 		}
 
 		FORCEINLINE virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override
 		{
-			for (const PCGExPointFilter::TFilter* Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
+			for (const TSharedPtr<PCGExPointFilter::TFilter>& Filter : ManagedFilters) { if (Filter->Test(Edge)) { return !bInvert; } }
 			return bInvert;
 		}
 	};

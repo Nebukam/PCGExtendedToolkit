@@ -11,6 +11,9 @@
 #include "PCGExSampling.h"
 #include "Data/PCGExDataForward.h"
 
+
+
+
 #include "PCGExSampleSurfaceGuided.generated.h"
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
@@ -213,29 +216,26 @@ protected:
 
 namespace PCGExSampleSurfaceGuided
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleSurfaceGuidedContext, UPCGExSampleSurfaceGuidedSettings>
 	{
 		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
 
 		PCGExData::TBuffer<double>* MaxDistanceGetter = nullptr;
 		PCGExData::TBuffer<FVector>* DirectionGetter = nullptr;
 
-		FPCGExSampleSurfaceGuidedContext* LocalTypedContext = nullptr;
-		const UPCGExSampleSurfaceGuidedSettings* LocalSettings = nullptr;
-
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 
 		int8 bAnySuccess = 0;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

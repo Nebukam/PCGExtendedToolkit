@@ -9,6 +9,18 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
 
+
+
+
+
+
+
+
+
+
+
+
+
 #include "PCGExDataBlending.generated.h"
 
 #define PCGEX_FOREACH_BLEND_POINTPROPERTY(MACRO)\
@@ -314,19 +326,19 @@ namespace PCGExDataBlending
 		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
-		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		virtual void PrepareForData(TSharedPtr<PCGExData::FFacade> InPrimaryFacade, TSharedPtr<PCGExData::FFacade> InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
 			PrimaryData = InPrimaryFacade->Source->GetOut();
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
 		}
 
-		virtual void PrepareForData(PCGExData::FBufferBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		virtual void PrepareForData(TSharedPtr<PCGExData::FBufferBase> InWriter, TSharedPtr<PCGExData::FFacade> InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
 			PrimaryData = nullptr;
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
 		}
 
-		virtual void SoftPrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		virtual void SoftPrepareForData(TSharedPtr<PCGExData::FFacade> InPrimaryFacade, TSharedPtr<PCGExData::FFacade> InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
 			PrimaryData = InPrimaryFacade->Source->GetOut();
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
@@ -385,7 +397,7 @@ namespace PCGExDataBlending
 
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::None; };
 
-		virtual void PrepareForData(PCGExData::FBufferBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(TSharedPtr<PCGExData::FBufferBase> InWriter, TSharedPtr<PCGExData::FFacade> InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 
@@ -397,7 +409,7 @@ namespace PCGExDataBlending
 			SourceAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
 		}
 
-		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(TSharedPtr<PCGExData::FFacade> InPrimaryFacade, TSharedPtr<PCGExData::FFacade> InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 
@@ -413,7 +425,7 @@ namespace PCGExDataBlending
 			bSupportInterpolation = Writer->GetAllowsInterpolation();
 		}
 
-		virtual void SoftPrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void SoftPrepareForData(TSharedPtr<PCGExData::FFacade> InPrimaryFacade, TSharedPtr<PCGExData::FFacade> InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 
@@ -512,8 +524,8 @@ namespace PCGExDataBlending
 	protected:
 		const FPCGMetadataAttribute<T>* SourceAttribute = nullptr;
 		FPCGMetadataAttribute<T>* TargetAttribute = nullptr;
-		PCGExData::TBuffer<T>* Writer = nullptr;
-		PCGExData::TBuffer<T>* Reader = nullptr;
+		TSharedPtr<PCGExData::TBuffer<T>> Writer;
+		TSharedPtr<PCGExData::TBuffer<T>> Reader;
 	};
 
 	template <typename T>
@@ -556,7 +568,8 @@ namespace PCGExDataBlending
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
 	{
-		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
+		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
+
 		OutDetails = FPCGExBlendingDetails(PropertiesBlending);
 		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
 
@@ -572,8 +585,6 @@ namespace PCGExDataBlending
 			OutDetails.AttributesOverrides.Add(Id, *PerAttributeBlending.Find(Id));
 			OutDetails.FilteredAttributes.Add(Id);
 		}
-
-		PCGEX_DELETE(AttributesInfos)
 	}
 
 	static void AssembleBlendingDetails(
@@ -583,7 +594,7 @@ namespace PCGExDataBlending
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
 	{
-		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
+		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
 		OutDetails = FPCGExBlendingDetails(FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None));
 		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
 
@@ -596,7 +607,5 @@ namespace PCGExDataBlending
 			OutDetails.AttributesOverrides.Add(Id, DefaultBlending);
 			OutDetails.FilteredAttributes.Add(Id);
 		}
-
-		PCGEX_DELETE(AttributesInfos)
 	}
 }

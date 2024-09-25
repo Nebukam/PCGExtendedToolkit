@@ -4,6 +4,8 @@
 #include "Misc/ConditionalActions/PCGExConditionalActionAttributes.h"
 
 #include "PCGPin.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteConditionalActionAttributess"
 #define PCGEX_NAMESPACE PCGExWriteConditionalActionAttributess
@@ -17,7 +19,7 @@ void UPCGExConditionalActionAttributesOperation::CopySettingsFrom(const UPCGExOp
 	}
 }
 
-bool UPCGExConditionalActionAttributesOperation::PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool UPCGExConditionalActionAttributesOperation::PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!Super::PrepareForData(InContext, InPointDataFacade)) { return false; }
 

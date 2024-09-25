@@ -10,7 +10,7 @@ bool UPCGExProbeOperation::RequiresDirectProcessing() { return false; }
 
 bool UPCGExProbeOperation::RequiresChainProcessing() { return false; }
 
-bool UPCGExProbeOperation::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
+bool UPCGExProbeOperation::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	PointIO = InPointIO;
 

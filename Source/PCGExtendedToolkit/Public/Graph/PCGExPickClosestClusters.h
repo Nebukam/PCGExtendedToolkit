@@ -6,6 +6,10 @@
 #include "CoreMinimal.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExDataForward.h"
+
+
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"
 
@@ -89,13 +93,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : publi
 
 	virtual ~FPCGExPickClosestClustersContext() override;
 
-	PCGExData::FFacade* TargetDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> TargetDataFacade;
 
 	FString KeepTag = TEXT("");
 	FString OmitTag = TEXT("");
 
 	FPCGExAttributeToTagDetails TargetAttributesToTags;
-	PCGExData::FDataForwardHandler* TargetForwardHandler = nullptr;
+	TUniquePtr<PCGExData::FDataForwardHandler> TargetForwardHandler;
 
 	virtual void OnBatchesProcessingDone() override;
 };
@@ -115,26 +119,23 @@ protected:
 
 namespace PCGExPickClosestClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExPickClosestClustersContext, UPCGExPickClosestClustersSettings>
 	{
 		friend class FProcessorBatch;
-
-		const UPCGExPickClosestClustersSettings* LocalSettings = nullptr;
-		FPCGExPickClosestClustersContext* LocalTypedContext = nullptr;
 
 	public:
 		TArray<double> Distances;
 
 		int32 Picker = -1;
 
-		explicit FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-			: FClusterProcessor(InVtx, InEdges)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
+			: TClusterProcessor(InVtx, InEdges)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void Search();
 		virtual void CompleteWork() override;
 	};
@@ -146,7 +147,7 @@ namespace PCGExPickClosestClusters
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+		FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

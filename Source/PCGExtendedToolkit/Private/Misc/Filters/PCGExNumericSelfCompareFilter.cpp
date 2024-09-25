@@ -3,15 +3,19 @@
 
 #include "Misc/Filters/PCGExNumericSelfCompareFilter.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGExPointFilter::TFilter* UPCGExNumericSelfCompareFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExNumericSelfCompareFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TNumericSelfComparisonFilter(this);
+	return MakeShared<PCGExPointsFilter::TNumericSelfComparisonFilter>(this);
 }
 
-bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 

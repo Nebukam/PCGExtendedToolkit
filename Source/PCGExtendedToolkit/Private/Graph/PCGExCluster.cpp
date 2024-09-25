@@ -4,6 +4,16 @@
 #include "Graph/PCGExCluster.h"
 
 #include "Data/PCGExAttributeHelpers.h"
+
+
+
+
+
+
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 #include "Graph/Data/PCGExClusterData.h"
 
@@ -271,7 +281,7 @@ namespace PCGExCluster
 		Bounds = Bounds.ExpandBy(10);
 	}
 
-	bool FCluster::IsValidWith(const PCGExData::FPointIO* InVtxIO, const PCGExData::FPointIO* InEdgesIO) const
+	bool FCluster::IsValidWith(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO) const
 	{
 		return NumRawVtx == InVtxIO->GetNum() && NumRawEdges == InEdgesIO->GetNum();
 	}
@@ -891,7 +901,7 @@ namespace PCGExCluster
 
 namespace PCGExClusterTask
 {
-	bool FBuildCluster::ExecuteTask()
+	bool FBuildCluster::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		Cluster->BuildFrom(
 			EdgeIO, PointIO->GetIn()->GetPoints(),
@@ -900,7 +910,7 @@ namespace PCGExClusterTask
 		return true;
 	}
 
-	bool FFindNodeChains::ExecuteTask()
+	bool FFindNodeChains::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FFindNodeChains::ExecuteTask);
 
@@ -962,7 +972,7 @@ namespace PCGExClusterTask
 		return true;
 	}
 
-	bool FBuildChain::ExecuteTask()
+	bool FBuildChain::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FBuildChain::ExecuteTask);
 
@@ -981,14 +991,14 @@ namespace PCGExClusterTask
 		return true;
 	}
 
-	bool FExpandClusterNodes::ExecuteTask()
+	bool FExpandClusterNodes::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TArray<PCGExCluster::FExpandedNode*>& ExpandedNodesRef = (*Cluster->ExpandedNodes);
 		for (int i = 0; i < NumIterations; ++i) { ExpandedNodesRef[TaskIndex + i] = new PCGExCluster::FExpandedNode(Cluster, TaskIndex + i); }
 		return true;
 	}
 
-	bool FExpandClusterEdges::ExecuteTask()
+	bool FExpandClusterEdges::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TArray<PCGExCluster::FExpandedEdge*>& ExpandedEdgesRef = (*Cluster->ExpandedEdges);
 		for (int i = 0; i < NumIterations; ++i) { ExpandedEdgesRef[TaskIndex + i] = new PCGExCluster::FExpandedEdge(Cluster, TaskIndex + i); }

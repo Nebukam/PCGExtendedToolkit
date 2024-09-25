@@ -7,6 +7,10 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+
+
+
+
 #include "Misc/PCGExDiscardByOverlap.h"
 
 #include "PCGExSampleOverlapStats.generated.h"
@@ -206,12 +210,9 @@ namespace PCGExSampleOverlapStats
 		FORCEINLINE FProcessor* GetOther(const FProcessor* InCandidate) const { return Manager == InCandidate ? Managed : Manager; }
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleOverlapStatsContext, UPCGExSampleOverlapStatsSettings>
 	{
 		friend struct FPCGExSampleOverlapStatsContext;
-
-		const UPCGExSampleOverlapStatsSettings* LocalSettings = nullptr;
-		FPCGExSampleOverlapStatsContext* LocalTypedContext = nullptr;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		FBox Bounds = FBox(ForceInit);
@@ -239,8 +240,8 @@ namespace PCGExSampleOverlapStats
 	public:
 		FOverlapStats Stats;
 
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 		}
 
@@ -260,7 +261,7 @@ namespace PCGExSampleOverlapStats
 
 		void RegisterOverlap(FProcessor* InManaged, const FBox& Intersection);
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void ResolveOverlap(const int32 Index);
 		void WriteSingleData(const int32 Index);
 		virtual void CompleteWork() override;

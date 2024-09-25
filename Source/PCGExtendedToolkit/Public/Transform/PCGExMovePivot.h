@@ -10,6 +10,9 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
 
+
+
+
 #include "PCGExMovePivot.generated.h"
 
 class FPCGExComputeIOBounds;
@@ -66,19 +69,19 @@ protected:
 
 namespace PCGExMovePivot
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExMovePivotContext, UPCGExMovePivotSettings>
 	{
 		FPCGExUVW UVW;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 	};
 }

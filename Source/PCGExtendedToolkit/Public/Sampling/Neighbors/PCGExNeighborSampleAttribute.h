@@ -14,6 +14,12 @@
 #include "PCGExNeighborSampleFactoryProvider.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
+
+
+
+
+
 #include "PCGExNeighborSampleAttribute.generated.h"
 
 ///
@@ -34,7 +40,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
+	virtual void PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, TSharedPtr<PCGExData::FFacade> InVtxDataFacade, TSharedPtr<PCGExData::FFacade> InEdgeDataFacade) override;
 
 	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override
 	{

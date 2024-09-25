@@ -3,6 +3,9 @@
 
 #include "Graph/PCGExUnpackClusters.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExUnpackClusters"
 #define PCGEX_NAMESPACE UnpackClusters
 
@@ -27,9 +30,6 @@ PCGEX_INITIALIZE_ELEMENT(UnpackClusters)
 FPCGExUnpackClustersContext::~FPCGExUnpackClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(OutPoints)
-	PCGEX_DELETE(OutEdges)
 }
 
 
@@ -39,10 +39,10 @@ bool FPCGExUnpackClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UnpackClusters)
 
-	Context->OutPoints = new PCGExData::FPointIOCollection(Context);
+	Context->OutPoints = MakeUnique<PCGExData::FPointIOCollection>(Context);
 	Context->OutPoints->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
-	Context->OutEdges = new PCGExData::FPointIOCollection(Context);
+	Context->OutEdges = MakeUnique<PCGExData::FPointIOCollection>(Context);
 	Context->OutEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
 	return true;
@@ -80,9 +80,9 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-bool FPCGExUnpackClusterTask::ExecuteTask()
+bool FPCGExUnpackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	const FPCGExUnpackClustersContext* Context = Manager->GetContext<FPCGExUnpackClustersContext>();
+	const FPCGExUnpackClustersContext* Context = ManagerPtr->GetContext<FPCGExUnpackClustersContext>();
 	PCGEX_SETTINGS(UnpackClusters)
 
 	const FPCGMetadataAttribute<int32>* EdgeCount = PointIO->GetIn()->Metadata->GetConstTypedAttribute<int32>(PCGExGraph::Tag_PackedClusterEdgeCount);

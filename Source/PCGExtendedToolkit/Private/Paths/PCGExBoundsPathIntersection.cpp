@@ -5,6 +5,9 @@
 #include "PCGExMath.h"
 #include "PCGExRandom.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExBoundsPathIntersectionElement"
 #define PCGEX_NAMESPACE BoundsPathIntersection
 
@@ -107,23 +110,22 @@ namespace PCGExPathIntersections
 		Details.Cleanup();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathIntersections::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		LastIndex = PointIO->GetNum() - 1;
 		Segmentation = new PCGExGeo::FSegmentation();
-		Cloud = TypedContext->BoundsDataFacade->GetCloud(Settings->OutputSettings.BoundsSource, Settings->OutputSettings.InsideEpsilon);
+		Cloud = Context->BoundsDataFacade->GetCloud(Settings->OutputSettings.BoundsSource, Settings->OutputSettings.InsideEpsilon);
 
 		Details = Settings->OutputSettings;
 
-		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, FindIntersectionsTaskGroup)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FindIntersectionsTaskGroup)
 		FindIntersectionsTaskGroup->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
@@ -190,7 +192,6 @@ namespace PCGExPathIntersections
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
 		const int32 NumCuts = Segmentation->GetNumCuts();
 		if (NumCuts == 0)
@@ -200,7 +201,7 @@ namespace PCGExPathIntersections
 				PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 
 				Details.Mark(PointIO->GetOut()->Metadata);
-				Details.Init(PointDataFacade.Get(), TypedContext->BoundsDataFacade);
+				Details.Init(PointDataFacade.Get(), Context->BoundsDataFacade);
 
 				StartParallelLoopForPoints();
 			}
@@ -257,11 +258,11 @@ namespace PCGExPathIntersections
 		}
 
 		PointDataFacade->Source->CleanupKeys();
-		Details.Init(PointDataFacade.Get(), TypedContext->BoundsDataFacade);
+		Details.Init(PointDataFacade.Get(), Context->BoundsDataFacade);
 
 		Segmentation->ReduceToArray();
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, InsertionTaskGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InsertionTaskGroup)
 		InsertionTaskGroup->SetOnCompleteCallback([&]() { OnInsertionComplete(); });
 		InsertionTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { InsertIntersections(Index); },
@@ -273,7 +274,7 @@ namespace PCGExPathIntersections
 	void FProcessor::Write()
 	{
 		FPointsProcessor::Write();
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

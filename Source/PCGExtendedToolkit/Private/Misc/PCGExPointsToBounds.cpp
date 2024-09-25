@@ -5,6 +5,9 @@
 
 #include "Data/PCGExData.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
@@ -73,12 +76,11 @@ namespace PCGExPointsToBounds
 		PCGEX_DELETE(Bounds)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPointsToBounds::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PointsToBounds)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Bounds = new FBounds(PointIO);
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
@@ -117,7 +119,6 @@ namespace PCGExPointsToBounds
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PointsToBounds)
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		UPCGPointData* OutData = PointIO->GetOut();
@@ -162,10 +163,10 @@ namespace PCGExPointsToBounds
 
 		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, NumPoints); }
 
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 
-	bool FComputeIOBoundsTask::ExecuteTask()
+	bool FComputeIOBoundsTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		const TArray<FPCGPoint>& InPoints = Bounds->PointIO->GetIn()->GetPoints();
 

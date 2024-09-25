@@ -8,6 +8,9 @@
 #include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
 
+
+
+
 #include "PCGExPartitionVertices.generated.h"
 
 
@@ -41,7 +44,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesContext final : public 
 
 	virtual ~FPCGExPartitionVerticesContext() override;
 
-	PCGExData::FPointIOCollection* VtxPartitions = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> VtxPartitions;
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };
 
@@ -60,28 +63,26 @@ protected:
 
 namespace PCGExPartitionVertices
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExPartitionVerticesContext, UPCGExPartitionVerticesSettings>
 	{
 		friend class FProcessorBatch;
 
 	protected:
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;
 
-		FPCGExPartitionVerticesContext* LocalTypedContext = nullptr;
-
-		PCGExData::FPointIO* PointPartitionIO = nullptr;
+		TSharedPtr<PCGExData::FPointIO> PointPartitionIO;
 		TMap<int32, int32> Remapping;
 		TArray<int32> KeptIndices;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
+			TClusterProcessor(InVtx, InEdges)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

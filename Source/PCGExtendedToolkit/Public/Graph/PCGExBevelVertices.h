@@ -5,6 +5,11 @@
 
 #include "CoreMinimal.h"
 
+
+
+
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExBevelVertices.generated.h"
@@ -77,7 +82,7 @@ protected:
 
 namespace PCGExBevelVertices
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExBevelVerticesContext, UPCGExBevelVerticesSettings>
 	{
 		friend class FProcessorBatch;
 		TArray<int64>* StateFlags = nullptr;
@@ -87,15 +92,15 @@ namespace PCGExBevelVertices
 		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
+		TClusterProcessor<FPCGExBevelVerticesContext, UPCGExBevelVerticesSettings>(InVtx, InEdges)
 		{
 			bCacheVtxPointIndices = true;
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
@@ -107,7 +112,7 @@ namespace PCGExBevelVertices
 		TArray<int64>* StateFlags = nullptr;
 
 	public:
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges);
 		virtual ~FProcessorBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;

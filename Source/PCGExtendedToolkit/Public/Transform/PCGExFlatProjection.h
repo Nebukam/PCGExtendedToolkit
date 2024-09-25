@@ -7,6 +7,10 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExFlatProjection.generated.h"
 
@@ -77,7 +81,7 @@ protected:
 
 namespace PCGExFlatProjection
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFlatProjectionContext, UPCGExFlatProjectionSettings>
 	{
 		bool bWriteAttribute = false;
 		bool bInverseExistingProjection = false;
@@ -88,8 +92,8 @@ namespace PCGExFlatProjection
 		PCGExData::TBuffer<FTransform>* TransformReader = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
@@ -97,7 +101,7 @@ namespace PCGExFlatProjection
 		{
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

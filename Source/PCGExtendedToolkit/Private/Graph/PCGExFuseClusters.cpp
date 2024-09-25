@@ -5,6 +5,10 @@
 #include "Graph/PCGExIntersections.h"
 
 #include "Data/Blending/PCGExCompoundBlender.h"
+
+
+
+
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
 
@@ -30,8 +34,6 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 
 	VtxFacades.Empty();
 	PCGEX_DELETE_FACADE_AND_SOURCE(CompoundFacade)
-
-	PCGEX_DELETE(CompoundProcessor)
 }
 
 PCGEX_INITIALIZE_ELEMENT(FuseClusters)
@@ -155,12 +157,11 @@ namespace PCGExFuseClusters
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseClusters::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseClusters)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		VtxIOIndex = VtxIO->IOIndex;
 		EdgesIOIndex = EdgesIO->IOIndex;
@@ -182,7 +183,7 @@ namespace PCGExFuseClusters
 		InPoints = &VtxIO->GetIn()->GetPoints();
 
 		bInvalidEdges = false;
-		CompoundGraph = TypedContext->CompoundGraph;
+		CompoundGraph = Context->CompoundGraph;
 
 		bInlineProcessRange = bInlineProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 

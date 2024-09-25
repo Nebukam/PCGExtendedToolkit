@@ -7,6 +7,12 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExSplitPath.generated.h"
 
@@ -108,11 +114,8 @@ namespace PCGExSplitPath
 		}
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSplitPathContext, UPCGExSplitPathSettings>
 	{
-		FPCGExSplitPathContext* LocalTypedContext = nullptr;
-		const UPCGExSplitPathSettings* LocalSettings = nullptr;
-
 		bool bClosedLoop = false;
 
 		TArray<FPath> Paths;
@@ -127,14 +130,14 @@ namespace PCGExSplitPath
 		int32 CurrentPath = -1;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
 		FORCEINLINE void DoActionSplit(const int32 Index)
 		{
@@ -225,7 +228,7 @@ namespace PCGExSplitPath
 				if (CurrentPath != -1)
 				{
 					FPath& ClosedPath = Paths[CurrentPath];
-					if (LocalSettings->bInclusive)
+					if (Settings->bInclusive)
 					{
 						ClosedPath.End = Index;
 						ClosedPath.Count++;
@@ -259,7 +262,7 @@ namespace PCGExSplitPath
 				if (CurrentPath != -1)
 				{
 					FPath& ClosedPath = Paths[CurrentPath];
-					if (LocalSettings->bInclusive)
+					if (Settings->bInclusive)
 					{
 						ClosedPath.End = Index;
 						ClosedPath.Count++;

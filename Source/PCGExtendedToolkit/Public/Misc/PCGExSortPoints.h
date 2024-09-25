@@ -9,6 +9,9 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
+
+
+
 #include "PCGExSortPoints.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sort Direction"))
@@ -126,7 +129,7 @@ namespace PCGExSortPoints
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
 			FPointsProcessor(InPoints)
 		{
 		}
@@ -135,7 +138,7 @@ namespace PCGExSortPoints
 		{
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 }

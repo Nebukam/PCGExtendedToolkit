@@ -7,6 +7,8 @@
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
+
+
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "PCGExPathfindingNavmesh.generated.h"
 
@@ -111,15 +113,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : public
 
 	virtual ~FPCGExPathfindingNavmeshContext() override;
 
-	PCGExData::FFacade* SeedsDataFacade = nullptr;
-	PCGExData::FFacade* GoalsDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
+	TSharedPtr<PCGExData::FFacade> GoalsDataFacade;
 
-	PCGExData::FPointIOCollection* OutputPaths = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
-	TArray<PCGExPathfinding::FPathQuery*> PathQueries;
+	TArray<TSharedPtr<PCGExPathfinding::FPathQuery>> PathQueries;
 
 	FNavAgentProperties NavAgentProperties;
 
@@ -130,8 +132,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : public
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
 
-	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
-	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;
+	TUniquePtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+	TUniquePtr<PCGExData::FDataForwardHandler> GoalForwardHandler;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement
@@ -152,10 +154,10 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FSampleNavmeshTask final : public FPCGExPathfin
 {
 public:
 	FSampleNavmeshTask(
-		PCGExData::FPointIO* InPointIO, const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
+		const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
 		FPCGExPathfindingTask(InPointIO, InQueries)
 	{
 	}
 
-	virtual bool ExecuteTask() override;
+	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };

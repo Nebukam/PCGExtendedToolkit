@@ -9,6 +9,10 @@
 #include "PCGExPointsProcessor.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "PCGExFitting.h"
+
+
+
+
 #include "PCGExAssetStaging.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -101,16 +105,13 @@ protected:
 
 namespace PCGExAssetStaging
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAssetStagingContext, UPCGExAssetStagingSettings>
 	{
 		int32 NumPoints = 0;
 
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
-
-		const UPCGExAssetStagingSettings* LocalSettings = nullptr;
-		const FPCGExAssetStagingContext* LocalTypedContext = nullptr;
 
 		FPCGExJustificationDetails Justification;
 		FPCGExFittingVariationsDetails Variations;
@@ -127,8 +128,8 @@ namespace PCGExAssetStaging
 #endif
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			PCGExPointsMT::TPointsProcessor<FPCGExAssetStagingContext, UPCGExAssetStagingSettings>(InPoints)
 		{
 		}
 
@@ -137,7 +138,7 @@ namespace PCGExAssetStaging
 			PCGEX_DELETE(Helper)
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

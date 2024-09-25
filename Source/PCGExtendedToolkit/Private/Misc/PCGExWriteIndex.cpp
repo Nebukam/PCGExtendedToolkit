@@ -3,6 +3,10 @@
 
 #include "Misc/PCGExWriteIndex.h"
 
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex
 
@@ -62,12 +66,11 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExWriteIndex
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteIndex)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		NumPoints = PointIO->GetNum();
 
@@ -98,7 +101,7 @@ namespace PCGExWriteIndex
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

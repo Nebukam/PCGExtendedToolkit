@@ -10,6 +10,8 @@
 #include "PCGExFactoryProvider.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExOperation.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 #include "PCGExConditionalActionAttributes.generated.h"
 
@@ -34,7 +36,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+	virtual bool PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override;
 	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override;
 

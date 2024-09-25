@@ -5,23 +5,35 @@
 #include "Data/PCGExData.h"
 
 
-PCGExData::FDataForwardHandler* FPCGExForwardDetails::GetHandler(PCGExData::FFacade* InSourceDataFacade) const
+
+
+
+
+
+
+
+
+
+
+
+
+TUniquePtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const
 {
-	return new PCGExData::FDataForwardHandler(*this, InSourceDataFacade);
+	return MakeUnique<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade);
 }
 
-PCGExData::FDataForwardHandler* FPCGExForwardDetails::GetHandler(PCGExData::FFacade* InSourceDataFacade, PCGExData::FFacade* InTargetDataFacade) const
+TUniquePtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
 {
 	InTargetDataFacade->Source->CreateOutKeys();
-	return new PCGExData::FDataForwardHandler(*this, InSourceDataFacade, InTargetDataFacade);
+	return MakeUnique<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade, InTargetDataFacade);
 }
 
-PCGExData::FDataForwardHandler* FPCGExForwardDetails::TryGetHandler(PCGExData::FFacade* InSourceDataFacade) const
+TUniquePtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const
 {
 	return bEnabled ? GetHandler(InSourceDataFacade) : nullptr;
 }
 
-PCGExData::FDataForwardHandler* FPCGExForwardDetails::TryGetHandler(PCGExData::FFacade* InSourceDataFacade, PCGExData::FFacade* InTargetDataFacade) const
+TUniquePtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
 {
 	return bEnabled ? GetHandler(InSourceDataFacade, InTargetDataFacade) : nullptr;
 }
@@ -35,7 +47,7 @@ namespace PCGExData
 		Writers.Empty();
 	}
 
-	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, FFacade* InSourceDataFacade):
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade):
 		Details(InDetails), SourceDataFacade(InSourceDataFacade), TargetDataFacade(nullptr)
 	{
 		if (!Details.bEnabled) { return; }
@@ -45,7 +57,7 @@ namespace PCGExData
 		Details.Filter(Identities);
 	}
 
-	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, FFacade* InSourceDataFacade, FFacade* InTargetDataFacade):
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const TSharedPtr<FFacade>& InTargetDataFacade):
 		Details(InDetails), SourceDataFacade(InSourceDataFacade), TargetDataFacade(InTargetDataFacade)
 	{
 		Details.Init();
@@ -66,9 +78,8 @@ namespace PCGExData
 				{
 					using T = decltype(DummyValue);
 					PCGExData::TBuffer<T>* Reader = SourceDataFacade->GetReadable<T>(Identity.Name);
-					PCGExData::TBuffer<T>* Writer = TargetDataFacade->GetWritable<T>(Reader->GetTypedInAttribute(), false);
 					Readers[i] = Reader;
-					Writers[i] = Writer;
+					Writers[i] = TargetDataFacade->GetWritable<T>(Reader->GetTypedInAttribute(), false);
 				});
 		}
 	}
@@ -85,14 +96,14 @@ namespace PCGExData
 				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					PCGExData::TBuffer<T>* Reader = static_cast<PCGExData::TBuffer<T>*>(Readers[i]);
-					PCGExData::TBuffer<T>* Writer = static_cast<PCGExData::TBuffer<T>*>(Writers[i]);
+					TSharedPtr<PCGExData::TBuffer<T>> Reader = StaticCastSharedPtr<PCGExData::TBuffer<T>>(Readers[i]);
+					TSharedPtr<PCGExData::TBuffer<T>> Writer = StaticCastSharedPtr<PCGExData::TBuffer<T>>(Writers[i]);
 					Writer->GetMutable(TargetIndex) = Reader->Read(SourceIndex);
 				});
 		}
 	}
 
-	void FDataForwardHandler::Forward(const int32 SourceIndex, FFacade* InTargetDataFacade)
+	void FDataForwardHandler::Forward(const int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade)
 	{
 		if (Identities.IsEmpty()) { return; }
 

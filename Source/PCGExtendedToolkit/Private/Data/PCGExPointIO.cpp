@@ -108,14 +108,14 @@ namespace PCGExData
 		for (int i = 0; i < PointList.Num(); ++i) { InMap.Add(PointList[i].MetadataEntry, i); }
 	}
 
-	FPCGAttributeAccessorKeysPoints* FPointIO::CreateOutKeys()
+	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::CreateOutKeys()
 	{
 		if (!OutKeys)
 		{
 			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());
-			OutKeys = MakeUnique<FPCGAttributeAccessorKeysPoints>(View);
+			OutKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(View);
 		}
-		return OutKeys.Get();
+		return OutKeys;
 	}
 
 	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, const bool bInitializeOnSet = false)
@@ -141,9 +141,9 @@ namespace PCGExData
 		}
 	}
 
-	FPCGAttributeAccessorKeysPoints* FPointIO::CreateKeys(const ESource InSource)
+	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::CreateKeys(const ESource InSource)
 	{
-		return InSource == ESource::In ? CreateInKeys().Get() : CreateOutKeys();
+		return InSource == ESource::In ? CreateInKeys() : CreateOutKeys();
 	}
 
 	void FPointIO::InitializeNum(const int32 NumPoints, const bool bForceInit) const
@@ -389,49 +389,47 @@ namespace PCGExData
 
 #pragma region FPointIOTaggedEntries
 
-	void FPointIOTaggedEntries::Add(FPointIO* Value)
+	void FPointIOTaggedEntries::Add(const TSharedPtr<FPointIO>& Value)
 	{
 		Entries.AddUnique(Value);
 		Value->Tags->Add(TagId, TagValue);
 	}
 
-	bool FPointIOTaggedDictionary::CreateKey(const FPointIO& PointIOKey)
+	bool FPointIOTaggedDictionary::CreateKey(const TSharedPtr<FPointIO>& PointIOKey)
 	{
 		FString TagValue;
-		if (!PointIOKey.Tags->GetValue(TagId, TagValue))
+		if (!PointIOKey->Tags->GetValue(TagId, TagValue))
 		{
-			TagValue = FString::Printf(TEXT("%llu"), PointIOKey.GetInOut()->UID);
-			PointIOKey.Tags->Add(TagId, TagValue);
+			TagValue = FString::Printf(TEXT("%llu"), PointIOKey->GetInOut()->UID);
+			PointIOKey->Tags->Add(TagId, TagValue);
 		}
 
 		bool bFoundDupe = false;
-		for (const FPointIOTaggedEntries* Binding : Entries)
+		for (const TSharedPtr<FPointIOTaggedEntries> Binding : Entries)
 		{
 			// TagValue shouldn't exist already
 			if (Binding->TagValue == TagValue) { return false; }
 		}
 
-		FPointIOTaggedEntries* NewBinding = new FPointIOTaggedEntries(TagId, TagValue);
-		TagMap.Add(TagValue, Entries.Add(NewBinding));
+		TagMap.Add(TagValue, Entries.Add(MakeShared<FPointIOTaggedEntries>(TagId, TagValue)));
 		return true;
 	}
 
-	bool FPointIOTaggedDictionary::TryAddEntry(FPointIO& PointIOEntry)
+	bool FPointIOTaggedDictionary::TryAddEntry(const TSharedPtr<FPointIO>& PointIOEntry)
 	{
 		FString TagValue;
-		if (!PointIOEntry.Tags->GetValue(TagId, TagValue)) { return false; }
+		if (!PointIOEntry->Tags->GetValue(TagId, TagValue)) { return false; }
 
 		if (const int32* Index = TagMap.Find(TagValue))
 		{
-			FPointIOTaggedEntries* Key = Entries[*Index];
-			Key->Add(&PointIOEntry);
+			Entries[*Index]->Add(PointIOEntry);
 			return true;
 		}
 
 		return false;
 	}
 
-	FPointIOTaggedEntries* FPointIOTaggedDictionary::GetEntries(const FString& Key)
+	TSharedPtr<FPointIOTaggedEntries> FPointIOTaggedDictionary::GetEntries(const FString& Key)
 	{
 		if (const int32* Index = TagMap.Find(Key)) { return Entries[*Index]; }
 		return nullptr;

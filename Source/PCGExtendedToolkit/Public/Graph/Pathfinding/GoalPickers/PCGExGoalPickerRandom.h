@@ -7,6 +7,10 @@
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.h"
 #include "Data/PCGExAttributeHelpers.h"
+
+
+
+
 #include "PCGExGoalPickerRandom.generated.h"
 
 struct FPCGExInputConfig;
@@ -44,7 +48,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade) override;
+	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade) override;
 
 	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const override;
 	virtual void GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const override;

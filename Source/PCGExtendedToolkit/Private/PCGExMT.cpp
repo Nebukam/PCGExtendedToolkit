@@ -4,6 +4,7 @@
 
 #include "PCGExMT.h"
 
+
 namespace PCGExMT
 {
 	FTaskManager::~FTaskManager()
@@ -11,13 +12,13 @@ namespace PCGExMT
 		Reset(true);
 	}
 
-	FTaskGroup* FTaskManager::CreateGroup(const FName& GroupName)
+	TSharedPtr<FTaskGroup> FTaskManager::CreateGroup(const FName& GroupName)
 	{
 		check(IsAvailable())
 
 		{
 			FWriteScopeLock WriteLock(GroupLock);
-			return Groups.Add_GetRef(MakeUnique<FTaskGroup>(this, GroupName)).Get();
+			return Groups.Add_GetRef(MakeShared<FTaskGroup>(SharedThis(this), GroupName));
 		}
 	}
 
@@ -35,6 +36,8 @@ namespace PCGExMT
 
 	void FTaskManager::Reset(const bool bStop)
 	{
+		if (Stopped) { return; }
+
 		FPlatformAtomics::InterlockedExchange(&Stopped, 1);
 
 		FWriteScopeLock WriteLock(ManagerLock);
@@ -131,23 +134,26 @@ namespace PCGExMT
 		}
 	}
 
-	bool FGroupRangeIterationTask::ExecuteTask()
+	bool FGroupRangeIterationTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		check(Group)
+		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
+		if (!Group) { return false; }
 		Group->DoRangeIteration(PCGEx::H64A(Scope), PCGEx::H64B(Scope), TaskIndex);
 		return true;
 	}
 
-	bool FGroupPrepareRangeTask::ExecuteTask()
+	bool FGroupPrepareRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		check(Group)
+		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
+		if (!Group) { return false; }
 		Group->PrepareRangeIteration(PCGEx::H64A(Scope), PCGEx::H64B(Scope), TaskIndex);
 		return true;
 	}
 
-	bool FGroupPrepareRangeInlineTask::ExecuteTask()
+	bool FGroupPrepareRangeInlineTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		check(Group)
+		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
+		if (!Group) { return false; }
 
 		TArray<uint64> Loops;
 		SubRanges(Loops, MaxItems, ChunkSize);
@@ -165,9 +171,10 @@ namespace PCGExMT
 		return true;
 	}
 
-	bool FGroupRangeInlineIterationTask::ExecuteTask()
+	bool FGroupRangeInlineIterationTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		check(Group)
+		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
+		if (!Group) { return false; }
 
 		TArray<uint64> Loops;
 		SubRanges(Loops, MaxItems, ChunkSize);

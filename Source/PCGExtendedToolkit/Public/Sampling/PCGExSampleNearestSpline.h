@@ -10,6 +10,9 @@
 #include "PCGExSampling.h"
 #include "Data/PCGSplineData.h"
 
+
+
+
 #include "PCGExSampleNearestSpline.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(MACRO)\
@@ -348,11 +351,8 @@ protected:
 
 namespace PCGExSampleNearestSpline
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSplineContext, UPCGExSampleNearestSplineSettings>
 	{
-		FPCGExSampleNearestSplineContext* LocalTypedContext = nullptr;
-		const UPCGExSampleNearestSplineSettings* LocalSettings = nullptr;
-
 		PCGExData::TBuffer<double>* RangeMinGetter = nullptr;
 		PCGExData::TBuffer<double>* RangeMaxGetter = nullptr;
 		PCGExData::TBuffer<FVector>* LookAtUpGetter = nullptr;
@@ -366,14 +366,14 @@ namespace PCGExSampleNearestSpline
 		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

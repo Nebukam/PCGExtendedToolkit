@@ -15,7 +15,7 @@ void UPCGExGoalPicker::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPicker::PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade)
+void UPCGExGoalPicker::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
 {
 	MaxGoalIndex = InGoalsDataFacade->Source->GetNum() - 1;
 }

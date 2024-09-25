@@ -9,6 +9,8 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 #include "Algo/Reverse.h"
+
+
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
@@ -56,10 +58,10 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 
 	TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathIO->GetOut();
-	PCGExData::FFacade* PathDataFacade = new PCGExData::FFacade(PathIO);
+	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO);
 
-	PCGExGraph::CleanupClusterTags(PathIO.Get(), true);
-	PCGExGraph::CleanupVtxData(PathIO.Get());
+	PCGExGraph::CleanupClusterTags(PathIO, true);
+	PCGExGraph::CleanupVtxData(PathIO);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO->GetIn()->GetPoints();
@@ -70,14 +72,13 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]); }
 	if (Settings->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
-	SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO.Get());
-	GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO.Get());
+	SeedAttributesToPathTags.Tag(Query->SeedIndex, PathIO);
+	GoalAttributesToPathTags.Tag(Query->GoalIndex, PathIO);
 
 	SeedForwardHandler->Forward(Query->SeedIndex, PathDataFacade);
 	GoalForwardHandler->Forward(Query->GoalIndex, PathDataFacade);
 
-	PathDataFacade->Write(GetAsyncManager());
-	PCGEX_DELETE(PathDataFacade)
+	PathDataFacade->Write(GetAsyncManager()); // BUG : This can re-activate the async manager we want to get rid of.
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
@@ -104,16 +105,6 @@ PCGExData::EInit UPCGExPathfindingEdgesSettings::GetEdgeOutputInitMode() const {
 FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE_TARRAY(PathQueries)
-
-	PCGEX_DELETE(OutputPaths)
-
-	SeedAttributesToPathTags.Cleanup();
-	GoalAttributesToPathTags.Cleanup();
-
-	PCGEX_DELETE(SeedForwardHandler)
-	PCGEX_DELETE(GoalForwardHandler)
 }
 
 
@@ -129,12 +120,12 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
 
-	Context->SeedsDataFacade = MakeUnique<PCGExData::FFacade>(SeedsPoints);
+	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints);
 
 	const TSharedPtr<PCGExData::FPointIO> GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
 	if (!GoalsPoints) { return false; }
 
-	Context->GoalsDataFacade = MakeUnique<PCGExData::FFacade>(GoalsPoints);
+	Context->GoalsDataFacade = MakeShared<PCGExData::FFacade>(GoalsPoints);
 
 	PCGEX_FWD(SeedAttributesToPathTags)
 	PCGEX_FWD(GoalAttributesToPathTags)
@@ -196,9 +187,9 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExPathfindingEdge
 {
-	bool FSampleClusterPathTask::ExecuteTask()
+	bool FSampleClusterPathTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
+		FPCGExPathfindingEdgesContext* Context = AsyncManager->GetContext<FPCGExPathfindingEdgesContext>();
 		PCGEX_SETTINGS(PathfindingEdges)
 
 		Context->TryFindPath(SearchOperation, (*Queries)[TaskIndex], Heuristics);
@@ -206,7 +197,7 @@ namespace PCGExPathfindingEdge
 		if (bInlined && Queries->IsValidIndex(TaskIndex + 1))
 		{
 			// -> Inline next query
-			Manager->Start<FSampleClusterPathTask>(TaskIndex + 1, nullptr, SearchOperation, Queries, Heuristics, true);
+			InternalStart<FSampleClusterPathTask>(TaskIndex + 1, nullptr, SearchOperation, Queries, Heuristics, true);
 		}
 
 		return true;
@@ -217,12 +208,11 @@ namespace PCGExPathfindingEdge
 		PCGEX_DELETE_OPERATION(SearchOperation)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingEdge::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathfindingEdges)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->bUseOctreeSearch)
 		{
@@ -239,15 +229,15 @@ namespace PCGExPathfindingEdge
 			}
 		}
 
-		SearchOperation = TypedContext->SearchAlgorithm->CopyOperation<UPCGExSearchOperation>(); // Create a local copy
+		SearchOperation = Context->SearchAlgorithm->CopyOperation<UPCGExSearchOperation>(); // Create a local copy
 		SearchOperation->PrepareForCluster(Cluster.Get());
 
 		if (IsTrivial())
 		{
 			// Naturally accounts for global heuristics
-			for (const PCGExPathfinding::FPathQuery* Query : TypedContext->PathQueries)
+			for (const PCGExPathfinding::FPathQuery* Query : Context->PathQueries)
 			{
-				TypedContext->TryFindPath(SearchOperation, Query, HeuristicsHandler);
+				Context->TryFindPath(SearchOperation, Query, HeuristicsHandler);
 			}
 
 			return true;
@@ -255,13 +245,13 @@ namespace PCGExPathfindingEdge
 
 		if (HeuristicsHandler->HasGlobalFeedback())
 		{
-			AsyncManagerPtr->Start<FSampleClusterPathTask>(0, VtxIO, SearchOperation, &TypedContext->PathQueries, HeuristicsHandler, true);
+			AsyncManager->Start<FSampleClusterPathTask>(0, VtxIO, SearchOperation, &Context->PathQueries, HeuristicsHandler, true);
 		}
 		else
 		{
-			for (int i = 0; i < TypedContext->PathQueries.Num(); ++i)
+			for (int i = 0; i < Context->PathQueries.Num(); ++i)
 			{
-				AsyncManagerPtr->Start<FSampleClusterPathTask>(i, VtxIO, SearchOperation, &TypedContext->PathQueries, HeuristicsHandler, false);
+				AsyncManager->Start<FSampleClusterPathTask>(i, VtxIO, SearchOperation, &Context->PathQueries, HeuristicsHandler, false);
 			}
 		}
 

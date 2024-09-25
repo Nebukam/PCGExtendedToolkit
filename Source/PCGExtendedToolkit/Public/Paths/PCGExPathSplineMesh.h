@@ -12,6 +12,11 @@
 #include "Tangents/PCGExTangentsOperation.h"
 #include "Components/SplineMeshComponent.h"
 
+
+
+
+
+
 #include "PCGExPathSplineMesh.generated.h"
 
 
@@ -147,11 +152,8 @@ protected:
 
 namespace PCGExPathSplineMesh
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSplineMeshContext, UPCGExPathSplineMeshSettings>
 	{
-		FPCGExPathSplineMeshContext* LocalTypedContext = nullptr;
-		const UPCGExPathSplineMeshSettings* LocalSettings = nullptr;
-
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
@@ -185,14 +187,14 @@ namespace PCGExPathSplineMesh
 		ESplineMeshAxis::Type SplineMeshAxisConstant = ESplineMeshAxis::Type::X;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

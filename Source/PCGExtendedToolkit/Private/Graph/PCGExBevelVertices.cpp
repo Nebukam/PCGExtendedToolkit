@@ -3,6 +3,13 @@
 
 #include "Graph/PCGExBevelVertices.h"
 
+
+
+
+
+
+
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
@@ -79,14 +86,13 @@ namespace PCGExBevelVertices
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelVertices::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelVertices)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		ExpandedNodes = Cluster->ExpandedNodes;
+		ExpandedNodes = Cluster->ExpandedNodes.Get();
 
 		if (!ExpandedNodes)
 		{
@@ -97,7 +103,7 @@ namespace PCGExBevelVertices
 		Cluster->ComputeEdgeLengths();
 
 		FilterManager = MakeUnique<PCGExClusterStates::FStateManager>(StateFlags, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
-		FilterManager->Init(Context, TypedContext->StateFactories);
+		FilterManager->Init(ExecutionContext, Context->StateFactories);
 
 		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }
 		else { StartParallelLoopForNodes(); }
@@ -122,12 +128,12 @@ namespace PCGExBevelVertices
 
 	void FProcessor::Write()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelVertices)
+		
 	}
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
 	}

@@ -75,7 +75,7 @@ namespace PCGExData
 		int32 NumInPoints = -1;
 
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> InKeys; // Shared because reused by duplicates
-		TUniquePtr<FPCGAttributeAccessorKeysPoints> OutKeys;
+		TSharedPtr<FPCGAttributeAccessorKeysPoints> OutKeys;
 
 		const UPCGPointData* In;      // Input PointData	
 		UPCGPointData* Out = nullptr; // Output PointData
@@ -178,15 +178,15 @@ namespace PCGExData
 		FORCEINLINE int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
 
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> CreateInKeys();
-		FORCEINLINE FPCGAttributeAccessorKeysPoints* GetInKeys() const { return InKeys.Get(); }
+		FORCEINLINE TSharedPtr<FPCGAttributeAccessorKeysPoints> GetInKeys() const { return InKeys; }
 		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap);
 
-		FPCGAttributeAccessorKeysPoints* CreateOutKeys();
-		FORCEINLINE FPCGAttributeAccessorKeysPoints* GetOutKeys() const { return OutKeys.Get(); }
+		TSharedPtr<FPCGAttributeAccessorKeysPoints> CreateOutKeys();
+		FORCEINLINE TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys() const { return OutKeys; }
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, bool bInitializeOnSet);
 
-		FPCGAttributeAccessorKeysPoints* CreateKeys(ESource InSource);
-		FORCEINLINE FPCGAttributeAccessorKeysPoints* GetKeys(const ESource InSource) const { return InSource == ESource::In ? GetInKeys() : GetOutKeys(); }
+		TSharedPtr<FPCGAttributeAccessorKeysPoints> CreateKeys(ESource InSource);
+		FORCEINLINE TSharedPtr<FPCGAttributeAccessorKeysPoints> GetKeys(const ESource InSource) const { return InSource == ESource::In ? GetInKeys() : GetOutKeys(); }
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 
@@ -313,9 +313,9 @@ namespace PCGExData
 		}
 
 		template <typename T>
-		FPointIO* Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EInit InitOut = EInit::NoOutput)
+		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EInit InitOut = EInit::NoOutput)
 		{
-			FPointIO* Branch = Emplace_GetRef<T>(PointIO->GetIn(), InitOut);
+			TSharedPtr<FPointIO> Branch = Emplace_GetRef<T>(PointIO->GetIn(), InitOut);
 			Branch->Tags->Reset(PointIO->Tags.Get());
 			Branch->RootIO = PointIO;
 			return Branch;
@@ -324,7 +324,7 @@ namespace PCGExData
 		bool IsEmpty() const { return Pairs.IsEmpty(); }
 		int32 Num() const { return Pairs.Num(); }
 
-		FPointIO& operator[](const int32 Index) const { return *Pairs[Index]; }
+		TSharedPtr<FPointIO> operator[](const int32 Index) const { return Pairs[Index]; }
 
 		void OutputToContext();
 		void OutputToContext(const int32 MinPointCount, const int32 MaxPointCount);
@@ -344,7 +344,7 @@ namespace PCGExData
 	public:
 		FString TagId;
 		FString TagValue;
-		TArray<FPointIO*> Entries;
+		TArray<TSharedPtr<FPointIO>> Entries;
 
 		FPointIOTaggedEntries(const FString& InTagId, const FString& InTagValue)
 			: TagId(InTagId), TagValue(InTagValue)
@@ -356,7 +356,7 @@ namespace PCGExData
 			Entries.Empty();
 		}
 
-		void Add(FPointIO* Value);
+		void Add(const TSharedPtr<FPointIO>& Value);
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedDictionary
@@ -364,7 +364,7 @@ namespace PCGExData
 	public:
 		FString TagId;
 		TMap<FString, int32> TagMap;
-		TArray<FPointIOTaggedEntries*> Entries;
+		TArray<TSharedPtr<FPointIOTaggedEntries>> Entries;
 
 		explicit FPointIOTaggedDictionary(const FString& InTagId)
 			: TagId(InTagId)
@@ -377,9 +377,9 @@ namespace PCGExData
 			Entries.Empty();
 		}
 
-		bool CreateKey(const FPointIO& PointIOKey);
-		bool TryAddEntry(FPointIO& PointIOEntry);
-		FPointIOTaggedEntries* GetEntries(const FString& Key);
+		bool CreateKey(const TSharedPtr<FPointIO>& PointIOKey);
+		bool TryAddEntry(const TSharedPtr<FPointIO>& PointIOEntry);
+		TSharedPtr<FPointIOTaggedEntries> GetEntries(const FString& Key);
 	};
 
 	namespace PCGExPointIO

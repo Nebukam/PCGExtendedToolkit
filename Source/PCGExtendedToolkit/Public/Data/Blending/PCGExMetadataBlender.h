@@ -10,6 +10,16 @@
 #include "PCGExDataBlending.h"
 #include "PCGExPropertiesBlender.h"
 
+
+
+
+
+
+
+
+
+
+
 namespace PCGExDataBlending
 {
 	class /*PCGEXTENDEDTOOLKIT_API*/ FMetadataBlender final
@@ -25,15 +35,15 @@ namespace PCGExDataBlending
 		explicit FMetadataBlender(const FMetadataBlender* ReferenceBlender);
 
 		void PrepareForData(
-			PCGExData::FFacade* InPrimaryFacade,
+			const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = true,
 			const TSet<FName>* IgnoreAttributeSet = nullptr,
 			const bool bSoftMode = false);
 
 		void PrepareForData(
-			PCGExData::FFacade* InPrimaryFacade,
-			PCGExData::FFacade* InSecondaryFacade,
+			const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
+			const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = true,
 			const TSet<FName>* IgnoreAttributeSet = nullptr,
@@ -132,8 +142,8 @@ namespace PCGExDataBlending
 		TArray<bool> FirstPointOperation;
 
 		void InternalPrepareForData(
-			PCGExData::FFacade* InPrimaryFacade,
-			PCGExData::FFacade* InSecondaryFacade,
+			TSharedPtr<PCGExData::FFacade> InPrimaryFacade,
+			TSharedPtr<PCGExData::FFacade> InSecondaryFacade,
 			const PCGExData::ESource SecondarySource,
 			const bool bInitFirstOperation,
 			const TSet<FName>* IgnoreAttributeSet,

@@ -5,6 +5,9 @@
 
 #include "Data/PCGExPointFilter.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
 
@@ -84,16 +87,15 @@ namespace PCGExFuseCollinear
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseCollinear::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseCollinear)
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalTypedContext = TypedContext;
+		
 
 		MaxIndex = PointIO->GetNum() - 1;
 		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
@@ -127,8 +129,8 @@ namespace PCGExFuseCollinear
 		const FVector DirToNext = (NextPosition - CurrentPosition).GetSafeNormal();
 
 		const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
-		const bool bWithinThreshold = Dot > LocalTypedContext->DotThreshold;
-		if (FVector::DistSquared(CurrentPosition, LastPosition) <= LocalTypedContext->FuseDistSquared || bWithinThreshold)
+		const bool bWithinThreshold = Dot > Context->DotThreshold;
+		if (FVector::DistSquared(CurrentPosition, LastPosition) <= Context->FuseDistSquared || bWithinThreshold)
 		{
 			// Collinear with previous, keep moving
 			return;

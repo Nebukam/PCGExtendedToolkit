@@ -7,6 +7,9 @@
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
 
+
+
+
 #include "PCGExSanitizeClusters.generated.h"
 
 
@@ -60,24 +63,24 @@ protected:
 
 namespace PCGExSanitizeClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExSanitizeClustersContext, UPCGExSanitizeClustersSettings>
 	{
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-			: FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
+			: TClusterProcessor(InVtx, InEdges)
 		{
 			bBuildCluster = false;
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 	};
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
 	{
 	public:
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+		FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 			TBatchWithGraphBuilder<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

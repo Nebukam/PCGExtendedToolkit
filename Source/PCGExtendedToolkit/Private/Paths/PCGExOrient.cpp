@@ -3,6 +3,9 @@
 
 #include "Paths/PCGExOrient.h"
 
+
+
+
 #include "Paths/Orient/PCGExOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOrientElement"
@@ -91,21 +94,20 @@ namespace PCGExOrient
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOrient::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Orient)
 
 		DefaultPointFilterValue = Settings->bFlipDirection;
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		LastIndex = PointIO->GetNum() - 1;
 		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
-		Orient->bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		Orient->bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		if (!Orient->PrepareForData(PointDataFacade.Get())) { return false; }
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
@@ -157,7 +159,7 @@ namespace PCGExOrient
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

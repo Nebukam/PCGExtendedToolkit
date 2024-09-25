@@ -3,15 +3,19 @@
 
 #include "Misc/Filters/PCGExStringSelfCompareFilter.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGExPointFilter::TFilter* UPCGExStringSelfCompareFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExStringSelfCompareFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TStringSelfComparisonFilter(this);
+	return MakeShared<PCGExPointsFilter::TStringSelfComparisonFilter>(this);
 }
 
-bool PCGExPointsFilter::TStringSelfComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TStringSelfComparisonFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 

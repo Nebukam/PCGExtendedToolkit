@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExDiscardByOverlap.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExDiscardByOverlapElement"
 #define PCGEX_NAMESPACE DiscardByOverlap
 
@@ -57,8 +58,8 @@ FPCGExDiscardByOverlapContext::~FPCGExDiscardByOverlapContext()
 }
 
 PCGExDiscardByOverlap::FOverlap* FPCGExDiscardByOverlapContext::RegisterOverlap(
-	PCGExDiscardByOverlap::FProcessor* InManager,
-	PCGExDiscardByOverlap::FProcessor* InManaged,
+	const TSharedPtr<PCGExDiscardByOverlap::FProcessor>& InManager,
+	const TSharedPtr<PCGExDiscardByOverlap::FProcessor>& InManaged,
 	const FBox& InIntersection)
 {
 	const uint64 HashID = PCGEx::H64U(InManager->BatchIndex, InManaged->BatchIndex);
@@ -72,7 +73,7 @@ PCGExDiscardByOverlap::FOverlap* FPCGExDiscardByOverlapContext::RegisterOverlap(
 		FWriteScopeLock WriteScopeLock(OverlapLock);
 		if (PCGExDiscardByOverlap::FOverlap** FoundPtr = OverlapMap.Find(HashID)) { return *FoundPtr; }
 
-		PCGExDiscardByOverlap::FOverlap* NewOverlap = new PCGExDiscardByOverlap::FOverlap(InManager, InManaged, InIntersection);
+		TSharedPtr<PCGExDiscardByOverlap::FOverlap> NewOverlap = MakeShared<PCGExDiscardByOverlap::FOverlap>(InManager, InManaged, InIntersection);
 		OverlapMap.Add(HashID, NewOverlap);
 		return NewOverlap;
 	}
@@ -205,7 +206,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExDiscardByOverlap
 {
-	FOverlap::FOverlap(FProcessor* InManager, FProcessor* InManaged, const FBox& InIntersection):
+	FOverlap::FOverlap(const TSharedPtr<FProcessor>& InManager, const TSharedPtr<FProcessor>& InManaged, const FBox& InIntersection):
 		Intersection(InIntersection), Manager(InManager), Managed(InManaged)
 	{
 		HashID = PCGEx::H64U(InManager->BatchIndex, InManaged->BatchIndex);
@@ -213,18 +214,13 @@ namespace PCGExDiscardByOverlap
 
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Octree)
-
-		PCGEX_DELETE_TARRAY(LocalPointBounds)
-		PCGEX_DELETE_TARRAY(ManagedOverlaps)
-
 		Overlaps.Empty();
 	}
 
 	void FProcessor::RegisterOverlap(FProcessor* InManaged, const FBox& Intersection)
 	{
 		FWriteScopeLock WriteScopeLock(RegistrationLock);
-		FOverlap* Overlap = LocalTypedContext->RegisterOverlap(this, InManaged, Intersection);
+		TSharedPtr<FOverlap> Overlap = Context->RegisterOverlap(SharedThis(this), InManaged, Intersection);
 		if (Overlap->Manager == this) { ManagedOverlaps.Add(Overlap); }
 		Overlaps.Add(Overlap);
 	}
@@ -256,16 +252,12 @@ namespace PCGExDiscardByOverlap
 		Overlaps.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(DiscardByOverlap)
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
 
 		// 1 - Build bounds & octrees
 
@@ -275,7 +267,7 @@ namespace PCGExDiscardByOverlap
 
 		PCGEX_SET_NUM_UNINITIALIZED(LocalPointBounds, NumPoints)
 
-		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManager, BoundsPreparationTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BoundsPreparationTask)
 
 		// TODO : Optimisation for huge data set would be to first compute rough overlap
 		// and then only add points within the overlap to the octree, as opposed to every single point.
@@ -356,13 +348,13 @@ namespace PCGExDiscardByOverlap
 						if (!Intersection.IsValid) { return; }
 
 						const double OverlapSize = Intersection.GetExtent().Length();
-						if (LocalSettings->ThresholdMeasure == EPCGExMeanMeasure::Relative)
+						if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative)
 						{
-							if ((OverlapSize / ((OwnedPoint->Bounds.SphereRadius + OtherPoint->Bounds.SphereRadius) * 0.5)) < LocalSettings->MinThreshold) { return; }
+							if ((OverlapSize / ((OwnedPoint->Bounds.SphereRadius + OtherPoint->Bounds.SphereRadius) * 0.5)) < Settings->MinThreshold) { return; }
 						}
 						else
 						{
-							if (OverlapSize < LocalSettings->MinThreshold) { return; }
+							if (OverlapSize < Settings->MinThreshold) { return; }
 						}
 
 						ManagedOverlap->Stats.OverlapCount++;
@@ -375,11 +367,11 @@ namespace PCGExDiscardByOverlap
 	{
 		// 2 - Find overlaps between large bounds, we'll be searching only there.
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, PreparationTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PreparationTask)
 		PreparationTask->SetOnCompleteCallback(
 			[&]()
 			{
-				switch (LocalSettings->TestMode)
+				switch (Settings->TestMode)
 				{
 				default:
 				case EPCGExOverlapTestMode::Fast:
@@ -442,7 +434,7 @@ namespace PCGExDiscardByOverlap
 		RawScores.VolumeDensity = VolumeDensity;
 
 		RawScores.CustomTagScore = 0;
-		for (const TPair<FString, double>& TagScore : LocalSettings->Weighting.TagScores)
+		for (const TPair<FString, double>& TagScore : Settings->Weighting.TagScores)
 		{
 			if (PointIO->Tags->IsTagged(TagScore.Key)) { RawScores.CustomTagScore += TagScore.Value; }
 		}
@@ -460,7 +452,7 @@ namespace PCGExDiscardByOverlap
 
 	void FProcessor::UpdateWeight(const FPCGExOverlapScoresWeighting& InMax)
 	{
-		const FPCGExOverlapScoresWeighting& W = LocalTypedContext->Weights;
+		const FPCGExOverlapScoresWeighting& W = Context->Weights;
 
 		StaticWeight = 0;
 		StaticWeight += (RawScores.NumPoints / InMax.NumPoints) * W.NumPoints;

@@ -7,7 +7,7 @@
 
 PCGEX_CREATE_PROBE_FACTORY(Anisotropic, {}, {})
 
-bool UPCGExProbeAnisotropic::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
+bool UPCGExProbeAnisotropic::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 

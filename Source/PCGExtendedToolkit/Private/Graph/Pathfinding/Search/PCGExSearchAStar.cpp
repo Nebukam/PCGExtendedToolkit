@@ -57,7 +57,7 @@ bool UPCGExSearchAStar::FindPath(
 		MaxGScore = FMath::Max(MaxGScore, GS);
 	}
 
-	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(
+	const TUniquePtr<PCGExSearch::TScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::TScoredQueue>(
 		NumNodes, SeedNode.NodeIndex, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
 	GScore[SeedNode.NodeIndex] = 0;
 
@@ -155,7 +155,6 @@ bool UPCGExSearchAStar::FindPath(
 		OutPath.Append(Path);
 	}
 
-	PCGEX_DELETE(ScoredQueue)
 	TravelStack.Empty();
 	GScore.Empty();
 

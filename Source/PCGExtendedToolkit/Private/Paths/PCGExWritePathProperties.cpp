@@ -5,6 +5,9 @@
 
 #include "PCGExDataMath.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties
 
@@ -65,21 +68,18 @@ namespace PCGExWritePathProperties
 		Details.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWritePathProperties::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WritePathProperties)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
 		LastIndex = PointIO->GetNum() - 1;
-
-		LocalSettings = Settings;
 
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
@@ -149,7 +149,7 @@ namespace PCGExWritePathProperties
 		Current.Normal = FVector::CrossProduct(Current.ToNext, FVector::CrossProduct(UpGetter ? UpGetter->Read(Index) : UpConstant, Current.ToNext)).GetSafeNormal();
 		Current.Binormal = FVector::CrossProduct(Current.ToNext, Current.Normal).GetSafeNormal();
 
-		if (!LocalSettings->bAverageNormals)
+		if (!Settings->bAverageNormals)
 		{
 			PCGEX_OUTPUT_VALUE(PointNormal, Index, Current.Normal);
 			PCGEX_OUTPUT_VALUE(PointBinormal, Index, Current.Binormal);
@@ -162,7 +162,7 @@ namespace PCGExWritePathProperties
 		PCGEX_OUTPUT_VALUE(DistanceToPrev, Index, FVector::Dist(Prev.Position,Current.Position));
 
 		PCGEX_OUTPUT_VALUE(Dot, Index, FVector::DotProduct(Current.ToPrev * -1, Current.ToNext));
-		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, Current.ToPrev, Current.ToNext));
+		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, Current.ToPrev, Current.ToNext));
 	}
 
 	void FProcessor::CompleteWork()
@@ -203,7 +203,7 @@ namespace PCGExWritePathProperties
 			const int32 PrevIndex = i == 0 ? bClosedLoop ? LastIndex : i : i - 1;
 			const int32 NextIndex = i == LastIndex ? bClosedLoop ? 0 : i : i + 1;
 
-			if (LocalSettings->bTagConcave || LocalSettings->bTagConvex) { CheckConvex(PrevIndex, i, NextIndex); }
+			if (Settings->bTagConcave || Settings->bTagConvex) { CheckConvex(PrevIndex, i, NextIndex); }
 
 			const FPointDetails& Detail = Details[i];
 			PathDir += Detail.ToNext;
@@ -226,7 +226,7 @@ namespace PCGExWritePathProperties
 			PCGEX_OUTPUT_VALUE(Angle, LastIndex, 0);
 		}
 
-		if (LocalSettings->bAverageNormals)
+		if (Settings->bAverageNormals)
 		{
 			for (int i = 0; i <= LastIndex; ++i)
 			{
@@ -240,9 +240,9 @@ namespace PCGExWritePathProperties
 
 		UPCGMetadata* Meta = PointIO->GetOut()->Metadata;
 
-		if (TypedContext->bWritePathLength) { PCGExData::WriteMark(Meta, Settings->PathLengthAttributeName, TotalLength); }
-		if (TypedContext->bWritePathDirection) { PCGExData::WriteMark(Meta, Settings->PathDirectionAttributeName, (PathDir / NumPoints).GetSafeNormal()); }
-		if (TypedContext->bWritePathCentroid) { PCGExData::WriteMark(Meta, Settings->PathCentroidAttributeName, (PathCentroid / NumPoints).GetSafeNormal()); }
+		if (Context->bWritePathLength) { PCGExData::WriteMark(Meta, Settings->PathLengthAttributeName, TotalLength); }
+		if (Context->bWritePathDirection) { PCGExData::WriteMark(Meta, Settings->PathDirectionAttributeName, (PathDir / NumPoints).GetSafeNormal()); }
+		if (Context->bWritePathCentroid) { PCGExData::WriteMark(Meta, Settings->PathCentroidAttributeName, (PathCentroid / NumPoints).GetSafeNormal()); }
 
 		///
 
@@ -252,7 +252,7 @@ namespace PCGExWritePathProperties
 			if (Settings->bTagConvex && bIsConvex) { PointIO->Tags->Add(Settings->ConvexTag); }
 		}
 
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

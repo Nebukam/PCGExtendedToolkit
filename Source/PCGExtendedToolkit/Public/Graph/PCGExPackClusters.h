@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPackClusters.generated.h"
 
@@ -47,7 +49,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersContext final : public FPCGE
 
 	virtual ~FPCGExPackClustersContext() override;
 
-	PCGExData::FPointIOCollection* PackedClusters = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> PackedClusters;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
@@ -67,8 +69,8 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExPackClusterTask(PCGExData::FPointIO* InPointIO,
-	                      PCGExData::FPointIO* InInEdges,
+	FPCGExPackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+	                      const TSharedPtr<PCGExData::FPointIO>& InInEdges,
 	                      const TMap<uint32, int32>& InEndpointsLookup) :
 		FPCGExTask(InPointIO),
 		InEdges(InInEdges),
@@ -81,8 +83,8 @@ public:
 		EndpointsLookup.Empty();
 	}
 
-	PCGExData::FPointIO* InEdges = nullptr;
+	TSharedPtr<PCGExData::FPointIO> InEdges;
 	TMap<uint32, int32> EndpointsLookup;
 
-	virtual bool ExecuteTask() override;
+	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };

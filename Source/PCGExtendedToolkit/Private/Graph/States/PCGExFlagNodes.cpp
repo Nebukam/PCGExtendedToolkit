@@ -3,6 +3,7 @@
 
 #include "Graph/States/PCGExFlagNodes.h"
 
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
@@ -77,17 +78,15 @@ namespace PCGExFlagNodes
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(StateManager)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindNodeState::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		ExpandedNodes = Cluster->ExpandedNodes;
+		ExpandedNodes = Cluster->ExpandedNodes.Get();
 
 		if (!ExpandedNodes)
 		{
@@ -97,8 +96,8 @@ namespace PCGExFlagNodes
 
 		Cluster->ComputeEdgeLengths();
 
-		StateManager = new PCGExClusterStates::FStateManager(StateFlags, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
-		StateManager->Init(Context, TypedContext->StateFactories);
+		StateManager = MakeUnique<PCGExClusterStates::FStateManager>(StateFlags, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
+		StateManager->Init(ExecutionContext, Context->StateFactories);
 
 		if (bBuildExpandedNodes) { StartParallelLoopForRange(NumNodes); }
 		else { StartParallelLoopForNodes(); }
@@ -123,12 +122,11 @@ namespace PCGExFlagNodes
 
 	void FProcessor::Write()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlagNodes)
 	}
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
 	}

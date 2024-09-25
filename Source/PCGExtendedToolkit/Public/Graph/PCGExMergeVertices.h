@@ -9,6 +9,9 @@
 #include "PCGExEdgesProcessor.h"
 #include "Data/PCGExPointIOMerger.h"
 
+
+
+
 #include "PCGExMergeVertices.generated.h"
 
 
@@ -49,8 +52,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesContext final : public FPCG
 	FPCGExCarryOverDetails CarryOverDetails;
 
 	FString OutVtxId = TEXT("");
-	PCGExData::FPointIO* CompositeIO = nullptr;
-	FPCGExPointIOMerger* Merger = nullptr;
+	TSharedPtr<PCGExData::FPointIO> CompositeIO;
+	TUniquePtr<FPCGExPointIOMerger> Merger;
 
 	virtual void OnBatchesProcessingDone() override;
 	virtual void OnBatchesCompletingWorkDone() override;
@@ -71,26 +74,24 @@ protected:
 
 namespace PCGExMergeVertices
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExMergeVerticesContext, UPCGExMergeVerticesSettings>
 	{
 		friend class FProcessorBatch;
 
 	protected:
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;
 
-		FPCGExMergeVerticesContext* LocalTypedContext = nullptr;
-
 	public:
 		int32 StartIndexOffset = 0;
 
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
+			TClusterProcessor(InVtx, InEdges)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

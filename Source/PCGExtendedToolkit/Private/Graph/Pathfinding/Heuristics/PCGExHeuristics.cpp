@@ -9,7 +9,7 @@
 
 namespace PCGExHeuristics
 {
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 		: VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
 	{
 		TArray<UPCGExHeuristicsFactoryBase*> ContextFactories;
@@ -19,7 +19,7 @@ namespace PCGExHeuristics
 		BuildFrom(InContext, ContextFactories);
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
 		: VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache)
 	{
 		BuildFrom(InContext, InFactories);
@@ -60,6 +60,7 @@ namespace PCGExHeuristics
 			}
 
 			Operations.Add(Operation);
+
 			Operation->PrimaryDataFacade = VtxDataFacade;
 			Operation->SecondaryDataFacade = EdgeDataFacade;
 			Operation->WeightFactor = OperationFactory->WeightFactor;
@@ -96,10 +97,10 @@ namespace PCGExHeuristics
 		for (const UPCGExHeuristicOperation* Op : Operations) { TotalStaticWeight += Op->WeightFactor; }
 	}
 
-	FLocalFeedbackHandler* THeuristicsHandler::MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster)
+	TUniquePtr<FLocalFeedbackHandler> THeuristicsHandler::MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster)
 	{
 		if (!LocalFeedbackFactories.IsEmpty()) { return nullptr; }
-		FLocalFeedbackHandler* NewLocalFeedbackHandler = new FLocalFeedbackHandler();
+		TUniquePtr<FLocalFeedbackHandler> NewLocalFeedbackHandler = MakeUnique<FLocalFeedbackHandler>();
 
 		for (const UPCGExHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
 		{

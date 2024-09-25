@@ -8,6 +8,8 @@
 #include "PCGExMT.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
+
+
 #include "PCGExGeo.generated.h"
 
 USTRUCT(BlueprintType)
@@ -47,11 +49,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bSupportLocalNormal && bLocalProjectionNormal", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalNormal;
 
-	PCGExData::TBuffer<FVector>* NormalGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> NormalGetter;
 	FQuat ProjectionQuat = FQuat::Identity;
 	FQuat ProjectionInverseQuat = FQuat::Identity;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* PointDataFacade = nullptr)
+	bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
 	{
 		ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
 		ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::UpVector);
@@ -593,7 +595,7 @@ namespace PCGExGeoTasks
 	{
 	public:
 		FTransformPointIO(
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			PCGExData::FPointIO* InToBeTransformedIO,
 			FPCGExTransformDetails* InTransformDetails) :
 			FPCGExTask(InPointIO),
@@ -605,7 +607,7 @@ namespace PCGExGeoTasks
 		PCGExData::FPointIO* ToBeTransformedIO = nullptr;
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
-		virtual bool ExecuteTask() override
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
 			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetOut()->GetMutablePoints();

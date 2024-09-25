@@ -3,15 +3,19 @@
 
 #include "Misc/Filters/PCGExMeanFilter.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 #define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"
 #define PCGEX_NAMESPACE MeanFilterDefinition
 
-PCGExPointFilter::TFilter* UPCGExMeanFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExMeanFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TMeanFilter(this);
+	return MakeShared<PCGExPointsFilter::TMeanFilter>(this);
 }
 
-bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 

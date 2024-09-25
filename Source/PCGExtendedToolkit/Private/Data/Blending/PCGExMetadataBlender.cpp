@@ -27,7 +27,7 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::PrepareForData(
-		PCGExData::FFacade* InPrimaryFacade,
+		const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
 		const TSet<FName>* IgnoreAttributeSet,
@@ -37,8 +37,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::PrepareForData(
-		PCGExData::FFacade* InPrimaryFacade,
-		PCGExData::FFacade* InSecondaryFacade,
+		const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
+		const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
 		const TSet<FName>* IgnoreAttributeSet,
@@ -141,8 +141,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::InternalPrepareForData(
-		PCGExData::FFacade* InPrimaryFacade,
-		PCGExData::FFacade* InSecondaryFacade,
+		TSharedPtr<PCGExData::FFacade> InPrimaryFacade,
+		TSharedPtr<PCGExData::FFacade> InSecondaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
 		const TSet<FName>* IgnoreAttributeSet,

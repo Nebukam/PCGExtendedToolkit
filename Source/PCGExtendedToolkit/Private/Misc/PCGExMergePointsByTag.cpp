@@ -17,7 +17,6 @@ namespace PCPGExMergePointsByTag
 	FMergeList::~FMergeList()
 	{
 		IOs.Empty();
-		PCGEX_DELETE(Merger)
 	}
 
 	void FMergeList::Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
@@ -27,7 +26,7 @@ namespace PCPGExMergePointsByTag
 		CompositeIO = IOs[0];
 		CompositeIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
-		Merger = new FPCGExPointIOMerger(CompositeIO);
+		Merger = MakeUnique<FPCGExPointIOMerger>(CompositeIO);
 		Merger->Append(IOs);
 		Merger->Merge(AsyncManager, InCarryOverDetails);
 	}

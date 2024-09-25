@@ -7,14 +7,14 @@ namespace PCGExData
 {
 #pragma region Pools & cache
 
-	FBufferBase* FFacade::FindBufferUnsafe(const uint64 UID)
+	TSharedPtr<FBufferBase> FFacade::FindBufferUnsafe(const uint64 UID)
 	{
-		FBufferBase** Found = BufferMap.Find(UID);
+		TSharedPtr<FBufferBase>* Found = BufferMap.Find(UID);
 		if (!Found) { return nullptr; }
 		return *Found;
 	}
 
-	FBufferBase* FFacade::FindBuffer(const uint64 UID)
+	TSharedPtr<FBufferBase> FFacade::FindBuffer(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(PoolLock);
 		return FindBufferUnsafe(UID);

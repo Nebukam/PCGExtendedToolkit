@@ -36,7 +36,6 @@ bool UPCGExSearchDijkstra::FindPath(
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchDijkstra::FindPath);
 
-
 	// Basic Dijkstra implementation
 
 	TBitArray<> Visited;
@@ -44,7 +43,7 @@ bool UPCGExSearchDijkstra::FindPath(
 
 	TArray<uint64> TravelStack;
 
-	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(
+	const TUniquePtr<PCGExSearch::TScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::TScoredQueue>(
 		NumNodes, SeedNode.NodeIndex, 0);
 
 	TravelStack.SetNumUninitialized(NumNodes);
@@ -138,7 +137,6 @@ bool UPCGExSearchDijkstra::FindPath(
 
 	Visited.Empty();
 	TravelStack.Empty();
-	PCGEX_DELETE(ScoredQueue)
 
 	return true;
 }

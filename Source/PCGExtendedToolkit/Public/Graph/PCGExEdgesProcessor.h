@@ -53,10 +53,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	bool bBuildEndpointsLookup = true;
 	
 	TUniquePtr<PCGExData::FPointIOCollection> MainEdges;
-	PCGExData::FPointIO* CurrentEdges = nullptr;
+	TSharedPtr<PCGExData::FPointIO> CurrentEdges;
 
 	TUniquePtr<PCGExData::FPointIOTaggedDictionary> InputDictionary;
-	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
+	TSharedPtr<PCGExData::FPointIOTaggedEntries> TaggedEdges;
 	TMap<uint32, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;
 

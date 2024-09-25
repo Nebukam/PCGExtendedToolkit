@@ -4,6 +4,16 @@
 #include "Paths/PCGExSubdivide.h"
 
 #include "PCGExRandom.h"
+
+
+
+
+
+
+
+
+
+
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
@@ -87,28 +97,26 @@ namespace PCGExSubdivide
 		Subdivisions.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSubdivide::Process);
 
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
-
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
+		
+		
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
 		if (Settings->ValueSource == EPCGExFetchType::Attribute)
 		{
 			AmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
 			if (!AmountGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Subdivision Amount attribute is invalid."));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Subdivision Amount attribute is invalid."));
 				return false;
 			}
 		}
@@ -137,8 +145,7 @@ namespace PCGExSubdivide
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
-
+		
 		FSubdivision& Sub = Subdivisions[Index];
 
 		Sub.NumSubdivisions = 0;
@@ -172,7 +179,7 @@ namespace PCGExSubdivide
 		const FSubdivision& Sub = Subdivisions[Iteration];
 
 		if (FlagWriter) { FlagWriter->GetMutable(Sub.OutStart) = false; }
-		if (AlphaWriter) { AlphaWriter->GetMutable(Sub.OutStart) = LocalSettings->DefaultAlpha; }
+		if (AlphaWriter) { AlphaWriter->GetMutable(Sub.OutStart) = Settings->DefaultAlpha; }
 
 		if (Sub.NumSubdivisions == 0) { return; }
 
@@ -219,8 +226,8 @@ namespace PCGExSubdivide
 		if (NumPoints == PointIO->GetNum())
 		{
 			PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-			if (LocalSettings->bFlagSubPoints) { PCGExData::WriteMark(PointIO->GetOut()->Metadata, LocalSettings->SubPointFlagName, false); }
-			if (LocalSettings->bWriteAlpha) { PCGExData::WriteMark(PointIO->GetOut()->Metadata, LocalSettings->AlphaAttributeName, LocalSettings->DefaultAlpha); }
+			if (Settings->bFlagSubPoints) { PCGExData::WriteMark(PointIO->GetOut()->Metadata, Settings->SubPointFlagName, false); }
+			if (Settings->bWriteAlpha) { PCGExData::WriteMark(PointIO->GetOut()->Metadata, Settings->AlphaAttributeName, Settings->DefaultAlpha); }
 			return;
 		}
 
@@ -249,16 +256,16 @@ namespace PCGExSubdivide
 			}
 		}
 
-		if (LocalSettings->bFlagSubPoints)
+		if (Settings->bFlagSubPoints)
 		{
-			FlagWriter = PointDataFacade->GetWritable<bool>(LocalSettings->SubPointFlagName, false, false, true);
-			ProtectedAttributes.Add(LocalSettings->SubPointFlagName);
+			FlagWriter = PointDataFacade->GetWritable<bool>(Settings->SubPointFlagName, false, false, true);
+			ProtectedAttributes.Add(Settings->SubPointFlagName);
 		}
 
-		if (LocalSettings->bWriteAlpha)
+		if (Settings->bWriteAlpha)
 		{
-			AlphaWriter = PointDataFacade->GetWritable<double>(LocalSettings->AlphaAttributeName, LocalSettings->DefaultAlpha, true, true);
-			ProtectedAttributes.Add(LocalSettings->AlphaAttributeName);
+			AlphaWriter = PointDataFacade->GetWritable<double>(Settings->AlphaAttributeName, Settings->DefaultAlpha, true, true);
+			ProtectedAttributes.Add(Settings->AlphaAttributeName);
 		}
 
 		Blending->PrepareForData(PointDataFacade.Get(), PointDataFacade.Get(), PCGExData::ESource::Out, &ProtectedAttributes);
@@ -267,7 +274,7 @@ namespace PCGExSubdivide
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

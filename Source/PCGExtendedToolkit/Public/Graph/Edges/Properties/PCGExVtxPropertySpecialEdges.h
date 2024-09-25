@@ -8,6 +8,8 @@
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExVtxPropertyFactoryProvider.h"
+
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
@@ -43,7 +45,7 @@ public:
 	FPCGExSpecialEdgesConfig Config;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade) override;
+	virtual bool PrepareForVtx(const FPCGContext* InContext, TSharedPtr<PCGExData::FFacade> InVtxDataFacade) override;
 	virtual void ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
 };
 

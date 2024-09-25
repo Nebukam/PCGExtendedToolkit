@@ -7,6 +7,17 @@
 #include "UObject/Object.h"
 #include "PCGExFactoryProvider.h"
 #include "Data/PCGExPointFilter.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
 
 #include "PCGExClusterFilter.generated.h"
 
@@ -71,30 +82,30 @@ namespace PCGExClusterFilter
 		}
 
 		bool bInitForCluster = false;
-		PCGExCluster::FCluster* Cluster = nullptr;
-		PCGExData::FFacade* EdgeDataFacade = nullptr;
+		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 		virtual PCGExFilters::EType GetFilterType() const override;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade);
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 		virtual void PostInit() override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ TManager : public PCGExPointFilter::TManager
 	{
 	public:
-		TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade);
+		TManager(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
 
-		PCGExCluster::FCluster* Cluster = nullptr;
-		PCGExData::FFacade* EdgeDataCache = nullptr;
+		TSharedPtr<PCGExCluster::FCluster> Cluster;
+		TSharedPtr<PCGExData::FFacade> EdgeDataCache;
 
 		virtual ~TManager() override
 		{
 		}
 
 	protected:
-		virtual bool InitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* Filter) override;
+		virtual bool InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter) override;
 
 		virtual void InitCache() override;
 	};

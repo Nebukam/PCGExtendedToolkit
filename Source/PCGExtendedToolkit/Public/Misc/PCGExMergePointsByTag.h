@@ -33,9 +33,9 @@ namespace PCPGExMergePointsByTag
 	class /*PCGEXTENDEDTOOLKIT_API*/ FMergeList
 	{
 	public:
-		TArray<PCGExData::FPointIO*> IOs;
-		PCGExData::FPointIO* CompositeIO = nullptr;
-		FPCGExPointIOMerger* Merger = nullptr;
+		TArray<TSharedPtr<PCGExData::FPointIO>> IOs;
+		TSharedPtr<PCGExData::FPointIO> CompositeIO;
+		TUniquePtr<FPCGExPointIOMerger> Merger;
 
 		FMergeList();
 		~FMergeList();

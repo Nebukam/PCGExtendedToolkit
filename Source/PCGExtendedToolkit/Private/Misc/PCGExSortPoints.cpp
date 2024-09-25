@@ -4,6 +4,10 @@
 
 #include "Misc/PCGExSortPoints.h"
 
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExSortPoints"
 #define PCGEX_NAMESPACE SortPoints
 
@@ -70,15 +74,15 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSortPoints
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSortPoints::Process);
 		PCGEX_SETTINGS(SortPointsBase)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		TArray<FPCGExSortRuleConfig> RuleConfigs;
-		Settings->GetSortingRules(Context, RuleConfigs);
+		Settings->GetSortingRules(ExecutionContext, RuleConfigs);
 
 		TArray<FPCGExSortRule*> Rules;
 		Rules.Reserve(RuleConfigs.Num());
@@ -93,7 +97,7 @@ namespace PCGExSortPoints
 
 			if (!Cache)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some points are missing attributes used for sorting."));
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some points are missing attributes used for sorting."));
 				delete NewRule;
 				continue;
 			}

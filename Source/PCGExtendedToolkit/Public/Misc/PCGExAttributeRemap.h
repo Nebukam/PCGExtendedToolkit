@@ -11,6 +11,9 @@
 #include "PCGExDetails.h"
 #include "Data/PCGExAttributeHelpers.h"
 
+
+
+
 #include "PCGExAttributeRemap.generated.h"
 
 USTRUCT(BlueprintType)
@@ -126,11 +129,8 @@ protected:
 
 namespace PCGExAttributeRemap
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeRemapContext, UPCGExAttributeRemapSettings>
 	{
-		FPCGExAttributeRemapContext* LocalTypedContext = nullptr;
-		const UPCGExAttributeRemapSettings* LocalSettings = nullptr;
-
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 		int32 Dimensions = 0;
 
@@ -140,14 +140,14 @@ namespace PCGExAttributeRemap
 		PCGExData::FBufferBase* CacheReader = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
 		template <typename T>
 		void RemapRange(const int32 StartIndex, const int32 Count, T DummyValue)

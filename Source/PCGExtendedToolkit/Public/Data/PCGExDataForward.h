@@ -10,6 +10,8 @@
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 #include "PCGExData.h"
+
+
 #include "PCGExDataForward.generated.h"
 
 namespace PCGExData
@@ -47,10 +49,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExForwardDetails : public FPCGExNameFilter
 		}
 	}
 
-	PCGExData::FDataForwardHandler* GetHandler(PCGExData::FFacade* InSourceDataFacade) const;
-	PCGExData::FDataForwardHandler* GetHandler(PCGExData::FFacade* InSourceDataFacade, PCGExData::FFacade* InTargetDataFacade) const;
-	PCGExData::FDataForwardHandler* TryGetHandler(PCGExData::FFacade* InSourceDataFacade) const;
-	PCGExData::FDataForwardHandler* TryGetHandler(PCGExData::FFacade* InSourceDataFacade, PCGExData::FFacade* InTargetDataFacade) const;
+	TUniquePtr<PCGExData::FDataForwardHandler> GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const;
+	TUniquePtr<PCGExData::FDataForwardHandler> GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const;
+	TUniquePtr<PCGExData::FDataForwardHandler> TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade) const;
+	TUniquePtr<PCGExData::FDataForwardHandler> TryGetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const;
 };
 
 namespace PCGExData
@@ -58,19 +60,19 @@ namespace PCGExData
 	class /*PCGEXTENDEDTOOLKIT_API*/ FDataForwardHandler
 	{
 		FPCGExForwardDetails Details;
-		FFacade* SourceDataFacade = nullptr;
-		FFacade* TargetDataFacade = nullptr;
+		TSharedPtr<FFacade> SourceDataFacade;
+		TSharedPtr<FFacade> TargetDataFacade;
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		TArray<PCGExData::FBufferBase*> Readers;
-		TArray<PCGExData::FBufferBase*> Writers;
+		TArray<TSharedPtr<PCGExData::FBufferBase>> Readers;
+		TArray<TSharedPtr<PCGExData::FBufferBase>> Writers;
 
 	public:
 		~FDataForwardHandler();
-		FDataForwardHandler(const FPCGExForwardDetails& InDetails, FFacade* InSourceDataFacade);
-		FDataForwardHandler(const FPCGExForwardDetails& InDetails, FFacade* InSourceDataFacade, FFacade* InTargetDataFacade);
+		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade);
+		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const TSharedPtr<FFacade>& InTargetDataFacade);
 		FORCEINLINE bool IsEmpty() const { return Identities.IsEmpty(); }
 		void Forward(const int32 SourceIndex, const int32 TargetIndex);
-		void Forward(int32 SourceIndex, FFacade* InTargetDataFacade);
+		void Forward(int32 SourceIndex, const TSharedPtr<FFacade>& InTargetDataFacade);
 	};
 }
 
@@ -95,46 +97,40 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
 
-	PCGExData::FFacade* TagSource = nullptr;
-	TArray<PCGEx::FLocalToStringGetter*> Getters;
+	TSharedPtr<PCGExData::FFacade> SourceDataFacade;
+	TArray<TUniquePtr<PCGEx::FLocalToStringGetter>> Getters;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* TagSourceFacade)
+	bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade)
 	{
 		for (FPCGAttributePropertyInputSelector& Selector : Attributes)
 		{
-			PCGEx::FLocalToStringGetter* Getter = new PCGEx::FLocalToStringGetter();
+			const TUniquePtr<PCGEx::FLocalToStringGetter>& Getter = Getters.Add_GetRef(MakeUnique<PCGEx::FLocalToStringGetter>());
 			Getter->Capture(Selector);
-			if (!Getter->SoftGrab(TagSourceFacade->Source.Get()))
+			if (!Getter->SoftGrab(InSourceFacade->Source))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing specified Tag attribute."));
-				Cleanup();
+				Getters.Empty();
 				return false;
 			}
-			Getters.Add(Getter);
 		}
 
-		TagSource = TagSourceFacade;
+		SourceDataFacade = InSourceFacade;
 		return true;
 	}
 
-	void Tag(const int32 TagIndex, const PCGExData::FPointIO* PointIO) const
+	void Tag(const int32 TagIndex, const TSharedPtr<PCGExData::FPointIO>& PointIO) const
 	{
 		if (bAddIndexTag) { PointIO->Tags->Add(IndexTagPrefix + FString::Printf(TEXT("%d"), TagIndex)); }
 
 		if (!Getters.IsEmpty())
 		{
-			const FPCGPoint& Point = TagSource->GetIn()->GetPoint(TagIndex);
-			for (PCGEx::FLocalToStringGetter* Getter : Getters)
+			const FPCGPoint& Point = SourceDataFacade->GetIn()->GetPoint(TagIndex);
+			for (const TUniquePtr<PCGEx::FLocalToStringGetter> Getter : Getters)
 			{
 				FString Tag = Getter->SoftGet(TagIndex, Point, TEXT(""));
 				if (Tag.IsEmpty()) { continue; }
 				PointIO->Tags->Add(Tag);
 			}
 		}
-	}
-
-	void Cleanup()
-	{
-		PCGEX_DELETE_TARRAY(Getters);
 	}
 };

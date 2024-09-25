@@ -8,6 +8,9 @@
 #include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
 
+
+
+
 #include "PCGExSimplifyClusters.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
@@ -81,24 +84,21 @@ protected:
 
 namespace PCGExSimplifyClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExSimplifyClustersContext, UPCGExSimplifyClustersSettings>
 	{
 		TArray<bool> Breakpoints;
 
 		TArray<PCGExCluster::FNodeChain*> Chains;
 
-		FPCGExSimplifyClustersContext* LocalTypedContext = nullptr;
-		const UPCGExSimplifyClustersSettings* LocalSettings = nullptr;
-
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
+			TClusterProcessor(InVtx, InEdges)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;

@@ -4,6 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExSampleNeighbors.generated.h"
@@ -76,7 +80,7 @@ protected:
 
 namespace PCGExSampleNeighbors
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExSampleNeighborsContext, UPCGExSampleNeighborsSettings>
 	{
 		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
 		TArray<UPCGExNeighborSampleOperation*> OpsWithValueTest;
@@ -85,14 +89,14 @@ namespace PCGExSampleNeighbors
 		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
+			TClusterProcessor(InVtx, InEdges)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

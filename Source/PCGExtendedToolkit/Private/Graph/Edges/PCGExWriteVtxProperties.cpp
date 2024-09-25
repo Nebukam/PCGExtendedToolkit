@@ -3,6 +3,9 @@
 
 #include "Graph/Edges/PCGExWriteVtxProperties.h"
 
+
+
+
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
@@ -78,16 +81,15 @@ namespace PCGExWriteVtxProperties
 		ExtraOperations->Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteVtxProperties::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxProperties)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (!ExtraOperations->IsEmpty())
 		{
-			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(Context, BatchIndex, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get()); }
+			for (UPCGExVtxPropertyOperation* Op : (*ExtraOperations)) { Op->PrepareForCluster(ExecutionContext, BatchIndex, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get()); }
 		}
 
 		StartParallelLoopForNodes();
@@ -115,14 +117,13 @@ namespace PCGExWriteVtxProperties
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
 	}
 
 	FProcessorBatch::~FProcessorBatch()
 	{
-		PCGEX_SETTINGS(WriteVtxProperties)
 		for (UPCGExVtxPropertyOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
 	}
 
@@ -135,7 +136,7 @@ namespace PCGExWriteVtxProperties
 			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
-		for (const UPCGExVtxPropertyFactoryBase* Factory : TypedContext->ExtraFactories)
+		for (const UPCGExVtxPropertyFactoryBase* Factory : Context->ExtraFactories)
 		{
 			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation();
 			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade.Get()))
@@ -152,8 +153,6 @@ namespace PCGExWriteVtxProperties
 
 	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
 	{
-		PCGEX_SETTINGS(WriteVtxProperties)
-
 		ClusterProcessor->ExtraOperations = &ExtraOperations;
 
 #define PCGEX_FWD_VTX(_NAME, _TYPE, _DEFAULT_VALUE) ClusterProcessor->_NAME##Writer = _NAME##Writer;
@@ -166,7 +165,7 @@ namespace PCGExWriteVtxProperties
 	void FProcessorBatch::Write()
 	{
 		//	TBatch<FProcessor>::Write();
-		VtxDataFacade->Write(AsyncManagerPtr);
+		VtxDataFacade->Write(AsyncManager);
 	}
 }
 

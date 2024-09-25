@@ -82,7 +82,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys)
 {
-	PCGEX_DELETE(CurrentCluster)
+	CurrentCluster.Reset();
 
 	if (bCleanupKeys && CurrentEdges) { CurrentEdges->CleanupKeys(); }
 
@@ -111,7 +111,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 				EndpointsLookup, &EndpointsAdjacency))
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed.  If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
-				PCGEX_DELETE(CurrentCluster)
+				CurrentCluster.Reset();
 			}
 			else
 			{

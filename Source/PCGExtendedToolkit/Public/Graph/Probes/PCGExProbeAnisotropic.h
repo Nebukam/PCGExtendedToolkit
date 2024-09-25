@@ -35,7 +35,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeAnisotropic : public UPCGExProbeOper
 	GENERATED_BODY()
 
 public:
-	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
+	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeConfigAnisotropic Config;

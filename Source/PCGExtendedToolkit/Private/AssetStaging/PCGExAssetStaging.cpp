@@ -4,6 +4,9 @@
 #include "AssetStaging/PCGExAssetStaging.h"
 #include "Collections/PCGExInternalCollection.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExAssetStagingElement"
 #define PCGEX_NAMESPACE AssetStaging
 
@@ -122,29 +125,25 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExAssetStaging
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAssetStaging::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(AssetStaging)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Justification = Settings->Justification;
-		Justification.Init(Context, PointDataFacade.Get());
+		Justification.Init(ExecutionContext, PointDataFacade.Get());
 
 		Variations = Settings->Variations;
 		Variations.Init(Settings->Seed);
 
 		NumPoints = PointIO->GetNum();
 
-		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
-		if (!Helper->Init(Context, PointDataFacade.Get())) { return false; }
+		Helper = new PCGExAssetCollection::FDistributionHelper(Context->MainCollection, Settings->DistributionSettings);
+		if (!Helper->Init(ExecutionContext, PointDataFacade.Get())) { return false; }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
@@ -180,7 +179,7 @@ namespace PCGExAssetStaging
 	{
 		auto InvalidPoint = [&]()
 		{
-			if (LocalSettings->bPruneEmptyPoints)
+			if (Settings->bPruneEmptyPoints)
 			{
 				Point.MetadataEntry = -2;
 				return;
@@ -209,7 +208,7 @@ namespace PCGExAssetStaging
 
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
 			Helper->Details.SeedComponents, Point,
-			Helper->Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
+			Helper->Details.LocalSeed, Settings, Context->SourceComponent.Get());
 
 		Helper->GetStaging(StagingData, Index, Seed);
 
@@ -221,7 +220,7 @@ namespace PCGExAssetStaging
 
 		if (bOutputWeight)
 		{
-			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(LocalTypedContext->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
+			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
 			if (bOneMinusWeight) { Weight = 1 - Weight; }
 			if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
 			else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
@@ -242,7 +241,7 @@ namespace PCGExAssetStaging
 		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
 		FBox OutBounds = StBox;
 
-		LocalSettings->ScaleToFit.Process(Point, StagingData->Bounds, OutScale, OutBounds);
+		Settings->ScaleToFit.Process(Point, StagingData->Bounds, OutScale, OutBounds);
 
 		Point.BoundsMin = OutBounds.Min;
 		Point.BoundsMax = OutBounds.Max;
@@ -260,7 +259,7 @@ namespace PCGExAssetStaging
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 
 	void FProcessor::Write()

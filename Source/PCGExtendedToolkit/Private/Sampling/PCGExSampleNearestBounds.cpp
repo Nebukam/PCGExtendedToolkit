@@ -5,6 +5,10 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+
+
+
+
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestBoundsElement"
@@ -35,7 +39,6 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestBounds)
 FPCGExSampleNearestBoundsContext::~FPCGExSampleNearestBoundsContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
 	PCGEX_CLEAN_SP(WeightCurve)
 }
 
@@ -48,7 +51,7 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	TSharedPtr<PCGExData::FPointIO> Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
 	if (!Bounds) { return false; }
 
-	Context->BoundsFacade = MakeUnique<PCGExData::FFacade>(Bounds);
+	Context->BoundsFacade = MakeShared<PCGExData::FFacade>(Bounds);
 
 	TSet<FName> MissingTargetAttributes;
 	PCGExDataBlending::AssembleBlendingDetails(
@@ -122,39 +125,35 @@ namespace PCGExSampleNearestBounds
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNearestBounds::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestBounds)
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
-
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
 			PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_INIT)
 		}
 
-		if (!TypedContext->BlendingDetails.FilteredAttributes.IsEmpty() ||
-			!TypedContext->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
+		if (!Context->BlendingDetails.FilteredAttributes.IsEmpty() ||
+			!Context->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
-			Blender = new PCGExDataBlending::FMetadataBlender(&TypedContext->BlendingDetails);
-			Blender->PrepareForData(PointDataFacade.Get(), TypedContext->BoundsFacade.Get());
+			Blender = new PCGExDataBlending::FMetadataBlender(&Context->BlendingDetails);
+			Blender->PrepareForData(PointDataFacade, Context->BoundsFacade);
 		}
 
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)
 		{
-			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { LookAtUpGetter = TypedContext->BoundsFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource); }
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { LookAtUpGetter = Context->BoundsFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource); }
 			else { LookAtUpGetter = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LookAtUpSource); }
 
-			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("LookAtUp is invalid.")); }
+			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("LookAtUp is invalid.")); }
 		}
 
-		bSingleSample = LocalSettings->SampleMethod != EPCGExBoundsSampleMethod::WithinRange;
+		bSingleSample = Settings->SampleMethod != EPCGExBoundsSampleMethod::WithinRange;
 
-		Cloud = LocalTypedContext->BoundsFacade->GetCloud(Settings->BoundsSource);
+		Cloud = Context->BoundsFacade->GetCloud(Settings->BoundsSource);
 		StartParallelLoopForPoints();
 
 		return true;
@@ -170,12 +169,12 @@ namespace PCGExSampleNearestBounds
 	{
 		if (!PointFilterCache[Index])
 		{
-			if (LocalSettings->bProcessFilteredOutAsFails) { SamplingFailed(Index, Point); }
+			if (Settings->bProcessFilteredOutAsFails) { SamplingFailed(Index, Point); }
 			return;
 		}
 
 		TArray<PCGExNearestBounds::FTargetInfos> TargetsInfos;
-		//TargetsInfos.Reserve(TypedContext->Targets->GetNum());
+		//TargetsInfos.Reserve(Context->Targets->GetNum());
 
 
 		PCGExNearestBounds::FTargetsCompoundInfos TargetsCompoundInfos;
@@ -186,7 +185,7 @@ namespace PCGExSampleNearestBounds
 			BCAE, [&](const PCGExGeo::FPointBox* NearbyBox)
 			{
 				NearbyBox->Sample(Point, CurrentSample);
-				CurrentSample.Weight = LocalTypedContext->WeightCurve->GetFloatValue(CurrentSample.Weight);
+				CurrentSample.Weight = Context->WeightCurve->GetFloatValue(CurrentSample.Weight);
 
 				if (!CurrentSample.bIsInside) { return; }
 
@@ -211,7 +210,7 @@ namespace PCGExSampleNearestBounds
 		FTransform WeightedTransform = FTransform::Identity;
 		WeightedTransform.SetScale3D(FVector::ZeroVector);
 		FVector WeightedUp = SafeUpVector;
-		if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
+		if (Settings->LookAtUpSelection == EPCGExSampleSource::Source && LookAtUpGetter) { WeightedUp = LookAtUpGetter->Read(Index); }
 
 		FVector WeightedSignAxis = FVector::Zero();
 		FVector WeightedAngleAxis = FVector::Zero();
@@ -222,7 +221,7 @@ namespace PCGExSampleNearestBounds
 			(const PCGExNearestBounds::FTargetInfos& TargetInfos)
 		{
 			const double Weight = TargetInfos.Weight;
-			const FPCGPoint& Target = LocalTypedContext->BoundsFacade->Source->GetInPoint(TargetInfos.Index);
+			const FPCGPoint& Target = Context->BoundsFacade->Source->GetInPoint(TargetInfos.Index);
 
 			const FTransform TargetTransform = Target.Transform;
 			const FQuat TargetRotation = TargetTransform.GetRotation();
@@ -231,10 +230,10 @@ namespace PCGExSampleNearestBounds
 			WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (TargetTransform.GetScale3D() * Weight));
 			WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (TargetTransform.GetLocation() * Weight));
 
-			if (LocalSettings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector) * Weight; }
+			if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += (LookAtUpGetter ? LookAtUpGetter->Read(TargetInfos.Index) : SafeUpVector) * Weight; }
 
-			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, LocalSettings->SignAxis) * Weight;
-			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, LocalSettings->AngleAxis) * Weight;
+			WeightedSignAxis += PCGExMath::GetDirection(TargetRotation, Settings->SignAxis) * Weight;
+			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
 
 			TotalWeight += Weight;
 			TotalSamples++;
@@ -246,7 +245,7 @@ namespace PCGExSampleNearestBounds
 
 		if (bSingleSample)
 		{
-			switch (LocalSettings->SampleMethod)
+			switch (Settings->SampleMethod)
 			{
 			default: ;
 			case EPCGExBoundsSampleMethod::WithinRange:
@@ -293,10 +292,10 @@ namespace PCGExSampleNearestBounds
 
 		PCGEX_OUTPUT_VALUE(Success, Index, TargetsCompoundInfos.IsValid())
 		PCGEX_OUTPUT_VALUE(Transform, Index, WeightedTransform)
-		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, LocalSettings->LookAtAxisAlign))
+		PCGEX_OUTPUT_VALUE(LookAtTransform, Index, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
-		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(LocalSettings->AngleRange, WeightedAngleAxis, LookAt))
+		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
 
 		FPlatformAtomics::InterlockedExchange(&bAnySuccess, 1);
@@ -304,10 +303,10 @@ namespace PCGExSampleNearestBounds
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 
-		if (LocalSettings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasSuccessesTag); }
-		if (LocalSettings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(LocalSettings->HasNoSuccessesTag); }
+		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(Settings->HasSuccessesTag); }
+		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(Settings->HasNoSuccessesTag); }
 	}
 }
 

@@ -293,7 +293,7 @@ namespace PCGExGraph
 	FPointEdgeIntersections::FPointEdgeIntersections(
 		FGraph* InGraph,
 		FCompoundGraph* InCompoundGraph,
-		PCGExData::FPointIO* InPointIO,
+		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		const FPCGExPointEdgeIntersectionDetails* InDetails)
 		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)
 	{
@@ -380,7 +380,7 @@ namespace PCGExGraph
 	FEdgeEdgeIntersections::FEdgeEdgeIntersections(
 		FGraph* InGraph,
 		FCompoundGraph* InCompoundGraph,
-		PCGExData::FPointIO* InPointIO,
+		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		const FPCGExEdgeEdgeIntersectionDetails* InDetails)
 		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)
 	{

@@ -3,6 +3,12 @@
 
 #include "Transform/PCGExBoundsToPoints.h"
 
+
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExBoundsToPointsElement"
 #define PCGEX_NAMESPACE BoundsToPoints
 
@@ -62,12 +68,11 @@ namespace PCGExBoundsToPoints
 		PointAttributesToOutputTags.Cleanup();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBoundsToPoints::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsToPoints)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		bSetExtents = Settings->bSetExtents;
 		Extents = Settings->Extents;
@@ -77,10 +82,10 @@ namespace PCGExBoundsToPoints
 
 		Axis = Settings->SymmetryAxis;
 		UVW = Settings->UVW;
-		if (!UVW.Init(Context, PointDataFacade.Get())) { return false; }
+		if (!UVW.Init(ExecutionContext, PointDataFacade.Get())) { return false; }
 
 		PointAttributesToOutputTags = Settings->PointAttributesToOutputTags;
-		if (!PointAttributesToOutputTags.Init(Context, PointDataFacade.Get())) { return false; }
+		if (!PointAttributesToOutputTags.Init(ExecutionContext, PointDataFacade.Get())) { return false; }
 
 		NumPoints = PointIO->GetNum();
 		bGeneratePerPointData = Settings->bGeneratePerPointData;
@@ -91,7 +96,7 @@ namespace PCGExBoundsToPoints
 			NewOutputs.SetNumUninitialized(PointIO->GetNum());
 			for (int i = 0; i < NewOutputs.Num(); ++i)
 			{
-				NewOutputs[i] = TypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+				NewOutputs[i] = Context->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 			}
 
 			if (bSymmetry)

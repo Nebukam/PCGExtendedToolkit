@@ -6,6 +6,10 @@
 
 #include "PCGExMath.h"
 
+
+
+
+
 void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
@@ -18,7 +22,7 @@ void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPickerRandom::PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade)
+void UPCGExGoalPickerRandom::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
 {
 	if (bUseLocalNumGoals) { NumGoalsGetter = InSeedsDataFacade->GetBroadcaster<int32>(LocalNumGoalAttribute); }
 	Super::PrepareForData(InSeedsDataFacade, InGoalsDataFacade);

@@ -4,6 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExConnectClusters.generated.h"
 
@@ -87,15 +91,15 @@ protected:
 
 namespace PCGExBridgeClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExBuildVoronoiGraph2DContext, UPCGExBuildVoronoiGraph2DSettings>
 	{
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
+			TClusterProcessor(InVtx, InEdges)
 		{
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
@@ -107,7 +111,7 @@ namespace PCGExBridgeClusters
 		TUniquePtr<FPCGExPointIOMerger> Merger;
 		TSet<uint64> Bridges;
 
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		FProcessorBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges);
 		virtual ~FProcessorBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;
@@ -121,7 +125,7 @@ namespace PCGExBridgeClusters
 	{
 	public:
 		FPCGExCreateBridgeTask(
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			FProcessorBatch* InBatch,
 			PCGExCluster::FCluster* A,
 			PCGExCluster::FCluster* B) :
@@ -137,6 +141,6 @@ namespace PCGExBridgeClusters
 		PCGExCluster::FCluster* ClusterA = nullptr;
 		PCGExCluster::FCluster* ClusterB = nullptr;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

@@ -3,6 +3,12 @@
 
 #include "Sampling/PCGExSampleOverlapStats.h"
 
+
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExSampleOverlapStatsElement"
 #define PCGEX_NAMESPACE SampleOverlapStats
 
@@ -119,26 +125,25 @@ namespace PCGExSampleOverlapStats
 	void FProcessor::RegisterOverlap(FProcessor* InManaged, const FBox& Intersection)
 	{
 		FWriteScopeLock WriteScopeLock(RegistrationLock);
-		FOverlap* Overlap = LocalTypedContext->RegisterOverlap(this, InManaged, Intersection);
+		FOverlap* Overlap = Context->RegisterOverlap(this, InManaged, Intersection);
 		if (Overlap->Manager == this) { ManagedOverlaps.Add(Overlap); }
 		Overlaps.Add(Overlap);
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleOverlapStats)
+		
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
-
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		{
 			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
 			PCGEX_FOREACH_FIELD_SAMPLEOVERLAPSTATS(PCGEX_OUTPUT_INIT)
 		}
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
+		
+		
 
 		// 1 - Build bounds & octrees
 
@@ -149,7 +154,7 @@ namespace PCGExSampleOverlapStats
 		PCGEX_SET_NUM(OverlapSubCount, NumPoints)
 		PCGEX_SET_NUM(OverlapCount, NumPoints)
 
-		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, BoundsPreparationTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BoundsPreparationTask)
 		BoundsPreparationTask->SetOnCompleteCallback(
 			[&]()
 			{
@@ -232,13 +237,13 @@ namespace PCGExSampleOverlapStats
 						if (!Intersection.IsValid) { return; }
 
 						const double OverlapSize = Intersection.GetExtent().Length();
-						if (LocalSettings->ThresholdMeasure == EPCGExMeanMeasure::Relative)
+						if (Settings->ThresholdMeasure == EPCGExMeanMeasure::Relative)
 						{
-							if ((OverlapSize / ((OwnedPoint->Bounds.SphereRadius + OtherPoint->Bounds.SphereRadius) * 0.5)) < LocalSettings->MinThreshold) { return; }
+							if ((OverlapSize / ((OwnedPoint->Bounds.SphereRadius + OtherPoint->Bounds.SphereRadius) * 0.5)) < Settings->MinThreshold) { return; }
 						}
 						else
 						{
-							if (OverlapSize < LocalSettings->MinThreshold) { return; }
+							if (OverlapSize < Settings->MinThreshold) { return; }
 						}
 
 						Count++;
@@ -263,19 +268,19 @@ namespace PCGExSampleOverlapStats
 
 		PCGEX_OUTPUT_VALUE(OverlapSubCount, Index, TOC)
 		PCGEX_OUTPUT_VALUE(OverlapCount, Index, UOC)
-		PCGEX_OUTPUT_VALUE(RelativeOverlapSubCount, Index, static_cast<double>(TOC) / LocalTypedContext->SharedOverlapSubCountMax)
-		PCGEX_OUTPUT_VALUE(RelativeOverlapCount, Index, static_cast<double>(UOC) / LocalTypedContext->SharedOverlapCountMax)
+		PCGEX_OUTPUT_VALUE(RelativeOverlapSubCount, Index, static_cast<double>(TOC) / Context->SharedOverlapSubCountMax)
+		PCGEX_OUTPUT_VALUE(RelativeOverlapCount, Index, static_cast<double>(UOC) / Context->SharedOverlapCountMax)
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		// 2 - Find overlaps between large bounds, we'll be searching only there.
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, PreparationTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PreparationTask)
 		PreparationTask->SetOnCompleteCallback(
 			[&]()
 			{
-				PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, SearchTask)
+				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
 				SearchTask->SetOnCompleteCallback(
 					[&]()
 					{
@@ -308,14 +313,14 @@ namespace PCGExSampleOverlapStats
 
 	void FProcessor::Write()
 	{
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, SearchTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
 		SearchTask->SetOnCompleteCallback(
 			[&]()
 			{
-				PointDataFacade->Write(AsyncManagerPtr);
+				PointDataFacade->Write(AsyncManager);
 
-				if (LocalSettings->bTagIfHasAnyOverlap && bAnyOverlap) { PointIO->Tags->Add(LocalSettings->HasAnyOverlapTag); }
-				if (LocalSettings->bTagIfHasNoOverlap && !bAnyOverlap) { PointIO->Tags->Add(LocalSettings->HasNoOverlapTag); }
+				if (Settings->bTagIfHasAnyOverlap && bAnyOverlap) { PointIO->Tags->Add(Settings->HasAnyOverlapTag); }
+				if (Settings->bTagIfHasNoOverlap && !bAnyOverlap) { PointIO->Tags->Add(Settings->HasNoOverlapTag); }
 			});
 
 		SearchTask->StartRanges(

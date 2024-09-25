@@ -3,6 +3,11 @@
 
 #include "Graph/PCGExBreakClustersToPaths.h"
 
+
+
+
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"
@@ -77,25 +82,21 @@ namespace PCGExBreakClustersToPaths
 		PCGEX_DELETE_TARRAY(Chains)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBreakClustersToPaths::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
-
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Breakpoints.Init(false, Cluster->Nodes->Num());
 
-		if (!DirectionSettings.InitFromParent(Context, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade.Get()))
+		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade.Get()))
 		{
 			return false;
 		}
 
 		const TUniquePtr<PCGExClusterFilter::TManager> FilterManager = MakeUnique<PCGExClusterFilter::TManager>(Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
-		if (!TypedContext->FilterFactories.IsEmpty() && FilterManager->Init(Context, TypedContext->FilterFactories))
+		if (!Context->FilterFactories.IsEmpty() && FilterManager->Init(ExecutionContext, Context->FilterFactories))
 		{
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
 		}
@@ -106,7 +107,7 @@ namespace PCGExBreakClustersToPaths
 
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
-			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
+			AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
 				EdgesIO->IOIndex, nullptr, Cluster.Get(),
 				&Breakpoints, &Chains, false);
 		}
@@ -164,10 +165,10 @@ namespace PCGExBreakClustersToPaths
 			std::swap(StartIdx, EndIdx);
 		}
 
-		if (ChainSize < LocalSettings->MinPointCount) { return; }
-		if (LocalSettings->bOmitAbovePointCount && ChainSize > LocalSettings->MaxPointCount) { return; }
+		if (ChainSize < Settings->MinPointCount) { return; }
+		if (Settings->bOmitAbovePointCount && ChainSize > Settings->MaxPointCount) { return; }
 
-		const PCGExData::FPointIO* PathIO = LocalTypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
+		const PCGExData::FPointIO* PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
 
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(ChainSize);
@@ -182,7 +183,7 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
-		const PCGExData::FPointIO* PathIO = LocalTypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
+		const PCGExData::FPointIO* PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 
@@ -198,7 +199,7 @@ namespace PCGExBreakClustersToPaths
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-		VtxDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		VtxDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		DirectionSettings = Settings->DirectionSettings;
 		if (!DirectionSettings.Init(Context, VtxDataFacade.Get()))
@@ -213,7 +214,7 @@ namespace PCGExBreakClustersToPaths
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 
-			PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, FetchVtxTask)
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FetchVtxTask)
 			FetchVtxTask->SetOnIterationRangeStartCallback(
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{

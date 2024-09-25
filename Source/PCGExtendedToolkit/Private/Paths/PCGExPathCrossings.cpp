@@ -5,6 +5,10 @@
 #include "PCGExMath.h"
 #include "PCGExRandom.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
+
+
+
+
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathCrossingsElement"
@@ -119,29 +123,29 @@ namespace PCGExPathCrossings
 		PCGEX_DELETE(CompoundBlender)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathCrossings::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathCrossings)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
+		
+		
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		bSelfIntersectionOnly = Settings->bSelfIntersectionOnly;
 		Details = Settings->IntersectionDetails;
 		Details.Init();
 
 		CanCutFilterManager = new PCGExPointFilter::TManager(PointDataFacade.Get());
-		if (!CanCutFilterManager->Init(Context, TypedContext->CanCutFilterFactories)) { PCGEX_DELETE(CanCutFilterManager) }
+		if (!CanCutFilterManager->Init(ExecutionContext, Context->CanCutFilterFactories)) { PCGEX_DELETE(CanCutFilterManager) }
 
 		CanBeCutFilterManager = new PCGExPointFilter::TManager(PointDataFacade.Get());
-		if (!CanBeCutFilterManager->Init(Context, TypedContext->CanBeCutFilterFactories)) { PCGEX_DELETE(CanBeCutFilterManager) }
+		if (!CanBeCutFilterManager->Init(ExecutionContext, Context->CanBeCutFilterFactories)) { PCGEX_DELETE(CanBeCutFilterManager) }
 
 		// Build edges
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
@@ -170,7 +174,7 @@ namespace PCGExPathCrossings
 		Blending->bClosedLoop = bClosedLoop;
 		if (Settings->bOrientCrossing) { Blending->bPreserveRotation = true; }
 
-		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, Preparation)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
 		Preparation->SetOnCompleteCallback(
 			[&]()
 			{
@@ -302,8 +306,8 @@ namespace PCGExPathCrossings
 		const PCGExPaths::FPathEdge* Edge = Edges[Index];
 
 		if (FlagWriter) { FlagWriter->GetMutable(Edge->OffsetedStart) = false; }
-		if (AlphaWriter) { AlphaWriter->GetMutable(Edge->OffsetedStart) = LocalSettings->DefaultAlpha; }
-		if (CrossWriter) { CrossWriter->GetMutable(Edge->OffsetedStart) = LocalSettings->DefaultCrossDirection; }
+		if (AlphaWriter) { AlphaWriter->GetMutable(Edge->OffsetedStart) = Settings->DefaultAlpha; }
+		if (CrossWriter) { CrossWriter->GetMutable(Edge->OffsetedStart) = Settings->DefaultCrossDirection; }
 
 		if (!Crossing) { return; }
 
@@ -330,9 +334,9 @@ namespace PCGExPathCrossings
 			if (AlphaWriter) { AlphaWriter->GetMutable(Idx) = Crossing->Alphas[OrderIdx]; }
 			if (CrossWriter) { CrossWriter->GetMutable(Idx) = CrossDir; }
 
-			if (LocalSettings->bOrientCrossing)
+			if (Settings->bOrientCrossing)
 			{
-				CrossingPt.Transform.SetRotation(PCGExMath::MakeDirection(LocalSettings->CrossingOrientAxis, CrossDir));
+				CrossingPt.Transform.SetRotation(PCGExMath::MakeDirection(Settings->CrossingOrientAxis, CrossDir));
 			}
 
 			CrossingPt.Transform.SetLocation(V);
@@ -365,12 +369,12 @@ namespace PCGExPathCrossings
 			uint32 IOIdx;
 			PCGEx::H64(Crossing->Crossings[Order[i]], PtIdx, IOIdx);
 
-			const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(LocalTypedContext->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::ESource::In)) ? 0 : PtIdx + 1;
+			const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(Context->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::ESource::In)) ? 0 : PtIdx + 1;
 
 			TempCompound->Clear();
 			TempCompound->Add(IOIdx, PtIdx);
 			TempCompound->Add(IOIdx, SecondIndex);
-			CompoundBlender->SoftMergeSingle(Edge->OffsetedStart + i + 1, TempCompound, LocalSettings->CrossingBlendingDistance);
+			CompoundBlender->SoftMergeSingle(Edge->OffsetedStart + i + 1, TempCompound, Settings->CrossingBlendingDistance);
 		}
 
 		PCGEX_DELETE(TempCompound)
@@ -419,31 +423,31 @@ namespace PCGExPathCrossings
 		}
 
 		// Flag last so it doesn't get captured by blenders
-		if (LocalSettings->IntersectionDetails.bWriteCrossing)
+		if (Settings->IntersectionDetails.bWriteCrossing)
 		{
-			FlagWriter = PointDataFacade->GetWritable(LocalSettings->IntersectionDetails.CrossingAttributeName, false, true, true);
-			ProtectedAttributes.Add(LocalSettings->IntersectionDetails.CrossingAttributeName);
+			FlagWriter = PointDataFacade->GetWritable(Settings->IntersectionDetails.CrossingAttributeName, false, true, true);
+			ProtectedAttributes.Add(Settings->IntersectionDetails.CrossingAttributeName);
 		}
 
-		if (LocalSettings->bWriteAlpha)
+		if (Settings->bWriteAlpha)
 		{
-			AlphaWriter = PointDataFacade->GetWritable<double>(LocalSettings->CrossingAlphaAttributeName, LocalSettings->DefaultAlpha, true, true);
-			ProtectedAttributes.Add(LocalSettings->CrossingAlphaAttributeName);
+			AlphaWriter = PointDataFacade->GetWritable<double>(Settings->CrossingAlphaAttributeName, Settings->DefaultAlpha, true, true);
+			ProtectedAttributes.Add(Settings->CrossingAlphaAttributeName);
 		}
 
-		if (LocalSettings->bWriteCrossDirection)
+		if (Settings->bWriteCrossDirection)
 		{
-			CrossWriter = PointDataFacade->GetWritable<FVector>(LocalSettings->CrossDirectionAttributeName, LocalSettings->DefaultCrossDirection, true, true);
-			ProtectedAttributes.Add(LocalSettings->CrossDirectionAttributeName);
+			CrossWriter = PointDataFacade->GetWritable<FVector>(Settings->CrossDirectionAttributeName, Settings->DefaultCrossDirection, true, true);
+			ProtectedAttributes.Add(Settings->CrossDirectionAttributeName);
 		}
 
 		Blending->PrepareForData(PointDataFacade.Get(), PointDataFacade.Get(), PCGExData::ESource::Out, &ProtectedAttributes);
 
-		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (LocalSettings->bTagIfHasCrossing) { PointIO->Tags->Add(LocalSettings->HasCrossingsTag); } }
-		else { if (LocalSettings->bTagIfHasNoCrossings) { PointIO->Tags->Add(LocalSettings->HasNoCrossingsTag); } }
+		if (PointIO->GetIn()->GetPoints().Num() != PointIO->GetOut()->GetPoints().Num()) { if (Settings->bTagIfHasCrossing) { PointIO->Tags->Add(Settings->HasCrossingsTag); } }
+		else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->Add(Settings->HasNoCrossingsTag); } }
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, FixTask)
-		FixTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr); });
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FixTask)
+		FixTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManager); });
 		FixTask->StartRanges(
 			[&](const int32 FixIndex, const int32 Count, const int32 LoopIdx) { FixPoint(FixIndex); },
 			NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -451,7 +455,7 @@ namespace PCGExPathCrossings
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, SearchTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
 		SearchTask->SetOnCompleteCallback([&]() { OnSearchComplete(); });
 		SearchTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
@@ -465,15 +469,15 @@ namespace PCGExPathCrossings
 	void FProcessor::Write()
 	{
 		CompoundList = new PCGExData::FIdxCompoundList();
-		CompoundBlender = new PCGExDataBlending::FCompoundBlender(&LocalSettings->CrossingBlending, &LocalSettings->CrossingCarryOver);
-		for (const PCGExData::FPointIO* IO : LocalTypedContext->MainPoints->Pairs)
+		CompoundBlender = new PCGExDataBlending::FCompoundBlender(&Settings->CrossingBlending, &Settings->CrossingCarryOver);
+		for (const PCGExData::FPointIO* IO : Context->MainPoints->Pairs)
 		{
-			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { CompoundBlender->AddSource(LocalTypedContext->SubProcessorMap[IO]->PointDataFacade.Get()); }
+			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { CompoundBlender->AddSource(Context->SubProcessorMap[IO]->PointDataFacade.Get()); }
 		}
 
 		CompoundBlender->PrepareSoftMerge(PointDataFacade.Get(), CompoundList, &ProtectedAttributes);
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, CrossBlendTask)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CrossBlendTask)
 		CrossBlendTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{

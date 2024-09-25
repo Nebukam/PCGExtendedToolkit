@@ -10,6 +10,12 @@
 
 #include "PCGExData.h"
 #include "PCGExPointFilter.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExPointStates.generated.h"
@@ -57,7 +63,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryBase : public UPCGExFilt
 
 public:
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
@@ -78,7 +84,7 @@ namespace PCGExPointStates
 		virtual ~FState() override;
 
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
 		virtual bool Test(const int32 Index) const override;
 
@@ -100,7 +106,7 @@ namespace PCGExPointStates
 		virtual bool Test(const int32 Index) override;
 
 	protected:
-		virtual void PostInitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter) override;
+		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& InFilter) override;
 	};
 };
 

@@ -4,6 +4,17 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
+
+
+
+
+
+
+
+
+
+
+
 EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 {
 	return EPCGExDataBlendingType::Lerp;
@@ -77,9 +88,9 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	for (int i = 0; i < NumPoints; ++i) { SubPoints[i].Transform.SetLocation(Locations[i]); }
 }
 
-PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendInterpolate::CreateBlender(
-	PCGExData::FFacade* InPrimaryFacade,
-	PCGExData::FFacade* InSecondaryFacade,
+TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendInterpolate::CreateBlender(
+	const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
+	const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
 	const PCGExData::ESource SecondarySource,
 	const TSet<FName>* IgnoreAttributeSet)
 {

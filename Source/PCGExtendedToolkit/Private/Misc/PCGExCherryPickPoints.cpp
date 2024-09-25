@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExCherryPickPoints.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExCherryPickPointsElement"
 #define PCGEX_NAMESPACE CherryPickPoints
 
@@ -21,13 +22,13 @@ FPCGExCherryPickPointsContext::~FPCGExCherryPickPointsContext()
 {
 }
 
-bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const PCGExData::FPointIO* InSource, TArray<int32>& OutUniqueIndices, const int32 MaxIndex) const
+bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const TSharedPtr<PCGExData::FPointIO>& InSource, TArray<int32>& OutUniqueIndices, const int32 MaxIndex) const
 {
 	PCGEX_SETTINGS_LOCAL(CherryPickPoints)
 
 	TArray<int32> SourceIndices;
 	TSet<int32> UniqueIndices;
-	PCGEx::FLocalIntegerGetter* Getter = new PCGEx::FLocalIntegerGetter();
+	TUniquePtr<PCGEx::FLocalIntegerGetter> Getter = MakeUnique<PCGEx::FLocalIntegerGetter>();
 	Getter->Capture(Settings->ReadIndexFromAttribute);
 
 	int32 Min = 0;
@@ -35,7 +36,6 @@ bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const PCGExData::FPointI
 
 	if (!Getter->GrabAndDump(InSource, SourceIndices, false, Min, Max))
 	{
-		PCGEX_DELETE(Getter)
 		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Index attribute is invalid."));
 		return false;
 	}
@@ -58,8 +58,6 @@ bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const PCGExData::FPointI
 		}
 	}
 
-	PCGEX_DELETE(Getter)
-
 	OutUniqueIndices.Reserve(UniqueIndices.Num());
 	OutUniqueIndices.Append(UniqueIndices.Array());
 	OutUniqueIndices.Sort();
@@ -75,16 +73,9 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->IndicesSource == EPCGExCherryPickSource::Target)
 	{
-		const PCGExData::FPointIO* Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
+		const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
 		if (!Targets) { return false; }
-
-		if (!Context->TryGetUniqueIndices(Targets, Context->SharedTargetIndices))
-		{
-			PCGEX_DELETE(Targets)
-			return false;
-		}
-
-		PCGEX_DELETE(Targets)
+		if (!Context->TryGetUniqueIndices(Targets, Context->SharedTargetIndices)) { return false; }
 	}
 
 
@@ -122,21 +113,20 @@ bool FPCGExCherryPickPointsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExCherryPickPoints
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCherryPickPoints::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CherryPickPoints)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const int32 MaxIndex = PointIO->GetNum() - 1;
 		if (Settings->IndicesSource == EPCGExCherryPickSource::Self)
 		{
-			if (!TypedContext->TryGetUniqueIndices(PointIO, PickedIndices, MaxIndex)) { return false; }
+			if (!Context->TryGetUniqueIndices(PointIO, PickedIndices, MaxIndex)) { return false; }
 		}
 		else
 		{
-			for (const int32 Value : TypedContext->SharedTargetIndices)
+			for (const int32 Value : Context->SharedTargetIndices)
 			{
 				const int32 SanitizedIndex = PCGExMath::SanitizeIndex(Value, MaxIndex, Settings->Safety);
 				if (SanitizedIndex < 0) { continue; }

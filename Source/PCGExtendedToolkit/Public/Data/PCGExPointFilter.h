@@ -7,6 +7,11 @@
 #include "UObject/Object.h"
 #include "PCGExData.h"
 #include "PCGExFactoryProvider.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
 
 #include "PCGExPointFilter.generated.h"
 
@@ -51,7 +56,7 @@ public:
 	virtual bool Init(FPCGExContext* InContext);
 
 	int32 Priority = 0;
-	virtual PCGExPointFilter::TFilter* CreateFilter() const;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const;
 };
 
 namespace PCGExPointFilter
@@ -80,7 +85,7 @@ namespace PCGExPointFilter
 		}
 
 		bool DefaultResult = true;
-		PCGExData::FFacade* PointDataFacade = nullptr;
+		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
 		bool bCacheResults = true;
 		const UPCGExFilterFactoryBase* Factory;
@@ -90,7 +95,7 @@ namespace PCGExPointFilter
 
 		virtual PCGExFilters::EType GetFilterType() const { return PCGExFilters::EType::Point; }
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade);
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade);
 
 		virtual void PostInit();
 
@@ -107,7 +112,7 @@ namespace PCGExPointFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TManager
 	{
 	public:
-		explicit TManager(PCGExData::FFacade* InPointDataFacade);
+		explicit TManager(const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
 
 		bool bCacheResultsPerFilter = false;
 		bool bCacheResults = false;
@@ -115,7 +120,7 @@ namespace PCGExPointFilter
 
 		bool bValid = false;
 
-		PCGExData::FFacade* PointDataFacade = nullptr;
+		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
 		bool Init(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
 
@@ -125,15 +130,15 @@ namespace PCGExPointFilter
 
 		virtual ~TManager()
 		{
-			PCGEX_DELETE_TARRAY(ManagedFilters)
+			
 		}
 
 	protected:
-		TArray<TFilter*> ManagedFilters;
+		TArray<TSharedPtr<TFilter>> ManagedFilters;
 
-		virtual bool InitFilter(const FPCGContext* InContext, TFilter* Filter);
+		virtual bool InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter);
 		virtual bool PostInit(const FPCGContext* InContext);
-		virtual void PostInitFilter(const FPCGContext* InContext, TFilter* InFilter);
+		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& InFilter);
 
 		virtual void InitCache();
 	};

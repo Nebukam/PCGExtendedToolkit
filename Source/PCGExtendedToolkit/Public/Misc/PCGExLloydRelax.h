@@ -8,6 +8,10 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
 #include "PCGExLloydRelax.generated.h"
 
 /**
@@ -66,7 +70,7 @@ protected:
 
 namespace PCGExLloydRelax
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExLloydRelaxContext, UPCGExLloydRelaxSettings>
 	{
 		friend class FLloydRelaxTask;
 
@@ -74,14 +78,14 @@ namespace PCGExLloydRelax
 		TArray<FVector> ActivePositions;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
@@ -89,7 +93,7 @@ namespace PCGExLloydRelax
 	class /*PCGEXTENDEDTOOLKIT_API*/ FLloydRelaxTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FLloydRelaxTask(PCGExData::FPointIO* InPointIO,
+		FLloydRelaxTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                FProcessor* InProcessor,
 		                const FPCGExInfluenceDetails* InInfluenceSettings,
 		                const int32 InNumIterations) :
@@ -104,6 +108,6 @@ namespace PCGExLloydRelax
 		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
 		int32 NumIterations = 0;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

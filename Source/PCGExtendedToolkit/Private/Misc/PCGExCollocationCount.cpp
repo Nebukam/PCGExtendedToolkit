@@ -3,6 +3,10 @@
 
 #include "Misc/PCGExCollocationCount.h"
 
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCollocationCountElement"
 #define PCGEX_NAMESPACE CollocationCount
 
@@ -58,12 +62,11 @@ bool FPCGExCollocationCountElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExCollocationCount
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCollocationCount::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CollocationCount)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		NumPoints = PointIO->GetNum();
 		ToleranceConstant = Settings->Tolerance;
@@ -123,7 +126,7 @@ namespace PCGExCollocationCount
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

@@ -55,7 +55,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO);
+	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO);
 	virtual bool RequiresDirectProcessing();
 	virtual bool RequiresChainProcessing();
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges);
@@ -74,6 +74,6 @@ public:
 	FPCGExProbeConfigBase* BaseConfig = nullptr;
 
 protected:
-	const PCGExData::FPointIO* PointIO = nullptr;
+	const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
 	TArray<double> LocalWeightMultiplier;
 };

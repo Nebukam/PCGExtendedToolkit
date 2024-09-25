@@ -169,7 +169,7 @@ namespace PCGExGraph
 	};
 
 	static bool BuildIndexedEdges(
-		const PCGExData::FPointIO* EdgeIO,
+		const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
 		const TMap<uint32, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
 		const bool bStopOnError = false)
@@ -177,7 +177,7 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
 		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(Tag_EdgeEndpoints);
-		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
+		if (!EndpointsReader->Bind(EdgeIO))
 		{
 			PCGEX_DELETE(EndpointsReader)
 			return false;
@@ -236,7 +236,7 @@ namespace PCGExGraph
 	}
 
 	static bool BuildIndexedEdges(
-		const PCGExData::FPointIO* EdgeIO,
+		const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
 		const TMap<uint32, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
 		TSet<int32>& OutNodePoints,
@@ -247,7 +247,7 @@ namespace PCGExGraph
 
 		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(Tag_EdgeEndpoints);
 
-		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
+		if (!EndpointsReader->Bind(EdgeIO))
 		{
 			PCGEX_DELETE(EndpointsReader)
 			return false;
@@ -311,41 +311,41 @@ namespace PCGExGraph
 		return bValid;
 	}
 
-	static void SetClusterVtx(const PCGExData::FPointIO* IO, FString& OutId)
+	static void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, FString& OutId)
 	{
 		IO->Tags->Add(TagStr_ClusterPair, IO->GetOutIn()->UID, OutId);
 		IO->Tags->Add(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
-	static void MarkClusterVtx(const PCGExData::FPointIO* IO, const FString& Id)
+	static void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const FString& Id)
 	{
 		IO->Tags->Add(TagStr_ClusterPair, Id);
 		IO->Tags->Add(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
-	static void MarkClusterEdges(const PCGExData::FPointIO* IO, const FString& Id)
+	static void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const FString& Id)
 	{
 		IO->Tags->Add(TagStr_ClusterPair, Id);
 		IO->Tags->Add(TagStr_PCGExEdges);
 		IO->Tags->Remove(TagStr_PCGExVtx);
 	}
 
-	static void MarkClusterEdges(const TArrayView<PCGExData::FPointIO*> Edges, const FString& Id)
+	static void MarkClusterEdges(const TArrayView<TSharedPtr<PCGExData::FPointIO>> Edges, const FString& Id)
 	{
-		for (const PCGExData::FPointIO* IO : Edges) { MarkClusterEdges(IO, Id); }
+		for (const TSharedPtr<PCGExData::FPointIO> IO : Edges) { MarkClusterEdges(IO, Id); }
 	}
 
-	static void CleanupClusterTags(const PCGExData::FPointIO* IO, const bool bKeepPairTag = false)
+	static void CleanupClusterTags(const TSharedPtr<PCGExData::FPointIO>& IO, const bool bKeepPairTag = false)
 	{
 		IO->Tags->Remove(TagStr_ClusterPair);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 		if (!bKeepPairTag) { IO->Tags->Remove(TagStr_PCGExVtx); }
 	}
 
-	static void CleanupClusterTags(const TArrayView<PCGExData::FPointIO*> IOs, const bool bKeepPairTag = false)
+	static void CleanupClusterTags(const TArrayView<TSharedPtr<PCGExData::FPointIO>> IOs, const bool bKeepPairTag = false)
 	{
-		for (const PCGExData::FPointIO* IO : IOs) { CleanupClusterTags(IO, bKeepPairTag); }
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : IOs) { CleanupClusterTags(IO, bKeepPairTag); }
 	}
 }

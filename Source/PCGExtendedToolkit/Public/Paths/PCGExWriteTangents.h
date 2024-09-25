@@ -7,6 +7,10 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
 #include "Tangents/PCGExTangentsOperation.h"
 #include "PCGExWriteTangents.generated.h"
 
@@ -95,11 +99,8 @@ protected:
 
 namespace PCGExWriteTangents
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteTangentsContext, UPCGExWriteTangentsSettings>
 	{
-		const UPCGExWriteTangentsSettings* LocalSettings = nullptr;
-		FPCGExWriteTangentsContext* LocalTypedContext = nullptr;
-
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
 
@@ -116,14 +117,14 @@ namespace PCGExWriteTangents
 		UPCGExTangentsOperation* EndTangents = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

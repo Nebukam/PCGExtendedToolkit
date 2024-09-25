@@ -113,7 +113,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 PCGExData::EInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
-{	
+{
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(AsyncLoop)
@@ -208,20 +208,20 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	return true;
 }
 
-PCGExMT::FTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
+TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager()
 {
 	if (!AsyncManager)
 	{
 		FWriteScopeLock WriteLock(ContextLock);
-		AsyncManager = MakeUnique<PCGExMT::FTaskManager>();
+		AsyncManager = MakeShared<PCGExMT::FTaskManager>();
 		AsyncManager->ForceSync = !bDoAsyncProcessing;
 		AsyncManager->Context = this;
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 		PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority);
 	}
-	
-	return AsyncManager.Get();
+
+	return AsyncManager;
 }
 
 void FPCGExPointsProcessorContext::ResetAsyncWork()
@@ -312,7 +312,7 @@ FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 
 	InContext->AsyncLoop = InContext->MakeLoop<PCGExMT::FAsyncParallelLoop>();
 
-	InContext->MainPoints = new PCGExData::FPointIOCollection(InContext);
+	InContext->MainPoints = MakeUnique<PCGExData::FPointIOCollection>(InContext);
 	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
 	if (!Settings->bEnabled) { return InContext; }
@@ -351,7 +351,7 @@ bool FPCGExPointsProcessorElement::Boot(FPCGExContext* InContext) const
 	PCGEX_SETTINGS(PointsProcessor)
 
 	Context->bScopedAttributeGet = Settings->bScopedAttributeGet;
-	
+
 	if (Context->bAssetLoadError)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("An error occured while loading asset dependencies."));

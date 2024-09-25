@@ -11,6 +11,9 @@
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
+
+
+
 #include "PCGExSampleInsideBounds.generated.h"
 
 #define PCGEX_FOREACH_FIELD_INSIDEBOUNDS(MACRO)\
@@ -292,7 +295,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : public
 
 	virtual ~FPCGExSampleInsideBoundsContext() override;
 
-	PCGExData::FFacade* TargetsFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
 
 	FPCGExBlendingDetails BlendingDetails;
@@ -319,12 +322,9 @@ protected:
 
 namespace PCGExSampleInsideBoundss
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleInsideBoundsContext, UPCGExSampleInsideBoundsSettings>
 	{
 		bool bSingleSample = false;
-
-		FPCGExSampleInsideBoundsContext* LocalTypedContext = nullptr;
-		const UPCGExSampleInsideBoundsSettings* LocalSettings = nullptr;
 
 		PCGExData::TBuffer<double>* RangeMinGetter = nullptr;
 		PCGExData::TBuffer<double>* RangeMaxGetter = nullptr;
@@ -339,8 +339,8 @@ namespace PCGExSampleInsideBoundss
 		PCGEX_FOREACH_FIELD_INSIDEBOUNDS(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 			DefaultPointFilterValue = true;
 		}
@@ -349,7 +349,7 @@ namespace PCGExSampleInsideBoundss
 
 		void SamplingFailed(const int32 Index, FPCGPoint& Point) const;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

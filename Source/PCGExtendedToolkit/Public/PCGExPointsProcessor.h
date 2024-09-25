@@ -17,6 +17,8 @@
 #include "PCGExPointsMT.h"
 #include "RenderGraphResources.h"
 
+
+
 #include "PCGExPointsProcessor.generated.h"
 
 struct FPCGExPointsProcessorContext;
@@ -36,7 +38,7 @@ namespace PCGEx
 
 		FPCGExPointsProcessorContext* Context = nullptr;
 
-		PCGExData::FPointIO* PointIO = nullptr;
+		const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
 
 		int32 NumIterations = -1;
 		int32 ChunkSize = 32;
@@ -153,8 +155,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 	mutable FRWLock ContextLock;
 
-	PCGExData::FPointIOCollection* MainPoints = nullptr;
-	PCGExData::FPointIO* CurrentIO = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> MainPoints;
+	TSharedPtr<PCGExData::FPointIO> CurrentIO;
 
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 	virtual bool ExecuteAutomation();
@@ -185,7 +187,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 	bool TryComplete(const bool bForce = false);
 
-	PCGExMT::FTaskManager* GetAsyncManager();
+	TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager();
 
 	int32 ChunkSize = 0;
 	bool bDoAsyncProcessing = true;
@@ -209,7 +211,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	}
 
 	template <typename FullTask>
-	void StartAsyncLoop(PCGExData::FPointIO* PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
+	void StartAsyncLoop(const TSharedPtr<PCGExData::FPointIO>& PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
 	{
 		GetAsyncManager()->Start<FullTask>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
 	}
@@ -218,7 +220,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	T* MakeLoop()
 	{
 		T* Loop = new T{};
-		Loop->Context = this;
+		Loop->ExecutionContext = this;
 		Loop->ChunkSize = ChunkSize;
 		Loop->bAsyncEnabled = bDoAsyncProcessing;
 		return Loop;
@@ -249,7 +251,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 	PCGExMT::AsyncState TargetState_PointsProcessingDone;
 	PCGExPointsMT::FPointsProcessorBatchBase* MainBatch = nullptr;
-	TArray<PCGExData::FPointIO*> BatchablePoints;
+	TArray<TSharedPtr<PCGExData::FPointIO>> BatchablePoints;
 	TMap<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
@@ -314,7 +316,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 protected:
 	
-	TUniquePtr<PCGExMT::FTaskManager> AsyncManager;
+	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 	PCGExMT::FAsyncParallelLoop* AsyncLoop = nullptr;
 
 	PCGExMT::AsyncState CurrentState;

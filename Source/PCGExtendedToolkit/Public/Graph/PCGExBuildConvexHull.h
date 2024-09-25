@@ -6,6 +6,9 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
+
+
+
 #include "PCGExBuildConvexHull.generated.h"
 
 namespace PCGExGeo
@@ -71,7 +74,7 @@ protected:
 
 namespace PCGExConvexHull
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildConvexHullContext, UPCGExBuildConvexHullSettings>
 	{
 	protected:
 		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay;
@@ -80,14 +83,14 @@ namespace PCGExConvexHull
 		TArray<uint64> Edges;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

@@ -3,6 +3,9 @@
 
 #include "Misc/PCGExLloydRelax.h"
 
+
+
+
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelaxElement"
@@ -78,20 +81,19 @@ namespace PCGExLloydRelax
 		ActivePositions.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExLloydRelax::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(LloydRelax)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		InfluenceDetails = Settings->InfluenceDetails;
-		if (!InfluenceDetails.Init(Context, PointDataFacade.Get())) { return false; }
+		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade.Get())) { return false; }
 
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
 
-		AsyncManagerPtr->Start<FLloydRelaxTask>(0, PointIO, this, &InfluenceDetails, Settings->Iterations);
+		AsyncManager->Start<FLloydRelaxTask>(0, PointIO, this, &InfluenceDetails, Settings->Iterations);
 
 		return true;
 	}
@@ -109,7 +111,7 @@ namespace PCGExLloydRelax
 		StartParallelLoopForPoints();
 	}
 
-	bool FLloydRelaxTask::ExecuteTask()
+	bool FLloydRelaxTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		NumIterations--;
 

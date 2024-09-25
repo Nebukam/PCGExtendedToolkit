@@ -4,6 +4,10 @@
 #include "Misc/PCGExPartitionByValues.h"
 
 #include "Data/PCGExData.h"
+
+
+
+
 #include "Sampling/PCGExSampling.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPartitionByValues"
@@ -206,13 +210,12 @@ namespace PCGExPartitionByValues
 		PCGEX_DELETE(RootPartition)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalTypedContext = TypedContext;
+		
 
 		RootPartition = new PCGExPartition::FKPartition(nullptr, 0, nullptr, -1);
 
@@ -223,7 +226,7 @@ namespace PCGExPartitionByValues
 
 		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGEX_SET_NUM_UNINITIALIZED(KeySums, NumPoints) }
 
-		for (FPCGExPartitonRuleConfig& Config : TypedContext->RulesConfigs)
+		for (FPCGExPartitonRuleConfig& Config : Context->RulesConfigs)
 		{
 			FPCGExFilter::FRule& NewRule = Rules.Emplace_GetRef(Config);
 			PCGExData::TBuffer<double>* DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
@@ -261,12 +264,11 @@ namespace PCGExPartitionByValues
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
 
 		PCGExPartition::FKPartition* Partition = Partitions[Iteration];
 
 		//Manually create & insert partition at the sorted IO Index
-		PCGExData::FPointIO* PartitionIO = TypedContext->MainPoints->Pairs[Partition->IOIndex];
+		PCGExData::FPointIO* PartitionIO = Context->MainPoints->Pairs[Partition->IOIndex];
 
 		UPCGMetadata* Metadata = PartitionIO->GetOut()->Metadata;
 
@@ -314,8 +316,6 @@ namespace PCGExPartitionByValues
 		FPointsProcessor::CompleteWork();
 		RootPartition->SortPartitions();
 
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
-
 		if (Settings->bSplitOutput)
 		{
 			NumPartitions = RootPartition->GetSubPartitionsNum();
@@ -325,13 +325,13 @@ namespace PCGExPartitionByValues
 			// Sort by point index & ensure consistent output partition order
 
 			Partitions.Sort([](const PCGExPartition::FKPartition& A, PCGExPartition::FKPartition& B) { return A.Points[0] < B.Points[0]; });
-			const int32 InsertOffset = TypedContext->MainPoints->Pairs.Num();
+			const int32 InsertOffset = Context->MainPoints->Pairs.Num();
 
 			int32 SumPts = 0;
 			for (int i = 0; i < Partitions.Num(); ++i)
 			{
 				Partitions[i]->IOIndex = InsertOffset + i;
-				TypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+				Context->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
 				SumPts += Partitions[i]->Points.Num();
 			}
 
@@ -378,7 +378,7 @@ namespace PCGExPartitionByValues
 			for (int i = 0; i < KeySums.Num(); ++i) { KeySumWriter->GetMutable(i) = KeySums[i]; }
 		}
 
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

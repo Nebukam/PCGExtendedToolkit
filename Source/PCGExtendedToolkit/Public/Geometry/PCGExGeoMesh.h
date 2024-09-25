@@ -7,6 +7,10 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "PCGExMath.h"
+
+
+
+
 //#include "PCGExGeoMesh.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Triangulation Type"))
@@ -318,14 +322,14 @@ namespace PCGExGeo
 	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractStaticMeshTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FExtractStaticMeshTask(PCGExData::FPointIO* InPointIO, FGeoStaticMesh* InGSM) :
+		FExtractStaticMeshTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, FGeoStaticMesh* InGSM) :
 			FPCGExTask(InPointIO), GSM(InGSM)
 		{
 		}
 
 		FGeoStaticMesh* GSM = nullptr;
 
-		virtual bool ExecuteTask() override
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			GSM->ExtractMeshSynchronous();
 			return true;

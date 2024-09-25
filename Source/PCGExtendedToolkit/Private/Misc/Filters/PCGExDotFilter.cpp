@@ -3,6 +3,10 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 #define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"
 #define PCGEX_NAMESPACE PCGExDotFilterDefinition
 
@@ -13,12 +17,12 @@ bool UPCGExDotFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExPointFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExDotFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TDotFilter(this);
+	return MakeShared<PCGExPointsFilter::TDotFilter>(this);
 }
 
-bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TDotFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 

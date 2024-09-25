@@ -5,6 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDataDetails.h"
+
+
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Relaxing/PCGExForceDirectedRelax.h"
 #include "PCGExRelaxClusters.generated.h"
@@ -71,7 +75,7 @@ protected:
 
 namespace PCGExRelaxClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExRelaxClustersContext, UPCGExRelaxClustersSettings>
 	{
 		int32 Iterations = 10;
 
@@ -88,15 +92,15 @@ namespace PCGExRelaxClusters
 		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
+			: TClusterProcessor<FPCGExRelaxClustersContext, UPCGExRelaxClustersSettings>(InVtx, InEdges)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
 		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void StartRelaxIteration();
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
@@ -107,7 +111,7 @@ namespace PCGExRelaxClusters
 	class FRelaxRangeTask : public PCGExMT::FPCGExTask
 	{
 	public:
-		FRelaxRangeTask(PCGExData::FPointIO* InPointIO,
+		FRelaxRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                FProcessor* InProcessor):
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
@@ -116,6 +120,6 @@ namespace PCGExRelaxClusters
 
 		FProcessor* Processor = nullptr;
 		uint64 Scope = 0;
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

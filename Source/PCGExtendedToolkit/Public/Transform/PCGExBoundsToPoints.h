@@ -11,6 +11,9 @@
 #include "Data/PCGExDataForward.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
+
+
 #include "PCGExBoundsToPoints.generated.h"
 
 class FPCGExComputeIOBounds;
@@ -94,7 +97,7 @@ protected:
 
 namespace PCGExBoundsToPoints
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBoundsToPointsContext, UPCGExBoundsToPointsSettings>
 	{
 		int32 NumPoints = 0;
 		bool bGeneratePerPointData = false;
@@ -112,8 +115,8 @@ namespace PCGExBoundsToPoints
 		FPCGExAttributeToTagDetails PointAttributesToOutputTags;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
@@ -121,7 +124,7 @@ namespace PCGExBoundsToPoints
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 	};

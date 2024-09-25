@@ -5,6 +5,16 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
+
+
+
+
+
+
+
+
+
+
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExPathToClusters.generated.h"
@@ -110,7 +120,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : public FPC
 
 	virtual ~FPCGExPathToClustersContext() override;
 
-	TArray<TUniquePtr<PCGExData::FFacade>> PathsFacades;
+	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
 
 	FPCGExCarryOverDetails CarryOverDetails;
 
@@ -137,21 +147,21 @@ namespace PCGExPathToClusters
 {
 #pragma region NonFusing
 
-	class FNonFusingProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FNonFusingProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>
 	{
 		bool bClosedLoop = false;
 
 	public:
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-		explicit FNonFusingProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FNonFusingProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FNonFusingProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 
@@ -160,7 +170,7 @@ namespace PCGExPathToClusters
 #pragma region Fusing
 	// Fusing processors
 
-	class FFusingProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FFusingProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathToClustersContext, UPCGExPathToClustersSettings>
 	{
 		bool bClosedLoop = false;
 
@@ -172,14 +182,14 @@ namespace PCGExPathToClusters
 	public:
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 
-		explicit FFusingProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FFusingProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FFusingProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 	};
 

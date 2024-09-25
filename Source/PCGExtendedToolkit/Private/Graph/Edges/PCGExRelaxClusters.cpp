@@ -3,6 +3,9 @@
 
 #include "Graph/Edges/PCGExRelaxClusters.h"
 
+
+
+
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 #include "Graph/Edges/Relaxing/PCGExForceDirectedRelax.h"
 
@@ -75,17 +78,16 @@ namespace PCGExRelaxClusters
 		return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, true, false, false);
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExRelaxClusters::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RelaxClusters)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		InfluenceDetails = Settings->InfluenceDetails;
-		if (!InfluenceDetails.Init(Context, VtxDataFacade)) { return false; }
+		if (!InfluenceDetails.Init(ExecutionContext, VtxDataFacade.Get())) { return false; }
 
-		RelaxOperation = TypedContext->Relaxing->CopyOperation<UPCGExRelaxClusterOperation>();
+		RelaxOperation = Context->Relaxing->CopyOperation<UPCGExRelaxClusterOperation>();
 		RelaxOperation->PrepareForCluster(Cluster.Get());
 
 		PrimaryBuffer = MakeShared<TArray<FVector>>();
@@ -126,7 +128,7 @@ namespace PCGExRelaxClusters
 		RelaxOperation->ReadBuffer = PrimaryBuffer.Get();
 		RelaxOperation->WriteBuffer = SecondaryBuffer.Get();
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, IterationGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, IterationGroup)
 		IterationGroup->SetOnCompleteCallback([&]() { StartRelaxIteration(); });
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
@@ -158,8 +160,6 @@ namespace PCGExRelaxClusters
 
 	void FProcessor::Write()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RelaxClusters)
-
 		FClusterProcessor::Write();
 
 		TArray<FPCGPoint>& MutablePoints = VtxIO->GetOut()->GetMutablePoints();
@@ -188,7 +188,7 @@ namespace PCGExRelaxClusters
 		ForwardCluster();
 	}
 
-	bool FRelaxRangeTask::ExecuteTask()
+	bool FRelaxRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		const int32 StartIndex = PCGEx::H64A(Scope);
 		const int32 NumIterations = PCGEx::H64B(Scope);

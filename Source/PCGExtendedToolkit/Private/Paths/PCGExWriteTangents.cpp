@@ -3,6 +3,9 @@
 
 #include "Paths/PCGExWriteTangents.h"
 
+
+
+
 #include "Paths/Tangents/PCGExZeroTangents.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
@@ -96,22 +99,17 @@ namespace PCGExWriteTangents
 {
 	FProcessor::~FProcessor()
 	{
-		if (LocalTypedContext->StartTangents) { PCGEX_DELETE_OPERATION(StartTangents) }
-		if (LocalTypedContext->EndTangents) { PCGEX_DELETE_OPERATION(EndTangents) }
+		if (Context->StartTangents) { PCGEX_DELETE_OPERATION(StartTangents) }
+		if (Context->EndTangents) { PCGEX_DELETE_OPERATION(EndTangents) }
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteTangents)
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
-
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
 		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
 		Tangents->bClosedLoop = bClosedLoop;
@@ -125,7 +123,7 @@ namespace PCGExWriteTangents
 			ArriveScaleReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->ArriveScaleAttribute);
 			if (!ArriveScaleReader)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Invalid Arrive Scale attribute"));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid Arrive Scale attribute"));
 				return false;
 			}
 		}
@@ -135,23 +133,23 @@ namespace PCGExWriteTangents
 			LeaveScaleReader = PointDataFacade->GetScopedBroadcaster<FVector>(Settings->LeaveScaleAttribute);
 			if (!LeaveScaleReader)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Invalid Arrive Scale attribute"));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid Arrive Scale attribute"));
 				return false;
 			}
 		}
 
-		if (TypedContext->StartTangents)
+		if (Context->StartTangents)
 		{
-			StartTangents = TypedContext->StartTangents->CopyOperation<UPCGExTangentsOperation>();
+			StartTangents = Context->StartTangents->CopyOperation<UPCGExTangentsOperation>();
 			StartTangents->bClosedLoop = bClosedLoop;
 			StartTangents->PrimaryDataFacade = PointDataFacade.Get();
 			StartTangents->PrepareForData();
 		}
 		else { StartTangents = Tangents; }
 
-		if (TypedContext->EndTangents)
+		if (Context->EndTangents)
 		{
-			EndTangents = TypedContext->EndTangents->CopyOperation<UPCGExTangentsOperation>();
+			EndTangents = Context->EndTangents->CopyOperation<UPCGExTangentsOperation>();
 			EndTangents->bClosedLoop = bClosedLoop;
 			EndTangents->PrimaryDataFacade = PointDataFacade.Get();
 			EndTangents->PrepareForData();
@@ -216,7 +214,7 @@ namespace PCGExWriteTangents
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

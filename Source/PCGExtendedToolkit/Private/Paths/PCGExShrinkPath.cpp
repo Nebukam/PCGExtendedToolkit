@@ -3,6 +3,10 @@
 
 #include "Paths/PCGExShrinkPath.h"
 
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExShrinkPathElement"
 #define PCGEX_NAMESPACE ShrinkPath
 
@@ -17,7 +21,7 @@ PCGExData::EInit UPCGExShrinkPathSettings::GetMainOutputInitMode() const { retur
 
 PCGEX_INITIALIZE_ELEMENT(ShrinkPath)
 
-void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const
+void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedPtr<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const
 {
 	PCGEX_SETTINGS_LOCAL(ShrinkPath)
 
@@ -61,7 +65,7 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointI
 	}
 }
 
-void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointIO, uint32& Start, uint32& End) const
+void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedPtr<PCGExData::FPointIO>& PointIO, uint32& Start, uint32& End) const
 {
 	PCGEX_SETTINGS_LOCAL(ShrinkPath)
 
@@ -180,12 +184,11 @@ namespace PCGExShrinkPath
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExShrinkPath::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ShrinkPath)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 LastPointIndex = InPoints.Num() - 1;
@@ -232,7 +235,7 @@ namespace PCGExShrinkPath
 			uint32 StartAmount = 0;
 			uint32 EndAmount = 0;
 
-			TypedContext->GetShrinkAmounts(PointIO, StartAmount, EndAmount);
+			Context->GetShrinkAmounts(PointIO, StartAmount, EndAmount);
 
 			if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start || PointFilterCache[LastPointIndex]) { EndAmount = 0; }
 			if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End || PointFilterCache[0]) { StartAmount = 0; }
@@ -306,7 +309,7 @@ namespace PCGExShrinkPath
 			EPCGExPathShrinkDistanceCutType StartCut;
 			EPCGExPathShrinkDistanceCutType EndCut;
 
-			TypedContext->GetShrinkAmounts(PointIO, StartAmount, EndAmount, StartCut, EndCut);
+			Context->GetShrinkAmounts(PointIO, StartAmount, EndAmount, StartCut, EndCut);
 
 			if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start || PointFilterCache[LastPointIndex]) { EndAmount = 0; }
 			if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End || PointFilterCache[0]) { StartAmount = 0; }

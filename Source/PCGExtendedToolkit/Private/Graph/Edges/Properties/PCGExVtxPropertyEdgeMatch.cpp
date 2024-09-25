@@ -6,6 +6,14 @@
 #include "PCGPin.h"
 #include "Data/PCGExPointFilter.h"
 
+
+
+
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"
 #define PCGEX_NAMESPACE PCGExVtxPropertyEdgeMatch
 
@@ -25,7 +33,7 @@ void UPCGExVtxPropertyEdgeMatch::ClusterReserve(const int32 NumClusters)
 	for (int i = 0; i < NumClusters; ++i) { FilterManagers[i] = nullptr; }
 }
 
-void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataFacade, PCGExData::FFacade* EdgeDataFacade)
+void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, TSharedPtr<PCGExCluster::FCluster> Cluster, TSharedPtr<PCGExData::FFacade> VtxDataFacade, TSharedPtr<PCGExData::FFacade> EdgeDataFacade)
 {
 	Super::PrepareForCluster(InContext, ClusterIdx, Cluster, VtxDataFacade, EdgeDataFacade);
 	if (FilterFactories && !FilterFactories->IsEmpty())
@@ -34,7 +42,7 @@ void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext,
 	}
 }
 
-bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade)
+bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, TSharedPtr<PCGExData::FFacade> InVtxDataFacade)
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 

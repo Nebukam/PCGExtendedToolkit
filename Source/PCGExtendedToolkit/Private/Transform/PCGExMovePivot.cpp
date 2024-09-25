@@ -5,6 +5,9 @@
 
 #include "Data/PCGExData.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExMovePivotElement"
 #define PCGEX_NAMESPACE MovePivot
 
@@ -63,15 +66,14 @@ namespace PCGExMovePivot
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMovePivot::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MovePivot)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		UVW = Settings->UVW;
-		if (!UVW.Init(Context, PointDataFacade.Get())) { return false; }
+		if (!UVW.Init(ExecutionContext, PointDataFacade.Get())) { return false; }
 
 		StartParallelLoopForPoints();
 

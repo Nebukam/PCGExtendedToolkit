@@ -11,6 +11,9 @@
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
+
+
+
 #include "PCGExSampleNearestPoint.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTPOINT(MACRO)\
@@ -293,7 +296,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : public
 
 	virtual ~FPCGExSampleNearestPointContext() override;
 
-	TUniquePtr<PCGExData::FFacade> TargetsFacade;
+	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
 
 	FPCGExBlendingDetails BlendingDetails;
@@ -320,12 +323,9 @@ protected:
 
 namespace PCGExSampleNearestPoints
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestPointContext, UPCGExSampleNearestPointSettings>
 	{
 		bool bSingleSample = false;
-
-		FPCGExSampleNearestPointContext* LocalTypedContext = nullptr;
-		const UPCGExSampleNearestPointSettings* LocalSettings = nullptr;
 
 		PCGExData::TBuffer<double>* RangeMinGetter = nullptr;
 		PCGExData::TBuffer<double>* RangeMaxGetter = nullptr;
@@ -340,8 +340,8 @@ namespace PCGExSampleNearestPoints
 		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 			DefaultPointFilterValue = true;
 		}
@@ -350,7 +350,7 @@ namespace PCGExSampleNearestPoints
 
 		void SamplingFailed(const int32 Index, FPCGPoint& Point) const;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

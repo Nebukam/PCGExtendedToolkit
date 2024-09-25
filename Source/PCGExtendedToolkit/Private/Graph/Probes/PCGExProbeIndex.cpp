@@ -10,7 +10,7 @@ bool UPCGExProbeIndex::RequiresDirectProcessing()
 	return true;
 }
 
-bool UPCGExProbeIndex::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
+bool UPCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 

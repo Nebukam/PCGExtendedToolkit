@@ -4,6 +4,8 @@
 #include "Graph/PCGExPackClusters.h"
 
 #include "Data/PCGExPointIOMerger.h"
+
+
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPackClusters"
@@ -26,8 +28,6 @@ PCGEX_INITIALIZE_ELEMENT(PackClusters)
 FPCGExPackClustersContext::~FPCGExPackClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(PackedClusters)
 }
 
 
@@ -40,7 +40,7 @@ bool FPCGExPackClustersElement::Boot(FPCGExContext* InContext) const
 	PCGEX_FWD(CarryOverDetails)
 	Context->CarryOverDetails.Init();
 
-	Context->PackedClusters = new PCGExData::FPointIOCollection(Context);
+	Context->PackedClusters = MakeUnique<PCGExData::FPointIOCollection>(Context);
 	Context->PackedClusters->DefaultOutputLabel = PCGExGraph::OutputPackedClustersLabel;
 
 	return true;
@@ -66,7 +66,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 		{
 			if (!Context->TaggedEdges) { continue; }
 
-			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
+			for (TSharedPtr<PCGExData::FPointIO> EdgeIO : Context->TaggedEdges->Entries)
 			{
 				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(IOIndex++, Context->CurrentIO, EdgeIO, Context->EndpointsLookup);
 			}
@@ -86,9 +86,9 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	return Context->TryComplete();
 }
 
-bool FPCGExPackClusterTask::ExecuteTask()
+bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	FPCGExPackClustersContext* Context = Manager->GetContext<FPCGExPackClustersContext>();
+	FPCGExPackClustersContext* Context = ManagerPtr->GetContext<FPCGExPackClustersContext>();
 	PCGEX_SETTINGS(PackClusters)
 
 	PCGEx::FAttributesInfos* VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
@@ -113,7 +113,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 
 	for (const PCGEx::FAttributeIdentity& Identity : VtxAttributes->Identities)
 	{
-		CopyValues(Manager, Identity, PointIO, PackedIO, View, NumEdges);
+		CopyValues(ManagerPtr, Identity, PointIO, PackedIO, View, NumEdges);
 	}
 
 	WriteMark(PackedIO, PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);

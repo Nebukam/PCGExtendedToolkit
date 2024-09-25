@@ -3,6 +3,10 @@
 
 #include "Graph/PCGExPartitionVertices.h"
 
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -15,10 +19,6 @@ PCGExData::EInit UPCGExPartitionVerticesSettings::GetEdgeOutputInitMode() const 
 FPCGExPartitionVerticesContext::~FPCGExPartitionVerticesContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(VtxPartitions)
-
-	IndexedEdges.Empty();
 }
 
 PCGEX_INITIALIZE_ELEMENT(PartitionVertices)
@@ -29,7 +29,7 @@ bool FPCGExPartitionVerticesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionVertices)
 
-	Context->VtxPartitions = new PCGExData::FPointIOCollection(Context);
+	Context->VtxPartitions = MakeUnique<PCGExData::FPointIOCollection>(Context);
 	Context->VtxPartitions->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
 	return true;
@@ -82,18 +82,18 @@ namespace PCGExPartitionVertices
 		KeptIndices.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPartitionVertices::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionVertices)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalTypedContext = TypedContext;
+		
 
 		Cluster->NodeIndexLookup->Empty();
 
-		PointPartitionIO = TypedContext->VtxPartitions->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput);
+		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PointPartitionIO->GetOut()->GetMutablePoints();
 
 		MutablePoints.SetNumUninitialized(NumNodes);

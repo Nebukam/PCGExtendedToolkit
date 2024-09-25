@@ -60,7 +60,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeIndex : public UPCGExProbeOperation
 
 public:
 	virtual bool RequiresDirectProcessing() override;
-	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
+	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeConfigIndex Config;

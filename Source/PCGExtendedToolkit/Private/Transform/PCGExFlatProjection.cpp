@@ -3,6 +3,12 @@
 
 #include "Transform/PCGExFlatProjection.h"
 
+
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExFlatProjectionElement"
 #define PCGEX_NAMESPACE FlatProjection
 
@@ -79,14 +85,13 @@ bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExFlatProjection
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFlatProjection::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FlatProjection)
 
-		// TODO : Add Scoped Fetch
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		bWriteAttribute = Settings->bSaveAttributeForRestore;
 		bInverseExistingProjection = Settings->bRestorePreviousProjection;
@@ -94,13 +99,13 @@ namespace PCGExFlatProjection
 
 		if (bInverseExistingProjection)
 		{
-			TransformReader = PointDataFacade->GetScopedReadable<FTransform>(TypedContext->CachedTransformAttributeName);
+			TransformReader = PointDataFacade->GetScopedReadable<FTransform>(Context->CachedTransformAttributeName);
 		}
 		else if (bWriteAttribute)
 		{
 			ProjectionDetails = Settings->ProjectionDetails;
-			ProjectionDetails.Init(Context, PointDataFacade.Get());
-			TransformWriter = PointDataFacade->GetWritable<FTransform>(TypedContext->CachedTransformAttributeName, true);
+			ProjectionDetails.Init(ExecutionContext, PointDataFacade.Get());
+			TransformWriter = PointDataFacade->GetWritable<FTransform>(Context->CachedTransformAttributeName, true);
 		}
 
 		StartParallelLoopForPoints();
@@ -140,11 +145,11 @@ namespace PCGExFlatProjection
 		if (bInverseExistingProjection)
 		{
 			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-			Metadata->DeleteAttribute(TypedContext->CachedTransformAttributeName);
+			Metadata->DeleteAttribute(Context->CachedTransformAttributeName);
 		}
 		else if (bWriteAttribute)
 		{
-			PointDataFacade->Write(AsyncManagerPtr);
+			PointDataFacade->Write(AsyncManager);
 		}
 	}
 }

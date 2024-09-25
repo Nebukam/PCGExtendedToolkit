@@ -3,7 +3,13 @@
 
 #include "Data/PCGExPointStates.h"
 
-PCGExPointFilter::TFilter* UPCGExPointStateFactoryBase::CreateFilter() const
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExPointStateFactoryBase::CreateFilter() const
 {
 	return Super::CreateFilter();
 }
@@ -20,7 +26,7 @@ namespace PCGExPointStates
 		
 	}
 
-	bool FState::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+	bool FState::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -57,7 +63,7 @@ namespace PCGExPointStates
 		States.Empty();
 	}
 
-	void FStateManager::PostInitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter)
+	void FStateManager::PostInitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& InFilter)
 	{
 		FState* State = static_cast<FState*>(InFilter);
 		State->InitInternalManager(InContext, State->StateFactory->FilterFactories);

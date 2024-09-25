@@ -21,7 +21,7 @@ FString FPCGExAttributeDebugDrawConfig::GetDisplayName() const
 }
 #endif
 
-bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO* PointIO)
+bool FPCGExAttributeDebugDraw::Bind(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 {
 	bValid = false;
 

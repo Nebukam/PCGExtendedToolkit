@@ -6,6 +6,9 @@
 #include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling
 
@@ -91,17 +94,16 @@ namespace PCGExAttributeRolling
 		PCGEX_DELETE(MetadataBlender)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeRolling::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(AttributeRolling)
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
+		
+		
 
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade.Get(), PCGExData::ESource::In, true, nullptr, true);
@@ -138,7 +140,7 @@ namespace PCGExAttributeRolling
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

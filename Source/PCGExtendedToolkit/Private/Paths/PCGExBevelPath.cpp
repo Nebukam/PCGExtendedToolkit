@@ -6,6 +6,9 @@
 #include "PCGExRandom.h"
 #include "Data/PCGExPointFilter.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"
 #define PCGEX_NAMESPACE BevelPath
 
@@ -20,7 +23,7 @@ PCGExData::EInit UPCGExBevelPathSettings::GetMainOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(BevelPath)
 
-void UPCGExBevelPathSettings::InitOutputFlags(const PCGExData::FPointIO* InPointIO) const
+void UPCGExBevelPathSettings::InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const
 {
 	UPCGMetadata* Metadata = InPointIO->GetOut()->Metadata;
 	if (bFlagEndpoints) { Metadata->FindOrCreateAttribute(EndpointsFlagName, false); }
@@ -147,23 +150,23 @@ namespace PCGExBevelPath
 		ArriveDir = (PrevLocation - Corner).GetSafeNormal();
 		LeaveDir = (NextLocation - Corner).GetSafeNormal();
 
-		Width = InProcessor->WidthGetter ? InProcessor->WidthGetter->Read(Index) : InProcessor->LocalSettings->WidthConstant;
+		Width = InProcessor->WidthGetter ? InProcessor->WidthGetter->Read(Index) : InProcessor->Settings->WidthConstant;
 
 		const double ArriveLen = InProcessor->Len(ArriveIdx);
 		const double LeaveLen = InProcessor->Len(Index);
 		const double SmallestLength = FMath::Min(ArriveLen, LeaveLen);
 
-		if (InProcessor->LocalSettings->WidthMeasure == EPCGExMeanMeasure::Relative)
+		if (InProcessor->Settings->WidthMeasure == EPCGExMeanMeasure::Relative)
 		{
 			Width *= SmallestLength;
 		}
 
-		if (InProcessor->LocalSettings->Mode == EPCGExBevelMode::Radius)
+		if (InProcessor->Settings->Mode == EPCGExBevelMode::Radius)
 		{
 			Width = Width / FMath::Sin(FMath::Acos(FVector::DotProduct(ArriveDir, LeaveDir)) / 2.0f);
 		}
 
-		if (InProcessor->LocalSettings->Limit != EPCGExBevelLimit::None)
+		if (InProcessor->Settings->Limit != EPCGExBevelLimit::None)
 		{
 			Width = FMath::Min(Width, SmallestLength);
 		}
@@ -198,7 +201,7 @@ namespace PCGExBevelPath
 
 		// TODO : compute final subdivision count
 
-		if (InProcessor->LocalSettings->Type == EPCGExBevelProfileType::Custom)
+		if (InProcessor->Settings->Type == EPCGExBevelProfileType::Custom)
 		{
 			SubdivideCustom(InProcessor);
 			return;
@@ -258,7 +261,7 @@ namespace PCGExBevelPath
 
 	void FBevel::SubdivideCustom(const FProcessor* InProcessor)
 	{
-		const TArray<FVector>& SourcePos = InProcessor->LocalTypedContext->CustomProfilePositions;
+		const TArray<FVector>& SourcePos = InProcessor->Context->CustomProfilePositions;
 		const int32 SubdivCount = SourcePos.Num() - 2;
 
 		PCGEX_SET_NUM(Subdivisions, SubdivCount)
@@ -282,22 +285,22 @@ namespace PCGExBevelPath
 		StartIndices.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelPath::Process);
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelPath)
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
+		
+		
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
 		bInlineProcessPoints = true;
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
 		PCGEX_SET_NUM_NULLPTR(Bevels, PointIO->GetNum())
 
@@ -306,7 +309,7 @@ namespace PCGExBevelPath
 			WidthGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->WidthAttribute);
 			if (!WidthGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Width attribute data is invalid or missing."));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Width attribute data is invalid or missing."));
 				return false;
 			}
 		}
@@ -323,7 +326,7 @@ namespace PCGExBevelPath
 					SubdivAmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
 					if (!SubdivAmountGetter)
 					{
-						PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Subdivision Amount attribute is invalid or missing."));
+						PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Subdivision Amount attribute is invalid or missing."));
 						return false;
 					}
 				}
@@ -344,7 +347,7 @@ namespace PCGExBevelPath
 			Lengths[i] = FVector::Distance(InPoints[i].Transform.GetLocation(), InPoints[i + 1 == NumPoints ? 0 : i + 1].Transform.GetLocation());
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, Preparation)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
 		Preparation->SetOnCompleteCallback([&]() { StartParallelLoopForPoints(PCGExData::ESource::In); });
 		Preparation->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
@@ -376,7 +379,7 @@ namespace PCGExBevelPath
 		FBevel* Bevel = Bevels[Index];
 		if (!Bevel) { return; }
 
-		if (LocalSettings->Limit == EPCGExBevelLimit::Balanced) { Bevel->Balance(this); }
+		if (Settings->Limit == EPCGExBevelLimit::Balanced) { Bevel->Balance(this); }
 		Bevel->Compute(this);
 	}
 
@@ -485,28 +488,28 @@ namespace PCGExBevelPath
 
 	void FProcessor::Write()
 	{
-		if (LocalSettings->bFlagEndpoints)
+		if (Settings->bFlagEndpoints)
 		{
-			EndpointsWriter = PointDataFacade->GetWritable<bool>(LocalSettings->EndpointsFlagName, false, true, true);
+			EndpointsWriter = PointDataFacade->GetWritable<bool>(Settings->EndpointsFlagName, false, true, true);
 		}
 
-		if (LocalSettings->bFlagStartPoint)
+		if (Settings->bFlagStartPoint)
 		{
-			StartPointWriter = PointDataFacade->GetWritable<bool>(LocalSettings->StartPointFlagName, false, true, true);
+			StartPointWriter = PointDataFacade->GetWritable<bool>(Settings->StartPointFlagName, false, true, true);
 		}
 
-		if (LocalSettings->bFlagEndPoint)
+		if (Settings->bFlagEndPoint)
 		{
-			EndPointWriter = PointDataFacade->GetWritable<bool>(LocalSettings->EndPointFlagName, false, true, true);
+			EndPointWriter = PointDataFacade->GetWritable<bool>(Settings->EndPointFlagName, false, true, true);
 		}
 
-		if (LocalSettings->bFlagSubdivision)
+		if (Settings->bFlagSubdivision)
 		{
-			SubdivisionWriter = PointDataFacade->GetWritable<bool>(LocalSettings->SubdivisionFlagName, false, true, true);
+			SubdivisionWriter = PointDataFacade->GetWritable<bool>(Settings->SubdivisionFlagName, false, true, true);
 		}
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, WriteFlagsTask)
-		WriteFlagsTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr); });
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)
+		WriteFlagsTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManager); });
 		WriteFlagsTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{

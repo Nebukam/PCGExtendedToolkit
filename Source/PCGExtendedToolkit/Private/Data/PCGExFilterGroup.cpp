@@ -3,17 +3,34 @@
 
 #include "Data/PCGExFilterGroup.h"
 
+
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExFilterGroup
 {
-	bool TFilterGroup::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+	bool TFilterGroup::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		PointDataFacade = InPointDataFacade;
 		return InitManaged(InContext);
 	}
 
-	bool TFilterGroup::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+	bool TFilterGroup::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		bInitForCluster = true;
 		Cluster = InCluster;
@@ -38,7 +55,7 @@ namespace PCGExFilterGroup
 	{
 		for (const UPCGExFilterFactoryBase* ManagedFactory : *ManagedFactories)
 		{
-			PCGExPointFilter::TFilter* NewFilter = ManagedFactory->CreateFilter();
+			TSharedPtr<PCGExPointFilter::TFilter> NewFilter = ManagedFactory->CreateFilter();
 			NewFilter->bCacheResults = false;
 			if (!InitManagedFilter(InContext, NewFilter))
 			{
@@ -51,7 +68,7 @@ namespace PCGExFilterGroup
 		return PostInitManaged(InContext);
 	}
 
-	bool TFilterGroup::InitManagedFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* Filter)
+	bool TFilterGroup::InitManagedFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter)
 	{
 		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return Filter->Init(InContext, PointDataFacade); }
 
@@ -108,16 +125,16 @@ namespace PCGExFilterGroup
 	}
 }
 
-PCGExPointFilter::TFilter* UPCGExFilterGroupFactoryBaseAND::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExFilterGroupFactoryBaseAND::CreateFilter() const
 {
-	PCGExFilterGroup::TFilterGroupAND* NewFilterGroup = new PCGExFilterGroup::TFilterGroupAND(this, &FilterFactories);
+	TSharedPtr<PCGExFilterGroup::TFilterGroupAND> NewFilterGroup = MakeShared<PCGExFilterGroup::TFilterGroupAND>(this, &FilterFactories);
 	NewFilterGroup->bInvert = bInvert;
 	return NewFilterGroup;
 }
 
-PCGExPointFilter::TFilter* UPCGExFilterGroupFactoryBaseOR::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExFilterGroupFactoryBaseOR::CreateFilter() const
 {
-	PCGExFilterGroup::TFilterGroupOR* NewFilterGroup = new PCGExFilterGroup::TFilterGroupOR(this, &FilterFactories);
+	TSharedPtr<PCGExFilterGroup::TFilterGroupOR> NewFilterGroup = MakeShared<PCGExFilterGroup::TFilterGroupOR>(this, &FilterFactories);
 	NewFilterGroup->bInvert = bInvert;
 	return NewFilterGroup;
 }

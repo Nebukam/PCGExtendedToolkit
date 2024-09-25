@@ -9,6 +9,9 @@
 #include "PCGExIntersections.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
+
+
+
 #include "PCGExFuseClusters.generated.h"
 
 namespace PCGExDataBlending
@@ -109,16 +112,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : public FPCGE
 
 	virtual ~FPCGExFuseClustersContext() override;
 
-	TArray<TUniquePtr<PCGExData::FFacade>> VtxFacades;
+	TArray<TSharedPtr<PCGExData::FFacade>> VtxFacades;
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-	PCGExData::FFacade* CompoundFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> CompoundFacade;
 
 	FPCGExCarryOverDetails VtxCarryOverDetails;
 	FPCGExCarryOverDetails EdgesCarryOverDetails;
 
 	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;
 
-	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
+	TUniquePtr<PCGExGraph::FCompoundProcessor> CompoundProcessor;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement
@@ -136,7 +139,7 @@ protected:
 
 namespace PCGExFuseClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>
 	{
 		int32 VtxIOIndex = 0;
 		int32 EdgesIOIndex = 0;
@@ -147,15 +150,15 @@ namespace PCGExFuseClusters
 		bool bInvalidEdges = true;
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 
-		explicit FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-			: FClusterProcessor(InVtx, InEdges)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
+			: TClusterProcessor(InVtx, InEdges)
 		{
 			bBuildCluster = false;
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		FORCEINLINE virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override
 		{
 			ProcessSingleEdge(Iteration, IndexedEdges[Iteration], LoopIdx, Count);

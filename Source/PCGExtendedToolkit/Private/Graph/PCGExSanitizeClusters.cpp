@@ -3,6 +3,10 @@
 
 #include "Graph/PCGExSanitizeClusters.h"
 
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -66,12 +70,11 @@ namespace PCGExSanitizeClusters
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSanitizeClusters::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SanitizeClusters)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 		EdgesIO->CreateInKeys();
@@ -86,7 +89,7 @@ namespace PCGExSanitizeClusters
 
 	void FProcessorBatch::CompleteWork()
 	{
-		GraphBuilder->Compile(AsyncManagerPtr, true);
+		GraphBuilder->Compile(AsyncManager, true);
 		//TBatchWithGraphBuilder<FProcessor>::CompleteWork();
 	}
 

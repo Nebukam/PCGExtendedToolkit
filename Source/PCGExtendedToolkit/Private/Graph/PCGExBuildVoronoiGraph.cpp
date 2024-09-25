@@ -4,6 +4,10 @@
 #include "Graph/PCGExBuildVoronoiGraph.h"
 
 #include "PCGExRandom.h"
+
+
+
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
@@ -104,12 +108,11 @@ namespace PCGExBuildVoronoi
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildVoronoi::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildVoronoiGraph)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		// Build voronoi
 
@@ -121,7 +124,7 @@ namespace PCGExBuildVoronoi
 		/*
 		auto ExtractValidSites = [&]()
 		{
-			const PCGExData::FPointIO* SitesIO = TypedContext->SitesOutput->Pairs[BatchIndex];
+			const PCGExData::FPointIO* SitesIO = Context->SitesOutput->Pairs[BatchIndex];
 			const TArray<FPCGPoint>& OriginalSites = PointIO->GetIn()->GetPoints();
 			TArray<FPCGPoint>& MutableSites = SitesIO->GetOut()->GetMutablePoints();
 			for (int i = 0; i < OriginalSites.Num(); ++i)
@@ -134,7 +137,7 @@ namespace PCGExBuildVoronoi
 
 		if (!Voronoi->Process(ActivePositions))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Voronoi 2D instead."));
+			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Voronoi 2D instead."));
 			return false;
 		}
 
@@ -227,7 +230,7 @@ namespace PCGExBuildVoronoi
 			Voronoi.Reset();
 		}
 
-		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
+		GraphBuilder->CompileAsync(AsyncManager, false);
 
 		return true;
 	}
@@ -251,7 +254,7 @@ namespace PCGExBuildVoronoi
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

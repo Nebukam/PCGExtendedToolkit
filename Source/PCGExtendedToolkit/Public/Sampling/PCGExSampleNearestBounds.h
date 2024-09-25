@@ -11,6 +11,9 @@
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
+
+
+
 #include "PCGExSampleNearestBounds.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTBOUNDS(MACRO)\
@@ -282,7 +285,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : publi
 
 	virtual ~FPCGExSampleNearestBoundsContext() override;
 
-	TUniquePtr<PCGExData::FFacade> BoundsFacade;
+	TSharedPtr<PCGExData::FFacade> BoundsFacade;
 
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* BoundsPoints = nullptr;
@@ -307,15 +310,12 @@ protected:
 
 namespace PCGExSampleNearestBounds
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestBoundsContext, UPCGExSampleNearestBoundsSettings>
 	{
 		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Bounds;
 
 		bool bSingleSample = false;
-
-		FPCGExSampleNearestBoundsContext* LocalTypedContext = nullptr;
-		const UPCGExSampleNearestBoundsSettings* LocalSettings = nullptr;
 
 		PCGExData::TBuffer<FVector>* LookAtUpGetter = nullptr;
 
@@ -328,8 +328,8 @@ namespace PCGExSampleNearestBounds
 		PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 			DefaultPointFilterValue = true;
 		}
@@ -338,7 +338,7 @@ namespace PCGExSampleNearestBounds
 
 		void SamplingFailed(const int32 Index, const FPCGPoint& Point) const;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

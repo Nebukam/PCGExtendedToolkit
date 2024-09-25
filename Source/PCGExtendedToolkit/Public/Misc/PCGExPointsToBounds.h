@@ -10,6 +10,9 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
+
+
 #include "PCGExPointsToBounds.generated.h"
 
 class FPCGExComputeIOBounds;
@@ -23,7 +26,7 @@ namespace PCGExPointsToBounds
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FBounds
 	{
 		FBox Bounds = FBox(ForceInit);
-		PCGExData::FPointIO* PointIO;
+		const TSharedPtr<PCGExData::FPointIO>& PointIO;
 
 		TSet<FBounds*> Overlaps;
 
@@ -40,7 +43,7 @@ namespace PCGExPointsToBounds
 
 		mutable FRWLock OverlapLock;
 
-		explicit FBounds(PCGExData::FPointIO* InPointIO):
+		explicit FBounds(const TSharedPtr<PCGExData::FPointIO>& InPointIO):
 			PointIO(InPointIO)
 		{
 			Overlaps.Empty();
@@ -200,7 +203,7 @@ namespace PCGExPointsToBounds
 	class /*PCGEXTENDEDTOOLKIT_API*/ FComputeIOBoundsTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FComputeIOBoundsTask(PCGExData::FPointIO* InPointIO,
+		FComputeIOBoundsTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                     const EPCGExPointBoundsSource InBoundsSource, FBounds* InBounds) :
 			FPCGExTask(InPointIO),
 			BoundsSource(InBoundsSource), Bounds(InBounds)
@@ -210,23 +213,23 @@ namespace PCGExPointsToBounds
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
 		FBounds* Bounds = nullptr;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPointsToBoundsContext, UPCGExPointsToBoundsSettings>
 	{
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 		FBounds* Bounds = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 }

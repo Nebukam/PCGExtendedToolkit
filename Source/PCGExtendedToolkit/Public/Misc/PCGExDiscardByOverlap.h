@@ -6,6 +6,11 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
 
 #include "PCGExDiscardByOverlap.generated.h"
 
@@ -157,8 +162,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : public F
 	TMap<uint64, PCGExDiscardByOverlap::FOverlap*> OverlapMap;
 
 	PCGExDiscardByOverlap::FOverlap* RegisterOverlap(
-		PCGExDiscardByOverlap::FProcessor* InManager,
-		PCGExDiscardByOverlap::FProcessor* InManaged,
+		const TSharedPtr<PCGExDiscardByOverlap::FProcessor>& InManager,
+		const TSharedPtr<PCGExDiscardByOverlap::FProcessor>& InManaged,
 		const FBox& InIntersection);
 
 	FPCGExOverlapScoresWeighting Weights;
@@ -185,15 +190,15 @@ namespace PCGExDiscardByOverlap
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPruneTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FPruneTask(PCGExData::FPointIO* InPointIO)
+		FPruneTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 			: FPCGExTask(InPointIO)
 
 		{
 		}
 
-		virtual bool ExecuteTask() override
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
-			FPCGExDiscardByOverlapContext* Context = Manager->GetContext<FPCGExDiscardByOverlapContext>();
+			FPCGExDiscardByOverlapContext* Context = ManagerPtr->GetContext<FPCGExDiscardByOverlapContext>();
 			Context->Prune();
 			return false;
 		}
@@ -252,7 +257,7 @@ namespace PCGExDiscardByOverlap
 
 		FOverlapStats Stats;
 
-		FOverlap(FProcessor* InManager, FProcessor* InManaged, const FBox& InIntersection);
+		FOverlap(const TSharedPtr<FProcessor>& InManager, const TSharedPtr<FProcessor>& InManaged, const FBox& InIntersection);
 		FORCEINLINE FProcessor* GetOther(const FProcessor* InCandidate) const { return Manager == InCandidate ? Managed : Manager; }
 	};
 
@@ -298,24 +303,21 @@ namespace PCGExDiscardByOverlap
 		}
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExDiscardByOverlapContext, UPCGExDiscardByOverlapSettings>
 	{
 		friend struct FPCGExDiscardByOverlapContext;
-
-		const UPCGExDiscardByOverlapSettings* LocalSettings = nullptr;
-		FPCGExDiscardByOverlapContext* LocalTypedContext = nullptr;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		FBox Bounds = FBox(ForceInit);
 
 		using TBoundsOctree = TOctree2<FPointBounds*, FPointBoundsSemantics>;
-		TBoundsOctree* Octree = nullptr;
+		TUniquePtr<TBoundsOctree> Octree;
 
-		TArray<FPointBounds*> LocalPointBounds;
+		TArray<TSharedPtr<FPointBounds>> LocalPointBounds;
 
 		mutable FRWLock RegistrationLock;
-		TArray<FOverlap*> Overlaps;
-		TArray<FOverlap*> ManagedOverlaps;
+		TArray<TSharedPtr<FOverlap>> Overlaps;
+		TArray<TSharedPtr<FOverlap>> ManagedOverlaps;
 
 		int32 NumPoints = 0;
 		double TotalVolume = 0;
@@ -331,8 +333,8 @@ namespace PCGExDiscardByOverlap
 
 		FOverlapStats Stats;
 
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 		}
 
@@ -353,7 +355,7 @@ namespace PCGExDiscardByOverlap
 		FORCEINLINE void RegisterPointBounds(const int32 Index, FPointBounds* InPointBounds)
 		{
 			const bool bValidPoint = PointFilterCache[Index];
-			if (!bValidPoint && !LocalSettings->bIncludeFilteredInMetrics)
+			if (!bValidPoint && !Settings->bIncludeFilteredInMetrics)
 			{
 				PCGEX_DELETE(InPointBounds)
 				return;
@@ -367,7 +369,7 @@ namespace PCGExDiscardByOverlap
 			else { PCGEX_DELETE(InPointBounds) }
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

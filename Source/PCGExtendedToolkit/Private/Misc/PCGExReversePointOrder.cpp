@@ -3,6 +3,10 @@
 
 #include "Misc/PCGExReversePointOrder.h"
 
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
 #define PCGEX_NAMESPACE ReversePointOrder
 
@@ -60,12 +64,11 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 
 namespace PCGExReversePointOrder
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ReversePointOrder)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 		Algo::Reverse(MutablePoints);
@@ -87,7 +90,7 @@ namespace PCGExReversePointOrder
 
 		if (SwapPairs.IsEmpty()) { return true; }
 
-		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, FetchWritersTask)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchWritersTask)
 		FetchWritersTask->SetOnCompleteCallback([&]() { StartParallelLoopForPoints(); });
 		FetchWritersTask->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
@@ -148,7 +151,7 @@ namespace PCGExReversePointOrder
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

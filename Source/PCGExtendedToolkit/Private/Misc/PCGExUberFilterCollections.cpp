@@ -7,6 +7,9 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExUberFilterCollections"
 #define PCGEX_NAMESPACE UberFilterCollections
 
@@ -97,29 +100,28 @@ namespace PCGExUberFilterCollections
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExUberFilterCollections::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(UberFilterCollections)
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
+		
+		
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		NumPoints = PointIO->GetNum();
 
-		if (LocalSettings->Measure == EPCGExMeanMeasure::Discrete)
+		if (Settings->Measure == EPCGExMeanMeasure::Discrete)
 		{
-			if ((LocalSettings->Comparison == EPCGExComparison::StrictlyGreater ||
-					LocalSettings->Comparison == EPCGExComparison::EqualOrGreater) &&
-				NumPoints < LocalSettings->IntThreshold)
+			if ((Settings->Comparison == EPCGExComparison::StrictlyGreater ||
+					Settings->Comparison == EPCGExComparison::EqualOrGreater) &&
+				NumPoints < Settings->IntThreshold)
 			{
 				// Not enough points to meet requirements.
-				LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward);
+				Context->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward);
 				return true;
 			}
 		}
@@ -145,28 +147,28 @@ namespace PCGExUberFilterCollections
 	{
 		FPointsProcessor::Output();
 
-		switch (LocalSettings->Mode)
+		switch (Settings->Mode)
 		{
 		default:
 		case EPCGExUberFilterCollectionsMode::All:
-			if (NumInside == NumPoints) { LocalTypedContext->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
-			else { LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+			if (NumInside == NumPoints) { Context->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+			else { Context->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
 			break;
 		case EPCGExUberFilterCollectionsMode::Any:
-			if (NumInside != 0) { LocalTypedContext->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
-			else { LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+			if (NumInside != 0) { Context->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+			else { Context->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
 			break;
 		case EPCGExUberFilterCollectionsMode::Partial:
-			if (LocalSettings->Measure == EPCGExMeanMeasure::Discrete)
+			if (Settings->Measure == EPCGExMeanMeasure::Discrete)
 			{
-				if (PCGExCompare::Compare(LocalSettings->Comparison, NumInside, LocalSettings->IntThreshold, 0)) { LocalTypedContext->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
-				else { LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+				if (PCGExCompare::Compare(Settings->Comparison, NumInside, Settings->IntThreshold, 0)) { Context->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+				else { Context->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
 			}
 			else
 			{
 				double Ratio = static_cast<double>(NumInside) / static_cast<double>(NumPoints);
-				if (PCGExCompare::Compare(LocalSettings->Comparison, Ratio, LocalSettings->DblThreshold, LocalSettings->Tolerance)) { LocalTypedContext->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
-				else { LocalTypedContext->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+				if (PCGExCompare::Compare(Settings->Comparison, Ratio, Settings->DblThreshold, Settings->Tolerance)) { Context->Inside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
+				else { Context->Outside->Emplace_GetRef(PointIO, PCGExData::EInit::Forward); }
 			}
 			break;
 		}

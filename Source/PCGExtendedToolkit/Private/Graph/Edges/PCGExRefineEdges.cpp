@@ -3,6 +3,9 @@
 
 #include "Graph/Edges/PCGExRefineEdges.h"
 
+
+
+
 #include "Graph/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -145,28 +148,24 @@ namespace PCGExRefineEdges
 		PCGEX_DELETE_OPERATION(Refinement)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExRefineEdges::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
-
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Sanitization = Settings->Sanitization;
 
-		Refinement = TypedContext->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
+		Refinement = Context->Refinement->CopyOperation<UPCGExEdgeRefineOperation>();
 		Refinement->PrepareForCluster(Cluster.Get(), HeuristicsHandler);
 
 		Refinement->EdgesFilters = &EdgeFilterCache;
 		EdgeFilterCache.Init(true, EdgeDataFacade->Source->GetNum());
 
-		if (!TypedContext->EdgeFilterFactories.IsEmpty())
+		if (!Context->EdgeFilterFactories.IsEmpty())
 		{
 			EdgeFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade.Get());
-			if (!EdgeFilterManager->Init(Context, TypedContext->EdgeFilterFactories)) { return false; }
+			if (!EdgeFilterManager->Init(ExecutionContext, Context->EdgeFilterFactories)) { return false; }
 		}
 		else
 		{
@@ -176,10 +175,10 @@ namespace PCGExRefineEdges
 
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 		{
-			if (!TypedContext->SanitizationFilterFactories.IsEmpty())
+			if (!Context->SanitizationFilterFactories.IsEmpty())
 			{
 				SanitizationFilterManager = MakeUnique<PCGExPointFilter::TManager>(EdgeDataFacade.Get());
-				if (!SanitizationFilterManager->Init(Context, TypedContext->SanitizationFilterFactories)) { return false; }
+				if (!SanitizationFilterManager->Init(ExecutionContext, Context->SanitizationFilterFactories)) { return false; }
 			}
 		}
 
@@ -191,7 +190,7 @@ namespace PCGExRefineEdges
 		}
 		else
 		{
-			PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, EdgeScopeLoop)
+			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, EdgeScopeLoop)
 			EdgeScopeLoop->SetOnCompleteCallback(
 				[&]()
 				{
@@ -246,13 +245,13 @@ namespace PCGExRefineEdges
 	void FProcessor::Sanitize()
 	{
 
-		PCGEX_ASYNC_GROUP_CHKD(AsyncManagerPtr, SanitizeTaskGroup)
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SanitizeTaskGroup)
 
 		Cluster->GetExpandedEdges(true); //Oof
 		
 		SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
 
-		if (LocalSettings->Sanitization == EPCGExRefineSanitization::Filters)
+		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 		{
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 			SanitizeTaskGroup->SetOnIterationRangeStartCallback(
@@ -293,8 +292,6 @@ namespace PCGExRefineEdges
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(RefineEdges)
-
 		if (Settings->Sanitization != EPCGExRefineSanitization::None)
 		{
 			Sanitize();
@@ -304,7 +301,7 @@ namespace PCGExRefineEdges
 		InsertEdges();
 	}
 
-	bool FSanitizeRangeTask::ExecuteTask()
+	bool FSanitizeRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		const int32 StartIndex = PCGEx::H64A(Scope);
 		const int32 NumIterations = PCGEx::H64B(Scope);

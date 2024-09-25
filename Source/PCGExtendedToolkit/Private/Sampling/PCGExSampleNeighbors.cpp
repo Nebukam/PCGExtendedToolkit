@@ -3,6 +3,11 @@
 
 #include "Sampling/PCGExSampleNeighbors.h"
 
+
+
+
+
+
 #include "Sampling/Neighbors/PCGExNeighborSampleAttribute.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
@@ -89,18 +94,17 @@ namespace PCGExSampleNeighbors
 		SamplingOperations.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNeighbors::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		for (const UPCGExNeighborSamplerFactoryBase* OperationFactory : TypedContext->SamplerFactories)
+		for (const UPCGExNeighborSamplerFactoryBase* OperationFactory : Context->SamplerFactories)
 		{
 			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation();
-			SamplingOperation->BindContext(TypedContext);
-			SamplingOperation->PrepareForCluster(Context, Cluster.Get(), VtxDataFacade, EdgeDataFacade.Get());
+			SamplingOperation->BindContext(Context);
+			SamplingOperation->PrepareForCluster(ExecutionContext, Cluster, VtxDataFacade, EdgeDataFacade);
 
 			if (!SamplingOperation->IsOperationValid())
 			{
@@ -146,7 +150,7 @@ namespace PCGExSampleNeighbors
 	void FProcessor::Write()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
-		EdgeDataFacade->Write(AsyncManagerPtr);
+		EdgeDataFacade->Write(AsyncManager);
 	}
 }
 

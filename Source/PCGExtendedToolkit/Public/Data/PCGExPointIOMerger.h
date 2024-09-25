@@ -6,6 +6,18 @@
 #include "CoreMinimal.h"
 #include "PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
+
+
+
+
+
+
+
+
+
+
+
+
 #include "UObject/Object.h"
 
 struct FPCGExCarryOverDetails;
@@ -16,16 +28,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final
 
 public:
 	TArray<PCGEx::FAttributeIdentity> UniqueIdentities;
-	PCGExData::FPointIO* CompositeIO = nullptr;
-	TArray<PCGExData::FPointIO*> IOSources;
+	TSharedPtr<PCGExData::FPointIO> CompositeIO = nullptr;
+	TArray<TSharedPtr<PCGExData::FPointIO>> IOSources;
 	TArray<uint64> Scopes;
 	TArray<PCGEx::FAttributeIOBase*> Writers;
 
-	FPCGExPointIOMerger(PCGExData::FPointIO* OutMergedData);
+	FPCGExPointIOMerger(TSharedPtr<PCGExData::FPointIO> OutMergedData);
 	~FPCGExPointIOMerger();
 
-	void Append(PCGExData::FPointIO* InData);
-	void Append(const TArray<PCGExData::FPointIO*>& InData);
+	void Append(TSharedPtr<PCGExData::FPointIO> InData);
+	void Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData);
 	void Append(PCGExData::FPointIOCollection* InCollection);
 	void Merge(PCGExMT::FTaskManager* AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
 	void Write();
@@ -57,7 +69,7 @@ namespace PCGExPointIOMerger
 	{
 	public:
 		FWriteAttributeTask(
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			FPCGExPointIOMerger* InMerger)
 			: FPCGExTask(InPointIO),
 			  Merger(InMerger)
@@ -65,7 +77,7 @@ namespace PCGExPointIOMerger
 		}
 
 		FPCGExPointIOMerger* Merger = nullptr;
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	template <typename T>
@@ -73,7 +85,7 @@ namespace PCGExPointIOMerger
 	{
 	public:
 		FWriteAttributeScopeTask(
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const uint64 InScope,
 			const PCGEx::FAttributeIdentity& InIdentity,
 			PCGEx::TAttributeWriter<T>* InWriter)
@@ -88,7 +100,7 @@ namespace PCGExPointIOMerger
 		const PCGEx::FAttributeIdentity Identity;
 		PCGEx::TAttributeWriter<T>* Writer = nullptr;
 
-		virtual bool ExecuteTask() override
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			ScopeMerge<T>(Scope, Identity, PointIO, Writer);
 			return true;

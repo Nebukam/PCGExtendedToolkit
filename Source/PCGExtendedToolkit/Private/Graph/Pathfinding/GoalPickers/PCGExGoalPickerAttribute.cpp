@@ -4,6 +4,11 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
 
+
+
+
+
+
 void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
@@ -15,7 +20,7 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPickerAttribute::PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade)
+void UPCGExGoalPickerAttribute::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
 {
 	Super::PrepareForData(InSeedsDataFacade, InGoalsDataFacade);
 

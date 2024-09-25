@@ -7,6 +7,11 @@
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
 
+
+
+
+
+
 #include "PCGExCopyClustersToPoints.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
@@ -64,24 +69,22 @@ protected:
 
 namespace PCGExCopyClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExCopyClustersToPointsContext, UPCGExCopyClustersToPointsSettings>
 	{
-		FPCGExCopyClustersToPointsContext* LocalTypedContext = nullptr;
-
 	public:
 		TArray<PCGExData::FPointIO*>* VtxDupes = nullptr;
 		TArray<FString>* VtxTag = nullptr;
 
 		TArray<PCGExData::FPointIO*> EdgesDupes;
 
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
+			TClusterProcessor(InVtx, InEdges)
 		{
 			bBuildCluster = false;
 		}
 
 		virtual ~FProcessor() override;
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 
@@ -89,13 +92,11 @@ namespace PCGExCopyClusters
 	{
 		friend class FProcessor;
 
-		FPCGExCopyClustersToPointsContext* LocalTypedContext = nullptr;
-
 	public:
 		TArray<PCGExData::FPointIO*> VtxDupes;
 		TArray<FString> VtxTag;
 
-		FBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+		FBatch(FPCGContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)
 		{
 		}

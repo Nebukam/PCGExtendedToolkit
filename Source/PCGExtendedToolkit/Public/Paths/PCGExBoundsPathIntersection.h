@@ -7,6 +7,10 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExBoundsPathIntersection.generated.h"
@@ -70,7 +74,7 @@ protected:
 
 namespace PCGExPathIntersections
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBoundsPathIntersectionContext, UPCGExBoundsPathIntersectionSettings>
 	{
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
@@ -80,14 +84,14 @@ namespace PCGExPathIntersections
 		FPCGExBoxIntersectionDetails Details;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void FindIntersections(const int32 Index) const;
 		void InsertIntersections(const int32 Index) const;
 		void OnInsertionComplete();

@@ -3,6 +3,9 @@
 
 #include "Paths/PCGExBlendPath.h"
 
+
+
+
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
@@ -89,17 +92,16 @@ namespace PCGExBlendPath
 		PCGEX_DELETE(MetadataBlender)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBlendPath::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BlendPath)
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
+		
+		
 
 		if (Settings->BlendOver == EPCGExBlendOver::Fixed && Settings->LerpSource == EPCGExFetchType::Attribute)
 		{
@@ -107,7 +109,7 @@ namespace PCGExBlendPath
 
 			if (!LerpCache)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Lerp attribute is invalid."));
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Lerp attribute is invalid."));
 				return false;
 			}
 		}
@@ -121,7 +123,7 @@ namespace PCGExBlendPath
 		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade.Get());
 
-		if (LocalSettings->BlendOver == EPCGExBlendOver::Distance)
+		if (Settings->BlendOver == EPCGExBlendOver::Distance)
 		{
 			Metrics = PCGExPaths::FPathMetrics(OutPoints[0].Transform.GetLocation());
 			PCGEX_SET_NUM_UNINITIALIZED(Length, PointIO->GetNum())
@@ -147,17 +149,17 @@ namespace PCGExBlendPath
 		const PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);
 		MetadataBlender->PrepareForBlending(Current);
 
-		if (LocalSettings->BlendOver == EPCGExBlendOver::Distance)
+		if (Settings->BlendOver == EPCGExBlendOver::Distance)
 		{
 			Alpha = Length[Index] / Metrics.Length;
 		}
-		else if (LocalSettings->BlendOver == EPCGExBlendOver::Index)
+		else if (Settings->BlendOver == EPCGExBlendOver::Index)
 		{
 			Alpha = static_cast<double>(Index) / static_cast<double>(PointIO->GetNum());
 		}
 		else
 		{
-			Alpha = LerpCache ? LerpCache->Read(Index) : LocalSettings->LerpConstant;
+			Alpha = LerpCache ? LerpCache->Read(Index) : Settings->LerpConstant;
 		}
 
 		MetadataBlender->Blend(*Start, *End, Current, Alpha);
@@ -166,7 +168,7 @@ namespace PCGExBlendPath
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

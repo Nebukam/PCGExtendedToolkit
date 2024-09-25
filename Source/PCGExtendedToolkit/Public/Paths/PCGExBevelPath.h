@@ -7,6 +7,10 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExBevelPath.generated.h"
 
@@ -152,7 +156,7 @@ public:
 	FName SubdivisionFlagName = "IsSubdivision";
 
 
-	void InitOutputFlags(const PCGExData::FPointIO* InPointIO) const;
+	void InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathContext final : public FPCGExPathProcessorContext
@@ -224,12 +228,9 @@ namespace PCGExBevelPath
 		void SubdivideCustom(const FProcessor* InProcessor);
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBevelPathContext, UPCGExBevelPathSettings>
 	{
 		friend struct FBevel;
-
-		FPCGExBevelPathContext* LocalTypedContext = nullptr;
-		const UPCGExBevelPathSettings* LocalSettings = nullptr;
 
 		TArray<double> Lengths;
 
@@ -250,8 +251,8 @@ namespace PCGExBevelPath
 		PCGExData::TBuffer<bool>* SubdivisionWriter = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 			DefaultPointFilterValue = true;
 		}
@@ -260,7 +261,7 @@ namespace PCGExBevelPath
 
 		FORCEINLINE double Len(const int32 Index) const { return Lengths[Index]; }
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		void WriteFlags(const int32 Index);

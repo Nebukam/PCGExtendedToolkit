@@ -40,7 +40,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
 		Tags = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedTags);
 	}
 
-	bool IsClosedLoop(const PCGExData::FPointIO* InPointIO)
+	bool IsClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 	{
 		if (Tags.IsEmpty()) { return bClosedLoop; }
 		for (const FString& Tag : Tags) { if (InPointIO->Tags->IsTagged(Tag)) { return !bClosedLoop; } }
@@ -70,7 +70,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopUpdateDetails
 		RemoveTags = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedRemoveTags);
 	}
 
-	void Update(const PCGExData::FPointIO* InPointIO)
+	void Update(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 	{
 		for (const FString& Add : AddTags) { InPointIO->Tags->Add(Add); }
 		for (const FString& Rem : RemoveTags) { InPointIO->Tags->Remove(Rem); }

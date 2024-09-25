@@ -9,6 +9,10 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExDataBlending.h"
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExPathCrossings.generated.h"
 
@@ -153,11 +157,8 @@ namespace PCGExPathCrossings
 		}
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathCrossingsContext, UPCGExPathCrossingsSettings>
 	{
-		const UPCGExPathCrossingsSettings* LocalSettings = nullptr;
-		FPCGExPathCrossingsContext* LocalTypedContext = nullptr;
-
 		bool bClosedLoop = false;
 		bool bSelfIntersectionOnly = false;
 
@@ -192,8 +193,8 @@ namespace PCGExPathCrossings
 		PCGExData::TBuffer<FVector>* CrossWriter = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
+			: TPointsProcessor(InPoints)
 		{
 		}
 
@@ -202,7 +203,7 @@ namespace PCGExPathCrossings
 		virtual ~FProcessor() override;
 		const TEdgeOctree* GetEdgeOctree() const { return EdgeOctree; }
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		void FixPoint(const int32 Index);
 		void CrossBlendPoint(const int32 Index);

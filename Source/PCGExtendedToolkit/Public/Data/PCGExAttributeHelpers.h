@@ -16,6 +16,10 @@
 #include "PCGExMT.h"
 #include "PCGExPointIO.h"
 #include "PCGParamData.h"
+
+
+
+
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
 #include "Metadata/Accessors/PCGCustomAccessor.h"
 
@@ -161,7 +165,7 @@ namespace PCGEx
 		bool FindMissing(const TSet<FName>& Checklist, TSet<FName>& OutMissing);
 		bool FindMissing(const TArray<FName>& Checklist, TSet<FName>& OutMissing);
 
-		void Append(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
+		void Append(const TSharedPtr<FAttributesInfos>& Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
 		void Update(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
 
 		~FAttributesInfos()
@@ -171,11 +175,11 @@ namespace PCGEx
 			Attributes.Empty();
 		}
 
-		static FAttributesInfos* Get(const UPCGMetadata* InMetadata);
+		static TSharedPtr<FAttributesInfos> Get(const UPCGMetadata* InMetadata);
 	};
 
 	static void GatherAttributes(
-		FAttributesInfos* OutInfos, const FPCGContext* InContext, const FName InputLabel,
+		const TSharedPtr<FAttributesInfos>& OutInfos, const FPCGContext* InContext, const FName InputLabel,
 		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
 	{
 		TArray<FPCGTaggedData> InputData = InContext->InputData.GetInputsByPin(InputLabel);
@@ -183,26 +187,20 @@ namespace PCGEx
 		{
 			if (const UPCGParamData* AsParamData = Cast<UPCGParamData>(TaggedData.Data))
 			{
-				const FAttributesInfos* Infos = FAttributesInfos::Get(AsParamData->Metadata);
-				OutInfos->Append(Infos, InDetails, Mismatches);
-				PCGEX_DELETE(Infos);
-				continue;
+				OutInfos->Append(FAttributesInfos::Get(AsParamData->Metadata), InDetails, Mismatches);
 			}
-
-			if (const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(TaggedData.Data))
+			else if (const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(TaggedData.Data))
 			{
-				const FAttributesInfos* Infos = FAttributesInfos::Get(AsSpatialData->Metadata);
-				OutInfos->Append(Infos, InDetails, Mismatches);
-				PCGEX_DELETE(Infos);
+				OutInfos->Append(FAttributesInfos::Get(AsSpatialData->Metadata), InDetails, Mismatches);
 			}
 		}
 	}
 
-	static FAttributesInfos* GatherAttributes(
+	static TSharedPtr<FAttributesInfos> GatherAttributes(
 		const FPCGContext* InContext, const FName InputLabel,
 		const FPCGExAttributeGatherDetails& InDetails, TSet<FName>& Mismatches)
 	{
-		FAttributesInfos* OutInfos = new FAttributesInfos();
+		TSharedPtr<FAttributesInfos> OutInfos = MakeShared<FAttributesInfos>();
 		GatherAttributes(OutInfos, InContext, InputLabel, InDetails, Mismatches);
 		return OutInfos;
 	}
@@ -351,7 +349,7 @@ namespace PCGEx
 		}
 
 		static FAttributeAccessor* FindOrCreate(
-			PCGExData::FPointIO* InPointIO, FName AttributeName,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO, FName AttributeName,
 			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
 			UPCGPointData* InData = InPointIO->GetOut();
@@ -384,7 +382,7 @@ namespace PCGEx
 			this->Keys = this->InternalKeys;
 		}
 
-		static FConstAttributeAccessor* Find(const PCGExData::FPointIO* InPointIO, const FName AttributeName)
+		static FConstAttributeAccessor* Find(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const FName AttributeName)
 		{
 			const UPCGPointData* InData = InPointIO->GetIn();
 			if (FPCGMetadataAttributeBase* InAttribute = InData->Metadata->GetMutableAttribute(AttributeName))
@@ -434,7 +432,7 @@ namespace PCGEx
 		FORCEINLINE T GetZeroedValue() const { return T{}; }
 		FORCEINLINE bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
 
-		virtual bool Bind(PCGExData::FPointIO* PointIO) = 0;
+		virtual bool Bind(const TSharedPtr<PCGExData::FPointIO>& PointIO) = 0;
 
 		FORCEINLINE T operator[](int32 Index) const { return this->Values[Index]; }
 
@@ -486,7 +484,7 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Bind(PCGExData::FPointIO* PointIO) override
+		virtual bool Bind(const TSharedPtr<PCGExData::FPointIO>& PointIO) override
 		{
 			PCGEX_DELETE(this->Accessor)
 
@@ -499,13 +497,13 @@ namespace PCGEx
 			this->UnderlyingType = PointIO->GetOut()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
-		
-		bool BindAndGet(PCGExData::FPointIO* PointIO)
+
+		bool BindAndGet(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 		{
 			if (Bind(PointIO))
 			{
 				PCGEx::InitMetadataArray(this->Values, PointIO->GetNum());
-				
+
 				// Only get range if the attribute is known to exist.
 				if (!bIsNewAttribute) { this->Accessor->GetRange(this->Values); }
 				else
@@ -518,7 +516,7 @@ namespace PCGEx
 			return false;
 		}
 
-		bool BindAndSetNumUninitialized(PCGExData::FPointIO* PointIO)
+		bool BindAndSetNumUninitialized(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 		{
 			if (Bind(PointIO))
 			{
@@ -561,7 +559,7 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Bind(PCGExData::FPointIO* PointIO) override
+		virtual bool Bind(const TSharedPtr<PCGExData::FPointIO>& PointIO) override
 		{
 			PCGEX_DELETE(this->Accessor)
 			this->Accessor = FConstAttributeAccessor<T>::Find(PointIO, this->Name);
@@ -572,7 +570,7 @@ namespace PCGEx
 			return true;
 		}
 
-		bool BindForFetch(PCGExData::FPointIO* PointIO)
+		bool BindForFetch(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 		{
 			PCGEX_DELETE(this->Accessor)
 			this->Accessor = FConstAttributeAccessor<T>::Find(PointIO, this->Name);
@@ -648,7 +646,7 @@ namespace PCGEx
 			Values.Empty();
 		}
 
-		bool InitForFetch(const PCGExData::FPointIO* PointIO)
+		bool InitForFetch(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 		{
 			ResetMinMax();
 			bMinMaxDirty = true;
@@ -688,7 +686,7 @@ namespace PCGEx
 		 * @param StartIndex
 		 * @param Count
 		 */
-		bool Fetch(PCGExData::FPointIO* PointIO, TArray<T>& Dump, const int32 StartIndex, const int32 Count)
+		bool Fetch(const TSharedPtr<PCGExData::FPointIO>& PointIO, TArray<T>& Dump, const int32 StartIndex, const int32 Count)
 		{
 			check(Dump.Num() == PointIO->GetNum(PCGExData::ESource::In)) // Dump target should be initialized at full length before using Fetch
 
@@ -753,7 +751,7 @@ namespace PCGEx
 		 * @param OutMin
 		 * @param OutMax
 		 */
-		bool GrabAndDump(const PCGExData::FPointIO* PointIO, TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax)
+		bool GrabAndDump(const TSharedPtr<PCGExData::FPointIO>& PointIO, TArray<T>& Dump, const bool bCaptureMinMax, T& OutMin, T& OutMax)
 		{
 			ResetMinMax();
 			bMinMaxDirty = !bCaptureMinMax;
@@ -849,13 +847,13 @@ namespace PCGEx
 		 * @param PointIO
 		 * @param bCaptureMinMax 
 		 */
-		bool Grab(const PCGExData::FPointIO* PointIO, const bool bCaptureMinMax = false)
+		bool Grab(const TSharedPtr<PCGExData::FPointIO>& PointIO, const bool bCaptureMinMax = false)
 		{
 			Cleanup();
 			return GrabAndDump(PointIO, Values, bCaptureMinMax, Min, Max);
 		}
 
-		bool SoftGrab(const PCGExData::FPointIO* PointIO)
+		bool SoftGrab(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 		{
 			Cleanup();
 
@@ -1021,7 +1019,7 @@ namespace PCGEx
 	}
 
 	static void CopyValues(
-		PCGExMT::FTaskManager* AsyncManager,
+		TWeakPtr<PCGExMT::FTaskManager> AsyncManager,
 		FAttributeIdentity Identity,
 		const PCGExData::FPointIO* Source,
 		PCGExData::FPointIO* Target,
@@ -1050,7 +1048,7 @@ namespace PCGEx
 					Writer->Values[TargetIndex + i] = SourceAttribute->GetValueFromItemKey(SourcePoints[SourceIndices[i]].MetadataEntry);
 				}
 
-				PCGEX_ASYNC_WRITE_DELETE(AsyncManager, Writer);
+				PCGExMT::Write(AsyncManager, Writer);
 				PCGEX_DELETE(Writer)
 			});
 	}
@@ -1475,9 +1473,9 @@ namespace PCGEx
 
 #pragma endregion
 
-	static FAttributesInfos* GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError)
+	static TSharedPtr<FAttributesInfos> GatherAttributeInfos(const FPCGContext* InContext, const FName InPinLabel, const FPCGExAttributeGatherDetails& InGatherDetails, const bool bThrowError)
 	{
-		FAttributesInfos* OutInfos = new FAttributesInfos();
+		TSharedPtr<FAttributesInfos> OutInfos = MakeShared<FAttributesInfos>();
 		TArray<FPCGTaggedData> TaggedDatas = InContext->InputData.GetInputsByPin(InPinLabel);
 
 		bool bHasErrors = false;
@@ -1492,7 +1490,7 @@ namespace PCGEx
 			if (!Metadata) { continue; }
 
 			TSet<FName> Mismatch;
-			const FAttributesInfos* Infos = FAttributesInfos::Get(Metadata);
+			TSharedPtr<FAttributesInfos> Infos = FAttributesInfos::Get(Metadata);
 
 			OutInfos->Append(Infos, InGatherDetails, Mismatch);
 

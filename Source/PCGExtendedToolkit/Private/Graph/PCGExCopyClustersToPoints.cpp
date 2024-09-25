@@ -4,6 +4,13 @@
 #include "Graph/PCGExCopyClustersToPoints.h"
 
 
+
+
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -76,15 +83,11 @@ namespace PCGExCopyClusters
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
-
-		LocalTypedContext = TypedContext;
-
-		const TArray<FPCGPoint>& Targets = TypedContext->Targets->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
 		const int32 NumTargets = Targets.Num();
 
 		PCGEX_SET_NUM_UNINITIALIZED(EdgesDupes, NumTargets)
@@ -92,12 +95,12 @@ namespace PCGExCopyClusters
 		for (int i = 0; i < NumTargets; ++i)
 		{
 			// Create an edge copy per target point
-			PCGExData::FPointIO* EdgeDupe = LocalTypedContext->MainEdges->Emplace_GetRef(EdgesIO, PCGExData::EInit::DuplicateInput);
+			PCGExData::FPointIO* EdgeDupe = Context->MainEdges->Emplace_GetRef(EdgesIO, PCGExData::EInit::DuplicateInput);
 
 			EdgesDupes[i] = EdgeDupe;
 			PCGExGraph::MarkClusterEdges(EdgeDupe, *(VtxTag->GetData() + i));
 
-			AsyncManagerPtr->Start<PCGExGeoTasks::FTransformPointIO>(i, TypedContext->Targets, EdgeDupe, &TypedContext->TransformDetails);
+			AsyncManager->Start<PCGExGeoTasks::FTransformPointIO>(i, Context->Targets, EdgeDupe, &Context->TransformDetails);
 		}
 
 		return true;
@@ -110,7 +113,7 @@ namespace PCGExCopyClusters
 
 		if (!CachedCluster) { return; }
 
-		const TArray<FPCGPoint>& Targets = LocalTypedContext->Targets->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
 		const int32 NumTargets = Targets.Num();
 
 		for (int i = 0; i < NumTargets; ++i)
@@ -137,9 +140,9 @@ namespace PCGExCopyClusters
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
 
-		LocalTypedContext = TypedContext;
+		
 
-		const TArray<FPCGPoint>& Targets = TypedContext->Targets->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
 		const int32 NumTargets = Targets.Num();
 
 		PCGEX_SET_NUM_UNINITIALIZED(VtxDupes, NumTargets)
@@ -148,7 +151,7 @@ namespace PCGExCopyClusters
 		for (int i = 0; i < NumTargets; ++i)
 		{
 			// Create a vtx copy per target point
-			PCGExData::FPointIO* VtxDupe = LocalTypedContext->MainPoints->Emplace_GetRef(VtxIO, PCGExData::EInit::DuplicateInput);
+			PCGExData::FPointIO* VtxDupe = Context->MainPoints->Emplace_GetRef(VtxIO, PCGExData::EInit::DuplicateInput);
 
 			FString OutId;
 			PCGExGraph::SetClusterVtx(VtxDupe, OutId);
@@ -156,7 +159,7 @@ namespace PCGExCopyClusters
 			VtxDupes[i] = VtxDupe;
 			VtxTag.Add(OutId);
 
-			AsyncManagerPtr->Start<PCGExGeoTasks::FTransformPointIO>(i, TypedContext->Targets, VtxDupe, &TypedContext->TransformDetails);
+			AsyncManager->Start<PCGExGeoTasks::FTransformPointIO>(i, Context->Targets, VtxDupe, &Context->TransformDetails);
 		}
 
 		TBatch<FProcessor>::Process();

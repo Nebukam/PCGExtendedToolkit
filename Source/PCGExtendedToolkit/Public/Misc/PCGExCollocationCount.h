@@ -7,6 +7,12 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+
+
+
+
+
+
 #include "PCGExCollocationCount.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -72,7 +78,7 @@ protected:
 
 namespace PCGExCollocationCount
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCollocationCountContext, UPCGExCollocationCountSettings>
 	{
 		double NumPoints = 0;
 		double ToleranceConstant = 0;
@@ -82,8 +88,8 @@ namespace PCGExCollocationCount
 		const UPCGPointData::PointOctree* Octree = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
@@ -91,7 +97,7 @@ namespace PCGExCollocationCount
 		{
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

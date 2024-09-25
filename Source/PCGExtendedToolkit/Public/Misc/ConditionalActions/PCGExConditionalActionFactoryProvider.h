@@ -9,6 +9,8 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExOperation.h"
 #include "Data/PCGExPointFilter.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
 
 #include "PCGExConditionalActionFactoryProvider.generated.h"
 
@@ -49,7 +51,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade);
+	virtual bool PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
 	virtual void ProcessPoint(int32 Index, const FPCGPoint& Point);
 
 	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point);
@@ -58,7 +60,7 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGExPointFilter::TManager* FilterManager = nullptr;
+	TUniquePtr<PCGExPointFilter::TManager> FilterManager;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -67,8 +69,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionFactoryBase : public UPC
 	GENERATED_BODY()
 
 public:
-	PCGEx::FAttributesInfos* CheckSuccessInfos = nullptr;
-	PCGEx::FAttributesInfos* CheckFailInfos = nullptr;
+	TSharedPtr<PCGEx::FAttributesInfos> CheckSuccessInfos;
+	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
 
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 

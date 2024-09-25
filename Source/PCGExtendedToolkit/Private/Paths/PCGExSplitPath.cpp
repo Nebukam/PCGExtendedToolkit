@@ -5,6 +5,9 @@
 
 #include "Data/PCGExPointFilter.h"
 
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExSplitPathElement"
 #define PCGEX_NAMESPACE SplitPath
 
@@ -87,25 +90,24 @@ namespace PCGExSplitPath
 		Paths.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
+		
+		
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
 		const int32 NumPoints = PointIO->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
 
-		PCGEX_ASYNC_GROUP_CHKD_R(AsyncManagerPtr, TaskGroup)
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TaskGroup)
 		TaskGroup->SetOnIterationRangeStartCallback(
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
@@ -161,9 +163,9 @@ namespace PCGExSplitPath
 		const bool bWrapWithStart = PathInfos.End == -1 && bWrapLastPath;
 		const int32 NumPathPoints = bWrapWithStart ? PathInfos.Count + Paths[0].Count : PathInfos.Count;
 
-		if (NumPathPoints == 1 && LocalSettings->bOmitSinglePointOutputs) { return; }
+		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
-		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(Context, PointIO);
+		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(ExecutionContext, PointIO);
 		PathIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		PathsIOs[Iteration] = PathIO;
 
@@ -201,13 +203,11 @@ namespace PCGExSplitPath
 
 	void FProcessor::Output()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
-
 		for (PCGExData::FPointIO* PathIO : PathsIOs)
 		{
 			if (!PathIO) { continue; }
-			if (bAddOpenTag) { LocalTypedContext->UpdateTags.Update(PathIO); }
-			LocalTypedContext->MainPaths->AddUnsafe(PathIO);
+			if (bAddOpenTag) { Context->UpdateTags.Update(PathIO); }
+			Context->MainPaths->AddUnsafe(PathIO);
 		}
 
 		PathsIOs.Empty(); // So they don't get deleted

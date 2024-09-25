@@ -8,6 +8,8 @@
 #include "Data/PCGExDataForward.h"
 
 
+
+
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoMesh.h"
 
@@ -117,14 +119,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersContext final : public FPC
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 	FPCGExTransformDetails TransformDetails;
 
-	PCGExGeo::FGeoStaticMeshMap* StaticMeshMap = nullptr;
+	TUniquePtr<PCGExGeo::FGeoStaticMeshMap> StaticMeshMap;
 	TArray<int32> MeshIdx;
 
-	PCGExData::FPointIOCollection* RootVtx = nullptr;
-	PCGExData::FPointIOCollection* VtxChildCollection = nullptr;
-	PCGExData::FPointIOCollection* EdgeChildCollection = nullptr;
+	TUniquePtr<PCGExData::FPointIOCollection> RootVtx;
+	TUniquePtr<PCGExData::FPointIOCollection> VtxChildCollection;
+	TUniquePtr<PCGExData::FPointIOCollection> EdgeChildCollection;
 
-	TArray<PCGExGraph::FGraphBuilder*> GraphBuilders;
+	TArray<TSharedPtr<PCGExGraph::FGraphBuilder>> GraphBuilders;
 
 	virtual ~FPCGExMeshToClustersContext() override;
 };
@@ -149,7 +151,7 @@ namespace PCGExMeshToCluster
 	{
 	public:
 		FExtractMeshAndBuildGraph(
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			PCGExGeo::FGeoStaticMesh* InMesh) :
 			FPCGExTask(InPointIO),
 			Mesh(InMesh)
@@ -158,6 +160,6 @@ namespace PCGExMeshToCluster
 
 		PCGExGeo::FGeoStaticMesh* Mesh = nullptr;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

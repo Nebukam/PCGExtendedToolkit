@@ -3,6 +3,9 @@
 
 #include "Misc/PCGExBitwiseOperation.h"
 
+
+
+
 #include "Misc/PCGExBitmask.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBitwiseOperationElement"
@@ -78,13 +81,12 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExBitwiseOperation
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBitwiseOperation::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BitwiseOperation)
 
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Writer = PointDataFacade->GetWritable<int64>(Settings->FlagAttribute, 0, false, false);
 
@@ -112,7 +114,7 @@ namespace PCGExBitwiseOperation
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

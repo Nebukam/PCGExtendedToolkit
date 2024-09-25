@@ -8,6 +8,12 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "Data/PCGExAttributeHelpers.h"
+
+
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -220,7 +226,7 @@ namespace PCGExCluster
 
 		void BuildFrom(const PCGExGraph::FSubGraph* SubGraph);
 
-		bool IsValidWith(const PCGExData::FPointIO* InVtxIO, const PCGExData::FPointIO* InEdgesIO) const;
+		bool IsValidWith(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO) const;
 
 		const TArray<uint64>* GetVtxPointScopesPtr();
 		const TArray<int32>& GetVtxPointIndices();
@@ -511,7 +517,7 @@ namespace PCGExClusterTask
 	{
 	public:
 		FBuildCluster(
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			PCGExCluster::FCluster* InCluster,
 			const TSharedPtr<PCGExData::FPointIO>& InEdgeIO,
 			const TMap<uint32, int32>* InEndpointsLookup,
@@ -529,14 +535,14 @@ namespace PCGExClusterTask
 		const TMap<uint32, int32>* EndpointsLookup = nullptr;
 		const TArray<int32>* ExpectedAdjacency = nullptr;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFindNodeChains final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FFindNodeChains(PCGExData::FPointIO* InPointIO,
+		FFindNodeChains(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                const PCGExCluster::FCluster* InCluster,
 		                const TArray<bool>* InBreakpoints,
 		                TArray<PCGExCluster::FNodeChain*>* InChains,
@@ -558,13 +564,13 @@ namespace PCGExClusterTask
 		const bool bSkipSingleEdgeChains = false;
 		const bool bDeadEndsOnly = false;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildChain final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FBuildChain(PCGExData::FPointIO* InPointIO,
+		FBuildChain(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		            const PCGExCluster::FCluster* InCluster,
 		            const TArray<bool>* InBreakpoints,
 		            TArray<PCGExCluster::FNodeChain*>* InChains,
@@ -585,7 +591,7 @@ namespace PCGExClusterTask
 		int32 StartIndex = 0;
 		uint64 AdjacencyHash = 0;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	static void BuildChain(
@@ -648,7 +654,7 @@ namespace PCGExClusterTask
 	class /*PCGEXTENDEDTOOLKIT_API*/ FExpandClusterNodes final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FExpandClusterNodes(PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
+		FExpandClusterNodes(const TSharedPtr<PCGExData::FPointIO>& InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
 			FPCGExTask(InPointIO), Cluster(InCluster), NumIterations(InNumIterations)
 		{
 		}
@@ -656,13 +662,13 @@ namespace PCGExClusterTask
 		PCGExCluster::FCluster* Cluster = nullptr;
 		int32 NumIterations = 0;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FExpandClusterEdges final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FExpandClusterEdges(PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
+		FExpandClusterEdges(const TSharedPtr<PCGExData::FPointIO>& InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
 			FPCGExTask(InPointIO), Cluster(InCluster), NumIterations(InNumIterations)
 		{
 		}
@@ -670,7 +676,7 @@ namespace PCGExClusterTask
 		PCGExCluster::FCluster* Cluster = nullptr;
 		int32 NumIterations = 0;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }
 

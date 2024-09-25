@@ -358,7 +358,7 @@ namespace PCGExGraph
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
-		PCGExData::FPointIO* PointIO = nullptr;
+		const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
 		FGraph* Graph = nullptr;
 		FCompoundGraph* CompoundGraph = nullptr;
 
@@ -368,7 +368,7 @@ namespace PCGExGraph
 		FPointEdgeIntersections(
 			FGraph* InGraph,
 			FCompoundGraph* InCompoundGraph,
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
 		FORCEINLINE void Add(const int32 EdgeIndex, const FPESplit& Split)
@@ -595,7 +595,7 @@ namespace PCGExGraph
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
-		PCGExData::FPointIO* PointIO = nullptr;
+		const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
 		FGraph* Graph = nullptr;
 		FCompoundGraph* CompoundGraph = nullptr;
 
@@ -611,7 +611,7 @@ namespace PCGExGraph
 		FEdgeEdgeIntersections(
 			FGraph* InGraph,
 			FCompoundGraph* InCompoundGraph,
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExEdgeEdgeIntersectionDetails* InDetails);
 
 		FORCEINLINE bool AlreadyChecked(const uint64 Key) const

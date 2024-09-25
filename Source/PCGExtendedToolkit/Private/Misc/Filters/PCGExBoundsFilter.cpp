@@ -3,6 +3,10 @@
 
 #include "Misc/Filters/PCGExBoundsFilter.h"
 
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+#include "Editor/Experimental/EditorInteractiveToolsFramework/Public/Behaviors/2DViewportBehaviorTargets.h"
+
+
 #define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"
 #define PCGEX_NAMESPACE PCGExBoundsFilterDefinition
 
@@ -21,9 +25,9 @@ bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExPointFilter::TFilter* UPCGExBoundsFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExBoundsFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TBoundsFilter(this);
+	return MakeShared<PCGExPointsFilter::TBoundsFilter>(this);
 }
 
 void UPCGExBoundsFilterFactory::BeginDestroy()
@@ -32,7 +36,7 @@ void UPCGExBoundsFilterFactory::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-bool PCGExPointsFilter::TBoundsFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TBoundsFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 	return Cloud ? true : false;

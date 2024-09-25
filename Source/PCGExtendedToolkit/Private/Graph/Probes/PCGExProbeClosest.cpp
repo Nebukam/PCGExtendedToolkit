@@ -12,7 +12,7 @@ bool UPCGExProbeClosest::RequiresDirectProcessing()
 	return Config.bUnbounded;
 }
 
-bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
+bool UPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 

@@ -12,6 +12,12 @@
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
 
+
+
+
+
+
+
 #include "PCGExGraph.generated.h"
 
 namespace PCGExGraph
@@ -313,7 +319,7 @@ namespace PCGExGraph
 		TSet<int32> Edges; //TODO : Test for TArray
 		TSet<int32> EdgesInIOIndices;
 		PCGExData::FFacade* VtxDataFacade = nullptr;
-		TUniquePtr<PCGExData::FFacade> EdgesDataFacade;
+		TSharedPtr<PCGExData::FFacade> EdgesDataFacade;
 		TArray<FIndexedEdge> FlattenedEdges;
 		int64 UID = 0;
 
@@ -482,7 +488,7 @@ namespace PCGExGraph
 	};
 
 	static bool BuildEndpointsLookup(
-		const PCGExData::FPointIO* InPointIO,
+		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		TMap<uint32, int32>& OutIndices,
 		TArray<int32>& OutAdjacency)
 	{
@@ -492,7 +498,7 @@ namespace PCGExGraph
 		OutIndices.Empty();
 
 		PCGEx::TAttributeReader<int64>* IndexReader = new PCGEx::TAttributeReader<int64>(Tag_VtxEndpoint);
-		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO*>(InPointIO)))
+		if (!IndexReader->Bind(InPointIO))
 		{
 			PCGEX_DELETE(IndexReader)
 			return false;
@@ -543,7 +549,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	static bool GetReducedVtxIndices(PCGExData::FPointIO* InEdges, const TMap<uint32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
+	static bool GetReducedVtxIndices(const TSharedPtr<PCGExData::FPointIO>& InEdges, const TMap<uint32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
 	{
 		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(Tag_EdgeEndpoints);
 
@@ -582,7 +588,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	static void CleanupVtxData(const PCGExData::FPointIO* PointIO)
+	static void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 	{
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 		PointIO->Tags->Remove(TagStr_ClusterPair);
@@ -603,7 +609,7 @@ namespace PCGExGraphTask
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteSubGraphCluster final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FWriteSubGraphCluster(PCGExData::FPointIO* InPointIO,
+		FWriteSubGraphCluster(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                      PCGExGraph::FSubGraph* InSubGraph)
 			: FPCGExTask(InPointIO),
 			  SubGraph(InSubGraph)
@@ -611,14 +617,14 @@ namespace PCGExGraphTask
 		}
 
 		PCGExGraph::FSubGraph* SubGraph = nullptr;
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FPCGExTask
 	{
 	public:
 		FCompileGraph(
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			PCGExGraph::FGraphBuilder* InGraphBuilder,
 			const bool bInWriteNodeFacade,
 			PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
@@ -633,13 +639,13 @@ namespace PCGExGraphTask
 		const bool bWriteNodeFacade = false;
 		PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyGraphToPoint final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FCopyGraphToPoint(PCGExData::FPointIO* InPointIO,
+		FCopyGraphToPoint(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                  PCGExGraph::FGraphBuilder* InGraphBuilder,
 		                  PCGExData::FPointIOCollection* InVtxCollection,
 		                  PCGExData::FPointIOCollection* InEdgeCollection,
@@ -659,7 +665,7 @@ namespace PCGExGraphTask
 
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 #pragma endregion

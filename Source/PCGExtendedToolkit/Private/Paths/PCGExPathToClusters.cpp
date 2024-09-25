@@ -4,6 +4,12 @@
 #include "Paths/PCGExPathToClusters.h"
 #include "Graph/PCGExGraph.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
+
+
+
+
+
+
 #include "Graph/Data/PCGExClusterData.h"
 #include "Graph/PCGExCompoundHelpers.h"
 
@@ -191,13 +197,12 @@ namespace PCGExPathToClusters
 		PCGEX_DELETE(GraphBuilder)
 	}
 
-	bool FNonFusingProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FNonFusingProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToClusters)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
 		GraphBuilder = new PCGExGraph::FGraphBuilder(PointDataFacade.Get(), &Settings->GraphBuilderDetails, 2);
 
@@ -224,7 +229,7 @@ namespace PCGExPathToClusters
 		GraphBuilder->Graph->InsertEdges(Edges);
 		Edges.Empty();
 
-		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
+		GraphBuilder->CompileAsync(AsyncManager, false);
 
 		return true;
 	}
@@ -239,7 +244,7 @@ namespace PCGExPathToClusters
 		}
 
 		GraphBuilder->OutputEdgesToContext();
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 
 #pragma endregion
@@ -250,11 +255,9 @@ namespace PCGExPathToClusters
 	{
 	}
 
-	bool FFusingProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FFusingProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToClusters)
-
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		InPoints = &PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints->Num();
@@ -263,8 +266,8 @@ namespace PCGExPathToClusters
 
 		if (NumPoints < 2) { return false; }
 
-		CompoundGraph = TypedContext->CompoundGraph;
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		CompoundGraph = Context->CompoundGraph;
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		bInlineProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);

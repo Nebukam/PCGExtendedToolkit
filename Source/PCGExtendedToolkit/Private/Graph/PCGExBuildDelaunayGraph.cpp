@@ -3,6 +3,9 @@
 
 #include "Graph/PCGExBuildDelaunayGraph.h"
 
+
+
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
@@ -104,12 +107,11 @@ namespace PCGExBuildDelaunay
 		UrquhartEdges.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunay::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		// Build delaunay
 
@@ -120,7 +122,7 @@ namespace PCGExBuildDelaunay
 
 		if (!Delaunay->Process(ActivePositions, false))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Delaunay 2D instead."));
+			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Delaunay 2D instead."));
 			return false;
 		}
 
@@ -136,13 +138,13 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bOutputSites)
 		{
-			if (Settings->bMergeUrquhartSites) { AsyncManagerPtr->Start<FOutputDelaunayUrquhartSites>(BatchIndex, PointIO, this); }
-			else { AsyncManagerPtr->Start<FOutputDelaunaySites>(BatchIndex, PointIO, this); }
+			if (Settings->bMergeUrquhartSites) { AsyncManager->Start<FOutputDelaunayUrquhartSites>(BatchIndex, PointIO, this); }
+			else { AsyncManager->Start<FOutputDelaunaySites>(BatchIndex, PointIO, this); }
 		}
 
 		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
-		GraphBuilder->CompileAsync(AsyncManagerPtr, false);
+		GraphBuilder->CompileAsync(AsyncManager, false);
 
 		if (!Settings->bMarkHull && !Settings->bOutputSites) { Delaunay.Reset(); }
 
@@ -156,8 +158,6 @@ namespace PCGExBuildDelaunay
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
-
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
@@ -176,12 +176,12 @@ namespace PCGExBuildDelaunay
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManagerPtr);
+		PointDataFacade->Write(AsyncManager);
 	}
 
-	bool FOutputDelaunaySites::ExecuteTask()
+	bool FOutputDelaunaySites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		FPCGExBuildDelaunayGraphContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraphContext>();
+		FPCGExBuildDelaunayGraphContext* Context = ManagerPtr->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		PCGExData::FPointIO* SitesIO = new PCGExData::FPointIO(Context, PointIO);
@@ -214,15 +214,15 @@ namespace PCGExBuildDelaunay
 			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
-			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);
+			PCGExMT::Write(ManagerPtr, HullWriter);
 		}
 
 		return true;
 	}
 
-	bool FOutputDelaunayUrquhartSites::ExecuteTask()
+	bool FOutputDelaunayUrquhartSites::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		FPCGExBuildDelaunayGraphContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraphContext>();
+		FPCGExBuildDelaunayGraphContext* Context = ManagerPtr->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
 		PCGExData::FPointIO* SitesIO = new PCGExData::FPointIO(Context, PointIO);
@@ -255,7 +255,7 @@ namespace PCGExBuildDelaunay
 			PCGEx::TAttributeWriter<bool>* HullWriter = new PCGEx::TAttributeWriter<bool>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
-			PCGEX_ASYNC_WRITE_DELETE(Manager, HullWriter);
+			PCGExMT::Write(ManagerPtr, HullWriter);
 		}
 
 		return true;

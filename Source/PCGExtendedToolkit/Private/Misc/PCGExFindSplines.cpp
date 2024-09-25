@@ -3,6 +3,10 @@
 
 #include "Misc/PCGExFindSplines.h"
 
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExFindSplinesElement"
 #define PCGEX_NAMESPACE FindSplines
 
@@ -57,12 +61,11 @@ bool FPCGExFindSplinesElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExFindSplines
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindSplines::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindSplines)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		StartParallelLoopForPoints();
 

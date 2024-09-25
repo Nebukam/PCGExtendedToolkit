@@ -8,6 +8,12 @@
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExDataBlending.h"
+
+
+
+
+
+
 #include "PCGExAttributeRolling.generated.h"
 
 namespace PCGExDataBlending
@@ -78,11 +84,8 @@ protected:
 
 namespace PCGExAttributeRolling
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>
 	{
-		FPCGExAttributeRollingContext* LocalTypedContext = nullptr;
-		const UPCGExAttributeRollingSettings* LocalSettings = nullptr;
-
 		PCGExPaths::FPathMetrics CurrentMetric;
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 
@@ -90,14 +93,14 @@ namespace PCGExAttributeRolling
 		TArray<FPCGPoint>* OutPoints = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
+			TPointsProcessor(InPoints)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;

@@ -7,6 +7,8 @@
 #include "PCGPoint.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExOperation.h"
+
+
 #include "Paths/PCGExPaths.h"
 #include "PCGExSubPointsOperation.generated.h"
 
@@ -28,7 +30,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet);
+	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet);
 
 	virtual void ProcessSubPoints(
 		const PCGExData::FPointRef& From,
