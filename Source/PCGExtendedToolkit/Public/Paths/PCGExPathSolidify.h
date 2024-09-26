@@ -144,8 +144,6 @@ namespace PCGExPathSolidify
 
 		int32 LastIndex = 0;
 
-		const UPCGExPathSolidifySettings* Settings = nullptr;
-
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
 			TPointsProcessor(InPoints)

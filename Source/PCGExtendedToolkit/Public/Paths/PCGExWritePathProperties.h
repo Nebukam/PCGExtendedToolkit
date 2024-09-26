@@ -259,8 +259,6 @@ namespace PCGExWritePathProperties
 
 		int32 LastIndex = 0;
 
-		const UPCGExWritePathPropertiesSettings* Settings = nullptr;
-
 	public:
 		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
 			TPointsProcessor(InPoints)
