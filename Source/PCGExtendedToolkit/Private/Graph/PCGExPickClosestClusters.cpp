@@ -5,7 +5,6 @@
 
 #include "Data/PCGExPointIOMerger.h"
 
-
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
 #define PCGEX_NAMESPACE PickClosestClusters
 
@@ -80,7 +79,6 @@ FPCGExPickClosestClustersContext::~FPCGExPickClosestClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
-
 
 bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 {

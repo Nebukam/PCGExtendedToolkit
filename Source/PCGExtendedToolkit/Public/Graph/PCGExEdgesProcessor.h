@@ -91,7 +91,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	}
 
 	template <typename T>
-	void GatherClusterProcessors(TArray<T>& OutProcessors)
+	void GatherClusterProcessors(TArray<TSharedPtr<T>>& OutProcessors)
 	{
 		OutProcessors.Reserve(GetClusterProcessorsNum());
 		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches)
