@@ -142,7 +142,7 @@ namespace PCGExData
 			InPoints = MakeArrayView(InPts.GetData(), NumPoints);
 
 			InValues = MakeShared<TArray<T>>();
-			PCGEx::InitMetadataArray(*InValues, NumPoints);
+			PCGEx::InitArray(*InValues, NumPoints);
 
 			InAttribute = Attribute;
 			TypedInAttribute = Attribute ? static_cast<const FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -159,7 +159,7 @@ namespace PCGExData
 			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
 
 			OutValues = MakeShared<TArray<T>>();
-			PCGEx::InitMetadataArray(*OutValues, NumPoints);
+			PCGEx::InitArray(*OutValues, NumPoints);
 
 			OutAttribute = Attribute;
 			TypedOutAttribute = Attribute ? static_cast<FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -279,7 +279,7 @@ namespace PCGExData
 			PrepareForRead(true, Getter->Attribute);
 			ScopedBroadcaster = Getter;
 
-			PCGEx::InitMetadataArray(*InValues, Source->GetNum());
+			PCGEx::InitArray(*InValues, Source->GetNum());
 		}
 
 		virtual void Write() override

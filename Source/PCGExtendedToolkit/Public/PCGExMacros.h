@@ -128,7 +128,6 @@ if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
 #define PCGEX_SET_NUM_PTR(_ARRAY, _NUM) { _ARRAY->SetNum(_NUM); }
 
 #define PCGEX_SET_NUM_UNINITIALIZED(_ARRAY, _NUM) { _ARRAY.SetNumUninitialized(_NUM); }
-#define PCGEX_SET_NUM_NULLPTR(_ARRAY, _NUM) { _ARRAY.Init(nullptr, _NUM); }
 #define PCGEX_SET_NUM_UNINITIALIZED_PTR(_ARRAY, _NUM) { _ARRAY->SetNumUninitialized(_NUM); }
 
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\

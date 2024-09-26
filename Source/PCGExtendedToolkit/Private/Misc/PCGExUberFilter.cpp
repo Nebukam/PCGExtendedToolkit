@@ -77,8 +77,8 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Settings->Mode == EPCGExUberFilterMode::Partition)
 		{
-			PCGEX_SET_NUM_NULLPTR(Context->Inside->Pairs, Context->NumPairs)
-			PCGEX_SET_NUM_NULLPTR(Context->Outside->Pairs, Context->NumPairs)
+			Context->Inside->Pairs.Init(nullptr, Context->NumPairs);
+			Context->Outside->Pairs.Init(nullptr, Context->NumPairs);
 		}
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>(

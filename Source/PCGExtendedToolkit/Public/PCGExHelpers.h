@@ -176,10 +176,10 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	static void InitMetadataArray(TArray<T>& MetadataValues, const int32 Num)
+	FORCEINLINE static void InitArray(TArray<T>& InArray, const int32 Num)
 	{
-		if constexpr (std::is_trivially_copyable_v<T>) { MetadataValues.SetNumUninitialized(Num); }
-		else { MetadataValues.SetNum(Num); }
+		if constexpr (std::is_trivially_copyable_v<T>) { InArray.SetNumUninitialized(Num); }
+		else { InArray.SetNum(Num); }
 	}
 
 #pragma endregion

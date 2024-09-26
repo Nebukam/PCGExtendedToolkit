@@ -263,7 +263,7 @@ namespace PCGEx
 
 		bool GetRange(TArray<T>& OutValues, const int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr, const int32 Count = -1) const
 		{
-			PCGEx::InitMetadataArray(OutValues, Count == -1 ? NumEntries - Index : Count);
+			PCGEx::InitArray(OutValues, Count == -1 ? NumEntries - Index : Count);
 			TArrayView<T> View(OutValues);
 			return Accessor->GetRange(View, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
@@ -492,7 +492,7 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				PCGEx::InitMetadataArray(this->Values, PointIO->GetNum());
+				PCGEx::InitArray(this->Values, PointIO->GetNum());
 
 				// Only get range if the attribute is known to exist.
 				if (!bIsNewAttribute) { this->Accessor->GetRange(this->Values); }
@@ -510,7 +510,7 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				PCGEx::InitMetadataArray(this->Values, PointIO->GetNum(PCGExData::ESource::Out));
+				PCGEx::InitArray(this->Values, PointIO->GetNum(PCGExData::ESource::Out));
 				return true;
 			}
 			return false;
@@ -553,7 +553,7 @@ namespace PCGEx
 		{
 			this->Accessor = FConstAttributeAccessor<T>::Find(PointIO, this->Name);
 			if (!this->Accessor) { return false; }
-			PCGEx::InitMetadataArray(this->Values, PointIO->GetNum());
+			PCGEx::InitArray(this->Values, PointIO->GetNum());
 			this->Accessor->GetRange(this->Values);
 			this->UnderlyingType = PointIO->GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
@@ -563,7 +563,7 @@ namespace PCGEx
 		{
 			this->Accessor = FConstAttributeAccessor<T>::Find(PointIO, this->Name);
 			if (!this->Accessor) { return false; }
-			PCGEx::InitMetadataArray(this->Values, PointIO->GetNum());
+			PCGEx::InitArray(this->Values, PointIO->GetNum());
 			this->UnderlyingType = PointIO->GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
@@ -691,7 +691,7 @@ namespace PCGEx
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;
 
-						PCGEx::InitMetadataArray(RawValues, Count);
+						PCGEx::InitArray(RawValues, Count);
 						FPCGAttributeAccessor<RawT>* Accessor = static_cast<FPCGAttributeAccessor<RawT>*>(FetchAccessor.Get());
 						IPCGAttributeAccessorKeys* Keys = PointIO->CreateInKeys().Get();
 
@@ -756,7 +756,7 @@ namespace PCGEx
 			ProcessExtraNames(Selector.GetName(), ExtraNames);
 
 			int32 NumPoints = PointIO->GetNum(PCGExData::ESource::In);
-			PCGEx::InitMetadataArray(Dump, NumPoints);
+			PCGEx::InitArray(Dump, NumPoints);
 
 			Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)
@@ -771,7 +771,7 @@ namespace PCGEx
 						using RawT = decltype(DummyValue);
 						TArray<RawT> RawValues;
 
-						PCGEx::InitMetadataArray(RawValues, NumPoints);
+						PCGEx::InitArray(RawValues, NumPoints);
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
 						TUniquePtr<FPCGAttributeAccessor<RawT>> Accessor = MakeUnique<FPCGAttributeAccessor<RawT>>(TypedAttribute, InData->Metadata);

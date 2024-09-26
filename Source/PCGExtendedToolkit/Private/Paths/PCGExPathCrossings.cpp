@@ -139,8 +139,8 @@ namespace PCGExPathCrossings
 
 		PCGEX_SET_NUM_UNINITIALIZED(Positions, NumPoints)
 		PCGEX_SET_NUM_UNINITIALIZED(Lengths, NumPoints)
-		PCGEX_SET_NUM_UNINITIALIZED(Edges, NumPoints)
-		PCGEX_SET_NUM_NULLPTR(Crossings, NumPoints)
+		Edges.Init(nullptr, NumPoints);
+		Crossings.Init(nullptr, NumPoints);
 
 		CanCut.Init(true, NumPoints);
 		CanBeCut.Init(true, NumPoints);

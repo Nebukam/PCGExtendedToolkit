@@ -291,7 +291,7 @@ namespace PCGExBevelPath
 		bInlineProcessPoints = true;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
-		PCGEX_SET_NUM_NULLPTR(Bevels, PointIO->GetNum())
+		Bevels.Init(nullptr, PointIO->GetNum());
 
 		if (Settings->WidthSource == EPCGExFetchType::Attribute)
 		{

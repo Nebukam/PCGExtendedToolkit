@@ -187,7 +187,8 @@ namespace PCGExSplitPath
 			if (Paths.Num() > 1 || Paths[0].End != -1 || Paths[0].Start != 0) { bAddOpenTag = true; }
 		}
 
-		PCGEX_SET_NUM_NULLPTR(PathsIOs, Paths.Num())
+		PathsIOs.Init(nullptr, Paths.Num());
+		
 		StartParallelLoopForRange(Paths.Num());
 
 		//TODO : If closed path is enabled, and if the first & last points are not removed after the split
