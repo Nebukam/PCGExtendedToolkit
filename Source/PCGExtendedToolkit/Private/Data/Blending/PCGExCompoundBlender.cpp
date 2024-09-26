@@ -35,7 +35,7 @@ namespace PCGExDataBlending
 
 		UniqueTags.Append(InFacade->Source->Tags->RawTags);
 
-		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps) { SrcMap->SetNum(NumSources); }
+		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps) { SrcMap->SetNum(NumSources); }
 
 		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
 		PCGEx::FAttributeIdentity::Get(InFacade->GetIn()->Metadata, SourceAttributes);
@@ -54,7 +54,7 @@ namespace PCGExDataBlending
 
 			// Search for an existing attribute map
 
-			for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
+			for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 			{
 				if (SrcMap->Identity.Name == Identity.Name)
 				{
@@ -74,7 +74,7 @@ namespace PCGExDataBlending
 			}
 			else
 			{
-				Map = AttributeSourceMaps.Add_GetRef(MakeUnique<FAttributeSourceMap>(Identity)).Get();
+				Map = AttributeSourceMaps.Add_GetRef(MakeShared<FAttributeSourceMap>(Identity)).Get();
 				Map->SetNum(NumSources);
 
 				Map->DefaultValuesSource = SourceAttribute; // TODO : Find a better way to choose this?
@@ -112,7 +112,7 @@ namespace PCGExDataBlending
 		CurrentTargetData->Source->CreateOutKeys();
 
 		// Create blending operations
-		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
+		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->Writer = nullptr;
 
@@ -175,7 +175,7 @@ namespace PCGExDataBlending
 
 		// Blend Attributes
 
-		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
+		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(WriteIndex);
 
@@ -222,7 +222,7 @@ namespace PCGExDataBlending
 		UPCGMetadata* TargetMetadata = TargetData->Source->GetOut()->Metadata;
 
 		// Create blending operations
-		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
+		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->Writer = nullptr;
 
@@ -287,7 +287,7 @@ namespace PCGExDataBlending
 		BlendProperties(Target, IdxIO, IdxPt, Weights);
 
 		// Blend Attributes
-		for (const TUniquePtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
+		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(Target.MetadataEntry);
 

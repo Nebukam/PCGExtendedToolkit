@@ -90,7 +90,7 @@ namespace PCGExDataBlending
 		bool bPreserveAttributesDefaultValue = false;
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
 
-		TArray<TUniquePtr<FAttributeSourceMap>> AttributeSourceMaps;
+		TArray<TSharedPtr<FAttributeSourceMap>> AttributeSourceMaps;
 		TSet<FString> UniqueTags;
 		TArray<FString> UniqueTagsList;
 		TArray<FPCGMetadataAttribute<bool>*> TagAttributes;

@@ -220,7 +220,7 @@ namespace PCGExDataBlending
 
 			OperationIdMap.Add(Identity.Name, Op.Get());
 
-			Operations.Add(MoveTemp(Op));
+			Operations.Add(Op);
 			if (Op->GetRequiresPreparation()) { OperationsToBePrepared.Add(Op.Get()); }
 			if (Op->GetRequiresFinalization()) { OperationsToBeCompleted.Add(Op.Get()); }
 
