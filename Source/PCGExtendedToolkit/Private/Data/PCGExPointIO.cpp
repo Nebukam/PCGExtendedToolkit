@@ -341,7 +341,7 @@ namespace PCGExData
 	void FPointIOCollection::Sort()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPointIOCollection::Sort);
-		Pairs.Sort([](const FPointIO& A, const FPointIO& B) { return A.IOIndex < B.IOIndex; });
+		Pairs.Sort([](const TSharedPtr<FPointIO>& A, const TSharedPtr<FPointIO>& B) { return A->IOIndex < B->IOIndex; });
 	}
 
 	FBox FPointIOCollection::GetInBounds() const

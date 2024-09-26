@@ -154,7 +154,7 @@ namespace PCGExAttributeRemap
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
 
-			PCGExData::TBuffer<T>* Writer = static_cast<PCGExData::TBuffer<T>*>(CacheWriter);
+			PCGExData::TBuffer<T>* Writer = static_cast<PCGExData::TBuffer<T>*>(CacheWriter.Get());
 
 			for (int d = 0; d < Dimensions; ++d)
 			{

@@ -10,8 +10,7 @@
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
-
-
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 
 #include "PCGExSampleNearestPoint.generated.h"
@@ -24,16 +23,6 @@ MACRO(Distance, double, 0)\
 MACRO(SignedDistance, double, 0)\
 MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
-
-namespace PCGExDataBlending
-{
-	struct FPropertiesBlender;
-}
 
 class UPCGExFilterFactoryBase;
 

@@ -312,7 +312,7 @@ namespace PCGExSampleNearestBounds
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestBoundsContext, UPCGExSampleNearestBoundsSettings>
 	{
-		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
+		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Bounds;
 
 		bool bSingleSample = false;

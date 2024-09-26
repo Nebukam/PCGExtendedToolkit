@@ -107,7 +107,7 @@ namespace PCGExFlagNodes
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		(*ExpandedNodes)[Iteration] = MoveTemp(MakeUnique<PCGExCluster::FExpandedNode>(Cluster.Get(), Iteration));
+		(*ExpandedNodes)[Iteration] = PCGExCluster::FExpandedNode(Cluster.Get(), Iteration);
 	}
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)

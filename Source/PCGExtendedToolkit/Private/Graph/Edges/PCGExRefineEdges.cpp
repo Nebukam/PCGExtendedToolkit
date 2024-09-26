@@ -4,8 +4,6 @@
 #include "Graph/Edges/PCGExRefineEdges.h"
 
 
-
-
 #include "Graph/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -244,11 +242,10 @@ namespace PCGExRefineEdges
 
 	void FProcessor::Sanitize()
 	{
-
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SanitizeTaskGroup)
 
 		Cluster->GetExpandedEdges(true); //Oof
-		
+
 		SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
 
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
@@ -266,7 +263,7 @@ namespace PCGExRefineEdges
 		{
 			SanitizeTaskGroup->StartRanges<FSanitizeRangeTask>(
 				NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
-				nullptr, this);
+				nullptr, SharedThis(this));
 		}
 	}
 

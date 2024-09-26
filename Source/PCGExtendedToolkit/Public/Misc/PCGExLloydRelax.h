@@ -94,7 +94,7 @@ namespace PCGExLloydRelax
 	{
 	public:
 		FLloydRelaxTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                FProcessor* InProcessor,
+		                const TSharedPtr<FProcessor>& InProcessor,
 		                const FPCGExInfluenceDetails* InInfluenceSettings,
 		                const int32 InNumIterations) :
 			FPCGExTask(InPointIO),
@@ -104,7 +104,7 @@ namespace PCGExLloydRelax
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		TSharedPtr<FProcessor> Processor;
 		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
 		int32 NumIterations = 0;
 

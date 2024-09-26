@@ -10,13 +10,9 @@
 
 
 #include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoVoronoi.h"
 
 #include "PCGExBuildVoronoiGraph2D.generated.h"
-
-namespace PCGExGeo
-{
-	class TVoronoi2;
-}
 
 /**
  * 

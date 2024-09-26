@@ -87,8 +87,8 @@ namespace PCGExPointsFilter
 
 		FPCGExDotComparisonDetails DotComparison;
 
-		PCGExData::TBuffer<FVector>* OperandA = nullptr;
-		PCGExData::TBuffer<FVector>* OperandB = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<FVector>> OperandB;
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override

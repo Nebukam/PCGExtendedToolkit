@@ -306,13 +306,13 @@ namespace PCGExPointsMT
 
 		FPCGExContext* ExecutionContext = nullptr;
 
-		TArray<PCGExData::FPointIO*> PointsCollection;
+		TArray<TSharedPtr<PCGExData::FPointIO>> PointsCollection;
 
 		UPCGExOperation* PrimaryOperation = nullptr;
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
-		FPointsProcessorBatchBase(FPCGExContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
+		FPointsProcessorBatchBase(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FPointIO>>& InPointsCollection):
 			ExecutionContext(InContext), PointsCollection(InPointsCollection)
 		{
 		}
@@ -362,7 +362,7 @@ namespace PCGExPointsMT
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
-		TBatch(FPCGExContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
+		TBatch(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FPointIO>>& InPointsCollection):
 			FPointsProcessorBatchBase(InContext, InPointsCollection)
 		{
 		}
@@ -389,7 +389,7 @@ namespace PCGExPointsMT
 
 			AsyncManager = InAsyncManager;
 
-			for (PCGExData::FPointIO* IO : PointsCollection)
+			for (const TSharedPtr<PCGExData::FPointIO>& IO : PointsCollection)
 			{
 				IO->CreateInKeys();
 

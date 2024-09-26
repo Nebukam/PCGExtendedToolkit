@@ -596,7 +596,7 @@ namespace PCGExGeoTasks
 	public:
 		FTransformPointIO(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			PCGExData::FPointIO* InToBeTransformedIO,
+			const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
 			FPCGExTransformDetails* InTransformDetails) :
 			FPCGExTask(InPointIO),
 			ToBeTransformedIO(InToBeTransformedIO),
@@ -604,7 +604,7 @@ namespace PCGExGeoTasks
 		{
 		}
 
-		PCGExData::FPointIO* ToBeTransformedIO = nullptr;
+		const TSharedPtr<PCGExData::FPointIO> ToBeTransformedIO;
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override

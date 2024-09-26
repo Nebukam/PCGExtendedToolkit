@@ -81,7 +81,7 @@ bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConnectPoints::FProcessor>>(
-			[](const PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return Entry->GetNum() >= 2; },
 			[&](PCGExPointsMT::TBatch<PCGExConnectPoints::FProcessor>* NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;

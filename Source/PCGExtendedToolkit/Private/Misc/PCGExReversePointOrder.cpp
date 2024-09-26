@@ -4,9 +4,6 @@
 #include "Misc/PCGExReversePointOrder.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
 #define PCGEX_NAMESPACE ReversePointOrder
 
@@ -122,8 +119,8 @@ namespace PCGExReversePointOrder
 				static_cast<uint16>(WorkingPair.FirstIdentity->UnderlyingType), [&](auto DummyValue) -> void
 				{
 					using RawT = decltype(DummyValue);
-					PCGExData::TBuffer<RawT>* FirstWriter = static_cast<PCGExData::TBuffer<RawT>*>(WorkingPair.FirstWriter);
-					PCGExData::TBuffer<RawT>* SecondWriter = static_cast<PCGExData::TBuffer<RawT>*>(WorkingPair.SecondWriter);
+					TSharedPtr<PCGExData::TBuffer<RawT>> FirstWriter = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(WorkingPair.FirstWriter);
+					TSharedPtr<PCGExData::TBuffer<RawT>> SecondWriter = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(WorkingPair.SecondWriter);
 
 					if (WorkingPair.bMultiplyByMinusOne)
 					{

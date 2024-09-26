@@ -40,7 +40,7 @@ bool FPCGExPathSolidifyElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathSolidify::FProcessor>>(
-			[](PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return Entry->GetNum() >= 2; },
 			[&](PCGExPointsMT::TBatch<PCGExPathSolidify::FProcessor>* NewBatch)
 			{
 			},

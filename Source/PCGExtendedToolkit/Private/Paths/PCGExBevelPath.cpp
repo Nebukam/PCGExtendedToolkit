@@ -171,8 +171,8 @@ namespace PCGExBevelPath
 
 	void FBevel::Balance(const FProcessor* InProcessor)
 	{
-		const TUniquePtr<FBevel>& PrevBevel = InProcessor->Bevels[ArriveIdx];
-		const TUniquePtr<FBevel>& NextBevel = InProcessor->Bevels[LeaveIdx];
+		const TSharedPtr<FBevel>& PrevBevel = InProcessor->Bevels[ArriveIdx];
+		const TSharedPtr<FBevel>& NextBevel = InProcessor->Bevels[LeaveIdx];
 
 		double ArriveAlphaSum = ArriveAlpha;
 		double LeaveAlphaSum = LeaveAlpha;
@@ -356,7 +356,7 @@ namespace PCGExBevelPath
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				if (!PointFilterCache[Index]) { return; }
-				Bevels[Index] = MoveTemp(MakeUnique<FBevel>(Index, this)); // no need for SharedThis
+				Bevels[Index] = MakeShared<FBevel>(Index, this); // no need for SharedThis
 			}, PointIO->GetNum(), 64);
 
 		return true;
@@ -364,7 +364,7 @@ namespace PCGExBevelPath
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		const TUniquePtr<FBevel>& Bevel = Bevels[Index];
+		const TSharedPtr<FBevel>& Bevel = Bevels[Index];
 		if (!Bevel) { return; }
 
 		if (Settings->Limit == EPCGExBevelLimit::Balanced) { Bevel->Balance(this); }
@@ -375,7 +375,7 @@ namespace PCGExBevelPath
 	{
 		const int32 StartIndex = StartIndices[Iteration];
 
-		const TUniquePtr<FBevel>& Bevel = Bevels[Iteration];
+		const TSharedPtr<FBevel>& Bevel = Bevels[Iteration];
 		const FPCGPoint& OriginalPoint = PointIO->GetInPoint(Iteration);
 
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
@@ -415,7 +415,7 @@ namespace PCGExBevelPath
 
 	void FProcessor::WriteFlags(const int32 Index)
 	{
-		const TUniquePtr<FBevel>& Bevel = Bevels[Index];
+		const TSharedPtr<FBevel>& Bevel = Bevels[Index];
 		if (!Bevel) { return; }
 
 		if (EndpointsWriter)
@@ -442,7 +442,7 @@ namespace PCGExBevelPath
 		{
 			StartIndices[i] = NumOutPoints;
 
-			if (const TUniquePtr<FBevel>& Bevel = Bevels[i])
+			if (const TSharedPtr<FBevel>& Bevel = Bevels[i])
 			{
 				NumBevels++;
 

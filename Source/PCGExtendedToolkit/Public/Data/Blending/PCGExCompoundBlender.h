@@ -22,11 +22,11 @@ namespace PCGExDataBlending
 	{
 		FPCGMetadataAttributeBase* DefaultValuesSource = nullptr;
 		TArray<FPCGMetadataAttributeBase*> Attributes;
-		TArray<TUniquePtr<FDataBlendingOperationBase>> BlendOps;
+		TArray<TSharedPtr<FDataBlendingOperationBase>> BlendOps;
 		PCGEx::FAttributeIdentity Identity;
 		bool AllowsInterpolation = true;
 
-		TUniquePtr<FDataBlendingOperationBase> TargetBlendOp;
+		TSharedPtr<FDataBlendingOperationBase> TargetBlendOp;
 		TSharedPtr<PCGExData::FBufferBase> Writer;
 
 		explicit FAttributeSourceMap(const PCGEx::FAttributeIdentity InIdentity)

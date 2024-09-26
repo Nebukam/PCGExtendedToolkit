@@ -84,7 +84,7 @@ namespace PCGExPointFilter
 		if (!bValid) { return false; }
 
 		// Sort mappings so higher priorities come last, as they have to potential to override values.
-		ManagedFilters.Sort([&](const TFilter& A, const TFilter& B) { return A.Factory->Priority < B.Factory->Priority; });
+		ManagedFilters.Sort([&](const TSharedPtr<TFilter>& A, const TSharedPtr<TFilter>& B) { return A->Factory->Priority < B->Factory->Priority; });
 
 		// Update index & post-init
 		for (int i = 0; i < ManagedFilters.Num(); ++i)

@@ -38,7 +38,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 	}
 
 	TSet<FName> MissingAttributes;
-	PCGExDataBlending::AssembleBlendingDetails(Blending, SourceAttributes, GetSourceIO(), MetadataBlendingDetails, MissingAttributes);
+	PCGExDataBlending::AssembleBlendingDetails(Blending, SourceAttributes, GetSourceIO().Get(), MetadataBlendingDetails, MissingAttributes);
 
 	for (const FName& Id : MissingAttributes)
 	{

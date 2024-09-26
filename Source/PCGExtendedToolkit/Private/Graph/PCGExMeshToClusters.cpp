@@ -221,7 +221,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 			Context->GetAsyncManager()->Start<PCGExGraphTask::FCopyGraphToPoint>(
 				TargetIndex, Context->CurrentIO, Context->GraphBuilders[MeshIdx],
-				Context->VtxChildCollection.Get(), Context->EdgeChildCollection.Get(), &Context->TransformDetails);
+				Context->VtxChildCollection, Context->EdgeChildCollection, &Context->TransformDetails);
 		};
 
 		if (!Context->Process(ProcessTarget, Context->CurrentIO->GetNum())) { return false; }

@@ -227,7 +227,7 @@ namespace PCGExMT
 		}
 
 		template <typename T, typename... Args>
-		void StartSynchronous(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+		void StartSynchronous(int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			if (!IsAvailable()) { return; }
 			StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
@@ -289,7 +289,7 @@ namespace PCGExMT
 		TArray<TSharedPtr<FTaskGroup>> Groups;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup
+	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup : public TSharedFromThis<FTaskGroup>
 	{
 		friend class FTaskManager;
 
@@ -336,19 +336,19 @@ namespace PCGExMT
 		}
 
 		template <typename T, typename... Args>
-		void Start(const int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+		void Start(const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			if (!Manager->IsAvailable()) { return; }
 
 			FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
 			FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
-			ATask->GetTask().GroupPtr = this;
+			ATask->GetTask().GroupPtr = SharedThis(this);
 			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, TaskIndex); }
 			else { Manager->StartBackgroundTask<T>(ATask, TaskIndex); }
 		}
 
 		template <typename T, typename... Args>
-		void StartRanges(const int32 MaxItems, const int32 ChunkSize, PCGExData::FPointIO* InPointsIO, Args... args)
+		void StartRanges(const int32 MaxItems, const int32 ChunkSize, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			if (!Manager->IsAvailable()) { return; }
 
@@ -361,7 +361,7 @@ namespace PCGExMT
 			for (const uint64 H : Loops)
 			{
 				FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
-				ATask->GetTask().GroupPtr = this;
+				ATask->GetTask().GroupPtr = SharedThis(this);
 				ATask->GetTask().Scope = H;
 
 				if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, LoopIdx++); }
@@ -397,7 +397,7 @@ namespace PCGExMT
 		void InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize)
 		{
 			FAsyncTask<T>* NextRange = new FAsyncTask<T>(nullptr);
-			NextRange->GetTask().GroupPtr = this;
+			NextRange->GetTask().GroupPtr = SharedThis(this);
 			NextRange->GetTask().MaxItems = MaxItems;
 			NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);
 
@@ -460,7 +460,7 @@ namespace PCGExMT
 		bool CanExecute() const { return ManagerPtr.Pin() ? true : false; }
 
 		template <typename T, typename... Args>
-		void InternalStart(int32 TaskIndex, TSharedPtr<PCGExData::FPointIO> InPointsIO, Args... args)
+		void InternalStart(int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			const TSharedPtr<PCGExMT::FTaskManager> Manager = ManagerPtr.Pin();
 			if (!Manager || !Manager->IsAvailable()) { return; }
@@ -469,7 +469,7 @@ namespace PCGExMT
 		}
 
 		template <typename T, typename... Args>
-		void InternalStartSync(int32 TaskIndex, TSharedPtr<PCGExData::FPointIO> InPointsIO, Args... args)
+		void InternalStartSync(int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			const TSharedPtr<PCGExMT::FTaskManager> Manager = ManagerPtr.Pin();
 			if (!Manager || !Manager->IsAvailable()) { return; }

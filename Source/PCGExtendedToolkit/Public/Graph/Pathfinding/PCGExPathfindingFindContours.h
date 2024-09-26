@@ -192,8 +192,8 @@ namespace PCGExFindContours
 		TArray<FVector>* ProjectedPositions = nullptr;
 
 		bool bBuildExpandedNodes = false;
-		TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedNode>>> ExpandedNodes;
-		TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedEdge>>> ExpandedEdges;
+		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
+		TSharedPtr<TArray<PCGExCluster::FExpandedEdge>> ExpandedEdges;
 
 	public:
 		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):

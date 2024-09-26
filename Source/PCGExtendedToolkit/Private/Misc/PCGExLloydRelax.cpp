@@ -91,7 +91,7 @@ namespace PCGExLloydRelax
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
 
-		AsyncManager->Start<FLloydRelaxTask>(0, PointIO, this, &InfluenceDetails, Settings->Iterations);
+		AsyncManager->Start<FLloydRelaxTask>(0, PointIO, SharedThis(this), &InfluenceDetails, Settings->Iterations);
 
 		return true;
 	}

@@ -101,7 +101,7 @@ namespace PCGExBreakClustersToPaths
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
 			AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster.Get(),
+				EdgesIO->IOIndex, nullptr, Cluster,
 				&Breakpoints, &Chains, false);
 		}
 		else
@@ -115,7 +115,6 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_SETTINGS(BreakClustersToPaths)
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
 			PCGExClusterTask::DedupeChains(Chains);

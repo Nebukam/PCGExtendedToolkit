@@ -9,25 +9,16 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExDataFilter.h"
+#include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 
 
 
 #include "Graph/PCGExGraph.h"
+#include "Graph/PCGExIntersections.h"
 
 #include "PCGExFusePoints.generated.h"
-
-
-namespace PCGExDataBlending
-{
-	class FCompoundBlender;
-}
-
-namespace PCGExGraph
-{
-	struct FCompoundGraph;
-}
 
 namespace PCGExFuse
 {

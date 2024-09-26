@@ -101,11 +101,11 @@ namespace PCPGExMergePointsByTag
 		{
 			if (SortDirection == EPCGExSortDirection::Ascending)
 			{
-				Buckets.Sort([&](const FTagBucket& A, const FTagBucket& B) { return A.IOs.Num() < B.IOs.Num(); });
+				Buckets.Sort([&](const TSharedPtr<FTagBucket>& A, const TSharedPtr<FTagBucket>& B) { return A->IOs.Num() < B->IOs.Num(); });
 			}
 			else
 			{
-				Buckets.Sort([&](const FTagBucket& A, const FTagBucket& B) { return A.IOs.Num() > B.IOs.Num(); });
+				Buckets.Sort([&](const TSharedPtr<FTagBucket>& A, const TSharedPtr<FTagBucket>& B) { return A->IOs.Num() > B->IOs.Num(); });
 			}
 		}
 		else
@@ -113,25 +113,25 @@ namespace PCPGExMergePointsByTag
 			if (SortDirection == EPCGExSortDirection::Ascending)
 			{
 				Buckets.Sort(
-					[&](const FTagBucket& A, const FTagBucket& B)
+					[&](const TSharedPtr<FTagBucket>& A, const TSharedPtr<FTagBucket>& B)
 					{
-						int32 RatingA = Priorities.Find(A.Tag);
-						int32 RatingB = Priorities.Find(B.Tag);
+						int32 RatingA = Priorities.Find(A->Tag);
+						int32 RatingB = Priorities.Find(B->Tag);
 						if (RatingA < 0) { RatingA = TNumericLimits<int32>::Max(); }
 						if (RatingB < 0) { RatingB = TNumericLimits<int32>::Max(); }
-						return RatingA == RatingB ? A.IOs.Num() < B.IOs.Num() : RatingA < RatingB;
+						return RatingA == RatingB ? A->IOs.Num() < B->IOs.Num() : RatingA < RatingB;
 					});
 			}
 			else
 			{
 				Buckets.Sort(
-					[&](const FTagBucket& A, const FTagBucket& B)
+					[&](const TSharedPtr<FTagBucket>& A, const TSharedPtr<FTagBucket>& B)
 					{
-						int32 RatingA = Priorities.Find(A.Tag);
-						int32 RatingB = Priorities.Find(B.Tag);
+						int32 RatingA = Priorities.Find(A->Tag);
+						int32 RatingB = Priorities.Find(B->Tag);
 						if (RatingA < 0) { RatingA = TNumericLimits<int32>::Max(); }
 						if (RatingB < 0) { RatingB = TNumericLimits<int32>::Max(); }
-						return RatingA == RatingB ? A.IOs.Num() > B.IOs.Num() : RatingA < RatingB;
+						return RatingA == RatingB ? A->IOs.Num() > B->IOs.Num() : RatingA < RatingB;
 					});
 			}
 		}

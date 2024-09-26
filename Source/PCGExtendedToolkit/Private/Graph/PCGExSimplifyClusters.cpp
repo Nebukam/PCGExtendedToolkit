@@ -45,7 +45,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>(
-			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>& NewBatch)
 			{
 			},
@@ -92,13 +92,13 @@ namespace PCGExSimplifyClusters
 		if (IsTrivial())
 		{
 			AsyncManager->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster.Get(),
+				EdgesIO->IOIndex, nullptr, Cluster,
 				&Breakpoints, &Chains, false, false);
 		}
 		else
 		{
 			AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster.Get(),
+				EdgesIO->IOIndex, nullptr, Cluster,
 				&Breakpoints, &Chains, false, false);
 		}
 
@@ -109,9 +109,6 @@ namespace PCGExSimplifyClusters
 	void FProcessor::CompleteWork()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::CompleteWork);
-
-		PCGEX_SETTINGS(SimplifyClusters)
-
 		PCGExClusterTask::DedupeChains(Chains);
 		StartParallelLoopForRange(Chains.Num());
 	}

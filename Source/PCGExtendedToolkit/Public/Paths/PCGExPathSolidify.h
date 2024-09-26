@@ -136,7 +136,7 @@ namespace PCGExPathSolidify
 {
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSolidifyContext, UPCGExPathSolidifySettings>
 	{
-		PCGExData::TBuffer<double>* SolidificationLerpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> SolidificationLerpGetter;
 
 #define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) TSharedPtr<PCGExData::TBuffer<double>> SolidificationRad##_AXIS; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)

@@ -79,14 +79,14 @@ namespace PCGExDataBlending
 
 				Map->DefaultValuesSource = SourceAttribute; // TODO : Find a better way to choose this?
 
-				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = MoveTemp(CreateOperation(EPCGExDataBlendingType::Copy, Identity)); }
-				else { Map->TargetBlendOp = MoveTemp(CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity)); }
+				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
+				else { Map->TargetBlendOp = CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity); }
 			}
 
 			check(Map)
 
 			Map->Attributes[SourceIdx] = SourceAttribute;
-			Map->BlendOps[SourceIdx] = MoveTemp(CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity));
+			Map->BlendOps[SourceIdx] = CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity);
 
 			if (!SourceAttribute->AllowsInterpolation()) { Map->AllowsInterpolation = false; }
 		}
@@ -137,7 +137,7 @@ namespace PCGExDataBlending
 
 					for (int i = 0; i < Sources.Num(); ++i)
 					{
-						if (const TUniquePtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, Sources[i]); }
+						if (const TSharedPtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, Sources[i]); }
 					}
 
 					SrcMap->TargetBlendOp->PrepareForData(Writer, CurrentTargetData, PCGExData::ESource::Out);
@@ -184,7 +184,7 @@ namespace PCGExDataBlending
 
 			for (int k = 0; k < NumCompounded; ++k)
 			{
-				const TUniquePtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
+				const TSharedPtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
 
 				const double Weight = Weights[k];
@@ -237,7 +237,7 @@ namespace PCGExDataBlending
 
 					for (int i = 0; i < Sources.Num(); ++i)
 					{
-						if (const TUniquePtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->SoftPrepareForData(CurrentTargetData, Sources[i]); }
+						if (const TSharedPtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->SoftPrepareForData(CurrentTargetData, Sources[i]); }
 					}
 
 					SrcMap->TargetBlendOp->SoftPrepareForData(CurrentTargetData, CurrentTargetData, PCGExData::ESource::Out);
@@ -296,7 +296,7 @@ namespace PCGExDataBlending
 
 			for (int k = 0; k < NumCompounded; ++k)
 			{
-				const TUniquePtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
+				const TSharedPtr<FDataBlendingOperationBase>& Operation = SrcMap->BlendOps[IdxIO[k]];
 				if (!Operation) { continue; }
 
 				const double Weight = Weights[k];

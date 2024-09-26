@@ -6,8 +6,6 @@
 #include "PCGExRandom.h"
 
 
-
-
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
@@ -185,7 +183,7 @@ namespace PCGExBuildVoronoi
 			//ExtractValidSites();
 			Voronoi.Reset();
 
-			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(ValidEdges, -1);
 
 			ValidEdges.Empty();
@@ -223,7 +221,7 @@ namespace PCGExBuildVoronoi
 				}
 			}
 
-			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 			//ExtractValidSites();

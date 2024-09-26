@@ -66,10 +66,10 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 	TArray<PCGExCluster::FExpandedNeighbor>* NextNeighbors = B.Get();
 	TSet<int32> VisitedNodes;
 
-	const TArray<PCGExCluster::FExpandedNode*>& ExpandedNodesRef = (*Cluster->ExpandedNodes);
+	const TArray<PCGExCluster::FExpandedNode>& ExpandedNodesRef = (*Cluster->ExpandedNodes);
 
 	VisitedNodes.Add(NodeIndex);
-	CurrentNeighbors->Append(ExpandedNodesRef[NodeIndex]->Neighbors);
+	CurrentNeighbors->Append(ExpandedNodesRef[NodeIndex].Neighbors);
 
 	PrepareNode(Node);
 	const FVector Origin = Cluster->GetPos(Node);
@@ -112,7 +112,7 @@ void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const
 		NextNeighbors->Reset();
 		for (const PCGExCluster::FExpandedNeighbor& Old : (*CurrentNeighbors))
 		{
-			const TArray<PCGExCluster::FExpandedNeighbor>& Neighbors = ExpandedNodesRef[Old.Node->NodeIndex]->Neighbors;
+			const TArray<PCGExCluster::FExpandedNeighbor>& Neighbors = ExpandedNodesRef[Old.Node->NodeIndex].Neighbors;
 			if (ValueFilters)
 			{
 				for (const PCGExCluster::FExpandedNeighbor& Next : Neighbors)

@@ -188,7 +188,7 @@ namespace PCGExPathCrossings
 		Preparation->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				TUniquePtr<PCGExPaths::FPathEdge> Edge = MakeUnique<PCGExPaths::FPathEdge>(Index, Index + 1 >= NumPoints ? 0 : Index + 1, Positions, Details.Tolerance);
+				const TSharedPtr<PCGExPaths::FPathEdge> Edge = MakeShared<PCGExPaths::FPathEdge>(Index, Index + 1 >= NumPoints ? 0 : Index + 1, Positions, Details.Tolerance);
 
 				const double Length = FVector::DistSquared(Positions[Edge->Start], Positions[Edge->End]);
 				Lengths[Index] = Length;
@@ -199,7 +199,7 @@ namespace PCGExPathCrossings
 					if (CanBeCutFilterManager) { CanBeCut[Index] = CanBeCutFilterManager->Test(Index); }
 				}
 
-				Edges[Index] = MoveTemp(Edge);
+				Edges[Index] = Edge;
 			}, NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
@@ -217,7 +217,7 @@ namespace PCGExPathCrossings
 		int32 CurrentIOIndex = PointIO->IOIndex;
 		const TArray<FVector>* P2 = &Positions;
 
-		TUniquePtr<FCrossing> NewCrossing = MakeUnique<FCrossing>(Index);
+		const TSharedPtr<FCrossing> NewCrossing = MakeShared<FCrossing>(Index);
 
 		auto FindSplit = [&](const PCGExPaths::FPathEdge* E1, const PCGExPaths::FPathEdge* E2)
 		{
@@ -279,7 +279,7 @@ namespace PCGExPathCrossings
 				Edge->FSBounds.GetBox(), [&](const PCGExPaths::FPathEdge* OtherEdge) { FindSplit(Edge, OtherEdge); });
 		}
 
-		if (!NewCrossing->Crossings.IsEmpty()) { Crossings[Index] = MoveTemp(NewCrossing); }
+		if (!NewCrossing->Crossings.IsEmpty()) { Crossings[Index] = NewCrossing; }
 	}
 
 	void FProcessor::FixPoint(const int32 Index)

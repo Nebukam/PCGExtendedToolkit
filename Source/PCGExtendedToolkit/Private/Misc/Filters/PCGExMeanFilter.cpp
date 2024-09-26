@@ -19,7 +19,7 @@ bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, const TS
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	PCGExData::TBuffer<double>* Target = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, true);
+	const TSharedPtr<PCGExData::TBuffer<double>> Target = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, true);
 
 	if (!Target)
 	{

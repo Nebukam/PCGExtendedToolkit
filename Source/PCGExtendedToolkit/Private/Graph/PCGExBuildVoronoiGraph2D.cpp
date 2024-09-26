@@ -220,7 +220,7 @@ namespace PCGExBuildVoronoi2D
 				}
 			}
 
-			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade.Get(), &Settings->GraphBuilderDetails);
+			GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 			GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);
 
 			//ExtractValidSites();

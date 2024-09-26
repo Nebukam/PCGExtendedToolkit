@@ -219,7 +219,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	TUniquePtr<T> MakeLoop()
 	{
 		TUniquePtr<T> Loop = MakeUnique<T>();
-		Loop->ExecutionContext = this;
+		Loop->Context = this;
 		Loop->ChunkSize = ChunkSize;
 		Loop->bAsyncEnabled = bDoAsyncProcessing;
 		return Loop;

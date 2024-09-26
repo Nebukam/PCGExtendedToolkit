@@ -152,7 +152,7 @@ namespace PCGExPathfindingEdge
 		FSampleClusterPathTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                       const UPCGExSearchOperation* InSearchOperation,
 		                       const TArray<TSharedPtr<PCGExPathfinding::FPathQuery>>* InQueries,
-		                       PCGExHeuristics::THeuristicsHandler* InHeuristics,
+		                       const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics,
 		                       const bool Inlined = false) :
 			FPCGExPathfindingTask(InPointIO, InQueries),
 			SearchOperation(InSearchOperation),

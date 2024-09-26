@@ -81,7 +81,7 @@ namespace PCGExFlagNodes
 		TUniquePtr<PCGExClusterStates::FStateManager> StateManager;
 
 		bool bBuildExpandedNodes = false;
-		TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedNode>>> ExpandedNodes;
+		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
 
 	public:
 		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):

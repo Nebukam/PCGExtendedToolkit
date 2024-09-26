@@ -97,8 +97,6 @@ namespace PCGExBridgeClusters
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBridgeClusters::Process);
-		const UPCGExConnectClustersSettings* Settings = ExecutionContext->GetInputSettings<UPCGExConnectClustersSettings>();
-		check(Settings);
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 

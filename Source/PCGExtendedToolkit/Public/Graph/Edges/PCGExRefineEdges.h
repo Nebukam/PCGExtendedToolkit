@@ -6,8 +6,6 @@
 #include "CoreMinimal.h"
 
 
-
-
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
@@ -150,13 +148,13 @@ namespace PCGExRefineEdges
 	{
 	public:
 		FSanitizeRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                   FProcessor* InProcessor):
+		                   const TSharedPtr<FProcessor>& InProcessor):
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		const TSharedPtr<FProcessor>& Processor;
 		uint64 Scope = 0;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};

@@ -8,7 +8,6 @@
 #include "PCGExEdgesProcessor.h"
 
 
-
 #include "PCGExPruneClusters.generated.h"
 
 
@@ -78,13 +77,13 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClusterTask final : public PCGExMT::
 {
 public:
 	FPCGExPruneClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-	                       PCGExData::FPointIO* InEdgesIO) :
+	                       const TSharedPtr<PCGExData::FPointIO>& InEdgesIO) :
 		FPCGExTask(InPointIO),
 		EdgesIO(InEdgesIO)
 	{
 	}
 
-	PCGExData::FPointIO* EdgesIO = nullptr;
+	const TSharedPtr<PCGExData::FPointIO> EdgesIO;
 
 	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };

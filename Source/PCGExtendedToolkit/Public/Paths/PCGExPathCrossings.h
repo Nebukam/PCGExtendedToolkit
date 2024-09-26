@@ -8,6 +8,7 @@
 #include "PCGExPaths.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 
@@ -16,10 +17,6 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExPathCrossings.generated.h"
 
-namespace PCGExDataBlending
-{
-	class FCompoundBlender;
-}
 
 class UPCGExSubPointsBlendOperation;
 /**
@@ -167,8 +164,8 @@ namespace PCGExPathCrossings
 
 		TArray<FVector> Positions;
 		TArray<double> Lengths;
-		TArray<TUniquePtr<PCGExPaths::FPathEdge>> Edges;
-		TArray<TUniquePtr<FCrossing>> Crossings;
+		TArray<TSharedPtr<PCGExPaths::FPathEdge>> Edges;
+		TArray<TSharedPtr<FCrossing>> Crossings;
 
 		TUniquePtr<PCGExPointFilter::TManager> CanCutFilterManager;
 		TUniquePtr<PCGExPointFilter::TManager> CanBeCutFilterManager;

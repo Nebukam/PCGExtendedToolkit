@@ -4,11 +4,6 @@
 #include "Graph/Pathfinding/PCGExPathfindingFindContours.h"
 
 
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExFindContours"
 #define PCGEX_NAMESPACE FindContours
 
@@ -43,8 +38,8 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster.Get();
 
-	TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedNode>>> ExpandedNodes = ClusterProcessor->ExpandedNodes;
-	TSharedPtr<TArray<TUniquePtr<PCGExCluster::FExpandedEdge>>> ExpandedEdges = ClusterProcessor->ExpandedEdges;
+	TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes = ClusterProcessor->ExpandedNodes;
+	TSharedPtr<TArray<PCGExCluster::FExpandedEdge>> ExpandedEdges = ClusterProcessor->ExpandedEdges;
 
 	const TArray<FVector>& Positions = *ClusterProcessor->ProjectedPositions;
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
@@ -72,10 +67,10 @@ bool FPCGExFindContoursContext::TryFindContours(
 	}
 
 	int32 PrevIndex = StartNodeIndex;
-	int32 NextIndex = (*(ExpandedEdges->GetData() + NextEdge))->OtherNodeIndex(PrevIndex);
+	int32 NextIndex = ((ExpandedEdges->GetData() + NextEdge))->OtherNodeIndex(PrevIndex);
 
-	const FVector A = Cluster->GetPos((*(ExpandedNodes->GetData() + PrevIndex))->Node);
-	const FVector B = Cluster->GetPos((*(ExpandedNodes->GetData() + NextIndex))->Node);
+	const FVector A = Cluster->GetPos(((ExpandedNodes->GetData() + PrevIndex))->Node);
+	const FVector B = Cluster->GetPos(((ExpandedNodes->GetData() + NextIndex))->Node);
 
 	const double SanityAngle = PCGExMath::GetDegreesBetweenVectors((B - A).GetSafeNormal(), (B - Guide).GetSafeNormal());
 	const bool bStartIsDeadEnd = (Cluster->Nodes->GetData() + StartNodeIndex)->Adjacency.Num() == 1;
@@ -109,7 +104,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 	bool bIsConvex = true;
 	int32 Sign = 0;
 
-	PathBox += Cluster->GetPos((*(ExpandedNodes->GetData() + PrevIndex))->Node);
+	PathBox += Cluster->GetPos((*(ExpandedNodes->GetData() + PrevIndex)).Node);
 
 	bool bGracefullyClosed = false;
 	while (NextIndex != -1)
@@ -122,20 +117,20 @@ bool FPCGExFindContoursContext::TryFindContours(
 		if (bEdgeAlreadyExists) { break; }
 
 		Path.Add(NextIndex);
-		const TUniquePtr<PCGExCluster::FExpandedNode>& Current = *(ExpandedNodes->GetData() + NextIndex);
+		const PCGExCluster::FExpandedNode& Current = *(ExpandedNodes->GetData() + NextIndex);
 
-		PathBox += Cluster->GetPos(Current->Node);
+		PathBox += Cluster->GetPos(Current.Node);
 
 		//if (Current->Neighbors.Num() <= 1) { break; }
-		if (Current->Neighbors.Num() == 1 && Settings->bDuplicateDeadEndPoints) { Path.Add(NextIndex); }
+		if (Current.Neighbors.Num() == 1 && Settings->bDuplicateDeadEndPoints) { Path.Add(NextIndex); }
 
 		const FVector Origin = Positions[(Cluster->Nodes->GetData() + NextIndex)->PointIndex];
 		const FVector GuideDir = (Origin - Positions[(Cluster->Nodes->GetData() + PrevIndex)->PointIndex]).GetSafeNormal();
 
-		if (Current->Neighbors.Num() > 1) { Exclusions.Add(PrevIndex); }
+		if (Current.Neighbors.Num() > 1) { Exclusions.Add(PrevIndex); }
 
 		bool bHasAdjacencyToStart = false;
-		for (const PCGExCluster::FExpandedNeighbor& N : Current->Neighbors)
+		for (const PCGExCluster::FExpandedNeighbor& N : Current.Neighbors)
 		{
 			const int32 NeighborIndex = N.Node->NodeIndex;
 
@@ -383,7 +378,7 @@ namespace PCGExFindContours
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		(*ExpandedNodes)[Iteration] = MoveTemp(MakeUnique<PCGExCluster::FExpandedNode>(Cluster.Get(), Iteration));
+		(*ExpandedNodes)[Iteration] = PCGExCluster::FExpandedNode(Cluster.Get(), Iteration);
 	}
 
 	void FProcessor::CompleteWork()

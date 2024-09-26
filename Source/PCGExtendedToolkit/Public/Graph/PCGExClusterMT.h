@@ -60,7 +60,7 @@ namespace PCGExClusterMT
 		bool bInlineProcessRange = false;
 
 		template <typename T>
-		T* GetParentBatch() { return static_cast<T*>(ParentBatch); }
+		TSharedPtr<T> GetParentBatch() { return StaticCastSharedPtr<T>(ParentBatch); }
 
 		int32 NumNodes = 0;
 		int32 NumEdges = 0;
@@ -70,7 +70,7 @@ namespace PCGExClusterMT
 			return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, false, false, false);
 		}
 
-		void ForwardCluster()
+		void ForwardCluster() const
 		{
 			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(EdgesIO->GetOut()))
 			{
@@ -523,7 +523,7 @@ namespace PCGExClusterMT
 		{
 			ValidClusters.Empty();
 
-			for (const T* P : Processors)
+			for (const TSharedPtr<T> P : Processors)
 			{
 				if (!P->Cluster) { continue; }
 				ValidClusters.Add(P->Cluster.Get());

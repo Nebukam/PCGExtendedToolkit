@@ -232,7 +232,7 @@ namespace PCGExBevelPath
 
 		TArray<double> Lengths;
 
-		TArray<TUniquePtr<FBevel>> Bevels;
+		TArray<TSharedPtr<FBevel>> Bevels;
 		TArray<int32> StartIndices;
 
 		bool bClosedLoop = false;

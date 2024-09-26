@@ -133,11 +133,9 @@ namespace PCGExOrient
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		PCGEX_SETTINGS(Orient)
-
 		FTransform OutT;
 
-		PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);
+		const PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);
 		if (Orient->bClosedLoop)
 		{
 			const PCGExData::FPointRef Previous = Index == 0 ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index - 1);

@@ -96,7 +96,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 		OutProcessors.Reserve(GetClusterProcessorsNum());
 		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches)
 		{
-			const PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<const PCGExClusterMT::TBatch<T>*>(Batch);
+			PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<PCGExClusterMT::TBatch<T>*>(Batch.Get());
 			OutProcessors.Append(TypedBatch->Processors);
 		}
 	}
@@ -166,7 +166,7 @@ protected:
 				NewBatch->GraphBuilderDetails = GraphBuilderDetails;
 			}
 
-			Batches.Add(StaticCastSharedPtr<>(NewBatch));
+			Batches.Add(NewBatch);
 			if (!bClusterBatchInlined) { PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch, bScopedIndexLookupBuild); }
 		}
 

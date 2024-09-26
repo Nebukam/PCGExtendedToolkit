@@ -82,7 +82,7 @@ namespace PCGExPartition
 		for (int64 UniquePartitionKey : UValues) { ValuesIndices.Add(UniquePartitionKey, PIndex++); }
 		UValues.Empty();
 
-		for (const TPair<int64, FKPartition*>& Pair : SubLayers)
+		for (const TPair<int64, TSharedPtr<FKPartition>>& Pair : SubLayers)
 		{
 			Pair.Value->SortPartitions();
 			Pair.Value->PartitionIndex = *ValuesIndices.Find(Pair.Value->PartitionKey); //Ordered index
@@ -181,7 +181,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>>(
-			[](PCGExData::FPointIO* Entry) { return true; },
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>* NewBatch)
 			{
 			},
@@ -316,7 +316,7 @@ namespace PCGExPartitionByValues
 
 			// Sort by point index & ensure consistent output partition order
 
-			Partitions.Sort([](const PCGExPartition::FKPartition& A, PCGExPartition::FKPartition& B) { return A.Points[0] < B.Points[0]; });
+			Partitions.Sort([](const TSharedPtr<PCGExPartition::FKPartition>& A, const TSharedPtr<PCGExPartition::FKPartition>& B) { return A->Points[0] < B->Points[0]; });
 			const int32 InsertOffset = Context->MainPoints->Pairs.Num();
 
 			int32 SumPts = 0;

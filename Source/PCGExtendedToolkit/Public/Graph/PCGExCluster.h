@@ -10,8 +10,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
-
-
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -191,8 +189,8 @@ namespace PCGExCluster
 		TSharedPtr<TMap<int32, int32>> NodeIndexLookup; // Node index -> Point Index
 		//TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
 		TSharedPtr<TArray<FNode>> Nodes;
-		TSharedPtr<TArray<TUniquePtr<FExpandedNode>>> ExpandedNodes;
-		TSharedPtr<TArray<TUniquePtr<FExpandedEdge>>> ExpandedEdges;
+		TSharedPtr<TArray<FExpandedNode>> ExpandedNodes;
+		TSharedPtr<TArray<FExpandedEdge>> ExpandedEdges;
 		TSharedPtr<TArray<PCGExGraph::FIndexedEdge>> Edges;
 		TSharedPtr<TArray<double>> EdgeLengths;
 		TArray<FVector> NodePositions;
@@ -315,10 +313,10 @@ namespace PCGExCluster
 
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 
-		TSharedPtr<TArray<TUniquePtr<FExpandedNode>>> GetExpandedNodes(const bool bBuild);
+		TSharedPtr<TArray<FExpandedNode>> GetExpandedNodes(const bool bBuild);
 		void ExpandNodes(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 
-		TSharedPtr<TArray<TUniquePtr<FExpandedEdge>>> GetExpandedEdges(const bool bBuild);
+		TSharedPtr<TArray<FExpandedEdge>> GetExpandedEdges(const bool bBuild);
 		void ExpandEdges(PCGExMT::FTaskManager* AsyncManager);
 
 		template <typename T, class MakeFunc>
@@ -374,7 +372,7 @@ namespace PCGExCluster
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FExpandedNode
 	{
-		const FNode* Node = nullptr;
+		const FNode* Node;
 		TArray<FExpandedNeighbor> Neighbors;
 
 		FExpandedNode(const FCluster* Cluster, const int32 InNodeIndex):
@@ -394,19 +392,20 @@ namespace PCGExCluster
 			}
 		}
 
-		~FExpandedNode()
+		FExpandedNode(const FExpandedNode& Other):
+			Node(Other.Node), Neighbors(Other.Neighbors)
 		{
-			Node = nullptr;
-			Neighbors.Empty();
 		}
+
+		~FExpandedNode() = default;
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FExpandedEdge
 	{
-		const int32 Index;
-		const FNode* Start = nullptr;
-		const FNode* End = nullptr;
-		const FBoxSphereBounds Bounds;
+		int32 Index;
+		const FNode* Start;
+		const FNode* End;
+		FBoxSphereBounds Bounds;
 
 		FExpandedEdge(const FCluster* Cluster, const int32 InEdgeIndex):
 			Index(InEdgeIndex),
@@ -416,11 +415,7 @@ namespace PCGExCluster
 		{
 		}
 
-		~FExpandedEdge()
-		{
-			Start = nullptr;
-			End = nullptr;
-		}
+		~FExpandedEdge() = default;
 
 		FORCEINLINE uint64 GetNodes() const { return PCGEx::H64(Start->NodeIndex, End->NodeIndex); }
 		FORCEINLINE double GetEdgeLength(const FCluster* Cluster) const { return FVector::Dist(Cluster->GetPos(Start), Cluster->GetPos(End)); }
@@ -431,6 +426,11 @@ namespace PCGExCluster
 			check(NodeIndex == Start->NodeIndex || NodeIndex == End->NodeIndex)
 			return NodeIndex == Start->NodeIndex ? End->NodeIndex : Start->NodeIndex;
 		}
+
+		bool operator==(const FExpandedEdge& ExpandedEdge) const
+		{
+			return (Start == ExpandedEdge.Start && End == ExpandedEdge.End) || (Start == ExpandedEdge.End && End == ExpandedEdge.Start);
+		};
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FNodeChain
@@ -540,7 +540,7 @@ namespace PCGExClusterTask
 	{
 	public:
 		FFindNodeChains(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                const PCGExCluster::FCluster* InCluster,
+		                const TSharedPtr<PCGExCluster::FCluster>& InCluster,
 		                const TArray<bool>* InBreakpoints,
 		                TArray<TSharedPtr<PCGExCluster::FNodeChain>>* InChains,
 		                const bool InSkipSingleEdgeChains = false,
@@ -554,7 +554,7 @@ namespace PCGExClusterTask
 		{
 		}
 
-		const PCGExCluster::FCluster* Cluster = nullptr;
+		TSharedPtr<PCGExCluster::FCluster> Cluster;
 		const TArray<bool>* Breakpoints = nullptr;
 		TArray<TSharedPtr<PCGExCluster::FNodeChain>>* Chains = nullptr;
 

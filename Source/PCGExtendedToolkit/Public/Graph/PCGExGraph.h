@@ -419,11 +419,11 @@ namespace PCGExGraph
 		TSharedPtr<PCGExData::FFacade> NodeDataFacade;
 
 		TSharedPtr<PCGExData::FPointIOCollection> EdgesIO;
-		PCGExData::FPointIOCollection* SourceEdgesIO = nullptr;
+		TSharedPtr<PCGExData::FPointIOCollection> SourceEdgesIO;
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(const TSharedPtr<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails, const int32 NumEdgeReserve = 6, PCGExData::FPointIOCollection* InSourceEdges = nullptr)
+		FGraphBuilder(const TSharedPtr<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails, const int32 NumEdgeReserve = 6, const TSharedPtr<PCGExData::FPointIOCollection>& InSourceEdges = nullptr)
 			: OutputDetails(InDetails), NodeDataFacade(InNodeDataFacade), SourceEdgesIO(InSourceEdges)
 		{
 			PairId = NodeDataFacade->Source->GetOutIn()->UID;
@@ -565,13 +565,13 @@ namespace PCGExGraphTask
 	{
 	public:
 		FWriteSubGraphCluster(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                      PCGExGraph::FSubGraph* InSubGraph)
+		                      const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
 			: FPCGExTask(InPointIO),
 			  SubGraph(InSubGraph)
 		{
 		}
 
-		PCGExGraph::FSubGraph* SubGraph = nullptr;
+		const TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 

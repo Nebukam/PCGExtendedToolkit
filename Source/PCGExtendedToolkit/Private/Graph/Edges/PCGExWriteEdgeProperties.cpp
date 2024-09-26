@@ -6,10 +6,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
-
-
 #include "Kismet/KismetMathLibrary.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
@@ -281,14 +277,14 @@ namespace PCGExWriteEdgeProperties
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
-	{		
+	{
 		TBatch<FProcessor>::OnProcessingPreparationComplete();
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeProperties)
-		
+
 		VtxDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 		DirectionSettings = Settings->DirectionSettings;
-		
+
 		if (!DirectionSettings.Init(Context, VtxDataFacade.Get()))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));

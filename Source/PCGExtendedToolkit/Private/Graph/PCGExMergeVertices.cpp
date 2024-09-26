@@ -32,7 +32,7 @@ void FPCGExMergeVerticesContext::OnBatchesProcessingDone()
 		PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>* Batch = static_cast<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>*>(Batches[i].Get());
 		Merger->Append(Batch->VtxIO);
 
-		for (PCGExMergeVertices::FProcessor* Processor : Batch->Processors) { Processor->StartIndexOffset = StartOffset; }
+		for (const TSharedPtr<PCGExMergeVertices::FProcessor>& Processor : Batch->Processors) { Processor->StartIndexOffset = StartOffset; }
 		StartOffset += Batch->VtxIO->GetNum();
 	}
 

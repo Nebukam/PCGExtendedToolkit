@@ -70,7 +70,7 @@ namespace PCGExDataBlending
 		const int32 SecondaryIndex = B.Index;
 
 		const bool IsFirstOperation = FirstPointOperation[PrimaryIndex];
-		for (const TUniquePtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
+		for (const TSharedPtr<FDataBlendingOperationBase>& Op : Operations) { Op->DoRangeOperation(PrimaryIndex, SecondaryIndex, StartIndex, Weights, IsFirstOperation); }
 		FirstPointOperation[PrimaryIndex] = false;
 
 		if (bSkipProperties) { return; }
@@ -212,7 +212,7 @@ namespace PCGExDataBlending
 
 			const EPCGExDataBlendingType* TypePtr = BlendingDetails->AttributesOverrides.Find(Identity.Name);
 
-			TUniquePtr<FDataBlendingOperationBase> Op;
+			TSharedPtr<FDataBlendingOperationBase> Op;
 			if (PCGEx::IsPCGExAttribute(Identity.Name)) { Op = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
 			else { Op = CreateOperation(TypePtr, BlendingDetails->DefaultBlending, Identity); }
 
