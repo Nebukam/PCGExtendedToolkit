@@ -13,10 +13,6 @@
 #include "Components/SplineMeshComponent.h"
 
 
-
-
-
-
 #include "PCGExPathSplineMesh.generated.h"
 
 
@@ -73,7 +69,7 @@ public:
 	/** The name of the attribute to write asset path to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
 
@@ -119,7 +115,7 @@ public:
 	/** The name of the attribute to write asset weight to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
-	
+
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
@@ -157,7 +153,7 @@ namespace PCGExPathSplineMesh
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
-		
+
 		bool bClosedLoop = false;
 		bool bApplyScaleToFit = false;
 

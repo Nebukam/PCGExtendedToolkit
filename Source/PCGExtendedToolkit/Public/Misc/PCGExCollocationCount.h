@@ -9,10 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
-
-
 #include "PCGExCollocationCount.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")

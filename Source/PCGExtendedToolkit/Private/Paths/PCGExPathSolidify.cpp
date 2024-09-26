@@ -6,8 +6,6 @@
 #include "PCGExDataMath.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExPathSolidifyElement"
 #define PCGEX_NAMESPACE PathSolidify
 
@@ -76,7 +74,6 @@ namespace PCGExPathSolidify
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		LastIndex = PointIO->GetNum() - 1;
 
-		
 
 #define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){Rad##_AXIS##Constant = Settings->Radius##_AXIS##Constant;}
 		PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)

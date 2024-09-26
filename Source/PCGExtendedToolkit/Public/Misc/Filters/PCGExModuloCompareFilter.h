@@ -12,8 +12,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "PCGExModuloCompareFilter.generated.h"
 
 

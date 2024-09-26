@@ -12,8 +12,6 @@
 #include "Data/Blending/PCGExDataBlending.h"
 
 
-
-
 #include "PCGExSampleInsideBounds.generated.h"
 
 #define PCGEX_FOREACH_FIELD_INSIDEBOUNDS(MACRO)\
@@ -50,7 +48,6 @@ namespace PCGExInsideBounds
 		FTargetInfos(const int32 InIndex, const double InDistance):
 			Index(InIndex), Distance(InDistance)
 		{
-			
 		}
 
 		int32 Index = -1;
@@ -283,7 +280,7 @@ public:
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 
 	//
-	
+
 	/** If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether. Only uncheck this if you want to ensure existing attribute values are preserved. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bProcessFilteredOutAsFails = true;

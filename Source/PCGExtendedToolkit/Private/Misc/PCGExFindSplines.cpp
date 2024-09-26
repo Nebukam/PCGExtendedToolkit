@@ -4,9 +4,6 @@
 #include "Misc/PCGExFindSplines.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExFindSplinesElement"
 #define PCGEX_NAMESPACE FindSplines
 

@@ -308,7 +308,7 @@ namespace PCGExMT
 		using IterationRangePrepareCallback = std::function<void(const TArray<uint64>&)>;
 		using IterationRangeStartCallback = std::function<void(const int32, const int32, const int32)>;
 
-		explicit FTaskGroup(const TSharedPtr<PCGExMT::FTaskManager>& InManager, const FName InGroupName):
+		explicit FTaskGroup(const TSharedPtr<FTaskManager>& InManager, const FName InGroupName):
 			GroupName(InGroupName), Manager(InManager)
 		{
 		}
@@ -374,7 +374,7 @@ namespace PCGExMT
 		void PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline = false);
 
 	protected:
-		TSharedPtr<PCGExMT::FTaskManager> Manager;
+		TSharedPtr<FTaskManager> Manager;
 
 		mutable FRWLock GroupLock;
 
@@ -445,7 +445,7 @@ namespace PCGExMT
 			if (bWorkDone) { return; }
 			bWorkDone = true;
 
-			const TSharedPtr<PCGExMT::FTaskManager> Manager = ManagerPtr.Pin();
+			const TSharedPtr<FTaskManager> Manager = ManagerPtr.Pin();
 			if (!Manager || !Manager->IsAvailable()) { return; }
 
 			const bool bResult = ExecuteTask(Manager);
@@ -453,7 +453,7 @@ namespace PCGExMT
 			Manager->OnAsyncTaskExecutionComplete(this, bResult);
 		}
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) = 0;
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) = 0;
 
 	protected:
 		bool bWorkDone = false;
@@ -462,7 +462,7 @@ namespace PCGExMT
 		template <typename T, typename... Args>
 		void InternalStart(int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
-			const TSharedPtr<PCGExMT::FTaskManager> Manager = ManagerPtr.Pin();
+			const TSharedPtr<FTaskManager> Manager = ManagerPtr.Pin();
 			if (!Manager || !Manager->IsAvailable()) { return; }
 			if (!bIsAsync) { Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...); }
 			else { Manager->Start<T>(TaskIndex, InPointsIO, args...); }
@@ -471,7 +471,7 @@ namespace PCGExMT
 		template <typename T, typename... Args>
 		void InternalStartSync(int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
-			const TSharedPtr<PCGExMT::FTaskManager> Manager = ManagerPtr.Pin();
+			const TSharedPtr<FTaskManager> Manager = ManagerPtr.Pin();
 			if (!Manager || !Manager->IsAvailable()) { return; }
 			Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...);
 		}
@@ -486,7 +486,7 @@ namespace PCGExMT
 		}
 
 		int32 NumIterations = 0;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
 	class FGroupRangeIterationTask : public FPCGExTask
@@ -498,7 +498,7 @@ namespace PCGExMT
 		}
 
 		uint64 Scope = 0;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
 	class FGroupPrepareRangeTask : public FPCGExTask
@@ -510,7 +510,7 @@ namespace PCGExMT
 		}
 
 		uint64 Scope = 0;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
 	class FGroupPrepareRangeInlineTask : public FPCGExTask
@@ -523,7 +523,7 @@ namespace PCGExMT
 
 		int32 MaxItems = 0;
 		int32 ChunkSize = 0;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
 	class FGroupRangeInlineIterationTask : public FPCGExTask
@@ -536,7 +536,7 @@ namespace PCGExMT
 
 		int32 MaxItems = 0;
 		int32 ChunkSize = 0;
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
 	template <typename T>
@@ -553,7 +553,7 @@ namespace PCGExMT
 
 		TSharedPtr<T> Operation = nullptr;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
 		{
 			Operation->Write();
 			return true;
@@ -575,7 +575,7 @@ namespace PCGExMT
 
 		TSharedPtr<T> Operation;
 
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
 		{
 			Operation->Write(ManagerPtr);
 			return true;
@@ -585,7 +585,7 @@ namespace PCGExMT
 	template <typename T>
 	static void Write(TWeakPtr<FTaskManager> AsyncManagerPtr, TSharedPtr<T> Operation)
 	{
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = AsyncManagerPtr.Pin();
+		const TSharedPtr<FTaskManager> AsyncManager = AsyncManagerPtr.Pin();
 		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
 		AsyncManager->Start<FWriteTask<T>>(-1, nullptr, Operation);
 	}
@@ -593,7 +593,7 @@ namespace PCGExMT
 	template <typename T>
 	static void WriteWithManager(TWeakPtr<FTaskManager> AsyncManagerPtr, TSharedPtr<T> Operation)
 	{
-		const TSharedPtr<PCGExMT::FTaskManager> AsyncManager = AsyncManagerPtr.Pin();
+		const TSharedPtr<FTaskManager> AsyncManager = AsyncManagerPtr.Pin();
 		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
 		AsyncManager->Start<FWriteWithManager<T>>(-1, nullptr, Operation);
 	}

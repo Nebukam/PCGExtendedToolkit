@@ -400,7 +400,6 @@ namespace PCGExGeo
 
 		~FPointBoxCloud()
 		{
-			
 		}
 
 		bool FindIntersections(FIntersections* InIntersections) const

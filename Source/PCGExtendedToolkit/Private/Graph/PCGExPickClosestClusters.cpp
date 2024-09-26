@@ -6,12 +6,6 @@
 #include "Data/PCGExPointIOMerger.h"
 
 
-
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
 #define PCGEX_NAMESPACE PickClosestClusters
 
@@ -154,11 +148,8 @@ namespace PCGExPickClosestClusters
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		
-		
 
 		Cluster->RebuildOctree(Settings->SearchMode);
 		Search();

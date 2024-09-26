@@ -4,9 +4,6 @@
 #include "Misc/PCGExWriteIndex.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 #define PCGEX_NAMESPACE WriteIndex
 

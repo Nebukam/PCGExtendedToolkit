@@ -9,8 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "PCGExFindSplines.generated.h"
 
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc") // Abstract until implemented

@@ -13,8 +13,6 @@
 #include "PCGExRandom.h"
 
 
-
-
 #include "PCGExRandomFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -29,7 +27,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRandomFilterConfig
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 RandomSeed = 0;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
@@ -100,5 +98,4 @@ public:
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-
 };
