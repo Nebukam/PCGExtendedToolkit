@@ -29,7 +29,7 @@ void FPCGExPickClosestClustersContext::OnBatchesProcessingDone()
 {
 	FPCGExEdgesProcessorContext::OnBatchesProcessingDone();
 
-	TArray<PCGExPickClosestClusters::FProcessor*> Processors;
+	TArray<TSharedPtr<PCGExPickClosestClusters::FProcessor>> Processors;
 	GatherClusterProcessors(Processors);
 
 	const int32 NumTargets = TargetDataFacade->Source->GetNum();

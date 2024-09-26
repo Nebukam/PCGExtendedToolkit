@@ -594,10 +594,10 @@ namespace PCGExClusterMT
 
 		virtual void Output() override
 		{
-			for (const TSharedPtr<T>& Processor : Processors)
+			for (const TSharedPtr<T>& P : Processors)
 			{
-				if (!Processor->bIsProcessorValid) { continue; }
-				Processor->Output();
+				if (!P->bIsProcessorValid) { continue; }
+				P->Output();
 			}
 		}
 	};
