@@ -103,7 +103,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAssetStaging::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExAssetStaging::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAssetStaging::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
 			},

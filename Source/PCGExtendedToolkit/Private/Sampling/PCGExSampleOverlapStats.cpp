@@ -40,7 +40,7 @@ void FPCGExSampleOverlapStatsContext::MTState_PointsCompletingWorkDone()
 {
 	FPCGExPointsProcessorContext::MTState_PointsCompletingWorkDone();
 
-	PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>* TypedBatch = static_cast<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>*>(MainBatch.Get());
+	const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>> TypedBatch = StaticCastSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>(MainBatch);
 	for (const TSharedPtr<PCGExSampleOverlapStats::FProcessor>& P : TypedBatch->Processors)
 	{
 		if (!P->bIsProcessorValid) { continue; }
@@ -81,7 +81,7 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			},

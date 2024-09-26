@@ -42,7 +42,7 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

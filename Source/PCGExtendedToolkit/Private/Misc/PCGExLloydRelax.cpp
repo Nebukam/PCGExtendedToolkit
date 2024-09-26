@@ -50,7 +50,7 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExLloydRelax::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExLloydRelax::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

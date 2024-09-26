@@ -70,7 +70,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExWriteTangents::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWriteTangents::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->Tangents;
 			},

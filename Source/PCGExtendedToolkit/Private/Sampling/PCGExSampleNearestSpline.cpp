@@ -100,7 +100,7 @@ bool FPCGExSampleNearestSplineElement::ExecuteInternal(FPCGContext* InContext) c
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestSpline::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExSampleNearestSpline::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestSpline::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

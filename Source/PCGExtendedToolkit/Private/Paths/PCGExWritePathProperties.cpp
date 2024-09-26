@@ -42,7 +42,7 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWritePathProperties::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return Entry->GetNum() >= 2; },
-			[&](PCGExPointsMT::TBatch<PCGExWritePathProperties::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWritePathProperties::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

@@ -57,7 +57,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExFuseCollinear::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExFuseCollinear::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

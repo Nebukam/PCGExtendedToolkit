@@ -249,7 +249,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	bool ProcessPointsBatch();
 
 	PCGExMT::AsyncState TargetState_PointsProcessingDone;
-	TUniquePtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
+	TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
 	TArray<TSharedPtr<PCGExData::FPointIO>> BatchablePoints;
 	TMap<PCGExData::FPointIO*, TSharedPtr<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
 
@@ -274,10 +274,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 		if (BatchablePoints.IsEmpty()) { return false; }
 
-		MainBatch = MakeUnique<T>(this, BatchablePoints);
+		TSharedPtr<T> TypedBatch = MakeShared<T>(this, BatchablePoints);
+		
+		MainBatch = TypedBatch;
 		MainBatch->SubProcessorMap = &SubProcessorMap;
-
-		T* TypedBatch = static_cast<T*>(MainBatch.Get());
+		
 		InitBatch(TypedBatch);
 
 		if (Settings->SupportsPointFilters())

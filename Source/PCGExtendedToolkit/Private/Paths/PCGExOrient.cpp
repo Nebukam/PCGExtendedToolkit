@@ -63,7 +63,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExOrient::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExOrient::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->Orientation;
 			},

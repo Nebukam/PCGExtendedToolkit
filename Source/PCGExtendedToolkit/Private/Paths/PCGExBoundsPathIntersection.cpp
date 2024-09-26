@@ -76,7 +76,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = Settings->OutputSettings.WillWriteAny();
 			},

@@ -94,7 +94,7 @@ bool FPCGExCherryPickPointsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExCherryPickPoints::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExCherryPickPoints::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExCherryPickPoints::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

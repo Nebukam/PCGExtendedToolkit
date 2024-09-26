@@ -55,7 +55,7 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

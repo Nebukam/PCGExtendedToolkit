@@ -86,7 +86,7 @@ bool FPCGExConditionalActionsElement::ExecuteInternal(
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConditionalActions::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExConditionalActions::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConditionalActions::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

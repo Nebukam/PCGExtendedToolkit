@@ -543,13 +543,15 @@ namespace PCGExClusterMT
 
 			CurrentState = PCGExMT::State_Processing;
 
+			TSharedPtr<FClusterProcessorBatchBase> SelfShared = SharedThis(this);
+
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 			{
 				IO->CreateInKeys();
 
 				TSharedPtr<T> NewProcessor = Processors.Add_GetRef(MakeShared<T>(VtxIO, IO));
 				NewProcessor->SetExecutionContext(ExecutionContext);
-				NewProcessor->ParentBatch = SharedThis(this);
+				NewProcessor->ParentBatch = SelfShared;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
 				NewProcessor->BatchIndex = Processors.Num() - 1;

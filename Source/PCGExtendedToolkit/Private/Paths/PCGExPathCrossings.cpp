@@ -80,7 +80,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->Blending;
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);

@@ -83,7 +83,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

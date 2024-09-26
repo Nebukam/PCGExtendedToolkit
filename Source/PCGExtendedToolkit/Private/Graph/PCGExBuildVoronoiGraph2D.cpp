@@ -71,7 +71,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 				Context->SitesOutput->Emplace_GetRef(Entry, PCGExData::EInit::NewOutput);
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			},

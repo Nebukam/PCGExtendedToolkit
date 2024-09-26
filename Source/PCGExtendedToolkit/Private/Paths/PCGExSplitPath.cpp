@@ -55,7 +55,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

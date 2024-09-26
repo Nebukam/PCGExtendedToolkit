@@ -37,7 +37,7 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
 			},

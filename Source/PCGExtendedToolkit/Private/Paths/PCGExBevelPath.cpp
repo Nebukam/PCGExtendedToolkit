@@ -103,7 +103,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = (Settings->bFlagEndpoints || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
 			},

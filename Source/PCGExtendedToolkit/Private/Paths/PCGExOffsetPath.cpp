@@ -49,7 +49,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>>& NewBatch)
 			{
 				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			},

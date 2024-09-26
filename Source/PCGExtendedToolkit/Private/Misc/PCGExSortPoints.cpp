@@ -52,7 +52,7 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSortPoints::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExSortPoints::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSortPoints::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

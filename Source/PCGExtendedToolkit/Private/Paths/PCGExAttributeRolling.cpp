@@ -62,7 +62,7 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

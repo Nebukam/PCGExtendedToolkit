@@ -182,7 +182,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

@@ -59,7 +59,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExConvexHull::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConvexHull::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			},

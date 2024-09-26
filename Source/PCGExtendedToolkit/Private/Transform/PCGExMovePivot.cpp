@@ -40,7 +40,7 @@ bool FPCGExMovePivotElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExMovePivot::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExMovePivot::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExMovePivot::FProcessor>>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
 			},

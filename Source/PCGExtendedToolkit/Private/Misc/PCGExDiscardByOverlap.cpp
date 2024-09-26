@@ -173,7 +173,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true; // Not really but we need the step
 			},

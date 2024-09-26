@@ -89,7 +89,7 @@ bool FPCGExSampleInsideBoundsElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleInsideBoundss::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExSampleInsideBoundss::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleInsideBoundss::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

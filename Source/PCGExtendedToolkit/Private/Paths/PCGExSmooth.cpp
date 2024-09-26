@@ -52,7 +52,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->SmoothingMethod;
 			},

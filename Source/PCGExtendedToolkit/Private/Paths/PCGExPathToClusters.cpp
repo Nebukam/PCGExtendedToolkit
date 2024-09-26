@@ -103,7 +103,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				{
 					return Entry->GetNum() >= 2;
 				},
-				[&](PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>& NewBatch)
 				{
 					NewBatch->bInlineProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 				},
@@ -122,8 +122,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				{
 					return Entry->GetNum() >= 2;
 				},
-				[&](PCGExPointsMT::TBatch<
-				PCGExPathToClusters::FNonFusingProcessor>* NewBatch)
+				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>& NewBatch)
 				{
 				},
 				PCGExMT::State_Done))

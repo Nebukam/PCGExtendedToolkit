@@ -59,7 +59,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExBlendPath::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBlendPath::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

@@ -389,13 +389,15 @@ namespace PCGExPointsMT
 
 			AsyncManager = InAsyncManager;
 
+			TSharedPtr<FPointsProcessorBatchBase> SelfShared = SharedThis(this);
+			
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : PointsCollection)
 			{
 				IO->CreateInKeys();
-
+				
 				TSharedPtr<T> NewProcessor = Processors.Add_GetRef(MakeShared<T>(IO));
 				NewProcessor->SetExecutionContext(ExecutionContext);
-				NewProcessor->ParentBatch = SharedThis(this);
+				NewProcessor->ParentBatch = SelfShared;
 				NewProcessor->BatchIndex = Processors.Num() - 1;
 
 				if (!PrepareSingle(NewProcessor))

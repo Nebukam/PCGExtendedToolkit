@@ -70,7 +70,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 			},

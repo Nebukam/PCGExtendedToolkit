@@ -58,7 +58,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->Blending;
 				NewBatch->bRequiresWriteStep = true;

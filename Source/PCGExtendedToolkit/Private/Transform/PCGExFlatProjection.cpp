@@ -56,7 +56,7 @@ bool FPCGExFlatProjectionElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExFlatProjection::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExFlatProjection::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))

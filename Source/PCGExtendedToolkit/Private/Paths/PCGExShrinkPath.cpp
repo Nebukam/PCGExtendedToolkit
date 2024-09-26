@@ -149,7 +149,7 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExShrinkPath::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExShrinkPath::FProcessor>>& NewBatch)
 			{
 			},
 			PCGExMT::State_Done))
