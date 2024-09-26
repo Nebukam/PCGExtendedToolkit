@@ -12,8 +12,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "PCGExDotFilter.generated.h"
 
 USTRUCT(BlueprintType)

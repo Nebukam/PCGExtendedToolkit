@@ -4,9 +4,6 @@
 #include "Misc/Filters/PCGExNumericCompareFilter.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 

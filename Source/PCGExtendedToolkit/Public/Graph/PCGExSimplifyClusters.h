@@ -9,8 +9,6 @@
 #include "PCGExEdgesProcessor.h"
 
 
-
-
 #include "PCGExSimplifyClusters.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")

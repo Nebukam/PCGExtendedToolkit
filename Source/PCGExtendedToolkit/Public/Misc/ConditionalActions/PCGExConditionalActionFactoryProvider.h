@@ -11,7 +11,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
 #include "PCGExConditionalActionFactoryProvider.generated.h"
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_FACTORY(_NAME, _BODY) \

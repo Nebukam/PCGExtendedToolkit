@@ -4,9 +4,6 @@
 #include "Misc/Filters/PCGExDotFilter.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"
 #define PCGEX_NAMESPACE PCGExDotFilterDefinition
 

@@ -31,12 +31,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeRollingSettings : public UPCGExP
 
 public:
 	UPCGExAttributeRollingSettings(const FObjectInitializer& ObjectInitializer);
-	
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AttributeRolling, "Path : Attribute Rolling", "Does a rolling blending of properties & attributes.");
 #endif
-
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

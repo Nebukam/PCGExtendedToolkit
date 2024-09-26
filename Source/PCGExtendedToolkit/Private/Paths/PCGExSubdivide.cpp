@@ -6,14 +6,6 @@
 #include "PCGExRandom.h"
 
 
-
-
-
-
-
-
-
-
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
@@ -106,8 +98,6 @@ namespace PCGExSubdivide
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		
-		
 
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
@@ -145,7 +135,6 @@ namespace PCGExSubdivide
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		
 		FSubdivision& Sub = Subdivisions[Index];
 
 		Sub.NumSubdivisions = 0;

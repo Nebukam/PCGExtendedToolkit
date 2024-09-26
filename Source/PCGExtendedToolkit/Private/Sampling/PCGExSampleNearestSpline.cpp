@@ -6,8 +6,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSplineElement"
 #define PCGEX_NAMESPACE SampleNearestPolyLine
 

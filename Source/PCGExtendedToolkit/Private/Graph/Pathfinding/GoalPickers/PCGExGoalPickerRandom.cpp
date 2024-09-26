@@ -7,9 +7,6 @@
 #include "PCGExMath.h"
 
 
-
-
-
 void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);

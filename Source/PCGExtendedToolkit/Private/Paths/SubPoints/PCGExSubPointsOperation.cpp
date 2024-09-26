@@ -7,8 +7,6 @@
 #include "Data/PCGExPointIO.h"
 
 
-
-
 void UPCGExSubPointsOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);

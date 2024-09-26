@@ -4,9 +4,6 @@
 #include "Misc/Filters/PCGExMeanFilter.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"
 #define PCGEX_NAMESPACE MeanFilterDefinition
 

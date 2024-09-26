@@ -9,10 +9,6 @@
 #include "PCGExFactoryProvider.h"
 
 
-
-
-
-
 #include "PCGExPointFilter.generated.h"
 
 namespace PCGExGraph
@@ -130,13 +126,12 @@ namespace PCGExPointFilter
 
 		virtual ~TManager()
 		{
-			
 		}
 
 	protected:
 		TArray<TSharedPtr<TFilter>> ManagedFilters;
 
-		virtual bool InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter);
+		virtual bool InitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& Filter);
 		virtual bool PostInit(const FPCGContext* InContext);
 		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& InFilter);
 

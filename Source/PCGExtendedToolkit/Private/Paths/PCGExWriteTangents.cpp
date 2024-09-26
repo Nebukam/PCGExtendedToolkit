@@ -4,8 +4,6 @@
 #include "Paths/PCGExWriteTangents.h"
 
 
-
-
 #include "Paths/Tangents/PCGExZeroTangents.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"

@@ -227,7 +227,7 @@ namespace PCGExBuildDelaunay2D
 			const TSharedPtr<PCGEx::TAttributeWriter<bool>> HullWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
-			PCGExMT::Write(AsyncManager, HullWriter);
+			Write(AsyncManager, HullWriter);
 		}
 
 		return true;
@@ -329,7 +329,7 @@ namespace PCGExBuildDelaunay2D
 			TSharedPtr<PCGEx::TAttributeWriter<bool>> HullWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < Hull.Num(); ++i) { HullWriter->Values[i] = Hull[i]; }
-			PCGExMT::Write(AsyncManager, HullWriter);
+			Write(AsyncManager, HullWriter);
 		}
 
 		return true;

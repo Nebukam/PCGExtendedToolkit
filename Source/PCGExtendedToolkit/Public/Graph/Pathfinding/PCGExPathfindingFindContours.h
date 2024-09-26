@@ -7,8 +7,6 @@
 #include "Data/PCGExDataForward.h"
 
 
-
-
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
 
@@ -206,7 +204,6 @@ namespace PCGExFindContours
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
-
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

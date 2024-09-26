@@ -72,7 +72,7 @@ namespace PCGExPointFilter
 		return true;
 	}
 
-	bool TManager::InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter)
+	bool TManager::InitFilter(const FPCGContext* InContext, const TSharedPtr<TFilter>& Filter)
 	{
 		return Filter->Init(InContext, PointDataFacade);
 	}

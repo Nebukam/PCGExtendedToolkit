@@ -134,7 +134,7 @@ namespace PCGExMT
 		}
 	}
 
-	bool FGroupRangeIterationTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FGroupRangeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
 		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
 		if (!Group) { return false; }
@@ -142,7 +142,7 @@ namespace PCGExMT
 		return true;
 	}
 
-	bool FGroupPrepareRangeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FGroupPrepareRangeTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
 		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
 		if (!Group) { return false; }
@@ -150,7 +150,7 @@ namespace PCGExMT
 		return true;
 	}
 
-	bool FGroupPrepareRangeInlineTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FGroupPrepareRangeInlineTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
 		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
 		if (!Group) { return false; }
@@ -171,7 +171,7 @@ namespace PCGExMT
 		return true;
 	}
 
-	bool FGroupRangeInlineIterationTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FGroupRangeInlineIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
 		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
 		if (!Group) { return false; }

@@ -111,7 +111,6 @@ namespace PCGExBreakClustersToPaths
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
-
 	};
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>

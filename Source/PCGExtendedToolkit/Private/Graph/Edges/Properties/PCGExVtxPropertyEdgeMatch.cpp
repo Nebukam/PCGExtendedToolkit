@@ -7,13 +7,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"
 #define PCGEX_NAMESPACE PCGExVtxPropertyEdgeMatch
 

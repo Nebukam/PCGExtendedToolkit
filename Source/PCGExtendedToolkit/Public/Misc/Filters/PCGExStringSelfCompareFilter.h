@@ -12,8 +12,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "PCGExStringSelfCompareFilter.generated.h"
 
 USTRUCT(BlueprintType)

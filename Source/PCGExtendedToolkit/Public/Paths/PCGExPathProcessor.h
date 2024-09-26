@@ -47,7 +47,7 @@ public:
 
 	UPROPERTY()
 	bool bSupportClosedLoops = true;
-	
+
 	/** Closed loop handling.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="bSupportClosedLoops", EditConditionHides, HideEditConditionToggle))
 	FPCGExPathClosedLoopDetails ClosedLoop;

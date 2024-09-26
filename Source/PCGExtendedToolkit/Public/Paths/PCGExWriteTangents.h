@@ -9,8 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "Tangents/PCGExTangentsOperation.h"
 #include "PCGExWriteTangents.generated.h"
 

@@ -8,8 +8,6 @@
 #include "PCGExOperation.h"
 
 
-
-
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.generated.h"
 

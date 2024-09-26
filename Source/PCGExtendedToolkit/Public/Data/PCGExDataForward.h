@@ -12,24 +12,6 @@
 #include "PCGExData.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include "PCGExDataForward.generated.h"
 
 namespace PCGExData
@@ -81,8 +63,8 @@ namespace PCGExData
 		TSharedPtr<FFacade> SourceDataFacade;
 		TSharedPtr<FFacade> TargetDataFacade;
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		TArray<TSharedPtr<PCGExData::FBufferBase>> Readers;
-		TArray<TSharedPtr<PCGExData::FBufferBase>> Writers;
+		TArray<TSharedPtr<FBufferBase>> Readers;
+		TArray<TSharedPtr<FBufferBase>> Writers;
 
 	public:
 		~FDataForwardHandler();

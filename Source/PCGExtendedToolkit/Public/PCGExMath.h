@@ -309,9 +309,9 @@ namespace PCGExMath
 #pragma region Min
 
 	PCGEX_A_B_TPL(Min, { return FMath::Min(A, B); })
-	
+
 	PCGEX_A_B_MULTI(Min)
-	
+
 	PCGEX_A_B(Min, FString, { return A > B ? B : A; })
 	PCGEX_A_B(Min, FName, { return A.ToString() > B.ToString() ? B : A; })
 	PCGEX_A_B(Min, FSoftObjectPath, { return A.ToString() > B.ToString() ? B : A; })
@@ -322,7 +322,7 @@ namespace PCGExMath
 #pragma region Max
 
 	PCGEX_A_B_TPL(Max, { return FMath::Max(A, B); })
-	
+
 	PCGEX_A_B_MULTI(Max)
 
 	PCGEX_A_B(Max, FString, { return A > B ? A : B; })
@@ -336,7 +336,7 @@ namespace PCGExMath
 #pragma region Add
 
 	PCGEX_A_B_TPL(Add, { return A + B; })
-	
+
 	PCGEX_A_B(Add, bool, { return B ? true : A; })
 	PCGEX_A_B(Add, FQuat, { return Add(A.Rotator(), B.Rotator()).Quaternion(); })
 	PCGEX_A_BT(Add)
@@ -350,7 +350,7 @@ namespace PCGExMath
 #pragma region WeightedAdd
 
 	PCGEX_A_B_W_TPL(WeightedAdd, { return A + B * W; })
-	
+
 	PCGEX_A_B_WR(WeightedAdd)
 	PCGEX_A_B_W(WeightedAdd, FQuat, { return WeightedAdd(A.Rotator(), B.Rotator(), W).Quaternion(); })
 	PCGEX_A_B_WT(WeightedAdd)
@@ -366,7 +366,7 @@ namespace PCGExMath
 #pragma region Sub
 
 	PCGEX_A_B_TPL(Subtract, { return A - B; })
-	
+
 	PCGEX_A_B(Subtract, bool, { return B ? true : A; })
 	PCGEX_A_B(Subtract, FQuat, { return Subtract(A.Rotator(), B.Rotator()).Quaternion(); })
 	PCGEX_A_BT(Subtract)
@@ -381,7 +381,7 @@ namespace PCGExMath
 #pragma region WeightedSub
 
 	PCGEX_A_B_W_TPL(WeightedSub, { return A - B * W; })
-	
+
 	PCGEX_A_B_WR(WeightedSub)
 	PCGEX_A_B_W(WeightedSub, FQuat, { return WeightedAdd(A.Rotator(), B.Rotator(), W).Quaternion(); })
 	PCGEX_A_B_WT(WeightedSub)
@@ -397,7 +397,7 @@ namespace PCGExMath
 #pragma region UnsignedMin
 
 	PCGEX_A_B_TPL(UnsignedMin, { return FMath::Abs(A) > FMath::Abs(B) ? B : A; })
-	
+
 	PCGEX_A_B_MULTI(UnsignedMin)
 
 	PCGEX_A_B(UnsignedMin, bool, { return !A || !B ? false : true; })
@@ -411,7 +411,7 @@ namespace PCGExMath
 #pragma region UnsignedMax
 
 	PCGEX_A_B_TPL(UnsignedMax, { return FMath::Abs(A) > FMath::Abs(B) ? A : B; })
-	
+
 	PCGEX_A_B_MULTI(UnsignedMax)
 
 	PCGEX_A_B(UnsignedMax, bool, { return A || B ? true : false; })
@@ -425,7 +425,7 @@ namespace PCGExMath
 #pragma region AbsoluteMin
 
 	PCGEX_A_B_TPL(AbsoluteMin, { return FMath::Min(FMath::Abs(A), FMath::Abs(B)); })
-	
+
 	PCGEX_A_B_MULTI(AbsoluteMin)
 
 	PCGEX_A_B(AbsoluteMin, bool, { return !A || !B ? false : true; })

@@ -6,8 +6,6 @@
 #include "PCGExDataMath.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExWritePathPropertiesElement"
 #define PCGEX_NAMESPACE WritePathProperties
 

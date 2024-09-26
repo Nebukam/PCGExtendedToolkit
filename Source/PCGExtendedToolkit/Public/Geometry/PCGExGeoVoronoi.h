@@ -100,7 +100,7 @@ namespace PCGExGeo
 		{
 			IsValid = false;
 			Delaunay = MakeUnique<TDelaunay3>();
-			
+
 			if (!Delaunay->Process(Positions, true))
 			{
 				Clear();

@@ -12,8 +12,6 @@
 #include "Data/Blending/PCGExDataBlending.h"
 
 
-
-
 #include "PCGExSampleNearestBounds.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTBOUNDS(MACRO)\

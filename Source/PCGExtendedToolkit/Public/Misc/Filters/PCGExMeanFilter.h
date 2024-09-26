@@ -11,8 +11,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "PCGExMeanFilter.generated.h"
 
 USTRUCT(BlueprintType)

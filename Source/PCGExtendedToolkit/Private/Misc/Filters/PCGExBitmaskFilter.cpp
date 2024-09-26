@@ -4,9 +4,6 @@
 #include "Misc/Filters/PCGExBitmaskFilter.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 

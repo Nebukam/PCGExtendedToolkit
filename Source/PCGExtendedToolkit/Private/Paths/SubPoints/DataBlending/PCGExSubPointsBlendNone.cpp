@@ -7,15 +7,6 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 
-
-
-
-
-
-
-
-
-
 void UPCGExSubPointsBlendNone::BlendSubPoints(
 	const PCGExData::FPointRef& From,
 	const PCGExData::FPointRef& To,

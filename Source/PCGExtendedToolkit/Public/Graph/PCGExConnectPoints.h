@@ -7,8 +7,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExConnectPoints.generated.h"
@@ -152,7 +150,7 @@ namespace PCGExConnectPoints
 		TUniquePtr<PCGExPointFilter::TManager> ConnectableFilter;
 
 		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
-		
+
 		TArray<UPCGExProbeOperation*> ProbeOperations;
 		TArray<UPCGExProbeOperation*> DirectProbeOperations;
 		TArray<UPCGExProbeOperation*> ChainProbeOperations;

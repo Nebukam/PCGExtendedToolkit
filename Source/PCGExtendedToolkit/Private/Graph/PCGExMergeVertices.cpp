@@ -4,9 +4,6 @@
 #include "Graph/PCGExMergeVertices.h"
 
 
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -131,7 +128,7 @@ namespace PCGExMergeVertices
 	void FProcessor::CompleteWork()
 	{
 		const TSharedPtr<TMap<int32, int32>> OffsetLookup = MakeShared<TMap<int32, int32>>();
-		
+
 		OffsetLookup->Reserve(Cluster->NodeIndexLookup->Num());
 		for (const TPair<int32, int32>& Lookup : (*Cluster->NodeIndexLookup)) { OffsetLookup->Add(Lookup.Key + StartIndexOffset, Lookup.Value); }
 

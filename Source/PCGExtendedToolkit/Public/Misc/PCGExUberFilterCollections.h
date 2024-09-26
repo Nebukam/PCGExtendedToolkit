@@ -10,8 +10,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
-
-
 #include "PCGExUberFilterCollections.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode"))

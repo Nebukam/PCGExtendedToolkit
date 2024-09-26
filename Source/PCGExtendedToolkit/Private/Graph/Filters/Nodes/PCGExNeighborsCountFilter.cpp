@@ -4,17 +4,6 @@
 #include "Graph/Filters/Nodes/PCGExNeighborsCountFilter.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeNeighborsCountFilter"
@@ -22,7 +11,7 @@
 
 TSharedPtr<PCGExPointFilter::TFilter> UPCGExNeighborsCountFilterFactory::CreateFilter() const
 {
-	return MakeShared< PCGExNodeNeighborsCount::FNeighborsCountFilter>(this);
+	return MakeShared<PCGExNodeNeighborsCount::FNeighborsCountFilter>(this);
 }
 
 

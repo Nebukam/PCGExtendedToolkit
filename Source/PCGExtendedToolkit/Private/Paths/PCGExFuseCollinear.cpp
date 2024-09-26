@@ -6,8 +6,6 @@
 #include "Data/PCGExPointFilter.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
 
@@ -95,7 +93,6 @@ namespace PCGExFuseCollinear
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		
 
 		MaxIndex = PointIO->GetNum() - 1;
 		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);

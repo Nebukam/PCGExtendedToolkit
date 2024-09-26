@@ -135,9 +135,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 
 	void Prune(TArray<FString>& Names) const
 	{
-		for(int i = 0; i < Names.Num(); i++)
+		for (int i = 0; i < Names.Num(); i++)
 		{
-			if(!Test(Names[i]))
+			if (!Test(Names[i]))
 			{
 				Names.RemoveAt(i);
 				i--;

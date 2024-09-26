@@ -369,12 +369,12 @@ namespace PCGExGraph
 
 			for (const int32 NodeIndex : ValidNodes)
 			{
-				const TUniquePtr<PCGExGraph::FGraphNodeMetadata>* NodeMetaPtr = Graph->NodeMetadata.Find(NodeIndex);
+				const TUniquePtr<FGraphNodeMetadata>* NodeMetaPtr = Graph->NodeMetadata.Find(NodeIndex);
 
 				if (!NodeMetaPtr) { continue; }
 
 				const int32 PointIndex = Nodes[NodeIndex].PointIndex;
-				const TUniquePtr<PCGExGraph::FGraphNodeMetadata>& NodeMeta = *NodeMetaPtr;
+				const TUniquePtr<FGraphNodeMetadata>& NodeMeta = *NodeMetaPtr;
 				PCGEX_FOREACH_NODE_METADATA(PCGEX_NODE_METADATA_OUTPUT)
 			}
 

@@ -10,8 +10,6 @@
 #include "PCGExDetails.h"
 
 
-
-
 #include "Paths/SubPoints/PCGExSubPointsOperation.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivide.generated.h"
@@ -123,13 +121,13 @@ namespace PCGExSubdivide
 		TArray<FSubdivision> Subdivisions;
 
 		bool bClosedLoop = false;
-		
+
 		TSet<FName> ProtectedAttributes;
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
 		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
-		
+
 		TSharedPtr<PCGExData::TBuffer<double>> AmountGetter;
 
 		double ConstantAmount = 0;

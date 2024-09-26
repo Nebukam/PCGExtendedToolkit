@@ -6,8 +6,6 @@
 #include "Data/PCGExData.h"
 
 
-
-
 #define LOCTEXT_NAMESPACE "PCGExMovePivotElement"
 #define PCGEX_NAMESPACE MovePivot
 

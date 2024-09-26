@@ -8,8 +8,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "PCGExFuseCollinear.generated.h"
 
 /**

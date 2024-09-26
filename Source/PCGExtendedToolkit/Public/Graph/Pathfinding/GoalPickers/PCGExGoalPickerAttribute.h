@@ -9,8 +9,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
-
-
 #include "PCGExGoalPickerAttribute.generated.h"
 
 struct FPCGPoint;

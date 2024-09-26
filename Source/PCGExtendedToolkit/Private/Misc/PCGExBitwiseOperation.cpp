@@ -4,8 +4,6 @@
 #include "Misc/PCGExBitwiseOperation.h"
 
 
-
-
 #include "Misc/PCGExBitmask.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBitwiseOperationElement"

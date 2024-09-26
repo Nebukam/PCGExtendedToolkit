@@ -9,10 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
-
-
 #include "Geometry/PCGExGeo.h"
 #include "PCGExSplitPath.generated.h"
 
@@ -59,7 +55,7 @@ public:
 	/** When processing closed loop paths, paths that aren't looping anymore will be tagged. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
 	FPCGExPathClosedLoopUpdateDetails UpdateTags;
-	
+
 	/** If both split and remove are true, the selected behavior takes priority */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
@@ -84,7 +80,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : public FPCGExPa
 	virtual ~FPCGExSplitPathContext() override;
 
 	FPCGExPathClosedLoopUpdateDetails UpdateTags;
-	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathElement final : public FPCGExPathProcessorElement

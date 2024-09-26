@@ -12,8 +12,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "PCGExBitmaskFilter.generated.h"
 
 USTRUCT(BlueprintType)

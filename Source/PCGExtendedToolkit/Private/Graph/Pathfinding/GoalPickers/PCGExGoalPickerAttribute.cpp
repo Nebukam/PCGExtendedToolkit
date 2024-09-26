@@ -5,10 +5,6 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
 
 
-
-
-
-
 void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);

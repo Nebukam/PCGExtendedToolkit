@@ -10,18 +10,6 @@
 #include "PCGExSortPoints.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 #include "PCGExMergePointsByTag.generated.h"
 
 class FPCGExPointIOMerger;
@@ -115,7 +103,7 @@ public:
 	/** Fallback behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable, EditCondition="Mode==EPCGExMergeByTagOverlapResolutionMode::Flatten", EditConditionHides))
 	EPCGExMergeByTagFallbackBehavior FallbackBehavior = EPCGExMergeByTagFallbackBehavior::Omit;
-	
+
 	/** Tags to be processed or ignored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNameFiltersDetails TagFilters;

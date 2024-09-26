@@ -9,8 +9,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "Geometry/PCGExGeo.h"
 #include "PCGExOffsetPath.generated.h"
 
@@ -90,7 +88,7 @@ namespace PCGExOffsetPath
 		int32 NumPoints = 0;
 
 		bool bClosedLoop = false;
-		
+
 		double OffsetConstant = 0;
 		FVector UpConstant = FVector::UpVector;
 

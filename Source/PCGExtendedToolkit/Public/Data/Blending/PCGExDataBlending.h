@@ -10,18 +10,6 @@
 #include "Data/PCGExDataFilter.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 #include "PCGExDataBlending.generated.h"
 
 #define PCGEX_FOREACH_BLEND_POINTPROPERTY(MACRO)\

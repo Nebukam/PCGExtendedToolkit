@@ -5,16 +5,6 @@
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 
-
-
-
-
-
-
-
-
-
-
 EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 {
 	return EPCGExDataBlendingType::Lerp;

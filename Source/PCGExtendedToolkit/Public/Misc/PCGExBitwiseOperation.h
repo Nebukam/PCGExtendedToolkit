@@ -10,8 +10,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "PCGExBitwiseOperation.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")

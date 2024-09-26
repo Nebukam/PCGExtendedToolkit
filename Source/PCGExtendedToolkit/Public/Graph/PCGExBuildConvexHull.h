@@ -7,8 +7,6 @@
 #include "PCGExPointsProcessor.h"
 
 
-
-
 #include "PCGExBuildConvexHull.generated.h"
 
 namespace PCGExGeo

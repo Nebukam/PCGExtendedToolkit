@@ -35,7 +35,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 
 	~FPCGExHeuristicConfigBase()
 	{
-	
 	}
 
 	/** The weight factor for this heuristic.*/

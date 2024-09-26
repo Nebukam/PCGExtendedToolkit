@@ -11,8 +11,6 @@
 #include "Data/PCGSplineData.h"
 
 
-
-
 #include "PCGExSampleNearestSpline.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(MACRO)\
