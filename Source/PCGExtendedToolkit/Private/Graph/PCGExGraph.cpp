@@ -37,7 +37,7 @@ namespace PCGExGraph
 	{
 		TSharedPtr<PCGExCluster::FCluster> NewCluster = MakeShared<PCGExCluster::FCluster>(VtxDataFacade->Source, EdgesDataFacade->Source);
 		NewCluster->BuildFrom(this);
-		
+
 		// Look into the cost of this
 
 		//if (AsyncManager) { NewCluster->ExpandEdges(AsyncManager); }

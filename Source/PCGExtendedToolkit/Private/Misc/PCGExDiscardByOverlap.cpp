@@ -366,7 +366,7 @@ namespace PCGExDiscardByOverlap
 		// 2 - Find overlaps between large bounds, we'll be searching only there.
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PreparationTask)
-		PreparationTask->OnCompleteCallback = 
+		PreparationTask->OnCompleteCallback =
 			[&]()
 			{
 				switch (Settings->TestMode)

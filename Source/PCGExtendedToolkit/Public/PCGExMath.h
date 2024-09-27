@@ -299,7 +299,7 @@ namespace PCGExMath
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
-			return A > B ? B : A;;
+			return A > B ? B : A;
 		}
 		else if constexpr (
 			std::is_same_v<T, FName> ||
@@ -347,7 +347,7 @@ namespace PCGExMath
 		}
 		else if constexpr (std::is_same_v<T, FString>)
 		{
-			return A < B ? B : A;;
+			return A < B ? B : A;
 		}
 		else if constexpr (
 			std::is_same_v<T, FName> ||

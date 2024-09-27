@@ -950,7 +950,7 @@ namespace PCGEx
 				return FRotator(D, D, D);
 			}
 			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform::Identity; }
-			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false"));; }
+			else if constexpr (std::is_same_v<T, FString>) { return FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false")); }
 			else if constexpr (std::is_same_v<T, FName>) { return FName(FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false"))); }
 			else { return T{}; }
 		}
@@ -1116,7 +1116,7 @@ namespace PCGEx
 					return Value.SquaredLength();
 				}
 			}
-			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y);; }
+			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
 			else if constexpr (std::is_same_v<T, FVector>) { return Value; }
 			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.X, Value.Y, Value.Z, 0); }
 			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value.X, Value.Y, Value.Z).Quaternion(); /* TODO : Handle axis selection */ }
@@ -1167,7 +1167,7 @@ namespace PCGEx
 					return FVector(Value).SquaredLength() > 0;
 				}
 			}
-			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y);; }
+			else if constexpr (std::is_same_v<T, FVector2D>) { return FVector2D(Value.X, Value.Y); }
 			else if constexpr (std::is_same_v<T, FVector>) { return Value; }
 			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.X, Value.Y, Value.Z, Value.W); }
 			else if constexpr (std::is_same_v<T, FQuat>) { return FRotator(Value.X, Value.Y, Value.Z).Quaternion(); }

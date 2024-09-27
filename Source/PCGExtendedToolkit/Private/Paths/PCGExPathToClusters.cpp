@@ -187,7 +187,7 @@ namespace PCGExPathToClusters
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		
+
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
 		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails, 2);

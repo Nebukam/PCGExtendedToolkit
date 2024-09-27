@@ -4,11 +4,6 @@
 #include "Graph/PCGExPartitionVertices.h"
 
 
-
-
-
-
-
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface

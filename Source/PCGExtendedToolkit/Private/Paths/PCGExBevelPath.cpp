@@ -281,7 +281,7 @@ namespace PCGExBevelPath
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelPath::Process);
-		
+
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
@@ -336,7 +336,7 @@ namespace PCGExBevelPath
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
-		Preparation->OnCompleteCallback =[&]() { StartParallelLoopForPoints(PCGExData::ESource::In); };
+		Preparation->OnCompleteCallback = [&]() { StartParallelLoopForPoints(PCGExData::ESource::In); };
 		Preparation->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
@@ -437,7 +437,7 @@ namespace PCGExBevelPath
 		PCGEX_SET_NUM_UNINITIALIZED(StartIndices, PointDataFacade->GetNum())
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		
+
 		int32 NumBevels = 0;
 		int32 NumOutPoints = 0;
 
@@ -498,7 +498,7 @@ namespace PCGExBevelPath
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)
-		WriteFlagsTask->OnCompleteCallback =[&]() { PointDataFacade->Write(AsyncManager); };
+		WriteFlagsTask->OnCompleteCallback = [&]() { PointDataFacade->Write(AsyncManager); };
 		WriteFlagsTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{

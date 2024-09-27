@@ -10,14 +10,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
-
-
-
-
-
-
-
-
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -518,7 +510,6 @@ namespace PCGExCluster
 
 namespace PCGExClusterTask
 {
-
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFindNodeChains final : public PCGExMT::FPCGExTask
 	{
 	public:

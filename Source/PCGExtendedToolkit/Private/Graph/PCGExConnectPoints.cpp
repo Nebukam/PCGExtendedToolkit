@@ -202,7 +202,7 @@ namespace PCGExConnectPoints
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
-		PrepTask->OnCompleteCallback =[&]() { OnPreparationComplete(); };
+		PrepTask->OnCompleteCallback = [&]() { OnPreparationComplete(); };
 		PrepTask->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{

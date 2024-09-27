@@ -188,7 +188,7 @@ namespace PCGExSplitPath
 		}
 
 		PathsIOs.Init(nullptr, Paths.Num());
-		
+
 		StartParallelLoopForRange(Paths.Num());
 
 		//TODO : If closed path is enabled, and if the first & last points are not removed after the split

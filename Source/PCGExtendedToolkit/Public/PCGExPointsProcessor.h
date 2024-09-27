@@ -275,10 +275,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 		if (BatchablePoints.IsEmpty()) { return false; }
 
 		TSharedPtr<T> TypedBatch = MakeShared<T>(this, BatchablePoints);
-		
+
 		MainBatch = TypedBatch;
 		MainBatch->SubProcessorMap = &SubProcessorMap;
-		
+
 		InitBatch(TypedBatch);
 
 		if (Settings->SupportsPointFilters())

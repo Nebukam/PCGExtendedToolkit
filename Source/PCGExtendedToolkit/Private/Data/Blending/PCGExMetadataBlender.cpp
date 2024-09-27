@@ -10,11 +10,6 @@
 #include "Data/Blending/PCGExDataBlending.h"
 
 
-
-
-
-
-
 namespace PCGExDataBlending
 {
 	FMetadataBlender::~FMetadataBlender()

@@ -116,7 +116,7 @@ namespace PCGExPathCrossings
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathCrossings::Process);
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		
+
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
@@ -287,7 +287,7 @@ namespace PCGExPathCrossings
 	void FProcessor::FixPoint(const int32 Index)
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		
+
 		// TODO : Set crossing positions + blending
 		const FCrossing* Crossing = Crossings[Index].Get();
 		const PCGExPaths::FPathEdge* Edge = Edges[Index].Get();
@@ -368,7 +368,7 @@ namespace PCGExPathCrossings
 	void FProcessor::OnSearchComplete()
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		
+
 		int32 NumPointsFinal = 0;
 
 		for (int i = 0; i < NumPoints; ++i)

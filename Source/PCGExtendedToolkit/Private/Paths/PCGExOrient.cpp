@@ -134,7 +134,7 @@ namespace PCGExOrient
 		FTransform OutT;
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		
+
 		const PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);
 		if (Orient->bClosedLoop)
 		{

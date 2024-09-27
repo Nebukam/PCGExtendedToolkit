@@ -96,7 +96,6 @@ namespace FPCGExFilter
 			  Upscale(InRule.Upscale),
 			  Offset(InRule.Offset)
 		{
-			
 		}
 
 		virtual ~FRule() override

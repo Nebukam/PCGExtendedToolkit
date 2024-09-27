@@ -885,7 +885,6 @@ namespace PCGExCluster
 
 namespace PCGExClusterTask
 {
-
 	bool FFindNodeChains::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FFindNodeChains::ExecuteTask);

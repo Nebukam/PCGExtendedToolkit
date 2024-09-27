@@ -175,7 +175,7 @@ namespace PCGExWriteTangents
 		if (!PointFilterCache[Index]) { return; }
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		
+
 		int32 PrevIndex = Index - 1;
 		int32 NextIndex = Index + 1;
 

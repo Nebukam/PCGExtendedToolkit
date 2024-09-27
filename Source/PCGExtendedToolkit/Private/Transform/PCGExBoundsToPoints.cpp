@@ -119,7 +119,7 @@ namespace PCGExBoundsToPoints
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
-		
+
 		if (bGeneratePerPointData)
 		{
 			int32 OutIndex;
