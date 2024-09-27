@@ -47,8 +47,8 @@ namespace PCGExData
 		Details.Filter(Identities);
 
 		const int32 NumAttributes = Identities.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(Readers, NumAttributes)
-		PCGEX_SET_NUM_UNINITIALIZED(Writers, NumAttributes)
+		PCGEx::InitArray(Readers, NumAttributes);
+		PCGEx::InitArray(Writers, NumAttributes);
 
 		// Init forwarded attributes on target		
 		for (int i = 0; i < NumAttributes; ++i)

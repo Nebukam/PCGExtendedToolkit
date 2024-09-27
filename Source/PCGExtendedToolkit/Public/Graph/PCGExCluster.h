@@ -397,6 +397,11 @@ namespace PCGExCluster
 		{
 		}
 
+		FExpandedNode():
+			Node(nullptr)
+		{
+		}
+
 		~FExpandedNode() = default;
 	};
 

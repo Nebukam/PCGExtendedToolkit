@@ -205,7 +205,7 @@ namespace PCGExPathIntersections
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
-		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, OriginalPoints.Num() + NumCuts);
+		PCGEx::InitArray(MutablePoints, OriginalPoints.Num() + NumCuts);
 
 		UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
 

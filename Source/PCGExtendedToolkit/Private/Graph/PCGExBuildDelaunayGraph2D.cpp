@@ -199,7 +199,7 @@ namespace PCGExBuildDelaunay2D
 		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumSites)
+		PCGEx::InitArray(MutablePoints, NumSites);
 		for (int i = 0; i < NumSites; ++i)
 		{
 			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];

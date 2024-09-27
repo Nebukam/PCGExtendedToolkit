@@ -78,7 +78,7 @@ namespace PCGExCopyClusters
 		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
 		const int32 NumTargets = Targets.Num();
 
-		PCGEX_SET_NUM_UNINITIALIZED(EdgesDupes, NumTargets)
+		PCGEx::InitArray(EdgesDupes, NumTargets);
 
 		for (int i = 0; i < NumTargets; ++i)
 		{
@@ -131,7 +131,7 @@ namespace PCGExCopyClusters
 		const TArray<FPCGPoint>& Targets = Context->Targets->GetIn()->GetPoints();
 		const int32 NumTargets = Targets.Num();
 
-		PCGEX_SET_NUM_UNINITIALIZED(VtxDupes, NumTargets)
+		PCGEx::InitArray(VtxDupes, NumTargets);
 		VtxTag.Reserve(NumTargets);
 
 		for (int i = 0; i < NumTargets; ++i)

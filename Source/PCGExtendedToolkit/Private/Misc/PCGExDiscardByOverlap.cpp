@@ -253,7 +253,7 @@ namespace PCGExDiscardByOverlap
 
 		NumPoints = InPoints->Num();
 
-		PCGEX_SET_NUM_UNINITIALIZED(LocalPointBounds, NumPoints)
+		PCGEx::InitArray(LocalPointBounds, NumPoints);
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BoundsPreparationTask)
 

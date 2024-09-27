@@ -55,7 +55,7 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 		Context->CustomProfileFacade = MakeShared<PCGExData::FFacade>(CustomProfileIO.ToSharedRef());
 
 		const TArray<FPCGPoint>& ProfilePoints = CustomProfileIO->GetIn()->GetPoints();
-		PCGEX_SET_NUM_UNINITIALIZED(Context->CustomProfilePositions, ProfilePoints.Num())
+		PCGEx::InitArray(Context->CustomProfilePositions, ProfilePoints.Num());
 
 		const FVector Start = ProfilePoints[0].Transform.GetLocation();
 		const FVector End = ProfilePoints.Last().Transform.GetLocation();
@@ -222,7 +222,7 @@ namespace PCGExBevelPath
 		}
 
 		SubdivCount = FMath::Max(0, SubdivCount);
-		PCGEX_SET_NUM(Subdivisions, SubdivCount)
+		PCGEx::InitArray(Subdivisions, SubdivCount);
 
 
 		for (int i = 0; i < SubdivCount; ++i) { Subdivisions[i] = Arrive + Dir * (StepSize + i * StepSize); }
@@ -242,7 +242,7 @@ namespace PCGExBevelPath
 		int32 SubdivCount = bIsCount ? Factor : FMath::Floor(Arc.GetLength() / Factor);
 
 		const double StepSize = 1 / static_cast<double>(SubdivCount + 1);
-		PCGEX_SET_NUM(Subdivisions, SubdivCount)
+		PCGEx::InitArray(Subdivisions, SubdivCount);
 
 		for (int i = 0; i < SubdivCount; ++i) { Subdivisions[i] = Arc.GetLocationOnArc(StepSize + i * StepSize); }
 	}
@@ -252,7 +252,7 @@ namespace PCGExBevelPath
 		const TArray<FVector>& SourcePos = InProcessor->Context->CustomProfilePositions;
 		const int32 SubdivCount = SourcePos.Num() - 2;
 
-		PCGEX_SET_NUM(Subdivisions, SubdivCount)
+		PCGEx::InitArray(Subdivisions, SubdivCount);
 
 		if (SubdivCount == 0) { return; }
 
@@ -317,7 +317,7 @@ namespace PCGExBevelPath
 
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(Lengths, NumPoints)
+		PCGEx::InitArray(Lengths, NumPoints);
 		for (int i = 0; i < NumPoints; ++i)
 		{
 			Lengths[i] = FVector::Distance(InPoints[i].Transform.GetLocation(), InPoints[i + 1 == NumPoints ? 0 : i + 1].Transform.GetLocation());
@@ -422,7 +422,7 @@ namespace PCGExBevelPath
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_SET_NUM_UNINITIALIZED(StartIndices, PointDataFacade->GetNum())
+		PCGEx::InitArray(StartIndices, PointDataFacade->GetNum());
 
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
@@ -458,7 +458,7 @@ namespace PCGExBevelPath
 		// Build output points
 
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM(MutablePoints, NumOutPoints);
+		PCGEx::InitArray(MutablePoints, NumOutPoints);
 
 		StartParallelLoopForRange(PointDataFacade->GetNum());
 	}
