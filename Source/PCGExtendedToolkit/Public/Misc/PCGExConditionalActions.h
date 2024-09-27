@@ -56,8 +56,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsContext final : public
 {
 	friend class FPCGExConditionalActionsElement;
 
-	virtual ~FPCGExConditionalActionsContext() override;
-
 	TSharedPtr<PCGEx::FAttributesInfos> DefaultAttributes;
 	TArray<UPCGExConditionalActionFactoryBase*> ConditionalActionsFactories;
 };

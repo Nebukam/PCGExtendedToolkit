@@ -13,11 +13,6 @@
 
 PCGExData::EInit UPCGExFusePointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
-FPCGExFusePointsContext::~FPCGExFusePointsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(FusePoints)
 
 bool FPCGExFusePointsElement::Boot(FPCGExContext* InContext) const

@@ -11,11 +11,6 @@ PCGExData::EInit UPCGExCollocationCountSettings::GetMainOutputInitMode() const {
 
 PCGEX_INITIALIZE_ELEMENT(CollocationCount)
 
-FPCGExCollocationCountContext::~FPCGExCollocationCountContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExCollocationCountElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

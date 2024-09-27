@@ -99,10 +99,7 @@ namespace PCGExPointFilter
 		virtual bool Test(const PCGExCluster::FNode& Node) const;
 		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const;
 
-		virtual ~TFilter()
-		{
-			Results.Empty();
-		}
+		virtual ~TFilter() = default;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ TManager

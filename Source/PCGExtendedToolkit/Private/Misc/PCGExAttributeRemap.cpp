@@ -11,11 +11,6 @@
 
 PCGExData::EInit UPCGExAttributeRemapSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGExAttributeRemapContext::~FPCGExAttributeRemapContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 
 bool FPCGExAttributeRemapElement::Boot(FPCGExContext* InContext) const

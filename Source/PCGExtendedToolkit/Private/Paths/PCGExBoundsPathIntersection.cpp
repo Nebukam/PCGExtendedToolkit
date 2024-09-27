@@ -20,11 +20,6 @@ PCGExData::EInit UPCGExBoundsPathIntersectionSettings::GetMainOutputInitMode() c
 
 PCGEX_INITIALIZE_ELEMENT(BoundsPathIntersection)
 
-FPCGExBoundsPathIntersectionContext::~FPCGExBoundsPathIntersectionContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

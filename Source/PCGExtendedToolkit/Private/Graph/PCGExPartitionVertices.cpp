@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExPartitionVerticesSettings::GetEdgeOutputInitMode() const 
 
 #pragma endregion
 
-FPCGExPartitionVerticesContext::~FPCGExPartitionVerticesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(PartitionVertices)
 
 bool FPCGExPartitionVerticesElement::Boot(FPCGExContext* InContext) const
@@ -71,12 +66,6 @@ namespace PCGExPartitionVertices
 	{
 		// Create a heavy copy we'll update and forward
 		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, true, true, true);
-	}
-
-	FProcessor::~FProcessor()
-	{
-		Remapping.Empty();
-		KeptIndices.Empty();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)

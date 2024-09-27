@@ -29,11 +29,10 @@ namespace PCGExDataBlending
 		TSharedPtr<FDataBlendingOperationBase> TargetBlendOp;
 		TSharedPtr<PCGExData::FBufferBase> Writer;
 
-		explicit FAttributeSourceMap(const PCGEx::FAttributeIdentity InIdentity)
+		explicit FAttributeSourceMap(const PCGEx::FAttributeIdentity& InIdentity)
 			: Identity(InIdentity)
 		{
-			Attributes.Empty();
-			BlendOps.Empty();
+			
 		}
 
 		~FAttributeSourceMap()
@@ -50,15 +49,8 @@ namespace PCGExDataBlending
 
 		void SetNum(const int32 InNum)
 		{
-			const int32 Diff = InNum - Attributes.Num();
-			PCGEX_SET_NUM_UNINITIALIZED(Attributes, InNum)
-			PCGEX_SET_NUM_UNINITIALIZED(BlendOps, InNum)
-
-			for (int i = 1; i <= Diff; ++i)
-			{
-				Attributes[InNum - i] = nullptr;
-				BlendOps[InNum - i] = nullptr;
-			}
+			Attributes.SetNum(InNum);
+			BlendOps.SetNum(InNum);
 		}
 	};
 

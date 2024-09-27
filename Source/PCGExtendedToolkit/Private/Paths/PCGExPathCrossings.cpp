@@ -24,11 +24,6 @@ PCGExData::EInit UPCGExPathCrossingsSettings::GetMainOutputInitMode() const { re
 
 PCGEX_INITIALIZE_ELEMENT(PathCrossings)
 
-FPCGExPathCrossingsContext::~FPCGExPathCrossingsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExPathCrossingsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

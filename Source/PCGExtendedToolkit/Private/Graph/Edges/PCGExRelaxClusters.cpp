@@ -16,11 +16,6 @@ PCGExData::EInit UPCGExRelaxClustersSettings::GetEdgeOutputInitMode() const { re
 
 PCGEX_INITIALIZE_ELEMENT(RelaxClusters)
 
-FPCGExRelaxClustersContext::~FPCGExRelaxClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExRelaxClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }

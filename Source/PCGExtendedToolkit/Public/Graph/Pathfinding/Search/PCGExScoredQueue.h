@@ -44,7 +44,6 @@ namespace PCGExSearch
 		{
 			std::priority_queue<FScoredNode, std::vector<FScoredNode>, std::greater<FScoredNode>> EmptyQueue;
 			std::swap(InternalQueue, EmptyQueue);
-			Scores.Empty();
 		}
 
 		FORCEINLINE void Enqueue(const int32& Id, const double Score)

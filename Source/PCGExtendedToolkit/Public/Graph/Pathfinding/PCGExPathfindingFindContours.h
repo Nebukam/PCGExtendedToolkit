@@ -145,8 +145,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGE
 	friend class FPCGExFindContoursElement;
 	friend class FPCGExCreateBridgeTask;
 
-	virtual ~FPCGExFindContoursContext() override;
-
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 

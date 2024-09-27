@@ -156,11 +156,6 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExPathSplineMesh
 {
-	FProcessor::~FProcessor()
-	{
-		//for (USplineMeshComponent* SMC : SplineMeshComponents) { PCGEX_DELETE_UOBJECT(SMC) }
-		//SplineMeshComponents.Empty();
-	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{

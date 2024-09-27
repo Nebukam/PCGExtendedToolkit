@@ -13,12 +13,6 @@ PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { re
 
 PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
 
-FPCGExFuseCollinearContext::~FPCGExFuseCollinearContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
-
 bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

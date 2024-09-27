@@ -14,11 +14,6 @@
 
 PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
@@ -100,11 +95,6 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 namespace PCGExBuildDelaunay
 {
-	FProcessor::~FProcessor()
-	{
-		UrquhartEdges.Empty();
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunay::Process);

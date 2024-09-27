@@ -22,11 +22,6 @@ namespace PCGExGeoTask
 
 PCGExData::EInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FPCGExBuildVoronoiGraphContext::~FPCGExBuildVoronoiGraphContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

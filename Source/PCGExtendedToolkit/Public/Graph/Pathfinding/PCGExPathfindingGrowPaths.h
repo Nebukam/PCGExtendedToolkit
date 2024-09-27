@@ -251,8 +251,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : publ
 {
 	friend class FPCGExPathfindingGrowPathsElement;
 
-	virtual ~FPCGExPathfindingGrowPathsContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
@@ -301,12 +299,6 @@ namespace PCGExGrowPaths
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
-		}
-
-		virtual ~FProcessor() override
-		{
-			Growths.Empty();
-			QueuedGrowths.Empty();
 		}
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;

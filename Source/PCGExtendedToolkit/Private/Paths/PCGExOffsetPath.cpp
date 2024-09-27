@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExOffsetPathSettings::GetMainOutputInitMode() const { retur
 
 PCGEX_INITIALIZE_ELEMENT(OffsetPath)
 
-FPCGExOffsetPathContext::~FPCGExOffsetPathContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExOffsetPathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -74,12 +69,6 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExOffsetPath
 {
-	FProcessor::~FProcessor()
-	{
-		Positions.Empty();
-		Normals.Empty();
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOffsetPath::Process);

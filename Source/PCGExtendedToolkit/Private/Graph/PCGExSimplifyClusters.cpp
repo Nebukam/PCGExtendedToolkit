@@ -16,11 +16,6 @@ PCGExData::EInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const {
 
 #pragma endregion
 
-FPCGExSimplifyClustersContext::~FPCGExSimplifyClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
 
 bool FPCGExSimplifyClustersElement::Boot(FPCGExContext* InContext) const

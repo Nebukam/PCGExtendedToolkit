@@ -11,11 +11,6 @@ PCGExData::EInit UPCGExFindSplinesSettings::GetMainOutputInitMode() const { retu
 
 PCGEX_INITIALIZE_ELEMENT(FindSplines)
 
-FPCGExFindSplinesContext::~FPCGExFindSplinesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExFindSplinesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

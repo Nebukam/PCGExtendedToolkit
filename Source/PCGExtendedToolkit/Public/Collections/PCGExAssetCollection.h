@@ -275,8 +275,7 @@ namespace PCGExAssetCollection
 		{
 		}
 
-		~FCategory();
-
+		~FCategory() = default;
 
 		FORCEINLINE int32 GetPick(const int32 Index, const EPCGExIndexPickMode PickMode) const
 		{

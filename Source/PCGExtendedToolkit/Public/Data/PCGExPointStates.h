@@ -97,7 +97,6 @@ namespace PCGExPointStates
 
 	public:
 		explicit FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
-		virtual ~FStateManager() override;
 
 		virtual bool Test(const int32 Index) override;
 

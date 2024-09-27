@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExMergeVerticesSettings::GetEdgeOutputInitMode() const { re
 
 #pragma endregion
 
-FPCGExMergeVerticesContext::~FPCGExMergeVerticesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 void FPCGExMergeVerticesContext::OnBatchesProcessingDone()
 {
 	Merger = MakeUnique<FPCGExPointIOMerger>(CompositeIO);

@@ -214,7 +214,6 @@ namespace PCGExMath
 			else { Median = SortedValues[MiddleIndex]; }
 		}
 
-		SortedValues.Empty();
 		return Median;
 	}
 
@@ -243,7 +242,6 @@ namespace PCGExMath
 			}
 		}
 
-		Map.Empty();
 		return Mode;
 	}
 

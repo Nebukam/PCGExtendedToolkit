@@ -13,11 +13,6 @@
 
 PCGExData::EInit UPCGExBuildConvexHullSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FPCGExBuildConvexHullContext::~FPCGExBuildConvexHullContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
@@ -84,11 +79,6 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 namespace PCGExConvexHull
 {
-	FProcessor::~FProcessor()
-	{
-		Edges.Empty();
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConvexHull::Process);

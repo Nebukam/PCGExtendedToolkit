@@ -79,8 +79,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraph2DContext final : publi
 {
 	friend class FPCGExBuildVoronoiGraph2DElement;
 
-	virtual ~FPCGExBuildVoronoiGraph2DContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> SitesOutput;
 };
 

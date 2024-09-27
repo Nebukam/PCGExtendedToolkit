@@ -187,8 +187,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : publi
 {
 	friend class FPCGExSampleSurfaceGuidedElement;
 
-	virtual ~FPCGExSampleSurfaceGuidedContext() override;
-
 	TSharedPtr<PCGExData::FFacade> ActorReferenceDataFacade;
 
 	bool bUseInclude = false;

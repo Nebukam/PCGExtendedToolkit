@@ -23,11 +23,6 @@ TArray<FPCGPinProperties> UPCGExWriteEdgePropertiesSettings::InputPinProperties(
 
 PCGEX_INITIALIZE_ELEMENT(WriteEdgeProperties)
 
-FPCGExWriteEdgePropertiesContext::~FPCGExWriteEdgePropertiesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExWriteEdgePropertiesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }

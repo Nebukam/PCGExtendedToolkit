@@ -75,8 +75,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsContext final : public FPCG
 {
 	friend class FPCGExWriteTangentsElement;
 
-	virtual ~FPCGExWriteTangentsContext() override;
-
 	UPCGExTangentsOperation* Tangents = nullptr;
 	UPCGExTangentsOperation* StartTangents = nullptr;
 	UPCGExTangentsOperation* EndTangents = nullptr;

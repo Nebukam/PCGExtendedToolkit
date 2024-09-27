@@ -58,8 +58,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNeighborsContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSampleNeighborsElement;
-	virtual ~FPCGExSampleNeighborsContext() override;
-
 	TArray<UPCGExNeighborSamplerFactoryBase*> SamplerFactories;
 };
 

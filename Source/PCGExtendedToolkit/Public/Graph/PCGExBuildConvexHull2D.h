@@ -58,8 +58,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : public 
 {
 	friend class FPCGExBuildConvexHull2DElement;
 
-	virtual ~FPCGExBuildConvexHull2DContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> PathsIO;
 
 	void BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const;
@@ -96,8 +94,6 @@ namespace PCGExConvexHull2D
 			TPointsProcessor(InPointDataFacade)
 		{
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;

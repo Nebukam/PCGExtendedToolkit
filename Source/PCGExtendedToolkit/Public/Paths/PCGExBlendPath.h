@@ -77,8 +77,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExBlendPathElement;
-
-	virtual ~FPCGExBlendPathContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathElement final : public FPCGExPathProcessorElement

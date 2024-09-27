@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExSplitPathSettings::GetMainOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(SplitPath)
 
-FPCGExSplitPathContext::~FPCGExSplitPathContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -82,11 +77,6 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSplitPath
 {
-	FProcessor::~FProcessor()
-	{
-		Paths.Empty();
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);

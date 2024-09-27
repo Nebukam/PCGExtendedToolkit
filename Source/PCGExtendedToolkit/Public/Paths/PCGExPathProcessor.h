@@ -57,8 +57,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathProcessorContext : public FPCGExPoin
 {
 	friend class FPCGExPathProcessorElement;
 
-	virtual ~FPCGExPathProcessorContext() override;
-
 	FPCGExPathClosedLoopDetails ClosedLoop;
 	TSharedPtr<PCGExData::FPointIOCollection> MainPaths;
 };

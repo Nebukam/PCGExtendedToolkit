@@ -77,8 +77,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : public FPCG
 {
 	friend class FPCGExConnectPointsElement;
 
-	virtual ~FPCGExConnectPointsContext() override;
-
 	TArray<UPCGExProbeFactoryBase*> ProbeFactories;
 	TArray<UPCGExFilterFactoryBase*> GeneratorsFiltersFactories;
 	TArray<UPCGExFilterFactoryBase*> ConnectablesFiltersFactories;

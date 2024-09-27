@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExPruneClustersSettings::GetEdgeOutputInitMode() const { re
 
 #pragma endregion
 
-FPCGExPruneClustersContext::~FPCGExPruneClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(PruneClusters)
 
 bool FPCGExPruneClustersElement::Boot(FPCGExContext* InContext) const

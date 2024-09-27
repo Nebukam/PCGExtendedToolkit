@@ -88,7 +88,6 @@ namespace PCGExClusterStates
 			const TSharedPtr<PCGExCluster::FCluster>& InCluster,
 			const TSharedPtr<PCGExData::FFacade>& InPointDataCache,
 			const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache);
-		virtual ~FStateManager() override;
 
 		FORCEINLINE virtual bool Test(const int32 Index) override
 		{

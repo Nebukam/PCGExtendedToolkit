@@ -52,8 +52,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionContext final : pu
 {
 	friend class FPCGExBoundsPathIntersectionElement;
 
-	virtual ~FPCGExBoundsPathIntersectionContext() override;
-
 	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 };
 

@@ -9,11 +9,6 @@
 
 PCGExData::EInit UPCGExSampleOverlapStatsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGExSampleOverlapStatsContext::~FPCGExSampleOverlapStatsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 TSharedPtr<PCGExSampleOverlapStats::FOverlap> FPCGExSampleOverlapStatsContext::RegisterOverlap(
 	PCGExSampleOverlapStats::FProcessor* InManager,
 	PCGExSampleOverlapStats::FProcessor* InManaged,

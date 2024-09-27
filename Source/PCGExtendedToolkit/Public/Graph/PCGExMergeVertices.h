@@ -45,8 +45,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesContext final : public FPCG
 	friend class UPCGExMergeVerticesSettings;
 	friend class FPCGExMergeVerticesElement;
 
-	virtual ~FPCGExMergeVerticesContext() override;
-
 	FPCGExCarryOverDetails CarryOverDetails;
 
 	FString OutVtxId = TEXT("");

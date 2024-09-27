@@ -15,11 +15,6 @@ PCGExData::EInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(Subdivide)
 
-FPCGExSubdivideContext::~FPCGExSubdivideContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExSubdivideElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -84,11 +79,6 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSubdivide
 {
-	FProcessor::~FProcessor()
-	{
-		Subdivisions.Empty();
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSubdivide::Process);

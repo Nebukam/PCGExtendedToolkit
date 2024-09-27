@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExPathSolidifySettings::GetMainOutputInitMode() const { ret
 
 PCGEX_INITIALIZE_ELEMENT(PathSolidify)
 
-FPCGExPathSolidifyContext::~FPCGExPathSolidifyContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExPathSolidifyElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

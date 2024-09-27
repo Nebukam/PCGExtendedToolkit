@@ -42,11 +42,6 @@ PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { retu
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
 
-FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExRefineEdgesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }

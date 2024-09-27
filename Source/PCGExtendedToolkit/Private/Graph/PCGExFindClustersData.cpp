@@ -29,11 +29,6 @@ PCGExData::EInit UPCGExFindClustersDataSettings::GetMainOutputInitMode() const {
 
 PCGEX_INITIALIZE_ELEMENT(FindClustersData)
 
-FPCGExFindClustersDataContext::~FPCGExFindClustersDataContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExFindClustersDataElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

@@ -36,15 +36,6 @@ PCGExData::EInit UPCGExConnectPointsSettings::GetMainOutputInitMode() const { re
 
 PCGEX_INITIALIZE_ELEMENT(ConnectPoints)
 
-FPCGExConnectPointsContext::~FPCGExConnectPointsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	ProbeFactories.Empty();
-	GeneratorsFiltersFactories.Empty();
-	ConnectablesFiltersFactories.Empty();
-}
-
 bool FPCGExConnectPointsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -104,18 +95,8 @@ namespace PCGExConnectPoints
 {
 	FProcessor::~FProcessor()
 	{
-		InPoints = nullptr;
-
 		for (UPCGExProbeOperation* Op : ProbeOperations) { PCGEX_DELETE_UOBJECT(Op) }
 		for (UPCGExProbeOperation* Op : DirectProbeOperations) { PCGEX_DELETE_UOBJECT(Op) }
-
-		ProbeOperations.Empty();
-		DirectProbeOperations.Empty();
-		ChainProbeOperations.Empty();
-		SharedProbeOperations.Empty();
-
-		CachedTransforms.Empty();
-		CanGenerate.Empty();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)

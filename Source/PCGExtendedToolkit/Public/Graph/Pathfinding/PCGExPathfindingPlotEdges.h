@@ -92,8 +92,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotEdgesContext final : publ
 {
 	friend class FPCGExPathfindingPlotEdgesElement;
 
-	virtual ~FPCGExPathfindingPlotEdgesContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> Plots;
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 

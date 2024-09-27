@@ -214,8 +214,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesContext final : publi
 {
 	friend class FPCGExWritePathPropertiesElement;
 
-	virtual ~FPCGExWritePathPropertiesContext() override;
-
 	PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_DECL_TOGGLE)
 	PCGEX_FOREACH_FIELD_PATH_MARKS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
@@ -264,8 +262,6 @@ namespace PCGExWritePathProperties
 			TPointsProcessor(InPointDataFacade)
 		{
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;

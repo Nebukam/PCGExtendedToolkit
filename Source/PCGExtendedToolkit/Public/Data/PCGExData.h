@@ -531,7 +531,7 @@ namespace PCGExData
 
 		void Write(const TWeakPtr<PCGExMT::FTaskManager>& AsyncManagerPtr)
 		{
-			if (AsyncManagerPtr.Pin()) { return; }
+			if (!AsyncManagerPtr.Pin()) { return; }
 
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
@@ -568,11 +568,7 @@ namespace PCGExData
 
 		FIdxCompound() { CompoundedHashSet.Empty(); }
 
-		~FIdxCompound()
-		{
-			IOIndices.Empty();
-			CompoundedHashSet.Empty();
-		}
+		~FIdxCompound() = default;
 
 		int32 Num() const { return CompoundedHashSet.Num(); }
 

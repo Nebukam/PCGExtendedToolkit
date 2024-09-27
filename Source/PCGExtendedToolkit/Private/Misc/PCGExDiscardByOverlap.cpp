@@ -52,11 +52,6 @@ void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other
 
 PCGExData::EInit UPCGExDiscardByOverlapSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FPCGExDiscardByOverlapContext::~FPCGExDiscardByOverlapContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 TSharedPtr<PCGExDiscardByOverlap::FOverlap> FPCGExDiscardByOverlapContext::RegisterOverlap(
 	PCGExDiscardByOverlap::FProcessor* InManager,
 	PCGExDiscardByOverlap::FProcessor* InManaged,
@@ -210,11 +205,6 @@ namespace PCGExDiscardByOverlap
 		Intersection(InIntersection), Manager(InManager), Managed(InManaged)
 	{
 		HashID = PCGEx::H64U(InManager->BatchIndex, InManaged->BatchIndex);
-	}
-
-	FProcessor::~FProcessor()
-	{
-		Overlaps.Empty();
 	}
 
 	void FProcessor::RegisterOverlap(FProcessor* InManaged, const FBox& Intersection)

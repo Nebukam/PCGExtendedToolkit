@@ -35,12 +35,6 @@ PCGExData::EInit UPCGExPathfindingPlotNavmeshSettings::GetMainOutputInitMode() c
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
 
-FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
-
 bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

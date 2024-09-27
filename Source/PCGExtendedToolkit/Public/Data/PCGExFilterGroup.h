@@ -92,11 +92,6 @@ namespace PCGExFilterGroup
 		virtual bool Test(const PCGExCluster::FNode& Node) const override = 0;
 		virtual bool Test(const PCGExGraph::FIndexedEdge& Edge) const override = 0;
 
-		virtual ~TFilterGroup() override
-		{
-			Results.Empty();
-		}
-
 	protected:
 		TArray<TSharedPtr<PCGExPointFilter::TFilter>> ManagedFilters;
 

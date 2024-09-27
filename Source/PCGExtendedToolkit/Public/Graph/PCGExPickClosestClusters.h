@@ -89,8 +89,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : publi
 {
 	friend class FPCGExPickClosestClustersElement;
 
-	virtual ~FPCGExPickClosestClustersContext() override;
-
 	TSharedPtr<PCGExData::FFacade> TargetDataFacade;
 
 	FString KeepTag = TEXT("");

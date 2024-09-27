@@ -12,11 +12,6 @@
 
 namespace PCGExDataBlending
 {
-	FMetadataBlender::~FMetadataBlender()
-	{
-		Cleanup();
-	}
-
 	FMetadataBlender::FMetadataBlender(const FPCGExBlendingDetails* InBlendingDetails)
 	{
 		BlendingDetails = InBlendingDetails;

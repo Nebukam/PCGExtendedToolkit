@@ -152,7 +152,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDiscardByOverlapContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExDiscardByOverlapElement;
-	virtual ~FPCGExDiscardByOverlapContext() override;
 
 	mutable FRWLock OverlapLock;
 	TMap<uint64, TSharedPtr<PCGExDiscardByOverlap::FOverlap>> OverlapMap;
@@ -339,8 +338,6 @@ namespace PCGExDiscardByOverlap
 		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree.Get(); }
 
 		//virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
-
-		virtual ~FProcessor() override;
 
 		FORCEINLINE bool HasOverlaps() const { return !Overlaps.IsEmpty(); }
 

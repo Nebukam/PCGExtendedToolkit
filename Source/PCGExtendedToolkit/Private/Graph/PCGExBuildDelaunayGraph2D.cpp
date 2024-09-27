@@ -19,11 +19,6 @@ namespace PCGExGeoTask
 
 PCGExData::EInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraph2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
@@ -107,11 +102,6 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 namespace PCGExBuildDelaunay2D
 {
-	FProcessor::~FProcessor()
-	{
-		UrquhartEdges.Empty();
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBuildDelaunay2D::Process);
@@ -274,7 +264,7 @@ namespace PCGExBuildDelaunay2D
 			QueueSet.Empty();
 
 			TArray<uint64> QueuedEdges = QueuedEdgesSet.Array();
-			QueueSet.Empty();
+			QueuedEdgesSet.Empty();
 
 			FVector Centroid = FVector::ZeroVector;
 			bool bOnHull = Site.bOnHull;

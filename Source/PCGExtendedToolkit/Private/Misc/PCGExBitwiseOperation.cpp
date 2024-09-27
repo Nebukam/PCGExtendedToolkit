@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExBitwiseOperationSettings::GetMainOutputInitMode() const {
 
 PCGEX_INITIALIZE_ELEMENT(BitwiseOperation)
 
-FPCGExBitwiseOperationContext::~FPCGExBitwiseOperationContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExBitwiseOperationElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

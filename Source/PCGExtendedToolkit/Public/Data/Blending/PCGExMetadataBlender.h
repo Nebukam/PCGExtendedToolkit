@@ -20,7 +20,7 @@ namespace PCGExDataBlending
 
 		TMap<FName, FDataBlendingOperationBase*> OperationIdMap;
 
-		~FMetadataBlender();
+		~FMetadataBlender() = default;
 
 		explicit FMetadataBlender(const FPCGExBlendingDetails* InBlendingDetails);
 		explicit FMetadataBlender(const FMetadataBlender* ReferenceBlender);

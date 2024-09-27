@@ -20,11 +20,6 @@ PCGExData::EInit UPCGExBoundsClustersIntersectionSettings::GetEdgeOutputInitMode
 
 #pragma endregion
 
-FPCGExBoundsClustersIntersectionContext::~FPCGExBoundsClustersIntersectionContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(BoundsClustersIntersection)
 
 bool FPCGExBoundsClustersIntersectionElement::Boot(FPCGExContext* InContext) const

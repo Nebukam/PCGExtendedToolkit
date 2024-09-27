@@ -99,8 +99,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraph2DContext final : publ
 {
 	friend class FPCGExBuildDelaunayGraph2DElement;
 
-	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> MainSites;
 };
 
@@ -138,8 +136,6 @@ namespace PCGExBuildDelaunay2D
 			TPointsProcessor(InPointDataFacade)
 		{
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;

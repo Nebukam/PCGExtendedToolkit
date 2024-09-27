@@ -52,8 +52,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHullContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildConvexHullElement;
-
-	virtual ~FPCGExBuildConvexHullContext() override;
 };
 
 
@@ -85,8 +83,6 @@ namespace PCGExConvexHull
 			TPointsProcessor(InPointDataFacade)
 		{
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;

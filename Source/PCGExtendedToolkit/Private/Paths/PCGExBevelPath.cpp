@@ -30,12 +30,6 @@ void UPCGExBevelPathSettings::InitOutputFlags(const TSharedPtr<PCGExData::FPoint
 	if (bFlagSubdivision) { Metadata->FindOrCreateAttribute(SubdivisionFlagName, false); }
 }
 
-FPCGExBevelPathContext::~FPCGExBevelPathContext()
-{
-	PCGEX_TERMINATE_ASYNC
-	CustomProfilePositions.Empty();
-}
-
 bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -270,12 +264,6 @@ namespace PCGExBevelPath
 		{
 			Subdivisions[i] = Arrive + ProjectionQuat.RotateVector(SourcePos[i + 1] * Factor);
 		}
-	}
-
-	FProcessor::~FProcessor()
-	{
-		Lengths.Empty();
-		StartIndices.Empty();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)

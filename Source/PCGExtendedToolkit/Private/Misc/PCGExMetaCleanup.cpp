@@ -10,10 +10,6 @@ PCGExData::EInit UPCGExMetaCleanupSettings::GetMainOutputInitMode() const { retu
 
 PCGEX_INITIALIZE_ELEMENT(MetaCleanup)
 
-FPCGExMetaCleanupContext::~FPCGExMetaCleanupContext()
-{
-}
-
 bool FPCGExMetaCleanupElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

@@ -103,8 +103,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesContext final : public F
 {
 	friend class FPCGExPathfindingEdgesElement;
 
-	virtual ~FPCGExPathfindingEdgesContext() override;
-
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 	TSharedPtr<PCGExData::FFacade> GoalsDataFacade;
 

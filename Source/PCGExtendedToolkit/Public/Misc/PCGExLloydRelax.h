@@ -49,8 +49,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelaxElement;
-
-	virtual ~FPCGExLloydRelaxContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElement
@@ -80,8 +78,6 @@ namespace PCGExLloydRelax
 			TPointsProcessor(InPointDataFacade)
 		{
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;

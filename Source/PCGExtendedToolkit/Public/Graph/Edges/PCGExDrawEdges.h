@@ -73,8 +73,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawEdgesContext final : public FPCGExEd
 
 	double MaxLerp = 1;
 	double CurrentLerp = 0;
-
-	virtual ~FPCGExDrawEdgesContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawEdgesElement final : public FPCGExEdgesProcessorElement

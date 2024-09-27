@@ -9,14 +9,6 @@
 
 namespace PCGExAssetCollection
 {
-	FCategory::~FCategory()
-	{
-		Indices.Empty();
-		Weights.Empty();
-		Order.Empty();
-		StagingDatas.Empty();
-	}
-
 	void FCategory::RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging)
 	{
 		StagingDatas.Add(InStaging);

@@ -21,11 +21,6 @@ PCGExData::EInit UPCGExWriteVtxPropertiesSettings::GetEdgeOutputInitMode() const
 
 PCGEX_INITIALIZE_ELEMENT(WriteVtxProperties)
 
-FPCGExWriteVtxPropertiesContext::~FPCGExWriteVtxPropertiesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExWriteVtxPropertiesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }

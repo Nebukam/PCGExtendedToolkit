@@ -113,8 +113,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSolidifyContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSolidifyElement;
-
-	virtual ~FPCGExPathSolidifyContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSolidifyElement final : public FPCGExPathProcessorElement

@@ -11,11 +11,6 @@ PCGExData::EInit UPCGExFlatProjectionSettings::GetMainOutputInitMode() const { r
 
 PCGEX_INITIALIZE_ELEMENT(FlatProjection)
 
-FPCGExFlatProjectionContext::~FPCGExFlatProjectionContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExFlatProjectionElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

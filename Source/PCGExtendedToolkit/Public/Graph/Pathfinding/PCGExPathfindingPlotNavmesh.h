@@ -94,8 +94,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotNavmeshContext final : pu
 {
 	friend class FPCGExPathfindingPlotNavmeshElement;
 
-	virtual ~FPCGExPathfindingPlotNavmeshContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 

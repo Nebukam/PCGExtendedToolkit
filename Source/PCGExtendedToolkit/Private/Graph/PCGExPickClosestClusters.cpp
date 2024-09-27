@@ -75,11 +75,6 @@ void FPCGExPickClosestClustersContext::OnBatchesProcessingDone()
 
 PCGEX_INITIALIZE_ELEMENT(PickClosestClusters)
 
-FPCGExPickClosestClustersContext::~FPCGExPickClosestClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }

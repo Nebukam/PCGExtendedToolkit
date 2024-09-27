@@ -59,8 +59,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseCollinearContext final : public FPCG
 {
 	friend class FPCGExFuseCollinearElement;
 
-	virtual ~FPCGExFuseCollinearContext() override;
-
 	double DotThreshold = 0;
 	double FuseDistSquared = 0;
 	//bool bDoBlend;

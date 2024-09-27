@@ -120,11 +120,6 @@ bool UPCGExPartitionByValuesSettings::GetPartitionRules(const FPCGContext* InCon
 	return true;
 }
 
-FPCGExPartitionByValuesBaseContext::~FPCGExPartitionByValuesBaseContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(PartitionByValuesBase)
 
 bool FPCGExPartitionByValuesBaseElement::Boot(FPCGExContext* InContext) const
@@ -201,10 +196,6 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 namespace PCGExPartitionByValues
 {
-	FProcessor::~FProcessor()
-	{
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }

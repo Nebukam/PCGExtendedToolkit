@@ -21,11 +21,6 @@ PCGExData::EInit UPCGExBreakClustersToPathsSettings::GetMainOutputInitMode() con
 
 PCGEX_INITIALIZE_ELEMENT(BreakClustersToPaths)
 
-FPCGExBreakClustersToPathsContext::~FPCGExBreakClustersToPathsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
@@ -70,11 +65,6 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 namespace PCGExBreakClustersToPaths
 {
-	FProcessor::~FProcessor()
-	{
-		Breakpoints.Empty();
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBreakClustersToPaths::Process);

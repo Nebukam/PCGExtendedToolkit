@@ -74,7 +74,6 @@ namespace PCGExPointsMT
 
 		TArray<bool> PointFilterCache;
 
-
 		int32 BatchIndex = -1;
 
 		UPCGExOperation* PrimaryOperation = nullptr;
@@ -312,16 +311,11 @@ namespace PCGExPointsMT
 		{
 		}
 
+		virtual ~FPointsProcessorBatchBase() = default;
+
 		virtual void SetExecutionContext(FPCGExContext* InContext)
 		{
 			ExecutionContext = InContext;
-		}
-
-		virtual ~FPointsProcessorBatchBase()
-		{
-			ExecutionContext = nullptr;
-			PointsCollection.Empty();
-			ProcessorFacades.Empty();
 		}
 
 		virtual bool PrepareProcessing()
@@ -395,7 +389,7 @@ namespace PCGExPointsMT
 
 				NewProcessor->SetExecutionContext(ExecutionContext);
 				NewProcessor->ParentBatch = SelfShared;
-				NewProcessor->BatchIndex = Processors.Num() - 1;
+				NewProcessor->BatchIndex = Processors.Num();
 
 				if (!PrepareSingle(NewProcessor)) { continue; }
 				Processors.Add(NewProcessor.ToSharedRef());

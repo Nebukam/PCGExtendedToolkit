@@ -34,11 +34,6 @@ int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return P
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 
-FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

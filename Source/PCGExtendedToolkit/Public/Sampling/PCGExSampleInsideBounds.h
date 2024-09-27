@@ -290,8 +290,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : public
 {
 	friend class FPCGExSampleInsideBoundsElement;
 
-	virtual ~FPCGExSampleInsideBoundsContext() override;
-
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
 

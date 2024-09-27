@@ -20,12 +20,6 @@ namespace PCGExGeoTask
 
 PCGExData::EInit UPCGExMeshToClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FPCGExMeshToClustersContext::~FPCGExMeshToClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-	MeshIdx.Empty();
-}
-
 TArray<FPCGPinProperties> UPCGExMeshToClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

@@ -79,11 +79,6 @@ namespace PCGExClusterStates
 		FlagsCache = InFlags;
 	}
 
-	FStateManager::~FStateManager()
-	{
-		States.Empty();
-	}
-
 	void FStateManager::PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter)
 	{
 		const TSharedPtr<FState>& State = StaticCastSharedPtr<FState>(InFilter);

@@ -11,11 +11,6 @@ PCGExData::EInit UPCGExWriteIndexSettings::GetMainOutputInitMode() const { retur
 
 PCGEX_INITIALIZE_ELEMENT(WriteIndex)
 
-FPCGExWriteIndexContext::~FPCGExWriteIndexContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExWriteIndexElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

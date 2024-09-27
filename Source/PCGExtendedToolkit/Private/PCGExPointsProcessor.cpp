@@ -122,20 +122,8 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 
 	for (UPCGExOperation* Operation : ProcessorOperations)
 	{
-		Operation->Cleanup();
 		if (OwnedProcessorOperations.Contains(Operation)) { PCGEX_DELETE_OPERATION(Operation) }
 	}
-
-	SubProcessorMap.Empty();
-	BatchablePoints.Empty();
-
-	ProcessorOperations.Empty();
-	OwnedProcessorOperations.Empty();
-
-	FilterFactories.Empty();
-
-	CurrentIO = nullptr;
-	World = nullptr;
 }
 
 bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)

@@ -21,11 +21,6 @@ TArray<FPCGPinProperties> UPCGExUberFilterCollectionsSettings::OutputPinProperti
 
 PCGExData::EInit UPCGExUberFilterCollectionsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FPCGExUberFilterCollectionsContext::~FPCGExUberFilterCollectionsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(UberFilterCollections)
 
 FName UPCGExUberFilterCollectionsSettings::GetMainOutputLabel() const

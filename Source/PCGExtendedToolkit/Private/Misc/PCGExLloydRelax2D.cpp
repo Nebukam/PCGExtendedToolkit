@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExLloydRelax2DSettings::GetMainOutputInitMode() const { ret
 
 PCGEX_INITIALIZE_ELEMENT(LloydRelax2D)
 
-FPCGExLloydRelax2DContext::~FPCGExLloydRelax2DContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExLloydRelax2DElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -74,11 +69,6 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExLloydRelax2D
 {
-	FProcessor::~FProcessor()
-	{
-		ActivePositions.Empty();
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExLloydRelax2D::Process);

@@ -43,8 +43,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindSplinesContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindSplinesElement;
-
-	virtual ~FPCGExFindSplinesContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindSplinesElement final : public FPCGExPointsProcessorElement

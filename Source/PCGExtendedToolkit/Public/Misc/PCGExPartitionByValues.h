@@ -127,8 +127,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionByValuesBaseContext final : pub
 {
 	friend class FPCGExPartitionByValuesBaseElement;
 
-	virtual ~FPCGExPartitionByValuesBaseContext() override;
-
 	TArray<FPCGExPartitonRuleConfig> RulesConfigs;
 };
 
@@ -162,8 +160,6 @@ namespace PCGExPartitionByValues
 			TPointsProcessor(InPointDataFacade)
 		{
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;

@@ -186,8 +186,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : publ
 {
 	friend class FPCGExSampleNearestSurfaceElement;
 
-	virtual ~FPCGExSampleNearestSurfaceContext() override;
-
 	TSharedPtr<PCGExData::FFacade> ActorReferenceDataFacade;
 
 	FPCGExCollisionDetails CollisionSettings;

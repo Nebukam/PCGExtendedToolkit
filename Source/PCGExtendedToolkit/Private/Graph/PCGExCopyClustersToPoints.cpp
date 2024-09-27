@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() con
 
 #pragma endregion
 
-FPCGExCopyClustersToPointsContext::~FPCGExCopyClustersToPointsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(CopyClustersToPoints)
 
 TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties() const

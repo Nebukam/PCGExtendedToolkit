@@ -347,7 +347,7 @@ namespace PCGExGraph
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
-		const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FGraph> Graph;
 		TSharedPtr<FCompoundGraph> CompoundGraph;
 
@@ -584,7 +584,7 @@ namespace PCGExGraph
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
-		const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
 		TSharedPtr<FGraph> Graph;
 		TSharedPtr<FCompoundGraph> CompoundGraph;
 

@@ -30,12 +30,6 @@ int32 UPCGExSampleNearestSplineSettings::GetPreferredChunkSize() const { return 
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSpline)
 
-FPCGExSampleNearestSplineContext::~FPCGExSampleNearestSplineContext()
-{
-	PCGEX_TERMINATE_ASYNC
-	Targets.Empty();
-}
-
 bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

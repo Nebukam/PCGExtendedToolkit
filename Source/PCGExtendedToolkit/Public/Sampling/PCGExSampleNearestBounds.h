@@ -281,8 +281,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : publi
 {
 	friend class FPCGExSampleNearestBoundsElement;
 
-	virtual ~FPCGExSampleNearestBoundsContext() override;
-
 	TSharedPtr<PCGExData::FFacade> BoundsFacade;
 
 	FPCGExBlendingDetails BlendingDetails;

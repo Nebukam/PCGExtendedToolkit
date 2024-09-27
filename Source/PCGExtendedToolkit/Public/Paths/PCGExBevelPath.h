@@ -161,8 +161,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathContext final : public FPCGExPa
 {
 	friend class FPCGExBevelPathElement;
 
-	virtual ~FPCGExBevelPathContext() override;
-
 	TSharedPtr<PCGExData::FFacade> CustomProfileFacade;
 
 	TArray<FVector> CustomProfilePositions;
@@ -254,8 +252,6 @@ namespace PCGExBevelPath
 		{
 			DefaultPointFilterValue = true;
 		}
-
-		virtual ~FProcessor() override;
 
 		FORCEINLINE double Len(const int32 Index) const { return Lengths[Index]; }
 

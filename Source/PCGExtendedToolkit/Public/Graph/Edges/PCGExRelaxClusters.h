@@ -53,8 +53,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersContext final : public FPCG
 {
 	friend class FPCGExRelaxClustersElement;
 
-	virtual ~FPCGExRelaxClustersContext() override;
-
 	UPCGExRelaxClusterOperation* Relaxing = nullptr;
 };
 

@@ -20,11 +20,6 @@ TArray<FPCGPinProperties> UPCGExMetaFilterSettings::OutputPinProperties() const
 
 PCGEX_INITIALIZE_ELEMENT(MetaFilter)
 
-FPCGExMetaFilterContext::~FPCGExMetaFilterContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExMetaFilterElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

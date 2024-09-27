@@ -83,8 +83,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSmoothContext final : public FPCGExPathP
 {
 	friend class FPCGExSmoothElement;
 
-	virtual ~FPCGExSmoothContext() override;
-
 	UPCGExSmoothingOperation* SmoothingMethod = nullptr;
 };
 

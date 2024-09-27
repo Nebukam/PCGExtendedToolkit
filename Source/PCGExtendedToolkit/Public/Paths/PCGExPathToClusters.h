@@ -110,8 +110,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : public FPC
 {
 	friend class FPCGExPathToClustersElement;
 
-	virtual ~FPCGExPathToClustersContext() override;
-
 	TArray<TSharedPtr<PCGExData::FFacade>> PathsFacades;
 
 	FPCGExCarryOverDetails CarryOverDetails;

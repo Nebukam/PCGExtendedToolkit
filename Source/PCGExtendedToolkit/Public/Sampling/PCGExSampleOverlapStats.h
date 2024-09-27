@@ -119,7 +119,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleOverlapStatsElement;
-	virtual ~FPCGExSampleOverlapStatsContext() override;
 
 	mutable FRWLock OverlapLock;
 	TMap<uint64, TSharedPtr<PCGExSampleOverlapStats::FOverlap>> OverlapMap;

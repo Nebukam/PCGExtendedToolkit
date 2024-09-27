@@ -111,8 +111,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : public
 {
 	friend class FPCGExPathfindingNavmeshElement;
 
-	virtual ~FPCGExPathfindingNavmeshContext() override;
-
 	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 	TSharedPtr<PCGExData::FFacade> GoalsDataFacade;
 

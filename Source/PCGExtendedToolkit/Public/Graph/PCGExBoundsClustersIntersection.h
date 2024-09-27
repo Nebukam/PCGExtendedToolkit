@@ -45,8 +45,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionContext final 
 	friend class UPCGExBoundsClustersIntersectionSettings;
 	friend class FPCGExBoundsClustersIntersectionElement;
 
-	virtual ~FPCGExBoundsClustersIntersectionContext() override;
-
 	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 };
 

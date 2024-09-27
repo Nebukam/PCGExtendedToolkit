@@ -283,8 +283,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : public
 {
 	friend class FPCGExSampleNearestPointElement;
 
-	virtual ~FPCGExSampleNearestPointContext() override;
-
 	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
 

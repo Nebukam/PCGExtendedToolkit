@@ -35,7 +35,7 @@ void FPCGExPointIOMerger::Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& 
 
 void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
 {
-	for (const TSharedPtr<PCGExData::FPointIO> PointIO : InCollection->Pairs) { Append(PointIO); }
+	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : InCollection->Pairs) { Append(PointIO); }
 }
 
 void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)

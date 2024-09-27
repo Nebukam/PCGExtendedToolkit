@@ -59,8 +59,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlatProjectionContext final : public FPC
 {
 	friend class FPCGExFlatProjectionElement;
 
-	virtual ~FPCGExFlatProjectionContext() override;
-
 	FName CachedTransformAttributeName = NAME_None;
 };
 

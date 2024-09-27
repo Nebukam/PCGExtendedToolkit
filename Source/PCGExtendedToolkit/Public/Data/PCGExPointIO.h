@@ -371,11 +371,7 @@ namespace PCGExData
 		{
 		}
 
-		~FPointIOTaggedDictionary()
-		{
-			TagMap.Empty();
-			Entries.Empty();
-		}
+		~FPointIOTaggedDictionary() = default;
 
 		bool CreateKey(const TSharedRef<FPointIO>& PointIOKey);
 		bool TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry);

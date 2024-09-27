@@ -31,11 +31,6 @@ PCGExData::EInit UPCGExPathToClustersSettings::GetMainOutputInitMode() const
 
 PCGEX_INITIALIZE_ELEMENT(PathToClusters)
 
-FPCGExPathToClustersContext::~FPCGExPathToClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

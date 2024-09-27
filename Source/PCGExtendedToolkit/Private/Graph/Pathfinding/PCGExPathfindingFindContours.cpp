@@ -245,14 +245,6 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 PCGEX_INITIALIZE_ELEMENT(FindContours)
 
-FPCGExFindContoursContext::~FPCGExFindContoursContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	SeedQuality.Empty();
-}
-
-
 bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }

@@ -49,8 +49,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMovePivotContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMovePivotElement;
-
-	virtual ~FPCGExMovePivotContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMovePivotElement final : public FPCGExPointsProcessorElement

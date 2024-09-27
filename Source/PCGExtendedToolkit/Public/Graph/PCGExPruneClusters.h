@@ -52,8 +52,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClustersContext final : public FPCG
 	friend class UPCGExPruneClustersSettings;
 	friend class FPCGExPruneClustersElement;
 
-	virtual ~FPCGExPruneClustersContext() override;
-
 	TSharedPtr<PCGExGeo::FPointBoxCloud> BoxCloud;
 	TArray<bool> ClusterState;
 

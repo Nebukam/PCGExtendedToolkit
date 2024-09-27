@@ -77,8 +77,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : public FPCGExPa
 {
 	friend class FPCGExSplitPathElement;
 
-	virtual ~FPCGExSplitPathContext() override;
-
 	FPCGExPathClosedLoopUpdateDetails UpdateTags;
 };
 
@@ -129,8 +127,6 @@ namespace PCGExSplitPath
 			: TPointsProcessor(InPointDataFacade)
 		{
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 

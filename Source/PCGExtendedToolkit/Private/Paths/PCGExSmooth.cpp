@@ -15,11 +15,6 @@ PCGExData::EInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PC
 
 PCGEX_INITIALIZE_ELEMENT(Smooth)
 
-FPCGExSmoothContext::~FPCGExSmoothContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

@@ -34,11 +34,6 @@ int32 UPCGExSampleInsideBoundsSettings::GetPreferredChunkSize() const { return P
 
 PCGEX_INITIALIZE_ELEMENT(SampleInsideBounds)
 
-FPCGExSampleInsideBoundsContext::~FPCGExSampleInsideBoundsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExSampleInsideBoundsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

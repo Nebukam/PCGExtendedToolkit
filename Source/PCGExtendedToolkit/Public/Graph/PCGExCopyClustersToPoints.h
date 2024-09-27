@@ -43,8 +43,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCopyClustersToPointsContext final : publ
 	friend class UPCGExCopyClustersToPointsSettings;
 	friend class FPCGExCopyClustersToPointsElement;
 
-	virtual ~FPCGExCopyClustersToPointsContext() override;
-
 	FPCGExTransformDetails TransformDetails;
 
 	TSharedPtr<PCGExData::FPointIO> Targets;

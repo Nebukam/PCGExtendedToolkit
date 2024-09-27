@@ -37,13 +37,7 @@ namespace PCGExHeuristics
 
 		~FLocalFeedbackHandler()
 		{
-			for (UPCGExHeuristicFeedback* Feedback : Feedbacks)
-			{
-				Feedback->Cleanup();
-				PCGEX_DELETE_OPERATION(Feedback)
-			}
-
-			Feedbacks.Empty();
+			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { PCGEX_DELETE_OPERATION(Feedback) }
 		}
 
 		FORCEINLINE double GetGlobalScore(

@@ -56,8 +56,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRollingContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExAttributeRollingElement;
-
-	virtual ~FPCGExAttributeRollingContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRollingElement final : public FPCGExPathProcessorElement

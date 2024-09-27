@@ -24,7 +24,7 @@ namespace PCGExPointsToBounds
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FBounds
 	{
 		FBox Bounds = FBox(ForceInit);
-		const TSharedPtr<PCGExData::FPointIO>& PointIO;
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
 
 		TSet<FBounds*> Overlaps;
 
@@ -92,13 +92,7 @@ namespace PCGExPointsToBounds
 			OtherBounds->AddPreciseOverlap(this, InCount, InAmount);
 		}
 
-		~FBounds()
-		{
-			Overlaps.Empty();
-			FastOverlaps.Empty();
-			PreciseOverlapAmount.Empty();
-			PreciseOverlapCount.Empty();
-		}
+		~FBounds() = default;
 	};
 
 	static void ComputeBounds(
@@ -180,8 +174,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsToBoundsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPointsToBoundsElement;
-
-	virtual ~FPCGExPointsToBoundsContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElement

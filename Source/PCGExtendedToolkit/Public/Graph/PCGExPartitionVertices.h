@@ -40,8 +40,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionVerticesContext final : public 
 	friend class UPCGExPartitionVerticesSettings;
 	friend class FPCGExPartitionVerticesElement;
 
-	virtual ~FPCGExPartitionVerticesContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> VtxPartitions;
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };
@@ -77,8 +75,6 @@ namespace PCGExPartitionVertices
 			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;

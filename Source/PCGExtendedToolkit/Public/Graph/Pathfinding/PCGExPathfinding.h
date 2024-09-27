@@ -51,9 +51,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathStatistics
 	{
 	}
 
-	virtual ~FPCGExPathStatistics()
-	{
-	}
+	virtual ~FPCGExPathStatistics() = default;
 
 	/** Write the point use count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -89,11 +87,7 @@ namespace PCGExPathfinding
 			EdgeExtraWeight.SetNumZeroed(InCluster->Edges->Num());
 		}
 
-		~FExtraWeights()
-		{
-			NodeExtraWeight.Empty();
-			EdgeExtraWeight.Empty();
-		}
+		~FExtraWeights() = default;
 
 		void AddPointWeight(const int32 PointIndex, const double InScore)
 		{

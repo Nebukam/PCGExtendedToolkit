@@ -20,11 +20,6 @@ PCGExData::EInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
 
-FPCGExBlendPathContext::~FPCGExBlendPathContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

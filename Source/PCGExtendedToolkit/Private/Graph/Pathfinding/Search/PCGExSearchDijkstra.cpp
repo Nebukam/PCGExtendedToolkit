@@ -136,8 +136,5 @@ bool UPCGExSearchDijkstra::FindPath(
 	Algo::Reverse(Path);
 	OutPath.Append(Path);
 
-	Visited.Empty();
-	TravelStack.Empty();
-
 	return true;
 }

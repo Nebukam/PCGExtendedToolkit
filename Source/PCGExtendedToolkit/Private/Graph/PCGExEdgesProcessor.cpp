@@ -33,13 +33,6 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() co
 
 #pragma endregion
 
-FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
-{
-	PCGEX_TERMINATE_ASYNC
-	Batches.Empty();
-	EndpointsLookup.Empty();
-}
-
 bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
 	CurrentCluster.Reset();

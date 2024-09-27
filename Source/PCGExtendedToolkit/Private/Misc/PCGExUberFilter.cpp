@@ -23,11 +23,6 @@ TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 
 PCGExData::EInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { return Mode == EPCGExUberFilterMode::Write ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::NoOutput; }
 
-FPCGExUberFilterContext::~FPCGExUberFilterContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(UberFilter)
 
 FName UPCGExUberFilterSettings::GetMainOutputLabel() const

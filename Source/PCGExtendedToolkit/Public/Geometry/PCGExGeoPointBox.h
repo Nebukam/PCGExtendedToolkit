@@ -116,9 +116,7 @@ namespace PCGExGeo
 		{
 		}
 
-		~FSegmentation()
-		{
-		}
+		~FSegmentation() = default;
 
 		int32 GetNum() const { return IntersectionsMap.Num(); }
 

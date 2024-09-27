@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExSanitizeClustersSettings::GetEdgeOutputInitMode() const {
 
 #pragma endregion
 
-FPCGExSanitizeClustersContext::~FPCGExSanitizeClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(SanitizeClusters)
 
 bool FPCGExSanitizeClustersElement::Boot(FPCGExContext* InContext) const

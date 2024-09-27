@@ -18,10 +18,6 @@ TArray<FPCGPinProperties> UPCGExCherryPickPointsSettings::InputPinProperties() c
 	return PinProperties;
 }
 
-FPCGExCherryPickPointsContext::~FPCGExCherryPickPointsContext()
-{
-}
-
 bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const TSharedRef<PCGExData::FPointIO>& InSource, TArray<int32>& OutUniqueIndices, const int32 MaxIndex) const
 {
 	PCGEX_SETTINGS_LOCAL(CherryPickPoints)

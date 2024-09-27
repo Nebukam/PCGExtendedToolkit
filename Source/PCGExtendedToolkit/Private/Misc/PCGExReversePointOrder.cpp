@@ -11,11 +11,6 @@ PCGExData::EInit UPCGExReversePointOrderSettings::GetMainOutputInitMode() const 
 
 PCGEX_INITIALIZE_ELEMENT(ReversePointOrder)
 
-FPCGExReversePointOrderContext::~FPCGExReversePointOrderContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExReversePointOrderElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

@@ -67,7 +67,7 @@ namespace PCGExData
 		TArray<TSharedPtr<FBufferBase>> Writers;
 
 	public:
-		~FDataForwardHandler();
+		~FDataForwardHandler() = default;
 		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade);
 		FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade, const TSharedPtr<FFacade>& InTargetDataFacade);
 		FORCEINLINE bool IsEmpty() const { return Identities.IsEmpty(); }

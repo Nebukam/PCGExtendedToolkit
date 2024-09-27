@@ -106,8 +106,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapContext final : public FPC
 {
 	friend class FPCGExAttributeRemapElement;
 
-	virtual ~FPCGExAttributeRemapContext() override;
-
 	FPCGExComponentRemapRule RemapSettings[4];
 	int32 RemapIndices[4];
 };

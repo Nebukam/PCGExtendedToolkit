@@ -92,11 +92,6 @@ void FPCGExShrinkPathContext::GetShrinkAmounts(const TSharedRef<PCGExData::FPoin
 	}
 }
 
-FPCGExShrinkPathContext::~FPCGExShrinkPathContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExShrinkPathElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

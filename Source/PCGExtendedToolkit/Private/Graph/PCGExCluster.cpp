@@ -17,11 +17,6 @@ namespace PCGExCluster
 {
 #pragma region FNode
 
-	FNode::~FNode()
-	{
-		Adjacency.Empty();
-	}
-
 	FVector FNode::GetCentroid(const FCluster* InCluster) const
 	{
 		if (Adjacency.IsEmpty()) { return InCluster->GetPos(NodeIndex); }

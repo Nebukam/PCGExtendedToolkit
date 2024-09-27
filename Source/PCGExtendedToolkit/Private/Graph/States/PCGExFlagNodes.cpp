@@ -23,12 +23,6 @@ TArray<FPCGPinProperties> UPCGExFlagNodesSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-FPCGExFlagNodesContext::~FPCGExFlagNodesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-	StateFactories.Empty();
-}
-
 PCGEX_INITIALIZE_ELEMENT(FlagNodes)
 
 bool FPCGExFlagNodesElement::Boot(FPCGExContext* InContext) const

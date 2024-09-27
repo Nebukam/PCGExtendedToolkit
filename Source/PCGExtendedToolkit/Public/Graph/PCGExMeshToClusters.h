@@ -126,7 +126,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersContext final : public FPC
 
 	TArray<TSharedPtr<PCGExGraph::FGraphBuilder>> GraphBuilders;
 
-	virtual ~FPCGExMeshToClustersContext() override;
 };
 
 

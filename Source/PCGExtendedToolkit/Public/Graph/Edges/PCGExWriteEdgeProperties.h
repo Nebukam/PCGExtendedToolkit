@@ -196,9 +196,7 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteEdgePropertiesElement;
-
-	virtual ~FPCGExWriteEdgePropertiesContext() override;
-
+	
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 

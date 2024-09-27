@@ -26,13 +26,6 @@ PCGExData::EInit UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const
 
 #pragma endregion
 
-FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	VtxFacades.Empty();
-}
-
 PCGEX_INITIALIZE_ELEMENT(FuseClusters)
 
 bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const

@@ -34,11 +34,6 @@ int32 UPCGExSampleNearestBoundsSettings::GetPreferredChunkSize() const { return 
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestBounds)
 
-FPCGExSampleNearestBoundsContext::~FPCGExSampleNearestBoundsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

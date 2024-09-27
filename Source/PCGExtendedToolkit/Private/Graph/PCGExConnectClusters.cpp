@@ -16,13 +16,6 @@ PCGExData::EInit UPCGExConnectClustersSettings::GetEdgeOutputInitMode() const { 
 
 PCGEX_INITIALIZE_ELEMENT(ConnectClusters)
 
-
-FPCGExConnectClustersContext::~FPCGExConnectClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
-
 bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
@@ -116,12 +109,6 @@ namespace PCGExBridgeClusters
 	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
-	}
-
-	FProcessorBatch::~FProcessorBatch()
-	{
-		ConsolidatedEdges = nullptr;
-		Bridges.Empty();
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

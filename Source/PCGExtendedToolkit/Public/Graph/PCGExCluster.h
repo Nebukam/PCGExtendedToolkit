@@ -124,7 +124,7 @@ namespace PCGExCluster
 		{
 		}
 
-		~FNode();
+		~FNode() = default;
 
 		FORCEINLINE bool IsDeadEnd() const { return Adjacency.Num() == 1; }
 		FORCEINLINE bool IsSimple() const { return Adjacency.Num() == 2; }
@@ -445,11 +445,7 @@ namespace PCGExCluster
 		{
 		}
 
-		~FNodeChain()
-		{
-			Nodes.Empty();
-			Edges.Empty();
-		}
+		~FNodeChain() = default;
 
 		uint64 GetUniqueHash() const
 		{

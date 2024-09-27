@@ -55,8 +55,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExCollocationCountElement;
-
-	virtual ~FPCGExCollocationCountContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountElement final : public FPCGExPointsProcessorElement

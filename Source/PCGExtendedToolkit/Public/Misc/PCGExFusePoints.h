@@ -35,15 +35,9 @@ namespace PCGExFuse
 		FFusedPoint(const int32 InIndex, const FVector& InPosition)
 			: Index(InIndex), Position(InPosition)
 		{
-			Fused.Empty();
-			Distances.Empty();
 		}
 
-		~FFusedPoint()
-		{
-			Fused.Empty();
-			Distances.Empty();
-		}
+		~FFusedPoint() = default;
 
 		FORCEINLINE void Add(const int32 InIndex, const double Distance)
 		{
@@ -100,7 +94,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
-	virtual ~FPCGExFusePointsContext() override;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 

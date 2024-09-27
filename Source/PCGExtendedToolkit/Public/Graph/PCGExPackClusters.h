@@ -47,8 +47,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPackClustersContext final : public FPCGE
 	friend class FPCGExPackClustersElement;
 	friend class FPCGExCreateBridgeTask;
 
-	virtual ~FPCGExPackClustersContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> PackedClusters;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
@@ -76,11 +74,6 @@ public:
 		InEdges(InInEdges),
 		EndpointsLookup(InEndpointsLookup)
 	{
-	}
-
-	virtual ~FPCGExPackClusterTask() override
-	{
-		EndpointsLookup.Empty();
 	}
 
 	TSharedPtr<PCGExData::FPointIO> InEdges;

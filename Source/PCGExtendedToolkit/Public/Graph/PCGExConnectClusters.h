@@ -68,8 +68,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersContext final : public FP
 	friend class FPCGExConnectClustersElement;
 	friend class FPCGExCreateBridgeTask;
 
-	virtual ~FPCGExConnectClustersContext() override;
-
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
@@ -110,7 +108,6 @@ namespace PCGExBridgeClusters
 		TSet<uint64> Bridges;
 
 		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
-		virtual ~FProcessorBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;
 		virtual void Process() override;

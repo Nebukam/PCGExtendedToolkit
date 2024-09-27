@@ -37,7 +37,7 @@ namespace PCGEx
 
 		FPCGExPointsProcessorContext* Context = nullptr;
 
-		const TSharedPtr<PCGExData::FPointIO>& PointIO = nullptr;
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
 
 		int32 NumIterations = -1;
 		int32 ChunkSize = 32;

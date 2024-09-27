@@ -58,8 +58,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBitwiseOperationElement;
-
-	virtual ~FPCGExBitwiseOperationContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationElement final : public FPCGExPointsProcessorElement

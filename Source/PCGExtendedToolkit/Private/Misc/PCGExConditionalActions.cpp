@@ -24,12 +24,6 @@ TArray<FPCGPinProperties> UPCGExConditionalActionsSettings::InputPinProperties()
 	return PinProperties;
 }
 
-FPCGExConditionalActionsContext::~FPCGExConditionalActionsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-	ConditionalActionsFactories.Empty();
-}
-
 PCGEX_INITIALIZE_ELEMENT(ConditionalActions)
 
 bool FPCGExConditionalActionsElement::Boot(FPCGExContext* InContext) const
@@ -108,7 +102,6 @@ namespace PCGExConditionalActions
 	FProcessor::~FProcessor()
 	{
 		for (UPCGExConditionalActionOperation* Op : Operations) { PCGEX_DELETE_UOBJECT(Op) }
-		Operations.Empty();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)

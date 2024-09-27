@@ -46,8 +46,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersContext final : public FPC
 {
 	friend class FPCGExUnpackClustersElement;
 
-	virtual ~FPCGExUnpackClustersContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> OutPoints;
 	TSharedPtr<PCGExData::FPointIOCollection> OutEdges;
 };

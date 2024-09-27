@@ -42,8 +42,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClustersContext final : public F
 {
 	friend class UPCGExSanitizeClustersSettings;
 	friend class FPCGExSanitizeClustersElement;
-
-	virtual ~FPCGExSanitizeClustersContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSanitizeClustersElement final : public FPCGExEdgesProcessorElement

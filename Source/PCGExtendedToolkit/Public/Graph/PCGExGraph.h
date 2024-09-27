@@ -294,10 +294,7 @@ namespace PCGExGraph
 		FORCEINLINE void SetAdjacency(const TSet<uint64>& InAdjacency) { Adjacency = InAdjacency.Array(); }
 		FORCEINLINE void Add(const int32 EdgeIndex) { Adjacency.AddUnique(EdgeIndex); }
 
-		~FNode()
-		{
-			Adjacency.Empty();
-		}
+		~FNode() = default;
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FSubGraph
@@ -316,9 +313,7 @@ namespace PCGExGraph
 		{
 		}
 
-		~FSubGraph()
-		{
-		}
+		~FSubGraph() = default;
 
 		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph)
 		{
@@ -390,12 +385,7 @@ namespace PCGExGraph
 
 		void BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits);
 
-		~FGraph()
-		{
-			Nodes.Empty();
-			UniqueEdges.Empty();
-			Edges.Empty();
-		}
+		~FGraph() = default;
 
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
 	};
@@ -450,9 +440,7 @@ namespace PCGExGraph
 
 		void OutputEdgesToContext() const;
 
-		~FGraphBuilder()
-		{
-		}
+		~FGraphBuilder() = default;
 	};
 
 	static bool BuildEndpointsLookup(

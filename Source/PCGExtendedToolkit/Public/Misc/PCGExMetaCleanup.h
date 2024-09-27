@@ -42,8 +42,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaCleanupContext final : public FPCGEx
 	friend class FPCGExMetaCleanupElement;
 
 	FPCGExCarryOverDetails Filters;
-
-	virtual ~FPCGExMetaCleanupContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaCleanupElement final : public FPCGExPointsProcessorElement

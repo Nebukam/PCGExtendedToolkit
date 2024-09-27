@@ -28,11 +28,6 @@ PCGExData::EInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const {
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
 
-FPCGExAttributeRollingContext::~FPCGExAttributeRollingContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

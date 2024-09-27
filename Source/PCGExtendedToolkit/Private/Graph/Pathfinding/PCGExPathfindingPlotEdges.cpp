@@ -51,11 +51,6 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
 	TArray<int32> Path;
 
-	auto Exit = [&](bool bSuccess)
-	{
-		Path.Empty();
-	};
-
 	const int32 NumPlots = InPlotPoints->GetNum();
 
 	for (int i = 1; i < NumPlots; ++i)
@@ -68,7 +63,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
-			if (Settings->bOmitCompletePathOnFailedPlot) { return Exit(false); }
+			if (Settings->bOmitCompletePathOnFailedPlot) { return; }
 		}
 
 		if (Settings->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
@@ -91,7 +86,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
-			if (Settings->bOmitCompletePathOnFailedPlot) { return Exit(false); }
+			if (Settings->bOmitCompletePathOnFailedPlot) { return; }
 		}
 	}
 
@@ -133,16 +128,9 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 	PathIO->Tags->Append(InPlotPoints->Tags.ToSharedRef());
 
-	return Exit(true);
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
-
-FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 
 bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 {

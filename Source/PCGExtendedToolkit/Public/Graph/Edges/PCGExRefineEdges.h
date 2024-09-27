@@ -85,8 +85,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesContext final : public FPCGEx
 {
 	friend class FPCGExRefineEdgesElement;
 
-	virtual ~FPCGExRefineEdgesContext() override;
-
 	TArray<UPCGExFilterFactoryBase*> VtxFilterFactories;
 	TArray<UPCGExFilterFactoryBase*> EdgeFilterFactories;
 	TArray<UPCGExFilterFactoryBase*> SanitizationFilterFactories;

@@ -22,11 +22,6 @@ int32 UPCGExSampleSurfaceGuidedSettings::GetPreferredChunkSize() const { return 
 
 PCGEX_INITIALIZE_ELEMENT(SampleSurfaceGuided)
 
-FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

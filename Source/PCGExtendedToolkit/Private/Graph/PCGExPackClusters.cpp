@@ -24,13 +24,6 @@ TArray<FPCGPinProperties> UPCGExPackClustersSettings::OutputPinProperties() cons
 
 PCGEX_INITIALIZE_ELEMENT(PackClusters)
 
-
-FPCGExPackClustersContext::~FPCGExPackClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
-
 bool FPCGExPackClustersElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }

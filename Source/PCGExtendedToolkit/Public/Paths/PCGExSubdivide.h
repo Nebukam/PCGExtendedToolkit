@@ -83,8 +83,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSubdivideContext final : public FPCGExPa
 {
 	friend class FPCGExSubdivideElement;
 
-	virtual ~FPCGExSubdivideContext() override;
-
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
@@ -139,8 +137,6 @@ namespace PCGExSubdivide
 			TPointsProcessor(InPointDataFacade)
 		{
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial
 

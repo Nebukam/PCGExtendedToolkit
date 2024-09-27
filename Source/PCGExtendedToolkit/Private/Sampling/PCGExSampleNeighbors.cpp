@@ -22,14 +22,6 @@ PCGExData::EInit UPCGExSampleNeighborsSettings::GetMainOutputInitMode() const { 
 
 PCGEX_INITIALIZE_ELEMENT(SampleNeighbors)
 
-FPCGExSampleNeighborsContext::~FPCGExSampleNeighborsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	//for (UPCGExNeighborSamplerFactoryBase* Factory : SamplerFactories) { PCGEX_DELETE_UOBJECT(Factory) }
-	SamplerFactories.Empty();
-}
-
 bool FPCGExSampleNeighborsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
@@ -86,7 +78,6 @@ namespace PCGExSampleNeighbors
 	FProcessor::~FProcessor()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_OPERATION(Op) }
-		SamplingOperations.Empty();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)

@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExWritePathPropertiesSettings::GetMainOutputInitMode() cons
 
 PCGEX_INITIALIZE_ELEMENT(WritePathProperties)
 
-FPCGExWritePathPropertiesContext::~FPCGExWritePathPropertiesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExWritePathPropertiesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -61,11 +56,6 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 
 namespace PCGExWritePathProperties
 {
-	FProcessor::~FProcessor()
-	{
-		Details.Empty();
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWritePathProperties::Process);

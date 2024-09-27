@@ -15,11 +15,6 @@ PCGExData::EInit UPCGExDrawEdgesSettings::GetEdgeOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(DrawEdges)
 
-FPCGExDrawEdgesContext::~FPCGExDrawEdgesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExDrawEdgesElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }

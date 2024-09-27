@@ -88,12 +88,7 @@ namespace PCGExData
 			return Flattened;
 		}
 
-		~FTags()
-		{
-			FWriteScopeLock WriteScopeLock(TagsLock);
-			RawTags.Empty();
-			Tags.Empty();
-		}
+		~FTags() = default;
 
 		void Add(const FString& Key)
 		{

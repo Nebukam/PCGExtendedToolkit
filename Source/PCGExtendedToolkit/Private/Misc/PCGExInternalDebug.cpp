@@ -10,11 +10,6 @@ PCGExData::EInit UPCGExInternalDebugSettings::GetMainOutputInitMode() const { re
 
 PCGEX_INITIALIZE_ELEMENT(InternalDebug)
 
-FPCGExInternalDebugContext::~FPCGExInternalDebugContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExInternalDebugElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }

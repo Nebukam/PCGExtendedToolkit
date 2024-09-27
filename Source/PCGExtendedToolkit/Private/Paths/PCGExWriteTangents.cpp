@@ -25,11 +25,6 @@ UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitialize
 #endif
 }
 
-FPCGExWriteTangentsContext::~FPCGExWriteTangentsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExWriteTangentsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }

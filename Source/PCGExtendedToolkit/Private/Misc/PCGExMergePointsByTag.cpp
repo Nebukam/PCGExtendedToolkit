@@ -14,11 +14,6 @@ namespace PCPGExMergePointsByTag
 	{
 	}
 
-	FMergeList::~FMergeList()
-	{
-		IOs.Empty();
-	}
-
 	void FMergeList::Merge(TSharedPtr<PCGExMT::FTaskManager> AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
 	{
 		if (IOs.IsEmpty()) { return; }
@@ -40,16 +35,7 @@ namespace PCPGExMergePointsByTag
 	{
 	}
 
-	FTagBucket::~FTagBucket()
-	{
-		IOs.Empty();
-	}
-
 	FTagBuckets::FTagBuckets()
-	{
-	}
-
-	FTagBuckets::~FTagBuckets()
 	{
 	}
 
@@ -223,11 +209,6 @@ namespace PCPGExMergePointsByTag
 PCGExData::EInit UPCGExMergePointsByTagSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(MergePointsByTag)
-
-FPCGExMergePointsByTagContext::~FPCGExMergePointsByTagContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExMergePointsByTagElement::Boot(FPCGExContext* InContext) const
 {

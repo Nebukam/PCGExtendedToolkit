@@ -8,11 +8,6 @@
 
 PCGExData::EInit UPCGExDrawAttributesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-FPCGExDrawAttributesContext::~FPCGExDrawAttributesContext()
-{
-	DebugList.Empty();
-}
-
 #if WITH_EDITOR
 FString FPCGExAttributeDebugDrawConfig::GetDisplayName() const
 {

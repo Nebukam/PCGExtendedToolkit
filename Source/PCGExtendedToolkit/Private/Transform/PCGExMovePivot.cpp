@@ -11,11 +11,6 @@
 
 PCGExData::EInit UPCGExMovePivotSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGExMovePivotContext::~FPCGExMovePivotContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(MovePivot)
 
 bool FPCGExMovePivotElement::Boot(FPCGExContext* InContext) const

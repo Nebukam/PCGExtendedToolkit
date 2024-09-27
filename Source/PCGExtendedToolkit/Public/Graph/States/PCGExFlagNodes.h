@@ -54,8 +54,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesContext final : public FPCGExEd
 {
 	friend class FPCGExFlagNodesElement;
 
-	virtual ~FPCGExFlagNodesContext() override;
-
 	TArray<UPCGExFilterFactoryBase*> StateFactories;
 };
 

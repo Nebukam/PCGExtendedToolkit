@@ -53,11 +53,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInputConfig
 	}
 
 public:
-	virtual ~FPCGExInputConfig()
-	{
-		Attribute = nullptr;
-	};
-
+	virtual ~FPCGExInputConfig() = default;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
 	FString TitlePropertyName;
 
@@ -166,12 +162,7 @@ namespace PCGEx
 		void Append(const TSharedPtr<FAttributesInfos>& Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
 		void Update(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch);
 
-		~FAttributesInfos()
-		{
-			Map.Empty();
-			Identities.Empty();
-			Attributes.Empty();
-		}
+		~FAttributesInfos() = default;
 
 		static TSharedPtr<FAttributesInfos> Get(const UPCGMetadata* InMetadata);
 	};
@@ -397,9 +388,7 @@ namespace PCGEx
 		{
 		}
 
-		virtual ~FAttributeIOBase()
-		{
-		}
+		virtual ~FAttributeIOBase() = default;
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count)
 		{
@@ -434,11 +423,6 @@ namespace PCGEx
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
 		{
 			this->Accessor->GetScope(this->Values, H64(StartIndex, Count));
-		}
-
-		virtual ~TAttributeIO() override
-		{
-			Values.Empty();
 		}
 	};
 
@@ -626,7 +610,7 @@ namespace PCGEx
 				Attribute = nullptr;
 				bValid = false;
 
-				if (const UPCGSpatialData* AsSpatial = Cast<UPCGSpatialData>(InData); !AsSpatial)
+				if (const UPCGSpatialData* AsSpatial = Cast<UPCGSpatialData>(InData))
 				{
 					Attribute = AsSpatial->Metadata->GetConstAttribute(InternalSelector.GetName());
 					if (Attribute)

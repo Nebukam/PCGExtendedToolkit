@@ -112,8 +112,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCG
 {
 	friend class FPCGExPathCrossingsElement;
 
-	virtual ~FPCGExPathCrossingsContext() override;
-
 	TArray<UPCGExFilterFactoryBase*> CanCutFilterFactories;
 	TArray<UPCGExFilterFactoryBase*> CanBeCutFilterFactories;
 

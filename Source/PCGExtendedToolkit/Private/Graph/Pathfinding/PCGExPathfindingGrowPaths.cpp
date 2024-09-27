@@ -209,11 +209,6 @@ TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::OutputPinPropertie
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingGrowPaths)
 
-FPCGExPathfindingGrowPathsContext::~FPCGExPathfindingGrowPathsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 bool FPCGExPathfindingGrowPathsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }

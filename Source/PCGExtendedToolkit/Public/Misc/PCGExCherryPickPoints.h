@@ -58,8 +58,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : public F
 {
 	friend class FPCGExCherryPickPointsElement;
 
-	virtual ~FPCGExCherryPickPointsContext() override;
-
 	bool TryGetUniqueIndices(const TSharedRef<PCGExData::FPointIO>& InSource, TArray<int32>& OutUniqueIndices, int32 MaxIndex = -1) const;
 	TArray<int32> SharedTargetIndices;
 };

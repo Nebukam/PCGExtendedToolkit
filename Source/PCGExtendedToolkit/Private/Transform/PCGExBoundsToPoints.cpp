@@ -9,11 +9,6 @@
 
 PCGExData::EInit UPCGExBoundsToPointsSettings::GetMainOutputInitMode() const { return bGeneratePerPointData ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 
-FPCGExBoundsToPointsContext::~FPCGExBoundsToPointsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(BoundsToPoints)
 
 bool FPCGExBoundsToPointsElement::Boot(FPCGExContext* InContext) const
@@ -57,10 +52,6 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExBoundsToPoints
 {
-	FProcessor::~FProcessor()
-	{
-		NewOutputs.Empty();
-	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{

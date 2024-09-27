@@ -69,8 +69,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsContext final : publ
 {
 	friend class FPCGExBreakClustersToPathsElement;
 
-	virtual ~FPCGExBreakClustersToPathsContext() override;
-
 	TSharedPtr<PCGExData::FPointIOCollection> Paths;
 	TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 };
@@ -103,8 +101,6 @@ namespace PCGExBreakClustersToPaths
 		{
 			bCacheVtxPointIndices = true;
 		}
-
-		virtual ~FProcessor() override;
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;

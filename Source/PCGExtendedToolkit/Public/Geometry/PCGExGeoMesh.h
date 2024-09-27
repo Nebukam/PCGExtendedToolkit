@@ -93,11 +93,7 @@ namespace PCGExGeo
 			Adjacencies.Empty();
 		}
 
-		~FGeoMesh()
-		{
-			Vertices.Empty();
-			Edges.Empty();
-		}
+		~FGeoMesh() = default;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoStaticMesh : public FGeoMesh

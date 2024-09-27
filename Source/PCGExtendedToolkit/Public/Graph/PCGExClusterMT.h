@@ -396,12 +396,7 @@ namespace PCGExClusterMT
 			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet;
 		}
 
-		virtual ~FClusterProcessorBatchBase()
-		{
-			Edges.Empty();
-			EndpointsLookup.Empty();
-			ExpectedAdjacency.Empty();
-		}
+		virtual ~FClusterProcessorBatchBase() = default;
 
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(ExecutionContext); }
@@ -524,10 +519,6 @@ namespace PCGExClusterMT
 				ValidClusters.Add(P->Cluster.Get());
 			}
 			return ValidClusters.Num();
-		}
-
-		virtual ~TBatch() override
-		{
 		}
 
 		virtual void Process() override

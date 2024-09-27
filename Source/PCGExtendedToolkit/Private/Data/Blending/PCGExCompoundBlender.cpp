@@ -18,9 +18,7 @@ namespace PCGExDataBlending
 	FCompoundBlender::FCompoundBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails):
 		CarryOverDetails(InCarryOverDetails), BlendingDetails(InBlendingDetails)
 	{
-		Sources.Empty();
-		IOIndices.Empty();
-		AttributeSourceMaps.Empty();
+		
 	}
 
 	FCompoundBlender::~FCompoundBlender()

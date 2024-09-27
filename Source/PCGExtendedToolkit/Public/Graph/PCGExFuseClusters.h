@@ -108,8 +108,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : public FPCGE
 	friend class UPCGExFuseClustersSettings;
 	friend class FPCGExFuseClustersElement;
 
-	virtual ~FPCGExFuseClustersContext() override;
-
 	TArray<TSharedPtr<PCGExData::FFacade>> VtxFacades;
 	TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
 	TSharedPtr<PCGExData::FFacade> CompoundFacade;
