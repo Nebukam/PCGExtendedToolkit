@@ -81,7 +81,7 @@ namespace PCGExWritePathProperties
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
 
-		PCGEX_SET_NUM_UNINITIALIZED(Details, NumPoints)
+		PCGEx::InitArray(Details, NumPoints);
 
 		UpConstant = Settings->UpVectorConstant;
 		if (Settings->UpVectorType == EPCGExFetchType::Attribute)

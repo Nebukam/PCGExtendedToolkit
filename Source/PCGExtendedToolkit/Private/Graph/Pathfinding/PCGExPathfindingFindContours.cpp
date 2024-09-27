@@ -399,7 +399,7 @@ namespace PCGExFindContours
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
 
-		PCGEX_SET_NUM_UNINITIALIZED(ProjectedPositions, VtxDataFacade->GetNum())
+		PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
 		ProjectionTaskGroup->StartRanges(

@@ -134,8 +134,8 @@ namespace PCGExPathCrossings
 		NumPoints = InPoints.Num();
 		LastIndex = NumPoints - 1;
 
-		PCGEX_SET_NUM_UNINITIALIZED(Positions, NumPoints)
-		PCGEX_SET_NUM_UNINITIALIZED(Lengths, NumPoints)
+		PCGEx::InitArray(Positions, NumPoints);
+		PCGEx::InitArray(Lengths, NumPoints);
 		Edges.Init(nullptr, NumPoints);
 		Crossings.Init(nullptr, NumPoints);
 
@@ -382,7 +382,7 @@ namespace PCGExPathCrossings
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		PCGEX_SET_NUM_UNINITIALIZED(OutPoints, NumPointsFinal)
+		PCGEx::InitArray(OutPoints, NumPointsFinal);
 
 		int32 Index = 0;
 		for (int i = 0; i < NumPoints; ++i)

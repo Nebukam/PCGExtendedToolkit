@@ -128,7 +128,7 @@ namespace PCGExUberFilter
 		}
 		else
 		{
-			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointDataFacade->GetNum())
+			PCGEx::InitArray(PointFilterCache, PointDataFacade->GetNum());
 		}
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -169,7 +169,7 @@ namespace PCGExUberFilter
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 		TArray<int32> Indices;
-		PCGEX_SET_NUM_UNINITIALIZED(Indices, NumPoints)
+		PCGEx::InitArray(Indices, NumPoints);
 
 		for (int i = 0; i < NumPoints; ++i) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
 
@@ -184,11 +184,11 @@ namespace PCGExUberFilter
 
 		Inside = CreateIO(Context->Inside.Get(), PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& InsidePoints = Inside->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM_UNINITIALIZED(InsidePoints, NumInside)
+		PCGEx::InitArray(InsidePoints, NumInside);
 
 		Outside = CreateIO(Context->Outside.Get(), PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM_UNINITIALIZED(OutsidePoints, NumOutside)
+		PCGEx::InitArray(OutsidePoints, NumOutside);
 
 		for (int i = 0; i < NumPoints; ++i)
 		{

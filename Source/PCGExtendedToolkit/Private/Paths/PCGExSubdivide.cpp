@@ -110,7 +110,7 @@ namespace PCGExSubdivide
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 		Blending->bClosedLoop = bClosedLoop;
 
-		PCGEX_SET_NUM(Subdivisions, PointDataFacade->GetNum())
+		PCGEx::InitArray(Subdivisions, PointDataFacade->GetNum());
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
@@ -220,7 +220,7 @@ namespace PCGExSubdivide
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumPoints)
+		PCGEx::InitArray(MutablePoints, NumPoints);
 
 		for (int i = 0; i < Subdivisions.Num(); ++i)
 		{

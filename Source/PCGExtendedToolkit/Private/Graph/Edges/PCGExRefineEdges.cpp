@@ -280,7 +280,7 @@ namespace PCGExRefineEdges
 		EdgeDataFacade->Source->InitializeOutput<UPCGPointData>(PCGExData::EInit::NewOutput); // Downgrade to regular data
 		const TArray<FPCGPoint>& OriginalEdges = EdgeDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutableEdges = EdgeDataFacade->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM_UNINITIALIZED(MutableEdges, ValidEdges.Num())
+		PCGEx::InitArray(MutableEdges, ValidEdges.Num());
 		for (int i = 0; i < ValidEdges.Num(); ++i) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
 	}
 

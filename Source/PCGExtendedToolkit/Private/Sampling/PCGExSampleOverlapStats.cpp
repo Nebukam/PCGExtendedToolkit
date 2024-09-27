@@ -131,9 +131,9 @@ namespace PCGExSampleOverlapStats
 		InPoints = &PointDataFacade->GetIn()->GetPoints();
 		NumPoints = InPoints->Num();
 
-		PCGEX_SET_NUM_UNINITIALIZED(LocalPointBounds, NumPoints)
-		PCGEX_SET_NUM(OverlapSubCount, NumPoints)
-		PCGEX_SET_NUM(OverlapCount, NumPoints)
+		PCGEx::InitArray(LocalPointBounds, NumPoints);
+		PCGEx::InitArray(OverlapSubCount, NumPoints);
+		PCGEx::InitArray(OverlapCount, NumPoints);
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BoundsPreparationTask)
 		BoundsPreparationTask->OnCompleteCallback =

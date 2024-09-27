@@ -153,7 +153,7 @@ namespace PCGExPickClosestClusters
 	void FProcessor::Search()
 	{
 		const int32 NumTargets = Context->TargetDataFacade->Source->GetNum();
-		PCGEX_SET_NUM_UNINITIALIZED(Distances, NumTargets)
+		PCGEx::InitArray(Distances, NumTargets);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessTargets)
 
