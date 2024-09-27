@@ -150,7 +150,7 @@ namespace PCGExPartitionByValues
 		TArray<FPCGExFilter::FRule> Rules;
 		TArray<int64> KeySums;
 
-		TUniquePtr<PCGExPartition::FKPartition> RootPartition;
+		TSharedPtr<PCGExPartition::FKPartition> RootPartition;
 
 		int32 NumPartitions = -1;
 		TArray<TSharedPtr<PCGExPartition::FKPartition>> Partitions;

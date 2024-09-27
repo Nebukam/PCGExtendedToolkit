@@ -124,12 +124,6 @@ if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
 
 #pragma endregion
 
-#define PCGEX_SET_NUM(_ARRAY, _NUM) { _ARRAY.SetNum(_NUM); }
-#define PCGEX_SET_NUM_PTR(_ARRAY, _NUM) { _ARRAY->SetNum(_NUM); }
-
-#define PCGEX_SET_NUM_UNINITIALIZED(_ARRAY, _NUM) { _ARRAY.SetNumUninitialized(_NUM); }
-#define PCGEX_SET_NUM_UNINITIALIZED_PTR(_ARRAY, _NUM) { _ARRAY->SetNumUninitialized(_NUM); }
-
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ return bCacheResult ? FName(FString("* ")+GetDefaultNodeTitle().ToString()) : FName(GetDefaultNodeTitle().ToString()); }\

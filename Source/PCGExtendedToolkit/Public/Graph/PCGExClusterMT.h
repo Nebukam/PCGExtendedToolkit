@@ -424,8 +424,8 @@ namespace PCGExClusterMT
 				// Spread
 				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManagerPtr, BuildEndpointLookupTask)
 
-				PCGEX_SET_NUM_UNINITIALIZED(ReverseLookup, NumVtx)
-				PCGEX_SET_NUM_UNINITIALIZED(ExpectedAdjacency, NumVtx)
+				PCGEx::InitArray(ReverseLookup, NumVtx);
+				PCGEx::InitArray(ExpectedAdjacency, NumVtx);
 
 				RawLookupAttribute = VtxDataFacade->GetIn()->Metadata->GetConstTypedAttribute<int64>(PCGExGraph::Tag_VtxEndpoint);
 				if (!RawLookupAttribute) { return; } // FAIL

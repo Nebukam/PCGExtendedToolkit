@@ -655,7 +655,7 @@ protected:
 			return CreationFailed();
 		}
 
-		PCGEX_SET_NUM(Collection->Entries, NumEntries);
+		PCGEx::InitArray(Collection->Entries, NumEntries);
 
 		// Path value
 

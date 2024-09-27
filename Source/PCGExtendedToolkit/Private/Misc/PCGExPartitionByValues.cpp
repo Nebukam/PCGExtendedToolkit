@@ -52,7 +52,8 @@ namespace PCGExPartition
 
 			if (LayerPtr) { return *LayerPtr; }
 
-			TSharedPtr<FKPartition> Partition = MakeShared<FKPartition>(SharedThis(this), Key, InRule, SubLayers.Num());
+			TSharedPtr<FKPartition> SharedThisPtr = SharedThis(this);
+			TSharedPtr<FKPartition> Partition = MakeShared<FKPartition>(SharedThisPtr, Key, InRule, SubLayers.Num());
 
 			UniquePartitionKeys.Add(Key);
 			SubLayers.Add(Key, Partition);
@@ -201,14 +202,14 @@ namespace PCGExPartitionByValues
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
-		RootPartition = MakeUnique<PCGExPartition::FKPartition>(nullptr, 0, nullptr, -1);
+		RootPartition = MakeShared<PCGExPartition::FKPartition>(nullptr, 0, nullptr, -1);
 
 		Rules.Empty(); //
 		PointDataFacade->Source->CreateInKeys();
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
-		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGEX_SET_NUM_UNINITIALIZED(KeySums, NumPoints) }
+		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGEx::InitArray(KeySums, NumPoints); }
 
 		for (FPCGExPartitonRuleConfig& Config : Context->RulesConfigs)
 		{
@@ -233,11 +234,11 @@ namespace PCGExPartitionByValues
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExPartition::FKPartition* Partition = RootPartition.Get();
+		TSharedPtr<PCGExPartition::FKPartition> Partition = RootPartition;
 		for (FPCGExFilter::FRule& Rule : Rules)
 		{
 			const int64 KeyValue = Rule.Filter(Index);
-			Partition = Partition->GetPartition(KeyValue, &Rule).Get();
+			Partition = Partition->GetPartition(KeyValue, &Rule);
 			Rule.FilteredValues[Index] = KeyValue;
 		}
 
@@ -255,7 +256,7 @@ namespace PCGExPartitionByValues
 
 		const TArray<FPCGPoint>& InPoints = PartitionIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& OutPoints = PartitionIO->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPoints, Partition->Points.Num())
+		PCGEx::InitArray(OutPoints, Partition->Points.Num());
 
 		for (int i = 0; i < OutPoints.Num(); ++i)
 		{

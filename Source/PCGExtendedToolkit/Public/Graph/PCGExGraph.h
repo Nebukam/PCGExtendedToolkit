@@ -356,7 +356,7 @@ namespace PCGExGraph
 		explicit FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve = 10)
 			: NumEdgesReserve(InNumEdgesReserve)
 		{
-			PCGEX_SET_NUM(Nodes, InNumNodes)
+			PCGEx::InitArray(Nodes, InNumNodes);
 
 			for (int i = 0; i < InNumNodes; ++i)
 			{
@@ -450,7 +450,7 @@ namespace PCGExGraph
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable);
 
-		PCGEX_SET_NUM_UNINITIALIZED(OutAdjacency, InPointIO->GetNum())
+		PCGEx::InitArray(OutAdjacency, InPointIO->GetNum());
 		OutIndices.Empty();
 
 		const TUniquePtr<PCGEx::TAttributeReader<int64>> IndexReader = MakeUnique<PCGEx::TAttributeReader<int64>>(Tag_VtxEndpoint);

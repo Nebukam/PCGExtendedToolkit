@@ -47,8 +47,8 @@ namespace PCGExGeo
 			}
 
 			const int32 NumSites = Delaunay->Sites.Num();
-			PCGEX_SET_NUM_UNINITIALIZED(Circumcenters, NumSites)
-			PCGEX_SET_NUM_UNINITIALIZED(Centroids, NumSites)
+			PCGEx::InitArray(Circumcenters, NumSites);
+			PCGEx::InitArray(Centroids, NumSites);
 
 			for (FDelaunaySite2& Site : Delaunay->Sites)
 			{
@@ -108,8 +108,8 @@ namespace PCGExGeo
 			}
 
 			const int32 NumSites = Delaunay->Sites.Num();
-			PCGEX_SET_NUM_UNINITIALIZED(Circumspheres, NumSites)
-			PCGEX_SET_NUM_UNINITIALIZED(Centroids, NumSites)
+			PCGEx::InitArray(Circumspheres, NumSites);
+			PCGEx::InitArray(Centroids, NumSites);
 
 			for (FDelaunaySite3& Site : Delaunay->Sites)
 			{

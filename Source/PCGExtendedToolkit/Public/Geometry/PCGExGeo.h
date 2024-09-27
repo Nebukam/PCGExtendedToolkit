@@ -127,7 +127,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 
 		if (NormalGetter)
 		{
@@ -150,14 +150,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 		for (int i = 0; i < NumVectors; ++i) { OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]); }
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 
 		if (NormalGetter)
 		{
@@ -181,14 +181,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 		for (int i = 0; i < NumVectors; ++i) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
 	}
 
 	void Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPoints.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 
 		if (NormalGetter)
 		{
@@ -413,7 +413,7 @@ namespace PCGExGeo
 	FORCEINLINE static void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions)
 	{
 		const int32 NumPoints = Points.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumPoints)
+		PCGEx::InitArray(OutPositions, NumPoints);
 		for (int i = 0; i < NumPoints; ++i) { OutPositions[i] = Points[i].Transform.GetLocation(); }
 	}
 

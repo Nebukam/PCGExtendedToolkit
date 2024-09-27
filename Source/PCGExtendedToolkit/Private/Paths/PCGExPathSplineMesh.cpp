@@ -192,7 +192,7 @@ namespace PCGExPathSplineMesh
 
 		LastIndex = PointDataFacade->GetNum() - 1;
 
-		PCGEX_SET_NUM_UNINITIALIZED(Segments, bClosedLoop ? LastIndex + 1 : LastIndex)
+		PCGEx::InitArray(Segments, bClosedLoop ? LastIndex + 1 : LastIndex);
 		//PCGEX_SET_NUM_UNINITIALIZED(SplineMeshComponents, LastIndex)
 
 		switch (Settings->SplineMeshAxisConstant)

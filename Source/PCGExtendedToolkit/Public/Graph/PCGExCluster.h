@@ -323,7 +323,7 @@ namespace PCGExCluster
 		void GrabNeighbors(const int32 NodeIndex, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
 		{
 			FNode* Node = (Nodes->GetData() + NodeIndex);
-			PCGEX_SET_NUM_UNINITIALIZED(OutNeighbors, Node->Adjacency.Num())
+			PCGEx::InitArray(OutNeighbors, Node->Adjacency.Num());
 			for (int i = 0; i < Node->Adjacency.Num(); ++i)
 			{
 				uint32 OtherNodeIndex;
@@ -336,7 +336,7 @@ namespace PCGExCluster
 		template <typename T, class MakeFunc>
 		void GrabNeighbors(const FNode& Node, TArray<T>& OutNeighbors, const MakeFunc&& Make) const
 		{
-			PCGEX_SET_NUM_UNINITIALIZED(OutNeighbors, Node.Adjacency.Num())
+			PCGEx::InitArray(OutNeighbors, Node.Adjacency.Num());
 			for (int i = 0; i < Node.Adjacency.Num(); ++i)
 			{
 				uint32 OtherNodeIndex;
@@ -380,7 +380,7 @@ namespace PCGExCluster
 		{
 			const int32 NumNeighbors = Node->Adjacency.Num();
 			const FVector Pos = Cluster->GetPos(InNodeIndex);
-			PCGEX_SET_NUM_UNINITIALIZED(Neighbors, NumNeighbors)
+			PCGEx::InitArray(Neighbors, NumNeighbors);
 			for (int i = 0; i < Neighbors.Num(); ++i)
 			{
 				uint32 NodeIndex;

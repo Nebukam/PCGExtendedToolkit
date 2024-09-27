@@ -338,7 +338,7 @@ namespace PCGExCluster
 		if (!ExpandedEdges)
 		{
 			ExpandedEdges = MakeShared<TArray<FExpandedEdge>>();
-			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num());
+			PCGEx::InitArray(*ExpandedEdges.Get(), Edges->Num());
 
 			TArray<FExpandedEdge>& ExpandedEdgesRef = (*ExpandedEdges);
 
@@ -787,7 +787,7 @@ namespace PCGExCluster
 			FWriteScopeLock WriteScopeLock(ClusterLock);
 
 			ExpandedNodes = MakeShared<TArray<FExpandedNode>>();
-			PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedNodes, Nodes->Num())
+			PCGEx::InitArray(*ExpandedNodes.Get(), Nodes->Num());
 
 			TArray<FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
 			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); ++i) { ExpandedNodesRef[i] = FExpandedNode(this, i); } } // Ooof
@@ -801,7 +801,7 @@ namespace PCGExCluster
 		if (ExpandedNodes) { return; }
 
 		ExpandedNodes = MakeShared<TArray<FExpandedNode>>();
-		PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedNodes, Nodes->Num())
+		PCGEx::InitArray(*ExpandedNodes.Get(), Nodes->Num());
 
 		PCGExMT::SubRanges(
 			Nodes->Num(), 256, [&](const int32 Start, const int32 Count)
@@ -834,7 +834,7 @@ namespace PCGExCluster
 		if (ExpandedEdges) { return; }
 
 		ExpandedEdges = MakeShared<TArray<FExpandedEdge>>();
-		PCGEX_SET_NUM_UNINITIALIZED_PTR(ExpandedEdges, Edges->Num())
+		PCGEx::InitArray(*ExpandedEdges.Get(), Edges->Num());
 
 		PCGExMT::SubRanges(
 			Edges->Num(), 256, [&](const int32 Start, const int32 Count)
@@ -848,7 +848,7 @@ namespace PCGExCluster
 		check(VtxIO)
 
 		const TArray<FPCGPoint>& VtxPoints = VtxIO->GetIn()->GetPoints();
-		PCGEX_SET_NUM_UNINITIALIZED(NodePositions, Nodes->Num())
+		PCGEx::InitArray(NodePositions, Nodes->Num());
 		for (const FNode& N : *Nodes) { NodePositions[N.NodeIndex] = VtxPoints[N.PointIndex].Transform.GetLocation(); }
 	}
 

@@ -132,7 +132,7 @@ namespace PCGExGeo
 
 		void ReduceToArray()
 		{
-			PCGEX_SET_NUM_UNINITIALIZED(IntersectionsList, IntersectionsMap.Num())
+			PCGEx::InitArray(IntersectionsList, IntersectionsMap.Num());
 			int32 Index = 0;
 			for (const TPair<uint64, TSharedPtr<FIntersections>>& Pair : IntersectionsMap) { IntersectionsList[Index++] = Pair.Value; }
 			IntersectionsMap.Empty();
@@ -383,7 +383,7 @@ namespace PCGExGeo
 
 			CloudBounds = FBox(ForceInit);
 
-			PCGEX_SET_NUM_UNINITIALIZED(Boxes, Points.Num())
+			Boxes.Init(nullptr, Points.Num());
 
 			for (int i = 0; i < Points.Num(); ++i)
 			{
