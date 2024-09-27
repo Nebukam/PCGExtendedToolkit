@@ -145,7 +145,7 @@ protected:
 
 namespace PCGExPartitionByValues
 {
-	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPartitionByValuesBaseContext, UPCGExPartitionByValuesSettings>
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPartitionByValuesBaseContext, UPCGExPartitionByValuesBaseSettings>
 	{
 		TArray<FPCGExFilter::FRule> Rules;
 		TArray<int64> KeySums;
