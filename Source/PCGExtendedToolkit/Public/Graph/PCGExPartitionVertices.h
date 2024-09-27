@@ -9,6 +9,10 @@
 #include "PCGExEdgesProcessor.h"
 
 
+
+
+
+
 #include "PCGExPartitionVertices.generated.h"
 
 
@@ -66,15 +70,15 @@ namespace PCGExPartitionVertices
 		friend class FProcessorBatch;
 
 	protected:
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 
 		TSharedPtr<PCGExData::FPointIO> PointPartitionIO;
 		TMap<int32, int32> Remapping;
 		TArray<int32> KeptIndices;
 
 	public:
-		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
-			TClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

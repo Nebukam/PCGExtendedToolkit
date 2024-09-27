@@ -133,15 +133,15 @@ namespace PCGExAssetStaging
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Justification = Settings->Justification;
-		Justification.Init(ExecutionContext, PointDataFacade.Get());
+		Justification.Init(ExecutionContext, PointDataFacade);
 
 		Variations = Settings->Variations;
 		Variations.Init(Settings->Seed);
 
-		NumPoints = PointIO->GetNum();
+		NumPoints = PointDataFacade->GetNum();
 
 		Helper = MakeUnique<PCGExAssetCollection::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
-		if (!Helper->Init(ExecutionContext, PointDataFacade.Get())) { return false; }
+		if (!Helper->Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		bOutputWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::NoOutput;
 		bNormalizedWeight = Settings->WeightToAttribute != EPCGExWeightOutputMode::Raw;
@@ -263,7 +263,7 @@ namespace PCGExAssetStaging
 	void FProcessor::Write()
 	{
 		// TODO : Find a better solution
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
 		int32 WriteIndex = 0;
 		for (int32 i = 0; i < NumPoints; ++i) { if (MutablePoints[i].MetadataEntry != -2) { MutablePoints[WriteIndex++] = MutablePoints[i]; } }

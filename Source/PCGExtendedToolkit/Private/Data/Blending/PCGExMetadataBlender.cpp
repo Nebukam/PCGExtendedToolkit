@@ -9,6 +9,12 @@
 #include "Data/Blending/PCGExDataBlendingOperations.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
+
+
+
+
+
+
 namespace PCGExDataBlending
 {
 	FMetadataBlender::~FMetadataBlender()
@@ -27,7 +33,7 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::PrepareForData(
-		const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
+		const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
 		const TSet<FName>* IgnoreAttributeSet,
@@ -37,8 +43,8 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::PrepareForData(
-		const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
-		const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
+		const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
+		const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
 		const PCGExData::ESource SecondarySource,
 		const bool bInitFirstOperation,
 		const TSet<FName>* IgnoreAttributeSet,

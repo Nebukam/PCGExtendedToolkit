@@ -75,12 +75,14 @@ namespace PCGExWritePathProperties
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 
 		LastIndex = PointIO->GetNum() - 1;
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_INIT)
 		}
 
@@ -165,7 +167,9 @@ namespace PCGExWritePathProperties
 
 	void FProcessor::CompleteWork()
 	{
-		const int32 NumPoints = PointIO->GetNum();
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		
+		const int32 NumPoints = PointDataFacade->GetNum();
 
 		FVector PathCentroid = FVector::ZeroVector;
 		FVector PathDir = Details[0].ToNext;

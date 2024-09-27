@@ -92,8 +92,8 @@ namespace PCGExBridgeClusters
 	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExConnectClustersContext, UPCGExConnectClustersSettings>
 	{
 	public:
-		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
-			TClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -109,7 +109,7 @@ namespace PCGExBridgeClusters
 		TUniquePtr<FPCGExPointIOMerger> Merger;
 		TSet<uint64> Bridges;
 
-		FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges);
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 		virtual ~FProcessorBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;

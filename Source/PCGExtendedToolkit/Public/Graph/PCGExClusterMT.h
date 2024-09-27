@@ -65,14 +65,16 @@ namespace PCGExClusterMT
 		int32 NumNodes = 0;
 		int32 NumEdges = 0;
 
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 		{
-			return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, false, false, false);
+			return MakeShared<PCGExCluster::FCluster>(
+				InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source,
+				false, false, false);
 		}
 
 		void ForwardCluster() const
 		{
-			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(EdgesIO->GetOut()))
+			if (UPCGExClusterEdgesData* EdgesData = Cast<UPCGExClusterEdgesData>(EdgeDataFacade->GetOut()))
 			{
 				EdgesData->SetBoundCluster(Cluster);
 			}
@@ -81,8 +83,8 @@ namespace PCGExClusterMT
 	public:
 		TSharedPtr<FClusterProcessorBatchBase> ParentBatch;
 
-		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
-		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
+		TSharedRef<PCGExData::FFacade> VtxDataFacade;
+		TSharedRef<PCGExData::FFacade> EdgeDataFacade;
 
 		bool bAllowEdgesDataFacadeScopedGet = false;
 
@@ -95,8 +97,6 @@ namespace PCGExClusterMT
 
 		const TArray<int32>* VtxPointIndicesCache = nullptr;
 
-		TSharedPtr<PCGExData::FPointIO> VtxIO;
-		TSharedPtr<PCGExData::FPointIO> EdgesIO;
 		int32 BatchIndex = -1;
 
 		TMap<uint32, int32>* EndpointsLookup = nullptr;
@@ -106,11 +106,10 @@ namespace PCGExClusterMT
 
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		FClusterProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
-			VtxIO(InVtx), EdgesIO(InEdges)
+		FClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
 		{
 			PCGEX_LOG_CTR(FClusterProcessor)
-			EdgeDataFacade = MakeShared<PCGExData::FFacade>(InEdges);
 			EdgeDataFacade->bSupportsScopedGet = bAllowEdgesDataFacadeScopedGet;
 		}
 
@@ -134,19 +133,17 @@ namespace PCGExClusterMT
 
 			if (!bBuildCluster) { return true; }
 
-			if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO))
+			if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source))
 			{
-				Cluster = HandleCachedCluster(CachedCluster);
+				Cluster = HandleCachedCluster(CachedCluster.ToSharedRef());
 			}
 
 			if (!Cluster)
 			{
-				Cluster = MakeShared<PCGExCluster::FCluster>();
+				Cluster = MakeShared<PCGExCluster::FCluster>(VtxDataFacade->Source, EdgeDataFacade->Source);
 				Cluster->bIsOneToOne = bIsOneToOne;
-				Cluster->VtxIO = VtxIO;
-				Cluster->EdgesIO = EdgesIO;
 
-				if (!Cluster->BuildFrom(EdgesIO, VtxIO->GetIn()->GetPoints(), *EndpointsLookup, ExpectedAdjacency))
+				if (!Cluster->BuildFrom(*EndpointsLookup, ExpectedAdjacency))
 				{
 					Cluster.Reset();
 					return false;
@@ -184,10 +181,10 @@ namespace PCGExClusterMT
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForNodes)
-			ParallelLoopForNodes->SetOnCompleteCallback([&]() { OnNodesProcessingComplete(); });
-			ParallelLoopForNodes->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForNodes(Loops); });
-			ParallelLoopForNodes->SetOnIterationRangeStartCallback(
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessNodes(StartIndex, Count, LoopIdx); });
+			ParallelLoopForNodes->OnCompleteCallback = [&]() { OnNodesProcessingComplete(); };
+			ParallelLoopForNodes->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForNodes(Loops); };
+			ParallelLoopForNodes->OnIterationRangeStartCallback =
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessNodes(StartIndex, Count, LoopIdx); };
 			ParallelLoopForNodes->PrepareRangesOnly(NumNodes, PLI, bInlineProcessNodes);
 		}
 
@@ -232,10 +229,10 @@ namespace PCGExClusterMT
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForEdges)
-			ParallelLoopForEdges->SetOnCompleteCallback([&]() { OnEdgesProcessingComplete(); });
-			ParallelLoopForEdges->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForEdges(Loops); });
-			ParallelLoopForEdges->SetOnIterationRangeStartCallback(
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessEdges(StartIndex, Count, LoopIdx); });
+			ParallelLoopForEdges->OnCompleteCallback = [&]() { OnEdgesProcessingComplete(); };
+			ParallelLoopForEdges->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForEdges(Loops); };
+			ParallelLoopForEdges->OnIterationRangeStartCallback =
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessEdges(StartIndex, Count, LoopIdx); };
 			ParallelLoopForEdges->PrepareRangesOnly(NumEdges, PLI, bInlineProcessEdges);
 		}
 
@@ -279,10 +276,10 @@ namespace PCGExClusterMT
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForRanges)
-			ParallelLoopForRanges->SetOnCompleteCallback([&]() { OnRangeProcessingComplete(); });
-			ParallelLoopForRanges->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
-			ParallelLoopForRanges->SetOnIterationRangeStartCallback(
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); });
+			ParallelLoopForRanges->OnCompleteCallback = [&]() { OnRangeProcessingComplete(); };
+			ParallelLoopForRanges->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); };
+			ParallelLoopForRanges->OnIterationRangeStartCallback =
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); };
 			ParallelLoopForRanges->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
 		}
 
@@ -331,8 +328,8 @@ namespace PCGExClusterMT
 		const TSettings* Settings = nullptr;
 
 	public:
-		TClusterProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		TClusterProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			FClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -350,6 +347,8 @@ namespace PCGExClusterMT
 	class FClusterProcessorBatchBase : public TSharedFromThis<FClusterProcessorBatchBase>
 	{
 	protected:
+		mutable FRWLock BatchLock;
+
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
 
 		const FPCGMetadataAttribute<int64>* RawLookupAttribute = nullptr;
@@ -363,17 +362,15 @@ namespace PCGExClusterMT
 		bool bRequiresGraphBuilder = false;
 
 	public:
-		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
+		FPCGExContext* ExecutionContext = nullptr;
+
+		TSharedRef<PCGExData::FFacade> VtxDataFacade;
 		bool bAllowVtxDataFacadeScopedGet = false;
 
 		bool bRequiresWriteStep = false;
 		bool bWriteVtxDataFacade = false;
 
-		mutable FRWLock BatchLock;
 
-		FPCGExContext* ExecutionContext = nullptr;
-
-		TSharedPtr<PCGExData::FPointIO> VtxIO;
 		TArray<TSharedPtr<PCGExData::FPointIO>> Edges;
 		TSharedPtr<PCGExData::FPointIOCollection> EdgeCollection;
 
@@ -393,11 +390,10 @@ namespace PCGExClusterMT
 		bool bInlineCompletion = false;
 		bool bInlineWrite = false;
 
-		FClusterProcessorBatchBase(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
-			ExecutionContext(InContext), VtxIO(InVtx)
+		FClusterProcessorBatchBase(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
+			ExecutionContext(InContext), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
 		{
 			Edges.Append(InEdges);
-			VtxDataFacade = MakeShared<PCGExData::FFacade>(InVtx);
 			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet;
 		}
 
@@ -415,13 +411,13 @@ namespace PCGExClusterMT
 		{
 			AsyncManager = AsyncManagerPtr;
 
-			VtxIO->CreateInKeys();
-			const int32 NumVtx = VtxIO->GetNum();
+			VtxDataFacade->Source->CreateInKeys();
+			const int32 NumVtx = VtxDataFacade->GetNum();
 
 			if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 			{
 				// Trivial
-				PCGExGraph::BuildEndpointsLookup(VtxIO, EndpointsLookup, ExpectedAdjacency);
+				PCGExGraph::BuildEndpointsLookup(VtxDataFacade->Source, EndpointsLookup, ExpectedAdjacency);
 				if (RequiresGraphBuilder())
 				{
 					GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(VtxDataFacade, &GraphBuilderDetails, 6, EdgeCollection);
@@ -437,15 +433,15 @@ namespace PCGExClusterMT
 				PCGEX_SET_NUM_UNINITIALIZED(ReverseLookup, NumVtx)
 				PCGEX_SET_NUM_UNINITIALIZED(ExpectedAdjacency, NumVtx)
 
-				RawLookupAttribute = VtxIO->GetIn()->Metadata->GetConstTypedAttribute<int64>(PCGExGraph::Tag_VtxEndpoint);
+				RawLookupAttribute = VtxDataFacade->GetIn()->Metadata->GetConstTypedAttribute<int64>(PCGExGraph::Tag_VtxEndpoint);
 				if (!RawLookupAttribute) { return; } // FAIL
 
-				BuildEndpointLookupTask->SetOnCompleteCallback(
+				BuildEndpointLookupTask->OnCompleteCallback =
 					[&]()
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Complete);
 
-						const int32 Num = VtxIO->GetNum();
+						const int32 Num = VtxDataFacade->GetNum();
 						EndpointsLookup.Reserve(Num);
 						for (int i = 0; i < Num; i++) { EndpointsLookup.Add(ReverseLookup[i], i); }
 						ReverseLookup.Empty();
@@ -456,14 +452,14 @@ namespace PCGExClusterMT
 						}
 
 						OnProcessingPreparationComplete();
-					});
+					};
 
-				BuildEndpointLookupTask->SetOnIterationRangeStartCallback(
+				BuildEndpointLookupTask->OnIterationRangeStartCallback =
 					[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
 						TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable::Range);
 
-						const TArray<FPCGPoint>& InKeys = VtxIO->GetIn()->GetPoints();
+						const TArray<FPCGPoint>& InKeys = VtxDataFacade->GetIn()->GetPoints();
 
 						const int32 MaxIndex = StartIndex + Count;
 						for (int i = StartIndex; i < MaxIndex; i++)
@@ -475,8 +471,8 @@ namespace PCGExClusterMT
 							ReverseLookup[i] = A;
 							ExpectedAdjacency[i] = B;
 						}
-					});
-				BuildEndpointLookupTask->PrepareRangesOnly(VtxIO->GetNum(), 4096);
+					};
+				BuildEndpointLookupTask->PrepareRangesOnly(VtxDataFacade->GetNum(), 4096);
 			}
 		}
 
@@ -514,7 +510,7 @@ namespace PCGExClusterMT
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
-		TBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+		TBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			FClusterProcessorBatchBase(InContext, InVtx, InEdges)
 		{
 		}
@@ -539,7 +535,7 @@ namespace PCGExClusterMT
 		{
 			FClusterProcessorBatchBase::Process();
 
-			if (VtxIO->GetNum() <= 1) { return; }
+			if (VtxDataFacade->GetNum() <= 1) { return; }
 
 			CurrentState = PCGExMT::State_Processing;
 
@@ -549,7 +545,9 @@ namespace PCGExClusterMT
 			{
 				IO->CreateInKeys();
 
-				TSharedPtr<T> NewProcessor = Processors.Add_GetRef(MakeShared<T>(VtxIO, IO));
+				const TSharedPtr<PCGExData::FFacade> EdgeDataFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
+				const TSharedPtr<T> NewProcessor = MakeShared<T>(VtxDataFacade, EdgeDataFacade.ToSharedRef());
+
 				NewProcessor->SetExecutionContext(ExecutionContext);
 				NewProcessor->ParentBatch = SelfShared;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
@@ -560,11 +558,8 @@ namespace PCGExClusterMT
 				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
 				NewProcessor->SetRequiresHeuristics(RequiresHeuristics());
 
-				if (!PrepareSingle(NewProcessor))
-				{
-					Processors.Pop();
-					continue;
-				}
+				if (!PrepareSingle(NewProcessor)) { continue; }
+				Processors.Add(NewProcessor.ToSharedRef());
 
 				NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
 				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor); }
@@ -608,7 +603,7 @@ namespace PCGExClusterMT
 	class TBatchWithGraphBuilder : public TBatch<T>
 	{
 	public:
-		TBatchWithGraphBuilder(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+		TBatchWithGraphBuilder(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<T>(InContext, InVtx, InEdges)
 		{
 			this->bRequiresGraphBuilder = true;
@@ -619,7 +614,7 @@ namespace PCGExClusterMT
 	class TBatchWithHeuristics : public TBatch<T>
 	{
 	public:
-		TBatchWithHeuristics(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+		TBatchWithHeuristics(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<T>(InContext, InVtx, InEdges)
 		{
 			this->SetRequiresHeuristics(true);
@@ -630,7 +625,7 @@ namespace PCGExClusterMT
 	class TBatchWithHeuristicsAndBuilder : public TBatch<T>
 	{
 	public:
-		TBatchWithHeuristicsAndBuilder(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+		TBatchWithHeuristicsAndBuilder(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<T>(InContext, InVtx, InEdges)
 		{
 			this->SetRequiresHeuristics(true);

@@ -6,6 +6,12 @@
 #include "PCGPin.h"
 
 
+
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
@@ -20,7 +26,7 @@ void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, TSharedPtr<PCGExData::FFacade> InVtxDataFacade, TSharedPtr<PCGExData::FFacade> InEdgeDataFacade)
+void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	Cluster = InCluster;
 
@@ -42,11 +48,11 @@ void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InConte
 
 bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
 
-TSharedPtr<PCGExData::FPointIO> UPCGExNeighborSampleOperation::GetSourceIO() const { return GetSourceDataFacade()->Source; }
+TSharedRef<PCGExData::FPointIO> UPCGExNeighborSampleOperation::GetSourceIO() const { return GetSourceDataFacade()->Source; }
 
-TSharedPtr<PCGExData::FFacade> UPCGExNeighborSampleOperation::GetSourceDataFacade() const
+TSharedRef<PCGExData::FFacade> UPCGExNeighborSampleOperation::GetSourceDataFacade() const
 {
-	return SamplingConfig.NeighborSource == EPCGExGraphValueSource::Vtx ? VtxDataFacade : EdgeDataFacade;
+	return SamplingConfig.NeighborSource == EPCGExGraphValueSource::Vtx ? VtxDataFacade.ToSharedRef() : EdgeDataFacade.ToSharedRef();
 }
 
 void UPCGExNeighborSampleOperation::ProcessNode(const int32 NodeIndex) const

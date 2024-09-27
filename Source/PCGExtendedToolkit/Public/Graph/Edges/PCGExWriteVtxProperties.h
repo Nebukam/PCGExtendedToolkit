@@ -98,8 +98,8 @@ namespace PCGExWriteVtxProperties
 		TArray<UPCGExVtxPropertyOperation*>* ExtraOperations = nullptr;
 
 	public:
-		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
-			: TClusterProcessor<FPCGExWriteVtxPropertiesContext, UPCGExWriteVtxPropertiesSettings>(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -119,7 +119,7 @@ namespace PCGExWriteVtxProperties
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges);
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 		virtual ~FProcessorBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;

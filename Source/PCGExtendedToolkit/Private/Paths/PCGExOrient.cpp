@@ -103,10 +103,10 @@ namespace PCGExOrient
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LastIndex = PointIO->GetNum() - 1;
+		LastIndex = PointDataFacade->GetNum() - 1;
 		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
-		Orient->bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
-		if (!Orient->PrepareForData(PointDataFacade.Get())) { return false; }
+		Orient->bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		if (!Orient->PrepareForData(PointDataFacade)) { return false; }
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
 		{
@@ -133,6 +133,8 @@ namespace PCGExOrient
 	{
 		FTransform OutT;
 
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		
 		const PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);
 		if (Orient->bClosedLoop)
 		{

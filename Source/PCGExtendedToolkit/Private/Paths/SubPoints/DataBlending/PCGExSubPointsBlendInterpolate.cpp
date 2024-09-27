@@ -79,8 +79,8 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 }
 
 TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendInterpolate::CreateBlender(
-	const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
-	const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
+	const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
+	const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
 	const PCGExData::ESource SecondarySource,
 	const TSet<FName>* IgnoreAttributeSet)
 {

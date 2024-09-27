@@ -13,6 +13,12 @@
 #include "PCGExOperation.h"
 
 
+
+
+
+
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
@@ -131,11 +137,11 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, TSharedPtr<PCGExData::FFacade> InVtxDataFacade, TSharedPtr<PCGExData::FFacade> InEdgeDataFacade);
+	virtual void PrepareForCluster(const FPCGContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
-	TSharedPtr<PCGExData::FPointIO> GetSourceIO() const;
-	TSharedPtr<PCGExData::FFacade> GetSourceDataFacade() const;
+	TSharedRef<PCGExData::FPointIO> GetSourceIO() const;
+	TSharedRef<PCGExData::FFacade> GetSourceDataFacade() const;
 
 	virtual void ProcessNode(const int32 NodeIndex) const;
 

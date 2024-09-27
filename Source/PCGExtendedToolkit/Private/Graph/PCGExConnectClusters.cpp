@@ -79,12 +79,12 @@ bool FPCGExConnectClustersElement::ExecuteInternal(
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
 	{
 		const TSharedPtr<PCGExBridgeClusters::FProcessorBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FProcessorBatch>(Batch);
-		const int64 ClusterId = BridgeBatch->VtxIO->GetOut()->UID;
+		const int64 ClusterId = BridgeBatch->VtxDataFacade->GetOut()->UID;
 		PCGExData::WriteMark(BridgeBatch->ConsolidatedEdges->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
 
 		FString OutId;
-		PCGExGraph::SetClusterVtx(BridgeBatch->VtxIO, OutId);
-		PCGExGraph::MarkClusterEdges(BridgeBatch->ConsolidatedEdges, OutId);
+		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, OutId);
+		PCGExGraph::MarkClusterEdges(BridgeBatch->ConsolidatedEdges.ToSharedRef(), OutId);
 	}
 
 	Context->OutputPointsAndEdges();
@@ -113,7 +113,7 @@ namespace PCGExBridgeClusters
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
 	}
@@ -150,7 +150,7 @@ namespace PCGExBridgeClusters
 
 	bool FProcessorBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
-		ConsolidatedEdges->Tags->Append(ClusterProcessor->EdgesIO->Tags.Get());
+		ConsolidatedEdges->Tags->Append(ClusterProcessor->EdgeDataFacade->Source->Tags.ToSharedRef());
 		return true;
 	}
 
@@ -274,7 +274,7 @@ namespace PCGExBridgeClusters
 		}
 
 		// Force writing cluster ID to Vtx, otherwise we inherit from previous metadata.
-		const uint64 ClusterId = VtxIO->GetOut()->UID;
+		const uint64 ClusterId = VtxDataFacade->GetOut()->UID;
 		TSharedPtr<PCGEx::TAttributeWriter<int64>> ClusterIdWriter = MakeShared<PCGEx::TAttributeWriter<int64>>(PCGExGraph::Tag_ClusterId);
 		for (int64& Id : ClusterIdWriter->Values) { Id = ClusterId; }
 		PCGExMT::Write(AsyncManager, ClusterIdWriter);
@@ -310,13 +310,14 @@ namespace PCGExBridgeClusters
 		}
 
 		UPCGMetadata* EdgeMetadata = PointIO->GetOut()->Metadata;
+		const TSharedRef<PCGExData::FPointIO>& VtxIO = Batch->VtxDataFacade->Source;
 
-		const FPCGMetadataAttribute<int64>* InVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(Batch->VtxIO->GetIn()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
+		const FPCGMetadataAttribute<int64>* InVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(VtxIO->GetIn()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
 
 		FPCGPoint& EdgePoint = PointIO->GetOut()->GetMutablePoints()[TaskIndex];
 
-		const FPCGPoint& StartPoint = Batch->VtxIO->GetOutPoint(IndexA);
-		const FPCGPoint& EndPoint = Batch->VtxIO->GetOutPoint(IndexB);
+		const FPCGPoint& StartPoint = VtxIO->GetOutPoint(IndexA);
+		const FPCGPoint& EndPoint = VtxIO->GetOutPoint(IndexB);
 
 		if (EdgePoint.Transform.IsValid())
 		{
@@ -329,11 +330,11 @@ namespace PCGExBridgeClusters
 		uint32 EndIdx;
 		uint32 EndNumEdges;
 
-		PCGEx::H64(InVtxEndpointAtt->GetValueFromItemKey(Batch->VtxIO->GetInPoint(IndexA).MetadataEntry), StartIdx, StartNumEdges);
-		PCGEx::H64(InVtxEndpointAtt->GetValueFromItemKey(Batch->VtxIO->GetInPoint(IndexB).MetadataEntry), EndIdx, EndNumEdges);
+		PCGEx::H64(InVtxEndpointAtt->GetValueFromItemKey(VtxIO->GetInPoint(IndexA).MetadataEntry), StartIdx, StartNumEdges);
+		PCGEx::H64(InVtxEndpointAtt->GetValueFromItemKey(VtxIO->GetInPoint(IndexB).MetadataEntry), EndIdx, EndNumEdges);
 
 		FPCGMetadataAttribute<int64>* EdgeEndpointsAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeEndpoints));
-		FPCGMetadataAttribute<int64>* OutVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(Batch->VtxIO->GetOut()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
+		FPCGMetadataAttribute<int64>* OutVtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(VtxIO->GetOut()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
 
 		if (!EdgeEndpointsAtt || !OutVtxEndpointAtt) { return false; } // Somehow crashes, sometimes? Need to look into it.
 

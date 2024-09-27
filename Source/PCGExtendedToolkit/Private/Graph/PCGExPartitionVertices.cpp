@@ -4,6 +4,11 @@
 #include "Graph/PCGExPartitionVertices.h"
 
 
+
+
+
+
+
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -67,10 +72,10 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 
 namespace PCGExPartitionVertices
 {
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, true, true, true);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, true, true, true);
 	}
 
 	FProcessor::~FProcessor()
@@ -87,7 +92,7 @@ namespace PCGExPartitionVertices
 
 		Cluster->NodeIndexLookup->Empty();
 
-		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxIO, PCGExData::EInit::NewOutput);
+		PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(VtxDataFacade->Source, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PointPartitionIO->GetOut()->GetMutablePoints();
 
 		MutablePoints.SetNumUninitialized(NumNodes);
@@ -119,7 +124,7 @@ namespace PCGExPartitionVertices
 
 	void FProcessor::ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count)
 	{
-		PointPartitionIO->GetOut()->GetMutablePoints()[Node.NodeIndex] = VtxIO->GetInPoint(KeptIndices[Node.NodeIndex]);
+		PointPartitionIO->GetOut()->GetMutablePoints()[Node.NodeIndex] = VtxDataFacade->Source->GetInPoint(KeptIndices[Node.NodeIndex]);
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
@@ -132,7 +137,7 @@ namespace PCGExPartitionVertices
 	{
 		FString OutId;
 		PCGExGraph::SetClusterVtx(PointPartitionIO, OutId);
-		PCGExGraph::MarkClusterEdges(EdgesIO, OutId);
+		PCGExGraph::MarkClusterEdges(EdgeDataFacade->Source, OutId);
 
 		ForwardCluster();
 	}

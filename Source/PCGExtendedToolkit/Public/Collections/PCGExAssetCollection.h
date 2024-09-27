@@ -760,7 +760,7 @@ namespace PCGExAssetCollection
 			UPCGExAssetCollection* InCollection,
 			const FPCGExAssetDistributionDetails& InDetails);
 
-		bool Init(const FPCGContext* InContext, PCGExData::FFacade* InDataFacade);
+		bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade);
 		void GetStaging(const FPCGExAssetStagingData*& OutStaging, const int32 PointIndex, const int32 Seed) const;
 	};
 }

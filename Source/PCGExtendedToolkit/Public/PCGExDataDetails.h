@@ -39,7 +39,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInfluenceDetails
 
 	TSharedPtr<PCGExData::TBuffer<double>> InfluenceCache;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (bUseLocalInfluence)
 		{

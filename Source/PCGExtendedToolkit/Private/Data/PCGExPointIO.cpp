@@ -21,15 +21,8 @@ namespace PCGExData
 		DefaultOutputLabel = InDefaultOutputLabel;
 		NumInPoints = In ? In->GetPoints().Num() : 0;
 
-		if (InTags)
-		{
-			Tags.Reset();
-			Tags = MakeUnique<FTags>(*InTags);
-		}
-		else if (!Tags)
-		{
-			Tags = MakeUnique<FTags>();
-		}
+		if (InTags) { Tags = MakeShared<FTags>(*InTags); }
+		else if (!Tags) { Tags = MakeShared<FTags>(); }
 	}
 
 	void FPointIO::InitializeOutput(const EInit InitOut)
@@ -173,17 +166,11 @@ namespace PCGExData
 	FPointIO::~FPointIO()
 	{
 		PCGEX_LOG_DTR(FPointIO)
-
-		CleanupKeys();
-
 		if (!bWritten)
 		{
 			// Delete unused outputs
 			if (Out && Out != In) { PCGEX_DELETE_UOBJECT(Out) }
 		}
-
-		In = nullptr;
-		Out = nullptr;
 	}
 
 	bool FPointIO::OutputToContext()
@@ -286,7 +273,7 @@ namespace PCGExData
 	TSharedPtr<FPointIO> FPointIOCollection::Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EInit InitOut)
 	{
 		TSharedPtr<FPointIO> Branch = Emplace_GetRef(PointIO->GetIn(), InitOut);
-		Branch->Tags->Reset(PointIO->Tags.Get());
+		Branch->Tags->Reset(PointIO->Tags);
 		Branch->RootIO = PointIO;
 		return Branch;
 	}
@@ -389,13 +376,13 @@ namespace PCGExData
 
 #pragma region FPointIOTaggedEntries
 
-	void FPointIOTaggedEntries::Add(const TSharedPtr<FPointIO>& Value)
+	void FPointIOTaggedEntries::Add(const TSharedRef<FPointIO>& Value)
 	{
 		Entries.AddUnique(Value);
 		Value->Tags->Add(TagId, TagValue);
 	}
 
-	bool FPointIOTaggedDictionary::CreateKey(const TSharedPtr<FPointIO>& PointIOKey)
+	bool FPointIOTaggedDictionary::CreateKey(const TSharedRef<FPointIO>& PointIOKey)
 	{
 		FString TagValue;
 		if (!PointIOKey->Tags->GetValue(TagId, TagValue))
@@ -415,7 +402,7 @@ namespace PCGExData
 		return true;
 	}
 
-	bool FPointIOTaggedDictionary::TryAddEntry(const TSharedPtr<FPointIO>& PointIOEntry)
+	bool FPointIOTaggedDictionary::TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry)
 	{
 		FString TagValue;
 		if (!PointIOEntry->Tags->GetValue(TagId, TagValue)) { return false; }

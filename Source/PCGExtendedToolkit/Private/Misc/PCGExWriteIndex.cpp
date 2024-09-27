@@ -69,7 +69,7 @@ namespace PCGExWriteIndex
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		NumPoints = PointIO->GetNum();
+		NumPoints = PointDataFacade->GetNum();
 
 		if (Settings->bOutputNormalizedIndex)
 		{
@@ -82,7 +82,7 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputCollectionIndex)
 		{
-			PCGExData::WriteMark(PointIO->GetOut()->Metadata, Settings->CollectionIndexAttributeName, BatchIndex);
+			PCGExData::WriteMark(PointDataFacade->GetOut()->Metadata, Settings->CollectionIndexAttributeName, BatchIndex);
 		}
 
 		StartParallelLoopForPoints();

@@ -32,16 +32,16 @@ namespace PCGExNodeAdjacency
 			}
 		}
 
-		if (!Adjacency.Init(InContext, PointDataFacade.Get())) { return false; }
+		if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 
 		if (TypedFilterFactory->Config.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
 		{
-			if (!DotComparison.Init(InContext, PointDataFacade.Get())) { return false; }
+			if (!DotComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 		}
 		else
 		{
 			bUseDot = false;
-			if (!HashComparison.Init(InContext, PointDataFacade.Get())) { return false; }
+			if (!HashComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 		}
 
 		return true;

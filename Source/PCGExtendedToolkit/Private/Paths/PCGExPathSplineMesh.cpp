@@ -170,13 +170,13 @@ namespace PCGExPathSplineMesh
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Justification = Settings->Justification;
-		Justification.Init(ExecutionContext, PointDataFacade.Get());
+		Justification.Init(ExecutionContext, PointDataFacade);
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 
 		Helper = MakeUnique<PCGExAssetCollection::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
-		if (!Helper->Init(ExecutionContext, PointDataFacade.Get())) { return false; }
+		if (!Helper->Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		if (Settings->bApplyCustomTangents)
 		{
@@ -195,7 +195,7 @@ namespace PCGExPathSplineMesh
 			}
 		}
 
-		LastIndex = PointIO->GetNum() - 1;
+		LastIndex = PointDataFacade->GetNum() - 1;
 
 		PCGEX_SET_NUM_UNINITIALIZED(Segments, bClosedLoop ? LastIndex + 1 : LastIndex)
 		//PCGEX_SET_NUM_UNINITIALIZED(SplineMeshComponents, LastIndex)
@@ -320,7 +320,7 @@ namespace PCGExPathSplineMesh
 		Segment.SplineMeshAxis = SplineMeshAxisConstant;
 
 		const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
-		const FPCGPoint& NextPoint = PointIO->GetInPoint(NextIndex);
+		const FPCGPoint& NextPoint = PointDataFacade->Source->GetInPoint(NextIndex);
 
 		//
 

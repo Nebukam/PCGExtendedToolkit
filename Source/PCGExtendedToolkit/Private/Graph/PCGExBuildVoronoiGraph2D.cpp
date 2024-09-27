@@ -113,7 +113,7 @@ namespace PCGExBuildVoronoi2D
 		// Build voronoi
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
 		Voronoi = MakeUnique<PCGExGeo::TVoronoi2>();
 
@@ -139,12 +139,12 @@ namespace PCGExBuildVoronoi2D
 
 		ActivePositions.Empty();
 
-		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
-			const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
-			TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
+			const FBox Bounds = PointDataFacade->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
+			TArray<FPCGPoint>& Centroids = PointDataFacade->GetOut()->GetMutablePoints();
 
 			const int32 NumSites = Voronoi->Centroids.Num();
 			TArray<int32> RemappedIndices;
@@ -188,7 +188,7 @@ namespace PCGExBuildVoronoi2D
 		}
 		else
 		{
-			TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
+			TArray<FPCGPoint>& Centroids = PointDataFacade->GetOut()->GetMutablePoints();
 			const int32 NumSites = Voronoi->Centroids.Num();
 			Centroids.SetNum(NumSites);
 
@@ -210,7 +210,7 @@ namespace PCGExBuildVoronoi2D
 			}
 			else if (Settings->Method == EPCGExCellCenter::Balanced)
 			{
-				const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
+				const FBox Bounds = PointDataFacade->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 				for (int i = 0; i < NumSites; ++i)
 				{
 					FVector Target = Voronoi->Circumcenters[i];
@@ -242,7 +242,7 @@ namespace PCGExBuildVoronoi2D
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 

@@ -150,7 +150,7 @@ protected:
 
 			if (!ValidateEntries(TaggedEdges)) { continue; }
 
-			TSharedPtr<T> NewBatch = MakeShared<T>(this, CurrentIO, TaggedEdges->Entries);
+			TSharedPtr<T> NewBatch = MakeShared<T>(this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);
 			InitBatch(NewBatch);
 
 			if (NewBatch->RequiresHeuristics())

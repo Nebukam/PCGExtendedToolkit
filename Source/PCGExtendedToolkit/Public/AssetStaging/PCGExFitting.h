@@ -211,7 +211,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 	TSharedPtr<PCGExData::TBuffer<double>> ToGetter;
 	TSharedPtr<PCGExData::TBuffer<FVector>> SharedToGetter;
 
-	bool Init(FPCGExContext* InContext, PCGExData::FFacade* InDataFacade)
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
 		if (From == EPCGExJustifyFrom::Custom && FromType == EPCGExFetchType::Attribute)
 		{
@@ -409,7 +409,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExJustificationDetails
 		if (bDoJustifyZ) { JustifyZ.JustifyAxis(2, Index, InCenter, InSize, OutCenter, OutSize, OutTranslation); }
 	}
 
-	bool Init(FPCGExContext* InContext, PCGExData::FFacade* InDataFacade)
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
 		if (bSharedCustomFromAttribute)
 		{

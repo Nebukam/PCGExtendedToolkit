@@ -119,10 +119,10 @@ namespace PCGExCherryPickPoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		const int32 MaxIndex = PointIO->GetNum() - 1;
+		const int32 MaxIndex = PointDataFacade->GetNum() - 1;
 		if (Settings->IndicesSource == EPCGExCherryPickSource::Self)
 		{
-			if (!Context->TryGetUniqueIndices(PointIO, PickedIndices, MaxIndex)) { return false; }
+			if (!Context->TryGetUniqueIndices(PointDataFacade->Source, PickedIndices, MaxIndex)) { return false; }
 		}
 		else
 		{
@@ -141,9 +141,9 @@ namespace PCGExCherryPickPoints
 
 	void FProcessor::CompleteWork()
 	{
-		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
-		const TArray<FPCGPoint>& PickablePoints = PointIO->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
+		const TArray<FPCGPoint>& PickablePoints = PointDataFacade->GetIn()->GetPoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
 		const int32 NumPicked = PickedIndices.Num();
 

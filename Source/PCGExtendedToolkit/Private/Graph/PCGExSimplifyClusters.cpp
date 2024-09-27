@@ -92,13 +92,13 @@ namespace PCGExSimplifyClusters
 		if (IsTrivial())
 		{
 			AsyncManager->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster,
+				EdgeDataFacade->Source->IOIndex, nullptr, Cluster,
 				&Breakpoints, &Chains, false, false);
 		}
 		else
 		{
 			AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster,
+				EdgeDataFacade->Source->IOIndex, nullptr, Cluster,
 				&Breakpoints, &Chains, false, false);
 		}
 

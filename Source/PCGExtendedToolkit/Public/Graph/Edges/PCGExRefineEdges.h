@@ -6,6 +6,10 @@
 #include "CoreMinimal.h"
 
 
+
+
+
+
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
@@ -119,14 +123,14 @@ namespace PCGExRefineEdges
 		TUniquePtr<PCGExPointFilter::TManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 		mutable FRWLock NodeLock;
 
 		TArray<bool> EdgeFilterCache;
 
 	public:
-		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
-			: TClusterProcessor<FPCGExRefineEdgesContext, UPCGExRefineEdgesSettings>(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

@@ -73,8 +73,8 @@ namespace PCGExCopyClusters
 
 		TArray<TSharedPtr<PCGExData::FPointIO>> EdgesDupes;
 
-		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
-			TClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bBuildCluster = false;
 		}
@@ -92,7 +92,7 @@ namespace PCGExCopyClusters
 		TArray<TSharedPtr<PCGExData::FPointIO>> VtxDupes;
 		TArray<FString> VtxTag;
 
-		FBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)
 		{
 		}

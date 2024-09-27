@@ -114,7 +114,7 @@ namespace PCGExBuildDelaunay
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
 
 		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 
@@ -124,7 +124,7 @@ namespace PCGExBuildDelaunay
 			return false;
 		}
 
-		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::DuplicateInput);
 
 		if (Settings->bUrquhart)
 		{
@@ -136,8 +136,8 @@ namespace PCGExBuildDelaunay
 
 		if (Settings->bOutputSites)
 		{
-			if (Settings->bMergeUrquhartSites) { AsyncManager->Start<FOutputDelaunayUrquhartSites>(BatchIndex, PointIO, this); }
-			else { AsyncManager->Start<FOutputDelaunaySites>(BatchIndex, PointIO, this); }
+			if (Settings->bMergeUrquhartSites) { AsyncManager->Start<FOutputDelaunayUrquhartSites>(BatchIndex, PointDataFacade->Source, this); }
+			else { AsyncManager->Start<FOutputDelaunaySites>(BatchIndex, PointDataFacade->Source, this); }
 		}
 
 		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -159,7 +159,7 @@ namespace PCGExBuildDelaunay
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 
@@ -182,7 +182,7 @@ namespace PCGExBuildDelaunay
 		FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
-		const TSharedPtr<PCGExData::FPointIO> SitesIO = MakeShared<PCGExData::FPointIO>(Context, PointIO);
+		const TSharedPtr<PCGExData::FPointIO> SitesIO = MakeShared<PCGExData::FPointIO>(Context, PointIO.ToSharedRef());
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);
@@ -223,7 +223,7 @@ namespace PCGExBuildDelaunay
 		FPCGExBuildDelaunayGraphContext* Context = AsyncManager->GetContext<FPCGExBuildDelaunayGraphContext>();
 		PCGEX_SETTINGS(BuildDelaunayGraph)
 
-		const TSharedPtr<PCGExData::FPointIO> SitesIO = MakeShared<PCGExData::FPointIO>(Context, PointIO);
+		const TSharedPtr<PCGExData::FPointIO> SitesIO = MakeShared<PCGExData::FPointIO>(Context, PointIO.ToSharedRef());
 		SitesIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		Context->MainSites->InsertUnsafe(Processor->BatchIndex, SitesIO);

@@ -78,8 +78,8 @@ namespace PCGExPointsToBounds
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		Bounds = MakeShared<FBounds>(PointIO);
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		Bounds = MakeShared<FBounds>(PointDataFacade->Source);
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 
 		switch (Settings->BoundsSource)
 		{
@@ -115,8 +115,8 @@ namespace PCGExPointsToBounds
 
 	void FProcessor::CompleteWork()
 	{
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		UPCGPointData* OutData = PointIO->GetOut();
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		UPCGPointData* OutData = PointDataFacade->GetOut();
 
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 		MutablePoints.Emplace();
@@ -136,7 +136,7 @@ namespace PCGExPointsToBounds
 			MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 			MetadataBlender->PrepareForData(PointDataFacade);
 
-			const PCGExData::FPointRef Target = PointIO->GetOutPointRef(0);
+			const PCGExData::FPointRef Target = PointDataFacade->Source->GetOutPointRef(0);
 			MetadataBlender->PrepareForBlending(Target);
 
 			double TotalWeight = 0;
@@ -145,7 +145,7 @@ namespace PCGExPointsToBounds
 			{
 				FVector Location = InPoints[i].Transform.GetLocation();
 				const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
-				MetadataBlender->Blend(Target, PointIO->GetInPointRef(i), Target, Weight);
+				MetadataBlender->Blend(Target, PointDataFacade->Source->GetInPointRef(i), Target, Weight);
 				TotalWeight += Weight;
 			}
 

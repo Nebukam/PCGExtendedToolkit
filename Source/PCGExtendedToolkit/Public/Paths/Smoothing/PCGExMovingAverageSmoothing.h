@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSmoothingOperation.h"
+
+
 #include "PCGExMovingAverageSmoothing.generated.h"
 
 /**
@@ -17,7 +19,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMovingAverageSmoothing : public UPCGExSmo
 
 public:
 	virtual void SmoothSingle(
-		PCGExData::FPointIO* Path,
+		const TSharedRef<PCGExData::FPointIO>& Path,
 		PCGExData::FPointRef& Target,
 		const double Smoothing,
 		const double Influence,

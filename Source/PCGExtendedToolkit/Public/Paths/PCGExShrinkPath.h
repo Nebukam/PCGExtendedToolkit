@@ -189,8 +189,8 @@ namespace PCGExShrinkPath
 	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExShrinkPathContext, UPCGExShrinkPathSettings>
 	{
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
-			: TPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = false;
 		}

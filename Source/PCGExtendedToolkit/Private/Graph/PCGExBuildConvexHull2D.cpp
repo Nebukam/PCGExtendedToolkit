@@ -156,7 +156,7 @@ namespace PCGExConvexHull2D
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
 
 		Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
 
@@ -168,7 +168,7 @@ namespace PCGExConvexHull2D
 
 		ActivePositions.Empty();
 
-		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
 		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
@@ -213,7 +213,7 @@ namespace PCGExConvexHull2D
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 

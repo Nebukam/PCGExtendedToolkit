@@ -237,8 +237,8 @@ namespace PCGExWriteEdgeProperties
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 
 	public:
-		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
-			: TClusterProcessor<FPCGExWriteEdgePropertiesContext, UPCGExWriteEdgePropertiesSettings>(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -258,7 +258,7 @@ namespace PCGExWriteEdgeProperties
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

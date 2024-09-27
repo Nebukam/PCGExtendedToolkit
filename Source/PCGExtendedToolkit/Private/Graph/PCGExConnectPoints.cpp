@@ -127,7 +127,7 @@ namespace PCGExConnectPoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		const int32 NumPoints = PointIO->GetNum();
+		const int32 NumPoints = PointDataFacade->GetNum();
 
 		CWCoincidenceTolerance = Context->CWCoincidenceTolerance;
 		bPreventCoincidence = Settings->bPreventCoincidence;
@@ -144,7 +144,7 @@ namespace PCGExConnectPoints
 			NewOperation->BindContext(ExecutionContext);
 			NewOperation->PrimaryDataFacade = PointDataFacade;
 
-			if (!NewOperation->PrepareForPoints(PointIO))
+			if (!NewOperation->PrepareForPoints(PointDataFacade->Source))
 			{
 				PCGEX_DELETE_UOBJECT(NewOperation)
 				continue;
@@ -169,7 +169,7 @@ namespace PCGExConnectPoints
 
 		if (ProbeOperations.IsEmpty() && DirectProbeOperations.IsEmpty()) { return false; }
 
-		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails, 2);
 
 		CanGenerate.Init(true, NumPoints);
@@ -189,11 +189,11 @@ namespace PCGExConnectPoints
 
 		bUseProjection = Settings->bProjectPoints;
 
-		InPoints = &PointIO->GetIn()->GetPoints();
+		InPoints = &PointDataFacade->GetIn()->GetPoints();
 
 		if (!ProbeOperations.IsEmpty())
 		{
-			const FBox B = PointIO->GetIn()->GetBounds();
+			const FBox B = PointDataFacade->GetIn()->GetBounds();
 			Octree = MakeUnique<PositionOctree>(bUseProjection ? ProjectionDetails.ProjectFlat(B.GetCenter()) : B.GetCenter(), B.GetExtent().Length());
 		}
 		else
@@ -202,12 +202,12 @@ namespace PCGExConnectPoints
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, PrepTask)
-		PrepTask->SetOnCompleteCallback([&]() { OnPreparationComplete(); });
-		PrepTask->SetOnIterationRangeStartCallback(
+		PrepTask->OnCompleteCallback =[&]() { OnPreparationComplete(); };
+		PrepTask->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
-			});
+			};
 
 		PrepTask->PrepareRangesOnly(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
@@ -350,7 +350,7 @@ namespace PCGExConnectPoints
 	{
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
-			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 

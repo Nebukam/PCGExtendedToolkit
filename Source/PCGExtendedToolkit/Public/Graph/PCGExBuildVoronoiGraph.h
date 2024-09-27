@@ -109,8 +109,8 @@ namespace PCGExBuildVoronoi
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
 
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
-			TPointsProcessor<FPCGExBuildVoronoiGraphContext, UPCGExBuildVoronoiGraphSettings>(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 

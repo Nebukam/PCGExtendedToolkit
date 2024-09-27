@@ -210,7 +210,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	for (TSharedPtr<PCGExData::FPointIO> Vtx : TaggedVtx)
 	{
-		if (!InputDictionary->CreateKey(Vtx))
+		if (!InputDictionary->CreateKey(Vtx.ToSharedRef()))
 		{
 			if (!Settings->bSkipImportantWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed.")); }
 			Vtx->Disable();
@@ -219,7 +219,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	for (TSharedPtr<PCGExData::FPointIO> Edges : TaggedEdges)
 	{
-		if (!InputDictionary->TryAddEntry(Edges))
+		if (!InputDictionary->TryAddEntry(Edges.ToSharedRef()))
 		{
 			if (!Settings->bSkipImportantWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges have no associated vtx.")); }
 		}

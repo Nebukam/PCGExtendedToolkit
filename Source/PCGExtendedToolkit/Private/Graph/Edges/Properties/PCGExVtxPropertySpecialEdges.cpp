@@ -34,9 +34,9 @@ bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, 
 		return false;
 	}
 
-	Config.ShortestEdge.Init(InVtxDataFacade.Get());
-	Config.LongestEdge.Init(InVtxDataFacade.Get());
-	Config.AverageEdge.Init(InVtxDataFacade.Get());
+	Config.ShortestEdge.Init(InVtxDataFacade.ToSharedRef());
+	Config.LongestEdge.Init(InVtxDataFacade.ToSharedRef());
+	Config.AverageEdge.Init(InVtxDataFacade.ToSharedRef());
 
 	return bIsValidOperation;
 }

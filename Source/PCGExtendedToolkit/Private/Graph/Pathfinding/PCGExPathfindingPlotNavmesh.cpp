@@ -228,7 +228,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	const int32 NumPositions = PathLocations.Num();
 
 	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
-	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO);
+	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 
 	UPCGPointData* OutData = PathIO->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
@@ -245,7 +245,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	PathLocations.Empty();
 
 	TSharedPtr<PCGExDataBlending::FMetadataBlender> TempBlender =
-		Context->Blending->CreateBlender(PathDataFacade, PathDataFacade, PCGExData::ESource::Out);
+		Context->Blending->CreateBlender(PathDataFacade.ToSharedRef(), PathDataFacade.ToSharedRef(), PCGExData::ESource::Out);
 
 	for (int i = 0; i < Milestones.Num() - 1; ++i)
 	{

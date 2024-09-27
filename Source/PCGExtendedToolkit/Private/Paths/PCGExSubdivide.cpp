@@ -99,7 +99,7 @@ namespace PCGExSubdivide
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
 		if (Settings->ValueSource == EPCGExFetchType::Attribute)
 		{
@@ -120,7 +120,7 @@ namespace PCGExSubdivide
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 		Blending->bClosedLoop = bClosedLoop;
 
-		PCGEX_SET_NUM(Subdivisions, PointIO->GetNum())
+		PCGEX_SET_NUM(Subdivisions, PointDataFacade->GetNum())
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
@@ -135,6 +135,8 @@ namespace PCGExSubdivide
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
 		FSubdivision& Sub = Subdivisions[Index];
 
 		Sub.NumSubdivisions = 0;
@@ -145,7 +147,7 @@ namespace PCGExSubdivide
 
 		if (!PointFilterCache[Index]) { return; }
 
-		double Amount = AmountGetter ? AmountGetter->Read(Index) : ConstantAmount;
+		const double Amount = AmountGetter ? AmountGetter->Read(Index) : ConstantAmount;
 
 		if (bUseCount)
 		{
@@ -172,7 +174,7 @@ namespace PCGExSubdivide
 
 		if (Sub.NumSubdivisions == 0) { return; }
 
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
 		PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Sub.Start);
 
@@ -192,14 +194,17 @@ namespace PCGExSubdivide
 		Metrics.Add(Sub.End);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + SubStart, Sub.NumSubdivisions);
-		Blending->ProcessSubPoints(PointIO->GetOutPointRef(Sub.OutStart), PointIO->GetOutPointRef(Sub.OutEnd), View, Metrics, SubStart);
+		Blending->ProcessSubPoints(PointDataFacade->Source->GetOutPointRef(Sub.OutStart), PointDataFacade->Source->GetOutPointRef(Sub.OutEnd), View, Metrics, SubStart);
 
 		for (FPCGPoint& Pt : View) { Pt.Seed = PCGExRandom::ComputeSeed(Pt); }
 	}
 
 	void FProcessor::CompleteWork()
 	{
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
 		int32 NumPoints = 0;
+
 		if (!bClosedLoop) { Subdivisions[Subdivisions.Num() - 1].NumSubdivisions = 0; }
 
 		for (FSubdivision& Sub : Subdivisions)

@@ -89,12 +89,12 @@ namespace PCGExLloydRelax2D
 		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 
 		InfluenceDetails = Settings->InfluenceDetails;
-		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade.Get())) { return false; }
+		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
-		AsyncManager->Start<FLloydRelaxTask>(0, PointIO, this, &InfluenceDetails, Settings->Iterations);
+		AsyncManager->Start<FLloydRelaxTask>(0, PointDataFacade->Source, this, &InfluenceDetails, Settings->Iterations);
 
 		return true;
 	}

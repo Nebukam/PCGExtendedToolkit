@@ -75,13 +75,13 @@ namespace PCGExFusePoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PointIO->CreateInKeys();
+		PointDataFacade->Source->CreateInKeys();
 
 		CompoundGraph = MakeUnique<PCGExGraph::FCompoundGraph>(
 			Settings->PointPointIntersectionDetails.FuseDetails,
-			PointIO->GetIn()->GetBounds().ExpandBy(10));
+			PointDataFacade->GetIn()->GetBounds().ExpandBy(10));
 
-		const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& Points = PointDataFacade->GetIn()->GetPoints();
 
 		bInlineProcessPoints = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -91,12 +91,12 @@ namespace PCGExFusePoints
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		CompoundGraph->InsertPoint(Point, PointIO->IOIndex, Index);
+		CompoundGraph->InsertPoint(Point, PointDataFacade->Source->IOIndex, Index);
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
 		PCGExGraph::FCompoundNode* CompoundNode = CompoundGraph->Nodes[Iteration].Get();
 		PCGMetadataEntryKey Key = MutablePoints[Iteration].MetadataEntry;
@@ -112,7 +112,7 @@ namespace PCGExFusePoints
 	void FProcessor::CompleteWork()
 	{
 		const int32 NumCompoundNodes = CompoundGraph->Nodes.Num();
-		PointIO->InitializeNum(NumCompoundNodes);
+		PointDataFacade->Source->InitializeNum(NumCompoundNodes);
 
 		CompoundPointsBlender = MakeUnique<PCGExDataBlending::FCompoundBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
 		CompoundPointsBlender->AddSource(PointDataFacade);

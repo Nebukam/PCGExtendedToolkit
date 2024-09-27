@@ -145,7 +145,7 @@ namespace PCGExSampleNearestSpline
 
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_INIT)
 		}
 
@@ -171,7 +171,7 @@ namespace PCGExSampleNearestSpline
 			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("LookAtUp is invalid.")); }
 		}
 
-		PointIO->CreateOutKeys();
+		PointDataFacade->Source->CreateOutKeys();
 
 		StartParallelLoopForPoints();
 
@@ -400,8 +400,8 @@ namespace PCGExSampleNearestSpline
 	{
 		PointDataFacade->Write(AsyncManager);
 
-		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(Settings->HasSuccessesTag); }
-		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(Settings->HasNoSuccessesTag); }
+		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
+		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
 	}
 }
 

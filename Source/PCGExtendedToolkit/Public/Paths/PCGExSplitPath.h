@@ -125,8 +125,8 @@ namespace PCGExSplitPath
 		int32 CurrentPath = -1;
 
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
-			: TPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 

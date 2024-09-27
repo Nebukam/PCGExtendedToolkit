@@ -27,10 +27,10 @@ void FPCGExMergeVerticesContext::OnBatchesProcessingDone()
 	for (int i = 0; i < Batches.Num(); ++i)
 	{
 		PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>* Batch = static_cast<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>*>(Batches[i].Get());
-		Merger->Append(Batch->VtxIO);
+		Merger->Append(Batch->VtxDataFacade->Source);
 
 		for (const TSharedPtr<PCGExMergeVertices::FProcessor>& Processor : Batch->Processors) { Processor->StartIndexOffset = StartOffset; }
-		StartOffset += Batch->VtxIO->GetNum();
+		StartOffset += Batch->VtxDataFacade->GetNum();
 	}
 
 	Merger->Merge(GetAsyncManager(), &CarryOverDetails);
@@ -93,10 +93,11 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExMergeVertices
 {
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a heavy copy we'll update and forward
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, true, true, true);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source,
+			true, true, true);
 	}
 
 	FProcessor::~FProcessor()
@@ -143,8 +144,8 @@ namespace PCGExMergeVertices
 		Cluster->VtxIO = Context->CompositeIO;
 		Cluster->NumRawVtx = Context->CompositeIO->GetNum(PCGExData::ESource::Out);
 
-		EdgesIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-		PCGExGraph::MarkClusterEdges(EdgesIO, Context->OutVtxId);
+		EdgeDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		PCGExGraph::MarkClusterEdges(EdgeDataFacade->Source, Context->OutVtxId);
 
 		ForwardCluster();
 	}

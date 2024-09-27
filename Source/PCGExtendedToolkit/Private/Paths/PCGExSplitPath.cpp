@@ -97,18 +97,18 @@ namespace PCGExSplitPath
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
-		const int32 NumPoints = PointIO->GetNum();
+		const int32 NumPoints = PointDataFacade->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TaskGroup)
-		TaskGroup->SetOnIterationRangeStartCallback(
+		TaskGroup->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
 				FilterScope(StartIndex, Count);
-			});
+			};
 
 		switch (Settings->SplitAction)
 		{
@@ -160,11 +160,11 @@ namespace PCGExSplitPath
 
 		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
-		TSharedPtr<PCGExData::FPointIO> PathIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointIO);
+		TSharedPtr<PCGExData::FPointIO> PathIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointDataFacade->Source);
 		PathIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		PathsIOs[Iteration] = PathIO;
 
-		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumPathPoints);
 

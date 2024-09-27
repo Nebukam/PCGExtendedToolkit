@@ -44,7 +44,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, con
 		return false;
 	}
 
-	if (!Config.DotComparisonDetails.Init(InContext, InVtxDataFacade.Get()))
+	if (!Config.DotComparisonDetails.Init(InContext, InVtxDataFacade.ToSharedRef()))
 	{
 		bIsValidOperation = false;
 		return false;
@@ -61,7 +61,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, con
 		}
 	}
 
-	Config.MatchingEdge.Init(InVtxDataFacade.Get());
+	Config.MatchingEdge.Init(InVtxDataFacade.ToSharedRef());
 
 	return bIsValidOperation;
 }

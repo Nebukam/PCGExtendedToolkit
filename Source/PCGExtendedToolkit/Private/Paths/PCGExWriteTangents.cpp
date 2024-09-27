@@ -107,7 +107,7 @@ namespace PCGExWriteTangents
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
 		Tangents = Cast<UPCGExTangentsOperation>(PrimaryOperation);
 		Tangents->bClosedLoop = bClosedLoop;
@@ -157,7 +157,7 @@ namespace PCGExWriteTangents
 		ArriveWriter = PointDataFacade->GetWritable(Settings->ArriveName, FVector::ZeroVector, true, false);
 		LeaveWriter = PointDataFacade->GetWritable(Settings->LeaveName, FVector::ZeroVector, true, false);
 
-		LastIndex = PointIO->GetNum() - 1;
+		LastIndex = PointDataFacade->GetNum() - 1;
 
 		StartParallelLoopForPoints();
 
@@ -174,6 +174,8 @@ namespace PCGExWriteTangents
 	{
 		if (!PointFilterCache[Index]) { return; }
 
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		
 		int32 PrevIndex = Index - 1;
 		int32 NextIndex = Index + 1;
 

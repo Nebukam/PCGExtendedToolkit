@@ -65,7 +65,7 @@ namespace PCGExPointsMT
 
 		bool bIsProcessorValid = false;
 
-		TSharedPtr<PCGExData::FFacade> PointDataFacade;
+		const TSharedRef<PCGExData::FFacade>& PointDataFacade;
 
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
@@ -74,16 +74,14 @@ namespace PCGExPointsMT
 		TArray<bool> PointFilterCache;
 
 
-		TSharedPtr<PCGExData::FPointIO> PointIO;
 		int32 BatchIndex = -1;
 
 		UPCGExOperation* PrimaryOperation = nullptr;
 
-		explicit FPointsProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
-			PointIO(InPoints)
+		explicit FPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			PointDataFacade(InPointDataFacade)
 		{
 			PCGEX_LOG_CTR(FPointsProcessor)
-			PointDataFacade = MakeShared<PCGExData::FFacade>(InPoints);
 		}
 
 		virtual void SetExecutionContext(FPCGExContext* InContext)
@@ -94,11 +92,7 @@ namespace PCGExPointsMT
 		virtual ~FPointsProcessor()
 		{
 			PCGEX_LOG_DTR(FPointsProcessor)
-
-			PointIO = nullptr;
 			PCGEX_DELETE_OPERATION(PrimaryOperation)
-
-			PointFilterCache.Empty();
 		}
 
 		virtual bool IsTrivial() const { return bIsTrivial; }
@@ -132,7 +126,7 @@ namespace PCGExPointsMT
 		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::Out, const int32 PerLoopIterations = -1)
 		{
 			CurrentProcessingSource = Source;
-			const int32 NumPoints = PointIO->GetNum(Source);
+			const int32 NumPoints = PointDataFacade->Source->GetNum(Source);
 
 			if (IsTrivial())
 			{
@@ -145,10 +139,10 @@ namespace PCGExPointsMT
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(PerLoopIterations);
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForPoints)
-			ParallelLoopForPoints->SetOnCompleteCallback([&]() { OnPointsProcessingComplete(); });
-			ParallelLoopForPoints->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForPoints(Loops); });
-			ParallelLoopForPoints->SetOnIterationRangeStartCallback(
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessPoints(StartIndex, Count, LoopIdx); });
+			ParallelLoopForPoints->OnCompleteCallback = [&]() { OnPointsProcessingComplete(); };
+			ParallelLoopForPoints->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForPoints(Loops); };
+			ParallelLoopForPoints->OnIterationRangeStartCallback =
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessPoints(StartIndex, Count, LoopIdx); };
 			ParallelLoopForPoints->PrepareRangesOnly(NumPoints, PLI, bInlineProcessPoints);
 		}
 
@@ -163,7 +157,7 @@ namespace PCGExPointsMT
 		virtual void ProcessPoints(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			PrepareSingleLoopScopeForPoints(StartIndex, Count);
-			TArray<FPCGPoint>& Points = PointIO->GetMutableData(CurrentProcessingSource)->GetMutablePoints();
+			TArray<FPCGPoint>& Points = PointDataFacade->Source->GetMutableData(CurrentProcessingSource)->GetMutablePoints();
 			for (int i = 0; i < Count; ++i)
 			{
 				const int32 PtIndex = StartIndex + i;
@@ -196,10 +190,10 @@ namespace PCGExPointsMT
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize(PerLoopIterations);
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ParallelLoopForRanges)
-			ParallelLoopForRanges->SetOnCompleteCallback([&]() { OnRangeProcessingComplete(); });
-			ParallelLoopForRanges->SetOnIterationRangePrepareCallback([&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); });
-			ParallelLoopForRanges->SetOnIterationRangeStartCallback(
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); });
+			ParallelLoopForRanges->OnCompleteCallback = [&]() { OnRangeProcessingComplete(); };
+			ParallelLoopForRanges->OnIterationRangePrepareCallback = [&](const TArray<uint64>& Loops) { PrepareLoopScopesForRanges(Loops); };
+			ParallelLoopForRanges->OnIterationRangeStartCallback =
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { ProcessRange(StartIndex, Count, LoopIdx); };
 			ParallelLoopForRanges->PrepareRangesOnly(NumIterations, PLI, bInlineProcessRange);
 		}
 
@@ -242,7 +236,7 @@ namespace PCGExPointsMT
 	protected:
 		virtual bool InitPrimaryFilters(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
 		{
-			PointFilterCache.Init(DefaultPointFilterValue, PointIO->GetNum());
+			PointFilterCache.Init(DefaultPointFilterValue, PointDataFacade->GetNum());
 
 			if (InFilterFactories->IsEmpty()) { return true; }
 
@@ -259,7 +253,7 @@ namespace PCGExPointsMT
 			}
 		}
 
-		virtual void FilterAll() { FilterScope(0, PointIO->GetNum()); }
+		virtual void FilterAll() { FilterScope(0, PointDataFacade->GetNum()); }
 	};
 
 	template <typename TContext, typename TSettings>
@@ -270,8 +264,8 @@ namespace PCGExPointsMT
 		const TSettings* Settings = nullptr;
 
 	public:
-		TPointsProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
-			FPointsProcessor(InPoints)
+		TPointsProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			FPointsProcessor(InPointDataFacade)
 		{
 		}
 
@@ -297,8 +291,8 @@ namespace PCGExPointsMT
 		bool bInlineCompletion = false;
 		bool bInlineWrite = false;
 		bool bRequiresWriteStep = false;
-		TArray<TSharedPtr<PCGExData::FFacade>> ProcessorFacades;
-		TMap<PCGExData::FPointIO*, TSharedPtr<FPointsProcessor>>* SubProcessorMap = nullptr;
+		TArray<TSharedRef<PCGExData::FFacade>> ProcessorFacades;
+		TMap<PCGExData::FPointIO*, TSharedRef<FPointsProcessor>>* SubProcessorMap = nullptr;
 
 		mutable FRWLock BatchLock;
 
@@ -306,13 +300,13 @@ namespace PCGExPointsMT
 
 		FPCGExContext* ExecutionContext = nullptr;
 
-		TArray<TSharedPtr<PCGExData::FPointIO>> PointsCollection;
+		TArray<TSharedRef<PCGExData::FPointIO>> PointsCollection;
 
 		UPCGExOperation* PrimaryOperation = nullptr;
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
-		FPointsProcessorBatchBase(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FPointIO>>& InPointsCollection):
+		FPointsProcessorBatchBase(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FPointIO>>& InPointsCollection):
 			ExecutionContext(InContext), PointsCollection(InPointsCollection)
 		{
 		}
@@ -362,7 +356,7 @@ namespace PCGExPointsMT
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
-		TBatch(FPCGExContext* InContext, const TArray<TSharedPtr<PCGExData::FPointIO>>& InPointsCollection):
+		TBatch(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FPointIO>>& InPointsCollection):
 			FPointsProcessorBatchBase(InContext, InPointsCollection)
 		{
 		}
@@ -390,24 +384,23 @@ namespace PCGExPointsMT
 			AsyncManager = InAsyncManager;
 
 			TSharedPtr<FPointsProcessorBatchBase> SelfShared = SharedThis(this);
-			
-			for (const TSharedPtr<PCGExData::FPointIO>& IO : PointsCollection)
+
+			for (const TSharedRef<PCGExData::FPointIO>& IO : PointsCollection)
 			{
 				IO->CreateInKeys();
-				
-				TSharedPtr<T> NewProcessor = Processors.Add_GetRef(MakeShared<T>(IO));
+
+				const TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(IO);
+				const TSharedPtr<T> NewProcessor = MakeShared<T>(PointDataFacade.ToSharedRef());
+
 				NewProcessor->SetExecutionContext(ExecutionContext);
 				NewProcessor->ParentBatch = SelfShared;
 				NewProcessor->BatchIndex = Processors.Num() - 1;
 
-				if (!PrepareSingle(NewProcessor))
-				{
-					Processors.Pop();
-					continue;
-				}
+				if (!PrepareSingle(NewProcessor)) { continue; }
+				Processors.Add(NewProcessor.ToSharedRef());
 
 				ProcessorFacades.Add(NewProcessor->PointDataFacade);
-				SubProcessorMap->Add(NewProcessor->PointDataFacade->Source.Get(), NewProcessor);
+				SubProcessorMap->Add(&NewProcessor->PointDataFacade->Source.Get(), NewProcessor.ToSharedRef());
 
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
 				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }

@@ -4,6 +4,10 @@
 #include "Graph/Edges/PCGExRelaxClusters.h"
 
 
+
+
+
+
 #include "Graph/Edges/Relaxing/PCGExRelaxClusterOperation.h"
 #include "Graph/Edges/Relaxing/PCGExForceDirectedRelax.h"
 
@@ -71,9 +75,11 @@ namespace PCGExRelaxClusters
 		//if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) } // Keep those cached since we forward expanded cluster
 	}
 
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, true, false, false);
+		return MakeShared<PCGExCluster::FCluster>(
+			InClusterRef, VtxDataFacade->Source, VtxDataFacade->Source,
+			true, false, false);
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -83,7 +89,7 @@ namespace PCGExRelaxClusters
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		InfluenceDetails = Settings->InfluenceDetails;
-		if (!InfluenceDetails.Init(ExecutionContext, VtxDataFacade.Get())) { return false; }
+		if (!InfluenceDetails.Init(ExecutionContext, VtxDataFacade)) { return false; }
 
 		RelaxOperation = Context->Relaxing->CopyOperation<UPCGExRelaxClusterOperation>();
 		RelaxOperation->PrepareForCluster(Cluster.Get());
@@ -127,7 +133,7 @@ namespace PCGExRelaxClusters
 		RelaxOperation->WriteBuffer = SecondaryBuffer.Get();
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, IterationGroup)
-		IterationGroup->SetOnCompleteCallback([&]() { StartRelaxIteration(); });
+		IterationGroup->OnCompleteCallback = [&]() { StartRelaxIteration(); };
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
 			nullptr, this);
@@ -160,10 +166,10 @@ namespace PCGExRelaxClusters
 	{
 		FClusterProcessor::Write();
 
-		TArray<FPCGPoint>& MutablePoints = VtxIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = VtxDataFacade->GetOut()->GetMutablePoints();
 		if (!InfluenceDetails.bProgressiveInfluence)
 		{
-			const TArray<FPCGPoint>& OriginalPoints = VtxIO->GetIn()->GetPoints();
+			const TArray<FPCGPoint>& OriginalPoints = VtxDataFacade->GetIn()->GetPoints();
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes)
 			{
 				FVector Position = FMath::Lerp(

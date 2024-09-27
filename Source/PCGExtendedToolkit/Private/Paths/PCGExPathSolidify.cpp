@@ -71,6 +71,7 @@ namespace PCGExPathSolidify
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		LastIndex = PointIO->GetNum() - 1;
 
@@ -114,7 +115,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		if (!bClosedLoop && Index == LastIndex) { return; } // Skip last point
 
 		const FVector Position = Point.Transform.GetLocation();
-		const FVector NextPosition = PointIO->GetInPoint(Index == LastIndex ? 0 : Index + 1).Transform.GetLocation();
+		const FVector NextPosition = PointDataFacade->Source->GetInPoint(Index == LastIndex ? 0 : Index + 1).Transform.GetLocation();
 		const double Length = FVector::Dist(Position, NextPosition);
 		const FVector EdgeDirection = (Position - NextPosition).GetSafeNormal();
 		const FVector Scale = Settings->bScaleBounds ? FVector::OneVector / Point.Transform.GetScale3D() : FVector::OneVector;

@@ -25,8 +25,8 @@ namespace PCGExHeuristics
 {
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FLocalFeedbackHandler
 	{
-		PCGExData::FFacade* VtxDataFacade = nullptr;
-		PCGExData::FFacade* EdgeDataFacade = nullptr;
+		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
+		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
 		double TotalWeight = 0;

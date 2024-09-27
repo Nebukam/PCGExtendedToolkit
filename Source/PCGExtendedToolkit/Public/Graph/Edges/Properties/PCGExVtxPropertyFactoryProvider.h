@@ -68,7 +68,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 		return true;
 	}
 
-	virtual void Init(PCGExData::FFacade* InFacade)
+	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade)
 	{
 		if (bWriteDirection) { DirWriter = InFacade->GetWritable<FVector>(DirectionAttribute, true); }
 		if (bWriteLength) { LengthWriter = InFacade->GetWritable<double>(LengthAttribute, true); }
@@ -141,7 +141,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 		return true;
 	}
 
-	virtual void Init(PCGExData::FFacade* InFacade) override
+	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade) override
 	{
 		FPCGExSimpleEdgeOutputSettings::Init(InFacade);
 		if (bWriteEdgeIndex) { EIdxWriter = InFacade->GetWritable<int32>(EdgeIndexAttribute, true); }

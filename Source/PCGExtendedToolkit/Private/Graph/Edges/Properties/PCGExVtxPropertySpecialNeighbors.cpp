@@ -32,8 +32,8 @@ bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InConte
 		return false;
 	}
 
-	Config.LargestNeighbor.Init(InVtxDataFacade.Get());
-	Config.SmallestNeighbor.Init(InVtxDataFacade.Get());
+	Config.LargestNeighbor.Init(InVtxDataFacade.ToSharedRef());
+	Config.SmallestNeighbor.Init(InVtxDataFacade.ToSharedRef());
 
 	return bIsValidOperation;
 }

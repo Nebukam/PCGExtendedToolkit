@@ -126,7 +126,7 @@ namespace PCGExFlagNodes
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
 	}

@@ -114,9 +114,9 @@ namespace PCGExSampleOverlapStats
 	void FProcessor::RegisterOverlap(FProcessor* InManaged, const FBox& Intersection)
 	{
 		FWriteScopeLock WriteScopeLock(RegistrationLock);
-		TSharedPtr<FOverlap> Overlap = Context->RegisterOverlap(this, InManaged, Intersection);
-		if (Overlap->Manager == this) { ManagedOverlaps.Add(Overlap); }
-		Overlaps.Add(Overlap);
+		const TSharedPtr<FOverlap> Overlap = Context->RegisterOverlap(this, InManaged, Intersection);
+		if (Overlap->Manager == this) { ManagedOverlaps.Add(Overlap.ToSharedRef()); }
+		Overlaps.Add(Overlap.ToSharedRef());
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -126,14 +126,14 @@ namespace PCGExSampleOverlapStats
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_SAMPLEOVERLAPSTATS(PCGEX_OUTPUT_INIT)
 		}
 
 
 		// 1 - Build bounds & octrees
 
-		InPoints = &PointIO->GetIn()->GetPoints();
+		InPoints = &PointDataFacade->GetIn()->GetPoints();
 		NumPoints = InPoints->Num();
 
 		PCGEX_SET_NUM_UNINITIALIZED(LocalPointBounds, NumPoints)
@@ -141,7 +141,7 @@ namespace PCGExSampleOverlapStats
 		PCGEX_SET_NUM(OverlapCount, NumPoints)
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, BoundsPreparationTask)
-		BoundsPreparationTask->SetOnCompleteCallback(
+		BoundsPreparationTask->OnCompleteCallback =
 			[&]()
 			{
 				Octree = MakeUnique<TBoundsOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length());
@@ -150,14 +150,14 @@ namespace PCGExSampleOverlapStats
 					if (!PtBounds) { continue; }
 					Octree->AddElement(PtBounds.Get());
 				}
-			});
+			};
 
-		BoundsPreparationTask->SetOnIterationRangeStartCallback(
+		BoundsPreparationTask->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
 				FilterScope(StartIndex, Count);
-			});
+			};
 
 		switch (Settings->BoundsSource)
 		{
@@ -204,7 +204,7 @@ namespace PCGExSampleOverlapStats
 		// For each managed overlap, find per-point intersections
 
 		const TSharedPtr<FOverlap> ManagedOverlap = ManagedOverlaps[Index];
-		const TSharedPtr<FProcessor> OtherProcessor = StaticCastSharedPtr<FProcessor>(*ParentBatch->SubProcessorMap->Find(ManagedOverlap->GetOther(this)->PointDataFacade->Source.Get()));
+		const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*ParentBatch->SubProcessorMap->Find(&ManagedOverlap->GetOther(this)->PointDataFacade->Source.Get()));
 
 		Octree->FindElementsWithBoundsTest(
 			FBoxCenterAndExtent(ManagedOverlap->Intersection.GetCenter(), ManagedOverlap->Intersection.GetExtent()),
@@ -263,11 +263,11 @@ namespace PCGExSampleOverlapStats
 		// 2 - Find overlaps between large bounds, we'll be searching only there.
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, PreparationTask)
-		PreparationTask->SetOnCompleteCallback(
+		PreparationTask->OnCompleteCallback =
 			[&]()
 			{
 				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
-				SearchTask->SetOnCompleteCallback(
+				SearchTask->OnCompleteCallback =
 					[&]()
 					{
 						for (int i = 0; i < NumPoints; ++i)
@@ -275,12 +275,12 @@ namespace PCGExSampleOverlapStats
 							LocalOverlapSubCountMax = FMath::Max(LocalOverlapSubCountMax, OverlapSubCount[i]);
 							LocalOverlapCountMax = FMath::Max(LocalOverlapCountMax, OverlapCount[i]);
 						}
-					});
+					};
 
 				SearchTask->StartRanges(
 					[&](const int32 Index, const int32 Count, const int32 LoopIdx) { ResolveOverlap(Index); },
 					ManagedOverlaps.Num(), 8);
-			});
+			};
 
 		PreparationTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
@@ -288,26 +288,26 @@ namespace PCGExSampleOverlapStats
 				const TSharedPtr<PCGExData::FFacade> OtherFacade = ParentBatch->ProcessorFacades[Index];
 				if (PointDataFacade == OtherFacade) { return; } // Skip self
 
-				const TSharedPtr<FProcessor> OtherProcessor = StaticCastSharedPtr<FProcessor>(*ParentBatch->SubProcessorMap->Find(OtherFacade->Source.Get()));
+				const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*ParentBatch->SubProcessorMap->Find(&OtherFacade->Source.Get()));
 
 				const FBox Intersection = Bounds.Overlap(OtherProcessor->GetBounds());
 				if (!Intersection.IsValid) { return; } // No overlap
 
-				RegisterOverlap(OtherProcessor.Get(), Intersection);
+				RegisterOverlap(&OtherProcessor.Get(), Intersection);
 			}, ParentBatch->ProcessorFacades.Num(), 64);
 	}
 
 	void FProcessor::Write()
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
-		SearchTask->SetOnCompleteCallback(
+		SearchTask->OnCompleteCallback =
 			[&]()
 			{
 				PointDataFacade->Write(AsyncManager);
 
-				if (Settings->bTagIfHasAnyOverlap && bAnyOverlap) { PointIO->Tags->Add(Settings->HasAnyOverlapTag); }
-				if (Settings->bTagIfHasNoOverlap && !bAnyOverlap) { PointIO->Tags->Add(Settings->HasNoOverlapTag); }
-			});
+				if (Settings->bTagIfHasAnyOverlap && bAnyOverlap) { PointDataFacade->Source->Tags->Add(Settings->HasAnyOverlapTag); }
+				if (Settings->bTagIfHasNoOverlap && !bAnyOverlap) { PointDataFacade->Source->Tags->Add(Settings->HasNoOverlapTag); }
+			};
 
 		SearchTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { WriteSingleData(Index); },

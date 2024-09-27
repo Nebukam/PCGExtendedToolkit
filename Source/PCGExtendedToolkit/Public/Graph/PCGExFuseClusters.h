@@ -148,8 +148,8 @@ namespace PCGExFuseClusters
 		bool bInvalidEdges = true;
 		TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
 
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
-			: TClusterProcessor(InVtx, InEdges)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bBuildCluster = false;
 		}

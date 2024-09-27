@@ -127,8 +127,8 @@ namespace PCGExSortPoints
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			FPointsProcessor(InPointDataFacade)
 		{
 		}
 

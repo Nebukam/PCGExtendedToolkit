@@ -146,8 +146,8 @@ namespace PCGExPathToClusters
 	public:
 		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		explicit FNonFusingProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
-			: TPointsProcessor(InPoints)
+		explicit FNonFusingProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 
@@ -174,8 +174,8 @@ namespace PCGExPathToClusters
 	public:
 		TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
 
-		explicit FFusingProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
-			: TPointsProcessor(InPoints)
+		explicit FFusingProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 

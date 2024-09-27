@@ -270,7 +270,7 @@ namespace PCGExMeshToCluster
 		RootVtx->InitializeNum(Mesh->Vertices.Num());
 		TArray<FPCGPoint>& VtxPoints = RootVtx->GetOut()->GetMutablePoints();
 
-		TSharedPtr<PCGExData::FFacade> RootVtxFacade = MakeShared<PCGExData::FFacade>(RootVtx);
+		TSharedPtr<PCGExData::FFacade> RootVtxFacade = MakeShared<PCGExData::FFacade>(RootVtx.ToSharedRef());
 
 		const TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(RootVtxFacade, &Context->GraphBuilderDetails);
 		Context->GraphBuilders[TaskIndex] = GraphBuilder;

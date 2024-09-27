@@ -10,6 +10,14 @@
 #include "Data/PCGExAttributeHelpers.h"
 
 
+
+
+
+
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -204,8 +212,9 @@ namespace PCGExCluster
 		TSharedPtr<ClusterItemOctree> NodeOctree;
 		TSharedPtr<ClusterItemOctree> EdgeOctree;
 
-		FCluster();
-		FCluster(const FCluster* OtherCluster, const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
+		FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO);
+		FCluster(const TSharedRef<FCluster>& OtherCluster,
+		         const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
 		         bool bCopyNodes, bool bCopyEdges, bool bCopyLookup);
 
 		void ClearInheritedForChanges(const bool bClearOwned = false);
@@ -215,14 +224,13 @@ namespace PCGExCluster
 		~FCluster();
 
 		bool BuildFrom(
-			const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
-			const TArray<FPCGPoint>& InNodePoints,
 			const TMap<uint32, int32>& InEndpointsLookup,
-			const TArray<int32>* InExpectedAdjacency = nullptr);
+			const TArray<int32>* InExpectedAdjacency = nullptr,
+			const PCGExData::ESource PointsSource = PCGExData::ESource::In);
 
 		void BuildFrom(const PCGExGraph::FSubGraph* SubGraph);
 
-		bool IsValidWith(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO) const;
+		bool IsValidWith(const TSharedRef<PCGExData::FPointIO>& InVtxIO, const TSharedRef<PCGExData::FPointIO>& InEdgesIO) const;
 
 		TSharedPtr<TArray<uint64>> GetVtxPointScopes();
 		const TArray<int32>& GetVtxPointIndices();
@@ -510,31 +518,6 @@ namespace PCGExCluster
 
 namespace PCGExClusterTask
 {
-	class /*PCGEXTENDEDTOOLKIT_API*/ FBuildCluster final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FBuildCluster(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			PCGExCluster::FCluster* InCluster,
-			const TSharedPtr<PCGExData::FPointIO>& InEdgeIO,
-			const TMap<uint32, int32>* InEndpointsLookup,
-			const TArray<int32>* InExpectedAdjacency) :
-			FPCGExTask(InPointIO),
-			Cluster(InCluster),
-			EdgeIO(InEdgeIO),
-			EndpointsLookup(InEndpointsLookup),
-			ExpectedAdjacency(InExpectedAdjacency)
-		{
-		}
-
-		PCGExCluster::FCluster* Cluster = nullptr;
-		TSharedPtr<PCGExData::FPointIO> EdgeIO;
-		const TMap<uint32, int32>* EndpointsLookup = nullptr;
-		const TArray<int32>* ExpectedAdjacency = nullptr;
-
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FFindNodeChains final : public PCGExMT::FPCGExTask
 	{
@@ -693,8 +676,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeDirectionSettings
 	TSharedPtr<PCGExData::TBuffer<double>> EndpointsReader;
 	TSharedPtr<PCGExData::TBuffer<FVector>> EdgeDirReader;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InEndpointsFacade);
-	bool InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, PCGExData::FFacade* InEdgeDataFacade);
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InEndpointsFacade);
+	bool InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade);
 
 	bool RequiresEndpointsMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute; }
 	bool RequiresEdgeMetadata() const { return DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute; }

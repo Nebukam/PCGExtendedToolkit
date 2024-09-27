@@ -10,9 +10,9 @@
 bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
-	if (TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true))
+	if (const TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true))
 	{
-		BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO);
+		BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO.ToSharedRef());
 	}
 	else
 	{

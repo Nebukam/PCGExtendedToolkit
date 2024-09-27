@@ -94,36 +94,29 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 
 		CurrentEdges->CreateInKeys();
 
-		if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO, CurrentEdges))
+		if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO.ToSharedRef(), CurrentEdges.ToSharedRef()))
 		{
 			CurrentCluster = MakeShared<PCGExCluster::FCluster>(
-				CachedCluster.Get(), CurrentIO, CurrentEdges,
+				CachedCluster.ToSharedRef(), CurrentIO, CurrentEdges,
 				false, false, false);
 		}
 
 		if (!CurrentCluster)
 		{
-			CurrentCluster = MakeShared<PCGExCluster::FCluster>();
+			CurrentCluster = MakeShared<PCGExCluster::FCluster>(CurrentIO, CurrentEdges);
 			CurrentCluster->bIsOneToOne = (TaggedEdges->Entries.Num() == 1);
 
-			if (!CurrentCluster->BuildFrom(
-				CurrentEdges, CurrentIO->GetIn()->GetPoints(),
-				EndpointsLookup, &EndpointsAdjacency))
+			if (!CurrentCluster->BuildFrom(EndpointsLookup, &EndpointsAdjacency))
 			{
 				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed.  If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
 				CurrentCluster.Reset();
-			}
-			else
-			{
-				CurrentCluster->VtxIO = CurrentIO;
-				CurrentCluster->EdgesIO = CurrentEdges;
 			}
 		}
 
 		return true;
 	}
 
-	CurrentEdges = nullptr;
+	CurrentEdges.Reset();
 	return false;
 }
 
@@ -367,7 +360,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 			continue;
 		}
 
-		if (!Context->InputDictionary->CreateKey(Vtx))
+		if (!Context->InputDictionary->CreateKey(Vtx.ToSharedRef()))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed."));
 			Vtx->Disable();
@@ -383,7 +376,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 			continue;
 		}
 
-		if (!Context->InputDictionary->TryAddEntry(Edges))
+		if (!Context->InputDictionary->TryAddEntry(Edges.ToSharedRef()))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges have no associated vtx."));
 		}

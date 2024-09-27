@@ -47,13 +47,13 @@ namespace PCGExData
 			}
 		}
 
-		explicit FTags(const FTags* InTags)
+		explicit FTags(const TSharedPtr<FTags>& InTags)
 			: FTags()
 		{
 			Reset(InTags);
 		}
 
-		void Append(const FTags* InTags)
+		void Append(const TSharedRef<FTags>& InTags)
 		{
 			FWriteScopeLock WriteScopeLock(TagsLock);
 			Tags.Append(InTags->Tags);
@@ -62,16 +62,15 @@ namespace PCGExData
 
 		void Reset()
 		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
 			RawTags.Empty();
 			Tags.Empty();
 		}
 
-		void Reset(const FTags* InTags)
+		void Reset(const TSharedPtr<FTags>& InTags)
 		{
-			FWriteScopeLock WriteScopeLock(TagsLock);
 			Reset();
-			RawTags.Append(InTags->RawTags);
-			Tags.Append(InTags->Tags);
+			if (InTags) { Append(InTags.ToSharedRef()); }
 		}
 
 		void Dump(TSet<FString>& InTags) const

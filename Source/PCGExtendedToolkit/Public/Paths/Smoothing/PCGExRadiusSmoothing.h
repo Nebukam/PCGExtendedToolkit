@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExSmoothingOperation.h"
 #include "Data/Blending/PCGExDataBlending.h"
+
+
 #include "PCGExRadiusSmoothing.generated.h"
 
 /**
@@ -18,7 +20,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRadiusSmoothing : public UPCGExSmoothingO
 
 public:
 	virtual void SmoothSingle(
-		PCGExData::FPointIO* Path,
+		const TSharedRef<PCGExData::FPointIO>& Path,
 		PCGExData::FPointRef& Target,
 		const double Smoothing,
 		const double Influence,

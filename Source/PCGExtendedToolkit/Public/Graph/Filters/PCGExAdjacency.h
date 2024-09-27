@@ -100,7 +100,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 
 	TSharedPtr<PCGExData::TBuffer<double>> LocalThreshold;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPrimaryDataFacade)
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
 	{
 		bUseDiscreteMeasure = ThresholdType == EPCGExMeanMeasure::Discrete;
 		bUseLocalThreshold = ThresholdSource == EPCGExFetchType::Attribute;

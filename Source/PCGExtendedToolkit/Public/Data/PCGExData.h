@@ -63,10 +63,10 @@ namespace PCGExData
 
 		int32 BufferIndex = -1;
 		const uint64 UID;
-		TSharedPtr<FPointIO> Source;
+		const TSharedRef<FPointIO> Source;
 
 
-		FBufferBase(const TSharedPtr<FPointIO>& InSource, const FName InFullName, const EPCGMetadataTypes InType):
+		FBufferBase(const TSharedRef<FPointIO>& InSource, const FName InFullName, const EPCGMetadataTypes InType):
 			FullName(InFullName), Type(InType), UID(BufferUID(FullName, Type)), Source(InSource)
 		{
 		}
@@ -108,7 +108,7 @@ namespace PCGExData
 
 		virtual bool IsScoped() override { return bScopedBuffer || ScopedBroadcaster; }
 
-		TBuffer(const TSharedPtr<FPointIO>& InSource, const FName InFullName, const EPCGMetadataTypes InType):
+		TBuffer(const TSharedRef<FPointIO>& InSource, const FName InFullName, const EPCGMetadataTypes InType):
 			FBufferBase(InSource, InFullName, InType)
 		{
 		}
@@ -323,17 +323,19 @@ namespace PCGExData
 		mutable FRWLock CloudLock;
 
 	public:
-		TSharedPtr<FPointIO> Source;
+		TSharedRef<FPointIO> Source;
 		TArray<TSharedPtr<FBufferBase>> Buffers;
 		TMap<uint64, TSharedPtr<FBufferBase>> BufferMap;
 		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 
 		bool bSupportsScopedGet = false;
 
+		FORCEINLINE int32 GetNum(const ESource InSource = ESource::In) const { return Source->GetNum(InSource); }
+
 		TSharedPtr<FBufferBase> FindBufferUnsafe(const uint64 UID);
 		TSharedPtr<FBufferBase> FindBuffer(const uint64 UID);
 
-		explicit FFacade(const TSharedPtr<FPointIO>& InSource):
+		explicit FFacade(const TSharedRef<FPointIO>& InSource):
 			Source(InSource)
 		{
 		}
@@ -590,11 +592,7 @@ namespace PCGExData
 		const UPCGPointData* GetIn() const { return Source->GetIn(); }
 		UPCGPointData* GetOut() const { return Source->GetOut(); }
 
-		~FFacade()
-		{
-			Flush();
-			Source = nullptr;
-		}
+		~FFacade() = default;
 
 		void Flush()
 		{
@@ -625,13 +623,6 @@ namespace PCGExData
 			for (int i = 0; i < Buffers.Num(); i++) { Buffers[i].Get()->BufferIndex = i; }
 		}
 	};
-
-	static void GetCollectionFacades(const FPointIOCollection* InCollection, TArray<FFacade*>& OutFacades)
-	{
-		OutFacades.Empty();
-		PCGEX_SET_NUM_UNINITIALIZED(OutFacades, InCollection->Num())
-		for (int i = 0; OutFacades.Num(); ++i) { OutFacades[i] = new FFacade(InCollection->Pairs[i]); }
-	}
 
 #pragma endregion
 

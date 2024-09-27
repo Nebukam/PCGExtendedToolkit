@@ -67,7 +67,7 @@ namespace PCGExReversePointOrder
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 		Algo::Reverse(MutablePoints);
 
 		AttributesInfos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
@@ -88,8 +88,8 @@ namespace PCGExReversePointOrder
 		if (SwapPairs.IsEmpty()) { return true; }
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchWritersTask)
-		FetchWritersTask->SetOnCompleteCallback([&]() { StartParallelLoopForPoints(); });
-		FetchWritersTask->SetOnIterationRangeStartCallback(
+		FetchWritersTask->OnCompleteCallback = [&]() { StartParallelLoopForPoints(); };
+		FetchWritersTask->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::FetchWriters);
@@ -103,7 +103,7 @@ namespace PCGExReversePointOrder
 						WorkingPair.FirstWriter = PointDataFacade->GetWritable<RawT>(WorkingPair.FirstAttributeName, false);
 						WorkingPair.SecondWriter = PointDataFacade->GetWritable<RawT>(WorkingPair.SecondAttributeName, false);
 					});
-			});
+			};
 
 		FetchWritersTask->PrepareRangesOnly(SwapPairs.Num(), 1);
 

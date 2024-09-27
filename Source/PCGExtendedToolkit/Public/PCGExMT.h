@@ -304,9 +304,16 @@ namespace PCGExMT
 
 	public:
 		using CompletionCallback = std::function<void()>;
+		CompletionCallback OnCompleteCallback;
+
 		using IterationCallback = std::function<void(const int32, const int32, const int32)>;
+		IterationCallback OnIterationCallback;
+
 		using IterationRangePrepareCallback = std::function<void(const TArray<uint64>&)>;
+		IterationRangePrepareCallback OnIterationRangePrepareCallback;
+
 		using IterationRangeStartCallback = std::function<void(const int32, const int32, const int32)>;
+		IterationRangeStartCallback OnIterationRangeStartCallback;
 
 		explicit FTaskGroup(const TSharedPtr<FTaskManager>& InManager, const FName InGroupName):
 			GroupName(InGroupName), Manager(InManager)
@@ -315,24 +322,6 @@ namespace PCGExMT
 
 		~FTaskGroup()
 		{
-		}
-
-		void SetOnCompleteCallback(const CompletionCallback& Callback)
-		{
-			bHasOnCompleteCallback = true;
-			OnCompleteCallback = Callback;
-		}
-
-		void SetOnIterationRangePrepareCallback(const IterationRangePrepareCallback& Callback)
-		{
-			bHasOnIterationRangePrepareCallback = true;
-			OnIterationRangePrepareCallback = Callback;
-		}
-
-		void SetOnIterationRangeStartCallback(const IterationRangeStartCallback& Callback)
-		{
-			bHasOnIterationRangeStartCallback = true;
-			OnIterationRangeStartCallback = Callback;
 		}
 
 		template <typename T, typename... Args>
@@ -355,7 +344,7 @@ namespace PCGExMT
 			TArray<uint64> Loops;
 			FPlatformAtomics::InterlockedAdd(&NumStarted, SubRanges(Loops, MaxItems, ChunkSize));
 
-			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
+			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 
 			int32 LoopIdx = 0;
 			for (const uint64 H : Loops)
@@ -377,15 +366,6 @@ namespace PCGExMT
 		TSharedPtr<FTaskManager> Manager;
 
 		mutable FRWLock GroupLock;
-
-		bool bHasOnCompleteCallback = false;
-		CompletionCallback OnCompleteCallback;
-
-		IterationCallback OnIterationCallback;
-		bool bHasOnIterationRangePrepareCallback = false;
-		IterationRangePrepareCallback OnIterationRangePrepareCallback;
-		bool bHasOnIterationRangeStartCallback = false;
-		IterationRangeStartCallback OnIterationRangeStartCallback;
 
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
@@ -418,11 +398,7 @@ namespace PCGExMT
 		bool bIsAsync = true;
 
 	public:
-		virtual ~FPCGExTask()
-		{
-			ManagerPtr = nullptr;
-			GroupPtr = nullptr;
-		}
+		virtual ~FPCGExTask() = default;
 
 		TWeakPtr<FTaskManager> ManagerPtr;
 		TWeakPtr<FTaskGroup> GroupPtr;
@@ -442,6 +418,12 @@ namespace PCGExMT
 
 		void DoWork()
 		{
+			ON_SCOPE_EXIT
+			{
+				ManagerPtr = nullptr;
+				GroupPtr = nullptr;
+			};
+
 			if (bWorkDone) { return; }
 			bWorkDone = true;
 

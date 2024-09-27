@@ -138,7 +138,7 @@ namespace PCGExFlatProjection
 	{
 		if (bInverseExistingProjection)
 		{
-			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+			UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
 			Metadata->DeleteAttribute(Context->CachedTransformAttributeName);
 		}
 		else if (bWriteAttribute)

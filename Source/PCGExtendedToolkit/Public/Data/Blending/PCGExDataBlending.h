@@ -553,7 +553,7 @@ namespace PCGExDataBlending
 	static void AssembleBlendingDetails(
 		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
 		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
-		const PCGExData::FPointIO* SourceIO,
+		const TSharedRef<PCGExData::FPointIO>& SourceIO,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
 	{
@@ -579,7 +579,7 @@ namespace PCGExDataBlending
 	static void AssembleBlendingDetails(
 		const EPCGExDataBlendingType& DefaultBlending,
 		const TSet<FName>& Attributes,
-		const PCGExData::FPointIO* SourceIO,
+		const TSharedRef<PCGExData::FPointIO>& SourceIO,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
 	{

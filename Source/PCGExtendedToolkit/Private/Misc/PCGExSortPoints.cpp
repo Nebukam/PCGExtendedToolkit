@@ -86,7 +86,7 @@ namespace PCGExSortPoints
 		Rules.Reserve(RuleConfigs.Num());
 
 		TMap<PCGMetadataEntryKey, int32> PointIndices;
-		PointIO->PrintOutKeysMap(PointIndices, true);
+		PointDataFacade->Source->PrintOutKeysMap(PointIndices, true);
 
 		for (const FPCGExSortRuleConfig& RuleConfig : RuleConfigs)
 		{
@@ -131,7 +131,7 @@ namespace PCGExSortPoints
 			return Result < 0;
 		};
 
-		PointIO->GetOut()->GetMutablePoints().Sort(SortPredicate);
+		PointDataFacade->GetOut()->GetMutablePoints().Sort(SortPredicate);
 
 		PointIndices.Empty();
 		return true;

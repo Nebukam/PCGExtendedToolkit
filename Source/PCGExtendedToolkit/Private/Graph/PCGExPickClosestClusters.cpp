@@ -89,7 +89,7 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGExContext* InContext) const
 	const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourcePickersLabel, true);
 	if (!Targets) { return false; }
 
-	Context->TargetDataFacade = MakeShared<PCGExData::FFacade>(Targets);
+	Context->TargetDataFacade = MakeShared<PCGExData::FFacade>(Targets.ToSharedRef());
 
 	PCGEX_FWD(TargetAttributesToTags)
 
@@ -229,21 +229,21 @@ namespace PCGExPickClosestClusters
 		{
 			if (Picker == -1)
 			{
-				EdgesIO->Tags->Add(Context->OmitTag);
+				EdgeDataFacade->Source->Tags->Add(Context->OmitTag);
 				return;
 			}
 
-			EdgesIO->Tags->Add(Context->KeepTag);
+			EdgeDataFacade->Source->Tags->Add(Context->KeepTag);
 		}
 
 		if (!Settings->TargetForwarding.bEnabled)
 		{
-			EdgesIO->InitializeOutput(PCGExData::EInit::Forward);
+			EdgeDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward);
 			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward); }
 		}
 		else
 		{
-			EdgesIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			EdgeDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
 			if (!VtxDataFacade->Source->GetOut()) { VtxDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput); }
 
 			Context->TargetForwardHandler->Forward(Picker, EdgeDataFacade);
@@ -267,8 +267,8 @@ namespace PCGExPickClosestClusters
 		if (Stg->Action == EPCGExFilterDataAction::Omit) { if (Picks == MaxPicks) { return; } }
 		else if (Stg->Action == EPCGExFilterDataAction::Keep) { if (Picks == 0) { return; } }
 
-		if (Picks > 0) { VtxIO->Tags->Add(Ctx->KeepTag); }
-		else { VtxIO->Tags->Add(Ctx->OmitTag); }
+		if (Picks > 0) { VtxDataFacade->Source->Tags->Add(Ctx->KeepTag); }
+		else { VtxDataFacade->Source->Tags->Add(Ctx->OmitTag); }
 
 		TBatch<FProcessor>::Output();
 	}

@@ -58,7 +58,7 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 			return false;
 		}
 
-		Context->CustomProfileFacade = MakeShared<PCGExData::FFacade>(CustomProfileIO);
+		Context->CustomProfileFacade = MakeShared<PCGExData::FFacade>(CustomProfileIO.ToSharedRef());
 
 		const TArray<FPCGPoint>& ProfilePoints = CustomProfileIO->GetIn()->GetPoints();
 		PCGEX_SET_NUM_UNINITIALIZED(Context->CustomProfilePositions, ProfilePoints.Num())
@@ -131,7 +131,7 @@ namespace PCGExBevelPath
 	FBevel::FBevel(const int32 InIndex, const FProcessor* InProcessor):
 		Index(InIndex)
 	{
-		const TArray<FPCGPoint>& InPoints = InProcessor->PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InPoints = InProcessor->PointDataFacade->GetIn()->GetPoints();
 		ArriveIdx = Index - 1 < 0 ? InPoints.Num() - 1 : Index - 1;
 		LeaveIdx = Index + 1 == InPoints.Num() ? 0 : Index + 1;
 
@@ -289,9 +289,9 @@ namespace PCGExBevelPath
 
 
 		bInlineProcessPoints = true;
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
-		Bevels.Init(nullptr, PointIO->GetNum());
+		Bevels.Init(nullptr, PointDataFacade->GetNum());
 
 		if (Settings->WidthSource == EPCGExFetchType::Attribute)
 		{
@@ -328,7 +328,7 @@ namespace PCGExBevelPath
 
 		bArc = Settings->Type == EPCGExBevelProfileType::Arc;
 
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
 		PCGEX_SET_NUM_UNINITIALIZED(Lengths, NumPoints)
 		for (int i = 0; i < NumPoints; ++i)
@@ -337,8 +337,8 @@ namespace PCGExBevelPath
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
-		Preparation->SetOnCompleteCallback([&]() { StartParallelLoopForPoints(PCGExData::ESource::In); });
-		Preparation->SetOnIterationRangeStartCallback(
+		Preparation->OnCompleteCallback =[&]() { StartParallelLoopForPoints(PCGExData::ESource::In); };
+		Preparation->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
@@ -350,14 +350,14 @@ namespace PCGExBevelPath
 					PointFilterCache[0] = false;
 					PointFilterCache[PointFilterCache.Num() - 1] = false;
 				}
-			});
+			};
 
 		Preparation->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				if (!PointFilterCache[Index]) { return; }
 				Bevels[Index] = MakeShared<FBevel>(Index, this); // no need for SharedThis
-			}, PointIO->GetNum(), 64);
+			}, PointDataFacade->GetNum(), 64);
 
 		return true;
 	}
@@ -374,6 +374,8 @@ namespace PCGExBevelPath
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
 		const int32 StartIndex = StartIndices[Iteration];
+
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		const TSharedPtr<FBevel>& Bevel = Bevels[Iteration];
 		const FPCGPoint& OriginalPoint = PointIO->GetInPoint(Iteration);
@@ -433,8 +435,10 @@ namespace PCGExBevelPath
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_SET_NUM_UNINITIALIZED(StartIndices, PointIO->GetNum())
+		PCGEX_SET_NUM_UNINITIALIZED(StartIndices, PointDataFacade->GetNum())
 
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		
 		int32 NumBevels = 0;
 		int32 NumOutPoints = 0;
 
@@ -466,10 +470,10 @@ namespace PCGExBevelPath
 
 		// Build output points
 
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM(MutablePoints, NumOutPoints);
 
-		StartParallelLoopForRange(PointIO->GetNum());
+		StartParallelLoopForRange(PointDataFacade->GetNum());
 	}
 
 	void FProcessor::Write()
@@ -495,13 +499,13 @@ namespace PCGExBevelPath
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)
-		WriteFlagsTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManager); });
+		WriteFlagsTask->OnCompleteCallback =[&]() { PointDataFacade->Write(AsyncManager); };
 		WriteFlagsTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				if (!PointFilterCache[Index]) { return; }
 				WriteFlags(Index);
-			}, PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			}, PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		FPointsProcessor::Write();
 	}

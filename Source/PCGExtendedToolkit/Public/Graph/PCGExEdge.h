@@ -320,9 +320,9 @@ namespace PCGExGraph
 		IO->Tags->Remove(TagStr_PCGExVtx);
 	}
 
-	static void MarkClusterEdges(const TArrayView<TSharedPtr<PCGExData::FPointIO>> Edges, const FString& Id)
+	static void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const FString& Id)
 	{
-		for (const TSharedPtr<PCGExData::FPointIO> IO : Edges) { MarkClusterEdges(IO, Id); }
+		for (const TSharedRef<PCGExData::FPointIO>& IO : Edges) { MarkClusterEdges(IO, Id); }
 	}
 
 	static void CleanupClusterTags(const TSharedPtr<PCGExData::FPointIO>& IO, const bool bKeepPairTag = false)

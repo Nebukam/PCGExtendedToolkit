@@ -84,8 +84,8 @@ namespace PCGExCherryPickPoints
 		TArray<int32> PickedIndices;
 
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
-			: TPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 

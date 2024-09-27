@@ -16,7 +16,7 @@ void UPCGExOrientLookAt::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExOrientLookAt::PrepareForData(PCGExData::FFacade* InDataFacade)
+bool UPCGExOrientLookAt::PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	if (!Super::PrepareForData(InDataFacade)) { return false; }
 

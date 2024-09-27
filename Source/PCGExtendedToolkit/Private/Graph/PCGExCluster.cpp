@@ -68,7 +68,8 @@ namespace PCGExCluster
 
 #pragma region FCluster
 
-	FCluster::FCluster()
+	FCluster::FCluster(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO):
+		VtxIO(InVtxIO), EdgesIO(InEdgesIO)
 	{
 		NodeIndexLookup = MakeShared<TMap<int32, int32>>();
 		Nodes = MakeShared<TArray<FNode>>();
@@ -76,7 +77,7 @@ namespace PCGExCluster
 		Bounds = FBox(ForceInit);
 	}
 
-	FCluster::FCluster(const FCluster* OtherCluster,
+	FCluster::FCluster(const TSharedRef<FCluster>& OtherCluster,
 	                   const TSharedPtr<PCGExData::FPointIO>& InVtxIO,
 	                   const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
 	                   const bool bCopyNodes, const bool bCopyEdges, const bool bCopyLookup):
@@ -172,21 +173,20 @@ namespace PCGExCluster
 	}
 
 	bool FCluster::BuildFrom(
-		const TSharedPtr<PCGExData::FPointIO>& InEdgesIO,
-		const TArray<FPCGPoint>& InNodePoints,
 		const TMap<uint32, int32>& InEndpointsLookup,
-		const TArray<int32>* InExpectedAdjacency)
+		const TArray<int32>* InExpectedAdjacency,
+		const PCGExData::ESource PointsSource)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
-		EdgesIO = InEdgesIO;
+		const TArray<FPCGPoint>& InNodePoints = VtxIO->GetPoints(PointsSource);
 
 		Nodes->Empty();
 		Edges->Empty();
 		NodeIndexLookup->Empty();
 
 		NumRawVtx = InNodePoints.Num();
-		NumRawEdges = InEdgesIO->GetNum();
+		NumRawEdges = EdgesIO->GetNum();
 
 		const TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(PCGExGraph::Tag_EdgeEndpoints);
 
@@ -197,9 +197,9 @@ namespace PCGExCluster
 			return false;
 		};
 
-		if (!EndpointsReader->Bind(InEdgesIO)) { return OnFail(); }
+		if (!EndpointsReader->Bind(EdgesIO)) { return OnFail(); }
 
-		const int32 NumEdges = InEdgesIO->GetNum();
+		const int32 NumEdges = EdgesIO->GetNum();
 
 		Edges->SetNumUninitialized(NumEdges);
 		Nodes->Reserve(InNodePoints.Num());
@@ -222,7 +222,7 @@ namespace PCGExCluster
 			StartNode.Add(EndNode, i);
 			EndNode.Add(StartNode, i);
 
-			(*Edges)[i] = PCGExGraph::FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, InEdgesIO->IOIndex);
+			(*Edges)[i] = PCGExGraph::FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgesIO->IOIndex);
 		}
 
 		if (InExpectedAdjacency)
@@ -273,7 +273,7 @@ namespace PCGExCluster
 		Bounds = Bounds.ExpandBy(10);
 	}
 
-	bool FCluster::IsValidWith(const TSharedPtr<PCGExData::FPointIO>& InVtxIO, const TSharedPtr<PCGExData::FPointIO>& InEdgesIO) const
+	bool FCluster::IsValidWith(const TSharedRef<PCGExData::FPointIO>& InVtxIO, const TSharedRef<PCGExData::FPointIO>& InEdgesIO) const
 	{
 		return NumRawVtx == InVtxIO->GetNum() && NumRawEdges == InEdgesIO->GetNum();
 	}
@@ -885,14 +885,6 @@ namespace PCGExCluster
 
 namespace PCGExClusterTask
 {
-	bool FBuildCluster::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		Cluster->BuildFrom(
-			EdgeIO, PointIO->GetIn()->GetPoints(),
-			*EndpointsLookup, ExpectedAdjacency);
-
-		return true;
-	}
 
 	bool FFindNodeChains::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
@@ -990,7 +982,7 @@ namespace PCGExClusterTask
 	}
 }
 
-bool FPCGExEdgeDirectionSettings::Init(const FPCGContext* InContext, PCGExData::FFacade* InEndpointsFacade)
+bool FPCGExEdgeDirectionSettings::Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InEndpointsFacade)
 {
 	bAscendingDesired = DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
 	if (DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
@@ -1005,7 +997,7 @@ bool FPCGExEdgeDirectionSettings::Init(const FPCGContext* InContext, PCGExData::
 	return true;
 }
 
-bool FPCGExEdgeDirectionSettings::InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, PCGExData::FFacade* InEdgeDataFacade)
+bool FPCGExEdgeDirectionSettings::InitFromParent(FPCGContext* InContext, const FPCGExEdgeDirectionSettings& ParentSettings, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
 {
 	DirectionMethod = ParentSettings.DirectionMethod;
 	DirectionChoice = ParentSettings.DirectionChoice;

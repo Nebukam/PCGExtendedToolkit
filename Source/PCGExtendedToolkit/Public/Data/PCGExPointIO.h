@@ -86,7 +86,7 @@ namespace PCGExData
 		bool bEnabled = true;
 
 	public:
-		TUniquePtr<FTags> Tags;
+		TSharedPtr<FTags> Tags;
 		int32 IOIndex = 0;
 
 		explicit FPointIO(FPCGExContext* InContext):
@@ -101,12 +101,12 @@ namespace PCGExData
 			PCGEX_LOG_CTR(FPointIO)
 		}
 
-		explicit FPointIO(FPCGExContext* InContext, const TSharedPtr<FPointIO>& InPointIO):
+		explicit FPointIO(FPCGExContext* InContext, const TSharedRef<FPointIO>& InPointIO):
 			Context(InContext), In(InPointIO->GetIn())
 		{
 			PCGEX_LOG_CTR(FPointIO)
 			RootIO = InPointIO;
-			Tags = MakeUnique<FTags>(InPointIO->Tags.Get());
+			Tags = MakeShared<FTags>(InPointIO->Tags);
 		}
 
 		FPCGExContext* GetContext() const { return Context; }
@@ -195,6 +195,7 @@ namespace PCGExData
 		FORCEINLINE const FPCGPoint& GetInPoint(const int32 Index) const { return *(In->GetPoints().GetData() + Index); }
 		FORCEINLINE const FPCGPoint& GetOutPoint(const int32 Index) const { return *(Out->GetPoints().GetData() + Index); }
 		FORCEINLINE FPCGPoint& GetMutablePoint(const int32 Index) const { return *(Out->GetMutablePoints().GetData() + Index); }
+		FORCEINLINE const TArray<FPCGPoint>& GetPoints(const ESource Source) const { return Source == ESource::In ? In->GetPoints() : Out->GetPoints(); }
 
 		FORCEINLINE FPointRef GetInPointRef(const int32 Index) const { return FPointRef(In->GetPoints().GetData() + Index, Index); }
 		FORCEINLINE FPointRef GetOutPointRef(const int32 Index) const { return FPointRef(Out->GetPoints().GetData() + Index, Index); }
@@ -318,7 +319,7 @@ namespace PCGExData
 		TSharedPtr<FPointIO> Emplace_GetRef(const TSharedPtr<FPointIO>& PointIO, const EInit InitOut = EInit::NoOutput)
 		{
 			TSharedPtr<FPointIO> Branch = Emplace_GetRef<T>(PointIO->GetIn(), InitOut);
-			Branch->Tags->Reset(PointIO->Tags.Get());
+			Branch->Tags->Reset(PointIO->Tags);
 			Branch->RootIO = PointIO;
 			return Branch;
 		}
@@ -346,19 +347,16 @@ namespace PCGExData
 	public:
 		FString TagId;
 		FString TagValue;
-		TArray<TSharedPtr<FPointIO>> Entries;
+		TArray<TSharedRef<FPointIO>> Entries;
 
 		FPointIOTaggedEntries(const FString& InTagId, const FString& InTagValue)
 			: TagId(InTagId), TagValue(InTagValue)
 		{
 		}
 
-		~FPointIOTaggedEntries()
-		{
-			Entries.Empty();
-		}
+		~FPointIOTaggedEntries() = default;
 
-		void Add(const TSharedPtr<FPointIO>& Value);
+		void Add(const TSharedRef<FPointIO>& Value);
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPointIOTaggedDictionary
@@ -379,8 +377,8 @@ namespace PCGExData
 			Entries.Empty();
 		}
 
-		bool CreateKey(const TSharedPtr<FPointIO>& PointIOKey);
-		bool TryAddEntry(const TSharedPtr<FPointIO>& PointIOEntry);
+		bool CreateKey(const TSharedRef<FPointIO>& PointIOKey);
+		bool TryAddEntry(const TSharedRef<FPointIO>& PointIOEntry);
 		TSharedPtr<FPointIOTaggedEntries> GetEntries(const FString& Key);
 	};
 

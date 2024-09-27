@@ -63,8 +63,8 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGExContext* InContext) const
 
 	if (!SeedsPoints || !GoalsPoints) { return false; }
 
-	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints);
-	Context->GoalsDataFacade = MakeShared<PCGExData::FFacade>(GoalsPoints);
+	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints.ToSharedRef());
+	Context->GoalsDataFacade = MakeShared<PCGExData::FFacade>(GoalsPoints.ToSharedRef());
 
 	PCGEX_FWD(SeedAttributesToPathTags)
 	PCGEX_FWD(GoalAttributesToPathTags)
@@ -199,7 +199,7 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	const int32 LastPosition = NumPositions - 1;
 
 	TSharedPtr<PCGExData::FPointIO> PathIO = Context->OutputPaths->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
-	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO);
+	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 
 	UPCGPointData* OutData = PathIO->GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
@@ -216,7 +216,7 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	(MutablePoints[LastPosition] = *Goal).Transform.SetLocation(Location);
 
 	TSharedPtr<PCGExDataBlending::FMetadataBlender> TempBlender =
-		Context->Blending->CreateBlender(PathDataFacade, Context->GoalsDataFacade);
+		Context->Blending->CreateBlender(PathDataFacade.ToSharedRef(), Context->GoalsDataFacade.ToSharedRef());
 
 	Context->Blending->BlendSubPoints(MutablePoints, Metrics, TempBlender.Get());
 

@@ -94,11 +94,11 @@ namespace PCGExFuseCollinear
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
-		MaxIndex = PointIO->GetNum() - 1;
-		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		MaxIndex = PointDataFacade->GetNum() - 1;
+		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
 
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		OutPoints = &PointIO->GetOut()->GetMutablePoints();
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
 		OutPoints->Reserve(MaxIndex + 1);
 		OutPoints->Add(InPoints[0]);
 
@@ -122,7 +122,7 @@ namespace PCGExFuseCollinear
 		if (Index == 0 || Index == MaxIndex) { return; }
 
 		const FVector CurrentPosition = Point.Transform.GetLocation();
-		const FVector NextPosition = PointIO->GetInPoint(Index + 1).Transform.GetLocation();
+		const FVector NextPosition = PointDataFacade->Source->GetInPoint(Index + 1).Transform.GetLocation();
 		const FVector DirToNext = (NextPosition - CurrentPosition).GetSafeNormal();
 
 		const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
@@ -140,7 +140,7 @@ namespace PCGExFuseCollinear
 
 	void FProcessor::CompleteWork()
 	{
-		OutPoints->Add(PointIO->GetInPoint(MaxIndex));
+		OutPoints->Add(PointDataFacade->Source->GetInPoint(MaxIndex));
 		OutPoints->Shrink();
 	}
 }

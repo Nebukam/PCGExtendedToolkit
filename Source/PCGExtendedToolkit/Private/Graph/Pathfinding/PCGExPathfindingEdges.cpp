@@ -56,9 +56,9 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 		return;
 	}
 
-	TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathIO->GetOut();
-	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO);
+	const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);
@@ -120,12 +120,12 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGExContext* InContext) const
 	const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
 
-	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints);
+	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints.ToSharedRef());
 
 	const TSharedPtr<PCGExData::FPointIO> GoalsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceGoalsLabel, true);
 	if (!GoalsPoints) { return false; }
 
-	Context->GoalsDataFacade = MakeShared<PCGExData::FFacade>(GoalsPoints);
+	Context->GoalsDataFacade = MakeShared<PCGExData::FFacade>(GoalsPoints.ToSharedRef());
 
 	PCGEX_FWD(SeedAttributesToPathTags)
 	PCGEX_FWD(GoalAttributesToPathTags)
@@ -245,13 +245,13 @@ namespace PCGExPathfindingEdge
 
 		if (HeuristicsHandler->HasGlobalFeedback())
 		{
-			AsyncManager->Start<FSampleClusterPathTask>(0, VtxIO, SearchOperation, &Context->PathQueries, HeuristicsHandler, true);
+			AsyncManager->Start<FSampleClusterPathTask>(0, VtxDataFacade->Source, SearchOperation, &Context->PathQueries, HeuristicsHandler, true);
 		}
 		else
 		{
 			for (int i = 0; i < Context->PathQueries.Num(); ++i)
 			{
-				AsyncManager->Start<FSampleClusterPathTask>(i, VtxIO, SearchOperation, &Context->PathQueries, HeuristicsHandler, false);
+				AsyncManager->Start<FSampleClusterPathTask>(i, VtxDataFacade->Source, SearchOperation, &Context->PathQueries, HeuristicsHandler, false);
 			}
 		}
 

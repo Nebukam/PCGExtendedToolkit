@@ -99,7 +99,7 @@ namespace PCGExSampleNeighbors
 		{
 			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation();
 			SamplingOperation->BindContext(Context);
-			SamplingOperation->PrepareForCluster(ExecutionContext, Cluster, VtxDataFacade, EdgeDataFacade);
+			SamplingOperation->PrepareForCluster(ExecutionContext, Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 
 			if (!SamplingOperation->IsOperationValid())
 			{

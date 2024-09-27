@@ -208,7 +208,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 	PCGExGraph::CleanupVtxData(PathIO);
 
-	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO);
+	TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 
 	TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 	const TArray<FPCGPoint>& OriginPoints = PathIO->GetIn()->GetPoints();
@@ -266,7 +266,7 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 	TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
 
-	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints);
+	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints.ToSharedRef());
 
 	if (!Context->ProjectionDetails.Init(Context, Context->SeedsDataFacade)) { return false; }
 
@@ -282,12 +282,12 @@ bool FPCGExFindContoursElement::Boot(FPCGExContext* InContext) const
 		const int32 NumSeeds = SeedsPoints->GetNum();
 		Context->SeedQuality.Init(false, NumSeeds);
 
-		Context->GoodSeeds = MakeShared<PCGExData::FPointIO>(Context, SeedsPoints);
+		Context->GoodSeeds = MakeShared<PCGExData::FPointIO>(Context, SeedsPoints.ToSharedRef());
 		Context->GoodSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->GoodSeeds->DefaultOutputLabel = PCGExFindContours::OutputGoodSeedsLabel;
 		Context->GoodSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
 
-		Context->BadSeeds = MakeShared<PCGExData::FPointIO>(Context, SeedsPoints);
+		Context->BadSeeds = MakeShared<PCGExData::FPointIO>(Context, SeedsPoints.ToSharedRef());
 		Context->BadSeeds->InitializeOutput(PCGExData::EInit::NewOutput);
 		Context->BadSeeds->DefaultOutputLabel = PCGExFindContours::OutputBadSeedsLabel;
 		Context->BadSeeds->GetOut()->GetMutablePoints().Reserve(NumSeeds);
@@ -387,14 +387,14 @@ namespace PCGExFindContours
 		{
 			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); ++i)
 			{
-				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput), i, this);
+				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), i, this);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); ++i)
 			{
-				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput), this);
+				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), this);
 			}
 		}
 	}
@@ -407,15 +407,15 @@ namespace PCGExFindContours
 		ProjectionDetails = Settings->ProjectionDetails;
 		if (!ProjectionDetails.Init(Context, VtxDataFacade)) { return; }
 
-		PCGEX_SET_NUM_UNINITIALIZED(ProjectedPositions, VtxIO->GetNum())
+		PCGEX_SET_NUM_UNINITIALIZED(ProjectedPositions, VtxDataFacade->GetNum())
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
 		ProjectionTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxIO->GetInPoint(Index).Transform.GetLocation(), Index);
+				ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxDataFacade->Source->GetInPoint(Index).Transform.GetLocation(), Index);
 			},
-			VtxIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		TBatch<FProcessor>::Process();
 	}
@@ -432,7 +432,7 @@ namespace PCGExFindContours
 		for (int i = 0; i < NumIterations; ++i)
 		{
 			const int32 Index = TaskIndex + i;
-			Batch->ProjectedPositions[Index] = Batch->ProjectionDetails.ProjectFlat(Batch->VtxIO->GetInPoint(Index).Transform.GetLocation(), Index);
+			Batch->ProjectedPositions[Index] = Batch->ProjectionDetails.ProjectFlat(Batch->VtxDataFacade->Source->GetInPoint(Index).Transform.GetLocation(), Index);
 		}
 		return true;
 	}

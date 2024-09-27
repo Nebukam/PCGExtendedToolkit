@@ -19,7 +19,7 @@ void UPCGExNeighborSampleAttribute::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, TSharedPtr<PCGExCluster::FCluster> InCluster, TSharedPtr<PCGExData::FFacade> InVtxDataFacade, TSharedPtr<PCGExData::FFacade> InEdgeDataFacade)
+void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
 	Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 
@@ -33,7 +33,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 	}
 
 	TSet<FName> MissingAttributes;
-	PCGExDataBlending::AssembleBlendingDetails(Blending, SourceAttributes, GetSourceIO().Get(), MetadataBlendingDetails, MissingAttributes);
+	PCGExDataBlending::AssembleBlendingDetails(Blending, SourceAttributes, GetSourceIO(), MetadataBlendingDetails, MissingAttributes);
 
 	for (const FName& Id : MissingAttributes)
 	{

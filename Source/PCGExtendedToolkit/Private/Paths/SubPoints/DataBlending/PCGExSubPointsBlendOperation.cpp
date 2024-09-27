@@ -7,6 +7,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
 EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 {
 	return EPCGExDataBlendingType::Lerp;
@@ -54,7 +55,9 @@ void UPCGExSubPointsBlendOperation::PrepareForData(
 	}
 
 	InternalBlender.Reset();
-	InternalBlender = CreateBlender(InPrimaryFacade, InSecondaryFacade, SecondarySource, IgnoreAttributeSet);
+	InternalBlender = CreateBlender(
+		InPrimaryFacade.ToSharedRef(), InSecondaryFacade.ToSharedRef(),
+		SecondarySource, IgnoreAttributeSet);
 }
 
 void UPCGExSubPointsBlendOperation::ProcessSubPoints(
@@ -94,8 +97,8 @@ void UPCGExSubPointsBlendOperation::Cleanup()
 }
 
 TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendOperation::CreateBlender(
-	const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
-	const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
+	const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
+	const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
 	const PCGExData::ESource SecondarySource,
 	const TSet<FName>* IgnoreAttributeSet)
 {

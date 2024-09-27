@@ -131,7 +131,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey;
 	}
 
-	PathIO->Tags->Append(InPlotPoints->Tags.Get());
+	PathIO->Tags->Append(InPlotPoints->Tags.ToSharedRef());
 
 	return Exit(true);
 }
@@ -266,13 +266,13 @@ namespace PCGExPathfindingPlotEdge
 
 		if (HeuristicsHandler->HasGlobalFeedback())
 		{
-			AsyncManager->Start<FPCGExPlotClusterPathTask>(0, VtxIO, SearchOperation, Context->Plots.Get(), HeuristicsHandler, true);
+			AsyncManager->Start<FPCGExPlotClusterPathTask>(0, VtxDataFacade->Source, SearchOperation, Context->Plots.Get(), HeuristicsHandler, true);
 		}
 		else
 		{
 			for (int i = 0; i < Context->Plots->Num(); ++i)
 			{
-				AsyncManager->Start<FPCGExPlotClusterPathTask>(i, VtxIO, SearchOperation, Context->Plots.Get(), HeuristicsHandler, false);
+				AsyncManager->Start<FPCGExPlotClusterPathTask>(i, VtxDataFacade->Source, SearchOperation, Context->Plots.Get(), HeuristicsHandler, false);
 			}
 		}
 

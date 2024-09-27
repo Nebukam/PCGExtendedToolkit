@@ -84,8 +84,8 @@ namespace PCGExAttributeRolling
 		TArray<FPCGPoint>* OutPoints = nullptr;
 
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
-			TPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 

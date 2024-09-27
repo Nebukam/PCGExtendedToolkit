@@ -51,7 +51,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 	for (int i = 0; i < NumSources; ++i)
 	{
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
-		CompositeIO->Tags->Append(Source->Tags.Get());
+		CompositeIO->Tags->Append(Source->Tags.ToSharedRef());
 		Source->CreateInKeys();
 
 		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();

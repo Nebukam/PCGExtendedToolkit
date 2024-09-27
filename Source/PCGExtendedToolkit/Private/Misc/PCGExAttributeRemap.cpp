@@ -82,7 +82,7 @@ namespace PCGExAttributeRemap
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
-		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
+		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
 		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->SourceAttributeName);
 
 		if (!Identity)
@@ -152,7 +152,7 @@ namespace PCGExAttributeRemap
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchTask)
-		FetchTask->SetOnCompleteCallback(
+		FetchTask->OnCompleteCallback =
 			[&]()
 			{
 				// Fix min/max range
@@ -168,9 +168,9 @@ namespace PCGExAttributeRemap
 				}
 
 				OnPreparationComplete();
-			});
+			};
 
-		FetchTask->SetOnIterationRangePrepareCallback(
+		FetchTask->OnIterationRangePrepareCallback =
 			[&](const TArray<uint64>& Loops)
 			{
 				for (FPCGExComponentRemapRule& Rule : Rules)
@@ -178,9 +178,9 @@ namespace PCGExAttributeRemap
 					Rule.MinCache.Init(TNumericLimits<double>::Max(), Loops.Num());
 					Rule.MaxCache.Init(TNumericLimits<double>::Min(), Loops.Num());
 				}
-			});
+			};
 
-		FetchTask->SetOnIterationRangeStartCallback(
+		FetchTask->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
@@ -234,9 +234,9 @@ namespace PCGExAttributeRemap
 							Rule.MaxCache[LoopIdx] = Max;
 						}
 					});
-			});
+			};
 
-		FetchTask->PrepareRangesOnly(PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		FetchTask->PrepareRangesOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}
@@ -244,7 +244,7 @@ namespace PCGExAttributeRemap
 	void FProcessor::OnPreparationComplete()
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, RemapTask)
-		RemapTask->SetOnIterationRangeStartCallback(
+		RemapTask->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PCGMetadataAttribute::CallbackWithRightType(
@@ -252,9 +252,9 @@ namespace PCGExAttributeRemap
 					{
 						RemapRange(StartIndex, Count, DummyValue);
 					});
-			});
+			};
 
-		RemapTask->PrepareRangesOnly(PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		RemapTask->PrepareRangesOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CompleteWork()

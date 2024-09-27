@@ -298,8 +298,8 @@ namespace PCGExGrowPaths
 		TArray<TSharedPtr<FGrowth>> Growths;
 		TArray<TSharedPtr<FGrowth>> QueuedGrowths;
 
-		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
-			TClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

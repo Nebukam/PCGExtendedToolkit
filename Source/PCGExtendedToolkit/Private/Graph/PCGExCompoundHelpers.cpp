@@ -78,7 +78,7 @@ namespace PCGExGraph
 		Context->SetAsyncState(State_ProcessingCompound);
 
 		PCGEX_ASYNC_GROUP_CHKD(Context->GetAsyncManager(), ProcessNodesGroup)
-		ProcessNodesGroup->SetOnCompleteCallback(
+		ProcessNodesGroup->OnCompleteCallback =
 			[&]()
 			{
 				CompoundPointsBlender.Reset();
@@ -101,7 +101,7 @@ namespace PCGExGraph
 				GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
 
 				InternalStartExecution();
-			});
+			};
 
 		ProcessNodesGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
@@ -188,7 +188,7 @@ namespace PCGExGraph
 
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
 
-		FindPointEdgeGroup->SetOnCompleteCallback([&]() { FindPointEdgeIntersectionsFound(); });
+		FindPointEdgeGroup->OnCompleteCallback = [&]() { FindPointEdgeIntersectionsFound(); };
 		FindPointEdgeGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
@@ -205,7 +205,7 @@ namespace PCGExGraph
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), SortCrossingsGroup)
 
-		SortCrossingsGroup->SetOnIterationRangeStartCallback(
+		SortCrossingsGroup->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				const int32 MaxIndex = StartIndex + Count;
@@ -222,10 +222,10 @@ namespace PCGExGraph
 					SplitEdge.bValid = false; // Invalidate existing edge
 					PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
 				}
-			});
+			};
 
 
-		SortCrossingsGroup->SetOnCompleteCallback(
+		SortCrossingsGroup->OnCompleteCallback =
 			[&]()
 			{
 				PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendPointEdgeGroup)
@@ -239,10 +239,10 @@ namespace PCGExGraph
 				if (bUseCustomPointEdgeBlending) { MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&CustomPointEdgeBlendingDetails); }
 				else { MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out);
+				MetadataBlender->PrepareForData(CompoundFacade.ToSharedRef(), PCGExData::ESource::Out);
 
-				BlendPointEdgeGroup->SetOnCompleteCallback([&]() { FindPointEdgeIntersectionsComplete(); });
-				BlendPointEdgeGroup->SetOnIterationRangeStartCallback(
+				BlendPointEdgeGroup->OnCompleteCallback = [&]() { FindPointEdgeIntersectionsComplete(); };
+				BlendPointEdgeGroup->OnIterationRangeStartCallback =
 					[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
 						const int32 MaxIndex = StartIndex + Count;
@@ -250,9 +250,9 @@ namespace PCGExGraph
 						{
 							// TODO
 						}
-					});
+					};
 				BlendPointEdgeGroup->PrepareRangesOnly(PointEdgeIntersections->Edges.Num(), 256);
-			});
+			};
 
 		SortCrossingsGroup->PrepareRangesOnly(PointEdgeIntersections->Edges.Num(), 256);
 
@@ -280,7 +280,7 @@ namespace PCGExGraph
 
 		Context->SetAsyncState(State_ProcessingEdgeEdgeIntersections);
 
-		FindEdgeEdgeGroup->SetOnCompleteCallback([&]() { OnEdgeEdgeIntersectionsFound(); });
+		FindEdgeEdgeGroup->OnCompleteCallback = [&]() { OnEdgeEdgeIntersectionsFound(); };
 		FindEdgeEdgeGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
@@ -300,7 +300,7 @@ namespace PCGExGraph
 		// Insert new nodes
 		EdgeEdgeIntersections->InsertNodes(); // TODO : Async?
 
-		SortCrossingsGroup->SetOnIterationRangeStartCallback(
+		SortCrossingsGroup->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				const int32 MaxIndex = StartIndex + Count;
@@ -321,9 +321,9 @@ namespace PCGExGraph
 							return A.GetTime(EdgeProxy.EdgeIndex) > B.GetTime(EdgeProxy.EdgeIndex);
 						});
 				}
-			});
+			};
 
-		SortCrossingsGroup->SetOnCompleteCallback(
+		SortCrossingsGroup->OnCompleteCallback =
 			[&]()
 			{
 				PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), BlendEdgeEdgeGroup)
@@ -342,10 +342,10 @@ namespace PCGExGraph
 				if (bUseCustomEdgeEdgeBlending) { MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&CustomEdgeEdgeBlendingDetails); }
 				else { MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&DefaultPointsBlendingDetails); }
 
-				MetadataBlender->PrepareForData(CompoundFacade, PCGExData::ESource::Out);
+				MetadataBlender->PrepareForData(CompoundFacade.ToSharedRef(), PCGExData::ESource::Out);
 
-				BlendEdgeEdgeGroup->SetOnCompleteCallback([&]() { OnEdgeEdgeIntersectionsComplete(); });
-				BlendEdgeEdgeGroup->SetOnIterationRangeStartCallback(
+				BlendEdgeEdgeGroup->OnCompleteCallback = [&]() { OnEdgeEdgeIntersectionsComplete(); };
+				BlendEdgeEdgeGroup->OnIterationRangeStartCallback =
 					[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 					{
 						const int32 MaxIndex = StartIndex + Count;
@@ -353,9 +353,9 @@ namespace PCGExGraph
 						{
 							EdgeEdgeIntersections->BlendIntersection(i, MetadataBlender.Get());
 						}
-					});
+					};
 				BlendEdgeEdgeGroup->PrepareRangesOnly(EdgeEdgeIntersections->Crossings.Num(), 256);
-			});
+			};
 
 		SortCrossingsGroup->PrepareRangesOnly(EdgeEdgeIntersections->Edges.Num(), 256);
 	}

@@ -90,8 +90,8 @@ namespace PCGExSmooth
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
-		NumPoints = PointIO->GetNum();
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		NumPoints = PointDataFacade->GetNum();
 
 		MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade);
@@ -133,18 +133,20 @@ namespace PCGExSmooth
 	{
 		if (!PointFilterCache[Index]) { return; }
 
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
 		PCGExData::FPointRef PtRef = PointIO->GetOutPointRef(Index);
 		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Read(Index), 0, TNumericLimits<double>::Max()) * Settings->ScaleSmoothingAmountAttribute : Settings->SmoothingAmountConstant;
 
 		if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
 			(Settings->bPreserveStart && Index == 0))
 		{
-			TypedOperation->SmoothSingle(PointIO.Get(), PtRef, LocalSmoothing, 0, MetadataBlender.Get(), bClosedLoop);
+			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender.Get(), bClosedLoop);
 			return;
 		}
 
 		const double LocalInfluence = Influence ? Influence->Read(Index) : Settings->InfluenceConstant;
-		TypedOperation->SmoothSingle(PointIO.Get(), PtRef, LocalSmoothing, LocalInfluence, MetadataBlender.Get(), bClosedLoop);
+		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, LocalInfluence, MetadataBlender.Get(), bClosedLoop);
 	}
 
 	void FProcessor::CompleteWork()

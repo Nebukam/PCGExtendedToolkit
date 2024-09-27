@@ -35,11 +35,9 @@ namespace PCGExGraph
 
 	TSharedPtr<PCGExCluster::FCluster> FSubGraph::CreateCluster(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const
 	{
-		TSharedPtr<PCGExCluster::FCluster> NewCluster = MakeShared<PCGExCluster::FCluster>();
-		NewCluster->VtxIO = VtxDataFacade->Source;
-		NewCluster->EdgesIO = EdgesDataFacade->Source;
-
+		TSharedPtr<PCGExCluster::FCluster> NewCluster = MakeShared<PCGExCluster::FCluster>(VtxDataFacade->Source, EdgesDataFacade->Source);
 		NewCluster->BuildFrom(this);
+		
 		// Look into the cost of this
 
 		//if (AsyncManager) { NewCluster->ExpandEdges(AsyncManager); }
@@ -294,6 +292,11 @@ namespace PCGExGraph
 		if (Graph->SubGraphs.IsEmpty())
 		{
 			bCompiledSuccessfully = false;
+			if (OnCompilationEndCallback)
+			{
+				const TSharedPtr<FGraphBuilder> SharedPtr = SharedThis(this);
+				OnCompilationEndCallback(SharedPtr.ToSharedRef(), bCompiledSuccessfully);
+			}
 			return;
 		}
 
@@ -403,7 +406,7 @@ namespace PCGExGraph
 			SubGraph->UID = EdgeIO->GetOut()->UID;
 
 			SubGraph->VtxDataFacade = NodeDataFacade;
-			SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO);
+			SubGraph->EdgesDataFacade = MakeShared<PCGExData::FFacade>(EdgeIO.ToSharedRef());
 
 			MarkClusterEdges(EdgeIO, PairIdStr);
 		}
@@ -411,17 +414,23 @@ namespace PCGExGraph
 		MarkClusterVtx(NodeDataFacade->Source, PairIdStr);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProcessSubGraphTask)
-		ProcessSubGraphTask->SetOnCompleteCallback(
+		ProcessSubGraphTask->OnCompleteCallback =
 			[&]()
 			{
+				if (OnCompilationEndCallback)
+				{
+					const TSharedPtr<FGraphBuilder> SharedPtr = SharedThis(this);
+					OnCompilationEndCallback(SharedPtr.ToSharedRef(), bCompiledSuccessfully);
+				}
+
 				// Schedule facades for writing
 				if (bWriteVtxDataFacadeWithCompile) { NodeDataFacade->Write(AsyncManager); }
 				for (const TSharedPtr<FSubGraph>& SubGraph : Graph->SubGraphs) { SubGraph->EdgesDataFacade->Write(AsyncManager); }
-			});
+			};
 		ProcessSubGraphTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				TSharedPtr<FSubGraph> SubGraph = Graph->SubGraphs[Index];
+				const TSharedPtr<FSubGraph> SubGraph = Graph->SubGraphs[Index];
 				PCGExGraphTask::WriteSubGraphEdges(AsyncManager, SubGraph, MetadataDetailsPtr);
 			}, Graph->SubGraphs.Num(), 1, false, false);
 	}

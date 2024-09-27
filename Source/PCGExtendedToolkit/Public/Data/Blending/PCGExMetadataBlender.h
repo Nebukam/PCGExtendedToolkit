@@ -26,15 +26,15 @@ namespace PCGExDataBlending
 		explicit FMetadataBlender(const FMetadataBlender* ReferenceBlender);
 
 		void PrepareForData(
-			const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
+			const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = true,
 			const TSet<FName>* IgnoreAttributeSet = nullptr,
 			const bool bSoftMode = false);
 
 		void PrepareForData(
-			const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
-			const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
+			const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
+			const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = true,
 			const TSet<FName>* IgnoreAttributeSet = nullptr,

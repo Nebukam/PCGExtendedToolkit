@@ -88,7 +88,7 @@ namespace PCGExOffsetPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
 		UpConstant = Settings->UpVectorConstant.GetSafeNormal();
 		OffsetConstant = Settings->OffsetConstant;
@@ -113,7 +113,7 @@ namespace PCGExOffsetPath
 			}
 		}
 
-		const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& Points = PointDataFacade->GetIn()->GetPoints();
 		NumPoints = Points.Num();
 
 		Positions.SetNumUninitialized(NumPoints);

@@ -99,8 +99,8 @@ namespace PCGExOffsetPath
 		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
-			TPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 

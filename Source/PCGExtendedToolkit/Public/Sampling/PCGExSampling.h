@@ -114,7 +114,7 @@ namespace PCGExSampling
 
 	static bool GetIncludedActors(
 		const FPCGContext* InContext,
-		const PCGExData::FFacade* InFacade,
+		const TSharedRef<PCGExData::FFacade>& InFacade,
 		const FName ActorReferenceName,
 		TMap<AActor*, int32>& OutActorSet)
 	{

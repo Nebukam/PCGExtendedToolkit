@@ -115,7 +115,7 @@ namespace PCGExWriteVtxProperties
 
 	//////// BATCH
 
-	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& InVtx, TArrayView<TSharedPtr<PCGExData::FPointIO>> InEdges):
+	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
 	}
@@ -130,7 +130,7 @@ namespace PCGExWriteVtxProperties
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteVtxProperties)
 
 		{
-			PCGExData::FFacade* OutputFacade = VtxDataFacade.Get();
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = VtxDataFacade;
 			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 

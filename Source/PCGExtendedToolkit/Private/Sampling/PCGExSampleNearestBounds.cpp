@@ -48,12 +48,12 @@ bool FPCGExSampleNearestBoundsElement::Boot(FPCGExContext* InContext) const
 	TSharedPtr<PCGExData::FPointIO> Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
 	if (!Bounds) { return false; }
 
-	Context->BoundsFacade = MakeShared<PCGExData::FFacade>(Bounds);
+	Context->BoundsFacade = MakeShared<PCGExData::FFacade>(Bounds.ToSharedRef());
 
 	TSet<FName> MissingTargetAttributes;
 	PCGExDataBlending::AssembleBlendingDetails(
 		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None),
-		Settings->TargetAttributes, Context->BoundsFacade->Source.Get(), Context->BlendingDetails, MissingTargetAttributes);
+		Settings->TargetAttributes, Context->BoundsFacade->Source, Context->BlendingDetails, MissingTargetAttributes);
 
 	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on targets: {0}."), FText::FromName(Id))); }
 
@@ -128,7 +128,7 @@ namespace PCGExSampleNearestBounds
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_INIT)
 		}
 
@@ -136,7 +136,7 @@ namespace PCGExSampleNearestBounds
 			!Context->BlendingDetails.GetPropertiesBlendingDetails().HasNoBlending())
 		{
 			Blender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Context->BlendingDetails);
-			Blender->PrepareForData(PointDataFacade, Context->BoundsFacade);
+			Blender->PrepareForData(PointDataFacade, Context->BoundsFacade.ToSharedRef());
 		}
 
 		if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)
@@ -301,8 +301,8 @@ namespace PCGExSampleNearestBounds
 	{
 		PointDataFacade->Write(AsyncManager);
 
-		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(Settings->HasSuccessesTag); }
-		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(Settings->HasNoSuccessesTag); }
+		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
+		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
 	}
 }
 

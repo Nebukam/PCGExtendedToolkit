@@ -10,6 +10,10 @@
 #include "Data/PCGExPointIOMerger.h"
 
 
+
+
+
+
 #include "PCGExMergeVertices.generated.h"
 
 
@@ -77,13 +81,13 @@ namespace PCGExMergeVertices
 		friend class FProcessorBatch;
 
 	protected:
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 
 	public:
 		int32 StartIndexOffset = 0;
 
-		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges):
-			TClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 

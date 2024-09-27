@@ -47,10 +47,10 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGExContext* InContext) const
 		const TSharedPtr<PCGExData::FPointIO> ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
 		if (!ActorRefIO) { return false; }
 
-		Context->ActorReferenceDataFacade = MakeShared<PCGExData::FFacade>(ActorRefIO);
+		Context->ActorReferenceDataFacade = MakeShared<PCGExData::FFacade>(ActorRefIO.ToSharedRef());
 
 		if (!PCGExSampling::GetIncludedActors(
-			Context, Context->ActorReferenceDataFacade.Get(),
+			Context, Context->ActorReferenceDataFacade.ToSharedRef(),
 			Settings->ActorReference, Context->IncludedActors))
 		{
 			return false;
@@ -127,7 +127,7 @@ namespace PCGExSampleNearestSurface
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_INIT)
 		}
 
@@ -175,7 +175,7 @@ namespace PCGExSampleNearestSurface
 			return;
 		}
 
-		const FVector Origin = PointIO->GetInPoint(Index).Transform.GetLocation();
+		const FVector Origin = PointDataFacade->Source->GetInPoint(Index).Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;
 		Context->CollisionSettings.Update(CollisionParams);
@@ -324,8 +324,8 @@ namespace PCGExSampleNearestSurface
 	{
 		PointDataFacade->Write(AsyncManager);
 
-		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(Settings->HasSuccessesTag); }
-		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(Settings->HasNoSuccessesTag); }
+		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
+		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
 	}
 }
 

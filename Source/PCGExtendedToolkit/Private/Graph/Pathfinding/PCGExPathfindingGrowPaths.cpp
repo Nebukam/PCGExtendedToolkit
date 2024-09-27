@@ -156,7 +156,7 @@ namespace PCGExGrowPaths
 	{
 		const TSharedPtr<PCGExData::FPointIO> VtxIO = Processor->Cluster->VtxIO;
 		TSharedPtr<PCGExData::FPointIO> PathIO = Processor->GetContext()->OutputPaths->Emplace_GetRef<UPCGPointData>(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
-		const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO);
+		const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 
 		UPCGPointData* OutData = PathIO->GetOut();
 
@@ -170,7 +170,7 @@ namespace PCGExGrowPaths
 		const TArray<int32>& VtxPointIndices = Processor->Cluster->GetVtxPointIndices();
 		for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[VtxPointIndices[VtxIndex]]); }
 
-		PathIO->Tags->Append(VtxIO->Tags.Get());
+		PathIO->Tags->Append(VtxIO->Tags.ToSharedRef());
 
 		Processor->GetContext()->SeedAttributesToPathTags.Tag(SeedPointIndex, PathIO);
 		Processor->GetContext()->SeedForwardHandler->Forward(SeedPointIndex, PathDataFacade);
@@ -220,10 +220,10 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 
-	TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
+	const TSharedPtr<PCGExData::FPointIO> SeedsPoints = PCGExData::TryGetSingleInput(Context, PCGExGraph::SourceSeedsLabel, true);
 	if (!SeedsPoints) { return false; }
 
-	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints);
+	Context->SeedsDataFacade = MakeShared<PCGExData::FFacade>(SeedsPoints.ToSharedRef());
 	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	if (Settings->NumIterations == EPCGExGrowthValueSource::SeedAttribute)

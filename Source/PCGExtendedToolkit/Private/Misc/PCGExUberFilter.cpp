@@ -133,7 +133,7 @@ namespace PCGExUberFilter
 		}
 		else
 		{
-			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
+			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointDataFacade->GetNum())
 		}
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -155,7 +155,7 @@ namespace PCGExUberFilter
 
 	TSharedPtr<PCGExData::FPointIO> FProcessor::CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const
 	{
-		TSharedPtr<PCGExData::FPointIO> NewPointIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointIO);
+		TSharedPtr<PCGExData::FPointIO> NewPointIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointDataFacade->Source);
 		NewPointIO->DefaultOutputLabel = InCollection->DefaultOutputLabel;
 		NewPointIO->InitializeOutput(InitMode);
 		InCollection->Pairs[BatchIndex] = NewPointIO;
@@ -172,7 +172,7 @@ namespace PCGExUberFilter
 			return;
 		}
 
-		const int32 NumPoints = PointIO->GetNum();
+		const int32 NumPoints = PointDataFacade->GetNum();
 		TArray<int32> Indices;
 		PCGEX_SET_NUM_UNINITIALIZED(Indices, NumPoints)
 
@@ -185,7 +185,7 @@ namespace PCGExUberFilter
 			return;
 		}
 
-		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 
 		Inside = CreateIO(Context->Inside.Get(), PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& InsidePoints = Inside->GetOut()->GetMutablePoints();

@@ -188,8 +188,8 @@ namespace PCGExPathCrossings
 		TSharedPtr<PCGExData::TBuffer<FVector>> CrossWriter;
 
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
-			: TPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 

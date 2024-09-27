@@ -65,7 +65,7 @@ namespace PCGExCollocationCount
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		NumPoints = PointIO->GetNum();
+		NumPoints = PointDataFacade->GetNum();
 		ToleranceConstant = Settings->Tolerance;
 
 		CollocationWriter = PointDataFacade->GetWritable(Settings->CollicationNumAttributeName, 0, true, true);

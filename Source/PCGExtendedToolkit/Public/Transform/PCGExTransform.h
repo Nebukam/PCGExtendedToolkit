@@ -64,7 +64,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	TSharedPtr<PCGExData::TBuffer<double>> VGetter;
 	TSharedPtr<PCGExData::TBuffer<double>> WGetter;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InDataFacade)
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
 		if (USource == EPCGExFetchType::Attribute)
 		{

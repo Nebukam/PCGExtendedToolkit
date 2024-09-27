@@ -213,9 +213,9 @@ namespace PCGExPartitionByValues
 		RootPartition = MakeUnique<PCGExPartition::FKPartition>(nullptr, 0, nullptr, -1);
 
 		Rules.Empty(); //
-		PointIO->CreateInKeys();
+		PointDataFacade->Source->CreateInKeys();
 
-		const int32 NumPoints = PointIO->GetNum();
+		const int32 NumPoints = PointDataFacade->GetNum();
 
 		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGEX_SET_NUM_UNINITIALIZED(KeySums, NumPoints) }
 
@@ -323,7 +323,7 @@ namespace PCGExPartitionByValues
 			for (int i = 0; i < Partitions.Num(); ++i)
 			{
 				Partitions[i]->IOIndex = InsertOffset + i;
-				Context->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::NewOutput);
 				SumPts += Partitions[i]->Points.Num();
 			}
 

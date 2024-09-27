@@ -78,7 +78,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 	CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
 	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
-	Context->CompoundFacade = MakeShared<PCGExData::FFacade>(CompoundPoints);
+	Context->CompoundFacade = MakeShared<PCGExData::FFacade>(CompoundPoints.ToSharedRef());
 
 	Context->CompoundGraph = MakeShared<PCGExGraph::FCompoundGraph>(
 		Settings->PointPointIntersectionDetails.FuseDetails,
@@ -156,15 +156,15 @@ namespace PCGExFuseClusters
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		VtxIOIndex = VtxIO->IOIndex;
-		EdgesIOIndex = EdgesIO->IOIndex;
+		VtxIOIndex = VtxDataFacade->Source->IOIndex;
+		EdgesIOIndex = EdgeDataFacade->Source->IOIndex;
 
 		// Prepare insertion
-		Cluster = PCGExClusterData::TryGetCachedCluster(VtxIO, EdgesIO);
+		Cluster = PCGExClusterData::TryGetCachedCluster(VtxDataFacade->Source, EdgeDataFacade->Source);
 
 		if (!Cluster)
 		{
-			if (!BuildIndexedEdges(EdgesIO, *EndpointsLookup, IndexedEdges, true)) { return false; }
+			if (!BuildIndexedEdges(EdgeDataFacade->Source, *EndpointsLookup, IndexedEdges, true)) { return false; }
 			if (IndexedEdges.IsEmpty()) { return false; }
 		}
 		else
@@ -173,7 +173,7 @@ namespace PCGExFuseClusters
 			NumEdges = Cluster->Edges->Num();
 		}
 
-		InPoints = &VtxIO->GetIn()->GetPoints();
+		InPoints = &VtxDataFacade->Source->GetIn()->GetPoints();
 
 		bInvalidEdges = false;
 		CompoundGraph = Context->CompoundGraph;

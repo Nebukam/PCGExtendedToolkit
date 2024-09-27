@@ -83,7 +83,7 @@ namespace PCGExBreakClustersToPaths
 
 		Breakpoints.Init(false, Cluster->Nodes->Num());
 
-		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade.Get()))
+		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade))
 		{
 			return false;
 		}
@@ -101,7 +101,7 @@ namespace PCGExBreakClustersToPaths
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
 			AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster,
+				EdgeDataFacade->Source->IOIndex, nullptr, Cluster,
 				&Breakpoints, &Chains, false);
 		}
 		else
@@ -160,7 +160,7 @@ namespace PCGExBreakClustersToPaths
 		if (ChainSize < Settings->MinPointCount) { return; }
 		if (Settings->bOmitAbovePointCount && ChainSize > Settings->MaxPointCount) { return; }
 
-		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput);
 
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(ChainSize);
@@ -175,7 +175,7 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
-		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 
@@ -194,7 +194,7 @@ namespace PCGExBreakClustersToPaths
 		VtxDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		DirectionSettings = Settings->DirectionSettings;
-		if (!DirectionSettings.Init(Context, VtxDataFacade.Get()))
+		if (!DirectionSettings.Init(Context, VtxDataFacade))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
 			return;
@@ -207,13 +207,13 @@ namespace PCGExBreakClustersToPaths
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FetchVtxTask)
-			FetchVtxTask->SetOnIterationRangeStartCallback(
+			FetchVtxTask->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
 					VtxDataFacade->Fetch(StartIndex, Count);
-				});
+				};
 
-			FetchVtxTask->PrepareRangesOnly(VtxIO->GetNum(), PLI);
+			FetchVtxTask->PrepareRangesOnly(VtxDataFacade->GetNum(), PLI);
 		}
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();

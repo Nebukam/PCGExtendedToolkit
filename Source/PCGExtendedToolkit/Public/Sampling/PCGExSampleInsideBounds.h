@@ -336,8 +336,8 @@ namespace PCGExSampleInsideBoundss
 		PCGEX_FOREACH_FIELD_INSIDEBOUNDS(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints)
-			: TPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = true;
 		}

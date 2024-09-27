@@ -68,7 +68,7 @@ namespace PCGExMT
 		if (MaxItems <= SanitizedChunkSize && bExecuteSmallSynchronously)
 		{
 			FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
-			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback({PCGEx::H64(0, MaxItems)}); }
+			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback({PCGEx::H64(0, MaxItems)}); }
 			DoRangeIteration(0, MaxItems, 0);
 			OnTaskCompleted();
 			return;
@@ -78,7 +78,7 @@ namespace PCGExMT
 		{
 			TArray<uint64> Loops;
 			FPlatformAtomics::InterlockedAdd(&NumStarted, SubRanges(Loops, MaxItems, SanitizedChunkSize));
-			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
+			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 			InternalStartInlineRange<FGroupRangeInlineIterationTask>(0, MaxItems, SanitizedChunkSize);
 		}
 		else
@@ -97,7 +97,7 @@ namespace PCGExMT
 		{
 			TArray<uint64> Loops;
 			FPlatformAtomics::InterlockedAdd(&NumStarted, SubRanges(Loops, MaxItems, SanitizedChunkSize));
-			if (bHasOnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
+			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 			InternalStartInlineRange<FGroupPrepareRangeInlineTask>(0, MaxItems, SanitizedChunkSize);
 		}
 		else { StartRanges<FGroupPrepareRangeTask>(MaxItems, SanitizedChunkSize, nullptr); }
@@ -106,7 +106,7 @@ namespace PCGExMT
 	void FTaskGroup::PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
 	{
 		if (!Manager->IsAvailable()) { return; }
-		if (bHasOnIterationRangeStartCallback) { OnIterationRangeStartCallback(StartIndex, Count, LoopIdx); }
+		if (OnIterationRangeStartCallback) { OnIterationRangeStartCallback(StartIndex, Count, LoopIdx); }
 	}
 
 	void FTaskGroup::DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
@@ -129,7 +129,7 @@ namespace PCGExMT
 			{
 				NumCompleted = 0;
 				NumStarted = 0;
-				if (bHasOnCompleteCallback) { OnCompleteCallback(); }
+				if (OnCompleteCallback) { OnCompleteCallback(); }
 			}
 		}
 	}

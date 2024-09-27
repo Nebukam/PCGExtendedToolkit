@@ -115,7 +115,7 @@ namespace PCGExBuildVoronoi
 		// Build voronoi
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
 
 		Voronoi = MakeUnique<PCGExGeo::TVoronoi3>();
 
@@ -141,12 +141,12 @@ namespace PCGExBuildVoronoi
 
 		ActivePositions.Empty();
 
-		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
-		const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		const FBox Bounds = PointDataFacade->Source->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
-			TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
+			TArray<FPCGPoint>& Centroids = PointDataFacade->GetOut()->GetMutablePoints();
 
 			const int32 NumSites = Voronoi->Centroids.Num();
 			TArray<int32> RemappedIndices;
@@ -190,7 +190,7 @@ namespace PCGExBuildVoronoi
 		}
 		else
 		{
-			TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
+			TArray<FPCGPoint>& Centroids = PointDataFacade->GetOut()->GetMutablePoints();
 			const int32 NumSites = Voronoi->Centroids.Num();
 			Centroids.SetNum(NumSites);
 
@@ -243,7 +243,7 @@ namespace PCGExBuildVoronoi
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 

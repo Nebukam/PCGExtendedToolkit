@@ -7,6 +7,10 @@
 #include "PCGExDataDetails.h"
 
 
+
+
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Relaxing/PCGExForceDirectedRelax.h"
 #include "PCGExRelaxClusters.generated.h"
@@ -90,14 +94,14 @@ namespace PCGExRelaxClusters
 		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
 
 	public:
-		FProcessor(const TSharedPtr<PCGExData::FPointIO>& InVtx, const TSharedPtr<PCGExData::FPointIO>& InEdges)
-			: TClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef) override;
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void StartRelaxIteration();
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;

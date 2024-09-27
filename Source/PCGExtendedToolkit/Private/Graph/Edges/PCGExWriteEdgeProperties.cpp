@@ -86,13 +86,13 @@ namespace PCGExWriteEdgeProperties
 
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade.Get()))
+		if (!DirectionSettings.InitFromParent(ExecutionContext, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade))
 		{
 			return false;
 		}
 
 		{
-			PCGExData::FFacade* OutputFacade = EdgeDataFacade.Get();
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = EdgeDataFacade;
 			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_INIT)
 		}
 
@@ -185,14 +185,14 @@ namespace PCGExWriteEdgeProperties
 			}
 		}
 
-		FPCGPoint& MutableTarget = EdgesIO->GetMutablePoint(Edge.PointIndex);
+		FPCGPoint& MutableTarget = EdgeDataFacade->Source->GetMutablePoint(Edge.PointIndex);
 
 		auto MetadataBlend = [&]()
 		{
-			const PCGExData::FPointRef Target = EdgesIO->GetOutPointRef(Edge.PointIndex);
+			const PCGExData::FPointRef Target = EdgeDataFacade->Source->GetOutPointRef(Edge.PointIndex);
 			MetadataBlender->PrepareForBlending(Target);
-			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(Edge.Start), Target, BlendWeightStart);
-			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(Edge.End), Target, BlendWeightEnd);
+			MetadataBlender->Blend(Target, VtxDataFacade->Source->GetInPointRef(Edge.Start), Target, BlendWeightStart);
+			MetadataBlender->Blend(Target, VtxDataFacade->Source->GetInPointRef(Edge.End), Target, BlendWeightEnd);
 			MetadataBlender->CompleteBlending(Target, 2, BlendWeightStart + BlendWeightEnd);
 		};
 
@@ -285,7 +285,7 @@ namespace PCGExWriteEdgeProperties
 		VtxDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 		DirectionSettings = Settings->DirectionSettings;
 
-		if (!DirectionSettings.Init(Context, VtxDataFacade.Get()))
+		if (!DirectionSettings.Init(Context, VtxDataFacade))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some vtx are missing the specified Direction attribute."));
 			return;
@@ -298,13 +298,13 @@ namespace PCGExWriteEdgeProperties
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 
 			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FetchVtxTask)
-			FetchVtxTask->SetOnIterationRangeStartCallback(
+			FetchVtxTask->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
 					VtxDataFacade->Fetch(StartIndex, Count);
-				});
+				};
 
-			FetchVtxTask->PrepareRangesOnly(VtxIO->GetNum(), PLI);
+			FetchVtxTask->PrepareRangesOnly(VtxDataFacade->GetNum(), PLI);
 		}
 	}
 }

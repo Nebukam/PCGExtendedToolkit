@@ -71,7 +71,7 @@ namespace PCGExMovePivot
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		UVW = Settings->UVW;
-		if (!UVW.Init(ExecutionContext, PointDataFacade.Get())) { return false; }
+		if (!UVW.Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		StartParallelLoopForPoints();
 

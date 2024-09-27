@@ -126,8 +126,8 @@ namespace PCGExAssetStaging
 #endif
 
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
-			TPointsProcessor<FPCGExAssetStagingContext, UPCGExAssetStagingSettings>(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 

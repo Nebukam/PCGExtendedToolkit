@@ -115,6 +115,8 @@ namespace PCGExPathCrossings
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathCrossings::Process);
 
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
@@ -160,7 +162,7 @@ namespace PCGExPathCrossings
 		if (Settings->bOrientCrossing) { Blending->bPreserveRotation = true; }
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
-		Preparation->SetOnCompleteCallback(
+		Preparation->OnCompleteCallback =
 			[&]()
 			{
 				CanCutFilterManager.Reset();
@@ -177,13 +179,13 @@ namespace PCGExPathCrossings
 					if (!CanCut[i]) { continue; } // !!
 					EdgeOctree->AddElement(Edges[i].Get());
 				}
-			});
+			};
 
-		Preparation->SetOnIterationRangeStartCallback(
+		Preparation->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
-			});
+			};
 
 		Preparation->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
@@ -214,7 +216,7 @@ namespace PCGExPathCrossings
 
 		const PCGExPaths::FPathEdge* Edge = Edges[Index].Get();
 
-		int32 CurrentIOIndex = PointIO->IOIndex;
+		int32 CurrentIOIndex = PointDataFacade->Source->IOIndex;
 		const TArray<FVector>* P2 = &Positions;
 
 		const TSharedPtr<FCrossing> NewCrossing = MakeShared<FCrossing>(Index);
@@ -265,14 +267,14 @@ namespace PCGExPathCrossings
 
 		for (const TSharedPtr<PCGExData::FFacade> Facade : ParentBatch->ProcessorFacades)
 		{
-			const TSharedPtr<FPointsProcessor>* OtherProcessorPtr = ParentBatch->SubProcessorMap->Find(Facade->Source.Get());
+			const TSharedRef<FPointsProcessor>* OtherProcessorPtr = ParentBatch->SubProcessorMap->Find(&Facade->Source.Get());
 			if (!OtherProcessorPtr) { continue; }
-			TSharedPtr<FPointsProcessor> OtherProcessor = *OtherProcessorPtr;
-			if (!Details.bEnableSelfIntersection && OtherProcessor.Get() == this) { continue; }
+			TSharedRef<FPointsProcessor> OtherProcessor = *OtherProcessorPtr;
+			if (!Details.bEnableSelfIntersection && &OtherProcessor.Get() == this) { continue; }
 
-			const TSharedPtr<FProcessor> TypedProcessor = StaticCastSharedPtr<FProcessor>(OtherProcessor);
+			const TSharedRef<FProcessor> TypedProcessor = StaticCastSharedRef<FProcessor>(OtherProcessor);
 
-			CurrentIOIndex = TypedProcessor->PointIO->IOIndex;
+			CurrentIOIndex = TypedProcessor->PointDataFacade->Source->IOIndex;
 			P2 = &TypedProcessor->Positions;
 
 			TypedProcessor->GetEdgeOctree()->FindElementsWithBoundsTest(
@@ -284,6 +286,8 @@ namespace PCGExPathCrossings
 
 	void FProcessor::FixPoint(const int32 Index)
 	{
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		
 		// TODO : Set crossing positions + blending
 		const FCrossing* Crossing = Crossings[Index].Get();
 		const PCGExPaths::FPathEdge* Edge = Edges[Index].Get();
@@ -363,6 +367,8 @@ namespace PCGExPathCrossings
 
 	void FProcessor::OnSearchComplete()
 	{
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		
 		int32 NumPointsFinal = 0;
 
 		for (int i = 0; i < NumPoints; ++i)
@@ -428,7 +434,7 @@ namespace PCGExPathCrossings
 		else { if (Settings->bTagIfHasNoCrossings) { PointIO->Tags->Add(Settings->HasNoCrossingsTag); } }
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FixTask)
-		FixTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManager); });
+		FixTask->OnCompleteCallback = [&]() { PointDataFacade->Write(AsyncManager); };
 		FixTask->StartRanges(
 			[&](const int32 FixIndex, const int32 Count, const int32 LoopIdx) { FixPoint(FixIndex); },
 			NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -437,7 +443,7 @@ namespace PCGExPathCrossings
 	void FProcessor::CompleteWork()
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
-		SearchTask->SetOnCompleteCallback([&]() { OnSearchComplete(); });
+		SearchTask->OnCompleteCallback = [&]() { OnSearchComplete(); };
 		SearchTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{

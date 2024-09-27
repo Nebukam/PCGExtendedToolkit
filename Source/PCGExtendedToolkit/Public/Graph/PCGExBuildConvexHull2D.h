@@ -92,8 +92,8 @@ namespace PCGExConvexHull2D
 		TArray<uint64> Edges;
 
 	public:
-		explicit FProcessor(const TSharedPtr<PCGExData::FPointIO>& InPoints):
-			TPointsProcessor<FPCGExBuildConvexHull2DContext, UPCGExBuildConvexHull2DSettings>(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 

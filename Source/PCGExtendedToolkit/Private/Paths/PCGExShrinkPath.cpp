@@ -183,19 +183,21 @@ namespace PCGExShrinkPath
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		const int32 LastPointIndex = InPoints.Num() - 1;
-		const int32 NumPoints = InPoints.Num();
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		FilterScope(0, NumPoints);
-
-		auto WrapUp = [&]()
+		ON_SCOPE_EXIT
 		{
 			if (PointIO->GetIn() != PointIO->GetOut() && PointIO->GetNum(PCGExData::ESource::Out) <= 1)
 			{
 				PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			}
 		};
+
+		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		const int32 LastPointIndex = InPoints.Num() - 1;
+		const int32 NumPoints = InPoints.Num();
+
+		FilterScope(0, NumPoints);
 
 		int32 StartOffset = 0;
 		int32 EndOffset = 1;
@@ -240,7 +242,6 @@ namespace PCGExShrinkPath
 			if (StartAmount == 0 && EndAmount == 0)
 			{
 				PointIO->InitializeOutput(PCGExData::EInit::Forward);
-				WrapUp();
 				return false;
 			}
 
@@ -310,7 +311,6 @@ namespace PCGExShrinkPath
 			if (StartAmount == 0 && EndAmount == 0)
 			{
 				PointIO->InitializeOutput(PCGExData::EInit::Forward);
-				WrapUp();
 				return false;
 			}
 
@@ -419,7 +419,6 @@ namespace PCGExShrinkPath
 			}
 		}
 
-		WrapUp();
 		return true;
 	}
 

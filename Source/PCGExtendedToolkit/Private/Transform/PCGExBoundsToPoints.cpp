@@ -76,21 +76,21 @@ namespace PCGExBoundsToPoints
 
 		Axis = Settings->SymmetryAxis;
 		UVW = Settings->UVW;
-		if (!UVW.Init(ExecutionContext, PointDataFacade.Get())) { return false; }
+		if (!UVW.Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		PointAttributesToOutputTags = Settings->PointAttributesToOutputTags;
 		if (!PointAttributesToOutputTags.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		NumPoints = PointIO->GetNum();
+		NumPoints = PointDataFacade->GetNum();
 		bGeneratePerPointData = Settings->bGeneratePerPointData;
 		bSymmetry = Settings->SymmetryAxis != EPCGExMinimalAxis::None;
 
 		if (bGeneratePerPointData)
 		{
-			NewOutputs.SetNumUninitialized(PointIO->GetNum());
+			NewOutputs.SetNumUninitialized(PointDataFacade->GetNum());
 			for (int i = 0; i < NewOutputs.Num(); ++i)
 			{
-				NewOutputs[i] = Context->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+				NewOutputs[i] = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::NewOutput);
 			}
 
 			if (bSymmetry)
@@ -104,7 +104,7 @@ namespace PCGExBoundsToPoints
 		{
 			if (bSymmetry)
 			{
-				PointIO->GetOut()->GetMutablePoints().SetNumUninitialized(NumPoints * 2);
+				PointDataFacade->GetOut()->GetMutablePoints().SetNumUninitialized(NumPoints * 2);
 			}
 			else
 			{
@@ -118,6 +118,8 @@ namespace PCGExBoundsToPoints
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		
 		if (bGeneratePerPointData)
 		{
 			int32 OutIndex;
@@ -182,8 +184,8 @@ namespace PCGExBoundsToPoints
 	{
 		if (!bGeneratePerPointData && bSymmetry)
 		{
-			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+			TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+			UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
 			for (int i = NumPoints; i < MutablePoints.Num(); ++i) { Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry); }
 		}
 	}

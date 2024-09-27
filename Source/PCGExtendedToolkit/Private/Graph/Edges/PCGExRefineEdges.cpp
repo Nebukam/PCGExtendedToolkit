@@ -4,6 +4,10 @@
 #include "Graph/Edges/PCGExRefineEdges.h"
 
 
+
+
+
+
 #include "Graph/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
@@ -135,10 +139,10 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 namespace PCGExRefineEdges
 {
-	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedPtr<PCGExCluster::FCluster>& InClusterRef)
+	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)
 	{
 		// Create a light working copy with edges only, will be deleted.
-		return MakeShared<PCGExCluster::FCluster>(InClusterRef.Get(), VtxIO, EdgesIO, false, true, false);
+		return MakeShared<PCGExCluster::FCluster>(InClusterRef, VtxDataFacade->Source, EdgeDataFacade->Source, false, true, false);
 	}
 
 	FProcessor::~FProcessor()
@@ -189,15 +193,17 @@ namespace PCGExRefineEdges
 		else
 		{
 			PCGEX_ASYNC_GROUP_CHKD(AsyncManager, EdgeScopeLoop)
-			EdgeScopeLoop->SetOnCompleteCallback(
+			EdgeScopeLoop->OnCompleteCallback =
 				[&]()
 				{
 					if (Refinement->RequiresIndividualNodeProcessing()) { StartParallelLoopForNodes(); }
 					else { Refinement->Process(); }
-				});
-			EdgeScopeLoop->SetOnIterationRangeStartCallback(
-				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PrepareSingleLoopScopeForEdges(StartIndex, Count); });
-			EdgeScopeLoop->PrepareRangesOnly(EdgesIO->GetNum(), PLI);
+				};
+
+			EdgeScopeLoop->OnIterationRangeStartCallback =
+				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx) { PrepareSingleLoopScopeForEdges(StartIndex, Count); };
+
+			EdgeScopeLoop->PrepareRangesOnly(EdgeDataFacade->GetNum(), PLI);
 		}
 
 		return true;
@@ -246,18 +252,18 @@ namespace PCGExRefineEdges
 
 		Cluster->GetExpandedEdges(true); //Oof
 
-		SanitizeTaskGroup->SetOnCompleteCallback([&]() { InsertEdges(); });
+		SanitizeTaskGroup->OnCompleteCallback = [&]() { InsertEdges(); };
 
 		if (Settings->Sanitization == EPCGExRefineSanitization::Filters)
 		{
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
-			SanitizeTaskGroup->SetOnIterationRangeStartCallback(
+			SanitizeTaskGroup->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
 					const int32 MaxIndex = StartIndex + Count;
 					for (int i = StartIndex; i < MaxIndex; i++) { if (SanitizationFilterManager->Test(i)) { (Cluster->Edges->GetData() + i)->bValid = true; } }
-				});
-			SanitizeTaskGroup->PrepareRangesOnly(EdgesIO->GetNum(), PLI);
+				};
+			SanitizeTaskGroup->PrepareRangesOnly(EdgeDataFacade->GetNum(), PLI);
 		}
 		else
 		{
@@ -280,9 +286,9 @@ namespace PCGExRefineEdges
 			return;
 		}
 
-		EdgesIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::NewOutput); // Downgrade to regular data
-		const TArray<FPCGPoint>& OriginalEdges = EdgesIO->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutableEdges = EdgesIO->GetOut()->GetMutablePoints();
+		EdgeDataFacade->Source->InitializeOutput<UPCGPointData>(PCGExData::EInit::NewOutput); // Downgrade to regular data
+		const TArray<FPCGPoint>& OriginalEdges = EdgeDataFacade->GetIn()->GetPoints();
+		TArray<FPCGPoint>& MutableEdges = EdgeDataFacade->GetOut()->GetMutablePoints();
 		PCGEX_SET_NUM_UNINITIALIZED(MutableEdges, ValidEdges.Num())
 		for (int i = 0; i < ValidEdges.Num(); ++i) { MutableEdges[i] = OriginalEdges[ValidEdges[i].EdgeIndex]; }
 	}

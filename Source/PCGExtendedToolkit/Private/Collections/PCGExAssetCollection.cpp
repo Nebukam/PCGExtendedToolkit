@@ -224,7 +224,7 @@ namespace PCGExAssetCollection
 
 	bool FDistributionHelper::Init(
 		const FPCGContext* InContext,
-		PCGExData::FFacade* InDataFacade)
+		const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
 		MaxIndex = Collection->LoadCache()->Main->Order.Num() - 1;
 

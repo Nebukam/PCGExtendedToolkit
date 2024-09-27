@@ -250,8 +250,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 	PCGExMT::AsyncState TargetState_PointsProcessingDone;
 	TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
-	TArray<TSharedPtr<PCGExData::FPointIO>> BatchablePoints;
-	TMap<PCGExData::FPointIO*, TSharedPtr<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
+	TArray<TSharedRef<PCGExData::FPointIO>> BatchablePoints;
+	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
 	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
@@ -269,7 +269,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 		while (AdvancePointsIO(false))
 		{
 			if (!ValidateEntry(CurrentIO)) { continue; }
-			BatchablePoints.Add(CurrentIO);
+			BatchablePoints.Add(CurrentIO.ToSharedRef());
 		}
 
 		if (BatchablePoints.IsEmpty()) { return false; }

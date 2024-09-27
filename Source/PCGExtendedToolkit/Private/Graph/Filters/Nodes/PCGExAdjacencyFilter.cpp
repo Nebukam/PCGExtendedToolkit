@@ -32,7 +32,7 @@ namespace PCGExNodeAdjacency
 			}
 		}
 
-		if (!Adjacency.Init(InContext, PointDataFacade.Get())) { return false; }
+		if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 
 		if (bCaptureFromNodes)
 		{

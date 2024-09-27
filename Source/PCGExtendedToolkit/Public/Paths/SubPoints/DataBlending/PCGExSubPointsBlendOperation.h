@@ -8,6 +8,12 @@
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 
+
+
+
+
+
+
 #include "Paths/SubPoints/PCGExSubPointsOperation.h"
 #include "PCGExSubPointsBlendOperation.generated.h"
 
@@ -56,8 +62,8 @@ public:
 	virtual void Cleanup() override;
 
 	virtual TSharedPtr<PCGExDataBlending::FMetadataBlender> CreateBlender(
-		const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
-		const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
+		const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
+		const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
 		const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 		const TSet<FName>* IgnoreAttributeSet = nullptr);
 

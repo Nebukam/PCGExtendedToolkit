@@ -42,10 +42,10 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGExContext* InContext) const
 		TSharedPtr<PCGExData::FPointIO> ActorRefIO = PCGExData::TryGetSingleInput(Context, PCGExSampling::SourceActorReferencesLabel, true);
 		if (!ActorRefIO) { return false; }
 
-		Context->ActorReferenceDataFacade = MakeShared<PCGExData::FFacade>(ActorRefIO);
+		Context->ActorReferenceDataFacade = MakeShared<PCGExData::FFacade>(ActorRefIO.ToSharedRef());
 
 		if (!PCGExSampling::GetIncludedActors(
-			Context, Context->ActorReferenceDataFacade.Get(),
+			Context, Context->ActorReferenceDataFacade.ToSharedRef(),
 			Settings->ActorReference, Context->IncludedActors))
 		{
 			return false;
@@ -113,7 +113,7 @@ namespace PCGExSampleSurfaceGuided
 		}
 
 		{
-			PCGExData::FFacade* OutputFacade = PointDataFacade.Get();
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade;
 			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_INIT)
 		}
 
@@ -289,8 +289,8 @@ namespace PCGExSampleSurfaceGuided
 	{
 		PointDataFacade->Write(AsyncManager);
 
-		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointIO->Tags->Add(Settings->HasSuccessesTag); }
-		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointIO->Tags->Add(Settings->HasNoSuccessesTag); }
+		if (Settings->bTagIfHasSuccesses && bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasSuccessesTag); }
+		if (Settings->bTagIfHasNoSuccesses && !bAnySuccess) { PointDataFacade->Source->Tags->Add(Settings->HasNoSuccessesTag); }
 	}
 }
 

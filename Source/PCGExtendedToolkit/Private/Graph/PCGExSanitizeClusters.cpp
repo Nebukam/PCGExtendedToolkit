@@ -74,12 +74,12 @@ namespace PCGExSanitizeClusters
 		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-		EdgesIO->CreateInKeys();
+		EdgeDataFacade->Source->CreateInKeys();
 
-		BuildIndexedEdges(EdgesIO, *EndpointsLookup, IndexedEdges);
+		BuildIndexedEdges(EdgeDataFacade->Source, *EndpointsLookup, IndexedEdges);
 		if (!IndexedEdges.IsEmpty()) { GraphBuilder->Graph->InsertEdges(IndexedEdges); }
 
-		EdgesIO->CleanupKeys();
+		EdgeDataFacade->Source->CleanupKeys();
 
 		return true;
 	}

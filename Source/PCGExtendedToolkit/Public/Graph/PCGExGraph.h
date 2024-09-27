@@ -400,7 +400,7 @@ namespace PCGExGraph
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGraphBuilder
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGraphBuilder : public TSharedFromThis<FGraphBuilder>
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
@@ -409,6 +409,9 @@ namespace PCGExGraph
 
 	public:
 		const FPCGExGraphBuilderDetails* OutputDetails = nullptr;
+
+		using CompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
+		CompilationEndCallback OnCompilationEndCallback;
 
 		bool bPrunePoints = false;
 		int64 PairId;
