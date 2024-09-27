@@ -152,5 +152,26 @@ namespace PCGEx
 		else { InArray.SetNum(Num); }
 	}
 
+	template <typename T>
+	FORCEINLINE static void InitArray(TSharedPtr<TArray<T>> InArray, const int32 Num)
+	{
+		if constexpr (std::is_trivially_copyable_v<T>) { InArray->SetNumUninitialized(Num); }
+		else { InArray->SetNum(Num); }
+	}
+
+	template <typename T>
+	FORCEINLINE static void InitArray(TSharedRef<TArray<T>> InArray, const int32 Num)
+	{
+		if constexpr (std::is_trivially_copyable_v<T>) { InArray.SetNumUninitialized(Num); }
+		else { InArray.SetNum(Num); }
+	}
+
+	template <typename T>
+	FORCEINLINE static void InitArray(TArray<T>* InArray, const int32 Num)
+	{
+		if constexpr (std::is_trivially_copyable_v<T>) { InArray->SetNumUninitialized(Num); }
+		else { InArray->SetNum(Num); }
+	}
+
 #pragma endregion
 }

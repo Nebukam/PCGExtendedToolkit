@@ -87,6 +87,7 @@ namespace PCGExData
 
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::CreateInKeys()
 	{
+		FWriteScopeLock WriteScopeLock(InKeysLock);
 		if (InKeys) { return InKeys; }
 		if (RootIO) { InKeys = RootIO->CreateInKeys(); }
 		else { InKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(In->GetPoints()); }
@@ -103,6 +104,7 @@ namespace PCGExData
 
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::CreateOutKeys()
 	{
+		FWriteScopeLock WriteScopeLock(OutKeysLock);
 		if (!OutKeys)
 		{
 			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());

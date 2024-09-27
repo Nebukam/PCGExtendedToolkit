@@ -143,7 +143,7 @@ namespace PCGExData
 			InPoints = MakeArrayView(InPts.GetData(), NumPoints);
 
 			InValues = MakeShared<TArray<T>>();
-			PCGEx::InitArray(*InValues, NumPoints);
+			PCGEx::InitArray(InValues, NumPoints);
 
 			InAttribute = Attribute;
 			TypedInAttribute = Attribute ? static_cast<const FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -151,7 +151,7 @@ namespace PCGExData
 			bScopedBuffer = bScoped;
 		}
 
-		void PrepareForWrite(FPCGMetadataAttributeBase* Attribute)
+		void PrepareForWrite(FPCGMetadataAttributeBase* Attribute, const bool bUninitialized, const T& InDefaultValue)
 		{
 			if (OutValues) { return; }
 
@@ -160,7 +160,8 @@ namespace PCGExData
 			OutPoints = MakeArrayView(OutPts.GetData(), NumPoints);
 
 			OutValues = MakeShared<TArray<T>>();
-			PCGEx::InitArray(*OutValues, NumPoints);
+			if (bUninitialized) { PCGEx::InitArray(OutValues, NumPoints); }
+			else { OutValues->Init(InDefaultValue, NumPoints); }
 
 			OutAttribute = Attribute;
 			TypedOutAttribute = Attribute ? static_cast<FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
@@ -220,7 +221,7 @@ namespace PCGExData
 			return true;
 		}
 
-		bool PrepareWrite(T DefaultValue, bool bAllowInterpolation, const bool bUninitialized = false)
+		bool PrepareWrite(const T& DefaultValue, bool bAllowInterpolation, const bool bUninitialized = false)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 
@@ -236,7 +237,7 @@ namespace PCGExData
 				return false;
 			}
 
-			PrepareForWrite(TypedOutAttribute);
+			PrepareForWrite(TypedOutAttribute, bUninitialized, DefaultValue);
 
 			if (!bUninitialized)
 			{
@@ -280,7 +281,7 @@ namespace PCGExData
 			PrepareForRead(true, Getter->GetAttribute());
 			ScopedBroadcaster = Getter;
 
-			PCGEx::InitArray(*InValues, Source->GetNum());
+			PCGEx::InitArray(InValues, Source->GetNum());
 		}
 
 		virtual void Write() override

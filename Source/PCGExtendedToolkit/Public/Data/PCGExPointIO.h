@@ -72,8 +72,11 @@ namespace PCGExData
 	protected:
 		FPCGExContext* Context = nullptr;
 
-		bool bWritten = false;
 		mutable FRWLock PointsLock;
+		mutable FRWLock InKeysLock;
+		mutable FRWLock OutKeysLock;
+		
+		bool bWritten = false;
 		int32 NumInPoints = -1;
 
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> InKeys; // Shared because reused by duplicates

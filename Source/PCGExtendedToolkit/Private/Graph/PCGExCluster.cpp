@@ -338,7 +338,7 @@ namespace PCGExCluster
 		if (!ExpandedEdges)
 		{
 			ExpandedEdges = MakeShared<TArray<FExpandedEdge>>();
-			PCGEx::InitArray(*ExpandedEdges.Get(), Edges->Num());
+			PCGEx::InitArray(ExpandedEdges, Edges->Num());
 
 			TArray<FExpandedEdge>& ExpandedEdgesRef = (*ExpandedEdges);
 
@@ -787,7 +787,7 @@ namespace PCGExCluster
 			FWriteScopeLock WriteScopeLock(ClusterLock);
 
 			ExpandedNodes = MakeShared<TArray<FExpandedNode>>();
-			PCGEx::InitArray(*ExpandedNodes.Get(), Nodes->Num());
+			PCGEx::InitArray(ExpandedNodes, Nodes->Num());
 
 			TArray<FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
 			if (bBuild) { for (int i = 0; i < ExpandedNodes->Num(); ++i) { ExpandedNodesRef[i] = FExpandedNode(this, i); } } // Ooof
@@ -801,7 +801,7 @@ namespace PCGExCluster
 		if (ExpandedNodes) { return; }
 
 		ExpandedNodes = MakeShared<TArray<FExpandedNode>>();
-		PCGEx::InitArray(*ExpandedNodes.Get(), Nodes->Num());
+		PCGEx::InitArray(ExpandedNodes, Nodes->Num());
 
 		PCGExMT::SubRanges(
 			Nodes->Num(), 256, [&](const int32 Start, const int32 Count)
@@ -834,7 +834,7 @@ namespace PCGExCluster
 		if (ExpandedEdges) { return; }
 
 		ExpandedEdges = MakeShared<TArray<FExpandedEdge>>();
-		PCGEx::InitArray(*ExpandedEdges.Get(), Edges->Num());
+		PCGEx::InitArray(ExpandedEdges, Edges->Num());
 
 		PCGExMT::SubRanges(
 			Edges->Num(), 256, [&](const int32 Start, const int32 Count)
