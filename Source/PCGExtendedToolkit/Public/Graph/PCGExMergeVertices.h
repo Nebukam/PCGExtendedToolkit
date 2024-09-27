@@ -49,7 +49,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesContext final : public FPCG
 
 	FString OutVtxId = TEXT("");
 	TSharedPtr<PCGExData::FPointIO> CompositeIO;
-	TUniquePtr<FPCGExPointIOMerger> Merger;
+	TSharedPtr<FPCGExPointIOMerger> Merger;
 
 	virtual void OnBatchesProcessingDone() override;
 	virtual void OnBatchesCompletingWorkDone() override;

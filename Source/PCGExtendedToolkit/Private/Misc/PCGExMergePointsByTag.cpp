@@ -21,7 +21,7 @@ namespace PCPGExMergePointsByTag
 		CompositeIO = IOs[0];
 		CompositeIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
-		Merger = MakeUnique<FPCGExPointIOMerger>(CompositeIO);
+		Merger = MakeShared<FPCGExPointIOMerger>(CompositeIO);
 		Merger->Append(IOs);
 		Merger->Merge(AsyncManager, InCarryOverDetails);
 	}

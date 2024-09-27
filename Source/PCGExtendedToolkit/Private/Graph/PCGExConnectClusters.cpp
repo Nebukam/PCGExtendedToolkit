@@ -130,7 +130,7 @@ namespace PCGExBridgeClusters
 		// Start merging right away
 		TSet<FName> IgnoreAttributes = {PCGExGraph::Tag_ClusterId};
 
-		Merger = MakeUnique<FPCGExPointIOMerger>(ConsolidatedEdges);
+		Merger = MakeShared<FPCGExPointIOMerger>(ConsolidatedEdges);
 		Merger->Append(Edges);
 		Merger->Merge(AsyncManager, &Context->CarryOverDetails);
 	}

@@ -15,7 +15,7 @@ PCGExData::EInit UPCGExMergeVerticesSettings::GetEdgeOutputInitMode() const { re
 
 void FPCGExMergeVerticesContext::OnBatchesProcessingDone()
 {
-	Merger = MakeUnique<FPCGExPointIOMerger>(CompositeIO);
+	Merger = MakeShared<FPCGExPointIOMerger>(CompositeIO);
 
 	int32 StartOffset = 0;
 
@@ -24,7 +24,7 @@ void FPCGExMergeVerticesContext::OnBatchesProcessingDone()
 		PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>* Batch = static_cast<PCGExClusterMT::TBatch<PCGExMergeVertices::FProcessor>*>(Batches[i].Get());
 		Merger->Append(Batch->VtxDataFacade->Source);
 
-		for (const TSharedPtr<PCGExMergeVertices::FProcessor>& Processor : Batch->Processors) { Processor->StartIndexOffset = StartOffset; }
+		for (const TSharedRef<PCGExMergeVertices::FProcessor>& Processor : Batch->Processors) { Processor->StartIndexOffset = StartOffset; }
 		StartOffset += Batch->VtxDataFacade->GetNum();
 	}
 

@@ -37,7 +37,7 @@ namespace PCPGExMergePointsByTag
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>> IOs;
 		TSharedPtr<PCGExData::FPointIO> CompositeIO;
-		TUniquePtr<FPCGExPointIOMerger> Merger;
+		TSharedPtr<FPCGExPointIOMerger> Merger;
 
 		FMergeList();
 		~FMergeList() = default;
