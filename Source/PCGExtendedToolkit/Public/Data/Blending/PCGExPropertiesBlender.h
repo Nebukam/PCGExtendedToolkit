@@ -16,6 +16,7 @@ namespace PCGExDataBlending
 		EPCGExDataBlendingType::Weight,
 		EPCGExDataBlendingType::WeightedSum,
 		EPCGExDataBlendingType::Sum,
+		EPCGExDataBlendingType::WeightedSubtract,
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPropertiesBlender

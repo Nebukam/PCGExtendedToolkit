@@ -698,13 +698,9 @@ namespace PCGExMath
 		}
 	}
 
-	template <typename T>
+	template <typename T, typename CompilerSafety = void>
 	FORCEINLINE static T Div(const T& A, const double Divider)
 	{
-		if constexpr (std::is_same_v<T, FQuat>)
-		{
-			return Div(A.Rotator(), Divider).Quaternion();
-		}
 		if constexpr (std::is_same_v<T, FRotator>)
 		{
 			return FRotator(A.Pitch / Divider, A.Yaw / Divider, A.Roll / Divider);
@@ -726,6 +722,13 @@ namespace PCGExMath
 		{
 			return A / Divider;
 		}
+	}
+
+	// SSE optimizations throw unreachable code with FQuat constexpr so we need explicit template impl
+	template <typename CompilerSafety = void>
+	FORCEINLINE static FQuat Div(const FQuat& A, const double Divider)
+	{
+		return Div(A.Rotator(), Divider).Quaternion(); 
 	}
 
 	template <typename T>
