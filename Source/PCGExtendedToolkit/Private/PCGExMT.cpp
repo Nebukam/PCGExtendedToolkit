@@ -42,10 +42,9 @@ namespace PCGExMT
 
 		FWriteScopeLock WriteLock(ManagerLock);
 
-		for (FAsyncTaskBase* Task : QueuedTasks)
+		for (const TUniquePtr<FAsyncTaskBase>& Task : QueuedTasks)
 		{
 			if (Task && !Task->Cancel()) { Task->EnsureCompletion(); }
-			delete Task;
 		}
 
 		if (!bStop) { FPlatformAtomics::InterlockedExchange(&Stopped, 0); }

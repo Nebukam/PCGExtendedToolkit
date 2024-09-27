@@ -83,8 +83,8 @@ namespace PCGExClusterMT
 	public:
 		TSharedPtr<FClusterProcessorBatchBase> ParentBatch;
 
-		TSharedRef<PCGExData::FFacade> VtxDataFacade;
-		TSharedRef<PCGExData::FFacade> EdgeDataFacade;
+		const TSharedRef<PCGExData::FFacade> VtxDataFacade;
+		const TSharedRef<PCGExData::FFacade> EdgeDataFacade;
 
 		bool bAllowEdgesDataFacadeScopedGet = false;
 
@@ -364,12 +364,11 @@ namespace PCGExClusterMT
 	public:
 		FPCGExContext* ExecutionContext = nullptr;
 
-		TSharedRef<PCGExData::FFacade> VtxDataFacade;
+		const TSharedRef<PCGExData::FFacade> VtxDataFacade;
 		bool bAllowVtxDataFacadeScopedGet = false;
 
 		bool bRequiresWriteStep = false;
 		bool bWriteVtxDataFacade = false;
-
 
 		TArray<TSharedPtr<PCGExData::FPointIO>> Edges;
 		TSharedPtr<PCGExData::FPointIOCollection> EdgeCollection;
@@ -503,8 +502,8 @@ namespace PCGExClusterMT
 	class TBatch : public FClusterProcessorBatchBase
 	{
 	public:
-		TArray<TSharedPtr<T>> Processors;
-		TArray<TSharedPtr<T>> TrivialProcessors;
+		TArray<TSharedRef<T>> Processors;
+		TArray<TSharedRef<T>> TrivialProcessors;
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
@@ -553,7 +552,6 @@ namespace PCGExClusterMT
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
 				NewProcessor->BatchIndex = Processors.Num() - 1;
-				NewProcessor->VtxDataFacade = VtxDataFacade;
 
 				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
 				NewProcessor->SetRequiresHeuristics(RequiresHeuristics());
@@ -562,7 +560,7 @@ namespace PCGExClusterMT
 				Processors.Add(NewProcessor.ToSharedRef());
 
 				NewProcessor->bIsTrivial = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
-				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor); }
+				if (NewProcessor->IsTrivial()) { TrivialProcessors.Add(NewProcessor.ToSharedRef()); }
 			}
 
 			StartProcessing();

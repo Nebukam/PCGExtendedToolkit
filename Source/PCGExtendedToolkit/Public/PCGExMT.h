@@ -241,7 +241,7 @@ namespace PCGExMT
 
 			{
 				FWriteScopeLock WriteLock(ManagerLock);
-				QueuedTasks.Add(AsyncTask);
+				QueuedTasks.Add(TUniquePtr<FAsyncTaskBase>(AsyncTask));
 			}
 
 			T& Task = AsyncTask->GetTask();
@@ -285,7 +285,7 @@ namespace PCGExMT
 		int8 Flushing = 0;
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
-		TArray<FAsyncTaskBase*> QueuedTasks;
+		TArray<TUniquePtr<FAsyncTaskBase>> QueuedTasks;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
 	};
 

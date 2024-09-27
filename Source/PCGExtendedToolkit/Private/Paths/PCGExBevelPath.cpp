@@ -281,12 +281,11 @@ namespace PCGExBevelPath
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelPath::Process);
-
+		
 		// Must be set before process for filters
 		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
-
 
 		bInlineProcessPoints = true;
 		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
