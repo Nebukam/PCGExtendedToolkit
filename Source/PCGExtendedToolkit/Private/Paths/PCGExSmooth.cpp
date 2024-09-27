@@ -136,7 +136,7 @@ namespace PCGExSmooth
 		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		PCGExData::FPointRef PtRef = PointIO->GetOutPointRef(Index);
-		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Read(Index), 0, TNumericLimits<double>::Max()) * Settings->ScaleSmoothingAmountAttribute : Settings->SmoothingAmountConstant;
+		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Read(Index), 0, MAX_dbl) * Settings->ScaleSmoothingAmountAttribute : Settings->SmoothingAmountConstant;
 
 		if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
 			(Settings->bPreserveStart && Index == 0))

@@ -9,6 +9,10 @@
 #include "PCGExPointsProcessor.h"
 
 
+
+
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExShrinkPath.generated.h"
 
@@ -165,8 +169,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathContext final : public FPCGExP
 {
 	friend class FPCGExShrinkPathElement;
 
-	void GetShrinkAmounts(const TSharedPtr<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
-	void GetShrinkAmounts(const TSharedPtr<PCGExData::FPointIO>& PointIO, uint32& Start, uint32& End) const;
+	void GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
+	void GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, uint32& Start, uint32& End) const;
 
 	virtual ~FPCGExShrinkPathContext() override;
 };

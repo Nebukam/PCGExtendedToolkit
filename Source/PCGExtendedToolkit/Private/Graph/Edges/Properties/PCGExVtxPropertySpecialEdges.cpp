@@ -43,10 +43,10 @@ bool UPCGExVtxPropertySpecialEdges::PrepareForVtx(const FPCGContext* InContext, 
 
 void UPCGExVtxPropertySpecialEdges::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	double LLongest = TNumericLimits<double>::Min();
+	double LLongest = MIN_dbl;
 	int32 ILongest = -1;
 
-	double LShortest = TNumericLimits<double>::Max();
+	double LShortest = MAX_dbl;
 	int32 IShortest = -1;
 
 	double LAverage = 0;

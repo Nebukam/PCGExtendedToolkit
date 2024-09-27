@@ -16,10 +16,8 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	OperandA = MakeUnique<PCGEx::FLocalToStringGetter>();
-	OperandA->Capture(TypedFilterFactory->Config.OperandA);
-
-	if (!OperandA->SoftGrab(PointDataFacade->Source))
+	OperandA = MakeUnique<PCGEx::TAttributeGetter<FString>>();
+	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandA)));
 		return false;
@@ -27,10 +25,8 @@ bool PCGExPointsFilter::TStringCompareFilter::Init(const FPCGContext* InContext,
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{
-		OperandB = MakeUnique<PCGEx::FLocalToStringGetter>();
-		OperandB->Capture(TypedFilterFactory->Config.OperandB);
-
-		if (!OperandB->SoftGrab(PointDataFacade->Source))
+		OperandB = MakeUnique<PCGEx::TAttributeGetter<FString>>();
+		if (!OperandB->Prepare(TypedFilterFactory->Config.OperandB, PointDataFacade->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Config.OperandB)));
 			return false;

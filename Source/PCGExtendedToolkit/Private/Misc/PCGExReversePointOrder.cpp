@@ -128,7 +128,7 @@ namespace PCGExReversePointOrder
 						{
 							const int32 Index = StartIndex + i;
 							const RawT FirstValue = FirstWriter->Read(Index);
-							FirstWriter->GetMutable(Index) = PCGExMath::DblMult(SecondWriter->GetMutable(Index), -1);
+							FirstWriter->GetMutable(Index) = PCGExMath::DblMult(SecondWriter->GetConst(Index), -1);
 							SecondWriter->GetMutable(Index) = PCGExMath::DblMult(FirstValue, -1);
 						}
 					}
@@ -138,7 +138,7 @@ namespace PCGExReversePointOrder
 						{
 							const int32 Index = StartIndex + i;
 							const RawT FirstValue = FirstWriter->Read(Index);
-							FirstWriter->GetMutable(Index) = SecondWriter->GetMutable(Index);
+							FirstWriter->GetMutable(Index) = SecondWriter->GetConst(Index);
 							SecondWriter->GetMutable(Index) = FirstValue;
 						}
 					}

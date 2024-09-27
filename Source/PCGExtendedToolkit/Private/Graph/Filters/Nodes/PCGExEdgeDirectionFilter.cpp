@@ -122,11 +122,11 @@ namespace PCGExNodeAdjacency
 				B /= Node.Adjacency.Num();
 				break;
 			case EPCGExAdjacencyGatherMode::Min:
-				B = TNumericLimits<double>::Max();
+				B = MAX_dbl;
 				for (const double Dot : Dots) { B = FMath::Min(B, Dot); }
 				break;
 			case EPCGExAdjacencyGatherMode::Max:
-				B = TNumericLimits<double>::Min();
+				B = MIN_dbl;
 				for (const double Dot : Dots) { B = FMath::Max(B, Dot); }
 				break;
 			case EPCGExAdjacencyGatherMode::Sum:

@@ -147,8 +147,8 @@ namespace PCGExAttributeRemap
 		for (int i = 0; i < Dimensions; ++i)
 		{
 			FPCGExComponentRemapRule Rule = Rules.Add_GetRef(FPCGExComponentRemapRule(Context->RemapSettings[Context->RemapIndices[i]]));
-			Rule.RemapDetails.InMin = TNumericLimits<double>::Max();
-			Rule.RemapDetails.InMax = TNumericLimits<double>::Min();
+			Rule.RemapDetails.InMin = MAX_dbl;
+			Rule.RemapDetails.InMax = MIN_dbl;
 		}
 
 		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchTask)
@@ -175,8 +175,8 @@ namespace PCGExAttributeRemap
 			{
 				for (FPCGExComponentRemapRule& Rule : Rules)
 				{
-					Rule.MinCache.Init(TNumericLimits<double>::Max(), Loops.Num());
-					Rule.MaxCache.Init(TNumericLimits<double>::Min(), Loops.Num());
+					Rule.MinCache.Init(MAX_dbl, Loops.Num());
+					Rule.MaxCache.Init(MIN_dbl, Loops.Num());
 				}
 			};
 
@@ -202,8 +202,8 @@ namespace PCGExAttributeRemap
 						{
 							FPCGExComponentRemapRule& Rule = Rules[d];
 
-							double Min = TNumericLimits<double>::Max();
-							double Max = TNumericLimits<double>::Min();
+							double Min = MAX_dbl;
+							double Max = MIN_dbl;
 
 							if (Rule.RemapDetails.bUseAbsoluteRange)
 							{

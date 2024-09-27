@@ -288,7 +288,7 @@ namespace PCGExConnectPoints
 
 		if (!ProbeOperations.IsEmpty())
 		{
-			double MaxRadius = TNumericLimits<double>::Min();
+			double MaxRadius = MIN_dbl;
 			if (!bUseVariableRadius) { MaxRadius = SharedSearchRadius; }
 			else
 			{

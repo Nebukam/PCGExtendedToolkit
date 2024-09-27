@@ -40,7 +40,7 @@ void UPCGExProbeDirection::ProcessCandidates(const int32 Index, const FPCGPoint&
 	bool bIsAlreadyConnected;
 	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
 	double BestDot = -1;
-	double BestDist = TNumericLimits<double>::Max();
+	double BestDist = MAX_dbl;
 	int32 BestCandidateIndex = -1;
 
 	FVector Dir = DirectionCache ? DirectionCache->Read(Index).GetSafeNormal() : Direction;
@@ -104,7 +104,7 @@ void UPCGExProbeDirection::PrepareBestCandidate(const int32 Index, const FPCGPoi
 {
 	InBestCandidate.BestIndex = -1;
 	InBestCandidate.BestPrimaryValue = -1;
-	InBestCandidate.BestSecondaryValue = TNumericLimits<double>::Max();
+	InBestCandidate.BestSecondaryValue = MAX_dbl;
 }
 
 void UPCGExProbeDirection::ProcessCandidateChained(const int32 Index, const FPCGPoint& Point, const int32 CandidateIndex, PCGExProbing::FCandidate& Candidate, PCGExProbing::FBestCandidate& InBestCandidate)

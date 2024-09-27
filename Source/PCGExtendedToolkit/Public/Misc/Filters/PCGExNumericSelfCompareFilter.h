@@ -83,7 +83,7 @@ namespace PCGExPointsFilter
 
 		const UPCGExNumericSelfCompareFilterFactory* TypedFilterFactory;
 
-		TUniquePtr<PCGEx::FLocalSingleFieldGetter> OperandA;
+		TUniquePtr<PCGEx::TAttributeGetter<double>> OperandA;
 		TSharedPtr<PCGExData::TBuffer<int32>> Index;
 		bool bOffset = false;
 		int32 MaxIndex = 0;

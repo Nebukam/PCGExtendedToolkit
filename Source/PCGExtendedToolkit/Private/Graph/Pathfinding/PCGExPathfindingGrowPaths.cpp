@@ -54,7 +54,7 @@ namespace PCGExGrowPaths
 
 		const PCGExCluster::FNode& CurrentNode = NodesRef[LastGrowthIndex];
 
-		double BestScore = TNumericLimits<double>::Max();
+		double BestScore = MAX_dbl;
 		NextGrowthIndex = -1;
 
 		for (const uint64 AdjacencyHash : CurrentNode.Adjacency)

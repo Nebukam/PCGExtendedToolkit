@@ -21,10 +21,8 @@ bool PCGExPointsFilter::TStringSelfComparisonFilter::Init(const FPCGContext* InC
 
 	if (MaxIndex < 0) { return false; }
 
-	OperandA = MakeUnique<PCGEx::FLocalToStringGetter>();
-	OperandA->Capture(TypedFilterFactory->Config.OperandA);
-
-	if (!OperandA->SoftGrab(PointDataFacade->Source))
+	OperandA = MakeUnique<PCGEx::TAttributeGetter<FString>>();
+	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandA)));
 		return false;

@@ -40,10 +40,10 @@ bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InConte
 
 void UPCGExVtxPropertySpecialNeighbors::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	double LLargest = TNumericLimits<double>::Min();
+	double LLargest = MIN_dbl;
 	int32 ILargest = -1;
 
-	double LSmallest = TNumericLimits<double>::Max();
+	double LSmallest = MAX_dbl;
 	int32 ISmallest = -1;
 
 	for (int i = 0; i < Adjacency.Num(); ++i)

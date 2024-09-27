@@ -316,7 +316,7 @@ namespace PCGExRefineEdges
 				const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
 
 				int32 BestIndex = -1;
-				double LongestDist = TNumericLimits<double>::Min();
+				double LongestDist = MIN_dbl;
 
 				for (const uint64 AdjacencyHash : Node.Adjacency)
 				{
@@ -344,7 +344,7 @@ namespace PCGExRefineEdges
 				const PCGExCluster::FNode& Node = *(Processor->Cluster->Nodes->GetData() + StartIndex + i);
 
 				int32 BestIndex = -1;
-				double ShortestDist = TNumericLimits<double>::Max();
+				double ShortestDist = MAX_dbl;
 
 				for (const uint64 AdjacencyHash : Node.Adjacency)
 				{

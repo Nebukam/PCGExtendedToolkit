@@ -22,23 +22,23 @@ FPCGExCherryPickPointsContext::~FPCGExCherryPickPointsContext()
 {
 }
 
-bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const TSharedPtr<PCGExData::FPointIO>& InSource, TArray<int32>& OutUniqueIndices, const int32 MaxIndex) const
+bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const TSharedRef<PCGExData::FPointIO>& InSource, TArray<int32>& OutUniqueIndices, const int32 MaxIndex) const
 {
 	PCGEX_SETTINGS_LOCAL(CherryPickPoints)
 
 	TArray<int32> SourceIndices;
 	TSet<int32> UniqueIndices;
-	TUniquePtr<PCGEx::FLocalIntegerGetter> Getter = MakeUnique<PCGEx::FLocalIntegerGetter>();
-	Getter->Capture(Settings->ReadIndexFromAttribute);
-
-	int32 Min = 0;
-	int32 Max = 0;
-
-	if (!Getter->GrabAndDump(InSource, SourceIndices, false, Min, Max))
+	TUniquePtr<PCGEx::TAttributeGetter<int32>> Getter = MakeUnique<PCGEx::TAttributeGetter<int32>>();
+	if (!Getter->Prepare(Settings->ReadIndexFromAttribute, InSource))
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Index attribute is invalid."));
 		return false;
 	}
+
+	int32 Min = 0;
+	int32 Max = 0;
+
+	Getter->GrabAndDump(SourceIndices, false, Min, Max);
 
 	if (MaxIndex == -1)
 	{
@@ -75,7 +75,7 @@ bool FPCGExCherryPickPointsElement::Boot(FPCGExContext* InContext) const
 	{
 		const TSharedPtr<PCGExData::FPointIO> Targets = PCGExData::TryGetSingleInput(Context, PCGEx::SourceTargetsLabel, true);
 		if (!Targets) { return false; }
-		if (!Context->TryGetUniqueIndices(Targets, Context->SharedTargetIndices)) { return false; }
+		if (!Context->TryGetUniqueIndices(Targets.ToSharedRef(), Context->SharedTargetIndices)) { return false; }
 	}
 
 

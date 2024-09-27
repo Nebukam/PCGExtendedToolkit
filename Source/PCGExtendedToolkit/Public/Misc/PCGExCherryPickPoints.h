@@ -9,6 +9,8 @@
 #include "PCGExPointsProcessor.h"
 
 
+
+
 #include "PCGExCherryPickPoints.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cherry Pick Source"))
@@ -60,7 +62,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCherryPickPointsContext final : public F
 
 	virtual ~FPCGExCherryPickPointsContext() override;
 
-	bool TryGetUniqueIndices(const TSharedPtr<PCGExData::FPointIO>& InSource, TArray<int32>& OutUniqueIndices, int32 MaxIndex = -1) const;
+	bool TryGetUniqueIndices(const TSharedRef<PCGExData::FPointIO>& InSource, TArray<int32>& OutUniqueIndices, int32 MaxIndex = -1) const;
 	TArray<int32> SharedTargetIndices;
 };
 

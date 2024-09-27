@@ -378,7 +378,7 @@ namespace PCGExGeo
 
 	FORCEINLINE static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge)
 	{
-		double Dist = TNumericLimits<double>::Min();
+		double Dist = MIN_dbl;
 		for (int i = 0; i < 3; ++i)
 		{
 			for (int j = i + 1; j < 3; ++j)
@@ -395,7 +395,7 @@ namespace PCGExGeo
 
 	FORCEINLINE static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge)
 	{
-		double Dist = TNumericLimits<double>::Min();
+		double Dist = MIN_dbl;
 		for (int i = 0; i < 4; ++i)
 		{
 			for (int j = i + 1; j < 4; ++j)

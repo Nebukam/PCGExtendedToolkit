@@ -393,7 +393,7 @@ namespace PCGExCluster
 
 	int32 FCluster::FindClosestNode(const FVector& Position, const int32 MinNeighbors) const
 	{
-		double MaxDistance = TNumericLimits<double>::Max();
+		double MaxDistance = MAX_dbl;
 		int32 ClosestIndex = -1;
 
 		const TArray<FNode>& NodesRef = *Nodes;
@@ -433,7 +433,7 @@ namespace PCGExCluster
 
 	int32 FCluster::FindClosestNodeFromEdge(const FVector& Position, const int32 MinNeighbors) const
 	{
-		double MaxDistance = TNumericLimits<double>::Max();
+		double MaxDistance = MAX_dbl;
 		int32 ClosestIndex = -1;
 
 		const TArray<FNode>& NodesRef = *Nodes;
@@ -498,7 +498,7 @@ namespace PCGExCluster
 		if (!Nodes->IsValidIndex(InNodeIndex) || (Nodes->GetData() + InNodeIndex)->Adjacency.IsEmpty()) { return -1; }
 		const FNode& Node = *(Nodes->GetData() + InNodeIndex);
 
-		double MinDist = TNumericLimits<double>::Max();
+		double MinDist = MAX_dbl;
 		int32 BestIndex = -1;
 
 		double BestDot = 1;
@@ -562,7 +562,7 @@ namespace PCGExCluster
 		const TArray<FNode>& NodesRef = *Nodes;
 		const FNode& Node = NodesRef[NodeIndex];
 		int32 Result = -1;
-		double LastDist = TNumericLimits<double>::Max();
+		double LastDist = MAX_dbl;
 		const FVector NodePosition = GetPos(NodeIndex);
 
 		if (NodeOctree)
@@ -602,7 +602,7 @@ namespace PCGExCluster
 		const TArray<FNode>& NodesRef = *Nodes;
 		const FNode& Node = NodesRef[NodeIndex];
 		int32 Result = -1;
-		double LastDist = TNumericLimits<double>::Max();
+		double LastDist = MAX_dbl;
 		const FVector NodePosition = GetPos(NodeIndex);
 
 		if (NodeOctree)
@@ -651,8 +651,8 @@ namespace PCGExCluster
 		const TMap<int32, int32>& NodeIndexLookupRef = *NodeIndexLookup;
 
 		const int32 NumEdges = Edges->Num();
-		double Min = TNumericLimits<double>::Max();
-		double Max = TNumericLimits<double>::Min();
+		double Min = MAX_dbl;
+		double Max = MIN_dbl;
 		EdgeLengths->SetNumUninitialized(NumEdges);
 
 		for (int i = 0; i < NumEdges; ++i)

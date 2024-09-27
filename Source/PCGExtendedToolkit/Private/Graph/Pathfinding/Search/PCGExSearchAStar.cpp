@@ -48,8 +48,8 @@ bool UPCGExSearchAStar::FindPath(
 		TravelStack[i] = PCGEx::NH64(-1, -1);
 	}
 
-	double MinGScore = TNumericLimits<double>::Max();
-	double MaxGScore = TNumericLimits<double>::Min();
+	double MinGScore = MAX_dbl;
+	double MaxGScore = MIN_dbl;
 
 	for (int i = 0; i < NodesRef.Num(); ++i)
 	{

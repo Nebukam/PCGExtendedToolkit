@@ -37,7 +37,7 @@ public:
 
 		for (int i = 0; i < NumNodes; ++i)
 		{
-			ScoredQueue->Scores[i] = TNumericLimits<double>::Max();
+			ScoredQueue->Scores[i] = MAX_dbl;
 			TravelStack[i] = 0;
 		}
 

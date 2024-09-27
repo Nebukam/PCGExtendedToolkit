@@ -35,7 +35,7 @@ void FPCGExOverlapScoresWeighting::ResetMin()
 		NumPoints =
 		Volume =
 		VolumeDensity =
-		CustomTagScore = TNumericLimits<double>::Min();
+		CustomTagScore = MIN_dbl;
 }
 
 void FPCGExOverlapScoresWeighting::Max(const FPCGExOverlapScoresWeighting& Other)

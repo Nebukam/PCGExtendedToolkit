@@ -21,15 +21,13 @@ bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* In
 
 	if (MaxIndex < 0) { return false; }
 
-	OperandA = MakeUnique<PCGEx::FLocalSingleFieldGetter>();
-	OperandA->Capture(TypedFilterFactory->Config.OperandA);
+	OperandA = MakeUnique<PCGEx::TAttributeGetter<double>>();
 
-	if (!OperandA->SoftGrab(PointDataFacade->Source))
+	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
 		return false;
 	}
-
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{

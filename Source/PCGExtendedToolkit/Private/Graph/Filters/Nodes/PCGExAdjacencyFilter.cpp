@@ -104,7 +104,7 @@ namespace PCGExNodeAdjacency
 				B /= Node.Adjacency.Num();
 				break;
 			case EPCGExAdjacencyGatherMode::Min:
-				B = TNumericLimits<double>::Max();
+				B = MAX_dbl;
 				if (bCaptureFromNodes)
 				{
 					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
@@ -115,7 +115,7 @@ namespace PCGExNodeAdjacency
 				}
 				break;
 			case EPCGExAdjacencyGatherMode::Max:
-				B = TNumericLimits<double>::Min();
+				B = MIN_dbl;
 				if (bCaptureFromNodes)
 				{
 					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }

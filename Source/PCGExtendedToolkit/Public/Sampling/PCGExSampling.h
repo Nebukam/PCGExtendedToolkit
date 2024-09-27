@@ -121,9 +121,8 @@ namespace PCGExSampling
 		FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 		Selector.SetAttributeName(ActorReferenceName);
 
-		TUniquePtr<PCGEx::FLocalToStringGetter> PathGetter = MakeUnique<PCGEx::FLocalToStringGetter>();
-		PathGetter->Capture(Selector);
-		if (!PathGetter->SoftGrab(InFacade->Source))
+		const TUniquePtr<PCGEx::TAttributeGetter<FString>> PathGetter = MakeUnique<PCGEx::TAttributeGetter<FString>>();
+		if (!PathGetter->Prepare(Selector, InFacade->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Actor reference attribute does not exist."));
 			return false;

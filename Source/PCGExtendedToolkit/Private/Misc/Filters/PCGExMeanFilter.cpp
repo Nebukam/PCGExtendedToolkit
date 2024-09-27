@@ -43,8 +43,8 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 
 	if (TypedFilterFactory->Config.Measure == EPCGExMeanMeasure::Relative)
 	{
-		double RelativeMinEdgeLength = TNumericLimits<double>::Max();
-		double RelativeMaxEdgeLength = TNumericLimits<double>::Min();
+		double RelativeMinEdgeLength = MAX_dbl;
+		double RelativeMaxEdgeLength = MIN_dbl;
 		SumValue = 0;
 		for (int i = 0; i < NumPoints; ++i)
 		{
@@ -80,8 +80,8 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 		break;
 	}
 
-	const double RMin = TypedFilterFactory->Config.bDoExcludeBelowMean ? ReferenceValue - TypedFilterFactory->Config.ExcludeBelow : TNumericLimits<double>::Min();
-	const double RMax = TypedFilterFactory->Config.bDoExcludeAboveMean ? ReferenceValue + TypedFilterFactory->Config.ExcludeAbove : TNumericLimits<double>::Max();
+	const double RMin = TypedFilterFactory->Config.bDoExcludeBelowMean ? ReferenceValue - TypedFilterFactory->Config.ExcludeBelow : MIN_dbl;
+	const double RMax = TypedFilterFactory->Config.bDoExcludeAboveMean ? ReferenceValue + TypedFilterFactory->Config.ExcludeAbove : MAX_dbl;
 
 	ReferenceMin = FMath::Min(RMin, RMax);
 	ReferenceMax = FMath::Max(RMin, RMax);

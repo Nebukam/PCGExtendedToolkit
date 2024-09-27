@@ -19,7 +19,8 @@ PCGEX_BLEND_CASE(Lerp)\
 PCGEX_BLEND_CASE(UnsignedMin)\
 PCGEX_BLEND_CASE(UnsignedMax)\
 PCGEX_BLEND_CASE(AbsoluteMin)\
-PCGEX_BLEND_CASE(AbsoluteMax)
+PCGEX_BLEND_CASE(AbsoluteMax)\
+PCGEX_BLEND_CASE(WeightedSubtract)
 
 namespace PCGExDataBlending
 {
@@ -65,7 +66,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 
 		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Subtract(A, B); }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Sub(A, B); }
 	};
 
 	template <typename T>
@@ -154,6 +155,18 @@ namespace PCGExDataBlending
 	public:
 		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::AbsoluteMin; };
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::AbsoluteMin(A, B); }
+	};
+
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSubtract final : public TDataBlendingOperation<T>
+	{
+	public:
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::WeightedSubtract; };
+		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
+
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedSub(A, B, Weight); }
 	};
 
 	static TSharedPtr<FDataBlendingOperationBase> CreateOperation(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)

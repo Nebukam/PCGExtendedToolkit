@@ -34,7 +34,7 @@ void FPCGExPickClosestClustersContext::OnBatchesProcessingDone()
 		for (int i = 0; i < NumTargets; ++i)
 		{
 			int32 Pick = -1;
-			double Closest = TNumericLimits<double>::Max();
+			double Closest = MAX_dbl;
 
 			for (int j = 0; j < Processors.Num(); ++j)
 			{
@@ -55,7 +55,7 @@ void FPCGExPickClosestClustersContext::OnBatchesProcessingDone()
 		for (int i = 0; i < NumTargets; ++i)
 		{
 			int32 Pick = -1;
-			double Closest = TNumericLimits<double>::Max();
+			double Closest = MAX_dbl;
 
 			for (int j = 0; j < Processors.Num(); ++j)
 			{
@@ -167,7 +167,7 @@ namespace PCGExPickClosestClusters
 			ProcessTargets->StartRanges(
 				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 				{
-					Distances[Index] = TNumericLimits<double>::Max();
+					Distances[Index] = MAX_dbl;
 
 					const FPCGPoint& Point = Context->TargetDataFacade->Source->GetInPoint(Index);
 					const FVector TargetLocation = Point.Transform.GetLocation();
@@ -195,7 +195,7 @@ namespace PCGExPickClosestClusters
 			ProcessTargets->StartRanges(
 				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 				{
-					Distances[Index] = TNumericLimits<double>::Max();
+					Distances[Index] = MAX_dbl;
 
 					const FPCGPoint& Point = Context->TargetDataFacade->Source->GetInPoint(Index);
 					const FVector TargetLocation = Point.Transform.GetLocation();

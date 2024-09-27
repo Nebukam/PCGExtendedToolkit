@@ -23,7 +23,7 @@ public:
 	virtual void ProcessNode(PCGExCluster::FNode& Node) override
 	{
 		int32 BestIndex = -1;
-		double LowestScore = TNumericLimits<double>::Max();
+		double LowestScore = MAX_dbl;
 
 		for (const uint64 AdjacencyHash : Node.Adjacency)
 		{

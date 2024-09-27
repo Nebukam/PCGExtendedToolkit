@@ -77,9 +77,9 @@ namespace PCGExNearestBounds
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		double SampledRangeMin = TNumericLimits<double>::Max();
+		double SampledRangeMin = MAX_dbl;
 		double SampledRangeMax = 0;
-		double SampledLengthMin = TNumericLimits<double>::Max();
+		double SampledLengthMin = MAX_dbl;
 		double SampledLengthMax = 0;
 		int32 UpdateCount = 0;
 

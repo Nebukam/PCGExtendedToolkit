@@ -22,21 +22,22 @@ enum class EPCGExAsyncPriority : uint8
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Blending Type (With Defaults)"))
 enum class EPCGExDataBlendingTypeDefault : uint8
 {
-	Default     = 20 UMETA(DisplayName = "Default", ToolTip="Use the node' default"),
-	None        = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
-	Average     = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
-	Weight      = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
-	Min         = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
-	Max         = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
-	Copy        = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
-	Sum         = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
-	WeightedSum = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
-	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
-	Subtract    = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
-	UnsignedMin = 10 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
-	UnsignedMax = 11 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
-	AbsoluteMin = 12 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
-	AbsoluteMax = 13 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
+	Default          = 100 UMETA(DisplayName = "Default", ToolTip="Use the node' default"),
+	None             = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
+	Average          = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
+	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
+	Min              = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
+	Max              = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
+	Copy             = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
+	Sum              = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
+	WeightedSum      = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
+	Lerp             = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
+	Subtract         = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
+	UnsignedMin      = 10 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
+	UnsignedMax      = 11 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
+	AbsoluteMin      = 12 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
+	AbsoluteMax      = 13 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
+	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
 };
 
 UCLASS(DefaultConfig, config = Editor, defaultconfig)

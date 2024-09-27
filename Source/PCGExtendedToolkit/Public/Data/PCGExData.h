@@ -127,6 +127,7 @@ namespace PCGExData
 		FPCGMetadataAttribute<T>* GetTypedOutAttribute() { return TypedOutAttribute; }
 
 		FORCEINLINE T& GetMutable(const int32 Index) { return *(OutValues->GetData() + Index); }
+		FORCEINLINE const T& GetConst(const int32 Index) { return *(OutValues->GetData() + Index); }
 		FORCEINLINE const T& Read(const int32 Index) const { return *(InValues->GetData() + Index); }
 		FORCEINLINE const T& ReadImmediate(const int32 Index) const { return TypedInAttribute->GetValueFromItemKey(InPoints[Index]); }
 
@@ -272,11 +273,11 @@ namespace PCGExData
 			return PrepareWrite(T{}, true, bUninitialized);
 		}
 
-		void SetScopedGetter(const TSharedPtr<PCGEx::TAttributeGetter<T>>& Getter)
+		void SetScopedGetter(const TSharedRef<PCGEx::TAttributeGetter<T>>& Getter)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 
-			PrepareForRead(true, Getter->Attribute);
+			PrepareForRead(true, Getter->GetAttribute());
 			ScopedBroadcaster = Getter;
 
 			PCGEx::InitArray(*InValues, Source->GetNum());
@@ -295,7 +296,7 @@ namespace PCGExData
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
 		{
 			if (!IsScoped()) { return; }
-			if (ScopedBroadcaster) { ScopedBroadcaster->Fetch(Source, *InValues, StartIndex, Count); }
+			if (ScopedBroadcaster) { ScopedBroadcaster->Fetch(*InValues, StartIndex, Count); }
 			if (InAccessor.IsValid())
 			{
 				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + StartIndex, Count);
@@ -345,7 +346,7 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> FindBufferUnsafe(const FName FullName)
 		{
-			const TSharedPtr<FBufferBase>& Found = FindBufferUnsafe(BufferUID(FullName, PCGEx::GetMetadataType(T{})));
+			const TSharedPtr<FBufferBase>& Found = FindBufferUnsafe(BufferUID(FullName, PCGEx::GetMetadataType<T>()));
 			if (!Found) { return nullptr; }
 			return StaticCastSharedPtr<TBuffer<T>>(Found);
 		}
@@ -353,7 +354,7 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> FindBuffer(const FName FullName)
 		{
-			const TSharedPtr<FBufferBase> Found = FindBuffer(BufferUID(FullName, PCGEx::GetMetadataType(T{})));
+			const TSharedPtr<FBufferBase> Found = FindBuffer(BufferUID(FullName, PCGEx::GetMetadataType<T>()));
 			if (!Found) { return nullptr; }
 			return StaticCastSharedPtr<TBuffer<T>>(Found);
 		}
@@ -370,7 +371,7 @@ namespace PCGExData
 				NewBuffer = FindBufferUnsafe<T>(FullName);
 				if (NewBuffer) { return NewBuffer; }
 
-				NewBuffer = MakeShared<TBuffer<T>>(Source, FullName, PCGEx::GetMetadataType(T{}));
+				NewBuffer = MakeShared<TBuffer<T>>(Source, FullName, PCGEx::GetMetadataType<T>());
 				NewBuffer->BufferIndex = Buffers.Num();
 
 				Buffers.Add(StaticCastSharedPtr<FBufferBase>(NewBuffer));
@@ -383,51 +384,15 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false)
 		{
-			PCGEx::TAttributeGetter<T>* RawGetter;
-
-			switch (PCGEx::GetMetadataType(T{}))
-			{
-			default: ;
-			case EPCGMetadataTypes::Integer64:
-			case EPCGMetadataTypes::Float:
-			case EPCGMetadataTypes::Vector2:
-			case EPCGMetadataTypes::Vector4:
-			case EPCGMetadataTypes::Rotator:
-			case EPCGMetadataTypes::Quaternion:
-			case EPCGMetadataTypes::Transform:
-			case EPCGMetadataTypes::Name:
-			case EPCGMetadataTypes::Count:
-			case EPCGMetadataTypes::Unknown:
-				return nullptr;
-			// TODO : Proper implementation, this is cursed
-			case EPCGMetadataTypes::Double:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalSingleFieldGetter()));
-				break;
-			case EPCGMetadataTypes::Integer32:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalIntegerGetter()));
-				break;
-			case EPCGMetadataTypes::Vector:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalVectorGetter()));
-				break;
-			case EPCGMetadataTypes::Boolean:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalBoolGetter()));
-				break;
-			case EPCGMetadataTypes::String:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalToStringGetter()));
-				break;
-			}
-
-			TSharedPtr<PCGEx::TAttributeGetter<T>> Getter = TSharedPtr<PCGEx::TAttributeGetter<T>>(RawGetter);
-
-			Getter->Capture(InSelector);
-			if (!Getter->SoftGrab(Source)) { return nullptr; }
+			TSharedPtr<PCGEx::TAttributeGetter<T>> Getter = MakeShared<PCGEx::TAttributeGetter<T>>();
+			if (!Getter->Prepare(InSelector, Source)) { return nullptr; }
 
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(Getter->FullName);
 
 			{
 				FWriteScopeLock WriteScopeLock(Buffer->BufferLock);
-				Buffer->PrepareForRead(false, Getter->Attribute);
-				Getter->GrabAndDump(Source, *Buffer->GetInValues(), bCaptureMinMax, Buffer->Min, Buffer->Max);
+				Buffer->PrepareForRead(false, Getter->GetAttribute());
+				Getter->GrabAndDump(*Buffer->GetInValues(), bCaptureMinMax, Buffer->Min, Buffer->Max);
 			}
 
 			return Buffer;
@@ -446,47 +411,11 @@ namespace PCGExData
 		{
 			if (!bSupportsScopedGet) { return GetBroadcaster<T>(InSelector); }
 
-			PCGEx::TAttributeGetter<T>* RawGetter;
-
-			switch (PCGEx::GetMetadataType(T{}))
-			{
-			default: ;
-			case EPCGMetadataTypes::Integer64:
-			case EPCGMetadataTypes::Float:
-			case EPCGMetadataTypes::Vector2:
-			case EPCGMetadataTypes::Vector4:
-			case EPCGMetadataTypes::Rotator:
-			case EPCGMetadataTypes::Quaternion:
-			case EPCGMetadataTypes::Transform:
-			case EPCGMetadataTypes::Name:
-			case EPCGMetadataTypes::Count:
-			case EPCGMetadataTypes::Unknown:
-				return nullptr;
-			// TODO : Proper implementation, this is cursed
-			case EPCGMetadataTypes::Double:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalSingleFieldGetter()));
-				break;
-			case EPCGMetadataTypes::Integer32:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalIntegerGetter()));
-				break;
-			case EPCGMetadataTypes::Vector:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalVectorGetter()));
-				break;
-			case EPCGMetadataTypes::Boolean:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalBoolGetter()));
-				break;
-			case EPCGMetadataTypes::String:
-				RawGetter = static_cast<PCGEx::TAttributeGetter<T>*>(static_cast<PCGEx::FAttributeGetterBase*>(new PCGEx::FLocalToStringGetter()));
-				break;
-			}
-
-			TSharedPtr<PCGEx::TAttributeGetter<T>> Getter = TSharedPtr<PCGEx::TAttributeGetter<T>>(RawGetter);
-
-			Getter->Capture(InSelector);
-			if (!Getter->InitForFetch(Source)) { return nullptr; }
+			TSharedPtr<PCGEx::TAttributeGetter<T>> Getter = MakeShared<PCGEx::TAttributeGetter<T>>();
+			if (!Getter->Prepare(InSelector, Source)) { return nullptr; }
 
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(Getter->FullName);
-			Buffer->SetScopedGetter(Getter);
+			Buffer->SetScopedGetter(Getter.ToSharedRef());
 
 			return Buffer;
 		}
@@ -496,7 +425,7 @@ namespace PCGExData
 		{
 			FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 			Selector.SetAttributeName(InName);
-			return GetBroadcaster<T>(Selector, bCaptureMinMax);
+			return GetScopedBroadcaster<T>(Selector, bCaptureMinMax);
 		}
 
 		template <typename T>

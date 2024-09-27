@@ -221,7 +221,7 @@ namespace PCGExBridgeClusters
 			for (int i = 0; i < NumBounds; ++i)
 			{
 				VisitedEdges.Add(i); // As to not connect to self or already connected
-				double Distance = TNumericLimits<double>::Max();
+				double Distance = MAX_dbl;
 				int32 ClosestIndex = -1;
 
 				for (int j = 0; j < NumBounds; ++j)
@@ -289,7 +289,7 @@ namespace PCGExBridgeClusters
 		int32 IndexA = -1;
 		int32 IndexB = -1;
 
-		double Distance = TNumericLimits<double>::Max();
+		double Distance = MAX_dbl;
 
 		const TArray<PCGExCluster::FNode>& NodesRefA = *ClusterA->Nodes;
 		const TArray<PCGExCluster::FNode>& NodesRefB = *ClusterB->Nodes;

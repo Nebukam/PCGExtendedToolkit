@@ -221,11 +221,9 @@ namespace PCGExPartitionByValues
 
 		for (FPCGExPartitonRuleConfig& Config : Context->RulesConfigs)
 		{
+			const TSharedPtr<PCGExData::TBuffer<double>> DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
+			if (!DataCache) { continue; }
 			FPCGExFilter::FRule& NewRule = Rules.Emplace_GetRef(Config);
-			TSharedPtr<PCGExData::TBuffer<double>> DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
-
-			if (!DataCache) { Rules.Pop(); }
-
 			NewRule.DataCache = DataCache;
 		}
 

@@ -87,16 +87,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitonRuleConfig : public FPCGExInputC
 
 namespace FPCGExFilter
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FRule final : public PCGEx::FLocalSingleFieldGetter
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FRule final : public PCGEx::TAttributeGetter<double>
 	{
 		explicit FRule(FPCGExPartitonRuleConfig& InRule)
-			: FLocalSingleFieldGetter(),
+			: TAttributeGetter<double>(),
 			  RuleConfig(&InRule),
 			  FilterSize(InRule.FilterSize),
 			  Upscale(InRule.Upscale),
 			  Offset(InRule.Offset)
 		{
-			Config = static_cast<FPCGExInputConfig>(InRule);
+			
 		}
 
 		virtual ~FRule() override
