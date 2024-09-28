@@ -852,7 +852,7 @@ namespace PCGExCluster
 	void FCluster::UpdatePositions()
 	{
 		const TArray<FPCGPoint>& VtxPointsRef = *VtxPoints;
-		PCGEx::InitArray(NodePositions, Nodes->Num());
+		NodePositions.SetNumUninitialized(Nodes->Num());
 		for (const FNode& N : *Nodes) { NodePositions[N.NodeIndex] = VtxPointsRef[N.PointIndex].Transform.GetLocation(); }
 	}
 

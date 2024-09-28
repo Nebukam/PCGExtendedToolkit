@@ -44,7 +44,7 @@ namespace PCGExGeo
 			if (Triangles.IsEmpty()) { return; }
 
 			TArray<FVector> DualPositions;
-			PCGEx::InitArray(DualPositions, Triangles.Num());
+			DualPositions.SetNumUninitialized(Triangles.Num());
 
 			Edges.Empty();
 

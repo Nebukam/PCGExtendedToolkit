@@ -122,6 +122,10 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (!Context->ProcessClusters()) { return false; }
 
+	//if(Context->IsState(PCGExGraph::State_Compiling))
+	
+	//
+
 	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->MainPoints->OutputToContext(); }
 	else { Context->MainEdges->OutputToContext(); }
 

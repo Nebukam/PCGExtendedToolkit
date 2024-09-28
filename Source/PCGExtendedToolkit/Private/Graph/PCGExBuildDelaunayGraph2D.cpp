@@ -199,7 +199,7 @@ namespace PCGExBuildDelaunay2D
 		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
 
-		PCGEx::InitArray(MutablePoints, NumSites);
+		MutablePoints.SetNumUninitialized(NumSites);
 		for (int i = 0; i < NumSites; ++i)
 		{
 			const PCGExGeo::FDelaunaySite2& Site = Delaunay->Sites[i];
@@ -239,7 +239,8 @@ namespace PCGExBuildDelaunay2D
 		TArray<FPCGPoint>& MutablePoints = SitesIO->GetOut()->GetMutablePoints();
 		PCGExGeo::TDelaunay2* Delaunay = Processor->Delaunay.Get();
 		const int32 NumSites = Delaunay->Sites.Num();
-		PCGEx::InitArray(MutablePoints, NumSites);
+		
+		MutablePoints.SetNumUninitialized(NumSites);
 
 		TBitArray<> VisitedSites;
 		VisitedSites.Init(false, NumSites);

@@ -30,9 +30,9 @@ namespace PCGExData
 	{
 		const int32 NumHashes = CompoundedHashSet.Num();
 
-		PCGEx::InitArray(OutPointsIdx, NumHashes);
-		PCGEx::InitArray(OutWeights, NumHashes);
-		PCGEx::InitArray(OutIOIdx, NumHashes);
+		OutPointsIdx.SetNumUninitialized(NumHashes);
+		OutWeights.SetNumUninitialized(NumHashes);
+		OutIOIdx.SetNumUninitialized(NumHashes);
 
 		double TotalWeight = 0;
 		int32 Index = 0;
