@@ -154,7 +154,7 @@ namespace PCGExGrowPaths
 
 	void FGrowth::Write()
 	{
-		const TSharedPtr<PCGExData::FPointIO> VtxIO = Processor->Cluster->VtxIO;
+		const TSharedPtr<PCGExData::FPointIO> VtxIO = Processor->Cluster->VtxIO.Pin();
 		TSharedPtr<PCGExData::FPointIO> PathIO = Processor->GetContext()->OutputPaths->Emplace_GetRef<UPCGPointData>(VtxIO->GetIn(), PCGExData::EInit::NewOutput);
 		const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 

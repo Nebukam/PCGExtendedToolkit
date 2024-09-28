@@ -93,6 +93,7 @@ void UPCGExSubPointsBlendOperation::BlendSubPoints(
 
 void UPCGExSubPointsBlendOperation::Cleanup()
 {
+	InternalBlender.Reset();
 	Super::Cleanup();
 }
 

@@ -128,7 +128,7 @@ namespace PCGExSimplifyClusters
 			return;
 		}
 
-		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
+		const int32 IOIndex = Cluster->EdgesIO.Pin()->IOIndex;
 		const double DotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 

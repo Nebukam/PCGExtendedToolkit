@@ -199,7 +199,7 @@ namespace PCGExSampleOverlapStats
 		// For each managed overlap, find per-point intersections
 
 		const TSharedPtr<FOverlap> ManagedOverlap = ManagedOverlaps[Index];
-		const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*ParentBatch->SubProcessorMap->Find(&ManagedOverlap->GetOther(this)->PointDataFacade->Source.Get()));
+		const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*ParentBatch.Pin()->SubProcessorMap->Find(&ManagedOverlap->GetOther(this)->PointDataFacade->Source.Get()));
 
 		Octree->FindElementsWithBoundsTest(
 			FBoxCenterAndExtent(ManagedOverlap->Intersection.GetCenter(), ManagedOverlap->Intersection.GetExtent()),
@@ -280,16 +280,17 @@ namespace PCGExSampleOverlapStats
 		PreparationTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
-				const TSharedPtr<PCGExData::FFacade> OtherFacade = ParentBatch->ProcessorFacades[Index];
+				const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
+				const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];
 				if (PointDataFacade == OtherFacade) { return; } // Skip self
 
-				const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*ParentBatch->SubProcessorMap->Find(&OtherFacade->Source.Get()));
+				const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
 
 				const FBox Intersection = Bounds.Overlap(OtherProcessor->GetBounds());
 				if (!Intersection.IsValid) { return; } // No overlap
 
 				RegisterOverlap(&OtherProcessor.Get(), Intersection);
-			}, ParentBatch->ProcessorFacades.Num(), 64);
+			}, ParentBatch.Pin()->ProcessorFacades.Num(), 64);
 	}
 
 	void FProcessor::Write()
@@ -306,7 +307,7 @@ namespace PCGExSampleOverlapStats
 
 		SearchTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { WriteSingleData(Index); },
-			NumPoints, ParentBatch->ProcessorFacades.Num());
+			NumPoints, ParentBatch.Pin()->ProcessorFacades.Num());
 	}
 }
 #undef LOCTEXT_NAMESPACE

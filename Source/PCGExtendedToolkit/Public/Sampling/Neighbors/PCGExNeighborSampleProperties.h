@@ -36,27 +36,27 @@ public:
 
 	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override
 	{
-		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
-		PropertiesBlender->PrepareBlending(A, Cluster->VtxIO->GetInPoint(TargetNode.PointIndex));
+		FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
+		PropertiesBlender->PrepareBlending(A, VtxDataFacade->Source->GetInPoint(TargetNode.PointIndex));
 	}
 
 	FORCEINLINE virtual void BlendNodePoint(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override
 	{
-		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
-		const FPCGPoint& B = Cluster->VtxIO->GetInPoint(Neighbor.Node->PointIndex);
+		FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
+		const FPCGPoint& B = VtxDataFacade->Source->GetInPoint(Neighbor.Node->PointIndex);
 		PropertiesBlender->Blend(A, B, A, Weight);
 	}
 
 	FORCEINLINE virtual void BlendNodeEdge(const PCGExCluster::FNode& TargetNode, const PCGExCluster::FExpandedNeighbor& Neighbor, const double Weight) const override
 	{
-		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
-		const FPCGPoint& B = Cluster->EdgesIO->GetInPoint(Neighbor.Edge->PointIndex);
+		FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
+		const FPCGPoint& B = VtxDataFacade->Source->GetInPoint(Neighbor.Edge->PointIndex);
 		PropertiesBlender->Blend(A, B, A, Weight);
 	}
 
 	FORCEINLINE virtual void FinalizeNode(const PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override
 	{
-		FPCGPoint& A = Cluster->VtxIO->GetMutablePoint(TargetNode.PointIndex);
+		FPCGPoint& A = VtxDataFacade->Source->GetMutablePoint(TargetNode.PointIndex);
 		PropertiesBlender->CompleteBlending(A, Count, TotalWeight);
 	}
 

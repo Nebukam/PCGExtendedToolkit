@@ -56,7 +56,7 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 		return;
 	}
 
-	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO.Pin()->GetIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathIO->GetOut();
 	const TSharedPtr<PCGExData::FFacade> PathDataFacade = MakeShared<PCGExData::FFacade>(PathIO.ToSharedRef());
 
@@ -64,7 +64,7 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	PCGExGraph::CleanupVtxData(PathIO);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO->GetIn()->GetPoints();
+	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO.Pin()->GetIn()->GetPoints();
 
 	MutablePoints.Reserve(Path.Num() + 2);
 

@@ -124,6 +124,9 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	{
 		if (OwnedProcessorOperations.Contains(Operation)) { PCGEX_DELETE_OPERATION(Operation) }
 	}
+
+	if (MainBatch) { MainBatch->Cleanup(); }
+	MainBatch.Reset();
 }
 
 bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
@@ -200,9 +203,8 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager(
 	if (!AsyncManager)
 	{
 		FWriteScopeLock WriteLock(ContextLock);
-		AsyncManager = MakeShared<PCGExMT::FTaskManager>();
+		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
 		AsyncManager->ForceSync = !bDoAsyncProcessing;
-		AsyncManager->Context = this;
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 		PCGExMT::SetWorkPriority(Settings->WorkPriority, AsyncManager->WorkPriority);

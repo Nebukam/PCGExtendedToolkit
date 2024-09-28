@@ -69,9 +69,10 @@ namespace PCGExData
 		FBufferBase(const TSharedRef<FPointIO>& InSource, const FName InFullName, const EPCGMetadataTypes InType):
 			FullName(InFullName), Type(InType), UID(BufferUID(FullName, Type)), Source(InSource)
 		{
+			PCGEX_LOG_CTR(FBufferBase)
 		}
 
-		virtual ~FBufferBase() = default;
+		virtual ~FBufferBase() { PCGEX_LOG_DTR(FBufferBase) }
 
 		virtual void Write()
 		{
@@ -340,7 +341,10 @@ namespace PCGExData
 		explicit FFacade(const TSharedRef<FPointIO>& InSource):
 			Source(InSource)
 		{
+			PCGEX_LOG_CTR(FFacade)
 		}
+
+		~FFacade() { PCGEX_LOG_DTR(FFacade) }
 
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 
@@ -521,8 +525,6 @@ namespace PCGExData
 		const UPCGPointData* GetData(const ESource InSource) const { return Source->GetData(InSource); }
 		const UPCGPointData* GetIn() const { return Source->GetIn(); }
 		UPCGPointData* GetOut() const { return Source->GetOut(); }
-
-		~FFacade() = default;
 
 		void Flush()
 		{

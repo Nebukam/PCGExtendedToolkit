@@ -57,7 +57,7 @@ namespace PCGExNodeAdjacency
 		const int32 PointIndex = Node.PointIndex;
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
-		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
+		const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
 		FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : TypedFilterFactory->Config.DirectionConstant;
 		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
@@ -154,7 +154,7 @@ namespace PCGExNodeAdjacency
 		const int32 PointIndex = Node.PointIndex;
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
-		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
+		const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
 		FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : TypedFilterFactory->Config.DirectionConstant;
 		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }

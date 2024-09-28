@@ -48,8 +48,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	friend class UPCGExEdgesProcessorSettings;
 	friend class FPCGExEdgesProcessorElement;
 
+	~FPCGExEdgesProcessorContext();
+	
 	bool bBuildEndpointsLookup = true;
-
+	
 	TSharedPtr<PCGExData::FPointIOCollection> MainEdges;
 	TSharedPtr<PCGExData::FPointIO> CurrentEdges;
 

@@ -9,6 +9,7 @@ namespace PCGExMT
 {
 	FTaskManager::~FTaskManager()
 	{
+		PCGEX_LOG_DTR(FTaskManager)
 		Reset(true);
 	}
 

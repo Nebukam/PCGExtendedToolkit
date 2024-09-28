@@ -62,7 +62,7 @@ namespace PCGExPointsMT
 		PCGExData::ESource CurrentProcessingSource = PCGExData::ESource::Out;
 
 	public:
-		TSharedPtr<FPointsProcessorBatchBase> ParentBatch;
+		TWeakPtr<FPointsProcessorBatchBase> ParentBatch;
 
 		bool bIsProcessorValid = false;
 
@@ -233,6 +233,10 @@ namespace PCGExPointsMT
 		{
 		}
 
+		virtual void Cleanup()
+		{
+		}
+
 	protected:
 		virtual bool InitPrimaryFilters(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
 		{
@@ -300,18 +304,19 @@ namespace PCGExPointsMT
 
 		FPCGExContext* ExecutionContext = nullptr;
 
-		TArray<TSharedRef<PCGExData::FPointIO>> PointsCollection;
+		TArray<TWeakPtr<PCGExData::FPointIO>> PointsCollection;
 
 		UPCGExOperation* PrimaryOperation = nullptr;
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
-		FPointsProcessorBatchBase(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FPointIO>>& InPointsCollection):
+		FPointsProcessorBatchBase(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
 			ExecutionContext(InContext), PointsCollection(InPointsCollection)
 		{
+			PCGEX_LOG_CTR(FPointsProcessorBatchBase)
 		}
 
-		virtual ~FPointsProcessorBatchBase() = default;
+		virtual ~FPointsProcessorBatchBase() { PCGEX_LOG_DTR(FPointsProcessorBatchBase) }
 
 		virtual void SetExecutionContext(FPCGExContext* InContext)
 		{
@@ -338,6 +343,11 @@ namespace PCGExPointsMT
 		virtual void Output()
 		{
 		}
+
+		virtual void Cleanup()
+		{
+			ProcessorFacades.Empty();
+		}
 	};
 
 	template <typename T>
@@ -351,7 +361,7 @@ namespace PCGExPointsMT
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
-		TBatch(FPCGExContext* InContext, const TArray<TSharedRef<PCGExData::FPointIO>>& InPointsCollection):
+		TBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
 			FPointsProcessorBatchBase(InContext, InPointsCollection)
 		{
 		}
@@ -378,17 +388,18 @@ namespace PCGExPointsMT
 
 			AsyncManager = InAsyncManager;
 
-			TSharedPtr<FPointsProcessorBatchBase> SelfShared = SharedThis(this);
+			TSharedPtr<FPointsProcessorBatchBase> SelfPtr = SharedThis(this);
 
-			for (const TSharedRef<PCGExData::FPointIO>& IO : PointsCollection)
+			for (const TWeakPtr<PCGExData::FPointIO>& WeakIO : PointsCollection)
 			{
+				TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
 				IO->CreateInKeys();
 
-				const TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(IO);
+				const TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 				const TSharedPtr<T> NewProcessor = MakeShared<T>(PointDataFacade.ToSharedRef());
 
 				NewProcessor->SetExecutionContext(ExecutionContext);
-				NewProcessor->ParentBatch = SelfShared;
+				NewProcessor->ParentBatch = SelfPtr;
 				NewProcessor->BatchIndex = Processors.Num();
 
 				if (!PrepareSingle(NewProcessor)) { continue; }
@@ -429,11 +440,18 @@ namespace PCGExPointsMT
 
 		virtual void Output() override
 		{
-			for (const TSharedPtr<T>& Processor : Processors)
+			for (const TSharedPtr<T>& P : Processors)
 			{
-				if (!Processor->bIsProcessorValid) { continue; }
-				Processor->Output();
+				if (!P->bIsProcessorValid) { continue; }
+				P->Output();
 			}
+		}
+
+		virtual void Cleanup() override
+		{
+			FPointsProcessorBatchBase::Cleanup();
+			for (const TSharedPtr<T>& P : Processors) { P->Cleanup(); }
+			Processors.Empty();
 		}
 	};
 }

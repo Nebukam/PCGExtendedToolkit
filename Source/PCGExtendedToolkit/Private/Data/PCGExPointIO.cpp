@@ -89,7 +89,7 @@ namespace PCGExData
 	{
 		FWriteScopeLock WriteScopeLock(InKeysLock);
 		if (InKeys) { return InKeys; }
-		if (RootIO) { InKeys = RootIO->CreateInKeys(); }
+		if (const TSharedPtr<FPointIO> PinnedRoot = RootIO.Pin()) { InKeys = PinnedRoot->CreateInKeys(); }
 		else { InKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(In->GetPoints()); }
 		return InKeys;
 	}
@@ -213,6 +213,7 @@ namespace PCGExData
 
 	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext): Context(InContext)
 	{
+		PCGEX_LOG_CTR(FPointIOCollection)
 	}
 
 	FPointIOCollection::FPointIOCollection(FPCGExContext* InContext, const FName InputLabel, const EInit InitOut)
@@ -228,7 +229,11 @@ namespace PCGExData
 		Initialize(Sources, InitOut);
 	}
 
-	FPointIOCollection::~FPointIOCollection() { Flush(); }
+	FPointIOCollection::~FPointIOCollection()
+	{
+		PCGEX_LOG_DTR(FPointIOCollection)
+		Flush();
+	}
 
 	void FPointIOCollection::Initialize(
 		TArray<FPCGTaggedData>& Sources,

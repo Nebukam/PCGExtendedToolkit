@@ -102,10 +102,6 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExPathCrossings
 {
-	FProcessor::~FProcessor()
-	{
-	}
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathCrossings::Process);
@@ -260,9 +256,10 @@ namespace PCGExPathCrossings
 			return;
 		}
 
-		for (const TSharedPtr<PCGExData::FFacade> Facade : ParentBatch->ProcessorFacades)
+		for (const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
+		     const TSharedPtr<PCGExData::FFacade> Facade : Parent->ProcessorFacades)
 		{
-			const TSharedRef<FPointsProcessor>* OtherProcessorPtr = ParentBatch->SubProcessorMap->Find(&Facade->Source.Get());
+			const TSharedRef<FPointsProcessor>* OtherProcessorPtr = Parent->SubProcessorMap->Find(&Facade->Source.Get());
 			if (!OtherProcessorPtr) { continue; }
 			TSharedRef<FPointsProcessor> OtherProcessor = *OtherProcessorPtr;
 			if (!Details.bEnableSelfIntersection && &OtherProcessor.Get() == this) { continue; }

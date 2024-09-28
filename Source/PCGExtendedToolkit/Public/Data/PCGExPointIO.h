@@ -85,7 +85,7 @@ namespace PCGExData
 		const UPCGPointData* In;      // Input PointData	
 		UPCGPointData* Out = nullptr; // Output PointData
 
-		TSharedPtr<FPointIO> RootIO;
+		TWeakPtr<FPointIO> RootIO;
 		bool bEnabled = true;
 
 	public:

@@ -311,9 +311,13 @@ namespace PCGExGraph
 
 		FSubGraph()
 		{
+			PCGEX_LOG_CTR(FSubGraph)
 		}
 
-		~FSubGraph() = default;
+		~FSubGraph()
+		{
+			PCGEX_LOG_DTR(FSubGraph)
+		}
 
 		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph)
 		{
@@ -356,6 +360,8 @@ namespace PCGExGraph
 		explicit FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve = 10)
 			: NumEdgesReserve(InNumEdgesReserve)
 		{
+			PCGEX_LOG_CTR(FGraph)
+
 			PCGEx::InitArray(Nodes, InNumNodes);
 
 			for (int i = 0; i < InNumNodes; ++i)
@@ -380,12 +386,11 @@ namespace PCGExGraph
 		void InsertEdges(const TArray<uint64>& InEdges, int32 InIOIndex);
 		int32 InsertEdges(const TArray<FIndexedEdge>& InEdges);
 
-
 		TArrayView<FNode> AddNodes(const int32 NumNewNodes);
 
 		void BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits);
 
-		~FGraph() = default;
+		~FGraph() { PCGEX_LOG_DTR(FGraph) }
 
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
 	};
@@ -419,6 +424,8 @@ namespace PCGExGraph
 		FGraphBuilder(const TSharedPtr<PCGExData::FFacade>& InNodeDataFacade, const FPCGExGraphBuilderDetails* InDetails, const int32 NumEdgeReserve = 6, const TSharedPtr<PCGExData::FPointIOCollection>& InSourceEdges = nullptr)
 			: OutputDetails(InDetails), NodeDataFacade(InNodeDataFacade), SourceEdgesIO(InSourceEdges)
 		{
+			PCGEX_LOG_CTR(FGraphBuilder)
+
 			PairId = NodeDataFacade->Source->GetOutIn()->UID;
 			NodeDataFacade->Source->Tags->Add(TagStr_ClusterPair, PairId, PairIdStr);
 
@@ -440,7 +447,7 @@ namespace PCGExGraph
 
 		void OutputEdgesToContext() const;
 
-		~FGraphBuilder() = default;
+		~FGraphBuilder() { PCGEX_LOG_DTR(FGraphBuilder) }
 	};
 
 	static bool BuildEndpointsLookup(

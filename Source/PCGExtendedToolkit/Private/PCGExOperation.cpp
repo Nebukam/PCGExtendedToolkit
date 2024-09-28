@@ -37,6 +37,8 @@ void UPCGExOperation::UpdateUserFacingInfos()
 void UPCGExOperation::Cleanup()
 {
 	Context = nullptr;
+	PrimaryDataFacade.Reset();
+	SecondaryDataFacade.Reset();
 }
 
 void UPCGExOperation::BeginDestroy()

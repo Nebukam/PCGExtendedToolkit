@@ -70,6 +70,8 @@ namespace PCGExCluster
 		Nodes = MakeShared<TArray<FNode>>();
 		Edges = MakeShared<TArray<PCGExGraph::FIndexedEdge>>();
 		Bounds = FBox(ForceInit);
+
+		VtxPoints = &InVtxIO->GetPoints(PCGExData::ESource::In);
 	}
 
 	FCluster::FCluster(const TSharedRef<FCluster>& OtherCluster,
@@ -78,6 +80,8 @@ namespace PCGExCluster
 	                   const bool bCopyNodes, const bool bCopyEdges, const bool bCopyLookup):
 		VtxIO(InVtxIO), EdgesIO(InEdgesIO)
 	{
+		VtxPoints = &InVtxIO->GetPoints(PCGExData::ESource::In);
+
 		bIsMirror = true;
 		bIsCopyCluster = false;
 
@@ -174,14 +178,16 @@ namespace PCGExCluster
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
-		const TArray<FPCGPoint>& InNodePoints = VtxIO->GetPoints(PointsSource);
+		const TArray<FPCGPoint>& InNodePoints = VtxIO.Pin()->GetPoints(PointsSource);
+
+		const TSharedPtr<PCGExData::FPointIO> PinnedEdgesIO = EdgesIO.Pin();
 
 		Nodes->Empty();
 		Edges->Empty();
 		NodeIndexLookup->Empty();
 
 		NumRawVtx = InNodePoints.Num();
-		NumRawEdges = EdgesIO->GetNum();
+		NumRawEdges = PinnedEdgesIO->GetNum();
 
 		const TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(PCGExGraph::Tag_EdgeEndpoints);
 
@@ -192,9 +198,9 @@ namespace PCGExCluster
 			return false;
 		};
 
-		if (!EndpointsReader->Bind(EdgesIO)) { return OnFail(); }
+		if (!EndpointsReader->Bind(PinnedEdgesIO)) { return OnFail(); }
 
-		const int32 NumEdges = EdgesIO->GetNum();
+		const int32 NumEdges = PinnedEdgesIO->GetNum();
 
 		Edges->SetNumUninitialized(NumEdges);
 		Nodes->Reserve(InNodePoints.Num());
@@ -217,7 +223,7 @@ namespace PCGExCluster
 			StartNode.Add(EndNode, i);
 			EndNode.Add(StartNode, i);
 
-			(*Edges)[i] = PCGExGraph::FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgesIO->IOIndex);
+			(*Edges)[i] = PCGExGraph::FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, PinnedEdgesIO->IOIndex);
 		}
 
 		if (InExpectedAdjacency)
@@ -248,7 +254,7 @@ namespace PCGExCluster
 		NumRawVtx = SubGraph->VtxDataFacade->Source->GetNum(PCGExData::ESource::Out);
 		NumRawEdges = SubGraph->EdgesDataFacade->Source->GetNum(PCGExData::ESource::Out);
 
-		const TArray<FPCGPoint>& VtxPoints = SubGraph->VtxDataFacade->Source->GetOutIn()->GetPoints();
+		const TArray<FPCGPoint>& SubVtxPoints = SubGraph->VtxDataFacade->Source->GetOutIn()->GetPoints();
 		Nodes->Reserve(SubGraph->Nodes.Num());
 
 		Edges->Reserve(NumRawEdges);
@@ -258,8 +264,8 @@ namespace PCGExCluster
 
 		for (const PCGExGraph::FIndexedEdge& E : SubGraph->FlattenedEdges)
 		{
-			FNode& StartNode = GetOrCreateNodeUnsafe(VtxPoints, E.Start);
-			FNode& EndNode = GetOrCreateNodeUnsafe(VtxPoints, E.End);
+			FNode& StartNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.Start);
+			FNode& EndNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.End);
 
 			StartNode.Add(EndNode, E.EdgeIndex);
 			EndNode.Add(StartNode, E.EdgeIndex);
@@ -317,7 +323,7 @@ namespace PCGExCluster
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCluster::RebuildNodeOctree);
 
-		const FPCGPoint* StartPtr = VtxIO->GetIn()->GetPoints().GetData();
+		const FPCGPoint* StartPtr = VtxPoints->GetData();
 		NodeOctree = MakeShared<ClusterItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 		for (int i = 0; i < Nodes->Num(); ++i)
 		{
@@ -845,11 +851,9 @@ namespace PCGExCluster
 
 	void FCluster::UpdatePositions()
 	{
-		check(VtxIO)
-
-		const TArray<FPCGPoint>& VtxPoints = VtxIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& VtxPointsRef = *VtxPoints;
 		PCGEx::InitArray(NodePositions, Nodes->Num());
-		for (const FNode& N : *Nodes) { NodePositions[N.NodeIndex] = VtxPoints[N.PointIndex].Transform.GetLocation(); }
+		for (const FNode& N : *Nodes) { NodePositions[N.NodeIndex] = VtxPointsRef[N.PointIndex].Transform.GetLocation(); }
 	}
 
 	void FCluster::CreateVtxPointIndices()
@@ -1034,8 +1038,8 @@ bool FPCGExEdgeDirectionSettings::SortEndpoints(const PCGExCluster::FCluster* In
 	else if (DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 	{
 		// TODO : Might be faster to use the EndpointLookup with GetPos ?
-		const FVector A = InCluster->VtxIO->GetInPoint(Start).Transform.GetLocation();
-		const FVector B = InCluster->VtxIO->GetInPoint(End).Transform.GetLocation();
+		const FVector A = (InCluster->VtxPoints->GetData() + Start)->Transform.GetLocation();
+		const FVector B = (InCluster->VtxPoints->GetData() + End)->Transform.GetLocation();
 
 		const FVector& EdgeDir = (A - B).GetSafeNormal();
 		const FVector& CounterDir = EdgeDirReader->Read(InEdge.EdgeIndex);

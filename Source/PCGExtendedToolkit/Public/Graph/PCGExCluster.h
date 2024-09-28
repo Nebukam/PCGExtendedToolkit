@@ -197,8 +197,10 @@ namespace PCGExCluster
 
 		FBox Bounds;
 
-		TSharedPtr<PCGExData::FPointIO> VtxIO;
-		TSharedPtr<PCGExData::FPointIO> EdgesIO;
+		const TArray<FPCGPoint>* VtxPoints = nullptr;
+		
+		TWeakPtr<PCGExData::FPointIO> VtxIO;
+		TWeakPtr<PCGExData::FPointIO> EdgesIO;
 
 		using ClusterItemOctree = TOctree2<FClusterItemRef, FClusterItemRefSemantics>;
 		TSharedPtr<ClusterItemOctree> NodeOctree;

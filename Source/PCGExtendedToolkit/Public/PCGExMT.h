@@ -204,13 +204,19 @@ namespace PCGExMT
 		friend class FTaskGroup;
 
 	public:
+		FTaskManager(FPCGExContext* InContext)
+			: Context(InContext)
+		{
+			PCGEX_LOG_CTR(FTaskManager)
+		}
+
 		~FTaskManager();
 
 		EQueuedWorkPriority WorkPriority = EQueuedWorkPriority::Normal;
 
 		mutable FRWLock ManagerLock;
 		mutable FRWLock GroupLock;
-		FPCGContext* Context;
+		FPCGExContext* Context = nullptr;
 		int8 Stopped = 0;
 		int8 ForceSync = 0;
 

@@ -193,7 +193,6 @@ namespace PCGExPathCrossings
 
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
-		virtual ~FProcessor() override;
 		const TEdgeOctree* GetEdgeOctree() const { return EdgeOctree.Get(); }
 
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;

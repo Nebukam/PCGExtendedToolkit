@@ -59,9 +59,6 @@ namespace PCGExClusterMT
 		bool bInlineProcessEdges = false;
 		bool bInlineProcessRange = false;
 
-		template <typename T>
-		TSharedPtr<T> GetParentBatch() { return StaticCastSharedPtr<T>(ParentBatch); }
-
 		int32 NumNodes = 0;
 		int32 NumEdges = 0;
 
@@ -81,7 +78,7 @@ namespace PCGExClusterMT
 		}
 
 	public:
-		TSharedPtr<FClusterProcessorBatchBase> ParentBatch;
+		TWeakPtr<FClusterProcessorBatchBase> ParentBatch;
 
 		const TSharedRef<PCGExData::FFacade> VtxDataFacade;
 		const TSharedRef<PCGExData::FFacade> EdgeDataFacade;
@@ -318,6 +315,10 @@ namespace PCGExClusterMT
 		virtual void Output()
 		{
 		}
+
+		virtual void Cleanup()
+		{
+		}
 	};
 
 	template <typename TContext, typename TSettings>
@@ -392,11 +393,12 @@ namespace PCGExClusterMT
 		FClusterProcessorBatchBase(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			ExecutionContext(InContext), VtxDataFacade(MakeShared<PCGExData::FFacade>(InVtx))
 		{
+			PCGEX_LOG_CTR(FClusterProcessorBatchBase)
 			Edges.Append(InEdges);
 			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet;
 		}
 
-		virtual ~FClusterProcessorBatchBase() = default;
+		virtual ~FClusterProcessorBatchBase() { PCGEX_LOG_DTR(FClusterProcessorBatchBase) }
 
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(ExecutionContext); }
@@ -491,6 +493,10 @@ namespace PCGExClusterMT
 		virtual void Output()
 		{
 		}
+
+		virtual void Cleanup()
+		{
+		}
 	};
 
 	template <typename T>
@@ -528,8 +534,7 @@ namespace PCGExClusterMT
 			if (VtxDataFacade->GetNum() <= 1) { return; }
 
 			CurrentState = PCGExMT::State_Processing;
-
-			TSharedPtr<FClusterProcessorBatchBase> SelfShared = SharedThis(this);
+			TSharedPtr<FClusterProcessorBatchBase> SelfPtr = SharedThis(this);
 
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 			{
@@ -539,7 +544,7 @@ namespace PCGExClusterMT
 				const TSharedPtr<T> NewProcessor = MakeShared<T>(VtxDataFacade, EdgeDataFacade.ToSharedRef());
 
 				NewProcessor->SetExecutionContext(ExecutionContext);
-				NewProcessor->ParentBatch = SelfShared;
+				NewProcessor->ParentBatch = SelfPtr;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
 				NewProcessor->BatchIndex = Processors.Num() - 1;
@@ -585,6 +590,13 @@ namespace PCGExClusterMT
 				if (!P->bIsProcessorValid) { continue; }
 				P->Output();
 			}
+		}
+
+		virtual void Cleanup() override
+		{
+			FClusterProcessorBatchBase::Cleanup();
+			for (const TSharedPtr<T>& P : Processors) { P->Cleanup(); }
+			Processors.Empty();
 		}
 	};
 

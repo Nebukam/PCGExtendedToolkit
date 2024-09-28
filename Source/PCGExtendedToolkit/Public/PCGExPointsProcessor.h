@@ -250,7 +250,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 	PCGExMT::AsyncState TargetState_PointsProcessingDone;
 	TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
-	TArray<TSharedRef<PCGExData::FPointIO>> BatchablePoints;
+	TArray<TWeakPtr<PCGExData::FPointIO>> BatchablePoints;
 	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>

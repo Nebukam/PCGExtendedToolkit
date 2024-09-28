@@ -17,6 +17,13 @@ PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { r
 
 bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }
 
+FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
+{
+	PCGEX_TERMINATE_ASYNC
+	
+	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Cleanup(); }
+}
+
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
