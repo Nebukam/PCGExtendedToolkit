@@ -41,7 +41,7 @@ namespace PCGExPointFilter
 	{
 	}
 
-	bool TManager::Init(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories)
+	bool TManager::Init(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
 	{
 		for (const UPCGExFilterFactoryBase* Factory : InFactories)
 		{

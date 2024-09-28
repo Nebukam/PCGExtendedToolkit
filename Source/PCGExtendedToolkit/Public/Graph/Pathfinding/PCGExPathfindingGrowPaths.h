@@ -15,12 +15,6 @@
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 
-class UPCGExVtxPropertyOperation;
-
-namespace PCGExHeuristics
-{
-	class THeuristicsHandler;
-}
 
 struct FPCGExPathfindingGrowPathsContext;
 class UPCGExPathfindingGrowPathsSettings;

@@ -6,13 +6,11 @@
 #include "CoreMinimal.h"
 
 #include "Data/PCGExAttributeHelpers.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExMT.h"
 #include "PCGExEdge.h"
-#include "PCGExGlobalSettings.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
-
-
 #include "PCGExGraph.generated.h"
 
 namespace PCGExGraph
@@ -23,11 +21,6 @@ namespace PCGExGraph
 namespace PCGExCluster
 {
 	struct FCluster;
-}
-
-namespace PCGExGeo
-{
-	class FGeoMesh;
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source"))
@@ -390,7 +383,10 @@ namespace PCGExGraph
 
 		void BuildSubGraphs(const FPCGExGraphBuilderDetails& Limits);
 
-		~FGraph() { PCGEX_LOG_DTR(FGraph) }
+		~FGraph()
+		{
+			PCGEX_LOG_DTR(FGraph)
+		}
 
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
 	};
@@ -447,7 +443,10 @@ namespace PCGExGraph
 
 		void OutputEdgesToContext() const;
 
-		~FGraphBuilder() { PCGEX_LOG_DTR(FGraphBuilder) }
+		~FGraphBuilder()
+		{
+			PCGEX_LOG_DTR(FGraphBuilder)
+		}
 	};
 
 	static bool BuildEndpointsLookup(

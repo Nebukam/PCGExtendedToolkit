@@ -398,7 +398,10 @@ namespace PCGExClusterMT
 			VtxDataFacade->bSupportsScopedGet = bAllowVtxDataFacadeScopedGet;
 		}
 
-		virtual ~FClusterProcessorBatchBase() { PCGEX_LOG_DTR(FClusterProcessorBatchBase) }
+		virtual ~FClusterProcessorBatchBase()
+		{
+			PCGEX_LOG_DTR(FClusterProcessorBatchBase)
+		}
 
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(ExecutionContext); }
@@ -619,18 +622,6 @@ namespace PCGExClusterMT
 			TBatch<T>(InContext, InVtx, InEdges)
 		{
 			this->SetRequiresHeuristics(true);
-		}
-	};
-
-	template <typename T>
-	class TBatchWithHeuristicsAndBuilder : public TBatch<T>
-	{
-	public:
-		TBatchWithHeuristicsAndBuilder(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
-			TBatch<T>(InContext, InVtx, InEdges)
-		{
-			this->SetRequiresHeuristics(true);
-			this->bRequiresGraphBuilder = true;
 		}
 	};
 

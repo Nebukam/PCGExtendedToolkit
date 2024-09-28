@@ -8,13 +8,9 @@
 
 
 #include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoVoronoi.h"
 
 #include "PCGExBuildVoronoiGraph.generated.h"
-
-namespace PCGExGeo
-{
-	class TVoronoi3;
-}
 
 /**
  * 

@@ -13,27 +13,6 @@
 
 #include "PCGExMeshToClusters.generated.h"
 
-namespace PCGExGeo
-{
-	class FGeoStaticMesh;
-}
-
-namespace PCGExGeo
-{
-	class FGeoStaticMeshMap;
-}
-
-namespace PCGExGeo
-{
-	class TVoronoiMesh3;
-}
-
-namespace PCGExGeo
-{
-	class TConvexHull3;
-	class TDelaunayTriangulation3;
-}
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mesh Source Type"))
 enum class EPCGExMeshAttributeHandling : uint8
 {

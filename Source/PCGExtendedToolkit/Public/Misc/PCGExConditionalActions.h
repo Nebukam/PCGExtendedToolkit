@@ -57,7 +57,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsContext final : public
 	friend class FPCGExConditionalActionsElement;
 
 	TSharedPtr<PCGEx::FAttributesInfos> DefaultAttributes;
-	TArray<UPCGExConditionalActionFactoryBase*> ConditionalActionsFactories;
+	TArray<TObjectPtr<const UPCGExConditionalActionFactoryBase>> ConditionalActionsFactories;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsElement final : public FPCGExPointsProcessorElement

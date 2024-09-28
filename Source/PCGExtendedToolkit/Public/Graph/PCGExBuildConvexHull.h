@@ -5,14 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "Geometry/PCGExGeoDelaunay.h"
 
 
 #include "PCGExBuildConvexHull.generated.h"
-
-namespace PCGExGeo
-{
-	class TDelaunay3;
-}
 
 /**
  * 

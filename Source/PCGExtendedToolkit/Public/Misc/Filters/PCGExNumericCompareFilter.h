@@ -69,12 +69,12 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TNumericComparisonFilter(const UPCGExNumericCompareFilterFactory* InDefinition)
+		explicit TNumericComparisonFilter(const TObjectPtr<const UPCGExNumericCompareFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExNumericCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExNumericCompareFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
 		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
@@ -89,7 +89,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TNumericComparisonFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

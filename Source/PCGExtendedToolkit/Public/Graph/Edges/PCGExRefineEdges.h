@@ -14,21 +14,9 @@
 
 namespace PCGExRefineEdges
 {
-	class FProcessorBatch;
 	const FName SourceVtxFilters = FName("VtxFilters");
 	const FName SourceEdgeFilters = FName("EdgeFilters");
 	const FName SourceSanitizeEdgeFilters = FName("SanitizeFilters");
-}
-
-namespace PCGExHeuristics
-{
-	class THeuristicsHandler;
-}
-
-namespace PCGExGraph
-{
-	class FGraphBuilder;
-	class FGraph;
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Refine Sanitization"))
@@ -85,9 +73,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesContext final : public FPCGEx
 {
 	friend class FPCGExRefineEdgesElement;
 
-	TArray<UPCGExFilterFactoryBase*> VtxFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> EdgeFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> SanitizationFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> EdgeFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> SanitizationFilterFactories;
 
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
 };

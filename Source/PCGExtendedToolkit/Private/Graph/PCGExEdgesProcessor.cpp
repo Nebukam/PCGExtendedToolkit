@@ -202,7 +202,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 bool FPCGExEdgesProcessorContext::HasValidHeuristics() const
 {
-	TArray<UPCGExParamFactoryBase*> InputFactories;
+	TArray<TObjectPtr<const UPCGExParamFactoryBase>> InputFactories;
 	const bool bFoundAny = PCGExFactories::GetInputFactories(
 		this, PCGExGraph::SourceHeuristicsLabel, InputFactories,
 		{PCGExFactories::EType::Heuristics}, false);

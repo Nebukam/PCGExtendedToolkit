@@ -5,12 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExAttributeHelpers.h"
+#include "PCGExDataFilter.h"
 #include "PCGExMT.h"
 
 
 #include "UObject/Object.h"
-
-struct FPCGExCarryOverDetails;
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final : public TSharedFromThis<FPCGExPointIOMerger>
 {

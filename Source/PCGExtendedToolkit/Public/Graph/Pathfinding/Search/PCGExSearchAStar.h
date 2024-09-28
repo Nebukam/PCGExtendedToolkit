@@ -8,16 +8,6 @@
 #include "UObject/Object.h"
 #include "PCGExSearchAStar.generated.h"
 
-namespace PCGExHeuristics
-{
-	class THeuristicsHandler;
-}
-
-namespace PCGExCluster
-{
-	struct FCluster;
-}
-
 class UPCGExHeuristicOperation;
 /**
  * 

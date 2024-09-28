@@ -9,6 +9,7 @@
 
 #include "PCGExFactoryProvider.h"
 #include "PCGExVtxPropertyFactoryProvider.h"
+#include "Data/PCGExPointFilter.h"
 
 
 #include "Graph/PCGExCluster.h"
@@ -17,13 +18,6 @@
 #include "PCGExVtxPropertyEdgeMatch.generated.h"
 
 ///
-
-class UPCGExFilterFactoryBase;
-
-namespace PCGExPointFilter
-{
-	class TManager;
-}
 
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeMatchConfig
@@ -74,7 +68,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatch : public UPCGExVtxPr
 
 public:
 	FPCGExEdgeMatchConfig Config;
-	TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* FilterFactories = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual void ClusterReserve(const int32 NumClusters) override;
@@ -107,7 +101,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchFactory : public UPCG
 
 public:
 	FPCGExEdgeMatchConfig Config;
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
 	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
 };
 

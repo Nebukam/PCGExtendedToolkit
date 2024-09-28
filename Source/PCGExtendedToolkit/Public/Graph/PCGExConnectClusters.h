@@ -4,12 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/PCGExPointIOMerger.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExConnectClusters.generated.h"
-
-class FPCGExPointIOMerger;
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bridge Cluster Mode"))
 enum class EPCGExBridgeClusterMethod : uint8

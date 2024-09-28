@@ -57,13 +57,13 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TBoundsFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TBoundsFilter(const UPCGExBoundsFilterFactory* InFactory)
+		explicit TBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(TypedFilterFactory->Config.BoundsSource, TypedFilterFactory->Config.InsideEpsilon) : nullptr;
 		}
 
-		const UPCGExBoundsFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 
@@ -72,7 +72,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TBoundsFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

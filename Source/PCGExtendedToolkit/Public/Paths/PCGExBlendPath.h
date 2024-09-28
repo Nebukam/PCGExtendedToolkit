@@ -10,14 +10,10 @@
 #include "PCGExDetails.h"
 #include "PCGExPaths.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 
 #include "PCGExBlendPath.generated.h"
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
 
 class UPCGExSubPointsBlendOperation;
 

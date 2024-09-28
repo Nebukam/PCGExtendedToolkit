@@ -37,7 +37,7 @@ namespace PCGExClusterStates
 		return true;
 	}
 
-	bool FState::InitInternalManager(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories)
+	bool FState::InitInternalManager(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
 	{
 		return Manager->Init(InContext, InFactories);
 	}

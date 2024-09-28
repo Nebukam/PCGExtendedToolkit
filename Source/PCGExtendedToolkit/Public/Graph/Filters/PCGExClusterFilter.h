@@ -66,7 +66,7 @@ namespace PCGExClusterFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TFilter : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TFilter(const UPCGExClusterFilterFactoryBase* InFactory):
+		explicit TFilter(const TObjectPtr<const UPCGExClusterFilterFactoryBase>& InFactory):
 			PCGExPointFilter::TFilter(InFactory)
 		{
 		}

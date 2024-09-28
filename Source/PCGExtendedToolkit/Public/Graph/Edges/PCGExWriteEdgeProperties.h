@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 
 #include "Graph/PCGExClusterMT.h"
@@ -16,17 +17,6 @@
 MACRO(EdgeLength, double, 0) \
 MACRO(EdgeDirection, FVector, FVector::OneVector) \
 MACRO(Heuristics, double, 0)
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-	struct FPropertiesBlender;
-}
-
-namespace PCGExWriteEdgeProperties
-{
-	class FProcessorBatch;
-}
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Heuristics Write Mode"))
 enum class EPCGExHeuristicsWriteMode : uint8

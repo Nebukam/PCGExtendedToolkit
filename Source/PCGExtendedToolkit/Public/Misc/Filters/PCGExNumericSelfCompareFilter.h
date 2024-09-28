@@ -76,12 +76,12 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericSelfComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TNumericSelfComparisonFilter(const UPCGExNumericSelfCompareFilterFactory* InDefinition)
+		explicit TNumericSelfComparisonFilter(const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExNumericSelfCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory> TypedFilterFactory;
 
 		TUniquePtr<PCGEx::TAttributeGetter<double>> OperandA;
 		TSharedPtr<PCGExData::TBuffer<int32>> Index;

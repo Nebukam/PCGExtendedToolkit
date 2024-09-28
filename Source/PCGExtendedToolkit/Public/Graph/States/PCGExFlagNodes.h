@@ -54,7 +54,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesContext final : public FPCGExEd
 {
 	friend class FPCGExFlagNodesElement;
 
-	TArray<UPCGExFilterFactoryBase*> StateFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> StateFactories;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement

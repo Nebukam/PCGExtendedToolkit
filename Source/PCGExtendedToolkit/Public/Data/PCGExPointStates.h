@@ -58,7 +58,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryBase : public UPCGExFilt
 	GENERATED_BODY()
 
 public:
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
 	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
@@ -72,7 +72,7 @@ namespace PCGExPointStates
 		FPCGExStateConfigBase* BaseConfig = nullptr;
 		const UPCGExPointStateFactoryBase* StateFactory = nullptr;
 
-		explicit FState(const UPCGExPointStateFactoryBase* InFactory):
+		explicit FState(const TObjectPtr<const UPCGExPointStateFactoryBase>& InFactory):
 			TFilter(InFactory), StateFactory(InFactory)
 		{
 		}
@@ -81,7 +81,7 @@ namespace PCGExPointStates
 
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
-		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
+		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 		virtual bool Test(const int32 Index) const override;
 
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;

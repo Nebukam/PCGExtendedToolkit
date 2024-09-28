@@ -66,12 +66,12 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TStringCompareFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TStringCompareFilter(const UPCGExStringCompareFilterFactory* InFactory)
+		explicit TStringCompareFilter(const TObjectPtr<const UPCGExStringCompareFilterFactory>& InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExStringCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExStringCompareFilterFactory> TypedFilterFactory;
 
 		TUniquePtr<PCGEx::TAttributeGetter<FString>> OperandA;
 		TUniquePtr<PCGEx::TAttributeGetter<FString>> OperandB;

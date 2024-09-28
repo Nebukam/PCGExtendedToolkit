@@ -40,7 +40,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterStateFactoryBase : public UPCGExCl
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::StateNode; }
 
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
 	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 
 	FPCGExClusterStateConfigBase Config;
@@ -65,7 +65,7 @@ namespace PCGExClusterStates
 		virtual ~FState() override;
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
-		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
+		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 
 		virtual bool Test(const int32 Index) const override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;

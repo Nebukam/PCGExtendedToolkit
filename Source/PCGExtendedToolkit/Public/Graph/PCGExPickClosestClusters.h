@@ -11,9 +11,6 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"
 
-
-class FPCGExPointIOMerger;
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Pick Mode"))
 enum class EPCGExClusterClosestPickMode : uint8
 {

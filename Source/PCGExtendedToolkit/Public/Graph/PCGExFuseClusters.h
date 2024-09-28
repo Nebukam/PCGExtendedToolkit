@@ -5,23 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
+#include "PCGExCompoundHelpers.h"
 #include "PCGExEdgesProcessor.h"
 #include "PCGExIntersections.h"
+#include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
-
 #include "PCGExFuseClusters.generated.h"
-
-namespace PCGExDataBlending
-{
-	class FCompoundBlender;
-}
-
-namespace PCGExGraph
-{
-	struct FCompoundProcessor;
-	struct FCompoundGraph;
-}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFuseClustersSettings : public UPCGExEdgesProcessorSettings
@@ -114,8 +104,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : public FPCGE
 
 	FPCGExCarryOverDetails VtxCarryOverDetails;
 	FPCGExCarryOverDetails EdgesCarryOverDetails;
-
-	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;
 
 	TUniquePtr<PCGExGraph::FCompoundProcessor> CompoundProcessor;
 };

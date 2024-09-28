@@ -673,14 +673,14 @@ protected:
 		}
 		else
 #endif
-		if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
-		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V)); })
-		}
-		else
-		{
-			PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
-		}
+			if (PathIdentity->UnderlyingType == EPCGMetadataTypes::String)
+			{
+				PCGEX_FOREACH_COLLECTION_ENTRY(FString, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V)); })
+			}
+			else
+			{
+				PCGEX_FOREACH_COLLECTION_ENTRY(FName, PathIdentity->Name, { SetEntryPath(i, FSoftObjectPath(V.ToString())); })
+			}
 
 
 		// Weight value

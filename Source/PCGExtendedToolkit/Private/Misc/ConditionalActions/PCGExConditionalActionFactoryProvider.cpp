@@ -64,7 +64,7 @@ bool UPCGExConditionalActionFactoryBase::Boot(FPCGContext* InContext)
 	return true;
 }
 
-bool UPCGExConditionalActionFactoryBase::AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage)
+bool UPCGExConditionalActionFactoryBase::AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage) const
 {
 	TSet<FName> Mismatch;
 

@@ -14,17 +14,6 @@
 class UPCGExProbeFactoryBase;
 class UPCGExProbeOperation;
 
-namespace PCGExGraph
-{
-	struct FCompoundProcessor;
-}
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-	class FCompoundBlender;
-}
-
 /**
  * 
  */
@@ -77,9 +66,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : public FPCG
 {
 	friend class FPCGExConnectPointsElement;
 
-	TArray<UPCGExProbeFactoryBase*> ProbeFactories;
-	TArray<UPCGExFilterFactoryBase*> GeneratorsFiltersFactories;
-	TArray<UPCGExFilterFactoryBase*> ConnectablesFiltersFactories;
+	TArray<TObjectPtr<const UPCGExProbeFactoryBase>> ProbeFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> GeneratorsFiltersFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ConnectablesFiltersFactories;
 
 	FVector CWCoincidenceTolerance = FVector::OneVector;
 };

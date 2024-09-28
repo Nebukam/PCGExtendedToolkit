@@ -68,12 +68,12 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TBitmaskFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TBitmaskFilter(const UPCGExBitmaskFilterFactory* InDefinition)
+		explicit TBitmaskFilter(const TObjectPtr<const UPCGExBitmaskFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Config.Bitmask)
 		{
 		}
 
-		const UPCGExBitmaskFilterFactory* TypedFilterFactory;
+		TObjectPtr<const UPCGExBitmaskFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<int64>> FlagsReader;
 		TSharedPtr<PCGExData::TBuffer<int64>> MaskReader;

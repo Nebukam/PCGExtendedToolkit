@@ -8,11 +8,10 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSortPoints.h"
+#include "Data/PCGExPointIOMerger.h"
 
 
 #include "PCGExMergePointsByTag.generated.h"
-
-class FPCGExPointIOMerger;
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Merge by Tag | Reoslution Mode"))
 enum class EPCGExMergeByTagOverlapResolutionMode : uint8

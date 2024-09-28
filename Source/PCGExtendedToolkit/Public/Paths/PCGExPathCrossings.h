@@ -13,10 +13,9 @@
 
 
 #include "Geometry/PCGExGeo.h"
+#include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExPathCrossings.generated.h"
 
-
-class UPCGExSubPointsBlendOperation;
 /**
  * 
  */
@@ -112,8 +111,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCG
 {
 	friend class FPCGExPathCrossingsElement;
 
-	TArray<UPCGExFilterFactoryBase*> CanCutFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> CanBeCutFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> CanCutFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> CanBeCutFilterFactories;
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 

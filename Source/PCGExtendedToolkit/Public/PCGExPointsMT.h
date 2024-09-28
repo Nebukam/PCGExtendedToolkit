@@ -68,7 +68,7 @@ namespace PCGExPointsMT
 
 		const TSharedRef<PCGExData::FFacade> PointDataFacade;
 
-		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
+		TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* FilterFactories = nullptr;
 		bool DefaultPointFilterValue = true;
 		bool bIsTrivial = false;
 
@@ -97,7 +97,7 @@ namespace PCGExPointsMT
 
 		virtual bool IsTrivial() const { return bIsTrivial; }
 
-		void SetPointsFilterData(TArray<UPCGExFilterFactoryBase*>* InFactories)
+		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFactories)
 		{
 			FilterFactories = InFactories;
 		}
@@ -238,7 +238,7 @@ namespace PCGExPointsMT
 		}
 
 	protected:
-		virtual bool InitPrimaryFilters(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
+		virtual bool InitPrimaryFilters(TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories)
 		{
 			PointFilterCache.Init(DefaultPointFilterValue, PointDataFacade->GetNum());
 
@@ -288,7 +288,7 @@ namespace PCGExPointsMT
 	{
 	protected:
 		TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
-		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
+		TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* FilterFactories = nullptr;
 
 	public:
 		bool bInlineProcessing = false;
@@ -316,7 +316,10 @@ namespace PCGExPointsMT
 			PCGEX_LOG_CTR(FPointsProcessorBatchBase)
 		}
 
-		virtual ~FPointsProcessorBatchBase() { PCGEX_LOG_DTR(FPointsProcessorBatchBase) }
+		virtual ~FPointsProcessorBatchBase()
+		{
+			PCGEX_LOG_DTR(FPointsProcessorBatchBase)
+		}
 
 		virtual void SetExecutionContext(FPCGExContext* InContext)
 		{
@@ -370,7 +373,7 @@ namespace PCGExPointsMT
 		{
 		}
 
-		void SetPointsFilterData(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
+		void SetPointsFilterData(TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories)
 		{
 			FilterFactories = InFilterFactories;
 		}

@@ -24,11 +24,6 @@
 	NewOperation->PointFilterFactories.Append(PointFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
 
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
-
 namespace PCGExNeighborSample
 {
 	const FName SourceSamplersLabel = TEXT("Samplers");
@@ -159,8 +154,8 @@ public:
 
 	virtual void Cleanup() override;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> PointFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ValueFilterFactories;
 
 protected:
 	bool bIsValidOperation = true;
@@ -179,8 +174,8 @@ public:
 
 	FPCGExSamplingConfig SamplingConfig;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> PointFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ValueFilterFactories;
 
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const;
 };

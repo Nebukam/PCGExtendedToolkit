@@ -25,9 +25,6 @@
 	_BODY \
 	return NewOperation;}
 
-class UPCGExFilterFactoryBase;
-class UPCGExConditionalActionFactoryBase;
-
 namespace PCGExConditionalActions
 {
 	const FName SourceConditionsFilterLabel = TEXT("Conditions");
@@ -71,13 +68,13 @@ public:
 	TSharedPtr<PCGEx::FAttributesInfos> CheckSuccessInfos;
 	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
 
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::ConditionalActions; }
 	virtual UPCGExConditionalActionOperation* CreateOperation() const;
 
 	virtual bool Boot(FPCGContext* InContext);
-	virtual bool AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage);
+	virtual bool AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage) const;
 
 	virtual void BeginDestroy() override;
 };

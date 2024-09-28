@@ -30,7 +30,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFilterGroupFactoryBase : public UPCGExClu
 
 public:
 	bool bInvert = false;
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::FilterGroup; }
 	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override { return nullptr; }
@@ -67,7 +67,7 @@ namespace PCGExFilterGroup
 	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroup : public PCGExClusterFilter::TFilter
 	{
 	public:
-		explicit TFilterGroup(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<UPCGExFilterFactoryBase*>* InFilterFactories):
+		explicit TFilterGroup(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
 			TFilter(InFactory), GroupFactory(InFactory), ManagedFactories(InFilterFactories)
 		{
 		}
@@ -75,7 +75,7 @@ namespace PCGExFilterGroup
 		bool bValid = false;
 		bool bInvert = false;
 		const UPCGExFilterGroupFactoryBase* GroupFactory;
-		const TArray<UPCGExFilterFactoryBase*>* ManagedFactories;
+		const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* ManagedFactories;
 
 		TSharedPtr<PCGExCluster::FCluster> Cluster;
 		TSharedPtr<PCGExData::FFacade> EdgeDataCache;
@@ -104,7 +104,7 @@ namespace PCGExFilterGroup
 	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroupAND : public TFilterGroup
 	{
 	public:
-		explicit TFilterGroupAND(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<UPCGExFilterFactoryBase*>* InFilterFactories):
+		explicit TFilterGroupAND(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
 			TFilterGroup(InFactory, InFilterFactories)
 		{
 		}
@@ -131,7 +131,7 @@ namespace PCGExFilterGroup
 	class /*PCGEXTENDEDTOOLKIT_API*/ TFilterGroupOR : public TFilterGroup
 	{
 	public:
-		explicit TFilterGroupOR(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<UPCGExFilterFactoryBase*>* InFilterFactories):
+		explicit TFilterGroupOR(const UPCGExFilterGroupFactoryBase* InFactory, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>* InFilterFactories):
 			TFilterGroup(InFactory, InFilterFactories)
 		{
 		}

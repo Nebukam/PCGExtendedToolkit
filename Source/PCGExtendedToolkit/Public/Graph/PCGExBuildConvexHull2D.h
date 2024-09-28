@@ -8,12 +8,8 @@
 
 
 #include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoDelaunay.h"
 #include "PCGExBuildConvexHull2D.generated.h"
-
-namespace PCGExGeo
-{
-	class TDelaunay2;
-}
 
 /**
  * 

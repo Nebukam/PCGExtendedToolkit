@@ -72,7 +72,10 @@ namespace PCGExData
 			PCGEX_LOG_CTR(FBufferBase)
 		}
 
-		virtual ~FBufferBase() { PCGEX_LOG_DTR(FBufferBase) }
+		virtual ~FBufferBase()
+		{
+			PCGEX_LOG_DTR(FBufferBase)
+		}
 
 		virtual void Write()
 		{
@@ -344,7 +347,10 @@ namespace PCGExData
 			PCGEX_LOG_CTR(FFacade)
 		}
 
-		~FFacade() { PCGEX_LOG_DTR(FFacade) }
+		~FFacade()
+		{
+			PCGEX_LOG_DTR(FFacade)
+		}
 
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 

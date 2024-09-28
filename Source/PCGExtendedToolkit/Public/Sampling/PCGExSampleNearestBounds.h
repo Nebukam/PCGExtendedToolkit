@@ -10,6 +10,7 @@
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 
 #include "PCGExSampleNearestBounds.generated.h"
@@ -32,20 +33,6 @@ enum class EPCGExBoundsSampleMethod : uint8
 	LargestBounds  = 3 UMETA(DisplayName = "Largest Bounds", ToolTip="Picks & process the largest bounds only (extents length)"),
 	SmallestBounds = 4 UMETA(DisplayName = "Smallest Bounds", ToolTip="Picks & process the smallest bounds only (extents length)"),
 };
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
-
-namespace PCGExDataBlending
-{
-	struct FPropertiesBlender;
-}
-
-class UPCGExFilterFactoryBase;
-
-class UPCGExNodeStateFactory;
 
 namespace PCGExNearestBounds
 {

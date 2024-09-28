@@ -8,13 +8,9 @@
 
 
 #include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoDelaunay.h"
 
 #include "PCGExBuildDelaunayGraph.generated.h"
-
-namespace PCGExGeo
-{
-	class TDelaunay3;
-}
 
 /**
  * 

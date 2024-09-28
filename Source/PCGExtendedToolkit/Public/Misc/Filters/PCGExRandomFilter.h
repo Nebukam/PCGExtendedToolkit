@@ -53,12 +53,12 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TRandomFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TRandomFilter(const UPCGExRandomFilterFactory* InDefinition)
+		explicit TRandomFilter(const TObjectPtr<const UPCGExRandomFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition), RandomSeed(InDefinition->Config.RandomSeed)
 		{
 		}
 
-		const UPCGExRandomFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExRandomFilterFactory> TypedFilterFactory;
 
 		int32 RandomSeed;
 
@@ -72,7 +72,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TRandomFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

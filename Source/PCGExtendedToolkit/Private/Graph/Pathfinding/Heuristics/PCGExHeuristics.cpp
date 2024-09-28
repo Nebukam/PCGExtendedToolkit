@@ -12,14 +12,14 @@ namespace PCGExHeuristics
 	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 		: VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
 	{
-		TArray<UPCGExHeuristicsFactoryBase*> ContextFactories;
+		TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>> ContextFactories;
 		PCGExFactories::GetInputFactories(
 			InContext, PCGExGraph::SourceHeuristicsLabel, ContextFactories,
 			{PCGExFactories::EType::Heuristics}, false);
 		BuildFrom(InContext, ContextFactories);
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
+	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories)
 		: VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache)
 	{
 		BuildFrom(InContext, InFactories);
@@ -37,7 +37,7 @@ namespace PCGExHeuristics
 		Feedbacks.Empty();
 	}
 
-	void THeuristicsHandler::BuildFrom(FPCGContext* InContext, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories)
+	void THeuristicsHandler::BuildFrom(FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories)
 	{
 		for (const UPCGExHeuristicsFactoryBase* OperationFactory : InFactories)
 		{

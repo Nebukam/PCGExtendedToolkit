@@ -50,7 +50,7 @@ bool FPCGExConditionalActionsElement::Boot(FPCGExContext* InContext) const
 	FString Message = TEXT("An unspecified error occured.");
 	bool bIsConditionalActionsValid = true;
 	const TSharedPtr<PCGEx::FAttributesInfos> ValidationInfos = MakeShared<PCGEx::FAttributesInfos>();
-	for (UPCGExConditionalActionFactoryBase* Factory : Context->ConditionalActionsFactories)
+	for (const TObjectPtr<const UPCGExConditionalActionFactoryBase> Factory : Context->ConditionalActionsFactories)
 	{
 		if (!Factory->AppendAndValidate(ValidationInfos.Get(), Message))
 		{

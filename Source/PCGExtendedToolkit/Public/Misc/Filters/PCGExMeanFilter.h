@@ -78,12 +78,12 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TMeanFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TMeanFilter(const UPCGExMeanFilterFactory* InFactory)
+		explicit TMeanFilter(const TObjectPtr<const UPCGExMeanFilterFactory>& InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExMeanFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExMeanFilterFactory> TypedFilterFactory;
 
 		TArray<double> Values;
 
@@ -104,7 +104,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TMeanFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

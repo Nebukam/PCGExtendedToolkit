@@ -75,13 +75,13 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDotFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TDotFilter(const UPCGExDotFilterFactory* InFactory)
+		explicit TDotFilter(const TObjectPtr<const UPCGExDotFilterFactory>& InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 		}
 
-		const UPCGExDotFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExDotFilterFactory> TypedFilterFactory;
 
 		FPCGExDotComparisonDetails DotComparison;
 
@@ -106,7 +106,7 @@ namespace PCGExPointsFilter
 
 		virtual ~TDotFilter() override
 		{
-			TypedFilterFactory = nullptr;
+			
 		}
 	};
 }

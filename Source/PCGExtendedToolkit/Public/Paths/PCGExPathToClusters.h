@@ -5,22 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-
+#include "Graph/PCGExCompoundHelpers.h"
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExPathToClusters.generated.h"
-
-namespace PCGExGraph
-{
-	struct FCompoundProcessor;
-}
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-	class FCompoundBlender;
-}
 
 /**
  * 

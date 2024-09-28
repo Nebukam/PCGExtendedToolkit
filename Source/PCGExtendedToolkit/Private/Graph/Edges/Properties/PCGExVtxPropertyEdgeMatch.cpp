@@ -130,7 +130,7 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertyEdgeMatchFactory::CreateOperation()
 
 	if (!FilterFactories.IsEmpty())
 	{
-		NewOperation->FilterFactories = const_cast<TArray<UPCGExFilterFactoryBase*>*>(&FilterFactories);
+		NewOperation->FilterFactories = const_cast<TArray<TObjectPtr<const UPCGExFilterFactoryBase>>*>(&FilterFactories);
 	}
 
 	return NewOperation;

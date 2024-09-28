@@ -2,10 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExConnectClusters.h"
-
 #include "Data/PCGExPointIOMerger.h"
-
-
 #include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExConnectClusters"
@@ -176,7 +173,7 @@ namespace PCGExBridgeClusters
 
 		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D)
 		{
-			TUniquePtr<PCGExGeo::TDelaunay3> Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
+			const TUniquePtr<PCGExGeo::TDelaunay3> Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);

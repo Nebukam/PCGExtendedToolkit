@@ -24,10 +24,6 @@ MACRO(SignedDistance, double, 0)\
 MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)
 
-class UPCGExFilterFactoryBase;
-
-class UPCGExNodeStateFactory;
-
 namespace PCGExNearestPoint
 {
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FTargetInfos

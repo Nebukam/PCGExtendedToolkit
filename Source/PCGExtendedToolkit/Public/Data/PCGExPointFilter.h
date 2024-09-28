@@ -75,7 +75,7 @@ namespace PCGExPointFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TFilter
 	{
 	public:
-		explicit TFilter(const UPCGExFilterFactoryBase* InFactory):
+		explicit TFilter(const TObjectPtr<const UPCGExFilterFactoryBase>& InFactory):
 			Factory(InFactory)
 		{
 		}
@@ -84,7 +84,7 @@ namespace PCGExPointFilter
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
 		bool bCacheResults = true;
-		const UPCGExFilterFactoryBase* Factory;
+		TObjectPtr<const UPCGExFilterFactoryBase> Factory;
 		TArray<bool> Results;
 
 		int32 FilterIndex = 0;
@@ -115,7 +115,7 @@ namespace PCGExPointFilter
 
 		TSharedPtr<PCGExData::FFacade> PointDataFacade;
 
-		bool Init(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
+		bool Init(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 
 		virtual bool Test(const int32 Index);
 		virtual bool Test(const PCGExCluster::FNode& Node);

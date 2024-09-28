@@ -69,7 +69,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteVtxPropertiesContext final : public
 {
 	friend class FPCGExWriteVtxPropertiesElement;
 
-	TArray<UPCGExVtxPropertyFactoryBase*> ExtraFactories;
+	TArray<TObjectPtr<const UPCGExVtxPropertyFactoryBase>> ExtraFactories;
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };

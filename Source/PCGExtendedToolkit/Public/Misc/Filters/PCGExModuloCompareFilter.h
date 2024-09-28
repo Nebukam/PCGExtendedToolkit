@@ -81,12 +81,12 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TModuloComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TModuloComparisonFilter(const UPCGExModuloCompareFilterFactory* InDefinition)
+		explicit TModuloComparisonFilter(const TObjectPtr<const UPCGExModuloCompareFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExModuloCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExModuloCompareFilterFactory> TypedFilterFactory;
 
 		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
 		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
@@ -103,7 +103,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TModuloComparisonFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

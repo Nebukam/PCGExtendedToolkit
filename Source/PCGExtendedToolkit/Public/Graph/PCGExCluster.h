@@ -8,15 +8,12 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "Data/PCGExAttributeHelpers.h"
-
-
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
 
 namespace PCGExCluster
 {
-	struct FAdjacencyData;
 	struct FExpandedNode;
 	struct FExpandedEdge;
 }
@@ -69,6 +66,15 @@ namespace PCGExCluster
 	const FName SourceNodeFlagLabel = TEXT("Node Flags");
 
 	PCGEX_ASYNC_STATE(State_ProcessingCluster)
+
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FAdjacencyData
+	{
+		int32 NodeIndex = -1;
+		int32 NodePointIndex = -1;
+		int32 EdgeIndex = -1;
+		FVector Direction = FVector::OneVector;
+		double Length = 0;
+	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FClusterItemRef
 	{
@@ -475,15 +481,6 @@ namespace PCGExCluster
 			return HashCombineFast(BaseHash, NodeBaseHash);
 			*/
 		}
-	};
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FAdjacencyData
-	{
-		int32 NodeIndex = -1;
-		int32 NodePointIndex = -1;
-		int32 EdgeIndex = -1;
-		FVector Direction = FVector::OneVector;
-		double Length = 0;
 	};
 
 	static void GetAdjacencyData(const FCluster* InCluster, FNode& InNode, TArray<FAdjacencyData>& OutData)

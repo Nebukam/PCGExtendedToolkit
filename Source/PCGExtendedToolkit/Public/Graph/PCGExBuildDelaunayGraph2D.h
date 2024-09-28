@@ -8,13 +8,9 @@
 
 
 #include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoDelaunay.h"
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
-
-namespace PCGExGeo
-{
-	class TDelaunay2;
-}
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Urquhart Site Merge Mode"))
 enum class EPCGExUrquhartSiteMergeMode : uint8
