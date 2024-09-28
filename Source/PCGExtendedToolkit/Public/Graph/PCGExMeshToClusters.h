@@ -125,7 +125,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersContext final : public FPC
 	TSharedPtr<PCGExData::FPointIOCollection> EdgeChildCollection;
 
 	TArray<TSharedPtr<PCGExGraph::FGraphBuilder>> GraphBuilders;
-
 };
 
 

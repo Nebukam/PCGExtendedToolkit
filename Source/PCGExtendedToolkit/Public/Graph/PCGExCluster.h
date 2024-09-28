@@ -198,7 +198,7 @@ namespace PCGExCluster
 		FBox Bounds;
 
 		const TArray<FPCGPoint>* VtxPoints = nullptr;
-		
+
 		TWeakPtr<PCGExData::FPointIO> VtxIO;
 		TWeakPtr<PCGExData::FPointIO> EdgesIO;
 

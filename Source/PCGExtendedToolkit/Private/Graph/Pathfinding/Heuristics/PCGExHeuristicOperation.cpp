@@ -38,4 +38,3 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 		bHasCustomLocalWeightMultiplier = true;
 	}
 }
-

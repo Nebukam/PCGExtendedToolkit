@@ -83,6 +83,5 @@ public:
 
 			(Cluster->Edges->GetData() + EdgeIndex)->bValid = true;
 		}
-
 	}
 };

@@ -726,7 +726,7 @@ namespace PCGExMath
 	template <typename CompilerSafety = void>
 	FORCEINLINE static FQuat Div(const FQuat& A, const double Divider)
 	{
-		return Div(A.Rotator(), Divider).Quaternion(); 
+		return Div(A.Rotator(), Divider).Quaternion();
 	}
 
 	template <typename T>

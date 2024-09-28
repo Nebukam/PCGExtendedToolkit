@@ -69,7 +69,7 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberFilterElement;
-	
+
 	TSharedPtr<PCGExData::FPointIOCollection> Inside;
 	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 

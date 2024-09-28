@@ -156,7 +156,6 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExPathSplineMesh
 {
-
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		// Must be set before process for filters

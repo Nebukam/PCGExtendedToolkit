@@ -52,4 +52,3 @@ void UPCGExProbeOperation::ProcessBestCandidate(const int32 Index, const FPCGPoi
 void UPCGExProbeOperation::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 }
-

@@ -156,7 +156,7 @@ namespace PCGExSplitPath
 
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
-		PCGEx::InitArray(MutablePoints, NumPathPoints);;
+		PCGEx::InitArray(MutablePoints, NumPathPoints);
 
 		for (int i = 0; i < PathInfos.Count; ++i) { MutablePoints[i] = OriginalPoints[PathInfos.Start + i]; }
 

@@ -20,7 +20,7 @@ bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return tr
 FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	
+
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Cleanup(); }
 }
 

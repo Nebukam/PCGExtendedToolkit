@@ -28,7 +28,6 @@ TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::TryGetHandler(c
 
 namespace PCGExData
 {
-
 	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardDetails& InDetails, const TSharedPtr<FFacade>& InSourceDataFacade):
 		Details(InDetails), SourceDataFacade(InSourceDataFacade), TargetDataFacade(nullptr)
 	{

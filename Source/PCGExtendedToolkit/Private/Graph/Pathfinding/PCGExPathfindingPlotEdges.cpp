@@ -127,7 +127,6 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 	}
 
 	PathIO->Tags->Append(InPlotPoints->Tags.ToSharedRef());
-
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)

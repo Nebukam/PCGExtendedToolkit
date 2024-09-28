@@ -32,7 +32,6 @@ namespace PCGExDataBlending
 		explicit FAttributeSourceMap(const PCGEx::FAttributeIdentity& InIdentity)
 			: Identity(InIdentity)
 		{
-			
 		}
 
 		~FAttributeSourceMap()

@@ -75,7 +75,7 @@ namespace PCGExData
 		mutable FRWLock PointsLock;
 		mutable FRWLock InKeysLock;
 		mutable FRWLock OutKeysLock;
-		
+
 		bool bWritten = false;
 		int32 NumInPoints = -1;
 
