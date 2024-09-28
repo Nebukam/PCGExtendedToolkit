@@ -75,7 +75,7 @@ namespace PCGExGraph
 		FPCGExBlendingDetails DefaultPointsBlendingDetails;
 		FPCGExBlendingDetails DefaultEdgesBlendingDetails;
 
-		TUniquePtr<FGraphBuilder> GraphBuilder;
+		TSharedPtr<FGraphBuilder> GraphBuilder;
 
 		FGraphMetadataDetails GraphMetadataDetails;
 		TUniquePtr<FPointEdgeIntersections> PointEdgeIntersections;

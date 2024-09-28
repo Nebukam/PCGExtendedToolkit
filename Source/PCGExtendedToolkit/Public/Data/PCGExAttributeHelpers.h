@@ -341,7 +341,7 @@ namespace PCGEx
 				AttributeName, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 
-			return MakeShared<FAttributeAccessor<T>>(InData, InAttribute, InPointIO->CreateOutKeys().Get());
+			return MakeShared<FAttributeAccessor<T>>(InData, InAttribute, InPointIO->GetOutKeys().Get());
 		}
 	};
 
@@ -694,7 +694,7 @@ namespace PCGEx
 						PCGEx::InitArray(RawValues, Count);
 
 						TArrayView<RawT> RawView(RawValues);
-						InternalAccessor->GetRange(RawView, StartIndex, *PointIO->CreateInKeys().Get(), PCGEX_AAFLAG);
+						InternalAccessor->GetRange(RawView, StartIndex, *PointIO->GetInKeys().Get(), PCGEX_AAFLAG);
 
 						for (int i = 0; i < Count; ++i) { Dump[StartIndex + i] = Convert(RawValues[i]); }
 					});
@@ -754,7 +754,7 @@ namespace PCGEx
 						PCGEx::InitArray(RawValues, NumPoints);
 
 						TArrayView<RawT> View(RawValues);
-						InternalAccessor->GetRange(View, 0, *PointIO->CreateInKeys().Get(), PCGEX_AAFLAG);
+						InternalAccessor->GetRange(View, 0, *PointIO->GetInKeys().Get(), PCGEX_AAFLAG);
 
 						if (bCaptureMinMax)
 						{
@@ -1383,7 +1383,7 @@ namespace PCGEx
 	}
 
 	static void CopyValues(
-		TWeakPtr<PCGExMT::FTaskManager> AsyncManager,
+		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 		const FAttributeIdentity& Identity,
 		const TSharedPtr<PCGExData::FPointIO>& Source,
 		const TSharedPtr<PCGExData::FPointIO>& Target,

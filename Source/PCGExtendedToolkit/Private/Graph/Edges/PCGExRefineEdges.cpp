@@ -111,7 +111,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 					NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 				},
-				PCGExMT::State_Done))
+				PCGExGraph::State_ReadyToCompile))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 
@@ -121,9 +121,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	}
 
 	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->CompileGraphBuilders(true, PCGExMT::State_Done)) { return false; }
 
-	//if(Context->IsState(PCGExGraph::State_Compiling))
-	
 	//
 
 	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->MainPoints->OutputToContext(); }

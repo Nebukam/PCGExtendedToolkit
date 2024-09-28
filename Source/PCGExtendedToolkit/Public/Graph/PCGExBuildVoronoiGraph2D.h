@@ -104,7 +104,7 @@ namespace PCGExBuildVoronoi2D
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		TUniquePtr<PCGExGeo::TVoronoi2> Voronoi;
-		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
 

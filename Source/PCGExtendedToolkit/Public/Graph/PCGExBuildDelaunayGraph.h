@@ -109,7 +109,7 @@ namespace PCGExBuildDelaunay
 
 	protected:
 		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay;
-		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
 
 		TSharedPtr<PCGExData::TBuffer<bool>> HullMarkPointWriter;

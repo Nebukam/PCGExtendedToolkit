@@ -20,7 +20,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	const int32 NumPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->Nodes->Num() : InPoints->GetNum();
 
 	LastPoints = InPoints;
-	InPoints->CreateInKeys();
+	InPoints->GetInKeys();
 	CachedScores.SetNumZeroed(NumPoints);
 
 	const TSharedPtr<PCGExData::TBuffer<double>> ModifiersCache = DataFacade->GetBroadcaster<double>(Attribute, true);

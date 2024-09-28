@@ -81,7 +81,7 @@ namespace PCGExConvexHull2D
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
-		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;
 

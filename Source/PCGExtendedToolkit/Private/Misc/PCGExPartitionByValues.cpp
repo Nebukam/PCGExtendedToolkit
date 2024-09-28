@@ -205,7 +205,7 @@ namespace PCGExPartitionByValues
 		RootPartition = MakeShared<PCGExPartition::FKPartition>(nullptr, 0, nullptr, -1);
 
 		Rules.Empty(); //
-		PointDataFacade->Source->CreateInKeys();
+		PointDataFacade->Source->GetInKeys();
 
 		const int32 NumPoints = PointDataFacade->GetNum();
 

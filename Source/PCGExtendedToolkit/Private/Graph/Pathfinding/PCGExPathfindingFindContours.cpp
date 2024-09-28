@@ -223,7 +223,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 	if (Settings->bFlagDeadEnds)
 	{
-		PathIO->CreateOutKeys();
+		PathIO->GetOutKeys();
 		TSharedPtr<PCGEx::TAttributeWriter<bool>> DeadEndWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->DeadEndAttributeName, false, false, true);
 		DeadEndWriter->BindAndSetNumUninitialized(PathIO);
 		for (int i = 0; i < Path.Num(); ++i) { DeadEndWriter->Values[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
@@ -236,8 +236,8 @@ bool FPCGExFindContoursContext::TryFindContours(
 		if (Settings->bTagConvex && bIsConvex) { PathIO->Tags->Add(Settings->ConvexTag); }
 	}
 
-	WriteWithManager(ClusterProcessor->AsyncManager, PathDataFacade);
-
+	PathDataFacade->Write(ClusterProcessor->AsyncManager);
+	
 	if (Settings->bOutputFilteredSeeds) { ClusterProcessor->Context->SeedQuality[SeedIndex] = true; }
 
 	return true;

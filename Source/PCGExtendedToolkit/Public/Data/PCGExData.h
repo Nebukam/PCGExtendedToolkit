@@ -219,7 +219,7 @@ namespace PCGExData
 			if (!bScopedBuffer)
 			{
 				TArrayView<T> InRange = MakeArrayView(InValues->GetData(), InValues->Num());
-				InAccessor->GetRange(InRange, 0, *Source->CreateInKeys());
+				InAccessor->GetRange(InRange, 0, *Source->GetInKeys());
 			}
 
 			return true;
@@ -250,7 +250,7 @@ namespace PCGExData
 					// TODO : Scoped get would be better here
 					// Get existing values
 					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
-					OutAccessor->GetRange(OutRange, 0, *Source->CreateOutKeys());
+					OutAccessor->GetRange(OutRange, 0, *Source->GetOutKeys());
 				}
 			}
 
@@ -292,10 +292,14 @@ namespace PCGExData
 		{
 			if (!IsWritable()) { return; }
 
+			UE_LOG(LogTemp, Warning, TEXT("Buffer Write Start :: %s"), *FullName.ToString())
+
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
 			TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
 
-			OutAccessor->SetRange(View, 0, *Source->CreateOutKeys());
+			OutAccessor->SetRange(View, 0, *Source->GetOutKeys());
+
+			UE_LOG(LogTemp, Warning, TEXT("Buffer Write End :: %s"), *FullName.ToString())
 		}
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
@@ -305,7 +309,7 @@ namespace PCGExData
 			if (InAccessor.IsValid())
 			{
 				TArrayView<T> ReadRange = MakeArrayView(InValues->GetData() + StartIndex, Count);
-				InAccessor->GetRange(ReadRange, StartIndex, *Source->CreateInKeys());
+				InAccessor->GetRange(ReadRange, StartIndex, *Source->GetInKeys());
 			}
 
 			//if (OutAccessor.IsValid())
@@ -540,13 +544,16 @@ namespace PCGExData
 
 		void Write(const TWeakPtr<PCGExMT::FTaskManager>& AsyncManagerPtr)
 		{
-			if (!AsyncManagerPtr.Pin()) { return; }
+			const TSharedPtr<PCGExMT::FTaskManager> PinnedManager = AsyncManagerPtr.Pin();
+			if (!PinnedManager) { return; }
 
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
 				const TSharedPtr<FBufferBase>& Buffer = Buffers[i];
-				if (Buffer->IsWritable()) { PCGExMT::Write(AsyncManagerPtr, Buffer); }
+				if (Buffer->IsWritable()) { PCGExMT::Write(PinnedManager, Buffer); }
 			}
+
+			Flush();
 		}
 
 		void Fetch(const int32 StartIndex, const int32 Count) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }

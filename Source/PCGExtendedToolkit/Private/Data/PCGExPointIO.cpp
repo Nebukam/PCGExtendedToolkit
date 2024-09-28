@@ -85,31 +85,45 @@ namespace PCGExData
 		}
 	}
 
-	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::CreateInKeys()
+	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetInKeys()
 	{
-		FWriteScopeLock WriteScopeLock(InKeysLock);
-		if (InKeys) { return InKeys; }
-		if (const TSharedPtr<FPointIO> PinnedRoot = RootIO.Pin()) { InKeys = PinnedRoot->CreateInKeys(); }
-		else { InKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(In->GetPoints()); }
+		{
+			FReadScopeLock ReadScopeLock(InKeysLock);
+			if (InKeys) { return InKeys; }
+		}
+
+		{
+			FWriteScopeLock WriteScopeLock(InKeysLock);
+			if (InKeys) { return InKeys; }
+			if (const TSharedPtr<FPointIO> PinnedRoot = RootIO.Pin()) { InKeys = PinnedRoot->GetInKeys(); }
+			else { InKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(In->GetPoints()); }
+		}
+
 		return InKeys;
 	}
 
 	void FPointIO::PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap)
 	{
-		CreateInKeys();
+		GetInKeys();
 		const TArray<FPCGPoint>& PointList = In->GetPoints();
 		InMap.Empty(PointList.Num());
 		for (int i = 0; i < PointList.Num(); ++i) { InMap.Add(PointList[i].MetadataEntry, i); }
 	}
 
-	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::CreateOutKeys()
+	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetOutKeys()
 	{
-		FWriteScopeLock WriteScopeLock(OutKeysLock);
-		if (!OutKeys)
 		{
+			FReadScopeLock ReadScopeLock(OutKeysLock);
+			if (OutKeys) { return OutKeys; }
+		}
+
+		{
+			FWriteScopeLock WriteScopeLock(OutKeysLock);
+			if (OutKeys) { return OutKeys; }
 			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());
 			OutKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(View);
 		}
+
 		return OutKeys;
 	}
 
@@ -125,11 +139,11 @@ namespace PCGExData
 				Out->Metadata->InitializeOnSet(Point.MetadataEntry);
 				InMap.Add(Point.MetadataEntry, i);
 			}
-			CreateOutKeys();
+			GetOutKeys();
 		}
 		else
 		{
-			CreateOutKeys();
+			GetOutKeys();
 			const TArray<FPCGPoint>& PointList = Out->GetPoints();
 			InMap.Empty(PointList.Num());
 			for (int i = 0; i < PointList.Num(); ++i) { InMap.Add(PointList[i].MetadataEntry, i); }
@@ -138,7 +152,7 @@ namespace PCGExData
 
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::CreateKeys(const ESource InSource)
 	{
-		return InSource == ESource::In ? CreateInKeys() : CreateOutKeys();
+		return InSource == ESource::In ? GetInKeys() : GetOutKeys();
 	}
 
 	void FPointIO::InitializeNum(const int32 NumPoints, const bool bForceInit) const

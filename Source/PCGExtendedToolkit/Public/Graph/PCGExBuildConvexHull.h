@@ -70,7 +70,7 @@ namespace PCGExConvexHull
 	{
 	protected:
 		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay;
-		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;
 

@@ -7,6 +7,7 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "PCGExMath.h"
+#include "PCGExHelpers.h"
 
 
 //#include "PCGExGeoMesh.generated.h"
@@ -44,7 +45,7 @@ namespace PCGExGeo
 			if (Triangles.IsEmpty()) { return; }
 
 			TArray<FVector> DualPositions;
-			DualPositions.SetNumUninitialized(Triangles.Num());
+			PCGEx::InitArray(DualPositions, Triangles.Num());
 
 			Edges.Empty();
 

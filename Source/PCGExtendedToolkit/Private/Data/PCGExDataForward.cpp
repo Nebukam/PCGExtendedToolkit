@@ -12,7 +12,7 @@ TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(cons
 
 TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
 {
-	InTargetDataFacade->Source->CreateOutKeys();
+	InTargetDataFacade->Source->GetOutKeys();
 	return MakeShared<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade, InTargetDataFacade);
 }
 

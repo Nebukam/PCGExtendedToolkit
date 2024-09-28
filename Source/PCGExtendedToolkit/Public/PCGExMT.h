@@ -228,15 +228,19 @@ namespace PCGExMT
 		void Start(const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			if (!IsAvailable()) { return; }
-			if (ForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
-			else { StartBackgroundTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
+
+			FAsyncTask<T>* UniqueTask = new FAsyncTask<T>(InPointsIO, args...);
+			if (ForceSync) { StartSynchronousTask<T>(UniqueTask, TaskIndex); }
+			else { StartBackgroundTask<T>(UniqueTask, TaskIndex); }
 		}
 
 		template <typename T, typename... Args>
 		void StartSynchronous(int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			if (!IsAvailable()) { return; }
-			StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
+
+			FAsyncTask<T>* UniqueTask = new FAsyncTask<T>(InPointsIO, args...);
+			StartSynchronousTask(UniqueTask, TaskIndex);
 		}
 
 		template <typename T>
@@ -532,29 +536,7 @@ namespace PCGExMT
 	{
 	public:
 		FWriteTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		           TSharedPtr<T> InOperation)
-			: FPCGExTask(InPointIO),
-			  Operation(InOperation)
-
-		{
-		}
-
-		TSharedPtr<T> Operation = nullptr;
-
-		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
-		{
-			Operation->Write();
-			return true;
-		}
-	};
-
-	template <typename T>
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteWithManager final : public FPCGExTask
-	{
-	public:
-		FWriteWithManager(
-			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			TSharedPtr<T> InOperation)
+		           const TSharedPtr<T>& InOperation)
 			: FPCGExTask(InPointIO),
 			  Operation(InOperation)
 
@@ -565,24 +547,17 @@ namespace PCGExMT
 
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override
 		{
-			Operation->Write(ManagerPtr);
+			if (!Operation) { return false; }
+			Operation->Write();
 			return true;
 		}
 	};
 
 	template <typename T>
-	static void Write(TWeakPtr<FTaskManager> AsyncManagerPtr, TSharedPtr<T> Operation)
+	static void Write(const TSharedPtr<FTaskManager>& AsyncManager, const TSharedPtr<T>& Operation)
 	{
-		const TSharedPtr<FTaskManager> AsyncManager = AsyncManagerPtr.Pin();
-		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
-		AsyncManager->Start<FWriteTask<T>>(-1, nullptr, Operation);
-	}
-
-	template <typename T>
-	static void WriteWithManager(TWeakPtr<FTaskManager> AsyncManagerPtr, TSharedPtr<T> Operation)
-	{
-		const TSharedPtr<FTaskManager> AsyncManager = AsyncManagerPtr.Pin();
-		if (!AsyncManager || !AsyncManager->IsAvailable()) { return; }
-		AsyncManager->Start<FWriteWithManager<T>>(-1, nullptr, Operation);
+		if (!Operation) { return; }
+		if (!AsyncManager || !AsyncManager->IsAvailable()) { Operation->Write(); }
+		else { AsyncManager->Start<FWriteTask<T>>(-1, nullptr, Operation); }
 	}
 }

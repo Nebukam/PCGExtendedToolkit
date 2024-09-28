@@ -44,7 +44,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 			[&](const TSharedPtr<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>& NewBatch)
 			{
 			},
-			PCGExMT::State_Done))
+			PCGExGraph::State_ReadyToCompile))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
@@ -52,6 +52,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 
 	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->CompileGraphBuilders(true, PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 

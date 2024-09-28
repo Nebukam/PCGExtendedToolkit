@@ -165,7 +165,7 @@ namespace PCGExSampleNearestSpline
 			if (!LookAtUpGetter) { PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("LookAtUp is invalid.")); }
 		}
 
-		PointDataFacade->Source->CreateOutKeys();
+		PointDataFacade->Source->GetOutKeys();
 
 		StartParallelLoopForPoints();
 

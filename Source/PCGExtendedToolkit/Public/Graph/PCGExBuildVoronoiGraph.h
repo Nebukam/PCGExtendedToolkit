@@ -98,7 +98,7 @@ namespace PCGExBuildVoronoi
 	{
 	protected:
 		TUniquePtr<PCGExGeo::TVoronoi3> Voronoi;
-		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
 

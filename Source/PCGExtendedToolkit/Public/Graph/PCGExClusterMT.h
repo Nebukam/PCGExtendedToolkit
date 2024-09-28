@@ -410,7 +410,7 @@ namespace PCGExClusterMT
 		{
 			AsyncManager = AsyncManagerPtr;
 
-			VtxDataFacade->Source->CreateInKeys();
+			VtxDataFacade->Source->GetInKeys();
 			const int32 NumVtx = VtxDataFacade->GetNum();
 
 			if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
@@ -493,6 +493,27 @@ namespace PCGExClusterMT
 			if (bWriteVtxDataFacade) { VtxDataFacade->Write(AsyncManager); }
 		}
 
+		virtual void CompileGraphBuilder(const bool bOutputToContext)
+		{
+			if (!GraphBuilder) { return; }
+
+			if (bOutputToContext)
+			{
+				GraphBuilder->OnCompilationEndCallback = [&](const TSharedRef<PCGExGraph::FGraphBuilder>& InBuilder, const bool bSuccess)
+				{
+					if (!bSuccess)
+					{
+						// TODO : Log error
+						return;
+					}
+
+					InBuilder->OutputEdgesToContext();
+				};
+			}
+
+			GraphBuilder->CompileAsync(AsyncManager, true);
+		}
+
 		virtual void Output()
 		{
 		}
@@ -541,7 +562,7 @@ namespace PCGExClusterMT
 
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 			{
-				IO->CreateInKeys();
+				IO->GetInKeys();
 
 				const TSharedPtr<PCGExData::FFacade> EdgeDataFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 				const TSharedPtr<T> NewProcessor = MakeShared<T>(VtxDataFacade, EdgeDataFacade.ToSharedRef());
@@ -550,7 +571,7 @@ namespace PCGExClusterMT
 				NewProcessor->ParentBatch = SelfPtr;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
-				NewProcessor->BatchIndex = Processors.Num() - 1;
+				NewProcessor->BatchIndex = Processors.Num();
 
 				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
 				NewProcessor->SetRequiresHeuristics(RequiresHeuristics());

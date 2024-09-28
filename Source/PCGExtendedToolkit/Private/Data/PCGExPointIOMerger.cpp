@@ -52,7 +52,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 	{
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
 		CompositeIO->Tags->Append(Source->Tags.ToSharedRef());
-		Source->CreateInKeys();
+		Source->GetInKeys();
 
 		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
 
@@ -109,7 +109,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 	}
 
 	InCarryOverDetails->Filter(CompositeIO.Get());
-	CompositeIO->CreateOutKeys();
+	CompositeIO->GetOutKeys();
 
 	for (int i = 0; i < UniqueIdentities.Num(); ++i) { AsyncManager->Start<PCGExPointIOMerger::FWriteAttributeTask>(i, CompositeIO, SharedThis(this)); }
 }

@@ -108,6 +108,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 
 protected:
 	virtual bool ProcessClusters();
+	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGExMT::AsyncState NextStateId);
 
 	TArray<TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>> Batches;
 
@@ -190,6 +191,10 @@ protected:
 	}
 
 	virtual void OnBatchesWritingDone()
+	{
+	}
+
+	virtual void OnGraphBuilderCompilationDone()
 	{
 	}
 

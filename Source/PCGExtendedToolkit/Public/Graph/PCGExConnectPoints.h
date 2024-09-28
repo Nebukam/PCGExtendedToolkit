@@ -136,7 +136,7 @@ namespace PCGExConnectPoints
 		TUniquePtr<PCGExPointFilter::TManager> GeneratorsFilter;
 		TUniquePtr<PCGExPointFilter::TManager> ConnectableFilter;
 
-		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<UPCGExProbeOperation*> ProbeOperations;
 		TArray<UPCGExProbeOperation*> DirectProbeOperations;

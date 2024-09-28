@@ -182,16 +182,13 @@ namespace PCGExData
 		FORCEINLINE int32 GetNum(const ESource Source) const { return Source == ESource::In ? In->GetPoints().Num() : Out->GetPoints().Num(); }
 		FORCEINLINE int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
 
-		TSharedPtr<FPCGAttributeAccessorKeysPoints> CreateInKeys();
-		FORCEINLINE TSharedPtr<FPCGAttributeAccessorKeysPoints> GetInKeys() const { return InKeys; }
+		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetInKeys();
 		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap);
 
-		TSharedPtr<FPCGAttributeAccessorKeysPoints> CreateOutKeys();
-		FORCEINLINE TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys() const { return OutKeys; }
+		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys();
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, bool bInitializeOnSet);
 
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> CreateKeys(ESource InSource);
-		FORCEINLINE TSharedPtr<FPCGAttributeAccessorKeysPoints> GetKeys(const ESource InSource) const { return InSource == ESource::In ? GetInKeys() : GetOutKeys(); }
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 

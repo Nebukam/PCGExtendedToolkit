@@ -88,7 +88,7 @@ namespace PCGExDataBlending
 			if (!SourceAttribute->AllowsInterpolation()) { Map->AllowsInterpolation = false; }
 		}
 
-		InFacade->Source->CreateInKeys();
+		InFacade->Source->GetInKeys();
 	}
 
 	void FCompoundBlender::AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades)
@@ -106,7 +106,7 @@ namespace PCGExDataBlending
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
 		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : MakeUnique<FPropertiesBlender>(PropertiesBlendingDetails);
 
-		CurrentTargetData->Source->CreateOutKeys();
+		CurrentTargetData->Source->GetOutKeys();
 
 		// Create blending operations
 		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
@@ -213,7 +213,7 @@ namespace PCGExDataBlending
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
 		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : MakeUnique<FPropertiesBlender>(PropertiesBlendingDetails);
 
-		CurrentTargetData->Source->CreateOutKeys();
+		CurrentTargetData->Source->GetOutKeys();
 		CarryOverDetails->Reduce(UniqueTags);
 
 		UPCGMetadata* TargetMetadata = TargetData->Source->GetOut()->Metadata;

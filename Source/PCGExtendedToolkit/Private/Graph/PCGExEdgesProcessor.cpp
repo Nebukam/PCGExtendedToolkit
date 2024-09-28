@@ -64,7 +64,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	if (TaggedEdges)
 	{
-		CurrentIO->CreateInKeys();
+		CurrentIO->GetInKeys();
 		//ProjectionSettings.Init(CurrentIO); // TODO : Move to FClusterProcessor?
 		if (bBuildEndpointsLookup)
 		{
@@ -92,7 +92,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 
 		if (!bBuildCluster) { return true; }
 
-		CurrentEdges->CreateInKeys();
+		CurrentEdges->GetInKeys();
 
 		if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO.ToSharedRef(), CurrentEdges.ToSharedRef()))
 		{
@@ -168,33 +168,31 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 			else { SetState(TargetState_ClusterProcessingDone); }
 		}
 
-		if (IsState(PCGExGraph::State_Compiling))
-		{
-			if (!IsAsyncWorkComplete()) { return false; }
-
-			OnBatchesCompilationDone(false);
-
-			for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches)
-			{
-				if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->OutputEdgesToContext(); }
-			}
-
-			OnBatchesCompilationDone(true);
-
-			if (bDoClusterBatchWritingStep)
-			{
-				WriteBatches(Batches);
-				SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
-			}
-			else { SetState(TargetState_ClusterProcessingDone); }
-		}
-
 		if (IsState(PCGExClusterMT::MTState_ClusterWriting))
 		{
 			if (!IsAsyncWorkComplete()) { return false; }
 			OnBatchesWritingDone();
 			SetState(TargetState_ClusterProcessingDone);
 		}
+	}
+
+	return true;
+}
+
+bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGExMT::AsyncState NextStateId)
+{
+	if (IsState(PCGExGraph::State_ReadyToCompile))
+	{
+		SetAsyncState(PCGExGraph::State_Compiling);
+		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->CompileGraphBuilder(bOutputToContext); }
+		return false;
+	}
+
+	if (IsState(PCGExGraph::State_Compiling))
+	{
+		if (!IsAsyncWorkComplete()) { return false; }
+		OnGraphBuilderCompilationDone();
+		SetState(NextStateId);
 	}
 
 	return true;

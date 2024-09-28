@@ -121,7 +121,7 @@ namespace PCGExBuildDelaunay2D
 
 	protected:
 		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
-		TUniquePtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		TSet<uint64> UrquhartEdges;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 

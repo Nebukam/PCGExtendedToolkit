@@ -136,6 +136,7 @@ namespace PCGExGraph
 	PCGEX_ASYNC_STATE(State_FindingCrossings)
 	PCGEX_ASYNC_STATE(State_WritingClusters)
 	PCGEX_ASYNC_STATE(State_WaitingOnWritingClusters)
+	PCGEX_ASYNC_STATE(State_ReadyToCompile)
 	PCGEX_ASYNC_STATE(State_Compiling)
 
 	PCGEX_ASYNC_STATE(State_ProcessingPointEdgeIntersections)
@@ -577,7 +578,7 @@ namespace PCGExGraphTask
 	public:
 		FCompileGraph(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			PCGExGraph::FGraphBuilder* InGraphBuilder,
+			const TSharedPtr<PCGExGraph::FGraphBuilder>& InGraphBuilder,
 			const bool bInWriteNodeFacade,
 			PCGExGraph::FGraphMetadataDetails* InMetadataDetails = nullptr)
 			: FPCGExTask(InPointIO),
@@ -587,7 +588,7 @@ namespace PCGExGraphTask
 		{
 		}
 
-		PCGExGraph::FGraphBuilder* Builder = nullptr;
+		const TSharedPtr<PCGExGraph::FGraphBuilder> Builder;
 		const bool bWriteNodeFacade = false;
 		PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
 

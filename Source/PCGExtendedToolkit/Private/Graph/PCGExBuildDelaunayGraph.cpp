@@ -130,7 +130,7 @@ namespace PCGExBuildDelaunay
 			else { AsyncManager->Start<FOutputDelaunaySites>(BatchIndex, PointDataFacade->Source, this); }
 		}
 
-		GraphBuilder = MakeUnique<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 		GraphBuilder->CompileAsync(AsyncManager, false);
 
@@ -202,7 +202,7 @@ namespace PCGExBuildDelaunay
 			const TSharedPtr<PCGEx::TAttributeWriter<bool>> HullWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
-			Write(ManagerPtr, HullWriter);
+			Write(AsyncManager, HullWriter);
 		}
 
 		return true;
@@ -243,7 +243,7 @@ namespace PCGExBuildDelaunay
 			const TSharedPtr<PCGEx::TAttributeWriter<bool>> HullWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->SiteHullAttributeName);
 			HullWriter->BindAndSetNumUninitialized(SitesIO);
 			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
-			Write(ManagerPtr, HullWriter);
+			Write(AsyncManager, HullWriter);
 		}
 
 		return true;

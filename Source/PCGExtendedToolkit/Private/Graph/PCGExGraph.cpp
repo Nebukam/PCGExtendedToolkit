@@ -274,8 +274,7 @@ namespace PCGExGraph
 		}
 		else
 		{
-			InAsyncManager->Start<PCGExGraphTask::FCompileGraph>(
-				-1, NodeDataFacade->Source, this, bWriteNodeFacade, MetadataDetails);
+			InAsyncManager->Start<PCGExGraphTask::FCompileGraph>(-1, NodeDataFacade->Source, SharedThis(this), bWriteNodeFacade, MetadataDetails);
 		}
 	}
 
@@ -423,6 +422,8 @@ namespace PCGExGraph
 					OnCompilationEndCallback(SharedPtr.ToSharedRef(), bCompiledSuccessfully);
 				}
 
+				if (!bCompiledSuccessfully) { return; }
+
 				// Schedule facades for writing
 				if (bWriteVtxDataFacadeWithCompile) { NodeDataFacade->Write(AsyncManager); }
 				for (const TSharedPtr<FSubGraph>& SubGraph : Graph->SubGraphs) { SubGraph->EdgesDataFacade->Write(AsyncManager); }
@@ -495,7 +496,7 @@ namespace PCGExGraphTask
 			}
 		}
 
-		EdgeIO->CreateOutKeys();
+		EdgeIO->GetOutKeys();
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> NumClusterIdWriter = VtxDataFacade->GetWritable<int64>(PCGExGraph::Tag_ClusterId, -1, false, true);
 		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = SubGraph->EdgesDataFacade->GetWritable<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false, true);
@@ -591,7 +592,7 @@ namespace PCGExGraphTask
 	{
 		if (!GraphBuilder->bCompiledSuccessfully) { return false; }
 
-		TSharedPtr<PCGExData::FPointIO> VtxDupe = VtxCollection->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetOut(), PCGExData::EInit::DuplicateInput);
+		const TSharedPtr<PCGExData::FPointIO> VtxDupe = VtxCollection->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetOut(), PCGExData::EInit::DuplicateInput);
 		VtxDupe->IOIndex = TaskIndex;
 
 		FString OutId;

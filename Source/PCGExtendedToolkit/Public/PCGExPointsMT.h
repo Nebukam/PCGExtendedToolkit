@@ -86,6 +86,7 @@ namespace PCGExPointsMT
 
 		virtual void SetExecutionContext(FPCGExContext* InContext)
 		{
+			check(InContext)
 			ExecutionContext = InContext;
 		}
 
@@ -278,6 +279,8 @@ namespace PCGExPointsMT
 			FPointsProcessor::SetExecutionContext(InContext);
 			Context = static_cast<TContext*>(ExecutionContext);
 			Settings = InContext->GetInputSettings<TSettings>();
+			check(Context)
+			check(Settings)
 		}
 
 		FORCEINLINE TContext* GetContext() { return Context; }
@@ -396,7 +399,7 @@ namespace PCGExPointsMT
 			for (const TWeakPtr<PCGExData::FPointIO>& WeakIO : PointsCollection)
 			{
 				TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
-				IO->CreateInKeys();
+				IO->GetInKeys();
 
 				const TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 				const TSharedPtr<T> NewProcessor = MakeShared<T>(PointDataFacade.ToSharedRef());
