@@ -51,6 +51,8 @@ public:
 
 	virtual void Cleanup() override
 	{
+		Cluster.Reset();
+		Heuristics.Reset();
 		Super::Cleanup();
 	}
 

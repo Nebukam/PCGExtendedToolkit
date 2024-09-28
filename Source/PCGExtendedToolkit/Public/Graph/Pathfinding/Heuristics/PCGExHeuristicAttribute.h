@@ -64,7 +64,12 @@ public:
 		return CachedScores[Source == EPCGExGraphValueSource::Edge ? Edge.PointIndex : To.NodeIndex];
 	}
 
-	virtual void Cleanup() override;
+	virtual void Cleanup() override
+	{
+		CachedScores.Empty();
+		LastPoints.Reset();
+		Super::Cleanup();
+	}
 
 	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Vtx;
 	FPCGAttributePropertyInputSelector Attribute;

@@ -57,12 +57,6 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	}
 }
 
-void UPCGExHeuristicAttribute::Cleanup()
-{
-	CachedScores.Empty();
-	Super::Cleanup();
-}
-
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAttribute::CreateOperation() const
 {
 	PCGEX_NEW_TRANSIENT(UPCGExHeuristicAttribute, NewOperation)

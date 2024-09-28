@@ -98,11 +98,6 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 	else { Config.MatchingEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
-void UPCGExVtxPropertyEdgeMatch::Cleanup()
-{
-	Super::Cleanup();
-}
-
 void UPCGExVtxPropertyEdgeMatch::InitEdgeFilters()
 {
 	if (bEdgeFilterInitialized) { return; }

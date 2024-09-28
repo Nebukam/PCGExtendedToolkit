@@ -83,6 +83,12 @@ public:
 
 	FPCGExProbeConfigDirection Config;
 
+	virtual void Cleanup() override
+	{
+		DirectionCache.Reset();
+		Super::Cleanup();
+	}
+
 protected:
 	bool bUseConstantDir = false;
 	double MinDot = 0;

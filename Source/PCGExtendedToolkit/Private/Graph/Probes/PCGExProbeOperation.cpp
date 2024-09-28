@@ -53,7 +53,3 @@ void UPCGExProbeOperation::ProcessNode(const int32 Index, const FPCGPoint& Point
 {
 }
 
-void UPCGExProbeOperation::Cleanup()
-{
-	Super::Cleanup();
-}

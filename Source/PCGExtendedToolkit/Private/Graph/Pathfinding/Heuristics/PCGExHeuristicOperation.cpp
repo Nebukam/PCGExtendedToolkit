@@ -39,9 +39,3 @@ void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* I
 	}
 }
 
-void UPCGExHeuristicOperation::Cleanup()
-{
-	Cluster = nullptr;
-	LocalWeightMultiplier.Empty();
-	Super::Cleanup();
-}

@@ -82,5 +82,6 @@ FTransform UPCGExOrientLookAt::LookAtPosition(const FTransform InT, const int32 
 
 void UPCGExOrientLookAt::Cleanup()
 {
+	LookAtGetter.Reset();
 	Super::Cleanup();
 }

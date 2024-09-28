@@ -47,4 +47,11 @@ public:
 	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const override;
 	virtual void GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const override;
 	virtual bool OutputMultipleGoals() const override;
+
+	virtual void Cleanup() override
+	{
+		SingleGetter.Reset();
+		AttributeGetters.Empty();
+		Super::Cleanup();
+	}
 };
