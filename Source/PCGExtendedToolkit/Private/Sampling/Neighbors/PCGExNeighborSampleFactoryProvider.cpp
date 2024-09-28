@@ -149,6 +149,10 @@ void UPCGExNeighborSampleOperation::FinalizeOperation()
 
 void UPCGExNeighborSampleOperation::Cleanup()
 {
+	PointFilters.Reset();
+	ValueFilters.Reset();
+	VtxDataFacade.Reset();
+	EdgeDataFacade.Reset();
 	Super::Cleanup();
 }
 
