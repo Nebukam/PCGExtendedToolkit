@@ -259,7 +259,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 			View, MilestonesMetrics[i], TempBlender.Get(), StartIndex);
 	}
 
-	PathDataFacade->Write(ManagerPtr);
+	PathDataFacade->Write(Manager);
 	MilestonesMetrics.Empty();
 
 	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }

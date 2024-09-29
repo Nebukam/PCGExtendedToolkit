@@ -225,7 +225,7 @@ bool FSampleNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& As
 	Context->SeedForwardHandler->Forward(Query->SeedIndex, PathDataFacade);
 	Context->GoalForwardHandler->Forward(Query->GoalIndex, PathDataFacade);
 
-	PathDataFacade->Write(ManagerPtr);
+	PathDataFacade->Write(Manager);
 
 	return true;
 }

@@ -543,15 +543,14 @@ namespace PCGExData
 			BufferMap.Empty();
 		}
 
-		void Write(const TWeakPtr<PCGExMT::FTaskManager>& AsyncManagerPtr)
+		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 		{
-			const TSharedPtr<PCGExMT::FTaskManager> PinnedManager = AsyncManagerPtr.Pin();
-			if (!PinnedManager) { return; }
+			if (!AsyncManager) { return; }
 
 			for (int i = 0; i < Buffers.Num(); i++)
 			{
 				const TSharedPtr<FBufferBase>& Buffer = Buffers[i];
-				if (Buffer->IsWritable()) { PCGExMT::Write(PinnedManager, Buffer); }
+				if (Buffer->IsWritable()) { PCGExMT::Write(AsyncManager, Buffer); }
 			}
 
 			Flush();

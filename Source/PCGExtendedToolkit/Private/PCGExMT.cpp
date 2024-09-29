@@ -186,14 +186,13 @@ namespace PCGExMT
 	{
 		ON_SCOPE_EXIT
 		{
-			ManagerPtr = nullptr;
-			GroupPtr = nullptr;
+			Manager = nullptr;
+			Group = nullptr;
 		};
 
 		if (bWorkDone) { return; }
 		bWorkDone = true;
 
-		const TSharedPtr<FTaskManager> Manager = ManagerPtr.Pin();
 		if (!Manager) { return; }
 		if (!Manager->IsAvailable())
 		{
@@ -202,13 +201,12 @@ namespace PCGExMT
 		}
 
 		const bool bResult = ExecuteTask(Manager);
-		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin()) { Group->OnTaskCompleted(); }
+		if (Group) { Group->OnTaskCompleted(); }
 		Manager->GrowNumCompleted();
 	}
 
 	bool FGroupRangeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
-		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
 		if (!Group) { return false; }
 		Group->DoRangeIteration(PCGEx::H64A(Scope), PCGEx::H64B(Scope), TaskIndex);
 		return true;
@@ -216,7 +214,6 @@ namespace PCGExMT
 
 	bool FGroupPrepareRangeTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
-		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
 		if (!Group) { return false; }
 		Group->PrepareRangeIteration(PCGEx::H64A(Scope), PCGEx::H64B(Scope), TaskIndex);
 		return true;
@@ -224,7 +221,6 @@ namespace PCGExMT
 
 	bool FGroupPrepareRangeInlineTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
-		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
 		if (!Group) { return false; }
 
 		TArray<uint64> Loops;
@@ -245,7 +241,6 @@ namespace PCGExMT
 
 	bool FGroupRangeInlineIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
 	{
-		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
 		if (!Group) { return false; }
 
 		TArray<uint64> Loops;

@@ -200,6 +200,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExMT::AsyncState 
 		{
 			MainBatch->Write();
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
+			return false;
 		}
 		else
 		{
@@ -241,7 +242,7 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager(
 void FPCGExPointsProcessorContext::ResumeExecution()
 {
 	if (AsyncManager) { AsyncManager->Reset(); }
-	
+
 	bIsPaused = false;
 	bWaitingForAsyncCompletion = false;
 }
@@ -249,10 +250,10 @@ void FPCGExPointsProcessorContext::ResumeExecution()
 bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
 {
 	// Context must be unpaused for this to be called
-	
+
 	if (!bDoAsyncProcessing) { return true; }
 	if (!bWaitingForAsyncCompletion || !AsyncManager) { return true; }
-	
+
 	if (AsyncManager->IsWorkComplete())
 	{
 		ResumeExecution();

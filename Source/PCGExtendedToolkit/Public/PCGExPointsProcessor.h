@@ -19,9 +19,9 @@
 #include "PCGExPointsProcessor.generated.h"
 
 
-#define PCGEX_EXECUTION_CHECK if (!Context->IsAsyncWorkComplete()) { return false; } 
+#define PCGEX_EXECUTION_CHECK if (!Context->IsAsyncWorkComplete()) { return false; }
 #define PCGEX_ASYNC_WAIT if (Context->bWaitingForAsyncCompletion) { return false; }
-#define PCGEX_ASYNC_WAIT_INTERNAL if (bIsPaused) { return false; }
+#define PCGEX_ASYNC_WAIT_INTERNAL if (bWaitingForAsyncCompletion) { return false; }
 
 struct FPCGExPointsProcessorContext;
 class FPCGExPointsProcessorElement;

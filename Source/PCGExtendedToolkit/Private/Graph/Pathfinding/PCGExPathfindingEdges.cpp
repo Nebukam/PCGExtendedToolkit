@@ -78,7 +78,7 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	SeedForwardHandler->Forward(Query->SeedIndex, PathDataFacade);
 	GoalForwardHandler->Forward(Query->GoalIndex, PathDataFacade);
 
-	PathDataFacade->Write(GetAsyncManager()); // BUG : This can re-activate the async manager we want to get rid of.
+	PathDataFacade->Write(GetAsyncManager());
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
