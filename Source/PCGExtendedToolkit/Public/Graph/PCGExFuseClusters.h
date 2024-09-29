@@ -105,7 +105,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : public FPCGE
 	FPCGExCarryOverDetails VtxCarryOverDetails;
 	FPCGExCarryOverDetails EdgesCarryOverDetails;
 
-	TUniquePtr<PCGExGraph::FCompoundProcessor> CompoundProcessor;
+	TSharedPtr<PCGExGraph::FCompoundProcessor> CompoundProcessor;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement

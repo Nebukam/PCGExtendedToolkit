@@ -17,7 +17,7 @@
 
 namespace PCGExGraph
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundProcessor
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundProcessor : TSharedFromThis<FCompoundProcessor>
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 
@@ -78,9 +78,9 @@ namespace PCGExGraph
 		TSharedPtr<FGraphBuilder> GraphBuilder;
 
 		FGraphMetadataDetails GraphMetadataDetails;
-		TUniquePtr<FPointEdgeIntersections> PointEdgeIntersections;
-		TUniquePtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
-		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+		TSharedPtr<FPointEdgeIntersections> PointEdgeIntersections;
+		TSharedPtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();

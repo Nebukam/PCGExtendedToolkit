@@ -45,7 +45,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	const_cast<UPCGExFuseClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
-	Context->CompoundProcessor = MakeUnique<PCGExGraph::FCompoundProcessor>(
+	Context->CompoundProcessor = MakeShared<PCGExGraph::FCompoundProcessor>(
 		Context,
 		Settings->PointPointIntersectionDetails,
 		Settings->DefaultPointsBlendingDetails,
@@ -67,7 +67,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 			&Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
-	TSharedPtr<PCGExData::FPointIO> CompoundPoints = MakeShared<PCGExData::FPointIO>(Context);
+	const TSharedPtr<PCGExData::FPointIO> CompoundPoints = MakeShared<PCGExData::FPointIO>(Context);
 	CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
 	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 

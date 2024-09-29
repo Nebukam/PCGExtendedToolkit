@@ -44,7 +44,7 @@ namespace PCGExMT
 	void FTaskManager::Reset(const bool bHoldStop)
 	{
 		if (Stopped) { return; }
-		
+
 		FPlatformAtomics::InterlockedExchange(&CompletionScheduled, 0);
 		FPlatformAtomics::InterlockedExchange(&WorkComplete, 0);
 		FPlatformAtomics::InterlockedExchange(&Stopped, 1);
@@ -72,18 +72,18 @@ namespace PCGExMT
 		if (CompletionScheduled) { return; }
 
 		FPlatformAtomics::InterlockedExchange(&CompletionScheduled, 1);
-		TryComplete();
-		
-		//const TSharedPtr<FTaskManager> SharedSelf = SharedThis(this);
-		//TWeakPtr<FTaskManager> WeakThisPtr = SharedSelf;
+		//TryComplete();
 
-		//AsyncTask(
-		//	ENamedThreads::BackgroundThreadPriority, [WeakThisPtr]()
-		//	{
-		//		const TSharedPtr<FTaskManager> Manager = WeakThisPtr.Pin();
-		//		if (!Manager || !Manager->IsAvailable()) { return; }
-		//		Manager->TryComplete();
-		//	});
+		const TSharedPtr<FTaskManager> SharedSelf = SharedThis(this);
+		TWeakPtr<FTaskManager> WeakThisPtr = SharedSelf;
+
+		AsyncTask(
+			ENamedThreads::BackgroundThreadPriority, [WeakThisPtr]()
+			{
+				const TSharedPtr<FTaskManager> Manager = WeakThisPtr.Pin();
+				if (!Manager || !Manager->IsAvailable()) { return; }
+				Manager->TryComplete();
+			});
 	}
 
 	void FTaskManager::TryComplete()
@@ -195,7 +195,7 @@ namespace PCGExMT
 
 		const TSharedPtr<FTaskManager> Manager = ManagerPtr.Pin();
 		if (!Manager) { return; }
-		if(!Manager->IsAvailable())
+		if (!Manager->IsAvailable())
 		{
 			Manager->GrowNumCompleted();
 			return;

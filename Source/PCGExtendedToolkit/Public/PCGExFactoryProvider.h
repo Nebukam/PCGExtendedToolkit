@@ -49,7 +49,7 @@ namespace PCGExFactories
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamDataBase : public UPCGParamData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamDataBase : public UPCGPointData
 {
 	GENERATED_BODY()
 
