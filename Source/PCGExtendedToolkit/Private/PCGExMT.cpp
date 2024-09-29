@@ -25,10 +25,10 @@ namespace PCGExMT
 		if (NumCompleted == NumStarted) { ScheduleUnpause(); }
 	}
 
-	TSharedPtr<FTaskGroup> FTaskManager::CreateGroup(const FName& GroupName)
+	TSharedPtr<FTaskGroup> FTaskManager::TryCreateGroup(const FName& GroupName)
 	{
-		check(IsAvailable())
-
+		if (!IsAvailable()) { return nullptr; }
+		
 		{
 			FWriteScopeLock WriteLock(GroupLock);
 			return Groups.Add_GetRef(MakeShared<FTaskGroup>(SharedThis(this), GroupName));

@@ -20,12 +20,14 @@
 #define PCGEX_ASYNC_WRITE_DELETE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::WriteAndDelete(_MANAGER, _TARGET); _TARGET = nullptr; }
 #define PCGEX_ASYNC_GROUP_CHKD_VOID(_MANAGER, _NAME) \
 	TSharedPtr<PCGExMT::FTaskGroup> _NAME; \
-	if(!_MANAGER || !_MANAGER->IsAvailable()){ return; } \
-	_NAME = _MANAGER->CreateGroup(FName(#_NAME));
+	if(!_MANAGER){ return; } \
+	_NAME = _MANAGER->TryCreateGroup(FName(#_NAME));\
+	if(!_NAME){ return; } 
 #define PCGEX_ASYNC_GROUP_CHKD(_MANAGER, _NAME) \
 	TSharedPtr<PCGExMT::FTaskGroup> _NAME; \
-	if(!_MANAGER || !_MANAGER->IsAvailable()){ return false; } \
-	_NAME = _MANAGER->CreateGroup(FName(#_NAME));
+	if(!_MANAGER){ return false; } \
+	_NAME = _MANAGER->TryCreateGroup(FName(#_NAME)); \
+	if(!_NAME){ return false; } 
 
 #pragma endregion
 
@@ -225,7 +227,7 @@ namespace PCGExMT
 		void GrowNumStarted();
 		void GrowNumCompleted();
 
-		TSharedPtr<FTaskGroup> CreateGroup(const FName& GroupName);
+		TSharedPtr<FTaskGroup> TryCreateGroup(const FName& GroupName);
 
 		FORCEINLINE bool IsAvailable() const { return Stopped || Flushing ? false : true; }
 

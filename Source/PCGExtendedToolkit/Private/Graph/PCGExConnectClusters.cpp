@@ -187,7 +187,7 @@ namespace PCGExBridgeClusters
 		}
 		else if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay2D)
 		{
-			TUniquePtr<PCGExGeo::TDelaunay2> Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
+			const TUniquePtr<PCGExGeo::TDelaunay2> Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
 
 			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
