@@ -193,8 +193,7 @@ namespace PCGExPathToClusters
 		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
 
 		TArray<PCGExGraph::FIndexedEdge> Edges;
-
-		Edges.SetNumUninitialized(bClosedLoop ? NumPoints : NumPoints - 1);
+		PCGEx::InitArray(Edges, bClosedLoop ? NumPoints : NumPoints - 1);
 
 		for (int i = 0; i < Edges.Num(); ++i)
 		{

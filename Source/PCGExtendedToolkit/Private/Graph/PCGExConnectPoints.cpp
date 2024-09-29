@@ -154,7 +154,7 @@ namespace PCGExConnectPoints
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails, 2);
 
 		CanGenerate.Init(true, NumPoints);
-		CachedTransforms.SetNumUninitialized(NumPoints);
+		PCGEx::InitArray(CachedTransforms,NumPoints);
 
 		if (!Context->GeneratorsFiltersFactories.IsEmpty())
 		{

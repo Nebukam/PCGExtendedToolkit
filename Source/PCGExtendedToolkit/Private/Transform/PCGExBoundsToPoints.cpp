@@ -77,7 +77,7 @@ namespace PCGExBoundsToPoints
 
 		if (bGeneratePerPointData)
 		{
-			NewOutputs.SetNumUninitialized(PointDataFacade->GetNum());
+			NewOutputs.SetNum(PointDataFacade->GetNum());
 			for (int i = 0; i < NewOutputs.Num(); ++i)
 			{
 				NewOutputs[i] = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::NewOutput);

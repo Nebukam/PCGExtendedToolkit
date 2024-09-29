@@ -168,7 +168,7 @@ namespace PCGExBridgeClusters
 		// First find which cluster are connected
 
 		TArray<FBox> Bounds;
-		Bounds.SetNumUninitialized(NumBounds);
+		PCGEx::InitArray(Bounds, NumBounds);
 		for (int i = 0; i < NumBounds; ++i) { Bounds[i] = ValidClusters[i]->Bounds; }
 
 		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D)

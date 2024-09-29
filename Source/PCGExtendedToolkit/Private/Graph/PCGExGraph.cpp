@@ -460,7 +460,7 @@ namespace PCGExGraphTask
 		const int32 NumEdges = EdgeDump.Num();
 
 		TArray<PCGExGraph::FIndexedEdge>& FlattenedEdges = SubGraph->FlattenedEdges;
-		FlattenedEdges.SetNumUninitialized(NumEdges);
+		PCGEx::InitArray(		FlattenedEdges,NumEdges);
 
 		const TSharedPtr<PCGExData::FPointIO> EdgeIO = SubGraph->EdgesDataFacade->Source;
 		UPCGMetadata* Metadata = EdgeIO->GetOut()->Metadata;

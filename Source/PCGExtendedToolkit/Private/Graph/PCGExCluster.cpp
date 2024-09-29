@@ -202,7 +202,7 @@ namespace PCGExCluster
 
 		const int32 NumEdges = PinnedEdgesIO->GetNum();
 
-		Edges->SetNumUninitialized(NumEdges);
+		PCGEx::InitArray(Edges, NumEdges);
 		Nodes->Reserve(InNodePoints.Num());
 		NodeIndexLookup->Reserve(InNodePoints.Num());
 
@@ -826,7 +826,7 @@ namespace PCGExCluster
 			FWriteScopeLock WriteScopeLock(ClusterLock);
 
 			ExpandedEdges = MakeShared<TArray<FExpandedEdge>>();
-			ExpandedEdges->SetNumUninitialized(Edges->Num());
+			PCGEx::InitArray(ExpandedEdges, Edges->Num());
 
 			TArray<FExpandedEdge>& ExpandedEdgesRef = (*ExpandedEdges);
 			if (bBuild) { for (int i = 0; i < ExpandedEdges->Num(); ++i) { ExpandedEdgesRef[i] = FExpandedEdge(this, i); } } // Ooof
