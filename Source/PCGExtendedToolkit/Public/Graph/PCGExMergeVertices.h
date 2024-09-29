@@ -51,8 +51,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesContext final : public FPCG
 	TSharedPtr<PCGExData::FPointIO> CompositeIO;
 	TSharedPtr<FPCGExPointIOMerger> Merger;
 
-	virtual void OnBatchesProcessingDone() override;
-	virtual void OnBatchesCompletingWorkDone() override;
+	virtual void ClusterProcessing_InitialProcessingDone() override;
+	virtual void ClusterProcessing_WorkComplete() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesElement final : public FPCGExEdgesProcessorElement

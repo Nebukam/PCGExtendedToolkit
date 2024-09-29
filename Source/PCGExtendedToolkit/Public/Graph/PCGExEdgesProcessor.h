@@ -67,28 +67,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 
 	void OutputPointsAndEdges() const;
 
-	template <class InitializeFunc, class LoopBodyFunc>
-	bool ProcessCurrentEdges(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentEdges->GetNum(), bForceSync); }
-
-	template <class LoopBodyFunc>
-	bool ProcessCurrentEdges(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentEdges->GetNum(), bForceSync); }
-
-	template <class InitializeFunc, class LoopBodyFunc>
-	bool ProcessCurrentCluster(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentCluster->Nodes->Num(), bForceSync); }
-
-	template <class LoopBodyFunc>
-	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes->Num(), bForceSync); }
-
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-	bool bWaitingOnClusterProjection = false;
-
-	int32 GetClusterProcessorsNum() const
-	{
-		int32 Num = 0;
-		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Num += Batch->GetNumProcessors(); }
-		return Num;
-	}
+	int32 GetClusterProcessorsNum() const;
 
 	template <typename T>
 	void GatherClusterProcessors(TArray<TSharedPtr<T>>& OutProcessors)
@@ -101,10 +82,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 		}
 	}
 
-	void OutputBatches() const
-	{
-		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Output(); }
-	}
+	void OutputBatches() const;
 
 protected:
 	virtual bool ProcessClusters();
@@ -122,8 +100,7 @@ protected:
 	bool bClusterBatchInlined = false;
 	int32 CurrentBatchIndex = -1;
 	TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase> CurrentBatch;
-
-
+	
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
 	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState, const bool bInlined = false)
 	{
@@ -178,23 +155,19 @@ protected:
 		return true;
 	}
 
-	virtual void OnBatchesProcessingDone()
+	virtual void ClusterProcessing_InitialProcessingDone()
 	{
 	}
 
-	virtual void OnBatchesCompletingWorkDone()
+	virtual void ClusterProcessing_WorkComplete()
 	{
 	}
 
-	virtual void OnBatchesCompilationDone(bool bWritten)
+	virtual void ClusterProcessing_WritingDone()
 	{
 	}
 
-	virtual void OnBatchesWritingDone()
-	{
-	}
-
-	virtual void OnGraphBuilderCompilationDone()
+	virtual void ClusterProcessing_GraphCompilationDone()
 	{
 	}
 

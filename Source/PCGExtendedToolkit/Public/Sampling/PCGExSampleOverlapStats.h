@@ -128,7 +128,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsContext final : public
 		PCGExSampleOverlapStats::FProcessor* InManaged,
 		const FBox& InIntersection);
 
-	virtual void MTState_PointsCompletingWorkDone() override;
+	virtual void BatchProcessing_WorkComplete() override;
 
 	PCGEX_FOREACH_FIELD_SAMPLEOVERLAPSTATS(PCGEX_OUTPUT_DECL_TOGGLE)
 

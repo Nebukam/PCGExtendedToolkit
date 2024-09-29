@@ -145,6 +145,26 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 bool FPCGExPointsProcessorContext::ExecuteAutomation() { return true; }
 
+void FPCGExPointsProcessorContext::SetAsyncState(const PCGExMT::AsyncState WaitState)
+{
+	bIsPaused = true;
+	SetState(WaitState, false);
+}
+
+
+void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState StateId, const bool bResetAsyncWork)
+{
+	if (bResetAsyncWork) { ResetAsyncWork(); }
+	if (CurrentState == StateId) { return; }
+	CurrentState = StateId;
+}
+
+void FPCGExPointsProcessorContext::Done()
+{
+	bUseLock = false;
+	SetState(PCGExMT::State_Done);
+}
+
 bool FPCGExPointsProcessorContext::TryComplete(const bool bForce)
 {
 	if (!bForce && !IsDone()) { return false; }
@@ -156,13 +176,13 @@ bool FPCGExPointsProcessorContext::TryComplete(const bool bForce)
 
 bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 {
-	if (BatchablePoints.IsEmpty()) { return true; }
+	if (!bBatchProcessingEnabled) { return true; }
 
 	if (IsState(PCGExPointsMT::MTState_PointsProcessing))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
-		MTState_PointsProcessingDone();
+		BatchProcessing_InitialProcessingDone();
 		MainBatch->CompleteWork();
 		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
 	}
@@ -171,7 +191,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
-		MTState_PointsCompletingWorkDone();
+		BatchProcessing_WorkComplete();
 
 		if (MainBatch->bRequiresWriteStep)
 		{
@@ -189,7 +209,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
-		MTState_PointsWritingDone();
+		BatchProcessing_WritingDone();
 
 		if (TargetState_PointsProcessingDone == PCGExMT::State_Done) { Done(); }
 		else { SetState(TargetState_PointsProcessingDone); }
@@ -259,6 +279,12 @@ FPCGContext* FPCGExPointsProcessorElement::Initialize(
 	FPCGExPointsProcessorContext* Context = new FPCGExPointsProcessorContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
+}
+
+bool FPCGExPointsProcessorElement::IsCacheable(const UPCGSettings* InSettings) const
+{
+	const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);
+	return Settings->bCacheResult;
 }
 
 void FPCGExPointsProcessorElement::DisabledPassThroughData(FPCGContext* Context) const

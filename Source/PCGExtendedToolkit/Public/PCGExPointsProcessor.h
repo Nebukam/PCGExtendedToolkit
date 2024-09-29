@@ -160,29 +160,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 	virtual bool ExecuteAutomation();
 
-	void SetAsyncState(const PCGExMT::AsyncState WaitState)
-	{
-		bIsPaused = true;
-		SetState(WaitState, false);
-	}
-
-	void SetState(const PCGExMT::AsyncState StateId, const bool bResetAsyncWork = true)
-	{
-		if (bResetAsyncWork) { ResetAsyncWork(); }
-		if (CurrentState == StateId) { return; }
-		CurrentState = StateId;
-	}
-
+	void SetAsyncState(const PCGExMT::AsyncState WaitState);
+	void SetState(const PCGExMT::AsyncState StateId, const bool bResetAsyncWork = true);
 	bool IsState(const PCGExMT::AsyncState StateId) const { return CurrentState == StateId; }
-
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
-
-	void Done()
-	{
-		bUseLock = false;
-		SetState(PCGExMT::State_Done);
-	}
+	void Done();
 
 	bool TryComplete(const bool bForce = false);
 
@@ -193,26 +176,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 #pragma region Async loops
 
-	template <class InitializeFunc, class LoopBodyFunc>
-	bool Process(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, const int32 NumIterations, const bool bForceSync = false)
-	{
-		AsyncLoop->NumIterations = NumIterations;
-		AsyncLoop->bAsyncEnabled = bDoAsyncProcessing && !bForceSync;
-		return AsyncLoop->Execute(Initialize, LoopBody);
-	}
-
 	template <class LoopBodyFunc>
 	bool Process(LoopBodyFunc&& LoopBody, const int32 NumIterations, const bool bForceSync = false)
 	{
 		AsyncLoop->NumIterations = NumIterations;
 		AsyncLoop->bAsyncEnabled = bDoAsyncProcessing && !bForceSync;
 		return AsyncLoop->Execute(LoopBody);
-	}
-
-	template <typename FullTask>
-	void StartAsyncLoop(const TSharedPtr<PCGExData::FPointIO>& PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
-	{
-		GetAsyncManager()->Start<FullTask>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
 	}
 
 	template <typename T>
@@ -246,16 +215,18 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 #pragma region Batching
 
+	bool bBatchProcessingEnabled = false;
 	bool ProcessPointsBatch();
 
 	PCGExMT::AsyncState TargetState_PointsProcessingDone;
 	TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
-	TArray<TWeakPtr<PCGExData::FPointIO>> BatchablePoints;
 	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
 	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
+		bBatchProcessingEnabled = false;
+
 		MainBatch.Reset();
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
@@ -264,43 +235,51 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 		SubProcessorMap.Reserve(MainPoints->Num());
 
 		TargetState_PointsProcessingDone = InState;
-		BatchablePoints.Empty();
+
+		TArray<TWeakPtr<PCGExData::FPointIO>> BatchAblePoints;
+		BatchAblePoints.Reserve(MainPoints->Pairs.Num());
 
 		while (AdvancePointsIO(false))
 		{
 			if (!ValidateEntry(CurrentIO)) { continue; }
-			BatchablePoints.Add(CurrentIO.ToSharedRef());
+			BatchAblePoints.Add(CurrentIO.ToSharedRef());
 		}
 
-		if (BatchablePoints.IsEmpty()) { return false; }
+		if (BatchAblePoints.IsEmpty()) { return bBatchProcessingEnabled; }
+		bBatchProcessingEnabled = true;
 
-		TSharedPtr<T> TypedBatch = MakeShared<T>(this, BatchablePoints);
+		TSharedPtr<T> TypedBatch = MakeShared<T>(this, BatchAblePoints);
 
 		MainBatch = TypedBatch;
 		MainBatch->SubProcessorMap = &SubProcessorMap;
 
 		InitBatch(TypedBatch);
 
-		if (Settings->SupportsPointFilters())
+		if (Settings->SupportsPointFilters()) { TypedBatch->SetPointsFilterData(&FilterFactories); }
+
+		if (MainBatch->PrepareProcessing())
 		{
-			TypedBatch->SetPointsFilterData(&FilterFactories);
+			SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
+			MainBatch->Process(GetAsyncManager());
+		}
+		else
+		{
+			bBatchProcessingEnabled = false;
 		}
 
-		if (MainBatch->PrepareProcessing()) { MainBatch->Process(GetAsyncManager()); }
-		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
-
-		return true;
+		return bBatchProcessingEnabled;
+		
 	}
 
-	virtual void MTState_PointsProcessingDone()
+	virtual void BatchProcessing_InitialProcessingDone()
 	{
 	}
 
-	virtual void MTState_PointsCompletingWorkDone()
+	virtual void BatchProcessing_WorkComplete()
 	{
 	}
 
-	virtual void MTState_PointsWritingDone()
+	virtual void BatchProcessing_WritingDone()
 	{
 	}
 
@@ -340,12 +319,7 @@ public:
 	virtual bool ShouldLog() const override { return false; }
 #endif
 
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override
-	{
-		const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);
-		return Settings->bCacheResult;
-	}
-
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;	
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:

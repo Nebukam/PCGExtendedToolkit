@@ -94,7 +94,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : publi
 	FPCGExAttributeToTagDetails TargetAttributesToTags;
 	TSharedPtr<PCGExData::FDataForwardHandler> TargetForwardHandler;
 
-	virtual void OnBatchesProcessingDone() override;
+	virtual void ClusterProcessing_InitialProcessingDone() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersElement final : public FPCGExEdgesProcessorElement

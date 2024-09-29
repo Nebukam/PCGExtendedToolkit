@@ -214,9 +214,9 @@ namespace PCGExGraph
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphNodeMetadata
 	{
-		int32 NodeIndex;
 		EPCGExIntersectionType Type = EPCGExIntersectionType::PointEdge;
 		bool bCompounded = false; // Represents multiple nodes
+		int32 NodeIndex;
 		int32 CompoundSize = 0;   // Fuse size
 
 		explicit FGraphNodeMetadata(const int32 InNodeIndex)
@@ -332,7 +332,6 @@ namespace PCGExGraph
 		const int32 NumEdgesReserve;
 
 	public:
-		bool bRequiresConsolidation = false;
 		bool bBuildClusters = false;
 		bool bExpandClusters = false;
 
@@ -405,7 +404,6 @@ namespace PCGExGraph
 		using CompilationEndCallback = std::function<void(const TSharedRef<FGraphBuilder>& InBuilder, const bool bSuccess)>;
 		CompilationEndCallback OnCompilationEndCallback;
 
-		bool bPrunePoints = false;
 		int64 PairId;
 		FString PairIdStr;
 
@@ -540,7 +538,7 @@ namespace PCGExGraph
 
 		return true;
 	}
-
+	
 	static void CleanupVtxData(const TSharedPtr<PCGExData::FPointIO>& PointIO)
 	{
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
@@ -548,6 +546,7 @@ namespace PCGExGraph
 		Metadata->DeleteAttribute(Tag_VtxEndpoint);
 		Metadata->DeleteAttribute(Tag_EdgeEndpoints);
 	}
+
 }
 
 namespace PCGExGraphTask
@@ -563,7 +562,7 @@ namespace PCGExGraphTask
 	{
 	public:
 		FWriteSubGraphCluster(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                      const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
+							  const TSharedPtr<PCGExGraph::FSubGraph>& InSubGraph)
 			: FPCGExTask(InPointIO),
 			  SubGraph(InSubGraph)
 		{
@@ -572,7 +571,7 @@ namespace PCGExGraphTask
 		const TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
-
+	
 	class /*PCGEXTENDEDTOOLKIT_API*/ FCompileGraph final : public PCGExMT::FPCGExTask
 	{
 	public:

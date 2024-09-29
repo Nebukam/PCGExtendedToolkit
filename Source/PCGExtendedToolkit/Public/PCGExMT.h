@@ -222,10 +222,13 @@ namespace PCGExMT
 		int8 Stopped = 0;
 		int8 ForceSync = 0;
 
+		void GrowNumStarted();
+		void GrowNumCompleted();
+
 		TSharedPtr<FTaskGroup> CreateGroup(const FName& GroupName);
 
 		FORCEINLINE bool IsAvailable() const { return Stopped || Flushing ? false : true; }
-		
+
 		template <typename T, typename... Args>
 		void Start(const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
@@ -249,7 +252,7 @@ namespace PCGExMT
 		void StartBackgroundTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
 			if (!IsAvailable()) { return; }
-			FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
+			GrowNumStarted();
 
 			{
 				FWriteScopeLock WriteLock(ManagerLock);
@@ -301,13 +304,12 @@ namespace PCGExMT
 		int32 NumCompleted = 0;
 		TArray<TUniquePtr<FAsyncTaskBase>> QueuedTasks;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
-		
+
 		FAsyncTask<FPCGExDeferredUnpauseTask>* DeferredUnpauseTask = nullptr;
 		void ScheduleUnpause();
 		void TryUnpause();
-		
 	};
-	
+
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup : public TSharedFromThis<FTaskGroup>
 	{
 		friend class FTaskManager;
@@ -337,6 +339,7 @@ namespace PCGExMT
 		explicit FTaskGroup(const TSharedPtr<FTaskManager>& InManager, const FName InGroupName):
 			GroupName(InGroupName), Manager(InManager)
 		{
+			InManager->GrowNumStarted();
 		}
 
 		~FTaskGroup()
@@ -451,7 +454,7 @@ namespace PCGExMT
 
 			const bool bResult = ExecuteTask(Manager);
 			if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin()) { Group->OnTaskCompleted(); }
-			Manager->OnAsyncTaskExecutionComplete(this, bResult);
+			if (bIsAsync) { Manager->GrowNumCompleted(); }
 		}
 
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) = 0;

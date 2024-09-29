@@ -50,11 +50,6 @@ namespace PCGExMath
 
 #pragma region basics
 
-	FORCEINLINE static double ACot(const double Angle)
-	{
-		return FMath::Cos(Angle) / FMath::Sin(Angle);
-	}
-
 	FORCEINLINE static double DegreesToDot(const double Angle)
 	{
 		return FMath::Cos(FMath::Clamp(FMath::Abs(Angle), 0, 180.0) * (PI / 180.0));
@@ -283,6 +278,10 @@ namespace PCGExMath
 		{
 			return FVector4(FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Min(A.Z, B.Z), FMath::Min(A.W, B.W));
 		}
+		else if constexpr (std::is_same_v<T, FColor>)
+		{
+			return FColor(FMath::Min(A.R, B.R), FMath::Min(A.G, B.G), FMath::Min(A.B, B.B), FMath::Min(A.A, B.A));
+		}
 		else if constexpr (std::is_same_v<T, FQuat>)
 		{
 			return Min(A.Rotator(), B.Rotator()).Quaternion();
@@ -330,6 +329,10 @@ namespace PCGExMath
 		else if constexpr (std::is_same_v<T, FVector4>)
 		{
 			return FVector4(FMath::Max(A.X, B.X), FMath::Max(A.Y, B.Y), FMath::Max(A.Z, B.Z), FMath::Max(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FColor>)
+		{
+			return FColor(FMath::Max(A.R, B.R), FMath::Max(A.G, B.G), FMath::Max(A.B, B.B), FMath::Max(A.A, B.A));
 		}
 		else if constexpr (std::is_same_v<T, FQuat>)
 		{
@@ -999,14 +1002,6 @@ namespace PCGExMath
 		}
 	}
 
-	template <typename T>
-	FORCEINLINE static void Swap(TArray<T>& Array, int32 FirstIndex, int32 SecondIndex)
-	{
-		T* Ptr1 = &Array[FirstIndex];
-		T* Ptr2 = &Array[SecondIndex];
-		std::swap(*Ptr1, *Ptr2);
-	}
-
 	FORCEINLINE static FVector GetNormal(const FVector& A, const FVector& B, const FVector& C)
 	{
 		return FVector::CrossProduct((B - A), (C - A)).GetSafeNormal();
@@ -1092,30 +1087,6 @@ namespace PCGExMath
 			FMath::Abs(FRotator::NormalizeAxis(RA.Yaw - RB.Yaw)) <= Limits.Yaw &&
 			FMath::Abs(FRotator::NormalizeAxis(RA.Pitch - RB.Pitch)) <= Limits.Pitch &&
 			FMath::Abs(FRotator::NormalizeAxis(RA.Roll - RB.Roll)) <= Limits.Roll;
-	}
-
-	template <typename T>
-	FORCEINLINE static void AtomicMax(T& AtomicValue, T NewValue)
-	{
-		T CurrentValue = FPlatformAtomics::AtomicRead(&AtomicValue);
-		while (NewValue > CurrentValue)
-		{
-			T PrevValue = FPlatformAtomics::InterlockedCompareExchange(&AtomicValue, NewValue, CurrentValue);
-			if (PrevValue == CurrentValue) { break; } // Success: NewValue was stored
-			CurrentValue = PrevValue;                 // Retry with updated value
-		}
-	}
-
-	template <typename T>
-	FORCEINLINE static void AtomicMin(T& AtomicValue, T NewValue)
-	{
-		T CurrentValue = FPlatformAtomics::AtomicRead(&AtomicValue);
-		while (NewValue < CurrentValue)
-		{
-			T PrevValue = FPlatformAtomics::InterlockedCompareExchange(&AtomicValue, NewValue, CurrentValue);
-			if (PrevValue == CurrentValue) { break; } // Success: NewValue was stored
-			CurrentValue = PrevValue;                 // Retry with updated value
-		}
 	}
 
 #pragma region Spatialized distances

@@ -13,7 +13,7 @@ PCGExData::EInit UPCGExMergeVerticesSettings::GetEdgeOutputInitMode() const { re
 
 #pragma endregion
 
-void FPCGExMergeVerticesContext::OnBatchesProcessingDone()
+void FPCGExMergeVerticesContext::ClusterProcessing_InitialProcessingDone()
 {
 	Merger = MakeShared<FPCGExPointIOMerger>(CompositeIO);
 
@@ -32,7 +32,7 @@ void FPCGExMergeVerticesContext::OnBatchesProcessingDone()
 	PCGExGraph::SetClusterVtx(CompositeIO, OutVtxId); // After merge since it forwards IDs
 }
 
-void FPCGExMergeVerticesContext::OnBatchesCompletingWorkDone()
+void FPCGExMergeVerticesContext::ClusterProcessing_WorkComplete()
 {
 	Merger->Write(GetAsyncManager());
 }

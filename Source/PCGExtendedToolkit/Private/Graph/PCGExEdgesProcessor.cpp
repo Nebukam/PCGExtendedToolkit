@@ -120,6 +120,11 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 	return false;
 }
 
+void FPCGExEdgesProcessorContext::OutputBatches() const
+{
+	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Output(); }
+}
+
 bool FPCGExEdgesProcessorContext::ProcessClusters()
 {
 	if (Batches.IsEmpty()) { return true; }
@@ -149,7 +154,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 		{
 			if (!IsAsyncWorkComplete()) { return false; }
 
-			OnBatchesProcessingDone();
+			ClusterProcessing_InitialProcessingDone();
 			CompleteBatches(Batches);
 			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
 		}
@@ -158,7 +163,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 		{
 			if (!IsAsyncWorkComplete()) { return false; }
 
-			OnBatchesCompletingWorkDone();
+			ClusterProcessing_WorkComplete();
 
 			if (bDoClusterBatchWritingStep)
 			{
@@ -171,7 +176,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 		if (IsState(PCGExClusterMT::MTState_ClusterWriting))
 		{
 			if (!IsAsyncWorkComplete()) { return false; }
-			OnBatchesWritingDone();
+			ClusterProcessing_WritingDone();
 			SetState(TargetState_ClusterProcessingDone);
 		}
 	}
@@ -191,7 +196,7 @@ bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToConte
 	if (IsState(PCGExGraph::State_Compiling))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
-		OnGraphBuilderCompilationDone();
+		ClusterProcessing_GraphCompilationDone();
 		SetState(NextStateId);
 	}
 
@@ -228,6 +233,13 @@ void FPCGExEdgesProcessorContext::OutputPointsAndEdges() const
 {
 	MainPoints->OutputToContext();
 	MainEdges->OutputToContext();
+}
+
+int32 FPCGExEdgesProcessorContext::GetClusterProcessorsNum() const
+{
+	int32 Num = 0;
+	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Num += Batch->GetNumProcessors(); }
+	return Num;
 }
 
 PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)

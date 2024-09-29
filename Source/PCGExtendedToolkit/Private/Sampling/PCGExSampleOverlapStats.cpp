@@ -31,9 +31,9 @@ TSharedPtr<PCGExSampleOverlapStats::FOverlap> FPCGExSampleOverlapStatsContext::R
 	}
 }
 
-void FPCGExSampleOverlapStatsContext::MTState_PointsCompletingWorkDone()
+void FPCGExSampleOverlapStatsContext::BatchProcessing_WorkComplete()
 {
-	FPCGExPointsProcessorContext::MTState_PointsCompletingWorkDone();
+	FPCGExPointsProcessorContext::BatchProcessing_WorkComplete();
 
 	const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>> TypedBatch = StaticCastSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>(MainBatch);
 	for (const TSharedPtr<PCGExSampleOverlapStats::FProcessor>& P : TypedBatch->Processors)

@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <variant>
+
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -33,6 +35,23 @@ MACRO(FQuat, Rotation, Quaternion,Transform.GetRotation()) \
 MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
 MACRO(float, Steepness, Float,Steepness) \
 MACRO(int32, Seed, Integer32,Seed)
+
+#define PCGEX_FOREACH_BLENDMODE(MACRO)\
+MACRO(None) \
+MACRO(Average) \
+MACRO(Weight) \
+MACRO(Min) \
+MACRO(Max) \
+MACRO(Copy) \
+MACRO(Sum) \
+MACRO(WeightedSum) \
+MACRO(Lerp) \
+MACRO(Subtract) \
+MACRO(UnsignedMin) \
+MACRO(UnsignedMax) \
+MACRO(AbsoluteMin) \
+MACRO(AbsoluteMax) \
+MACRO(WeightedSubtract)
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Blend Over Mode"))
 enum class EPCGExBlendOver : uint8

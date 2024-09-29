@@ -18,9 +18,9 @@ TArray<FPCGPinProperties> UPCGExPickClosestClustersSettings::InputPinProperties(
 	return PinProperties;
 }
 
-void FPCGExPickClosestClustersContext::OnBatchesProcessingDone()
+void FPCGExPickClosestClustersContext::ClusterProcessing_InitialProcessingDone()
 {
-	FPCGExEdgesProcessorContext::OnBatchesProcessingDone();
+	FPCGExEdgesProcessorContext::ClusterProcessing_InitialProcessingDone();
 
 	TArray<TSharedPtr<PCGExPickClosestClusters::FProcessor>> Processors;
 	GatherClusterProcessors(Processors);

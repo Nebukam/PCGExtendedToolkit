@@ -13,6 +13,18 @@ namespace PCGExMT
 		Reset(true);
 	}
 
+	void FTaskManager::GrowNumStarted()
+	{
+		FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
+	}
+
+	void FTaskManager::GrowNumCompleted()
+	{
+		if (Flushing) { return; }
+		FPlatformAtomics::InterlockedAdd(&NumCompleted, 1);
+		if (NumCompleted == NumStarted) { ScheduleUnpause(); }
+	}
+
 	TSharedPtr<FTaskGroup> FTaskManager::CreateGroup(const FName& GroupName)
 	{
 		check(IsAvailable())
@@ -23,16 +35,9 @@ namespace PCGExMT
 		}
 	}
 
-	void FTaskManager::OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess)
-	{
-		if (Flushing) { return; }
-		FPlatformAtomics::InterlockedAdd(&NumCompleted, 1);
-		if (NumCompleted == NumStarted) { ScheduleUnpause(); }
-	}
-
 	bool FTaskManager::IsAsyncWorkComplete() const
 	{
-		return WorkComplete > 0;
+		return ForceSync || WorkComplete > 0;
 	}
 
 	void FTaskManager::Reset(const bool bStop)
@@ -165,6 +170,7 @@ namespace PCGExMT
 				NumCompleted = 0;
 				NumStarted = 0;
 				if (OnCompleteCallback) { OnCompleteCallback(); }
+				Manager->GrowNumCompleted();
 			}
 		}
 	}

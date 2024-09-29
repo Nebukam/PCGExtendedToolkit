@@ -580,6 +580,7 @@ namespace PCGExGraphTask
 		return true;
 	}
 
+
 	bool FCompileGraph::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);

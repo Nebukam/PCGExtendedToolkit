@@ -53,17 +53,6 @@ namespace PCGExNodeAdjacency
 			}
 		}
 
-		return true;
-	}
-
-	bool FAdjacencyFilter::Test(const PCGExCluster::FNode& Node) const
-	{
-		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
-		//const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *CapturedCluster->Edges;
-
-		const double A = OperandA->Read(Node.PointIndex);
-		double B = 0;
-
 		if (Adjacency.bTestAllNeighbors)
 		{
 			// Each adjacent sample must pass the comparison, exit early.
@@ -71,22 +60,30 @@ namespace PCGExNodeAdjacency
 			{
 				if (bCaptureFromNodes)
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency)
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 					{
-						B = OperandA->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex);
-						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
-					}
+						double B = 0;
+						for (const uint64 AdjacencyHash : Node.Adjacency)
+						{
+							B = OperandA->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex);
+							if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
+						}
+						return true;
+					};
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency)
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 					{
-						B = OperandA->Read(PCGEx::H64B(AdjacencyHash));
-						if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
-					}
+						double B = 0;
+						for (const uint64 AdjacencyHash : Node.Adjacency)
+						{
+							B = OperandA->Read(PCGEx::H64B(AdjacencyHash));
+							if (!PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { return false; }
+						}
+						return true;
+					};
 				}
-
-				return true;
 			}
 
 			// First, build the consolidated operand B
@@ -95,82 +92,137 @@ namespace PCGExNodeAdjacency
 			case EPCGExAdjacencyGatherMode::Average:
 				if (bCaptureFromNodes)
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex); }
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
+					{
+						double B = 0;
+						for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex); }
+						return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					};
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Read(PCGEx::H64B(AdjacencyHash)); }
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
+					{
+						double B = 0;
+						for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Read(PCGEx::H64B(AdjacencyHash)); }
+						return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					};
 				}
-				B /= Node.Adjacency.Num();
+
 				break;
 			case EPCGExAdjacencyGatherMode::Min:
-				B = MAX_dbl;
 				if (bCaptureFromNodes)
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
+					{
+						double B = MAX_dbl;
+						for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
+						return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					};
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
+					{
+						double B = MAX_dbl;
+						for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
+						return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					};
 				}
 				break;
 			case EPCGExAdjacencyGatherMode::Max:
-				B = MIN_dbl;
 				if (bCaptureFromNodes)
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
+					{
+						double B = MIN_dbl;
+						for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
+						return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					};
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
+					{
+						double B = MIN_dbl;
+						for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
+						return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					};
 				}
 				break;
 			case EPCGExAdjacencyGatherMode::Sum:
 				if (bCaptureFromNodes)
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
+					{
+						double B = MIN_dbl;
+						for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex)); }
+						return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					};
 				}
 				else
 				{
-					for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
+					TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
+					{
+						double B = MIN_dbl;
+						for (const uint64 AdjacencyHash : Node.Adjacency) { B += FMath::Max(B, OperandB->Read(PCGEx::H64B(AdjacencyHash))); }
+						return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B = Node.Adjacency.Num(), TypedFilterFactory->Config.Tolerance);
+					};
 				}
 				break;
 			default:
 			case EPCGExAdjacencyGatherMode::Individual:
 				break;
 			}
-
-			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 		}
 
-		// Only some adjacent samples must pass the comparison
-		const int32 Threshold = Adjacency.GetThreshold(Node);
+		if (TestSubFunc) { return true; }
 
-		// Early exit on impossible thresholds (i.e node has less neighbor that the minimum or exact requirements)		
-		if (Threshold == -1) { return false; }
-
-		// TODO : We can be slightly more efficient and exiting early based on selected threshold mode
-
-		// Test all neighbors individually and check how many succeeded
-		int32 LocalSuccessCount = 0;
 		if (bCaptureFromNodes)
 		{
-			for (const uint64 AdjacencyHash : Node.Adjacency)
+			TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 			{
-				B = OperandA->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex);
-				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
-			}
+				// Only some adjacent samples must pass the comparison
+				const int32 Threshold = Adjacency.GetThreshold(Node);
+				if (Threshold == -1) { return false; }
+				int32 LocalSuccessCount = 0;
+				double B = 0;
+
+				for (const uint64 AdjacencyHash : Node.Adjacency)
+				{
+					B = OperandA->Read(NodesRef[PCGEx::H64A(AdjacencyHash)].PointIndex);
+					if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
+				}
+
+				return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold, Adjacency.ThresholdTolerance);
+			};
 		}
 		else
 		{
-			for (const uint64 AdjacencyHash : Node.Adjacency)
+			TestSubFunc = [&](const PCGExCluster::FNode& Node, const TArray<PCGExCluster::FNode>& NodesRef, const double A)
 			{
-				B = OperandA->Read(PCGEx::H64B(AdjacencyHash));
-				if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
-			}
+				// Only some adjacent samples must pass the comparison
+				const int32 Threshold = Adjacency.GetThreshold(Node);
+				if (Threshold == -1) { return false; }
+				int32 LocalSuccessCount = 0;
+				double B = 0;
+
+				for (const uint64 AdjacencyHash : Node.Adjacency)
+				{
+					B = OperandA->Read(PCGEx::H64B(AdjacencyHash));
+					if (PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance)) { LocalSuccessCount++; }
+				}
+
+				return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold, Adjacency.ThresholdTolerance);
+			};
 		}
 
-		return PCGExCompare::Compare(Adjacency.ThresholdComparison, LocalSuccessCount, Threshold, Adjacency.ThresholdTolerance);
+		return true;
+	}
+
+	bool FAdjacencyFilter::Test(const PCGExCluster::FNode& Node) const
+	{
+		return TestSubFunc(Node, *Cluster->Nodes, OperandA->Read(Node.PointIndex));
 	}
 }
 
