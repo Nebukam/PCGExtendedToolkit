@@ -99,6 +99,7 @@ namespace PCGExData
 		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor;
 		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
 
+		TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor;
 		FPCGMetadataAttribute<T>* TypedOutAttribute = nullptr;
 
 		TSharedPtr<TArray<T>> InValues;
@@ -233,7 +234,7 @@ namespace PCGExData
 
 			UPCGMetadata* OutMetadata = Source->GetOut()->Metadata;
 			TypedOutAttribute = OutMetadata->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
-			TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, OutMetadata);
+			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, OutMetadata);
 
 			if (!TypedOutAttribute || !OutAccessor.IsValid())
 			{
@@ -292,14 +293,14 @@ namespace PCGExData
 		{
 			if (!IsWritable()) { return; }
 
-			UE_LOG(LogTemp, Warning, TEXT("Buffer Write Start :: %s"), *FullName.ToString())
+			//UE_LOG(LogTemp, Warning, TEXT("Buffer Write Start :: %s"), *FullName.ToString())
 
+			check(OutAccessor)
+			
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-			TUniquePtr<FPCGAttributeAccessor<T>> OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
-
 			OutAccessor->SetRange(View, 0, *Source->GetOutKeys());
 
-			UE_LOG(LogTemp, Warning, TEXT("Buffer Write End :: %s"), *FullName.ToString())
+			//UE_LOG(LogTemp, Warning, TEXT("Buffer Write End :: %s"), *FullName.ToString())
 		}
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override

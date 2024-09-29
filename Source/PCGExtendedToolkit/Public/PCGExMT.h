@@ -201,6 +201,7 @@ namespace PCGExMT
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskManager : public TSharedFromThis<FTaskManager>
 	{
 		friend class FPCGExTask;
+		friend class FPCGExDeferredUnpauseTask;
 		friend class FTaskGroup;
 
 	public:
@@ -215,6 +216,7 @@ namespace PCGExMT
 		EQueuedWorkPriority WorkPriority = EQueuedWorkPriority::Normal;
 
 		mutable FRWLock ManagerLock;
+		mutable FRWLock PauseLock;
 		mutable FRWLock GroupLock;
 		FPCGExContext* Context = nullptr;
 		int8 Stopped = 0;
@@ -223,7 +225,7 @@ namespace PCGExMT
 		TSharedPtr<FTaskGroup> CreateGroup(const FName& GroupName);
 
 		FORCEINLINE bool IsAvailable() const { return Stopped || Flushing ? false : true; }
-
+		
 		template <typename T, typename... Args>
 		void Start(const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
@@ -292,13 +294,20 @@ namespace PCGExMT
 		T* GetContext() { return static_cast<T*>(Context); }
 
 	protected:
+		int8 WorkComplete = 0;
+		int8 PauseScheduled = 0;
 		int8 Flushing = 0;
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
 		TArray<TUniquePtr<FAsyncTaskBase>> QueuedTasks;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
+		
+		FAsyncTask<FPCGExDeferredUnpauseTask>* DeferredUnpauseTask = nullptr;
+		void ScheduleUnpause();
+		void TryUnpause();
+		
 	};
-
+	
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup : public TSharedFromThis<FTaskGroup>
 	{
 		friend class FTaskManager;

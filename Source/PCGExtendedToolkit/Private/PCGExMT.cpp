@@ -27,17 +27,20 @@ namespace PCGExMT
 	{
 		if (Flushing) { return; }
 		FPlatformAtomics::InterlockedAdd(&NumCompleted, 1);
-		if (NumCompleted == NumStarted) { Context->bIsPaused = false; }
+		if (NumCompleted == NumStarted) { ScheduleUnpause(); }
 	}
 
 	bool FTaskManager::IsAsyncWorkComplete() const
 	{
-		return NumCompleted == NumStarted;
+		return WorkComplete > 0;
 	}
 
 	void FTaskManager::Reset(const bool bStop)
 	{
 		if (Stopped) { return; }
+
+		FPlatformAtomics::InterlockedExchange(&PauseScheduled, 0);
+		FPlatformAtomics::InterlockedExchange(&WorkComplete, 0);
 
 		FPlatformAtomics::InterlockedExchange(&Stopped, 1);
 
@@ -55,6 +58,38 @@ namespace PCGExMT
 		NumCompleted = 0;
 
 		Groups.Empty();
+	}
+
+	void FTaskManager::ScheduleUnpause()
+	{
+		if (PauseScheduled) { return; }
+
+		FPlatformAtomics::InterlockedExchange(&PauseScheduled, 1);
+
+		const TSharedPtr<FTaskManager> SharedSelf = SharedThis(this);
+		TWeakPtr<FTaskManager> WeakThisPtr = SharedSelf;
+
+		AsyncTask(
+			ENamedThreads::BackgroundThreadPriority, [WeakThisPtr]()
+			{
+				const TSharedPtr<FTaskManager> Manager = WeakThisPtr.Pin();
+				if (!Manager || !Manager->IsAvailable()) { return; }
+				Manager->TryUnpause();
+			});
+	}
+
+	void FTaskManager::TryUnpause()
+	{
+		if (!PauseScheduled) { return; }
+		FPlatformAtomics::InterlockedExchange(&PauseScheduled, 0);
+
+		if (Flushing || Stopped) { return; }
+
+		if (NumCompleted == NumStarted)
+		{
+			FPlatformAtomics::InterlockedExchange(&WorkComplete, 1);
+			Context->bIsPaused = false; // Unpause context
+		}
 	}
 
 	void FTaskGroup::StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined, const bool bExecuteSmallSynchronously)
