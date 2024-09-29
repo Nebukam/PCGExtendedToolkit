@@ -63,7 +63,8 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUberFilterElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -80,15 +81,14 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to filter."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{

@@ -42,7 +42,8 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBoundsPathIntersectionElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -74,8 +75,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = Settings->OutputSettings.WillWriteAny();
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to intersect with."));
 			return true;
@@ -87,7 +87,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 

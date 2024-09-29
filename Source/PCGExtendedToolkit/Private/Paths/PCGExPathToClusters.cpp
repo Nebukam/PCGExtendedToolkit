@@ -84,6 +84,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathToClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathToClusters)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -91,8 +92,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Settings->bFusePaths)
 		{
-			if (!Context->StartBatchProcessingPoints<
-				PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>(
+			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 				{
 					return Entry->GetNum() >= 2;
@@ -100,8 +100,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>& NewBatch)
 				{
 					NewBatch->bInlineProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
-				},
-				PCGExGraph::State_PreparingCompound))
+				}))
 			{
 				PCGE_LOG(
 					Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -110,16 +109,14 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 		else
 		{
-			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<
-				PCGExPathToClusters::FNonFusingProcessor>>(
+			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>(
 				[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 				{
 					return Entry->GetNum() >= 2;
 				},
 				[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>& NewBatch)
 				{
-				},
-				PCGExMT::State_Done))
+				}))
 			{
 				PCGE_LOG(
 					Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -128,7 +125,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(Settings->bFusePaths ? PCGExGraph::State_PreparingCompound : PCGExMT::State_Done)) { return false; }
 
 #pragma region Intersection management
 
@@ -140,7 +137,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->PathsFacades.Reserve(NumFacades);
 
 			PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>* MainBatch = static_cast<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>*>(Context->MainBatch.Get());
-			for (const TSharedPtr<PCGExPathToClusters::FFusingProcessor>& Processor : MainBatch->Processors)
+			for (const TSharedRef<PCGExPathToClusters::FFusingProcessor>& Processor : MainBatch->Processors)
 			{
 				if (!Processor->bIsProcessorValid) { continue; }
 				Context->PathsFacades.Add(Processor->PointDataFacade);

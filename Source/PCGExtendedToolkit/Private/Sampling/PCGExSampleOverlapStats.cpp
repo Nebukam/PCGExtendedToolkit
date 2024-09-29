@@ -69,7 +69,8 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleOverlapStatsElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleOverlapStats)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -79,15 +80,14 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleOverlapStats::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any input to check for overlaps."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 

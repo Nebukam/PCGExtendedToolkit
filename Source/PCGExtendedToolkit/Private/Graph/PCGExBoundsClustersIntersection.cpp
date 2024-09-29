@@ -41,7 +41,8 @@ bool FPCGExBoundsClustersIntersectionElement::ExecuteInternal(FPCGContext* InCon
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBoundsClustersIntersectionElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsClustersIntersection)
-
+	PCGEX_EXECUTION_CHECK
+	
 	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
 	return true;
 

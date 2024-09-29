@@ -294,7 +294,8 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindContoursElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -308,15 +309,14 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 					NewBatch->bRequiresWriteStep = true;
 					NewBatch->bWriteVtxDataFacade = true;
 				}
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	if (Settings->bOutputFilteredSeeds)
 	{

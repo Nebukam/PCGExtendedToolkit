@@ -39,7 +39,8 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBreakClustersToPathsElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -48,24 +49,16 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExBreakClustersToPaths::FProcessorBatch>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Tick..."))
-
-	if (!Context->ProcessClusters()) { return false; }
-
-	UE_LOG(LogTemp, Warning, TEXT("Pre Output"))
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->Paths->OutputToContext();
-
-	UE_LOG(LogTemp, Warning, TEXT("Post Output"))
-
 	return Context->TryComplete();
 }
 

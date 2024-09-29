@@ -30,7 +30,8 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSanitizeClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SanitizeClusters)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -40,15 +41,14 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 			[&](const TSharedPtr<PCGExSanitizeClusters::FProcessorBatch>& NewBatch)
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->OutputBatches();
 	Context->MainPoints->OutputToContext();

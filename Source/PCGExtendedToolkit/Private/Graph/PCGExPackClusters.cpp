@@ -45,6 +45,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPackClustersElement::Execute);
 
 	PCGEX_CONTEXT(PackClusters)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{

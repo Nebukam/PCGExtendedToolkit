@@ -85,7 +85,8 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFuseClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseClusters)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context))
@@ -100,15 +101,14 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>& NewBatch)
 			{
 				NewBatch->bInlineProcessing = bDoInline;
-			},
-			PCGExGraph::State_PreparingCompound, bDoInline))
+			}, bDoInline))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExGraph::State_PreparingCompound)) { return false; }
 
 	if (Context->IsState(PCGExGraph::State_PreparingCompound))
 	{

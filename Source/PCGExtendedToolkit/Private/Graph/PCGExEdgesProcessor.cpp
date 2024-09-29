@@ -125,17 +125,26 @@ void FPCGExEdgesProcessorContext::OutputBatches() const
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches) { Batch->Output(); }
 }
 
-bool FPCGExEdgesProcessorContext::ProcessClusters()
+bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync)
 {
 	if (Batches.IsEmpty()) { return true; }
 
 	if (bClusterBatchInlined)
 	{
-		if (!CurrentBatch) { return true; }
+		if (!CurrentBatch)
+		{
+			if (CurrentBatchIndex == -1)
+			{
+				// First batch
+				AdvanceBatch(NextStateId, bIsNextStateAsync);
+				return false;
+			}
+			return true;
+		}
 
 		if (IsState(PCGExClusterMT::MTState_ClusterProcessing))
 		{
-			if (!IsAsyncWorkComplete()) { return false; }
+			PCGEX_ASYNC_WAIT_INTERNAL
 
 			CurrentBatch->CompleteWork();
 			SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
@@ -143,16 +152,16 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 		if (IsState(PCGExClusterMT::MTState_ClusterCompletingWork))
 		{
-			if (!IsAsyncWorkComplete()) { return false; }
+			PCGEX_ASYNC_WAIT_INTERNAL
 
-			AdvanceBatch();
+			AdvanceBatch(NextStateId, bIsNextStateAsync);
 		}
 	}
 	else
 	{
 		if (IsState(PCGExClusterMT::MTState_ClusterProcessing))
 		{
-			if (!IsAsyncWorkComplete()) { return false; }
+			PCGEX_ASYNC_WAIT_INTERNAL
 
 			ClusterProcessing_InitialProcessingDone();
 			CompleteBatches(Batches);
@@ -161,7 +170,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 		if (IsState(PCGExClusterMT::MTState_ClusterCompletingWork))
 		{
-			if (!IsAsyncWorkComplete()) { return false; }
+			PCGEX_ASYNC_WAIT_INTERNAL
 
 			ClusterProcessing_WorkComplete();
 
@@ -170,14 +179,23 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 				WriteBatches(Batches);
 				SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
 			}
-			else { SetState(TargetState_ClusterProcessingDone); }
+			else
+			{
+				if (NextStateId == PCGExMT::State_Done) { Done(); }
+				if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
+				else { SetState(NextStateId); }
+			}
 		}
 
 		if (IsState(PCGExClusterMT::MTState_ClusterWriting))
 		{
-			if (!IsAsyncWorkComplete()) { return false; }
+			PCGEX_ASYNC_WAIT_INTERNAL
+
 			ClusterProcessing_WritingDone();
-			SetState(TargetState_ClusterProcessingDone);
+
+			if (NextStateId == PCGExMT::State_Done) { Done(); }
+			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
+			else { SetState(NextStateId); }
 		}
 	}
 
@@ -195,7 +213,8 @@ bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToConte
 
 	if (IsState(PCGExGraph::State_Compiling))
 	{
-		if (!IsAsyncWorkComplete()) { return false; }
+		PCGEX_ASYNC_WAIT_INTERNAL
+
 		ClusterProcessing_GraphCompilationDone();
 		SetState(NextStateId);
 	}
@@ -213,13 +232,15 @@ bool FPCGExEdgesProcessorContext::HasValidHeuristics() const
 	return bFoundAny;
 }
 
-void FPCGExEdgesProcessorContext::AdvanceBatch()
+void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync)
 {
 	CurrentBatchIndex++;
 	if (!Batches.IsValidIndex(CurrentBatchIndex))
 	{
 		CurrentBatch = nullptr;
-		SetState(TargetState_ClusterProcessingDone);
+		if (NextStateId == PCGExMT::State_Done) { Done(); }
+		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
+		else { SetState(NextStateId); }
 	}
 	else
 	{

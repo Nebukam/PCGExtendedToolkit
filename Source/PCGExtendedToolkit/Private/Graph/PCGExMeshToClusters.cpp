@@ -34,6 +34,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGExContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(MeshToClusters)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->MainPoints->Pairs.Num() < 1)
 	{
@@ -72,7 +73,8 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMeshToClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(MeshToClusters)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -199,12 +201,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	if (Context->IsState(PCGExGeo::State_ExtractingMesh))
 	{
 		PCGEX_ASYNC_WAIT
-
-		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
-	}
-
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
+		
 		auto ProcessTarget = [&](const int32 TargetIndex)
 		{
 			const int32 MeshIdx = Context->MeshIdx[TargetIndex];

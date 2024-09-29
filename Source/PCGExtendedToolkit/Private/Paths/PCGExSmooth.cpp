@@ -30,7 +30,8 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSmoothElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -50,8 +51,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->SmoothingMethod;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to smooth."));
 			return true;
@@ -63,7 +63,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 

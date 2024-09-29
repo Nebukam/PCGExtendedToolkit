@@ -161,7 +161,8 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDiscardByOverlapElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(DiscardByOverlap)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -171,15 +172,14 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExDiscardByOverlap::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true; // Not really but we need the step
-			},
-			PCGExMT::State_Processing))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any input to check for overlaps."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Processing)) { return false; }
 
 	if (Context->IsState(PCGExMT::State_Processing))
 	{

@@ -42,7 +42,8 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFlagNodesElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(FlagNodes)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -53,15 +54,14 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 			{
 				NewBatch->bRequiresWriteStep = true;
 				NewBatch->bWriteVtxDataFacade = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->OutputPointsAndEdges();
 

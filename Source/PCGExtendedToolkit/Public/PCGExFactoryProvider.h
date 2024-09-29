@@ -8,6 +8,7 @@
 #include "PCGExContext.h"
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGParamData.h"
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
@@ -48,7 +49,7 @@ namespace PCGExFactories
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamDataBase : public UPCGPointData
+class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExParamDataBase : public UPCGParamData
 {
 	GENERATED_BODY()
 

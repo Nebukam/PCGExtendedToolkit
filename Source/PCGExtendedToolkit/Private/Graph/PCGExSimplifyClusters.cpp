@@ -34,7 +34,8 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSimplifyClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SimplifyClusters)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -43,15 +44,14 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExGraph::State_ReadyToCompile))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExGraph::State_ReadyToCompile)) { return false; }
 	if (!Context->CompileGraphBuilders(true, PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();

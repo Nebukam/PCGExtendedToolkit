@@ -35,6 +35,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSubdivideElement::Execute);
 
 	PCGEX_CONTEXT(Subdivide)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -57,8 +58,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				NewBatch->PrimaryOperation = Context->Blending;
 				NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to subdivide."));
 			return true;
@@ -70,7 +70,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 

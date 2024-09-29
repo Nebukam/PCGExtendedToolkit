@@ -37,6 +37,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildConvexHullElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -57,8 +58,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConvexHull::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
 			return true;
@@ -70,7 +70,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 

@@ -48,7 +48,8 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildDelaunayGraphElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -68,8 +69,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
 			return true;
@@ -81,7 +81,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 	if (Context->MainSites)

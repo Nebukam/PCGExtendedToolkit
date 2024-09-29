@@ -85,7 +85,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	void OutputBatches() const;
 
 protected:
-	virtual bool ProcessClusters();
+	virtual bool ProcessClusters(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync = false);
 	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGExMT::AsyncState NextStateId);
 
 	TArray<TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>> Batches;
@@ -93,7 +93,6 @@ protected:
 	bool bScopedIndexLookupBuild = false;
 	bool bHasValidHeuristics = false;
 
-	PCGExMT::AsyncState TargetState_ClusterProcessingDone;
 	bool bDoClusterBatchWritingStep = false;
 
 	bool bClusterRequiresHeuristics = false;
@@ -102,15 +101,14 @@ protected:
 	TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase> CurrentBatch;
 
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
-	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState, const bool bInlined = false)
+	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const bool bInlined = false)
 	{
-		ResetAsyncWork();
+		ResumeExecution();
 
 		Batches.Empty();
 
 		bClusterBatchInlined = bInlined;
 		CurrentBatchIndex = -1;
-		TargetState_ClusterProcessingDone = InState;
 
 		bClusterRequiresHeuristics = true;
 		bDoClusterBatchWritingStep = false;
@@ -131,6 +129,11 @@ protected:
 			TSharedPtr<T> NewBatch = MakeShared<T>(this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);
 			InitBatch(NewBatch);
 
+			if(NewBatch->bRequiresWriteStep)
+			{
+				bDoClusterBatchWritingStep = true;
+			}
+						
 			if (NewBatch->RequiresHeuristics())
 			{
 				bClusterRequiresHeuristics = true;
@@ -150,8 +153,7 @@ protected:
 
 		if (Batches.IsEmpty()) { return false; }
 
-		if (bClusterBatchInlined) { AdvanceBatch(); }
-		else { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
+		if (!bClusterBatchInlined) { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
 		return true;
 	}
 
@@ -173,7 +175,7 @@ protected:
 
 	bool HasValidHeuristics() const;
 
-	void AdvanceBatch();
+	void AdvanceBatch(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync);
 
 	int32 CurrentEdgesIndex = -1;
 };

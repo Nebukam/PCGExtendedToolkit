@@ -47,7 +47,8 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildVoronoiGraph2DElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -69,8 +70,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBuildVoronoi2D::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
 			return true;
@@ -82,7 +82,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 	//Context->SitesOutput->OutputToContext();

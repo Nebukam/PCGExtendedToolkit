@@ -83,6 +83,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRefineEdgesElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(RefineEdges)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -95,8 +96,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 				[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>& NewBatch)
 				{
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
-				},
-				PCGExMT::State_Done))
+				}))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 				return true;
@@ -110,8 +110,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 				{
 					NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
-				},
-				PCGExGraph::State_ReadyToCompile))
+				}))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 
@@ -120,7 +119,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(Settings->bOutputOnlyEdgesAsPoints ? PCGExMT::State_Done : PCGExGraph::State_ReadyToCompile)) { return false; }
 	if (!Context->CompileGraphBuilders(true, PCGExMT::State_Done)) { return false; }
 
 	//

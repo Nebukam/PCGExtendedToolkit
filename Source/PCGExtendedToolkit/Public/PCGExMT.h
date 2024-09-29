@@ -22,12 +22,12 @@
 	TSharedPtr<PCGExMT::FTaskGroup> _NAME; \
 	if(!_MANAGER){ return; } \
 	_NAME = _MANAGER->TryCreateGroup(FName(#_NAME));\
-	if(!_NAME){ return; } 
+	if(!_NAME){ return; }
 #define PCGEX_ASYNC_GROUP_CHKD(_MANAGER, _NAME) \
 	TSharedPtr<PCGExMT::FTaskGroup> _NAME; \
 	if(!_MANAGER){ return false; } \
 	_NAME = _MANAGER->TryCreateGroup(FName(#_NAME)); \
-	if(!_NAME){ return false; } 
+	if(!_NAME){ return false; }
 
 #pragma endregion
 
@@ -220,7 +220,9 @@ namespace PCGExMT
 		mutable FRWLock ManagerLock;
 		mutable FRWLock PauseLock;
 		mutable FRWLock GroupLock;
+		
 		FPCGExContext* Context = nullptr;
+		
 		int8 Stopped = 0;
 		int8 ForceSync = 0;
 
@@ -229,7 +231,7 @@ namespace PCGExMT
 
 		TSharedPtr<FTaskGroup> TryCreateGroup(const FName& GroupName);
 
-		FORCEINLINE bool IsAvailable() const { return Stopped || Flushing ? false : true; }
+		FORCEINLINE bool IsAvailable() const { return Stopped ? false : true; }
 
 		template <typename T, typename... Args>
 		void Start(const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
@@ -273,7 +275,8 @@ namespace PCGExMT
 		void StartSynchronousTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
 			if (!IsAvailable()) { return; }
-
+			GrowNumStarted();
+			
 			T& Task = AsyncTask->GetTask();
 			//Task.TaskPtr = AsyncTask;
 			Task.ManagerPtr = SharedThis(this);
@@ -287,29 +290,26 @@ namespace PCGExMT
 		void Reserve(const int32 NumTasks)
 		{
 			FWriteScopeLock WriteLock(ManagerLock);
-			QueuedTasks.Reserve(NumTasks);
+			QueuedTasks.Reserve(QueuedTasks.Num() + NumTasks);
 		}
 
-		void OnAsyncTaskExecutionComplete(FPCGExTask* AsyncTask, bool bSuccess);
-		bool IsAsyncWorkComplete() const;
+		bool IsWorkComplete() const;
 
-		void Reset(const bool bStop = false);
+		void Reset(const bool bHoldStop = false);
 
 		template <typename T>
 		T* GetContext() { return static_cast<T*>(Context); }
 
 	protected:
-		int8 WorkComplete = 0;
-		int8 PauseScheduled = 0;
-		int8 Flushing = 0;
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
 		TArray<TUniquePtr<FAsyncTaskBase>> QueuedTasks;
 		TArray<TSharedPtr<FTaskGroup>> Groups;
 
-		FAsyncTask<FPCGExDeferredUnpauseTask>* DeferredUnpauseTask = nullptr;
-		void ScheduleUnpause();
-		void TryUnpause();
+		int8 CompletionScheduled = 0;
+		int8 WorkComplete = 1;
+		void ScheduleCompletion();
+		void TryComplete();
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTaskGroup : public TSharedFromThis<FTaskGroup>
@@ -440,25 +440,7 @@ namespace PCGExMT
 			RETURN_QUICK_DECLARE_CYCLE_STAT(FPCGExAsyncTask, STATGROUP_ThreadPoolAsyncTasks);
 		}
 
-		void DoWork()
-		{
-			ON_SCOPE_EXIT
-			{
-				ManagerPtr = nullptr;
-				GroupPtr = nullptr;
-			};
-
-			if (bWorkDone) { return; }
-			bWorkDone = true;
-
-			const TSharedPtr<FTaskManager> Manager = ManagerPtr.Pin();
-			if (!Manager || !Manager->IsAvailable()) { return; }
-
-			const bool bResult = ExecuteTask(Manager);
-			if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin()) { Group->OnTaskCompleted(); }
-			if (bIsAsync) { Manager->GrowNumCompleted(); }
-		}
-
+		void DoWork();	
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) = 0;
 
 	protected:

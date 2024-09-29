@@ -143,18 +143,21 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	return false;
 }
 
-bool FPCGExPointsProcessorContext::ExecuteAutomation() { return true; }
-
 void FPCGExPointsProcessorContext::SetAsyncState(const PCGExMT::AsyncState WaitState)
 {
-	bIsPaused = true;
-	SetState(WaitState, false);
+	if (!bDoAsyncProcessing)
+	{
+		SetState(WaitState);
+		return;
+	}
+
+	bWaitingForAsyncCompletion = true;
+	SetState(WaitState);
 }
 
 
-void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState StateId, const bool bResetAsyncWork)
+void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState StateId)
 {
-	if (bResetAsyncWork) { ResetAsyncWork(); }
 	if (CurrentState == StateId) { return; }
 	CurrentState = StateId;
 }
@@ -174,13 +177,13 @@ bool FPCGExPointsProcessorContext::TryComplete(const bool bForce)
 
 #pragma endregion
 
-bool FPCGExPointsProcessorContext::ProcessPointsBatch()
+bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync)
 {
 	if (!bBatchProcessingEnabled) { return true; }
 
 	if (IsState(PCGExPointsMT::MTState_PointsProcessing))
 	{
-		if (!IsAsyncWorkComplete()) { return false; }
+		PCGEX_ASYNC_WAIT_INTERNAL
 
 		BatchProcessing_InitialProcessingDone();
 		MainBatch->CompleteWork();
@@ -189,7 +192,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 
 	if (IsState(PCGExPointsMT::MTState_PointsCompletingWork))
 	{
-		if (!IsAsyncWorkComplete()) { return false; }
+		PCGEX_ASYNC_WAIT_INTERNAL
 
 		BatchProcessing_WorkComplete();
 
@@ -200,19 +203,21 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 		}
 		else
 		{
-			if (TargetState_PointsProcessingDone == PCGExMT::State_Done) { Done(); }
-			else { SetState(TargetState_PointsProcessingDone); }
+			if (NextStateId == PCGExMT::State_Done) { Done(); }
+			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
+			else { SetState(NextStateId); }
 		}
 	}
 
 	if (IsState(PCGExPointsMT::MTState_PointsWriting))
 	{
-		if (!IsAsyncWorkComplete()) { return false; }
+		PCGEX_ASYNC_WAIT_INTERNAL
 
 		BatchProcessing_WritingDone();
 
-		if (TargetState_PointsProcessingDone == PCGExMT::State_Done) { Done(); }
-		else { SetState(TargetState_PointsProcessingDone); }
+		if (NextStateId == PCGExMT::State_Done) { Done(); }
+		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
+		else { SetState(NextStateId); }
 	}
 
 	return true;
@@ -222,7 +227,7 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager(
 {
 	if (!AsyncManager)
 	{
-		FWriteScopeLock WriteLock(ContextLock);
+		FWriteScopeLock WriteLock(AsyncLock);
 		AsyncManager = MakeShared<PCGExMT::FTaskManager>(this);
 		AsyncManager->ForceSync = !bDoAsyncProcessing;
 
@@ -233,22 +238,27 @@ TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager(
 	return AsyncManager;
 }
 
-void FPCGExPointsProcessorContext::ResetAsyncWork()
+void FPCGExPointsProcessorContext::ResumeExecution()
 {
-	bIsPaused = false;
 	if (AsyncManager) { AsyncManager->Reset(); }
+	
+	bIsPaused = false;
+	bWaitingForAsyncCompletion = false;
 }
 
 bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
 {
-	if (!bDoAsyncProcessing || !AsyncManager) { return true; }
-	if (AsyncManager->IsAsyncWorkComplete())
+	// Context must be unpaused for this to be called
+	
+	if (!bDoAsyncProcessing) { return true; }
+	if (!bWaitingForAsyncCompletion || !AsyncManager) { return true; }
+	
+	if (AsyncManager->IsWorkComplete())
 	{
-		ResetAsyncWork();
+		ResumeExecution();
 		return true;
 	}
 
-	bIsPaused = true;
 	return false;
 }
 

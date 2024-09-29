@@ -35,7 +35,8 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPruneClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneClusters)
-
+	PCGEX_EXECUTION_CHECK
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

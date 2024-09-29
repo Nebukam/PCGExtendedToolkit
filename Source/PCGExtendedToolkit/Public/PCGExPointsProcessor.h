@@ -15,10 +15,13 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsMT.h"
-#include "RenderGraphResources.h"
-
 
 #include "PCGExPointsProcessor.generated.h"
+
+
+#define PCGEX_EXECUTION_CHECK if (!Context->IsAsyncWorkComplete()) { return false; } 
+#define PCGEX_ASYNC_WAIT if (Context->bWaitingForAsyncCompletion) { return false; }
+#define PCGEX_ASYNC_WAIT_INTERNAL if (bIsPaused) { return false; }
 
 struct FPCGExPointsProcessorContext;
 class FPCGExPointsProcessorElement;
@@ -147,21 +150,21 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 {
 	friend class FPCGExPointsProcessorElement;
 
+	bool bWaitingForAsyncCompletion = false;
 	bool bScopedAttributeGet = false;
 	virtual ~FPCGExPointsProcessorContext() override;
 
 	UWorld* World = nullptr;
 
-	mutable FRWLock ContextLock;
+	mutable FRWLock AsyncLock;
 
 	TSharedPtr<PCGExData::FPointIOCollection> MainPoints;
 	TSharedPtr<PCGExData::FPointIO> CurrentIO;
 
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
-	virtual bool ExecuteAutomation();
 
 	void SetAsyncState(const PCGExMT::AsyncState WaitState);
-	void SetState(const PCGExMT::AsyncState StateId, const bool bResetAsyncWork = true);
+	void SetState(const PCGExMT::AsyncState StateId);
 	bool IsState(const PCGExMT::AsyncState StateId) const { return CurrentState == StateId; }
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
@@ -216,14 +219,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 #pragma region Batching
 
 	bool bBatchProcessingEnabled = false;
-	bool ProcessPointsBatch();
+	bool ProcessPointsBatch(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync = false);
 
-	PCGExMT::AsyncState TargetState_PointsProcessingDone;
 	TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
 	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
-	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
+	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch)
 	{
 		bBatchProcessingEnabled = false;
 
@@ -233,8 +235,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 		SubProcessorMap.Empty();
 		SubProcessorMap.Reserve(MainPoints->Num());
-
-		TargetState_PointsProcessingDone = InState;
 
 		TArray<TWeakPtr<PCGExData::FPointIO>> BatchAblePoints;
 		BatchAblePoints.Reserve(MainPoints->Pairs.Num());
@@ -302,7 +302,7 @@ protected:
 	TArray<UPCGExOperation*> ProcessorOperations;
 	TSet<UPCGExOperation*> OwnedProcessorOperations;
 
-	virtual void ResetAsyncWork();
+	virtual void ResumeExecution();
 
 public:
 	virtual bool IsAsyncWorkComplete();

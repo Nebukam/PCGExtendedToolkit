@@ -32,6 +32,7 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelaxClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(RelaxClusters)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -42,15 +43,14 @@ bool FPCGExRelaxClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExRelaxClusters::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->OutputPointsAndEdges();
 
