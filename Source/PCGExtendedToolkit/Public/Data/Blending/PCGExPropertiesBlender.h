@@ -35,7 +35,7 @@ namespace PCGExDataBlending
 	{
 #define PCGEX_BLEND_FUNCREF(_TYPE, _NAME, ...) \
 	bool bReset##_NAME = false; EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Weight; \
-	using _NAME##FuncDef = std::function<_TYPE(const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W)>; _NAME##FuncDef _NAME##Func; 
+	using _NAME##FuncDef = std::function<_TYPE(const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W)>; _NAME##FuncDef _NAME##Func;
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCREF)
 #undef PCGEX_BLEND_FUNCREF
 
@@ -72,6 +72,5 @@ namespace PCGExDataBlending
 		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const;
 
 		void BlendRangeFromTo(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
-
 	};
 }

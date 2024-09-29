@@ -39,7 +39,7 @@ case EPCGExDataBlendingType::UnsignedMax:		_NAME##Func = [](const _TYPE& O, cons
 case EPCGExDataBlendingType::AbsoluteMin:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::AbsoluteMin(A, B); }; break; \
 case EPCGExDataBlendingType::AbsoluteMax:		_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::AbsoluteMax(A, B); }; break; }
 
-PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_ASSIGNFUNC)
+		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_ASSIGNFUNC)
 #undef PCGEX_BLEND_ASSIGNFUNC
 
 		bHasNoBlending = InDetails.HasNoBlending();
@@ -77,7 +77,6 @@ PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_ASSIGNFUNC)
 
 	void FPropertiesBlender::CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const
 	{
-
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR) _TYPE Target##_NAME = Target._ACCESSOR;\
 		if (_NAME##Blending == EPCGExDataBlendingType::Average) { Target##_NAME = PCGExMath::Div(Target._ACCESSOR, Count); }\
 		else if (_NAME##Blending == EPCGExDataBlendingType::Weight) { Target##_NAME = PCGExMath::Div(Target._ACCESSOR, TotalWeight); }
@@ -93,7 +92,6 @@ PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_ASSIGNFUNC)
 		Target.Transform.SetScale3D(TargetScale);
 		Target.Steepness = TargetSteepness;
 		Target.Seed = TargetSeed;
-		
 	}
 
 	void FPropertiesBlender::BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight) const

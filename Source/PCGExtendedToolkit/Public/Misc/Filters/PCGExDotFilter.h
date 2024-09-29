@@ -106,7 +106,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TDotFilter() override
 		{
-			
 		}
 	};
 }

@@ -57,11 +57,11 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Tick..."))
-	
+
 	if (!Context->ProcessClusters()) { return false; }
 
 	UE_LOG(LogTemp, Warning, TEXT("Pre Output"))
-	
+
 	Context->Paths->OutputToContext();
 
 	UE_LOG(LogTemp, Warning, TEXT("Post Output"))

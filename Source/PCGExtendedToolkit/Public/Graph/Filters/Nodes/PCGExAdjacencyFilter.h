@@ -93,7 +93,7 @@ namespace PCGExNodeAdjacency
 
 		using TestCallback = std::function<bool(const PCGExCluster::FNode&, const TArray<PCGExCluster::FNode>&, const double A)>;
 		TestCallback TestSubFunc;
-		
+
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;

@@ -268,7 +268,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 		}
 
 		return bBatchProcessingEnabled;
-		
 	}
 
 	virtual void BatchProcessing_InitialProcessingDone()
@@ -319,7 +318,7 @@ public:
 	virtual bool ShouldLog() const override { return false; }
 #endif
 
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;	
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:

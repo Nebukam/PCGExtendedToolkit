@@ -237,7 +237,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 	}
 
 	PathDataFacade->Write(ClusterProcessor->AsyncManager);
-	
+
 	if (Settings->bOutputFilteredSeeds) { ClusterProcessor->Context->SeedQuality[SeedIndex] = true; }
 
 	return true;

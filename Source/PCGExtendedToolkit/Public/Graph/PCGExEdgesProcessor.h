@@ -100,7 +100,7 @@ protected:
 	bool bClusterBatchInlined = false;
 	int32 CurrentBatchIndex = -1;
 	TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase> CurrentBatch;
-	
+
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
 	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState, const bool bInlined = false)
 	{
