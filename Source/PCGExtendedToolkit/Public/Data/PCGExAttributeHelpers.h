@@ -309,37 +309,13 @@ namespace PCGEx
 			this->Keys = this->InternalKeys;
 		}
 
-
-		static TSharedPtr<FAttributeAccessor> FindOrCreate(
-			UPCGPointData* InData, FName AttributeName,
-			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
-		{
-			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
-				AttributeName, DefaultValue,
-				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
-
-			return MakeShared<FAttributeAccessor<T>>(InData, InAttribute);
-		}
-
-		static TSharedPtr<FAttributeAccessor> FindOrCreate(
-			UPCGPointData* InData, FName AttributeName, FPCGAttributeAccessorKeysPoints* InKeys,
-			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
-		{
-			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
-				AttributeName, DefaultValue,
-				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
-
-			return MakeShared<FAttributeAccessor<T>>(InData, InAttribute, InKeys);
-		}
-
 		static TSharedPtr<FAttributeAccessor> FindOrCreate(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO, FName AttributeName,
 			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
 			UPCGPointData* InData = InPointIO->GetOut();
-			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
-				AttributeName, DefaultValue,
-				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			FPCGMetadataAttribute<T>* InAttribute = InPointIO->FindOrCreateAttribute(
+				AttributeName, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 
 			return MakeShared<FAttributeAccessor<T>>(InData, InAttribute, InPointIO->GetOutKeys().Get());
 		}
@@ -462,6 +438,8 @@ namespace PCGEx
 
 		virtual bool Bind(const TSharedPtr<PCGExData::FPointIO>& PointIO) override
 		{
+			// 'template' spec required for clang on mac, not sure why.
+			// ReSharper disable once CppRedundantTemplateKeyword
 			const FPCGMetadataAttribute<T>* Att = PointIO->GetOut()->Metadata->template GetConstTypedAttribute<T>(this->Name);
 			bIsNewAttribute = Att ? false : true;
 
@@ -1380,40 +1358,6 @@ namespace PCGEx
 				TargetPt.MetadataEntry = Key;
 			}
 		}
-	}
-
-	static void CopyValues(
-		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
-		const FAttributeIdentity& Identity,
-		const TSharedPtr<PCGExData::FPointIO>& Source,
-		const TSharedPtr<PCGExData::FPointIO>& Target,
-		const TArrayView<const int32>& SourceIndices,
-		const int32 TargetIndex = 0)
-	{
-		PCGMetadataAttribute::CallbackWithRightType(
-			static_cast<uint16>(Identity.UnderlyingType),
-			[&](auto DummyValue) -> void
-			{
-				using T = decltype(DummyValue);
-				TArray<T> RawValues;
-
-				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
-				TSharedPtr<TAttributeWriter<T>> Writer = MakeShared<TAttributeWriter<T>>(
-					Identity.Name,
-					SourceAttribute->GetValue(PCGDefaultValueKey),
-					SourceAttribute->AllowsInterpolation());
-
-				Writer->BindAndGet(Target);
-
-				const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
-				const int32 NumIndices = SourceIndices.Num();
-				for (int i = 0; i < NumIndices; ++i)
-				{
-					Writer->Values[TargetIndex + i] = SourceAttribute->GetValueFromItemKey(SourcePoints[SourceIndices[i]].MetadataEntry);
-				}
-
-				PCGExMT::Write(AsyncManager, Writer);
-			});
 	}
 
 #pragma endregion

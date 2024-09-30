@@ -81,8 +81,6 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		if (!Boot(Context)) { return true; }
 
-		Context->TargetsFacade->Source->GetInKeys();
-
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSampleNearestPoints::FProcessor>>& NewBatch)

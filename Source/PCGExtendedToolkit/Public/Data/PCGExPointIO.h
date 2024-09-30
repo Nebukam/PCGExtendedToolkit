@@ -75,6 +75,7 @@ namespace PCGExData
 		mutable FRWLock PointsLock;
 		mutable FRWLock InKeysLock;
 		mutable FRWLock OutKeysLock;
+		mutable FRWLock AttributesLock;
 
 		bool bWritten = false;
 		int32 NumInPoints = -1;
@@ -183,12 +184,8 @@ namespace PCGExData
 		FORCEINLINE int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
 
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetInKeys();
-		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap);
-
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys();
-		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, bool bInitializeOnSet);
-
-		TSharedPtr<FPCGAttributeAccessorKeysPoints> CreateKeys(ESource InSource);
+		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 
@@ -257,6 +254,36 @@ namespace PCGExData
 
 		bool OutputToContext();
 		bool OutputToContext(const int32 MinPointCount, const int32 MaxPointCount);
+
+		void DeleteAttribute(FName AttributeName) const;
+
+		template <typename T>
+		FPCGMetadataAttribute<T>* CreateAttribute(FName AttributeName, const T& DefaultValue, bool bAllowsInterpolation, bool bOverrideParent)
+		{
+			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
+			if (!Out) { return OutAttribute; }
+
+			{
+				FWriteScopeLock WriteScopeLock(AttributesLock);
+				OutAttribute = Out->Metadata->CreateAttribute(AttributeName, DefaultValue, bAllowsInterpolation, bOverrideParent);
+			}
+
+			return OutAttribute;
+		}
+
+		template <typename T>
+		FPCGMetadataAttribute<T>* FindOrCreateAttribute(FName AttributeName, const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
+		{
+			FPCGMetadataAttribute<T>* OutAttribute = nullptr;
+			if (!Out) { return OutAttribute; }
+
+			{
+				FWriteScopeLock WriteScopeLock(AttributesLock);
+				OutAttribute = Out->Metadata->FindOrCreateAttribute(AttributeName, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			}
+
+			return OutAttribute;
+		}
 	};
 
 	/**

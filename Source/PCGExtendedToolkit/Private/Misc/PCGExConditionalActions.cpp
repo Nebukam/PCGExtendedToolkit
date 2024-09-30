@@ -149,8 +149,6 @@ namespace PCGExConditionalActions
 
 	void FProcessor::CompleteWork()
 	{
-		UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
-
 		if (Settings->bDoConsumeProcessedAttributes)
 		{
 			for (const TSharedPtr<PCGExData::FBufferBase>& DataCache : PointDataFacade->Buffers)
@@ -159,7 +157,7 @@ namespace PCGExConditionalActions
 					!Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) ||
 					PCGEx::IsPCGExAttribute(DataCache->FullName)) { continue; }
 
-				Metadata->DeleteAttribute(DataCache->InAttribute->Name);
+				PointDataFacade->Source->DeleteAttribute(DataCache->InAttribute->Name);
 			}
 		}
 

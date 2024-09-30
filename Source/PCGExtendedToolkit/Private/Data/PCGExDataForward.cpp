@@ -12,7 +12,6 @@ TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(cons
 
 TSharedPtr<PCGExData::FDataForwardHandler> FPCGExForwardDetails::GetHandler(const TSharedPtr<PCGExData::FFacade>& InSourceDataFacade, const TSharedPtr<PCGExData::FFacade>& InTargetDataFacade) const
 {
-	InTargetDataFacade->Source->GetOutKeys();
 	return MakeShared<PCGExData::FDataForwardHandler>(*this, InSourceDataFacade, InTargetDataFacade);
 }
 
@@ -96,6 +95,9 @@ namespace PCGExData
 					static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
+
+						// 'template' spec required for clang on mac, not sure why.
+						// ReSharper disable once CppRedundantTemplateKeyword
 						const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 
 						TSharedPtr<TBuffer<T>> Writer = InTargetDataFacade->GetWritable<T>(SourceAtt, true);
@@ -115,9 +117,12 @@ namespace PCGExData
 				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
+
+					// 'template' spec required for clang on mac, not sure why.
+						// ReSharper disable once CppRedundantTemplateKeyword
 					const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
-					InTargetDataFacade->GetOut()->Metadata->DeleteAttribute(Identity.Name);
-					FPCGMetadataAttribute<T>* Mark = InTargetDataFacade->GetOut()->Metadata->FindOrCreateAttribute<T>(
+					InTargetDataFacade->Source->DeleteAttribute(Identity.Name);
+					FPCGMetadataAttribute<T>* Mark = InTargetDataFacade->Source->FindOrCreateAttribute<T>(
 						Identity.Name,
 						SourceAtt->GetValueFromItemKey(SourceDataFacade->Source->GetInPoint(SourceIndex).MetadataEntry),
 						SourceAtt->AllowsInterpolation(), true, true);

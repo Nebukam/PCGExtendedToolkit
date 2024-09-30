@@ -228,11 +228,9 @@ namespace PCGExWritePathProperties
 			}
 		}
 
-		UPCGMetadata* Meta = PointIO->GetOut()->Metadata;
-
-		if (Context->bWritePathLength) { PCGExData::WriteMark(Meta, Settings->PathLengthAttributeName, TotalLength); }
-		if (Context->bWritePathDirection) { PCGExData::WriteMark(Meta, Settings->PathDirectionAttributeName, (PathDir / NumPoints).GetSafeNormal()); }
-		if (Context->bWritePathCentroid) { PCGExData::WriteMark(Meta, Settings->PathCentroidAttributeName, (PathCentroid / NumPoints).GetSafeNormal()); }
+		if (Context->bWritePathLength) { PCGExData::WriteMark(PointIO, Settings->PathLengthAttributeName, TotalLength); }
+		if (Context->bWritePathDirection) { PCGExData::WriteMark(PointIO, Settings->PathDirectionAttributeName, (PathDir / NumPoints).GetSafeNormal()); }
+		if (Context->bWritePathCentroid) { PCGExData::WriteMark(PointIO, Settings->PathCentroidAttributeName, (PathCentroid / NumPoints).GetSafeNormal()); }
 
 		///
 

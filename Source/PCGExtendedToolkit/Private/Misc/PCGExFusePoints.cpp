@@ -70,8 +70,6 @@ namespace PCGExFusePoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		PointDataFacade->Source->GetInKeys();
-
 		CompoundGraph = MakeUnique<PCGExGraph::FCompoundGraph>(
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			PointDataFacade->GetIn()->GetBounds().ExpandBy(10));

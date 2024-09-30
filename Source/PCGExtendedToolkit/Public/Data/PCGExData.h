@@ -14,7 +14,6 @@
 #include "UObject/Object.h"
 #include "PCGExHelpers.h"
 
-
 #include "PCGExData.generated.h"
 
 USTRUCT(BlueprintType)
@@ -66,8 +65,8 @@ namespace PCGExData
 		const TSharedRef<FPointIO> Source;
 
 
-		FBufferBase(const TSharedRef<FPointIO>& InSource, const FName InFullName, const EPCGMetadataTypes InType):
-			FullName(InFullName), Type(InType), UID(BufferUID(FullName, Type)), Source(InSource)
+		FBufferBase(const TSharedRef<FPointIO>& InSource, const FName InFullName):
+			FullName(InFullName), UID(BufferUID(FullName, Type)), Source(InSource)
 		{
 			PCGEX_LOG_CTR(FBufferBase)
 		}
@@ -113,9 +112,10 @@ namespace PCGExData
 
 		virtual bool IsScoped() override { return bScopedBuffer || ScopedBroadcaster; }
 
-		TBuffer(const TSharedRef<FPointIO>& InSource, const FName InFullName, const EPCGMetadataTypes InType):
-			FBufferBase(InSource, InFullName, InType)
+		TBuffer(const TSharedRef<FPointIO>& InSource, const FName InFullName):
+			FBufferBase(InSource, InFullName)
 		{
+			Type = PCGEx::GetMetadataType<T>();
 		}
 
 		virtual ~TBuffer() override
@@ -205,6 +205,9 @@ namespace PCGExData
 			}
 
 			UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
+
+			// 'template' spec required for clang on mac, not sure why.
+			// ReSharper disable once CppRedundantTemplateKeyword
 			TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName);
 			InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
 
@@ -232,9 +235,8 @@ namespace PCGExData
 
 			if (OutValues) { return true; }
 
-			UPCGMetadata* OutMetadata = Source->GetOut()->Metadata;
-			TypedOutAttribute = OutMetadata->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
-			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, OutMetadata);
+			TypedOutAttribute = Source->FindOrCreateAttribute(FullName, DefaultValue, bAllowInterpolation);
+			OutAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedOutAttribute, Source->GetOut()->Metadata);
 
 			if (!TypedOutAttribute || !OutAccessor.IsValid())
 			{
@@ -246,6 +248,8 @@ namespace PCGExData
 
 			if (!bUninitialized)
 			{
+				// 'template' spec required for clang on mac, not sure why.
+				// ReSharper disable once CppRedundantTemplateKeyword
 				if (Source->GetIn() && Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(FullName))
 				{
 					// TODO : Scoped get would be better here
@@ -267,6 +271,8 @@ namespace PCGExData
 
 			if (Source->GetIn())
 			{
+				// 'template' spec required for clang on mac, not sure why.
+				// ReSharper disable once CppRedundantTemplateKeyword
 				if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(FullName))
 				{
 					return PrepareWrite(
@@ -387,7 +393,7 @@ namespace PCGExData
 				NewBuffer = FindBufferUnsafe<T>(FullName);
 				if (NewBuffer) { return NewBuffer; }
 
-				NewBuffer = MakeShared<TBuffer<T>>(Source, FullName, PCGEx::GetMetadataType<T>());
+				NewBuffer = MakeShared<TBuffer<T>>(Source, FullName);
 				NewBuffer->BufferIndex = Buffers.Num();
 
 				Buffers.Add(StaticCastSharedPtr<FBufferBase>(NewBuffer));
@@ -520,6 +526,9 @@ namespace PCGExData
 		{
 			const UPCGPointData* Data = Source->GetData(InSource);
 			if (!Data) { return nullptr; }
+
+			// 'template' spec required for clang on mac, not sure why.
+			// ReSharper disable once CppRedundantTemplateKeyword
 			return Data->Metadata->template GetConstTypedAttribute<T>(InName);
 		}
 
@@ -640,24 +649,20 @@ namespace PCGExData
 #pragma region Data Marking
 
 	template <typename T>
-	static FPCGMetadataAttribute<T>* WriteMark(UPCGMetadata* Metadata, const FName MarkID, T MarkValue)
+	static FPCGMetadataAttribute<T>* WriteMark(const TSharedRef<FPointIO>& PointIO, const FName MarkID, T MarkValue)
 	{
-		Metadata->DeleteAttribute(MarkID);
-		FPCGMetadataAttribute<T>* Mark = Metadata->CreateAttribute<T>(MarkID, MarkValue, false, true);
+		PointIO->DeleteAttribute(MarkID);
+		FPCGMetadataAttribute<T>* Mark = PointIO->CreateAttribute<T>(MarkID, MarkValue, false, true);
 		Mark->SetDefaultValue(MarkValue);
 		return Mark;
-	}
-
-	template <typename T>
-	static FPCGMetadataAttribute<T>* WriteMark(const FPointIO* PointIO, const FName MarkID, T MarkValue)
-	{
-		return WriteMark(PointIO->GetOut()->Metadata, MarkID, MarkValue);
 	}
 
 
 	template <typename T>
 	static bool TryReadMark(UPCGMetadata* Metadata, const FName MarkID, T& OutMark)
 	{
+		// 'template' spec required for clang on mac, not sure why.
+		// ReSharper disable once CppRedundantTemplateKeyword
 		const FPCGMetadataAttribute<T>* Mark = Metadata->template GetConstTypedAttribute<T>(MarkID);
 		if (!Mark) { return false; }
 		OutMark = Mark->GetValue(PCGInvalidEntryKey);
@@ -665,16 +670,16 @@ namespace PCGExData
 	}
 
 	template <typename T>
-	static bool TryReadMark(const FPointIO* PointIO, const FName MarkID, T& OutMark)
+	static bool TryReadMark(const TSharedRef<FPointIO>& PointIO, const FName MarkID, T& OutMark)
 	{
 		return TryReadMark(PointIO->GetIn() ? PointIO->GetIn()->Metadata : PointIO->GetOut()->Metadata, MarkID, OutMark);
 	}
 
-	static void WriteId(const FPointIO& PointIO, const FName IdName, const int64 Id)
+	static void WriteId(const TSharedRef<FPointIO>& PointIO, const FName IdName, const int64 Id)
 	{
 		FString OutId;
-		PointIO.Tags->Add(IdName.ToString(), Id, OutId);
-		if (PointIO.GetOut()) { WriteMark(PointIO.GetOut()->Metadata, IdName, Id); }
+		PointIO->Tags->Add(IdName.ToString(), Id, OutId);
+		if (PointIO->GetOut()) { WriteMark(PointIO, IdName, Id); }
 	}
 
 	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
@@ -686,6 +691,36 @@ namespace PCGExData
 		if (!PointData) { return nullptr; }
 
 		return const_cast<UPCGPointData*>(PointData);
+	}
+
+	static void CopyValues(
+		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
+		const PCGEx::FAttributeIdentity& Identity,
+		const TSharedPtr<PCGExData::FPointIO>& Source,
+		const TSharedPtr<PCGExData::FPointIO>& Target,
+		const TArrayView<const int32>& SourceIndices,
+		const int32 TargetIndex = 0)
+	{
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>(Identity.UnderlyingType),
+			[&](auto DummyValue) -> void
+			{
+				using T = decltype(DummyValue);
+				TArray<T> RawValues;
+
+				// 'template' spec required for clang on mac, not sure why.
+				// ReSharper disable once CppRedundantTemplateKeyword
+				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
+
+				const TSharedPtr<PCGExData::TBuffer<T>> TargetBuffer = MakeShared<PCGExData::TBuffer<T>>(Target.ToSharedRef(), Identity.Name);
+				TargetBuffer->PrepareWrite(SourceAttribute->GetValue(PCGDefaultValueKey), SourceAttribute->AllowsInterpolation(), true);
+
+				TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(SourceAttribute, Source->GetIn()->Metadata);
+				TArrayView<T> InRange = MakeArrayView(TargetBuffer->GetOutValues()->GetData() + TargetIndex, SourceIndices.Num());
+				InAccessor->GetRange(InRange, 0, *Source->GetInKeys());
+
+				PCGExMT::Write(AsyncManager, TargetBuffer);
+			});
 	}
 
 #pragma endregion

@@ -463,9 +463,8 @@ namespace PCGExGraphTask
 		PCGEx::InitArray(FlattenedEdges, NumEdges);
 
 		const TSharedPtr<PCGExData::FPointIO> EdgeIO = SubGraph->EdgesDataFacade->Source;
-		UPCGMetadata* Metadata = EdgeIO->GetOut()->Metadata;
 
-		PCGExData::WriteMark(Metadata, PCGExGraph::Tag_ClusterId, SubGraph->UID);
+		PCGExData::WriteMark(EdgeIO.ToSharedRef(), PCGExGraph::Tag_ClusterId, SubGraph->UID);
 
 		TArray<FPCGPoint>& MutablePoints = EdgeIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(NumEdges);
@@ -475,6 +474,7 @@ namespace PCGExGraphTask
 			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::GatherPreExistingPoints);
 
 			// Copy any existing point properties first
+			UPCGMetadata* Metadata = EdgeIO->GetOut()->Metadata;
 			const TArray<FPCGPoint>& InPoints = EdgeIO->GetIn()->GetPoints();
 			for (int i = 0; i < NumEdges; ++i)
 			{
@@ -488,6 +488,8 @@ namespace PCGExGraphTask
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::CreatePoints);
 
+			UPCGMetadata* Metadata = EdgeIO->GetOut()->Metadata;
+			
 			for (int i = 0; i < NumEdges; ++i)
 			{
 				PCGExGraph::FIndexedEdge& E = Graph->Edges[EdgeDump[i]];
@@ -495,8 +497,6 @@ namespace PCGExGraphTask
 				Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
 			}
 		}
-
-		EdgeIO->GetOutKeys();
 
 		const TSharedPtr<PCGExData::TBuffer<int64>> NumClusterIdWriter = VtxDataFacade->GetWritable<int64>(PCGExGraph::Tag_ClusterId, -1, false, true);
 		const TSharedPtr<PCGExData::TBuffer<int64>> EdgeEndpointsWriter = SubGraph->EdgesDataFacade->GetWritable<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false, true);

@@ -255,7 +255,6 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		Context->CurrentIO->GetInKeys();
 		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Bind(Context->CurrentIO.ToSharedRef()); }
 
 		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); ++PointIndex)

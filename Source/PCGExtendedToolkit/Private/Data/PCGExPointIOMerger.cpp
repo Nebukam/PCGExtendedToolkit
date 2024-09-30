@@ -8,9 +8,9 @@
 #include "Data/PCGExDataFilter.h"
 
 
-FPCGExPointIOMerger::FPCGExPointIOMerger(TSharedPtr<PCGExData::FPointIO> OutMergedData)
+FPCGExPointIOMerger::FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InCompoundDataFacade)
 {
-	CompositeIO = OutMergedData;
+	CompoundDataFacade = InCompoundDataFacade;
 }
 
 FPCGExPointIOMerger::~FPCGExPointIOMerger()
@@ -40,9 +40,9 @@ void FPCGExPointIOMerger::Append(PCGExData::FPointIOCollection* InCollection)
 
 void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails)
 {
-	CompositeIO->InitializeNum(NumCompositePoints);
-	TArray<FPCGPoint>& MutablePoints = CompositeIO->GetOut()->GetMutablePoints();
-	InCarryOverDetails->Filter(CompositeIO.Get());
+	CompoundDataFacade->Source->InitializeNum(NumCompositePoints);
+	TArray<FPCGPoint>& MutablePoints = CompoundDataFacade->GetOut()->GetMutablePoints();
+	InCarryOverDetails->Filter(&CompoundDataFacade->Source.Get());
 
 	TMap<FName, EPCGMetadataTypes> ExpectedTypes;
 
@@ -51,8 +51,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 	for (int i = 0; i < NumSources; ++i)
 	{
 		const TSharedPtr<PCGExData::FPointIO> Source = IOSources[i];
-		CompositeIO->Tags->Append(Source->Tags.ToSharedRef());
-		Source->GetInKeys();
+		CompoundDataFacade->Source->Tags->Append(Source->Tags.ToSharedRef());
 
 		const TArray<FPCGPoint>& SourcePoints = Source->GetIn()->GetPoints();
 
@@ -85,16 +84,18 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 					static_cast<uint16>(SourceAtt.UnderlyingType), [&](auto DummyValue)
 					{
 						using T = decltype(DummyValue);
-						TSharedPtr<PCGEx::TAttributeWriter<T>> Writer;
+						TSharedPtr<PCGExData::TBuffer<T>> Buffer;
 
 						if (InCarryOverDetails->bPreserveAttributesDefaultValue)
 						{
+							// 'template' spec required for clang on mac, not sure why.
+							// ReSharper disable once CppRedundantTemplateKeyword
 							const FPCGMetadataAttribute<T>* SourceAttribute = Metadata->template GetConstTypedAttribute<T>(SourceAtt.Name);
-							Writer = MakeShared<PCGEx::TAttributeWriter<T>>(SourceAtt.Name, SourceAttribute->GetValue(PCGDefaultValueKey), SourceAtt.bAllowsInterpolation);
+							Buffer = CompoundDataFacade->GetWritable(SourceAttribute, false);
 						}
 
-						if (!Writer) { Writer = MakeShared<PCGEx::TAttributeWriter<T>>(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation); }
-						Writers.Add(StaticCastSharedPtr<PCGEx::FAttributeIOBase>(Writer));
+						if (!Buffer) { Buffer = CompoundDataFacade->GetWritable(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation); }
+						Buffers.Add(StaticCastSharedPtr<PCGExData::FBufferBase>(Buffer));
 						UniqueIdentities.Add(SourceAtt);
 					});
 
@@ -108,57 +109,23 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 		}
 	}
 
-	InCarryOverDetails->Filter(CompositeIO.Get());
-	CompositeIO->GetOutKeys();
+	InCarryOverDetails->Filter(&CompoundDataFacade->Source.Get());
 
-	for (int i = 0; i < UniqueIdentities.Num(); ++i) { AsyncManager->Start<PCGExPointIOMerger::FWriteAttributeTask>(i, CompositeIO, SharedThis(this)); }
-}
-
-void FPCGExPointIOMerger::Write()
-{
-	for (int i = 0; i < UniqueIdentities.Num(); ++i)
-	{
-		PCGMetadataAttribute::CallbackWithRightType(
-			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				TSharedPtr<PCGEx::TAttributeWriter<T>> Writer = StaticCastSharedPtr<PCGEx::TAttributeWriter<T>>(Writers[i]);
-				Writer->Write();
-			});
-	}
-
-	Writers.Empty();
-}
-
-void FPCGExPointIOMerger::Write(TSharedPtr<PCGExMT::FTaskManager> AsyncManager)
-{
-	for (int i = 0; i < UniqueIdentities.Num(); ++i)
-	{
-		PCGMetadataAttribute::CallbackWithRightType(
-			UniqueIdentities[i].GetTypeId(), [&](auto DummyValue)
-			{
-				using T = decltype(DummyValue);
-				TSharedPtr<PCGEx::TAttributeWriter<T>> Writer = StaticCastSharedPtr<PCGEx::TAttributeWriter<T>>(Writers[i]);
-				PCGExMT::Write(AsyncManager, Writer);
-			});
-	}
-
-	Writers.Empty();
+	for (int i = 0; i < UniqueIdentities.Num(); ++i) { AsyncManager->Start<PCGExPointIOMerger::FCopyAttributeTask>(i, CompoundDataFacade->Source, SharedThis(this)); }
 }
 
 namespace PCGExPointIOMerger
 {
-	bool FWriteAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	bool FCopyAttributeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		const PCGEx::FAttributeIdentity& Identity = Merger->UniqueIdentities[TaskIndex];
-		TSharedPtr<PCGEx::FAttributeIOBase> Writer = Merger->Writers[TaskIndex];
+		const TSharedPtr<PCGExData::FBufferBase> Buffer = Merger->Buffers[TaskIndex];
 
 		PCGMetadataAttribute::CallbackWithRightType(
 			Identity.GetTypeId(), [&](auto DummyValue)
 			{
 				using T = decltype(DummyValue);
-				TSharedPtr<PCGEx::TAttributeWriter<T>> TypedWriter = StaticCastSharedPtr<PCGEx::TAttributeWriter<T>>(Writer);
-				TypedWriter->BindAndSetNumUninitialized(PointIO);
+				TSharedPtr<PCGExData::TBuffer<T>> TypedBuffer = StaticCastSharedPtr<PCGExData::TBuffer<T>>(Buffer);
 
 				for (int i = 0; i < Merger->IOSources.Num(); ++i)
 				{
@@ -168,14 +135,7 @@ namespace PCGExPointIOMerger
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					if (SourceIO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize)
-					{
-						ScopeMerge(Merger->Scopes[i], Identity, SourceIO, TypedWriter);
-					}
-					else
-					{
-						AsyncManager->Start<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedWriter);
-					}
+					AsyncManager->Start<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedBuffer);
 				}
 			});
 

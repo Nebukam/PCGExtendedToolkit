@@ -30,8 +30,7 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
 	if (!BoundsIO) { return false; }
-
-	BoundsIO->GetInKeys();
+	
 	Context->BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO.ToSharedRef());
 
 	return true;
@@ -60,7 +59,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 						if (bWritesAny)
 						{
 							Entry->InitializeOutput(PCGExData::EInit::DuplicateInput);
-							Settings->OutputSettings.Mark(Entry->GetOut()->Metadata);
+							Settings->OutputSettings.Mark(Entry.ToSharedRef());
 						}
 						else
 						{
@@ -188,7 +187,7 @@ namespace PCGExPathIntersections
 			{
 				PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
 
-				Details.Mark(PointDataFacade->GetOut()->Metadata);
+				Details.Mark(PointDataFacade->Source);
 				Details.Init(PointDataFacade, Context->BoundsDataFacade);
 
 				StartParallelLoopForPoints();

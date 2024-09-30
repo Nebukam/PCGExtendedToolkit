@@ -94,8 +94,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 
 	void Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade, const TSharedPtr<PCGExData::FFacade>& BoundsDataFacade)
 	{
-		PointDataFacade->Source->GetOutKeys();
-
 		IntersectionForwardHandler = IntersectionForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
 		InsideForwardHandler = InsideForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
 
@@ -113,9 +111,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 		return IntersectionForwarding.bEnabled || InsideForwarding.bEnabled;
 	}
 
-	void Mark(UPCGMetadata* Metadata) const
+	void Mark(const TSharedRef<PCGExData::FPointIO>& InPointIO) const
 	{
-#define PCGEX_LOCAL_DETAIL_MARK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGExData::WriteMark(Metadata, _NAME##AttributeName, _DEFAULT); }
+#define PCGEX_LOCAL_DETAIL_MARK(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME) { PCGExData::WriteMark(InPointIO, _NAME##AttributeName, _DEFAULT); }
 		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_MARK)
 #undef PCGEX_LOCAL_DETAIL_MARK
 	}

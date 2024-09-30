@@ -102,14 +102,6 @@ namespace PCGExData
 		return InKeys;
 	}
 
-	void FPointIO::PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap)
-	{
-		GetInKeys();
-		const TArray<FPCGPoint>& PointList = In->GetPoints();
-		InMap.Empty(PointList.Num());
-		for (int i = 0; i < PointList.Num(); ++i) { InMap.Add(PointList[i].MetadataEntry, i); }
-	}
-
 	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetOutKeys()
 	{
 		{
@@ -127,32 +119,16 @@ namespace PCGExData
 		return OutKeys;
 	}
 
-	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, const bool bInitializeOnSet = false)
+	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
 	{
-		if (bInitializeOnSet)
-		{
 			TArray<FPCGPoint>& PointList = Out->GetMutablePoints();
 			InMap.Empty(PointList.Num());
 			for (int i = 0; i < PointList.Num(); ++i)
 			{
 				FPCGPoint& Point = PointList[i];
-				Out->Metadata->InitializeOnSet(Point.MetadataEntry);
+				if(Point.MetadataEntry == PCGInvalidEntryKey){ Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
 				InMap.Add(Point.MetadataEntry, i);
 			}
-			GetOutKeys();
-		}
-		else
-		{
-			GetOutKeys();
-			const TArray<FPCGPoint>& PointList = Out->GetPoints();
-			InMap.Empty(PointList.Num());
-			for (int i = 0; i < PointList.Num(); ++i) { InMap.Add(PointList[i].MetadataEntry, i); }
-		}
-	}
-
-	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::CreateKeys(const ESource InSource)
-	{
-		return InSource == ESource::In ? GetInKeys() : GetOutKeys();
 	}
 
 	void FPointIO::InitializeNum(const int32 NumPoints, const bool bForceInit) const
@@ -219,6 +195,16 @@ namespace PCGExData
 			}
 		}
 		return false;
+	}
+
+	void FPointIO::DeleteAttribute(FName AttributeName) const
+	{
+		if (!Out) { return; }
+			
+		{
+			FWriteScopeLock WriteScopeLock(AttributesLock);
+			Out->Metadata->DeleteAttribute(AttributeName);
+		}
 	}
 
 #pragma endregion

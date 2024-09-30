@@ -35,14 +35,14 @@ namespace PCPGExMergePointsByTag
 	{
 	public:
 		TArray<TSharedPtr<PCGExData::FPointIO>> IOs;
-		TSharedPtr<PCGExData::FPointIO> CompositeIO;
+		TSharedPtr<PCGExData::FFacade> CompositeIODataFacade;
 		TSharedPtr<FPCGExPointIOMerger> Merger;
 
 		FMergeList();
 		~FMergeList() = default;
 
-		void Merge(TSharedPtr<PCGExMT::FTaskManager> AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
-		void Write(TSharedPtr<PCGExMT::FTaskManager> AsyncManager) const;
+		void Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
+		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) const;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FTagBucket

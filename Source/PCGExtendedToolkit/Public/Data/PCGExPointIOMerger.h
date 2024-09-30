@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExAttributeHelpers.h"
+#include "PCGExData.h"
 #include "PCGExDataFilter.h"
 #include "PCGExMT.h"
 
@@ -17,20 +18,18 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final : public TSharedFromT
 
 public:
 	TArray<PCGEx::FAttributeIdentity> UniqueIdentities;
-	TSharedPtr<PCGExData::FPointIO> CompositeIO;
+	TSharedRef<PCGExData::FFacade> CompoundDataFacade;
 	TArray<TSharedPtr<PCGExData::FPointIO>> IOSources;
 	TArray<uint64> Scopes;
-	TArray<TSharedPtr<PCGEx::FAttributeIOBase>> Writers;
+	TArray<TSharedPtr<PCGExData::FBufferBase>> Buffers;
 
-	FPCGExPointIOMerger(TSharedPtr<PCGExData::FPointIO> OutMergedData);
+	FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InCompoundDataFacade);
 	~FPCGExPointIOMerger();
 
 	void Append(const TSharedPtr<PCGExData::FPointIO>& InData);
 	void Append(const TArray<TSharedPtr<PCGExData::FPointIO>>& InData);
 	void Append(PCGExData::FPointIOCollection* InCollection);
 	void Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager, const FPCGExCarryOverDetails* InCarryOverDetails);
-	void Write();
-	void Write(TSharedPtr<PCGExMT::FTaskManager> AsyncManager);
 
 protected:
 	int32 NumCompositePoints = 0;
@@ -39,23 +38,29 @@ protected:
 namespace PCGExPointIOMerger
 {
 	template <typename T>
-	static void ScopeMerge(const uint64 Scope, const PCGEx::FAttributeIdentity& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, const TSharedPtr<PCGEx::TAttributeWriter<T>>& Writer)
+	static void ScopeMerge(const uint64 Scope, const PCGEx::FAttributeIdentity& Identity, const TSharedPtr<PCGExData::FPointIO>& SourceIO, TArray<T>& OutValues)
 	{
-		TUniquePtr<PCGEx::TAttributeReader<T>> Reader = MakeUnique<PCGEx::TAttributeReader<T>>(Identity.Name);
-		Reader->Bind(SourceIO);
+		UPCGMetadata* InMetadata = SourceIO->GetIn()->Metadata;
+
+		// 'template' spec required for clang on mac, not sure why.
+		// ReSharper disable once CppRedundantTemplateKeyword
+		FPCGMetadataAttribute<T>* TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(Identity.Name);
+		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
+
+		if (!TypedInAttribute || !InAccessor.IsValid()) { return; }
 
 		uint32 StartIndex;
 		uint32 Range;
 		PCGEx::H64(Scope, StartIndex, Range);
 
-		const int32 Count = static_cast<int>(Range);
-		for (int i = 0; i < Count; ++i) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
+		TArrayView<T> InRange = MakeArrayView(OutValues->GetData() + StartIndex, Range);
+		InAccessor->GetRange(InRange, 0, *SourceIO->GetInKeys());
 	}
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteAttributeTask final : public PCGExMT::FPCGExTask
+	class /*PCGEXTENDEDTOOLKIT_API*/ FCopyAttributeTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FWriteAttributeTask(
+		FCopyAttributeTask(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const TSharedPtr<FPCGExPointIOMerger>& InMerger)
 			: FPCGExTask(InPointIO),
@@ -75,21 +80,21 @@ namespace PCGExPointIOMerger
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const uint64 InScope,
 			const PCGEx::FAttributeIdentity& InIdentity,
-			const TSharedPtr<PCGEx::TAttributeWriter<T>>& InWriter)
+			const TSharedPtr<TArray<T>>& InOutValues)
 			: FPCGExTask(InPointIO),
 			  Scope(InScope),
 			  Identity(InIdentity),
-			  Writer(InWriter)
+			  OutValues(InOutValues)
 		{
 		}
 
 		const uint64 Scope;
 		const PCGEx::FAttributeIdentity Identity;
-		const TSharedPtr<PCGEx::TAttributeWriter<T>> Writer;
+		const TSharedPtr<TArray<T>> OutValues;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
-			ScopeMerge<T>(Scope, Identity, PointIO, Writer);
+			ScopeMerge<T>(Scope, Identity, PointIO, *OutValues.Get());
 			return true;
 		}
 	};

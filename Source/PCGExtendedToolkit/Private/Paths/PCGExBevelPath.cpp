@@ -23,11 +23,10 @@ PCGEX_INITIALIZE_ELEMENT(BevelPath)
 
 void UPCGExBevelPathSettings::InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const
 {
-	UPCGMetadata* Metadata = InPointIO->GetOut()->Metadata;
-	if (bFlagEndpoints) { Metadata->FindOrCreateAttribute(EndpointsFlagName, false); }
-	if (bFlagStartPoint) { Metadata->FindOrCreateAttribute(StartPointFlagName, false); }
-	if (bFlagEndPoint) { Metadata->FindOrCreateAttribute(EndPointFlagName, false); }
-	if (bFlagSubdivision) { Metadata->FindOrCreateAttribute(SubdivisionFlagName, false); }
+	if (bFlagEndpoints) { InPointIO->FindOrCreateAttribute(EndpointsFlagName, false); }
+	if (bFlagStartPoint) { InPointIO->FindOrCreateAttribute(StartPointFlagName, false); }
+	if (bFlagEndPoint) { InPointIO->FindOrCreateAttribute(EndPointFlagName, false); }
+	if (bFlagSubdivision) { InPointIO->FindOrCreateAttribute(SubdivisionFlagName, false); }
 }
 
 bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const

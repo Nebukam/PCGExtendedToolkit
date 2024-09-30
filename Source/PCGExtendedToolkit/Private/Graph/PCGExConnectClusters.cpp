@@ -28,8 +28,7 @@ bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
 	return true;
 }
 
-bool FPCGExConnectClustersElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectClustersElement::Execute);
 
@@ -71,11 +70,11 @@ bool FPCGExConnectClustersElement::ExecuteInternal(
 	{
 		const TSharedPtr<PCGExBridgeClusters::FProcessorBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FProcessorBatch>(Batch);
 		const int64 ClusterId = BridgeBatch->VtxDataFacade->GetOut()->UID;
-		PCGExData::WriteMark(BridgeBatch->ConsolidatedEdges->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
+		PCGExData::WriteMark(BridgeBatch->CompoundedEdgesDataFacade->Source, PCGExGraph::Tag_ClusterId, ClusterId);
 
 		FString OutId;
 		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, OutId);
-		PCGExGraph::MarkClusterEdges(BridgeBatch->ConsolidatedEdges.ToSharedRef(), OutId);
+		PCGExGraph::MarkClusterEdges(BridgeBatch->CompoundedEdgesDataFacade->Source, OutId);
 	}
 
 	Context->OutputPointsAndEdges();
@@ -110,40 +109,32 @@ namespace PCGExBridgeClusters
 		InVtx->InitializeOutput(PCGExData::EInit::DuplicateInput);
 	}
 
-	void FProcessorBatch::OnProcessingPreparationComplete()
-	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
-		//const FPCGExConnectClustersContext* InContext = static_cast<FPCGExConnectClustersContext*>(Context);
-
-		ConsolidatedEdges = Context->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
-
-		TBatch<FProcessor>::OnProcessingPreparationComplete();
-	}
-
 	void FProcessorBatch::Process()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
+
+		const TSharedPtr<PCGExData::FPointIO> ConsolidatedEdges = Context->MainEdges->Emplace_GetRef(PCGExData::EInit::NewOutput);
+		CompoundedEdgesDataFacade = MakeShared<PCGExData::FFacade>(ConsolidatedEdges.ToSharedRef());
 
 		TBatch<FProcessor>::Process();
 
 		// Start merging right away
 		TSet<FName> IgnoreAttributes = {PCGExGraph::Tag_ClusterId};
 
-		Merger = MakeShared<FPCGExPointIOMerger>(ConsolidatedEdges);
+		Merger = MakeShared<FPCGExPointIOMerger>(CompoundedEdgesDataFacade.ToSharedRef());
 		Merger->Append(Edges);
 		Merger->Merge(AsyncManager, &Context->CarryOverDetails);
 	}
 
 	bool FProcessorBatch::PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor)
 	{
-		ConsolidatedEdges->Tags->Append(ClusterProcessor->EdgeDataFacade->Source->Tags.ToSharedRef());
+		CompoundedEdgesDataFacade->Source->Tags->Append(ClusterProcessor->EdgeDataFacade->Source->Tags.ToSharedRef());
 		return true;
 	}
 
 	void FProcessorBatch::CompleteWork()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
-
 
 		const int32 NumValidClusters = GatherValidClusters();
 
@@ -154,7 +145,7 @@ namespace PCGExBridgeClusters
 
 		if (ValidClusters.IsEmpty()) { return; } // Skip work completion entirely
 
-		Merger->Write(AsyncManager); // Write base attributes value while finding bridges		
+		CompoundedEdgesDataFacade->Write(AsyncManager); // Write base attributes value while finding bridges
 
 		const int32 NumBounds = ValidClusters.Num();
 		EPCGExBridgeClusterMethod SafeMethod = Settings->BridgeMethod;
@@ -243,9 +234,7 @@ namespace PCGExBridgeClusters
 
 	void FProcessorBatch::Write()
 	{
-		//TArray<FPCGPoint>& MutableEdges = ConsolidatedEdges->GetOut()->GetMutablePoints();
-		//UPCGMetadata* Metadata = ConsolidatedEdges->GetOut()->Metadata;
-
+		const TSharedRef<PCGExData::FPointIO> ConsolidatedEdges = CompoundedEdgesDataFacade->Source;
 
 		for (const uint64 Bridge : Bridges)
 		{
@@ -256,19 +245,14 @@ namespace PCGExBridgeClusters
 			uint32 End;
 			PCGEx::H64(Bridge, Start, End);
 
-			AsyncManager->Start<FPCGExCreateBridgeTask>(
-				EdgePointIndex, ConsolidatedEdges,
-				this, ValidClusters[Start], ValidClusters[End]);
+			AsyncManager->Start<FPCGExCreateBridgeTask>(EdgePointIndex, ConsolidatedEdges, this, ValidClusters[Start], ValidClusters[End]);
 		}
 
 		// Force writing cluster ID to Vtx, otherwise we inherit from previous metadata.
 		const uint64 ClusterId = VtxDataFacade->GetOut()->UID;
-		TSharedPtr<PCGEx::TAttributeWriter<int64>> ClusterIdWriter = MakeShared<PCGEx::TAttributeWriter<int64>>(PCGExGraph::Tag_ClusterId);
-		for (int64& Id : ClusterIdWriter->Values) { Id = ClusterId; }
-		PCGExMT::Write(AsyncManager, ClusterIdWriter);
-
-		//TBatch<FProcessor>::Write();
-		// TODO : OPTIM : We can easily build this batch' cluster by appending existing ones into a big one and just add edges
+		const TSharedPtr<PCGExData::TBuffer<int64>> ClusterIdBuffer = CompoundedEdgesDataFacade->GetWritable<int64>(PCGExGraph::Tag_ClusterId, true);
+		for (TArray<int64>& OutValues = *ClusterIdBuffer->GetOutValues(); int64& Id : OutValues) { Id = ClusterId; }
+		PCGExMT::Write(AsyncManager, ClusterIdBuffer);
 	}
 
 

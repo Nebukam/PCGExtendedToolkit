@@ -88,7 +88,6 @@ namespace PCGExDataBlending
 			if (!SourceAttribute->AllowsInterpolation()) { Map->AllowsInterpolation = false; }
 		}
 
-		InFacade->Source->GetInKeys();
 	}
 
 	void FCompoundBlender::AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades)
@@ -105,8 +104,6 @@ namespace PCGExDataBlending
 
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
 		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : MakeUnique<FPropertiesBlender>(PropertiesBlendingDetails);
-
-		CurrentTargetData->Source->GetOutKeys();
 
 		// Create blending operations
 		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
@@ -213,10 +210,7 @@ namespace PCGExDataBlending
 		const FPCGExPropertiesBlendingDetails PropertiesBlendingDetails = BlendingDetails->GetPropertiesBlendingDetails();
 		PropertiesBlender = PropertiesBlendingDetails.HasNoBlending() ? nullptr : MakeUnique<FPropertiesBlender>(PropertiesBlendingDetails);
 
-		CurrentTargetData->Source->GetOutKeys();
 		CarryOverDetails->Reduce(UniqueTags);
-
-		UPCGMetadata* TargetMetadata = TargetData->Source->GetOut()->Metadata;
 
 		// Create blending operations
 		for (const TSharedPtr<FAttributeSourceMap>& SrcMap : AttributeSourceMaps)
@@ -245,14 +239,14 @@ namespace PCGExDataBlending
 
 		TArray<FName> ReservedNames;
 		TArray<EPCGMetadataTypes> ReservedTypes;
-		TargetMetadata->GetAttributes(ReservedNames, ReservedTypes);
+		TargetData->Source->GetOut()->Metadata->GetAttributes(ReservedNames, ReservedTypes);
 		for (FName ReservedName : ReservedNames) { UniqueTags.Remove(ReservedName.ToString()); }
 		UniqueTagsList = UniqueTags.Array();
 		TagAttributes.Reserve(UniqueTagsList.Num());
 
 		for (FString TagName : UniqueTagsList)
 		{
-			TagAttributes.Add(TargetMetadata->FindOrCreateAttribute<bool>(FName(TagName), false));
+			TagAttributes.Add(TargetData->Source->FindOrCreateAttribute<bool>(FName(TagName), false));
 		}
 	}
 

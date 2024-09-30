@@ -48,7 +48,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesContext final : public FPCG
 	FPCGExCarryOverDetails CarryOverDetails;
 
 	FString OutVtxId = TEXT("");
-	TSharedPtr<PCGExData::FPointIO> CompositeIO;
+	TSharedPtr<PCGExData::FFacade> CompositeIODataFacade;
 	TSharedPtr<FPCGExPointIOMerger> Merger;
 
 	virtual void ClusterProcessing_InitialProcessingDone() override;

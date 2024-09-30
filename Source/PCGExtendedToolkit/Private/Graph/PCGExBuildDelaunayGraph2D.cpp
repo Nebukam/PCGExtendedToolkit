@@ -214,10 +214,13 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bMarkSiteHull)
 		{
-			const TSharedPtr<PCGEx::TAttributeWriter<bool>> HullWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->SiteHullAttributeName);
-			HullWriter->BindAndSetNumUninitialized(SitesIO);
-			for (int i = 0; i < NumSites; ++i) { HullWriter->Values[i] = Delaunay->Sites[i].bOnHull; }
-			Write(AsyncManager, HullWriter);
+			const TSharedPtr<PCGExData::TBuffer<bool>> HullBuffer = MakeShared<PCGExData::TBuffer<bool>>(SitesIO.ToSharedRef(), Settings->SiteHullAttributeName);
+			HullBuffer->PrepareWrite(false, true, true);
+			{
+				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
+				for (int i = 0; i < NumSites; ++i) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
+			}
+			PCGExMT::Write(AsyncManager, HullBuffer);
 		}
 
 		return true;
@@ -317,10 +320,13 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bMarkSiteHull)
 		{
-			TSharedPtr<PCGEx::TAttributeWriter<bool>> HullWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->SiteHullAttributeName);
-			HullWriter->BindAndSetNumUninitialized(SitesIO);
-			for (int i = 0; i < Hull.Num(); ++i) { HullWriter->Values[i] = Hull[i]; }
-			Write(AsyncManager, HullWriter);
+			const TSharedPtr<PCGExData::TBuffer<bool>> HullBuffer = MakeShared<PCGExData::TBuffer<bool>>(SitesIO.ToSharedRef(), Settings->SiteHullAttributeName);
+			HullBuffer->PrepareWrite(false, true, true);
+			{
+				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
+				for (int i = 0; i < Hull.Num(); ++i) { OutValues[i] = Hull[i]; }
+			}
+			PCGExMT::Write(AsyncManager, HullBuffer);
 		}
 
 		return true;

@@ -400,8 +400,6 @@ namespace PCGExPointsMT
 			for (const TWeakPtr<PCGExData::FPointIO>& WeakIO : PointsCollection)
 			{
 				TSharedPtr<PCGExData::FPointIO> IO = WeakIO.Pin();
-				IO->GetInKeys();
-
 				const TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 				const TSharedPtr<T> NewProcessor = MakeShared<T>(PointDataFacade.ToSharedRef());
 

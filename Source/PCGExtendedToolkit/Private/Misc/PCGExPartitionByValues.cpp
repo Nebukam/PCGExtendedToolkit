@@ -204,9 +204,7 @@ namespace PCGExPartitionByValues
 
 		RootPartition = MakeShared<PCGExPartition::FKPartition>(nullptr, 0, nullptr, -1);
 
-		Rules.Empty(); //
-		PointDataFacade->Source->GetInKeys();
-
+		Rules.Empty(); 
 		const int32 NumPoints = PointDataFacade->GetNum();
 
 		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGEx::InitArray(KeySums, NumPoints); }
@@ -250,7 +248,7 @@ namespace PCGExPartitionByValues
 		TSharedPtr<PCGExPartition::FKPartition> Partition = Partitions[Iteration];
 
 		//Manually create & insert partition at the sorted IO Index
-		const TSharedPtr<PCGExData::FPointIO> PartitionIO = Context->MainPoints->Pairs[Partition->IOIndex];
+		const TSharedRef<PCGExData::FPointIO> PartitionIO = Context->MainPoints->Pairs[Partition->IOIndex].ToSharedRef();
 
 		UPCGMetadata* Metadata = PartitionIO->GetOut()->Metadata;
 
@@ -273,7 +271,7 @@ namespace PCGExPartitionByValues
 			if (Rule->RuleConfig->bWriteKey)
 			{
 				PCGExData::WriteMark<int64>(
-					Metadata,
+					PartitionIO,
 					Rule->RuleConfig->KeyAttributeName,
 					Rule->RuleConfig->bUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
 			}
@@ -290,7 +288,7 @@ namespace PCGExPartitionByValues
 			Partition = Partition->Parent.Pin();
 		}
 
-		if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(Metadata, Settings->KeySumAttributeName, Sum); }
+		if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(PartitionIO, Settings->KeySumAttributeName, Sum); }
 	}
 
 	void FProcessor::CompleteWork()

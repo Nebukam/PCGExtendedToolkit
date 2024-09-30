@@ -64,7 +64,6 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	if (TaggedEdges)
 	{
-		CurrentIO->GetInKeys();
 		//ProjectionSettings.Init(CurrentIO); // TODO : Move to FClusterProcessor?
 		if (bBuildEndpointsLookup)
 		{
@@ -91,8 +90,6 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 		CurrentEdges = TaggedEdges->Entries[CurrentEdgesIndex];
 
 		if (!bBuildCluster) { return true; }
-
-		CurrentEdges->GetInKeys();
 
 		if (const TSharedPtr<PCGExCluster::FCluster> CachedCluster = PCGExClusterData::TryGetCachedCluster(CurrentIO.ToSharedRef(), CurrentEdges.ToSharedRef()))
 		{

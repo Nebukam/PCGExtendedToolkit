@@ -5,9 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExPointIOMerger.h"
-
-
 #include "Graph/PCGExEdgesProcessor.h"
+
 #include "PCGExConnectClusters.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bridge Cluster Mode"))
@@ -102,13 +101,12 @@ namespace PCGExBridgeClusters
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
-		TSharedPtr<PCGExData::FPointIO> ConsolidatedEdges;
+		TSharedPtr<PCGExData::FFacade> CompoundedEdgesDataFacade;
 		TSharedPtr<FPCGExPointIOMerger> Merger;
 		TSet<uint64> Bridges;
 
 		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 
-		virtual void OnProcessingPreparationComplete() override;
 		virtual void Process() override;
 		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 		virtual void CompleteWork() override;

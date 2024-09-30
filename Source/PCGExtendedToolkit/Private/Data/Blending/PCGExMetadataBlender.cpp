@@ -150,9 +150,6 @@ namespace PCGExDataBlending
 			}
 		}
 
-		InPrimaryFacade->Source->GetOutKeys();
-		InSecondaryFacade->Source->CreateKeys(SecondarySource);
-
 		PrimaryPoints = &InPrimaryFacade->Source->GetOut()->GetMutablePoints();
 		SecondaryPoints = &InSecondaryFacade->Source->GetData(SecondarySource)->GetPoints();
 

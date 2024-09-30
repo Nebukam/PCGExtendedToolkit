@@ -77,7 +77,7 @@ namespace PCGExWriteIndex
 
 		if (Settings->bOutputCollectionIndex)
 		{
-			PCGExData::WriteMark(PointDataFacade->GetOut()->Metadata, Settings->CollectionIndexAttributeName, BatchIndex);
+			PCGExData::WriteMark(PointDataFacade->Source, Settings->CollectionIndexAttributeName, BatchIndex);
 		}
 
 		StartParallelLoopForPoints();

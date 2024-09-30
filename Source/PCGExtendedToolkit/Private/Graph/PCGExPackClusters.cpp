@@ -87,7 +87,6 @@ bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 
 	const TSharedPtr<PCGEx::FAttributesInfos> VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
 
-	InEdges->GetInKeys();
 	const TSharedPtr<PCGExData::FPointIO> PackedIO = Context->PackedClusters->Emplace_GetRef(InEdges);
 	PackedIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::DuplicateInput);
 
@@ -100,7 +99,6 @@ bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	MutablePoints.SetNum(NumEdges + ReducedVtxIndices.Num());
 
 	PackedIO->CleanupKeys();
-	PackedIO->GetOutKeys();
 
 	const TArrayView<const int32> View = MakeArrayView(ReducedVtxIndices);
 	PCGEx::CopyPoints(PointIO.Get(), PackedIO.Get(), View, NumEdges);
@@ -110,7 +108,7 @@ bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		CopyValues(AsyncManager, Identity, PointIO, PackedIO, View, NumEdges);
 	}
 
-	WriteMark(PackedIO.Get(), PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
+	WriteMark(PackedIO.ToSharedRef(), PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
 
 	PCGExGraph::CleanupClusterTags(PackedIO);
 

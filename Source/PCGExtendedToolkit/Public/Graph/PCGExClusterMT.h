@@ -412,8 +412,6 @@ namespace PCGExClusterMT
 		virtual void PrepareProcessing(TSharedPtr<PCGExMT::FTaskManager> AsyncManagerPtr, const bool bScopedIndexLookupBuild)
 		{
 			AsyncManager = AsyncManagerPtr;
-
-			VtxDataFacade->Source->GetInKeys();
 			const int32 NumVtx = VtxDataFacade->GetNum();
 
 			if (!bScopedIndexLookupBuild || NumVtx < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
@@ -565,8 +563,6 @@ namespace PCGExClusterMT
 
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
 			{
-				IO->GetInKeys();
-
 				const TSharedPtr<PCGExData::FFacade> EdgeDataFacade = MakeShared<PCGExData::FFacade>(IO.ToSharedRef());
 				const TSharedPtr<T> NewProcessor = MakeShared<T>(VtxDataFacade, EdgeDataFacade.ToSharedRef());
 

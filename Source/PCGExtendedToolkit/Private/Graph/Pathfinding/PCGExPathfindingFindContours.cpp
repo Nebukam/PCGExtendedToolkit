@@ -210,11 +210,9 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 	if (Settings->bFlagDeadEnds)
 	{
-		PathIO->GetOutKeys();
-		TSharedPtr<PCGEx::TAttributeWriter<bool>> DeadEndWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->DeadEndAttributeName, false, false, true);
-		DeadEndWriter->BindAndSetNumUninitialized(PathIO);
-		for (int i = 0; i < Path.Num(); ++i) { DeadEndWriter->Values[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
-		Write(ClusterProcessor->GetAsyncManager(), DeadEndWriter);
+		const TSharedPtr<PCGExData::TBuffer<bool>> DeadEndBuffer = PathDataFacade->GetWritable(Settings->DeadEndAttributeName, false, false, true);
+		TArray<bool>& OutValues = *DeadEndBuffer->GetOutValues();
+		for (int i = 0; i < Path.Num(); ++i) { OutValues[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
 	}
 
 	if (Sign != 0)
