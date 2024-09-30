@@ -8,9 +8,9 @@
 #include "Data/PCGExDataFilter.h"
 
 
-FPCGExPointIOMerger::FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InCompoundDataFacade)
+FPCGExPointIOMerger::FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InCompoundDataFacade):
+	CompoundDataFacade(InCompoundDataFacade)
 {
-	CompoundDataFacade = InCompoundDataFacade;
 }
 
 FPCGExPointIOMerger::~FPCGExPointIOMerger()
@@ -94,7 +94,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 							Buffer = CompoundDataFacade->GetWritable(SourceAttribute, false);
 						}
 
-						if (!Buffer) { Buffer = CompoundDataFacade->GetWritable(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation); }
+						if (!Buffer) { Buffer = CompoundDataFacade->GetWritable(SourceAtt.Name, T{}, SourceAtt.bAllowsInterpolation, false); }
 						Buffers.Add(StaticCastSharedPtr<PCGExData::FBufferBase>(Buffer));
 						UniqueIdentities.Add(SourceAtt);
 					});
@@ -135,7 +135,7 @@ namespace PCGExPointIOMerger
 					if (!Attribute) { continue; }                            // Missing attribute
 					if (!Identity.IsA(Attribute->GetTypeId())) { continue; } // Type mismatch
 
-					AsyncManager->Start<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedBuffer);
+					AsyncManager->Start<FWriteAttributeScopeTask<T>>(-1, SourceIO, Merger->Scopes[i], Identity, TypedBuffer->GetOutValues());
 				}
 			});
 

@@ -53,22 +53,31 @@ namespace PCGExData
 		TArrayView<const FPCGPoint> InPoints;
 		TArrayView<FPCGPoint> OutPoints;
 
+		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
+		uint64 UID = 0;
+
 	public:
 		FName FullName = NAME_None;
-		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
 
 		const FPCGMetadataAttributeBase* InAttribute = nullptr;
 		FPCGMetadataAttributeBase* OutAttribute = nullptr;
 
 		int32 BufferIndex = -1;
-		const uint64 UID;
 		const TSharedRef<FPointIO> Source;
 
 
 		FBufferBase(const TSharedRef<FPointIO>& InSource, const FName InFullName):
-			FullName(InFullName), UID(BufferUID(FullName, Type)), Source(InSource)
+			FullName(InFullName), Source(InSource)
 		{
 			PCGEX_LOG_CTR(FBufferBase)
+		}
+
+		uint64 GetUID() const { return UID; }
+
+		void SetType(const EPCGMetadataTypes InType)
+		{
+			Type = InType;
+			UID = BufferUID(FullName, InType);
 		}
 
 		virtual ~FBufferBase()
@@ -115,7 +124,7 @@ namespace PCGExData
 		TBuffer(const TSharedRef<FPointIO>& InSource, const FName InFullName):
 			FBufferBase(InSource, InFullName)
 		{
-			Type = PCGEx::GetMetadataType<T>();
+			SetType(PCGEx::GetMetadataType<T>());
 		}
 
 		virtual ~TBuffer() override
@@ -573,7 +582,7 @@ namespace PCGExData
 		{
 			FWriteScopeLock WriteScopeLock(PoolLock);
 			Buffers.RemoveAt(Buffer->BufferIndex);
-			BufferMap.Remove(Buffer->UID);
+			BufferMap.Remove(Buffer->GetUID());
 			for (int i = 0; i < Buffers.Num(); i++) { Buffers[i].Get()->BufferIndex = i; }
 		}
 	};
