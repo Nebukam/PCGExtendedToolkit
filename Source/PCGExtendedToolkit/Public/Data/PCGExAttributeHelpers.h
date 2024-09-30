@@ -462,7 +462,7 @@ namespace PCGEx
 
 		virtual bool Bind(const TSharedPtr<PCGExData::FPointIO>& PointIO) override
 		{
-			const FPCGMetadataAttribute<T>* Att = PointIO->GetOut()->Metadata->GetConstTypedAttribute<T>(this->Name);
+			const FPCGMetadataAttribute<T>* Att = PointIO->GetOut()->Metadata->template GetConstTypedAttribute<T>(this->Name);
 			bIsNewAttribute = Att ? false : true;
 
 			this->Accessor = FAttributeAccessor<T>::FindOrCreate(
@@ -1397,7 +1397,7 @@ namespace PCGEx
 				using T = decltype(DummyValue);
 				TArray<T> RawValues;
 
-				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
+				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 				TSharedPtr<TAttributeWriter<T>> Writer = MakeShared<TAttributeWriter<T>>(
 					Identity.Name,
 					SourceAttribute->GetValue(PCGDefaultValueKey),

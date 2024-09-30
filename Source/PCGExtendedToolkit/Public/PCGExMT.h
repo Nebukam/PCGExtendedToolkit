@@ -427,7 +427,7 @@ namespace PCGExMT
 		//FAsyncTaskBase* TaskPtr = nullptr;
 		TSharedPtr<PCGExData::FPointIO> PointIO;
 
-		PCGExMT::FPCGExTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
+		FPCGExTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 			: PointIO(InPointIO)
 		{
 		}

@@ -205,7 +205,7 @@ namespace PCGExData
 			}
 
 			UPCGMetadata* InMetadata = Source->GetIn()->Metadata;
-			TypedInAttribute = InMetadata->GetConstTypedAttribute<T>(FullName);
+			TypedInAttribute = InMetadata->template GetConstTypedAttribute<T>(FullName);
 			InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(TypedInAttribute, InMetadata);
 
 			if (!TypedInAttribute || !InAccessor.IsValid())
@@ -246,7 +246,7 @@ namespace PCGExData
 
 			if (!bUninitialized)
 			{
-				if (Source->GetIn() && Source->GetIn()->Metadata->GetConstTypedAttribute<T>(FullName))
+				if (Source->GetIn() && Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(FullName))
 				{
 					// TODO : Scoped get would be better here
 					// Get existing values
@@ -267,7 +267,7 @@ namespace PCGExData
 
 			if (Source->GetIn())
 			{
-				if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->GetConstTypedAttribute<T>(FullName))
+				if (const FPCGMetadataAttribute<T>* ExistingAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(FullName))
 				{
 					return PrepareWrite(
 						ExistingAttribute->GetValue(PCGDefaultValueKey),
@@ -520,7 +520,7 @@ namespace PCGExData
 		{
 			const UPCGPointData* Data = Source->GetData(InSource);
 			if (!Data) { return nullptr; }
-			return Data->Metadata->GetConstTypedAttribute<T>(InName);
+			return Data->Metadata->template GetConstTypedAttribute<T>(InName);
 		}
 
 		TSharedPtr<PCGExGeo::FPointBoxCloud> GetCloud(const EPCGExPointBoundsSource BoundsSource, const double Epsilon = DBL_EPSILON)
@@ -658,7 +658,7 @@ namespace PCGExData
 	template <typename T>
 	static bool TryReadMark(UPCGMetadata* Metadata, const FName MarkID, T& OutMark)
 	{
-		const FPCGMetadataAttribute<T>* Mark = Metadata->GetConstTypedAttribute<T>(MarkID);
+		const FPCGMetadataAttribute<T>* Mark = Metadata->template GetConstTypedAttribute<T>(MarkID);
 		if (!Mark) { return false; }
 		OutMark = Mark->GetValue(PCGInvalidEntryKey);
 		return true;
