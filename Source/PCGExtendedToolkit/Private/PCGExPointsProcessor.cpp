@@ -202,12 +202,9 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExMT::AsyncState 
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
 			return false;
 		}
-		else
-		{
-			if (NextStateId == PCGExMT::State_Done) { Done(); }
-			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
-			else { SetState(NextStateId); }
-		}
+		if (NextStateId == PCGExMT::State_Done) { Done(); }
+		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
+		else { SetState(NextStateId); }
 	}
 
 	if (IsState(PCGExPointsMT::MTState_PointsWriting))

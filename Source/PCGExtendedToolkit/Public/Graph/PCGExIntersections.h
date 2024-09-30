@@ -648,7 +648,6 @@ namespace PCGExGraph
 
 		~FEdgeEdgeIntersections()
 		{
-			
 		}
 	};
 

@@ -43,6 +43,8 @@ namespace PCGExClusterMT
 
 #pragma endregion
 
+	class FClusterProcessorBatchBase;
+
 	class FClusterProcessor : public TSharedFromThis<FClusterProcessor>
 	{
 		friend class FClusterProcessorBatchBase;
@@ -79,6 +81,7 @@ namespace PCGExClusterMT
 
 	public:
 		TWeakPtr<FClusterProcessorBatchBase> ParentBatch;
+		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
 
 		const TSharedRef<PCGExData::FFacade> VtxDataFacade;
 		const TSharedRef<PCGExData::FFacade> EdgeDataFacade;

@@ -105,7 +105,7 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(PickClosestClusters)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context))

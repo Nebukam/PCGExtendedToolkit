@@ -56,7 +56,7 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilterCollections)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

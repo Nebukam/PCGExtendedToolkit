@@ -42,7 +42,7 @@ bool FPCGExBoundsClustersIntersectionElement::ExecuteInternal(FPCGContext* InCon
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsClustersIntersection)
 	PCGEX_EXECUTION_CHECK
-	
+
 	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
 	return true;
 

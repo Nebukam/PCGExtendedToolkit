@@ -129,11 +129,11 @@ protected:
 			TSharedPtr<T> NewBatch = MakeShared<T>(this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);
 			InitBatch(NewBatch);
 
-			if(NewBatch->bRequiresWriteStep)
+			if (NewBatch->bRequiresWriteStep)
 			{
 				bDoClusterBatchWritingStep = true;
 			}
-						
+
 			if (NewBatch->RequiresHeuristics())
 			{
 				bClusterRequiresHeuristics = true;

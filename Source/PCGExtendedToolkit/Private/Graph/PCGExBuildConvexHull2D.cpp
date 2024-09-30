@@ -42,7 +42,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

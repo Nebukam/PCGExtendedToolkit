@@ -33,7 +33,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT(WriteIndex)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

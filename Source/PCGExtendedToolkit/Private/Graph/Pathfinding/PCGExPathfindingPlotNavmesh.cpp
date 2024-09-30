@@ -64,7 +64,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	PCGEX_CONTEXT(PathfindingPlotNavmesh)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

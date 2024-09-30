@@ -48,7 +48,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

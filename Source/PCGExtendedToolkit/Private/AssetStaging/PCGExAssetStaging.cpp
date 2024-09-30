@@ -94,7 +94,7 @@ bool FPCGExAssetStagingElement::Boot(FPCGExContext* InContext) const
 bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAssetStagingElement::Execute);
-	
+
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 	PCGEX_EXECUTION_CHECK
 
@@ -107,7 +107,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAssetStaging::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = Settings->bPruneEmptyPoints;
-			}			))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to process."));
 			return true;

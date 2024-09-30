@@ -14,7 +14,7 @@ PCGExData::EInit UPCGExConnectClustersSettings::GetEdgeOutputInitMode() const { 
 PCGEX_INITIALIZE_ELEMENT(ConnectClusters)
 
 bool FPCGExConnectClustersElement::Boot(FPCGExContext* InContext) const
-{	
+{
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectClusters)
@@ -32,10 +32,10 @@ bool FPCGExConnectClustersElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectClustersElement::Execute);
-	
+
 	PCGEX_CONTEXT_AND_SETTINGS(ConnectClusters)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -64,11 +64,11 @@ bool FPCGExConnectClustersElement::ExecuteInternal(
 		}
 	}
 
-	
-	if (!Context->ProcessClusters(PCGExMT::State_Done))	{		return false;	}
+
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Context->Batches)
-	{		
+	{
 		const TSharedPtr<PCGExBridgeClusters::FProcessorBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FProcessorBatch>(Batch);
 		const int64 ClusterId = BridgeBatch->VtxDataFacade->GetOut()->UID;
 		PCGExData::WriteMark(BridgeBatch->ConsolidatedEdges->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
@@ -123,7 +123,7 @@ namespace PCGExBridgeClusters
 	void FProcessorBatch::Process()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
-		
+
 		TBatch<FProcessor>::Process();
 
 		// Start merging right away
@@ -143,8 +143,8 @@ namespace PCGExBridgeClusters
 	void FProcessorBatch::CompleteWork()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConnectClusters)
-	
-		
+
+
 		const int32 NumValidClusters = GatherValidClusters();
 
 		if (Processors.Num() != NumValidClusters)
@@ -239,7 +239,6 @@ namespace PCGExBridgeClusters
 				}
 			}
 		}
-
 	}
 
 	void FProcessorBatch::Write()
@@ -247,7 +246,7 @@ namespace PCGExBridgeClusters
 		//TArray<FPCGPoint>& MutableEdges = ConsolidatedEdges->GetOut()->GetMutablePoints();
 		//UPCGMetadata* Metadata = ConsolidatedEdges->GetOut()->Metadata;
 
-		
+
 		for (const uint64 Bridge : Bridges)
 		{
 			int32 EdgePointIndex;
@@ -275,7 +274,6 @@ namespace PCGExBridgeClusters
 
 	bool FPCGExCreateBridgeTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		
 		int32 IndexA = -1;
 		int32 IndexB = -1;
 

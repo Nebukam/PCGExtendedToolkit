@@ -76,7 +76,7 @@ bool FPCGExSampleInsideBoundsElement::ExecuteInternal(FPCGContext* InContext) co
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleInsideBounds)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

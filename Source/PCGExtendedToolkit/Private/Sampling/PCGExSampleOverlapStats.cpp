@@ -70,7 +70,7 @@ bool FPCGExSampleOverlapStatsElement::ExecuteInternal(FPCGContext* InContext) co
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleOverlapStats)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

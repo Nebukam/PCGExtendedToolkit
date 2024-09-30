@@ -39,7 +39,7 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT(PointsProcessor)
 	PCGEX_SETTINGS(SortPointsBase)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

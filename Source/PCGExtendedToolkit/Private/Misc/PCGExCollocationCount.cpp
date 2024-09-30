@@ -29,7 +29,7 @@ bool FPCGExCollocationCountElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_CONTEXT(CollocationCount)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

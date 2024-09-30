@@ -43,7 +43,7 @@ bool FPCGExFlagNodesElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(FlagNodes)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

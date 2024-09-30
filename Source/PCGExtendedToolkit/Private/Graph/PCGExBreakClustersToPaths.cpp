@@ -40,7 +40,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

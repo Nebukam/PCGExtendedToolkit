@@ -46,7 +46,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT(Orient)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

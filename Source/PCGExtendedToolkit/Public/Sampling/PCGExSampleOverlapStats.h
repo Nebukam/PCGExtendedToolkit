@@ -227,8 +227,6 @@ namespace PCGExSampleOverlapStats
 
 		TArray<int32> OverlapSubCount;
 		TArray<int32> OverlapCount;
-		double LocalOverlapSubCountMax = 0;
-		double LocalOverlapCountMax = 0;
 
 		int8 bAnyOverlap = 0;
 
@@ -236,6 +234,9 @@ namespace PCGExSampleOverlapStats
 
 	public:
 		FOverlapStats Stats;
+
+		double LocalOverlapSubCountMax = 0;
+		double LocalOverlapCountMax = 0;
 
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)

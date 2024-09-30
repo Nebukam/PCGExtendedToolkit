@@ -74,7 +74,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(MeshToClusters)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -201,7 +201,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	if (Context->IsState(PCGExGeo::State_ExtractingMesh))
 	{
 		PCGEX_ASYNC_WAIT
-		
+
 		auto ProcessTarget = [&](const int32 TargetIndex)
 		{
 			const int32 MeshIdx = Context->MeshIdx[TargetIndex];

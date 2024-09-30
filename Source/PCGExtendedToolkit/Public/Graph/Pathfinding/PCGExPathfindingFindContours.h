@@ -180,18 +180,19 @@ namespace PCGExFindContours
 		friend struct FPCGExFindContoursContext;
 		friend class FBatch;
 
-		mutable FRWLock UniquePathsLock;
-		TSet<uint32> UniquePathsBounds;
-		TSet<uint64> UniquePathsStartPairs;
+		mutable FRWLock UniquePathsBoxHashLock;
+		mutable FRWLock UniquePathsStartHashLock;
+		TSet<uint32> UniquePathsBoxHash;
+		TSet<uint64> UniquePathsStartHash;
 
 	protected:
-		TArray<FVector>* ProjectedPositions = nullptr;
-
 		bool bBuildExpandedNodes = false;
+
+	public:
+		TArray<FVector>* ProjectedPositions = nullptr;
 		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
 		TSharedPtr<TArray<PCGExCluster::FExpandedEdge>> ExpandedEdges;
 
-	public:
 		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
 			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
@@ -202,6 +203,9 @@ namespace PCGExFindContours
 		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
+
+		bool RegisterStartHash(const uint64 Hash);
+		bool RegisterBoxHash(const uint64 Hash);
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>

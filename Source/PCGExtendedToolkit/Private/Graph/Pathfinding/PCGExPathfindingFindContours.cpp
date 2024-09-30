@@ -34,7 +34,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 	const int32 SeedIndex,
 	PCGExFindContours::FProcessor* ClusterProcessor)
 {
-	const UPCGExFindContoursSettings* Settings = ClusterProcessor->Settings;
+	const UPCGExFindContoursSettings* Settings = ClusterProcessor->GetSettings();
 
 	PCGExCluster::FCluster* Cluster = ClusterProcessor->Cluster.Get();
 
@@ -44,7 +44,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 	const TArray<FVector>& Positions = *ClusterProcessor->ProjectedPositions;
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
-	const FVector Guide = ClusterProcessor->Context->ProjectionDetails.Project(ClusterProcessor->Context->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(), SeedIndex);
+	const FVector Guide = ClusterProcessor->GetContext()->ProjectionDetails.Project(ClusterProcessor->GetContext()->SeedsDataFacade->Source->GetInPoint(SeedIndex).Transform.GetLocation(), SeedIndex);
 	int32 StartNodeIndex = Cluster->FindClosestNode(Guide, Settings->SeedPicking.PickingMethod, 2);
 	int32 NextEdge = Cluster->FindClosestEdge(StartNodeIndex, Guide);
 
@@ -87,13 +87,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 	if (Settings->bDedupePaths)
 	{
-		uint64 StartHash = PCGEx::H64(PrevIndex, NextIndex);
-		bool bAlreadyExists;
-		{
-			FWriteScopeLock WriteScopeLock(ClusterProcessor->UniquePathsLock);
-			ClusterProcessor->UniquePathsStartPairs.Add(StartHash, &bAlreadyExists);
-		}
-		if (bAlreadyExists) { return false; }
+		if (!ClusterProcessor->RegisterStartHash(PCGEx::H64(PrevIndex, NextIndex))) { return false; }
 	}
 
 	TArray<int32> Path;
@@ -196,13 +190,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 
 	if (Settings->bDedupePaths)
 	{
-		uint32 BoxHash = HashCombineFast(GetTypeHash(PathBox.Min), GetTypeHash(PathBox.Max));
-		bool bAlreadyExists;
-		{
-			FWriteScopeLock WriteScopeLock(ClusterProcessor->UniquePathsLock);
-			ClusterProcessor->UniquePathsBounds.Add(BoxHash, &bAlreadyExists);
-		}
-		if (bAlreadyExists) { return false; }
+		if (!ClusterProcessor->RegisterBoxHash(HashCombineFast(GetTypeHash(PathBox.Min), GetTypeHash(PathBox.Max)))) { return false; }
 	}
 
 	PCGExGraph::CleanupClusterTags(PathIO, true);
@@ -217,9 +205,8 @@ bool FPCGExFindContoursContext::TryFindContours(
 	const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
 	for (int i = 0; i < Path.Num(); ++i) { MutablePoints[i] = OriginPoints[VtxPointIndices[Path[i]]]; }
 
-	const FPCGExFindContoursContext* Context = static_cast<FPCGExFindContoursContext*>(ClusterProcessor->ExecutionContext);
-	Context->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
-	Context->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
+	ClusterProcessor->GetContext()->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
+	ClusterProcessor->GetContext()->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);
 
 	if (Settings->bFlagDeadEnds)
 	{
@@ -227,7 +214,7 @@ bool FPCGExFindContoursContext::TryFindContours(
 		TSharedPtr<PCGEx::TAttributeWriter<bool>> DeadEndWriter = MakeShared<PCGEx::TAttributeWriter<bool>>(Settings->DeadEndAttributeName, false, false, true);
 		DeadEndWriter->BindAndSetNumUninitialized(PathIO);
 		for (int i = 0; i < Path.Num(); ++i) { DeadEndWriter->Values[i] = (Cluster->Nodes->GetData() + Path[i])->Adjacency.Num() == 1; }
-		Write(ClusterProcessor->AsyncManager, DeadEndWriter);
+		Write(ClusterProcessor->GetAsyncManager(), DeadEndWriter);
 	}
 
 	if (Sign != 0)
@@ -236,9 +223,9 @@ bool FPCGExFindContoursContext::TryFindContours(
 		if (Settings->bTagConvex && bIsConvex) { PathIO->Tags->Add(Settings->ConvexTag); }
 	}
 
-	PathDataFacade->Write(ClusterProcessor->AsyncManager);
+	PathDataFacade->Write(ClusterProcessor->GetAsyncManager());
 
-	if (Settings->bOutputFilteredSeeds) { ClusterProcessor->Context->SeedQuality[SeedIndex] = true; }
+	if (Settings->bOutputFilteredSeeds) { ClusterProcessor->GetContext()->SeedQuality[SeedIndex] = true; }
 
 	return true;
 }
@@ -295,7 +282,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
 	PCGEX_EXECUTION_CHECK
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -342,7 +329,7 @@ namespace PCGExFindContours
 {
 	FProcessor::~FProcessor()
 	{
-		UniquePathsBounds.Empty();
+		UniquePathsBoxHash.Empty();
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -389,6 +376,22 @@ namespace PCGExFindContours
 				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), this);
 			}
 		}
+	}
+
+	bool FProcessor::RegisterStartHash(const uint64 Hash)
+	{
+		bool bAlreadyExists;
+		FWriteScopeLock WriteScopeLock(UniquePathsBoxHashLock);
+		UniquePathsStartHash.Add(Hash, &bAlreadyExists);
+		return !bAlreadyExists;
+	}
+
+	bool FProcessor::RegisterBoxHash(const uint64 Hash)
+	{
+		bool bAlreadyExists;
+		FWriteScopeLock WriteScopeLock(UniquePathsStartHashLock);
+		UniquePathsBoxHash.Add(Hash, &bAlreadyExists);
+		return !bAlreadyExists;
 	}
 
 	void FBatch::Process()

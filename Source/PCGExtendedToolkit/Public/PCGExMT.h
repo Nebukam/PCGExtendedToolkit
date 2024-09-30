@@ -447,18 +447,18 @@ namespace PCGExMT
 		bool bWorkDone = false;
 
 		template <typename T, typename... Args>
-		void InternalStart(int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
+		void InternalStart(int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			if (!Manager || !Manager->IsAvailable()) { return; }
-			if (!bIsAsync) { Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...); }
-			else { Manager->Start<T>(TaskIndex, InPointsIO, args...); }
+			if (!bIsAsync) { Manager->StartSynchronous<T>(InTaskIndex, InPointsIO, args...); }
+			else { Manager->Start<T>(InTaskIndex, InPointsIO, args...); }
 		}
 
 		template <typename T, typename... Args>
-		void InternalStartSync(int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
+		void InternalStartSync(int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			if (!Manager || !Manager->IsAvailable()) { return; }
-			Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...);
+			Manager->StartSynchronous<T>(InTaskIndex, InPointsIO, args...);
 		}
 	};
 

@@ -241,7 +241,7 @@ namespace PCGExGraph
 					{
 						if (!MetadataBlender) { return; }
 						const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = MetadataBlender.ToSharedRef();
-						
+
 						const int32 MaxIndex = StartIndex + Count;
 						for (int i = StartIndex; i < MaxIndex; i++)
 						{

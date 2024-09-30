@@ -63,6 +63,7 @@ namespace PCGExPointsMT
 
 	public:
 		TWeakPtr<FPointsProcessorBatchBase> ParentBatch;
+		TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager() { return AsyncManager; }
 
 		bool bIsProcessorValid = false;
 
