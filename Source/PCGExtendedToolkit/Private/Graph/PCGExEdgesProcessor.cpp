@@ -127,7 +127,7 @@ void FPCGExEdgesProcessorContext::OutputBatches() const
 
 bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync)
 {
-	if (Batches.IsEmpty()) { return true; }
+	if (!bBatchProcessingEnabled) { return true; }
 
 	if (bClusterBatchInlined)
 	{
@@ -139,6 +139,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState Next
 				AdvanceBatch(NextStateId, bIsNextStateAsync);
 				return false;
 			}
+			
 			return true;
 		}
 
@@ -153,7 +154,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState Next
 		if (IsState(PCGExClusterMT::MTState_ClusterCompletingWork))
 		{
 			PCGEX_ASYNC_WAIT_INTERNAL
-
+			
 			AdvanceBatch(NextStateId, bIsNextStateAsync);
 		}
 	}
@@ -178,13 +179,13 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState Next
 			{
 				WriteBatches(Batches);
 				SetAsyncState(PCGExClusterMT::MTState_ClusterWriting);
+				return false;
 			}
-			else
-			{
-				if (NextStateId == PCGExMT::State_Done) { Done(); }
-				if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
-				else { SetState(NextStateId); }
-			}
+
+			bBatchProcessingEnabled = false;
+			if (NextStateId == PCGExMT::State_Done) { Done(); }
+			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
+			else { SetState(NextStateId); }
 		}
 
 		if (IsState(PCGExClusterMT::MTState_ClusterWriting))
@@ -193,13 +194,14 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState Next
 
 			ClusterProcessing_WritingDone();
 
+			bBatchProcessingEnabled = false;
 			if (NextStateId == PCGExMT::State_Done) { Done(); }
 			if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 			else { SetState(NextStateId); }
 		}
 	}
 
-	return true;
+	return false;
 }
 
 bool FPCGExEdgesProcessorContext::CompileGraphBuilders(const bool bOutputToContext, const PCGExMT::AsyncState NextStateId)
@@ -238,6 +240,7 @@ void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGExMT::AsyncState NextSta
 	if (!Batches.IsValidIndex(CurrentBatchIndex))
 	{
 		CurrentBatch = nullptr;
+		bBatchProcessingEnabled = false;
 		if (NextStateId == PCGExMT::State_Done) { Done(); }
 		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 		else { SetState(NextStateId); }

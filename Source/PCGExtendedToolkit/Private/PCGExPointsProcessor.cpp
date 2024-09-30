@@ -202,6 +202,8 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExMT::AsyncState 
 			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
 			return false;
 		}
+
+		bBatchProcessingEnabled = false;
 		if (NextStateId == PCGExMT::State_Done) { Done(); }
 		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 		else { SetState(NextStateId); }
@@ -213,12 +215,13 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch(const PCGExMT::AsyncState 
 
 		BatchProcessing_WritingDone();
 
+		bBatchProcessingEnabled = false;
 		if (NextStateId == PCGExMT::State_Done) { Done(); }
 		if (bIsNextStateAsync) { SetAsyncState(NextStateId); }
 		else { SetState(NextStateId); }
 	}
 
-	return true;
+	return false;
 }
 
 TSharedPtr<PCGExMT::FTaskManager> FPCGExPointsProcessorContext::GetAsyncManager()

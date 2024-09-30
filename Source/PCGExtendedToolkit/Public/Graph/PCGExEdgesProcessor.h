@@ -110,6 +110,7 @@ protected:
 		bClusterBatchInlined = bInlined;
 		CurrentBatchIndex = -1;
 
+		bBatchProcessingEnabled = false;
 		bClusterRequiresHeuristics = true;
 		bDoClusterBatchWritingStep = false;
 		bBuildEndpointsLookup = false;
@@ -153,6 +154,7 @@ protected:
 
 		if (Batches.IsEmpty()) { return false; }
 
+		bBatchProcessingEnabled = true;
 		if (!bClusterBatchInlined) { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
 		return true;
 	}

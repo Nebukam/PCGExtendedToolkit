@@ -19,14 +19,10 @@
 #define PCGEX_ASYNC_WRITE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::Write(_MANAGER, _TARGET); }
 #define PCGEX_ASYNC_WRITE_DELETE(_MANAGER, _TARGET) if(_TARGET){ PCGExMT::WriteAndDelete(_MANAGER, _TARGET); _TARGET = nullptr; }
 #define PCGEX_ASYNC_GROUP_CHKD_VOID(_MANAGER, _NAME) \
-	TSharedPtr<PCGExMT::FTaskGroup> _NAME; \
-	if(!_MANAGER){ return; } \
-	_NAME = _MANAGER->TryCreateGroup(FName(#_NAME));\
+	TSharedPtr<PCGExMT::FTaskGroup> _NAME = _MANAGER ? _MANAGER->TryCreateGroup(FName(#_NAME)) : nullptr; \
 	if(!_NAME){ return; }
 #define PCGEX_ASYNC_GROUP_CHKD(_MANAGER, _NAME) \
-	TSharedPtr<PCGExMT::FTaskGroup> _NAME; \
-	if(!_MANAGER){ return false; } \
-	_NAME = _MANAGER->TryCreateGroup(FName(#_NAME)); \
+	TSharedPtr<PCGExMT::FTaskGroup> _NAME= _MANAGER ? _MANAGER->TryCreateGroup(FName(#_NAME)) : nullptr; \
 	if(!_NAME){ return false; }
 
 #pragma endregion
@@ -265,7 +261,7 @@ namespace PCGExMT
 
 			T& Task = AsyncTask->GetTask();
 			//Task.TaskPtr = AsyncTask;
-			Task.Manager = SharedThis(this);
+			Task.ManagerPtr = SharedThis(this);
 			Task.TaskIndex = TaskIndex;
 
 			AsyncTask->StartBackgroundTask(GThreadPool, WorkPriority);
@@ -279,7 +275,7 @@ namespace PCGExMT
 
 			T& Task = AsyncTask->GetTask();
 			//Task.TaskPtr = AsyncTask;
-			Task.Manager = SharedThis(this);
+			Task.ManagerPtr = SharedThis(this);
 			Task.TaskIndex = TaskIndex;
 			Task.bIsAsync = false;
 
@@ -355,7 +351,7 @@ namespace PCGExMT
 
 			FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
 			FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
-			ATask->GetTask().Group = SharedThis(this);
+			ATask->GetTask().GroupPtr = SharedThis(this);
 			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, TaskIndex); }
 			else { Manager->StartBackgroundTask<T>(ATask, TaskIndex); }
 		}
@@ -374,7 +370,7 @@ namespace PCGExMT
 			for (const uint64 H : Loops)
 			{
 				FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
-				ATask->GetTask().Group = SharedThis(this);
+				ATask->GetTask().GroupPtr = SharedThis(this);
 				ATask->GetTask().Scope = H;
 
 				if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, LoopIdx++); }
@@ -401,9 +397,10 @@ namespace PCGExMT
 		void InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize)
 		{
 			FAsyncTask<T>* NextRange = new FAsyncTask<T>(nullptr);
-			NextRange->GetTask().Group = SharedThis(this);
+			NextRange->GetTask().GroupPtr = SharedThis(this);
 			NextRange->GetTask().MaxItems = MaxItems;
 			NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);
+			
 
 			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(NextRange, Index); }
 			else { Manager->StartBackgroundTask<T>(NextRange, Index); }
@@ -424,8 +421,8 @@ namespace PCGExMT
 	public:
 		virtual ~FPCGExTask() = default;
 
-		TSharedPtr<FTaskManager> Manager;
-		TSharedPtr<FTaskGroup> Group;
+		TWeakPtr<FTaskManager> ManagerPtr;
+		TWeakPtr<FTaskGroup> GroupPtr;
 		int32 TaskIndex = -1;
 		//FAsyncTaskBase* TaskPtr = nullptr;
 		TSharedPtr<PCGExData::FPointIO> PointIO;
@@ -449,6 +446,7 @@ namespace PCGExMT
 		template <typename T, typename... Args>
 		void InternalStart(int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
+			const TSharedPtr<FTaskManager> Manager = ManagerPtr.Pin();
 			if (!Manager || !Manager->IsAvailable()) { return; }
 			if (!bIsAsync) { Manager->StartSynchronous<T>(InTaskIndex, InPointsIO, args...); }
 			else { Manager->Start<T>(InTaskIndex, InPointsIO, args...); }
@@ -457,6 +455,7 @@ namespace PCGExMT
 		template <typename T, typename... Args>
 		void InternalStartSync(int32 InTaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
+			const TSharedPtr<FTaskManager> Manager = ManagerPtr.Pin();
 			if (!Manager || !Manager->IsAvailable()) { return; }
 			Manager->StartSynchronous<T>(InTaskIndex, InPointsIO, args...);
 		}
