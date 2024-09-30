@@ -11,6 +11,7 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
 
+
 #include "PCGExVtxPropertyFactoryProvider.generated.h"
 
 #define PCGEX_VTX_EXTRA_CREATE \
@@ -45,7 +46,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 	/** Name of the attribute to output the direction to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteDirection"))
 	FName DirectionAttribute = "Direction";
-	PCGEx::TAttributeWriter<FVector>* DirWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> DirWriter;
 
 	/** Invert the direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteDirection"))
@@ -58,7 +59,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 	/** Name of the attribute to output the length to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteLength"))
 	FName LengthAttribute = "Length";
-	PCGEx::TAttributeWriter<double>* LengthWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> LengthWriter;
 
 	virtual bool Validate(const FPCGContext* InContext) const
 	{
@@ -67,22 +68,22 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimpleEdgeOutputSettings
 		return true;
 	}
 
-	virtual void Init(PCGExData::FFacade* InFacade)
+	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade)
 	{
-		if (bWriteDirection) { DirWriter = InFacade->GetWriter<FVector>(DirectionAttribute, true); }
-		if (bWriteLength) { LengthWriter = InFacade->GetWriter<double>(LengthAttribute, true); }
+		if (bWriteDirection) { DirWriter = InFacade->GetWritable<FVector>(DirectionAttribute, true); }
+		if (bWriteLength) { LengthWriter = InFacade->GetWritable<double>(LengthAttribute, true); }
 	}
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir)
 	{
-		if (DirWriter) { DirWriter->Values[EntryIndex] = bInvertDirection ? InDir * -1 : InDir; }
-		if (LengthWriter) { LengthWriter->Values[EntryIndex] = InLength; }
+		if (DirWriter) { DirWriter->GetMutable(EntryIndex) = bInvertDirection ? InDir * -1 : InDir; }
+		if (LengthWriter) { LengthWriter->GetMutable(EntryIndex) = InLength; }
 	}
 
 	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data)
 	{
-		if (DirWriter) { DirWriter->Values[EntryIndex] = bInvertDirection ? Data.Direction * -1 : Data.Direction; }
-		if (LengthWriter) { LengthWriter->Values[EntryIndex] = Data.Length; }
+		if (DirWriter) { DirWriter->GetMutable(EntryIndex) = bInvertDirection ? Data.Direction * -1 : Data.Direction; }
+		if (LengthWriter) { LengthWriter->GetMutable(EntryIndex) = Data.Length; }
 	}
 };
 
@@ -111,7 +112,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteEdgeIndex", DisplayAfter="bWriteEdgeIndex"))
 	FName EdgeIndexAttribute = "EdgeIndex";
-	PCGEx::TAttributeWriter<int32>* EIdxWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> EIdxWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="EdgeIndexAttribute"))
@@ -120,7 +121,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteVtxIndex", DisplayAfter="bWriteVtxIndex"))
 	FName VtxIndexAttribute = "VtxIndex";
-	PCGEx::TAttributeWriter<int32>* VIdxWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> VIdxWriter;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="VtxIndexAttribute"))
@@ -129,7 +130,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteNeighborCount", DisplayAfter="bWriteNeighborCount"))
 	FName NeighborCountAttribute = "Count";
-	PCGEx::TAttributeWriter<int32>* NCountWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> NCountWriter;
 
 	virtual bool Validate(const FPCGContext* InContext) const override
 	{
@@ -140,33 +141,33 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgeOutputWithIndexSettings : public FPC
 		return true;
 	}
 
-	virtual void Init(PCGExData::FFacade* InFacade) override
+	virtual void Init(const TSharedRef<PCGExData::FFacade>& InFacade) override
 	{
 		FPCGExSimpleEdgeOutputSettings::Init(InFacade);
-		if (bWriteEdgeIndex) { EIdxWriter = InFacade->GetWriter<int32>(EdgeIndexAttribute, true); }
-		if (bWriteVtxIndex) { VIdxWriter = InFacade->GetWriter<int32>(VtxIndexAttribute, true); }
-		if (bWriteNeighborCount) { NCountWriter = InFacade->GetWriter<int32>(NeighborCountAttribute, true); }
+		if (bWriteEdgeIndex) { EIdxWriter = InFacade->GetWritable<int32>(EdgeIndexAttribute, true); }
+		if (bWriteVtxIndex) { VIdxWriter = InFacade->GetWritable<int32>(VtxIndexAttribute, true); }
+		if (bWriteNeighborCount) { NCountWriter = InFacade->GetWritable<int32>(NeighborCountAttribute, true); }
 	}
 
 	void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex, const int32 NeighborCount)
 	{
 		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, InLength, InDir);
-		if (EIdxWriter) { EIdxWriter->Values[EntryIndex] = EIndex; }
-		if (VIdxWriter) { VIdxWriter->Values[EntryIndex] = VIndex; }
-		if (NCountWriter) { NCountWriter->Values[EntryIndex] = NeighborCount; }
+		if (EIdxWriter) { EIdxWriter->GetMutable(EntryIndex) = EIndex; }
+		if (VIdxWriter) { VIdxWriter->GetMutable(EntryIndex) = VIndex; }
+		if (NCountWriter) { NCountWriter->GetMutable(EntryIndex) = NeighborCount; }
 	}
 
 	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) override
 	{
 		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, Data);
-		if (EIdxWriter) { EIdxWriter->Values[EntryIndex] = Data.EdgeIndex; }
-		if (VIdxWriter) { VIdxWriter->Values[EntryIndex] = Data.NodePointIndex; }
+		if (EIdxWriter) { EIdxWriter->GetMutable(EntryIndex) = Data.EdgeIndex; }
+		if (VIdxWriter) { VIdxWriter->GetMutable(EntryIndex) = Data.NodePointIndex; }
 	}
 
 	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data, const int32 NeighborCount)
 	{
 		Set(EntryIndex, Data);
-		if (NCountWriter) { NCountWriter->Values[EntryIndex] = NeighborCount; }
+		if (NCountWriter) { NCountWriter->GetMutable(EntryIndex) = NeighborCount; }
 	}
 };
 
@@ -181,10 +182,10 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyOperation : public UPCGExOpera
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade);
+	virtual bool PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade);
 
 	virtual void ClusterReserve(const int32 NumClusters);
-	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataFacade, PCGExData::FFacade* EdgeDataFacade);
+	virtual void PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, TSharedPtr<PCGExCluster::FCluster> Cluster, TSharedPtr<PCGExData::FFacade> VtxDataFacade, TSharedPtr<PCGExData::FFacade> EdgeDataFacade);
 
 	virtual bool IsOperationValid();
 

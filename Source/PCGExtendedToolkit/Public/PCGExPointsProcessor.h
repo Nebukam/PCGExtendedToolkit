@@ -15,9 +15,13 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsMT.h"
-#include "RenderGraphResources.h"
 
 #include "PCGExPointsProcessor.generated.h"
+
+
+#define PCGEX_EXECUTION_CHECK if (!Context->IsAsyncWorkComplete()) { return false; }
+#define PCGEX_ASYNC_WAIT if (Context->bWaitingForAsyncCompletion) { return false; }
+#define PCGEX_ASYNC_WAIT_INTERNAL if (bWaitingForAsyncCompletion) { return false; }
 
 struct FPCGExPointsProcessorContext;
 class FPCGExPointsProcessorElement;
@@ -36,7 +40,7 @@ namespace PCGEx
 
 		FPCGExPointsProcessorContext* Context = nullptr;
 
-		PCGExData::FPointIO* PointIO = nullptr;
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
 
 		int32 NumIterations = -1;
 		int32 ChunkSize = 32;
@@ -44,10 +48,10 @@ namespace PCGEx
 		int32 CurrentIndex = -1;
 		bool bAsyncEnabled = true;
 
-		inline PCGExData::FPointIO* GetPointIO() const;
+		inline TSharedPtr<PCGExData::FPointIO> GetPointIO() const;
 
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) = 0;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) = 0;
+		virtual bool Advance(const TFunction<void(const TSharedPtr<PCGExData::FPointIO>&)>&& Initialize, const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) = 0;
+		virtual bool Advance(const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) = 0;
 
 	protected:
 		int32 GetCurrentChunkSize() const
@@ -62,8 +66,8 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const TSharedPtr<PCGExData::FPointIO>&)>&& Initialize, const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) override;
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FAsyncPointLoop : public FPointLoop
@@ -72,8 +76,8 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const TSharedPtr<PCGExData::FPointIO>&)>&& Initialize, const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const int32, const TSharedPtr<PCGExData::FPointIO>&)>&& LoopBody) override;
 	};
 }
 
@@ -136,7 +140,7 @@ public:
 	/** Whether scoped attribute read is enabled or not. Disabling this on small dataset may greatly improve performance. It's enabled by default for legacy reasons. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bScopedAttributeGet = true;
-	
+
 protected:
 	virtual int32 GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 	//~End UPCGExPointsProcessorSettings
@@ -146,59 +150,34 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 {
 	friend class FPCGExPointsProcessorElement;
 
+	bool bWaitingForAsyncCompletion = false;
 	bool bScopedAttributeGet = false;
 	virtual ~FPCGExPointsProcessorContext() override;
 
 	UWorld* World = nullptr;
 
-	mutable FRWLock ContextLock;
+	mutable FRWLock AsyncLock;
 
-	PCGExData::FPointIOCollection* MainPoints = nullptr;
-	PCGExData::FPointIO* CurrentIO = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> MainPoints;
+	TSharedPtr<PCGExData::FPointIO> CurrentIO;
 
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
-	virtual bool ExecuteAutomation();
 
-	void SetAsyncState(const PCGExMT::AsyncState WaitState)
-	{
-		bIsPaused = true;
-		SetState(WaitState, false);
-	}
-
-	void SetState(const PCGExMT::AsyncState StateId, const bool bResetAsyncWork = true)
-	{
-		if (bResetAsyncWork) { ResetAsyncWork(); }
-		if (CurrentState == StateId) { return; }
-		CurrentState = StateId;
-	}
-
+	void SetAsyncState(const PCGExMT::AsyncState WaitState);
+	void SetState(const PCGExMT::AsyncState StateId);
 	bool IsState(const PCGExMT::AsyncState StateId) const { return CurrentState == StateId; }
-
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
-
-	void Done()
-	{
-		bUseLock = false;
-		SetState(PCGExMT::State_Done);
-	}
+	void Done();
 
 	bool TryComplete(const bool bForce = false);
 
-	PCGExMT::FTaskManager* GetAsyncManager();
+	TSharedPtr<PCGExMT::FTaskManager> GetAsyncManager();
 
 	int32 ChunkSize = 0;
 	bool bDoAsyncProcessing = true;
 
 #pragma region Async loops
-
-	template <class InitializeFunc, class LoopBodyFunc>
-	bool Process(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, const int32 NumIterations, const bool bForceSync = false)
-	{
-		AsyncLoop->NumIterations = NumIterations;
-		AsyncLoop->bAsyncEnabled = bDoAsyncProcessing && !bForceSync;
-		return AsyncLoop->Execute(Initialize, LoopBody);
-	}
 
 	template <class LoopBodyFunc>
 	bool Process(LoopBodyFunc&& LoopBody, const int32 NumIterations, const bool bForceSync = false)
@@ -208,16 +187,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 		return AsyncLoop->Execute(LoopBody);
 	}
 
-	template <typename FullTask>
-	void StartAsyncLoop(PCGExData::FPointIO* PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
-	{
-		GetAsyncManager()->Start<FullTask>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
-	}
-
 	template <typename T>
-	T* MakeLoop()
+	TUniquePtr<T> MakeLoop()
 	{
-		T* Loop = new T{};
+		TUniquePtr<T> Loop = MakeUnique<T>();
 		Loop->Context = this;
 		Loop->ChunkSize = ChunkSize;
 		Loop->bAsyncEnabled = bDoAsyncProcessing;
@@ -239,66 +212,73 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 
 #pragma region Filtering
 
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
 
 #pragma endregion
 
 #pragma region Batching
 
-	bool ProcessPointsBatch();
+	bool bBatchProcessingEnabled = false;
+	bool ProcessPointsBatch(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync = false);
 
-	PCGExMT::AsyncState TargetState_PointsProcessingDone;
-	PCGExPointsMT::FPointsProcessorBatchBase* MainBatch = nullptr;
-	TArray<PCGExData::FPointIO*> BatchablePoints;
-	TMap<PCGExData::FPointIO*, PCGExPointsMT::FPointsProcessor*> SubProcessorMap;
+	TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> MainBatch;
+	TMap<PCGExData::FPointIO*, TSharedRef<PCGExPointsMT::FPointsProcessor>> SubProcessorMap;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
-	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
+	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch)
 	{
-		PCGEX_DELETE(MainBatch)
+		bBatchProcessingEnabled = false;
+
+		MainBatch.Reset();
 
 		PCGEX_SETTINGS_LOCAL(PointsProcessor)
 
 		SubProcessorMap.Empty();
 		SubProcessorMap.Reserve(MainPoints->Num());
 
-		TargetState_PointsProcessingDone = InState;
-		BatchablePoints.Empty();
+		TArray<TWeakPtr<PCGExData::FPointIO>> BatchAblePoints;
+		BatchAblePoints.Reserve(MainPoints->Pairs.Num());
 
 		while (AdvancePointsIO(false))
 		{
 			if (!ValidateEntry(CurrentIO)) { continue; }
-			BatchablePoints.Add(CurrentIO);
+			BatchAblePoints.Add(CurrentIO.ToSharedRef());
 		}
 
-		if (BatchablePoints.IsEmpty()) { return false; }
+		if (BatchAblePoints.IsEmpty()) { return bBatchProcessingEnabled; }
+		bBatchProcessingEnabled = true;
 
-		MainBatch = new T(this, BatchablePoints);
+		TSharedPtr<T> TypedBatch = MakeShared<T>(this, BatchAblePoints);
+
+		MainBatch = TypedBatch;
 		MainBatch->SubProcessorMap = &SubProcessorMap;
 
-		T* TypedBatch = static_cast<T*>(MainBatch);
 		InitBatch(TypedBatch);
 
-		if (Settings->SupportsPointFilters())
+		if (Settings->SupportsPointFilters()) { TypedBatch->SetPointsFilterData(&FilterFactories); }
+
+		if (MainBatch->PrepareProcessing())
 		{
-			TypedBatch->SetPointsFilterData(&FilterFactories);
+			SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
+			MainBatch->Process(GetAsyncManager());
+		}
+		else
+		{
+			bBatchProcessingEnabled = false;
 		}
 
-		if (MainBatch->PrepareProcessing()) { MainBatch->Process(GetAsyncManager()); }
-		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
-
-		return true;
+		return bBatchProcessingEnabled;
 	}
 
-	virtual void MTState_PointsProcessingDone()
+	virtual void BatchProcessing_InitialProcessingDone()
 	{
 	}
 
-	virtual void MTState_PointsCompletingWorkDone()
+	virtual void BatchProcessing_WorkComplete()
 	{
 	}
 
-	virtual void MTState_PointsWritingDone()
+	virtual void BatchProcessing_WritingDone()
 	{
 	}
 
@@ -313,9 +293,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExCo
 #pragma endregion
 
 protected:
-	
-	PCGExMT::FAsyncParallelLoop* AsyncLoop = nullptr;
-	PCGExMT::FTaskManager* AsyncManager = nullptr;
+	TSharedPtr<PCGExMT::FTaskManager> AsyncManager;
+	TUniquePtr<PCGExMT::FAsyncParallelLoop> AsyncLoop;
 
 	PCGExMT::AsyncState CurrentState;
 	int32 CurrentPointIOIndex = -1;
@@ -323,7 +302,7 @@ protected:
 	TArray<UPCGExOperation*> ProcessorOperations;
 	TSet<UPCGExOperation*> OwnedProcessorOperations;
 
-	virtual void ResetAsyncWork();
+	virtual void ResumeExecution();
 
 public:
 	virtual bool IsAsyncWorkComplete();
@@ -339,12 +318,7 @@ public:
 	virtual bool ShouldLog() const override { return false; }
 #endif
 
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override
-	{
-		const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);
-		return Settings->bCacheResult;
-	}
-
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override;
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:

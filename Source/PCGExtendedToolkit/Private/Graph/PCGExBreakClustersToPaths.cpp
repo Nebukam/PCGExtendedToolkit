@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExBreakClustersToPaths.h"
 
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBreakClustersToPaths"
@@ -20,21 +21,13 @@ PCGExData::EInit UPCGExBreakClustersToPathsSettings::GetMainOutputInitMode() con
 
 PCGEX_INITIALIZE_ELEMENT(BreakClustersToPaths)
 
-FPCGExBreakClustersToPathsContext::~FPCGExBreakClustersToPathsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(Paths)
-	PCGEX_DELETE_TARRAY(Chains)
-}
-
 bool FPCGExBreakClustersToPathsElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-	Context->Paths = new PCGExData::FPointIOCollection(Context);
+	Context->Paths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	return true;
@@ -46,61 +39,48 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBreakClustersToPathsElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExBreakClustersToPaths::FProcessorBatch>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExBreakClustersToPaths::FProcessorBatch* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExBreakClustersToPaths::FProcessorBatch>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->Paths->OutputToContext();
-
 	return Context->TryComplete();
 }
 
 namespace PCGExBreakClustersToPaths
 {
-	FProcessor::~FProcessor()
-	{
-		Breakpoints.Empty();
-		PCGEX_DELETE_TARRAY(Chains)
-	}
-
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBreakClustersToPaths::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
-
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Breakpoints.Init(false, Cluster->Nodes->Num());
 
-		if (!DirectionSettings.InitFromParent(Context, GetParentBatch<FProcessorBatch>()->DirectionSettings, EdgeDataFacade))
+		if (!DirectionSettings.InitFromParent(ExecutionContext, StaticCastWeakPtr<FProcessorBatch>(ParentBatch).Pin()->DirectionSettings, EdgeDataFacade))
 		{
 			return false;
 		}
 
-		if (!TypedContext->FilterFactories.IsEmpty())
+		const TUniquePtr<PCGExClusterFilter::TManager> FilterManager = MakeUnique<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
+		if (!Context->FilterFactories.IsEmpty() && FilterManager->Init(ExecutionContext, Context->FilterFactories))
 		{
-			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster, VtxDataFacade, EdgeDataFacade);
-			FilterManager->Init(Context, TypedContext->FilterFactories);
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
-			PCGEX_DELETE(FilterManager)
 		}
 		else
 		{
@@ -109,8 +89,8 @@ namespace PCGExBreakClustersToPaths
 
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
-			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster,
+			AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
+				EdgeDataFacade->Source->IOIndex, nullptr, Cluster,
 				&Breakpoints, &Chains, false);
 		}
 		else
@@ -124,7 +104,7 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_SETTINGS(BreakClustersToPaths)
+		UE_LOG(LogTemp, Warning, TEXT("CompleteWork %d"), BatchIndex)
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
 			PCGExClusterTask::DedupeChains(Chains);
@@ -138,7 +118,7 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExCluster::FNodeChain* Chain = Chains[Iteration];
+		const TSharedPtr<PCGExCluster::FNodeChain> Chain = Chains[Iteration];
 		if (!Chain) { return; }
 
 		const int32 ChainSize = Chain->Nodes.Num() + 2;
@@ -153,12 +133,12 @@ namespace PCGExBreakClustersToPaths
 		if (DirectionSettings.DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 		{
 			PCGExGraph::FIndexedEdge ChainDir = PCGExGraph::FIndexedEdge((*Cluster->Nodes)[Chain->First].GetEdgeIndex(Chain->Last), StartIdx, EndIdx);
-			bReverse = DirectionSettings.SortEndpoints(Cluster, ChainDir);
+			bReverse = DirectionSettings.SortEndpoints(Cluster.Get(), ChainDir);
 		}
 		else
 		{
 			PCGExGraph::FIndexedEdge ChainDir = PCGExGraph::FIndexedEdge(Iteration, StartIdx, EndIdx);
-			bReverse = DirectionSettings.SortEndpoints(Cluster, ChainDir);
+			bReverse = DirectionSettings.SortEndpoints(Cluster.Get(), ChainDir);
 		}
 
 		if (bReverse)
@@ -167,10 +147,10 @@ namespace PCGExBreakClustersToPaths
 			std::swap(StartIdx, EndIdx);
 		}
 
-		if (ChainSize < LocalSettings->MinPointCount) { return; }
-		if (LocalSettings->bOmitAbovePointCount && ChainSize > LocalSettings->MaxPointCount) { return; }
+		if (ChainSize < Settings->MinPointCount) { return; }
+		if (Settings->bOmitAbovePointCount && ChainSize > Settings->MaxPointCount) { return; }
 
-		const PCGExData::FPointIO* PathIO = LocalTypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput);
 
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(ChainSize);
@@ -185,11 +165,11 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
 	{
-		const PCGExData::FPointIO* PathIO = LocalTypedContext->Paths->Emplace_GetRef<UPCGPointData>(VtxIO, PCGExData::EInit::NewOutput);
+		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNumUninitialized(2);
 
-		DirectionSettings.SortEndpoints(Cluster, Edge);
+		DirectionSettings.SortEndpoints(Cluster.Get(), Edge);
 
 		MutablePoints[0] = PathIO->GetInPoint(Edge.Start);
 		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
@@ -200,8 +180,8 @@ namespace PCGExBreakClustersToPaths
 	void FProcessorBatch::OnProcessingPreparationComplete()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BreakClustersToPaths)
-		
-		VtxDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+
+		VtxDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
 		DirectionSettings = Settings->DirectionSettings;
 		if (!DirectionSettings.Init(Context, VtxDataFacade))
@@ -216,14 +196,14 @@ namespace PCGExBreakClustersToPaths
 
 			const int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchChunkSize();
 
-			PCGEX_ASYNC_GROUP(AsyncManagerPtr, FetchVtxTask)
-			FetchVtxTask->SetOnIterationRangeStartCallback(
+			PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FetchVtxTask)
+			FetchVtxTask->OnIterationRangeStartCallback =
 				[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 				{
 					VtxDataFacade->Fetch(StartIndex, Count);
-				});
+				};
 
-			FetchVtxTask->PrepareRangesOnly(VtxIO->GetNum(), PLI);
+			FetchVtxTask->PrepareRangesOnly(VtxDataFacade->GetNum(), PLI);
 		}
 
 		TBatch<FProcessor>::OnProcessingPreparationComplete();

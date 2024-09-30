@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertySpecialNeighbors.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertySpecialNeighbors"
 #define PCGEX_NAMESPACE PCGExVtxPropertySpecialNeighbors
 
@@ -20,7 +21,7 @@ void UPCGExVtxPropertySpecialNeighbors::CopySettingsFrom(const UPCGExOperation* 
 	}
 }
 
-bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade)
+bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade)
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
@@ -31,18 +32,18 @@ bool UPCGExVtxPropertySpecialNeighbors::PrepareForVtx(const FPCGContext* InConte
 		return false;
 	}
 
-	Config.LargestNeighbor.Init(InVtxDataFacade);
-	Config.SmallestNeighbor.Init(InVtxDataFacade);
+	Config.LargestNeighbor.Init(InVtxDataFacade.ToSharedRef());
+	Config.SmallestNeighbor.Init(InVtxDataFacade.ToSharedRef());
 
 	return bIsValidOperation;
 }
 
 void UPCGExVtxPropertySpecialNeighbors::ProcessNode(const int32 ClusterIdx, const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	double LLargest = TNumericLimits<double>::Min();
+	double LLargest = MIN_dbl;
 	int32 ILargest = -1;
 
-	double LSmallest = TNumericLimits<double>::Max();
+	double LSmallest = MAX_dbl;
 	int32 ISmallest = -1;
 
 	for (int i = 0; i < Adjacency.Num(); ++i)

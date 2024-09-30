@@ -19,7 +19,8 @@ PCGEX_BLEND_CASE(Lerp)\
 PCGEX_BLEND_CASE(UnsignedMin)\
 PCGEX_BLEND_CASE(UnsignedMax)\
 PCGEX_BLEND_CASE(AbsoluteMin)\
-PCGEX_BLEND_CASE(AbsoluteMax)
+PCGEX_BLEND_CASE(AbsoluteMax)\
+PCGEX_BLEND_CASE(WeightedSubtract)
 
 namespace PCGExDataBlending
 {
@@ -31,7 +32,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return true; }
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
 		FORCEINLINE virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, static_cast<double>(Count)); }
 	};
@@ -52,7 +53,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
 	};
 
@@ -64,8 +65,8 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
-		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Subtract(A, B); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Sub(A, B); }
 	};
 
 	template <typename T>
@@ -92,7 +93,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return true; }
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = A = T{}; }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
 		FORCEINLINE virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, Weight); }
 	};
@@ -105,7 +106,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
 		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); }
 	};
 
@@ -156,12 +157,24 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::AbsoluteMin(A, B); }
 	};
 
-	static FDataBlendingOperationBase* CreateOperation(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)
+	template <typename T>
+	class /*PCGEXTENDEDTOOLKIT_API*/ TDataBlendingWeightedSubtract final : public TDataBlendingOperation<T>
 	{
-#define PCGEX_SAO_NEW(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : NewOperation = new TDataBlending##_ID<_TYPE>(); break;
+	public:
+		FORCEINLINE virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::WeightedSubtract; };
+		FORCEINLINE virtual bool GetRequiresPreparation() const override { return true; }
+		FORCEINLINE virtual bool GetRequiresFinalization() const override { return false; }
+
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = T{}; }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedSub(A, B, Weight); }
+	};
+
+	static TSharedPtr<FDataBlendingOperationBase> CreateOperation(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)
+	{
+#define PCGEX_SAO_NEW(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : NewOperation = MakeShared<TDataBlending##_ID<_TYPE>>(); break;
 #define PCGEX_BLEND_CASE(_ID) case EPCGExDataBlendingType::_ID: switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_NEW, _ID) } break;
 
-		FDataBlendingOperationBase* NewOperation = nullptr;
+		TSharedPtr<FDataBlendingOperationBase> NewOperation;
 
 		switch (Type)
 		{
@@ -176,7 +189,7 @@ namespace PCGExDataBlending
 #undef PCGEX_BLEND_CASE
 	}
 
-	static FDataBlendingOperationBase* CreateOperationWithDefaults(const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
+	static TSharedPtr<FDataBlendingOperationBase> CreateOperationWithDefaults(const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
 	{
 		EPCGExDataBlendingTypeDefault GlobalDefaultType = EPCGExDataBlendingTypeDefault::Default;
 
@@ -197,7 +210,7 @@ namespace PCGExDataBlending
 	}
 
 
-	static FDataBlendingOperationBase* CreateOperation(const EPCGExDataBlendingType* Type, const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
+	static TSharedPtr<FDataBlendingOperationBase> CreateOperation(const EPCGExDataBlendingType* Type, const EPCGExDataBlendingType DefaultType, const PCGEx::FAttributeIdentity& Identity)
 	{
 		return Type ? CreateOperation(*Type, Identity) : CreateOperationWithDefaults(DefaultType, Identity);
 	}

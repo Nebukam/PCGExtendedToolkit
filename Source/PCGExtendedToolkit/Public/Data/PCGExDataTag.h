@@ -15,6 +15,7 @@ namespace PCGExData
 
 	struct FTags
 	{
+		mutable FRWLock TagsLock;
 		TSet<FString> RawTags;       // Contains all data tag
 		TMap<FString, FString> Tags; // PCGEx Tags Name::Value
 
@@ -46,29 +47,30 @@ namespace PCGExData
 			}
 		}
 
-		explicit FTags(const FTags& InTags)
+		explicit FTags(const TSharedPtr<FTags>& InTags)
 			: FTags()
 		{
 			Reset(InTags);
 		}
 
-		void Append(const FTags* InTags)
+		void Append(const TSharedRef<FTags>& InTags)
 		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
 			Tags.Append(InTags->Tags);
 			RawTags.Append(InTags->RawTags);
 		}
 
 		void Reset()
 		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
 			RawTags.Empty();
 			Tags.Empty();
 		}
 
-		void Reset(const FTags& InTags)
+		void Reset(const TSharedPtr<FTags>& InTags)
 		{
 			Reset();
-			RawTags.Append(InTags.RawTags);
-			Tags.Append(InTags.Tags);
+			if (InTags) { Append(InTags.ToSharedRef()); }
 		}
 
 		void Dump(TSet<FString>& InTags) const
@@ -79,42 +81,44 @@ namespace PCGExData
 
 		TSet<FString> ToSet()
 		{
+			FReadScopeLock ReadScopeLock(TagsLock);
 			TSet<FString> Flattened;
 			Flattened.Append(RawTags);
 			for (const TPair<FString, FString>& Tag : Tags) { Flattened.Add((Tag.Key + TagSeparator + Tag.Value)); }
 			return Flattened;
 		}
 
-		~FTags()
-		{
-			RawTags.Empty();
-			Tags.Empty();
-		}
+		~FTags() = default;
 
 		void Add(const FString& Key)
 		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
 			RawTags.Add(Key);
 		}
 
 		void Add(const FString& Key, const FString& Value)
 		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
 			Tags.Add(Key, Value);
 		}
 
 		void Add(const FString& Key, const int64 Value, FString& OutValue)
 		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
 			OutValue = FString::Printf(TEXT("%llu"), Value);
 			Tags.Add(Key, OutValue);
 		}
 
 		void Remove(const FString& Key)
 		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
 			Tags.Remove(Key);
 			RawTags.Remove(Key);
 		}
 
 		void Remove(const TSet<FString>& InSet)
 		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
 			for (const FString& Tag : InSet)
 			{
 				Tags.Remove(Tag);
@@ -135,6 +139,7 @@ namespace PCGExData
 
 		void GetOrSet(const FString& Key, FString& Value)
 		{
+			FWriteScopeLock WriteScopeLock(TagsLock);
 			if (FString* InValue = Tags.Find(Key))
 			{
 				Value = *InValue;

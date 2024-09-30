@@ -3,19 +3,20 @@
 
 #include "Misc/Filters/PCGExMeanFilter.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"
 #define PCGEX_NAMESPACE MeanFilterDefinition
 
-PCGExPointFilter::TFilter* UPCGExMeanFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExMeanFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TMeanFilter(this);
+	return MakeShared<PCGExPointsFilter::TMeanFilter>(this);
 }
 
-bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
-	const PCGExData::TCache<double>* Target = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, true);
+	const TSharedPtr<PCGExData::TBuffer<double>> Target = PointDataFacade->GetBroadcaster<double>(TypedFilterFactory->Config.Target, true);
 
 	if (!Target)
 	{
@@ -26,8 +27,8 @@ bool PCGExPointsFilter::TMeanFilter::Init(const FPCGContext* InContext, PCGExDat
 	DataMin = Target->Min;
 	DataMax = Target->Max;
 
-	Values.Reserve(Target->Values.Num());
-	Values.Append(Target->Values);
+	Values.Reserve(Target->GetInValues()->Num());
+	Values.Append(*Target->GetInValues());
 
 	return true;
 }
@@ -42,8 +43,8 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 
 	if (TypedFilterFactory->Config.Measure == EPCGExMeanMeasure::Relative)
 	{
-		double RelativeMinEdgeLength = TNumericLimits<double>::Max();
-		double RelativeMaxEdgeLength = TNumericLimits<double>::Min();
+		double RelativeMinEdgeLength = MAX_dbl;
+		double RelativeMaxEdgeLength = MIN_dbl;
 		SumValue = 0;
 		for (int i = 0; i < NumPoints; ++i)
 		{
@@ -79,8 +80,8 @@ void PCGExPointsFilter::TMeanFilter::PostInit()
 		break;
 	}
 
-	const double RMin = TypedFilterFactory->Config.bDoExcludeBelowMean ? ReferenceValue - TypedFilterFactory->Config.ExcludeBelow : TNumericLimits<double>::Min();
-	const double RMax = TypedFilterFactory->Config.bDoExcludeAboveMean ? ReferenceValue + TypedFilterFactory->Config.ExcludeAbove : TNumericLimits<double>::Max();
+	const double RMin = TypedFilterFactory->Config.bDoExcludeBelowMean ? ReferenceValue - TypedFilterFactory->Config.ExcludeBelow : MIN_dbl;
+	const double RMax = TypedFilterFactory->Config.bDoExcludeAboveMean ? ReferenceValue + TypedFilterFactory->Config.ExcludeAbove : MAX_dbl;
 
 	ReferenceMin = FMath::Min(RMin, RMax);
 	ReferenceMax = FMath::Max(RMin, RMax);

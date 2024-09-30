@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExDataForward.h"
+
+
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
 
@@ -143,21 +145,19 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGE
 	friend class FPCGExFindContoursElement;
 	friend class FPCGExCreateBridgeTask;
 
-	virtual ~FPCGExFindContoursContext() override;
-
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
-	PCGExData::FFacade* SeedsDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 
-	PCGExData::FPointIOCollection* Paths;
-	PCGExData::FPointIO* GoodSeeds;
-	PCGExData::FPointIO* BadSeeds;
+	TSharedPtr<PCGExData::FPointIOCollection> Paths;
+	TSharedPtr<PCGExData::FPointIO> GoodSeeds;
+	TSharedPtr<PCGExData::FPointIO> BadSeeds;
 
 	TArray<bool> SeedQuality;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
-	PCGExData::FDataForwardHandler* SeedForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
 
-	bool TryFindContours(PCGExData::FPointIO* PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
+	bool TryFindContours(const TSharedPtr<PCGExData::FPointIO>& PathIO, const int32 SeedIndex, PCGExFindContours::FProcessor* ClusterProcessor);
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
@@ -175,38 +175,37 @@ protected:
 
 namespace PCGExFindContours
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFindContoursContext, UPCGExFindContoursSettings>
 	{
 		friend struct FPCGExFindContoursContext;
 		friend class FBatch;
 
-		mutable FRWLock UniquePathsLock;
-		TSet<uint32> UniquePathsBounds;
-		TSet<uint64> UniquePathsStartPairs;
+		mutable FRWLock UniquePathsBoxHashLock;
+		mutable FRWLock UniquePathsStartHashLock;
+		TSet<uint32> UniquePathsBoxHash;
+		TSet<uint64> UniquePathsStartHash;
 
 	protected:
-		const UPCGExFindContoursSettings* LocalSettings = nullptr;
-		FPCGExFindContoursContext* LocalTypedContext = nullptr;
-
-		TArray<FVector>* ProjectedPositions = nullptr;
-
 		bool bBuildExpandedNodes = false;
-		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
-		TArray<PCGExCluster::FExpandedEdge*>* ExpandedEdges = nullptr;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		TArray<FVector>* ProjectedPositions = nullptr;
+		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
+		TSharedPtr<TArray<PCGExCluster::FExpandedEdge>> ExpandedEdges;
+
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		bool RegisterStartHash(const uint64 Hash);
+		bool RegisterBoxHash(const uint64 Hash);
 	};
 
 	class FBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -218,19 +217,19 @@ namespace PCGExFindContours
 		TArray<FVector> ProjectedPositions;
 
 	public:
-		FBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)
 		{
 		}
 
 		virtual void Process() override;
-		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 	};
 
 	class FProjectRangeTask : public PCGExMT::FPCGExTask
 	{
 	public:
-		FProjectRangeTask(PCGExData::FPointIO* InPointIO,
+		FProjectRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                  FBatch* InBatch):
 			FPCGExTask(InPointIO),
 			Batch(InBatch)
@@ -239,13 +238,13 @@ namespace PCGExFindContours
 
 		FBatch* Batch = nullptr;
 		int32 NumIterations = 0;
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContourTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,
+		FPCGExFindContourTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                      FProcessor* InClusterProcessor) :
 			FPCGExTask(InPointIO),
 			ClusterProcessor(InClusterProcessor)
@@ -254,6 +253,6 @@ namespace PCGExFindContours
 
 		FProcessor* ClusterProcessor = nullptr;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

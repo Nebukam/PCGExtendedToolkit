@@ -5,17 +5,13 @@
 
 #include "Data/PCGExPointFilter.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExSplitPathElement"
 #define PCGEX_NAMESPACE SplitPath
 
 PCGExData::EInit UPCGExSplitPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(SplitPath)
-
-FPCGExSplitPathContext::~FPCGExSplitPathContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 {
@@ -25,8 +21,8 @@ bool FPCGExSplitPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FWD(UpdateTags)
 	Context->UpdateTags.Init();
-	
-	Context->MainPaths = new PCGExData::FPointIOCollection(Context);
+
+	Context->MainPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->MainPaths->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
 	return true;
@@ -37,6 +33,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSplitPathElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplitPath)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -44,7 +41,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 		bool bHasInvalidInputs = false;
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
@@ -54,10 +51,9 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to split."));
 			return true;
@@ -69,7 +65,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPaths->Pairs.Reserve(Context->MainPaths->Pairs.Num() + Context->MainBatch->GetNumProcessors());
 	Context->MainBatch->Output();
@@ -81,37 +77,28 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSplitPath
 {
-	FProcessor::~FProcessor()
-	{
-		PCGEX_DELETE_TARRAY(PathsIOs)
-		Paths.Empty();
-	}
-
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSplitPath::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
-		const int32 NumPoints = PointIO->GetNum();
+		const int32 NumPoints = PointDataFacade->GetNum();
 		const int32 ChunkSize = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize();
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, TaskGroup)
-		TaskGroup->SetOnIterationRangeStartCallback(
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, TaskGroup)
+		TaskGroup->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
 				FilterScope(StartIndex, Count);
-			});
+			};
 
 		switch (Settings->SplitAction)
 		{
@@ -161,15 +148,15 @@ namespace PCGExSplitPath
 		const bool bWrapWithStart = PathInfos.End == -1 && bWrapLastPath;
 		const int32 NumPathPoints = bWrapWithStart ? PathInfos.Count + Paths[0].Count : PathInfos.Count;
 
-		if (NumPathPoints == 1 && LocalSettings->bOmitSinglePointOutputs) { return; }
+		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
-		PCGExData::FPointIO* PathIO = new PCGExData::FPointIO(Context, PointIO);
+		TSharedPtr<PCGExData::FPointIO> PathIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointDataFacade->Source);
 		PathIO->InitializeOutput(PCGExData::EInit::NewOutput);
 		PathsIOs[Iteration] = PathIO;
 
-		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumPathPoints);
+		PCGEx::InitArray(MutablePoints, NumPathPoints);
 
 		for (int i = 0; i < PathInfos.Count; ++i) { MutablePoints[i] = OriginalPoints[PathInfos.Start + i]; }
 
@@ -182,8 +169,6 @@ namespace PCGExSplitPath
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
-
 		if (Paths.IsEmpty()) { return; }
 
 		if (bClosedLoop)
@@ -192,7 +177,8 @@ namespace PCGExSplitPath
 			if (Paths.Num() > 1 || Paths[0].End != -1 || Paths[0].Start != 0) { bAddOpenTag = true; }
 		}
 
-		PCGEX_SET_NUM_NULLPTR(PathsIOs, Paths.Num())
+		PathsIOs.Init(nullptr, Paths.Num());
+
 		StartParallelLoopForRange(Paths.Num());
 
 		//TODO : If closed path is enabled, and if the first & last points are not removed after the split
@@ -201,13 +187,11 @@ namespace PCGExSplitPath
 
 	void FProcessor::Output()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
-
-		for (PCGExData::FPointIO* PathIO : PathsIOs)
+		for (const TSharedPtr<PCGExData::FPointIO>& PathIO : PathsIOs)
 		{
 			if (!PathIO) { continue; }
-			if (bAddOpenTag) { LocalTypedContext->UpdateTags.Update(PathIO); }
-			LocalTypedContext->MainPaths->AddUnsafe(PathIO);
+			if (bAddOpenTag) { Context->UpdateTags.Update(PathIO); }
+			Context->MainPaths->AddUnsafe(PathIO);
 		}
 
 		PathsIOs.Empty(); // So they don't get deleted

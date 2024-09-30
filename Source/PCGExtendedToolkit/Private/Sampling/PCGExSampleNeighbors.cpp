@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleNeighbors.h"
 
+
 #include "Sampling/Neighbors/PCGExNeighborSampleAttribute.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
@@ -20,14 +21,6 @@ PCGExData::EInit UPCGExSampleNeighborsSettings::GetEdgeOutputInitMode() const { 
 PCGExData::EInit UPCGExSampleNeighborsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNeighbors)
-
-FPCGExSampleNeighborsContext::~FPCGExSampleNeighborsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	//for (UPCGExNeighborSamplerFactoryBase* Factory : SamplerFactories) { PCGEX_DELETE_UOBJECT(Factory) }
-	SamplerFactories.Empty();
-}
 
 bool FPCGExSampleNeighborsElement::Boot(FPCGExContext* InContext) const
 {
@@ -53,26 +46,26 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNeighborsElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNeighbors)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
 				NewBatch->bWriteVtxDataFacade = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->OutputPointsAndEdges();
 
@@ -85,22 +78,19 @@ namespace PCGExSampleNeighbors
 	FProcessor::~FProcessor()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_OPERATION(Op) }
-		if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) }
-		SamplingOperations.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSampleNeighbors::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
-		for (const UPCGExNeighborSamplerFactoryBase* OperationFactory : TypedContext->SamplerFactories)
+		for (const UPCGExNeighborSamplerFactoryBase* OperationFactory : Context->SamplerFactories)
 		{
 			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation();
-			SamplingOperation->BindContext(TypedContext);
-			SamplingOperation->PrepareForCluster(Context, Cluster, VtxDataFacade, EdgeDataFacade);
+			SamplingOperation->BindContext(Context);
+			SamplingOperation->PrepareForCluster(ExecutionContext, Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 
 			if (!SamplingOperation->IsOperationValid())
 			{
@@ -129,7 +119,7 @@ namespace PCGExSampleNeighbors
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		if (bBuildExpandedNodes) { (*ExpandedNodes)[Iteration] = new PCGExCluster::FExpandedNode(Cluster, Iteration); }
+		if (bBuildExpandedNodes) { (*ExpandedNodes)[Iteration] = PCGExCluster::FExpandedNode(Cluster.Get(), Iteration); }
 		for (const UPCGExNeighborSampleOperation* Op : OpsWithValueTest) { Op->ValueFilters->Results[Iteration] = Op->ValueFilters->Test(*(Cluster->Nodes->GetData() + Iteration)); }
 	}
 
@@ -146,7 +136,7 @@ namespace PCGExSampleNeighbors
 	void FProcessor::Write()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
-		EdgeDataFacade->Write(AsyncManagerPtr, true);
+		EdgeDataFacade->Write(AsyncManager);
 	}
 }
 

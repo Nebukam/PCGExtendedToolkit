@@ -12,6 +12,7 @@
 #include "PCGExSampling.h"
 #include "Data/PCGExDataForward.h"
 
+
 #include "PCGExSampleNearestSurface.generated.h"
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
@@ -21,7 +22,7 @@ MACRO(Location, FVector, FVector::ZeroVector)\
 MACRO(LookAt, FVector, FVector::OneVector)\
 MACRO(Normal, FVector, FVector::OneVector)\
 MACRO(IsInside, bool, false)\
-MACRO(Distance, double, 0)
+MACRO(Distance, double, 0)\
 MACRO(ActorReference, FString, TEXT(""))\
 MACRO(PhysMat, FString, TEXT(""))
 #else
@@ -185,9 +186,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSurfaceContext final : publ
 {
 	friend class FPCGExSampleNearestSurfaceElement;
 
-	virtual ~FPCGExSampleNearestSurfaceContext() override;
-
-	PCGExData::FFacade* ActorReferenceDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> ActorReferenceDataFacade;
 
 	FPCGExCollisionDetails CollisionSettings;
 
@@ -213,28 +212,25 @@ protected:
 
 namespace PCGExSampleNearestSurface
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSurfaceContext, UPCGExSampleNearestSurfaceSettings>
 	{
-		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
+		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
-		PCGExData::TCache<double>* MaxDistanceGetter = nullptr;
-
-		FPCGExSampleNearestSurfaceContext* LocalTypedContext = nullptr;
-		const UPCGExSampleNearestSurfaceSettings* LocalSettings = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
 
 		int8 bAnySuccess = 0;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

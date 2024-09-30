@@ -8,13 +8,9 @@
 
 
 #include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoVoronoi.h"
 
 #include "PCGExBuildVoronoiGraph.generated.h"
-
-namespace PCGExGeo
-{
-	class TVoronoi3;
-}
 
 /**
  * 
@@ -79,9 +75,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraphContext final : public 
 {
 	friend class FPCGExBuildVoronoiGraphElement;
 
-	virtual ~FPCGExBuildVoronoiGraphContext() override;
-
-	PCGExData::FPointIOCollection* SitesOutput = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> SitesOutput;
 };
 
 
@@ -100,23 +94,23 @@ protected:
 
 namespace PCGExBuildVoronoi
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildVoronoiGraphContext, UPCGExBuildVoronoiGraphSettings>
 	{
 	protected:
-		PCGExGeo::TVoronoi3* Voronoi = nullptr;
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<PCGExGeo::TVoronoi3> Voronoi;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		PCGEx::TAttributeWriter<bool>* HullMarkPointWriter = nullptr;
+		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

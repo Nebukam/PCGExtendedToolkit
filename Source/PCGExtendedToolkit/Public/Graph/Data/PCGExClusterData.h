@@ -64,27 +64,26 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExClusterEdgesData : public UPCGExClusterDa
 public:
 	virtual void InitializeFromPCGExData(const UPCGExPointData* InPCGExPointData, const PCGExData::EInit InitMode) override;
 
-	virtual void SetBoundCluster(PCGExCluster::FCluster* InCluster, bool bIsOwner);
-	PCGExCluster::FCluster* GetBoundCluster() const;
+	virtual void SetBoundCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster);
+	const TSharedPtr<PCGExCluster::FCluster>& GetBoundCluster() const;
 
 	virtual void BeginDestroy() override;
 
 protected:
-	PCGExCluster::FCluster* Cluster = nullptr;
+	TSharedPtr<PCGExCluster::FCluster> Cluster;
 	virtual UPCGSpatialData* CopyInternal() const override;
-	bool bOwnsCluster = true;
 };
 
 namespace PCGExClusterData
 {
-	static const PCGExCluster::FCluster* TryGetCachedCluster(const PCGExData::FPointIO* VtxIO, const PCGExData::FPointIO* EdgeIO)
+	static TSharedPtr<PCGExCluster::FCluster> TryGetCachedCluster(const TSharedRef<PCGExData::FPointIO>& VtxIO, const TSharedRef<PCGExData::FPointIO>& EdgeIO)
 	{
 		if (GetDefault<UPCGExGlobalSettings>()->bCacheClusters)
 		{
 			if (const UPCGExClusterEdgesData* ClusterEdgesData = Cast<UPCGExClusterEdgesData>(EdgeIO->GetIn()))
 			{
 				//Try to fetch cached cluster
-				if (const PCGExCluster::FCluster* CachedCluster = ClusterEdgesData->GetBoundCluster())
+				if (const TSharedPtr<PCGExCluster::FCluster>& CachedCluster = ClusterEdgesData->GetBoundCluster())
 				{
 					// Cheap validation -- if there are artifact use SanitizeCluster node, it's still incredibly cheaper.
 					if (CachedCluster->IsValidWith(VtxIO, EdgeIO))

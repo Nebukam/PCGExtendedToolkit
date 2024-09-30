@@ -37,7 +37,7 @@ public:
 
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings
-	
+
 	/** Whether scoped attribute read is enabled or not. Disabling this on small dataset may greatly improve performance. It's enabled by default for legacy reasons. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Performance, meta=(PCG_NotOverridable, AdvancedDisplay))
 	bool bScopedIndexLookupBuild = false;
@@ -51,92 +51,67 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPoi
 	virtual ~FPCGExEdgesProcessorContext() override;
 
 	bool bBuildEndpointsLookup = true;
-	
-	PCGExData::FPointIOCollection* MainEdges = nullptr;
-	PCGExData::FPointIO* CurrentEdges = nullptr;
 
-	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
-	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> MainEdges;
+	TSharedPtr<PCGExData::FPointIO> CurrentEdges;
+
+	TUniquePtr<PCGExData::FPointIOTaggedDictionary> InputDictionary;
+	TSharedPtr<PCGExData::FPointIOTaggedEntries> TaggedEdges;
 	TMap<uint32, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;
 
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;
 	virtual bool AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys = true); // Advance edges within current points
 
-	PCGExCluster::FCluster* CurrentCluster = nullptr;
+	TSharedPtr<PCGExCluster::FCluster> CurrentCluster;
 
 	void OutputPointsAndEdges() const;
 
-	template <class InitializeFunc, class LoopBodyFunc>
-	bool ProcessCurrentEdges(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentEdges->GetNum(), bForceSync); }
-
-	template <class LoopBodyFunc>
-	bool ProcessCurrentEdges(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentEdges->GetNum(), bForceSync); }
-
-	template <class InitializeFunc, class LoopBodyFunc>
-	bool ProcessCurrentCluster(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentCluster->Nodes->Num(), bForceSync); }
-
-	template <class LoopBodyFunc>
-	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes->Num(), bForceSync); }
-
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-	bool bWaitingOnClusterProjection = false;
-
-	int32 GetClusterProcessorsNum() const
-	{
-		int32 Num = 0;
-		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Num += Batch->GetNumProcessors(); }
-		return Num;
-	}
+	int32 GetClusterProcessorsNum() const;
 
 	template <typename T>
-	void GatherClusterProcessors(TArray<T*>& OutProcessors)
+	void GatherClusterProcessors(TArray<TSharedPtr<T>>& OutProcessors)
 	{
 		OutProcessors.Reserve(GetClusterProcessorsNum());
-		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
+		for (const TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>& Batch : Batches)
 		{
-			const PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<const PCGExClusterMT::TBatch<T>*>(Batch);
+			PCGExClusterMT::TBatch<T>* TypedBatch = static_cast<PCGExClusterMT::TBatch<T>*>(Batch.Get());
 			OutProcessors.Append(TypedBatch->Processors);
 		}
 	}
 
-	void OutputBatches() const
-	{
-		for (PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->Output(); }
-	}
+	void OutputBatches() const;
 
 protected:
-	virtual bool ProcessClusters();
+	virtual bool ProcessClusters(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync = false);
+	virtual bool CompileGraphBuilders(const bool bOutputToContext, const PCGExMT::AsyncState NextStateId);
 
-	TArray<PCGExClusterMT::FClusterProcessorBatchBase*> Batches;
-	
+	TArray<TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase>> Batches;
+
 	bool bScopedIndexLookupBuild = false;
 	bool bHasValidHeuristics = false;
 
-	PCGExMT::AsyncState TargetState_ClusterProcessingDone;
-	bool bDoClusterBatchGraphBuilding = false;
 	bool bDoClusterBatchWritingStep = false;
 
 	bool bClusterRequiresHeuristics = false;
 	bool bClusterBatchInlined = false;
 	int32 CurrentBatchIndex = -1;
-	PCGExClusterMT::FClusterProcessorBatchBase* CurrentBatch = nullptr;
-
+	TSharedPtr<PCGExClusterMT::FClusterProcessorBatchBase> CurrentBatch;
 
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
-	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState, const bool bInlined = false)
+	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const bool bInlined = false)
 	{
-		ResetAsyncWork();
+		ResumeExecution();
 
-		PCGEX_DELETE_TARRAY(Batches)
+		Batches.Empty();
 
 		bClusterBatchInlined = bInlined;
 		CurrentBatchIndex = -1;
-		TargetState_ClusterProcessingDone = InState;
 
+		bBatchProcessingEnabled = false;
 		bClusterRequiresHeuristics = true;
-		bDoClusterBatchGraphBuilding = false;
 		bDoClusterBatchWritingStep = false;
 		bBuildEndpointsLookup = false;
 
@@ -152,30 +127,24 @@ protected:
 
 			if (!ValidateEntries(TaggedEdges)) { continue; }
 
-			T* NewBatch = new T(this, CurrentIO, TaggedEdges->Entries);
+			TSharedPtr<T> NewBatch = MakeShared<T>(this, CurrentIO.ToSharedRef(), TaggedEdges->Entries);
 			InitBatch(NewBatch);
-
-			if (NewBatch->RequiresHeuristics())
-			{
-				bClusterRequiresHeuristics = true;
-
-				if (!bHasValidHeuristics)
-				{
-					PCGEX_DELETE(NewBatch)
-					continue;
-				}
-			}
 
 			if (NewBatch->bRequiresWriteStep)
 			{
 				bDoClusterBatchWritingStep = true;
 			}
 
+			if (NewBatch->RequiresHeuristics())
+			{
+				bClusterRequiresHeuristics = true;
+				if (!bHasValidHeuristics) { continue; }
+			}
+
 			NewBatch->EdgeCollection = MainEdges;
 
 			if (NewBatch->RequiresGraphBuilder())
 			{
-				bDoClusterBatchGraphBuilding = true;
 				NewBatch->GraphBuilderDetails = GraphBuilderDetails;
 			}
 
@@ -185,30 +154,30 @@ protected:
 
 		if (Batches.IsEmpty()) { return false; }
 
-		if (bClusterBatchInlined) { AdvanceBatch(); }
-		else { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
+		bBatchProcessingEnabled = true;
+		if (!bClusterBatchInlined) { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
 		return true;
 	}
 
-	virtual void OnBatchesProcessingDone()
+	virtual void ClusterProcessing_InitialProcessingDone()
 	{
 	}
 
-	virtual void OnBatchesCompletingWorkDone()
+	virtual void ClusterProcessing_WorkComplete()
 	{
 	}
 
-	virtual void OnBatchesCompilationDone(bool bWritten)
+	virtual void ClusterProcessing_WritingDone()
 	{
 	}
 
-	virtual void OnBatchesWritingDone()
+	virtual void ClusterProcessing_GraphCompilationDone()
 	{
 	}
 
 	bool HasValidHeuristics() const;
 
-	void AdvanceBatch();
+	void AdvanceBatch(const PCGExMT::AsyncState NextStateId, const bool bIsNextStateAsync);
 
 	int32 CurrentEdgesIndex = -1;
 };

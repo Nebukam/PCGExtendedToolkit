@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
+
 #include "PCGExEdgeRefineOperation.generated.h"
 
 /**
@@ -28,7 +30,7 @@ public:
 	TArray<bool>* VtxFilters = nullptr;
 	TArray<bool>* EdgesFilters = nullptr;
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr)
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics = nullptr)
 	{
 		Cluster = InCluster;
 		Heuristics = InHeuristics;
@@ -51,12 +53,14 @@ public:
 
 	virtual void Cleanup() override
 	{
+		Cluster.Reset();
+		Heuristics.Reset();
 		Super::Cleanup();
 	}
 
 protected:
-	PCGExCluster::FCluster* Cluster = nullptr;
-	PCGExHeuristics::THeuristicsHandler* Heuristics = nullptr;
+	TSharedPtr<PCGExCluster::FCluster> Cluster;
+	TSharedPtr<PCGExHeuristics::THeuristicsHandler> Heuristics;
 	mutable FRWLock EdgeLock;
 	mutable FRWLock NodeLock;
 };

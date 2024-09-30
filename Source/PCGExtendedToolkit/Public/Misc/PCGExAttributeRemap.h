@@ -11,6 +11,7 @@
 #include "PCGExDetails.h"
 #include "Data/PCGExAttributeHelpers.h"
 
+
 #include "PCGExAttributeRemap.generated.h"
 
 USTRUCT(BlueprintType)
@@ -105,8 +106,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapContext final : public FPC
 {
 	friend class FPCGExAttributeRemapElement;
 
-	virtual ~FPCGExAttributeRemapContext() override;
-
 	FPCGExComponentRemapRule RemapSettings[4];
 	int32 RemapIndices[4];
 };
@@ -126,35 +125,32 @@ protected:
 
 namespace PCGExAttributeRemap
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeRemapContext, UPCGExAttributeRemapSettings>
 	{
-		FPCGExAttributeRemapContext* LocalTypedContext = nullptr;
-		const UPCGExAttributeRemapSettings* LocalSettings = nullptr;
-
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 		int32 Dimensions = 0;
 
 		TArray<FPCGExComponentRemapRule> Rules;
 
-		PCGEx::FAttributeIOBase* CacheWriter = nullptr;
-		PCGEx::FAttributeIOBase* CacheReader = nullptr;
+		TSharedPtr<PCGExData::FBufferBase> CacheWriter = nullptr;
+		TSharedPtr<PCGExData::FBufferBase> CacheReader = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
 		template <typename T>
 		void RemapRange(const int32 StartIndex, const int32 Count, T DummyValue)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::RemapRange);
 
-			PCGEx::TAttributeWriter<T>* Writer = static_cast<PCGEx::TAttributeWriter<T>*>(CacheWriter);
+			PCGExData::TBuffer<T>* Writer = static_cast<PCGExData::TBuffer<T>*>(CacheWriter.Get());
 
 			for (int d = 0; d < Dimensions; ++d)
 			{
@@ -168,7 +164,7 @@ namespace PCGExAttributeRemap
 					{
 						for (int i = StartIndex; i < StartIndex + Count; ++i)
 						{
-							T& V = Writer->Values[i];
+							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
 							VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL)) * PCGExMath::SignPlus(VAL);
 							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
@@ -180,7 +176,7 @@ namespace PCGExAttributeRemap
 					{
 						for (int i = StartIndex; i < StartIndex + Count; ++i)
 						{
-							T& V = Writer->Values[i];
+							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
 							VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL));
 							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
@@ -195,7 +191,7 @@ namespace PCGExAttributeRemap
 					{
 						for (int i = StartIndex; i < StartIndex + Count; ++i)
 						{
-							T& V = Writer->Values[i];
+							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
 							VAL = Rule.RemapDetails.GetRemappedValue(VAL);
 							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);
@@ -207,7 +203,7 @@ namespace PCGExAttributeRemap
 					{
 						for (int i = StartIndex; i < StartIndex + Count; ++i)
 						{
-							T& V = Writer->Values[i];
+							T& V = Writer->GetMutable(i);
 							VAL = PCGExMath::GetComponent(V, d);
 							VAL = Rule.RemapDetails.GetRemappedValue(FMath::Abs(VAL));
 							VAL = Rule.OutputClampDetails.GetClampedValue(VAL);

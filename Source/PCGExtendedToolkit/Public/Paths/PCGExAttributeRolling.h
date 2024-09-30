@@ -8,12 +8,10 @@
 #include "PCGExPaths.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "PCGExAttributeRolling.generated.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
+
+#include "PCGExAttributeRolling.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type"))
 enum class EPCGExRollingTriggerMode : uint8
@@ -33,12 +31,11 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAttributeRollingSettings : public UPCGExP
 
 public:
 	UPCGExAttributeRollingSettings(const FObjectInitializer& ObjectInitializer);
-	
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AttributeRolling, "Path : Attribute Rolling", "Does a rolling blending of properties & attributes.");
 #endif
-
 
 protected:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -59,8 +56,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRollingContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExAttributeRollingElement;
-
-	virtual ~FPCGExAttributeRollingContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRollingElement final : public FPCGExPathProcessorElement
@@ -78,26 +73,23 @@ protected:
 
 namespace PCGExAttributeRolling
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAttributeRollingContext, UPCGExAttributeRollingSettings>
 	{
-		FPCGExAttributeRollingContext* LocalTypedContext = nullptr;
-		const UPCGExAttributeRollingSettings* LocalSettings = nullptr;
-
 		PCGExPaths::FPathMetrics CurrentMetric;
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		UPCGMetadata* OutMetadata = nullptr;
 		TArray<FPCGPoint>* OutPoints = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;

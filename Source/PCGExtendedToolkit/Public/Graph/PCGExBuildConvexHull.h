@@ -5,13 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "Geometry/PCGExGeoDelaunay.h"
+
 
 #include "PCGExBuildConvexHull.generated.h"
-
-namespace PCGExGeo
-{
-	class TDelaunay3;
-}
 
 /**
  * 
@@ -51,8 +48,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHullContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildConvexHullElement;
-
-	virtual ~FPCGExBuildConvexHullContext() override;
 };
 
 
@@ -71,23 +66,21 @@ protected:
 
 namespace PCGExConvexHull
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildConvexHullContext, UPCGExBuildConvexHullSettings>
 	{
 	protected:
-		PCGExGeo::TDelaunay3* Delaunay = nullptr;
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<PCGExGeo::TDelaunay3> Delaunay;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override;
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

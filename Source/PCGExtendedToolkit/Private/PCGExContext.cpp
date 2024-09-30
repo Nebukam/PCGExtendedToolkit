@@ -65,7 +65,6 @@ FPCGExContext::~FPCGExContext()
 {
 	CancelAssetLoading();
 	UnrootFutures();
-	FutureOutputs.Empty();
 }
 
 void FPCGExContext::UnrootFutures()

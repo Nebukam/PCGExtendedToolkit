@@ -10,6 +10,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExBoundsFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -44,9 +45,9 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBoundsFilterFactory : public UPCGExFilter
 
 public:
 	FPCGExBoundsFilterConfig Config;
-	PCGExData::FFacade* BoundsDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 	virtual bool Init(FPCGExContext* InContext) override;
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
@@ -56,22 +57,21 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TBoundsFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TBoundsFilter(const UPCGExBoundsFilterFactory* InFactory)
+		explicit TBoundsFilter(const TObjectPtr<const UPCGExBoundsFilterFactory>& InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			Cloud = TypedFilterFactory->BoundsDataFacade ? TypedFilterFactory->BoundsDataFacade->GetCloud(TypedFilterFactory->Config.BoundsSource, TypedFilterFactory->Config.InsideEpsilon) : nullptr;
 		}
 
-		const UPCGExBoundsFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExBoundsFilterFactory> TypedFilterFactory;
 
-		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
+		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TBoundsFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

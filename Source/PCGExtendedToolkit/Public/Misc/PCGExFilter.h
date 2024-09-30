@@ -87,16 +87,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitonRuleConfig : public FPCGExInputC
 
 namespace FPCGExFilter
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FRule final : public PCGEx::FLocalSingleFieldGetter
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FRule final : public PCGEx::TAttributeGetter<double>
 	{
 		explicit FRule(FPCGExPartitonRuleConfig& InRule)
-			: FLocalSingleFieldGetter(),
+			: TAttributeGetter<double>(),
 			  RuleConfig(&InRule),
 			  FilterSize(InRule.FilterSize),
 			  Upscale(InRule.Upscale),
 			  Offset(InRule.Offset)
 		{
-			Config = static_cast<FPCGExInputConfig>(InRule);
 		}
 
 		virtual ~FRule() override
@@ -110,11 +109,11 @@ namespace FPCGExFilter
 		double Upscale = 1.0;
 		double Offset = 0.0;
 
-		PCGExData::TCache<double>* DataCache = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> DataCache;
 
 		FORCEINLINE int64 Filter(const int32 Index) const
 		{
-			const double Upscaled = DataCache->Values[Index] * Upscale + (Offset);
+			const double Upscaled = DataCache->Read(Index) * Upscale + (Offset);
 			const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize + PCGExMath::SignPlus(Upscaled);
 			return static_cast<int64>(Filtered);
 		}

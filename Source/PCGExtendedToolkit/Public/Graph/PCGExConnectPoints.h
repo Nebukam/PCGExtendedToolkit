@@ -5,23 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExConnectPoints.generated.h"
 
 class UPCGExProbeFactoryBase;
 class UPCGExProbeOperation;
-
-namespace PCGExGraph
-{
-	struct FCompoundProcessor;
-}
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-	class FCompoundBlender;
-}
 
 /**
  * 
@@ -75,14 +66,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectPointsContext final : public FPCG
 {
 	friend class FPCGExConnectPointsElement;
 
-	virtual ~FPCGExConnectPointsContext() override;
-
-	TArray<UPCGExProbeFactoryBase*> ProbeFactories;
-	TArray<UPCGExFilterFactoryBase*> GeneratorsFiltersFactories;
-	TArray<UPCGExFilterFactoryBase*> ConnectablesFiltersFactories;
-
-	PCGExData::FPointIOCollection* MainVtx = nullptr;
-	PCGExData::FPointIOCollection* MainEdges = nullptr;
+	TArray<TObjectPtr<const UPCGExProbeFactoryBase>> ProbeFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> GeneratorsFiltersFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ConnectablesFiltersFactories;
 
 	FVector CWCoincidenceTolerance = FVector::OneVector;
 };
@@ -145,27 +131,28 @@ namespace PCGExConnectPoints
 
 	using PositionOctree = TOctree2<FPositionRef, FPositionRefSemantics>;
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExConnectPointsContext, UPCGExConnectPointsSettings>
 	{
-		PCGExPointFilter::TManager* GeneratorsFilter = nullptr;
-		PCGExPointFilter::TManager* ConnectableFilter = nullptr;
+		TUniquePtr<PCGExPointFilter::TManager> GeneratorsFilter;
+		TUniquePtr<PCGExPointFilter::TManager> ConnectableFilter;
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
+
 		TArray<UPCGExProbeOperation*> ProbeOperations;
 		TArray<UPCGExProbeOperation*> DirectProbeOperations;
 		TArray<UPCGExProbeOperation*> ChainProbeOperations;
 		TArray<UPCGExProbeOperation*> SharedProbeOperations;
 		bool bUseVariableRadius = false;
 		int32 NumChainedOps = 0;
-		double SharedSearchRadius = TNumericLimits<double>::Min();
+		double SharedSearchRadius = MIN_dbl;
 
 		TArray<bool> CanGenerate;
-		PositionOctree* Octree = nullptr;
+		TUniquePtr<PositionOctree> Octree;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		TArray<FTransform> CachedTransforms;
 
-		TArray<TSet<uint64>*> DistributedEdgesSet;
+		TArray<TSharedPtr<TSet<uint64>>> DistributedEdgesSet;
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 		bool bPreventCoincidence = false;
@@ -173,14 +160,14 @@ namespace PCGExConnectPoints
 		FVector CWCoincidenceTolerance = FVector::OneVector;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void OnPreparationComplete();
 		virtual void PrepareLoopScopesForPoints(const TArray<uint64>& Loops) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;

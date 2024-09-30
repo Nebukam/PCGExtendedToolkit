@@ -7,6 +7,8 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "Smoothing/PCGExSmoothingOperation.h"
 #include "PCGExSmooth.generated.h"
 
@@ -81,8 +83,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSmoothContext final : public FPCGExPathP
 {
 	friend class FPCGExSmoothElement;
 
-	virtual ~FPCGExSmoothContext() override;
-
 	UPCGExSmoothingOperation* SmoothingMethod = nullptr;
 };
 
@@ -101,28 +101,26 @@ protected:
 
 namespace PCGExSmooth
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSmoothContext, UPCGExSmoothSettings>
 	{
-		FPCGExSmoothContext* LocalTypedContext = nullptr;
-		const UPCGExSmoothSettings* LocalSettings = nullptr;
-
 		int32 NumPoints = 0;
 
-		PCGExData::TCache<double>* Influence = nullptr;
-		PCGExData::TCache<double>* Smoothing = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> Influence;
+		TSharedPtr<PCGExData::TBuffer<double>> Smoothing;
 
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 		UPCGExSmoothingOperation* TypedOperation = nullptr;
 		bool bClosedLoop = false;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints): FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

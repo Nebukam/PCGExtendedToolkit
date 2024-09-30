@@ -11,6 +11,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExNumericSelfCompareFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -33,7 +34,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNumericSelfCompareFilterConfig
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0.001;
-	
+
 	/** Index mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExIndexMode IndexMode = EPCGExIndexMode::Offset;
@@ -67,7 +68,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericSelfCompareFilterFactory : public 
 public:
 	FPCGExNumericSelfCompareFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -75,22 +76,22 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericSelfComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TNumericSelfComparisonFilter(const UPCGExNumericSelfCompareFilterFactory* InDefinition)
+		explicit TNumericSelfComparisonFilter(const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExNumericSelfCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExNumericSelfCompareFilterFactory> TypedFilterFactory;
 
-		PCGEx::FLocalSingleFieldGetter* OperandA = nullptr;
-		PCGExData::TCache<int32>* Index = nullptr;
+		TUniquePtr<PCGEx::TAttributeGetter<double>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<int32>> Index;
 		bool bOffset = false;
 		int32 MaxIndex = 0;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			const int32 IndexValue = Index ? Index->Values[PointIndex] : TypedFilterFactory->Config.IndexConstant;
+			const int32 IndexValue = Index ? Index->Read(PointIndex) : TypedFilterFactory->Config.IndexConstant;
 			const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
 
 			if (TargetIndex == -1) { return false; }
@@ -102,8 +103,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TNumericSelfComparisonFilter() override
 		{
-			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(OperandA)
 		}
 	};
 }

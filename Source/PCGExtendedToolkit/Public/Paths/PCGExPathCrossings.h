@@ -8,16 +8,14 @@
 #include "PCGExPaths.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
+
+
 #include "Geometry/PCGExGeo.h"
+#include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExPathCrossings.generated.h"
 
-namespace PCGExDataBlending
-{
-	class FCompoundBlender;
-}
-
-class UPCGExSubPointsBlendOperation;
 /**
  * 
  */
@@ -113,10 +111,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCG
 {
 	friend class FPCGExPathCrossingsElement;
 
-	virtual ~FPCGExPathCrossingsContext() override;
-
-	TArray<UPCGExFilterFactoryBase*> CanCutFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> CanBeCutFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> CanCutFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> CanBeCutFilterFactories;
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
@@ -153,11 +149,8 @@ namespace PCGExPathCrossings
 		}
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathCrossingsContext, UPCGExPathCrossingsSettings>
 	{
-		const UPCGExPathCrossingsSettings* LocalSettings = nullptr;
-		FPCGExPathCrossingsContext* LocalTypedContext = nullptr;
-
 		bool bClosedLoop = false;
 		bool bSelfIntersectionOnly = false;
 
@@ -166,11 +159,11 @@ namespace PCGExPathCrossings
 
 		TArray<FVector> Positions;
 		TArray<double> Lengths;
-		TArray<PCGExPaths::FPathEdge*> Edges;
-		TArray<FCrossing*> Crossings;
+		TArray<TSharedPtr<PCGExPaths::FPathEdge>> Edges;
+		TArray<TSharedPtr<FCrossing>> Crossings;
 
-		PCGExPointFilter::TManager* CanCutFilterManager = nullptr;
-		PCGExPointFilter::TManager* CanBeCutFilterManager = nullptr;
+		TUniquePtr<PCGExPointFilter::TManager> CanCutFilterManager;
+		TUniquePtr<PCGExPointFilter::TManager> CanBeCutFilterManager;
 
 		TArray<bool> CanCut;
 		TArray<bool> CanBeCut;
@@ -179,30 +172,29 @@ namespace PCGExPathCrossings
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 		TSet<int32> CrossIOIndices;
-		PCGExData::FIdxCompoundList* CompoundList = nullptr;
-		PCGExDataBlending::FCompoundBlender* CompoundBlender = nullptr;
+		TSharedPtr<PCGExData::FIdxCompoundList> CompoundList;
+		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundBlender;
 
 		using TEdgeOctree = TOctree2<PCGExPaths::FPathEdge*, PCGExPaths::FPathEdgeSemantics>;
-		TEdgeOctree* EdgeOctree = nullptr;
+		TUniquePtr<TEdgeOctree> EdgeOctree;
 
 		FPCGExPathEdgeIntersectionDetails Details;
 
-		PCGEx::TAttributeWriter<bool>* FlagWriter = nullptr;
-		PCGEx::TAttributeWriter<double>* AlphaWriter = nullptr;
-		PCGEx::TAttributeWriter<FVector>* CrossWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> CrossWriter;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
-		virtual ~FProcessor() override;
-		const TEdgeOctree* GetEdgeOctree() const { return EdgeOctree; }
+		const TEdgeOctree* GetEdgeOctree() const { return EdgeOctree.Get(); }
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		void FixPoint(const int32 Index);
 		void CrossBlendPoint(const int32 Index);

@@ -9,48 +9,6 @@
 
 #include "PCGExMath.generated.h"
 
-#define PCGEX_UNSUPPORTED_STRING_TYPES(MACRO)\
-MACRO(FString)\
-MACRO(FName)\
-MACRO(FSoftObjectPath)\
-MACRO(FSoftClassPath)
-
-#pragma region MACROS
-
-#define PCGEX_A_B_TPL(_NAME, _BODY) template <typename T, typename CompilerSafety = void> FORCEINLINE static T _NAME(const T& A, const T& B) _BODY
-#define PCGEX_A_B(_NAME, _TYPE, _BODY) template <typename CompilerSafety = void> FORCEINLINE static _TYPE _NAME(const _TYPE& A, const _TYPE& B) _BODY
-#define PCGEX_A_B2(_NAME, _TYPE) template <typename CompilerSafety = void> FORCEINLINE static _TYPE _NAME(const _TYPE& A, const _TYPE& B) { return _TYPE(_NAME(A[0], B[0]), _NAME(A[1], B[1])); }
-#define PCGEX_A_B3(_NAME, _TYPE) template <typename CompilerSafety = void> FORCEINLINE static _TYPE _NAME(const _TYPE& A, const _TYPE& B) { return _TYPE(_NAME(A[0], B[0]), _NAME(A[1], B[1]), _NAME(A[2], B[2])); }
-#define PCGEX_A_BR(_NAME) template <typename CompilerSafety = void> FORCEINLINE static FRotator _NAME(const FRotator& A, const FRotator& B) { return FRotator(_NAME(A.Pitch, B.Pitch), _NAME(A.Yaw, B.Yaw), _NAME(A.Roll, B.Roll)); }
-#define PCGEX_A_BQ(_NAME) template <typename CompilerSafety = void> FORCEINLINE static FQuat _NAME(const FQuat& A, const FQuat& B) { return _NAME(A.Rotator(), B.Rotator()).Quaternion(); }
-#define PCGEX_A_BT(_NAME) template <typename CompilerSafety = void> FORCEINLINE static FTransform _NAME(const FTransform& A, const FTransform& B) { return FTransform(_NAME(A.GetRotation(), B.GetRotation()), _NAME(A.GetLocation(), B.GetLocation()), _NAME(A.GetScale3D(), B.GetScale3D())); }
-#define PCGEX_A_B4(_NAME, _TYPE) template <typename CompilerSafety = void> FORCEINLINE static _TYPE _NAME(const _TYPE& A, const _TYPE& B) { return _TYPE(_NAME(A[0], B[0]), _NAME(A[1], B[1]), _NAME(A[2], B[2]), _NAME(A[3], B[3])); }
-#define PCGEX_A_B_MULTI(_NAME)\
-	PCGEX_A_B2(_NAME, FVector2D)\
-	PCGEX_A_B3(_NAME, FVector)\
-	PCGEX_A_B4(_NAME, FVector4)\
-	PCGEX_A_BR(_NAME)\
-	PCGEX_A_BQ(_NAME)\
-	PCGEX_A_BT(_NAME)
-
-#define PCGEX_A_B_W_TPL(_NAME, _BODY) template <typename T, typename CompilerSafety = void> FORCEINLINE static T _NAME(const T& A, const T& B, const double& W = 0) _BODY
-#define PCGEX_A_B_W(_NAME, _TYPE, _BODY) template <typename CompilerSafety = void> FORCEINLINE static _TYPE _NAME(const _TYPE& A, const _TYPE& B, const double& W) _BODY
-#define PCGEX_A_B_W2(_NAME, _TYPE) template <typename CompilerSafety = void> FORCEINLINE static _TYPE _NAME(const _TYPE& A, const _TYPE& B, const double& W) { return _TYPE(_NAME(A[0], B[0], W), _NAME(A[1], B[1], W)); }
-#define PCGEX_A_B_W3(_NAME, _TYPE) template <typename CompilerSafety = void> FORCEINLINE static _TYPE _NAME(const _TYPE& A, const _TYPE& B, const double& W) { return _TYPE(_NAME(A[0], B[0], W), _NAME(A[1], B[1], W), _NAME(A[2], B[2], W)); }
-#define PCGEX_A_B_WR(_NAME) template <typename CompilerSafety = void> FORCEINLINE static FRotator _NAME(const FRotator& A, const FRotator& B, const double& W) { return FRotator(_NAME(A.Pitch, B.Pitch, W), _NAME(A.Yaw, B.Yaw, W), _NAME(A.Roll, B.Roll, W)); }
-#define PCGEX_A_B_WQ(_NAME) template <typename CompilerSafety = void> FORCEINLINE static FQuat _NAME(const FQuat& A, const FQuat& B, const double& W) { return _NAME(A.Rotator(), B.Rotator(), W).Quaternion(); }
-#define PCGEX_A_B_WT(_NAME) template <typename CompilerSafety = void> FORCEINLINE static FTransform _NAME(const FTransform& A, const FTransform& B, const double& W) { return FTransform(_NAME(A.GetRotation(), B.GetRotation(), W), _NAME(A.GetLocation(), B.GetLocation(), W), _NAME(A.GetScale3D(), B.GetScale3D(), W)); }
-#define PCGEX_A_B_W4(_NAME, _TYPE) template <typename CompilerSafety = void> FORCEINLINE static _TYPE _NAME(const _TYPE& A, const _TYPE& B, const double& W) { return _TYPE(_NAME(A[0], B[0], W), _NAME(A[1], B[1], W), _NAME(A[2], B[2], W), _NAME(A[3], B[3], W)); }
-#define PCGEX_A_B_W_MULTI(_NAME)\
-	PCGEX_A_B_W2(_NAME, FVector2D)\
-	PCGEX_A_B_W3(_NAME, FVector)\
-	PCGEX_A_B_W4(_NAME, FVector4)\
-	PCGEX_A_B_WR(_NAME)\
-	PCGEX_A_B_WQ(_NAME)\
-	PCGEX_A_B_WT(_NAME)
-
-#pragma endregion
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExMeanMeasure : uint8
 {
@@ -91,11 +49,6 @@ namespace PCGExMath
 	}
 
 #pragma region basics
-
-	FORCEINLINE static double ACot(const double Angle)
-	{
-		return FMath::Cos(Angle) / FMath::Sin(Angle);
-	}
 
 	FORCEINLINE static double DegreesToDot(const double Angle)
 	{
@@ -256,7 +209,6 @@ namespace PCGExMath
 			else { Median = SortedValues[MiddleIndex]; }
 		}
 
-		SortedValues.Empty();
 		return Median;
 	}
 
@@ -285,7 +237,6 @@ namespace PCGExMath
 			}
 		}
 
-		Map.Empty();
 		return Mode;
 	}
 
@@ -306,299 +257,594 @@ namespace PCGExMath
 
 #pragma endregion
 
-#pragma region Min
+#pragma region Ops
 
-	PCGEX_A_B_TPL(Min, { return FMath::Min(A, B); })
-	
-	PCGEX_A_B_MULTI(Min)
-	
-	PCGEX_A_B(Min, FString, { return A > B ? B : A; })
-	PCGEX_A_B(Min, FName, { return A.ToString() > B.ToString() ? B : A; })
-	PCGEX_A_B(Min, FSoftObjectPath, { return A.ToString() > B.ToString() ? B : A; })
-	PCGEX_A_B(Min, FSoftClassPath, { return A.ToString() > B.ToString() ? B : A; })
+	template <typename T>
+	FORCEINLINE static T Min(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return A || B;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Min(A.Z, B.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Min(A.Z, B.Z), FMath::Min(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FColor>)
+		{
+			return FColor(FMath::Min(A.R, B.R), FMath::Min(A.G, B.G), FMath::Min(A.B, B.B), FMath::Min(A.A, B.A));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return Min(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(FMath::Min(A.Pitch, B.Pitch), FMath::Min(A.Yaw, B.Yaw), FMath::Min(A.Roll, B.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(Min(A.GetRotation(), B.GetRotation()), Min(A.GetLocation(), B.GetLocation()), Min(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (std::is_same_v<T, FString>)
+		{
+			return A > B ? B : A;
+		}
+		else if constexpr (
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+			return A.ToString() > B.ToString() ? B : A;
+		}
+		else
+		{
+			return FMath::Min(A, B);
+		}
+	}
 
-#pragma endregion
+	template <typename T>
+	FORCEINLINE static T Max(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return A || B;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(FMath::Max(A.X, B.X), FMath::Max(A.Y, B.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(FMath::Max(A.X, B.X), FMath::Max(A.Y, B.Y), FMath::Max(A.Z, B.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(FMath::Max(A.X, B.X), FMath::Max(A.Y, B.Y), FMath::Max(A.Z, B.Z), FMath::Max(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FColor>)
+		{
+			return FColor(FMath::Max(A.R, B.R), FMath::Max(A.G, B.G), FMath::Max(A.B, B.B), FMath::Max(A.A, B.A));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return Max(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(FMath::Max(A.Pitch, B.Pitch), FMath::Max(A.Yaw, B.Yaw), FMath::Max(A.Roll, B.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(Max(A.GetRotation(), B.GetRotation()), Max(A.GetLocation(), B.GetLocation()), Max(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (std::is_same_v<T, FString>)
+		{
+			return A < B ? B : A;
+		}
+		else if constexpr (
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+			return A.ToString() < B.ToString() ? B : A;
+		}
+		else
+		{
+			return FMath::Max(A, B);
+		}
+	}
 
-#pragma region Max
+	template <typename T>
+	FORCEINLINE static T Add(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return Add(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(Add(A.GetRotation(), B.GetRotation()), Add(A.GetLocation(), B.GetLocation()), Add(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (std::is_same_v<T, FString>)
+		{
+			return A + B;
+		}
+		else if constexpr (std::is_same_v<T, FName>)
+		{
+			return FName(A.ToString() + B.ToString());
+		}
+		else if constexpr (
+			std::is_same_v<T, bool> ||
+			std::is_same_v<T, FSoftObjectPath> ||
+			std::is_same_v<T, FSoftClassPath>)
+		{
+			return Max(A, B);
+		}
+		else
+		{
+			return A + B;
+		}
+	}
 
-	PCGEX_A_B_TPL(Max, { return FMath::Max(A, B); })
-	
-	PCGEX_A_B_MULTI(Max)
+	template <typename T>
+	FORCEINLINE static T WeightedAdd(const T& A, const T& B, const double& W = 0)
+	{
+		if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return WeightedAdd(A.Rotator(), B.Rotator(), W).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(WeightedAdd(A.Pitch, B.Pitch, W), WeightedAdd(A.Yaw, B.Yaw, W), WeightedAdd(A.Roll, B.Roll, W));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(WeightedAdd(A.GetRotation(), B.GetRotation(), W), WeightedAdd(A.GetLocation(), B.GetLocation(), W), WeightedAdd(A.GetScale3D(), B.GetScale3D(), W));
+		}
+		else if constexpr (
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName>)
+		{
+			return Add(A, B);
+		}
+		else if constexpr (
+			std::is_same_v<T, bool> ||
+			std::is_same_v<T, FSoftObjectPath> ||
+			std::is_same_v<T, FSoftClassPath>)
+		{
+			return Max(A, B);
+		}
+		else
+		{
+			return A + B * W;
+		}
+	}
 
-	PCGEX_A_B(Max, FString, { return A > B ? A : B; })
-	PCGEX_A_B(Max, FName, { return A.ToString() > B.ToString() ? A : B; })
-	PCGEX_A_B(Max, FSoftObjectPath, { return A.ToString() > B.ToString() ? A : B; })
-	PCGEX_A_B(Max, FSoftClassPath, { return A.ToString() > B.ToString() ? A : B; })
+	template <typename T>
+	FORCEINLINE static T Sub(const T& A, const T& B, const double& W = 0)
+	{
+		if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return Sub(A.Rotator(), B.Rotator(), W).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(Sub(A.Pitch, B.Pitch, W), Sub(A.Yaw, B.Yaw, W), Sub(A.Roll, B.Roll, W));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(Sub(A.GetRotation(), B.GetRotation(), W), Sub(A.GetLocation(), B.GetLocation(), W), Sub(A.GetScale3D(), B.GetScale3D(), W));
+		}
+		else if constexpr (
+			std::is_same_v<T, bool> ||
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftObjectPath> ||
+			std::is_same_v<T, FSoftClassPath>)
+		{
+			return Min(A, B);
+		}
+		else
+		{
+			return A - B;
+		}
+	}
 
-#pragma endregion
+	template <typename T>
+	FORCEINLINE static T WeightedSub(const T& A, const T& B, const double& W = 0)
+	{
+		if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return WeightedSub(A.Rotator(), B.Rotator(), W).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(WeightedSub(A.Pitch, B.Pitch, W), WeightedSub(A.Yaw, B.Yaw, W), WeightedSub(A.Roll, B.Roll, W));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(WeightedSub(A.GetRotation(), B.GetRotation(), W), WeightedSub(A.GetLocation(), B.GetLocation(), W), WeightedSub(A.GetScale3D(), B.GetScale3D(), W));
+		}
+		else if constexpr (
+			std::is_same_v<T, bool> ||
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftObjectPath> ||
+			std::is_same_v<T, FSoftClassPath>)
+		{
+			return Min(A, B);
+		}
+		else
+		{
+			return A - B * W;
+		}
+	}
 
+	template <typename T>
+	FORCEINLINE static T UnsignedMin(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return !A || !B ? false : true;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(UnsignedMin(A.X, B.X), UnsignedMin(A.Y, B.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(UnsignedMin(A.X, B.X), UnsignedMin(A.Y, B.Y), UnsignedMin(A.Z, B.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(UnsignedMin(A.X, B.X), UnsignedMin(A.Y, B.Y), UnsignedMin(A.Z, B.Z), UnsignedMin(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return Min(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(UnsignedMin(A.Pitch, B.Pitch), UnsignedMin(A.Yaw, B.Yaw), UnsignedMin(A.Roll, B.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(UnsignedMin(A.GetRotation(), B.GetRotation()), UnsignedMin(A.GetLocation(), B.GetLocation()), UnsignedMin(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+			return Min(B, A);
+		}
+		else
+		{
+			return FMath::Abs(A) > FMath::Abs(B) ? B : A;
+		}
+	}
 
-#pragma region Add
+	template <typename T>
+	FORCEINLINE static T UnsignedMax(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return A || B ? true : false;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(UnsignedMax(A.X, B.X), UnsignedMax(A.Y, B.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(UnsignedMax(A.X, B.X), UnsignedMax(A.Y, B.Y), UnsignedMax(A.Z, B.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(UnsignedMax(A.X, B.X), UnsignedMax(A.Y, B.Y), UnsignedMax(A.Z, B.Z), UnsignedMax(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return Min(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(UnsignedMax(A.Pitch, B.Pitch), UnsignedMax(A.Yaw, B.Yaw), UnsignedMax(A.Roll, B.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(UnsignedMax(A.GetRotation(), B.GetRotation()), UnsignedMax(A.GetLocation(), B.GetLocation()), UnsignedMax(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+			return Max(B, A);
+		}
+		else
+		{
+			return FMath::Abs(A) < FMath::Abs(B) ? B : A;
+		}
+	}
 
-	PCGEX_A_B_TPL(Add, { return A + B; })
-	
-	PCGEX_A_B(Add, bool, { return B ? true : A; })
-	PCGEX_A_B(Add, FQuat, { return Add(A.Rotator(), B.Rotator()).Quaternion(); })
-	PCGEX_A_BT(Add)
-	PCGEX_A_B(Add, FString, { return Max(A, B); })
-	PCGEX_A_B(Add, FName, { return Max(A, B); })
-	PCGEX_A_B(Add, FSoftObjectPath, { return B; })
-	PCGEX_A_B(Add, FSoftClassPath, { return B; })
+	template <typename T>
+	FORCEINLINE static T AbsoluteMin(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return A || B ? true : false;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(AbsoluteMin(A.X, B.X), AbsoluteMin(A.Y, B.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(AbsoluteMin(A.X, B.X), AbsoluteMin(A.Y, B.Y), AbsoluteMin(A.Z, B.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(AbsoluteMin(A.X, B.X), AbsoluteMin(A.Y, B.Y), AbsoluteMin(A.Z, B.Z), AbsoluteMin(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return Min(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(AbsoluteMin(A.Pitch, B.Pitch), AbsoluteMin(A.Yaw, B.Yaw), AbsoluteMin(A.Roll, B.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(AbsoluteMin(A.GetRotation(), B.GetRotation()), AbsoluteMin(A.GetLocation(), B.GetLocation()), AbsoluteMin(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+			return Min(B, A);
+		}
+		else
+		{
+			return FMath::Min(FMath::Abs(A), FMath::Abs(B));
+		}
+	}
 
-#pragma endregion
+	template <typename T>
+	FORCEINLINE static T AbsoluteMax(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return A || B ? true : false;
+		}
+		else if constexpr (std::is_same_v<T, FVector2D>)
+		{
+			return FVector2D(AbsoluteMax(A.X, B.X), AbsoluteMax(A.Y, B.Y));
+		}
+		else if constexpr (std::is_same_v<T, FVector>)
+		{
+			return FVector(AbsoluteMax(A.X, B.X), AbsoluteMax(A.Y, B.Y), AbsoluteMax(A.Z, B.Z));
+		}
+		else if constexpr (std::is_same_v<T, FVector4>)
+		{
+			return FVector4(AbsoluteMax(A.X, B.X), AbsoluteMax(A.Y, B.Y), AbsoluteMax(A.Z, B.Z), AbsoluteMax(A.W, B.W));
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return Min(A.Rotator(), B.Rotator()).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(AbsoluteMax(A.Pitch, B.Pitch), AbsoluteMax(A.Yaw, B.Yaw), AbsoluteMax(A.Roll, B.Roll));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(AbsoluteMax(A.GetRotation(), B.GetRotation()), AbsoluteMax(A.GetLocation(), B.GetLocation()), AbsoluteMax(A.GetScale3D(), B.GetScale3D()));
+		}
+		else if constexpr (std::is_same_v<T, FString> || std::is_same_v<T, FName> || std::is_same_v<T, FSoftClassPath> || std::is_same_v<T, FSoftObjectPath>)
+		{
+			return Max(B, A);
+		}
+		else
+		{
+			return FMath::Max(FMath::Abs(A), FMath::Abs(B));
+		}
+	}
 
-#pragma region WeightedAdd
-
-	PCGEX_A_B_W_TPL(WeightedAdd, { return A + B * W; })
-	
-	PCGEX_A_B_WR(WeightedAdd)
-	PCGEX_A_B_W(WeightedAdd, FQuat, { return WeightedAdd(A.Rotator(), B.Rotator(), W).Quaternion(); })
-	PCGEX_A_B_WT(WeightedAdd)
-
-	PCGEX_A_B_W(WeightedAdd, bool, { return B; })
-	PCGEX_A_B_W(WeightedAdd, FString, { return B; })
-	PCGEX_A_B_W(WeightedAdd, FName, { return B; })
-	PCGEX_A_B_W(WeightedAdd, FSoftObjectPath, { return B; })
-	PCGEX_A_B_W(WeightedAdd, FSoftClassPath, { return B; })
-
-#pragma endregion
-
-#pragma region Sub
-
-	PCGEX_A_B_TPL(Subtract, { return A - B; })
-	
-	PCGEX_A_B(Subtract, bool, { return B ? true : A; })
-	PCGEX_A_B(Subtract, FQuat, { return Subtract(A.Rotator(), B.Rotator()).Quaternion(); })
-	PCGEX_A_BT(Subtract)
-
-	PCGEX_A_B(Subtract, FString, { return Min(A, B);})
-	PCGEX_A_B(Subtract, FName, { return Min(A, B);})
-	PCGEX_A_B(Subtract, FSoftObjectPath, { return Min(A, B);})
-	PCGEX_A_B(Subtract, FSoftClassPath, { return Min(A, B);})
-
-#pragma endregion
-
-#pragma region WeightedSub
-
-	PCGEX_A_B_W_TPL(WeightedSub, { return A - B * W; })
-	
-	PCGEX_A_B_WR(WeightedSub)
-	PCGEX_A_B_W(WeightedSub, FQuat, { return WeightedAdd(A.Rotator(), B.Rotator(), W).Quaternion(); })
-	PCGEX_A_B_WT(WeightedSub)
-
-	PCGEX_A_B_W(WeightedSub, bool, { return B; })
-	PCGEX_A_B_W(WeightedSub, FString, { return B; })
-	PCGEX_A_B_W(WeightedSub, FName, { return B; })
-	PCGEX_A_B_W(WeightedSub, FSoftObjectPath, { return B; })
-	PCGEX_A_B_W(WeightedSub, FSoftClassPath, { return B; })
-
-#pragma endregion
-
-#pragma region UnsignedMin
-
-	PCGEX_A_B_TPL(UnsignedMin, { return FMath::Abs(A) > FMath::Abs(B) ? B : A; })
-	
-	PCGEX_A_B_MULTI(UnsignedMin)
-
-	PCGEX_A_B(UnsignedMin, bool, { return !A || !B ? false : true; })
-	PCGEX_A_B(UnsignedMin, FString, { return Min(A, B); })
-	PCGEX_A_B(UnsignedMin, FName, { return Min(A, B); })
-	PCGEX_A_B(UnsignedMin, FSoftObjectPath, { return Min(A, B); })
-	PCGEX_A_B(UnsignedMin, FSoftClassPath, { return Min(A, B); })
-
-#pragma endregion
-
-#pragma region UnsignedMax
-
-	PCGEX_A_B_TPL(UnsignedMax, { return FMath::Abs(A) > FMath::Abs(B) ? A : B; })
-	
-	PCGEX_A_B_MULTI(UnsignedMax)
-
-	PCGEX_A_B(UnsignedMax, bool, { return A || B ? true : false; })
-	PCGEX_A_B(UnsignedMax, FString, { return Max(A, B); })
-	PCGEX_A_B(UnsignedMax, FName, { return Max(A, B); })
-	PCGEX_A_B(UnsignedMax, FSoftObjectPath, { return Max(A, B); })
-	PCGEX_A_B(UnsignedMax, FSoftClassPath, { return Max(A, B); })
-
-#pragma endregion
-
-#pragma region AbsoluteMin
-
-	PCGEX_A_B_TPL(AbsoluteMin, { return FMath::Min(FMath::Abs(A), FMath::Abs(B)); })
-	
-	PCGEX_A_B_MULTI(AbsoluteMin)
-
-	PCGEX_A_B(AbsoluteMin, bool, { return !A || !B ? false : true; })
-	PCGEX_A_B(AbsoluteMin, FString, { return Min(A, B); })
-	PCGEX_A_B(AbsoluteMin, FName, { return Min(A, B); })
-	PCGEX_A_B(AbsoluteMin, FSoftObjectPath, { return Min(A, B); })
-	PCGEX_A_B(AbsoluteMin, FSoftClassPath, { return Min(A, B); })
-
-
-#pragma endregion
-
-#pragma region AbsoluteMax
-
-	PCGEX_A_B_TPL(AbsoluteMax, { return FMath::Max(FMath::Abs(A), FMath::Abs(B)); })
-	PCGEX_A_B_MULTI(AbsoluteMax)
-
-	PCGEX_A_B(AbsoluteMax, bool, { return A || B ? true : false; })
-	PCGEX_A_B(AbsoluteMax, FString, { return Max(A, B); })
-	PCGEX_A_B(AbsoluteMax, FName, { return Max(A, B); })
-	PCGEX_A_B(AbsoluteMax, FSoftObjectPath, { return Max(A, B); })
-	PCGEX_A_B(AbsoluteMax, FSoftClassPath, { return Max(A, B); })
-
-#pragma endregion
-
-#pragma region Lerp
-
-	PCGEX_A_B_W_TPL(Lerp, { return FMath::Lerp(A, B, W); })
-	PCGEX_A_B_W(Lerp, FColor, { return FMath::Lerp(A.ReinterpretAsLinear(), B.ReinterpretAsLinear(), W).ToFColor(false);})
-	PCGEX_A_B_WR(Lerp)
-	PCGEX_A_B_W(Lerp, FQuat, { return FQuat::Slerp(A, B, W); })
-	PCGEX_A_B_WT(Lerp)
-
-	PCGEX_A_B_W(Lerp, bool, { return W > 0.5 ? B : A; })
-	PCGEX_A_B_W(Lerp, FString, { return W > 0.5 ? B : A; })
-	PCGEX_A_B_W(Lerp, FName, { return W > 0.5 ? B : A; })
-	PCGEX_A_B_W(Lerp, FSoftObjectPath, { return W > 0.5 ? B : A; })
-	PCGEX_A_B_W(Lerp, FSoftClassPath, { return W > 0.5 ? B : A; })
-
-#pragma endregion
-
-#pragma region Divide
+	template <typename T>
+	FORCEINLINE static T Lerp(const T& A, const T& B, const double& W = 0)
+	{
+		if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return FQuat::Slerp(A, B, W);
+		}
+		else if constexpr (std::is_same_v<T, FColor>)
+		{
+			return FMath::Lerp(A.ReinterpretAsLinear(), B.ReinterpretAsLinear(), W).ToFColor(false);
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(Lerp(A.Pitch, B.Pitch, W), Lerp(A.Yaw, B.Yaw, W), Lerp(A.Roll, B.Roll, W));
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(Lerp(A.GetRotation(), B.GetRotation(), W), Lerp(A.GetLocation(), B.GetLocation(), W), Lerp(A.GetScale3D(), B.GetScale3D(), W));
+		}
+		else if constexpr (
+			std::is_same_v<T, bool> ||
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftObjectPath> ||
+			std::is_same_v<T, FSoftClassPath>)
+		{
+			return W > 0.5 ? B : A;
+		}
+		else
+		{
+			return FMath::Lerp(A, B, W);
+		}
+	}
 
 	template <typename T, typename CompilerSafety = void>
-	FORCEINLINE static T Div(const T& A, const double Divider) { return A / Divider; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FRotator Div(const FRotator& A, const double Divider)
+	FORCEINLINE static T Div(const T& A, const double Divider)
 	{
-		return FRotator(
-			A.Pitch / Divider,
-			A.Yaw / Divider,
-			A.Roll / Divider);
+		if constexpr (std::is_same_v<T, FRotator>)
+		{
+			return FRotator(A.Pitch / Divider, A.Yaw / Divider, A.Roll / Divider);
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform(Div(A.GetRotation(), Divider), Div(A.GetLocation(), Divider), Div(A.GetScale3D(), Divider));
+		}
+		else if constexpr (
+			std::is_same_v<T, bool> ||
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftObjectPath> ||
+			std::is_same_v<T, FSoftClassPath>)
+		{
+			return A;
+		}
+		else
+		{
+			return A / Divider;
+		}
 	}
 
+	// SSE optimizations throw unreachable code with FQuat constexpr so we need explicit template impl
 	template <typename CompilerSafety = void>
-	FORCEINLINE static FQuat Div(const FQuat& A, const double Divider) { return Div(A.Rotator(), Divider).Quaternion(); }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FTransform Div(const FTransform& A, const double Divider)
+	FORCEINLINE static FQuat Div(const FQuat& A, const double Divider)
 	{
-		return FTransform(
-			Div(A.GetRotation(), Divider),
-			A.GetLocation() / Divider,
-			A.GetScale3D() / Divider);
+		return Div(A.Rotator(), Divider).Quaternion();
 	}
 
-#define PCGEX_UNSUPPORTED_DIV(_TYPE) template <typename CompilerSafety = void> FORCEINLINE static _TYPE Div(const _TYPE& A, const double Divider) { return A; }
-	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_DIV)
-	PCGEX_UNSUPPORTED_DIV(bool)
-#undef PCGEX_UNSUPPORTED_DIV
+	template <typename T>
+	FORCEINLINE static T Mult(const T& A, const T& B)
+	{
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return !A || !B ? false : true;
+		}
+		else if constexpr (
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftObjectPath> ||
+			std::is_same_v<T, FSoftClassPath>)
+		{
+			return A;
+		}
+		else
+		{
+			return A * B;
+		}
+	}
 
+	template <typename T>
+	FORCEINLINE static T Copy(const T& A, const T& B) { return B; }
+
+	template <typename T>
+	FORCEINLINE static T NoBlend(const T& A, const T& B) { return A; }
 
 #pragma endregion
 
-#pragma region Mult
+#pragma region Components
 
-	PCGEX_A_B_TPL(Mult, { return A * B; })
-	PCGEX_A_B_MULTI(Mult)
-
-	PCGEX_A_B(Mult, bool, { return !A || !B ? false : true; })
-	PCGEX_A_B(Mult, FString, { return A; })
-	PCGEX_A_B(Mult, FName, { return A; })
-	PCGEX_A_B(Mult, FSoftObjectPath, { return A; })
-	PCGEX_A_B(Mult, FSoftClassPath, { return A; })
-
-#pragma endregion
-
-#pragma region Copy
-
-	PCGEX_A_B_TPL(Copy, { return B; })
-
-#pragma endregion
-
-#pragma region NoBlend
-
-	PCGEX_A_B_TPL(NoBlend, { return A; })
-
-#pragma endregion
-
-#pragma region Component
-
-	template <typename T, typename CompilerSafety = void>
-	FORCEINLINE static double GetComponent(const T& A, const int32 Index) { return A; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static double GetComponent(const bool& A, const int32 Index) { return A ? 1 : 0; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static double GetComponent(const FVector& A, const int32 Index) { return A[Index]; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static double GetComponent(const FVector2D& A, const int32 Index) { return A[Index]; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static double GetComponent(const FVector4& A, const int32 Index) { return A[Index]; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static double GetComponent(const FRotator& A, const int32 Index) { return A.Euler()[Index]; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static double GetComponent(const FQuat& A, const int32 Index) { return A.Euler()[Index]; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static double GetComponent(const FTransform& A, const int32 Index) { return A.GetLocation()[Index]; }
-
-#define PCGEX_UNSUPPORTED_GET_COMPONENT(_TYPE) template <typename CompilerSafety = void> FORCEINLINE static double GetComponent(const _TYPE& A, const int32 Index) { return -1; }
-	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_GET_COMPONENT)
-#undef PCGEX_UNSUPPORTED_GET_COMPONENT
-
-	////
-
-	template <typename T, typename CompilerSafety = void>
-	FORCEINLINE static void SetComponent(T& A, const int32 Index, const double InValue) { A = InValue; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static void SetComponent(bool& A, const int32 Index, const double InValue) { A = InValue <= 0 ? false : true; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static void SetComponent(FVector& A, const int32 Index, const double InValue) { A[Index] = InValue; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static void SetComponent(FVector2D& A, const int32 Index, const double InValue) { A[Index] = InValue; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static void SetComponent(FVector4& A, const int32 Index, const double InValue) { A[Index] = InValue; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static void SetComponent(FRotator& A, const int32 Index, const double InValue)
+	template <typename T>
+	FORCEINLINE static double GetComponent(const T& A, const int32 Index)
 	{
-		FVector Euler = A.Euler();
-		SetComponent(Euler, Index, InValue);
-		A = FRotator::MakeFromEuler(Euler);
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			return A ? 1 : 0;
+		}
+		else if constexpr (
+			std::is_same_v<T, FVector2D> ||
+			std::is_same_v<T, FVector> ||
+			std::is_same_v<T, FVector4>)
+		{
+			return A[Index];
+		}
+		else if constexpr (
+			std::is_same_v<T, FQuat> ||
+			std::is_same_v<T, FRotator>)
+		{
+			return A.Euler()[Index];
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return A.GetLocation()[Index];
+		}
+		else if constexpr (
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+			return 0;
+		}
+		else
+		{
+			return A;
+		}
 	}
 
-	template <typename CompilerSafety = void>
-	FORCEINLINE static void SetComponent(FQuat& A, const int32 Index, const double InValue)
+	template <typename T>
+	FORCEINLINE static void SetComponent(T& A, const int32 Index, const double InValue)
 	{
-		FVector Euler = A.Euler();
-		SetComponent(Euler, Index, InValue);
-		A = FQuat::MakeFromEuler(Euler);
+		if constexpr (std::is_same_v<T, bool>)
+		{
+			A = InValue > 0;
+		}
+		else if constexpr (
+			std::is_same_v<T, FVector2D> ||
+			std::is_same_v<T, FVector> ||
+			std::is_same_v<T, FVector4>)
+		{
+			A[Index] = InValue;
+		}
+		else if constexpr (std::is_same_v<T, FQuat>)
+		{
+			FVector Euler = A.Euler();
+			SetComponent(Euler, Index, InValue);
+			A = FQuat::MakeFromEuler(Euler);
+		}
+		else if constexpr (std::is_same_v<T, FRotator>)
+		{
+			FVector Euler = A.Euler();
+			SetComponent(Euler, Index, InValue);
+			A = FRotator::MakeFromEuler(Euler);
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			FVector Location = A.GetLocation();
+			SetComponent(Location, Index, InValue);
+			A.SetLocation(Location);
+		}
+		else if constexpr (
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+		}
+		else
+		{
+			A = InValue;
+		}
 	}
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static void SetComponent(FTransform& A, const int32 Index, const double InValue)
-	{
-		FVector Location = A.GetLocation();
-		SetComponent(Location, Index, InValue);
-		A.SetLocation(Location);
-	}
-
-#define PCGEX_UNSUPPORTED_SET_COMPONENT(_TYPE) template <typename CompilerSafety = void> FORCEINLINE static void SetComponent(_TYPE& A, const int32 Index, const double InValue)	{}
-	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_SET_COMPONENT)
-#undef PCGEX_UNSUPPORTED_SET_COMPONENT
 
 #pragma endregion
 
@@ -619,53 +865,37 @@ namespace PCGExMath
 
 #pragma region DoubleMult
 
-	template
-	<
-		typename T, typename CompilerSafety = void>
-	FORCEINLINE static T DblMult(const T& A, double M)
+	template <typename T, typename CompilerSafety = void>
+	FORCEINLINE static T DblMult(const T& A, const double M)
 	{
-		return A * M;
-	} // Default, unhandled behavior.
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static bool DblMult(const bool& A, double M)
-	{
-		return A;
+		if constexpr (std::is_same_v<T, FQuat>)
+		{
+			return (A.Rotator() * M).Quaternion();
+		}
+		else if constexpr (std::is_same_v<T, FTransform>)
+		{
+			return FTransform((A.Rotator() * M).Quaternion(), A.GetLocation() * M, A.GetScale3D() * M);
+		}
+		else if constexpr (
+			std::is_same_v<T, FString> ||
+			std::is_same_v<T, FName> ||
+			std::is_same_v<T, FSoftClassPath> ||
+			std::is_same_v<T, FSoftObjectPath>)
+		{
+			return A;
+		}
+		else
+		{
+			return A * M;
+		}
 	}
 
+	// For some reason if constexpr (std::is_same_v<T, bool>) refused to compile in the branching above
 	template <typename CompilerSafety = void>
-	FORCEINLINE static FRotator DblMult(const FRotator& A, double M)
+	FORCEINLINE static bool DblMult(const bool& A, const double M)
 	{
-		return A * M;
+		return M > 0 ? A : false;
 	}
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FQuat DblMult(const FQuat& A, double M)
-	{
-		return (A.Rotator() * M).Quaternion();
-	}
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FTransform DblMult(const FTransform& A, double M)
-	{
-		return FTransform(
-			(A.Rotator() * M).Quaternion(),
-			A.GetLocation() * M,
-			A.GetScale3D() * M);
-	}
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FString DblMult(const FString& A, double M) { return A; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FName DblMult(const FName& A, double M) { return A; }
-
-	// Unhandled, but needs to be supported as property
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FSoftObjectPath DblMult(const FSoftObjectPath& A, const double M) { return A; }
-
-	template <typename CompilerSafety = void>
-	FORCEINLINE static FSoftClassPath DblMult(const FSoftClassPath& A, const double M) { return A; }
 
 #pragma endregion
 
@@ -772,14 +1002,6 @@ namespace PCGExMath
 		}
 	}
 
-	template <typename T>
-	FORCEINLINE static void Swap(TArray<T>& Array, int32 FirstIndex, int32 SecondIndex)
-	{
-		T* Ptr1 = &Array[FirstIndex];
-		T* Ptr2 = &Array[SecondIndex];
-		std::swap(*Ptr1, *Ptr2);
-	}
-
 	FORCEINLINE static FVector GetNormal(const FVector& A, const FVector& B, const FVector& C)
 	{
 		return FVector::CrossProduct((B - A), (C - A)).GetSafeNormal();
@@ -867,30 +1089,6 @@ namespace PCGExMath
 			FMath::Abs(FRotator::NormalizeAxis(RA.Roll - RB.Roll)) <= Limits.Roll;
 	}
 
-	template <typename T>
-	FORCEINLINE static void AtomicMax(T& AtomicValue, T NewValue)
-	{
-		T CurrentValue = FPlatformAtomics::AtomicRead(&AtomicValue);
-		while (NewValue > CurrentValue)
-		{
-			T PrevValue = FPlatformAtomics::InterlockedCompareExchange(&AtomicValue, NewValue, CurrentValue);
-			if (PrevValue == CurrentValue) { break; } // Success: NewValue was stored
-			CurrentValue = PrevValue;                 // Retry with updated value
-		}
-	}
-
-	template <typename T>
-	FORCEINLINE static void AtomicMin(T& AtomicValue, T NewValue)
-	{
-		T CurrentValue = FPlatformAtomics::AtomicRead(&AtomicValue);
-		while (NewValue < CurrentValue)
-		{
-			T PrevValue = FPlatformAtomics::InterlockedCompareExchange(&AtomicValue, NewValue, CurrentValue);
-			if (PrevValue == CurrentValue) { break; } // Success: NewValue was stored
-			CurrentValue = PrevValue;                 // Retry with updated value
-		}
-	}
-
 #pragma region Spatialized distances
 
 	// Stolen from PCGDistance
@@ -927,25 +1125,3 @@ namespace PCGExMath
 
 #pragma endregion
 }
-
-#undef PCGEX_UNSUPPORTED_STRING_TYPES
-
-#undef PCGEX_A_B_TPL
-#undef PCGEX_A_B
-#undef PCGEX_A_B2
-#undef PCGEX_A_B3
-#undef PCGEX_A_BR
-#undef PCGEX_A_BQ
-#undef PCGEX_A_BT
-#undef PCGEX_A_B4
-#undef PCGEX_A_B_MULTI
-
-#undef PCGEX_A_B_W_TPL
-#undef PCGEX_A_B_W
-#undef PCGEX_A_B_W2
-#undef PCGEX_A_B_W3
-#undef PCGEX_A_B_WR
-#undef PCGEX_A_B_WQ
-#undef PCGEX_A_B_WT
-#undef PCGEX_A_B_W4
-#undef PCGEX_A_B_W_MULTI

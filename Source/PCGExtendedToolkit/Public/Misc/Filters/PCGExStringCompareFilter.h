@@ -12,6 +12,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
+
 #include "PCGExStringCompareFilter.generated.h"
 
 
@@ -57,7 +58,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringCompareFilterFactory : public UPCGE
 public:
 	FPCGExStringCompareFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -65,17 +66,17 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TStringCompareFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TStringCompareFilter(const UPCGExStringCompareFilterFactory* InFactory)
+		explicit TStringCompareFilter(const TObjectPtr<const UPCGExStringCompareFilterFactory>& InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExStringCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExStringCompareFilterFactory> TypedFilterFactory;
 
-		PCGEx::FLocalToStringGetter* OperandA = nullptr;
-		PCGEx::FLocalToStringGetter* OperandB = nullptr;
+		TUniquePtr<PCGEx::TAttributeGetter<FString>> OperandA;
+		TUniquePtr<PCGEx::TAttributeGetter<FString>> OperandB;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
 			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
@@ -86,9 +87,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TStringCompareFilter() override
 		{
-			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(OperandA)
-			PCGEX_DELETE(OperandB)
 		}
 	};
 }

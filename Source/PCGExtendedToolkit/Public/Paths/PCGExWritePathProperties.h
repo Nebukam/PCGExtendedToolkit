@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
+
+
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWritePathProperties.generated.h"
 
@@ -212,8 +214,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesContext final : publi
 {
 	friend class FPCGExWritePathPropertiesElement;
 
-	virtual ~FPCGExWritePathPropertiesContext() override;
-
 	PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_DECL_TOGGLE)
 	PCGEX_FOREACH_FIELD_PATH_MARKS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
@@ -244,7 +244,7 @@ namespace PCGExWritePathProperties
 		FVector ToNext;
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWritePathPropertiesContext, UPCGExWritePathPropertiesSettings>
 	{
 		PCGEX_FOREACH_FIELD_PATH(PCGEX_OUTPUT_DECL)
 
@@ -253,21 +253,17 @@ namespace PCGExWritePathProperties
 		bool bClosedLoop = false;
 
 		FVector UpConstant = FVector::ZeroVector;
-		PCGExData::TCache<FVector>* UpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 
 		int32 LastIndex = 0;
 
-		const UPCGExWritePathPropertiesSettings* LocalSettings = nullptr;
-
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override;
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

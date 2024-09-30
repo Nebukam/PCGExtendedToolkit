@@ -6,6 +6,7 @@
 
 #include "PCGExMath.h"
 
+
 void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
@@ -18,7 +19,7 @@ void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-void UPCGExGoalPickerRandom::PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade)
+void UPCGExGoalPickerRandom::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade)
 {
 	if (bUseLocalNumGoals) { NumGoalsGetter = InSeedsDataFacade->GetBroadcaster<int32>(LocalNumGoalAttribute); }
 	Super::PrepareForData(InSeedsDataFacade, InGoalsDataFacade);
@@ -34,7 +35,7 @@ int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGExData::FPointRef& Seed) con
 
 void UPCGExGoalPickerRandom::GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
-	int32 Picks = NumGoalsGetter ? NumGoalsGetter->Values[Seed.Index] : NumGoals;
+	int32 Picks = NumGoalsGetter ? NumGoalsGetter->Read(Seed.Index) : NumGoals;
 
 	if (GoalCount == EPCGExGoalPickRandomAmount::Random)
 	{

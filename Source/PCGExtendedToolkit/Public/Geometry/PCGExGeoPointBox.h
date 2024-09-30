@@ -109,18 +109,14 @@ namespace PCGExGeo
 		mutable FRWLock IntersectionsLock;
 
 	public:
-		TMap<uint64, FIntersections*> IntersectionsMap;
-		TArray<FIntersections*> IntersectionsList;
+		TMap<uint64, TSharedPtr<FIntersections>> IntersectionsMap;
+		TArray<TSharedPtr<FIntersections>> IntersectionsList;
 
 		FSegmentation()
 		{
 		}
 
-		~FSegmentation()
-		{
-			PCGEX_DELETE_TMAP(IntersectionsMap, uint64)
-			PCGEX_DELETE_TARRAY(IntersectionsList)
-		}
+		~FSegmentation() = default;
 
 		int32 GetNum() const { return IntersectionsMap.Num(); }
 
@@ -136,34 +132,34 @@ namespace PCGExGeo
 
 		void ReduceToArray()
 		{
-			PCGEX_SET_NUM_UNINITIALIZED(IntersectionsList, IntersectionsMap.Num())
+			PCGEx::InitArray(IntersectionsList, IntersectionsMap.Num());
 			int32 Index = 0;
-			for (const TPair<uint64, FIntersections*>& Pair : IntersectionsMap) { IntersectionsList[Index++] = Pair.Value; }
+			for (const TPair<uint64, TSharedPtr<FIntersections>>& Pair : IntersectionsMap) { IntersectionsList[Index++] = Pair.Value; }
 			IntersectionsMap.Empty();
 		}
 
-		FORCEINLINE FIntersections* Find(const uint64 Key)
+		FORCEINLINE TSharedPtr<FIntersections> Find(const uint64 Key)
 		{
 			{
 				FReadScopeLock ReadScopeLock(IntersectionsLock);
-				if (FIntersections** ExistingIntersection = IntersectionsMap.Find(Key)) { return *ExistingIntersection; }
+				if (TSharedPtr<FIntersections>* ExistingIntersection = IntersectionsMap.Find(Key)) { return *ExistingIntersection; }
 			}
 
 			return nullptr;
 		}
 
-		void Insert(FIntersections* InIntersections)
+		void Insert(const TSharedPtr<FIntersections>& InIntersections)
 		{
 			FWriteScopeLock WriteScopeLock(IntersectionsLock);
 			IntersectionsMap.Add(InIntersections->GetKey(), InIntersections);
 		}
 
-		FIntersections* GetOrCreate(const int32 Start, const int32 End)
+		TSharedPtr<FIntersections> GetOrCreate(const int32 Start, const int32 End)
 		{
 			const uint64 HID = PCGEx::H64U(Start, End);
-			if (FIntersections* ExistingIntersection = Find(HID)) { return ExistingIntersection; }
+			if (TSharedPtr<FIntersections> ExistingIntersection = Find(HID)) { return ExistingIntersection; }
 
-			FIntersections* NewIntersections = new FIntersections(Start, End);
+			TSharedPtr<FIntersections> NewIntersections = MakeShared<FIntersections>(Start, End);
 			Insert(NewIntersections);
 
 			return NewIntersections;
@@ -374,35 +370,34 @@ namespace PCGExGeo
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPointBoxCloud
 	{
 		using PointBoxCloudOctree = TOctree2<FPointBox*, FPointBoxSemantics>;
-		PointBoxCloudOctree* Octree = nullptr;
-		TArray<FPointBox*> Boxes;
+		TUniquePtr<PointBoxCloudOctree> Octree;
+		TArray<TSharedPtr<FPointBox>> Boxes;
 		FBox CloudBounds;
 
 	public:
 		explicit FPointBoxCloud(const UPCGPointData* PointData, const EPCGExPointBoundsSource BoundsSource, const double Epsilon = DBL_EPSILON)
 		{
 			CloudBounds = PointData->GetBounds();
-			Octree = new PointBoxCloudOctree(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length() * 1.5);
+			Octree = MakeUnique<PointBoxCloudOctree>(CloudBounds.GetCenter(), CloudBounds.GetExtent().Length() * 1.5);
 			const TArray<FPCGPoint>& Points = PointData->GetPoints();
 
 			CloudBounds = FBox(ForceInit);
 
-			PCGEX_SET_NUM_UNINITIALIZED(Boxes, Points.Num())
+			Boxes.Init(nullptr, Points.Num());
 
 			for (int i = 0; i < Points.Num(); ++i)
 			{
-				FPointBox* NewPointBox = new FPointBox(Points[i], i, BoundsSource, Epsilon);
+				TSharedPtr<FPointBox> NewPointBox = MakeShared<FPointBox>(Points[i], i, BoundsSource, Epsilon);
 				CloudBounds += NewPointBox->Box.TransformBy(NewPointBox->Transform);
 				Boxes[i] = NewPointBox;
-				Octree->AddElement(NewPointBox);
+				Octree->AddElement(NewPointBox.Get());
 			}
 		}
 
-		FORCEINLINE const PointBoxCloudOctree* GetOctree() const { return Octree; }
+		FORCEINLINE const PointBoxCloudOctree* GetOctree() const { return Octree.Get(); }
 
 		~FPointBoxCloud()
 		{
-			PCGEX_DELETE(Octree)
 		}
 
 		bool FindIntersections(FIntersections* InIntersections) const
@@ -436,7 +431,7 @@ namespace PCGExGeo
 			return bOverlapFound;
 		}
 
-		bool Contains(const FVector& InPosition, TArray<FPointBox*>& OutOverlaps) const
+		bool Contains(const FVector& InPosition, TArray<TSharedPtr<FPointBox>>& OutOverlaps) const
 		{
 			if (!CloudBounds.IsInside(InPosition)) { return false; }
 			Octree->FindNearbyElements(
@@ -447,7 +442,7 @@ namespace PCGExGeo
 			return !OutOverlaps.IsEmpty();
 		}
 
-		bool ContainsMinusEpsilon(const FVector& InPosition, TArray<FPointBox*>& OutOverlaps) const
+		bool ContainsMinusEpsilon(const FVector& InPosition, TArray<TSharedPtr<FPointBox>>& OutOverlaps) const
 		{
 			if (!CloudBounds.IsInside(InPosition)) { return false; }
 			Octree->FindNearbyElements(

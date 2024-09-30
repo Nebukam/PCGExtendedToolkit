@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExSanitizeClusters.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
@@ -11,11 +12,6 @@ PCGExData::EInit UPCGExSanitizeClustersSettings::GetMainOutputInitMode() const {
 PCGExData::EInit UPCGExSanitizeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 #pragma endregion
-
-FPCGExSanitizeClustersContext::~FPCGExSanitizeClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 PCGEX_INITIALIZE_ELEMENT(SanitizeClusters)
 
@@ -34,25 +30,25 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSanitizeClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SanitizeClusters)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExSanitizeClusters::FProcessorBatch>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExSanitizeClusters::FProcessorBatch* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExSanitizeClusters::FProcessorBatch>& NewBatch)
 			{
 				NewBatch->GraphBuilderDetails = Context->GraphBuilderDetails;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->OutputBatches();
 	Context->MainPoints->OutputToContext();
@@ -66,34 +62,33 @@ namespace PCGExSanitizeClusters
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSanitizeClusters::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SanitizeClusters)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-		EdgesIO->CreateInKeys();
+		EdgeDataFacade->Source->GetInKeys();
 
-		BuildIndexedEdges(EdgesIO, *EndpointsLookup, IndexedEdges);
+		BuildIndexedEdges(EdgeDataFacade->Source, *EndpointsLookup, IndexedEdges);
 		if (!IndexedEdges.IsEmpty()) { GraphBuilder->Graph->InsertEdges(IndexedEdges); }
 
-		EdgesIO->CleanupKeys();
+		EdgeDataFacade->Source->CleanupKeys();
 
 		return true;
 	}
 
 	void FProcessorBatch::CompleteWork()
 	{
-		GraphBuilder->Compile(AsyncManagerPtr);
+		GraphBuilder->Compile(AsyncManager, true);
 		//TBatchWithGraphBuilder<FProcessor>::CompleteWork();
 	}
 
 	void FProcessorBatch::Output()
 	{
-		if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->Write(); }
-		else { GraphBuilder->PointIO->InitializeOutput(PCGExData::EInit::NoOutput); }
+		if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->OutputEdgesToContext(); }
+		else { GraphBuilder->NodeDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput); }
 		//TBatchWithGraphBuilder<FProcessor>::Output();
 	}
 }

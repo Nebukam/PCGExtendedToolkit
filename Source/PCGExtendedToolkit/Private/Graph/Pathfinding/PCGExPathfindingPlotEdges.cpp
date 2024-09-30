@@ -7,6 +7,8 @@
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Algo/Reverse.h"
+
+
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
@@ -37,7 +39,8 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 
 void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 	const UPCGExSearchOperation* SearchOperation,
-	const PCGExData::FPointIO* InPlotPoints, PCGExHeuristics::THeuristicsHandler* HeuristicsHandler) const
+	const TSharedPtr<PCGExData::FPointIO>& InPlotPoints,
+	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler) const
 {
 	PCGEX_SETTINGS_LOCAL(PathfindingPlotEdges)
 
@@ -45,14 +48,8 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 
 	// TODO : Implement path-scoped extra weight management
-	PCGExHeuristics::FLocalFeedbackHandler* LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
+	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
 	TArray<int32> Path;
-
-	auto Exit = [&](bool bSuccess)
-	{
-		PCGEX_DELETE(LocalFeedbackHandler)
-		Path.Empty();
-	};
 
 	const int32 NumPlots = InPlotPoints->GetNum();
 
@@ -66,7 +63,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
-			if (Settings->bOmitCompletePathOnFailedPlot) { return Exit(false); }
+			if (Settings->bOmitCompletePathOnFailedPlot) { return; }
 		}
 
 		if (Settings->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
@@ -89,13 +86,13 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
-			if (Settings->bOmitCompletePathOnFailedPlot) { return Exit(false); }
+			if (Settings->bOmitCompletePathOnFailedPlot) { return; }
 		}
 	}
 
 	if (Path.Num() < 2 && !Settings->bAddSeedToPath && !Settings->bAddGoalToPath) { return; }
 
-	PCGExData::FPointIO* PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO->GetIn(), PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> PathIO = OutputPaths->Emplace_GetRef<UPCGPointData>(Cluster->VtxIO.Pin()->GetIn(), PCGExData::EInit::NewOutput);
 	PCGExGraph::CleanupClusterTags(PathIO, true);
 
 	UPCGPointData* OutPathData = PathIO->GetOut();
@@ -103,7 +100,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 	PCGExGraph::CleanupVtxData(PathIO);
 
 	TArray<FPCGPoint>& MutablePoints = OutPathData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO->GetIn()->GetPoints();
+	const TArray<FPCGPoint>& InPoints = Cluster->VtxIO.Pin()->GetIn()->GetPoints();
 
 	MutablePoints.Reserve(Path.Num() + 2);
 
@@ -129,21 +126,10 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey;
 	}
 
-	PathIO->Tags->Append(InPlotPoints->Tags);
-
-	return Exit(true);
+	PathIO->Tags->Append(InPlotPoints->Tags.ToSharedRef());
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
-
-FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(Plots)
-	PCGEX_DELETE(OutputPaths)
-}
-
 
 bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 {
@@ -153,21 +139,20 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchOperation)
 
-	Context->OutputPaths = new PCGExData::FPointIOCollection(Context);
-	Context->Plots = new PCGExData::FPointIOCollection(Context);
+	Context->OutputPaths = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->Plots = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourcePlotsLabel);
 	Context->Plots->Initialize(Sources, PCGExData::EInit::NoOutput);
 
 	for (int i = 0; i < Context->Plots->Num(); ++i)
 	{
-		const PCGExData::FPointIO* Plot = Context->Plots->Pairs[i];
+		const PCGExData::FPointIO* Plot = Context->Plots->Pairs[i].Get();
 		if (Plot->GetNum() < 2)
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Pruned plot with < 2 points."));
 			Context->Plots->Pairs.RemoveAt(i);
 			i--;
-			PCGEX_DELETE(Plot)
 		}
 	}
 
@@ -185,24 +170,24 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfindingPlotEdgesElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>* NewBatch)
+			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingPlotEdge::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->OutputPaths->OutputToContext();
 
@@ -211,16 +196,16 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 
 namespace PCGExPathfindingPlotEdge
 {
-	bool FPCGExPlotClusterPathTask::ExecuteTask()
+	bool FPCGExPlotClusterPathTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		const FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
+		const FPCGExPathfindingPlotEdgesContext* Context = AsyncManager->GetContext<FPCGExPathfindingPlotEdgesContext>();
 		PCGEX_SETTINGS(PathfindingPlotEdges)
 
 		Context->TryFindPath(SearchOperation, Plots->Pairs[TaskIndex], Heuristics);
 
 		if (bInlined && Plots->Pairs.IsValidIndex(TaskIndex + 1))
 		{
-			Manager->Start<FPCGExPlotClusterPathTask>(TaskIndex + 1, PointIO, SearchOperation, Plots, Heuristics, true);
+			InternalStart<FPCGExPlotClusterPathTask>(TaskIndex + 1, PointIO, SearchOperation, Plots, Heuristics, true);
 		}
 
 		return true;
@@ -231,12 +216,11 @@ namespace PCGExPathfindingPlotEdge
 		PCGEX_DELETE_OPERATION(SearchOperation)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathfindingPlotEdge::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		if (Settings->bUseOctreeSearch)
 		{
@@ -253,15 +237,15 @@ namespace PCGExPathfindingPlotEdge
 			}
 		}
 
-		SearchOperation = TypedContext->SearchAlgorithm->CopyOperation<UPCGExSearchOperation>(); // Create a local copy
-		SearchOperation->PrepareForCluster(Cluster);
+		SearchOperation = Context->SearchAlgorithm->CopyOperation<UPCGExSearchOperation>(); // Create a local copy
+		SearchOperation->PrepareForCluster(Cluster.Get());
 
 		if (IsTrivial())
 		{
 			// Naturally accounts for global heuristics
-			for (const PCGExData::FPointIO* PlotIO : TypedContext->Plots->Pairs)
+			for (const TSharedPtr<PCGExData::FPointIO> PlotIO : Context->Plots->Pairs)
 			{
-				TypedContext->TryFindPath(SearchOperation, PlotIO, HeuristicsHandler);
+				Context->TryFindPath(SearchOperation, PlotIO, HeuristicsHandler);
 			}
 
 			return true;
@@ -269,13 +253,13 @@ namespace PCGExPathfindingPlotEdge
 
 		if (HeuristicsHandler->HasGlobalFeedback())
 		{
-			AsyncManagerPtr->Start<FPCGExPlotClusterPathTask>(0, VtxIO, SearchOperation, TypedContext->Plots, HeuristicsHandler, true);
+			AsyncManager->Start<FPCGExPlotClusterPathTask>(0, VtxDataFacade->Source, SearchOperation, Context->Plots.Get(), HeuristicsHandler, true);
 		}
 		else
 		{
-			for (int i = 0; i < TypedContext->Plots->Num(); ++i)
+			for (int i = 0; i < Context->Plots->Num(); ++i)
 			{
-				AsyncManagerPtr->Start<FPCGExPlotClusterPathTask>(i, VtxIO, SearchOperation, TypedContext->Plots, HeuristicsHandler, false);
+				AsyncManager->Start<FPCGExPlotClusterPathTask>(i, VtxDataFacade->Source, SearchOperation, Context->Plots.Get(), HeuristicsHandler, false);
 			}
 		}
 

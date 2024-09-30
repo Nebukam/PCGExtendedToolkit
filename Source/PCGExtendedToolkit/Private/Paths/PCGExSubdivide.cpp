@@ -4,6 +4,8 @@
 #include "Paths/PCGExSubdivide.h"
 
 #include "PCGExRandom.h"
+
+
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
@@ -12,11 +14,6 @@
 PCGExData::EInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(Subdivide)
-
-FPCGExSubdivideContext::~FPCGExSubdivideContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExSubdivideElement::Boot(FPCGExContext* InContext) const
 {
@@ -38,6 +35,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSubdivideElement::Execute);
 
 	PCGEX_CONTEXT(Subdivide)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -46,7 +44,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
@@ -56,12 +54,11 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->Blending;
 				NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to subdivide."));
 			return true;
@@ -73,7 +70,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -82,33 +79,24 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSubdivide
 {
-	FProcessor::~FProcessor()
-	{
-		Subdivisions.Empty();
-	}
-
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSubdivide::Process);
 
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
-
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
 		if (Settings->ValueSource == EPCGExFetchType::Attribute)
 		{
 			AmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
 			if (!AmountGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Subdivision Amount attribute is invalid."));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Subdivision Amount attribute is invalid."));
 				return false;
 			}
 		}
@@ -122,7 +110,7 @@ namespace PCGExSubdivide
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 		Blending->bClosedLoop = bClosedLoop;
 
-		PCGEX_SET_NUM(Subdivisions, PointIO->GetNum())
+		PCGEx::InitArray(Subdivisions, PointDataFacade->GetNum());
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
 
@@ -137,7 +125,7 @@ namespace PCGExSubdivide
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		FSubdivision& Sub = Subdivisions[Index];
 
@@ -149,7 +137,7 @@ namespace PCGExSubdivide
 
 		if (!PointFilterCache[Index]) { return; }
 
-		double Amount = AmountGetter ? AmountGetter->Values[Index] : ConstantAmount;
+		const double Amount = AmountGetter ? AmountGetter->Read(Index) : ConstantAmount;
 
 		if (bUseCount)
 		{
@@ -171,12 +159,12 @@ namespace PCGExSubdivide
 	{
 		const FSubdivision& Sub = Subdivisions[Iteration];
 
-		if (FlagWriter) { FlagWriter->Values[Sub.OutStart] = false; }
-		if (AlphaWriter) { AlphaWriter->Values[Sub.OutStart] = LocalSettings->DefaultAlpha; }
+		if (FlagWriter) { FlagWriter->GetMutable(Sub.OutStart) = false; }
+		if (AlphaWriter) { AlphaWriter->GetMutable(Sub.OutStart) = Settings->DefaultAlpha; }
 
 		if (Sub.NumSubdivisions == 0) { return; }
 
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
 		PCGExPaths::FPathMetrics Metrics = PCGExPaths::FPathMetrics(Sub.Start);
 
@@ -185,25 +173,28 @@ namespace PCGExSubdivide
 		{
 			const int32 Index = SubStart + s;
 
-			if (FlagWriter) { FlagWriter->Values[Index] = true; }
+			if (FlagWriter) { FlagWriter->GetMutable(Index) = true; }
 
 			const FVector Position = Sub.Start + Sub.Dir * (Sub.StartOffset + s * Sub.StepSize);
 			MutablePoints[Index].Transform.SetLocation(Position);
 			const double Alpha = Metrics.Add(Position) / Sub.Dist;
-			if (AlphaWriter) { AlphaWriter->Values[SubStart + s] = Alpha; }
+			if (AlphaWriter) { AlphaWriter->GetMutable(SubStart + s) = Alpha; }
 		}
 
 		Metrics.Add(Sub.End);
 
 		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + SubStart, Sub.NumSubdivisions);
-		Blending->ProcessSubPoints(PointIO->GetOutPointRef(Sub.OutStart), PointIO->GetOutPointRef(Sub.OutEnd), View, Metrics, SubStart);
+		Blending->ProcessSubPoints(PointDataFacade->Source->GetOutPointRef(Sub.OutStart), PointDataFacade->Source->GetOutPointRef(Sub.OutEnd), View, Metrics, SubStart);
 
 		for (FPCGPoint& Pt : View) { Pt.Seed = PCGExRandom::ComputeSeed(Pt); }
 	}
 
 	void FProcessor::CompleteWork()
 	{
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
 		int32 NumPoints = 0;
+
 		if (!bClosedLoop) { Subdivisions[Subdivisions.Num() - 1].NumSubdivisions = 0; }
 
 		for (FSubdivision& Sub : Subdivisions)
@@ -219,8 +210,8 @@ namespace PCGExSubdivide
 		if (NumPoints == PointIO->GetNum())
 		{
 			PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-			if (LocalSettings->bFlagSubPoints) { PCGExData::WriteMark(PointIO->GetOut()->Metadata, LocalSettings->SubPointFlagName, false); }
-			if (LocalSettings->bWriteAlpha) { PCGExData::WriteMark(PointIO->GetOut()->Metadata, LocalSettings->AlphaAttributeName, LocalSettings->DefaultAlpha); }
+			if (Settings->bFlagSubPoints) { PCGExData::WriteMark(PointIO->GetOut()->Metadata, Settings->SubPointFlagName, false); }
+			if (Settings->bWriteAlpha) { PCGExData::WriteMark(PointIO->GetOut()->Metadata, Settings->AlphaAttributeName, Settings->DefaultAlpha); }
 			return;
 		}
 
@@ -229,7 +220,7 @@ namespace PCGExSubdivide
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
-		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, NumPoints)
+		PCGEx::InitArray(MutablePoints, NumPoints);
 
 		for (int i = 0; i < Subdivisions.Num(); ++i)
 		{
@@ -249,16 +240,16 @@ namespace PCGExSubdivide
 			}
 		}
 
-		if (LocalSettings->bFlagSubPoints)
+		if (Settings->bFlagSubPoints)
 		{
-			FlagWriter = PointDataFacade->GetWriter<bool>(LocalSettings->SubPointFlagName, false, false, true);
-			ProtectedAttributes.Add(LocalSettings->SubPointFlagName);
+			FlagWriter = PointDataFacade->GetWritable<bool>(Settings->SubPointFlagName, false, false, true);
+			ProtectedAttributes.Add(Settings->SubPointFlagName);
 		}
 
-		if (LocalSettings->bWriteAlpha)
+		if (Settings->bWriteAlpha)
 		{
-			AlphaWriter = PointDataFacade->GetWriter<double>(LocalSettings->AlphaAttributeName, LocalSettings->DefaultAlpha, true, true);
-			ProtectedAttributes.Add(LocalSettings->AlphaAttributeName);
+			AlphaWriter = PointDataFacade->GetWritable<double>(Settings->AlphaAttributeName, Settings->DefaultAlpha, true, true);
+			ProtectedAttributes.Add(Settings->AlphaAttributeName);
 		}
 
 		Blending->PrepareForData(PointDataFacade, PointDataFacade, PCGExData::ESource::Out, &ProtectedAttributes);
@@ -267,7 +258,7 @@ namespace PCGExSubdivide
 
 	void FProcessor::Write()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

@@ -3,13 +3,14 @@
 
 #include "Graph/Filters/PCGExClusterFilter.h"
 
+
 #include "Graph/PCGExCluster.h"
 
 namespace PCGExClusterFilter
 {
 	PCGExFilters::EType TFilter::GetFilterType() const { return PCGExFilters::EType::Node; }
 
-	bool TFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+	bool TFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 	{
 		if (!bInitForCluster)
 		{
@@ -19,7 +20,7 @@ namespace PCGExClusterFilter
 		return PCGExPointFilter::TFilter::Init(InContext, InPointDataFacade);
 	}
 
-	bool TFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+	bool TFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		bInitForCluster = true;
 		Cluster = InCluster;
@@ -35,17 +36,17 @@ namespace PCGExClusterFilter
 		Results.Init(false, NumResults);
 	}
 
-	TManager::TManager(PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+	TManager::TManager(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 		: PCGExPointFilter::TManager(InPointDataFacade), Cluster(InCluster), EdgeDataCache(InEdgeDataFacade)
 	{
 	}
 
-	bool TManager::InitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* Filter)
+	bool TManager::InitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& Filter)
 	{
 		if (Filter->GetFilterType() == PCGExFilters::EType::Point) { return PCGExPointFilter::TManager::InitFilter(InContext, Filter); }
 		if (Filter->GetFilterType() == PCGExFilters::EType::Node)
 		{
-			TFilter* ClusterFilter = static_cast<TFilter*>(Filter);
+			const TSharedPtr<TFilter> ClusterFilter = StaticCastSharedPtr<TFilter>(Filter);
 			if (!ClusterFilter->Init(InContext, Cluster, PointDataFacade, EdgeDataCache)) { return false; }
 			return true;
 		}

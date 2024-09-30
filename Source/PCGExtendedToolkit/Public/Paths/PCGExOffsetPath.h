@@ -7,6 +7,8 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExOffsetPath.generated.h"
 
@@ -62,8 +64,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExOffsetPathElement;
-
-	virtual ~FPCGExOffsetPathContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
@@ -81,30 +81,28 @@ protected:
 
 namespace PCGExOffsetPath
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExOffsetPathContext, UPCGExOffsetPathSettings>
 	{
 		int32 NumPoints = 0;
 
 		bool bClosedLoop = false;
-		
+
 		double OffsetConstant = 0;
 		FVector UpConstant = FVector::UpVector;
 
 		TArray<FVector> Positions;
 		TArray<FVector> Normals;
 
-		PCGExData::TCache<double>* OffsetGetter = nullptr;
-		PCGExData::TCache<FVector>* UpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> OffsetGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> UpGetter;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override;
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;

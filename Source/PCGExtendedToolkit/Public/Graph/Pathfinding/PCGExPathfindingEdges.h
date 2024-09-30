@@ -8,6 +8,8 @@
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExPathfindingEdges.generated.h"
@@ -101,12 +103,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesContext final : public F
 {
 	friend class FPCGExPathfindingEdgesElement;
 
-	virtual ~FPCGExPathfindingEdgesContext() override;
+	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
+	TSharedPtr<PCGExData::FFacade> GoalsDataFacade;
 
-	PCGExData::FFacade* SeedsDataFacade = nullptr;
-	PCGExData::FFacade* GoalsDataFacade = nullptr;
-
-	PCGExData::FPointIOCollection* OutputPaths = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
@@ -114,15 +114,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesContext final : public F
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
 	FPCGExAttributeToTagDetails GoalAttributesToPathTags;
 
-	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
-	PCGExData::FDataForwardHandler* GoalForwardHandler = nullptr;
+	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> GoalForwardHandler;
 
-	TArray<PCGExPathfinding::FPathQuery*> PathQueries;
+	TArray<TSharedPtr<PCGExPathfinding::FPathQuery>> PathQueries;
 
 	void TryFindPath(
 		const UPCGExSearchOperation* SearchOperation,
-		const PCGExPathfinding::FPathQuery* Query,
-		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler);
+		const TSharedPtr<PCGExPathfinding::FPathQuery>& Query,
+		const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler);
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingEdgesElement final : public FPCGExEdgesProcessorElement
@@ -143,10 +143,10 @@ namespace PCGExPathfindingEdge
 	class /*PCGEXTENDEDTOOLKIT_API*/ FSampleClusterPathTask final : public FPCGExPathfindingTask
 	{
 	public:
-		FSampleClusterPathTask(PCGExData::FPointIO* InPointIO,
+		FSampleClusterPathTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                       const UPCGExSearchOperation* InSearchOperation,
-		                       const TArray<PCGExPathfinding::FPathQuery*>* InQueries,
-		                       PCGExHeuristics::THeuristicsHandler* InHeuristics,
+		                       const TArray<TSharedPtr<PCGExPathfinding::FPathQuery>>* InQueries,
+		                       const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics,
 		                       const bool Inlined = false) :
 			FPCGExPathfindingTask(InPointIO, InQueries),
 			SearchOperation(InSearchOperation),
@@ -156,17 +156,17 @@ namespace PCGExPathfindingEdge
 		}
 
 		const UPCGExSearchOperation* SearchOperation = nullptr;
-		PCGExHeuristics::THeuristicsHandler* Heuristics = nullptr;
+		TSharedPtr<PCGExHeuristics::THeuristicsHandler> Heuristics;
 		bool bInlined = false;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExPathfindingEdgesContext, UPCGExPathfindingEdgesSettings>
 	{
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
@@ -174,6 +174,6 @@ namespace PCGExPathfindingEdge
 
 		UPCGExSearchOperation* SearchOperation = nullptr;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 	};
 }

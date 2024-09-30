@@ -6,13 +6,10 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Geometry/PCGExGeo.h"
-#include "PCGExBuildConvexHull2D.generated.h"
 
-namespace PCGExGeo
-{
-	class TDelaunay2;
-}
+#include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoDelaunay.h"
+#include "PCGExBuildConvexHull2D.generated.h"
 
 /**
  * 
@@ -57,9 +54,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : public 
 {
 	friend class FPCGExBuildConvexHull2DElement;
 
-	virtual ~FPCGExBuildConvexHull2DContext() override;
-
-	PCGExData::FPointIOCollection* PathsIO;
+	TSharedPtr<PCGExData::FPointIOCollection> PathsIO;
 
 	void BuildPath(const PCGExGraph::FGraphBuilder* GraphBuilder) const;
 };
@@ -80,25 +75,23 @@ protected:
 
 namespace PCGExConvexHull2D
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBuildConvexHull2DContext, UPCGExBuildConvexHull2DSettings>
 	{
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
-		PCGExGeo::TDelaunay2* Delaunay = nullptr;
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		TUniquePtr<PCGExGeo::TDelaunay2> Delaunay;
+		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
 		TArray<uint64> Edges;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override;
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;

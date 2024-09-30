@@ -10,6 +10,8 @@
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
+
 
 #include "PCGExSampleInsideBounds.generated.h"
 
@@ -21,18 +23,6 @@ MACRO(Distance, double, 0)\
 MACRO(SignedDistance, double, 0)\
 MACRO(Angle, double, 0)\
 MACRO(NumSamples, int32, 0)
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
-
-namespace PCGExDataBlending
-{
-	struct FPropertiesBlender;
-}
-
-class UPCGExFilterFactoryBase;
 
 class UPCGExNodeStateFactory;
 
@@ -47,7 +37,6 @@ namespace PCGExInsideBounds
 		FTargetInfos(const int32 InIndex, const double InDistance):
 			Index(InIndex), Distance(InDistance)
 		{
-			
 		}
 
 		int32 Index = -1;
@@ -62,7 +51,7 @@ namespace PCGExInsideBounds
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		double SampledRangeMin = TNumericLimits<double>::Max();
+		double SampledRangeMin = MAX_dbl;
 		double SampledRangeMax = 0;
 		double SampledRangeWidth = 0;
 		int32 UpdateCount = 0;
@@ -280,7 +269,7 @@ public:
 	FString HasNoSuccessesTag = TEXT("HasNoSuccesses");
 
 	//
-	
+
 	/** If enabled, mark filtered out points as "failed". Otherwise, just skip the processing altogether. Only uncheck this if you want to ensure existing attribute values are preserved. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_NotOverridable), AdvancedDisplay)
 	bool bProcessFilteredOutAsFails = true;
@@ -290,9 +279,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : public
 {
 	friend class FPCGExSampleInsideBoundsElement;
 
-	virtual ~FPCGExSampleInsideBoundsContext() override;
-
-	PCGExData::FFacade* TargetsFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> TargetsFacade;
 	const UPCGPointData::PointOctree* TargetOctree = nullptr;
 
 	FPCGExBlendingDetails BlendingDetails;
@@ -319,37 +306,34 @@ protected:
 
 namespace PCGExSampleInsideBoundss
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleInsideBoundsContext, UPCGExSampleInsideBoundsSettings>
 	{
 		bool bSingleSample = false;
 
-		FPCGExSampleInsideBoundsContext* LocalTypedContext = nullptr;
-		const UPCGExSampleInsideBoundsSettings* LocalSettings = nullptr;
-
-		PCGExData::TCache<double>* RangeMinGetter = nullptr;
-		PCGExData::TCache<double>* RangeMaxGetter = nullptr;
-		PCGExData::TCache<FVector>* LookAtUpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
+		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
 
 		FVector SafeUpVector = FVector::UpVector;
 
-		PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> Blender;
 
 		int8 bAnySuccess = 0;
 
 		PCGEX_FOREACH_FIELD_INSIDEBOUNDS(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = true;
 		}
 
 		virtual ~FProcessor() override;
 
-		void SamplingFailed(const int32 Index, FPCGPoint& Point) const;
+		void SamplingFailed(const int32 Index, const FPCGPoint& Point) const;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

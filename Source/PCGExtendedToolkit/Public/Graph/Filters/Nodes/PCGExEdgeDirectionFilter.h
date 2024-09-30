@@ -72,7 +72,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExEdgeDirectionFilterFactory : public UPCGE
 public:
 	FPCGExEdgeDirectionFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExNodeAdjacency
@@ -98,9 +98,9 @@ namespace PCGExNodeAdjacency
 		FPCGExDotComparisonDetails DotComparison;
 		FPCGExVectorHashComparisonDetails HashComparison;
 
-		PCGExData::TCache<FVector>* OperandDirection = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> OperandDirection;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 
 		bool TestDot(const PCGExCluster::FNode& Node) const;

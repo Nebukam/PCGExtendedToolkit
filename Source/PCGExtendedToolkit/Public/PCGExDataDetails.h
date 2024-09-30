@@ -37,9 +37,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInfluenceDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bProgressiveInfluence = true;
 
-	PCGExData::TCache<double>* InfluenceCache = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> InfluenceCache;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 	{
 		if (bUseLocalInfluence)
 		{
@@ -55,7 +55,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInfluenceDetails
 
 	FORCEINLINE double GetInfluence(const int32 PointIndex) const
 	{
-		return InfluenceCache ? InfluenceCache->Values[PointIndex] : Influence;
+		return InfluenceCache ? InfluenceCache->Read(PointIndex) : Influence;
 	}
 };
 

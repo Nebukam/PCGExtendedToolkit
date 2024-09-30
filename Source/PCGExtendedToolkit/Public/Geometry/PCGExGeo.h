@@ -8,6 +8,8 @@
 #include "PCGExMT.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExData.h"
+
+
 #include "PCGExGeo.generated.h"
 
 USTRUCT(BlueprintType)
@@ -47,11 +49,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, EditCondition="bSupportLocalNormal && bLocalProjectionNormal", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalNormal;
 
-	PCGExData::TCache<FVector>* NormalGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> NormalGetter;
 	FQuat ProjectionQuat = FQuat::Identity;
 	FQuat ProjectionInverseQuat = FQuat::Identity;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* PointDataFacade = nullptr)
+	bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& PointDataFacade)
 	{
 		ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
 		ProjectionQuat = FQuat::FindBetweenNormals(ProjectionNormal, FVector::UpVector);
@@ -77,13 +79,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 
 	FORCEINLINE FQuat GetQuat(const int32 PointIndex) const
 	{
-		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Values[PointIndex].GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector) :
+		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Read(PointIndex).GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector) :
 			       ProjectionQuat;
 	}
 
 	FORCEINLINE FVector Project(const FVector& InPosition, const int32 PointIndex) const
 	{
-		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Values[PointIndex].GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector).RotateVector(InPosition) :
+		return NormalGetter ? FQuat::FindBetweenNormals(NormalGetter->Read(PointIndex).GetSafeNormal(1E-08, FVector::UpVector), FVector::UpVector).RotateVector(InPosition) :
 			       ProjectionQuat.RotateVector(InPosition);
 	}
 
@@ -125,14 +127,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	void Project(const TArray<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 
 		if (NormalGetter)
 		{
 			for (int i = 0; i < NumVectors; ++i)
 			{
 				OutPositions[i] = FQuat::FindBetweenNormals(
-					NormalGetter->Values[i].GetSafeNormal(1E-08, FVector::UpVector),
+					NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
 					FVector::UpVector).RotateVector(InPositions[i]);
 			}
 		}
@@ -148,14 +150,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 		for (int i = 0; i < NumVectors; ++i) { OutPositions[i] = ProjectionQuat.RotateVector(InPositions[i]); }
 	}
 
 	void Project(const TArray<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 
 		if (NormalGetter)
 		{
@@ -163,7 +165,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 			{
 				OutPositions[i] = FVector2D(
 					FQuat::FindBetweenNormals(
-						NormalGetter->Values[i].GetSafeNormal(1E-08, FVector::UpVector),
+						NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
 						FVector::UpVector).RotateVector(InPositions[i]));
 			}
 		}
@@ -179,21 +181,21 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExGeo2DProjectionDetails
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 		for (int i = 0; i < NumVectors; ++i) { OutPositions[i] = FVector2D(ProjectionQuat.RotateVector(InPositions[i])); }
 	}
 
 	void Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPoints.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumVectors)
+		PCGEx::InitArray(OutPositions, NumVectors);
 
 		if (NormalGetter)
 		{
 			for (int i = 0; i < NumVectors; ++i)
 			{
 				OutPositions[i] = FQuat::FindBetweenNormals(
-					NormalGetter->Values[i].GetSafeNormal(1E-08, FVector::UpVector),
+					NormalGetter->Read(i).GetSafeNormal(1E-08, FVector::UpVector),
 					FVector::UpVector).RotateVector(InPoints[i].Transform.GetLocation());
 			}
 		}
@@ -376,7 +378,7 @@ namespace PCGExGeo
 
 	FORCEINLINE static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge)
 	{
-		double Dist = TNumericLimits<double>::Min();
+		double Dist = MIN_dbl;
 		for (int i = 0; i < 3; ++i)
 		{
 			for (int j = i + 1; j < 3; ++j)
@@ -393,7 +395,7 @@ namespace PCGExGeo
 
 	FORCEINLINE static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge)
 	{
-		double Dist = TNumericLimits<double>::Min();
+		double Dist = MIN_dbl;
 		for (int i = 0; i < 4; ++i)
 		{
 			for (int j = i + 1; j < 4; ++j)
@@ -411,7 +413,7 @@ namespace PCGExGeo
 	FORCEINLINE static void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions)
 	{
 		const int32 NumPoints = Points.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPositions, NumPoints)
+		PCGEx::InitArray(OutPositions, NumPoints);
 		for (int i = 0; i < NumPoints; ++i) { OutPositions[i] = Points[i].Transform.GetLocation(); }
 	}
 
@@ -593,8 +595,8 @@ namespace PCGExGeoTasks
 	{
 	public:
 		FTransformPointIO(
-			PCGExData::FPointIO* InPointIO,
-			PCGExData::FPointIO* InToBeTransformedIO,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+			const TSharedPtr<PCGExData::FPointIO>& InToBeTransformedIO,
 			FPCGExTransformDetails* InTransformDetails) :
 			FPCGExTask(InPointIO),
 			ToBeTransformedIO(InToBeTransformedIO),
@@ -602,10 +604,10 @@ namespace PCGExGeoTasks
 		{
 		}
 
-		PCGExData::FPointIO* ToBeTransformedIO = nullptr;
+		const TSharedPtr<PCGExData::FPointIO> ToBeTransformedIO;
 		FPCGExTransformDetails* TransformDetails = nullptr;
 
-		virtual bool ExecuteTask() override
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
 			TArray<FPCGPoint>& MutableTargets = ToBeTransformedIO->GetOut()->GetMutablePoints();

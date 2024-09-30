@@ -98,9 +98,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 	bool bUseDiscreteMeasure = false;
 	bool bUseLocalThreshold = false;
 
-	PCGExData::TCache<double>* LocalThreshold = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> LocalThreshold;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPrimaryDataFacade)
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InPrimaryDataFacade)
 	{
 		bUseDiscreteMeasure = ThresholdType == EPCGExMeanMeasure::Discrete;
 		bUseLocalThreshold = ThresholdSource == EPCGExFetchType::Attribute;
@@ -151,7 +151,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 			if (bUseDiscreteMeasure)
 			{
 				// Fetch absolute subset count from node
-				return InternalEnsure(LocalThreshold->Values[Node.PointIndex]);
+				return InternalEnsure(LocalThreshold->Read(Node.PointIndex));
 			}
 
 			// Fetch relative subset count from node and factor the local adjacency count
@@ -159,11 +159,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAdjacencySettings
 			{
 			default: ;
 			case EPCGExRelativeThresholdRoundingMode::Round:
-				return FMath::RoundToInt32(LocalThreshold->Values[Node.PointIndex] * Node.Adjacency.Num());
+				return FMath::RoundToInt32(LocalThreshold->Read(Node.PointIndex) * Node.Adjacency.Num());
 			case EPCGExRelativeThresholdRoundingMode::Floor:
-				return FMath::FloorToInt32(LocalThreshold->Values[Node.PointIndex] * Node.Adjacency.Num());
+				return FMath::FloorToInt32(LocalThreshold->Read(Node.PointIndex) * Node.Adjacency.Num());
 			case EPCGExRelativeThresholdRoundingMode::Ceil:
-				return FMath::CeilToInt32(LocalThreshold->Values[Node.PointIndex] * Node.Adjacency.Num());
+				return FMath::CeilToInt32(LocalThreshold->Read(Node.PointIndex) * Node.Adjacency.Num());
 			}
 		}
 

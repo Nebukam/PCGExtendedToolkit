@@ -6,6 +6,7 @@
 #include "PCGPin.h"
 #include "Data/PCGExPointFilter.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExVtxPropertyEdgeMatch"
 #define PCGEX_NAMESPACE PCGExVtxPropertyEdgeMatch
 
@@ -21,11 +22,10 @@ void UPCGExVtxPropertyEdgeMatch::CopySettingsFrom(const UPCGExOperation* Other)
 void UPCGExVtxPropertyEdgeMatch::ClusterReserve(const int32 NumClusters)
 {
 	Super::ClusterReserve(NumClusters);
-	FilterManagers.SetNumUninitialized(NumClusters);
-	for (int i = 0; i < NumClusters; ++i) { FilterManagers[i] = nullptr; }
+	FilterManagers.SetNum(NumClusters);
 }
 
-void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataFacade, PCGExData::FFacade* EdgeDataFacade)
+void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, TSharedPtr<PCGExCluster::FCluster> Cluster, TSharedPtr<PCGExData::FFacade> VtxDataFacade, TSharedPtr<PCGExData::FFacade> EdgeDataFacade)
 {
 	Super::PrepareForCluster(InContext, ClusterIdx, Cluster, VtxDataFacade, EdgeDataFacade);
 	if (FilterFactories && !FilterFactories->IsEmpty())
@@ -34,7 +34,7 @@ void UPCGExVtxPropertyEdgeMatch::PrepareForCluster(const FPCGContext* InContext,
 	}
 }
 
-bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade)
+bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade)
 {
 	if (!Super::PrepareForVtx(InContext, InVtxDataFacade)) { return false; }
 
@@ -44,7 +44,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCG
 		return false;
 	}
 
-	if (!Config.DotComparisonDetails.Init(InContext, InVtxDataFacade))
+	if (!Config.DotComparisonDetails.Init(InContext, InVtxDataFacade.ToSharedRef()))
 	{
 		bIsValidOperation = false;
 		return false;
@@ -61,7 +61,7 @@ bool UPCGExVtxPropertyEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCG
 		}
 	}
 
-	Config.MatchingEdge.Init(InVtxDataFacade);
+	Config.MatchingEdge.Init(InVtxDataFacade.ToSharedRef());
 
 	return bIsValidOperation;
 }
@@ -72,11 +72,11 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 
 	const FPCGPoint& Point = PrimaryDataFacade->Source->GetInPoint(Node.PointIndex);
 
-	double BestDot = TNumericLimits<double>::Min();
+	double BestDot = MIN_dbl;
 	int32 IBest = -1;
 	const double DotB = Config.DotComparisonDetails.GetDot(Node.PointIndex);
 
-	FVector NodeDirection = DirCache ? DirCache->Values[Node.PointIndex].GetSafeNormal() : Config.DirectionConstant;
+	FVector NodeDirection = DirCache ? DirCache->Read(Node.PointIndex).GetSafeNormal() : Config.DirectionConstant;
 	if (Config.bTransformDirection) { NodeDirection = Point.Transform.TransformVectorNoScale(NodeDirection); }
 
 	for (int i = 0; i < Adjacency.Num(); ++i)
@@ -96,12 +96,6 @@ void UPCGExVtxPropertyEdgeMatch::ProcessNode(const int32 ClusterIdx, const PCGEx
 
 	if (IBest != -1) { Config.MatchingEdge.Set(Node.PointIndex, Adjacency[IBest], (*Cluster->Nodes)[Adjacency[IBest].NodeIndex].Adjacency.Num()); }
 	else { Config.MatchingEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
-}
-
-void UPCGExVtxPropertyEdgeMatch::Cleanup()
-{
-	PCGEX_DELETE_TARRAY(FilterManagers)
-	Super::Cleanup();
 }
 
 void UPCGExVtxPropertyEdgeMatch::InitEdgeFilters()
@@ -136,7 +130,7 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertyEdgeMatchFactory::CreateOperation()
 
 	if (!FilterFactories.IsEmpty())
 	{
-		NewOperation->FilterFactories = const_cast<TArray<UPCGExFilterFactoryBase*>*>(&FilterFactories);
+		NewOperation->FilterFactories = const_cast<TArray<TObjectPtr<const UPCGExFilterFactoryBase>>*>(&FilterFactories);
 	}
 
 	return NewOperation;

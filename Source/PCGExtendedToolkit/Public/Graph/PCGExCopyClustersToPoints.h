@@ -7,6 +7,7 @@
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
 
+
 #include "PCGExCopyClustersToPoints.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
@@ -42,11 +43,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCopyClustersToPointsContext final : publ
 	friend class UPCGExCopyClustersToPointsSettings;
 	friend class FPCGExCopyClustersToPointsElement;
 
-	virtual ~FPCGExCopyClustersToPointsContext() override;
-
 	FPCGExTransformDetails TransformDetails;
 
-	PCGExData::FPointIO* Targets = nullptr;
+	TSharedPtr<PCGExData::FPointIO> Targets;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCopyClustersToPointsElement final : public FPCGExEdgesProcessorElement
@@ -64,24 +63,22 @@ protected:
 
 namespace PCGExCopyClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExCopyClustersToPointsContext, UPCGExCopyClustersToPointsSettings>
 	{
-		FPCGExCopyClustersToPointsContext* LocalTypedContext = nullptr;
-
 	public:
-		TArray<PCGExData::FPointIO*>* VtxDupes = nullptr;
+		TArray<TSharedPtr<PCGExData::FPointIO>>* VtxDupes = nullptr;
 		TArray<FString>* VtxTag = nullptr;
 
-		TArray<PCGExData::FPointIO*> EdgesDupes;
+		TArray<TSharedPtr<PCGExData::FPointIO>> EdgesDupes;
 
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bBuildCluster = false;
 		}
 
 		virtual ~FProcessor() override;
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 
@@ -89,19 +86,17 @@ namespace PCGExCopyClusters
 	{
 		friend class FProcessor;
 
-		FPCGExCopyClustersToPointsContext* LocalTypedContext = nullptr;
-
 	public:
-		TArray<PCGExData::FPointIO*> VtxDupes;
+		TArray<TSharedPtr<PCGExData::FPointIO>> VtxDupes;
 		TArray<FString> VtxTag;
 
-		FBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+		FBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch(InContext, InVtx, InEdges)
 		{
 		}
 
 		virtual ~FBatch() override;
 		virtual void Process() override;
-		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 	};
 }

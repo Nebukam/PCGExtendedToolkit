@@ -7,7 +7,7 @@
 
 PCGEX_CREATE_PROBE_FACTORY(Anisotropic, {}, {})
 
-bool UPCGExProbeAnisotropic::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
+bool UPCGExProbeAnisotropic::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
@@ -17,7 +17,7 @@ bool UPCGExProbeAnisotropic::PrepareForPoints(const PCGExData::FPointIO* InPoint
 void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
-	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
+	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
 
 	FVector D[16];
 	int32 BestCandidate[16] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,};
@@ -29,7 +29,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		{
 			D[d] = Directions[d];
 			BestDot[d] = 0.92;
-			BestDist[d] = TNumericLimits<double>::Max();
+			BestDist[d] = MAX_dbl;
 		}
 	}
 	else
@@ -38,7 +38,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		{
 			D[d] = Point.Transform.TransformVectorNoScale(Directions[d]);
 			BestDot[d] = 0.92;
-			BestDist[d] = TNumericLimits<double>::Max();
+			BestDist[d] = MAX_dbl;
 		}
 	}
 
@@ -50,7 +50,7 @@ void UPCGExProbeAnisotropic::ProcessCandidates(const int32 Index, const FPCGPoin
 		if (Coincidence && Coincidence->Contains(C.GH)) { continue; }
 
 		double BatchBestDot = 0.92;
-		double BatchBestDist = TNumericLimits<double>::Max();
+		double BatchBestDist = MAX_dbl;
 		int32 BatchBest = -1;
 
 		for (int d = 0; d < 16; ++d)

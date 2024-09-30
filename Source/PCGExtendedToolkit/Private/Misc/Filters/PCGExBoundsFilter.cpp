@@ -3,15 +3,16 @@
 
 #include "Misc/Filters/PCGExBoundsFilter.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExBoundsFilterDefinition"
 #define PCGEX_NAMESPACE PCGExBoundsFilterDefinition
 
 bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
 {
 	if (!Super::Init(InContext)) { return false; }
-	if (PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true))
+	if (const TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, FName("Bounds"), true))
 	{
-		BoundsDataFacade = new PCGExData::FFacade(BoundsIO);
+		BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO.ToSharedRef());
 	}
 	else
 	{
@@ -21,18 +22,17 @@ bool UPCGExBoundsFilterFactory::Init(FPCGExContext* InContext)
 	return true;
 }
 
-PCGExPointFilter::TFilter* UPCGExBoundsFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExBoundsFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TBoundsFilter(this);
+	return MakeShared<PCGExPointsFilter::TBoundsFilter>(this);
 }
 
 void UPCGExBoundsFilterFactory::BeginDestroy()
 {
-	PCGEX_DELETE_FACADE_AND_SOURCE(BoundsDataFacade)
 	Super::BeginDestroy();
 }
 
-bool PCGExPointsFilter::TBoundsFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TBoundsFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 	return Cloud ? true : false;

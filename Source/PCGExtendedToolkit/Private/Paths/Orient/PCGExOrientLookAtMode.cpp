@@ -16,7 +16,7 @@ void UPCGExOrientLookAt::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExOrientLookAt::PrepareForData(PCGExData::FFacade* InDataFacade)
+bool UPCGExOrientLookAt::PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	if (!Super::PrepareForData(InDataFacade)) { return false; }
 
@@ -65,7 +65,7 @@ FTransform UPCGExOrientLookAt::LookAtDirection(const FTransform InT, const int32
 	FTransform OutT = InT;
 	OutT.SetRotation(
 		PCGExMath::MakeDirection(
-			OrientAxis, LookAtGetter->Values[Index].GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
+			OrientAxis, LookAtGetter->Read(Index).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
 	return OutT;
 }
 
@@ -73,7 +73,7 @@ FTransform UPCGExOrientLookAt::LookAtPosition(const FTransform InT, const int32 
 {
 	FTransform OutT = InT;
 	const FVector Current = OutT.GetLocation();
-	const FVector Position = LookAtGetter->Values[Index];
+	const FVector Position = LookAtGetter->Read(Index);
 	OutT.SetRotation(
 		PCGExMath::MakeDirection(
 			OrientAxis, (Position - Current).GetSafeNormal() * DirectionMultiplier, PCGExMath::GetDirection(UpAxis)));
@@ -82,5 +82,6 @@ FTransform UPCGExOrientLookAt::LookAtPosition(const FTransform InT, const int32 
 
 void UPCGExOrientLookAt::Cleanup()
 {
+	LookAtGetter.Reset();
 	Super::Cleanup();
 }

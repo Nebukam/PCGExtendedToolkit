@@ -12,7 +12,7 @@ namespace PCGExGraph
 	FVector FCompoundNode::UpdateCenter(const PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup)
 	{
 		Center = FVector::ZeroVector;
-		PCGExData::FIdxCompound* Compound = (*PointsCompounds)[Index];
+		PCGExData::FIdxCompound* Compound = PointsCompounds->Get(Index);
 
 		const double Divider = Compound->CompoundedHashSet.Num();
 
@@ -57,9 +57,7 @@ namespace PCGExGraph
 					return Node;
 				}
 
-				Node = new FCompoundNode(Point, Origin, Nodes.Num());
-
-				Nodes.Add(Node);
+				Node = Nodes.Add_GetRef(MakeUnique<FCompoundNode>(Point, Origin, Nodes.Num())).Get();
 				PointsCompounds->New(IOIndex, PointIndex);
 				GridTree.Add(GridKey, Node);
 			}
@@ -103,19 +101,17 @@ namespace PCGExGraph
 			if (NodeIndex != -1)
 			{
 				PointsCompounds->Add(NodeIndex, IOIndex, PointIndex);
-				return Nodes[NodeIndex];
+				return Nodes[NodeIndex].Get();
 			}
 
 			// Read lock ends
 		}
 
-		Node = new FCompoundNode(Point, Origin, Nodes.Num());
-
 		{
 			// Write lock start
 			FWriteScopeLock WriteScopeLock(CompoundLock);
 
-			Nodes.Add(Node);
+			Node = Nodes.Add_GetRef(MakeUnique<FCompoundNode>(Point, Origin, Nodes.Num())).Get();
 			Octree->AddElement(Node);
 			PointsCompounds->New(IOIndex, PointIndex);
 		}
@@ -141,8 +137,7 @@ namespace PCGExGraph
 				return Node;
 			}
 
-			Node = new FCompoundNode(Point, Origin, Nodes.Num());
-			Nodes.Add(Node);
+			Node = Nodes.Add_GetRef(MakeUnique<FCompoundNode>(Point, Origin, Nodes.Num())).Get();
 			PointsCompounds->New(IOIndex, PointIndex);
 			GridTree.Add(GridKey, Node);
 
@@ -181,12 +176,10 @@ namespace PCGExGraph
 		if (NodeIndex != -1)
 		{
 			PointsCompounds->Add(NodeIndex, IOIndex, PointIndex);
-			return Nodes[NodeIndex];
+			return Nodes[NodeIndex].Get();
 		}
 
-		Node = new FCompoundNode(Point, Origin, Nodes.Num());
-
-		Nodes.Add(Node);
+		Node = Nodes.Add_GetRef(MakeUnique<FCompoundNode>(Point, Origin, Nodes.Num())).Get();
 		Octree->AddElement(Node);
 		PointsCompounds->New(IOIndex, PointIndex);
 
@@ -213,7 +206,7 @@ namespace PCGExGraph
 
 		{
 			FReadScopeLock ReadLockEdges(EdgesLock);
-			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex]; }
+			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex].Get(); }
 		}
 
 		if (EdgeIdx)
@@ -225,7 +218,7 @@ namespace PCGExGraph
 		{
 			FWriteScopeLock WriteLockEdges(EdgesLock);
 
-			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex]; }
+			if (const FIndexedEdge* Edge = Edges.Find(H)) { EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex].Get(); }
 
 			if (EdgeIdx)
 			{
@@ -255,7 +248,7 @@ namespace PCGExGraph
 		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
 		if (const FIndexedEdge* Edge = Edges.Find(H))
 		{
-			EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex];
+			EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex].Get();
 			EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
 		}
 		else
@@ -270,7 +263,7 @@ namespace PCGExGraph
 	void FCompoundGraph::GetUniqueEdges(TSet<uint64>& OutEdges)
 	{
 		OutEdges.Empty(Nodes.Num() * 4);
-		for (const FCompoundNode* Node : Nodes)
+		for (const TUniquePtr<FCompoundNode>& Node : Nodes)
 		{
 			for (const int32 OtherNodeIndex : Node->Adjacency)
 			{
@@ -280,9 +273,9 @@ namespace PCGExGraph
 		}
 	}
 
-	void FCompoundGraph::WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata)
+	void FCompoundGraph::WriteMetadata(TMap<int32, TUniquePtr<FGraphNodeMetadata>>& OutMetadata)
 	{
-		for (const FCompoundNode* Node : Nodes)
+		for (const TUniquePtr<FCompoundNode>& Node : Nodes)
 		{
 			FGraphNodeMetadata* NodeMeta = FGraphNodeMetadata::GetOrCreate(Node->Index, OutMetadata);
 			NodeMeta->CompoundSize = Node->Adjacency.Num();
@@ -291,9 +284,9 @@ namespace PCGExGraph
 	}
 
 	FPointEdgeIntersections::FPointEdgeIntersections(
-		FGraph* InGraph,
-		FCompoundGraph* InCompoundGraph,
-		PCGExData::FPointIO* InPointIO,
+		const TSharedPtr<FGraph>& InGraph,
+		const TSharedPtr<FCompoundGraph>& InCompoundGraph,
+		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		const FPCGExPointEdgeIntersectionDetails* InDetails)
 		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)
 	{
@@ -378,9 +371,9 @@ namespace PCGExGraph
 	}
 
 	FEdgeEdgeIntersections::FEdgeEdgeIntersections(
-		FGraph* InGraph,
-		FCompoundGraph* InCompoundGraph,
-		PCGExData::FPointIO* InPointIO,
+		const TSharedPtr<FGraph>& InGraph,
+		const TSharedPtr<FCompoundGraph>& InCompoundGraph,
+		const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		const FPCGExEdgeEdgeIntersectionDetails* InDetails)
 		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Details(InDetails)
 	{
@@ -389,7 +382,7 @@ namespace PCGExGraph
 		const int32 NumEdges = InGraph->Edges.Num();
 		Edges.SetNum(NumEdges);
 
-		Octree = TEdgeOctree(InCompoundGraph->Bounds.GetCenter(), InCompoundGraph->Bounds.GetExtent().Length() + (Details->Tolerance * 2));
+		Octree = MakeUnique<TEdgeOctree>(InCompoundGraph->Bounds.GetCenter(), InCompoundGraph->Bounds.GetExtent().Length() + (Details->Tolerance * 2));
 
 		for (const FIndexedEdge& Edge : InGraph->Edges)
 		{
@@ -400,7 +393,7 @@ namespace PCGExGraph
 				Points[Edge.End].Transform.GetLocation(),
 				Details->Tolerance);
 
-			Octree.AddElement(&Edges[Edge.EdgeIndex]);
+			Octree->AddElement(&Edges[Edge.EdgeIndex]);
 		}
 	}
 
@@ -432,9 +425,11 @@ namespace PCGExGraph
 			int32 NodeIndex = -1;
 			int32 PrevIndex = SplitEdge.Start;
 
-			for (const FEECrossing* Crossing : EdgeProxy.Intersections)
+			for (const int32 IntersectionIndex : EdgeProxy.Intersections)
 			{
-				NodeIndex = Crossing->NodeIndex;
+				const FEECrossing& Crossing = Crossings[IntersectionIndex];
+
+				NodeIndex = Crossing.NodeIndex;
 				Graph->InsertEdgeUnsafe(PrevIndex, NodeIndex, NewEdge, SplitEdge.IOIndex); //TODO: this is the wrong edge IOIndex
 				PrevIndex = NodeIndex;
 
@@ -449,27 +444,27 @@ namespace PCGExGraph
 		}
 	}
 
-	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
+	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender) const
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FEdgeEdgeIntersections::BlendIntersection);
 
-		const FEECrossing* Crossing = Crossings[Index];
+		const FEECrossing& Crossing = Crossings[Index];
 
-		const int32 Target = Graph->Nodes[Crossing->NodeIndex].PointIndex;
+		const int32 Target = Graph->Nodes[Crossing.NodeIndex].PointIndex;
 		Blender->PrepareForBlending(Target);
 
-		const int32 A1 = Graph->Nodes[Graph->Edges[Crossing->EdgeA].Start].PointIndex;
-		const int32 A2 = Graph->Nodes[Graph->Edges[Crossing->EdgeA].End].PointIndex;
-		const int32 B1 = Graph->Nodes[Graph->Edges[Crossing->EdgeB].Start].PointIndex;
-		const int32 B2 = Graph->Nodes[Graph->Edges[Crossing->EdgeB].End].PointIndex;
+		const int32 A1 = Graph->Nodes[Graph->Edges[Crossing.EdgeA].Start].PointIndex;
+		const int32 A2 = Graph->Nodes[Graph->Edges[Crossing.EdgeA].End].PointIndex;
+		const int32 B1 = Graph->Nodes[Graph->Edges[Crossing.EdgeB].Start].PointIndex;
+		const int32 B2 = Graph->Nodes[Graph->Edges[Crossing.EdgeB].End].PointIndex;
 
-		Blender->Blend(Target, A1, Target, Crossing->Split.TimeA);
-		Blender->Blend(Target, A2, Target, 1 - Crossing->Split.TimeA);
-		Blender->Blend(Target, B1, Target, Crossing->Split.TimeB);
-		Blender->Blend(Target, B2, Target, 1 - Crossing->Split.TimeB);
+		Blender->Blend(Target, A1, Target, Crossing.Split.TimeA);
+		Blender->Blend(Target, A2, Target, 1 - Crossing.Split.TimeA);
+		Blender->Blend(Target, B1, Target, Crossing.Split.TimeB);
+		Blender->Blend(Target, B2, Target, 1 - Crossing.Split.TimeB);
 
 		Blender->CompleteBlending(Target, 4, 2);
 
-		PointIO->GetMutablePoint(Target).Transform.SetLocation(Crossing->Split.Center);
+		PointIO->GetMutablePoint(Target).Transform.SetLocation(Crossing.Split.Center);
 	}
 }

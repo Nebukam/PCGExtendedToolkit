@@ -3,15 +3,11 @@
 
 #include "Transform/PCGExBoundsToPoints.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExBoundsToPointsElement"
 #define PCGEX_NAMESPACE BoundsToPoints
 
 PCGExData::EInit UPCGExBoundsToPointsSettings::GetMainOutputInitMode() const { return bGeneratePerPointData ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
-
-FPCGExBoundsToPointsContext::~FPCGExBoundsToPointsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 PCGEX_INITIALIZE_ELEMENT(BoundsToPoints)
 
@@ -29,25 +25,25 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBoundsToPointsElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsToPoints)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to subdivide."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -56,18 +52,11 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExBoundsToPoints
 {
-	FProcessor::~FProcessor()
-	{
-		NewOutputs.Empty();
-		PointAttributesToOutputTags.Cleanup();
-	}
-
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBoundsToPoints::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsToPoints)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		bSetExtents = Settings->bSetExtents;
 		Extents = Settings->Extents;
@@ -77,21 +66,21 @@ namespace PCGExBoundsToPoints
 
 		Axis = Settings->SymmetryAxis;
 		UVW = Settings->UVW;
-		if (!UVW.Init(Context, PointDataFacade)) { return false; }
+		if (!UVW.Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		PointAttributesToOutputTags = Settings->PointAttributesToOutputTags;
-		if (!PointAttributesToOutputTags.Init(Context, PointDataFacade)) { return false; }
+		if (!PointAttributesToOutputTags.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		NumPoints = PointIO->GetNum();
+		NumPoints = PointDataFacade->GetNum();
 		bGeneratePerPointData = Settings->bGeneratePerPointData;
 		bSymmetry = Settings->SymmetryAxis != EPCGExMinimalAxis::None;
 
 		if (bGeneratePerPointData)
 		{
-			NewOutputs.SetNumUninitialized(PointIO->GetNum());
+			NewOutputs.SetNum(PointDataFacade->GetNum());
 			for (int i = 0; i < NewOutputs.Num(); ++i)
 			{
-				NewOutputs[i] = TypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+				NewOutputs[i] = Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::NewOutput);
 			}
 
 			if (bSymmetry)
@@ -105,7 +94,7 @@ namespace PCGExBoundsToPoints
 		{
 			if (bSymmetry)
 			{
-				PointIO->GetOut()->GetMutablePoints().SetNumUninitialized(NumPoints * 2);
+				PointDataFacade->GetOut()->GetMutablePoints().SetNumUninitialized(NumPoints * 2);
 			}
 			else
 			{
@@ -119,10 +108,12 @@ namespace PCGExBoundsToPoints
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
 		if (bGeneratePerPointData)
 		{
 			int32 OutIndex;
-			PCGExData::FPointIO* NewOutput = NewOutputs[Index];
+			const TSharedPtr<PCGExData::FPointIO>& NewOutput = NewOutputs[Index];
 
 			FPCGPoint& A = NewOutput->CopyPoint(Point, OutIndex);
 			if (bSetExtents)
@@ -181,12 +172,10 @@ namespace PCGExBoundsToPoints
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsToPoints)
-
 		if (!bGeneratePerPointData && bSymmetry)
 		{
-			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-			UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+			TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+			UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
 			for (int i = NumPoints; i < MutablePoints.Num(); ++i) { Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry); }
 		}
 	}

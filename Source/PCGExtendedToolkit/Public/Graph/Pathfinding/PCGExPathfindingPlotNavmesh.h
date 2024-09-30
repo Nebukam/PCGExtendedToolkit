@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
+
+
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "PCGExPathfindingPlotNavmesh.generated.h"
 
@@ -92,9 +94,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotNavmeshContext final : pu
 {
 	friend class FPCGExPathfindingPlotNavmeshElement;
 
-	virtual ~FPCGExPathfindingPlotNavmeshContext() override;
-
-	PCGExData::FPointIOCollection* OutputPaths = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
@@ -126,10 +126,10 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPlotNavmeshTask final : public PCGExMT::F
 {
 public:
 	FPCGExPlotNavmeshTask(
-		PCGExData::FPointIO* InPointIO) :
+		const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
 		FPCGExTask(InPointIO)
 	{
 	}
 
-	virtual bool ExecuteTask() override;
+	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };

@@ -16,7 +16,7 @@ void UPCGExOrientOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExOrientOperation::PrepareForData(PCGExData::FFacade* InDataFacade)
+bool UPCGExOrientOperation::PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade)
 {
 	return true;
 }

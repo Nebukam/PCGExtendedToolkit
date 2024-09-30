@@ -7,6 +7,8 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExSplitPath.generated.h"
 
@@ -53,7 +55,7 @@ public:
 	/** When processing closed loop paths, paths that aren't looping anymore will be tagged. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
 	FPCGExPathClosedLoopUpdateDetails UpdateTags;
-	
+
 	/** If both split and remove are true, the selected behavior takes priority */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
@@ -75,10 +77,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathContext final : public FPCGExPa
 {
 	friend class FPCGExSplitPathElement;
 
-	virtual ~FPCGExSplitPathContext() override;
-
 	FPCGExPathClosedLoopUpdateDetails UpdateTags;
-	
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplitPathElement final : public FPCGExPathProcessorElement
@@ -108,15 +107,12 @@ namespace PCGExSplitPath
 		}
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSplitPathContext, UPCGExSplitPathSettings>
 	{
-		FPCGExSplitPathContext* LocalTypedContext = nullptr;
-		const UPCGExSplitPathSettings* LocalSettings = nullptr;
-
 		bool bClosedLoop = false;
 
 		TArray<FPath> Paths;
-		TArray<PCGExData::FPointIO*> PathsIOs;
+		TArray<TSharedPtr<PCGExData::FPointIO>> PathsIOs;
 
 		bool bWrapLastPath = false;
 		bool bAddOpenTag = false;
@@ -127,14 +123,12 @@ namespace PCGExSplitPath
 		int32 CurrentPath = -1;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override;
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 
 		FORCEINLINE void DoActionSplit(const int32 Index)
 		{
@@ -225,7 +219,7 @@ namespace PCGExSplitPath
 				if (CurrentPath != -1)
 				{
 					FPath& ClosedPath = Paths[CurrentPath];
-					if (LocalSettings->bInclusive)
+					if (Settings->bInclusive)
 					{
 						ClosedPath.End = Index;
 						ClosedPath.Count++;
@@ -259,7 +253,7 @@ namespace PCGExSplitPath
 				if (CurrentPath != -1)
 				{
 					FPath& ClosedPath = Paths[CurrentPath];
-					if (LocalSettings->bInclusive)
+					if (Settings->bInclusive)
 					{
 						ClosedPath.End = Index;
 						ClosedPath.Count++;

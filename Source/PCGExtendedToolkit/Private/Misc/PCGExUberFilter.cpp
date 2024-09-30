@@ -7,6 +7,7 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExPointFilter.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExUberFilter"
 #define PCGEX_NAMESPACE UberFilter
 
@@ -21,14 +22,6 @@ TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 }
 
 PCGExData::EInit UPCGExUberFilterSettings::GetMainOutputInitMode() const { return Mode == EPCGExUberFilterMode::Write ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::NoOutput; }
-
-FPCGExUberFilterContext::~FPCGExUberFilterContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(Inside)
-	PCGEX_DELETE(Outside)
-}
 
 PCGEX_INITIALIZE_ELEMENT(UberFilter)
 
@@ -50,8 +43,8 @@ bool FPCGExUberFilterElement::Boot(FPCGExContext* InContext) const
 		return true;
 	}
 
-	Context->Inside = new PCGExData::FPointIOCollection(Context);
-	Context->Outside = new PCGExData::FPointIOCollection(Context);
+	Context->Inside = MakeShared<PCGExData::FPointIOCollection>(Context);
+	Context->Outside = MakeShared<PCGExData::FPointIOCollection>(Context);
 
 	Context->Inside->DefaultOutputLabel = PCGExPointFilter::OutputInsideFiltersLabel;
 	Context->Outside->DefaultOutputLabel = PCGExPointFilter::OutputOutsideFiltersLabel;
@@ -70,6 +63,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUberFilterElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilter)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -79,23 +73,22 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Settings->Mode == EPCGExUberFilterMode::Partition)
 		{
-			PCGEX_SET_NUM_NULLPTR(Context->Inside->Pairs, Context->NumPairs)
-			PCGEX_SET_NUM_NULLPTR(Context->Outside->Pairs, Context->NumPairs)
+			Context->Inside->Pairs.Init(nullptr, Context->NumPairs);
+			Context->Outside->Pairs.Init(nullptr, Context->NumPairs);
 		}
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExUberFilter::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to filter."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
@@ -119,26 +112,23 @@ namespace PCGExUberFilter
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExUberFilter::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(UberFilter)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
 
 		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
-			Results = PointDataFacade->GetWriter<bool>(Settings->ResultAttributeName, false, false, true);
+			Results = PointDataFacade->GetWritable<bool>(Settings->ResultAttributeName, false, false, true);
 		}
 		else
 		{
-			PCGEX_SET_NUM_UNINITIALIZED(PointFilterCache, PointIO->GetNum())
+			PCGEx::InitArray(PointFilterCache, PointDataFacade->GetNum());
 		}
 
 		StartParallelLoopForPoints(PCGExData::ESource::In);
@@ -155,12 +145,12 @@ namespace PCGExUberFilter
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
 		if (!Results) { return; }
-		Results->Values[Index] = LocalSettings->bSwap ? !PointFilterCache[Index] : PointFilterCache[Index];
+		Results->GetMutable(Index) = Settings->bSwap ? !PointFilterCache[Index] : PointFilterCache[Index];
 	}
 
-	PCGExData::FPointIO* FProcessor::CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const
+	TSharedPtr<PCGExData::FPointIO> FProcessor::CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const
 	{
-		PCGExData::FPointIO* NewPointIO = new PCGExData::FPointIO(Context, PointIO);
+		TSharedPtr<PCGExData::FPointIO> NewPointIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointDataFacade->Source);
 		NewPointIO->DefaultOutputLabel = InCollection->DefaultOutputLabel;
 		NewPointIO->InitializeOutput(InitMode);
 		InCollection->Pairs[BatchIndex] = NewPointIO;
@@ -171,34 +161,34 @@ namespace PCGExUberFilter
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUberFilterProcessor::CompleteWork);
 
-		if (LocalSettings->Mode == EPCGExUberFilterMode::Write)
+		if (Settings->Mode == EPCGExUberFilterMode::Write)
 		{
-			PointDataFacade->Write(AsyncManagerPtr, true);
+			PointDataFacade->Write(AsyncManager);
 			return;
 		}
 
-		const int32 NumPoints = PointIO->GetNum();
+		const int32 NumPoints = PointDataFacade->GetNum();
 		TArray<int32> Indices;
-		PCGEX_SET_NUM_UNINITIALIZED(Indices, NumPoints)
+		PCGEx::InitArray(Indices, NumPoints);
 
 		for (int i = 0; i < NumPoints; ++i) { Indices[i] = PointFilterCache[i] ? NumInside++ : NumOutside++; }
 
 		if (NumInside == 0 || NumOutside == 0)
 		{
-			if (NumInside == 0) { Outside = CreateIO(LocalTypedContext->Outside, PCGExData::EInit::Forward); }
-			else { Inside = CreateIO(LocalTypedContext->Inside, PCGExData::EInit::Forward); }
+			if (NumInside == 0) { Outside = CreateIO(Context->Outside.Get(), PCGExData::EInit::Forward); }
+			else { Inside = CreateIO(Context->Inside.Get(), PCGExData::EInit::Forward); }
 			return;
 		}
 
-		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
 
-		Inside = CreateIO(LocalTypedContext->Inside, PCGExData::EInit::NewOutput);
+		Inside = CreateIO(Context->Inside.Get(), PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& InsidePoints = Inside->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM_UNINITIALIZED(InsidePoints, NumInside)
+		PCGEx::InitArray(InsidePoints, NumInside);
 
-		Outside = CreateIO(LocalTypedContext->Outside, PCGExData::EInit::NewOutput);
+		Outside = CreateIO(Context->Outside.Get(), PCGExData::EInit::NewOutput);
 		TArray<FPCGPoint>& OutsidePoints = Outside->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM_UNINITIALIZED(OutsidePoints, NumOutside)
+		PCGEx::InitArray(OutsidePoints, NumOutside);
 
 		for (int i = 0; i < NumPoints; ++i)
 		{

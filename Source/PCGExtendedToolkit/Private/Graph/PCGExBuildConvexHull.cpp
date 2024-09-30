@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExBuildConvexHull.h"
 
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
@@ -11,11 +12,6 @@
 #define PCGEX_NAMESPACE BuildConvexHull
 
 PCGExData::EInit UPCGExBuildConvexHullSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-
-FPCGExBuildConvexHullContext::~FPCGExBuildConvexHullContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHullSettings::OutputPinProperties() const
 {
@@ -41,6 +37,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildConvexHullElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -49,7 +46,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConvexHull::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 4)
 				{
@@ -58,11 +55,10 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExConvexHull::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConvexHull::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
 			return true;
@@ -74,7 +70,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -83,41 +79,31 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 namespace PCGExConvexHull
 {
-	FProcessor::~FProcessor()
-	{
-		PCGEX_DELETE(Delaunay)
-		PCGEX_DELETE(GraphBuilder)
-
-		Edges.Empty();
-	}
-
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConvexHull::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildConvexHull)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
-		Delaunay = new PCGExGeo::TDelaunay3();
+		Delaunay = MakeUnique<PCGExGeo::TDelaunay3>();
 
 		if (!Delaunay->Process(ActivePositions, false))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
-			PCGEX_DELETE(Delaunay)
+			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
 			return false;
 		}
 
 		ActivePositions.Empty();
 
-		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;
@@ -146,23 +132,20 @@ namespace PCGExConvexHull
 
 	void FProcessor::CompleteWork()
 	{
-		if (!GraphBuilder) { return; }
-
-		GraphBuilder->CompileAsync(AsyncManagerPtr);
+		GraphBuilder->CompileAsync(AsyncManager, false);
 	}
 
 	void FProcessor::Write()
 	{
-		if (!GraphBuilder) { return; }
-
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
-			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
-			PCGEX_DELETE(GraphBuilder)
+			bIsProcessorValid = false;
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 
-		GraphBuilder->Write();
+		PointDataFacade->Write(AsyncManager);
+		GraphBuilder->OutputEdgesToContext();
 	}
 }
 

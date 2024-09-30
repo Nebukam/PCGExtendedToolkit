@@ -10,6 +10,7 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExOperation.h"
 
+
 #include "PCGExConditionalActionResult.generated.h"
 
 class UPCGExConditionalActionResultFactory;
@@ -27,14 +28,14 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-	FORCEINLINE virtual void OnMatchSuccess(const int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = true; }
-	FORCEINLINE virtual void OnMatchFail(const int32 Index, const FPCGPoint& Point) override { ResultWriter->Values[Index] = false; }
+	virtual bool PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
+	FORCEINLINE virtual void OnMatchSuccess(const int32 Index, const FPCGPoint& Point) override { ResultWriter->GetMutable(Index) = true; }
+	FORCEINLINE virtual void OnMatchFail(const int32 Index, const FPCGPoint& Point) override { ResultWriter->GetMutable(Index) = false; }
 
 	virtual void Cleanup() override;
 
 protected:
-	PCGEx::TAttributeWriter<bool>* ResultWriter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<bool>> ResultWriter;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

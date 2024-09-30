@@ -6,14 +6,15 @@
 #include "Data/PCGExPointFilter.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExAttributeRollingElement"
 #define PCGEX_NAMESPACE AttributeRolling
 
 UPCGExAttributeRollingSettings::UPCGExAttributeRollingSettings(
-		const FObjectInitializer& ObjectInitializer)
-		: Super(ObjectInitializer)
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
-	bSupportClosedLoops = false;		
+	bSupportClosedLoops = false;
 }
 
 TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() const
@@ -26,11 +27,6 @@ TArray<FPCGPinProperties> UPCGExAttributeRollingSettings::InputPinProperties() c
 PCGExData::EInit UPCGExAttributeRollingSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRolling)
-
-FPCGExAttributeRollingContext::~FPCGExAttributeRollingContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExAttributeRollingElement::Boot(FPCGExContext* InContext) const
 {
@@ -50,6 +46,7 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRollingElement::Execute);
 
 	PCGEX_CONTEXT(AttributeRolling)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -60,11 +57,10 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 		// TODO : Skip completion
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributeRolling::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to fuse."));
 			return true;
@@ -76,7 +72,7 @@ bool FPCGExAttributeRollingElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainBatch->Output();
 	Context->MainPoints->OutputToContext();
@@ -88,22 +84,18 @@ namespace PCGExAttributeRolling
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(MetadataBlender)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExAttributeRolling::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(AttributeRolling)
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
 
-		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
+		MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade, PCGExData::ESource::In, true, nullptr, true);
 
 		OutMetadata = PointDataFacade->GetOut()->Metadata;
@@ -138,7 +130,7 @@ namespace PCGExAttributeRolling
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

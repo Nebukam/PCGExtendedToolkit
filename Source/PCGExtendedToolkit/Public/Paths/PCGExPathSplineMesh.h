@@ -12,6 +12,7 @@
 #include "Tangents/PCGExTangentsOperation.h"
 #include "Components/SplineMeshComponent.h"
 
+
 #include "PCGExPathSplineMesh.generated.h"
 
 
@@ -68,7 +69,7 @@ public:
 	/** The name of the attribute to write asset path to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Distribution", meta=(PCG_Overridable))
 	FName AssetPathAttributeName = "AssetPath";
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Target Actor", meta = (PCG_Overridable))
 	TSoftObjectPtr<AActor> TargetActor;
 
@@ -114,7 +115,7 @@ public:
 	/** The name of the attribute to write asset weight to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta=(PCG_Overridable, EditCondition="WeightToAttribute!=EPCGExWeightOutputMode::NoOutput && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedToDensity && WeightToAttribute!=EPCGExWeightOutputMode::NormalizedInvertedToDensity"))
 	FName WeightAttributeName = "AssetWeight";
-	
+
 	/** Specify a list of functions to be called on the target actor after spline mesh creation. Functions need to be parameter-less and with "CallInEditor" flag enabled. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TArray<FName> PostProcessFunctionNames;
@@ -147,15 +148,12 @@ protected:
 
 namespace PCGExPathSplineMesh
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSplineMeshContext, UPCGExPathSplineMeshSettings>
 	{
-		FPCGExPathSplineMeshContext* LocalTypedContext = nullptr;
-		const UPCGExPathSplineMeshSettings* LocalSettings = nullptr;
-
 		bool bOutputWeight = false;
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
-		
+
 		bool bClosedLoop = false;
 		bool bApplyScaleToFit = false;
 
@@ -164,19 +162,19 @@ namespace PCGExPathSplineMesh
 		int32 C1 = 1;
 		int32 C2 = 2;
 
-		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
+		TUniquePtr<PCGExAssetCollection::FDistributionHelper> Helper;
 		FPCGExJustificationDetails Justification;
 
-		PCGEx::TAttributeIO<FVector>* ArriveReader = nullptr;
-		PCGEx::TAttributeIO<FVector>* LeaveReader = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveReader;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveReader;
 
-		PCGEx::TAttributeWriter<int32>* WeightWriter = nullptr;
-		PCGEx::TAttributeWriter<double>* NormalizedWeightWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PCGEx::TAttributeWriter<FSoftObjectPath>* PathWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 #else
-		PCGEx:: TAttributeWriter<FString>* PathWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
 #endif
 
 		TArray<PCGExPaths::FSplineMeshSegment> Segments;
@@ -185,14 +183,12 @@ namespace PCGExPathSplineMesh
 		ESplineMeshAxis::Type SplineMeshAxisConstant = ESplineMeshAxis::Type::X;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override;
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

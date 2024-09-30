@@ -8,6 +8,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "PCGExBitwiseOperation.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -56,8 +58,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBitwiseOperationElement;
-
-	virtual ~FPCGExBitwiseOperationContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBitwiseOperationElement final : public FPCGExPointsProcessorElement
@@ -75,17 +75,17 @@ protected:
 
 namespace PCGExBitwiseOperation
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBitwiseOperationContext, UPCGExBitwiseOperationSettings>
 	{
-		PCGEx::TAttributeIO<int64>* Reader = nullptr;
-		PCGEx::TAttributeWriter<int64>* Writer = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int64>> Reader;
+		TSharedPtr<PCGExData::TBuffer<int64>> Writer;
 
 		int64 Mask = 0;
 		EPCGExBitOp Op = EPCGExBitOp::Set;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
@@ -93,7 +93,7 @@ namespace PCGExBitwiseOperation
 		{
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

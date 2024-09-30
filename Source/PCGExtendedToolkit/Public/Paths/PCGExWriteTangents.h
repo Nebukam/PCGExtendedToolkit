@@ -7,6 +7,8 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "Tangents/PCGExTangentsOperation.h"
 #include "PCGExWriteTangents.generated.h"
 
@@ -73,8 +75,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsContext final : public FPCG
 {
 	friend class FPCGExWriteTangentsElement;
 
-	virtual ~FPCGExWriteTangentsContext() override;
-
 	UPCGExTangentsOperation* Tangents = nullptr;
 	UPCGExTangentsOperation* StartTangents = nullptr;
 	UPCGExTangentsOperation* EndTangents = nullptr;
@@ -95,35 +95,32 @@ protected:
 
 namespace PCGExWriteTangents
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteTangentsContext, UPCGExWriteTangentsSettings>
 	{
-		const UPCGExWriteTangentsSettings* LocalSettings = nullptr;
-		FPCGExWriteTangentsContext* LocalTypedContext = nullptr;
-
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
 
-		PCGExData::TCache<FVector>* ArriveScaleReader = nullptr;
-		PCGExData::TCache<FVector>* LeaveScaleReader = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveScaleReader;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveScaleReader;
 		FVector ConstantArriveScale = FVector::OneVector;
 		FVector ConstantLeaveScale = FVector::OneVector;
 
-		PCGEx::TAttributeWriter<FVector>* ArriveWriter = nullptr;
-		PCGEx::TAttributeWriter<FVector>* LeaveWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> ArriveWriter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LeaveWriter;
 
 		UPCGExTangentsOperation* Tangents = nullptr;
 		UPCGExTangentsOperation* StartTangents = nullptr;
 		UPCGExTangentsOperation* EndTangents = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

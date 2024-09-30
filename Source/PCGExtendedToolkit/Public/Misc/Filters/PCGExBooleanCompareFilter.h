@@ -11,6 +11,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExBooleanCompareFilter.generated.h"
 
 
@@ -56,7 +57,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBooleanCompareFilterFactory : public UPCG
 public:
 	FPCGExBooleanCompareFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -64,27 +65,26 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TBooleanComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TBooleanComparisonFilter(const UPCGExBooleanCompareFilterFactory* InDefinition)
+		explicit TBooleanComparisonFilter(const TObjectPtr<const UPCGExBooleanCompareFilterFactory> InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExBooleanCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExBooleanCompareFilterFactory> TypedFilterFactory;
 
-		PCGExData::TCache<bool>* OperandA = nullptr;
-		PCGExData::TCache<bool>* OperandB = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<bool>> OperandB;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			const double A = OperandA->Values[PointIndex];
-			const double B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
+			const double A = OperandA->Read(PointIndex);
+			const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
 			return TypedFilterFactory->Config.Comparison == EPCGExEquality::Equal ? A == B : A != B;
 		}
 
 		virtual ~TBooleanComparisonFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

@@ -22,33 +22,20 @@ namespace PCGExDataBlending
 	{
 		FPCGMetadataAttributeBase* DefaultValuesSource = nullptr;
 		TArray<FPCGMetadataAttributeBase*> Attributes;
-		TArray<FDataBlendingOperationBase*> BlendOps;
+		TArray<TSharedPtr<FDataBlendingOperationBase>> BlendOps;
 		PCGEx::FAttributeIdentity Identity;
 		bool AllowsInterpolation = true;
 
-		FDataBlendingOperationBase* TargetBlendOp = nullptr;
-		PCGEx::FAttributeIOBase* Writer = nullptr;
+		TSharedPtr<FDataBlendingOperationBase> TargetBlendOp;
+		TSharedPtr<PCGExData::FBufferBase> Writer;
 
-		explicit FAttributeSourceMap(const PCGEx::FAttributeIdentity InIdentity)
+		explicit FAttributeSourceMap(const PCGEx::FAttributeIdentity& InIdentity)
 			: Identity(InIdentity)
 		{
-			Attributes.Empty();
-			BlendOps.Empty();
 		}
 
 		~FAttributeSourceMap()
 		{
-			PCGEX_DELETE(TargetBlendOp)
-
-			for (int i = 0; i < BlendOps.Num(); ++i)
-			{
-				const FDataBlendingOperationBase* Op = BlendOps[i];
-				if (!Op) { continue; }
-				PCGEX_DELETE(Op)
-			}
-
-			Attributes.Empty();
-			BlendOps.Empty();
 		}
 
 		template <typename T>
@@ -61,15 +48,8 @@ namespace PCGExDataBlending
 
 		void SetNum(const int32 InNum)
 		{
-			const int32 Diff = InNum - Attributes.Num();
-			PCGEX_SET_NUM_UNINITIALIZED(Attributes, InNum)
-			PCGEX_SET_NUM_UNINITIALIZED(BlendOps, InNum)
-
-			for (int i = 1; i <= Diff; ++i)
-			{
-				Attributes[InNum - i] = nullptr;
-				BlendOps[InNum - i] = nullptr;
-			}
+			Attributes.SetNum(InNum);
+			BlendOps.SetNum(InNum);
 		}
 	};
 
@@ -84,14 +64,14 @@ namespace PCGExDataBlending
 		explicit FCompoundBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails);
 		~FCompoundBlender();
 
-		void AddSource(PCGExData::FFacade* InFacade);
-		void AddSources(const TArray<PCGExData::FFacade*>& InFacades);
+		void AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade);
+		void AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades);
 
-		void PrepareMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList, const TSet<FName>* IgnoreAttributeSet = nullptr);
+		void PrepareMerge(const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FIdxCompoundList>& CompoundList, const TSet<FName>* IgnoreAttributeSet = nullptr);
 		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
 		void MergeSingle(const int32 WriteIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails);
 
-		void PrepareSoftMerge(PCGExData::FFacade* TargetData, PCGExData::FIdxCompoundList* CompoundList, const TSet<FName>* IgnoreAttributeSet = nullptr);
+		void PrepareSoftMerge(const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FIdxCompoundList>& CompoundList, const TSet<FName>* IgnoreAttributeSet = nullptr);
 		void SoftMergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
 		void SoftMergeSingle(const int32 CompoundIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails);
 
@@ -101,15 +81,15 @@ namespace PCGExDataBlending
 		bool bPreserveAttributesDefaultValue = false;
 		const FPCGExBlendingDetails* BlendingDetails = nullptr;
 
-		TArray<FAttributeSourceMap*> AttributeSourceMaps;
+		TArray<TSharedPtr<FAttributeSourceMap>> AttributeSourceMaps;
 		TSet<FString> UniqueTags;
 		TArray<FString> UniqueTagsList;
 		TArray<FPCGMetadataAttribute<bool>*> TagAttributes;
 		TMap<uint32, int32> IOIndices;
-		TArray<PCGExData::FFacade*> Sources;
+		TArray<TSharedPtr<PCGExData::FFacade>> Sources;
 
-		PCGExData::FIdxCompoundList* CurrentCompoundList = nullptr;
-		PCGExData::FFacade* CurrentTargetData = nullptr;
-		FPropertiesBlender* PropertiesBlender = nullptr;
+		TSharedPtr<PCGExData::FIdxCompoundList> CurrentCompoundList;
+		TSharedPtr<PCGExData::FFacade> CurrentTargetData;
+		TUniquePtr<FPropertiesBlender> PropertiesBlender;
 	};
 }

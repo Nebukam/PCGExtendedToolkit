@@ -5,15 +5,11 @@
 
 #include "Data/PCGExData.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExMovePivotElement"
 #define PCGEX_NAMESPACE MovePivot
 
 PCGExData::EInit UPCGExMovePivotSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-
-FPCGExMovePivotContext::~FPCGExMovePivotContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 PCGEX_INITIALIZE_ELEMENT(MovePivot)
 
@@ -31,6 +27,7 @@ bool FPCGExMovePivotElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMovePivotElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(MovePivot)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -38,19 +35,18 @@ bool FPCGExMovePivotElement::ExecuteInternal(FPCGContext* InContext) const
 
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExMovePivot::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExMovePivot::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExMovePivot::FProcessor>>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to subdivide."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -63,15 +59,14 @@ namespace PCGExMovePivot
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExMovePivot::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(MovePivot)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		UVW = Settings->UVW;
-		if (!UVW.Init(Context, PointDataFacade)) { return false; }
+		if (!UVW.Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		StartParallelLoopForPoints();
 

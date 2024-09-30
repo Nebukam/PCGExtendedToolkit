@@ -10,7 +10,7 @@
 
 // Declaration & use pair, boolean will be set by name validation
 #define PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE, _DEFAULT_VALUE) bool bWrite##_NAME = false;
-#define PCGEX_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT_VALUE) PCGEx:: TAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
+#define PCGEX_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT_VALUE) TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Writer;
 #define PCGEX_OUTPUT_DECL_AND_TOGGLE(_NAME, _TYPE, _DEFAULT_VALUE) PCGEX_OUTPUT_DECL_TOGGLE(_NAME, _TYPE, _DEFAULT_VALUE) PCGEX_OUTPUT_DECL(_NAME, _TYPE, _DEFAULT_VALUE)
 
 // Simply validate name from settings
@@ -19,8 +19,8 @@ Context->bWrite##_NAME = Settings->bWrite##_NAME; \
 if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
 { PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME )); Context->bWrite##_NAME = false; }
 
-#define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->Values[_INDEX] = _VALUE; }
-#define PCGEX_OUTPUT_INIT(_NAME, _TYPE, _DEFAULT_VALUE) if(TypedContext->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWriter<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT_VALUE, true, false); }
+#define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){_NAME##Writer->GetMutable(_INDEX) = _VALUE; }
+#define PCGEX_OUTPUT_INIT(_NAME, _TYPE, _DEFAULT_VALUE) if(Context->bWrite##_NAME){ _NAME##Writer = OutputFacade->GetWritable<_TYPE>(Settings->_NAME##AttributeName, _DEFAULT_VALUE, true, false); }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Surface Source"))
 enum class EPCGExSurfaceSource : uint8
@@ -114,19 +114,17 @@ namespace PCGExSampling
 
 	static bool GetIncludedActors(
 		const FPCGContext* InContext,
-		const PCGExData::FFacade* InFacade,
+		const TSharedRef<PCGExData::FFacade>& InFacade,
 		const FName ActorReferenceName,
 		TMap<AActor*, int32>& OutActorSet)
 	{
 		FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 		Selector.SetAttributeName(ActorReferenceName);
 
-		PCGEx::FLocalToStringGetter* PathGetter = new PCGEx::FLocalToStringGetter();
-		PathGetter->Capture(Selector);
-		if (!PathGetter->SoftGrab(InFacade->Source))
+		const TUniquePtr<PCGEx::TAttributeGetter<FString>> PathGetter = MakeUnique<PCGEx::TAttributeGetter<FString>>();
+		if (!PathGetter->Prepare(Selector, InFacade->Source))
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Actor reference attribute does not exist."));
-			PCGEX_DELETE(PathGetter)
 			return false;
 		}
 
@@ -143,7 +141,6 @@ namespace PCGExSampling
 			}
 		}
 
-		PCGEX_DELETE(PathGetter)
 		return true;
 	}
 }

@@ -8,8 +8,8 @@
 
 #pragma region PCGEX MACROS
 
-#define PCGEX_LOG_CTR(_NAME) // if(false){ UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Constructor")) }
-#define PCGEX_LOG_DTR(_NAME) // if(false){ UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Destructor")) }
+#define PCGEX_LOG_CTR(_NAME) // UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Constructor"))
+#define PCGEX_LOG_DTR(_NAME) // UE_LOG(LogTemp, Warning, TEXT(#_NAME"::Destructor"))
 
 #define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
 #define FSTRING(_TEXT) FString(_TEXT)
@@ -19,14 +19,8 @@
 #define PCGEX_NEW_FROM(_TYPE, _NAME, _OUTER) _TYPE* _NAME = nullptr; { FGCScopeGuard GCGuard; _NAME = NewObject<_TYPE>(_OUTER->GetOuter(), _OUTER->GetClass()); _NAME->AddToRoot(); }
 
 #define PCGEX_UNROOT(_VALUE) _VALUE->RemoveFromRoot(); _VALUE->ClearInternalFlags(EInternalObjectFlags::Async);
-
-#define PCGEX_DELETE(_VALUE) if(_VALUE){ delete _VALUE; _VALUE = nullptr; }
 #define PCGEX_DELETE_UOBJECT(_VALUE) if(_VALUE){ PCGEX_UNROOT(_VALUE) _VALUE->MarkAsGarbage(); _VALUE = nullptr; } // ConditionalBeginDestroy
 #define PCGEX_DELETE_OPERATION(_VALUE) if(_VALUE){ _VALUE->Cleanup(); PCGEX_DELETE_UOBJECT(_VALUE) _VALUE = nullptr; } // ConditionalBeginDestroy
-#define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ if(Item){ delete Item; }} _VALUE.Empty();
-#define PCGEX_DELETE_TARRAY_FULL(_VALUE) if(_VALUE){ for(const auto* Item : (*_VALUE)){ if(Item){ delete Item; }} PCGEX_DELETE(_VALUE); }
-#define PCGEX_DELETE_TMAP(_VALUE, _TYPE){if(!_VALUE.IsEmpty()){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }}
-#define PCGEX_DELETE_FACADE_AND_SOURCE(_VALUE) if(_VALUE){ PCGEX_DELETE(_VALUE->Source) PCGEX_DELETE(_VALUE) }
 
 #define PCGEX_FOREACH_XYZ(MACRO)\
 MACRO(X)\
@@ -130,13 +124,6 @@ if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
 
 #pragma endregion
 
-#define PCGEX_SET_NUM(_ARRAY, _NUM) { _ARRAY.SetNum(_NUM); }
-#define PCGEX_SET_NUM_PTR(_ARRAY, _NUM) { _ARRAY->SetNum(_NUM); }
-
-#define PCGEX_SET_NUM_UNINITIALIZED(_ARRAY, _NUM) { _ARRAY.SetNumUninitialized(_NUM); }
-#define PCGEX_SET_NUM_NULLPTR(_ARRAY, _NUM) { _ARRAY.Init(nullptr, _NUM); }
-#define PCGEX_SET_NUM_UNINITIALIZED_PTR(_ARRAY, _NUM) { _ARRAY->SetNumUninitialized(_NUM); }
-
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ return bCacheResult ? FName(FString("* ")+GetDefaultNodeTitle().ToString()) : FName(GetDefaultNodeTitle().ToString()); }\
@@ -182,11 +169,9 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_VALIDATE_NAME_C(_CTX, _NAME) if (!PCGEx::IsValidName(_NAME)){	PCGE_LOG_C(Error, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	}
 #define PCGEX_SOFT_VALIDATE_NAME(_BOOL, _NAME, _CTX) if(_BOOL){if (!PCGEx::IsValidName(_NAME)){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
-#define PCGEX_TERMINATE_ASYNC PCGEX_DELETE(AsyncManager)
+#define PCGEX_TERMINATE_ASYNC if (AsyncManager) { AsyncManager->Reset(true); }
 
-#define PCGEX_TYPED_CONTEXT_AND_SETTINGS(_NAME) FPCGEx##_NAME##Context* TypedContext = GetContext<FPCGEx##_NAME##Context>(); const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
-
-#define PCGEX_ASYNC_WAIT if (!Context->IsAsyncWorkComplete()) {return false;}
+#define PCGEX_TYPED_CONTEXT_AND_SETTINGS(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(ExecutionContext); const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>(); check(Settings);
 
 #if WITH_EDITOR
 #define PCGEX_PIN_TOOLTIP(_TOOLTIP) Pin.Tooltip = FTEXT(_TOOLTIP);

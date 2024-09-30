@@ -3,17 +3,13 @@
 
 #include "Misc/PCGExCollocationCount.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExCollocationCountElement"
 #define PCGEX_NAMESPACE CollocationCount
 
 PCGExData::EInit UPCGExCollocationCountSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(CollocationCount)
-
-FPCGExCollocationCountContext::~FPCGExCollocationCountContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExCollocationCountElement::Boot(FPCGExContext* InContext) const
 {
@@ -32,24 +28,24 @@ bool FPCGExCollocationCountElement::ExecuteInternal(FPCGContext* InContext) cons
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCollocationCountElement::Execute);
 
 	PCGEX_CONTEXT(CollocationCount)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExCollocationCount::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExCollocationCount::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExCollocationCount::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to process."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -58,21 +54,20 @@ bool FPCGExCollocationCountElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExCollocationCount
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExCollocationCount::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(CollocationCount)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		NumPoints = PointIO->GetNum();
+		NumPoints = PointDataFacade->GetNum();
 		ToleranceConstant = Settings->Tolerance;
 
-		CollocationWriter = PointDataFacade->GetWriter(Settings->CollicationNumAttributeName, 0, true, true);
+		CollocationWriter = PointDataFacade->GetWritable(Settings->CollicationNumAttributeName, 0, true, true);
 
 		if (Settings->bWriteLinearOccurences)
 		{
-			LinearOccurencesWriter = PointDataFacade->GetWriter(Settings->LinearOccurencesAttributeName, 0, true, true);
+			LinearOccurencesWriter = PointDataFacade->GetWritable(Settings->LinearOccurencesAttributeName, 0, true, true);
 		}
 
 		Octree = &PointDataFacade->Source->GetIn()->GetOctree();
@@ -88,7 +83,7 @@ namespace PCGExCollocationCount
 		const double Tolerance = ToleranceConstant;
 		FBoxCenterAndExtent BCAE = FBoxCenterAndExtent(Center, FVector(Tolerance));
 
-		CollocationWriter->Values[Index] = 0;
+		CollocationWriter->GetMutable(Index) = 0;
 
 		auto ProcessNeighbors = [&](const FPCGPointRef& Other)
 		{
@@ -96,7 +91,7 @@ namespace PCGExCollocationCount
 			if (OtherIndex == Index) { return; }
 			if (FVector::Dist(Center, Other.Point->Transform.GetLocation()) > Tolerance) { return; }
 
-			CollocationWriter->Values[Index] += 1;
+			CollocationWriter->GetMutable(Index) += 1;
 		};
 
 		auto ProcessNeighbors2 = [&](const FPCGPointRef& Other)
@@ -105,14 +100,14 @@ namespace PCGExCollocationCount
 			if (OtherIndex == Index) { return; }
 			if (FVector::Dist(Center, Other.Point->Transform.GetLocation()) > Tolerance) { return; }
 
-			CollocationWriter->Values[Index] += 1;
+			CollocationWriter->GetMutable(Index) += 1;
 
-			if (OtherIndex < Index) { LinearOccurencesWriter->Values[Index] += 1; }
+			if (OtherIndex < Index) { LinearOccurencesWriter->GetMutable(Index) += 1; }
 		};
 
 		if (LinearOccurencesWriter)
 		{
-			LinearOccurencesWriter->Values[Index] = 0;
+			LinearOccurencesWriter->GetMutable(Index) = 0;
 			Octree->FindElementsWithBoundsTest(BCAE, ProcessNeighbors2);
 		}
 		else
@@ -123,7 +118,7 @@ namespace PCGExCollocationCount
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

@@ -4,6 +4,8 @@
 #include "Paths/PCGExSmooth.h"
 
 #include "Data/Blending/PCGExMetadataBlender.h"
+
+
 #include "Paths/Smoothing/PCGExMovingAverageSmoothing.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSmoothElement"
@@ -12,11 +14,6 @@
 PCGExData::EInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(Smooth)
-
-FPCGExSmoothContext::~FPCGExSmoothContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExSmoothElement::Boot(FPCGExContext* InContext) const
 {
@@ -33,6 +30,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSmoothElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -41,7 +39,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
@@ -50,11 +48,10 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExSmooth::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->SmoothingMethod;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to smooth."));
 			return true;
@@ -66,7 +63,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -77,25 +74,21 @@ namespace PCGExSmooth
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(MetadataBlender)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSmooth::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Smooth)
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
-		NumPoints = PointIO->GetNum();
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		NumPoints = PointDataFacade->GetNum();
 
-		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
+		MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade);
 
 		if (Settings->InfluenceType == EPCGExFetchType::Attribute)
@@ -103,7 +96,7 @@ namespace PCGExSmooth
 			Influence = PointDataFacade->GetScopedBroadcaster<double>(Settings->InfluenceAttribute);
 			if (!Influence)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing influence attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Input missing influence attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
 				return false;
 			}
 		}
@@ -113,7 +106,7 @@ namespace PCGExSmooth
 			Smoothing = PointDataFacade->GetScopedBroadcaster<double>(Settings->SmoothingAmountAttribute);
 			if (!Smoothing)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing smoothing amount attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Input missing smoothing amount attribute: \"{0}\"."), FText::FromName(Settings->InfluenceAttribute.GetName())));
 				return false;
 			}
 		}
@@ -135,23 +128,25 @@ namespace PCGExSmooth
 	{
 		if (!PointFilterCache[Index]) { return; }
 
-		PCGExData::FPointRef PtRef = PointIO->GetOutPointRef(Index);
-		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Values[Index], 0, TNumericLimits<double>::Max()) * LocalSettings->ScaleSmoothingAmountAttribute : LocalSettings->SmoothingAmountConstant;
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
-		if ((LocalSettings->bPreserveEnd && Index == NumPoints - 1) ||
-			(LocalSettings->bPreserveStart && Index == 0))
+		PCGExData::FPointRef PtRef = PointIO->GetOutPointRef(Index);
+		const double LocalSmoothing = Smoothing ? FMath::Clamp(Smoothing->Read(Index), 0, MAX_dbl) * Settings->ScaleSmoothingAmountAttribute : Settings->SmoothingAmountConstant;
+
+		if ((Settings->bPreserveEnd && Index == NumPoints - 1) ||
+			(Settings->bPreserveStart && Index == 0))
 		{
-			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender, bClosedLoop);
+			TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, 0, MetadataBlender.Get(), bClosedLoop);
 			return;
 		}
 
-		const double LocalInfluence = Influence ? Influence->Values[Index] : LocalSettings->InfluenceConstant;
-		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, LocalInfluence, MetadataBlender, bClosedLoop);
+		const double LocalInfluence = Influence ? Influence->Read(Index) : Settings->InfluenceConstant;
+		TypedOperation->SmoothSingle(PointIO, PtRef, LocalSmoothing, LocalInfluence, MetadataBlender.Get(), bClosedLoop);
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 #undef LOCTEXT_NAMESPACE

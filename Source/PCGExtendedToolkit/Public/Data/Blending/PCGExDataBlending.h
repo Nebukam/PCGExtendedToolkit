@@ -3,11 +3,14 @@
 
 #pragma once
 
+#include <variant>
+
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
+
 
 #include "PCGExDataBlending.generated.h"
 
@@ -33,6 +36,23 @@ MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
 MACRO(float, Steepness, Float,Steepness) \
 MACRO(int32, Seed, Integer32,Seed)
 
+#define PCGEX_FOREACH_BLENDMODE(MACRO)\
+MACRO(None) \
+MACRO(Average) \
+MACRO(Weight) \
+MACRO(Min) \
+MACRO(Max) \
+MACRO(Copy) \
+MACRO(Sum) \
+MACRO(WeightedSum) \
+MACRO(Lerp) \
+MACRO(Subtract) \
+MACRO(UnsignedMin) \
+MACRO(UnsignedMax) \
+MACRO(AbsoluteMin) \
+MACRO(AbsoluteMax) \
+MACRO(WeightedSubtract)
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Blend Over Mode"))
 enum class EPCGExBlendOver : uint8
 {
@@ -57,20 +77,21 @@ namespace PCGExData
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Blending Type"))
 enum class EPCGExDataBlendingType : uint8
 {
-	None        = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
-	Average     = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
-	Weight      = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
-	Min         = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
-	Max         = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
-	Copy        = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
-	Sum         = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
-	WeightedSum = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
-	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
-	Subtract    = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
-	UnsignedMin = 10 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
-	UnsignedMax = 11 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
-	AbsoluteMin = 12 UMETA(DisplayName = "Absolute Min", ToolTip="Component-wise MIN of absolute value."),
-	AbsoluteMax = 13 UMETA(DisplayName = "Absolute Max", ToolTip="Component-wise MAX of absolute value."),
+	None             = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
+	Average          = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
+	Weight           = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
+	Min              = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
+	Max              = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
+	Copy             = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
+	Sum              = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum"),
+	WeightedSum      = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
+	Lerp             = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
+	Subtract         = 9 UMETA(DisplayName = "Subtract", ToolTip="Subtract."),
+	UnsignedMin      = 10 UMETA(DisplayName = "Unsigned Min", ToolTip="Component-wise MIN on unsigned value, but keeps the sign on written data."),
+	UnsignedMax      = 11 UMETA(DisplayName = "Unsigned Max", ToolTip="Component-wise MAX on unsigned value, but keeps the sign on written data."),
+	AbsoluteMin      = 12 UMETA(DisplayName = "Absolute Min", ToolTip="Component-wise MIN of absolute value."),
+	AbsoluteMax      = 13 UMETA(DisplayName = "Absolute Max", ToolTip="Component-wise MAX of absolute value."),
+	WeightedSubtract = 14 UMETA(DisplayName = "Weighted Subtract", ToolTip="Substraction of all the data, weighted"),
 };
 
 USTRUCT(BlueprintType)
@@ -314,19 +335,19 @@ namespace PCGExDataBlending
 		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
-		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
 			PrimaryData = InPrimaryFacade->Source->GetOut();
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
 		}
 
-		virtual void PrepareForData(PCGEx::FAttributeIOBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		virtual void PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
 			PrimaryData = nullptr;
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
 		}
 
-		virtual void SoftPrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
+		virtual void SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource = PCGExData::ESource::In)
 		{
 			PrimaryData = InPrimaryFacade->Source->GetOut();
 			SecondaryData = InSecondaryFacade->Source->GetData(SecondarySource);
@@ -385,19 +406,19 @@ namespace PCGExDataBlending
 
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::None; };
 
-		virtual void PrepareForData(PCGEx::FAttributeIOBase* InWriter, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(const TSharedPtr<PCGExData::FBufferBase>& InWriter, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 
 			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryFacade, SecondarySource);
 
-			Writer = static_cast<PCGEx::TAttributeWriter<T>*>(InWriter);
+			Writer = StaticCastSharedPtr<PCGExData::TBuffer<T>>(InWriter);
 
 			bSupportInterpolation = Writer->GetAllowsInterpolation();
 			SourceAttribute = InSecondaryFacade->FindMutableAttribute<T>(AttributeName, SecondarySource);
 		}
 
-		virtual void PrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 
@@ -405,15 +426,15 @@ namespace PCGExDataBlending
 
 			SourceAttribute = InSecondaryFacade->FindConstAttribute<T>(AttributeName, SecondarySource);
 
-			if (SourceAttribute) { Writer = InPrimaryFacade->GetWriter<T>(SourceAttribute, false); }
-			else { Writer = InPrimaryFacade->GetWriter<T>(AttributeName, T{}, true, false); }
+			if (SourceAttribute) { Writer = InPrimaryFacade->GetWritable<T>(SourceAttribute, false); }
+			else { Writer = InPrimaryFacade->GetWritable<T>(AttributeName, T{}, true, false); }
 
-			Reader = InSecondaryFacade->GetReader<T>(AttributeName, SecondarySource); // Will return writer if sources ==
+			Reader = InSecondaryFacade->GetReadable<T>(AttributeName, SecondarySource); // Will return writer if sources ==
 
 			bSupportInterpolation = Writer->GetAllowsInterpolation();
 		}
 
-		virtual void SoftPrepareForData(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource) override
+		virtual void SoftPrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 
@@ -431,19 +452,19 @@ namespace PCGExDataBlending
 
 		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const override
 		{
-			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Range);
+			TArrayView<T> View = MakeArrayView(Writer->GetOutValues()->GetData() + StartIndex, Range);
 			PrepareValuesRangeOperation(View, StartIndex);
 		}
 
 		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const bool bFirstOperation) const override
 		{
-			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Weights.Num());
+			TArrayView<T> View = MakeArrayView(Writer->GetOutValues()->GetData() + StartIndex, Weights.Num());
 			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Weights, bFirstOperation);
 		}
 
 		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<const int32>& Counts, const TArrayView<double>& TotalWeights) const override
 		{
-			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Counts.Num());
+			TArrayView<T> View = MakeArrayView(Writer->GetOutValues()->GetData() + StartIndex, Counts.Num());
 			FinalizeValuesRangeOperation(StartIndex, View, Counts, TotalWeights);
 		}
 
@@ -456,22 +477,22 @@ namespace PCGExDataBlending
 		{
 			if (!bSupportInterpolation)
 			{
-				const T B = Reader->Values[SecondaryReadIndex];
+				const T B = Reader->Read(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); ++i) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
-				const T A = Writer->Values[PrimaryReadIndex];
-				const T B = Reader->Values[SecondaryReadIndex];
+				const T A = Writer->GetMutable(PrimaryReadIndex);
+				const T B = Reader->Read(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); ++i) { Values[i] = SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
 		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
-			const T A = Writer->Values[PrimaryReadIndex];
+			const T A = Writer->GetMutable(PrimaryReadIndex);
 			const T B = SourceAttribute ? SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-			Writer->Values[WriteIndex] = SingleOperation(A, B, Weight);
+			Writer->GetMutable(WriteIndex) = SingleOperation(A, B, Weight);
 		}
 
 		FORCEINLINE virtual void FinalizeValuesRangeOperation(const int32 StartIndex, TArrayView<T>& Values, const TArrayView<const int32>& Counts, const TArrayView<double>& Weights) const
@@ -512,8 +533,8 @@ namespace PCGExDataBlending
 	protected:
 		const FPCGMetadataAttribute<T>* SourceAttribute = nullptr;
 		FPCGMetadataAttribute<T>* TargetAttribute = nullptr;
-		PCGEx::TAttributeWriter<T>* Writer = nullptr;
-		PCGEx::TAttributeIO<T>* Reader = nullptr;
+		TSharedPtr<PCGExData::TBuffer<T>> Writer;
+		TSharedPtr<PCGExData::TBuffer<T>> Reader;
 	};
 
 	template <typename T>
@@ -523,40 +544,41 @@ namespace PCGExDataBlending
 		{
 			if (bFirstOperation || !this->bSupportInterpolation)
 			{
-				const T B = this->Reader->Values[SecondaryReadIndex];
+				const T B = this->Reader->Read(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); ++i) { Values[i] = B; } // Raw copy value
 			}
 			else
 			{
-				T A = this->Writer->Values[PrimaryReadIndex];
-				const T B = this->Reader->Values[SecondaryReadIndex];
+				T A = this->Writer->GetMutable(PrimaryReadIndex);
+				const T B = this->Reader->Read(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); ++i) { Values[i] = this->SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
 		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
-			const T A = this->Writer->Values[PrimaryReadIndex];
+			const T A = this->Writer->GetMutable(PrimaryReadIndex);
 			const T B = this->SourceAttribute ? this->SourceAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
 
 			if (bFirstOperation)
 			{
-				this->Writer->Values[WriteIndex] = B;
+				this->Writer->GetMutable(WriteIndex) = B;
 				return;
 			}
 
-			this->Writer->Values[WriteIndex] = this->SingleOperation(A, B, Weight);
+			this->Writer->GetMutable(WriteIndex) = this->SingleOperation(A, B, Weight);
 		}
 	};
 
 	static void AssembleBlendingDetails(
 		const FPCGExPropertiesBlendingDetails& PropertiesBlending,
 		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
-		const PCGExData::FPointIO* SourceIO,
+		const TSharedRef<PCGExData::FPointIO>& SourceIO,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
 	{
-		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
+		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
+
 		OutDetails = FPCGExBlendingDetails(PropertiesBlending);
 		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
 
@@ -572,18 +594,16 @@ namespace PCGExDataBlending
 			OutDetails.AttributesOverrides.Add(Id, *PerAttributeBlending.Find(Id));
 			OutDetails.FilteredAttributes.Add(Id);
 		}
-
-		PCGEX_DELETE(AttributesInfos)
 	}
 
 	static void AssembleBlendingDetails(
 		const EPCGExDataBlendingType& DefaultBlending,
 		const TSet<FName>& Attributes,
-		const PCGExData::FPointIO* SourceIO,
+		const TSharedRef<PCGExData::FPointIO>& SourceIO,
 		FPCGExBlendingDetails& OutDetails,
 		TSet<FName>& OutMissingAttributes)
 	{
-		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
+		const TSharedPtr<PCGEx::FAttributesInfos> AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO->GetIn()->Metadata);
 		OutDetails = FPCGExBlendingDetails(FPCGExPropertiesBlendingDetails(EPCGExDataBlendingType::None));
 		OutDetails.BlendingFilter = EPCGExAttributeFilter::Include;
 
@@ -596,7 +616,5 @@ namespace PCGExDataBlending
 			OutDetails.AttributesOverrides.Add(Id, DefaultBlending);
 			OutDetails.FilteredAttributes.Add(Id);
 		}
-
-		PCGEX_DELETE(AttributesInfos)
 	}
 }

@@ -14,6 +14,7 @@
 #include "PCGExNeighborSampleFactoryProvider.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
 #include "PCGExNeighborSampleAttribute.generated.h"
 
 ///
@@ -27,14 +28,14 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleAttribute : public UPCGExNe
 	GENERATED_BODY()
 
 public:
-	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+	TUniquePtr<PCGExDataBlending::FMetadataBlender> Blender;
 
 	TSet<FName> SourceAttributes;
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
+	virtual void PrepareForCluster(const FPCGContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade) override;
 
 	FORCEINLINE virtual void PrepareNode(const PCGExCluster::FNode& TargetNode) const override
 	{

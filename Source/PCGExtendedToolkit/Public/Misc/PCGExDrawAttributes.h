@@ -107,16 +107,16 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDraw
 public:
 	FPCGExAttributeDebugDrawConfig* Config;
 
-	PCGEx::FLocalVectorGetter VectorGetter;
-	PCGEx::FLocalSingleFieldGetter IndexGetter;
-	PCGEx::FLocalSingleFieldGetter SingleGetter;
-	PCGEx::FLocalSingleFieldGetter SizeGetter;
-	PCGEx::FLocalVectorGetter ColorGetter;
-	PCGEx::FLocalToStringGetter TextGetter;
+	TSharedPtr<PCGEx::TAttributeGetter<FVector>> VectorGetter;
+	TSharedPtr<PCGEx::TAttributeGetter<int32>> IndexGetter;
+	TSharedPtr<PCGEx::TAttributeGetter<double>> SingleGetter;
+	TSharedPtr<PCGEx::TAttributeGetter<double>> SizeGetter;
+	TSharedPtr<PCGEx::TAttributeGetter<FVector>> ColorGetter;
+	TSharedPtr<PCGEx::TAttributeGetter<FString>> TextGetter;
 
 	bool bValid = false;
 
-	bool Bind(const PCGExData::FPointIO* PointIO);
+	bool Bind(const TSharedRef<PCGExData::FPointIO>& PointIO);
 
 	double GetSize(const PCGExData::FPointRef& Point) const;
 	FColor GetColor(const PCGExData::FPointRef& Point) const;
@@ -131,7 +131,6 @@ protected:
 	void DrawConnection(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point, const FVector& End) const;
 	void DrawPoint(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
 	void DrawSingle(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
-	void DrawLabel(const UWorld* World, const FVector& Start, const PCGExData::FPointRef& Point) const;
 
 	template <typename T, typename CompilerSafety = void>
 	static FString AsString(const T& InValue) { return InValue.ToString(); }
@@ -187,9 +186,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawAttributesContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
-
-	virtual ~FPCGExDrawAttributesContext() override;
-
 	TArray<FPCGExAttributeDebugDraw> DebugList;
 };
 

@@ -7,6 +7,7 @@
 #include "PCGExSubPointsBlendOperation.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
 #include "PCGExSubPointsBlendInterpolate.generated.h"
 
 /**
@@ -34,7 +35,7 @@ public:
 		PCGExDataBlending::FMetadataBlender* InBlender,
 		const int32 StartIndex) const override;
 
-	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FFacade* InPrimaryFacade, PCGExData::FFacade* InSecondaryFacade, const PCGExData::ESource SecondarySource, const TSet<FName>* IgnoreAttributeSet) override;
+	virtual TSharedPtr<PCGExDataBlending::FMetadataBlender> CreateBlender(const TSharedRef<PCGExData::FFacade>& InPrimaryFacade, const TSharedRef<PCGExData::FFacade>& InSecondaryFacade, const PCGExData::ESource SecondarySource, const TSet<FName>* IgnoreAttributeSet) override;
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending() override;

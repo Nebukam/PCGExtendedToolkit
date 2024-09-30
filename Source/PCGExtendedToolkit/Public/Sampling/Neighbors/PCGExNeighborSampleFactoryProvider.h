@@ -11,6 +11,8 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExOperation.h"
+
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
@@ -21,11 +23,6 @@
 	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewOperation->SamplingConfig.WeightCurve, NewOperation->WeightCurveObj, PCGEx::WeightDistributionLinear) \
 	NewOperation->PointFilterFactories.Append(PointFilterFactories); \
 	NewOperation->ValueFilterFactories.Append(ValueFilterFactories);
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
 
 namespace PCGExNeighborSample
 {
@@ -118,22 +115,22 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSampleOperation : public UPCGExOp
 	GENERATED_BODY()
 
 public:
-	PCGExClusterFilter::TManager* PointFilters = nullptr;
-	PCGExClusterFilter::TManager* ValueFilters = nullptr;
+	TUniquePtr<PCGExClusterFilter::TManager> PointFilters;
+	TUniquePtr<PCGExClusterFilter::TManager> ValueFilters;
 
-	PCGExData::FFacade* VtxDataFacade = nullptr;
-	PCGExData::FFacade* EdgeDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> VtxDataFacade;
+	TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 	FPCGExSamplingConfig SamplingConfig;
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade);
+	virtual void PrepareForCluster(const FPCGContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade);
 	virtual bool IsOperationValid();
 
-	PCGExData::FPointIO* GetSourceIO() const;
-	PCGExData::FFacade* GetSourceDataFacade() const;
+	TSharedRef<PCGExData::FPointIO> GetSourceIO() const;
+	TSharedRef<PCGExData::FFacade> GetSourceDataFacade() const;
 
 	virtual void ProcessNode(const int32 NodeIndex) const;
 
@@ -157,12 +154,12 @@ public:
 
 	virtual void Cleanup() override;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> PointFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ValueFilterFactories;
 
 protected:
 	bool bIsValidOperation = true;
-	PCGExCluster::FCluster* Cluster = nullptr;
+	TSharedPtr<PCGExCluster::FCluster> Cluster;
 
 	FORCEINLINE virtual double SampleCurve(const double InTime) const { return WeightCurveObj->GetFloatValue(InTime); }
 };
@@ -177,8 +174,8 @@ public:
 
 	FPCGExSamplingConfig SamplingConfig;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> PointFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ValueFilterFactories;
 
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const;
 };

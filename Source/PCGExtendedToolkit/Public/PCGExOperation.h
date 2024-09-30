@@ -37,8 +37,8 @@ public:
 	virtual void Cleanup();
 	virtual void CopySettingsFrom(const UPCGExOperation* Other);
 
-	PCGExData::FFacade* PrimaryDataFacade = nullptr;
-	PCGExData::FFacade* SecondaryDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> PrimaryDataFacade;
+	TSharedPtr<PCGExData::FFacade> SecondaryDataFacade;
 
 	template <typename T>
 	T* CopyOperation() const

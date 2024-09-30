@@ -27,7 +27,7 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 	const int32 Min = Settings->bRemoveBelow ? FMath::Max(1, Settings->MinPointCount) : 1;
 	const int32 Max = Settings->bRemoveAbove ? FMath::Max(1, Settings->MaxPointCount) : TNumericLimits<int32>::Max();
 
-	for (PCGExData::FPointIO* PointIO : Context->MainPoints->Pairs)
+	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
 	{
 		if (!FMath::IsWithin(PointIO->GetNum(), Min, Max)) { continue; }
 		PointIO->InitializeOutput(PCGExData::EInit::Forward);

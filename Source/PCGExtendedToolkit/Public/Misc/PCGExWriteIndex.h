@@ -7,6 +7,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "PCGExWriteIndex.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -53,8 +55,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteIndexContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExWriteIndexElement;
-
-	virtual ~FPCGExWriteIndexContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement
@@ -72,15 +72,15 @@ protected:
 
 namespace PCGExWriteIndex
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExWriteIndexContext, UPCGExWriteIndexSettings>
 	{
 		double NumPoints = 0;
-		PCGEx::TAttributeWriter<int32>* IntWriter = nullptr;
-		PCGEx::TAttributeWriter<double>* DoubleWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> IntWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> DoubleWriter;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
@@ -88,7 +88,7 @@ namespace PCGExWriteIndex
 		{
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

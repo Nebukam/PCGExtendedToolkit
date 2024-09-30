@@ -10,6 +10,8 @@
 #include "PCGExSampling.h"
 #include "PCGExDetails.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
+
 
 #include "PCGExSampleNearestBounds.generated.h"
 
@@ -31,20 +33,6 @@ enum class EPCGExBoundsSampleMethod : uint8
 	LargestBounds  = 3 UMETA(DisplayName = "Largest Bounds", ToolTip="Picks & process the largest bounds only (extents length)"),
 	SmallestBounds = 4 UMETA(DisplayName = "Smallest Bounds", ToolTip="Picks & process the smallest bounds only (extents length)"),
 };
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
-
-namespace PCGExDataBlending
-{
-	struct FPropertiesBlender;
-}
-
-class UPCGExFilterFactoryBase;
-
-class UPCGExNodeStateFactory;
 
 namespace PCGExNearestBounds
 {
@@ -76,9 +64,9 @@ namespace PCGExNearestBounds
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		double SampledRangeMin = TNumericLimits<double>::Max();
+		double SampledRangeMin = MAX_dbl;
 		double SampledRangeMax = 0;
-		double SampledLengthMin = TNumericLimits<double>::Max();
+		double SampledLengthMin = MAX_dbl;
 		double SampledLengthMax = 0;
 		int32 UpdateCount = 0;
 
@@ -280,9 +268,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestBoundsContext final : publi
 {
 	friend class FPCGExSampleNearestBoundsElement;
 
-	virtual ~FPCGExSampleNearestBoundsContext() override;
-
-	PCGExData::FFacade* BoundsFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> BoundsFacade;
 
 	FPCGExBlendingDetails BlendingDetails;
 	const TArray<FPCGPoint>* BoundsPoints = nullptr;
@@ -307,29 +293,26 @@ protected:
 
 namespace PCGExSampleNearestBounds
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestBoundsContext, UPCGExSampleNearestBoundsSettings>
 	{
-		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
+		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
 		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::Bounds;
 
 		bool bSingleSample = false;
 
-		FPCGExSampleNearestBoundsContext* LocalTypedContext = nullptr;
-		const UPCGExSampleNearestBoundsSettings* LocalSettings = nullptr;
-
-		PCGExData::TCache<FVector>* LookAtUpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
 
 		FVector SafeUpVector = FVector::UpVector;
 
-		PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> Blender;
 
 		int8 bAnySuccess = 0;
 
 		PCGEX_FOREACH_FIELD_NEARESTBOUNDS(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = true;
 		}
@@ -338,7 +321,7 @@ namespace PCGExSampleNearestBounds
 
 		void SamplingFailed(const int32 Index, const FPCGPoint& Point) const;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

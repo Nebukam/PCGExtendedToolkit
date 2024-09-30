@@ -10,7 +10,7 @@ bool UPCGExProbeOperation::RequiresDirectProcessing() { return false; }
 
 bool UPCGExProbeOperation::RequiresChainProcessing() { return false; }
 
-bool UPCGExProbeOperation::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
+bool UPCGExProbeOperation::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	PointIO = InPointIO;
 
@@ -51,9 +51,4 @@ void UPCGExProbeOperation::ProcessBestCandidate(const int32 Index, const FPCGPoi
 
 void UPCGExProbeOperation::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
-}
-
-void UPCGExProbeOperation::Cleanup()
-{
-	Super::Cleanup();
 }

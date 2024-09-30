@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExBuildConvexHull2D.h"
 
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
@@ -11,13 +12,6 @@
 #define PCGEX_NAMESPACE BuildConvexHull2D
 
 PCGExData::EInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
-
-FPCGExBuildConvexHull2DContext::~FPCGExBuildConvexHull2DContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(PathsIO)
-}
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
 {
@@ -35,7 +29,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
-	Context->PathsIO = new PCGExData::FPointIOCollection(Context);
+	Context->PathsIO = MakeShared<PCGExData::FPointIOCollection>(Context);
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	return true;
@@ -47,6 +41,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildConvexHull2DElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -55,7 +50,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConvexHull2D::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 3)
 				{
@@ -64,11 +59,10 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExConvexHull2D::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConvexHull2D::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
 			return true;
@@ -80,7 +74,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 	Context->PathsIO->OutputToContext();
@@ -93,8 +87,8 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 	TSet<uint64> UniqueEdges;
 	const TArray<PCGExGraph::FIndexedEdge>& Edges = GraphBuilder->Graph->Edges;
 
-	const TArray<FPCGPoint>& InPoints = GraphBuilder->PointIO->GetIn()->GetPoints();
-	const PCGExData::FPointIO* PathIO = PathsIO->Emplace_GetRef(GraphBuilder->PointIO, PCGExData::EInit::NewOutput);
+	const TArray<FPCGPoint>& InPoints = GraphBuilder->NodeDataFacade->GetIn()->GetPoints();
+	const TSharedPtr<PCGExData::FPointIO> PathIO = PathsIO->Emplace_GetRef(GraphBuilder->NodeDataFacade->GetIn(), PCGExData::EInit::NewOutput);
 
 	TArray<FPCGPoint>& MutablePathPoints = PathIO->GetOut()->GetMutablePoints();
 	TSet<int32> VisitedEdges;
@@ -140,45 +134,34 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 
 namespace PCGExConvexHull2D
 {
-	FProcessor::~FProcessor()
-	{
-		PCGEX_DELETE(Delaunay)
-
-		PCGEX_DELETE(GraphBuilder)
-
-		Edges.Empty();
-	}
-
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConvexHull2D::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		ProjectionDetails = Settings->ProjectionDetails;
-		ProjectionDetails.Init(Context, PointDataFacade);
+		ProjectionDetails.Init(ExecutionContext, PointDataFacade);
 
 		// Build delaunay
 
 		TArray<FVector> ActivePositions;
-		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+		PCGExGeo::PointsToPositions(PointDataFacade->Source->GetIn()->GetPoints(), ActivePositions);
 
-		Delaunay = new PCGExGeo::TDelaunay2();
+		Delaunay = MakeUnique<PCGExGeo::TDelaunay2>();
 
 		if (!Delaunay->Process(ActivePositions, ProjectionDetails))
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
-			PCGEX_DELETE(Delaunay)
+			PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
 			return false;
 		}
 
 		ActivePositions.Empty();
 
-		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		Edges = Delaunay->DelaunayEdges.Array();
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(PointIO, &Settings->GraphBuilderDetails);
+		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
 		StartParallelLoopForRange(Edges.Num());
 
 		return true;
@@ -209,10 +192,8 @@ namespace PCGExConvexHull2D
 	{
 		if (!GraphBuilder) { return; }
 
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
-
-		GraphBuilder->CompileAsync(AsyncManagerPtr);
-		TypedContext->BuildPath(GraphBuilder);
+		GraphBuilder->CompileAsync(AsyncManager, false);
+		Context->BuildPath(GraphBuilder.Get());
 	}
 
 	void FProcessor::Write()
@@ -221,12 +202,13 @@ namespace PCGExConvexHull2D
 
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
-			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
-			PCGEX_DELETE(GraphBuilder)
+			bIsProcessorValid = false;
+			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
 
-		GraphBuilder->Write();
+		PointDataFacade->Write(AsyncManager);
+		GraphBuilder->OutputEdgesToContext();
 	}
 }
 

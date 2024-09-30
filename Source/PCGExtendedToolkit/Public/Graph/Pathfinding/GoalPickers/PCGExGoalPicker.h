@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExOperation.h"
+
+
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.generated.h"
 
@@ -25,7 +27,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade);
+	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade);
 	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const;
 	virtual void GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const;
 	virtual bool OutputMultipleGoals() const;

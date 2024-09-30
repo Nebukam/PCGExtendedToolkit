@@ -5,18 +5,13 @@
 
 #include "Data/PCGExPointFilter.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
 
 PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
-
-FPCGExFuseCollinearContext::~FPCGExFuseCollinearContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 
 bool FPCGExFuseCollinearElement::Boot(FPCGExContext* InContext) const
 {
@@ -36,6 +31,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFuseCollinearElement::Execute);
 
 	PCGEX_CONTEXT(FuseCollinear)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -46,7 +42,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 		// TODO : Skip completion
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFuseCollinear::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
@@ -56,10 +52,9 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExFuseCollinear::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExFuseCollinear::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to fuse."));
 			return true;
@@ -71,7 +66,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -84,22 +79,20 @@ namespace PCGExFuseCollinear
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFuseCollinear::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseCollinear)
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalTypedContext = TypedContext;
 
-		MaxIndex = PointIO->GetNum() - 1;
-		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		MaxIndex = PointDataFacade->GetNum() - 1;
+		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
 
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		OutPoints = &PointIO->GetOut()->GetMutablePoints();
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();
 		OutPoints->Reserve(MaxIndex + 1);
 		OutPoints->Add(InPoints[0]);
 
@@ -123,12 +116,12 @@ namespace PCGExFuseCollinear
 		if (Index == 0 || Index == MaxIndex) { return; }
 
 		const FVector CurrentPosition = Point.Transform.GetLocation();
-		const FVector NextPosition = PointIO->GetInPoint(Index + 1).Transform.GetLocation();
+		const FVector NextPosition = PointDataFacade->Source->GetInPoint(Index + 1).Transform.GetLocation();
 		const FVector DirToNext = (NextPosition - CurrentPosition).GetSafeNormal();
 
 		const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
-		const bool bWithinThreshold = Dot > LocalTypedContext->DotThreshold;
-		if (FVector::DistSquared(CurrentPosition, LastPosition) <= LocalTypedContext->FuseDistSquared || bWithinThreshold)
+		const bool bWithinThreshold = Dot > Context->DotThreshold;
+		if (FVector::DistSquared(CurrentPosition, LastPosition) <= Context->FuseDistSquared || bWithinThreshold)
 		{
 			// Collinear with previous, keep moving
 			return;
@@ -141,7 +134,7 @@ namespace PCGExFuseCollinear
 
 	void FProcessor::CompleteWork()
 	{
-		OutPoints->Add(PointIO->GetInPoint(MaxIndex));
+		OutPoints->Add(PointDataFacade->Source->GetInPoint(MaxIndex));
 		OutPoints->Shrink();
 	}
 }

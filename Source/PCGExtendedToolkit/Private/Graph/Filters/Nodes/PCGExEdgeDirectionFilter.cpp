@@ -3,19 +3,20 @@
 
 #include "Graph/Filters/Nodes/PCGExEdgeDirectionFilter.h"
 
+
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"
 #define PCGEX_NAMESPACE NodeEdgeDirectionFilter
 
-PCGExPointFilter::TFilter* UPCGExEdgeDirectionFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExEdgeDirectionFilterFactory::CreateFilter() const
 {
-	return new PCGExNodeAdjacency::FEdgeDirectionFilter(this);
+	return MakeShared<PCGExNodeAdjacency::FEdgeDirectionFilter>(this);
 }
 
 namespace PCGExNodeAdjacency
 {
-	bool FEdgeDirectionFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+	bool FEdgeDirectionFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -31,16 +32,16 @@ namespace PCGExNodeAdjacency
 			}
 		}
 
-		if (!Adjacency.Init(InContext, PointDataFacade)) { return false; }
+		if (!Adjacency.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 
 		if (TypedFilterFactory->Config.ComparisonQuality == EPCGExDirectionCheckMode::Dot)
 		{
-			if (!DotComparison.Init(InContext, PointDataFacade)) { return false; }
+			if (!DotComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 		}
 		else
 		{
 			bUseDot = false;
-			if (!HashComparison.Init(InContext, PointDataFacade)) { return false; }
+			if (!HashComparison.Init(InContext, PointDataFacade.ToSharedRef())) { return false; }
 		}
 
 		return true;
@@ -56,9 +57,9 @@ namespace PCGExNodeAdjacency
 		const int32 PointIndex = Node.PointIndex;
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
-		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
+		const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
-		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Config.DirectionConstant;
+		FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : TypedFilterFactory->Config.DirectionConstant;
 		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir).GetSafeNormal(); }
 
 		const double A = DotComparison.GetDot(PointIndex);
@@ -121,11 +122,11 @@ namespace PCGExNodeAdjacency
 				B /= Node.Adjacency.Num();
 				break;
 			case EPCGExAdjacencyGatherMode::Min:
-				B = TNumericLimits<double>::Max();
+				B = MAX_dbl;
 				for (const double Dot : Dots) { B = FMath::Min(B, Dot); }
 				break;
 			case EPCGExAdjacencyGatherMode::Max:
-				B = TNumericLimits<double>::Min();
+				B = MIN_dbl;
 				for (const double Dot : Dots) { B = FMath::Max(B, Dot); }
 				break;
 			case EPCGExAdjacencyGatherMode::Sum:
@@ -153,9 +154,9 @@ namespace PCGExNodeAdjacency
 		const int32 PointIndex = Node.PointIndex;
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 
-		const FPCGPoint& Point = Cluster->VtxIO->GetInPoint(PointIndex);
+		const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
-		FVector RefDir = OperandDirection ? OperandDirection->Values[PointIndex] : TypedFilterFactory->Config.DirectionConstant;
+		FVector RefDir = OperandDirection ? OperandDirection->Read(PointIndex) : TypedFilterFactory->Config.DirectionConstant;
 		if (TypedFilterFactory->Config.bTransformDirection) { RefDir = Point.Transform.TransformVectorNoScale(RefDir); }
 
 		RefDir.Normalize();

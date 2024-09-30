@@ -7,6 +7,8 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExShrinkPath.generated.h"
 
@@ -103,7 +105,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExShrinkPathSettings : public UPCGExPathPro
 
 public:
 	UPCGExShrinkPathSettings(const FObjectInitializer& ObjectInitializer);
-	
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ShrinkPath, "Path : Shrink", "Shrink path from its beginning and end.");
@@ -163,10 +165,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathContext final : public FPCGExP
 {
 	friend class FPCGExShrinkPathElement;
 
-	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
-	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, uint32& Start, uint32& End) const;
-
-	virtual ~FPCGExShrinkPathContext() override;
+	void GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
+	void GetShrinkAmounts(const TSharedRef<PCGExData::FPointIO>& PointIO, uint32& Start, uint32& End) const;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExShrinkPathElement final : public FPCGExPathProcessorElement
@@ -184,18 +184,18 @@ protected:
 
 namespace PCGExShrinkPath
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExShrinkPathContext, UPCGExShrinkPathSettings>
 	{
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = false;
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 	};
 }

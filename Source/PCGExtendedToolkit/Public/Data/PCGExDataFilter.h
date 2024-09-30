@@ -135,9 +135,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 
 	void Prune(TArray<FString>& Names) const
 	{
-		for(int i = 0; i < Names.Num(); i++)
+		for (int i = 0; i < Names.Num(); i++)
 		{
-			if(!Test(Names[i]))
+			if (!Test(Names[i]))
 			{
 				Names.RemoveAt(i);
 				i--;
@@ -176,13 +176,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCarryOverDetails
 	void Filter(const PCGExData::FPointIO* PointIO) const
 	{
 		Filter(PointIO->GetOut()->Metadata);
-		Filter(PointIO->Tags);
+		Filter(PointIO->Tags.Get());
 	}
 
 	bool Test(const PCGExData::FPointIO* PointIO) const
 	{
 		if (!Test(PointIO->GetOut()->Metadata)) { return false; }
-		if (!Test(PointIO->Tags)) { return false; }
+		if (!Test(PointIO->Tags.Get())) { return false; }
 		return true;
 	}
 

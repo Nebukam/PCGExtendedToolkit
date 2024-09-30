@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExUnpackClusters.generated.h"
 
@@ -44,10 +46,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersContext final : public FPC
 {
 	friend class FPCGExUnpackClustersElement;
 
-	virtual ~FPCGExUnpackClustersContext() override;
-
-	PCGExData::FPointIOCollection* OutPoints = nullptr;
-	PCGExData::FPointIOCollection* OutEdges = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> OutPoints;
+	TSharedPtr<PCGExData::FPointIOCollection> OutEdges;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClustersElement final : public FPCGExPointsProcessorElement
@@ -66,10 +66,10 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUnpackClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExUnpackClusterTask(PCGExData::FPointIO* InPointIO) :
+	FPCGExUnpackClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO) :
 		FPCGExTask(InPointIO)
 	{
 	}
 
-	virtual bool ExecuteTask() override;
+	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };

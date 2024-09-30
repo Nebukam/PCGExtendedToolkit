@@ -7,6 +7,8 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExBevelPath.generated.h"
 
@@ -152,16 +154,14 @@ public:
 	FName SubdivisionFlagName = "IsSubdivision";
 
 
-	void InitOutputFlags(const PCGExData::FPointIO* InPointIO) const;
+	void InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const;
 };
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExBevelPathElement;
 
-	virtual ~FPCGExBevelPathContext() override;
-
-	PCGExData::FFacade* CustomProfileFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> CustomProfileFacade;
 
 	TArray<FVector> CustomProfilePositions;
 	double CustomLength;
@@ -224,43 +224,38 @@ namespace PCGExBevelPath
 		void SubdivideCustom(const FProcessor* InProcessor);
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBevelPathContext, UPCGExBevelPathSettings>
 	{
 		friend struct FBevel;
 
-		FPCGExBevelPathContext* LocalTypedContext = nullptr;
-		const UPCGExBevelPathSettings* LocalSettings = nullptr;
-
 		TArray<double> Lengths;
 
-		TArray<FBevel*> Bevels;
+		TArray<TSharedPtr<FBevel>> Bevels;
 		TArray<int32> StartIndices;
 
 		bool bClosedLoop = false;
 		bool bSubdivide = false;
 		bool bSubdivideCount = false;
 		bool bArc = false;
-		PCGExData::TCache<double>* WidthGetter = nullptr;
-		PCGExData::TCache<double>* SubdivAmountGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> WidthGetter;
+		TSharedPtr<PCGExData::TBuffer<double>> SubdivAmountGetter;
 		double ConstantSubdivAmount = 0;
 
-		PCGEx::TAttributeWriter<bool>* EndpointsWriter = nullptr;
-		PCGEx::TAttributeWriter<bool>* StartPointWriter = nullptr;
-		PCGEx::TAttributeWriter<bool>* EndPointWriter = nullptr;
-		PCGEx::TAttributeWriter<bool>* SubdivisionWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> EndpointsWriter;
+		TSharedPtr<PCGExData::TBuffer<bool>> StartPointWriter;
+		TSharedPtr<PCGExData::TBuffer<bool>> EndPointWriter;
+		TSharedPtr<PCGExData::TBuffer<bool>> SubdivisionWriter;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 			DefaultPointFilterValue = true;
 		}
 
-		virtual ~FProcessor() override;
-
 		FORCEINLINE double Len(const int32 Index) const { return Lengths[Index]; }
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		void WriteFlags(const int32 Index);

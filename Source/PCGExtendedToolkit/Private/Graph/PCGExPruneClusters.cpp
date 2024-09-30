@@ -13,16 +13,6 @@ PCGExData::EInit UPCGExPruneClustersSettings::GetEdgeOutputInitMode() const { re
 
 #pragma endregion
 
-FPCGExPruneClustersContext::~FPCGExPruneClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	IndexedEdges.Empty();
-	ClusterState.Empty();
-
-	PCGEX_DELETE(BoxCloud)
-}
-
 PCGEX_INITIALIZE_ELEMENT(PruneClusters)
 
 bool FPCGExPruneClustersElement::Boot(FPCGExContext* InContext) const
@@ -31,13 +21,10 @@ bool FPCGExPruneClustersElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneClusters)
 
-	const PCGExData::FPointIO* Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
+	TSharedPtr<PCGExData::FPointIO> Bounds = PCGExData::TryGetSingleInput(Context, PCGEx::SourceBoundsLabel, true);
 	if (!Bounds) { return false; }
 
-	Context->BoxCloud = new PCGExGeo::FPointBoxCloud(Bounds->GetIn(), Settings->BoundsSource, Settings->InsideEpsilon);
-
-	PCGEX_DELETE(Bounds)
-
+	Context->BoxCloud = MakeShared<PCGExGeo::FPointBoxCloud>(Bounds->GetIn(), Settings->BoundsSource, Settings->InsideEpsilon);
 	Context->ClusterState.Init(false, Context->MainEdges->Num());
 
 	return true;
@@ -48,6 +35,7 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPruneClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneClusters)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -60,7 +48,7 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges) { continue; }
-			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
+			for (TSharedPtr<PCGExData::FPointIO> EdgeIO : Context->TaggedEdges->Entries)
 			{
 				Context->GetAsyncManager()->Start<FPCGExPruneClusterTask>(EdgeIO->IOIndex, Context->CurrentIO, EdgeIO);
 			}
@@ -89,9 +77,9 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-bool FPCGExPruneClusterTask::ExecuteTask()
+bool FPCGExPruneClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	const FPCGExPruneClustersContext* Context = Manager->GetContext<FPCGExPruneClustersContext>();
+	const FPCGExPruneClustersContext* Context = AsyncManager->GetContext<FPCGExPruneClustersContext>();
 	PCGEX_SETTINGS(PruneClusters)
 
 	// TODO : Check against BoxCloud

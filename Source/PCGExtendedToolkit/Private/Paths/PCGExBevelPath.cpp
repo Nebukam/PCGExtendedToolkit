@@ -6,6 +6,7 @@
 #include "PCGExRandom.h"
 #include "Data/PCGExPointFilter.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExBevelPathElement"
 #define PCGEX_NAMESPACE BevelPath
 
@@ -20,22 +21,13 @@ PCGExData::EInit UPCGExBevelPathSettings::GetMainOutputInitMode() const { return
 
 PCGEX_INITIALIZE_ELEMENT(BevelPath)
 
-void UPCGExBevelPathSettings::InitOutputFlags(const PCGExData::FPointIO* InPointIO) const
+void UPCGExBevelPathSettings::InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const
 {
 	UPCGMetadata* Metadata = InPointIO->GetOut()->Metadata;
 	if (bFlagEndpoints) { Metadata->FindOrCreateAttribute(EndpointsFlagName, false); }
 	if (bFlagStartPoint) { Metadata->FindOrCreateAttribute(StartPointFlagName, false); }
 	if (bFlagEndPoint) { Metadata->FindOrCreateAttribute(EndPointFlagName, false); }
 	if (bFlagSubdivision) { Metadata->FindOrCreateAttribute(SubdivisionFlagName, false); }
-}
-
-FPCGExBevelPathContext::~FPCGExBevelPathContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE_FACADE_AND_SOURCE(CustomProfileFacade)
-
-	CustomProfilePositions.Empty();
 }
 
 bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
@@ -51,20 +43,19 @@ bool FPCGExBevelPathElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->Type == EPCGExBevelProfileType::Custom)
 	{
-		PCGExData::FPointIO* CustomProfileIO = PCGExData::TryGetSingleInput(Context, PCGExBevelPath::SourceCustomProfile, true);
+		const TSharedPtr<PCGExData::FPointIO> CustomProfileIO = PCGExData::TryGetSingleInput(Context, PCGExBevelPath::SourceCustomProfile, true);
 		if (!CustomProfileIO) { return false; }
 
 		if (CustomProfileIO->GetNum() < 2)
 		{
-			PCGEX_DELETE(CustomProfileIO)
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Custom profile must have at least two points."));
 			return false;
 		}
 
-		Context->CustomProfileFacade = new PCGExData::FFacade(CustomProfileIO);
+		Context->CustomProfileFacade = MakeShared<PCGExData::FFacade>(CustomProfileIO.ToSharedRef());
 
 		const TArray<FPCGPoint>& ProfilePoints = CustomProfileIO->GetIn()->GetPoints();
-		PCGEX_SET_NUM_UNINITIALIZED(Context->CustomProfilePositions, ProfilePoints.Num())
+		PCGEx::InitArray(Context->CustomProfilePositions, ProfilePoints.Num());
 
 		const FVector Start = ProfilePoints[0].Transform.GetLocation();
 		const FVector End = ProfilePoints.Last().Transform.GetLocation();
@@ -87,6 +78,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBevelPathElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BevelPath)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -94,7 +86,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 		bool bHasInvalidInputs = false;
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 3)
 				{
@@ -106,11 +98,10 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = (Settings->bFlagEndpoints || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to Bevel."));
 			return true;
@@ -122,7 +113,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -134,7 +125,7 @@ namespace PCGExBevelPath
 	FBevel::FBevel(const int32 InIndex, const FProcessor* InProcessor):
 		Index(InIndex)
 	{
-		const TArray<FPCGPoint>& InPoints = InProcessor->PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InPoints = InProcessor->PointDataFacade->GetIn()->GetPoints();
 		ArriveIdx = Index - 1 < 0 ? InPoints.Num() - 1 : Index - 1;
 		LeaveIdx = Index + 1 == InPoints.Num() ? 0 : Index + 1;
 
@@ -147,23 +138,23 @@ namespace PCGExBevelPath
 		ArriveDir = (PrevLocation - Corner).GetSafeNormal();
 		LeaveDir = (NextLocation - Corner).GetSafeNormal();
 
-		Width = InProcessor->WidthGetter ? InProcessor->WidthGetter->Values[Index] : InProcessor->LocalSettings->WidthConstant;
+		Width = InProcessor->WidthGetter ? InProcessor->WidthGetter->Read(Index) : InProcessor->Settings->WidthConstant;
 
 		const double ArriveLen = InProcessor->Len(ArriveIdx);
 		const double LeaveLen = InProcessor->Len(Index);
 		const double SmallestLength = FMath::Min(ArriveLen, LeaveLen);
 
-		if (InProcessor->LocalSettings->WidthMeasure == EPCGExMeanMeasure::Relative)
+		if (InProcessor->Settings->WidthMeasure == EPCGExMeanMeasure::Relative)
 		{
 			Width *= SmallestLength;
 		}
 
-		if (InProcessor->LocalSettings->Mode == EPCGExBevelMode::Radius)
+		if (InProcessor->Settings->Mode == EPCGExBevelMode::Radius)
 		{
 			Width = Width / FMath::Sin(FMath::Acos(FVector::DotProduct(ArriveDir, LeaveDir)) / 2.0f);
 		}
 
-		if (InProcessor->LocalSettings->Limit != EPCGExBevelLimit::None)
+		if (InProcessor->Settings->Limit != EPCGExBevelLimit::None)
 		{
 			Width = FMath::Min(Width, SmallestLength);
 		}
@@ -174,8 +165,8 @@ namespace PCGExBevelPath
 
 	void FBevel::Balance(const FProcessor* InProcessor)
 	{
-		const FBevel* PrevBevel = InProcessor->Bevels[ArriveIdx];
-		const FBevel* NextBevel = InProcessor->Bevels[LeaveIdx];
+		const TSharedPtr<FBevel>& PrevBevel = InProcessor->Bevels[ArriveIdx];
+		const TSharedPtr<FBevel>& NextBevel = InProcessor->Bevels[LeaveIdx];
 
 		double ArriveAlphaSum = ArriveAlpha;
 		double LeaveAlphaSum = LeaveAlpha;
@@ -198,7 +189,7 @@ namespace PCGExBevelPath
 
 		// TODO : compute final subdivision count
 
-		if (InProcessor->LocalSettings->Type == EPCGExBevelProfileType::Custom)
+		if (InProcessor->Settings->Type == EPCGExBevelProfileType::Custom)
 		{
 			SubdivideCustom(InProcessor);
 			return;
@@ -206,7 +197,7 @@ namespace PCGExBevelPath
 
 		if (!InProcessor->bSubdivide) { return; }
 
-		const double Amount = InProcessor->SubdivAmountGetter ? InProcessor->SubdivAmountGetter->Values[Index] : InProcessor->ConstantSubdivAmount;
+		const double Amount = InProcessor->SubdivAmountGetter ? InProcessor->SubdivAmountGetter->Read(Index) : InProcessor->ConstantSubdivAmount;
 
 		if (!InProcessor->bArc) { SubdivideLine(Amount, InProcessor->bSubdivideCount); }
 		else { SubdivideArc(Amount, InProcessor->bSubdivideCount); }
@@ -231,7 +222,7 @@ namespace PCGExBevelPath
 		}
 
 		SubdivCount = FMath::Max(0, SubdivCount);
-		PCGEX_SET_NUM(Subdivisions, SubdivCount)
+		PCGEx::InitArray(Subdivisions, SubdivCount);
 
 
 		for (int i = 0; i < SubdivCount; ++i) { Subdivisions[i] = Arrive + Dir * (StepSize + i * StepSize); }
@@ -251,17 +242,17 @@ namespace PCGExBevelPath
 		int32 SubdivCount = bIsCount ? Factor : FMath::Floor(Arc.GetLength() / Factor);
 
 		const double StepSize = 1 / static_cast<double>(SubdivCount + 1);
-		PCGEX_SET_NUM(Subdivisions, SubdivCount)
+		PCGEx::InitArray(Subdivisions, SubdivCount);
 
 		for (int i = 0; i < SubdivCount; ++i) { Subdivisions[i] = Arc.GetLocationOnArc(StepSize + i * StepSize); }
 	}
 
 	void FBevel::SubdivideCustom(const FProcessor* InProcessor)
 	{
-		const TArray<FVector>& SourcePos = InProcessor->LocalTypedContext->CustomProfilePositions;
+		const TArray<FVector>& SourcePos = InProcessor->Context->CustomProfilePositions;
 		const int32 SubdivCount = SourcePos.Num() - 2;
 
-		PCGEX_SET_NUM(Subdivisions, SubdivCount)
+		PCGEx::InitArray(Subdivisions, SubdivCount);
 
 		if (SubdivCount == 0) { return; }
 
@@ -275,38 +266,26 @@ namespace PCGExBevelPath
 		}
 	}
 
-	FProcessor::~FProcessor()
-	{
-		PCGEX_DELETE_TARRAY(Bevels)
-		Lengths.Empty();
-		StartIndices.Empty();
-	}
-
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBevelPath::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelPath)
-
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		bInlineProcessPoints = true;
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 
-		PCGEX_SET_NUM_NULLPTR(Bevels, PointIO->GetNum())
+		Bevels.Init(nullptr, PointDataFacade->GetNum());
 
 		if (Settings->WidthSource == EPCGExFetchType::Attribute)
 		{
 			WidthGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->WidthAttribute);
 			if (!WidthGetter)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Width attribute data is invalid or missing."));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Width attribute data is invalid or missing."));
 				return false;
 			}
 		}
@@ -323,7 +302,7 @@ namespace PCGExBevelPath
 					SubdivAmountGetter = PointDataFacade->GetScopedBroadcaster<double>(Settings->SubdivisionAmount);
 					if (!SubdivAmountGetter)
 					{
-						PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Subdivision Amount attribute is invalid or missing."));
+						PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Subdivision Amount attribute is invalid or missing."));
 						return false;
 					}
 				}
@@ -336,17 +315,17 @@ namespace PCGExBevelPath
 
 		bArc = Settings->Type == EPCGExBevelProfileType::Arc;
 
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
-		PCGEX_SET_NUM_UNINITIALIZED(Lengths, NumPoints)
+		PCGEx::InitArray(Lengths, NumPoints);
 		for (int i = 0; i < NumPoints; ++i)
 		{
 			Lengths[i] = FVector::Distance(InPoints[i].Transform.GetLocation(), InPoints[i + 1 == NumPoints ? 0 : i + 1].Transform.GetLocation());
 		}
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, Preparation)
-		Preparation->SetOnCompleteCallback([&]() { StartParallelLoopForPoints(PCGExData::ESource::In); });
-		Preparation->SetOnIterationRangeStartCallback(
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, Preparation)
+		Preparation->OnCompleteCallback = [&]() { StartParallelLoopForPoints(PCGExData::ESource::In); };
+		Preparation->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
@@ -358,25 +337,24 @@ namespace PCGExBevelPath
 					PointFilterCache[0] = false;
 					PointFilterCache[PointFilterCache.Num() - 1] = false;
 				}
-			});
+			};
 
 		Preparation->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				if (!PointFilterCache[Index]) { return; }
-				FBevel* NewBevel = new FBevel(Index, this);
-				Bevels[Index] = NewBevel;
-			}, PointIO->GetNum(), 64);
+				Bevels[Index] = MakeShared<FBevel>(Index, this); // no need for SharedThis
+			}, PointDataFacade->GetNum(), 64);
 
 		return true;
 	}
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		FBevel* Bevel = Bevels[Index];
+		const TSharedPtr<FBevel>& Bevel = Bevels[Index];
 		if (!Bevel) { return; }
 
-		if (LocalSettings->Limit == EPCGExBevelLimit::Balanced) { Bevel->Balance(this); }
+		if (Settings->Limit == EPCGExBevelLimit::Balanced) { Bevel->Balance(this); }
 		Bevel->Compute(this);
 	}
 
@@ -384,7 +362,9 @@ namespace PCGExBevelPath
 	{
 		const int32 StartIndex = StartIndices[Iteration];
 
-		FBevel* Bevel = Bevels[Iteration];
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
+		const TSharedPtr<FBevel>& Bevel = Bevels[Iteration];
 		const FPCGPoint& OriginalPoint = PointIO->GetInPoint(Iteration);
 
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
@@ -424,27 +404,27 @@ namespace PCGExBevelPath
 
 	void FProcessor::WriteFlags(const int32 Index)
 	{
-		const FBevel* Bevel = Bevels[Index];
+		const TSharedPtr<FBevel>& Bevel = Bevels[Index];
 		if (!Bevel) { return; }
 
 		if (EndpointsWriter)
 		{
-			EndpointsWriter->Values[Bevel->StartOutputIndex] = true;
-			EndpointsWriter->Values[Bevel->EndOutputIndex] = true;
+			EndpointsWriter->GetMutable(Bevel->StartOutputIndex) = true;
+			EndpointsWriter->GetMutable(Bevel->EndOutputIndex) = true;
 		}
 
-		if (StartPointWriter) { StartPointWriter->Values[Bevel->StartOutputIndex] = true; }
+		if (StartPointWriter) { StartPointWriter->GetMutable(Bevel->StartOutputIndex) = true; }
 
-		if (EndPointWriter) { EndPointWriter->Values[Bevel->EndOutputIndex] = true; }
+		if (EndPointWriter) { EndPointWriter->GetMutable(Bevel->EndOutputIndex) = true; }
 
-		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); ++i) { SubdivisionWriter->Values[Bevel->StartOutputIndex + i] = true; } }
+		if (SubdivisionWriter) { for (int i = 1; i <= Bevel->Subdivisions.Num(); ++i) { SubdivisionWriter->GetMutable(Bevel->StartOutputIndex + i) = true; } }
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BevelPath)
+		PCGEx::InitArray(StartIndices, PointDataFacade->GetNum());
 
-		PCGEX_SET_NUM_UNINITIALIZED(StartIndices, PointIO->GetNum())
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
 
 		int32 NumBevels = 0;
 		int32 NumOutPoints = 0;
@@ -453,7 +433,7 @@ namespace PCGExBevelPath
 		{
 			StartIndices[i] = NumOutPoints;
 
-			if (FBevel* Bevel = Bevels[i])
+			if (const TSharedPtr<FBevel>& Bevel = Bevels[i])
 			{
 				NumBevels++;
 
@@ -477,42 +457,42 @@ namespace PCGExBevelPath
 
 		// Build output points
 
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM(MutablePoints, NumOutPoints);
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
+		PCGEx::InitArray(MutablePoints, NumOutPoints);
 
-		StartParallelLoopForRange(PointIO->GetNum());
+		StartParallelLoopForRange(PointDataFacade->GetNum());
 	}
 
 	void FProcessor::Write()
 	{
-		if (LocalSettings->bFlagEndpoints)
+		if (Settings->bFlagEndpoints)
 		{
-			EndpointsWriter = PointDataFacade->GetWriter<bool>(LocalSettings->EndpointsFlagName, false, true, true);
+			EndpointsWriter = PointDataFacade->GetWritable<bool>(Settings->EndpointsFlagName, false, true, true);
 		}
 
-		if (LocalSettings->bFlagStartPoint)
+		if (Settings->bFlagStartPoint)
 		{
-			StartPointWriter = PointDataFacade->GetWriter<bool>(LocalSettings->StartPointFlagName, false, true, true);
+			StartPointWriter = PointDataFacade->GetWritable<bool>(Settings->StartPointFlagName, false, true, true);
 		}
 
-		if (LocalSettings->bFlagEndPoint)
+		if (Settings->bFlagEndPoint)
 		{
-			EndPointWriter = PointDataFacade->GetWriter<bool>(LocalSettings->EndPointFlagName, false, true, true);
+			EndPointWriter = PointDataFacade->GetWritable<bool>(Settings->EndPointFlagName, false, true, true);
 		}
 
-		if (LocalSettings->bFlagSubdivision)
+		if (Settings->bFlagSubdivision)
 		{
-			SubdivisionWriter = PointDataFacade->GetWriter<bool>(LocalSettings->SubdivisionFlagName, false, true, true);
+			SubdivisionWriter = PointDataFacade->GetWritable<bool>(Settings->SubdivisionFlagName, false, true, true);
 		}
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, WriteFlagsTask)
-		WriteFlagsTask->SetOnCompleteCallback([&]() { PointDataFacade->Write(AsyncManagerPtr, true); });
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)
+		WriteFlagsTask->OnCompleteCallback = [&]() { PointDataFacade->Write(AsyncManager); };
 		WriteFlagsTask->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
 			{
 				if (!PointFilterCache[Index]) { return; }
 				WriteFlags(Index);
-			}, PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			}, PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		FPointsProcessor::Write();
 	}

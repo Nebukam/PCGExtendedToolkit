@@ -3,15 +3,16 @@
 
 #include "Misc/Filters/PCGExWithinRangeFilter.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGExPointFilter::TFilter* UPCGExWithinRangeFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExWithinRangeFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TWithinRangeFilter(this);
+	return MakeShared<PCGExPointsFilter::TWithinRangeFilter>(this);
 }
 
-bool PCGExPointsFilter::TWithinRangeFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TWithinRangeFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 

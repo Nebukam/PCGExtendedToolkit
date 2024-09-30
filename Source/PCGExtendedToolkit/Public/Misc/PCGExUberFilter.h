@@ -8,6 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
+
 #include "PCGExUberFilter.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode"))
@@ -68,10 +69,9 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberFilterElement;
-	virtual ~FPCGExUberFilterContext() override;
 
-	PCGExData::FPointIOCollection* Inside = nullptr;
-	PCGExData::FPointIOCollection* Outside = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> Inside;
+	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 
 	int32 NumPairs = 0;
 };
@@ -90,31 +90,28 @@ protected:
 
 namespace PCGExUberFilter
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExUberFilterContext, UPCGExUberFilterSettings>
 	{
-		const UPCGExUberFilterSettings* LocalSettings = nullptr;
-		FPCGExUberFilterContext* LocalTypedContext = nullptr;
-
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
 
-		PCGEx::TAttributeWriter<bool>* Results = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> Results;
 
 	public:
-		PCGExData::FPointIO* Inside = nullptr;
-		PCGExData::FPointIO* Outside = nullptr;
+		TSharedPtr<PCGExData::FPointIO> Inside;
+		TSharedPtr<PCGExData::FPointIO> Outside;
 
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
-		PCGExData::FPointIO* CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const;
+		TSharedPtr<PCGExData::FPointIO> CreateIO(PCGExData::FPointIOCollection* InCollection, const PCGExData::EInit InitMode) const;
 		virtual void CompleteWork() override;
 	};
 }

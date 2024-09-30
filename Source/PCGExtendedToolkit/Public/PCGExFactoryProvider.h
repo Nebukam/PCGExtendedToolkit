@@ -8,6 +8,7 @@
 #include "PCGExContext.h"
 #include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGParamData.h"
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
@@ -119,7 +120,7 @@ public:
 namespace PCGExFactories
 {
 	template <typename T_DEF>
-	static bool GetInputFactories(const FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
+	static bool GetInputFactories(const FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<const T_DEF>>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 		TSet<uint64> UniqueData;

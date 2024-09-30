@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExConditionalActions.h"
 
+
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/States/PCGExClusterStates.h"
@@ -21,15 +22,6 @@ TArray<FPCGPinProperties> UPCGExConditionalActionsSettings::InputPinProperties()
 	PCGEX_PIN_PARAMS(PCGExConditionalActions::SourceConditionalActionsLabel, "Conditional Actions nodes.", Required, {})
 	PCGEX_PIN_ANY(PCGExConditionalActions::SourceDefaultsLabel, "Default values that match attributes when creating new attributes through matchmaking.", Normal, {})
 	return PinProperties;
-}
-
-FPCGExConditionalActionsContext::~FPCGExConditionalActionsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	ConditionalActionsFactories.Empty();
-
-	PCGEX_DELETE(DefaultAttributes)
 }
 
 PCGEX_INITIALIZE_ELEMENT(ConditionalActions)
@@ -57,10 +49,10 @@ bool FPCGExConditionalActionsElement::Boot(FPCGExContext* InContext) const
 
 	FString Message = TEXT("An unspecified error occured.");
 	bool bIsConditionalActionsValid = true;
-	PCGEx::FAttributesInfos* ValidationInfos = new PCGEx::FAttributesInfos();
-	for (UPCGExConditionalActionFactoryBase* Factory : Context->ConditionalActionsFactories)
+	const TSharedPtr<PCGEx::FAttributesInfos> ValidationInfos = MakeShared<PCGEx::FAttributesInfos>();
+	for (const TObjectPtr<const UPCGExConditionalActionFactoryBase> Factory : Context->ConditionalActionsFactories)
 	{
-		if (!Factory->AppendAndValidate(ValidationInfos, Message))
+		if (!Factory->AppendAndValidate(ValidationInfos.Get(), Message))
 		{
 			PCGE_LOG(Error, GraphAndLog, FText::FromString(Message));
 			bIsConditionalActionsValid = false;
@@ -68,10 +60,7 @@ bool FPCGExConditionalActionsElement::Boot(FPCGExContext* InContext) const
 		}
 	}
 
-	PCGEX_DELETE(ValidationInfos)
-
 	if (!bIsConditionalActionsValid) { return false; }
-
 
 	// TODO : Also check against provided default values
 
@@ -84,24 +73,24 @@ bool FPCGExConditionalActionsElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConditionalActionsElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConditionalActions)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExConditionalActions::FProcessor>>(
-			[](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExConditionalActions::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExConditionalActions::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to process."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -113,35 +102,33 @@ namespace PCGExConditionalActions
 	FProcessor::~FProcessor()
 	{
 		for (UPCGExConditionalActionOperation* Op : Operations) { PCGEX_DELETE_UOBJECT(Op) }
-		Operations.Empty();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExConditionalActions::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConditionalActions)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		// Initialize writers with provided default value
-		for (FPCGMetadataAttributeBase* AttributeBase : TypedContext->DefaultAttributes->Attributes)
+		for (FPCGMetadataAttributeBase* AttributeBase : Context->DefaultAttributes->Attributes)
 		{
 			PCGMetadataAttribute::CallbackWithRightType(
 				static_cast<uint16>(AttributeBase->GetTypeId()), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
 					const FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(AttributeBase);
-					PointDataFacade->GetWriter<T>(TypedAttribute, false);
+					PointDataFacade->GetWritable<T>(TypedAttribute, false);
 				});
 		}
 
-		for (const UPCGExConditionalActionFactoryBase* Factory : TypedContext->ConditionalActionsFactories)
+		for (const UPCGExConditionalActionFactoryBase* Factory : Context->ConditionalActionsFactories)
 		{
 			UPCGExConditionalActionOperation* Operation = Factory->CreateOperation();
-			if (!Operation->PrepareForData(Context, PointDataFacade)) { return false; }
+			if (!Operation->PrepareForData(ExecutionContext, PointDataFacade)) { return false; }
 			Operations.Add(Operation);
 		}
 
@@ -162,24 +149,21 @@ namespace PCGExConditionalActions
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ConditionalActions)
-
 		UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
 
 		if (Settings->bDoConsumeProcessedAttributes)
 		{
-			for (const PCGExData::FCacheBase* DataCache : PointDataFacade->Caches)
+			for (const TSharedPtr<PCGExData::FBufferBase>& DataCache : PointDataFacade->Buffers)
 			{
-				if (!DataCache->bIsPureReader ||
-					!DataCache->Attribute ||
-					!Settings->ConsumeProcessedAttributes.Test(DataCache->Attribute) ||
+				if (!DataCache->InAttribute ||
+					!Settings->ConsumeProcessedAttributes.Test(DataCache->InAttribute) ||
 					PCGEx::IsPCGExAttribute(DataCache->FullName)) { continue; }
 
-				Metadata->DeleteAttribute(DataCache->Attribute->Name);
+				Metadata->DeleteAttribute(DataCache->InAttribute->Name);
 			}
 		}
 
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

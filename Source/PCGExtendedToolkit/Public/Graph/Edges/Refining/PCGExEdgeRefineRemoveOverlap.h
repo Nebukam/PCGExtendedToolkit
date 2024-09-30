@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "PCGExEdgeRefineRemoveOverlap.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Overlap Pick"))
@@ -27,7 +28,7 @@ public:
 	virtual bool RequiresIndividualEdgeProcessing() override { return true; }
 	virtual bool RequiresEdgeOctree() override { return true; }
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics) override
+	virtual void PrepareForCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& InHeuristics) override
 	{
 		Super::PrepareForCluster(InCluster, InHeuristics);
 		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : 1;
@@ -52,31 +53,31 @@ public:
 
 	virtual void ProcessEdge(PCGExGraph::FIndexedEdge& Edge) override
 	{
-		const PCGExCluster::FExpandedEdge* EEdge = *(Cluster->ExpandedEdges->GetData() + Edge.EdgeIndex);
-		const double Length = EEdge->GetEdgeLengthSquared(Cluster);
+		const PCGExCluster::FExpandedEdge& EEdge = *(Cluster->ExpandedEdges->GetData() + Edge.EdgeIndex);
+		const double Length = EEdge.GetEdgeLengthSquared(Cluster.Get());
 
 		auto ProcessOverlap = [&](const PCGExCluster::FClusterItemRef& ItemRef)
 		{
 			//if (!Edge.bValid) { return false; }
 
-			const PCGExCluster::FExpandedEdge* OtherEEdge = *(Cluster->ExpandedEdges->GetData() + ItemRef.ItemIndex);
+			const PCGExCluster::FExpandedEdge& OtherEEdge = *(Cluster->ExpandedEdges->GetData() + ItemRef.ItemIndex);
 
 			if (EEdge == OtherEEdge ||
-				EEdge->Start == OtherEEdge->Start || EEdge->Start == OtherEEdge->End ||
-				EEdge->End == OtherEEdge->End || EEdge->End == OtherEEdge->Start) { return true; }
+				EEdge.Start == OtherEEdge.Start || EEdge.Start == OtherEEdge.End ||
+				EEdge.End == OtherEEdge.End || EEdge.End == OtherEEdge.Start) { return true; }
 
 
 			if (bUseMinAngle || bUseMaxAngle)
 			{
-				const double Dot = FMath::Abs(FVector::DotProduct(Cluster->GetDir(*EEdge->Start, *EEdge->End), Cluster->GetDir(*OtherEEdge->Start, *OtherEEdge->End)));
+				const double Dot = FMath::Abs(FVector::DotProduct(Cluster->GetDir(*EEdge.Start, *EEdge.End), Cluster->GetDir(*OtherEEdge.Start, *OtherEEdge.End)));
 				if (!(Dot >= MaxDot && Dot <= MinDot)) { return true; }
 			}
 
-			const double OtherLength = OtherEEdge->GetEdgeLengthSquared(Cluster);
+			const double OtherLength = OtherEEdge.GetEdgeLengthSquared(Cluster.Get());
 
 			FVector A;
 			FVector B;
-			if (Cluster->EdgeDistToEdgeSquared(EEdge->GetNodes(), OtherEEdge->GetNodes(), A, B) >= ToleranceSquared) { return true; }
+			if (Cluster->EdgeDistToEdgeSquared(EEdge.GetNodes(), OtherEEdge.GetNodes(), A, B) >= ToleranceSquared) { return true; }
 
 			// Overlap!
 			if (Keep == EPCGExEdgeOverlapPick::Longest)
@@ -99,7 +100,7 @@ public:
 			return true;
 		};
 
-		Cluster->EdgeOctree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(EEdge->Bounds), ProcessOverlap);
+		Cluster->EdgeOctree->FindFirstElementWithBoundsTest(FBoxCenterAndExtent(EEdge.Bounds), ProcessOverlap);
 	}
 
 	//virtual void Process() override;

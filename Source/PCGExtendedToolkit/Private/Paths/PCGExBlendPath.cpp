@@ -3,26 +3,22 @@
 
 #include "Paths/PCGExBlendPath.h"
 
+
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
 #define PCGEX_NAMESPACE BlendPath
 
 UPCGExBlendPathSettings::UPCGExBlendPathSettings(
-		const FObjectInitializer& ObjectInitializer)
-		: Super(ObjectInitializer)
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
-	bSupportClosedLoops = false;		
+	bSupportClosedLoops = false;
 }
 
 PCGExData::EInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
-
-FPCGExBlendPathContext::~FPCGExBlendPathContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExBlendPathElement::Boot(FPCGExContext* InContext) const
 {
@@ -38,6 +34,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBlendPathElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendPath)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -48,7 +45,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 		// TODO : Skip completion
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBlendPath::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
@@ -58,10 +55,9 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExBlendPath::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBlendPath::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to fuse."));
 			return true;
@@ -73,7 +69,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -84,22 +80,16 @@ namespace PCGExBlendPath
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Start)
-		PCGEX_DELETE(End)
-		PCGEX_DELETE(MetadataBlender)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBlendPath::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BlendPath)
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
 
 		if (Settings->BlendOver == EPCGExBlendOver::Fixed && Settings->LerpSource == EPCGExFetchType::Attribute)
 		{
@@ -107,25 +97,25 @@ namespace PCGExBlendPath
 
 			if (!LerpCache)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Lerp attribute is invalid."));
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FTEXT("Lerp attribute is invalid."));
 				return false;
 			}
 		}
 
-		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& OutPoints = PointDataFacade->GetOut()->GetMutablePoints();
 		MaxIndex = OutPoints.Num() - 1;
 
-		Start = new PCGExData::FPointRef(PointIO->GetInPoint(0), 0);
-		End = new PCGExData::FPointRef(PointIO->GetInPoint(MaxIndex), MaxIndex);
+		Start = MakeShared<PCGExData::FPointRef>(PointDataFacade->Source->GetInPoint(0), 0);
+		End = MakeShared<PCGExData::FPointRef>(PointDataFacade->Source->GetInPoint(MaxIndex), MaxIndex);
 
-		MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
+		MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 		MetadataBlender->PrepareForData(PointDataFacade);
 
-		if (LocalSettings->BlendOver == EPCGExBlendOver::Distance)
+		if (Settings->BlendOver == EPCGExBlendOver::Distance)
 		{
 			Metrics = PCGExPaths::FPathMetrics(OutPoints[0].Transform.GetLocation());
-			PCGEX_SET_NUM_UNINITIALIZED(Length, PointIO->GetNum())
-			for (int i = 0; i < PointIO->GetNum(); ++i) { Length[i] = Metrics.Add(OutPoints[i].Transform.GetLocation()); }
+			PCGEx::InitArray(Length, PointDataFacade->GetNum());
+			for (int i = 0; i < PointDataFacade->GetNum(); ++i) { Length[i] = Metrics.Add(OutPoints[i].Transform.GetLocation()); }
 		}
 
 		StartParallelLoopForPoints();
@@ -144,20 +134,20 @@ namespace PCGExBlendPath
 		if (Index == 0 || Index == MaxIndex) { return; }
 
 		double Alpha = 0.5;
-		const PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);
+		const PCGExData::FPointRef Current = PointDataFacade->Source->GetOutPointRef(Index);
 		MetadataBlender->PrepareForBlending(Current);
 
-		if (LocalSettings->BlendOver == EPCGExBlendOver::Distance)
+		if (Settings->BlendOver == EPCGExBlendOver::Distance)
 		{
 			Alpha = Length[Index] / Metrics.Length;
 		}
-		else if (LocalSettings->BlendOver == EPCGExBlendOver::Index)
+		else if (Settings->BlendOver == EPCGExBlendOver::Index)
 		{
-			Alpha = static_cast<double>(Index) / static_cast<double>(PointIO->GetNum());
+			Alpha = static_cast<double>(Index) / static_cast<double>(PointDataFacade->GetNum());
 		}
 		else
 		{
-			Alpha = LerpCache ? LerpCache->Values[Index] : LocalSettings->LerpConstant;
+			Alpha = LerpCache ? LerpCache->Read(Index) : Settings->LerpConstant;
 		}
 
 		MetadataBlender->Blend(*Start, *End, Current, Alpha);
@@ -166,7 +156,7 @@ namespace PCGExBlendPath
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

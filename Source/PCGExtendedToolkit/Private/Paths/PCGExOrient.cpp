@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExOrient.h"
 
+
 #include "Paths/Orient/PCGExOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOrientElement"
@@ -44,6 +45,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExOrientElement::Execute);
 
 	PCGEX_CONTEXT(Orient)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -52,7 +54,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExOrient::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
@@ -62,11 +64,10 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExOrient::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExOrient::FProcessor>>& NewBatch)
 			{
 				NewBatch->PrimaryOperation = Context->Orientation;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to orient."));
 			return true;
@@ -78,7 +79,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -91,31 +92,30 @@ namespace PCGExOrient
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExOrient::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Orient)
 
 		DefaultPointFilterValue = Settings->bFlipDirection;
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		LastIndex = PointIO->GetNum() - 1;
+		LastIndex = PointDataFacade->GetNum() - 1;
 		Orient = Cast<UPCGExOrientOperation>(PrimaryOperation);
-		Orient->bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		Orient->bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		if (!Orient->PrepareForData(PointDataFacade)) { return false; }
 
 		if (Settings->Output == EPCGExOrientUsage::OutputToAttribute)
 		{
-			TransformWriter = PointDataFacade->GetWriter<FTransform>(Settings->OutputAttribute, false);
+			TransformWriter = PointDataFacade->GetWritable<FTransform>(Settings->OutputAttribute, false);
 		}
 
 		if (Settings->bOutputDot)
 		{
-			DotWriter = PointDataFacade->GetWriter<double>(Settings->DotAttribute, false);
+			DotWriter = PointDataFacade->GetWritable<double>(Settings->DotAttribute, false);
 		}
 
 		StartParallelLoopForPoints();
@@ -131,33 +131,33 @@ namespace PCGExOrient
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		PCGEX_SETTINGS(Orient)
-
 		FTransform OutT;
 
-		PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+
+		const PCGExData::FPointRef Current = PointIO->GetOutPointRef(Index);
 		if (Orient->bClosedLoop)
 		{
 			const PCGExData::FPointRef Previous = Index == 0 ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index - 1);
 			const PCGExData::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(0) : PointIO->GetInPointRef(Index + 1);
 			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
-			if (Settings->bOutputDot) { DotWriter->Values[Index] = DotProduct(Current, Previous, Next); }
+			if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = DotProduct(Current, Previous, Next); }
 		}
 		else
 		{
 			const PCGExData::FPointRef Previous = Index == 0 ? Current : PointIO->GetInPointRef(Index - 1);
 			const PCGExData::FPointRef Next = Index == LastIndex ? PointIO->GetInPointRef(LastIndex) : PointIO->GetInPointRef(Index + 1);
 			OutT = Orient->ComputeOrientation(Current, Previous, Next, PointFilterCache[Index] ? -1 : 1);
-			if (Settings->bOutputDot) { DotWriter->Values[Index] = DotProduct(Current, Previous, Next); }
+			if (Settings->bOutputDot) { DotWriter->GetMutable(Index) = DotProduct(Current, Previous, Next); }
 		}
 
-		if (TransformWriter) { TransformWriter->Values[Index] = OutT; }
+		if (TransformWriter) { TransformWriter->GetMutable(Index) = OutT; }
 		else { Point.Transform = OutT; }
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

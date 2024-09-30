@@ -11,6 +11,7 @@
 #include "PCGExSampling.h"
 #include "Data/PCGExDataForward.h"
 
+
 #include "PCGExSampleSurfaceGuided.generated.h"
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3
@@ -186,9 +187,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleSurfaceGuidedContext final : publi
 {
 	friend class FPCGExSampleSurfaceGuidedElement;
 
-	virtual ~FPCGExSampleSurfaceGuidedContext() override;
-
-	PCGExData::FFacade* ActorReferenceDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> ActorReferenceDataFacade;
 
 	bool bUseInclude = false;
 	TMap<AActor*, int32> IncludedActors;
@@ -213,29 +212,26 @@ protected:
 
 namespace PCGExSampleSurfaceGuided
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleSurfaceGuidedContext, UPCGExSampleSurfaceGuidedSettings>
 	{
-		PCGExData::FDataForwardHandler* SurfacesForward = nullptr;
+		TSharedPtr<PCGExData::FDataForwardHandler> SurfacesForward;
 
-		PCGExData::TCache<double>* MaxDistanceGetter = nullptr;
-		PCGExData::TCache<FVector>* DirectionGetter = nullptr;
-
-		FPCGExSampleSurfaceGuidedContext* LocalTypedContext = nullptr;
-		const UPCGExSampleSurfaceGuidedSettings* LocalSettings = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> MaxDistanceGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> DirectionGetter;
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 
 		int8 bAnySuccess = 0;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

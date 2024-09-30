@@ -14,9 +14,10 @@
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
 namespace PCGExGraph
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundProcessor
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FCompoundProcessor : TSharedFromThis<FCompoundProcessor>
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
 
@@ -34,9 +35,9 @@ namespace PCGExGraph
 
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-		FCompoundGraph* CompoundGraph = nullptr;
-		PCGExData::FFacade* CompoundFacade = nullptr;
-		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
+		TSharedPtr<FCompoundGraph> CompoundGraph;
+		TSharedPtr<PCGExData::FFacade> CompoundFacade;
+		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundPointsBlender;
 
 		explicit FCompoundProcessor(
 			FPCGExPointsProcessorContext* InContext,
@@ -57,9 +58,9 @@ namespace PCGExGraph
 			const FPCGExBlendingDetails* InOverride = nullptr);
 
 		bool StartExecution(
-			FCompoundGraph* InCompoundGraph,
-			PCGExData::FFacade* InCompoundFacade,
-			const TArray<PCGExData::FFacade*>& InFacades,
+			const TSharedPtr<FCompoundGraph>& InCompoundGraph,
+			const TSharedPtr<PCGExData::FFacade>& InCompoundFacade,
+			const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades,
 			const FPCGExGraphBuilderDetails& InBuilderDetails,
 			const FPCGExCarryOverDetails* InCarryOverDetails);
 
@@ -74,12 +75,12 @@ namespace PCGExGraph
 		FPCGExBlendingDetails DefaultPointsBlendingDetails;
 		FPCGExBlendingDetails DefaultEdgesBlendingDetails;
 
-		FGraphBuilder* GraphBuilder = nullptr;
+		TSharedPtr<FGraphBuilder> GraphBuilder;
 
 		FGraphMetadataDetails GraphMetadataDetails;
-		FPointEdgeIntersections* PointEdgeIntersections = nullptr;
-		FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		TSharedPtr<FPointEdgeIntersections> PointEdgeIntersections;
+		TSharedPtr<FEdgeEdgeIntersections> EdgeEdgeIntersections;
+		TSharedPtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();

@@ -10,6 +10,8 @@
 
 #include "PCGExData.h"
 #include "PCGExPointFilter.h"
+
+
 #include "Graph/PCGExCluster.h"
 
 #include "PCGExPointStates.generated.h"
@@ -56,8 +58,8 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExPointStateFactoryBase : public UPCGExFilt
 	GENERATED_BODY()
 
 public:
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
@@ -70,7 +72,7 @@ namespace PCGExPointStates
 		FPCGExStateConfigBase* BaseConfig = nullptr;
 		const UPCGExPointStateFactoryBase* StateFactory = nullptr;
 
-		explicit FState(const UPCGExPointStateFactoryBase* InFactory):
+		explicit FState(const TObjectPtr<const UPCGExPointStateFactoryBase>& InFactory):
 			TFilter(InFactory), StateFactory(InFactory)
 		{
 		}
@@ -78,29 +80,28 @@ namespace PCGExPointStates
 		virtual ~FState() override;
 
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
-		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories);
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
+		virtual bool InitInternalManager(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories);
 		virtual bool Test(const int32 Index) const override;
 
 		void ProcessFlags(const bool bSuccess, int64& InFlags) const;
 
 	protected:
-		PCGExPointFilter::TManager* Manager = nullptr;
+		TUniquePtr<PCGExPointFilter::TManager> Manager;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FStateManager : public PCGExPointFilter::TManager
 	{
-		TArray<FState*> States;
-		TArray<int64>* FlagsCache = nullptr;
+		TArray<TSharedPtr<FState>> States;
+		TSharedPtr<TArray<int64>> FlagsCache;
 
 	public:
-		explicit FStateManager(TArray<int64>* InFlags, PCGExData::FFacade* InPointDataFacade);
-		virtual ~FStateManager() override;
+		explicit FStateManager(const TSharedPtr<TArray<int64>>& InFlags, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
 
 		virtual bool Test(const int32 Index) override;
 
 	protected:
-		virtual void PostInitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter) override;
+		virtual void PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter) override;
 	};
 };
 

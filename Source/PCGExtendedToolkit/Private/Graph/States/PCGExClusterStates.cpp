@@ -3,12 +3,13 @@
 
 #include "Graph/States/PCGExClusterStates.h"
 
+
 #include "Graph/PCGExCluster.h"
 #include "Graph/Filters/PCGExClusterFilter.h"
 
-PCGExPointFilter::TFilter* UPCGExClusterStateFactoryBase::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExClusterStateFactoryBase::CreateFilter() const
 {
-	PCGExClusterStates::FState* NewState = new PCGExClusterStates::FState(this);
+	TSharedPtr<PCGExClusterStates::FState> NewState = MakeShared<PCGExClusterStates::FState>(this);
 	NewState->Config = Config;
 	NewState->BaseConfig = &NewState->Config;
 	return NewState;
@@ -23,21 +24,20 @@ namespace PCGExClusterStates
 {
 	FState::~FState()
 	{
-		PCGEX_DELETE(Manager)
 	}
 
-	bool FState::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+	bool FState::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		Config.Init();
 
 		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
-		Manager = new PCGExClusterFilter::TManager(InCluster, PointDataFacade, EdgeDataFacade);
+		Manager = MakeUnique<PCGExClusterFilter::TManager>(InCluster, PointDataFacade, EdgeDataFacade);
 		Manager->bCacheResults = true;
 		return true;
 	}
 
-	bool FState::InitInternalManager(const FPCGContext* InContext, const TArray<UPCGExFilterFactoryBase*>& InFactories)
+	bool FState::InitInternalManager(const FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExFilterFactoryBase>>& InFactories)
 	{
 		return Manager->Init(InContext, InFactories);
 	}
@@ -69,20 +69,19 @@ namespace PCGExClusterStates
 		else if (Config.bOnTestFail && !bSuccess) { Config.FailStateFlags.DoOperation(InFlags); }
 	}
 
-	FStateManager::FStateManager(TArray<int64>* InFlags, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataCache, PCGExData::FFacade* InEdgeDataCache)
+	FStateManager::FStateManager(
+		const TSharedPtr<TArray<int64>>& InFlags,
+		const TSharedPtr<PCGExCluster::FCluster>& InCluster,
+		const TSharedPtr<PCGExData::FFacade>& InPointDataCache,
+		const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache)
 		: TManager(InCluster, InPointDataCache, InEdgeDataCache)
 	{
 		FlagsCache = InFlags;
 	}
 
-	FStateManager::~FStateManager()
+	void FStateManager::PostInitFilter(const FPCGContext* InContext, const TSharedPtr<PCGExPointFilter::TFilter>& InFilter)
 	{
-		States.Empty();
-	}
-
-	void FStateManager::PostInitFilter(const FPCGContext* InContext, PCGExPointFilter::TFilter* InFilter)
-	{
-		FState* State = static_cast<FState*>(InFilter);
+		const TSharedPtr<FState>& State = StaticCastSharedPtr<FState>(InFilter);
 		State->InitInternalManager(InContext, State->StateFactory->FilterFactories);
 
 		TManager::PostInitFilter(InContext, InFilter);

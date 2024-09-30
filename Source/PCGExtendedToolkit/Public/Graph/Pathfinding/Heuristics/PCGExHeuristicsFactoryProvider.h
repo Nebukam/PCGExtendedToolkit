@@ -35,7 +35,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExHeuristicConfigBase
 
 	~FPCGExHeuristicConfigBase()
 	{
-		PCGEX_CLEAN_SP(ScoreCurveObj)
 	}
 
 	/** The weight factor for this heuristic.*/

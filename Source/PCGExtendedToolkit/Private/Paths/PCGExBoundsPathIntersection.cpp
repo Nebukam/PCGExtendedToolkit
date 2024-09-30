@@ -5,6 +5,7 @@
 #include "PCGExMath.h"
 #include "PCGExRandom.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExBoundsPathIntersectionElement"
 #define PCGEX_NAMESPACE BoundsPathIntersection
 
@@ -19,12 +20,6 @@ PCGExData::EInit UPCGExBoundsPathIntersectionSettings::GetMainOutputInitMode() c
 
 PCGEX_INITIALIZE_ELEMENT(BoundsPathIntersection)
 
-FPCGExBoundsPathIntersectionContext::~FPCGExBoundsPathIntersectionContext()
-{
-	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE_FACADE_AND_SOURCE(BoundsDataFacade)
-}
-
 bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -33,11 +28,11 @@ bool FPCGExBoundsPathIntersectionElement::Boot(FPCGExContext* InContext) const
 
 	if (!Settings->OutputSettings.Validate(Context)) { return false; }
 
-	PCGExData::FPointIO* BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
+	TSharedPtr<PCGExData::FPointIO> BoundsIO = PCGExData::TryGetSingleInput(InContext, PCGEx::SourceBoundsLabel, true);
 	if (!BoundsIO) { return false; }
 
-	BoundsIO->CreateInKeys();
-	Context->BoundsDataFacade = new PCGExData::FFacade(BoundsIO);
+	BoundsIO->GetInKeys();
+	Context->BoundsDataFacade = MakeShared<PCGExData::FFacade>(BoundsIO.ToSharedRef());
 
 	return true;
 }
@@ -47,6 +42,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBoundsPathIntersectionElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -55,7 +51,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 		bool bHasInvalidInputs = false;
 		bool bWritesAny = Settings->OutputSettings.WillWriteAny();
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
@@ -76,11 +72,10 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>& NewBatch)
 			{
 				NewBatch->bRequiresWriteStep = Settings->OutputSettings.WillWriteAny();
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to intersect with."));
 			return true;
@@ -92,7 +87,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -103,37 +98,34 @@ namespace PCGExPathIntersections
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(Segmentation)
-		Details.Cleanup();
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathIntersections::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
-		LastIndex = PointIO->GetNum() - 1;
-		Segmentation = new PCGExGeo::FSegmentation();
-		Cloud = TypedContext->BoundsDataFacade->GetCloud(Settings->OutputSettings.BoundsSource, Settings->OutputSettings.InsideEpsilon);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
+		LastIndex = PointDataFacade->GetNum() - 1;
+		Segmentation = MakeShared<PCGExGeo::FSegmentation>();
+		Cloud = Context->BoundsDataFacade->GetCloud(Settings->OutputSettings.BoundsSource, Settings->OutputSettings.InsideEpsilon);
 
 		Details = Settings->OutputSettings;
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, FindIntersectionsTaskGroup)
-		FindIntersectionsTaskGroup->SetOnIterationRangeStartCallback(
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FindIntersectionsTaskGroup)
+		FindIntersectionsTaskGroup->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PointDataFacade->Fetch(StartIndex, Count);
 				FilterScope(StartIndex, Count);
-			});
+			};
 
 		FindIntersectionsTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { FindIntersections(Index); },
-			PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+			PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		//StartParallelLoopForPoints(PCGExData::ESource::In);
 
@@ -150,24 +142,23 @@ namespace PCGExPathIntersections
 			else { return; }
 		}
 
-		const FVector StartPosition = PointIO->GetInPoint(Index).Transform.GetLocation();
-		const FVector EndPosition = PointIO->GetInPoint(NextIndex).Transform.GetLocation();
+		const FVector StartPosition = PointDataFacade->Source->GetInPoint(Index).Transform.GetLocation();
+		const FVector EndPosition = PointDataFacade->Source->GetInPoint(NextIndex).Transform.GetLocation();
 
-		PCGExGeo::FIntersections* Intersections = new PCGExGeo::FIntersections(
+		const TSharedPtr<PCGExGeo::FIntersections> Intersections = MakeShared<PCGExGeo::FIntersections>(
 			StartPosition, EndPosition, Index, NextIndex);
 
-		if (Cloud->FindIntersections(Intersections))
+		if (Cloud->FindIntersections(Intersections.Get()))
 		{
 			Intersections->SortAndDedupe();
 			Segmentation->Insert(Intersections);
 		}
-		else { PCGEX_DELETE(Intersections) }
 	}
 
 	void FProcessor::InsertIntersections(const int32 Index) const
 	{
-		PCGExGeo::FIntersections* Intersections = Segmentation->IntersectionsList[Index];
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->IntersectionsList[Index];
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 		for (int i = 0; i < Intersections->Cuts.Num(); ++i)
 		{
 			const int32 Idx = Intersections->Start + i;
@@ -190,35 +181,33 @@ namespace PCGExPathIntersections
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
-
 		const int32 NumCuts = Segmentation->GetNumCuts();
 		if (NumCuts == 0)
 		{
 			if (Settings->OutputSettings.WillWriteAny())
 			{
-				PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+				PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
 
-				Details.Mark(PointIO->GetOut()->Metadata);
-				Details.Init(PointDataFacade, TypedContext->BoundsDataFacade);
+				Details.Mark(PointDataFacade->GetOut()->Metadata);
+				Details.Init(PointDataFacade, Context->BoundsDataFacade);
 
 				StartParallelLoopForPoints();
 			}
 			else
 			{
-				PointIO->InitializeOutput(PCGExData::EInit::Forward);
+				PointDataFacade->Source->InitializeOutput(PCGExData::EInit::Forward);
 			}
 
 			return;
 		}
 
-		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
-		const TArray<FPCGPoint>& OriginalPoints = PointIO->GetIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
+		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
-		PCGEX_SET_NUM_UNINITIALIZED(MutablePoints, OriginalPoints.Num() + NumCuts);
+		PCGEx::InitArray(MutablePoints, OriginalPoints.Num() + NumCuts);
 
-		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+		UPCGMetadata* Metadata = PointDataFacade->GetOut()->Metadata;
 
 		int32 Idx = 0;
 
@@ -227,7 +216,7 @@ namespace PCGExPathIntersections
 			const FPCGPoint& OriginalPoint = OriginalPoints[i];
 			MutablePoints[Idx++] = OriginalPoint;
 
-			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(i, i + 1)))
+			if (const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->Find(PCGEx::H64U(i, i + 1)))
 			{
 				Intersections->Start = Idx;
 				for (int j = 0; j < Intersections->Cuts.Num(); ++j)
@@ -244,7 +233,7 @@ namespace PCGExPathIntersections
 
 		if (bClosedLoop)
 		{
-			if (PCGExGeo::FIntersections* Intersections = Segmentation->Find(PCGEx::H64U(LastIndex, 0)))
+			if (const TSharedPtr<PCGExGeo::FIntersections> Intersections = Segmentation->Find(PCGEx::H64U(LastIndex, 0)))
 			{
 				Intersections->Start = Idx;
 				for (int j = 0; j < Intersections->Cuts.Num(); ++j)
@@ -257,12 +246,12 @@ namespace PCGExPathIntersections
 		}
 
 		PointDataFacade->Source->CleanupKeys();
-		Details.Init(PointDataFacade, TypedContext->BoundsDataFacade);
+		Details.Init(PointDataFacade, Context->BoundsDataFacade);
 
 		Segmentation->ReduceToArray();
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, InsertionTaskGroup)
-		InsertionTaskGroup->SetOnCompleteCallback([&]() { OnInsertionComplete(); });
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InsertionTaskGroup)
+		InsertionTaskGroup->OnCompleteCallback = [&]() { OnInsertionComplete(); };
 		InsertionTaskGroup->StartRanges(
 			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { InsertIntersections(Index); },
 			Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
@@ -273,7 +262,7 @@ namespace PCGExPathIntersections
 	void FProcessor::Write()
 	{
 		FPointsProcessor::Write();
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

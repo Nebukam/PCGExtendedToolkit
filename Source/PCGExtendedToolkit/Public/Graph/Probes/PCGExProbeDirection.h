@@ -74,7 +74,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeDirection : public UPCGExProbeOperat
 
 public:
 	virtual bool RequiresChainProcessing() override;
-	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
+	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	virtual void PrepareBestCandidate(const int32 Index, const FPCGPoint& Point, PCGExProbing::FBestCandidate& InBestCandidate) override;
@@ -83,12 +83,18 @@ public:
 
 	FPCGExProbeConfigDirection Config;
 
+	virtual void Cleanup() override
+	{
+		DirectionCache.Reset();
+		Super::Cleanup();
+	}
+
 protected:
 	bool bUseConstantDir = false;
 	double MinDot = 0;
 	bool bUseBestDot = false;
 	FVector Direction = FVector::ForwardVector;
-	PCGExData::TCache<FVector>* DirectionCache = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> DirectionCache;
 };
 
 ////

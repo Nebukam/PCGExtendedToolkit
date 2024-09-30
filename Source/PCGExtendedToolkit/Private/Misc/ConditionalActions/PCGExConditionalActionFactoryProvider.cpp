@@ -18,11 +18,11 @@ void UPCGExConditionalActionOperation::CopySettingsFrom(const UPCGExOperation* O
 	}
 }
 
-bool UPCGExConditionalActionOperation::PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool UPCGExConditionalActionOperation::PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	PrimaryDataFacade = InPointDataFacade;
 
-	FilterManager = new PCGExPointFilter::TManager(PrimaryDataFacade);
+	FilterManager = MakeUnique<PCGExPointFilter::TManager>(PrimaryDataFacade);
 
 	if (!FilterManager->Init(InContext, Factory->FilterFactories)) { return false; }
 
@@ -45,7 +45,6 @@ void UPCGExConditionalActionOperation::OnMatchFail(int32 Index, const FPCGPoint&
 
 void UPCGExConditionalActionOperation::Cleanup()
 {
-	PCGEX_DELETE(FilterManager)
 	Super::Cleanup();
 }
 
@@ -65,7 +64,7 @@ bool UPCGExConditionalActionFactoryBase::Boot(FPCGContext* InContext)
 	return true;
 }
 
-bool UPCGExConditionalActionFactoryBase::AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage)
+bool UPCGExConditionalActionFactoryBase::AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage) const
 {
 	TSet<FName> Mismatch;
 
@@ -96,9 +95,6 @@ bool UPCGExConditionalActionFactoryBase::AppendAndValidate(PCGEx::FAttributesInf
 
 void UPCGExConditionalActionFactoryBase::BeginDestroy()
 {
-	PCGEX_DELETE(CheckSuccessInfos)
-	PCGEX_DELETE(CheckFailInfos)
-
 	Super::BeginDestroy();
 }
 
@@ -111,9 +107,7 @@ TArray<FPCGPinProperties> UPCGExConditionalActionProviderSettings::InputPinPrope
 
 UPCGExParamFactoryBase* UPCGExConditionalActionProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExConditionalActionFactoryBase* TypedFactory = Cast<UPCGExConditionalActionFactoryBase>(InFactory);
-
-	if (TypedFactory)
+	if (UPCGExConditionalActionFactoryBase* TypedFactory = Cast<UPCGExConditionalActionFactoryBase>(InFactory))
 	{
 		if (!GetInputFactories(
 			InContext, PCGExConditionalActions::SourceConditionsFilterLabel, TypedFactory->FilterFactories,

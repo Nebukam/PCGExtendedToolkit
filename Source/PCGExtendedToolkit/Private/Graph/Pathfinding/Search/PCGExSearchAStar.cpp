@@ -13,8 +13,9 @@ bool UPCGExSearchAStar::FindPath(
 	const FPCGExNodeSelectionDetails* SeedSelection,
 	const FVector& GoalPosition,
 	const FPCGExNodeSelectionDetails* GoalSelection,
-	PCGExHeuristics::THeuristicsHandler* Heuristics,
-	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) const
+	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& Heuristics,
+	TArray<int32>& OutPath,
+	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler>& LocalFeedback) const
 {
 	const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
 	const TArray<PCGExGraph::FIndexedEdge>& EdgesRef = *Cluster->Edges;
@@ -47,8 +48,8 @@ bool UPCGExSearchAStar::FindPath(
 		TravelStack[i] = PCGEx::NH64(-1, -1);
 	}
 
-	double MinGScore = TNumericLimits<double>::Max();
-	double MaxGScore = TNumericLimits<double>::Min();
+	double MinGScore = MAX_dbl;
+	double MaxGScore = MIN_dbl;
 
 	for (int i = 0; i < NodesRef.Num(); ++i)
 	{
@@ -57,7 +58,7 @@ bool UPCGExSearchAStar::FindPath(
 		MaxGScore = FMath::Max(MaxGScore, GS);
 	}
 
-	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(
+	const TUniquePtr<PCGExSearch::TScoredQueue> ScoredQueue = MakeUnique<PCGExSearch::TScoredQueue>(
 		NumNodes, SeedNode.NodeIndex, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
 	GScore[SeedNode.NodeIndex] = 0;
 
@@ -86,7 +87,7 @@ bool UPCGExSearchAStar::FindPath(
 			const PCGExCluster::FNode& AdjacentNode = NodesRef[NeighborIndex];
 			const PCGExGraph::FIndexedEdge& Edge = EdgesRef[EdgeIndex];
 
-			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback, &TravelStack);
+			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback.Get(), &TravelStack);
 			const double TentativeGScore = CurrentGScore + EScore;
 
 			const double PreviousGScore = GScore[NeighborIndex];
@@ -155,7 +156,6 @@ bool UPCGExSearchAStar::FindPath(
 		OutPath.Append(Path);
 	}
 
-	PCGEX_DELETE(ScoredQueue)
 	TravelStack.Empty();
 	GScore.Empty();
 

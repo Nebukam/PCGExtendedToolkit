@@ -11,6 +11,7 @@
 #include "Graph/PCGExCluster.h"
 #include "PCGExOperation.h"
 
+
 #include "PCGExConditionalActionAttributes.generated.h"
 
 namespace PCGExConditionalActionAttribute
@@ -34,7 +35,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+	virtual bool PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade) override;
 	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point) override;
 	virtual void OnMatchFail(int32 Index, const FPCGPoint& Point) override;
 
@@ -42,9 +43,9 @@ public:
 
 protected:
 	TArray<FPCGMetadataAttributeBase*> SuccessAttributes;
-	TArray<PCGEx::FAttributeIOBase*> SuccessWriters;
+	TArray<TSharedPtr<PCGExData::FBufferBase>> SuccessWriters;
 	TArray<FPCGMetadataAttributeBase*> FailAttributes;
-	TArray<PCGEx::FAttributeIOBase*> FailWriters;
+	TArray<TSharedPtr<PCGExData::FBufferBase>> FailWriters;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

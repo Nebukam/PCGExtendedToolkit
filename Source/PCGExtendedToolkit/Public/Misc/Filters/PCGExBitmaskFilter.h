@@ -11,6 +11,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExBitmaskFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -59,7 +60,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBitmaskFilterFactory : public UPCGExFilte
 public:
 	FPCGExBitmaskFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -67,26 +68,26 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TBitmaskFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TBitmaskFilter(const UPCGExBitmaskFilterFactory* InDefinition)
+		explicit TBitmaskFilter(const TObjectPtr<const UPCGExBitmaskFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition), Bitmask(InDefinition->Config.Bitmask)
 		{
 		}
 
-		const UPCGExBitmaskFilterFactory* TypedFilterFactory;
+		TObjectPtr<const UPCGExBitmaskFilterFactory> TypedFilterFactory;
 
-		PCGEx::TAttributeIO<int64>* FlagsReader = nullptr;
-		PCGEx::TAttributeIO<int64>* MaskReader = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int64>> FlagsReader;
+		TSharedPtr<PCGExData::TBuffer<int64>> MaskReader;
 
 		int64 Bitmask;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
 			const bool Result = PCGExCompare::Compare(
 				TypedFilterFactory->Config.Comparison,
-				FlagsReader->Values[PointIndex],
-				MaskReader ? MaskReader->Values[PointIndex] : Bitmask);
+				FlagsReader->Read(PointIndex),
+				MaskReader ? MaskReader->Read(PointIndex) : Bitmask);
 
 			return TypedFilterFactory->Config.bInvertResult ? !Result : Result;
 		}

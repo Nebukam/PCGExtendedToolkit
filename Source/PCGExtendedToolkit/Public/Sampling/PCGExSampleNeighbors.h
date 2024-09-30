@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExSampleNeighbors.generated.h"
@@ -56,9 +58,7 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNeighborsContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSampleNeighborsElement;
-	virtual ~FPCGExSampleNeighborsContext() override;
-
-	TArray<UPCGExNeighborSamplerFactoryBase*> SamplerFactories;
+	TArray<TObjectPtr<const UPCGExNeighborSamplerFactoryBase>> SamplerFactories;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement
@@ -76,23 +76,23 @@ protected:
 
 namespace PCGExSampleNeighbors
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExSampleNeighborsContext, UPCGExSampleNeighborsSettings>
 	{
 		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
 		TArray<UPCGExNeighborSampleOperation*> OpsWithValueTest;
 
 		bool bBuildExpandedNodes = false;
-		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
+		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

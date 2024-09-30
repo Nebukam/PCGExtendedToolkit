@@ -5,22 +5,13 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
+#include "PCGExCompoundHelpers.h"
 #include "PCGExEdgesProcessor.h"
 #include "PCGExIntersections.h"
+#include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExFuseClusters.generated.h"
-
-namespace PCGExDataBlending
-{
-	class FCompoundBlender;
-}
-
-namespace PCGExGraph
-{
-	struct FCompoundProcessor;
-	struct FCompoundGraph;
-}
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExFuseClustersSettings : public UPCGExEdgesProcessorSettings
@@ -107,18 +98,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersContext final : public FPCGE
 	friend class UPCGExFuseClustersSettings;
 	friend class FPCGExFuseClustersElement;
 
-	virtual ~FPCGExFuseClustersContext() override;
-
-	TArray<PCGExData::FFacade*> VtxFacades;
-	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-	PCGExData::FFacade* CompoundFacade = nullptr;
+	TArray<TSharedPtr<PCGExData::FFacade>> VtxFacades;
+	TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
+	TSharedPtr<PCGExData::FFacade> CompoundFacade;
 
 	FPCGExCarryOverDetails VtxCarryOverDetails;
 	FPCGExCarryOverDetails EdgesCarryOverDetails;
 
-	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;
-
-	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
+	TSharedPtr<PCGExGraph::FCompoundProcessor> CompoundProcessor;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement
@@ -136,7 +123,7 @@ protected:
 
 namespace PCGExFuseClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFuseClustersContext, UPCGExFuseClustersSettings>
 	{
 		int32 VtxIOIndex = 0;
 		int32 EdgesIOIndex = 0;
@@ -145,17 +132,17 @@ namespace PCGExFuseClusters
 
 	public:
 		bool bInvalidEdges = true;
-		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+		TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
 
-		explicit FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-			: FClusterProcessor(InVtx, InEdges)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bBuildCluster = false;
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		FORCEINLINE virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override
 		{
 			ProcessSingleEdge(Iteration, IndexedEdges[Iteration], LoopIdx, Count);

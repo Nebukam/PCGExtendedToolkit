@@ -13,11 +13,6 @@ PCGExData::EInit UPCGExMakeClustersUniqueSettings::GetEdgeOutputInitMode() const
 
 #pragma endregion
 
-FPCGExMakeClustersUniqueContext::~FPCGExMakeClustersUniqueContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
-
 PCGEX_INITIALIZE_ELEMENT(MakeClustersUnique)
 
 bool FPCGExMakeClustersUniqueElement::Boot(FPCGExContext* InContext) const

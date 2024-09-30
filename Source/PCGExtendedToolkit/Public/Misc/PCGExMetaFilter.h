@@ -46,12 +46,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterContext final : public FPCGExP
 {
 	friend class FPCGExMetaFilterElement;
 
-	virtual ~FPCGExMetaFilterContext() override;
-
 	FPCGExCarryOverDetails Filters;
 
-	PCGExData::FPointIOCollection* Inside = nullptr;
-	PCGExData::FPointIOCollection* Outside = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> Inside;
+	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterElement final : public FPCGExPointsProcessorElement

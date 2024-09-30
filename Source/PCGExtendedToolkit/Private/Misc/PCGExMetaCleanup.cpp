@@ -10,10 +10,6 @@ PCGExData::EInit UPCGExMetaCleanupSettings::GetMainOutputInitMode() const { retu
 
 PCGEX_INITIALIZE_ELEMENT(MetaCleanup)
 
-FPCGExMetaCleanupContext::~FPCGExMetaCleanupContext()
-{
-}
-
 bool FPCGExMetaCleanupElement::Boot(FPCGExContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
@@ -39,7 +35,7 @@ bool FPCGExMetaCleanupElement::ExecuteInternal(FPCGContext* InContext) const
 		while (Context->AdvancePointsIO())
 		{
 			Context->CurrentIO->InitializeOutput(PCGExData::EInit::Forward);
-			Context->Filters.Filter(Context->CurrentIO->Tags);
+			Context->Filters.Filter(Context->CurrentIO->Tags.Get());
 		}
 	}
 	else
@@ -48,7 +44,7 @@ bool FPCGExMetaCleanupElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			// TODO : Check if any attribute is affected first, and forward instead of duplicate if not.
 			Context->CurrentIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-			Context->Filters.Filter(Context->CurrentIO);
+			Context->Filters.Filter(Context->CurrentIO.Get());
 		}
 	}
 

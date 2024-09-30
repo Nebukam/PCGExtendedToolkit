@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExSimplifyClusters.h"
 
+
 #include "Graph/Filters/PCGExClusterFilter.h"
 
 
@@ -14,11 +15,6 @@ PCGExData::EInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const {
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 #pragma endregion
-
-FPCGExSimplifyClustersContext::~FPCGExSimplifyClustersContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
 
@@ -38,24 +34,25 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSimplifyClustersElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SimplifyClusters)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>(
-			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
+			[&](const TSharedPtr<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessClusters()) { return false; }
+	if (!Context->ProcessClusters(PCGExGraph::State_ReadyToCompile)) { return false; }
+	if (!Context->CompileGraphBuilders(true, PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -66,27 +63,22 @@ namespace PCGExSimplifyClusters
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_TARRAY(Chains)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
-		LocalTypedContext = TypedContext;
-		LocalSettings = Settings;
 
-		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(InAsyncManager)) { return false; }
 
 		Breakpoints.Init(false, Cluster->Nodes->Num());
 
-		if (!TypedContext->FilterFactories.IsEmpty())
+		if (!Context->FilterFactories.IsEmpty())
 		{
-			PCGExClusterFilter::TManager* FilterManager = new PCGExClusterFilter::TManager(Cluster, VtxDataFacade, EdgeDataFacade);
-			FilterManager->Init(Context, TypedContext->FilterFactories);
+			const TUniquePtr<PCGExClusterFilter::TManager> FilterManager = MakeUnique<PCGExClusterFilter::TManager>(Cluster, VtxDataFacade, EdgeDataFacade);
+			FilterManager->Init(ExecutionContext, Context->FilterFactories);
 			for (const PCGExCluster::FNode& Node : *Cluster->Nodes) { Breakpoints[Node.NodeIndex] = Node.IsComplex() ? true : FilterManager->Test(Node); }
-			PCGEX_DELETE(FilterManager)
 		}
 		else
 		{
@@ -95,14 +87,14 @@ namespace PCGExSimplifyClusters
 
 		if (IsTrivial())
 		{
-			AsyncManagerPtr->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster,
+			AsyncManager->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
+				EdgeDataFacade->Source->IOIndex, nullptr, Cluster,
 				&Breakpoints, &Chains, false, false);
 		}
 		else
 		{
-			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
-				EdgesIO->IOIndex, nullptr, Cluster,
+			AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
+				EdgeDataFacade->Source->IOIndex, nullptr, Cluster,
 				&Breakpoints, &Chains, false, false);
 		}
 
@@ -113,16 +105,13 @@ namespace PCGExSimplifyClusters
 	void FProcessor::CompleteWork()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::CompleteWork);
-
-		PCGEX_SETTINGS(SimplifyClusters)
-
 		PCGExClusterTask::DedupeChains(Chains);
 		StartParallelLoopForRange(Chains.Num());
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExCluster::FNodeChain* Chain = Chains[Iteration];
+		const TSharedPtr<PCGExCluster::FNodeChain> Chain = Chains[Iteration];
 		if (!Chain) { return; }
 
 		const TArray<PCGExCluster::FNode>& NodesRef = *Cluster->Nodes;
@@ -130,9 +119,9 @@ namespace PCGExSimplifyClusters
 
 		const bool bIsDeadEnd = NodesRef[Chain->First].Adjacency.Num() == 1 || NodesRef[Chain->Last].Adjacency.Num() == 1;
 
-		if (LocalSettings->bPruneDeadEnds && bIsDeadEnd) { return; }
+		if (Settings->bPruneDeadEnds && bIsDeadEnd) { return; }
 
-		if (LocalSettings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
+		if (Settings->bOperateOnDeadEndsOnly && !bIsDeadEnd)
 		{
 			// Dump edges
 			if (Chain->SingleEdge != -1) { GraphBuilder->Graph->InsertEdge(EdgesRef[Chain->SingleEdge]); }
@@ -140,11 +129,11 @@ namespace PCGExSimplifyClusters
 			return;
 		}
 
-		const int32 IOIndex = Cluster->EdgesIO->IOIndex;
-		const double DotThreshold = PCGExMath::DegreesToDot(LocalSettings->AngularThreshold);
+		const int32 IOIndex = Cluster->EdgesIO.Pin()->IOIndex;
+		const double DotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 
-		if (!LocalSettings->bMergeAboveAngularThreshold)
+		if (!Settings->bMergeAboveAngularThreshold)
 		{
 			GraphBuilder->Graph->InsertEdge(
 				NodesRef[Chain->First].PointIndex,
@@ -177,7 +166,7 @@ namespace PCGExSimplifyClusters
 			const FVector A = Cluster->GetDir(PrevNode, CurrentNode).GetSafeNormal();
 			const FVector B = Cluster->GetDir(CurrentNode, NextNode).GetSafeNormal();
 
-			if (!LocalSettings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { continue; } }
+			if (!Settings->bInvertAngularThreshold) { if (FVector::DotProduct(A, B) > DotThreshold) { continue; } }
 			else { if (FVector::DotProduct(A, B) < DotThreshold) { continue; } }
 
 			NewEdges.Add(PCGEx::H64U(NodesRef[StartIndex].PointIndex, NodesRef[CurrentIndex].PointIndex));

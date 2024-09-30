@@ -10,6 +10,7 @@
 #include "PCGExSampling.h"
 #include "Data/PCGSplineData.h"
 
+
 #include "PCGExSampleNearestSpline.generated.h"
 
 #define PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(MACRO)\
@@ -60,7 +61,7 @@ namespace PCGExPolyLine
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		double SampledRangeMin = TNumericLimits<double>::Max();
+		double SampledRangeMin = MAX_dbl;
 		double SampledRangeMax = 0;
 		double SampledRangeWidth = 0;
 		int32 UpdateCount = 0;
@@ -322,8 +323,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestSplineContext final : publi
 {
 	friend class FPCGExSampleNearestSplineElement;
 
-	virtual ~FPCGExSampleNearestSplineContext() override;
-
 	TArray<UPCGSplineData*> Targets;
 
 	int64 NumTargets = 0;
@@ -348,14 +347,11 @@ protected:
 
 namespace PCGExSampleNearestSpline
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleNearestSplineContext, UPCGExSampleNearestSplineSettings>
 	{
-		FPCGExSampleNearestSplineContext* LocalTypedContext = nullptr;
-		const UPCGExSampleNearestSplineSettings* LocalSettings = nullptr;
-
-		PCGExData::TCache<double>* RangeMinGetter = nullptr;
-		PCGExData::TCache<double>* RangeMaxGetter = nullptr;
-		PCGExData::TCache<FVector>* LookAtUpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> RangeMinGetter;
+		TSharedPtr<PCGExData::TBuffer<double>> RangeMaxGetter;
+		TSharedPtr<PCGExData::TBuffer<FVector>> LookAtUpGetter;
 
 		FVector SafeUpVector = FVector::UpVector;
 		int8 bAnySuccess = 0;
@@ -366,14 +362,14 @@ namespace PCGExSampleNearestSpline
 		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

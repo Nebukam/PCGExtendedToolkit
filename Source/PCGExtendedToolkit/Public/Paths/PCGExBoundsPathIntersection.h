@@ -7,6 +7,8 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExBoundsPathIntersection.generated.h"
@@ -50,9 +52,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionContext final : pu
 {
 	friend class FPCGExBoundsPathIntersectionElement;
 
-	virtual ~FPCGExBoundsPathIntersectionContext() override;
-
-	PCGExData::FFacade* BoundsDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> BoundsDataFacade;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsPathIntersectionElement final : public FPCGExPathProcessorElement
@@ -70,24 +70,24 @@ protected:
 
 namespace PCGExPathIntersections
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBoundsPathIntersectionContext, UPCGExBoundsPathIntersectionSettings>
 	{
 		bool bClosedLoop = false;
 		int32 LastIndex = 0;
-		PCGExGeo::FPointBoxCloud* Cloud = nullptr;
-		PCGExGeo::FSegmentation* Segmentation = nullptr;
+		TSharedPtr<PCGExGeo::FPointBoxCloud> Cloud;
+		TSharedPtr<PCGExGeo::FSegmentation> Segmentation;
 
 		FPCGExBoxIntersectionDetails Details;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void FindIntersections(const int32 Index) const;
 		void InsertIntersections(const int32 Index) const;
 		void OnInsertionComplete();
@@ -96,7 +96,7 @@ namespace PCGExPathIntersections
 		{
 			if (Details.InsideForwardHandler)
 			{
-				TArray<PCGExGeo::FPointBox*> Overlaps;
+				TArray<TSharedPtr<PCGExGeo::FPointBox>> Overlaps;
 				const bool bContained = Cloud->ContainsMinusEpsilon(Point.Transform.GetLocation(), Overlaps); // Avoid intersections being captured
 				Details.SetIsInside(Index, bContained, bContained ? Overlaps[0]->Index : -1);
 			}

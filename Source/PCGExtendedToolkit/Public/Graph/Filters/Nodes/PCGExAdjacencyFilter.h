@@ -67,7 +67,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExAdjacencyFilterFactory : public UPCGExClu
 public:
 	FPCGExAdjacencyFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExNodeAdjacency
@@ -88,10 +88,13 @@ namespace PCGExNodeAdjacency
 		TArray<double> CachedThreshold;
 		FPCGExAdjacencySettings Adjacency;
 
-		PCGExData::TCache<double>* OperandA = nullptr;
-		PCGExData::TCache<double>* OperandB = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade) override;
+		using TestCallback = std::function<bool(const PCGExCluster::FNode&, const TArray<PCGExCluster::FNode>&, const double A)>;
+		TestCallback TestSubFunc;
+
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade) override;
 
 		virtual bool Test(const PCGExCluster::FNode& Node) const override;
 

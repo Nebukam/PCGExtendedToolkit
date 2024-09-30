@@ -6,11 +6,10 @@
 #include "CoreMinimal.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExDataForward.h"
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExPickClosestClusters.generated.h"
-
-
-class FPCGExPointIOMerger;
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Pick Mode"))
 enum class EPCGExClusterClosestPickMode : uint8
@@ -87,17 +86,15 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : publi
 {
 	friend class FPCGExPickClosestClustersElement;
 
-	virtual ~FPCGExPickClosestClustersContext() override;
-
-	PCGExData::FFacade* TargetDataFacade = nullptr;
+	TSharedPtr<PCGExData::FFacade> TargetDataFacade;
 
 	FString KeepTag = TEXT("");
 	FString OmitTag = TEXT("");
 
 	FPCGExAttributeToTagDetails TargetAttributesToTags;
-	PCGExData::FDataForwardHandler* TargetForwardHandler = nullptr;
+	TSharedPtr<PCGExData::FDataForwardHandler> TargetForwardHandler;
 
-	virtual void OnBatchesProcessingDone() override;
+	virtual void ClusterProcessing_InitialProcessingDone() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersElement final : public FPCGExEdgesProcessorElement
@@ -115,26 +112,23 @@ protected:
 
 namespace PCGExPickClosestClusters
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExPickClosestClustersContext, UPCGExPickClosestClustersSettings>
 	{
 		friend class FProcessorBatch;
-
-		const UPCGExPickClosestClustersSettings* LocalSettings = nullptr;
-		FPCGExPickClosestClustersContext* LocalTypedContext = nullptr;
 
 	public:
 		TArray<double> Distances;
 
 		int32 Picker = -1;
 
-		explicit FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-			: FClusterProcessor(InVtx, InEdges)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void Search();
 		virtual void CompleteWork() override;
 	};
@@ -146,7 +140,7 @@ namespace PCGExPickClosestClusters
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 	public:
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

@@ -7,6 +7,8 @@
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.h"
 #include "Data/PCGExAttributeHelpers.h"
+
+
 #include "PCGExGoalPickerAttribute.generated.h"
 
 struct FPCGPoint;
@@ -33,16 +35,23 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::Single", EditConditionHides))
 	FPCGAttributePropertyInputSelector SingleSelector;
-	PCGExData::TCache<double>* SingleGetter;
+	TSharedPtr<PCGExData::TBuffer<double>> SingleGetter;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = GoalPicker, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List", EditConditionHides, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGAttributePropertyInputSelector> AttributeSelectors;
-	TArray<PCGExData::TCache<double>*> AttributeGetters;
+	TArray<TSharedPtr<PCGExData::TBuffer<double>>> AttributeGetters;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual void PrepareForData(PCGExData::FFacade* InSeedsDataFacade, PCGExData::FFacade* InGoalsDataFacade) override;
+	virtual void PrepareForData(const TSharedPtr<PCGExData::FFacade>& InSeedsDataFacade, const TSharedPtr<PCGExData::FFacade>& InGoalsDataFacade) override;
 	virtual int32 GetGoalIndex(const PCGExData::FPointRef& Seed) const override;
 	virtual void GetGoalIndices(const PCGExData::FPointRef& Seed, TArray<int32>& OutIndices) const override;
 	virtual bool OutputMultipleGoals() const override;
+
+	virtual void Cleanup() override
+	{
+		SingleGetter.Reset();
+		AttributeGetters.Empty();
+		Super::Cleanup();
+	}
 };

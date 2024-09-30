@@ -3,17 +3,13 @@
 
 #include "Misc/PCGExReversePointOrder.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExReversePointOrderElement"
 #define PCGEX_NAMESPACE ReversePointOrder
 
 PCGExData::EInit UPCGExReversePointOrderSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(ReversePointOrder)
-
-FPCGExReversePointOrderContext::~FPCGExReversePointOrderContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExReversePointOrderElement::Boot(FPCGExContext* InContext) const
 {
@@ -34,24 +30,24 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExReversePointOrderElement::Execute);
 
 	PCGEX_CONTEXT(ReversePointOrder)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExReversePointOrder::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to process."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -60,14 +56,13 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 
 namespace PCGExReversePointOrder
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExWriteIndex::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ReversePointOrder)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 		Algo::Reverse(MutablePoints);
 
 		AttributesInfos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
@@ -87,9 +82,9 @@ namespace PCGExReversePointOrder
 
 		if (SwapPairs.IsEmpty()) { return true; }
 
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, FetchWritersTask)
-		FetchWritersTask->SetOnCompleteCallback([&]() { StartParallelLoopForPoints(); });
-		FetchWritersTask->SetOnIterationRangeStartCallback(
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchWritersTask)
+		FetchWritersTask->OnCompleteCallback = [&]() { StartParallelLoopForPoints(); };
+		FetchWritersTask->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::FetchWriters);
@@ -100,10 +95,10 @@ namespace PCGExReversePointOrder
 					static_cast<uint16>(WorkingPair.FirstIdentity->UnderlyingType), [&](auto DummyValue) -> void
 					{
 						using RawT = decltype(DummyValue);
-						WorkingPair.FirstWriter = PointDataFacade->GetWriter<RawT>(WorkingPair.FirstAttributeName, false);
-						WorkingPair.SecondWriter = PointDataFacade->GetWriter<RawT>(WorkingPair.SecondAttributeName, false);
+						WorkingPair.FirstWriter = PointDataFacade->GetWritable<RawT>(WorkingPair.FirstAttributeName, false);
+						WorkingPair.SecondWriter = PointDataFacade->GetWritable<RawT>(WorkingPair.SecondAttributeName, false);
 					});
-			});
+			};
 
 		FetchWritersTask->PrepareRangesOnly(SwapPairs.Num(), 1);
 
@@ -119,17 +114,17 @@ namespace PCGExReversePointOrder
 				static_cast<uint16>(WorkingPair.FirstIdentity->UnderlyingType), [&](auto DummyValue) -> void
 				{
 					using RawT = decltype(DummyValue);
-					PCGEx::TAttributeWriter<RawT>* FirstWriter = static_cast<PCGEx::TAttributeWriter<RawT>*>(WorkingPair.FirstWriter);
-					PCGEx::TAttributeWriter<RawT>* SecondWriter = static_cast<PCGEx::TAttributeWriter<RawT>*>(WorkingPair.SecondWriter);
+					TSharedPtr<PCGExData::TBuffer<RawT>> FirstWriter = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(WorkingPair.FirstWriter);
+					TSharedPtr<PCGExData::TBuffer<RawT>> SecondWriter = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(WorkingPair.SecondWriter);
 
 					if (WorkingPair.bMultiplyByMinusOne)
 					{
 						for (int i = 0; i < Count; ++i)
 						{
 							const int32 Index = StartIndex + i;
-							const RawT FirstValue = FirstWriter->Values[Index];
-							FirstWriter->Values[Index] = PCGExMath::DblMult(SecondWriter->Values[Index], -1);
-							SecondWriter->Values[Index] = PCGExMath::DblMult(FirstValue, -1);
+							const RawT FirstValue = FirstWriter->Read(Index);
+							FirstWriter->GetMutable(Index) = PCGExMath::DblMult(SecondWriter->GetConst(Index), -1);
+							SecondWriter->GetMutable(Index) = PCGExMath::DblMult(FirstValue, -1);
 						}
 					}
 					else
@@ -137,9 +132,9 @@ namespace PCGExReversePointOrder
 						for (int i = 0; i < Count; ++i)
 						{
 							const int32 Index = StartIndex + i;
-							const RawT FirstValue = FirstWriter->Values[Index];
-							FirstWriter->Values[Index] = SecondWriter->Values[Index];
-							SecondWriter->Values[Index] = FirstValue;
+							const RawT FirstValue = FirstWriter->Read(Index);
+							FirstWriter->GetMutable(Index) = SecondWriter->GetConst(Index);
+							SecondWriter->GetMutable(Index) = FirstValue;
 						}
 					}
 				});
@@ -148,7 +143,7 @@ namespace PCGExReversePointOrder
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

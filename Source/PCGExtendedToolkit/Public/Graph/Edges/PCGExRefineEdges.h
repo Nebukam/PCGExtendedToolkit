@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
@@ -12,21 +14,9 @@
 
 namespace PCGExRefineEdges
 {
-	class FProcessorBatch;
 	const FName SourceVtxFilters = FName("VtxFilters");
 	const FName SourceEdgeFilters = FName("EdgeFilters");
 	const FName SourceSanitizeEdgeFilters = FName("SanitizeFilters");
-}
-
-namespace PCGExHeuristics
-{
-	class THeuristicsHandler;
-}
-
-namespace PCGExGraph
-{
-	class FGraphBuilder;
-	class FGraph;
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Refine Sanitization"))
@@ -83,11 +73,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesContext final : public FPCGEx
 {
 	friend class FPCGExRefineEdgesElement;
 
-	virtual ~FPCGExRefineEdgesContext() override;
-
-	TArray<UPCGExFilterFactoryBase*> VtxFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> EdgeFilterFactories;
-	TArray<UPCGExFilterFactoryBase*> SanitizationFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> VtxFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> EdgeFilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> SanitizationFilterFactories;
 
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
 };
@@ -107,33 +95,30 @@ protected:
 
 namespace PCGExRefineEdges
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExRefineEdgesContext, UPCGExRefineEdgesSettings>
 	{
 		friend class FSanitizeRangeTask;
 		friend class FFilterRangeTask;
 
 	protected:
-		const UPCGExRefineEdgesSettings* LocalSettings = nullptr;
-		FPCGExRefineEdgesContext* LocalTypedContext = nullptr;
-
-		PCGExPointFilter::TManager* EdgeFilterManager = nullptr;
-		PCGExPointFilter::TManager* SanitizationFilterManager = nullptr;
+		TUniquePtr<PCGExPointFilter::TManager> EdgeFilterManager;
+		TUniquePtr<PCGExPointFilter::TManager> SanitizationFilterManager;
 		EPCGExRefineSanitization Sanitization = EPCGExRefineSanitization::None;
 
-		virtual PCGExCluster::FCluster* HandleCachedCluster(const PCGExCluster::FCluster* InClusterRef) override;
+		virtual TSharedPtr<PCGExCluster::FCluster> HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef) override;
 		mutable FRWLock NodeLock;
 
 		TArray<bool> EdgeFilterCache;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-			: FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
 
 		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
@@ -148,15 +133,15 @@ namespace PCGExRefineEdges
 	class FSanitizeRangeTask : public PCGExMT::FPCGExTask
 	{
 	public:
-		FSanitizeRangeTask(PCGExData::FPointIO* InPointIO,
-		                   FProcessor* InProcessor):
+		FSanitizeRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+		                   const TSharedPtr<FProcessor>& InProcessor):
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		const TSharedPtr<FProcessor>& Processor;
 		uint64 Scope = 0;
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

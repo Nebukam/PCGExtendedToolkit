@@ -11,6 +11,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExModuloCompareFilter.generated.h"
 
 
@@ -72,7 +73,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExModuloCompareFilterFactory : public UPCGE
 public:
 	FPCGExModuloCompareFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -80,29 +81,28 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TModuloComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TModuloComparisonFilter(const UPCGExModuloCompareFilterFactory* InDefinition)
+		explicit TModuloComparisonFilter(const TObjectPtr<const UPCGExModuloCompareFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExModuloCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExModuloCompareFilterFactory> TypedFilterFactory;
 
-		PCGExData::TCache<double>* OperandA = nullptr;
-		PCGExData::TCache<double>* OperandB = nullptr;
-		PCGExData::TCache<double>* OperandC = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandC;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			const double A = OperandA->Values[PointIndex];
-			const double B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
-			const double C = OperandC ? OperandC->Values[PointIndex] : TypedFilterFactory->Config.OperandCConstant;
+			const double A = OperandA->Read(PointIndex);
+			const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
+			const double C = OperandC ? OperandC->Read(PointIndex) : TypedFilterFactory->Config.OperandCConstant;
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, FMath::Fmod(A, B), C, TypedFilterFactory->Config.Tolerance);
 		}
 
 		virtual ~TModuloComparisonFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

@@ -2,20 +2,22 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Filters/Nodes/PCGExNeighborsCountFilter.h"
+
+
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeNeighborsCountFilter"
 #define PCGEX_NAMESPACE NodeNeighborsCountFilter
 
-PCGExPointFilter::TFilter* UPCGExNeighborsCountFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExNeighborsCountFilterFactory::CreateFilter() const
 {
-	return new PCGExNodeNeighborsCount::FNeighborsCountFilter(this);
+	return MakeShared<PCGExNodeNeighborsCount::FNeighborsCountFilter>(this);
 }
 
 
 namespace PCGExNodeNeighborsCount
 {
-	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InPointDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+	bool FNeighborsCountFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExCluster::FCluster>& InCluster, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
 	{
 		if (!TFilter::Init(InContext, InCluster, InPointDataFacade, InEdgeDataFacade)) { return false; }
 
@@ -36,7 +38,7 @@ namespace PCGExNodeNeighborsCount
 	bool FNeighborsCountFilter::Test(const PCGExCluster::FNode& Node) const
 	{
 		const double A = Node.Adjacency.Num();
-		const double B = LocalCount ? LocalCount->Values[Node.PointIndex] : TypedFilterFactory->Config.Count;
+		const double B = LocalCount ? LocalCount->Read(Node.PointIndex) : TypedFilterFactory->Config.Count;
 		return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 	}
 }

@@ -106,7 +106,7 @@ namespace PCGEx
 		return bAnyMissing;
 	}
 
-	void FAttributesInfos::Append(const FAttributesInfos* Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
+	void FAttributesInfos::Append(const TSharedPtr<FAttributesInfos>& Other, const FPCGExAttributeGatherDetails& InGatherDetails, TSet<FName>& OutTypeMismatch)
 	{
 		for (int i = 0; i < Other->Identities.Num(); ++i)
 		{
@@ -138,9 +138,9 @@ namespace PCGEx
 		// TODO : Update types and attributes according to input settings?
 	}
 
-	FAttributesInfos* FAttributesInfos::Get(const UPCGMetadata* InMetadata)
+	TSharedPtr<FAttributesInfos> FAttributesInfos::Get(const UPCGMetadata* InMetadata)
 	{
-		FAttributesInfos* NewInfos = new FAttributesInfos();
+		TSharedPtr<FAttributesInfos> NewInfos = MakeShared<FAttributesInfos>();
 		FAttributeIdentity::Get(InMetadata, NewInfos->Identities);
 
 		UPCGMetadata* MutableData = const_cast<UPCGMetadata*>(InMetadata);

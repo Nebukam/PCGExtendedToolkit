@@ -10,6 +10,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExWithinRangeFilter.generated.h"
 
 
@@ -55,7 +56,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExWithinRangeFilterFactory : public UPCGExF
 public:
 	FPCGExWithinRangeFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -70,18 +71,18 @@ namespace PCGExPointsFilter
 
 		const UPCGExWithinRangeFilterFactory* TypedFilterFactory;
 
-		PCGExData::TCache<double>* OperandA = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
 		double RealMin = 0;
 		double RealMax = 0;
 
 		bool bInclusive = false;
 		bool bInvert = false;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			if (!bInclusive) { return FMath::IsWithin(OperandA->Values[PointIndex], RealMin, RealMax) ? !bInvert : bInvert; }
-			return FMath::IsWithinInclusive(OperandA->Values[PointIndex], RealMin, RealMax) ? !bInvert : bInvert;
+			if (!bInclusive) { return FMath::IsWithin(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert; }
+			return FMath::IsWithinInclusive(OperandA->Read(PointIndex), RealMin, RealMax) ? !bInvert : bInvert;
 		}
 
 		virtual ~TWithinRangeFilter() override

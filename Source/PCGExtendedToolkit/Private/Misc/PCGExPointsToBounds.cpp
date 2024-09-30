@@ -5,15 +5,11 @@
 
 #include "Data/PCGExData.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
 PCGExData::EInit UPCGExPointsToBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
-
-FPCGExPointsToBoundsContext::~FPCGExPointsToBoundsContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 
@@ -33,6 +29,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPointsToBoundsElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(PointsToBounds)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -41,12 +38,11 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPointsToBounds::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExPointsToBounds::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPointsToBounds::FProcessor>>& NewBatch)
 			{
 				//NewBatch->bRequiresWriteStep = true;
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to subdivide."));
 			return true;
@@ -58,7 +54,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -69,19 +65,16 @@ namespace PCGExPointsToBounds
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(MetadataBlender)
-		PCGEX_DELETE(Bounds)
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPointsToBounds::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PointsToBounds)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		Bounds = new FBounds(PointIO);
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		Bounds = MakeShared<FBounds>(PointDataFacade->Source);
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 
 		switch (Settings->BoundsSource)
 		{
@@ -117,10 +110,8 @@ namespace PCGExPointsToBounds
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PointsToBounds)
-
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		UPCGPointData* OutData = PointIO->GetOut();
+		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
+		UPCGPointData* OutData = PointDataFacade->GetOut();
 
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 		MutablePoints.Emplace();
@@ -137,10 +128,10 @@ namespace PCGExPointsToBounds
 
 		if (Settings->bBlendProperties)
 		{
-			MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
+			MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(&Settings->BlendingSettings);
 			MetadataBlender->PrepareForData(PointDataFacade);
 
-			const PCGExData::FPointRef Target = PointIO->GetOutPointRef(0);
+			const PCGExData::FPointRef Target = PointDataFacade->Source->GetOutPointRef(0);
 			MetadataBlender->PrepareForBlending(Target);
 
 			double TotalWeight = 0;
@@ -149,7 +140,7 @@ namespace PCGExPointsToBounds
 			{
 				FVector Location = InPoints[i].Transform.GetLocation();
 				const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
-				MetadataBlender->Blend(Target, PointIO->GetInPointRef(i), Target, Weight);
+				MetadataBlender->Blend(Target, PointDataFacade->Source->GetInPointRef(i), Target, Weight);
 				TotalWeight += Weight;
 			}
 
@@ -162,10 +153,10 @@ namespace PCGExPointsToBounds
 
 		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, NumPoints); }
 
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 
-	bool FComputeIOBoundsTask::ExecuteTask()
+	bool FComputeIOBoundsTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
 		const TArray<FPCGPoint>& InPoints = Bounds->PointIO->GetIn()->GetPoints();
 

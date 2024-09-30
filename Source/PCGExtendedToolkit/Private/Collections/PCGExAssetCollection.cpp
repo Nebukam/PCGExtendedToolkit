@@ -9,14 +9,6 @@
 
 namespace PCGExAssetCollection
 {
-	FCategory::~FCategory()
-	{
-		Indices.Empty();
-		Weights.Empty();
-		Order.Empty();
-		StagingDatas.Empty();
-	}
-
 	void FCategory::RegisterStaging(const int32 Index, const FPCGExAssetStagingData* InStaging)
 	{
 		StagingDatas.Add(InStaging);
@@ -76,9 +68,9 @@ namespace PCGExAssetCollection
 		Main->RegisterStaging(Index, InStaging);
 
 		// Register to sub categories
-		if (FCategory** CategoryPtr = Categories.Find(InStaging->Category); !CategoryPtr)
+		if (const TSharedPtr<FCategory>* CategoryPtr = Categories.Find(InStaging->Category); !CategoryPtr)
 		{
-			FCategory* Category = new FCategory(InStaging->Category);
+			const TSharedPtr<FCategory> Category = MakeShared<FCategory>(InStaging->Category);
 			Categories.Add(InStaging->Category, Category);
 			Category->RegisterStaging(Index, InStaging);
 		}
@@ -91,18 +83,18 @@ namespace PCGExAssetCollection
 	void FCache::Compile()
 	{
 		Main->Compile();
-		for (const TPair<FName, FCategory*>& Pair : Categories) { Pair.Value->Compile(); }
+		for (const TPair<FName, TSharedPtr<FCategory>>& Pair : Categories) { Pair.Value->Compile(); }
 	}
 }
 
 PCGExAssetCollection::FCache* UPCGExAssetCollection::LoadCache()
 {
-	if (bCacheNeedsRebuild) { PCGEX_DELETE(Cache) }
-	if (Cache) { return Cache; }
-	Cache = new PCGExAssetCollection::FCache();
+	if (bCacheNeedsRebuild) { Cache.Reset(); }
+	if (Cache) { return Cache.Get(); }
+	Cache = MakeUnique<PCGExAssetCollection::FCache>();
 	BuildCache();
 	Cache->Compile();
-	return Cache;
+	return Cache.Get();
 }
 
 void UPCGExAssetCollection::PostLoad()
@@ -189,7 +181,7 @@ void UPCGExAssetCollection::EDITOR_RebuildStagingData_Project()
 
 void UPCGExAssetCollection::BeginDestroy()
 {
-	PCGEX_DELETE(Cache)
+	Cache.Reset();
 	Super::BeginDestroy();
 }
 
@@ -224,7 +216,7 @@ namespace PCGExAssetCollection
 
 	bool FDistributionHelper::Init(
 		const FPCGContext* InContext,
-		PCGExData::FFacade* InDataFacade)
+		const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
 		MaxIndex = Collection->LoadCache()->Main->Order.Num() - 1;
 
@@ -263,7 +255,7 @@ namespace PCGExAssetCollection
 		}
 		else
 		{
-			double PickedIndex = IndexGetter->Values[PointIndex];
+			double PickedIndex = IndexGetter->Read(PointIndex);
 			if (Details.IndexSettings.bRemapIndexToCollectionSize)
 			{
 				PickedIndex = MaxInputIndex == 0 ? 0 : PCGExMath::Remap(PickedIndex, 0, MaxInputIndex, 0, MaxIndex);

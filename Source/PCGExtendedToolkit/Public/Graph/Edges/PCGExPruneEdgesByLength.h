@@ -34,8 +34,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneEdgesByLengthContext final : public
 {
 	friend class UDEPRECATED_PCGExPruneEdgesByLengthSettings;
 	friend class FPCGExPruneEdgesByLengthElement;
-
-	virtual ~FPCGExPruneEdgesByLengthContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement

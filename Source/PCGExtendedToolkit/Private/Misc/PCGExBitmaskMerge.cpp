@@ -60,7 +60,7 @@ bool FPCGExBitmaskMergeElement::ExecuteInternal(FPCGContext* Context) const
 		const UPCGMetadata* Metadata = ParamData->Metadata;
 		if (!Metadata) { continue; }
 
-		const PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(Metadata);
+		const TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(Metadata);
 
 		for (int i = 0; i < Infos->Attributes.Num(); ++i)
 		{
@@ -77,8 +77,6 @@ bool FPCGExBitmaskMergeElement::ExecuteInternal(FPCGContext* Context) const
 
 			PCGExBitmask::Do(Settings->Operation, OutputMask, InputMask);
 		}
-
-		PCGEX_DELETE(Infos)
 	}
 
 	UPCGParamData* Bitmask = NewObject<UPCGParamData>();

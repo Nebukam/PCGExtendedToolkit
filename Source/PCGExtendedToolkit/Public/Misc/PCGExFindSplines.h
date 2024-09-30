@@ -7,6 +7,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "PCGExFindSplines.generated.h"
 
 UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc") // Abstract until implemented
@@ -41,8 +43,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindSplinesContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindSplinesElement;
-
-	virtual ~FPCGExFindSplinesContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindSplinesElement final : public FPCGExPointsProcessorElement
@@ -60,11 +60,11 @@ protected:
 
 namespace PCGExFindSplines
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFindSplinesContext, UPCGExFindSplinesSettings>
 	{
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
@@ -72,7 +72,7 @@ namespace PCGExFindSplines
 		{
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

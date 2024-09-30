@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExClusterStates.h"
 
+
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExFlagNodes.generated.h"
@@ -53,9 +54,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesContext final : public FPCGExEd
 {
 	friend class FPCGExFlagNodesElement;
 
-	virtual ~FPCGExFlagNodesContext() override;
-
-	TArray<UPCGExFilterFactoryBase*> StateFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> StateFactories;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesElement final : public FPCGExEdgesProcessorElement
@@ -73,25 +72,25 @@ protected:
 
 namespace PCGExFlagNodes
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExFlagNodesContext, UPCGExFlagNodesSettings>
 	{
 		friend class FProcessorBatch;
-		TArray<int64>* StateFlags = nullptr;
-		PCGExClusterStates::FStateManager* StateManager = nullptr;
+		TSharedPtr<TArray<int64>> StateFlags;
+		TUniquePtr<PCGExClusterStates::FStateManager> StateManager;
 
 		bool bBuildExpandedNodes = false;
-		TArray<PCGExCluster::FExpandedNode*>* ExpandedNodes = nullptr;
+		TSharedPtr<TArray<PCGExCluster::FExpandedNode>> ExpandedNodes;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bCacheVtxPointIndices = true;
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleNode(const int32 Index, PCGExCluster::FNode& Node, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
@@ -100,13 +99,13 @@ namespace PCGExFlagNodes
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
-		TArray<int64>* StateFlags = nullptr;
+		TSharedPtr<TArray<int64>> StateFlags;
 
 	public:
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges);
 		virtual ~FProcessorBatch() override;
 
 		virtual void OnProcessingPreparationComplete() override;
-		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		virtual bool PrepareSingle(const TSharedPtr<FProcessor>& ClusterProcessor) override;
 	};
 }

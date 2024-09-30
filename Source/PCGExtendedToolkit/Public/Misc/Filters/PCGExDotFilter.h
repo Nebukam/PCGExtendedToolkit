@@ -11,6 +11,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExDotFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -66,7 +67,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExDotFilterFactory : public UPCGExFilterFac
 public:
 	FPCGExDotFilterConfig Config;
 	virtual bool Init(FPCGExContext* InContext) override;
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -74,29 +75,29 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TDotFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TDotFilter(const UPCGExDotFilterFactory* InFactory)
+		explicit TDotFilter(const TObjectPtr<const UPCGExDotFilterFactory>& InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 			DotComparison = TypedFilterFactory->Config.DotComparisonDetails;
 		}
 
-		const UPCGExDotFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExDotFilterFactory> TypedFilterFactory;
 
 		FPCGExDotComparisonDetails DotComparison;
 
-		PCGExData::TCache<FVector>* OperandA = nullptr;
-		PCGExData::TCache<FVector>* OperandB = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FVector>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<FVector>> OperandB;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
 			const FPCGPoint& Point = PointDataFacade->Source->GetInPoint(PointIndex);
 
 			const FVector A = TypedFilterFactory->Config.bTransformOperandA ?
-				                  OperandA->Values[PointIndex] :
-				                  Point.Transform.TransformVectorNoScale(OperandA->Values[PointIndex]);
+				                  OperandA->Read(PointIndex) :
+				                  Point.Transform.TransformVectorNoScale(OperandA->Read(PointIndex));
 
-			FVector B = OperandB ? OperandB->Values[PointIndex].GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
+			FVector B = OperandB ? OperandB->Read(PointIndex).GetSafeNormal() : TypedFilterFactory->Config.OperandBConstant;
 			if (TypedFilterFactory->Config.bTransformOperandB) { B = Point.Transform.TransformVectorNoScale(B); }
 
 			const double Dot = DotComparison.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
@@ -105,7 +106,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TDotFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

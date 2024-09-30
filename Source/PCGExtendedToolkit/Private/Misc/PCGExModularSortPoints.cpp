@@ -31,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExModularSortPointsSettings::InputPinProperties() 
 
 bool UPCGExModularSortPointsSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleConfig>& OutRules) const
 {
-	TArray<UPCGExSortingRule*> Factories;
+	TArray<TObjectPtr<const UPCGExSortingRule>> Factories;
 	if (!PCGExFactories::GetInputFactories(
 		InContext, TEXT("SortRules"), Factories,
 		{PCGExFactories::EType::RuleSort}, false))

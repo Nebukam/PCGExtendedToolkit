@@ -7,34 +7,17 @@ namespace PCGExData
 {
 #pragma region Pools & cache
 
-	void FCacheBase::IncrementWriteReadyNum()
+	TSharedPtr<FBufferBase> FFacade::FindBufferUnsafe(const uint64 UID)
 	{
-		FWriteScopeLock WriteScopeLock(WriteLock);
-		ReadyNum++;
-	}
-
-	void FCacheBase::ReadyWrite(PCGExMT::FTaskManager* AsyncManager)
-	{
-		FWriteScopeLock WriteScopeLock(WriteLock);
-		ReadyNum--;
-		if (ReadyNum <= 0) { Write(AsyncManager); }
-	}
-
-	void FCacheBase::Write(PCGExMT::FTaskManager* AsyncManager)
-	{
-	}
-
-	FCacheBase* FFacade::FindCacheUnsafe(const uint64 UID)
-	{
-		FCacheBase** Found = CacheMap.Find(UID);
+		TSharedPtr<FBufferBase>* Found = BufferMap.Find(UID);
 		if (!Found) { return nullptr; }
 		return *Found;
 	}
 
-	FCacheBase* FFacade::FindCache(const uint64 UID)
+	TSharedPtr<FBufferBase> FFacade::FindBuffer(const uint64 UID)
 	{
 		FReadScopeLock ReadScopeLock(PoolLock);
-		return FindCacheUnsafe(UID);
+		return FindBufferUnsafe(UID);
 	}
 
 #pragma endregion
@@ -42,14 +25,14 @@ namespace PCGExData
 #pragma region FIdxCompound
 
 	void FIdxCompound::ComputeWeights(
-		const TArray<FFacade*>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
+		const TArray<TSharedPtr<FFacade>>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
 		const FPCGExDistanceDetails& InDistanceDetails, TArray<int32>& OutIOIdx, TArray<int32>& OutPointsIdx, TArray<double>& OutWeights) const
 	{
 		const int32 NumHashes = CompoundedHashSet.Num();
 
-		PCGEX_SET_NUM_UNINITIALIZED(OutPointsIdx, NumHashes)
-		PCGEX_SET_NUM_UNINITIALIZED(OutWeights, NumHashes)
-		PCGEX_SET_NUM_UNINITIALIZED(OutIOIdx, NumHashes)
+		OutPointsIdx.SetNumUninitialized(NumHashes);
+		OutWeights.SetNumUninitialized(NumHashes);
+		OutIOIdx.SetNumUninitialized(NumHashes);
 
 		double TotalWeight = 0;
 		int32 Index = 0;

@@ -189,8 +189,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="From==EPCGExJustifyFrom::Custom && FromType==EPCGExFetchType::Constant", EditConditionHides))
 	double FromConstant = 0.5;
 
-	PCGExData::TCache<double>* FromGetter = nullptr;
-	PCGExData::TCache<FVector>* SharedFromGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> FromGetter;
+	TSharedPtr<PCGExData::TBuffer<FVector>> SharedFromGetter;
 
 	/** Reference point inside the container bounds*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -208,10 +208,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="To==EPCGExJustifyTo::Custom && ToType==EPCGExFetchType::Constant", EditConditionHides))
 	double ToConstant = 0.5;
 
-	PCGExData::TCache<double>* ToGetter = nullptr;
-	PCGExData::TCache<FVector>* SharedToGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> ToGetter;
+	TSharedPtr<PCGExData::TBuffer<FVector>> SharedToGetter;
 
-	bool Init(FPCGExContext* InContext, PCGExData::FFacade* InDataFacade)
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
 		if (From == EPCGExJustifyFrom::Custom && FromType == EPCGExFetchType::Attribute)
 		{
@@ -296,8 +296,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSingleJustifyDetails
 
 		const double HalfOutSize = OutSize[Axis] * 0.5;
 		const double HalfInSize = InSize[Axis] * 0.5;
-		const double FromValue = SharedFromGetter ? SharedFromGetter->Values[Index][Axis] : FromGetter ? FromGetter->Values[Index] : FromConstant;
-		const double ToValue = SharedToGetter ? SharedToGetter->Values[Index][Axis] : ToGetter ? ToGetter->Values[Index] : ToConstant;
+		const double FromValue = SharedFromGetter ? SharedFromGetter->Read(Index)[Axis] : FromGetter ? FromGetter->Read(Index) : FromConstant;
+		const double ToValue = SharedToGetter ? SharedToGetter->Read(Index)[Axis] : ToGetter ? ToGetter->Read(Index) : ToConstant;
 
 		switch (From)
 		{
@@ -381,7 +381,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExJustificationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSharedCustomFromAttribute"))
 	FPCGAttributePropertyInputSelector CustomFromVectorAttribute;
 
-	PCGExData::TCache<FVector>* SharedFromGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> SharedFromGetter;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bSharedCustomToAttribute = false;
@@ -390,7 +390,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExJustificationDetails
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSharedCustomToAttribute"))
 	FPCGAttributePropertyInputSelector CustomToVectorAttribute;
 
-	PCGExData::TCache<FVector>* SharedToGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> SharedToGetter;
 
 	void Process(
 		const int32 Index,
@@ -409,7 +409,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExJustificationDetails
 		if (bDoJustifyZ) { JustifyZ.JustifyAxis(2, Index, InCenter, InSize, OutCenter, OutSize, OutTranslation); }
 	}
 
-	bool Init(FPCGExContext* InContext, PCGExData::FFacade* InDataFacade)
+	bool Init(FPCGExContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
 		if (bSharedCustomFromAttribute)
 		{

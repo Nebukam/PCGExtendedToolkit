@@ -35,7 +35,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForData(PCGExData::FFacade* InDataFacade) override;
+	virtual bool PrepareForData(const TSharedRef<PCGExData::FFacade>& InDataFacade) override;
 
 	virtual FTransform ComputeOrientation(const PCGExData::FPointRef& Point, const PCGExData::FPointRef& Previous, const PCGExData::FPointRef& Next, const double DirectionMultiplier) const override;
 
@@ -46,5 +46,5 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGExData::TCache<FVector>* LookAtGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<FVector>> LookAtGetter;
 };

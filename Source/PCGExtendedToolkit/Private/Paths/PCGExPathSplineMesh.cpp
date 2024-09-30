@@ -6,6 +6,8 @@
 #include "PCGExHelpers.h"
 #include "PCGExManagedResource.h"
 #include "Collections/PCGExInternalCollection.h"
+
+
 #include "Paths/PCGExPaths.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathSplineMeshElement"
@@ -97,6 +99,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathSplineMeshElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSplineMesh)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -105,7 +108,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathSplineMesh::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
@@ -115,10 +118,9 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExPathSplineMesh::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathSplineMesh::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to write tangents to."));
 			return true;
@@ -130,7 +132,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainBatch->Output();
 
@@ -148,61 +150,48 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 
 	Context->MainPoints->OutputToContext();
-	
+
 	return Context->TryComplete();
 }
 
 namespace PCGExPathSplineMesh
 {
-	FProcessor::~FProcessor()
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_DELETE(Helper)
-		//for (USplineMeshComponent* SMC : SplineMeshComponents) { PCGEX_DELETE_UOBJECT(SMC) }
-		//SplineMeshComponents.Empty();
-	}
-
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
-	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathSplineMesh)
-
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		Justification = Settings->Justification;
-		Justification.Init(Context, PointDataFacade);
+		Justification.Init(ExecutionContext, PointDataFacade);
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointDataFacade->Source);
 		bApplyScaleToFit = Settings->ScaleToFit.ScaleToFitMode != EPCGExFitMode::None;
 
-		Helper = new PCGExAssetCollection::FDistributionHelper(LocalTypedContext->MainCollection, Settings->DistributionSettings);
-		if (!Helper->Init(Context, PointDataFacade)) { return false; }
+		Helper = MakeUnique<PCGExAssetCollection::FDistributionHelper>(Context->MainCollection, Settings->DistributionSettings);
+		if (!Helper->Init(ExecutionContext, PointDataFacade)) { return false; }
 
 		if (Settings->bApplyCustomTangents)
 		{
-			ArriveReader = PointDataFacade->GetReader<FVector>(Settings->ArriveTangentAttribute);
+			ArriveReader = PointDataFacade->GetReadable<FVector>(Settings->ArriveTangentAttribute);
 			if (!ArriveReader)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Could not fetch tangent' Arrive attribute on some inputs."));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Arrive attribute on some inputs."));
 				return false;
 			}
 
-			LeaveReader = PointDataFacade->GetReader<FVector>(Settings->LeaveTangentAttribute);
+			LeaveReader = PointDataFacade->GetReadable<FVector>(Settings->LeaveTangentAttribute);
 			if (!ArriveReader)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Could not fetch tangent' Leave attribute on some inputs."));
+				PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Could not fetch tangent' Leave attribute on some inputs."));
 				return false;
 			}
 		}
 
-		LastIndex = PointIO->GetNum() - 1;
+		LastIndex = PointDataFacade->GetNum() - 1;
 
-		PCGEX_SET_NUM_UNINITIALIZED(Segments, bClosedLoop ? LastIndex + 1 : LastIndex)
-		//PCGEX_SET_NUM_UNINITIALIZED(SplineMeshComponents, LastIndex)
+		PCGEx::InitArray(Segments, bClosedLoop ? LastIndex + 1 : LastIndex);
 
 		switch (Settings->SplineMeshAxisConstant)
 		{
@@ -229,17 +218,17 @@ namespace PCGExPathSplineMesh
 
 		if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Raw)
 		{
-			WeightWriter = PointDataFacade->GetWriter<int32>(Settings->WeightAttributeName, true);
+			WeightWriter = PointDataFacade->GetWritable<int32>(Settings->WeightAttributeName, true);
 		}
 		else if (Settings->WeightToAttribute == EPCGExWeightOutputMode::Normalized)
 		{
-			NormalizedWeightWriter = PointDataFacade->GetWriter<double>(Settings->WeightAttributeName, true);
+			NormalizedWeightWriter = PointDataFacade->GetWritable<double>(Settings->WeightAttributeName, true);
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PathWriter = PointDataFacade->GetWriter<FSoftObjectPath>(Settings->AssetPathAttributeName, false);
+		PathWriter = PointDataFacade->GetWritable<FSoftObjectPath>(Settings->AssetPathAttributeName, true);
 #else
-		PathWriter = PointDataFacade->GetWriter<FString>(Settings->AssetPathAttributeName, true);
+		PathWriter = PointDataFacade->GetWritable<FString>(Settings->AssetPathAttributeName, true);
 #endif
 
 		StartParallelLoopForPoints();
@@ -258,15 +247,15 @@ namespace PCGExPathSplineMesh
 		auto InvalidPoint = [&]()
 		{
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-			PathWriter->Values[Index] = FSoftObjectPath{};
+			PathWriter->GetMutable(Index) = FSoftObjectPath{};
 #else
-			PathWriter->Values[Index] = TEXT("");
+			PathWriter->GetMutable(Index) = TEXT("");
 #endif
 
 			if (bOutputWeight)
 			{
-				if (WeightWriter) { WeightWriter->Values[Index] = -1; }
-				else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = -1; }
+				if (WeightWriter) { WeightWriter->GetMutable(Index) = -1; }
+				else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = -1; }
 			}
 		};
 
@@ -288,7 +277,7 @@ namespace PCGExPathSplineMesh
 
 		const int32 Seed = PCGExRandom::GetSeedFromPoint(
 			Helper->Details.SeedComponents, Point,
-			Helper->Details.LocalSeed, LocalSettings, LocalTypedContext->SourceComponent.Get());
+			Helper->Details.LocalSeed, Settings, Context->SourceComponent.Get());
 
 		Helper->GetStaging(StagingData, Index, Seed);
 
@@ -306,17 +295,17 @@ namespace PCGExPathSplineMesh
 
 		if (bOutputWeight)
 		{
-			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(LocalTypedContext->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
+			double Weight = bNormalizedWeight ? static_cast<double>(StagingData->Weight) / static_cast<double>(Context->MainCollection->LoadCache()->WeightSum) : StagingData->Weight;
 			if (bOneMinusWeight) { Weight = 1 - Weight; }
-			if (WeightWriter) { WeightWriter->Values[Index] = Weight; }
-			else if (NormalizedWeightWriter) { NormalizedWeightWriter->Values[Index] = Weight; }
+			if (WeightWriter) { WeightWriter->GetMutable(Index) = Weight; }
+			else if (NormalizedWeightWriter) { NormalizedWeightWriter->GetMutable(Index) = Weight; }
 			else { Point.Density = Weight; }
 		}
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PathWriter->Values[Index] = StagingData->Path;
+		PathWriter->GetMutable(Index) = StagingData->Path;
 #else
-		PathWriter->Values[Index] = StagingData->Path.ToString();
+		PathWriter->GetMutable(Index) = StagingData->Path.ToString();
 #endif
 
 		//
@@ -324,7 +313,7 @@ namespace PCGExPathSplineMesh
 		Segment.SplineMeshAxis = SplineMeshAxisConstant;
 
 		const int32 NextIndex = Index + 1 > LastIndex ? 0 : Index + 1;
-		const FPCGPoint& NextPoint = PointIO->GetInPoint(NextIndex);
+		const FPCGPoint& NextPoint = PointDataFacade->Source->GetInPoint(NextIndex);
 
 		//
 
@@ -333,7 +322,7 @@ namespace PCGExPathSplineMesh
 		const FBox InBounds = FBox(Point.BoundsMin * OutScale, Point.BoundsMax * OutScale);
 		FBox OutBounds = StBox;
 
-		LocalSettings->ScaleToFit.Process(Point, StagingData->Bounds, OutScale, OutBounds);
+		Settings->ScaleToFit.Process(Point, StagingData->Bounds, OutScale, OutBounds);
 
 		FVector OutTranslation = FVector::ZeroVector;
 		OutBounds = FBox(OutBounds.Min * OutScale, OutBounds.Max * OutScale);
@@ -354,16 +343,16 @@ namespace PCGExPathSplineMesh
 		Segment.Params.StartOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
 		Segment.Params.EndOffset = FVector2D(OutTranslation[C1], OutTranslation[C2]);
 
-		if (LocalSettings->bApplyCustomTangents)
+		if (Settings->bApplyCustomTangents)
 		{
-			Segment.Params.StartTangent = LeaveReader->Values[Index];
-			Segment.Params.EndTangent = ArriveReader->Values[NextIndex];
+			Segment.Params.StartTangent = LeaveReader->Read(Index);
+			Segment.Params.EndTangent = ArriveReader->Read(NextIndex);
 		}
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 
 	void FProcessor::Output()
@@ -371,21 +360,21 @@ namespace PCGExPathSplineMesh
 		TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExPathSplineMesh::FProcessor::Output);
 
 		// TODO : Resolve per-point target actor...? irk.
-		AActor* TargetActor = LocalSettings->TargetActor.Get() ? LocalSettings->TargetActor.Get() : Context->GetTargetActor(nullptr);
+		AActor* TargetActor = Settings->TargetActor.Get() ? Settings->TargetActor.Get() : ExecutionContext->GetTargetActor(nullptr);
 
 		if (!TargetActor)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Invalid target actor."));
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Invalid target actor."));
 			return;
 		}
 
-		UPCGComponent* Comp = Context->SourceComponent.Get();
+		UPCGComponent* Comp = ExecutionContext->SourceComponent.Get();
 
 		for (const PCGExPaths::FSplineMeshSegment& Segment : Segments)
 		{
 			if (!Segment.AssetStaging) { continue; }
 
-			USplineMeshComponent* SMC = UPCGExManagedSplineMeshComponent::CreateComponentOnly(TargetActor, Context->SourceComponent.Get(), Segment);
+			USplineMeshComponent* SMC = UPCGExManagedSplineMeshComponent::CreateComponentOnly(TargetActor, ExecutionContext->SourceComponent.Get(), Segment);
 			if (!SMC) { continue; }
 
 			if (!Segment.ApplyMesh(SMC))
@@ -395,8 +384,8 @@ namespace PCGExPathSplineMesh
 			}
 
 			SMC->ClearInternalFlags(EInternalObjectFlags::Async);
-			UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(TargetActor, SMC, Comp, LocalSettings->UID);
-			LocalTypedContext->NotifyActors.Add(TargetActor);
+			UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(TargetActor, SMC, Comp, Settings->UID);
+			Context->NotifyActors.Add(TargetActor);
 		}
 
 		/*
@@ -414,8 +403,8 @@ namespace PCGExPathSplineMesh
 			}
 
 			SMC->ClearInternalFlags(EInternalObjectFlags::Async);
-			UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(TargetActor, SMC, Comp, LocalSettings->UID);
-			LocalTypedContext->NotifyActors.Add(TargetActor);
+			UPCGExManagedSplineMeshComponent::RegisterAndAttachComponent(TargetActor, SMC, Comp, Settings->UID);
+			Context->NotifyActors.Add(TargetActor);
 		}
 
 		SplineMeshComponents.Empty();

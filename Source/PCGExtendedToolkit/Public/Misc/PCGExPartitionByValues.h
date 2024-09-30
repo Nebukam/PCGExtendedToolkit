@@ -7,6 +7,7 @@
 #include "PCGExFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExPartitionByValues.generated.h"
 
 namespace PCGExPartition
@@ -15,37 +16,37 @@ namespace PCGExPartition
 
 	class FKPartition;
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FKPartition
+	class /*PCGEXTENDEDTOOLKIT_API*/ FKPartition : public TSharedFromThis<FKPartition>
 	{
 	protected:
 		mutable FRWLock LayersLock;
 		mutable FRWLock PointLock;
 
 	public:
-		FKPartition(FKPartition* InParent, int64 InKey, FPCGExFilter::FRule* InRule, int32 InPartitionIndex);
+		FKPartition(const TWeakPtr<FKPartition>& InParent, int64 InKey, FPCGExFilter::FRule* InRule, int32 InPartitionIndex);
 		~FKPartition();
 
-		FKPartition* Parent = nullptr;
+		TWeakPtr<FKPartition> Parent;
 		int32 IOIndex = -1;
 		int32 PartitionIndex = 0;
 		int64 PartitionKey = 0;
 		FPCGExFilter::FRule* Rule = nullptr;
 
 		TSet<int64> UniquePartitionKeys;
-		TMap<int64, FKPartition*> SubLayers;
+		TMap<int64, TSharedPtr<FKPartition>> SubLayers;
 		TArray<int32> Points;
 
 		int32 GetNum() const { return Points.Num(); }
 		int32 GetSubPartitionsNum();
 
-		FKPartition* GetPartition(int64 Key, FPCGExFilter::FRule* InRule);
+		TSharedPtr<FKPartition> GetPartition(int64 Key, FPCGExFilter::FRule* InRule);
 		FORCEINLINE void Add(const int64 Index)
 		{
 			FWriteScopeLock WriteLock(PointLock);
 			Points.Add(Index);
 		}
 
-		void Register(TArray<FKPartition*>& Partitions);
+		void Register(TArray<TSharedPtr<FKPartition>>& Partitions);
 
 		void SortPartitions();
 	};
@@ -126,8 +127,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionByValuesBaseContext final : pub
 {
 	friend class FPCGExPartitionByValuesBaseElement;
 
-	virtual ~FPCGExPartitionByValuesBaseContext() override;
-
 	TArray<FPCGExPartitonRuleConfig> RulesConfigs;
 };
 
@@ -146,27 +145,23 @@ protected:
 
 namespace PCGExPartitionByValues
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPartitionByValuesBaseContext, UPCGExPartitionByValuesBaseSettings>
 	{
 		TArray<FPCGExFilter::FRule> Rules;
 		TArray<int64> KeySums;
 
-		PCGExPartition::FKPartition* RootPartition = nullptr;
+		TSharedPtr<PCGExPartition::FKPartition> RootPartition;
 
 		int32 NumPartitions = -1;
-		TArray<PCGExPartition::FKPartition*> Partitions;
-
-		FPCGExPartitionByValuesBaseContext* LocalTypedContext = nullptr;
+		TArray<TSharedPtr<PCGExPartition::FKPartition>> Partitions;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override;
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;

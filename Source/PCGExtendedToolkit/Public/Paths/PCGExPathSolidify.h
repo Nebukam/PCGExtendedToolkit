@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
+
+
 #include "Sampling/PCGExSampling.h"
 #include "PCGExPathSolidify.generated.h"
 
@@ -111,8 +113,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSolidifyContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSolidifyElement;
-
-	virtual ~FPCGExPathSolidifyContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSolidifyElement final : public FPCGExPathProcessorElement
@@ -130,11 +130,11 @@ protected:
 
 namespace PCGExPathSolidify
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExPathSolidifyContext, UPCGExPathSolidifySettings>
 	{
-		PCGExData::TCache<double>* SolidificationLerpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> SolidificationLerpGetter;
 
-#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGExData::TCache<double>* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
+#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) TSharedPtr<PCGExData::TBuffer<double>> SolidificationRad##_AXIS; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 
@@ -142,17 +142,15 @@ namespace PCGExPathSolidify
 
 		int32 LastIndex = 0;
 
-		const UPCGExPathSolidifySettings* LocalSettings = nullptr;
-
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

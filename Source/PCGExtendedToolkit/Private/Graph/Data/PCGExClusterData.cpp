@@ -50,19 +50,18 @@ void UPCGExClusterEdgesData::InitializeFromPCGExData(const UPCGExPointData* InPC
 			if (InitMode != PCGExData::EInit::NoOutput &&
 				InitMode != PCGExData::EInit::NewOutput)
 			{
-				SetBoundCluster(InEdgeData->Cluster, false);
+				SetBoundCluster(InEdgeData->Cluster);
 			}
 		}
 	}
 }
 
-void UPCGExClusterEdgesData::SetBoundCluster(PCGExCluster::FCluster* InCluster, const bool bIsOwner)
+void UPCGExClusterEdgesData::SetBoundCluster(const TSharedPtr<PCGExCluster::FCluster>& InCluster)
 {
 	Cluster = InCluster;
-	bOwnsCluster = bIsOwner;
 }
 
-PCGExCluster::FCluster* UPCGExClusterEdgesData::GetBoundCluster() const
+const TSharedPtr<PCGExCluster::FCluster>& UPCGExClusterEdgesData::GetBoundCluster() const
 {
 	return Cluster;
 }
@@ -81,5 +80,5 @@ UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal() const
 void UPCGExClusterEdgesData::BeginDestroy()
 {
 	Super::BeginDestroy();
-	if (Cluster && bOwnsCluster) { PCGEX_DELETE(Cluster) }
+	Cluster.Reset();
 }

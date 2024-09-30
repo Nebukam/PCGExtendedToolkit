@@ -13,27 +13,6 @@
 
 #include "PCGExMeshToClusters.generated.h"
 
-namespace PCGExGeo
-{
-	class FGeoStaticMesh;
-}
-
-namespace PCGExGeo
-{
-	class FGeoStaticMeshMap;
-}
-
-namespace PCGExGeo
-{
-	class TVoronoiMesh3;
-}
-
-namespace PCGExGeo
-{
-	class TConvexHull3;
-	class TDelaunayTriangulation3;
-}
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mesh Source Type"))
 enum class EPCGExMeshAttributeHandling : uint8
 {
@@ -117,16 +96,14 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMeshToClustersContext final : public FPC
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 	FPCGExTransformDetails TransformDetails;
 
-	PCGExGeo::FGeoStaticMeshMap* StaticMeshMap = nullptr;
+	TUniquePtr<PCGExGeo::FGeoStaticMeshMap> StaticMeshMap;
 	TArray<int32> MeshIdx;
 
-	PCGExData::FPointIOCollection* RootVtx = nullptr;
-	PCGExData::FPointIOCollection* VtxChildCollection = nullptr;
-	PCGExData::FPointIOCollection* EdgeChildCollection = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> RootVtx;
+	TSharedPtr<PCGExData::FPointIOCollection> VtxChildCollection;
+	TSharedPtr<PCGExData::FPointIOCollection> EdgeChildCollection;
 
-	TArray<PCGExGraph::FGraphBuilder*> GraphBuilders;
-
-	virtual ~FPCGExMeshToClustersContext() override;
+	TArray<TSharedPtr<PCGExGraph::FGraphBuilder>> GraphBuilders;
 };
 
 
@@ -149,15 +126,15 @@ namespace PCGExMeshToCluster
 	{
 	public:
 		FExtractMeshAndBuildGraph(
-			PCGExData::FPointIO* InPointIO,
-			PCGExGeo::FGeoStaticMesh* InMesh) :
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+			const TSharedPtr<PCGExGeo::FGeoStaticMesh>& InMesh) :
 			FPCGExTask(InPointIO),
 			Mesh(InMesh)
 		{
 		}
 
-		PCGExGeo::FGeoStaticMesh* Mesh = nullptr;
+		TSharedPtr<PCGExGeo::FGeoStaticMesh> Mesh;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

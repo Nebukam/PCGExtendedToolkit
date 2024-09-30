@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExBreakClustersToPaths.generated.h"
@@ -67,10 +69,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsContext final : publ
 {
 	friend class FPCGExBreakClustersToPathsElement;
 
-	virtual ~FPCGExBreakClustersToPathsContext() override;
-
-	PCGExData::FPointIOCollection* Paths = nullptr;
-	TArray<PCGExCluster::FNodeChain*> Chains;
+	TSharedPtr<PCGExData::FPointIOCollection> Paths;
+	TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsElement final : public FPCGExEdgesProcessorElement
@@ -88,33 +88,25 @@ protected:
 
 namespace PCGExBreakClustersToPaths
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExBreakClustersToPathsContext, UPCGExBreakClustersToPathsSettings>
 	{
 		TArray<bool> Breakpoints;
 
-		TArray<PCGExCluster::FNodeChain*> Chains;
-
-		const FPCGExBreakClustersToPathsContext* LocalTypedContext = nullptr;
-		const UPCGExBreakClustersToPathsSettings* LocalSettings = nullptr;
-
+		TArray<TSharedPtr<PCGExCluster::FNodeChain>> Chains;
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 			bCacheVtxPointIndices = true;
 		}
 
-		virtual ~FProcessor() override;
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
-
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
 
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
@@ -124,7 +116,7 @@ namespace PCGExBreakClustersToPaths
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

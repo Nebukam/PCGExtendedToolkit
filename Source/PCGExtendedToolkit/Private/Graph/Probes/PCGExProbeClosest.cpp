@@ -12,7 +12,7 @@ bool UPCGExProbeClosest::RequiresDirectProcessing()
 	return Config.bUnbounded;
 }
 
-bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
+bool UPCGExProbeClosest::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
@@ -39,8 +39,8 @@ bool UPCGExProbeClosest::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 void UPCGExProbeClosest::ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	bool bIsAlreadyConnected;
-	const int32 MaxIterations = FMath::Min(MaxConnectionsCache ? MaxConnectionsCache->Values[Index] : MaxConnections, Candidates.Num());
-	const double R = SearchRadiusCache ? SearchRadiusCache->Values[Index] : SearchRadiusSquared;
+	const int32 MaxIterations = FMath::Min(MaxConnectionsCache ? MaxConnectionsCache->Read(Index) : MaxConnections, Candidates.Num());
+	const double R = SearchRadiusCache ? SearchRadiusCache->Read(Index) : SearchRadiusSquared;
 
 	if (MaxIterations <= 0) { return; }
 

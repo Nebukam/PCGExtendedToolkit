@@ -3,6 +3,7 @@
 
 #include "Misc/ConditionalActions/PCGExConditionalActionResult.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExWriteConditionalActionResults"
 #define PCGEX_NAMESPACE PCGExWriteConditionalActionResults
 
@@ -15,10 +16,10 @@ void UPCGExConditionalActionResultOperation::CopySettingsFrom(const UPCGExOperat
 	}
 }
 
-bool UPCGExConditionalActionResultOperation::PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool UPCGExConditionalActionResultOperation::PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade)
 {
 	if (!Super::PrepareForData(InContext, InPointDataFacade)) { return false; }
-	ResultWriter = InPointDataFacade->GetWriter(TypedFactory->ResultAttributeName, false, false, true);
+	ResultWriter = InPointDataFacade->GetWritable(TypedFactory->ResultAttributeName, false, false, true);
 	return true;
 }
 

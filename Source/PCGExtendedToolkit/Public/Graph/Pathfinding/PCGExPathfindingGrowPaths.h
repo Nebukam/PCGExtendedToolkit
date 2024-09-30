@@ -8,17 +8,13 @@
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExDataForward.h"
+
+
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Paths/PCGExPaths.h"
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 
-class UPCGExVtxPropertyOperation;
-
-namespace PCGExHeuristics
-{
-	class THeuristicsHandler;
-}
 
 struct FPCGExPathfindingGrowPathsContext;
 class UPCGExPathfindingGrowPathsSettings;
@@ -53,11 +49,9 @@ namespace PCGExGrowPaths
 	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowth
 	{
 	public:
-		const FProcessor* Processor = nullptr;
-		const FPCGExPathfindingGrowPathsContext* Context = nullptr;
-		const UPCGExPathfindingGrowPathsSettings* Settings = nullptr;
+		const TSharedPtr<FProcessor> Processor;
 		const PCGExCluster::FNode* SeedNode = nullptr;
-		PCGExCluster::FNode* GoalNode = nullptr;
+		TUniquePtr<PCGExCluster::FNode> GoalNode;
 
 		int32 SeedPointIndex = -1;
 		int32 MaxIterations = 0;
@@ -74,8 +68,7 @@ namespace PCGExGrowPaths
 		TArray<int32> Path;
 
 		FGrowth(
-			const FProcessor* InProcessor,
-			const UPCGExPathfindingGrowPathsSettings* InSettings,
+			const TSharedPtr<FProcessor>& InProcessor,
 			const int32 InMaxIterations,
 			const int32 InLastGrowthIndex,
 			const FVector& InGrowthDirection);
@@ -86,8 +79,6 @@ namespace PCGExGrowPaths
 
 		~FGrowth()
 		{
-			Path.Empty();
-			PCGEX_DELETE(GoalNode)
 		}
 
 	protected:
@@ -254,19 +245,17 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : publ
 {
 	friend class FPCGExPathfindingGrowPathsElement;
 
-	virtual ~FPCGExPathfindingGrowPathsContext() override;
+	TSharedPtr<PCGExData::FPointIOCollection> OutputPaths;
 
-	PCGExData::FPointIOCollection* OutputPaths = nullptr;
+	TSharedPtr<PCGExData::FFacade> SeedsDataFacade;
 
-	PCGExData::FFacade* SeedsDataFacade = nullptr;
-
-	PCGExData::TCache<int32>* NumIterations = nullptr;
-	PCGExData::TCache<int32>* NumBranches = nullptr;
-	PCGExData::TCache<FVector>* GrowthDirection = nullptr;
-	PCGExData::TCache<double>* GrowthMaxDistance = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> NumIterations;
+	TSharedPtr<PCGExData::TBuffer<int32>> NumBranches;
+	TSharedPtr<PCGExData::TBuffer<FVector>> GrowthDirection;
+	TSharedPtr<PCGExData::TBuffer<double>> GrowthMaxDistance;
 
 	FPCGExAttributeToTagDetails SeedAttributesToPathTags;
-	PCGExData::FDataForwardHandler* SeedForwardHandler = nullptr;
+	TSharedPtr<PCGExData::FDataForwardHandler> SeedForwardHandler;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsElement final : public FPCGExEdgesProcessorElement
@@ -284,35 +273,29 @@ protected:
 
 namespace PCGExGrowPaths
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExPathfindingGrowPathsContext, UPCGExPathfindingGrowPathsSettings>
 	{
 		friend class FGrowth;
 		friend class FProcessorBatch;
 
-		PCGExData::TCache<int32>* NumIterations = nullptr;
-		PCGExData::TCache<int32>* NumBranches = nullptr;
-		PCGExData::TCache<FVector>* GrowthDirection = nullptr;
-		PCGExData::TCache<double>* GrowthMaxDistance = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> NumIterations;
+		TSharedPtr<PCGExData::TBuffer<int32>> NumBranches;
+		TSharedPtr<PCGExData::TBuffer<FVector>> GrowthDirection;
+		TSharedPtr<PCGExData::TBuffer<double>> GrowthMaxDistance;
 
-		PCGExData::TCache<bool>* GrowthStop = nullptr;
-		PCGExData::TCache<bool>* NoGrowth = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> GrowthStop;
+		TSharedPtr<PCGExData::TBuffer<bool>> NoGrowth;
 
 	public:
-		TArray<FGrowth*> Growths;
-		TArray<FGrowth*> QueuedGrowths;
+		TArray<TSharedPtr<FGrowth>> Growths;
+		TArray<TSharedPtr<FGrowth>> QueuedGrowths;
 
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade):
+			TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override
-		{
-			Growths.Empty();
-			QueuedGrowths.Empty();
-		}
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void CompleteWork() override;
 		void Grow();
 	};
@@ -320,12 +303,12 @@ namespace PCGExGrowPaths
 	class /*PCGEXTENDEDTOOLKIT_API*/ FGrowTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FGrowTask(PCGExData::FPointIO* InPointIO, FProcessor* InProcessor) :
+		FGrowTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, FProcessor* InProcessor) :
 			FPCGExTask(InPointIO), Processor(InProcessor)
 		{
 		}
 
 		FProcessor* Processor = nullptr;
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

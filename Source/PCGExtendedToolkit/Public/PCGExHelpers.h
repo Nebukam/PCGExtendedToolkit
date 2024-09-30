@@ -89,58 +89,28 @@ namespace PCGEx
 {
 #pragma region Metadata Type
 
-	template <typename T, typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const T Dummy) { return EPCGMetadataTypes::Unknown; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const bool Dummy) { return EPCGMetadataTypes::Boolean; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const int32 Dummy) { return EPCGMetadataTypes::Integer32; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const int64 Dummy) { return EPCGMetadataTypes::Integer64; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const float Dummy) { return EPCGMetadataTypes::Float; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const double Dummy) { return EPCGMetadataTypes::Double; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FVector2D Dummy) { return EPCGMetadataTypes::Vector2; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FVector Dummy) { return EPCGMetadataTypes::Vector; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FVector4 Dummy) { return EPCGMetadataTypes::Vector4; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FQuat Dummy) { return EPCGMetadataTypes::Quaternion; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FRotator Dummy) { return EPCGMetadataTypes::Rotator; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FTransform Dummy) { return EPCGMetadataTypes::Transform; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FString Dummy) { return EPCGMetadataTypes::String; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FName Dummy) { return EPCGMetadataTypes::Name; }
-
+	template <typename T>
+	static EPCGMetadataTypes GetMetadataType()
+	{
+		if constexpr (std::is_same_v<T, bool>) { return EPCGMetadataTypes::Boolean; }
+		else if constexpr (std::is_same_v<T, int32>) { return EPCGMetadataTypes::Integer32; }
+		else if constexpr (std::is_same_v<T, int64>) { return EPCGMetadataTypes::Integer64; }
+		else if constexpr (std::is_same_v<T, float>) { return EPCGMetadataTypes::Float; }
+		else if constexpr (std::is_same_v<T, double>) { return EPCGMetadataTypes::Double; }
+		else if constexpr (std::is_same_v<T, FVector2D>) { return EPCGMetadataTypes::Vector2; }
+		else if constexpr (std::is_same_v<T, FVector>) { return EPCGMetadataTypes::Vector; }
+		else if constexpr (std::is_same_v<T, FVector4>) { return EPCGMetadataTypes::Vector4; }
+		else if constexpr (std::is_same_v<T, FQuat>) { return EPCGMetadataTypes::Quaternion; }
+		else if constexpr (std::is_same_v<T, FRotator>) { return EPCGMetadataTypes::Rotator; }
+		else if constexpr (std::is_same_v<T, FTransform>) { return EPCGMetadataTypes::Transform; }
+		else if constexpr (std::is_same_v<T, FString>) { return EPCGMetadataTypes::String; }
+		else if constexpr (std::is_same_v<T, FName>) { return EPCGMetadataTypes::Name; }
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FSoftClassPath Dummy) { return EPCGMetadataTypes::Unknown; }
-
-	template <typename CompilerSafety = void>
-	static EPCGMetadataTypes GetMetadataType(const FSoftObjectPath Dummy) { return EPCGMetadataTypes::Unknown; }
-
+		else if constexpr (std::is_same_v<T, FSoftClassPath>) { return EPCGMetadataTypes::SoftClassPath; }
+		else if constexpr (std::is_same_v<T, FSoftObjectPath>) { return EPCGMetadataTypes::SoftObjectPath; }
 #endif
-
+		else { return EPCGMetadataTypes::Unknown; }
+	}
 
 	static EPCGMetadataTypes GetPropertyType(const EPCGPointProperties Property)
 	{
@@ -176,10 +146,31 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	static void InitMetadataArray(TArray<T>& MetadataValues, const int32 Num)
+	FORCEINLINE static void InitArray(TArray<T>& InArray, const int32 Num)
 	{
-		if constexpr (std::is_trivially_copyable_v<T>) { MetadataValues.SetNumUninitialized(Num); }
-		else { MetadataValues.SetNum(Num); }
+		if constexpr (std::is_trivially_copyable_v<T>) { InArray.SetNumUninitialized(Num); }
+		else { InArray.SetNum(Num); }
+	}
+
+	template <typename T>
+	FORCEINLINE static void InitArray(TSharedPtr<TArray<T>> InArray, const int32 Num)
+	{
+		if constexpr (std::is_trivially_copyable_v<T>) { InArray->SetNumUninitialized(Num); }
+		else { InArray->SetNum(Num); }
+	}
+
+	template <typename T>
+	FORCEINLINE static void InitArray(TSharedRef<TArray<T>> InArray, const int32 Num)
+	{
+		if constexpr (std::is_trivially_copyable_v<T>) { InArray.SetNumUninitialized(Num); }
+		else { InArray.SetNum(Num); }
+	}
+
+	template <typename T>
+	FORCEINLINE static void InitArray(TArray<T>* InArray, const int32 Num)
+	{
+		if constexpr (std::is_trivially_copyable_v<T>) { InArray->SetNumUninitialized(Num); }
+		else { InArray->SetNum(Num); }
 	}
 
 #pragma endregion

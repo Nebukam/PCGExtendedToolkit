@@ -46,4 +46,5 @@ This software is provided under the MIT License. It is freely available for use 
 ### Thanks
 - Kudo to [@MikeC](https://github.com/mikec316) for his reckless experiments with uncooked releases, feedbacks, suggestions. Without him this plugin wouldn't be as useful and stable as it is today.
 - The Epic staff in the person of [@Amathlog](https://github.com/Amathlog), for his availability and readiness to help with all things PCG.
-- [@MaximeDup](https://github.com/MaximeDup) for making this properly compile on Mac in the early days of the plugin
+- [@Erlandys](https://github.com/Erlandys) for his invaluable insights into advanced C++.
+- [@MaximeDup](https://github.com/MaximeDup) & [@EmSeta](https://github.com/EmSeta) for helping with the macOS version

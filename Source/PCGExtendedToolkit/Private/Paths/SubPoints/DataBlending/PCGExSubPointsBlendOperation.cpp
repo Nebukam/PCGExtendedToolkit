@@ -7,6 +7,7 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
 EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 {
 	return EPCGExDataBlendingType::Lerp;
@@ -21,15 +22,15 @@ void UPCGExSubPointsBlendOperation::CopySettingsFrom(const UPCGExOperation* Othe
 	}
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FFacade* InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet)
+void UPCGExSubPointsBlendOperation::PrepareForData(const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade, const TSet<FName>* IgnoreAttributeSet)
 {
 	Super::PrepareForData(InPrimaryFacade, IgnoreAttributeSet);
 	PrepareForData(InPrimaryFacade, InPrimaryFacade, PCGExData::ESource::In, IgnoreAttributeSet);
 }
 
 void UPCGExSubPointsBlendOperation::PrepareForData(
-	PCGExData::FFacade* InPrimaryFacade,
-	PCGExData::FFacade* InSecondaryFacade,
+	const TSharedPtr<PCGExData::FFacade>& InPrimaryFacade,
+	const TSharedPtr<PCGExData::FFacade>& InSecondaryFacade,
 	const PCGExData::ESource SecondarySource,
 	const TSet<FName>* IgnoreAttributeSet)
 {
@@ -53,8 +54,10 @@ void UPCGExSubPointsBlendOperation::PrepareForData(
 		BlendingDetails.PropertiesOverrides.ScaleBlending = EPCGExDataBlendingType::None;
 	}
 
-	PCGEX_DELETE(InternalBlender)
-	InternalBlender = CreateBlender(InPrimaryFacade, InSecondaryFacade, SecondarySource, IgnoreAttributeSet);
+	InternalBlender.Reset();
+	InternalBlender = CreateBlender(
+		InPrimaryFacade.ToSharedRef(), InSecondaryFacade.ToSharedRef(),
+		SecondarySource, IgnoreAttributeSet);
 }
 
 void UPCGExSubPointsBlendOperation::ProcessSubPoints(
@@ -64,7 +67,7 @@ void UPCGExSubPointsBlendOperation::ProcessSubPoints(
 	const PCGExPaths::FPathMetrics& Metrics,
 	const int32 StartIndex) const
 {
-	BlendSubPoints(From, To, SubPoints, Metrics, InternalBlender, StartIndex);
+	BlendSubPoints(From, To, SubPoints, Metrics, InternalBlender.Get(), StartIndex);
 }
 
 void UPCGExSubPointsBlendOperation::BlendSubPoints(
@@ -90,18 +93,18 @@ void UPCGExSubPointsBlendOperation::BlendSubPoints(
 
 void UPCGExSubPointsBlendOperation::Cleanup()
 {
-	PCGEX_DELETE(InternalBlender)
+	InternalBlender.Reset();
 	Super::Cleanup();
 }
 
-PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(
-	PCGExData::FFacade* InPrimaryFacade,
-	PCGExData::FFacade* InSecondaryFacade,
+TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendOperation::CreateBlender(
+	const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
+	const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
 	const PCGExData::ESource SecondarySource,
 	const TSet<FName>* IgnoreAttributeSet)
 {
 	BlendingDetails.DefaultBlending = GetDefaultBlending();
-	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingDetails);
+	TSharedPtr<PCGExDataBlending::FMetadataBlender> NewBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&BlendingDetails);
 	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource, true, IgnoreAttributeSet);
 
 	return NewBlender;

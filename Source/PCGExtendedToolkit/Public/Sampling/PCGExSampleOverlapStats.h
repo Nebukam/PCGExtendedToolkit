@@ -7,6 +7,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+
+
 #include "Misc/PCGExDiscardByOverlap.h"
 
 #include "PCGExSampleOverlapStats.generated.h"
@@ -117,17 +119,16 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleOverlapStatsElement;
-	virtual ~FPCGExSampleOverlapStatsContext() override;
 
 	mutable FRWLock OverlapLock;
-	TMap<uint64, PCGExSampleOverlapStats::FOverlap*> OverlapMap;
+	TMap<uint64, TSharedPtr<PCGExSampleOverlapStats::FOverlap>> OverlapMap;
 
-	PCGExSampleOverlapStats::FOverlap* RegisterOverlap(
+	TSharedPtr<PCGExSampleOverlapStats::FOverlap> RegisterOverlap(
 		PCGExSampleOverlapStats::FProcessor* InManager,
 		PCGExSampleOverlapStats::FProcessor* InManaged,
 		const FBox& InIntersection);
 
-	virtual void MTState_PointsCompletingWorkDone() override;
+	virtual void BatchProcessing_WorkComplete() override;
 
 	PCGEX_FOREACH_FIELD_SAMPLEOVERLAPSTATS(PCGEX_OUTPUT_DECL_TOGGLE)
 
@@ -206,31 +207,26 @@ namespace PCGExSampleOverlapStats
 		FORCEINLINE FProcessor* GetOther(const FProcessor* InCandidate) const { return Manager == InCandidate ? Managed : Manager; }
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSampleOverlapStatsContext, UPCGExSampleOverlapStatsSettings>
 	{
 		friend struct FPCGExSampleOverlapStatsContext;
-
-		const UPCGExSampleOverlapStatsSettings* LocalSettings = nullptr;
-		FPCGExSampleOverlapStatsContext* LocalTypedContext = nullptr;
 
 		const TArray<FPCGPoint>* InPoints = nullptr;
 		FBox Bounds = FBox(ForceInit);
 
 		using TBoundsOctree = TOctree2<PCGExDiscardByOverlap::FPointBounds*, PCGExDiscardByOverlap::FPointBoundsSemantics>;
-		TBoundsOctree* Octree = nullptr;
+		TUniquePtr<TBoundsOctree> Octree;
 
-		TArray<PCGExDiscardByOverlap::FPointBounds*> LocalPointBounds;
+		TArray<TSharedPtr<PCGExDiscardByOverlap::FPointBounds>> LocalPointBounds;
 
 		mutable FRWLock RegistrationLock;
-		TArray<FOverlap*> Overlaps;
-		TArray<FOverlap*> ManagedOverlaps;
+		TArray<TSharedRef<FOverlap>> Overlaps;
+		TArray<TSharedRef<FOverlap>> ManagedOverlaps;
 
 		int32 NumPoints = 0;
 
 		TArray<int32> OverlapSubCount;
 		TArray<int32> OverlapCount;
-		double LocalOverlapSubCountMax = 0;
-		double LocalOverlapCountMax = 0;
 
 		int8 bAnyOverlap = 0;
 
@@ -239,20 +235,23 @@ namespace PCGExSampleOverlapStats
 	public:
 		FOverlapStats Stats;
 
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		double LocalOverlapSubCountMax = 0;
+		double LocalOverlapCountMax = 0;
+
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		FORCEINLINE const FBox& GetBounds() const { return Bounds; }
-		FORCEINLINE const TArray<PCGExDiscardByOverlap::FPointBounds*>& GetPointBounds() const { return LocalPointBounds; }
-		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree; }
+		FORCEINLINE const TArray<TSharedPtr<PCGExDiscardByOverlap::FPointBounds>>& GetPointBounds() const { return LocalPointBounds; }
+		FORCEINLINE const TBoundsOctree* GetOctree() const { return Octree.Get(); }
 
 		//virtual bool IsTrivial() const override { return false; } // Force non-trivial because this shit is expensive
 
 		virtual ~FProcessor() override;
 
-		FORCEINLINE void RegisterPointBounds(const int32 Index, PCGExDiscardByOverlap::FPointBounds* InPointBounds)
+		FORCEINLINE void RegisterPointBounds(const int32 Index, const TSharedPtr<PCGExDiscardByOverlap::FPointBounds>& InPointBounds)
 		{
 			Bounds += InPointBounds->Bounds.GetBox();
 			LocalPointBounds[Index] = InPointBounds;
@@ -260,7 +259,7 @@ namespace PCGExSampleOverlapStats
 
 		void RegisterOverlap(FProcessor* InManaged, const FBox& Intersection);
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		void ResolveOverlap(const int32 Index);
 		void WriteSingleData(const int32 Index);
 		virtual void CompleteWork() override;

@@ -3,17 +3,13 @@
 
 #include "Misc/PCGExFindSplines.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExFindSplinesElement"
 #define PCGEX_NAMESPACE FindSplines
 
 PCGExData::EInit UPCGExFindSplinesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(FindSplines)
-
-FPCGExFindSplinesContext::~FPCGExFindSplinesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExFindSplinesElement::Boot(FPCGExContext* InContext) const
 {
@@ -31,24 +27,24 @@ bool FPCGExFindSplinesElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindSplinesElement::Execute);
 
 	PCGEX_CONTEXT(FindSplines)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFindSplines::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExFindSplines::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExFindSplines::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to process."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -57,12 +53,11 @@ bool FPCGExFindSplinesElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExFindSplines
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExFindSplines::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindSplines)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
 		StartParallelLoopForPoints();
 

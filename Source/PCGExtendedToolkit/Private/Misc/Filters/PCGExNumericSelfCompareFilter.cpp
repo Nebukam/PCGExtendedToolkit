@@ -3,15 +3,16 @@
 
 #include "Misc/Filters/PCGExNumericSelfCompareFilter.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-PCGExPointFilter::TFilter* UPCGExNumericSelfCompareFilterFactory::CreateFilter() const
+TSharedPtr<PCGExPointFilter::TFilter> UPCGExNumericSelfCompareFilterFactory::CreateFilter() const
 {
-	return new PCGExPointsFilter::TNumericSelfComparisonFilter(this);
+	return MakeShared<PCGExPointsFilter::TNumericSelfComparisonFilter>(this);
 }
 
-bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade)
+bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade)
 {
 	if (!TFilter::Init(InContext, InPointDataFacade)) { return false; }
 
@@ -20,15 +21,13 @@ bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* In
 
 	if (MaxIndex < 0) { return false; }
 
-	OperandA = new PCGEx::FLocalSingleFieldGetter();
-	OperandA->Capture(TypedFilterFactory->Config.OperandA);
+	OperandA = MakeUnique<PCGEx::TAttributeGetter<double>>();
 
-	if (!OperandA->SoftGrab(PointDataFacade->Source))
+	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: \"{0}\"."), FText::FromName(TypedFilterFactory->Config.OperandA.GetName())));
 		return false;
 	}
-
 
 	if (TypedFilterFactory->Config.CompareAgainst == EPCGExFetchType::Attribute)
 	{

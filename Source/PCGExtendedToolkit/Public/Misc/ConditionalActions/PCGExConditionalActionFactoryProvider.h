@@ -10,6 +10,7 @@
 #include "PCGExOperation.h"
 #include "Data/PCGExPointFilter.h"
 
+
 #include "PCGExConditionalActionFactoryProvider.generated.h"
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_FACTORY(_NAME, _BODY) \
@@ -23,9 +24,6 @@
 	NewOperation->Factory = NewOperation->TypedFactory; \
 	_BODY \
 	return NewOperation;}
-
-class UPCGExFilterFactoryBase;
-class UPCGExConditionalActionFactoryBase;
 
 namespace PCGExConditionalActions
 {
@@ -49,7 +47,7 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
-	virtual bool PrepareForData(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade);
+	virtual bool PrepareForData(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InPointDataFacade);
 	virtual void ProcessPoint(int32 Index, const FPCGPoint& Point);
 
 	virtual void OnMatchSuccess(int32 Index, const FPCGPoint& Point);
@@ -58,7 +56,7 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGExPointFilter::TManager* FilterManager = nullptr;
+	TUniquePtr<PCGExPointFilter::TManager> FilterManager;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -67,16 +65,16 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionFactoryBase : public UPC
 	GENERATED_BODY()
 
 public:
-	PCGEx::FAttributesInfos* CheckSuccessInfos = nullptr;
-	PCGEx::FAttributesInfos* CheckFailInfos = nullptr;
+	TSharedPtr<PCGEx::FAttributesInfos> CheckSuccessInfos;
+	TSharedPtr<PCGEx::FAttributesInfos> CheckFailInfos;
 
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::ConditionalActions; }
 	virtual UPCGExConditionalActionOperation* CreateOperation() const;
 
 	virtual bool Boot(FPCGContext* InContext);
-	virtual bool AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage);
+	virtual bool AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage) const;
 
 	virtual void BeginDestroy() override;
 };

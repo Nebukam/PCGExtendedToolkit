@@ -10,6 +10,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExMeanFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -69,7 +70,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExMeanFilterFactory : public UPCGExFilterFa
 public:
 	FPCGExMeanFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -77,12 +78,12 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TMeanFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TMeanFilter(const UPCGExMeanFilterFactory* InFactory)
+		explicit TMeanFilter(const TObjectPtr<const UPCGExMeanFilterFactory>& InFactory)
 			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExMeanFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExMeanFilterFactory> TypedFilterFactory;
 
 		TArray<double> Values;
 
@@ -93,7 +94,7 @@ namespace PCGExPointsFilter
 		double ReferenceMin = 0;
 		double ReferenceMax = 0;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		virtual void PostInit() override;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
@@ -103,7 +104,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TMeanFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

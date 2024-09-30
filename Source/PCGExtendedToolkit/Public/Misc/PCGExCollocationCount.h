@@ -7,6 +7,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "PCGExCollocationCount.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -53,8 +55,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExCollocationCountElement;
-
-	virtual ~FPCGExCollocationCountContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountElement final : public FPCGExPointsProcessorElement
@@ -72,18 +72,18 @@ protected:
 
 namespace PCGExCollocationCount
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExCollocationCountContext, UPCGExCollocationCountSettings>
 	{
 		double NumPoints = 0;
 		double ToleranceConstant = 0;
-		PCGEx::TAttributeWriter<int32>* CollocationWriter = nullptr;
-		PCGEx::TAttributeWriter<int32>* LinearOccurencesWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> CollocationWriter;
+		TSharedPtr<PCGExData::TBuffer<int32>> LinearOccurencesWriter;
 
 		const UPCGPointData::PointOctree* Octree = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
@@ -91,7 +91,7 @@ namespace PCGExCollocationCount
 		{
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};

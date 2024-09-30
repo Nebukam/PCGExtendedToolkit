@@ -36,7 +36,7 @@ namespace PCGExSearch
 
 		TScoredQueue(const int32 Size, const int32& Item, const double Score)
 		{
-			PCGEX_SET_NUM_UNINITIALIZED(Scores, Size)
+			PCGEx::InitArray(Scores, Size);
 			Enqueue(Item, Score);
 		}
 
@@ -44,7 +44,6 @@ namespace PCGExSearch
 		{
 			std::priority_queue<FScoredNode, std::vector<FScoredNode>, std::greater<FScoredNode>> EmptyQueue;
 			std::swap(InternalQueue, EmptyQueue);
-			Scores.Empty();
 		}
 
 		FORCEINLINE void Enqueue(const int32& Id, const double Score)

@@ -8,6 +8,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
+
+
 #include "Paths/SubPoints/PCGExSubPointsOperation.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivide.generated.h"
@@ -81,8 +83,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSubdivideContext final : public FPCGExPa
 {
 	friend class FPCGExSubdivideElement;
 
-	virtual ~FPCGExSubdivideContext() override;
-
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
@@ -114,38 +114,33 @@ namespace PCGExSubdivide
 		FVector Dir = FVector::ZeroVector;
 	};
 
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExSubdivideContext, UPCGExSubdivideSettings>
 	{
-		const UPCGExSubdivideSettings* LocalSettings = nullptr;
-		FPCGExSubdivideContext* LocalTypedContext = nullptr;
-
 		TArray<FSubdivision> Subdivisions;
 
 		bool bClosedLoop = false;
-		
+
 		TSet<FName> ProtectedAttributes;
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
-		PCGEx::TAttributeWriter<bool>* FlagWriter = nullptr;
-		PCGEx::TAttributeWriter<double>* AlphaWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<bool>> FlagWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> AlphaWriter;
 
-		PCGExData::TCache<double>* AmountGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> AmountGetter;
 
 		double ConstantAmount = 0;
 
 		bool bUseCount = false;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override;
-
 		virtual bool IsTrivial() const override { return false; } // Force non-trivial
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;

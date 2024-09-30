@@ -9,6 +9,8 @@
 #include "PCGExPointsProcessor.h"
 #include "Collections/PCGExMeshCollection.h"
 #include "PCGExFitting.h"
+
+
 #include "PCGExAssetStaging.generated.h"
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -101,7 +103,7 @@ protected:
 
 namespace PCGExAssetStaging
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExAssetStagingContext, UPCGExAssetStagingSettings>
 	{
 		int32 NumPoints = 0;
 
@@ -109,35 +111,31 @@ namespace PCGExAssetStaging
 		bool bOneMinusWeight = false;
 		bool bNormalizedWeight = false;
 
-		const UPCGExAssetStagingSettings* LocalSettings = nullptr;
-		const FPCGExAssetStagingContext* LocalTypedContext = nullptr;
-
 		FPCGExJustificationDetails Justification;
 		FPCGExFittingVariationsDetails Variations;
 
-		PCGExAssetCollection::FDistributionHelper* Helper = nullptr;
+		TUniquePtr<PCGExAssetCollection::FDistributionHelper> Helper;
 
-		PCGEx::TAttributeWriter<int32>* WeightWriter = nullptr;
-		PCGEx::TAttributeWriter<double>* NormalizedWeightWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<int32>> WeightWriter;
+		TSharedPtr<PCGExData::TBuffer<double>> NormalizedWeightWriter;
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		PCGEx::TAttributeWriter<FSoftObjectPath>* PathWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FSoftObjectPath>> PathWriter;
 #else
-		PCGEx:: TAttributeWriter<FString>* PathWriter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<FString>> PathWriter;
 #endif
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override
 		{
-			PCGEX_DELETE(Helper)
 		}
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;

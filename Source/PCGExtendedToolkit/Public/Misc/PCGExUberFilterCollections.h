@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
+
 #include "PCGExUberFilterCollections.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Uber Filter Mode"))
@@ -86,10 +87,9 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterCollectionsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberFilterCollectionsElement;
-	virtual ~FPCGExUberFilterCollectionsContext() override;
 
-	PCGExData::FPointIOCollection* Inside = nullptr;
-	PCGExData::FPointIOCollection* Outside = nullptr;
+	TSharedPtr<PCGExData::FPointIOCollection> Inside;
+	TSharedPtr<PCGExData::FPointIOCollection> Outside;
 
 	int32 NumPairs = 0;
 };
@@ -108,27 +108,24 @@ protected:
 
 namespace PCGExUberFilterCollections
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExUberFilterCollectionsContext, UPCGExUberFilterCollectionsSettings>
 	{
-		const UPCGExUberFilterCollectionsSettings* LocalSettings = nullptr;
-		FPCGExUberFilterCollectionsContext* LocalTypedContext = nullptr;
-
 		int32 NumPoints = 0;
 		int32 NumInside = 0;
 		int32 NumOutside = 0;
 
 	public:
-		PCGExData::FPointIO* Inside = nullptr;
-		PCGExData::FPointIO* Outside = nullptr;
+		TSharedPtr<PCGExData::FPointIO> Inside;
+		TSharedPtr<PCGExData::FPointIO> Outside;
 
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void Output() override;

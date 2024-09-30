@@ -10,12 +10,10 @@
 #include "PCGExDetails.h"
 #include "PCGExPaths.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "PCGExBlendPath.generated.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-}
+
+#include "PCGExBlendPath.generated.h"
 
 class UPCGExSubPointsBlendOperation;
 
@@ -37,7 +35,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExBlendPathSettings : public UPCGExPathProc
 
 public:
 	UPCGExBlendPathSettings(const FObjectInitializer& ObjectInitializer);
-	
+
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BlendPath, "Path : Blend", "Blend path individual points between its start and end points.");
@@ -75,8 +73,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExBlendPathElement;
-
-	virtual ~FPCGExBlendPathContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBlendPathElement final : public FPCGExPathProcessorElement
@@ -94,32 +90,29 @@ protected:
 
 namespace PCGExBlendPath
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExBlendPathContext, UPCGExBlendPathSettings>
 	{
-		const UPCGExBlendPathSettings* LocalSettings = nullptr;
-		FPCGExBlendPathContext* LocalTypedContext = nullptr;
-
 		int32 MaxIndex = 0;
 
 		PCGExPaths::FPathMetrics Metrics;
 
-		PCGExData::TCache<double>* LerpCache = nullptr;
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> LerpCache;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
-		PCGExData::FPointRef* Start = nullptr;
-		PCGExData::FPointRef* End = nullptr;
+		TSharedPtr<PCGExData::FPointRef> Start;
+		TSharedPtr<PCGExData::FPointRef> End;
 
 		TArray<double> Length;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;

@@ -3,6 +3,7 @@
 
 #include "Graph/Edges/Properties/PCGExVtxPropertyFactoryProvider.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExWriteVtxProperties"
 #define PCGEX_NAMESPACE PCGExWriteVtxProperties
 
@@ -15,7 +16,7 @@ void UPCGExVtxPropertyOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExVtxPropertyOperation::PrepareForVtx(const FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade)
+bool UPCGExVtxPropertyOperation::PrepareForVtx(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade)
 {
 	PrimaryDataFacade = InVtxDataFacade;
 	SecondaryDataFacade = nullptr;
@@ -26,7 +27,7 @@ void UPCGExVtxPropertyOperation::ClusterReserve(const int32 NumClusters)
 {
 }
 
-void UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, PCGExCluster::FCluster* Cluster, PCGExData::FFacade* VtxDataFacade, PCGExData::FFacade* EdgeDataFacade)
+void UPCGExVtxPropertyOperation::PrepareForCluster(const FPCGContext* InContext, const int32 ClusterIdx, TSharedPtr<PCGExCluster::FCluster> Cluster, TSharedPtr<PCGExData::FFacade> VtxDataFacade, TSharedPtr<PCGExData::FFacade> EdgeDataFacade)
 {
 	PrimaryDataFacade = VtxDataFacade;
 	SecondaryDataFacade = EdgeDataFacade;

@@ -12,18 +12,18 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 {
 	Super::PrepareForCluster(InCluster);
 
-	PCGExData::FPointIO* InPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO : InCluster->EdgesIO;
-	PCGExData::FFacade* DataFacade = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
+	const TSharedPtr<PCGExData::FPointIO> InPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->VtxIO.Pin() : InCluster->EdgesIO.Pin();
+	const TSharedPtr<PCGExData::FFacade> DataFacade = Source == EPCGExGraphValueSource::Vtx ? PrimaryDataFacade : SecondaryDataFacade;
 
 	if (LastPoints == InPoints) { return; }
 
 	const int32 NumPoints = Source == EPCGExGraphValueSource::Vtx ? InCluster->Nodes->Num() : InPoints->GetNum();
 
 	LastPoints = InPoints;
-	InPoints->CreateInKeys();
+	InPoints->GetInKeys();
 	CachedScores.SetNumZeroed(NumPoints);
 
-	PCGExData::TCache<double>* ModifiersCache = DataFacade->GetBroadcaster<double>(Attribute, true);
+	const TSharedPtr<PCGExData::TBuffer<double>> ModifiersCache = DataFacade->GetBroadcaster<double>(Attribute, true);
 
 	if (!ModifiersCache)
 	{
@@ -43,7 +43,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	{
 		for (const PCGExCluster::FNode& Node : (*InCluster->Nodes))
 		{
-			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Values[Node.PointIndex], MinValue, MaxValue, OutMin, OutMax);
+			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Read(Node.PointIndex), MinValue, MaxValue, OutMin, OutMax);
 			CachedScores[Node.NodeIndex] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
 		}
 	}
@@ -51,16 +51,10 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 	{
 		for (int i = 0; i < NumPoints; ++i)
 		{
-			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Values[i], MinValue, MaxValue, OutMin, OutMax);
+			const double NormalizedValue = PCGExMath::Remap(ModifiersCache->Read(i), MinValue, MaxValue, OutMin, OutMax);
 			CachedScores[i] += FMath::Max(0, ScoreCurveObj->GetFloatValue(NormalizedValue)) * Factor;
 		}
 	}
-}
-
-void UPCGExHeuristicAttribute::Cleanup()
-{
-	CachedScores.Empty();
-	Super::Cleanup();
 }
 
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAttribute::CreateOperation() const

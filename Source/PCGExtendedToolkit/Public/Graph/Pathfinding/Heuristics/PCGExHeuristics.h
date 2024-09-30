@@ -7,11 +7,7 @@
 #include "PCGExHeuristicFeedback.h"
 #include "PCGExHeuristicsFactoryProvider.h"
 
-#include "Graph/Pathfinding/PCGExPathfinding.h"
-
 #include "PCGExHeuristics.generated.h"
-
-class UPCGExHeuristicFeedback;
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Heuristic Score Mode"))
 enum class EPCGExHeuristicScoreMode : uint8
@@ -24,8 +20,8 @@ namespace PCGExHeuristics
 {
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FLocalFeedbackHandler
 	{
-		PCGExData::FFacade* VtxDataFacade = nullptr;
-		PCGExData::FFacade* EdgeDataFacade = nullptr;
+		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
+		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
 		double TotalWeight = 0;
@@ -36,13 +32,7 @@ namespace PCGExHeuristics
 
 		~FLocalFeedbackHandler()
 		{
-			for (UPCGExHeuristicFeedback* Feedback : Feedbacks)
-			{
-				Feedback->Cleanup();
-				PCGEX_DELETE_OPERATION(Feedback)
-			}
-
-			Feedbacks.Empty();
+			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { PCGEX_DELETE_OPERATION(Feedback) }
 		}
 
 		FORCEINLINE double GetGlobalScore(
@@ -82,12 +72,12 @@ namespace PCGExHeuristics
 	class /*PCGEXTENDEDTOOLKIT_API*/ THeuristicsHandler
 	{
 	public:
-		PCGExData::FFacade* VtxDataFacade = nullptr;
-		PCGExData::FFacade* EdgeDataFacade = nullptr;
+		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
+		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 		TArray<UPCGExHeuristicOperation*> Operations;
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
-		TArray<const UPCGExHeuristicsFactoryBase*> LocalFeedbackFactories;
+		TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>> LocalFeedbackFactories;
 
 		PCGExCluster::FCluster* CurrentCluster = nullptr;
 
@@ -97,11 +87,11 @@ namespace PCGExHeuristics
 
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 
-		explicit THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade);
-		explicit THeuristicsHandler(FPCGContext* InContext, PCGExData::FFacade* InVtxDataCache, PCGExData::FFacade* InEdgeDataCache, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);
+		explicit THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade);
+		explicit THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories);
 		~THeuristicsHandler();
 
-		void BuildFrom(FPCGContext* InContext, const TArray<UPCGExHeuristicsFactoryBase*>& InFactories);
+		void BuildFrom(FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories);
 		void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 		void CompleteClusterPreparation();
 
@@ -156,6 +146,6 @@ namespace PCGExHeuristics
 			for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
 		}
 
-		FLocalFeedbackHandler* MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster);
+		TSharedPtr<FLocalFeedbackHandler> MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster);
 	};
 }

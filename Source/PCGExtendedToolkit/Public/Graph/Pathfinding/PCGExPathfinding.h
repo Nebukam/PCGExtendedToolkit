@@ -51,9 +51,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathStatistics
 	{
 	}
 
-	virtual ~FPCGExPathStatistics()
-	{
-	}
+	virtual ~FPCGExPathStatistics() = default;
 
 	/** Write the point use count. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -89,11 +87,7 @@ namespace PCGExPathfinding
 			EdgeExtraWeight.SetNumZeroed(InCluster->Edges->Num());
 		}
 
-		~FExtraWeights()
-		{
-			NodeExtraWeight.Empty();
-			EdgeExtraWeight.Empty();
-		}
+		~FExtraWeights() = default;
 
 		void AddPointWeight(const int32 PointIndex, const double InScore)
 		{
@@ -139,7 +133,7 @@ namespace PCGExPathfinding
 	};
 
 	static void ProcessGoals(
-		const PCGExData::FFacade* InSeedDataFacade,
+		const TSharedPtr<PCGExData::FFacade>& InSeedDataFacade,
 		const UPCGExGoalPicker* GoalPicker,
 		TFunction<void(int32, int32)>&& GoalFunc)
 	{
@@ -170,12 +164,12 @@ namespace PCGExPathfinding
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingTask : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExPathfindingTask(PCGExData::FPointIO* InPointIO,
-	                      const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
+	FPCGExPathfindingTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+	                      const TArray<TSharedPtr<PCGExPathfinding::FPathQuery>>* InQueries) :
 		FPCGExTask(InPointIO),
 		Queries(InQueries)
 	{
 	}
 
-	const TArray<PCGExPathfinding::FPathQuery*>* Queries = nullptr;
+	const TArray<TSharedPtr<PCGExPathfinding::FPathQuery>>* Queries = nullptr;
 };

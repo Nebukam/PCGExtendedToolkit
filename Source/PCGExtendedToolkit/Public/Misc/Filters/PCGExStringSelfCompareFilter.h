@@ -11,6 +11,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExStringSelfCompareFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -63,7 +64,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExStringSelfCompareFilterFactory : public U
 public:
 	FPCGExStringSelfCompareFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -71,22 +72,22 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TStringSelfComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TStringSelfComparisonFilter(const UPCGExStringSelfCompareFilterFactory* InDefinition)
+		explicit TStringSelfComparisonFilter(const TObjectPtr<const UPCGExStringSelfCompareFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExStringSelfCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExStringSelfCompareFilterFactory> TypedFilterFactory;
 
-		PCGEx::FLocalToStringGetter* OperandA = nullptr;
-		PCGExData::TCache<int32>* Index = nullptr;
+		TUniquePtr<PCGEx::TAttributeGetter<FString>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<int32>> Index;
 		bool bOffset = false;
 		int32 MaxIndex = 0;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			const int32 IndexValue = Index ? Index->Values[PointIndex] : TypedFilterFactory->Config.IndexConstant;
+			const int32 IndexValue = Index ? Index->Read(PointIndex) : TypedFilterFactory->Config.IndexConstant;
 			const int32 TargetIndex = PCGExMath::SanitizeIndex(bOffset ? PointIndex + IndexValue : IndexValue, MaxIndex, TypedFilterFactory->Config.IndexSafety);
 
 			if (TargetIndex == -1) { return false; }
@@ -98,8 +99,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TStringSelfComparisonFilter() override
 		{
-			TypedFilterFactory = nullptr;
-			PCGEX_DELETE(OperandA)
 		}
 	};
 }

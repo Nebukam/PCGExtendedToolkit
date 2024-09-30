@@ -7,6 +7,9 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "PCGExMath.h"
+#include "PCGExHelpers.h"
+
+
 //#include "PCGExGeoMesh.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Triangulation Type"))
@@ -42,7 +45,7 @@ namespace PCGExGeo
 			if (Triangles.IsEmpty()) { return; }
 
 			TArray<FVector> DualPositions;
-			PCGEX_SET_NUM_UNINITIALIZED(DualPositions, Triangles.Num())
+			PCGEx::InitArray(DualPositions, Triangles.Num());
 
 			Edges.Empty();
 
@@ -71,8 +74,8 @@ namespace PCGExGeo
 
 			const int32 StartIndex = Vertices.Num();
 			TArray<FVector> DualPositions;
-			PCGEX_SET_NUM_UNINITIALIZED(DualPositions, Triangles.Num())
-			PCGEX_SET_NUM_UNINITIALIZED(Vertices, StartIndex + Triangles.Num())
+			PCGEx::InitArray(DualPositions, Triangles.Num());
+			PCGEx::InitArray(Vertices, StartIndex + Triangles.Num());
 
 			Edges.Empty();
 
@@ -91,11 +94,7 @@ namespace PCGExGeo
 			Adjacencies.Empty();
 		}
 
-		~FGeoMesh()
-		{
-			Vertices.Empty();
-			Edges.Empty();
-		}
+		~FGeoMesh() = default;
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoStaticMesh : public FGeoMesh
@@ -159,7 +158,7 @@ namespace PCGExGeo
 				Edges.Add(PCGEx::H64U(C, A));
 			}
 
-			PCGEX_SET_NUM_UNINITIALIZED(Vertices, IndexedUniquePositions.Num())
+			PCGEx::InitArray(Vertices, IndexedUniquePositions.Num());
 
 			TArray<FVector> Keys;
 			IndexedUniquePositions.GetKeys(Keys);
@@ -187,7 +186,7 @@ namespace PCGExGeo
 			int32 Idx = 0;
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 
-			PCGEX_SET_NUM_UNINITIALIZED(Triangles, Indices.Num() / 3)
+			PCGEx::InitArray(Triangles, Indices.Num() / 3);
 			int32 TriangleIndex = 0;
 
 			for (int i = 0; i < Indices.Num(); i += 3)
@@ -235,7 +234,7 @@ namespace PCGExGeo
 			}
 
 			int32 ENum = EdgeAdjacency.Num();
-			PCGEX_SET_NUM_UNINITIALIZED(Adjacencies, Triangles.Num())
+			PCGEx::InitArray(Adjacencies, Triangles.Num());
 
 			for (int j = 0; j < Triangles.Num(); ++j)
 			{
@@ -253,7 +252,7 @@ namespace PCGExGeo
 
 			EdgeAdjacency.Empty();
 
-			PCGEX_SET_NUM_UNINITIALIZED(Vertices, IndexedUniquePositions.Num())
+			PCGEx::InitArray(Vertices, IndexedUniquePositions.Num());
 
 			TArray<FVector> Keys;
 			IndexedUniquePositions.GetKeys(Keys);
@@ -273,7 +272,6 @@ namespace PCGExGeo
 
 		~FGeoStaticMesh()
 		{
-			PCGEX_CLEAN_SP(StaticMesh)
 		}
 	};
 
@@ -281,7 +279,7 @@ namespace PCGExGeo
 	{
 	public:
 		TMap<FSoftObjectPath, int32> Map;
-		TArray<FGeoStaticMesh*> GSMs;
+		TArray<TSharedPtr<FGeoStaticMesh>> GSMs;
 
 		EPCGExTriangulationType DesiredTriangulationType = EPCGExTriangulationType::Raw;
 
@@ -293,12 +291,8 @@ namespace PCGExGeo
 		{
 			if (const int32* GSMPtr = Map.Find(InPath)) { return *GSMPtr; }
 
-			FGeoStaticMesh* GSM = new FGeoStaticMesh(InPath);
-			if (!GSM->bIsValid)
-			{
-				PCGEX_DELETE(GSM);
-				return -1;
-			}
+			TSharedPtr<FGeoStaticMesh> GSM = MakeShared<FGeoStaticMesh>(InPath);
+			if (!GSM->bIsValid) { return -1; }
 
 			const int32 Index = GSMs.Add(GSM);
 			GSM->DesiredTriangulationType = DesiredTriangulationType;
@@ -306,26 +300,24 @@ namespace PCGExGeo
 			return Index;
 		}
 
-		FGeoStaticMesh* GetMesh(const int32 Index) { return GSMs[Index]; }
+		TSharedPtr<FGeoStaticMesh> GetMesh(const int32 Index) { return GSMs[Index]; }
 
 		~FGeoStaticMeshMap()
 		{
-			Map.Empty();
-			PCGEX_DELETE_TARRAY(GSMs)
 		}
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractStaticMeshTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FExtractStaticMeshTask(PCGExData::FPointIO* InPointIO, FGeoStaticMesh* InGSM) :
+		FExtractStaticMeshTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, FGeoStaticMesh* InGSM) :
 			FPCGExTask(InPointIO), GSM(InGSM)
 		{
 		}
 
 		FGeoStaticMesh* GSM = nullptr;
 
-		virtual bool ExecuteTask() override
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{
 			GSM->ExtractMeshSynchronous();
 			return true;

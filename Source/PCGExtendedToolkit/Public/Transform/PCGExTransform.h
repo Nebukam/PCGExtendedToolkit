@@ -60,11 +60,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="USource==EPCGExFetchType::Attribute", EditConditionHides, DisplayName="W"))
 	FPCGAttributePropertyInputSelector WAttribute;
 
-	PCGExData::TCache<double>* UGetter = nullptr;
-	PCGExData::TCache<double>* VGetter = nullptr;
-	PCGExData::TCache<double>* WGetter = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> UGetter;
+	TSharedPtr<PCGExData::TBuffer<double>> VGetter;
+	TSharedPtr<PCGExData::TBuffer<double>> WGetter;
 
-	bool Init(const FPCGContext* InContext, PCGExData::FFacade* InDataFacade)
+	bool Init(const FPCGContext* InContext, const TSharedRef<PCGExData::FFacade>& InDataFacade)
 	{
 		if (USource == EPCGExFetchType::Attribute)
 		{
@@ -104,9 +104,9 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUVW
 	FVector GetUVW(const int32 PointIndex) const
 	{
 		return FVector(
-			UGetter ? UGetter->Values[PointIndex] : UConstant,
-			VGetter ? VGetter->Values[PointIndex] : VConstant,
-			WGetter ? WGetter->Values[PointIndex] : WConstant);
+			UGetter ? UGetter->Read(PointIndex) : UConstant,
+			VGetter ? VGetter->Read(PointIndex) : VConstant,
+			WGetter ? WGetter->Read(PointIndex) : WConstant);
 	}
 
 	FVector GetPosition(const PCGExData::FPointRef& PointRef) const

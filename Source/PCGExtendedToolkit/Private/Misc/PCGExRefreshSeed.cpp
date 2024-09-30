@@ -5,6 +5,7 @@
 
 #include "PCGExRandom.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExRefreshSeedElement"
 #define PCGEX_NAMESPACE RefreshSeed
 
@@ -26,6 +27,7 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRefreshSeedElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(RefreshSeed)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -54,7 +56,7 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->TryComplete();
 }
 
-bool FPCGExRefreshSeedTask::ExecuteTask()
+bool FPCGExRefreshSeedTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 

@@ -56,7 +56,12 @@ public:
 		return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExGraphValueSource::Vtx ? PointIndex : EdgeIndex]);
 	}
 
-	virtual void Cleanup() override;
+	virtual void Cleanup() override
+	{
+		Cluster = nullptr;
+		LocalWeightMultiplier.Empty();
+		Super::Cleanup();
+	}
 
 protected:
 	const PCGExCluster::FCluster* Cluster = nullptr;

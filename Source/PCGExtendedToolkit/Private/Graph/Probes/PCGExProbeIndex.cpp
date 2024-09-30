@@ -10,7 +10,7 @@ bool UPCGExProbeIndex::RequiresDirectProcessing()
 	return true;
 }
 
-bool UPCGExProbeIndex::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
+bool UPCGExProbeIndex::PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 {
 	if (!Super::PrepareForPoints(InPointIO)) { return false; }
 
@@ -32,7 +32,7 @@ bool UPCGExProbeIndex::PrepareForPoints(const PCGExData::FPointIO* InPointIO)
 void UPCGExProbeIndex::ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges)
 {
 	// TODO : Implement Stacking mngmt
-	int32 Value = TargetCache ? TargetCache->Values[Index] : Config.TargetConstant;
+	int32 Value = TargetCache ? TargetCache->Read(Index) : Config.TargetConstant;
 
 	if (Config.Mode == EPCGExProbeTargetMode::Target)
 	{

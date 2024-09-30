@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExBitwiseOperation.h"
 
+
 #include "Misc/PCGExBitmask.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBitwiseOperationElement"
@@ -11,11 +12,6 @@
 PCGExData::EInit UPCGExBitwiseOperationSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(BitwiseOperation)
-
-FPCGExBitwiseOperationContext::~FPCGExBitwiseOperationContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExBitwiseOperationElement::Boot(FPCGExContext* InContext) const
 {
@@ -38,6 +34,7 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBitwiseOperationElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(BitwiseOperation)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
@@ -45,7 +42,7 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		bool bInvalidInputs = false;
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
 			{
 				if (Settings->MaskType == EPCGExFetchType::Attribute && !Entry->GetOut()->Metadata->HasAttribute(Settings->MaskAttribute))
 				{
@@ -54,10 +51,9 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 				}
 				return true;
 			},
-			[&](PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBitwiseOperation::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to process."));
 			return true;
@@ -69,7 +65,7 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -78,19 +74,18 @@ bool FPCGExBitwiseOperationElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExBitwiseOperation
 {
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExBitwiseOperation::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BitwiseOperation)
 
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		Writer = PointDataFacade->GetWriter<int64>(Settings->FlagAttribute, 0, false, false);
+		Writer = PointDataFacade->GetWritable<int64>(Settings->FlagAttribute, 0, false, false);
 
 		if (Settings->MaskType == EPCGExFetchType::Attribute)
 		{
-			Reader = PointDataFacade->GetScopedReader<int64>(Settings->MaskAttribute);
+			Reader = PointDataFacade->GetScopedReadable<int64>(Settings->MaskAttribute);
 			if (!Reader) { return false; }
 		}
 		else
@@ -107,12 +102,12 @@ namespace PCGExBitwiseOperation
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExBitmask::Do(Op, Writer->Values[Index], Reader ? Reader->Values[Index] : Mask);
+		PCGExBitmask::Do(Op, Writer->GetMutable(Index), Reader ? Reader->Read(Index) : Mask);
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

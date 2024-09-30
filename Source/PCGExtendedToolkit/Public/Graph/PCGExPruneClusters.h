@@ -7,6 +7,7 @@
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
 
+
 #include "PCGExPruneClusters.generated.h"
 
 
@@ -51,9 +52,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClustersContext final : public FPCG
 	friend class UPCGExPruneClustersSettings;
 	friend class FPCGExPruneClustersElement;
 
-	virtual ~FPCGExPruneClustersContext() override;
-
-	PCGExGeo::FPointBoxCloud* BoxCloud = nullptr;
+	TSharedPtr<PCGExGeo::FPointBoxCloud> BoxCloud;
 	TArray<bool> ClusterState;
 
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
@@ -75,14 +74,14 @@ protected:
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClusterTask final : public PCGExMT::FPCGExTask
 {
 public:
-	FPCGExPruneClusterTask(PCGExData::FPointIO* InPointIO,
-	                       PCGExData::FPointIO* InEdgesIO) :
+	FPCGExPruneClusterTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
+	                       const TSharedPtr<PCGExData::FPointIO>& InEdgesIO) :
 		FPCGExTask(InPointIO),
 		EdgesIO(InEdgesIO)
 	{
 	}
 
-	PCGExData::FPointIO* EdgesIO = nullptr;
+	const TSharedPtr<PCGExData::FPointIO> EdgesIO;
 
-	virtual bool ExecuteTask() override;
+	virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 };

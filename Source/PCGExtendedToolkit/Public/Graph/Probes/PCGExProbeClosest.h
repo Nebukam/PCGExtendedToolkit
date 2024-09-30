@@ -58,14 +58,14 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeClosest : public UPCGExProbeOperatio
 
 public:
 	virtual bool RequiresDirectProcessing() override;
-	virtual bool PrepareForPoints(const PCGExData::FPointIO* InPointIO) override;
+	virtual bool PrepareForPoints(const TSharedPtr<PCGExData::FPointIO>& InPointIO) override;
 	virtual void ProcessCandidates(const int32 Index, const FPCGPoint& Point, TArray<PCGExProbing::FCandidate>& Candidates, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 	virtual void ProcessNode(const int32 Index, const FPCGPoint& Point, TSet<FInt32Vector>* Coincidence, const FVector& ST, TSet<uint64>* OutEdges) override;
 
 	FPCGExProbeConfigClosest Config;
 
 	int32 MaxConnections = 1;
-	PCGExData::TCache<int32>* MaxConnectionsCache = nullptr;
+	TSharedPtr<PCGExData::TBuffer<int32>> MaxConnectionsCache;
 
 protected:
 	FVector CWCoincidenceTolerance = FVector::ZeroVector;

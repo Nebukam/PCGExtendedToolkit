@@ -4,6 +4,8 @@
 #include "Misc/PCGExPartitionByValues.h"
 
 #include "Data/PCGExData.h"
+
+
 #include "Sampling/PCGExSampling.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPartitionByValues"
@@ -16,15 +18,13 @@ namespace PCGExPartitionByValues
 
 namespace PCGExPartition
 {
-	FKPartition::FKPartition(FKPartition* InParent, const int64 InKey, FPCGExFilter::FRule* InRule, const int32 InPartitionIndex)
+	FKPartition::FKPartition(const TWeakPtr<FKPartition>& InParent, const int64 InKey, FPCGExFilter::FRule* InRule, const int32 InPartitionIndex)
 		: Parent(InParent), PartitionIndex(InPartitionIndex), PartitionKey(InKey), Rule(InRule)
 	{
 	}
 
 	FKPartition::~FKPartition()
 	{
-		PCGEX_DELETE_TMAP(SubLayers, int64)
-		UniquePartitionKeys.Empty();
 	}
 
 	int32 FKPartition::GetSubPartitionsNum()
@@ -32,13 +32,13 @@ namespace PCGExPartition
 		if (SubLayers.IsEmpty()) { return 1; }
 
 		int32 Num = 0;
-		for (const TPair<int64, FKPartition*>& Pair : SubLayers) { Num += Pair.Value->GetSubPartitionsNum(); }
+		for (const TPair<int64, TSharedPtr<FKPartition>>& Pair : SubLayers) { Num += Pair.Value->GetSubPartitionsNum(); }
 		return Num;
 	}
 
-	FKPartition* FKPartition::GetPartition(const int64 Key, FPCGExFilter::FRule* InRule)
+	TSharedPtr<FKPartition> FKPartition::GetPartition(const int64 Key, FPCGExFilter::FRule* InRule)
 	{
-		FKPartition** LayerPtr;
+		TSharedPtr<FKPartition>* LayerPtr;
 
 		{
 			FReadScopeLock ReadLock(LayersLock);
@@ -52,7 +52,8 @@ namespace PCGExPartition
 
 			if (LayerPtr) { return *LayerPtr; }
 
-			FKPartition* Partition = new FKPartition(this, Key, InRule, SubLayers.Num());
+			TSharedPtr<FKPartition> SharedThisPtr = SharedThis(this);
+			TSharedPtr<FKPartition> Partition = MakeShared<FKPartition>(SharedThisPtr, Key, InRule, SubLayers.Num());
 
 			UniquePartitionKeys.Add(Key);
 			SubLayers.Add(Key, Partition);
@@ -60,15 +61,15 @@ namespace PCGExPartition
 		}
 	}
 
-	void FKPartition::Register(TArray<FKPartition*>& Partitions)
+	void FKPartition::Register(TArray<TSharedPtr<FKPartition>>& Partitions)
 	{
 		if (!SubLayers.IsEmpty())
 		{
-			for (const TPair<int64, FKPartition*>& Pair : SubLayers) { Pair.Value->Register(Partitions); }
+			for (const TPair<int64, TSharedPtr<FKPartition>>& Pair : SubLayers) { Pair.Value->Register(Partitions); }
 		}
 		else
 		{
-			Partitions.Add(this);
+			Partitions.Add(SharedThis(this));
 		}
 	}
 
@@ -82,7 +83,7 @@ namespace PCGExPartition
 		for (int64 UniquePartitionKey : UValues) { ValuesIndices.Add(UniquePartitionKey, PIndex++); }
 		UValues.Empty();
 
-		for (const TPair<int64, FKPartition*>& Pair : SubLayers)
+		for (const TPair<int64, TSharedPtr<FKPartition>>& Pair : SubLayers)
 		{
 			Pair.Value->SortPartitions();
 			Pair.Value->PartitionIndex = *ValuesIndices.Find(Pair.Value->PartitionKey); //Ordered index
@@ -118,11 +119,6 @@ bool UPCGExPartitionByValuesSettings::GetPartitionRules(const FPCGContext* InCon
 	if (PartitionRules.IsEmpty()) { return false; }
 	for (const FPCGExPartitonRuleConfig& Config : PartitionRules) { OutRules.Add(Config); }
 	return true;
-}
-
-FPCGExPartitionByValuesBaseContext::~FPCGExPartitionByValuesBaseContext()
-{
-	PCGEX_TERMINATE_ASYNC
 }
 
 PCGEX_INITIALIZE_ELEMENT(PartitionByValuesBase)
@@ -175,24 +171,24 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPartitionByValuesElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>>(
-			[](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPartitionByValues::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any partitions."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -201,35 +197,25 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 namespace PCGExPartitionByValues
 {
-	FProcessor::~FProcessor()
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_DELETE(RootPartition)
-	}
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
-	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
-		LocalTypedContext = TypedContext;
-
-		RootPartition = new PCGExPartition::FKPartition(nullptr, 0, nullptr, -1);
+		RootPartition = MakeShared<PCGExPartition::FKPartition>(nullptr, 0, nullptr, -1);
 
 		Rules.Empty(); //
-		PointIO->CreateInKeys();
+		PointDataFacade->Source->GetInKeys();
 
-		const int32 NumPoints = PointIO->GetNum();
+		const int32 NumPoints = PointDataFacade->GetNum();
 
-		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGEX_SET_NUM_UNINITIALIZED(KeySums, NumPoints) }
+		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGEx::InitArray(KeySums, NumPoints); }
 
-		for (FPCGExPartitonRuleConfig& Config : TypedContext->RulesConfigs)
+		for (FPCGExPartitonRuleConfig& Config : Context->RulesConfigs)
 		{
+			const TSharedPtr<PCGExData::TBuffer<double>> DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
+			if (!DataCache) { continue; }
 			FPCGExFilter::FRule& NewRule = Rules.Emplace_GetRef(Config);
-			PCGExData::TCache<double>* DataCache = PointDataFacade->GetScopedBroadcaster<double>(Config.Selector);
-
-			if (!DataCache) { Rules.Pop(); }
-
 			NewRule.DataCache = DataCache;
 		}
 
@@ -248,7 +234,7 @@ namespace PCGExPartitionByValues
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count)
 	{
-		PCGExPartition::FKPartition* Partition = RootPartition;
+		TSharedPtr<PCGExPartition::FKPartition> Partition = RootPartition;
 		for (FPCGExFilter::FRule& Rule : Rules)
 		{
 			const int64 KeyValue = Rule.Filter(Index);
@@ -261,18 +247,16 @@ namespace PCGExPartitionByValues
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
-
-		PCGExPartition::FKPartition* Partition = Partitions[Iteration];
+		TSharedPtr<PCGExPartition::FKPartition> Partition = Partitions[Iteration];
 
 		//Manually create & insert partition at the sorted IO Index
-		PCGExData::FPointIO* PartitionIO = TypedContext->MainPoints->Pairs[Partition->IOIndex];
+		const TSharedPtr<PCGExData::FPointIO> PartitionIO = Context->MainPoints->Pairs[Partition->IOIndex];
 
 		UPCGMetadata* Metadata = PartitionIO->GetOut()->Metadata;
 
 		const TArray<FPCGPoint>& InPoints = PartitionIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& OutPoints = PartitionIO->GetOut()->GetMutablePoints();
-		PCGEX_SET_NUM_UNINITIALIZED(OutPoints, Partition->Points.Num())
+		PCGEx::InitArray(OutPoints, Partition->Points.Num());
 
 		for (int i = 0; i < OutPoints.Num(); ++i)
 		{
@@ -281,7 +265,7 @@ namespace PCGExPartitionByValues
 		}
 
 		int64 Sum = 0;
-		while (Partition->Parent)
+		while (Partition->Parent.Pin())
 		{
 			const FPCGExFilter::FRule* Rule = Partition->Rule;
 			Sum += Partition->PartitionKey;
@@ -303,7 +287,7 @@ namespace PCGExPartitionByValues
 					TagValue);
 			}
 
-			Partition = Partition->Parent;
+			Partition = Partition->Parent.Pin();
 		}
 
 		if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(Metadata, Settings->KeySumAttributeName, Sum); }
@@ -314,8 +298,6 @@ namespace PCGExPartitionByValues
 		FPointsProcessor::CompleteWork();
 		RootPartition->SortPartitions();
 
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
-
 		if (Settings->bSplitOutput)
 		{
 			NumPartitions = RootPartition->GetSubPartitionsNum();
@@ -324,14 +306,14 @@ namespace PCGExPartitionByValues
 
 			// Sort by point index & ensure consistent output partition order
 
-			Partitions.Sort([](const PCGExPartition::FKPartition& A, PCGExPartition::FKPartition& B) { return A.Points[0] < B.Points[0]; });
-			const int32 InsertOffset = TypedContext->MainPoints->Pairs.Num();
+			Partitions.Sort([](const TSharedPtr<PCGExPartition::FKPartition>& A, const TSharedPtr<PCGExPartition::FKPartition>& B) { return A->Points[0] < B->Points[0]; });
+			const int32 InsertOffset = Context->MainPoints->Pairs.Num();
 
 			int32 SumPts = 0;
 			for (int i = 0; i < Partitions.Num(); ++i)
 			{
 				Partitions[i]->IOIndex = InsertOffset + i;
-				TypedContext->MainPoints->Emplace_GetRef(PointIO, PCGExData::EInit::NewOutput);
+				Context->MainPoints->Emplace_GetRef(PointDataFacade->Source, PCGExData::EInit::NewOutput);
 				SumPts += Partitions[i]->Points.Num();
 			}
 
@@ -364,21 +346,21 @@ namespace PCGExPartitionByValues
 				IndiceMap.Empty();
 			}
 
-			PCGEx::TAttributeWriter<int32>* KeyWriter = PointDataFacade->GetWriter(Rule.RuleConfig->KeyAttributeName, 0, false, true);
+			const TSharedPtr<PCGExData::TBuffer<int32>> KeyWriter = PointDataFacade->GetWritable(Rule.RuleConfig->KeyAttributeName, 0, false, true);
 			for (int i = 0; i < Rule.FilteredValues.Num(); ++i)
 			{
-				KeyWriter->Values[i] = Rule.FilteredValues[i];
+				KeyWriter->GetMutable(i) = Rule.FilteredValues[i];
 				if (Settings->bWriteKeySum) { KeySums[i] += Rule.FilteredValues[i]; }
 			}
 		}
 
 		if (Settings->bWriteKeySum)
 		{
-			PCGEx::TAttributeWriter<int32>* KeySumWriter = PointDataFacade->GetWriter(Settings->KeySumAttributeName, 0, false, true);
-			for (int i = 0; i < KeySums.Num(); ++i) { KeySumWriter->Values[i] = KeySums[i]; }
+			const TSharedPtr<PCGExData::TBuffer<int32>> KeySumWriter = PointDataFacade->GetWritable(Settings->KeySumAttributeName, 0, false, true);
+			for (int i = 0; i < KeySums.Num(); ++i) { KeySumWriter->GetMutable(i) = KeySums[i]; }
 		}
 
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 

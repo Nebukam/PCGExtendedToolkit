@@ -5,17 +5,13 @@
 
 #include "PCGExDataMath.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExPathSolidifyElement"
 #define PCGEX_NAMESPACE PathSolidify
 
 PCGExData::EInit UPCGExPathSolidifySettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(PathSolidify)
-
-FPCGExPathSolidifyContext::~FPCGExPathSolidifyContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 bool FPCGExPathSolidifyElement::Boot(FPCGExContext* InContext) const
 {
@@ -31,24 +27,24 @@ bool FPCGExPathSolidifyElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathSolidifyElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathSolidify)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathSolidify::FProcessor>>(
-			[](PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
-			[&](PCGExPointsMT::TBatch<PCGExPathSolidify::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return Entry->GetNum() >= 2; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExPathSolidify::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any valid path."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -61,20 +57,19 @@ namespace PCGExPathSolidify
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExPathSolidify::Process);
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathSolidify)
 
 		// Must be set before process for filters
-		PointDataFacade->bSupportsScopedGet = TypedContext->bScopedAttributeGet;
+		PointDataFacade->bSupportsScopedGet = Context->bScopedAttributeGet;
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		bClosedLoop = TypedContext->ClosedLoop.IsClosedLoop(PointIO);
+		const TSharedRef<PCGExData::FPointIO>& PointIO = PointDataFacade->Source;
+		bClosedLoop = Context->ClosedLoop.IsClosedLoop(PointIO);
 		LastIndex = PointIO->GetNum() - 1;
 
-		LocalSettings = Settings;
 
 #define PCGEX_CREATE_LOCAL_AXIS_SET_CONST(_AXIS) if (Settings->bWriteRadius##_AXIS){Rad##_AXIS##Constant = Settings->Radius##_AXIS##Constant;}
 		PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_SET_CONST)
@@ -93,7 +88,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 			SolidificationLerpGetter = PointDataFacade->GetBroadcaster<double>(Settings->SolidificationLerpAttribute);
 			if (!SolidificationLerpGetter)
 			{
-				PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some paths don't have the specified SolidificationEdgeLerp Attribute \"{0}\"."), FText::FromName(Settings->SolidificationLerpAttribute.GetName())));
+				PCGE_LOG_C(Warning, GraphAndLog, ExecutionContext, FText::Format(FTEXT("Some paths don't have the specified SolidificationEdgeLerp Attribute \"{0}\"."), FText::FromName(Settings->SolidificationLerpAttribute.GetName())));
 				return false;
 			}
 		}
@@ -115,30 +110,30 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		if (!bClosedLoop && Index == LastIndex) { return; } // Skip last point
 
 		const FVector Position = Point.Transform.GetLocation();
-		const FVector NextPosition = PointIO->GetInPoint(Index == LastIndex ? 0 : Index + 1).Transform.GetLocation();
+		const FVector NextPosition = PointDataFacade->Source->GetInPoint(Index == LastIndex ? 0 : Index + 1).Transform.GetLocation();
 		const double Length = FVector::Dist(Position, NextPosition);
 		const FVector EdgeDirection = (Position - NextPosition).GetSafeNormal();
-		const FVector Scale = LocalSettings->bScaleBounds ? FVector::OneVector / Point.Transform.GetScale3D() : FVector::OneVector;
+		const FVector Scale = Settings->bScaleBounds ? FVector::OneVector / Point.Transform.GetScale3D() : FVector::OneVector;
 
 
 		FRotator EdgeRot;
 		FVector TargetBoundsMin = Point.BoundsMin;
 		FVector TargetBoundsMax = Point.BoundsMax;
 
-		const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Values[Index] : LocalSettings->SolidificationLerpConstant, 0, 1);
+		const double EdgeLerp = FMath::Clamp(SolidificationLerpGetter ? SolidificationLerpGetter->Read(Index) : Settings->SolidificationLerpConstant, 0, 1);
 		const double EdgeLerpInv = 1 - EdgeLerp;
 		bool bProcessAxis;
 
 #define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
-		bProcessAxis = LocalSettings->bWriteRadius##_AXIS || LocalSettings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
+		bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
 		if (bProcessAxis){\
-			if (LocalSettings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
+			if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
 				TargetBoundsMin._AXIS = (-Length * EdgeLerpInv)* Scale._AXIS;\
 				TargetBoundsMax._AXIS = (Length * EdgeLerp)* Scale._AXIS;\
 			}else{\
 				double Rad = Rad##_AXIS##Constant;\
-				if(SolidificationRad##_AXIS){Rad = FMath::Lerp(SolidificationRad##_AXIS->Values[Index], SolidificationRad##_AXIS->Values[Index], EdgeLerp); }\
-				else{Rad=LocalSettings->Radius##_AXIS##Constant;}\
+				if(SolidificationRad##_AXIS){Rad = FMath::Lerp(SolidificationRad##_AXIS->Read(Index), SolidificationRad##_AXIS->Read(Index), EdgeLerp); }\
+				else{Rad=Settings->Radius##_AXIS##Constant;}\
 				TargetBoundsMin._AXIS = -Rad;\
 				TargetBoundsMax._AXIS = Rad;\
 			}\
@@ -147,7 +142,7 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 		PCGEX_FOREACH_XYZ(PCGEX_SOLIDIFY_DIMENSION)
 #undef PCGEX_SOLIDIFY_DIMENSION
 
-		switch (LocalSettings->SolidificationAxis)
+		switch (Settings->SolidificationAxis)
 		{
 		default:
 		case EPCGExMinimalAxis::X:
@@ -169,7 +164,6 @@ if (!SolidificationRad##_AXIS){ PCGE_LOG_C(Warning, GraphAndLog, Context, FText:
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathSolidify)
 		//PointDataFacade->Write(AsyncManagerPtr, true);
 	}
 }

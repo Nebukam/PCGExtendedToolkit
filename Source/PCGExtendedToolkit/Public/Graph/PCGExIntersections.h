@@ -85,29 +85,23 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 		return true;
 	}
 
-#define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) PCGEx:: TAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
+#define PCGEX_LOCAL_DETAIL_DECL(_NAME, _TYPE, _DEFAULT) TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Writer;
 	PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_DECL)
 #undef PCGEX_LOCAL_DETAIL_DECL
 
-	PCGExData::FDataForwardHandler* IntersectionForwardHandler = nullptr;
-	PCGExData::FDataForwardHandler* InsideForwardHandler = nullptr;
+	TSharedPtr<PCGExData::FDataForwardHandler> IntersectionForwardHandler;
+	TSharedPtr<PCGExData::FDataForwardHandler> InsideForwardHandler;
 
-	void Init(PCGExData::FFacade* PointDataFacade, PCGExData::FFacade* BoundsDataFacade)
+	void Init(const TSharedPtr<PCGExData::FFacade>& PointDataFacade, const TSharedPtr<PCGExData::FFacade>& BoundsDataFacade)
 	{
-		PointDataFacade->Source->CreateOutKeys();
+		PointDataFacade->Source->GetOutKeys();
 
 		IntersectionForwardHandler = IntersectionForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
 		InsideForwardHandler = InsideForwarding.TryGetHandler(BoundsDataFacade, PointDataFacade);
 
-#define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetWriter( _NAME##AttributeName, _DEFAULT, false, false); }
+#define PCGEX_LOCAL_DETAIL_WRITER(_NAME, _TYPE, _DEFAULT) if (bWrite##_NAME){ _NAME##Writer = PointDataFacade->GetWritable( _NAME##AttributeName, _DEFAULT, false, false); }
 		PCGEX_FOREACH_FIELD_INTERSECTION(PCGEX_LOCAL_DETAIL_WRITER)
 #undef PCGEX_LOCAL_DETAIL_WRITER
-	}
-
-	void Cleanup()
-	{
-		PCGEX_DELETE(IntersectionForwardHandler)
-		PCGEX_DELETE(InsideForwardHandler)
 	}
 
 	bool WillWriteAny() const
@@ -129,21 +123,21 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoxIntersectionDetails
 	void SetIsInside(const int32 PointIndex, const bool bIsInside, const int32 BoundIndex) const
 	{
 		if (InsideForwardHandler && bIsInside) { InsideForwardHandler->Forward(BoundIndex, PointIndex); }
-		if (IsInsideWriter) { IsInsideWriter->Values[PointIndex] = bIsInside; }
+		if (IsInsideWriter) { IsInsideWriter->GetMutable(PointIndex) = bIsInside; }
 	}
 
 	void SetIsInside(const int32 PointIndex, const bool bIsInside) const
 	{
-		if (IsInsideWriter) { IsInsideWriter->Values[PointIndex] = bIsInside; }
+		if (IsInsideWriter) { IsInsideWriter->GetMutable(PointIndex) = bIsInside; }
 	}
 
 	void SetIntersection(const int32 PointIndex, const FVector& Normal, const int32 BoundIndex) const
 	{
 		if (IntersectionForwardHandler) { IntersectionForwardHandler->Forward(BoundIndex, PointIndex); }
 
-		if (IsIntersectionWriter) { IsIntersectionWriter->Values[PointIndex] = true; }
-		if (NormalWriter) { NormalWriter->Values[PointIndex] = Normal; }
-		if (BoundIndexWriter) { BoundIndexWriter->Values[PointIndex] = BoundIndex; }
+		if (IsIntersectionWriter) { IsIntersectionWriter->GetMutable(PointIndex) = true; }
+		if (NormalWriter) { NormalWriter->GetMutable(PointIndex) = Normal; }
+		if (BoundIndexWriter) { BoundIndexWriter->GetMutable(PointIndex) = BoundIndex; }
 	}
 };
 
@@ -223,9 +217,9 @@ namespace PCGExGraph
 	{
 		TMap<uint32, FCompoundNode*> GridTree;
 
-		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
-		PCGExData::FIdxCompoundList* EdgesCompounds = nullptr;
-		TArray<FCompoundNode*> Nodes;
+		TSharedPtr<PCGExData::FIdxCompoundList> PointsCompounds;
+		TSharedPtr<PCGExData::FIdxCompoundList> EdgesCompounds;
+		TArray<TUniquePtr<FCompoundNode>> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 
 		FPCGExFuseDetails FuseDetails;
@@ -233,7 +227,7 @@ namespace PCGExGraph
 		FBox Bounds;
 
 		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
-		NodeOctree* Octree = nullptr;
+		TUniquePtr<NodeOctree> Octree;
 
 		mutable FRWLock CompoundLock;
 		mutable FRWLock EdgesLock;
@@ -247,19 +241,14 @@ namespace PCGExGraph
 
 			FuseDetails.Init();
 
-			PointsCompounds = new PCGExData::FIdxCompoundList();
-			EdgesCompounds = new PCGExData::FIdxCompoundList();
+			PointsCompounds = MakeShared<PCGExData::FIdxCompoundList>();
+			EdgesCompounds = MakeShared<PCGExData::FIdxCompoundList>();
 
-			if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = new NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
+			if (InFuseDetails.FuseMethod == EPCGExFuseMethod::Octree) { Octree = MakeUnique<NodeOctree>(Bounds.GetCenter(), Bounds.GetExtent().Length() + 10); }
 		}
 
 		~FCompoundGraph()
 		{
-			PCGEX_DELETE_TARRAY(Nodes)
-			PCGEX_DELETE(PointsCompounds)
-			PCGEX_DELETE(EdgesCompounds)
-			PCGEX_DELETE(Octree)
-			Edges.Empty();
 		}
 
 		int32 NumNodes() const { return PointsCompounds->Num(); }
@@ -274,7 +263,7 @@ namespace PCGExGraph
 		                                          const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                          const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
-		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
+		void WriteMetadata(TMap<int32, TUniquePtr<FGraphNodeMetadata>>& OutMetadata);
 	};
 
 #pragma endregion
@@ -358,17 +347,17 @@ namespace PCGExGraph
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FPointEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
-		PCGExData::FPointIO* PointIO = nullptr;
-		FGraph* Graph = nullptr;
-		FCompoundGraph* CompoundGraph = nullptr;
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
+		TSharedPtr<FGraph> Graph;
+		TSharedPtr<FCompoundGraph> CompoundGraph;
 
 		const FPCGExPointEdgeIntersectionDetails* Details;
 		TArray<FPointEdgeProxy> Edges;
 
 		FPointEdgeIntersections(
-			FGraph* InGraph,
-			FCompoundGraph* InCompoundGraph,
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<FGraph>& InGraph,
+			const TSharedPtr<FCompoundGraph>& InCompoundGraph,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExPointEdgeIntersectionDetails* InDetails);
 
 		FORCEINLINE void Add(const int32 EdgeIndex, const FPESplit& Split)
@@ -485,7 +474,7 @@ namespace PCGExGraph
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeProxy
 	{
 		int32 EdgeIndex = -1;
-		TArray<FEECrossing*> Intersections;
+		TArray<int32> Intersections;
 
 		double LengthSquared = -1;
 		double ToleranceSquared = -1;
@@ -553,6 +542,7 @@ namespace PCGExGraph
 			if (FVector::DistSquared(A, B) >= ToleranceSquared) { return false; }
 
 			FEESplit& NewSplit = OutSplits.Emplace_GetRef();
+			NewSplit.A = EdgeIndex;
 			NewSplit.B = OtherEdge.EdgeIndex;
 			NewSplit.Center = FMath::Lerp(A, B, 0.5);
 			NewSplit.TimeA = FVector::DistSquared(Start, A) / LengthSquared;
@@ -595,23 +585,23 @@ namespace PCGExGraph
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdgeEdgeIntersections
 	{
 		mutable FRWLock InsertionLock;
-		PCGExData::FPointIO* PointIO = nullptr;
-		FGraph* Graph = nullptr;
-		FCompoundGraph* CompoundGraph = nullptr;
+		const TSharedPtr<PCGExData::FPointIO> PointIO;
+		TSharedPtr<FGraph> Graph;
+		TSharedPtr<FCompoundGraph> CompoundGraph;
 
 		const FPCGExEdgeEdgeIntersectionDetails* Details;
 
-		TArray<FEECrossing*> Crossings;
+		TArray<FEECrossing> Crossings;
 		TArray<FEdgeEdgeProxy> Edges;
 		TSet<uint64> CheckedPairs;
 
 		using TEdgeOctree = TOctree2<FEdgeEdgeProxy*, FEdgeEdgeProxySemantics>;
-		mutable TEdgeOctree Octree;
+		TUniquePtr<TEdgeOctree> Octree;
 
 		FEdgeEdgeIntersections(
-			FGraph* InGraph,
-			FCompoundGraph* InCompoundGraph,
-			PCGExData::FPointIO* InPointIO,
+			const TSharedPtr<FGraph>& InGraph,
+			const TSharedPtr<FCompoundGraph>& InCompoundGraph,
+			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 			const FPCGExEdgeEdgeIntersectionDetails* InDetails);
 
 		FORCEINLINE bool AlreadyChecked(const uint64 Key) const
@@ -620,47 +610,49 @@ namespace PCGExGraph
 			return CheckedPairs.Contains(Key);
 		}
 
-		FORCEINLINE void Add(const FEESplit& Split)
+		FORCEINLINE void AddUnsafe(const FEESplit& Split)
 		{
 			bool bAlreadySet = false;
 			CheckedPairs.Add(PCGEx::H64U(Split.A, Split.B), &bAlreadySet);
 
 			if (bAlreadySet) { return; }
 
-			FEECrossing* OutSplit = new FEECrossing(Split);
-
-			OutSplit->NodeIndex = Crossings.Add(OutSplit) + Graph->Nodes.Num();
+			FEECrossing& OutSplit = Crossings.Emplace_GetRef(Split);
+			OutSplit.NodeIndex = Graph->Nodes.Num() + Crossings.Num() - 1;
 
 			if (Split.A < Split.B)
 			{
-				OutSplit->EdgeA = Split.A;
-				OutSplit->EdgeB = Split.B;
+				OutSplit.EdgeA = Split.A;
+				OutSplit.EdgeB = Split.B;
 			}
 			else
 			{
-				OutSplit->EdgeA = Split.B;
-				OutSplit->EdgeB = Split.A;
+				OutSplit.EdgeA = Split.B;
+				OutSplit.EdgeB = Split.A;
 			}
 
-			Edges[Split.A].Intersections.AddUnique(OutSplit);
-			Edges[Split.B].Intersections.AddUnique(OutSplit);
+			Edges[Split.A].Intersections.AddUnique(Crossings.Num() - 1);
+			Edges[Split.B].Intersections.AddUnique(Crossings.Num() - 1);
+		}
+
+		FORCEINLINE void BatchAdd(TArray<FEESplit>& Splits, const int32 A)
+		{
+			FWriteScopeLock WriteLock(InsertionLock);
+			for (const FEESplit& Split : Splits) { AddUnsafe(Split); }
 		}
 
 		void InsertNodes() const;
 		void InsertEdges();
 
-		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
+		void BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender) const;
 
 		~FEdgeEdgeIntersections()
 		{
-			CheckedPairs.Empty();
-			Edges.Empty();
-			PCGEX_DELETE_TARRAY(Crossings)
 		}
 	};
 
 	static void FindOverlappingEdges(
-		FEdgeEdgeIntersections* InIntersections,
+		const TSharedRef<FEdgeEdgeIntersections>& InIntersections,
 		const int32 EdgeIndex)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FindOverlappingEdges);
@@ -694,7 +686,7 @@ namespace PCGExGraph
 				}
 			};
 
-			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
+			InIntersections->Octree->FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
 		}
 		else
 		{
@@ -709,17 +701,10 @@ namespace PCGExGraph
 				}
 			};
 
-			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
+			InIntersections->Octree->FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
 		}
 
-		{
-			FWriteScopeLock WriteLock(InIntersections->InsertionLock);
-			for (FEESplit& Split : OutSplits)
-			{
-				Split.A = EdgeIndex;
-				InIntersections->Add(Split);
-			}
-		}
+		InIntersections->BatchAdd(OutSplits, EdgeIndex);
 	}
 
 #pragma endregion

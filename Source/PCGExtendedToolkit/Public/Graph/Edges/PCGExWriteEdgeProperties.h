@@ -5,6 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
+
+
 #include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
@@ -14,17 +17,6 @@
 MACRO(EdgeLength, double, 0) \
 MACRO(EdgeDirection, FVector, FVector::OneVector) \
 MACRO(Heuristics, double, 0)
-
-namespace PCGExDataBlending
-{
-	class FMetadataBlender;
-	struct FPropertiesBlender;
-}
-
-namespace PCGExWriteEdgeProperties
-{
-	class FProcessorBatch;
-}
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Heuristics Write Mode"))
 enum class EPCGExHeuristicsWriteMode : uint8
@@ -195,8 +187,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesContext final : publi
 {
 	friend class FPCGExWriteEdgePropertiesElement;
 
-	virtual ~FPCGExWriteEdgePropertiesContext() override;
-
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
@@ -215,36 +205,34 @@ protected:
 
 namespace PCGExWriteEdgeProperties
 {
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	class FProcessor final : public PCGExClusterMT::TClusterProcessor<FPCGExWriteEdgePropertiesContext, UPCGExWriteEdgePropertiesSettings>
 	{
-		const UPCGExWriteEdgePropertiesSettings* LocalSettings = nullptr;
-
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 		double StartWeight = 0;
 		double EndWeight = 1;
 
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
 
-		PCGExData::TCache<double>* SolidificationLerpGetter = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> SolidificationLerpGetter;
 
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
 
 		bool bSolidify = false;
 
-#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGExData::TCache<double>* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
+#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) TSharedPtr<PCGExData::TBuffer<double>> SolidificationRad##_AXIS; bool bOwnSolidificationRad##_AXIS = true; double Rad##_AXIS##Constant = 1;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			FClusterProcessor(InVtx, InEdges)
+		FProcessor(const TSharedRef<PCGExData::FFacade>& InVtxDataFacade, const TSharedRef<PCGExData::FFacade>& InEdgeDataFacade)
+			: TClusterProcessor(InVtxDataFacade, InEdgeDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForEdges(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
@@ -258,7 +246,7 @@ namespace PCGExWriteEdgeProperties
 		FPCGExEdgeDirectionSettings DirectionSettings;
 
 	public:
-		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+		FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 			TBatch<FProcessor>(InContext, InVtx, InEdges)
 		{
 		}

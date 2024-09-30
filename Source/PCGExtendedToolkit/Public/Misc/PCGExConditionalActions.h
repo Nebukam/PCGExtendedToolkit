@@ -7,6 +7,7 @@
 
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExConditionalActions.generated.h"
 
 class UPCGExConditionalActionOperation;
@@ -55,10 +56,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsContext final : public
 {
 	friend class FPCGExConditionalActionsElement;
 
-	virtual ~FPCGExConditionalActionsContext() override;
-
-	PCGEx::FAttributesInfos* DefaultAttributes = nullptr;
-	TArray<UPCGExConditionalActionFactoryBase*> ConditionalActionsFactories;
+	TSharedPtr<PCGEx::FAttributesInfos> DefaultAttributes;
+	TArray<TObjectPtr<const UPCGExConditionalActionFactoryBase>> ConditionalActionsFactories;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsElement final : public FPCGExPointsProcessorElement
@@ -76,19 +75,19 @@ protected:
 
 namespace PCGExConditionalActions
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExConditionalActionsContext, UPCGExConditionalActionsSettings>
 	{
 		TArray<UPCGExConditionalActionOperation*> Operations;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void PrepareSingleLoopScopeForPoints(const uint32 StartIndex, const int32 Count) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;

@@ -36,8 +36,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMakeClustersUniqueContext final : public
 {
 	friend class UPCGExMakeClustersUniqueSettings;
 	friend class FPCGExMakeClustersUniqueElement;
-
-	virtual ~FPCGExMakeClustersUniqueContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMakeClustersUniqueElement final : public FPCGExEdgesProcessorElement

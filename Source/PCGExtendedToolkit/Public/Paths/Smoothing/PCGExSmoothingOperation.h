@@ -19,7 +19,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSmoothingOperation : public UPCGExOperati
 
 public:
 	virtual void SmoothSingle(
-		PCGExData::FPointIO* Path,
+		const TSharedRef<PCGExData::FPointIO>& Path,
 		PCGExData::FPointRef& Target,
 		const double Smoothing,
 		const double Influence,

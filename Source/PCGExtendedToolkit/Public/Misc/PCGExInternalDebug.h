@@ -38,9 +38,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInternalDebugContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExInternalDebugElement;
-
-	virtual ~FPCGExInternalDebugContext() override;
-
 	FVector GHTolerance = FVector::One();
 };
 

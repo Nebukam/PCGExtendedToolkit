@@ -8,6 +8,8 @@
 #include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
+
+
 #include "Geometry/PCGExGeo.h"
 #include "PCGExLloydRelax2D.generated.h"
 
@@ -52,8 +54,6 @@ public:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelax2DElement;
-
-	virtual ~FPCGExLloydRelax2DContext() override;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DElement final : public FPCGExPointsProcessorElement
@@ -71,7 +71,7 @@ protected:
 
 namespace PCGExLloydRelax2D
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExLloydRelax2DContext, UPCGExLloydRelax2DSettings>
 	{
 		friend class FLloydRelaxTask;
 
@@ -81,14 +81,12 @@ namespace PCGExLloydRelax2D
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints):
-			FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):
+			TPointsProcessor(InPointDataFacade)
 		{
 		}
 
-		virtual ~FProcessor() override;
-
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 Count) override;
 		virtual void CompleteWork() override;
 	};
@@ -96,7 +94,7 @@ namespace PCGExLloydRelax2D
 	class /*PCGEXTENDEDTOOLKIT_API*/ FLloydRelaxTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FLloydRelaxTask(PCGExData::FPointIO* InPointIO,
+		FLloydRelaxTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
 		                FProcessor* InProcessor,
 		                const FPCGExInfluenceDetails* InInfluenceSettings,
 		                const int32 InNumIterations) :
@@ -111,6 +109,6 @@ namespace PCGExLloydRelax2D
 		const FPCGExInfluenceDetails* InfluenceSettings = nullptr;
 		int32 NumIterations = 0;
 
-		virtual bool ExecuteTask() override;
+		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 }

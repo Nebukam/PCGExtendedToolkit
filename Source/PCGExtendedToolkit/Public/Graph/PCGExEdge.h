@@ -26,24 +26,6 @@ enum class EPCGExEdgeDirectionChoice : uint8
 	GreatestToSmallest = 1 UMETA(DisplayName = "Greatest to Smallest", ToolTip="Direction points from the greatest to smallest value")
 };
 
-USTRUCT(BlueprintType)
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugEdgeSettings
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
-	FColor ValidEdgeColor = FColor::Cyan;
-
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(ClampMin=0.1, ClampMax=10))
-	double ValidEdgeThickness = 0.5;
-
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
-	FColor InvalidEdgeColor = FColor::Red;
-
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(ClampMin=0.1, ClampMax=10))
-	double InvalidEdgeThickness = 0.5;
-};
-
 namespace PCGExGraph
 {
 	const FName SourcePickersLabel = TEXT("Pickers");
@@ -80,23 +62,28 @@ namespace PCGExGraph
 		return HashCombineFast(A == 0 ? B : A, Index);
 	}
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FEdge
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnsignedEdge
 	{
+		int8 bValid = 1; // int for atomic operations
 		uint32 Start = 0;
 		uint32 End = 0;
-		int8 bValid = 1; // int for atomic operations
 
-		FEdge()
+		FUnsignedEdge():
+			bValid(0)
 		{
 		}
 
-		FEdge(const int32 InStart, const int32 InEnd):
-			Start(InStart), End(InEnd)
+		FUnsignedEdge(const int32 InStart, const int32 InEnd):
+			bValid(InStart != InEnd && InStart != -1 && InEnd != -1),
+			Start(InStart),
+			End(InEnd)
 		{
-			bValid = InStart != InEnd && InStart != -1 && InEnd != -1;
 		}
 
-		bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
+		explicit FUnsignedEdge(const uint64 Hash):
+			FUnsignedEdge(PCGEx::H64A(Hash), PCGEx::H64B(Hash))
+		{
+		}
 
 		FORCEINLINE uint32 Other(const int32 InIndex) const
 		{
@@ -104,42 +91,16 @@ namespace PCGExGraph
 			return InIndex == Start ? End : Start;
 		}
 
-		bool operator==(const FEdge& Other) const
-		{
-			return Start == Other.Start && End == Other.End;
-		}
-
-		explicit operator uint64() const
-		{
-			return static_cast<uint64>(Start) | (static_cast<uint64>(End) << 32);
-		}
-
-		explicit FEdge(const uint64 InValue)
-		{
-			Start = static_cast<uint32>(InValue & 0xFFFFFFFF);
-			End = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
-		}
-	};
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnsignedEdge : public FEdge
-	{
-		FUnsignedEdge()
-		{
-		}
-
-		FUnsignedEdge(const int32 InStart, const int32 InEnd):
-			FEdge(InStart, InEnd)
-		{
-		}
+		bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
 
 		bool operator==(const FUnsignedEdge& Other) const
 		{
 			return H64U() == Other.H64U();
 		}
 
-		explicit FUnsignedEdge(const uint64 InValue)
+		explicit operator uint64() const
 		{
-			PCGEx::H64(InValue, Start, End);
+			return static_cast<uint64>(Start) | (static_cast<uint64>(End) << 32);
 		}
 
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }
@@ -169,24 +130,20 @@ namespace PCGExGraph
 	};
 
 	static bool BuildIndexedEdges(
-		const PCGExData::FPointIO* EdgeIO,
+		const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
 		const TMap<uint32, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
 		const bool bStopOnError = false)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
 
-		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(Tag_EdgeEndpoints);
-		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
-		{
-			PCGEX_DELETE(EndpointsReader)
-			return false;
-		}
+		const TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(Tag_EdgeEndpoints);
+		if (!EndpointsReader->Bind(EdgeIO)) { return false; }
 
 		bool bValid = true;
 		const int32 NumEdges = EdgeIO->GetNum();
 
-		PCGEX_SET_NUM_UNINITIALIZED(OutEdges, NumEdges)
+		PCGEx::InitArray(OutEdges, NumEdges);
 
 		if (!bStopOnError)
 		{
@@ -207,7 +164,7 @@ namespace PCGExGraph
 				EdgeIndex++;
 			}
 
-			PCGEX_SET_NUM_UNINITIALIZED(OutEdges, EdgeIndex)
+			PCGEx::InitArray(OutEdges, EdgeIndex);
 		}
 		else
 		{
@@ -230,13 +187,11 @@ namespace PCGExGraph
 			}
 		}
 
-		PCGEX_DELETE(EndpointsReader)
-
 		return bValid;
 	}
 
 	static bool BuildIndexedEdges(
-		const PCGExData::FPointIO* EdgeIO,
+		const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
 		const TMap<uint32, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
 		TSet<int32>& OutNodePoints,
@@ -245,18 +200,14 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-WithPoints);
 		//EdgeIO.CreateInKeys();
 
-		PCGEx::TAttributeReader<int64>* EndpointsReader = new PCGEx::TAttributeReader<int64>(Tag_EdgeEndpoints);
+		TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(Tag_EdgeEndpoints);
 
-		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO*>(EdgeIO)))
-		{
-			PCGEX_DELETE(EndpointsReader)
-			return false;
-		}
+		if (!EndpointsReader->Bind(EdgeIO)) { return false; }
 
 		bool bValid = true;
 		const int32 NumEdges = EdgeIO->GetNum();
 
-		PCGEX_SET_NUM_UNINITIALIZED(OutEdges, NumEdges)
+		PCGEx::InitArray(OutEdges, NumEdges);
 
 		if (!bStopOnError)
 		{
@@ -306,46 +257,44 @@ namespace PCGExGraph
 			}
 		}
 
-		PCGEX_DELETE(EndpointsReader)
-
 		return bValid;
 	}
 
-	static void SetClusterVtx(const PCGExData::FPointIO* IO, FString& OutId)
+	static void SetClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, FString& OutId)
 	{
 		IO->Tags->Add(TagStr_ClusterPair, IO->GetOutIn()->UID, OutId);
 		IO->Tags->Add(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
-	static void MarkClusterVtx(const PCGExData::FPointIO* IO, const FString& Id)
+	static void MarkClusterVtx(const TSharedPtr<PCGExData::FPointIO>& IO, const FString& Id)
 	{
 		IO->Tags->Add(TagStr_ClusterPair, Id);
 		IO->Tags->Add(TagStr_PCGExVtx);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 	}
 
-	static void MarkClusterEdges(const PCGExData::FPointIO* IO, const FString& Id)
+	static void MarkClusterEdges(const TSharedPtr<PCGExData::FPointIO>& IO, const FString& Id)
 	{
 		IO->Tags->Add(TagStr_ClusterPair, Id);
 		IO->Tags->Add(TagStr_PCGExEdges);
 		IO->Tags->Remove(TagStr_PCGExVtx);
 	}
 
-	static void MarkClusterEdges(const TArrayView<PCGExData::FPointIO*> Edges, const FString& Id)
+	static void MarkClusterEdges(const TArrayView<TSharedRef<PCGExData::FPointIO>> Edges, const FString& Id)
 	{
-		for (const PCGExData::FPointIO* IO : Edges) { MarkClusterEdges(IO, Id); }
+		for (const TSharedRef<PCGExData::FPointIO>& IO : Edges) { MarkClusterEdges(IO, Id); }
 	}
 
-	static void CleanupClusterTags(const PCGExData::FPointIO* IO, const bool bKeepPairTag = false)
+	static void CleanupClusterTags(const TSharedPtr<PCGExData::FPointIO>& IO, const bool bKeepPairTag = false)
 	{
 		IO->Tags->Remove(TagStr_ClusterPair);
 		IO->Tags->Remove(TagStr_PCGExEdges);
 		if (!bKeepPairTag) { IO->Tags->Remove(TagStr_PCGExVtx); }
 	}
 
-	static void CleanupClusterTags(const TArrayView<PCGExData::FPointIO*> IOs, const bool bKeepPairTag = false)
+	static void CleanupClusterTags(const TArrayView<TSharedPtr<PCGExData::FPointIO>> IOs, const bool bKeepPairTag = false)
 	{
-		for (const PCGExData::FPointIO* IO : IOs) { CleanupClusterTags(IO, bKeepPairTag); }
+		for (const TSharedPtr<PCGExData::FPointIO>& IO : IOs) { CleanupClusterTags(IO, bKeepPairTag); }
 	}
 }

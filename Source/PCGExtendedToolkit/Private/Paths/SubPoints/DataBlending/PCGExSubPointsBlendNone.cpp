@@ -6,6 +6,7 @@
 
 #include "Data/Blending/PCGExMetadataBlender.h"
 
+
 void UPCGExSubPointsBlendNone::BlendSubPoints(
 	const PCGExData::FPointRef& From,
 	const PCGExData::FPointRef& To,
@@ -15,12 +16,12 @@ void UPCGExSubPointsBlendNone::BlendSubPoints(
 {
 }
 
-PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendNone::CreateBlender(
-	PCGExData::FFacade* InPrimaryFacade,
-	PCGExData::FFacade* InSecondaryFacade,
+TSharedPtr<PCGExDataBlending::FMetadataBlender> UPCGExSubPointsBlendNone::CreateBlender(
+	const TSharedRef<PCGExData::FFacade>& InPrimaryFacade,
+	const TSharedRef<PCGExData::FFacade>& InSecondaryFacade,
 	const PCGExData::ESource SecondarySource, const TSet<FName>* IgnoreAttributeSet)
 {
-	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingDetails);
+	TSharedPtr<PCGExDataBlending::FMetadataBlender> NewBlender = MakeShared<PCGExDataBlending::FMetadataBlender>(&BlendingDetails);
 	NewBlender->PrepareForData(InPrimaryFacade, InSecondaryFacade, SecondarySource);
 	return NewBlender;
 }

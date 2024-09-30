@@ -11,6 +11,7 @@
 #include "Data/PCGExPointFilter.h"
 #include "PCGExPointsProcessor.h"
 
+
 #include "PCGExNumericCompareFilter.generated.h"
 
 
@@ -60,7 +61,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNumericCompareFilterFactory : public UPCG
 public:
 	FPCGExNumericCompareFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -68,27 +69,26 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TNumericComparisonFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TNumericComparisonFilter(const UPCGExNumericCompareFilterFactory* InDefinition)
+		explicit TNumericComparisonFilter(const TObjectPtr<const UPCGExNumericCompareFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition)
 		{
 		}
 
-		const UPCGExNumericCompareFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExNumericCompareFilterFactory> TypedFilterFactory;
 
-		PCGExData::TCache<double>* OperandA = nullptr;
-		PCGExData::TCache<double>* OperandB = nullptr;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandA;
+		TSharedPtr<PCGExData::TBuffer<double>> OperandB;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
-			const double A = OperandA->Values[PointIndex];
-			const double B = OperandB ? OperandB->Values[PointIndex] : TypedFilterFactory->Config.OperandBConstant;
+			const double A = OperandA->Read(PointIndex);
+			const double B = OperandB ? OperandB->Read(PointIndex) : TypedFilterFactory->Config.OperandBConstant;
 			return PCGExCompare::Compare(TypedFilterFactory->Config.Comparison, A, B, TypedFilterFactory->Config.Tolerance);
 		}
 
 		virtual ~TNumericComparisonFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }

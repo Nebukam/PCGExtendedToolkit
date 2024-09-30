@@ -12,6 +12,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExRandom.h"
 
+
 #include "PCGExRandomFilter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -26,7 +27,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRandomFilterConfig
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 RandomSeed = 0;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertResult = false;
@@ -44,7 +45,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExRandomFilterFactory : public UPCGExFilter
 public:
 	FPCGExRandomFilterConfig Config;
 
-	virtual PCGExPointFilter::TFilter* CreateFilter() const override;
+	virtual TSharedPtr<PCGExPointFilter::TFilter> CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
@@ -52,16 +53,16 @@ namespace PCGExPointsFilter
 	class /*PCGEXTENDEDTOOLKIT_API*/ TRandomFilter final : public PCGExPointFilter::TFilter
 	{
 	public:
-		explicit TRandomFilter(const UPCGExRandomFilterFactory* InDefinition)
+		explicit TRandomFilter(const TObjectPtr<const UPCGExRandomFilterFactory>& InDefinition)
 			: TFilter(InDefinition), TypedFilterFactory(InDefinition), RandomSeed(InDefinition->Config.RandomSeed)
 		{
 		}
 
-		const UPCGExRandomFilterFactory* TypedFilterFactory;
+		const TObjectPtr<const UPCGExRandomFilterFactory> TypedFilterFactory;
 
 		int32 RandomSeed;
 
-		virtual bool Init(const FPCGContext* InContext, PCGExData::FFacade* InPointDataFacade) override;
+		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override
 		{
@@ -71,7 +72,6 @@ namespace PCGExPointsFilter
 
 		virtual ~TRandomFilter() override
 		{
-			TypedFilterFactory = nullptr;
 		}
 	};
 }
@@ -97,5 +97,4 @@ public:
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-
 };

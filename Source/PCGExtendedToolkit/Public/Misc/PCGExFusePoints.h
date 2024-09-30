@@ -9,21 +9,14 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
 #include "Data/PCGExDataFilter.h"
+#include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
+
+
 #include "Graph/PCGExGraph.h"
+#include "Graph/PCGExIntersections.h"
 
 #include "PCGExFusePoints.generated.h"
-
-
-namespace PCGExDataBlending
-{
-	class FCompoundBlender;
-}
-
-namespace PCGExGraph
-{
-	struct FCompoundGraph;
-}
 
 namespace PCGExFuse
 {
@@ -42,15 +35,9 @@ namespace PCGExFuse
 		FFusedPoint(const int32 InIndex, const FVector& InPosition)
 			: Index(InIndex), Position(InPosition)
 		{
-			Fused.Empty();
-			Distances.Empty();
 		}
 
-		~FFusedPoint()
-		{
-			Fused.Empty();
-			Distances.Empty();
-		}
+		~FFusedPoint() = default;
 
 		FORCEINLINE void Add(const int32 InIndex, const double Distance)
 		{
@@ -107,7 +94,6 @@ private:
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFusePointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
-	virtual ~FPCGExFusePointsContext() override;
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
@@ -125,25 +111,22 @@ protected:
 
 namespace PCGExFusePoints
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	class FProcessor final : public PCGExPointsMT::TPointsProcessor<FPCGExFusePointsContext, UPCGExFusePointsSettings>
 	{
-		FPCGExFusePointsContext* LocalTypedContext = nullptr;
-		const UPCGExFusePointsSettings* LocalSettings = nullptr;
-
 		PCGExGraph::FGraphMetadataDetails GraphMetadataDetails;
-		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
+		TUniquePtr<PCGExGraph::FCompoundGraph> CompoundGraph;
+		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundPointsBlender;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints)
-			: FPointsProcessor(InPoints)
+		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
+			: TPointsProcessor(InPointDataFacade)
 		{
 			bInlineProcessPoints = true;
 		}
 
 		virtual ~FProcessor() override;
 
-		virtual bool Process(PCGExMT::FTaskManager* AsyncManager) override;
+		virtual bool Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount) override;
 		virtual void CompleteWork() override;

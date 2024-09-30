@@ -5,6 +5,7 @@
 
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
@@ -17,16 +18,15 @@ void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Oth
 	}
 }
 
-void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster, PCGExData::FFacade* InVtxDataFacade, PCGExData::FFacade* InEdgeDataFacade)
+void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, TSharedRef<PCGExCluster::FCluster> InCluster, TSharedRef<PCGExData::FFacade> InVtxDataFacade, TSharedRef<PCGExData::FFacade> InEdgeDataFacade)
 {
-	PCGEX_DELETE(Blender)
-	Blender = new PCGExDataBlending::FPropertiesBlender(BlendingDetails);
+	PropertiesBlender = MakeUnique<PCGExDataBlending::FPropertiesBlender>(BlendingDetails);
 	return Super::PrepareForCluster(InContext, InCluster, InVtxDataFacade, InEdgeDataFacade);
 }
 
 void UPCGExNeighborSampleProperties::Cleanup()
 {
-	PCGEX_DELETE(Blender)
+	PropertiesBlender.Reset();
 	Super::Cleanup();
 }
 

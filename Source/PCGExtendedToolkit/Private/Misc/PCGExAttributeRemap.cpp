@@ -4,16 +4,12 @@
 
 #include "Misc/PCGExAttributeRemap.h"
 
+
 #define LOCTEXT_NAMESPACE "PCGExAttributeRemap"
 #define PCGEX_NAMESPACE AttributeRemap
 
 
 PCGExData::EInit UPCGExAttributeRemapSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-
-FPCGExAttributeRemapContext::~FPCGExAttributeRemapContext()
-{
-	PCGEX_TERMINATE_ASYNC
-}
 
 PCGEX_INITIALIZE_ELEMENT(AttributeRemap)
 
@@ -46,24 +42,24 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemapElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(AttributeRemap)
+	PCGEX_EXECUTION_CHECK
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAttributeRemap::FProcessor>>(
-			[&](PCGExData::FPointIO* Entry) { return true; },
-			[&](PCGExPointsMT::TBatch<PCGExAttributeRemap::FProcessor>* NewBatch)
+			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
+			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAttributeRemap::FProcessor>>& NewBatch)
 			{
-			},
-			PCGExMT::State_Done))
+			}))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to remap."));
 			return true;
 		}
 	}
 
-	if (!Context->ProcessPointsBatch()) { return false; }
+	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
 	Context->MainPoints->OutputToContext();
 
@@ -76,22 +72,17 @@ namespace PCGExAttributeRemap
 	{
 	}
 
-	bool FProcessor::Process(PCGExMT::FTaskManager* AsyncManager)
+	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
 	{
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(AttributeRemap)
+		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		LocalSettings = Settings;
-		LocalTypedContext = TypedContext;
-
-		PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
+		TSharedPtr<PCGEx::FAttributesInfos> Infos = PCGEx::FAttributesInfos::Get(PointDataFacade->GetIn()->Metadata);
 		const PCGEx::FAttributeIdentity* Identity = Infos->Find(Settings->SourceAttributeName);
 
 		if (!Identity)
 		{
-			PCGEX_DELETE(Infos)
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Some inputs are missing the specified source attribute."));
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Some inputs are missing the specified source attribute."));
 			return false;
 		}
 
@@ -128,14 +119,13 @@ namespace PCGExAttributeRemap
 
 		if (Dimensions == -1)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Source attribute type cannot be remapped."));
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Source attribute type cannot be remapped."));
 			return false;
 		}
 
 		if (!Identity)
 		{
-			PCGEX_DELETE(Infos)
-			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("Some inputs are missing the specified source attribute."));
+			PCGE_LOG_C(Error, GraphAndLog, ExecutionContext, FTEXT("Some inputs are missing the specified source attribute."));
 			return false;
 		}
 
@@ -144,22 +134,20 @@ namespace PCGExAttributeRemap
 			static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
 			{
 				using RawT = decltype(DummyValue);
-				CacheWriter = PointDataFacade->GetWriter<RawT>(Settings->TargetAttributeName, true);
-				CacheReader = PointDataFacade->GetScopedReader<RawT>(Identity->Name);
+				CacheWriter = PointDataFacade->GetWritable<RawT>(Settings->TargetAttributeName, true);
+				CacheReader = PointDataFacade->GetScopedReadable<RawT>(Identity->Name);
 			});
-
-		PCGEX_DELETE(Infos)
 
 		Rules.Reserve(Dimensions);
 		for (int i = 0; i < Dimensions; ++i)
 		{
-			FPCGExComponentRemapRule Rule = Rules.Add_GetRef(FPCGExComponentRemapRule(TypedContext->RemapSettings[TypedContext->RemapIndices[i]]));
-			Rule.RemapDetails.InMin = TNumericLimits<double>::Max();
-			Rule.RemapDetails.InMax = TNumericLimits<double>::Min();
+			FPCGExComponentRemapRule Rule = Rules.Add_GetRef(FPCGExComponentRemapRule(Context->RemapSettings[Context->RemapIndices[i]]));
+			Rule.RemapDetails.InMin = MAX_dbl;
+			Rule.RemapDetails.InMax = MIN_dbl;
 		}
 
-		PCGEX_ASYNC_GROUP(AsyncManager, FetchTask)
-		FetchTask->SetOnCompleteCallback(
+		PCGEX_ASYNC_GROUP_CHKD(AsyncManager, FetchTask)
+		FetchTask->OnCompleteCallback =
 			[&]()
 			{
 				// Fix min/max range
@@ -175,19 +163,19 @@ namespace PCGExAttributeRemap
 				}
 
 				OnPreparationComplete();
-			});
+			};
 
-		FetchTask->SetOnIterationRangePrepareCallback(
+		FetchTask->OnIterationRangePrepareCallback =
 			[&](const TArray<uint64>& Loops)
 			{
 				for (FPCGExComponentRemapRule& Rule : Rules)
 				{
-					Rule.MinCache.Init(TNumericLimits<double>::Max(), Loops.Num());
-					Rule.MaxCache.Init(TNumericLimits<double>::Min(), Loops.Num());
+					Rule.MinCache.Init(MAX_dbl, Loops.Num());
+					Rule.MaxCache.Init(MIN_dbl, Loops.Num());
 				}
-			});
+			};
 
-		FetchTask->SetOnIterationRangeStartCallback(
+		FetchTask->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAttributeRemap::Fetch);
@@ -197,11 +185,11 @@ namespace PCGExAttributeRemap
 					static_cast<uint16>(UnderlyingType), [&](auto DummyValue) -> void
 					{
 						using RawT = decltype(DummyValue);
-						PCGEx::TAttributeWriter<RawT>* Writer = static_cast<PCGEx::TAttributeWriter<RawT>*>(CacheWriter);
-						PCGEx::TAttributeReader<RawT>* Reader = static_cast<PCGEx::TAttributeReader<RawT>*>(CacheReader);
+						TSharedPtr<PCGExData::TBuffer<RawT>> Writer = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(CacheWriter);
+						TSharedPtr<PCGExData::TBuffer<RawT>> Reader = StaticCastSharedPtr<PCGExData::TBuffer<RawT>>(CacheReader);
 
 						// TODO : Swap for a scoped accessor since we don't need to keep readable values in memory
-						for (int i = StartIndex; i < StartIndex + Count; ++i) { Writer->Values[i] = Reader->Values[i]; } // Copy range to writer
+						for (int i = StartIndex; i < StartIndex + Count; ++i) { Writer->GetMutable(i) = Reader->Read(i); } // Copy range to writer
 
 						// Find min/max & clamp values
 
@@ -209,14 +197,14 @@ namespace PCGExAttributeRemap
 						{
 							FPCGExComponentRemapRule& Rule = Rules[d];
 
-							double Min = TNumericLimits<double>::Max();
-							double Max = TNumericLimits<double>::Min();
+							double Min = MAX_dbl;
+							double Max = MIN_dbl;
 
 							if (Rule.RemapDetails.bUseAbsoluteRange)
 							{
 								for (int i = StartIndex; i < StartIndex + Count; ++i)
 								{
-									RawT& V = Writer->Values[i];
+									RawT& V = Writer->GetMutable(i);
 									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));
 									PCGExMath::SetComponent(V, d, VAL);
 
@@ -228,7 +216,7 @@ namespace PCGExAttributeRemap
 							{
 								for (int i = StartIndex; i < StartIndex + Count; ++i)
 								{
-									RawT& V = Writer->Values[i];
+									RawT& V = Writer->GetMutable(i);
 									const double VAL = Rule.InputClampDetails.GetClampedValue(PCGExMath::GetComponent(V, d));
 									PCGExMath::SetComponent(V, d, VAL);
 
@@ -241,17 +229,17 @@ namespace PCGExAttributeRemap
 							Rule.MaxCache[LoopIdx] = Max;
 						}
 					});
-			});
+			};
 
-		FetchTask->PrepareRangesOnly(PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		FetchTask->PrepareRangesOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}
 
 	void FProcessor::OnPreparationComplete()
 	{
-		PCGEX_ASYNC_GROUP(AsyncManagerPtr, RemapTask)
-		RemapTask->SetOnIterationRangeStartCallback(
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, RemapTask)
+		RemapTask->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 			{
 				PCGMetadataAttribute::CallbackWithRightType(
@@ -259,14 +247,14 @@ namespace PCGExAttributeRemap
 					{
 						RemapRange(StartIndex, Count, DummyValue);
 					});
-			});
+			};
 
-		RemapTask->PrepareRangesOnly(PointIO->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		RemapTask->PrepareRangesOnly(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		PointDataFacade->Write(AsyncManagerPtr, true);
+		PointDataFacade->Write(AsyncManager);
 	}
 }
 
