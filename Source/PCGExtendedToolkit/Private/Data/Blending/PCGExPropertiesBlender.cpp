@@ -23,6 +23,7 @@ if(ResetBlend[static_cast<uint8>(_NAME##Blending)]){ bReset##_NAME=true; bRequir
 #undef PCGEX_BLEND_FUNCASSIGN
 
 #define PCGEX_BLEND_ASSIGNFUNC(_TYPE, _NAME, ...) switch (_NAME##Blending) {\
+default:\
 case EPCGExDataBlendingType::None:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return O; }; break;\
 case EPCGExDataBlendingType::Average:			_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Add(A, B); }; break;\
 case EPCGExDataBlendingType::Min:				_NAME##Func = [](const _TYPE& O, const _TYPE& A, const _TYPE& B, const double W) -> _TYPE{ return PCGExMath::Min(A, B); }; break;\
