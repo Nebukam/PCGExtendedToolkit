@@ -24,7 +24,7 @@ bool FPCGExCherryPickPointsContext::TryGetUniqueIndices(const TSharedRef<PCGExDa
 
 	TArray<int32> SourceIndices;
 	TSet<int32> UniqueIndices;
-	TUniquePtr<PCGEx::TAttributeGetter<int32>> Getter = MakeUnique<PCGEx::TAttributeGetter<int32>>();
+	TUniquePtr<PCGEx::TAttributeBroadcaster<int32>> Getter = MakeUnique<PCGEx::TAttributeBroadcaster<int32>>();
 	if (!Getter->Prepare(Settings->ReadIndexFromAttribute, InSource))
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Index attribute is invalid."));

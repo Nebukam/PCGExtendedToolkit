@@ -228,9 +228,9 @@ namespace PCGExWritePathProperties
 			}
 		}
 
-		if (Context->bWritePathLength) { PCGExData::WriteMark(PointIO, Settings->PathLengthAttributeName, TotalLength); }
-		if (Context->bWritePathDirection) { PCGExData::WriteMark(PointIO, Settings->PathDirectionAttributeName, (PathDir / NumPoints).GetSafeNormal()); }
-		if (Context->bWritePathCentroid) { PCGExData::WriteMark(PointIO, Settings->PathCentroidAttributeName, (PathCentroid / NumPoints).GetSafeNormal()); }
+		if (Context->bWritePathLength) { WriteMark(PointIO, Settings->PathLengthAttributeName, TotalLength); }
+		if (Context->bWritePathDirection) { WriteMark(PointIO, Settings->PathDirectionAttributeName, (PathDir / NumPoints).GetSafeNormal()); }
+		if (Context->bWritePathCentroid) { WriteMark(PointIO, Settings->PathCentroidAttributeName, (PathCentroid / NumPoints).GetSafeNormal()); }
 
 		///
 

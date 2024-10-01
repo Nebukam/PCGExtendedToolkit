@@ -70,7 +70,7 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		const TSharedPtr<PCGExBridgeClusters::FProcessorBatch> BridgeBatch = StaticCastSharedPtr<PCGExBridgeClusters::FProcessorBatch>(Batch);
 		const int64 ClusterId = BridgeBatch->VtxDataFacade->GetOut()->UID;
-		PCGExData::WriteMark(BridgeBatch->CompoundedEdgesDataFacade->Source, PCGExGraph::Tag_ClusterId, ClusterId);
+		WriteMark(BridgeBatch->CompoundedEdgesDataFacade->Source, PCGExGraph::Tag_ClusterId, ClusterId);
 
 		FString OutId;
 		PCGExGraph::SetClusterVtx(BridgeBatch->VtxDataFacade->Source, OutId);

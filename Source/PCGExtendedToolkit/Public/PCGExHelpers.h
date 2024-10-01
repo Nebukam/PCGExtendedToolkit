@@ -14,6 +14,16 @@
 
 namespace PCGExHelpers
 {
+	static TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)
+	{
+		TArray<FString> Result;
+		InCommaSeparatedString.ParseIntoArray(Result, TEXT(","));
+		// Trim leading and trailing spaces
+		for (FString& String : Result) { String.TrimStartAndEndInline(); }
+
+		return Result;
+	}
+
 	static TArray<UFunction*> FindUserFunctions(const TSubclassOf<AActor>& ActorClass, const TArray<FName>& FunctionNames, const TArray<const UFunction*>& FunctionPrototypes, const FPCGContext* InContext)
 	{
 		TArray<UFunction*> Functions;

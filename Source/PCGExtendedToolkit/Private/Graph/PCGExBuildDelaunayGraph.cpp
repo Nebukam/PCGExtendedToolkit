@@ -205,7 +205,7 @@ namespace PCGExBuildDelaunay
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; ++i) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
 			}
-			PCGExMT::Write(AsyncManager, HullBuffer);
+			Write(AsyncManager, HullBuffer);
 		}
 
 		return true;
@@ -249,7 +249,7 @@ namespace PCGExBuildDelaunay
 				TArray<bool>& OutValues = *HullBuffer->GetOutValues();
 				for (int i = 0; i < NumSites; ++i) { OutValues[i] = Delaunay->Sites[i].bOnHull; }
 			}
-			PCGExMT::Write(AsyncManager, HullBuffer);
+			Write(AsyncManager, HullBuffer);
 		}
 
 		return true;

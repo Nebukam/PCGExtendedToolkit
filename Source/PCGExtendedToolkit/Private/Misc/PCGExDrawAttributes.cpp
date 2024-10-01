@@ -32,17 +32,17 @@ bool FPCGExAttributeDebugDraw::Bind(const TSharedRef<PCGExData::FPointIO>& Point
 	case EPCGExDebugExpression::Direction:
 	case EPCGExDebugExpression::Point:
 	case EPCGExDebugExpression::ConnectionToPosition:
-		VectorGetter = MakeShared<PCGEx::TAttributeGetter<FVector>>();
+		VectorGetter = MakeShared<PCGEx::TAttributeBroadcaster<FVector>>();
 		bValid = VectorGetter->Prepare(Config->Selector, PointIO);
 		if (bValid) { VectorGetter->Grab(); }
 		break;
 	case EPCGExDebugExpression::ConnectionToIndex:
-		IndexGetter = MakeShared<PCGEx::TAttributeGetter<int32>>();
+		IndexGetter = MakeShared<PCGEx::TAttributeBroadcaster<int32>>();
 		bValid = IndexGetter->Prepare(Config->Selector, PointIO);
 		if (bValid) { IndexGetter->Grab(); }
 		break;
 	case EPCGExDebugExpression::Boolean:
-		SingleGetter = MakeShared<PCGEx::TAttributeGetter<double>>();
+		SingleGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
 		bValid = SingleGetter->Prepare(Config->Selector, PointIO);
 		if (bValid) { SingleGetter->Grab(); }
 		break;
@@ -53,14 +53,14 @@ bool FPCGExAttributeDebugDraw::Bind(const TSharedRef<PCGExData::FPointIO>& Point
 	{
 		if (Config->bSizeFromAttribute)
 		{
-			SizeGetter = MakeShared<PCGEx::TAttributeGetter<double>>();
+			SizeGetter = MakeShared<PCGEx::TAttributeBroadcaster<double>>();
 			SizeGetter->Prepare(Config->Selector, PointIO);
 			SizeGetter->Grab();
 		}
 
 		if (Config->bColorFromAttribute)
 		{
-			ColorGetter = MakeShared<PCGEx::TAttributeGetter<FVector>>();
+			ColorGetter = MakeShared<PCGEx::TAttributeBroadcaster<FVector>>();
 			ColorGetter->Prepare(Config->LocalColorAttribute, PointIO);
 			ColorGetter->Grab();
 		}

@@ -178,18 +178,22 @@ namespace PCGExCluster
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
-		const TArray<FPCGPoint>& InNodePoints = VtxIO.Pin()->GetPoints(PointsSource);
-
+		const TSharedPtr<PCGExData::FPointIO> PinnedVtxIO = VtxIO.Pin();
 		const TSharedPtr<PCGExData::FPointIO> PinnedEdgesIO = EdgesIO.Pin();
+
+		if (!PinnedVtxIO || !PinnedEdgesIO) { return false; }
+
+		const TArray<FPCGPoint>& InNodePoints = PinnedVtxIO->GetPoints(PointsSource);
 
 		Nodes->Empty();
 		Edges->Empty();
 		NodeIndexLookup->Empty();
 
+		const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(PinnedEdgesIO.ToSharedRef(), PCGExGraph::Tag_EdgeEndpoints);
+		if (!EndpointsBuffer->PrepareRead()) { return false; }
+
 		NumRawVtx = InNodePoints.Num();
 		NumRawEdges = PinnedEdgesIO->GetNum();
-
-		const TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(PCGExGraph::Tag_EdgeEndpoints);
 
 		auto OnFail = [&]()
 		{
@@ -198,19 +202,18 @@ namespace PCGExCluster
 			return false;
 		};
 
-		if (!EndpointsReader->Bind(PinnedEdgesIO)) { return OnFail(); }
-
 		const int32 NumEdges = PinnedEdgesIO->GetNum();
 
 		PCGEx::InitArray(Edges, NumEdges);
 		Nodes->Reserve(InNodePoints.Num());
 		NodeIndexLookup->Reserve(InNodePoints.Num());
+		const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
 
 		for (int i = 0; i < NumEdges; ++i)
 		{
 			uint32 A;
 			uint32 B;
-			PCGEx::H64(EndpointsReader->Values[i], A, B);
+			PCGEx::H64(Endpoints[i], A, B);
 
 			const int32* StartPointIndexPtr = InEndpointsLookup.Find(A);
 			const int32* EndPointIndexPtr = InEndpointsLookup.Find(B);

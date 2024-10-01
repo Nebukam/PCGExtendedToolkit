@@ -4,15 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
+
+#include "PCGExHelpers.h"
 #include "PCGExPointIO.h"
 #include "PCGExAttributeHelpers.h"
 #include "PCGExDataFilter.h"
-#include "PCGExGlobalSettings.h"
 #include "PCGExDetails.h"
+#include "PCGExMT.h"
 #include "Data/PCGPointData.h"
 #include "Geometry/PCGExGeoPointBox.h"
-#include "UObject/Object.h"
-#include "PCGExHelpers.h"
 
 #include "PCGExData.generated.h"
 
@@ -34,6 +35,8 @@ namespace PCGExData
 	PCGEX_ASYNC_STATE(State_MergingData);
 
 #pragma region Pool & Buffers
+
+	class FFacade;
 
 	static uint64 BufferUID(const FName FullName, const EPCGMetadataTypes Type)
 	{
@@ -103,6 +106,8 @@ namespace PCGExData
 	template <typename T>
 	class /*PCGEXTENDEDTOOLKIT_API*/ TBuffer : public FBufferBase
 	{
+		friend class FFacade;
+
 	protected:
 		TUniquePtr<FPCGAttributeAccessor<T>> InAccessor;
 		const FPCGMetadataAttribute<T>* TypedInAttribute = nullptr;
@@ -117,7 +122,7 @@ namespace PCGExData
 		T Min = T{};
 		T Max = T{};
 
-		TSharedPtr<PCGEx::TAttributeGetter<T>> ScopedBroadcaster;
+		TSharedPtr<PCGEx::TAttributeBroadcaster<T>> ScopedBroadcaster;
 
 		virtual bool IsScoped() override { return bScopedBuffer || ScopedBroadcaster; }
 
@@ -148,7 +153,8 @@ namespace PCGExData
 		FORCEINLINE void Set(const int32 Index, const T& Value) { *(OutValues->GetData() + Index) = Value; }
 		FORCEINLINE void SetImmediate(const int32 Index, const T& Value) { TypedOutAttribute->SetValue(InPoints[Index], Value); }
 
-		void PrepareForRead(const bool bScoped, const FPCGMetadataAttributeBase* Attribute)
+	protected:
+		void PrepareReadInternal(const bool bScoped, const FPCGMetadataAttributeBase* Attribute)
 		{
 			if (InValues) { return; }
 
@@ -165,7 +171,7 @@ namespace PCGExData
 			bScopedBuffer = bScoped;
 		}
 
-		void PrepareForWrite(FPCGMetadataAttributeBase* Attribute, const bool bUninitialized, const T& InDefaultValue)
+		void PrepareWriteInternal(FPCGMetadataAttributeBase* Attribute, const bool bUninitialized, const T& InDefaultValue)
 		{
 			if (OutValues) { return; }
 
@@ -181,6 +187,7 @@ namespace PCGExData
 			TypedOutAttribute = Attribute ? static_cast<FPCGMetadataAttribute<T>*>(Attribute) : nullptr;
 		}
 
+	public:
 		bool PrepareRead(const ESource InSource = ESource::In, const bool bScoped = false)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
@@ -227,7 +234,7 @@ namespace PCGExData
 				return false;
 			}
 
-			PrepareForRead(bScoped, TypedInAttribute);
+			PrepareReadInternal(bScoped, TypedInAttribute);
 
 			if (!bScopedBuffer)
 			{
@@ -253,7 +260,7 @@ namespace PCGExData
 				return false;
 			}
 
-			PrepareForWrite(TypedOutAttribute, bUninitialized, DefaultValue);
+			PrepareWriteInternal(TypedOutAttribute, bUninitialized, DefaultValue);
 
 			if (!bUninitialized)
 			{
@@ -294,11 +301,11 @@ namespace PCGExData
 			return PrepareWrite(T{}, true, bUninitialized);
 		}
 
-		void SetScopedGetter(const TSharedRef<PCGEx::TAttributeGetter<T>>& Getter)
+		void SetScopedGetter(const TSharedRef<PCGEx::TAttributeBroadcaster<T>>& Getter)
 		{
 			FWriteScopeLock WriteScopeLock(BufferLock);
 
-			PrepareForRead(true, Getter->GetAttribute());
+			PrepareReadInternal(true, Getter->GetAttribute());
 			ScopedBroadcaster = Getter;
 
 			PCGEx::InitArray(InValues, Source->GetNum());
@@ -415,14 +422,14 @@ namespace PCGExData
 		template <typename T>
 		TSharedPtr<TBuffer<T>> GetBroadcaster(const FPCGAttributePropertyInputSelector& InSelector, const bool bCaptureMinMax = false)
 		{
-			TSharedPtr<PCGEx::TAttributeGetter<T>> Getter = MakeShared<PCGEx::TAttributeGetter<T>>();
+			TSharedPtr<PCGEx::TAttributeBroadcaster<T>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<T>>();
 			if (!Getter->Prepare(InSelector, Source)) { return nullptr; }
 
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(Getter->FullName);
 
 			{
 				FWriteScopeLock WriteScopeLock(Buffer->BufferLock);
-				Buffer->PrepareForRead(false, Getter->GetAttribute());
+				Buffer->PrepareReadInternal(false, Getter->GetAttribute());
 				Getter->GrabAndDump(*Buffer->GetInValues(), bCaptureMinMax, Buffer->Min, Buffer->Max);
 			}
 
@@ -442,7 +449,7 @@ namespace PCGExData
 		{
 			if (!bSupportsScopedGet) { return GetBroadcaster<T>(InSelector); }
 
-			TSharedPtr<PCGEx::TAttributeGetter<T>> Getter = MakeShared<PCGEx::TAttributeGetter<T>>();
+			TSharedPtr<PCGEx::TAttributeBroadcaster<T>> Getter = MakeShared<PCGEx::TAttributeBroadcaster<T>>();
 			if (!Getter->Prepare(InSelector, Source)) { return nullptr; }
 
 			TSharedPtr<TBuffer<T>> Buffer = GetBuffer<T>(Getter->FullName);
@@ -705,8 +712,8 @@ namespace PCGExData
 	static void CopyValues(
 		const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager,
 		const PCGEx::FAttributeIdentity& Identity,
-		const TSharedPtr<PCGExData::FPointIO>& Source,
-		const TSharedPtr<PCGExData::FPointIO>& Target,
+		const TSharedPtr<FPointIO>& Source,
+		const TSharedPtr<FPointIO>& Target,
 		const TArrayView<const int32>& SourceIndices,
 		const int32 TargetIndex = 0)
 	{
@@ -721,7 +728,7 @@ namespace PCGExData
 				// ReSharper disable once CppRedundantTemplateKeyword
 				const FPCGMetadataAttribute<T>* SourceAttribute = Source->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 
-				const TSharedPtr<PCGExData::TBuffer<T>> TargetBuffer = MakeShared<PCGExData::TBuffer<T>>(Target.ToSharedRef(), Identity.Name);
+				const TSharedPtr<TBuffer<T>> TargetBuffer = MakeShared<TBuffer<T>>(Target.ToSharedRef(), Identity.Name);
 				TargetBuffer->PrepareWrite(SourceAttribute->GetValue(PCGDefaultValueKey), SourceAttribute->AllowsInterpolation(), true);
 
 				TUniquePtr<FPCGAttributeAccessor<T>> InAccessor = MakeUnique<FPCGAttributeAccessor<T>>(SourceAttribute, Source->GetIn()->Metadata);

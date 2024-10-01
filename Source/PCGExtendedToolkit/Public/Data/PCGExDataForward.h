@@ -98,13 +98,13 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 	TArray<FPCGAttributePropertyInputSelector> Attributes;
 
 	TSharedPtr<PCGExData::FFacade> SourceDataFacade;
-	TArray<TSharedPtr<PCGEx::TAttributeGetter<FString>>> Getters;
+	TArray<TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>> Getters;
 
 	bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InSourceFacade)
 	{
 		for (FPCGAttributePropertyInputSelector& Selector : Attributes)
 		{
-			if (const TSharedPtr<PCGEx::TAttributeGetter<FString>>& Getter = Getters.Add_GetRef(MakeShared<PCGEx::TAttributeGetter<FString>>());
+			if (const TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>& Getter = Getters.Add_GetRef(MakeShared<PCGEx::TAttributeBroadcaster<FString>>());
 				!Getter->Prepare(Selector, InSourceFacade->Source))
 			{
 				PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing specified Tag attribute."));
@@ -124,7 +124,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeToTagDetails
 		if (!Getters.IsEmpty())
 		{
 			const FPCGPoint& Point = SourceDataFacade->GetIn()->GetPoint(TagIndex);
-			for (const TSharedPtr<PCGEx::TAttributeGetter<FString>>& Getter : Getters)
+			for (const TSharedPtr<PCGEx::TAttributeBroadcaster<FString>>& Getter : Getters)
 			{
 				FString Tag = Getter->SoftGet(TagIndex, Point, TEXT(""));
 				if (Tag.IsEmpty()) { continue; }

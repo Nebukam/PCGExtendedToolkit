@@ -204,7 +204,7 @@ namespace PCGExPartitionByValues
 
 		RootPartition = MakeShared<PCGExPartition::FKPartition>(nullptr, 0, nullptr, -1);
 
-		Rules.Empty(); 
+		Rules.Empty();
 		const int32 NumPoints = PointDataFacade->GetNum();
 
 		if (Settings->bWriteKeySum && !Settings->bSplitOutput) { PCGEx::InitArray(KeySums, NumPoints); }

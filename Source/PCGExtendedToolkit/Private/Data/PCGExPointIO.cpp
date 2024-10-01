@@ -121,14 +121,14 @@ namespace PCGExData
 
 	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const
 	{
-			TArray<FPCGPoint>& PointList = Out->GetMutablePoints();
-			InMap.Empty(PointList.Num());
-			for (int i = 0; i < PointList.Num(); ++i)
-			{
-				FPCGPoint& Point = PointList[i];
-				if(Point.MetadataEntry == PCGInvalidEntryKey){ Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
-				InMap.Add(Point.MetadataEntry, i);
-			}
+		TArray<FPCGPoint>& PointList = Out->GetMutablePoints();
+		InMap.Empty(PointList.Num());
+		for (int i = 0; i < PointList.Num(); ++i)
+		{
+			FPCGPoint& Point = PointList[i];
+			if (Point.MetadataEntry == PCGInvalidEntryKey) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
+			InMap.Add(Point.MetadataEntry, i);
+		}
 	}
 
 	void FPointIO::InitializeNum(const int32 NumPoints, const bool bForceInit) const
@@ -200,7 +200,7 @@ namespace PCGExData
 	void FPointIO::DeleteAttribute(FName AttributeName) const
 	{
 		if (!Out) { return; }
-			
+
 		{
 			FWriteScopeLock WriteScopeLock(AttributesLock);
 			Out->Metadata->DeleteAttribute(AttributeName);

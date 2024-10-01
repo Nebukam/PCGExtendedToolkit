@@ -70,6 +70,9 @@ bool FPCGExSampleNearestSplineElement::Boot(FPCGExContext* InContext) const
 		return false;
 	}
 
+	Context->SegmentCounts.SetNumUninitialized(Context->NumTargets);
+	for (int i = 0; i < Context->NumTargets; i++) { Context->SegmentCounts[i] = Context->Targets[i]->SplineStruct.GetNumberOfSplineSegments(); }
+
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 	if (!Context->WeightCurve)
 	{
@@ -273,22 +276,24 @@ namespace PCGExSampleNearestSpline
 		// First: Sample all possible targets
 		if (RangeMax > 0)
 		{
-			for (UPCGSplineData* Line : Context->Targets)
+			for (int i = 0; i < Context->NumTargets; ++i)
 			{
+				const UPCGSplineData* Line = Context->Targets[i];
 				FTransform SampledTransform;
 				double Time = Line->SplineStruct.FindInputKeyClosestToWorldLocation(Origin);
 				SampledTransform = Line->SplineStruct.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
-				ProcessTarget(SampledTransform, Time, Line->SplineStruct);
+				ProcessTarget(SampledTransform, Time / Context->SegmentCounts[i], Line->SplineStruct);
 			}
 		}
 		else
 		{
-			for (UPCGSplineData* Line : Context->Targets)
+			for (int i = 0; i < Context->NumTargets; ++i)
 			{
+				const UPCGSplineData* Line = Context->Targets[i];
 				FTransform SampledTransform;
 				double Time = Line->SplineStruct.FindInputKeyClosestToWorldLocation(Origin);
 				SampledTransform = Line->SplineStruct.GetTransformAtSplineInputKey(static_cast<float>(Time), ESplineCoordinateSpace::World, false);
-				ProcessTarget(SampledTransform, Time, Line->SplineStruct);
+				ProcessTarget(SampledTransform, Time / Context->SegmentCounts[i], Line->SplineStruct);
 			}
 		}
 

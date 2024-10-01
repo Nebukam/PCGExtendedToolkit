@@ -87,7 +87,6 @@ namespace PCGExDataBlending
 
 			if (!SourceAttribute->AllowsInterpolation()) { Map->AllowsInterpolation = false; }
 		}
-
 	}
 
 	void FCompoundBlender::AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades)

@@ -5,14 +5,12 @@
 
 #include <functional>
 #include <atomic>
-
-#include "PCGContext.h"
-#include "PCGExGlobalSettings.h"
-#include "PCGExMacros.h"
-#include "Data/PCGExPointIO.h"
-
-
 #include "Helpers/PCGAsync.h"
+#include "PCGContext.h"
+
+#include "PCGExMacros.h"
+#include "PCGExGlobalSettings.h"
+#include "Data/PCGExPointIO.h"
 
 #pragma region MT MACROS
 
@@ -400,7 +398,7 @@ namespace PCGExMT
 			NextRange->GetTask().GroupPtr = SharedThis(this);
 			NextRange->GetTask().MaxItems = MaxItems;
 			NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);
-			
+
 
 			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(NextRange, Index); }
 			else { Manager->StartBackgroundTask<T>(NextRange, Index); }

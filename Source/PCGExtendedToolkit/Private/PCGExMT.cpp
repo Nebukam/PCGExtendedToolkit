@@ -184,7 +184,6 @@ namespace PCGExMT
 
 	void FPCGExTask::DoWork()
 	{
-
 		if (bWorkDone) { return; }
 		bWorkDone = true;
 

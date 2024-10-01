@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "Data/PCGPointData.h"
-#include "Graph/PCGExEdge.h"
 
 namespace PCGExGeo
 {
@@ -465,22 +464,6 @@ namespace PCGExGeo
 			const FBox PointBounds = InPointData->GetBounds();
 			if (CloudBounds.Intersect(PointBounds)) { return true; }
 			return CloudBounds.IsInside(PointBounds);
-		}
-
-		bool Overlaps(const TArrayView<PCGExGraph::FIndexedEdge>& Edges, const UPCGPointData* InPointData) const
-		{
-			const FBox PointBounds = InPointData->GetBounds();
-
-			if (!CloudBounds.Intersect(PointBounds))
-			{
-				if (!CloudBounds.IsInside(PointBounds))
-				{
-					// No intersection nor encapsulation, don't bother
-					return false;
-				}
-			}
-
-			return false;
 		}
 
 		bool Encompass(const UPCGPointData* InPointData) const

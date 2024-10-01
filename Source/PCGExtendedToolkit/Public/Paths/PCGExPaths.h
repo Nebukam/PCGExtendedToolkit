@@ -37,7 +37,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
 
 	void Init()
 	{
-		Tags = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedTags);
+		Tags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedTags);
 	}
 
 	bool IsClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
@@ -66,8 +66,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopUpdateDetails
 
 	void Init()
 	{
-		AddTags = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedAddTags);
-		RemoveTags = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedRemoveTags);
+		AddTags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedAddTags);
+		RemoveTags = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedRemoveTags);
 	}
 
 	void Update(const TSharedPtr<PCGExData::FPointIO>& InPointIO)

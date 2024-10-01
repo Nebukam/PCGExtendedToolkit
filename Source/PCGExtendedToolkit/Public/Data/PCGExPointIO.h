@@ -13,7 +13,6 @@
 #include "PCGExDataTag.h"
 #include "PCGExPointData.h"
 
-
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 namespace PCGExData

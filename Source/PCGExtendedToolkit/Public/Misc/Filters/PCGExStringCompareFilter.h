@@ -73,8 +73,8 @@ namespace PCGExPointsFilter
 
 		const TObjectPtr<const UPCGExStringCompareFilterFactory> TypedFilterFactory;
 
-		TUniquePtr<PCGEx::TAttributeGetter<FString>> OperandA;
-		TUniquePtr<PCGEx::TAttributeGetter<FString>> OperandB;
+		TUniquePtr<PCGEx::TAttributeBroadcaster<FString>> OperandA;
+		TUniquePtr<PCGEx::TAttributeBroadcaster<FString>> OperandB;
 
 		virtual bool Init(const FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade> InPointDataFacade) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override

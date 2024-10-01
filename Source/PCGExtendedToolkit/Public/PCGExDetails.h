@@ -8,9 +8,8 @@
 #include "CoreMinimal.h"
 #include "PCGExMacros.h"
 #include "PCGEx.h"
-#include "PCGExActorSelector.h"
 #include "PCGExMath.h"
-#include "Data/PCGExAttributeHelpers.h"
+#include "PCGExActorSelector.h"
 
 #include "PCGExDetails.generated.h"
 

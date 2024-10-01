@@ -164,6 +164,143 @@ namespace PCGExGraph
 
 	class FGraph;
 
+#pragma region Graph Utils
+
+	static bool BuildIndexedEdges(
+		const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
+		const TMap<uint32, int32>& EndpointsLookup,
+		TArray<FIndexedEdge>& OutEdges,
+		const bool bStopOnError = false)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
+
+		const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(EdgeIO.ToSharedRef(), Tag_EdgeEndpoints);
+		if (!EndpointsBuffer->PrepareRead()) { return false; }
+
+		const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
+
+		bool bValid = true;
+		const int32 NumEdges = EdgeIO->GetNum();
+
+		PCGEx::InitArray(OutEdges, NumEdges);
+
+		if (!bStopOnError)
+		{
+			int32 EdgeIndex = 0;
+
+			for (int i = 0; i < NumEdges; ++i)
+			{
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(Endpoints[i], A, B);
+
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
+
+				if ((!StartPointIndexPtr || !EndPointIndexPtr)) { continue; }
+
+				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, EdgeIndex, EdgeIO->IOIndex);
+				EdgeIndex++;
+			}
+
+			PCGEx::InitArray(OutEdges, EdgeIndex);
+		}
+		else
+		{
+			for (int i = 0; i < NumEdges; ++i)
+			{
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(Endpoints[i], A, B);
+
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
+
+				if ((!StartPointIndexPtr || !EndPointIndexPtr))
+				{
+					bValid = false;
+					break;
+				}
+
+				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO->IOIndex);
+			}
+		}
+
+		return bValid;
+	}
+
+	static bool BuildIndexedEdges(
+		const TSharedPtr<PCGExData::FPointIO>& EdgeIO,
+		const TMap<uint32, int32>& EndpointsLookup,
+		TArray<FIndexedEdge>& OutEdges,
+		TSet<int32>& OutNodePoints,
+		const bool bStopOnError = false)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-WithPoints);
+
+		const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(EdgeIO.ToSharedRef(), Tag_EdgeEndpoints);
+		if (!EndpointsBuffer->PrepareRead()) { return false; }
+
+		const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
+
+		bool bValid = true;
+		const int32 NumEdges = EdgeIO->GetNum();
+
+		PCGEx::InitArray(OutEdges, NumEdges);
+
+		if (!bStopOnError)
+		{
+			int32 EdgeIndex = 0;
+
+			for (int i = 0; i < NumEdges; ++i)
+			{
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(Endpoints[i], A, B);
+
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
+
+				if ((!StartPointIndexPtr || !EndPointIndexPtr)) { continue; }
+
+				OutNodePoints.Add(*StartPointIndexPtr);
+				OutNodePoints.Add(*EndPointIndexPtr);
+
+				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, EdgeIndex, EdgeIO->IOIndex);
+				EdgeIndex++;
+			}
+
+			OutEdges.SetNum(EdgeIndex);
+		}
+		else
+		{
+			for (int i = 0; i < NumEdges; ++i)
+			{
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(Endpoints[i], A, B);
+
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
+
+				if ((!StartPointIndexPtr || !EndPointIndexPtr))
+				{
+					bValid = false;
+					break;
+				}
+
+				OutNodePoints.Add(*StartPointIndexPtr);
+				OutNodePoints.Add(*EndPointIndexPtr);
+
+				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO->IOIndex);
+			}
+		}
+
+		return bValid;
+	}
+
+#pragma endregion
+
 #pragma region Graph
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphMetadataDetails
@@ -458,15 +595,17 @@ namespace PCGExGraph
 		PCGEx::InitArray(OutAdjacency, InPointIO->GetNum());
 		OutIndices.Empty();
 
-		const TUniquePtr<PCGEx::TAttributeReader<int64>> IndexReader = MakeUnique<PCGEx::TAttributeReader<int64>>(Tag_VtxEndpoint);
-		if (!IndexReader->Bind(InPointIO)) { return false; }
+		const TUniquePtr<PCGExData::TBuffer<int64>> IndexBuffer = MakeUnique<PCGExData::TBuffer<int64>>(InPointIO.ToSharedRef(), Tag_VtxEndpoint);
+		if (!IndexBuffer->PrepareRead()) { return false; }
 
-		OutIndices.Reserve(IndexReader->Values.Num());
-		for (int i = 0; i < IndexReader->Values.Num(); ++i)
+		const TArray<int64>& Indices = *IndexBuffer->GetInValues().Get();
+
+		OutIndices.Reserve(Indices.Num());
+		for (int i = 0; i < Indices.Num(); ++i)
 		{
 			uint32 A;
 			uint32 B;
-			PCGEx::H64(IndexReader->Values[i], A, B);
+			PCGEx::H64(Indices[i], A, B);
 
 			OutIndices.Add(A, i);
 			OutAdjacency[i] = B;
@@ -507,11 +646,12 @@ namespace PCGExGraph
 
 	static bool GetReducedVtxIndices(const TSharedPtr<PCGExData::FPointIO>& InEdges, const TMap<uint32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
 	{
-		const TUniquePtr<PCGEx::TAttributeReader<int64>> EndpointsReader = MakeUnique<PCGEx::TAttributeReader<int64>>(Tag_EdgeEndpoints);
+		const TUniquePtr<PCGExData::TBuffer<int64>> EndpointsBuffer = MakeUnique<PCGExData::TBuffer<int64>>(InEdges.ToSharedRef(), Tag_EdgeEndpoints);
+		if (!EndpointsBuffer->PrepareRead()) { return false; }
 
-		if (!EndpointsReader->Bind(InEdges)) { return false; }
+		const TArray<int64>& Endpoints = *EndpointsBuffer->GetInValues().Get();
 
-		OutEdgeNum = EndpointsReader->Values.Num();
+		OutEdgeNum = Endpoints.Num();
 
 		OutVtxIndices.Empty();
 
@@ -522,7 +662,7 @@ namespace PCGExGraph
 		{
 			uint32 A;
 			uint32 B;
-			PCGEx::H64(EndpointsReader->Values[i], A, B);
+			PCGEx::H64(Endpoints[i], A, B);
 
 			const int32* NodeStartPtr = NodeIndicesMap->Find(A);
 			const int32* NodeEndPtr = NodeIndicesMap->Find(B);

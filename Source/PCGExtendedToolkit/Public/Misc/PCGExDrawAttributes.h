@@ -107,12 +107,12 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeDebugDraw
 public:
 	FPCGExAttributeDebugDrawConfig* Config;
 
-	TSharedPtr<PCGEx::TAttributeGetter<FVector>> VectorGetter;
-	TSharedPtr<PCGEx::TAttributeGetter<int32>> IndexGetter;
-	TSharedPtr<PCGEx::TAttributeGetter<double>> SingleGetter;
-	TSharedPtr<PCGEx::TAttributeGetter<double>> SizeGetter;
-	TSharedPtr<PCGEx::TAttributeGetter<FVector>> ColorGetter;
-	TSharedPtr<PCGEx::TAttributeGetter<FString>> TextGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<FVector>> VectorGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<int32>> IndexGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> SingleGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<double>> SizeGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<FVector>> ColorGetter;
+	TSharedPtr<PCGEx::TAttributeBroadcaster<FString>> TextGetter;
 
 	bool bValid = false;
 

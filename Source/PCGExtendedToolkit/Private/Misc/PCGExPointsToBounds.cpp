@@ -151,7 +151,7 @@ namespace PCGExPointsToBounds
 			MutablePoints[0].BoundsMax = Box.Max - Center;
 		}
 
-		if (Settings->bWritePointsCount) { PCGExData::WriteMark(PointDataFacade->Source, Settings->PointsCountAttributeName, NumPoints); }
+		if (Settings->bWritePointsCount) { WriteMark(PointDataFacade->Source, Settings->PointsCountAttributeName, NumPoints); }
 
 		PointDataFacade->Write(AsyncManager);
 	}

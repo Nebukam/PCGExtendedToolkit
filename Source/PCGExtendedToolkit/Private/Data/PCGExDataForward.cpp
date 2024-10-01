@@ -119,7 +119,7 @@ namespace PCGExData
 					using T = decltype(DummyValue);
 
 					// 'template' spec required for clang on mac, not sure why.
-						// ReSharper disable once CppRedundantTemplateKeyword
+					// ReSharper disable once CppRedundantTemplateKeyword
 					const FPCGMetadataAttribute<T>* SourceAtt = SourceDataFacade->GetIn()->Metadata->template GetConstTypedAttribute<T>(Identity.Name);
 					InTargetDataFacade->Source->DeleteAttribute(Identity.Name);
 					FPCGMetadataAttribute<T>* Mark = InTargetDataFacade->Source->FindOrCreateAttribute<T>(

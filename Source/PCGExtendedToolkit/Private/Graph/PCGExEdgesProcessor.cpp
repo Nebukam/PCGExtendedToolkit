@@ -136,7 +136,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState Next
 				AdvanceBatch(NextStateId, bIsNextStateAsync);
 				return false;
 			}
-			
+
 			return true;
 		}
 
@@ -151,7 +151,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters(const PCGExMT::AsyncState Next
 		if (IsState(PCGExClusterMT::MTState_ClusterCompletingWork))
 		{
 			PCGEX_ASYNC_WAIT_INTERNAL
-			
+
 			AdvanceBatch(NextStateId, bIsNextStateAsync);
 		}
 	}

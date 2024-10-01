@@ -22,7 +22,7 @@ namespace PCPGExMergePointsByTag
 		CompositeIO->InitializeOutput(PCGExData::EInit::NewOutput);
 
 		CompositeIODataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
-		
+
 		Merger = MakeShared<FPCGExPointIOMerger>(CompositeIODataFacade.ToSharedRef());
 		Merger->Append(IOs);
 		Merger->Merge(AsyncManager, InCarryOverDetails);

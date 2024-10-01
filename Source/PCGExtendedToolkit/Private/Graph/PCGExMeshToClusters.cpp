@@ -109,7 +109,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 				FPCGAttributePropertyInputSelector Selector = FPCGAttributePropertyInputSelector();
 				Selector.SetAttributeName(Settings->StaticMeshAttribute);
 
-				const TUniquePtr<PCGEx::TAttributeGetter<FSoftObjectPath>> PathGetter = MakeUnique<PCGEx::TAttributeGetter<FSoftObjectPath>>();
+				const TUniquePtr<PCGEx::TAttributeBroadcaster<FSoftObjectPath>> PathGetter = MakeUnique<PCGEx::TAttributeBroadcaster<FSoftObjectPath>>();
 				if (!PathGetter->Prepare(Selector, Context->MainPoints->Pairs[0].ToSharedRef()))
 				{
 					PCGE_LOG(Error, GraphAndLog, FTEXT("Static mesh attribute does not exists on targets."));

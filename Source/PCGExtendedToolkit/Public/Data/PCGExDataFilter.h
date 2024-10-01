@@ -8,8 +8,8 @@
 
 #include "PCGEx.h"
 #include "PCGExAttributeHelpers.h"
-
 #include "PCGExPointIO.h"
+
 #include "PCGExDataFilter.generated.h"
 
 class UPCGMetadata;
@@ -70,8 +70,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExNameFiltersDetails
 
 	void Init()
 	{
-		const TArray<FString> Names = PCGEx::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
-		for (const FString& Name : Names) { Matches.Add(Name, CommaSeparatedNameFilter); }
+		for (const TArray<FString> Names = PCGExHelpers::GetStringArrayFromCommaSeparatedList(CommaSeparatedNames);
+		     const FString& Name : Names) { Matches.Add(Name, CommaSeparatedNameFilter); }
 	}
 
 	bool Test(const FString& Name) const

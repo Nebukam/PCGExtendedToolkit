@@ -210,8 +210,8 @@ namespace PCGExSubdivide
 		if (NumPoints == PointIO->GetNum())
 		{
 			PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-			if (Settings->bFlagSubPoints) { PCGExData::WriteMark(PointIO, Settings->SubPointFlagName, false); }
-			if (Settings->bWriteAlpha) { PCGExData::WriteMark(PointIO, Settings->AlphaAttributeName, Settings->DefaultAlpha); }
+			if (Settings->bFlagSubPoints) { WriteMark(PointIO, Settings->SubPointFlagName, false); }
+			if (Settings->bWriteAlpha) { WriteMark(PointIO, Settings->AlphaAttributeName, Settings->DefaultAlpha); }
 			return;
 		}
 

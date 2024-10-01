@@ -21,7 +21,7 @@ bool PCGExPointsFilter::TNumericSelfComparisonFilter::Init(const FPCGContext* In
 
 	if (MaxIndex < 0) { return false; }
 
-	OperandA = MakeUnique<PCGEx::TAttributeGetter<double>>();
+	OperandA = MakeUnique<PCGEx::TAttributeBroadcaster<double>>();
 
 	if (!OperandA->Prepare(TypedFilterFactory->Config.OperandA, PointDataFacade->Source))
 	{
