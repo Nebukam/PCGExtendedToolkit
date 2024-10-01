@@ -98,13 +98,13 @@ namespace PCGExMT
 	static int32 SubRanges(TArray<uint64>& OutSubRanges, const int32 MaxItems, const int32 RangeSize)
 	{
 		OutSubRanges.Empty();
-		OutSubRanges.Reserve(MaxItems / RangeSize + 1);
-		int32 CurrentCount = 0;
-		while (CurrentCount < MaxItems)
+		OutSubRanges.Reserve((MaxItems + RangeSize - 1) / RangeSize);
+
+		for (int32 CurrentCount = 0; CurrentCount < MaxItems; CurrentCount += RangeSize)
 		{
-			OutSubRanges.Add(PCGEx::H64(CurrentCount, FMath::Min(MaxItems - CurrentCount, RangeSize)));
-			CurrentCount += RangeSize;
+			OutSubRanges.Add(PCGEx::H64(CurrentCount, FMath::Min(RangeSize, MaxItems - CurrentCount)));
 		}
+
 		return OutSubRanges.Num();
 	}
 
@@ -342,6 +342,7 @@ namespace PCGExMT
 		{
 		}
 
+				
 		template <typename T, typename... Args>
 		void Start(const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
@@ -364,11 +365,12 @@ namespace PCGExMT
 
 			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 
+			TSharedPtr<FTaskGroup> SharedPtr = SharedThis(this);
 			int32 LoopIdx = 0;
 			for (const uint64 H : Loops)
 			{
 				FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
-				ATask->GetTask().GroupPtr = SharedThis(this);
+				ATask->GetTask().GroupPtr = SharedPtr;
 				ATask->GetTask().Scope = H;
 
 				if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, LoopIdx++); }
@@ -376,7 +378,7 @@ namespace PCGExMT
 			}
 		}
 
-		void StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false, const bool bExecuteSmallSynchronously = true);
+		void StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bInlined = false, const bool bExecuteSmallSynchronously = true);
 
 		void PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline = false);
 

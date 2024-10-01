@@ -122,9 +122,8 @@ namespace PCGExPathIntersections
 				FilterScope(StartIndex, Count);
 			};
 
-		FindIntersectionsTaskGroup->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { FindIntersections(Index); },
-			PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		FindIntersectionsTaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { FindIntersections(Index); };
+		FindIntersectionsTaskGroup->StartIterations(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		//StartParallelLoopForPoints(PCGExData::ESource::In);
 
@@ -251,9 +250,8 @@ namespace PCGExPathIntersections
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, InsertionTaskGroup)
 		InsertionTaskGroup->OnCompleteCallback = [&]() { OnInsertionComplete(); };
-		InsertionTaskGroup->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { InsertIntersections(Index); },
-			Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		InsertionTaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { InsertIntersections(Index); };
+		InsertionTaskGroup->StartIterations(Segmentation->IntersectionsList.Num(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		FPointsProcessor::CompleteWork();
 	}

@@ -178,22 +178,23 @@ namespace PCGExPathCrossings
 				PointDataFacade->Fetch(StartIndex, Count);
 			};
 
-		Preparation->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		Preparation->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			const TSharedPtr<PCGExPaths::FPathEdge> Edge = MakeShared<PCGExPaths::FPathEdge>(Index, Index + 1 >= NumPoints ? 0 : Index + 1, Positions, Details.Tolerance);
+
+			const double Length = FVector::DistSquared(Positions[Edge->Start], Positions[Edge->End]);
+			Lengths[Index] = Length;
+
+			if (Length > 0)
 			{
-				const TSharedPtr<PCGExPaths::FPathEdge> Edge = MakeShared<PCGExPaths::FPathEdge>(Index, Index + 1 >= NumPoints ? 0 : Index + 1, Positions, Details.Tolerance);
+				if (CanCutFilterManager) { CanCut[Index] = CanCutFilterManager->Test(Index); }
+				if (CanBeCutFilterManager) { CanBeCut[Index] = CanBeCutFilterManager->Test(Index); }
+			}
 
-				const double Length = FVector::DistSquared(Positions[Edge->Start], Positions[Edge->End]);
-				Lengths[Index] = Length;
+			Edges[Index] = Edge;
+		};
 
-				if (Length > 0)
-				{
-					if (CanCutFilterManager) { CanCut[Index] = CanCutFilterManager->Test(Index); }
-					if (CanBeCutFilterManager) { CanBeCut[Index] = CanBeCutFilterManager->Test(Index); }
-				}
-
-				Edges[Index] = Edge;
-			}, NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		Preparation->StartIterations(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		return true;
 	}
@@ -427,22 +428,20 @@ namespace PCGExPathCrossings
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, FixTask)
 		FixTask->OnCompleteCallback = [&]() { PointDataFacade->Write(AsyncManager); };
-		FixTask->StartRanges(
-			[&](const int32 FixIndex, const int32 Count, const int32 LoopIdx) { FixPoint(FixIndex); },
-			NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		FixTask->OnIterationCallback = [&](const int32 FixIndex, const int32 Count, const int32 LoopIdx) { FixPoint(FixIndex); };
+		FixTask->StartIterations(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::CompleteWork()
 	{
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
 		SearchTask->OnCompleteCallback = [&]() { OnSearchComplete(); };
-		SearchTask->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				FPCGPoint Dummy;
-				ProcessSinglePoint(Index, Dummy, LoopIdx, Count);
-			},
-			NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		SearchTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			FPCGPoint Dummy;
+			ProcessSinglePoint(Index, Dummy, LoopIdx, Count);
+		};
+		SearchTask->StartIterations(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 
 	void FProcessor::Write()
@@ -457,13 +456,12 @@ namespace PCGExPathCrossings
 		CompoundBlender->PrepareSoftMerge(PointDataFacade, CompoundList, &ProtectedAttributes);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CrossBlendTask)
-		CrossBlendTask->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				if (!Crossings[Index]) { return; }
-				CrossBlendPoint(Index);
-			},
-			NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		CrossBlendTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			if (!Crossings[Index]) { return; }
+			CrossBlendPoint(Index);
+		};
+		CrossBlendTask->StartIterations(NumPoints, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 	}
 }
 

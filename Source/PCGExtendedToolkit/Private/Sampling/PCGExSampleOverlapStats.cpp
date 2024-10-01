@@ -158,38 +158,37 @@ namespace PCGExSampleOverlapStats
 		{
 		default:
 		case EPCGExPointBoundsSource::ScaledBounds:
-			BoundsPreparationTask->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-				{
-					if (!PointFilterCache[Index]) { return; }
+			BoundsPreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				if (!PointFilterCache[Index]) { return; }
 
-					const FPCGPoint& Point = *(InPoints->GetData() + Index);
-					RegisterPointBounds(Index, MakeShared<PCGExDiscardByOverlap::FPointBounds>(Index, Point, Point.GetLocalBounds().TransformBy(Point.Transform)));
-				}, NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
+				const FPCGPoint& Point = *(InPoints->GetData() + Index);
+				RegisterPointBounds(Index, MakeShared<PCGExDiscardByOverlap::FPointBounds>(Index, Point, Point.GetLocalBounds().TransformBy(Point.Transform)));
+			};
 			break;
 		case EPCGExPointBoundsSource::DensityBounds:
-			BoundsPreparationTask->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-				{
-					if (!PointFilterCache[Index]) { return; }
+			BoundsPreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				if (!PointFilterCache[Index]) { return; }
 
-					const FPCGPoint& Point = *(InPoints->GetData() + Index);
-					RegisterPointBounds(Index, MakeShared<PCGExDiscardByOverlap::FPointBounds>(Index, Point, Point.GetLocalDensityBounds().TransformBy(Point.Transform)));
-				}, NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
+				const FPCGPoint& Point = *(InPoints->GetData() + Index);
+				RegisterPointBounds(Index, MakeShared<PCGExDiscardByOverlap::FPointBounds>(Index, Point, Point.GetLocalDensityBounds().TransformBy(Point.Transform)));
+			};
 			break;
 		case EPCGExPointBoundsSource::Bounds:
-			BoundsPreparationTask->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-				{
-					if (!PointFilterCache[Index]) { return; }
+			BoundsPreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				if (!PointFilterCache[Index]) { return; }
 
-					const FPCGPoint& Point = *(InPoints->GetData() + Index);
-					FTransform TR = Point.Transform;
-					TR.SetScale3D(FVector::OneVector); // Zero-out scale. I'm not sure this mode is of any use.
-					RegisterPointBounds(Index, MakeShared<PCGExDiscardByOverlap::FPointBounds>(Index, Point, Point.GetLocalBounds().TransformBy(TR)));
-				}, NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
+				const FPCGPoint& Point = *(InPoints->GetData() + Index);
+				FTransform TR = Point.Transform;
+				TR.SetScale3D(FVector::OneVector); // Zero-out scale. I'm not sure this mode is of any use.
+				RegisterPointBounds(Index, MakeShared<PCGExDiscardByOverlap::FPointBounds>(Index, Point, Point.GetLocalBounds().TransformBy(TR)));
+			};
 			break;
 		}
+
+		BoundsPreparationTask->StartIterations(NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
 
 		return true;
 	}
@@ -272,25 +271,24 @@ namespace PCGExSampleOverlapStats
 						}
 					};
 
-				SearchTask->StartRanges(
-					[&](const int32 Index, const int32 Count, const int32 LoopIdx) { ResolveOverlap(Index); },
-					ManagedOverlaps.Num(), 8);
+				SearchTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { ResolveOverlap(Index); };
+				SearchTask->StartIterations(ManagedOverlaps.Num(), 8);
 			};
 
-		PreparationTask->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
-				const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];
-				if (PointDataFacade == OtherFacade) { return; } // Skip self
+		PreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
+			const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];
+			if (PointDataFacade == OtherFacade) { return; } // Skip self
 
-				const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
+			const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
 
-				const FBox Intersection = Bounds.Overlap(OtherProcessor->GetBounds());
-				if (!Intersection.IsValid) { return; } // No overlap
+			const FBox Intersection = Bounds.Overlap(OtherProcessor->GetBounds());
+			if (!Intersection.IsValid) { return; } // No overlap
 
-				RegisterOverlap(&OtherProcessor.Get(), Intersection);
-			}, ParentBatch.Pin()->ProcessorFacades.Num(), 64);
+			RegisterOverlap(&OtherProcessor.Get(), Intersection);
+		};
+		PreparationTask->StartIterations(ParentBatch.Pin()->ProcessorFacades.Num(), 64);
 	}
 
 	void FProcessor::Write()
@@ -305,9 +303,8 @@ namespace PCGExSampleOverlapStats
 				if (Settings->bTagIfHasNoOverlap && !bAnyOverlap) { PointDataFacade->Source->Tags->Add(Settings->HasNoOverlapTag); }
 			};
 
-		SearchTask->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx) { WriteSingleData(Index); },
-			NumPoints, ParentBatch.Pin()->ProcessorFacades.Num());
+		SearchTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { WriteSingleData(Index); };
+		SearchTask->StartIterations(NumPoints, ParentBatch.Pin()->ProcessorFacades.Num());
 	}
 }
 #undef LOCTEXT_NAMESPACE

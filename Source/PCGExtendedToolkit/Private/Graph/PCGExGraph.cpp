@@ -428,12 +428,14 @@ namespace PCGExGraph
 				if (bWriteVtxDataFacadeWithCompile) { NodeDataFacade->Write(AsyncManager); }
 				for (const TSharedPtr<FSubGraph>& SubGraph : Graph->SubGraphs) { SubGraph->EdgesDataFacade->Write(AsyncManager); }
 			};
-		ProcessSubGraphTask->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				const TSharedPtr<FSubGraph> SubGraph = Graph->SubGraphs[Index];
-				PCGExGraphTask::WriteSubGraphEdges(AsyncManager, SubGraph, MetadataDetailsPtr);
-			}, Graph->SubGraphs.Num(), 1, false, false);
+
+		ProcessSubGraphTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			const TSharedPtr<FSubGraph> SubGraph = Graph->SubGraphs[Index];
+			PCGExGraphTask::WriteSubGraphEdges(AsyncManager, SubGraph, MetadataDetailsPtr);
+		};
+		
+		ProcessSubGraphTask->StartIterations(Graph->SubGraphs.Num(), 1, false, false);
 	}
 
 	void FGraphBuilder::OutputEdgesToContext() const

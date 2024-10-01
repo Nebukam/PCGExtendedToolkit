@@ -403,12 +403,13 @@ namespace PCGExFindContours
 		PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
-		ProjectionTaskGroup->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxDataFacade->Source->GetInPoint(Index).Transform.GetLocation(), Index);
-			},
-			VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		
+		ProjectionTaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxDataFacade->Source->GetInPoint(Index).Transform.GetLocation(), Index);
+		};
+		
+		ProjectionTaskGroup->StartIterations(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		TBatch<FProcessor>::Process();
 	}

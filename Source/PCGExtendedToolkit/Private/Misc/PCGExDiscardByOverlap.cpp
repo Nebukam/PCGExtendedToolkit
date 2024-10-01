@@ -284,32 +284,32 @@ namespace PCGExDiscardByOverlap
 		{
 		default:
 		case EPCGExPointBoundsSource::ScaledBounds:
-			BoundsPreparationTask->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-				{
-					const FPCGPoint& Point = *(InPoints->GetData() + Index);
-					RegisterPointBounds(Index, MakeShared<FPointBounds>(Index, Point, Point.GetLocalBounds().TransformBy(Point.Transform)));
-				}, NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
+			BoundsPreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				const FPCGPoint& Point = *(InPoints->GetData() + Index);
+				RegisterPointBounds(Index, MakeShared<FPointBounds>(Index, Point, Point.GetLocalBounds().TransformBy(Point.Transform)));
+			};
 			break;
 		case EPCGExPointBoundsSource::DensityBounds:
-			BoundsPreparationTask->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-				{
-					const FPCGPoint& Point = *(InPoints->GetData() + Index);
-					RegisterPointBounds(Index, MakeShared<FPointBounds>(Index, Point, Point.GetLocalDensityBounds().TransformBy(Point.Transform)));
-				}, NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
+			BoundsPreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				const FPCGPoint& Point = *(InPoints->GetData() + Index);
+				RegisterPointBounds(Index, MakeShared<FPointBounds>(Index, Point, Point.GetLocalDensityBounds().TransformBy(Point.Transform)));
+			};
+
 			break;
 		case EPCGExPointBoundsSource::Bounds:
-			BoundsPreparationTask->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-				{
-					const FPCGPoint& Point = *(InPoints->GetData() + Index);
-					FTransform TR = Point.Transform;
-					TR.SetScale3D(FVector::OneVector); // Zero-out scale. I'm not sure this mode is of any use.
-					RegisterPointBounds(Index, MakeShared<FPointBounds>(Index, Point, Point.GetLocalBounds().TransformBy(TR)));
-				}, NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
+			BoundsPreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				const FPCGPoint& Point = *(InPoints->GetData() + Index);
+				FTransform TR = Point.Transform;
+				TR.SetScale3D(FVector::OneVector); // Zero-out scale. I'm not sure this mode is of any use.
+				RegisterPointBounds(Index, MakeShared<FPointBounds>(Index, Point, Point.GetLocalBounds().TransformBy(TR)));
+			};
 			break;
 		}
+
+		BoundsPreparationTask->StartIterations(NumPoints, PrimaryFilters ? GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize() : 1024, true);
 
 		return true;
 	}
@@ -375,20 +375,21 @@ namespace PCGExDiscardByOverlap
 					break;
 				}
 			};
-		PreparationTask->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
-				const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];
-				if (PointDataFacade == OtherFacade) { return; } // Skip self
+		PreparationTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			const TSharedPtr<PCGExPointsMT::FPointsProcessorBatchBase> Parent = ParentBatch.Pin();
+			const TSharedPtr<PCGExData::FFacade> OtherFacade = Parent->ProcessorFacades[Index];
+			if (PointDataFacade == OtherFacade) { return; } // Skip self
 
-				const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
+			const TSharedRef<FProcessor> OtherProcessor = StaticCastSharedRef<FProcessor>(*Parent->SubProcessorMap->Find(&OtherFacade->Source.Get()));
 
-				const FBox Intersection = Bounds.Overlap(OtherProcessor->GetBounds());
-				if (!Intersection.IsValid) { return; } // No overlap
+			const FBox Intersection = Bounds.Overlap(OtherProcessor->GetBounds());
+			if (!Intersection.IsValid) { return; } // No overlap
 
-				RegisterOverlap(&OtherProcessor.Get(), Intersection);
-			}, ParentBatch.Pin()->ProcessorFacades.Num(), 64);
+			RegisterOverlap(&OtherProcessor.Get(), Intersection);
+		};
+
+		PreparationTask->StartIterations(ParentBatch.Pin()->ProcessorFacades.Num(), 64);
 	}
 
 	void FProcessor::Write()

@@ -104,11 +104,9 @@ namespace PCGExMT
 		}
 	}
 
-	void FTaskGroup::StartRanges(const IterationCallback& Callback, const int32 MaxItems, const int32 ChunkSize, const bool bInlined, const bool bExecuteSmallSynchronously)
+	void FTaskGroup::StartIterations(const int32 MaxItems, const int32 ChunkSize, const bool bInlined, const bool bExecuteSmallSynchronously)
 	{
-		if (!Manager->IsAvailable()) { return; }
-
-		OnIterationCallback = Callback;
+		if (!Manager->IsAvailable() || !OnIterationCallback) { return; }
 
 		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
 

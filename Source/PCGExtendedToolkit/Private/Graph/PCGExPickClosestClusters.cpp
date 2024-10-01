@@ -159,61 +159,61 @@ namespace PCGExPickClosestClusters
 
 		if (Settings->SearchMode == EPCGExClusterClosestSearchMode::Edge)
 		{
-			ProcessTargets->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-				{
-					Distances[Index] = MAX_dbl;
+			ProcessTargets->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				Distances[Index] = MAX_dbl;
 
-					const FPCGPoint& Point = Context->TargetDataFacade->Source->GetInPoint(Index);
-					const FVector TargetLocation = Point.Transform.GetLocation();
+				const FPCGPoint& Point = Context->TargetDataFacade->Source->GetInPoint(Index);
+				const FVector TargetLocation = Point.Transform.GetLocation();
 
-					bool bFound = false;
-					Cluster->EdgeOctree->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(Settings->TargetBoundsExpansion)), [&](const PCGExCluster::FClusterItemRef& ItemRef)
-						{
-							Distances[Index] = FMath::Min(Distances[Index], FVector::DistSquared(TargetLocation, Cluster->GetClosestPointOnEdge(ItemRef.ItemIndex, TargetLocation)));
-							bFound = true;
-						});
-					if (!bFound && Settings->bExpandSearchOutsideTargetBounds)
+				bool bFound = false;
+				Cluster->EdgeOctree->FindElementsWithBoundsTest(
+					FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(Settings->TargetBoundsExpansion)), [&](const PCGExCluster::FClusterItemRef& ItemRef)
 					{
-						Cluster->EdgeOctree->FindNearbyElements(
-							TargetLocation, [&](const PCGExCluster::FClusterItemRef& ItemRef)
-							{
-								Distances[Index] = FMath::Min(Distances[Index], FVector::DistSquared(TargetLocation, Cluster->GetPos(ItemRef.ItemIndex)));
-								bFound = true;
-							});
-					}
-				}, NumTargets, 256);
-		}
-		else
-		{
-			ProcessTargets->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx)
+						Distances[Index] = FMath::Min(Distances[Index], FVector::DistSquared(TargetLocation, Cluster->GetClosestPointOnEdge(ItemRef.ItemIndex, TargetLocation)));
+						bFound = true;
+					});
+				if (!bFound && Settings->bExpandSearchOutsideTargetBounds)
 				{
-					Distances[Index] = MAX_dbl;
-
-					const FPCGPoint& Point = Context->TargetDataFacade->Source->GetInPoint(Index);
-					const FVector TargetLocation = Point.Transform.GetLocation();
-
-					bool bFound = false;
-					Cluster->NodeOctree->FindElementsWithBoundsTest(
-						FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(Settings->TargetBoundsExpansion)), [&](const PCGExCluster::FClusterItemRef& ItemRef)
+					Cluster->EdgeOctree->FindNearbyElements(
+						TargetLocation, [&](const PCGExCluster::FClusterItemRef& ItemRef)
 						{
 							Distances[Index] = FMath::Min(Distances[Index], FVector::DistSquared(TargetLocation, Cluster->GetPos(ItemRef.ItemIndex)));
 							bFound = true;
 						});
-
-					if (!bFound && Settings->bExpandSearchOutsideTargetBounds)
-					{
-						Cluster->NodeOctree->FindNearbyElements(
-							TargetLocation, [&](const PCGExCluster::FClusterItemRef& ItemRef)
-							{
-								Distances[Index] = FMath::Min(Distances[Index], FVector::DistSquared(TargetLocation, Cluster->GetPos(ItemRef.ItemIndex)));
-								bFound = true;
-							});
-					}
-				}, NumTargets, 256);
+				}
+			};
 		}
+		else
+		{
+			ProcessTargets->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+			{
+				Distances[Index] = MAX_dbl;
+
+				const FPCGPoint& Point = Context->TargetDataFacade->Source->GetInPoint(Index);
+				const FVector TargetLocation = Point.Transform.GetLocation();
+
+				bool bFound = false;
+				Cluster->NodeOctree->FindElementsWithBoundsTest(
+					FBoxCenterAndExtent(TargetLocation, Point.GetScaledExtents() + FVector(Settings->TargetBoundsExpansion)), [&](const PCGExCluster::FClusterItemRef& ItemRef)
+					{
+						Distances[Index] = FMath::Min(Distances[Index], FVector::DistSquared(TargetLocation, Cluster->GetPos(ItemRef.ItemIndex)));
+						bFound = true;
+					});
+
+				if (!bFound && Settings->bExpandSearchOutsideTargetBounds)
+				{
+					Cluster->NodeOctree->FindNearbyElements(
+						TargetLocation, [&](const PCGExCluster::FClusterItemRef& ItemRef)
+						{
+							Distances[Index] = FMath::Min(Distances[Index], FVector::DistSquared(TargetLocation, Cluster->GetPos(ItemRef.ItemIndex)));
+							bFound = true;
+						});
+				}
+			};
+		}
+
+		ProcessTargets->StartIterations(NumTargets, 256);
 	}
 
 	void FProcessor::CompleteWork()

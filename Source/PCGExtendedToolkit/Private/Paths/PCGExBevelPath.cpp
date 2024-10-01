@@ -338,12 +338,13 @@ namespace PCGExBevelPath
 				}
 			};
 
-		Preparation->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				if (!PointFilterCache[Index]) { return; }
-				Bevels[Index] = MakeShared<FBevel>(Index, this); // no need for SharedThis
-			}, PointDataFacade->GetNum(), 64);
+		Preparation->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			if (!PointFilterCache[Index]) { return; }
+			Bevels[Index] = MakeShared<FBevel>(Index, this); // no need for SharedThis
+		};
+
+		Preparation->StartIterations(PointDataFacade->GetNum(), 64);
 
 		return true;
 	}
@@ -486,12 +487,13 @@ namespace PCGExBevelPath
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, WriteFlagsTask)
 		WriteFlagsTask->OnCompleteCallback = [&]() { PointDataFacade->Write(AsyncManager); };
-		WriteFlagsTask->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				if (!PointFilterCache[Index]) { return; }
-				WriteFlags(Index);
-			}, PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
+		WriteFlagsTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			if (!PointFilterCache[Index]) { return; }
+			WriteFlags(Index);
+		};
+
+		WriteFlagsTask->StartIterations(PointDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		FPointsProcessor::Write();
 	}

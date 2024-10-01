@@ -103,20 +103,21 @@ namespace PCGExGraph
 				InternalStartExecution();
 			};
 
-		ProcessNodesGroup->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				FCompoundNode* CompoundNode = CompoundGraph->Nodes[Index].Get();
-				PCGMetadataEntryKey Key = MutablePoints[Index].MetadataEntry;
-				MutablePoints[Index] = CompoundNode->Point; // Copy "original" point properties, in case  there's only one
+		ProcessNodesGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			FCompoundNode* CompoundNode = CompoundGraph->Nodes[Index].Get();
+			PCGMetadataEntryKey Key = MutablePoints[Index].MetadataEntry;
+			MutablePoints[Index] = CompoundNode->Point; // Copy "original" point properties, in case  there's only one
 
-				FPCGPoint& Point = MutablePoints[Index];
-				Point.MetadataEntry = Key; // Restore key
+			FPCGPoint& Point = MutablePoints[Index];
+			Point.MetadataEntry = Key; // Restore key
 
-				Point.Transform.SetLocation(
-					CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds.Get(), Context->MainPoints.Get()));
-				CompoundPointsBlender->MergeSingle(Index, PCGExDetails::GetDistanceDetails(PointPointIntersectionDetails));
-			}, NumCompoundNodes, GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize, false, false);
+			Point.Transform.SetLocation(
+				CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds.Get(), Context->MainPoints.Get()));
+			CompoundPointsBlender->MergeSingle(Index, PCGExDetails::GetDistanceDetails(PointPointIntersectionDetails));
+		};
+
+		ProcessNodesGroup->StartIterations(NumCompoundNodes, GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize, false, false);
 
 
 		return true;
@@ -183,14 +184,13 @@ namespace PCGExGraph
 		Context->SetAsyncState(State_ProcessingPointEdgeIntersections);
 
 		FindPointEdgeGroup->OnCompleteCallback = [&]() { FindPointEdgeIntersectionsFound(); };
-		FindPointEdgeGroup->StartRanges(
-			[&](const int32 Index, const int32 Count, const int32 LoopIdx)
-			{
-				const FIndexedEdge& Edge = GraphBuilder->Graph->Edges[Index];
-				if (!Edge.bValid) { return; }
-				FindCollinearNodes(PointEdgeIntersections.Get(), Index, CompoundFacade->Source->GetOut());
-			},
-			GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
+		FindPointEdgeGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
+		{
+			const FIndexedEdge& Edge = GraphBuilder->Graph->Edges[Index];
+			if (!Edge.bValid) { return; }
+			FindCollinearNodes(PointEdgeIntersections.Get(), Index, CompoundFacade->Source->GetOut());
+		};
+		FindPointEdgeGroup->StartIterations(GraphBuilder->Graph->Edges.Num(), GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchChunkSize);
 	}
 
 	void FCompoundProcessor::FindPointEdgeIntersectionsFound()

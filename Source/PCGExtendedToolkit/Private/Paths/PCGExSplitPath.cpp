@@ -103,35 +103,28 @@ namespace PCGExSplitPath
 		switch (Settings->SplitAction)
 		{
 		case EPCGExPathSplitAction::Split:
-			TaskGroup->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionSplit(Index); },
-				NumPoints, ChunkSize, true);
+			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionSplit(Index); };
+
 			break;
 		case EPCGExPathSplitAction::Remove:
-			TaskGroup->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionRemove(Index); },
-				NumPoints, ChunkSize, true);
+			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionRemove(Index); };
 			break;
 		case EPCGExPathSplitAction::Disconnect:
-			TaskGroup->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionDisconnect(Index); },
-				NumPoints, ChunkSize, true);
+			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionDisconnect(Index); };
 			break;
 		case EPCGExPathSplitAction::Partition:
 			PointDataFacade->Fetch(0, 1);
 			bLastResult = PrimaryFilters->Test(0);
-			TaskGroup->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionPartition(Index); },
-				NumPoints, ChunkSize, true);
+			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionPartition(Index); };
 			break;
 		case EPCGExPathSplitAction::Switch:
 			bLastResult = Settings->bInitialSwitchValue;
-			TaskGroup->StartRanges(
-				[&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionSwitch(Index); },
-				NumPoints, ChunkSize, true);
+			TaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { DoActionSwitch(Index); };
 			break;
 		default: ;
 		}
+
+		TaskGroup->StartIterations(NumPoints, ChunkSize, true);
 
 		return true;
 	}
