@@ -75,7 +75,7 @@ public:
 			return Object;
 		}else
 		{
-			NewObject_AnyThread(this, std::forward<Args>(InArgs)...);	
+			return FPCGContext::NewObject_AnyThread(this, std::forward<Args>(InArgs)...);		
 		}
 #endif
 	}
