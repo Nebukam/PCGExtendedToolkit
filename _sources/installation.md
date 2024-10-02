@@ -16,6 +16,7 @@ nav_order: 1
 The easiest way to install PCGExtendedToolkit is to download the packaged version of the plugin.  
 However, for the sake of simplicity (and size), a packaged version only exist for the latest *launcher* minor release of the engine, at the time the PCGEx release was published.  
 
+{% include link_btn title="PCGEx for Unreal **5.5** (Package)" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.5.zip" icon="load-arrow" %}
 {% include link_btn title="PCGEx for Unreal **5.4** (Package)" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.4.zip" icon="load-arrow" %}
 {% include link_btn title="PCGEx for Unreal **5.3** (Package)" color="blue" link="https://github.com/Nebukam/PCGExtendedToolkit/releases/latest/download/PCGExtendedToolkit-5.3.zip" icon="load-arrow" %}
 

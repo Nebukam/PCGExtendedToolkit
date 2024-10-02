@@ -5179,7 +5179,7 @@
   },"863": {
     "doc": "∷ Installation",
     "title": "Drop-in Package",
-    "content": "The easiest way to install PCGExtendedToolkit is to download the packaged version of the plugin. However, for the sake of simplicity (and size), a packaged version only exist for the latest launcher minor release of the engine, at the time the PCGEx release was published. PCGEx for Unreal 5.4 (Package) PCGEx for Unreal 5.3 (Package) . Simply download one of the .zip above and put PCGExtendedToolkit directly in your YourProject/Plugins/ folder. Note that these packages are created in windows, for windows – you can always compile the plugin yourself from the sources if the latest package doesn’t work for your version of the editor. ",
+    "content": "The easiest way to install PCGExtendedToolkit is to download the packaged version of the plugin. However, for the sake of simplicity (and size), a packaged version only exist for the latest launcher minor release of the engine, at the time the PCGEx release was published. PCGEx for Unreal 5.5 (Package) PCGEx for Unreal 5.4 (Package) PCGEx for Unreal 5.3 (Package) . Simply download one of the .zip above and put PCGExtendedToolkit directly in your YourProject/Plugins/ folder. Note that these packages are created in windows, for windows – you can always compile the plugin yourself from the sources if the latest package doesn’t work for your version of the editor. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/installation.html#drop-in-package",
     "relUrl": "/installation.html#drop-in-package"
   },"864": {
