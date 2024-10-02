@@ -105,7 +105,7 @@ namespace PCGExFusePoints
 	void FProcessor::CompleteWork()
 	{
 		const int32 NumCompoundNodes = CompoundGraph->Nodes.Num();
-		PointDataFacade->Source->InitializeNum(NumCompoundNodes);
+		PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(NumCompoundNodes);
 
 		CompoundPointsBlender = MakeUnique<PCGExDataBlending::FCompoundBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
 		CompoundPointsBlender->AddSource(PointDataFacade);

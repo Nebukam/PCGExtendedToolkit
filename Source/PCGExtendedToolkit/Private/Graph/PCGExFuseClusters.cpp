@@ -69,7 +69,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	const TSharedPtr<PCGExData::FPointIO> CompoundPoints = MakeShared<PCGExData::FPointIO>(Context);
 	CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
-	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
 
 	Context->CompoundFacade = MakeShared<PCGExData::FFacade>(CompoundPoints.ToSharedRef());
 

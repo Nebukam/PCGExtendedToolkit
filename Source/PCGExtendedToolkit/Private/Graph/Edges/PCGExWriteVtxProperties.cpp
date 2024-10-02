@@ -131,7 +131,7 @@ namespace PCGExWriteVtxProperties
 
 		for (const UPCGExVtxPropertyFactoryBase* Factory : Context->ExtraFactories)
 		{
-			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation();
+			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation(Context);
 			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade))
 			{
 				PCGEX_DELETE_OPERATION(NewOperation)

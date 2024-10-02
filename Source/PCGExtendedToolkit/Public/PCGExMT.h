@@ -342,7 +342,7 @@ namespace PCGExMT
 		{
 		}
 
-				
+
 		template <typename T, typename... Args>
 		void Start(const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{

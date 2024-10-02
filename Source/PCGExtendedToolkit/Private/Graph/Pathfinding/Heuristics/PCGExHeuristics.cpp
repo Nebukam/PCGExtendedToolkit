@@ -9,8 +9,8 @@
 
 namespace PCGExHeuristics
 {
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
-		: VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
+	THeuristicsHandler::THeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataFacade, const TSharedPtr<PCGExData::FFacade>& InEdgeDataFacade)
+		: ExecutionContext(InContext), VtxDataFacade(InVtxDataFacade), EdgeDataFacade(InEdgeDataFacade)
 	{
 		TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>> ContextFactories;
 		PCGExFactories::GetInputFactories(
@@ -19,8 +19,8 @@ namespace PCGExHeuristics
 		BuildFrom(InContext, ContextFactories);
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories)
-		: VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache)
+	THeuristicsHandler::THeuristicsHandler(FPCGExContext* InContext, const TSharedPtr<PCGExData::FFacade>& InVtxDataCache, const TSharedPtr<PCGExData::FFacade>& InEdgeDataCache, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories)
+		: ExecutionContext(InContext), VtxDataFacade(InVtxDataCache), EdgeDataFacade(InEdgeDataCache)
 	{
 		BuildFrom(InContext, InFactories);
 	}
@@ -37,7 +37,7 @@ namespace PCGExHeuristics
 		Feedbacks.Empty();
 	}
 
-	void THeuristicsHandler::BuildFrom(FPCGContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories)
+	void THeuristicsHandler::BuildFrom(FPCGExContext* InContext, const TArray<TObjectPtr<const UPCGExHeuristicsFactoryBase>>& InFactories)
 	{
 		for (const UPCGExHeuristicsFactoryBase* OperationFactory : InFactories)
 		{
@@ -51,12 +51,12 @@ namespace PCGExHeuristics
 					continue;
 				}
 
-				Operation = OperationFactory->CreateOperation();
+				Operation = OperationFactory->CreateOperation(InContext);
 				Feedbacks.Add(Cast<UPCGExHeuristicFeedback>(Operation));
 			}
 			else
 			{
-				Operation = OperationFactory->CreateOperation();
+				Operation = OperationFactory->CreateOperation(InContext);
 			}
 
 			Operations.Add(Operation);
@@ -72,7 +72,7 @@ namespace PCGExHeuristics
 		if (Operations.IsEmpty())
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid heuristics. Will use Shortest Distance as default. (Local feedback heuristics don't count)"));
-			PCGEX_NEW_TRANSIENT(UPCGExHeuristicDistance, DefaultHeuristics)
+			UPCGExHeuristicDistance* DefaultHeuristics = InContext->PCGExNewObject<UPCGExHeuristicDistance>();
 			DefaultHeuristics->ReferenceWeight = ReferenceWeight;
 			Operations.Add(DefaultHeuristics);
 		}
@@ -104,7 +104,7 @@ namespace PCGExHeuristics
 
 		for (const UPCGExHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
 		{
-			UPCGExHeuristicFeedback* Feedback = Cast<UPCGExHeuristicFeedback>(Factory->CreateOperation());
+			UPCGExHeuristicFeedback* Feedback = Cast<UPCGExHeuristicFeedback>(Factory->CreateOperation(ExecutionContext));
 			Feedback->ReferenceWeight = ReferenceWeight * Factory->WeightFactor;
 
 			NewLocalFeedbackHandler->Feedbacks.Add(Feedback);

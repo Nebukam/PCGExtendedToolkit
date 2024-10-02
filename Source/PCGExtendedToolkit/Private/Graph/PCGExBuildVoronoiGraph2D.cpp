@@ -134,7 +134,7 @@ namespace PCGExBuildVoronoi2D
 
 		ActivePositions.Empty();
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
 
 		if (Settings->Method == EPCGExCellCenter::Circumcenter && Settings->bPruneOutOfBounds)
 		{
@@ -237,7 +237,7 @@ namespace PCGExBuildVoronoi2D
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NoOutput);
 			return;
 		}
 

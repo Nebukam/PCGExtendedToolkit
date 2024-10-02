@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristics"
 #define PCGEX_NAMESPACE CreateHeuristics
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryBase::CreateOperation() const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactoryBase::CreateOperation(FPCGExContext* InContext) const
 {
 	return nullptr; // Create heuristic operation
 }

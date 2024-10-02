@@ -68,7 +68,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 	{
 		const TSharedPtr<PCGExData::FPointIO> CompoundPoints = MakeShared<PCGExData::FPointIO>(Context);
 		CompoundPoints->SetInfos(-1, Settings->GetMainOutputLabel());
-		CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
 
 		Context->CompoundFacade = MakeShared<PCGExData::FFacade>(CompoundPoints.ToSharedRef());
 		Context->CompoundGraph = MakeShared<PCGExGraph::FCompoundGraph>(
@@ -187,7 +187,7 @@ namespace PCGExPathToClusters
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
 
-		PointIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		PointIO->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
 
 		TArray<PCGExGraph::FIndexedEdge> Edges;
 		PCGEx::InitArray(Edges, bClosedLoop ? NumPoints : NumPoints - 1);
@@ -216,7 +216,7 @@ namespace PCGExPathToClusters
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			bIsProcessorValid = false;
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NoOutput);
 			return;
 		}
 

@@ -88,7 +88,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryAttribute : public UPCGE
 public:
 	FPCGExHeuristicAttributeConfig Config;
 
-	virtual UPCGExHeuristicOperation* CreateOperation() const override;
+	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

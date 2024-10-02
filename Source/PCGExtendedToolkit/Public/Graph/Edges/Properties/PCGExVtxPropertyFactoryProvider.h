@@ -204,7 +204,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyFactoryBase : public UPCGExPar
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::VtxProperty; }
-	virtual UPCGExVtxPropertyOperation* CreateOperation() const;
+	virtual UPCGExVtxPropertyOperation* CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

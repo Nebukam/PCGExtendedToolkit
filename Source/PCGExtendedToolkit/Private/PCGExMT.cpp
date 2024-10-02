@@ -15,7 +15,7 @@ namespace PCGExMT
 
 	void FTaskManager::GrowNumStarted()
 	{
-		Context->bIsPaused = true;
+		Context->StartAsyncWork();
 		FPlatformAtomics::InterlockedExchange(&WorkComplete, 0);
 		FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
 	}
@@ -53,18 +53,18 @@ namespace PCGExMT
 
 		for (const TUniquePtr<FAsyncTaskBase>& Task : QueuedTasks)
 		{
-			if (Task && !Task->Cancel()) { Task->EnsureCompletion(); }
+			if (Task && !Task->Cancel()) { Task->EnsureCompletion(false); }
 		}
-
-		if (!bHoldStop) { FPlatformAtomics::InterlockedExchange(&Stopped, 0); }
 
 		QueuedTasks.Empty();
 		Groups.Empty();
+		
+		if (!bHoldStop) { FPlatformAtomics::InterlockedExchange(&Stopped, 0); }
 
 		NumStarted = 0;
 		NumCompleted = 0;
 
-		Context->bIsPaused = false; // Just in case
+		Context->StopAsyncWork();
 	}
 
 	void FTaskManager::ScheduleCompletion()
@@ -93,14 +93,14 @@ namespace PCGExMT
 
 		if (Stopped)
 		{
-			Context->bIsPaused = false; // Ensure context is unpaused
+			Context->StopAsyncWork(); // Ensure context is unpaused
 			return;
 		}
 
 		if (NumCompleted == NumStarted)
 		{
 			FPlatformAtomics::InterlockedExchange(&WorkComplete, 1);
-			Context->bIsPaused = false; // Unpause context
+			Context->StopAsyncWork(); // Unpause context
 		}
 	}
 
@@ -187,11 +187,7 @@ namespace PCGExMT
 
 		const TSharedPtr<FTaskManager> Manager = ManagerPtr.Pin();
 		if (!Manager) { return; }
-		if (!Manager->IsAvailable())
-		{
-			Manager->GrowNumCompleted();
-			return;
-		}
+		if (!Manager->IsAvailable()) { return; }
 
 		const bool bResult = ExecuteTask(Manager);
 		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin()) { Group->OnTaskCompleted(); }

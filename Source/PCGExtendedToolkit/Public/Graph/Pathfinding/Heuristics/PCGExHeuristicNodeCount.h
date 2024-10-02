@@ -52,7 +52,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryLeastNodes : public UPCG
 public:
 	FPCGExHeuristicConfigLeastNodes Config;
 
-	virtual UPCGExHeuristicOperation* CreateOperation() const override;
+	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

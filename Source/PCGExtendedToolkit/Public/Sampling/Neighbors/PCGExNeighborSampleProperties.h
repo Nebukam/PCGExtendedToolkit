@@ -88,7 +88,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExNeighborSamplerFactoryProperties : public
 
 public:
 	FPCGExPropertiesSamplerConfigBase Config;
-	virtual UPCGExNeighborSampleOperation* CreateOperation() const override;
+	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

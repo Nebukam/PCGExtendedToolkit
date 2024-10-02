@@ -50,7 +50,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
 					return false;
 				}
 				return true;

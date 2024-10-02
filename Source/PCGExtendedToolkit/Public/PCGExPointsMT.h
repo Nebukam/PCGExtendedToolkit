@@ -125,6 +125,9 @@ namespace PCGExPointsMT
 		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::Out, const int32 PerLoopIterations = -1)
 		{
 			CurrentProcessingSource = Source;
+
+			if (!PointDataFacade->IsDataValid(CurrentProcessingSource)) { return; }
+			
 			const int32 NumPoints = PointDataFacade->Source->GetNum(Source);
 
 			if (IsTrivial())
@@ -155,6 +158,8 @@ namespace PCGExPointsMT
 
 		virtual void ProcessPoints(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
+			if (!PointDataFacade->IsDataValid(CurrentProcessingSource)) { return; }
+			
 			PrepareSingleLoopScopeForPoints(StartIndex, Count);
 			TArray<FPCGPoint>& Points = PointDataFacade->Source->GetMutableData(CurrentProcessingSource)->GetMutablePoints();
 			for (int i = 0; i < Count; ++i)

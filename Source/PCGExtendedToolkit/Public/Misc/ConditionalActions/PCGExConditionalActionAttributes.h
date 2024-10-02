@@ -56,7 +56,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionAttributesFactory : publ
 	GENERATED_BODY()
 
 public:
-	virtual UPCGExConditionalActionOperation* CreateOperation() const override;
+	virtual UPCGExConditionalActionOperation* CreateOperation(FPCGExContext* InContext) const override;
 	virtual bool Boot(FPCGContext* InContext) override;
 
 protected:

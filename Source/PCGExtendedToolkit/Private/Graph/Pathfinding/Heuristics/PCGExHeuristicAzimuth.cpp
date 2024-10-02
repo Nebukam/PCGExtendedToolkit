@@ -18,9 +18,9 @@ void UPCGExHeuristicAzimuth::PrepareForCluster(const PCGExCluster::FCluster* InC
 	Super::PrepareForCluster(InCluster);
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAzimuth::CreateOperation() const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAzimuth::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_NEW_TRANSIENT(UPCGExHeuristicAzimuth, NewOperation)
+	UPCGExHeuristicAzimuth* NewOperation = InContext->PCGExNewObject<UPCGExHeuristicAzimuth>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

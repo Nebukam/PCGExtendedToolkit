@@ -40,7 +40,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() <= 3)
 				{
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
 					bInvalidInputs = true;
 					return false;
 				}
@@ -81,7 +81,7 @@ namespace PCGExLloydRelax2D
 		InfluenceDetails = Settings->InfluenceDetails;
 		if (!InfluenceDetails.Init(ExecutionContext, PointDataFacade)) { return false; }
 
-		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
 		AsyncManager->Start<FLloydRelaxTask>(0, PointDataFacade->Source, this, &InfluenceDetails, Settings->Iterations);

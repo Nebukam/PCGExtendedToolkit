@@ -45,7 +45,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() < 2)
 				{
-					if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(PCGExData::EInit::Forward); }
+					if (!Settings->bOmitSinglePointOutputs) { Entry->InitializeOutput(Context, PCGExData::EInit::Forward); }
 					else { bHasInvalidInputs = true; }
 					return false;
 				}
@@ -144,7 +144,7 @@ namespace PCGExSplitPath
 		if (NumPathPoints == 1 && Settings->bOmitSinglePointOutputs) { return; }
 
 		TSharedPtr<PCGExData::FPointIO> PathIO = MakeShared<PCGExData::FPointIO>(ExecutionContext, PointDataFacade->Source);
-		PathIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		PathIO->InitializeOutput(Context, PCGExData::EInit::NewOutput);
 		PathsIOs[Iteration] = PathIO;
 
 		const TArray<FPCGPoint>& OriginalPoints = PointDataFacade->GetIn()->GetPoints();

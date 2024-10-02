@@ -24,6 +24,18 @@ namespace PCGExData
 
 #pragma region FIdxCompound
 
+	void FFacade::Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
+	{
+		if (!AsyncManager) { return; }
+
+		for (const TSharedPtr<FBufferBase>& Buffer : Buffers)
+		{
+			if (Buffer->IsWritable()) { PCGExMT::Write(AsyncManager, Buffer); }
+		}
+
+		Flush();
+	}
+
 	void FIdxCompound::ComputeWeights(
 		const TArray<TSharedPtr<FFacade>>& Sources, const TMap<uint32, int32>& SourcesIdx, const FPCGPoint& Target,
 		const FPCGExDistanceDetails& InDistanceDetails, TArray<int32>& OutIOIdx, TArray<int32>& OutPointsIdx, TArray<double>& OutWeights) const

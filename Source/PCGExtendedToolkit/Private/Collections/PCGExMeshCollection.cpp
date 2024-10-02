@@ -59,12 +59,12 @@ void UPCGExMeshCollection::EDITOR_RefreshDisplayNames()
 }
 #endif
 
-UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
+UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
 	return GetCollectionFromAttributeSetTpl<UPCGExMeshCollection>(InContext, InAttributeSet, Details, bBuildStaging);
 }
 
-UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
+UPCGExAssetCollection* UPCGExMeshCollection::GetCollectionFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
 	return GetCollectionFromAttributeSetTpl<UPCGExMeshCollection>(InContext, InputPin, Details, bBuildStaging);
 }

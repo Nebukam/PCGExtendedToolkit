@@ -163,11 +163,10 @@ FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryBase::CreateOperation() const
+UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryBase::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_NEW_TRANSIENT(UPCGExNeighborSampleOperation, NewOperation)
+	UPCGExNeighborSampleOperation* NewOperation = InContext->PCGExNewObject<UPCGExNeighborSampleOperation>();
 	PCGEX_SAMPLER_CREATE
-
 	return NewOperation;
 }
 

@@ -62,12 +62,12 @@ void UPCGExInternalCollection::RebuildStagingData(const bool bRecursive)
 	Super::RebuildStagingData(bRecursive);
 }
 
-UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
+UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
 	return GetCollectionFromAttributeSetTpl<UPCGExInternalCollection>(InContext, InAttributeSet, Details, bBuildStaging);
 }
 
-UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
+UPCGExAssetCollection* UPCGExInternalCollection::GetCollectionFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
 	return GetCollectionFromAttributeSetTpl<UPCGExInternalCollection>(InContext, InputPin, Details, bBuildStaging);
 }

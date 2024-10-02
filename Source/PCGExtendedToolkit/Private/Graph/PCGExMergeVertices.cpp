@@ -52,7 +52,7 @@ bool FPCGExMergeVerticesElement::Boot(FPCGExContext* InContext) const
 	Context->CompositeIODataFacade = MakeShared<PCGExData::FFacade>(CompositeIO.ToSharedRef());
 	CompositeIO = MakeShared<PCGExData::FPointIO>(Context);
 	CompositeIO->SetInfos(0, PCGExGraph::OutputVerticesLabel);
-	CompositeIO->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+	CompositeIO->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
 
 	return true;
 }
@@ -142,7 +142,7 @@ namespace PCGExMergeVertices
 		Cluster->VtxIO = Context->CompositeIODataFacade->Source;
 		Cluster->NumRawVtx = Context->CompositeIODataFacade->Source->GetNum(PCGExData::ESource::Out);
 
-		EdgeDataFacade->Source->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		EdgeDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
 		PCGExGraph::MarkClusterEdges(EdgeDataFacade->Source, Context->OutVtxId);
 
 		ForwardCluster();

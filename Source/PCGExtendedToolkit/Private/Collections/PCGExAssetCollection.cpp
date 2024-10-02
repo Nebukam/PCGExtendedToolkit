@@ -190,12 +190,12 @@ void UPCGExAssetCollection::BuildCache()
 	/* per-class implementation, forwards Entries to protected method */
 }
 
-UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
+UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(FPCGExContext* InContext, const UPCGParamData* InAttributeSet, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
 	return nullptr;
 }
 
-UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(const FPCGContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
+UPCGExAssetCollection* UPCGExAssetCollection::GetCollectionFromAttributeSet(FPCGExContext* InContext, const FName InputPin, const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 {
 	return nullptr;
 }

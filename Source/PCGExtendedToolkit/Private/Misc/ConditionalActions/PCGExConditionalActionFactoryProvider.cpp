@@ -52,9 +52,9 @@ void UPCGExConditionalActionOperation::Cleanup()
 FString UPCGExConditionalActionProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExConditionalActionOperation* UPCGExConditionalActionFactoryBase::CreateOperation() const
+UPCGExConditionalActionOperation* UPCGExConditionalActionFactoryBase::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_NEW_TRANSIENT(UPCGExConditionalActionOperation, NewOperation)
+	UPCGExConditionalActionOperation* NewOperation = InContext->PCGExNewObject<UPCGExConditionalActionOperation>();
 	NewOperation->Factory = const_cast<UPCGExConditionalActionFactoryBase*>(this);
 	return NewOperation;
 }

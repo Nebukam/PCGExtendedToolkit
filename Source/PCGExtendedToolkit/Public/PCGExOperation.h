@@ -28,7 +28,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExOperation : public UObject
 	GENERATED_BODY()
 	//~Begin UPCGExOperation interface
 public:
-	void BindContext(FPCGContext* InContext);
+	void BindContext(FPCGExContext* InContext);
 
 #if WITH_EDITOR
 	virtual void UpdateUserFacingInfos();
@@ -43,9 +43,9 @@ public:
 	template <typename T>
 	T* CopyOperation() const
 	{
-		PCGEX_NEW_FROM(UObject, GenericInstance, this)
+		UObject* GenericInstance = nullptr; { FGCScopeGuard GCGuard; GenericInstance = NewObject<UObject>(this->GetOuter(), this->GetClass()); GenericInstance->AddToRoot(); }
 
-		T* TypedInstance = Cast<T>(GenericInstance);
+		T* TypedInstance = Context->PCGExNewObject<T>(this->GetOuter(), this->GetClass());
 
 		if (!TypedInstance)
 		{
@@ -62,7 +62,7 @@ public:
 	virtual void BeginDestroy() override;
 
 protected:
-	FPCGContext* Context = nullptr;
+	FPCGExContext* Context = nullptr;
 	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
 
 	virtual void ApplyOverrides();

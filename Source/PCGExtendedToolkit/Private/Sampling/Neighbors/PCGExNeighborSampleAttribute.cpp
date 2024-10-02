@@ -79,9 +79,9 @@ FString UPCGExNeighborSampleAttributeSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOperation() const
+UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_NEW_TRANSIENT(UPCGExNeighborSampleAttribute, NewOperation)
+	UPCGExNeighborSampleAttribute* NewOperation = InContext->PCGExNewObject<UPCGExNeighborSampleAttribute>();
 	PCGEX_SAMPLER_CREATE
 
 	NewOperation->SourceAttributes = Config.SourceAttributes;

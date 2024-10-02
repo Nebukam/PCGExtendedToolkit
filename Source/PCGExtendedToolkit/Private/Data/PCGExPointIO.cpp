@@ -25,7 +25,7 @@ namespace PCGExData
 		else if (!Tags) { Tags = MakeShared<FTags>(); }
 	}
 
-	void FPointIO::InitializeOutput(const EInit InitOut)
+	void FPointIO::InitializeOutput(FPCGExContext* InContext, const EInit InitOut)
 	{
 		if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
 		OutKeys.Reset();
@@ -47,8 +47,7 @@ namespace PCGExData
 		{
 			if (In)
 			{
-				PCGEX_NEW_FROM(UObject, GenericInstance, In)
-
+				UObject* GenericInstance = InContext->PCGExNewObject<UObject>(In->GetOuter(), In->GetClass());
 				Out = Cast<UPCGPointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
@@ -77,11 +76,13 @@ namespace PCGExData
 		if (InitOut == EInit::DuplicateInput)
 		{
 			check(In)
+			FGCScopeGuard GCGuarded;
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
 #else
 			Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
 #endif
+			Out->AddToRoot();
 		}
 	}
 
@@ -102,7 +103,7 @@ namespace PCGExData
 		return InKeys;
 	}
 
-	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetOutKeys()
+	TSharedPtr<FPCGAttributeAccessorKeysPoints> FPointIO::GetOutKeys(const bool bEnsureValidKeys)
 	{
 		{
 			FReadScopeLock ReadScopeLock(OutKeysLock);
@@ -113,6 +114,15 @@ namespace PCGExData
 			FWriteScopeLock WriteScopeLock(OutKeysLock);
 			if (OutKeys) { return OutKeys; }
 			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());
+
+			UE_LOG(LogTemp, Warning, TEXT("GetOutKeys, %llu, (x%d)"), Out->UID, View.Num())
+			if (bEnsureValidKeys)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("GetOutKeys, but also initialize metadata, %llu"), Out->UID)
+				UPCGMetadata* Metadata = Out->Metadata;
+				for (FPCGPoint& Pt : View) { if (Pt.MetadataEntry == PCGInvalidEntryKey) { Metadata->InitializeOnSet(Pt.MetadataEntry); } }
+			}
+
 			OutKeys = MakeShared<FPCGAttributeAccessorKeysPoints>(View);
 		}
 
@@ -128,24 +138,6 @@ namespace PCGExData
 			FPCGPoint& Point = PointList[i];
 			if (Point.MetadataEntry == PCGInvalidEntryKey) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
 			InMap.Add(Point.MetadataEntry, i);
-		}
-	}
-
-	void FPointIO::InitializeNum(const int32 NumPoints, const bool bForceInit) const
-	{
-		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-		MutablePoints.SetNum(NumPoints);
-		if (bForceInit)
-		{
-			for (FPCGPoint& Pt : MutablePoints) { Out->Metadata->InitializeOnSet(Pt.MetadataEntry); }
-		}
-		else
-		{
-			for (FPCGPoint& Pt : MutablePoints)
-			{
-				if (Pt.MetadataEntry != PCGInvalidEntryKey) { continue; }
-				Out->Metadata->InitializeOnSet(Pt.MetadataEntry);
-			}
 		}
 	}
 
@@ -264,7 +256,7 @@ namespace PCGExData
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
 		NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel, Tags);
-		NewIO->InitializeOutput(InitOut);
+		NewIO->InitializeOutput(Context, InitOut);
 		return NewIO;
 	}
 
@@ -273,7 +265,7 @@ namespace PCGExData
 		FWriteScopeLock WriteLock(PairsLock);
 		TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
 		NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel);
-		NewIO->InitializeOutput(InitOut);
+		NewIO->InitializeOutput(Context, InitOut);
 		return NewIO;
 	}
 

@@ -37,7 +37,7 @@ namespace PCGExGraph
 
 		TSharedPtr<FCompoundGraph> CompoundGraph;
 		TSharedPtr<PCGExData::FFacade> CompoundFacade;
-		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundPointsBlender;
+		TSharedPtr<PCGExDataBlending::FCompoundBlender> CompoundPointsBlender;
 
 		explicit FCompoundProcessor(
 			FPCGExPointsProcessorContext* InContext,
@@ -84,7 +84,7 @@ namespace PCGExGraph
 
 		void FindPointEdgeIntersections();
 		void FindPointEdgeIntersectionsFound();
-		void FindPointEdgeIntersectionsComplete();
+		void OnPointEdgeIntersectionsComplete();
 
 		void FindEdgeEdgeIntersections();
 		void OnEdgeEdgeIntersectionsFound();

@@ -48,7 +48,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExConditionalActionResultFactory : public U
 public:
 	FName ResultAttributeName;
 
-	virtual UPCGExConditionalActionOperation* CreateOperation() const override;
+	virtual UPCGExConditionalActionOperation* CreateOperation(FPCGExContext* InContext) const override;
 	virtual bool Boot(FPCGContext* InContext) override;
 };
 

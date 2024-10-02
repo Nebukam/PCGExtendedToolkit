@@ -121,7 +121,7 @@ namespace PCGExConnectPoints
 
 		for (const UPCGExProbeFactoryBase* Factory : Context->ProbeFactories)
 		{
-			UPCGExProbeOperation* NewOperation = Factory->CreateOperation();
+			UPCGExProbeOperation* NewOperation = Factory->CreateOperation(Context);
 			NewOperation->BindContext(ExecutionContext);
 			NewOperation->PrimaryDataFacade = PointDataFacade;
 
@@ -150,7 +150,7 @@ namespace PCGExConnectPoints
 
 		if (ProbeOperations.IsEmpty() && DirectProbeOperations.IsEmpty()) { return false; }
 
-		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails, 2);
 
 		CanGenerate.Init(true, NumPoints);
@@ -331,7 +331,7 @@ namespace PCGExConnectPoints
 	{
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
-			PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NoOutput);
+			PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NoOutput);
 			return;
 		}
 

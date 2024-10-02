@@ -82,13 +82,13 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 bool FPCGExPackClusterTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 {
-	const FPCGExPackClustersContext* Context = AsyncManager->GetContext<FPCGExPackClustersContext>();
+	FPCGExPackClustersContext* Context = AsyncManager->GetContext<FPCGExPackClustersContext>();
 	PCGEX_SETTINGS(PackClusters)
 
 	const TSharedPtr<PCGEx::FAttributesInfos> VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
 
 	const TSharedPtr<PCGExData::FPointIO> PackedIO = Context->PackedClusters->Emplace_GetRef(InEdges);
-	PackedIO->InitializeOutput<UPCGPointData>(PCGExData::EInit::DuplicateInput);
+	PackedIO->InitializeOutput<UPCGPointData>(Context, PCGExData::EInit::DuplicateInput);
 
 	int32 NumEdges = 0;
 	TArray<int32> ReducedVtxIndices;

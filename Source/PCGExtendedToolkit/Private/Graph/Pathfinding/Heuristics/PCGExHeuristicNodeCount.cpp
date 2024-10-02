@@ -4,16 +4,16 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicNodeCount.h"
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryLeastNodes::CreateOperation() const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactoryLeastNodes::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_NEW_TRANSIENT(UPCGExHeuristicNodeCount, NewOperation)
+	PCGEX_NEW_OBJECT(UPCGExHeuristicNodeCount, NewOperation)
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }
 
 UPCGExParamFactoryBase* UPCGExHeuristicsLeastNodesProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExHeuristicsFactoryLeastNodes* NewFactory = NewObject<UPCGExHeuristicsFactoryLeastNodes>();
+	UPCGExHeuristicsFactoryLeastNodes* NewFactory = InContext->PCGExNewObject<UPCGExHeuristicsFactoryLeastNodes>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
 	return Super::CreateFactory(InContext, NewFactory);
 }

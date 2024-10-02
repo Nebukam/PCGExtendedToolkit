@@ -10,9 +10,9 @@ void UPCGExHeuristicDistance::PrepareForCluster(const PCGExCluster::FCluster* In
 	MaxDistSquared = FVector::DistSquared(InCluster->Bounds.Min, InCluster->Bounds.Max);
 }
 
-UPCGExHeuristicOperation* UPCGExHeuristicsFactoryShortestDistance::CreateOperation() const
+UPCGExHeuristicOperation* UPCGExHeuristicsFactoryShortestDistance::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_NEW_TRANSIENT(UPCGExHeuristicDistance, NewOperation)
+	UPCGExHeuristicDistance* NewOperation = InContext->PCGExNewObject<UPCGExHeuristicDistance>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

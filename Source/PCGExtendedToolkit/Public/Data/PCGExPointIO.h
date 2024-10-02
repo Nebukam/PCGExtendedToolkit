@@ -118,16 +118,16 @@ namespace PCGExData
 		              const FName InDefaultOutputLabel,
 		              const TSet<FString>* InTags = nullptr);
 
-		void InitializeOutput(EInit InitOut = EInit::NoOutput);
+		void InitializeOutput(FPCGExContext* InContext, EInit InitOut = EInit::NoOutput);
 
 		template <typename T>
-		void InitializeOutput(const EInit InitOut = EInit::NoOutput)
+		void InitializeOutput(FPCGExContext* InContext, const EInit InitOut = EInit::NoOutput)
 		{
 			if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
 
 			if (InitOut == EInit::NewOutput)
 			{
-				PCGEX_NEW_TRANSIENT(T, TypedOut)
+				T* TypedOut = InContext->PCGExNewObject<T>();
 
 				Out = Cast<UPCGPointData>(TypedOut);
 				check(Out)
@@ -147,7 +147,7 @@ namespace PCGExData
 
 				if (!TypedIn)
 				{
-					PCGEX_NEW_TRANSIENT(T, TypedOut)
+					T* TypedOut = InContext->PCGExNewObject<T>();
 
 					if (UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(TypedOut)) { TypedPointData->CopyFrom(In); }
 					else { TypedOut->InitializeFromData(In); } // This is a potentially failed duplicate
@@ -156,20 +156,24 @@ namespace PCGExData
 				}
 				else
 				{
+					FGCScopeGuard GCGuarded;
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
 					Out = Cast<UPCGPointData>(In->DuplicateData(true));
 #else
 					Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
 #endif
+					Out->AddToRoot();
 				}
 
 				return;
 			}
 
-			InitializeOutput(InitOut);
+			InitializeOutput(InContext, InitOut);
 		}
 
 		~FPointIO();
+
+		FORCEINLINE bool IsDataValid(const ESource InSource) const { return InSource == ESource::In ? IsValid(In) : IsValid(Out); }
 
 		FORCEINLINE const UPCGPointData* GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
 		FORCEINLINE UPCGPointData* GetMutableData(const ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
@@ -183,7 +187,7 @@ namespace PCGExData
 		FORCEINLINE int32 GetOutInNum() const { return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1; }
 
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetInKeys();
-		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys();
+		TSharedPtr<FPCGAttributeAccessorKeysPoints> GetOutKeys(const bool bEnsureValidKeys = false);
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap) const;
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
@@ -242,8 +246,6 @@ namespace PCGExData
 			OutIndex = MutablePoints.Num() - 1;
 			InitPoint(Point, FromPoint);
 		}
-
-		void InitializeNum(const int32 NumPoints, const bool bForceInit = false) const;
 
 		void CleanupKeys();
 
@@ -327,7 +329,7 @@ namespace PCGExData
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context, In));
 			NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel, Tags);
-			NewIO->InitializeOutput<T>(InitOut);
+			NewIO->InitializeOutput<T>(Context, InitOut);
 			return NewIO;
 		}
 
@@ -337,7 +339,7 @@ namespace PCGExData
 			FWriteScopeLock WriteLock(PairsLock);
 			TSharedPtr<FPointIO> NewIO = Pairs.Add_GetRef(MakeShared<FPointIO>(Context));
 			NewIO->SetInfos(Pairs.Num() - 1, DefaultOutputLabel);
-			NewIO->InitializeOutput<T>(InitOut);
+			NewIO->InitializeOutput<T>(Context, InitOut);
 			return NewIO;
 		}
 

@@ -58,7 +58,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertySpecialNeighborsFactory : publ
 
 public:
 	FPCGExSpecialNeighborsConfig Config;
-	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
+	virtual UPCGExVtxPropertyOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

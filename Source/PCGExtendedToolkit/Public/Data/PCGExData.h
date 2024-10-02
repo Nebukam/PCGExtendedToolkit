@@ -271,7 +271,7 @@ namespace PCGExData
 					// TODO : Scoped get would be better here
 					// Get existing values
 					TArrayView<T> OutRange = MakeArrayView(OutValues->GetData(), OutValues->Num());
-					OutAccessor->GetRange(OutRange, 0, *Source->GetOutKeys());
+					OutAccessor->GetRange(OutRange, 0, *Source->GetOutKeys(false));
 				}
 			}
 
@@ -315,14 +315,8 @@ namespace PCGExData
 		{
 			if (!IsWritable()) { return; }
 
-			//UE_LOG(LogTemp, Warning, TEXT("Buffer Write Start :: %s"), *FullName.ToString())
-
-			check(OutAccessor)
-
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
-			OutAccessor->SetRange(View, 0, *Source->GetOutKeys());
-
-			//UE_LOG(LogTemp, Warning, TEXT("Buffer Write End :: %s"), *FullName.ToString())
+			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(true));
 		}
 
 		virtual void Fetch(const int32 StartIndex, const int32 Count) override
@@ -379,6 +373,8 @@ namespace PCGExData
 			PCGEX_LOG_DTR(FFacade)
 		}
 
+		FORCEINLINE bool IsDataValid(const ESource InSource) const { return Source->IsDataValid(InSource); }
+		
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 
 		template <typename T>
@@ -568,18 +564,7 @@ namespace PCGExData
 			BufferMap.Empty();
 		}
 
-		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-		{
-			if (!AsyncManager) { return; }
-
-			for (int i = 0; i < Buffers.Num(); i++)
-			{
-				const TSharedPtr<FBufferBase>& Buffer = Buffers[i];
-				if (Buffer->IsWritable()) { PCGExMT::Write(AsyncManager, Buffer); }
-			}
-
-			Flush();
-		}
+		void Write(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager);
 
 		void Fetch(const int32 StartIndex, const int32 Count) { for (const TSharedPtr<FBufferBase>& Buffer : Buffers) { Buffer->Fetch(StartIndex, Count); } }
 		void Fetch(const uint64 Scope) { Fetch(PCGEx::H64A(Scope), PCGEx::H64B(Scope)); }

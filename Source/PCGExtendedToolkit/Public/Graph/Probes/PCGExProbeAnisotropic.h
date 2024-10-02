@@ -70,7 +70,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryAnisotropic : public UPCGExPr
 
 public:
 	FPCGExProbeConfigAnisotropic Config;
-	virtual UPCGExProbeOperation* CreateOperation() const override;
+	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

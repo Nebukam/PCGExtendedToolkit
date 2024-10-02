@@ -117,9 +117,10 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 PCGExData::EInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
-{
+{	
 	PCGEX_TERMINATE_ASYNC
 
+	
 	for (UPCGExOperation* Operation : ProcessorOperations)
 	{
 		if (OwnedProcessorOperations.Contains(Operation)) { PCGEX_DELETE_OPERATION(Operation) }
@@ -243,7 +244,7 @@ void FPCGExPointsProcessorContext::ResumeExecution()
 {
 	if (AsyncManager) { AsyncManager->Reset(); }
 
-	bIsPaused = false;
+	StopAsyncWork();
 	bWaitingForAsyncCompletion = false;
 }
 

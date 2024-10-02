@@ -177,7 +177,7 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> PointFilterFactories;
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> ValueFilterFactories;
 
-	virtual UPCGExNeighborSampleOperation* CreateOperation() const;
+	virtual UPCGExNeighborSampleOperation* CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|NeighborSample")

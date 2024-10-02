@@ -10,11 +10,11 @@
 
 #define PCGEX_CREATE_PROBE_FACTORY(_NAME, _EXTRA_FACTORY, _EXTRA_OPERATION) \
 UPCGExParamFactoryBase* UPCGExProbe##_NAME##ProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const{\
-	UPCGExProbeFactory##_NAME* NewFactory = NewObject<UPCGExProbeFactory##_NAME>(); \
+	UPCGExProbeFactory##_NAME* NewFactory = InContext->PCGExNewObject<UPCGExProbeFactory##_NAME>();\
 	NewFactory->Config = Config; _EXTRA_FACTORY \
 	return Super::CreateFactory(InContext, NewFactory); } \
-UPCGExProbeOperation* UPCGExProbeFactory##_NAME::CreateOperation() const{\
-	PCGEX_NEW(UPCGExProbe##_NAME, NewOperation, this->GetOuter()) \
+UPCGExProbeOperation* UPCGExProbeFactory##_NAME::CreateOperation(FPCGExContext* InContext) const{\
+	UPCGExProbe##_NAME* NewOperation = InContext->PCGExNewObject<UPCGExProbe##_NAME>(this->GetOuter());\
 	NewOperation->Config = Config; NewOperation->BaseConfig = &NewOperation->Config; _EXTRA_OPERATION return NewOperation;}
 
 class UPCGExProbeOperation;
@@ -26,7 +26,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryBase : public UPCGExParamFact
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Probe; }
-	virtual UPCGExProbeOperation* CreateOperation() const;
+	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

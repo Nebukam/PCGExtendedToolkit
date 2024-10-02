@@ -95,7 +95,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 			// Add to main edges & forward
 			Context->MainEdges->AddUnsafe(InputIO);
-			InputIO->InitializeOutput(PCGExData::EInit::Forward);
+			InputIO->InitializeOutput(Context, PCGExData::EInit::Forward);
 		}
 
 		if (Context->MainEdges->IsEmpty())
@@ -106,7 +106,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		// Add vtx key to main output & forward
 		Context->MainPoints->AddUnsafe(Context->SearchKeyIO);
-		Context->SearchKeyIO->InitializeOutput(PCGExData::EInit::Forward);
+		Context->SearchKeyIO->InitializeOutput(Context, PCGExData::EInit::Forward);
 		Context->SearchKeyIO = nullptr;
 
 		Context->MainPoints->OutputToContext();
@@ -129,7 +129,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 			if (!InputIO->Tags->IsTagged(PCGExGraph::TagStr_PCGExVtx)) { continue; }
 
 			// Output vtx
-			InputIO->InitializeOutput(PCGExData::EInit::Forward);
+			InputIO->InitializeOutput(Context, PCGExData::EInit::Forward);
 			bFoundMatch = true;
 			break;
 		}
@@ -142,7 +142,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		// Move edge key to edges output and forward
 		Context->MainEdges->AddUnsafe(Context->SearchKeyIO);
-		Context->SearchKeyIO->InitializeOutput(PCGExData::EInit::Forward);
+		Context->SearchKeyIO->InitializeOutput(Context, PCGExData::EInit::Forward);
 		Context->SearchKeyIO = nullptr;
 
 		Context->MainPoints->OutputToContext();
@@ -236,7 +236,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (EdgesEntries)
 		{
-			Vtx->InitializeOutput(PCGExData::EInit::Forward);
+			Vtx->InitializeOutput(Context, PCGExData::EInit::Forward);
 			Vtx->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
 			for (TSharedPtr<PCGExData::FPointIO> ValidEdges : EdgesEntries->Entries)
@@ -245,7 +245,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 				Context->MainEdges->Pairs.Add(ValidEdges);
 				ValidEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
-				ValidEdges->InitializeOutput(PCGExData::EInit::Forward);
+				ValidEdges->InitializeOutput(Context, PCGExData::EInit::Forward);
 			}
 		}
 		else

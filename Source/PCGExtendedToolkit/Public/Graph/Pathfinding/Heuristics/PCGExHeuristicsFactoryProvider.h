@@ -71,7 +71,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactoryBase : public UPCGExPara
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::Heuristics; }
-	virtual UPCGExHeuristicOperation* CreateOperation() const;
+	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const;
 	double WeightFactor = 1;
 };
 

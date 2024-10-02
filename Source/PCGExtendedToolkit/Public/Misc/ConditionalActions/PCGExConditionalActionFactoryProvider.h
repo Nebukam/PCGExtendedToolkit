@@ -18,8 +18,8 @@
 	UPCGEx##_NAME##Factory* NewFactory = NewObject<UPCGEx##_NAME##Factory>(); _BODY if(!Super::CreateFactory(InContext, NewFactory)){ PCGEX_DELETE_UOBJECT(NewFactory) } return NewFactory; }
 
 #define PCGEX_BITMASK_TRANSMUTE_CREATE_OPERATION(_NAME, _BODY) \
-	UPCGExConditionalActionOperation* UPCGEx##_NAME##Factory::CreateOperation() const{ \
-	PCGEX_NEW(UPCGEx##_NAME##Operation, NewOperation, this->GetOuter()) \
+	UPCGExConditionalActionOperation* UPCGEx##_NAME##Factory::CreateOperation(FPCGExContext* InContext) const{ \
+	UPCGEx##_NAME##Operation* NewOperation = InContext->PCGExNewObject<UPCGEx##_NAME##Operation>(this->GetOuter()); \
 	NewOperation->TypedFactory = const_cast<UPCGEx##_NAME##Factory*>(this); \
 	NewOperation->Factory = NewOperation->TypedFactory; \
 	_BODY \
@@ -71,7 +71,7 @@ public:
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
 
 	virtual PCGExFactories::EType GetFactoryType() const override { return PCGExFactories::EType::ConditionalActions; }
-	virtual UPCGExConditionalActionOperation* CreateOperation() const;
+	virtual UPCGExConditionalActionOperation* CreateOperation(FPCGExContext* InContext) const;
 
 	virtual bool Boot(FPCGContext* InContext);
 	virtual bool AppendAndValidate(PCGEx::FAttributesInfos* InInfos, FString& OutMessage) const;

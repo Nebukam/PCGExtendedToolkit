@@ -88,7 +88,7 @@ namespace PCGExSampleNeighbors
 
 		for (const UPCGExNeighborSamplerFactoryBase* OperationFactory : Context->SamplerFactories)
 		{
-			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation();
+			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation(Context);
 			SamplingOperation->BindContext(Context);
 			SamplingOperation->PrepareForCluster(ExecutionContext, Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 

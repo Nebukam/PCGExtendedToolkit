@@ -102,7 +102,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExVtxPropertyEdgeMatchFactory : public UPCG
 public:
 	FPCGExEdgeMatchConfig Config;
 	TArray<TObjectPtr<const UPCGExFilterFactoryBase>> FilterFactories;
-	virtual UPCGExVtxPropertyOperation* CreateOperation() const override;
+	virtual UPCGExVtxPropertyOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|VtxProperty")

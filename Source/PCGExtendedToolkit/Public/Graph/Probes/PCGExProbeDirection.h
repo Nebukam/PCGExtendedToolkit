@@ -106,7 +106,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExProbeFactoryDirection : public UPCGExProb
 
 public:
 	FPCGExProbeConfigDirection Config;
-	virtual UPCGExProbeOperation* CreateOperation() const override;
+	virtual UPCGExProbeOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

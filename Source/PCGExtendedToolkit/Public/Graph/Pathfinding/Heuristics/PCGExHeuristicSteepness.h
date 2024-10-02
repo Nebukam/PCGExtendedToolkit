@@ -80,7 +80,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExHeuristicsFactorySteepness : public UPCGE
 public:
 	FPCGExHeuristicConfigSteepness Config;
 
-	virtual UPCGExHeuristicOperation* CreateOperation() const override;
+	virtual UPCGExHeuristicOperation* CreateOperation(FPCGExContext* InContext) const override;
 };
 
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

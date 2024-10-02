@@ -104,7 +104,6 @@ namespace PCGExBreakClustersToPaths
 
 	void FProcessor::CompleteWork()
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CompleteWork %d"), BatchIndex)
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
 			PCGExClusterTask::DedupeChains(Chains);
@@ -159,8 +158,6 @@ namespace PCGExBreakClustersToPaths
 		MutablePoints[PointCount++] = PathIO->GetInPoint(StartIdx);
 		for (const int32 NodeIndex : Chain->Nodes) { MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[NodeIndex]); }
 		MutablePoints[PointCount] = PathIO->GetInPoint(EndIdx);
-
-		PathIO->InitializeNum(ChainSize, true);
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
@@ -173,8 +170,6 @@ namespace PCGExBreakClustersToPaths
 
 		MutablePoints[0] = PathIO->GetInPoint(Edge.Start);
 		MutablePoints[1] = PathIO->GetInPoint(Edge.End);
-
-		PathIO->InitializeNum(2, true);
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()

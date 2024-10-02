@@ -45,8 +45,8 @@ bool FPCGExConnectClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entries->Entries.Num() == 1)
 				{
 					// No clusters to consolidate, just dump existing points
-					Context->CurrentIO->InitializeOutput(PCGExData::EInit::Forward);
-					Entries->Entries[0]->InitializeOutput(PCGExData::EInit::Forward);
+					Context->CurrentIO->InitializeOutput(Context, PCGExData::EInit::Forward);
+					Entries->Entries[0]->InitializeOutput(Context, PCGExData::EInit::Forward);
 					return false;
 				}
 
@@ -106,7 +106,7 @@ namespace PCGExBridgeClusters
 	FProcessorBatch::FProcessorBatch(FPCGExContext* InContext, const TSharedRef<PCGExData::FPointIO>& InVtx, const TArrayView<TSharedRef<PCGExData::FPointIO>> InEdges):
 		TBatch(InContext, InVtx, InEdges)
 	{
-		InVtx->InitializeOutput(PCGExData::EInit::DuplicateInput);
+		InVtx->InitializeOutput(InContext, PCGExData::EInit::DuplicateInput);
 	}
 
 	void FProcessorBatch::Process()

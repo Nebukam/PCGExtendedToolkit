@@ -10,7 +10,6 @@
 #include "PCGExSortPoints.h"
 #include "Data/PCGExPointIOMerger.h"
 
-
 #include "PCGExMergePointsByTag.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Merge by Tag | Reoslution Mode"))
@@ -63,9 +62,9 @@ namespace PCPGExMergePointsByTag
 		explicit FTagBuckets();
 		~FTagBuckets() = default;
 
-		void Distribute(TSharedPtr<PCGExData::FPointIO> IO, const FPCGExNameFiltersDetails& Filters);
+		void Distribute(FPCGExContext* InContext, const TSharedPtr<PCGExData::FPointIO>& IO, const FPCGExNameFiltersDetails& Filters);
 		void AddToReverseMap(TSharedPtr<PCGExData::FPointIO> IO, const TSharedPtr<FTagBucket>& Bucket);
-		void BuildMergeLists(EPCGExMergeByTagOverlapResolutionMode Mode, TArray<TSharedPtr<FMergeList>>& OutLists, const TArray<FString>& Priorities, const EPCGExSortDirection SortDirection);
+		void BuildMergeLists(::FPCGExContext* InContext, EPCGExMergeByTagOverlapResolutionMode Mode, TArray<TSharedPtr<FMergeList>>& OutLists, const TArray<FString>& Priorities, const EPCGExSortDirection SortDirection);
 	};
 }
 

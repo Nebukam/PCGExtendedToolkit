@@ -47,7 +47,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Entry->GetNum() < 2)
 				{
 					bInvalidInputs = true;
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					Entry->InitializeOutput(Context, PCGExData::EInit::Forward);
 					return false;
 				}
 				return true;
@@ -89,7 +89,7 @@ namespace PCGExFuseCollinear
 
 
 		MaxIndex = PointDataFacade->GetNum() - 1;
-		PointDataFacade->Source->InitializeOutput(PCGExData::EInit::NewOutput);
+		PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::NewOutput);
 
 		const TArray<FPCGPoint>& InPoints = PointDataFacade->GetIn()->GetPoints();
 		OutPoints = &PointDataFacade->GetOut()->GetMutablePoints();

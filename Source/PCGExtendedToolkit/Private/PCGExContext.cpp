@@ -49,6 +49,18 @@ void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData)
 	}
 }
 
+void FPCGExContext::StartAsyncWork(const bool bPauseOnly)
+{
+	bIsPaused = true;
+	if (!bPauseOnly) { AsyncState.bIsRunningOnMainThread = false; }
+}
+
+void FPCGExContext::StopAsyncWork()
+{
+	bIsPaused = false;
+	AsyncState.bIsRunningOnMainThread = true;
+}
+
 void FPCGExContext::WriteFutureOutputs()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::WriteFutureOutputs);
@@ -151,19 +163,19 @@ void FPCGExContext::LoadAssets()
 
 	if (!bForceSynchronousAssetLoad)
 	{
-		bIsPaused = true;
+		StartAsyncWork(true);
 
 		LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 			RequiredAssets.Array(), [&]()
 			{
-				bIsPaused = false;
+				StopAsyncWork();
 			});
 
 		if (!LoadHandle || !LoadHandle->IsActive())
 		{
 			// Huh
 			bAssetLoadError = true;
-			bIsPaused = false;
+			StopAsyncWork();
 		}
 	}
 	else

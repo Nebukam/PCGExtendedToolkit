@@ -494,13 +494,13 @@ public:
 	}
 
 	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(
-		const FPCGContext* InContext,
+		FPCGExContext* InContext,
 		const UPCGParamData* InAttributeSet,
 		const FPCGExAssetAttributeSetDetails& Details,
 		const bool bBuildStaging = false) const;
 
 	virtual UPCGExAssetCollection* GetCollectionFromAttributeSet(
-		const FPCGContext* InContext,
+		FPCGExContext* InContext,
 		const FName InputPin,
 		const FPCGExAssetAttributeSetDetails& Details,
 		const bool bBuildStaging = false) const;
@@ -587,12 +587,12 @@ protected:
 
 	template <typename T>
 	T* GetCollectionFromAttributeSetTpl(
-		const FPCGContext* InContext,
+		FPCGExContext* InContext,
 		const UPCGParamData* InAttributeSet,
 		const FPCGExAssetAttributeSetDetails& Details,
 		const bool bBuildStaging = false) const
 	{
-		PCGEX_NEW_TRANSIENT(T, Collection)
+		T* Collection = InContext->PCGExNewObject<T>();
 		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys;
 
 		auto CreationFailed = [&]()
@@ -723,7 +723,7 @@ protected:
 
 	template <typename T>
 	T* GetCollectionFromAttributeSetTpl(
-		const FPCGContext* InContext,
+		FPCGExContext* InContext,
 		const FName InputPin,
 		const FPCGExAssetAttributeSetDetails& Details, const bool bBuildStaging) const
 	{

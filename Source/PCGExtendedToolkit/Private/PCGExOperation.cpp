@@ -4,10 +4,10 @@
 #include "PCGExOperation.h"
 #include "PCGParamData.h"
 
-void UPCGExOperation::BindContext(FPCGContext* InContext)
+void UPCGExOperation::BindContext(FPCGExContext* InContext)
 {
 	Context = InContext;
-
+	
 	TArray<FPCGTaggedData> OverrideParams = Context->InputData.GetParamsByPin(PCGPinConstants::DefaultParamsLabel);
 
 	for (FPCGTaggedData& InTaggedData : OverrideParams)

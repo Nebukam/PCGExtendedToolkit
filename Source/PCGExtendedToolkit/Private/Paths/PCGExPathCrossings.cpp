@@ -67,7 +67,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				if (Entry->GetNum() < 2)
 				{
-					Entry->InitializeOutput(PCGExData::EInit::Forward); // TODO : This is no good as we'll be missing template attributes
+					Entry->InitializeOutput(Context, PCGExData::EInit::Forward); // TODO : This is no good as we'll be missing template attributes
 					bHasInvalidInputs = true;
 
 					if (Settings->bTagIfHasNoCrossings) { Entry->Tags->Add(Settings->HasNoCrossingsTag); }
@@ -374,7 +374,7 @@ namespace PCGExPathCrossings
 			NumPointsFinal += Crossing->Crossings.Num();
 		}
 
-		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+		PointIO->InitializeOutput(Context, PCGExData::EInit::NewOutput);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();

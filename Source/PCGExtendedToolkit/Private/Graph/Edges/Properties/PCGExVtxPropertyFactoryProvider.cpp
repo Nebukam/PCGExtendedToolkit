@@ -45,9 +45,9 @@ void UPCGExVtxPropertyOperation::Cleanup() { Super::Cleanup(); }
 FString UPCGExVtxPropertyProviderSettings::GetDisplayName() const { return TEXT(""); }
 #endif
 
-UPCGExVtxPropertyOperation* UPCGExVtxPropertyFactoryBase::CreateOperation() const
+UPCGExVtxPropertyOperation* UPCGExVtxPropertyFactoryBase::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_NEW_TRANSIENT(UPCGExVtxPropertyOperation, NewOperation)
+	UPCGExVtxPropertyOperation* NewOperation = InContext->PCGExNewObject<UPCGExVtxPropertyOperation>();
 	return NewOperation;
 }
 

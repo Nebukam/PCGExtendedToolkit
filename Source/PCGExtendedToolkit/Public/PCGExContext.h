@@ -33,6 +33,52 @@ public:
 	void FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
 	void FutureOutput(const FName Pin, UPCGData* InData);
 
+	void StartAsyncWork(const bool bPauseOnly = false);
+	void StopAsyncWork();
+
+	template <class T, typename... Args>
+	T* PCGExNewObject(Args&&... InArgs)
+	{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
+
+		T* Object = nullptr;
+		if (!IsInGameThread())
+		{
+			{
+				FGCScopeGuard Scope;
+				Object = ::NewObject<T>(std::forward<Args>(InArgs)...);
+			}
+			check(Object);
+		}
+
+		Object = ::NewObject<T>(std::forward<Args>(InArgs)...);
+		Object->AddToRoot();
+		return Object;
+
+#else
+		if constexpr (!std::is_base_of_v<T, UPCGData>)
+		{
+			// Since we create ops & factories through this flow, make sure we only
+			// use the 5.5 code for UPCGData stuff
+			T* Object = nullptr;
+			if (!IsInGameThread())
+			{
+				{
+					FGCScopeGuard Scope;
+					Object = ::NewObject<T>(std::forward<Args>(InArgs)...);
+				}
+				check(Object);
+			}
+
+			Object = ::NewObject<T>(std::forward<Args>(InArgs)...);
+			Object->AddToRoot();
+			return Object;
+		}else
+		{
+			NewObject_AnyThread(this, std::forward<Args>(InArgs)...);	
+		}
+#endif
+	}
 
 	virtual void OnComplete();
 
@@ -46,7 +92,8 @@ public:
 	void RegisterAssetRequirement(const FSoftObjectPath& Dependency);
 	void LoadAssets();
 
-protected:
+protected
+:
 	bool bForceSynchronousAssetLoad = false;
 	bool bAssetLoadRequested = false;
 	bool bAssetLoadError = false;
