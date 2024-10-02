@@ -115,10 +115,8 @@ namespace PCGExData
 			if (OutKeys) { return OutKeys; }
 			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());
 
-			UE_LOG(LogTemp, Warning, TEXT("GetOutKeys, %llu, (x%d)"), Out->UID, View.Num())
 			if (bEnsureValidKeys)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("GetOutKeys, but also initialize metadata, %llu"), Out->UID)
 				UPCGMetadata* Metadata = Out->Metadata;
 				for (FPCGPoint& Pt : View) { if (Pt.MetadataEntry == PCGInvalidEntryKey) { Metadata->InitializeOnSet(Pt.MetadataEntry); } }
 			}

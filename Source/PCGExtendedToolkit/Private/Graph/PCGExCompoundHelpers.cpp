@@ -143,15 +143,12 @@ namespace PCGExGraph
 
 	bool FCompoundProcessor::Execute()
 	{
-		UE_LOG(LogTemp, Warning, TEXT(" FCompoundProcessor::Execute"))
-		
 		if (!bRunning) { return false; }
 
 		if (Context->IsState(State_ProcessingCompound)) { return false; }
 
 		if (Context->IsState(State_ProcessingPointEdgeIntersections))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("State_ProcessingPointEdgeIntersections"))
 			PCGEX_ASYNC_WAIT
 			if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
 			else { WriteClusters(); }
@@ -160,7 +157,6 @@ namespace PCGExGraph
 
 		if (Context->IsState(State_ProcessingEdgeEdgeIntersections))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("State_ProcessingEdgeEdgeIntersections"))
 			PCGEX_ASYNC_WAIT
 			WriteClusters();
 			return false;
@@ -168,7 +164,6 @@ namespace PCGExGraph
 
 		if (Context->IsState(State_WritingClusters))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("State_WritingClusters"))
 			PCGEX_ASYNC_WAIT
 			return true;
 		}
@@ -264,7 +259,6 @@ namespace PCGExGraph
 
 	void FCompoundProcessor::OnPointEdgeIntersectionsComplete()
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnPointEdgeIntersectionsComplete"))
 		if (MetadataBlender) { CompoundFacade->Write(Context->GetAsyncManager()); }
 	}
 
@@ -377,7 +371,6 @@ namespace PCGExGraph
 
 	void FCompoundProcessor::OnEdgeEdgeIntersectionsComplete()
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnEdgeEdgeIntersectionsComplete"))
 		CompoundFacade->Write(Context->GetAsyncManager());
 	}
 
