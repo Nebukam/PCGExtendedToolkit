@@ -49,16 +49,14 @@ void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData)
 	}
 }
 
-void FPCGExContext::StartAsyncWork(const bool bPauseOnly)
+void FPCGExContext::StartAsyncWork()
 {
 	bIsPaused = true;
-	if (!bPauseOnly) { AsyncState.bIsRunningOnMainThread = false; }
 }
 
 void FPCGExContext::StopAsyncWork()
 {
 	bIsPaused = false;
-	AsyncState.bIsRunningOnMainThread = true;
 }
 
 void FPCGExContext::WriteFutureOutputs()
@@ -163,7 +161,7 @@ void FPCGExContext::LoadAssets()
 
 	if (!bForceSynchronousAssetLoad)
 	{
-		StartAsyncWork(true);
+		StartAsyncWork();
 
 		LoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(
 			RequiredAssets.Array(), [&]()

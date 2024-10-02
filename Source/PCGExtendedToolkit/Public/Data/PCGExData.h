@@ -313,7 +313,7 @@ namespace PCGExData
 
 		virtual void Write() override
 		{
-			if (!IsWritable()) { return; }
+			if (!IsWritable() || !OutAccessor || !OutValues) { return; }
 
 			TArrayView<const T> View = MakeArrayView(OutValues->GetData(), OutValues->Num());
 			OutAccessor->SetRange(View, 0, *Source->GetOutKeys(true));
@@ -374,7 +374,7 @@ namespace PCGExData
 		}
 
 		FORCEINLINE bool IsDataValid(const ESource InSource) const { return Source->IsDataValid(InSource); }
-		
+
 		bool ShareSource(const FFacade* OtherManager) const { return this == OtherManager || OtherManager->Source == Source; }
 
 		template <typename T>

@@ -27,7 +27,7 @@ namespace PCGExData
 
 	void FPointIO::InitializeOutput(FPCGExContext* InContext, const EInit InitOut)
 	{
-		if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
+		if (Out != In) { PCGEX_DELETE_UPCGDATA(Out) }
 		OutKeys.Reset();
 
 		if (InitOut == EInit::NoOutput)
@@ -76,11 +76,17 @@ namespace PCGExData
 		if (InitOut == EInit::DuplicateInput)
 		{
 			check(In)
-			FGCScopeGuard GCGuarded;
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
-			Out = Cast<UPCGPointData>(In->DuplicateData(true));
+			{
+				FGCScopeGuard GCGuarded;
+				Out = Cast<UPCGPointData>(In->DuplicateData(true));
+			}
 #else
-			Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
+			{
+				PCGEX_ENFORCE_CONTEXT_ASYNC(Context)
+				FWriteScopeLock WriteScopeLock(Context->AsyncObjectLock); // Ugh
+				Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
+			}
 #endif
 			Out->AddToRoot();
 		}
@@ -151,7 +157,7 @@ namespace PCGExData
 		if (!bWritten)
 		{
 			// Delete unused outputs
-			if (Out && Out != In) { PCGEX_DELETE_UOBJECT(Out) }
+			if (Out && Out != In) { PCGEX_DELETE_UPCGDATA(Out) }
 		}
 	}
 

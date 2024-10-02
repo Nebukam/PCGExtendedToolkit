@@ -7,6 +7,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGContext.h"
+#include "PCGExHelpers.h"
 #include "Engine/StreamableManager.h"
 
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : public FPCGContext
@@ -24,6 +25,8 @@ protected:
 	void WriteFutureOutputs();
 
 public:
+	mutable FRWLock AsyncObjectLock; //ugh
+	
 	virtual ~FPCGExContext() override;
 
 	void UnrootFutures();
@@ -33,35 +36,23 @@ public:
 	void FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
 	void FutureOutput(const FName Pin, UPCGData* InData);
 
-	void StartAsyncWork(const bool bPauseOnly = false);
+	void StartAsyncWork();
 	void StopAsyncWork();
 
 	template <class T, typename... Args>
 	T* PCGExNewObject(Args&&... InArgs)
 	{
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
+		PCGEX_ENFORCE_CONTEXT_ASYNC(this)
 
 		T* Object = nullptr;
-		if (!IsInGameThread())
-		{
-			{
-				FGCScopeGuard Scope;
-				Object = ::NewObject<T>(std::forward<Args>(InArgs)...);
-			}
-			check(Object);
-		}
 
-		Object = ::NewObject<T>(std::forward<Args>(InArgs)...);
-		Object->AddToRoot();
-		return Object;
-
-#else
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
 		if constexpr (!std::is_base_of_v<T, UPCGData>)
 		{
-			// Since we create ops & factories through this flow, make sure we only
-			// use the 5.5 code for UPCGData stuff
-			T* Object = nullptr;
-			if (!IsInGameThread())
+			// Since we create ops & factories through this flow, make sure we only use the 5.5 code for UPCGData stuff
+#endif
+
+			if (AsyncState.bIsRunningOnMainThread)
 			{
 				{
 					FGCScopeGuard Scope;
@@ -69,15 +60,23 @@ public:
 				}
 				check(Object);
 			}
+			else
+			{
+				Object = ::NewObject<T>(std::forward<Args>(InArgs)...);
+			}
 
-			Object = ::NewObject<T>(std::forward<Args>(InArgs)...);
 			Object->AddToRoot();
-			return Object;
-		}else
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+		}
+		else
 		{
-			return FPCGContext::NewObject_AnyThread<T>(this, std::forward<Args>(InArgs)...);		
+			FWriteScopeLock WriteScopeLock(AsyncObjectLock);
+			Object = FPCGContext::NewObject_AnyThread<T>(this, std::forward<Args>(InArgs)...);
 		}
 #endif
+
+		return Object;
 	}
 
 	virtual void OnComplete();

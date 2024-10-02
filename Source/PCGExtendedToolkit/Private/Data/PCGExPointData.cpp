@@ -22,13 +22,23 @@ void UPCGExPointData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPoin
 
 void UPCGExPointData::BeginDestroy()
 {
+	ClearInternalFlags(EInternalObjectFlags::Async);
+	if (Metadata) { Metadata->ClearInternalFlags(EInternalObjectFlags::Async); }
 	Super::BeginDestroy();
-	//UE_LOG(LogTemp, Warning, TEXT("RELEASE UPCGExPointData"))
 }
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
 UPCGSpatialData* UPCGExPointData::CopyInternal() const
 {
 	PCGEX_NEW_OBJECT(UPCGExPointData, NewPointData)
 	NewPointData->CopyFrom(this);
 	return NewPointData;
 }
+#else
+UPCGSpatialData* UPCGExPointData::CopyInternal(FPCGContext* Context) const
+{
+	UPCGExPointData* NewPointData = FPCGContext::NewObject_AnyThread<UPCGExPointData>(Context);
+	NewPointData->CopyFrom(this);
+	return NewPointData;
+}
+#endif

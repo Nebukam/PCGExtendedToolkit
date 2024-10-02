@@ -12,6 +12,11 @@
 
 #include "PCGExHelpers.generated.h"
 
+#define PCGEX_ENFORCE_CONTEXT_ASYNC(_CONTEXT)\
+	bool bRestoreTo = _CONTEXT->AsyncState.bIsRunningOnMainThread;\
+	ON_SCOPE_EXIT { _CONTEXT->AsyncState.bIsRunningOnMainThread = bRestoreTo; };\
+	_CONTEXT->AsyncState.bIsRunningOnMainThread = IsInGameThread(); // dirty trick
+
 namespace PCGExHelpers
 {
 	static TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)

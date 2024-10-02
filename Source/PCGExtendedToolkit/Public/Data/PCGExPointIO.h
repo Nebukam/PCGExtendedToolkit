@@ -15,6 +15,17 @@
 
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+#define PCGEX_DELETE_UPCGDATA(_VALUE) \
+if(_VALUE){ \
+	PCGEX_UNROOT(_VALUE) \
+	if(_VALUE->Metadata){ PCGEX_UNROOT(_VALUE->Metadata) } \
+	_VALUE->MarkAsGarbage(); \
+	_VALUE = nullptr; }
+#else
+#define PCGEX_DELETE_UPCGDATA(_VALUE) _VALUE = nullptr; // Handled by 5.5 AsyncObjects 
+#endif
+
 namespace PCGExData
 {
 	enum class EInit : uint8
@@ -123,7 +134,7 @@ namespace PCGExData
 		template <typename T>
 		void InitializeOutput(FPCGExContext* InContext, const EInit InitOut = EInit::NoOutput)
 		{
-			if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
+			if (Out != In) { PCGEX_DELETE_UPCGDATA(Out) }
 
 			if (InitOut == EInit::NewOutput)
 			{
@@ -160,7 +171,11 @@ namespace PCGExData
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
 					Out = Cast<UPCGPointData>(In->DuplicateData(true));
 #else
-					Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
+					{
+						PCGEX_ENFORCE_CONTEXT_ASYNC(Context)
+						FWriteScopeLock WriteScopeLock(Context->AsyncObjectLock); // Ugh
+						Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
+					}
 #endif
 					Out->AddToRoot();
 				}
