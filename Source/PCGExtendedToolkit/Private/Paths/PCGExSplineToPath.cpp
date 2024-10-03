@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExSplineToPath.h"
 
+#include "VectorTypes.h"
 #include "Sampling/PCGExSampleNearestSpline.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSplineToPathElement"
@@ -13,13 +14,8 @@ PCGEX_INITIALIZE_ELEMENT(SplineToPath)
 TArray<FPCGPinProperties> UPCGExSplineToPathSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = TArray<FPCGPinProperties>();
-	PCGEX_PIN_POLYLINES(PCGEx::SourceTargetsLabel, "The spline datas to convert to paths.", Required, {})
+	PCGEX_PIN_POLYLINES(PCGExSplineToPath::SourceSplineLabel, "The splines to convert to paths.", Required, {})
 	return PinProperties;
-}
-
-TArray<FPCGPinProperties> UPCGExSplineToPathSettings::OutputPinProperties() const
-{
-	return Super::OutputPinProperties();
 }
 
 bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
@@ -30,7 +26,7 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 
 	if (Context->InputData.GetInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
 
-	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
+	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGExSplineToPath::SourceSplineLabel);
 
 	if (!Targets.IsEmpty())
 	{
@@ -107,29 +103,74 @@ namespace PCGExSplineToPath
 {
 	bool FWriteTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
 	{
-		if (!PointDataFacade) { return false; }
-
 		FPCGExSplineToPathContext* Context = AsyncManager->GetContext<FPCGExSplineToPathContext>();
-		check(Context);
-
+		PCGEX_SETTINGS(SplineToPath)
+		
 		const UPCGSplineData* SplineData = Context->Targets[TaskIndex];
+		check(SplineData)
 		const FPCGSplineStruct& Spline = Context->Splines[TaskIndex];
 
 		const int32 NumSegments = Spline.GetNumberOfSplineSegments();
-		const double Length = Spline.GetSplineLength();
+		const double TotalLength = Spline.GetSplineLength();
 
-		TArray<FPCGPoint> MutablePoints = PointDataFacade->Source->GetOut()->GetMutablePoints();
-		MutablePoints.SetNum(NumSegments + 1);
+		TArray<FPCGPoint>& MutablePoints = PointDataFacade->Source->GetOut()->GetMutablePoints();
+		const int32 LastIndex = Spline.bClosedLoop ? NumSegments - 1 : NumSegments;
+		MutablePoints.SetNum(Spline.bClosedLoop ? NumSegments : NumSegments + 1);
 
-		const FInterpCurveVector& Positions = Spline.GetSplinePointsPosition();
+		PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL)
 
+		{
+			const TSharedRef<PCGExData::FFacade>& OutputFacade = PointDataFacade.ToSharedRef();
+			PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_INIT)
+		}
+
+		auto ApplyTransform = [&](FPCGPoint& Point, const FTransform& Transform)
+		{
+			if (Settings->TransformDetails.bInheritRotation && Settings->TransformDetails.bInheritScale)
+			{
+				Point.Transform = Transform;
+			}
+			else if (Settings->TransformDetails.bInheritRotation)
+			{
+				Point.Transform.SetLocation(Transform.GetLocation());
+				Point.Transform.SetRotation(Transform.GetRotation());
+			}
+			else if (Settings->TransformDetails.bInheritScale)
+			{
+				Point.Transform.SetLocation(Transform.GetLocation());
+				Point.Transform.SetScale3D(Transform.GetScale3D());
+			}
+			else
+			{
+				Point.Transform.SetLocation(Transform.GetLocation());
+			}
+		};
 
 		for (int i = 0; i < NumSegments; ++i)
 		{
-			const int32 StartIndex = i;
-			const int32 EndIndex = i + 1;
-			FPCGPoint& Point = MutablePoints[StartIndex];
-			//Point.Transform.SetLocation(Positions.Points[StartIndex].);
+			const double LengthAtPoint = Spline.GetDistanceAlongSplineAtSplinePoint(i);
+			ApplyTransform(MutablePoints[i], Spline.GetTransformAtDistanceAlongSpline(LengthAtPoint, ESplineCoordinateSpace::Type::World, true));
+
+			PCGEX_OUTPUT_VALUE(LengthAtPoint, i, LengthAtPoint);
+			PCGEX_OUTPUT_VALUE(Alpha, i, LengthAtPoint / TotalLength);
+			PCGEX_OUTPUT_VALUE(ArriveTangent, i, Spline.SplineCurves.Position.Points[i].ArriveTangent);
+			PCGEX_OUTPUT_VALUE(LeaveTangent, i, Spline.SplineCurves.Position.Points[i].LeaveTangent);
+		}
+
+		if (Spline.bClosedLoop)
+		{
+			if (Settings->bTagIfClosedLoop) { PointDataFacade->Source->Tags->Add(Settings->IsClosedLoopTag); }
+		}
+		else
+		{
+			if (Settings->bTagIfOpenSpline) { PointDataFacade->Source->Tags->Add(Settings->IsOpenSplineTag); }
+
+			ApplyTransform(MutablePoints.Last(), Spline.GetTransformAtDistanceAlongSpline(TotalLength, ESplineCoordinateSpace::Type::World, true));
+
+			PCGEX_OUTPUT_VALUE(LengthAtPoint, LastIndex, TotalLength);
+			PCGEX_OUTPUT_VALUE(Alpha, LastIndex, 1);
+			PCGEX_OUTPUT_VALUE(ArriveTangent, LastIndex, Spline.SplineCurves.Position.Points[NumSegments+1].ArriveTangent);
+			PCGEX_OUTPUT_VALUE(LeaveTangent, LastIndex, Spline.SplineCurves.Position.Points[NumSegments+1].LeaveTangent);
 		}
 
 		PointDataFacade->Write(AsyncManager);

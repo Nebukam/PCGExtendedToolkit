@@ -15,13 +15,13 @@
 #define PCGEX_FOREACH_FIELD_SPLINETOPATH(MACRO)\
 MACRO(ArriveTangent, FVector, FVector::ZeroVector)\
 MACRO(LeaveTangent, FVector, FVector::ZeroVector)\
-MACRO(LengthAtPoint, double, FVector::ZeroVector)\
-MACRO(Alpha, double, FVector::ZeroVector)
+MACRO(LengthAtPoint, double, 0)\
+MACRO(Alpha, double, 0)
 
 /**
  * 
  */
-UCLASS(Abstract, MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
+UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineToPathSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -29,7 +29,7 @@ class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSplineToPathSettings : public UPCGExPoint
 public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SplineToPath, "Path : From Spline", "Breaks down an spline to a path.");
+	PCGEX_NODE_INFOS(SplineToPath, "Spline to Path", "Turns splines to paths.");
 #endif
 
 protected:
@@ -38,14 +38,17 @@ protected:
 
 	//~Begin UPCGExPointProcessorSettings
 public:
-	PCGEX_NODE_POINT_FILTER(FName("Flip SplineToPathation Conditions"), "Filters used to know whether an SplineToPathation should be flipped or not", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointProcessorSettings
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 public:
 
+	/** Point transform */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExTransformDetails TransformDetails;
+
+	
 	/** Sample inputs.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSplineSamplingIncludeMode SampleInputs = EPCGExSplineSamplingIncludeMode::All;
@@ -107,7 +110,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineToPathContext final : public FPCGE
 	friend class FPCGExSplineToPathElement;
 
 	PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL_TOGGLE)
-	
+
 	TArray<const UPCGSplineData*> Targets;
 	TArray<FPCGSplineStruct> Splines;
 
@@ -130,6 +133,8 @@ protected:
 
 namespace PCGExSplineToPath
 {
+	const FName SourceSplineLabel = TEXT("Splines");
+	
 	class /*PCGEXTENDEDTOOLKIT_API*/ FWriteTask final : public PCGExMT::FPCGExTask
 	{
 	public:
