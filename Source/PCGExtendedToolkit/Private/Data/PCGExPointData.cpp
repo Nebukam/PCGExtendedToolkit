@@ -28,7 +28,7 @@ void UPCGExPointData::BeginDestroy()
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
 UPCGSpatialData* UPCGExPointData::CopyInternal() const
 {
-	NewPointData = nullptr;
+	UPCGExPointData* NewPointData = nullptr;
 	{
 		FGCScopeGuard GCGuard;
 		NewObject<UPCGExPointData>();
