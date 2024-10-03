@@ -58,7 +58,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
-	Context->Paths->OutputToContext();
+	Context->Paths->StageOutputs();
 	return Context->TryComplete();
 }
 

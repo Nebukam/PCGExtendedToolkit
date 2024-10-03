@@ -90,11 +90,11 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 	if (Context->MainSites)
 	{
 		Context->MainSites->PruneNullEntries(true);
-		Context->MainSites->OutputToContext();
+		Context->MainSites->StageOutputs();
 	}
 
 	return Context->TryComplete();

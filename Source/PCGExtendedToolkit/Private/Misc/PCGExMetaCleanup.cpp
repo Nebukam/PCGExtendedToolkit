@@ -48,7 +48,7 @@ bool FPCGExMetaCleanupElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 	Context->Done();
 
 	return Context->TryComplete();

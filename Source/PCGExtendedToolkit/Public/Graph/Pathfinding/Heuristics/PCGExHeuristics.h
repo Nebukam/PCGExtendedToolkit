@@ -20,19 +20,22 @@ namespace PCGExHeuristics
 {
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FLocalFeedbackHandler
 	{
+		FPCGExContext* ExecutionContext = nullptr;
+
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;
 
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
 		double TotalWeight = 0;
 
-		FLocalFeedbackHandler()
+		FLocalFeedbackHandler(FPCGExContext* InContext):
+			ExecutionContext(InContext)
 		{
 		}
 
 		~FLocalFeedbackHandler()
 		{
-			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { PCGEX_DELETE_OPERATION(Feedback) }
+			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { PCGEX_DELETE_OPERATION(ExecutionContext, Feedback) }
 		}
 
 		FORCEINLINE double GetGlobalScore(
@@ -72,7 +75,7 @@ namespace PCGExHeuristics
 	class /*PCGEXTENDEDTOOLKIT_API*/ THeuristicsHandler
 	{
 		FPCGExContext* ExecutionContext = nullptr;
-		
+
 	public:
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgeDataFacade;

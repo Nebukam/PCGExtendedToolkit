@@ -131,7 +131,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->CompoundProcessor->Execute()) { return false; }
 
-	Context->CompoundFacade->Source->OutputToContext();
+	Context->CompoundFacade->Source->StageOutput();
 	Context->Done();
 
 	return Context->TryComplete();

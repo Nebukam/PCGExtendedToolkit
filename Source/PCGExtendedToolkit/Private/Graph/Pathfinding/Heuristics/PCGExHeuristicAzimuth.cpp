@@ -20,7 +20,7 @@ void UPCGExHeuristicAzimuth::PrepareForCluster(const PCGExCluster::FCluster* InC
 
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAzimuth::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicAzimuth* NewOperation = InContext->PCGExNewObject<UPCGExHeuristicAzimuth>();
+	UPCGExHeuristicAzimuth* NewOperation = InContext->NewManagedObject<UPCGExHeuristicAzimuth>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

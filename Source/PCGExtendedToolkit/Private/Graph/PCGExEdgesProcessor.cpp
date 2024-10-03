@@ -252,8 +252,8 @@ void FPCGExEdgesProcessorContext::AdvanceBatch(const PCGExMT::AsyncState NextSta
 
 void FPCGExEdgesProcessorContext::OutputPointsAndEdges() const
 {
-	MainPoints->OutputToContext();
-	MainEdges->OutputToContext();
+	MainPoints->StageOutputs();
+	MainEdges->StageOutputs();
 }
 
 int32 FPCGExEdgesProcessorContext::GetClusterProcessorsNum() const

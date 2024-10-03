@@ -92,7 +92,7 @@ bool FPCGExConditionalActionsElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }
@@ -101,7 +101,6 @@ namespace PCGExConditionalActions
 {
 	FProcessor::~FProcessor()
 	{
-		for (UPCGExConditionalActionOperation* Op : Operations) { PCGEX_DELETE_UOBJECT(Op) }
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)

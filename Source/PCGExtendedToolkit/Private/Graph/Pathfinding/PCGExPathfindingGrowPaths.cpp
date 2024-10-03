@@ -273,7 +273,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
-	Context->OutputPaths->OutputToContext();
+	Context->OutputPaths->StageOutputs();
 
 	return Context->TryComplete();
 }

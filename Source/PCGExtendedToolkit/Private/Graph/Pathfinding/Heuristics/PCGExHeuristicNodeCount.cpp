@@ -13,7 +13,7 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryLeastNodes::CreateOperation(FPC
 
 UPCGExParamFactoryBase* UPCGExHeuristicsLeastNodesProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExHeuristicsFactoryLeastNodes* NewFactory = InContext->PCGExNewObject<UPCGExHeuristicsFactoryLeastNodes>();
+	UPCGExHeuristicsFactoryLeastNodes* NewFactory = InContext->NewManagedObject<UPCGExHeuristicsFactoryLeastNodes>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
 	return Super::CreateFactory(InContext, NewFactory);
 }

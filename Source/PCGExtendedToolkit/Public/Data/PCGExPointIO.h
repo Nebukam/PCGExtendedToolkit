@@ -93,8 +93,8 @@ namespace PCGExData
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> InKeys; // Shared because reused by duplicates
 		TSharedPtr<FPCGAttributeAccessorKeysPoints> OutKeys;
 
-		const UPCGPointData* In;      // Input PointData	
-		UPCGPointData* Out = nullptr; // Output PointData
+		const UPCGPointData* In = nullptr; // Input PointData	
+		UPCGPointData* Out = nullptr;      // Output PointData
 
 		TWeakPtr<FPointIO> RootIO;
 		bool bEnabled = true;
@@ -134,11 +134,11 @@ namespace PCGExData
 		template <typename T>
 		void InitializeOutput(FPCGExContext* InContext, const EInit InitOut = EInit::NoOutput)
 		{
-			if (Out != In) { PCGEX_DELETE_UPCGDATA(Out) }
+			if (Out && Out != In) { Context->DeleteManagedObject(Out); }
 
 			if (InitOut == EInit::NewOutput)
 			{
-				T* TypedOut = InContext->PCGExNewObject<T>();
+				T* TypedOut = InContext->NewManagedObject<T>();
 
 				Out = Cast<UPCGPointData>(TypedOut);
 				check(Out)
@@ -158,7 +158,7 @@ namespace PCGExData
 
 				if (!TypedIn)
 				{
-					T* TypedOut = InContext->PCGExNewObject<T>();
+					T* TypedOut = InContext->NewManagedObject<T>();
 
 					if (UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(TypedOut)) { TypedPointData->CopyFrom(In); }
 					else { TypedOut->InitializeFromData(In); } // This is a potentially failed duplicate
@@ -173,7 +173,7 @@ namespace PCGExData
 #else
 					{
 						PCGEX_ENFORCE_CONTEXT_ASYNC(Context)
-						FWriteScopeLock WriteScopeLock(Context->AsyncObjectLock); // Ugh
+						FWriteScopeLock WriteScopeLock(Context->ManagedObjectLock); // Ugh
 						Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
 					}
 #endif
@@ -268,8 +268,8 @@ namespace PCGExData
 		void Enable() { bEnabled = true; }
 		bool IsEnabled() const { return bEnabled; }
 
-		bool OutputToContext();
-		bool OutputToContext(const int32 MinPointCount, const int32 MaxPointCount);
+		bool StageOutput() const;
+		bool StageOutput(const int32 MinPointCount, const int32 MaxPointCount) const;
 
 		void DeleteAttribute(FName AttributeName) const;
 
@@ -372,8 +372,8 @@ namespace PCGExData
 
 		TSharedPtr<FPointIO> operator[](const int32 Index) const { return Pairs[Index]; }
 
-		void OutputToContext();
-		void OutputToContext(const int32 MinPointCount, const int32 MaxPointCount);
+		void StageOutputs();
+		void StageOutputs(const int32 MinPointCount, const int32 MaxPointCount);
 
 		void Sort();
 

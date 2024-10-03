@@ -109,8 +109,8 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		Context->SearchKeyIO->InitializeOutput(Context, PCGExData::EInit::Forward);
 		Context->SearchKeyIO = nullptr;
 
-		Context->MainPoints->OutputToContext();
-		Context->MainEdges->OutputToContext();
+		Context->MainPoints->StageOutputs();
+		Context->MainEdges->StageOutputs();
 
 		Context->Done();
 
@@ -145,8 +145,8 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		Context->SearchKeyIO->InitializeOutput(Context, PCGExData::EInit::Forward);
 		Context->SearchKeyIO = nullptr;
 
-		Context->MainPoints->OutputToContext();
-		Context->MainEdges->OutputToContext();
+		Context->MainPoints->StageOutputs();
+		Context->MainEdges->StageOutputs();
 
 		Context->Done();
 
@@ -254,8 +254,8 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 	}
 
-	Context->MainPoints->OutputToContext();
-	Context->MainEdges->OutputToContext();
+	Context->MainPoints->StageOutputs();
+	Context->MainEdges->StageOutputs();
 
 	Context->Done();
 

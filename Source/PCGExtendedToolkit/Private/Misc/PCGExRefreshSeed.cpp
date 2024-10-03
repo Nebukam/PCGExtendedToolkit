@@ -50,7 +50,7 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 		PCGEX_ASYNC_WAIT
 
 		Context->Done();
-		Context->MainPoints->OutputToContext();
+		Context->MainPoints->StageOutputs();
 	}
 
 	return Context->TryComplete();

@@ -48,7 +48,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	if (!OutFactory) { return true; }
 
-	PCGExContext->FutureOutput(Settings->GetMainOutputLabel(), OutFactory);
+	PCGExContext->StageOutput(Settings->GetMainOutputLabel(), OutFactory, false);
 	PCGExContext->OnComplete();
 
 	return true;

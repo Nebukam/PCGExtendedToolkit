@@ -29,13 +29,6 @@ TArray<FPCGPinProperties> UPCGExPathSplineMeshSettings::InputPinProperties() con
 
 PCGExData::EInit UPCGExPathSplineMeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGExPathSplineMeshContext::~FPCGExPathSplineMeshContext()
-{
-	PCGEX_TERMINATE_ASYNC
-	UPCGExInternalCollection* InternalCollection = Cast<UPCGExInternalCollection>(MainCollection);
-	PCGEX_DELETE_UOBJECT(InternalCollection)
-}
-
 void FPCGExPathSplineMeshContext::RegisterAssetDependencies()
 {
 	FPCGExPathProcessorContext::RegisterAssetDependencies();
@@ -149,7 +142,7 @@ bool FPCGExPathSplineMeshElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }

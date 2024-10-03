@@ -91,7 +91,6 @@ namespace PCGExPointsMT
 		virtual ~FPointsProcessor()
 		{
 			PCGEX_LOG_DTR(FPointsProcessor)
-			PCGEX_DELETE_OPERATION(PrimaryOperation)
 		}
 
 		virtual bool IsTrivial() const { return bIsTrivial; }

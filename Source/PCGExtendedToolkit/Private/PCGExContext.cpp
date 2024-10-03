@@ -9,13 +9,14 @@
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
-void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags)
+void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, const bool bManaged)
 {
-	if (bUseLock)
+	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(ContextOutputLock);
+
 		AdditionsSinceLastReserve++;
-		FPCGTaggedData& Output = FutureOutputs.Emplace_GetRef();
+		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Pin = Pin;
 		Output.Data = InData;
 		Output.Tags.Append(InTags);
@@ -23,29 +24,64 @@ void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData, const TSet<F
 	else
 	{
 		AdditionsSinceLastReserve++;
-		FPCGTaggedData& Output = FutureOutputs.Emplace_GetRef();
+		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Pin = Pin;
 		Output.Data = InData;
 		Output.Tags.Append(InTags);
 	}
+
+	if (bManaged) { AddManagedObject(InData); }
 }
 
-void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData)
+void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const bool bManaged)
 {
-	if (bUseLock)
+	if (!IsInGameThread())
 	{
 		FWriteScopeLock WriteScopeLock(ContextOutputLock);
+
 		AdditionsSinceLastReserve++;
-		FPCGTaggedData& Output = FutureOutputs.Emplace_GetRef();
+		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Pin = Pin;
 		Output.Data = InData;
 	}
 	else
 	{
 		AdditionsSinceLastReserve++;
-		FPCGTaggedData& Output = FutureOutputs.Emplace_GetRef();
+		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
 		Output.Pin = Pin;
 		Output.Data = InData;
+	}
+
+	if (bManaged) { AddManagedObject(InData); }
+}
+
+void FPCGExContext::AddManagedObject(UObject* InObject)
+{
+	FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+	ManagedObjects.Add(InObject);
+	InObject->AddToRoot();
+}
+
+void FPCGExContext::ReleaseManagedObject(UObject* InObject)
+{
+	if (!IsValid(InObject)) { return; }
+	
+	{
+		FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+		ManagedObjects.Remove(InObject);
+		if (InObject->IsRooted()) { InObject->RemoveFromRoot(); }
+
+		if (InObject->HasAnyInternalFlags(EInternalObjectFlags::Async))
+		{
+			InObject->ClearInternalFlags(EInternalObjectFlags::Async);
+
+			ForEachObjectWithOuter(
+				InObject, [&](UObject* SubObject)
+				{
+					if (ManagedObjects.Contains(SubObject)) { return; }
+					SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
+				}, true);
+		}
 	}
 }
 
@@ -59,31 +95,51 @@ void FPCGExContext::StopAsyncWork()
 	bIsPaused = false;
 }
 
-void FPCGExContext::WriteFutureOutputs()
+void FPCGExContext::CommitStagedOutputs()
 {
+	// Must be executed on main thread
+	ensure(IsInGameThread());
+
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExContext::WriteFutureOutputs);
 
-	UnrootFutures();
+	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + StagedOutputs.Num());
+	for (const FPCGTaggedData& FData : StagedOutputs)
+	{
+		ReleaseManagedObject(const_cast<UPCGData*>(FData.Data.Get()));
+		OutputData.TaggedData.Add(FData);
+	}
 
-	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + FutureOutputs.Num());
-	for (const FPCGTaggedData& FData : FutureOutputs) { OutputData.TaggedData.Add(FData); }
-
-	FutureOutputs.Empty();
+	StagedOutputs.Empty();
 }
 
 FPCGExContext::~FPCGExContext()
 {
 	CancelAssetLoading();
-	UnrootFutures();
+
+	// Flush remaining managed objects & mark them as garbage
+	for (UObject* ObjectPtr : ManagedObjects)
+	{
+		if (ObjectPtr->IsRooted()) { ObjectPtr->RemoveFromRoot(); }
+
+		if (ObjectPtr->HasAnyInternalFlags(EInternalObjectFlags::Async))
+		{
+			ObjectPtr->ClearInternalFlags(EInternalObjectFlags::Async);
+
+			ForEachObjectWithOuter(
+				ObjectPtr, [&](UObject* SubObject)
+				{
+					if (ManagedObjects.Contains(SubObject)) { return; }
+					SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
+				}, true);
+		}
+
+		ObjectPtr->MarkAsGarbage();
+	}
+
+	ManagedObjects.Empty();
 }
 
-void FPCGExContext::UnrootFutures()
-{
-	for (UPCGData* FData : Rooted) { PCGEX_UNROOT(FData) }
-	Rooted.Empty();
-}
-
-void FPCGExContext::FutureReserve(const int32 NumAdditions)
+void FPCGExContext::StagedOutputReserve(const int32 NumAdditions)
 {
 	const int32 ConservativeAdditions = NumAdditions - FMath::Min(0, LastReserve - AdditionsSinceLastReserve);
 
@@ -91,30 +147,27 @@ void FPCGExContext::FutureReserve(const int32 NumAdditions)
 	{
 		FWriteScopeLock WriteScopeLock(ContextOutputLock);
 		LastReserve = ConservativeAdditions;
-		FutureOutputs.Reserve(FutureOutputs.Num() + ConservativeAdditions);
-		Rooted.Reserve(Rooted.Num() + ConservativeAdditions);
+		StagedOutputs.Reserve(StagedOutputs.Num() + ConservativeAdditions);
 		return;
 	}
 
 	LastReserve = ConservativeAdditions;
-	FutureOutputs.Reserve(FutureOutputs.Num() + ConservativeAdditions);
+	StagedOutputs.Reserve(StagedOutputs.Num() + ConservativeAdditions);
 }
 
-void FPCGExContext::FutureRootedOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags)
+void FPCGExContext::DeleteManagedObject(UObject* InObject)
 {
-	// Keep our data rooted until we are destroyed, or until they are output'd
-	if (bUseLock)
-	{
-		FWriteScopeLock WriteScopeLock(ContextOutputLock);
-		Rooted.Add(InData);
-	}
-	else { Rooted.Add(InData); }
-	FutureOutput(Pin, InData, InTags);
+	check(InObject)
+
+	if (!IsValid(InObject)) { return; }
+
+	ReleaseManagedObject(InObject);
+	InObject->MarkAsGarbage();
 }
 
 void FPCGExContext::OnComplete()
 {
-	WriteFutureOutputs();
+	CommitStagedOutputs();
 
 	if (bFlattenOutput)
 	{

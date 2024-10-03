@@ -440,7 +440,7 @@ namespace PCGExGraph
 
 	void FGraphBuilder::OutputEdgesToContext() const
 	{
-		EdgesIO->OutputToContext();
+		EdgesIO->StageOutputs();
 	}
 }
 

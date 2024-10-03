@@ -14,33 +14,36 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : public FPCGContext
 {
 protected:
 	mutable FRWLock ContextOutputLock;
-	TArray<FPCGTaggedData> FutureOutputs;
-	TArray<UPCGData*> Rooted;
+	
+	TArray<FPCGTaggedData> StagedOutputs;
 	bool bFlattenOutput = false;
 	bool bUseLock = true;
 
 	int32 LastReserve = 0;
 	int32 AdditionsSinceLastReserve = 0;
 
-	void WriteFutureOutputs();
+	TSet<UObject*> ManagedObjects;
+
+	void CommitStagedOutputs();
 
 public:
-	mutable FRWLock AsyncObjectLock; //ugh
+	mutable FRWLock ManagedObjectLock; //ugh
 	
 	virtual ~FPCGExContext() override;
 
-	void UnrootFutures();
-
-	void FutureReserve(const int32 NumAdditions);
-	void FutureRootedOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
-	void FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
-	void FutureOutput(const FName Pin, UPCGData* InData);
+	void StagedOutputReserve(const int32 NumAdditions);
+	
+	void StageOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags, bool bManaged);
+	void StageOutput(const FName Pin, UPCGData* InData, bool bManaged);
+	
+	void AddManagedObject(UObject* InObject);
+	void ReleaseManagedObject(UObject* InObject);
 
 	void StartAsyncWork();
 	void StopAsyncWork();
 
 	template <class T, typename... Args>
-	T* PCGExNewObject(Args&&... InArgs)
+	T* NewManagedObject(Args&&... InArgs)
 	{
 		PCGEX_ENFORCE_CONTEXT_ASYNC(this)
 
@@ -65,13 +68,13 @@ public:
 				Object = ::NewObject<T>(std::forward<Args>(InArgs)...);
 			}
 
-			Object->AddToRoot();
-
+			AddManagedObject(Object);
+			
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
 		}
 		else
 		{
-			FWriteScopeLock WriteScopeLock(AsyncObjectLock);
+			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 			Object = FPCGContext::NewObject_AnyThread<T>(this, std::forward<Args>(InArgs)...);
 		}
 #endif
@@ -79,6 +82,8 @@ public:
 		return Object;
 	}
 
+	void DeleteManagedObject(UObject* InObject);
+	
 	virtual void OnComplete();
 
 #pragma region Async resource management

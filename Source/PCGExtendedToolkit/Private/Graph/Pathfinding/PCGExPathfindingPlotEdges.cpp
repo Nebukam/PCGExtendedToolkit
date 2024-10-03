@@ -189,7 +189,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
-	Context->OutputPaths->OutputToContext();
+	Context->OutputPaths->StageOutputs();
 
 	return Context->TryComplete();
 }
@@ -213,7 +213,6 @@ namespace PCGExPathfindingPlotEdge
 
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_OPERATION(SearchOperation)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)

@@ -78,8 +78,8 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 
 	Context->MainBatch->Output();
 
-	Context->Inside->OutputToContext();
-	Context->Outside->OutputToContext();
+	Context->Inside->StageOutputs();
+	Context->Outside->StageOutputs();
 
 	return Context->TryComplete();
 }

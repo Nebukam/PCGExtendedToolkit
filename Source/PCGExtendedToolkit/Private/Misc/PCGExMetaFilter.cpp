@@ -69,8 +69,8 @@ bool FPCGExMetaFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	Context->Inside->OutputToContext();
-	Context->Outside->OutputToContext();
+	Context->Inside->StageOutputs();
+	Context->Outside->StageOutputs();
 	Context->Done();
 
 	return Context->TryComplete();

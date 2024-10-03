@@ -222,8 +222,8 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->VtxChildCollection->OutputToContext();
-		Context->EdgeChildCollection->OutputToContext();
+		Context->VtxChildCollection->StageOutputs();
+		Context->EdgeChildCollection->StageOutputs();
 
 		Context->Done();
 	}

@@ -22,15 +22,17 @@ void UPCGExPointData::InitializeFromPCGExData(const UPCGExPointData* InPCGExPoin
 
 void UPCGExPointData::BeginDestroy()
 {
-	ClearInternalFlags(EInternalObjectFlags::Async);
-	if (Metadata) { Metadata->ClearInternalFlags(EInternalObjectFlags::Async); }
 	Super::BeginDestroy();
 }
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
 UPCGSpatialData* UPCGExPointData::CopyInternal() const
 {
-	PCGEX_NEW_OBJECT(UPCGExPointData, NewPointData)
+	NewPointData = nullptr;
+	{
+		FGCScopeGuard GCGuard;
+		NewObject<UPCGExPointData>();
+	}
 	NewPointData->CopyFrom(this);
 	return NewPointData;
 }

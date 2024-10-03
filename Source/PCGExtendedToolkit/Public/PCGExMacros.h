@@ -18,7 +18,7 @@
 
 #define PCGEX_UNROOT(_VALUE) _VALUE->RemoveFromRoot(); _VALUE->ClearInternalFlags(EInternalObjectFlags::Async);
 #define PCGEX_DELETE_UOBJECT(_VALUE) if(_VALUE){ PCGEX_UNROOT(_VALUE) _VALUE->MarkAsGarbage(); _VALUE = nullptr; } // ConditionalBeginDestroy
-#define PCGEX_DELETE_OPERATION(_VALUE) if(_VALUE){ _VALUE->Cleanup(); PCGEX_DELETE_UOBJECT(_VALUE) _VALUE = nullptr; } // ConditionalBeginDestroy
+#define PCGEX_DELETE_OPERATION(_CONTEXT, _VALUE) if(_VALUE){ _VALUE->Cleanup(); _CONTEXT->DeleteManagedObject(_VALUE); _VALUE = nullptr; } // ConditionalBeginDestroy
 
 #define PCGEX_FOREACH_XYZ(MACRO)\
 MACRO(X)\

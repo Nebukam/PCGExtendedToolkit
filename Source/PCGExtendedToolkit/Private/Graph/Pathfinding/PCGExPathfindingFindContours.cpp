@@ -313,11 +313,11 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 			if (Context->SeedQuality[i]) { GoodSeeds.Add(InSeeds[i]); }
 			else { BadSeeds.Add(InSeeds[i]); }
 		}
-		Context->GoodSeeds->OutputToContext();
-		Context->BadSeeds->OutputToContext();
+		Context->GoodSeeds->StageOutput();
+		Context->BadSeeds->StageOutput();
 	}
 
-	Context->Paths->OutputToContext();
+	Context->Paths->StageOutputs();
 
 	return Context->TryComplete();
 }

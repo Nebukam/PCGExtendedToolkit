@@ -125,7 +125,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : public FPC
 {
 	friend class FPCGExPathSplineMeshElement;
 
-	virtual ~FPCGExPathSplineMeshContext() override;
 	virtual void RegisterAssetDependencies() override;
 
 	TSet<AActor*> NotifyActors;

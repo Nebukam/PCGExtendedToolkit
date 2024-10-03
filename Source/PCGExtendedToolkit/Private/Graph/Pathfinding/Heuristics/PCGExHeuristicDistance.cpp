@@ -12,7 +12,7 @@ void UPCGExHeuristicDistance::PrepareForCluster(const PCGExCluster::FCluster* In
 
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryShortestDistance::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicDistance* NewOperation = InContext->PCGExNewObject<UPCGExHeuristicDistance>();
+	UPCGExHeuristicDistance* NewOperation = InContext->NewManagedObject<UPCGExHeuristicDistance>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

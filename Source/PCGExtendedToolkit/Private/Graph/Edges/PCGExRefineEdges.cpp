@@ -124,8 +124,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	//
 
-	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->MainPoints->OutputToContext(); }
-	else { Context->MainEdges->OutputToContext(); }
+	if (!Settings->bOutputOnlyEdgesAsPoints) { Context->MainPoints->StageOutputs(); }
+	else { Context->MainEdges->StageOutputs(); }
 
 	return Context->TryComplete();
 }
@@ -140,7 +140,6 @@ namespace PCGExRefineEdges
 
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_OPERATION(Refinement)
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)

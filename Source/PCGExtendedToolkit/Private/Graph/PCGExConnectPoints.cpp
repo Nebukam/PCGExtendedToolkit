@@ -86,7 +86,7 @@ bool FPCGExConnectPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }
@@ -95,8 +95,6 @@ namespace PCGExConnectPoints
 {
 	FProcessor::~FProcessor()
 	{
-		for (UPCGExProbeOperation* Op : ProbeOperations) { PCGEX_DELETE_UOBJECT(Op) }
-		for (UPCGExProbeOperation* Op : DirectProbeOperations) { PCGEX_DELETE_UOBJECT(Op) }
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -125,11 +123,7 @@ namespace PCGExConnectPoints
 			NewOperation->BindContext(ExecutionContext);
 			NewOperation->PrimaryDataFacade = PointDataFacade;
 
-			if (!NewOperation->PrepareForPoints(PointDataFacade->Source))
-			{
-				PCGEX_DELETE_UOBJECT(NewOperation)
-				continue;
-			}
+			if (!NewOperation->PrepareForPoints(PointDataFacade->Source)) { continue; }
 
 			if (NewOperation->RequiresDirectProcessing())
 			{

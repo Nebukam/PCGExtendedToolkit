@@ -24,13 +24,6 @@ TArray<FPCGPinProperties> UPCGExAssetStagingSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-FPCGExAssetStagingContext::~FPCGExAssetStagingContext()
-{
-	PCGEX_TERMINATE_ASYNC
-	UPCGExInternalCollection* InternalCollection = Cast<UPCGExInternalCollection>(MainCollection);
-	PCGEX_DELETE_UOBJECT(InternalCollection)
-}
-
 void FPCGExAssetStagingContext::RegisterAssetDependencies()
 {
 	FPCGExPointsProcessorContext::RegisterAssetDependencies();
@@ -116,7 +109,7 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }

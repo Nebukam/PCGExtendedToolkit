@@ -82,8 +82,8 @@ bool FPCGExMergeVerticesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
-	Context->CompositeIODataFacade->Source->OutputToContext();
-	Context->MainEdges->OutputToContext();
+	Context->CompositeIODataFacade->Source->StageOutput();
+	Context->MainEdges->StageOutputs();
 
 	return Context->TryComplete();
 }

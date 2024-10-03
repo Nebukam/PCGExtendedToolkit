@@ -92,15 +92,15 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Settings->Mode == EPCGExUberFilterMode::Write)
 	{
-		Context->MainPoints->OutputToContext();
+		Context->MainPoints->StageOutputs();
 	}
 	else
 	{
 		Context->Inside->PruneNullEntries(true);
 		Context->Outside->PruneNullEntries(true);
 
-		Context->Inside->OutputToContext();
-		Context->Outside->OutputToContext();
+		Context->Inside->StageOutputs();
+		Context->Outside->StageOutputs();
 	}
 
 	return Context->TryComplete();

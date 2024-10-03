@@ -20,7 +20,7 @@ void UPCGExHeuristicInertia::PrepareForCluster(const PCGExCluster::FCluster* InC
 
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryInertia::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicInertia* NewOperation = InContext->PCGExNewObject<UPCGExHeuristicInertia>();
+	UPCGExHeuristicInertia* NewOperation = InContext->NewManagedObject<UPCGExHeuristicInertia>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->GlobalInertiaScore = Config.GlobalInertiaScore;
 	NewOperation->FallbackInertiaScore = Config.FallbackInertiaScore;

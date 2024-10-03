@@ -125,7 +125,7 @@ FString UPCGExVtxPropertyEdgeMatchSettings::GetDisplayName() const
 
 UPCGExVtxPropertyOperation* UPCGExVtxPropertyEdgeMatchFactory::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExVtxPropertyEdgeMatch* NewOperation = InContext->PCGExNewObject<UPCGExVtxPropertyEdgeMatch>();
+	UPCGExVtxPropertyEdgeMatch* NewOperation = InContext->NewManagedObject<UPCGExVtxPropertyEdgeMatch>();
 	PCGEX_VTX_EXTRA_CREATE
 
 	if (!FilterFactories.IsEmpty())

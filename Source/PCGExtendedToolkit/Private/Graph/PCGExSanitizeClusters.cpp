@@ -51,7 +51,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->OutputBatches();
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }

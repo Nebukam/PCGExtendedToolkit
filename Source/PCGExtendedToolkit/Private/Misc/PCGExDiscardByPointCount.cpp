@@ -33,7 +33,7 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 		PointIO->InitializeOutput(Context, PCGExData::EInit::Forward);
 	}
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 	Context->Done();
 
 	return Context->TryComplete();

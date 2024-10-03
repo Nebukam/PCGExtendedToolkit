@@ -117,7 +117,6 @@ namespace PCGExWriteVtxProperties
 
 	FProcessorBatch::~FProcessorBatch()
 	{
-		for (UPCGExVtxPropertyOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
 	}
 
 	void FProcessorBatch::OnProcessingPreparationComplete()
@@ -132,11 +131,9 @@ namespace PCGExWriteVtxProperties
 		for (const UPCGExVtxPropertyFactoryBase* Factory : Context->ExtraFactories)
 		{
 			UPCGExVtxPropertyOperation* NewOperation = Factory->CreateOperation(Context);
-			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade))
-			{
-				PCGEX_DELETE_OPERATION(NewOperation)
-				continue;
-			}
+
+			if (!NewOperation->PrepareForVtx(Context, VtxDataFacade)) { continue; }
+
 			NewOperation->ClusterReserve(Edges.Num());
 			ExtraOperations.Add(NewOperation);
 		}

@@ -54,7 +54,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (!Context->ProcessClusters(PCGExGraph::State_ReadyToCompile)) { return false; }
 	if (!Context->CompileGraphBuilders(true, PCGExMT::State_Done)) { return false; }
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }

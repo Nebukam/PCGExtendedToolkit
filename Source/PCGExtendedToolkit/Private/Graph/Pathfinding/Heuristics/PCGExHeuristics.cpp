@@ -27,11 +27,7 @@ namespace PCGExHeuristics
 
 	THeuristicsHandler::~THeuristicsHandler()
 	{
-		for (UPCGExHeuristicOperation* Operation : Operations)
-		{
-			Operation->Cleanup();
-			PCGEX_DELETE_UOBJECT(Operation)
-		}
+		for (UPCGExHeuristicOperation* Op : Operations) { PCGEX_DELETE_OPERATION(ExecutionContext, Op) }
 
 		Operations.Empty();
 		Feedbacks.Empty();
@@ -72,7 +68,7 @@ namespace PCGExHeuristics
 		if (Operations.IsEmpty())
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid heuristics. Will use Shortest Distance as default. (Local feedback heuristics don't count)"));
-			UPCGExHeuristicDistance* DefaultHeuristics = InContext->PCGExNewObject<UPCGExHeuristicDistance>();
+			UPCGExHeuristicDistance* DefaultHeuristics = InContext->NewManagedObject<UPCGExHeuristicDistance>();
 			DefaultHeuristics->ReferenceWeight = ReferenceWeight;
 			Operations.Add(DefaultHeuristics);
 		}
@@ -100,7 +96,7 @@ namespace PCGExHeuristics
 	TSharedPtr<FLocalFeedbackHandler> THeuristicsHandler::MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster)
 	{
 		if (!LocalFeedbackFactories.IsEmpty()) { return nullptr; }
-		TSharedPtr<FLocalFeedbackHandler> NewLocalFeedbackHandler = MakeShared<FLocalFeedbackHandler>();
+		TSharedPtr<FLocalFeedbackHandler> NewLocalFeedbackHandler = MakeShared<FLocalFeedbackHandler>(ExecutionContext);
 
 		for (const UPCGExHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
 		{

@@ -54,8 +54,8 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
 
 	Context->OutputBatches();
-	Context->VtxPartitions->OutputToContext();
-	Context->MainEdges->OutputToContext();
+	Context->VtxPartitions->StageOutputs();
+	Context->MainEdges->StageOutputs();
 
 	return Context->TryComplete();
 }

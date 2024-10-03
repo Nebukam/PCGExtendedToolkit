@@ -74,7 +74,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 		PCGEX_ASYNC_WAIT
 
 		Context->Done();
-		Context->PackedClusters->OutputToContext();
+		Context->PackedClusters->StageOutputs();
 	}
 
 	return Context->TryComplete();

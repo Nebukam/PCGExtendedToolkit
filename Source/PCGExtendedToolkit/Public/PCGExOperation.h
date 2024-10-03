@@ -43,17 +43,9 @@ public:
 	template <typename T>
 	T* CopyOperation() const
 	{
-		UObject* GenericInstance = nullptr; { FGCScopeGuard GCGuard; GenericInstance = NewObject<UObject>(this->GetOuter(), this->GetClass()); GenericInstance->AddToRoot(); }
+		T* TypedInstance = Context->NewManagedObject<T>(this->GetOuter(), this->GetClass());
 
-		T* TypedInstance = Context->PCGExNewObject<T>(this->GetOuter(), this->GetClass());
-
-		if (!TypedInstance)
-		{
-			UPCGExOperation* Operation = Cast<UPCGExOperation>(GenericInstance);
-			if (Operation) { PCGEX_DELETE_OPERATION(Operation) }
-			else { PCGEX_DELETE_UOBJECT(GenericInstance) }
-			return nullptr;
-		}
+		check(TypedInstance)
 
 		TypedInstance->CopySettingsFrom(this);
 		return TypedInstance;

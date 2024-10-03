@@ -64,8 +64,8 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->OutPoints->OutputToContext();
-		Context->OutEdges->OutputToContext();
+		Context->OutPoints->StageOutputs();
+		Context->OutEdges->StageOutputs();
 
 		Context->Done();
 	}

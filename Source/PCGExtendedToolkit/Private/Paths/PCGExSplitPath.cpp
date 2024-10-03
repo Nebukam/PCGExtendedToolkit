@@ -70,7 +70,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->MainPaths->Pairs.Reserve(Context->MainPaths->Pairs.Num() + Context->MainBatch->GetNumProcessors());
 	Context->MainBatch->Output();
 
-	Context->MainPaths->OutputToContext();
+	Context->MainPaths->StageOutputs();
 
 	return Context->TryComplete();
 }

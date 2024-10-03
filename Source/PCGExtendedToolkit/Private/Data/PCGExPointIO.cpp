@@ -27,7 +27,7 @@ namespace PCGExData
 
 	void FPointIO::InitializeOutput(FPCGExContext* InContext, const EInit InitOut)
 	{
-		if (Out != In) { PCGEX_DELETE_UPCGDATA(Out) }
+		if (Out && Out != In) { Context->DeleteManagedObject(Out); }
 		OutKeys.Reset();
 
 		if (InitOut == EInit::NoOutput)
@@ -47,7 +47,7 @@ namespace PCGExData
 		{
 			if (In)
 			{
-				UObject* GenericInstance = InContext->PCGExNewObject<UObject>(In->GetOuter(), In->GetClass());
+				UObject* GenericInstance = InContext->NewManagedObject<UObject>(In->GetOuter(), In->GetClass());
 				Out = Cast<UPCGPointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
@@ -65,9 +65,7 @@ namespace PCGExData
 			}
 			else
 			{
-				FGCScopeGuard GCGuarded;
-				Out = NewObject<UPCGPointData>();
-				Out->AddToRoot();
+				Out = Context->NewManagedObject<UPCGPointData>();
 			}
 
 			return;
@@ -84,11 +82,12 @@ namespace PCGExData
 #else
 			{
 				PCGEX_ENFORCE_CONTEXT_ASYNC(Context)
-				FWriteScopeLock WriteScopeLock(Context->AsyncObjectLock); // Ugh
+				FWriteScopeLock WriteScopeLock(Context->ManagedObjectLock); // Ugh
 				Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
 			}
 #endif
-			Out->AddToRoot();
+			
+			Context->AddManagedObject(Out);
 		}
 	}
 
@@ -154,40 +153,25 @@ namespace PCGExData
 	FPointIO::~FPointIO()
 	{
 		PCGEX_LOG_DTR(FPointIO)
-		if (!bWritten)
-		{
-			// Delete unused outputs
-			if (Out && Out != In) { PCGEX_DELETE_UPCGDATA(Out) }
-		}
 	}
 
-	bool FPointIO::OutputToContext()
+	bool FPointIO::StageOutput() const
 	{
-		if (bEnabled && Out && Out->GetPoints().Num() > 0)
-		{
-			if (In && Out == In) { Context->FutureOutput(DefaultOutputLabel, Out, Tags->ToSet()); }
-			else { Context->FutureRootedOutput(DefaultOutputLabel, Out, Tags->ToSet()); }
-			bWritten = true;
-			return true;
-		}
+		if (!bEnabled || !Out || Out->GetPoints().IsEmpty()) { return false; }
 
-		return false;
+		Context->StageOutput(DefaultOutputLabel, Out, Tags->ToSet(), Out != In);
+		return true;
 	}
 
-	bool FPointIO::OutputToContext(const int32 MinPointCount, const int32 MaxPointCount)
+	bool FPointIO::StageOutput(const int32 MinPointCount, const int32 MaxPointCount) const
 	{
 		if (Out)
 		{
 			const int64 OutNumPoints = Out->GetPoints().Num();
-
 			if ((MinPointCount >= 0 && OutNumPoints < MinPointCount) ||
 				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
 			{
-				// Nah
-			}
-			else
-			{
-				return OutputToContext();
+				return StageOutput();
 			}
 		}
 		return false;
@@ -306,26 +290,18 @@ namespace PCGExData
 		}
 	}
 
-	/**
-	 * Write valid outputs to Context' tagged data
-	 */
-	void FPointIOCollection::OutputToContext()
+	void FPointIOCollection::StageOutputs()
 	{
 		Sort();
-		Context->FutureReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& Pair : Pairs) { Pair->OutputToContext(); }
+		Context->StagedOutputReserve(Pairs.Num());
+		for (const TSharedPtr<FPointIO>& Pair : Pairs) { Pair->StageOutput(); }
 	}
 
-	/**
-	 * Write valid outputs to Context' tagged data
-	 * @param MinPointCount
-	 * @param MaxPointCount
-	 */
-	void FPointIOCollection::OutputToContext(const int32 MinPointCount, const int32 MaxPointCount)
+	void FPointIOCollection::StageOutputs(const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		Sort();
-		Context->FutureReserve(Pairs.Num());
-		for (const TSharedPtr<FPointIO>& Pair : Pairs) { Pair->OutputToContext(MinPointCount, MaxPointCount); }
+		Context->StagedOutputReserve(Pairs.Num());
+		for (const TSharedPtr<FPointIO>& Pair : Pairs) { Pair->StageOutput(MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOCollection::Sort()

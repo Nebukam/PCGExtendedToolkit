@@ -307,7 +307,7 @@ bool FPCGExMergePointsByTagElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->MainPoints->OutputToContext();
+		Context->MainPoints->StageOutputs();
 		Context->Done();
 	}
 

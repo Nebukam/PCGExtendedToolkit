@@ -61,9 +61,6 @@ namespace PCGExRelaxClusters
 {
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_UOBJECT(RelaxOperation)
-
-		//if (bBuildExpandedNodes) { PCGEX_DELETE_TARRAY_FULL(ExpandedNodes) } // Keep those cached since we forward expanded cluster
 	}
 
 	TSharedPtr<PCGExCluster::FCluster> FProcessor::HandleCachedCluster(const TSharedRef<PCGExCluster::FCluster>& InClusterRef)

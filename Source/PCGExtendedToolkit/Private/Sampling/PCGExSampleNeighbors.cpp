@@ -77,7 +77,6 @@ namespace PCGExSampleNeighbors
 {
 	FProcessor::~FProcessor()
 	{
-		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_OPERATION(Op) }
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)
@@ -92,11 +91,7 @@ namespace PCGExSampleNeighbors
 			SamplingOperation->BindContext(Context);
 			SamplingOperation->PrepareForCluster(ExecutionContext, Cluster.ToSharedRef(), VtxDataFacade, EdgeDataFacade);
 
-			if (!SamplingOperation->IsOperationValid())
-			{
-				PCGEX_DELETE_OPERATION(SamplingOperation)
-				continue;
-			}
+			if (!SamplingOperation->IsOperationValid()) { continue; }
 
 			SamplingOperations.Add(SamplingOperation);
 			if (SamplingOperation->ValueFilters) { OpsWithValueTest.Add(SamplingOperation); }

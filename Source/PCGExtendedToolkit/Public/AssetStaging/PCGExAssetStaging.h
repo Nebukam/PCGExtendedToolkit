@@ -82,7 +82,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAssetStagingContext final : public FPCGE
 {
 	friend class FPCGExAssetStagingElement;
 
-	virtual ~FPCGExAssetStagingContext() override;
 	virtual void RegisterAssetDependencies() override;
 
 	TObjectPtr<UPCGExAssetCollection> MainCollection;

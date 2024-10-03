@@ -592,12 +592,12 @@ protected:
 		const FPCGExAssetAttributeSetDetails& Details,
 		const bool bBuildStaging = false) const
 	{
-		T* Collection = InContext->PCGExNewObject<T>();
+		T* Collection = InContext->NewManagedObject<T>();
 		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys;
 
 		auto CreationFailed = [&]()
 		{
-			PCGEX_DELETE_UOBJECT(Collection)
+			InContext->DeleteManagedObject(Collection);
 			return nullptr;
 		};
 

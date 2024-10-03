@@ -58,7 +58,7 @@ void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* I
 
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAttribute::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicAttribute* NewOperation = InContext->PCGExNewObject<UPCGExHeuristicAttribute>();
+	UPCGExHeuristicAttribute* NewOperation = InContext->NewManagedObject<UPCGExHeuristicAttribute>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->Attribute = Config.Attribute;
 	return NewOperation;

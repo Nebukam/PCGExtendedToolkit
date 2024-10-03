@@ -89,7 +89,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 	//Context->SitesOutput->OutputToContext();
 
 	return Context->TryComplete();

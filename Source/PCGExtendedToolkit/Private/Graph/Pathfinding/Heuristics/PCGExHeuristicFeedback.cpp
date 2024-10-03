@@ -19,7 +19,7 @@ void UPCGExHeuristicFeedback::Cleanup()
 
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryFeedback::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExHeuristicFeedback* NewOperation = InContext->PCGExNewObject<UPCGExHeuristicFeedback>();
+	UPCGExHeuristicFeedback* NewOperation = InContext->NewManagedObject<UPCGExHeuristicFeedback>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	NewOperation->NodeScale = Config.VisitedPointsWeightFactor;
 	NewOperation->EdgeScale = Config.VisitedEdgesWeightFactor;

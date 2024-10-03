@@ -124,7 +124,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		PCGEX_ASYNC_WAIT
 
-		Context->OutputPaths->OutputToContext();
+		Context->OutputPaths->StageOutputs();
 		Context->Done();
 	}
 

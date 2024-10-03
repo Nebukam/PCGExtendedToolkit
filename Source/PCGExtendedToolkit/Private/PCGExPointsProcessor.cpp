@@ -119,11 +119,10 @@ PCGExData::EInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {	
 	PCGEX_TERMINATE_ASYNC
-
 	
-	for (UPCGExOperation* Operation : ProcessorOperations)
+	for (UPCGExOperation* Op : ProcessorOperations)
 	{
-		if (OwnedProcessorOperations.Contains(Operation)) { PCGEX_DELETE_OPERATION(Operation) }
+		if (OwnedProcessorOperations.Contains(Op)) { PCGEX_DELETE_OPERATION(this, Op) }
 	}
 
 	if (MainBatch) { MainBatch->Cleanup(); }
@@ -165,7 +164,6 @@ void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState StateId)
 
 void FPCGExPointsProcessorContext::Done()
 {
-	bUseLock = false;
 	SetState(PCGExMT::State_Done);
 }
 

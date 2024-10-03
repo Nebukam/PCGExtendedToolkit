@@ -76,8 +76,8 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
-	Context->MainPoints->OutputToContext();
-	Context->PathsIO->OutputToContext();
+	Context->MainPoints->StageOutputs();
+	Context->PathsIO->StageOutputs();
 
 	return Context->TryComplete();
 }

@@ -83,7 +83,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
 
-	Context->MainPoints->OutputToContext();
+	Context->MainPoints->StageOutputs();
 
 	return Context->TryComplete();
 }
@@ -92,8 +92,6 @@ namespace PCGExWriteTangents
 {
 	FProcessor::~FProcessor()
 	{
-		if (Context->StartTangents) { PCGEX_DELETE_OPERATION(StartTangents) }
-		if (Context->EndTangents) { PCGEX_DELETE_OPERATION(EndTangents) }
 	}
 
 	bool FProcessor::Process(TSharedPtr<PCGExMT::FTaskManager> InAsyncManager)

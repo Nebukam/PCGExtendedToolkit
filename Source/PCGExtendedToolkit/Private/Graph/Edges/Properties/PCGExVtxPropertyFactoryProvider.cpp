@@ -47,7 +47,7 @@ FString UPCGExVtxPropertyProviderSettings::GetDisplayName() const { return TEXT(
 
 UPCGExVtxPropertyOperation* UPCGExVtxPropertyFactoryBase::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExVtxPropertyOperation* NewOperation = InContext->PCGExNewObject<UPCGExVtxPropertyOperation>();
+	UPCGExVtxPropertyOperation* NewOperation = InContext->NewManagedObject<UPCGExVtxPropertyOperation>();
 	return NewOperation;
 }
 
