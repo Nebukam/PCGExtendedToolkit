@@ -138,17 +138,14 @@ namespace PCGEx
 		template <class T, typename... Args>
 		T* New(Args&&... InArgs)
 		{
-			PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
-
 			T* Object = nullptr;
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
-			if constexpr (!std::is_base_of_v<T, UPCGData>)
+			if constexpr (!std::is_base_of_v<UPCGData, T>)
 			{
 				// Since we create ops & factories through this flow, make sure we only use the 5.5 code for UPCGData stuff
-#endif
 
-				if (!Context->AsyncState.bIsRunningOnMainThread)
+				if (!IsInGameThread())
 				{
 					{
 						FGCScopeGuard Scope;
@@ -163,13 +160,30 @@ namespace PCGEx
 
 				Add(Object);
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
 			}
 			else
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+				PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
 				Object = FPCGContext::NewObject_AnyThread<T>(Context, std::forward<Args>(InArgs)...);
 			}
+#else
+
+			if (!IsInGameThread())
+			{
+				{
+					FGCScopeGuard Scope;
+					Object = NewObject<T>(std::forward<Args>(InArgs)...);
+				}
+				check(Object);
+			}
+			else
+			{
+				Object = NewObject<T>(std::forward<Args>(InArgs)...);
+			}
+
+			Add(Object);
+			
 #endif
 
 			return Object;
@@ -178,14 +192,15 @@ namespace PCGEx
 		template <class T, typename... Args>
 		T* Duplicate(const UPCGData* InData)
 		{
-			PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
+			
 			T* Object = nullptr;
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
-			if (!Context->AsyncState.bIsRunningOnMainThread)
+			if (!IsInGameThread())
 			{
 				{
 					FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+					PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
 					Object = Cast<T>(InData->DuplicateData(Context, true));
 				}
 				check(Object);
@@ -195,8 +210,11 @@ namespace PCGEx
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 				Object = Cast<T>(InData->DuplicateData(Context, true));
 			}
+
+			// Don't Add duplicates, as they will be tracked by 5.5' AsyncObjects.
+						
 #else
-			if (!Context->AsyncState.bIsRunningOnMainThread)
+			if (!IsInGameThread())
 			{
 				{
 					FGCScopeGuard Scope;
@@ -210,9 +228,10 @@ namespace PCGEx
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 				Object = Cast<T>(InData->DuplicateData(true));
 			}
+			
+			Add(Object);
 #endif
 
-			Add(Object);
 			return Object;
 		}
 

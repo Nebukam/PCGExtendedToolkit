@@ -42,9 +42,7 @@ UPCGSpatialData* UPCGExClusterNodesData::CopyInternal() const
 }
 #else
 UPCGSpatialData* UPCGExClusterNodesData::CopyInternal(FPCGContext* Context) const
-{
-	PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
-	
+{	
 	UPCGExClusterNodesData* NewNodeData = FPCGContext::NewObject_AnyThread<UPCGExClusterNodesData>(Context);
 	NewNodeData->CopyFrom(this);
 	return NewNodeData;
@@ -91,9 +89,7 @@ UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal() const
 }
 #else
 UPCGSpatialData* UPCGExClusterEdgesData::CopyInternal(FPCGContext* Context) const
-{
-	PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
-	
+{	
 	UPCGExClusterEdgesData* NewEdgeData = FPCGContext::NewObject_AnyThread<UPCGExClusterEdgesData>(Context);
 	NewEdgeData->CopyFrom(this);
 	return NewEdgeData;
