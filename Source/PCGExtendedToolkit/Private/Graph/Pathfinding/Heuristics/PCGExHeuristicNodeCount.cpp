@@ -6,7 +6,7 @@
 
 UPCGExHeuristicOperation* UPCGExHeuristicsFactoryLeastNodes::CreateOperation(FPCGExContext* InContext) const
 {
-	PCGEX_NEW_OBJECT(UPCGExHeuristicNodeCount, NewOperation)
+	UPCGExHeuristicNodeCount* NewOperation = InContext->ManagedObjects->New<UPCGExHeuristicNodeCount>();
 	PCGEX_FORWARD_HEURISTIC_CONFIG
 	return NewOperation;
 }

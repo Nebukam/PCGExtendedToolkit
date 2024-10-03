@@ -35,7 +35,7 @@ namespace PCGExHeuristics
 
 		~FLocalFeedbackHandler()
 		{
-			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { PCGEX_DELETE_OPERATION(ExecutionContext, Feedback) }
+			for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { ExecutionContext->ManagedObjects->Destroy(Feedback); }
 		}
 
 		FORCEINLINE double GetGlobalScore(

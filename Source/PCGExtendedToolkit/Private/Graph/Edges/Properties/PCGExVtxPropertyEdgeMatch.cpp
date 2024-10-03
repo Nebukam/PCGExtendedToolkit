@@ -145,7 +145,7 @@ TArray<FPCGPinProperties> UPCGExVtxPropertyEdgeMatchSettings::InputPinProperties
 
 UPCGExParamFactoryBase* UPCGExVtxPropertyEdgeMatchSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExVtxPropertyEdgeMatchFactory* NewFactory = NewObject<UPCGExVtxPropertyEdgeMatchFactory>();
+	UPCGExVtxPropertyEdgeMatchFactory* NewFactory = InContext->ManagedObjects->New<UPCGExVtxPropertyEdgeMatchFactory>();
 	NewFactory->Config = Config;
 	NewFactory->Config.Sanitize();
 	GetInputFactories(

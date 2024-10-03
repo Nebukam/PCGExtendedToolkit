@@ -108,7 +108,7 @@ TArray<FPCGPinProperties> UPCGExClusterStateFactoryProviderSettings::OutputPinPr
 
 UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExClusterStateFactoryBase* NewFactory = NewObject<UPCGExClusterStateFactoryBase>();
+	UPCGExClusterStateFactoryBase* NewFactory = InContext->ManagedObjects->New<UPCGExClusterStateFactoryBase>();
 	NewFactory->Priority = Priority;
 	NewFactory->Config = Config;
 
@@ -116,13 +116,13 @@ UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory
 		InContext, PCGExPointFilter::SourceFiltersLabel, NewFactory->FilterFactories,
 		PCGExFactories::ClusterNodeFilters))
 	{
-		PCGEX_DELETE_UOBJECT(NewFactory)
+		InContext->ManagedObjects->Destroy(NewFactory);
 		return nullptr;
 	}
 
 	if (Config.bOnTestPass)
 	{
-		UPCGParamData* Bitmask = NewObject<UPCGParamData>();
+		UPCGParamData* Bitmask = InContext->ManagedObjects->New<UPCGParamData>();
 		Bitmask->Metadata->CreateAttribute<int64>(FName("OnPassBitmask"), Config.PassStateFlags.Get(), false, true);
 		Bitmask->Metadata->AddEntry();
 		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();
@@ -132,7 +132,7 @@ UPCGExParamFactoryBase* UPCGExClusterStateFactoryProviderSettings::CreateFactory
 
 	if (Config.bOnTestFail)
 	{
-		UPCGParamData* Bitmask = NewObject<UPCGParamData>();
+		UPCGParamData* Bitmask = InContext->ManagedObjects->New<UPCGParamData>();
 		Bitmask->Metadata->CreateAttribute<int64>(FName("OnFailBitmask"), Config.FailStateFlags.Get(), false, true);
 		Bitmask->Metadata->AddEntry();
 		FPCGTaggedData& OutData = InContext->OutputData.TaggedData.Emplace_GetRef();

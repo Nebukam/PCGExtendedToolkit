@@ -29,7 +29,7 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryInertia::CreateOperation(FPCGEx
 
 UPCGExParamFactoryBase* UPCGExHeuristicsInertiaProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExHeuristicsFactoryInertia* NewFactory = NewObject<UPCGExHeuristicsFactoryInertia>();
+	UPCGExHeuristicsFactoryInertia* NewFactory = InContext->ManagedObjects->New<UPCGExHeuristicsFactoryInertia>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
 	return Super::CreateFactory(InContext, NewFactory);
 }

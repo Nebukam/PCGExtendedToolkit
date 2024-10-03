@@ -27,7 +27,7 @@ namespace PCGExHeuristics
 
 	THeuristicsHandler::~THeuristicsHandler()
 	{
-		for (UPCGExHeuristicOperation* Op : Operations) { PCGEX_DELETE_OPERATION(ExecutionContext, Op) }
+		for (UPCGExHeuristicOperation* Op : Operations) { ExecutionContext->ManagedObjects->Destroy(Op); }
 
 		Operations.Empty();
 		Feedbacks.Empty();

@@ -11,7 +11,7 @@
 
 UPCGExParamFactoryBase* UPCGExPartitionRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExPartitionRule* NewFactory = NewObject<UPCGExPartitionRule>();
+	UPCGExPartitionRule* NewFactory = InContext->ManagedObjects->New<UPCGExPartitionRule>();
 	NewFactory->Config = Config;
 	return NewFactory;
 }

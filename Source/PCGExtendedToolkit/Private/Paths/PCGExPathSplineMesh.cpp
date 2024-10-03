@@ -372,7 +372,13 @@ namespace PCGExPathSplineMesh
 
 			if (!Segment.ApplyMesh(SMC))
 			{
-				PCGEX_DELETE_UOBJECT(SMC)
+				if (SMC)
+				{
+					SMC->RemoveFromRoot();
+					SMC->ClearInternalFlags(EInternalObjectFlags::Async);
+					SMC->MarkAsGarbage();
+					SMC = nullptr;
+				}
 				continue;
 			}
 

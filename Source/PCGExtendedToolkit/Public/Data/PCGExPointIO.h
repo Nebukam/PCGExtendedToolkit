@@ -15,17 +15,6 @@
 
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
-#define PCGEX_DELETE_UPCGDATA(_VALUE) \
-if(_VALUE){ \
-	PCGEX_UNROOT(_VALUE) \
-	if(_VALUE->Metadata){ PCGEX_UNROOT(_VALUE->Metadata) } \
-	_VALUE->MarkAsGarbage(); \
-	_VALUE = nullptr; }
-#else
-#define PCGEX_DELETE_UPCGDATA(_VALUE) _VALUE = nullptr; // Handled by 5.5 AsyncObjects 
-#endif
-
 namespace PCGExData
 {
 	enum class EInit : uint8

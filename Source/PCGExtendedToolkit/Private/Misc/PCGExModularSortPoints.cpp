@@ -12,7 +12,7 @@
 
 UPCGExParamFactoryBase* UPCGExSortingRuleProviderSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExSortingRule* NewFactory = NewObject<UPCGExSortingRule>();
+	UPCGExSortingRule* NewFactory = InContext->ManagedObjects->New<UPCGExSortingRule>();
 	NewFactory->Priority = Priority;
 	NewFactory->Config = Config;
 	return NewFactory;

@@ -122,7 +122,10 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	
 	for (UPCGExOperation* Op : ProcessorOperations)
 	{
-		if (OwnedProcessorOperations.Contains(Op)) { PCGEX_DELETE_OPERATION(this, Op) }
+		if (OwnedProcessorOperations.Contains(Op))
+		{
+			ManagedObjects->Destroy(Op);
+		}
 	}
 
 	if (MainBatch) { MainBatch->Cleanup(); }

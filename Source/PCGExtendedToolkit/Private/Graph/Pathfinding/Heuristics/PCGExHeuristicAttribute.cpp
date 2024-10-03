@@ -66,7 +66,7 @@ UPCGExHeuristicOperation* UPCGExHeuristicsFactoryAttribute::CreateOperation(FPCG
 
 UPCGExParamFactoryBase* UPCGExCreateHeuristicAttributeSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExHeuristicsFactoryAttribute* NewFactory = NewObject<UPCGExHeuristicsFactoryAttribute>();
+	UPCGExHeuristicsFactoryAttribute* NewFactory = InContext->ManagedObjects->New<UPCGExHeuristicsFactoryAttribute>();
 	PCGEX_FORWARD_HEURISTIC_FACTORY
 	return Super::CreateFactory(InContext, NewFactory);
 }

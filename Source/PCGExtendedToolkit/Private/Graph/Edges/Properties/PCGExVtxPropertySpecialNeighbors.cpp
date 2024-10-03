@@ -86,7 +86,7 @@ UPCGExVtxPropertyOperation* UPCGExVtxPropertySpecialNeighborsFactory::CreateOper
 
 UPCGExParamFactoryBase* UPCGExVtxPropertySpecialNeighborsSettings::CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExVtxPropertySpecialNeighborsFactory* NewFactory = NewObject<UPCGExVtxPropertySpecialNeighborsFactory>();
+	UPCGExVtxPropertySpecialNeighborsFactory* NewFactory = InContext->ManagedObjects->New<UPCGExVtxPropertySpecialNeighborsFactory>();
 	NewFactory->Config = Config;
 	return Super::CreateFactory(InContext, NewFactory);
 }

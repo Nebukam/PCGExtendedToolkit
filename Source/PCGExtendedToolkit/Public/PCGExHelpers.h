@@ -17,6 +17,20 @@
 	ON_SCOPE_EXIT { _CONTEXT->AsyncState.bIsRunningOnMainThread = bRestoreTo; };\
 	_CONTEXT->AsyncState.bIsRunningOnMainThread = IsInGameThread(); // dirty trick
 
+UINTERFACE(MinimalAPI)
+class UPCGExManagedObjectInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class IPCGExManagedObjectInterface
+{
+	GENERATED_BODY()
+
+public:
+	virtual void Cleanup() = 0;
+};
+
 namespace PCGExHelpers
 {
 	static TArray<FString> GetStringArrayFromCommaSeparatedList(const FString& InCommaSeparatedString)
@@ -134,27 +148,27 @@ namespace PCGEx
 				// Since we create ops & factories through this flow, make sure we only use the 5.5 code for UPCGData stuff
 #endif
 
-			if (!Context->AsyncState.bIsRunningOnMainThread)
-			{
+				if (!Context->AsyncState.bIsRunningOnMainThread)
 				{
-					FGCScopeGuard Scope;
+					{
+						FGCScopeGuard Scope;
+						Object = NewObject<T>(std::forward<Args>(InArgs)...);
+					}
+					check(Object);
+				}
+				else
+				{
 					Object = NewObject<T>(std::forward<Args>(InArgs)...);
 				}
-				check(Object);
-			}
-			else
-			{
-				Object = NewObject<T>(std::forward<Args>(InArgs)...);
-			}
 
-			Add(Object);
+				Add(Object);
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
 			}
 			else
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-				Object = FPCGContext::NewObject_AnyThread<T>(this, std::forward<Args>(InArgs)...);
+				Object = FPCGContext::NewObject_AnyThread<T>(Context, std::forward<Args>(InArgs)...);
 			}
 #endif
 
@@ -167,6 +181,21 @@ namespace PCGEx
 			PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
 			T* Object = nullptr;
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+			if (!Context->AsyncState.bIsRunningOnMainThread)
+			{
+				{
+					FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+					Object = Cast<T>(InData->DuplicateData(Context, true));
+				}
+				check(Object);
+			}
+			else
+			{
+				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+				Object = Cast<T>(InData->DuplicateData(Context, true));
+			}
+#else
 			if (!Context->AsyncState.bIsRunningOnMainThread)
 			{
 				{
@@ -181,6 +210,7 @@ namespace PCGEx
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 				Object = Cast<T>(InData->DuplicateData(true));
 			}
+#endif
 
 			Add(Object);
 			return Object;

@@ -1,7 +1,6 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "PCGExHelpers.h"
 
 namespace PCGEx
@@ -16,8 +15,8 @@ namespace PCGEx
 		// Flush remaining managed objects & mark them as garbage
 		for (UObject* ObjectPtr : ManagedObjects)
 		{
+			if (!IsValid(ObjectPtr)) { continue; }
 			if (ObjectPtr->IsRooted()) { ObjectPtr->RemoveFromRoot(); }
-
 			if (ObjectPtr->HasAnyInternalFlags(EInternalObjectFlags::Async))
 			{
 				ObjectPtr->ClearInternalFlags(EInternalObjectFlags::Async);
@@ -29,6 +28,13 @@ namespace PCGEx
 						SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
 					}, true);
 			}
+
+			if (ObjectPtr->Implements<UPCGExManagedObjectInterface>())
+			{
+				IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(ObjectPtr);
+				if (ManagedObject) { ManagedObject->Cleanup(); }
+			}
+
 
 			ObjectPtr->MarkAsGarbage();
 		}
@@ -65,6 +71,12 @@ namespace PCGEx
 						SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
 					}, true);
 			}
+		}
+
+		if (InObject->Implements<UPCGExManagedObjectInterface>())
+		{
+			IPCGExManagedObjectInterface* ManagedObject = Cast<IPCGExManagedObjectInterface>(InObject);
+			if (ManagedObject) { ManagedObject->Cleanup(); }
 		}
 	}
 
