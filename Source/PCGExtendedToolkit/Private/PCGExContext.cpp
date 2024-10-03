@@ -13,7 +13,7 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 {
 	if (!IsInGameThread())
 	{
-		FWriteScopeLock WriteScopeLock(ContextOutputLock);
+		FWriteScopeLock WriteScopeLock(StagedOutputLock);
 
 		AdditionsSinceLastReserve++;
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
@@ -30,14 +30,14 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const TSet<FS
 		Output.Tags.Append(InTags);
 	}
 
-	if (bManaged) { AddManagedObject(InData); }
+	if (bManaged) { ManagedObjects->Add(InData); }
 }
 
 void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const bool bManaged)
 {
 	if (!IsInGameThread())
 	{
-		FWriteScopeLock WriteScopeLock(ContextOutputLock);
+		FWriteScopeLock WriteScopeLock(StagedOutputLock);
 
 		AdditionsSinceLastReserve++;
 		FPCGTaggedData& Output = StagedOutputs.Emplace_GetRef();
@@ -52,37 +52,7 @@ void FPCGExContext::StageOutput(const FName Pin, UPCGData* InData, const bool bM
 		Output.Data = InData;
 	}
 
-	if (bManaged) { AddManagedObject(InData); }
-}
-
-void FPCGExContext::AddManagedObject(UObject* InObject)
-{
-	FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-	ManagedObjects.Add(InObject);
-	InObject->AddToRoot();
-}
-
-void FPCGExContext::ReleaseManagedObject(UObject* InObject)
-{
-	if (!IsValid(InObject)) { return; }
-	
-	{
-		FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-		ManagedObjects.Remove(InObject);
-		if (InObject->IsRooted()) { InObject->RemoveFromRoot(); }
-
-		if (InObject->HasAnyInternalFlags(EInternalObjectFlags::Async))
-		{
-			InObject->ClearInternalFlags(EInternalObjectFlags::Async);
-
-			ForEachObjectWithOuter(
-				InObject, [&](UObject* SubObject)
-				{
-					if (ManagedObjects.Contains(SubObject)) { return; }
-					SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
-				}, true);
-		}
-	}
+	if (bManaged) { ManagedObjects->Add(InData);}
 }
 
 void FPCGExContext::StartAsyncWork()
@@ -105,64 +75,32 @@ void FPCGExContext::CommitStagedOutputs()
 	OutputData.TaggedData.Reserve(OutputData.TaggedData.Num() + StagedOutputs.Num());
 	for (const FPCGTaggedData& FData : StagedOutputs)
 	{
-		ReleaseManagedObject(const_cast<UPCGData*>(FData.Data.Get()));
+		ManagedObjects->Remove(const_cast<UPCGData*>(FData.Data.Get()));
 		OutputData.TaggedData.Add(FData);
 	}
 
 	StagedOutputs.Empty();
 }
 
+FPCGExContext::FPCGExContext()
+{
+	ManagedObjects = MakeShared<PCGEx::FManagedObjects>(this);
+}
+
 FPCGExContext::~FPCGExContext()
 {
 	CancelAssetLoading();
-
-	// Flush remaining managed objects & mark them as garbage
-	for (UObject* ObjectPtr : ManagedObjects)
-	{
-		if (ObjectPtr->IsRooted()) { ObjectPtr->RemoveFromRoot(); }
-
-		if (ObjectPtr->HasAnyInternalFlags(EInternalObjectFlags::Async))
-		{
-			ObjectPtr->ClearInternalFlags(EInternalObjectFlags::Async);
-
-			ForEachObjectWithOuter(
-				ObjectPtr, [&](UObject* SubObject)
-				{
-					if (ManagedObjects.Contains(SubObject)) { return; }
-					SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
-				}, true);
-		}
-
-		ObjectPtr->MarkAsGarbage();
-	}
-
-	ManagedObjects.Empty();
+	
+	ManagedObjects->Flush();
+	ManagedObjects.Reset();
 }
 
 void FPCGExContext::StagedOutputReserve(const int32 NumAdditions)
 {
 	const int32 ConservativeAdditions = NumAdditions - FMath::Min(0, LastReserve - AdditionsSinceLastReserve);
-
-	if (bUseLock)
-	{
-		FWriteScopeLock WriteScopeLock(ContextOutputLock);
-		LastReserve = ConservativeAdditions;
-		StagedOutputs.Reserve(StagedOutputs.Num() + ConservativeAdditions);
-		return;
-	}
-
+	FWriteScopeLock WriteScopeLock(StagedOutputLock);
 	LastReserve = ConservativeAdditions;
 	StagedOutputs.Reserve(StagedOutputs.Num() + ConservativeAdditions);
-}
-
-void FPCGExContext::DeleteManagedObject(UObject* InObject)
-{
-	check(InObject)
-
-	if (!IsValid(InObject)) { return; }
-
-	ReleaseManagedObject(InObject);
-	InObject->MarkAsGarbage();
 }
 
 void FPCGExContext::OnComplete()

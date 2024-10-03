@@ -165,7 +165,7 @@ FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 
 UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryBase::CreateOperation(FPCGExContext* InContext) const
 {
-	UPCGExNeighborSampleOperation* NewOperation = InContext->NewManagedObject<UPCGExNeighborSampleOperation>();
+	UPCGExNeighborSampleOperation* NewOperation = InContext->ManagedObjects->New<UPCGExNeighborSampleOperation>();
 	PCGEX_SAMPLER_CREATE
 	return NewOperation;
 }

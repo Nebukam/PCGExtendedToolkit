@@ -27,7 +27,7 @@ namespace PCGExData
 
 	void FPointIO::InitializeOutput(FPCGExContext* InContext, const EInit InitOut)
 	{
-		if (Out && Out != In) { Context->DeleteManagedObject(Out); }
+		if (Out && Out != In) { Context->ManagedObjects->Remove(Out); }
 		OutKeys.Reset();
 
 		if (InitOut == EInit::NoOutput)
@@ -47,7 +47,7 @@ namespace PCGExData
 		{
 			if (In)
 			{
-				UObject* GenericInstance = InContext->NewManagedObject<UObject>(In->GetOuter(), In->GetClass());
+				UObject* GenericInstance = InContext->ManagedObjects->New<UObject>(In->GetOuter(), In->GetClass());
 				Out = Cast<UPCGPointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
@@ -65,7 +65,7 @@ namespace PCGExData
 			}
 			else
 			{
-				Out = Context->NewManagedObject<UPCGPointData>();
+				Out = Context->ManagedObjects->New<UPCGPointData>();
 			}
 
 			return;
@@ -74,20 +74,7 @@ namespace PCGExData
 		if (InitOut == EInit::DuplicateInput)
 		{
 			check(In)
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
-			{
-				FGCScopeGuard GCGuarded;
-				Out = Cast<UPCGPointData>(In->DuplicateData(true));
-			}
-#else
-			{
-				PCGEX_ENFORCE_CONTEXT_ASYNC(Context)
-				FWriteScopeLock WriteScopeLock(Context->ManagedObjectLock); // Ugh
-				Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
-			}
-#endif
-			
-			Context->AddManagedObject(Out);
+			Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);
 		}
 	}
 

@@ -134,11 +134,11 @@ namespace PCGExData
 		template <typename T>
 		void InitializeOutput(FPCGExContext* InContext, const EInit InitOut = EInit::NoOutput)
 		{
-			if (Out && Out != In) { Context->DeleteManagedObject(Out); }
+			if (Out && Out != In) { Context->ManagedObjects->Remove(Out); }
 
 			if (InitOut == EInit::NewOutput)
 			{
-				T* TypedOut = InContext->NewManagedObject<T>();
+				T* TypedOut = InContext->ManagedObjects->New<T>();
 
 				Out = Cast<UPCGPointData>(TypedOut);
 				check(Out)
@@ -158,7 +158,7 @@ namespace PCGExData
 
 				if (!TypedIn)
 				{
-					T* TypedOut = InContext->NewManagedObject<T>();
+					T* TypedOut = InContext->ManagedObjects->New<T>();
 
 					if (UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(TypedOut)) { TypedPointData->CopyFrom(In); }
 					else { TypedOut->InitializeFromData(In); } // This is a potentially failed duplicate
@@ -167,17 +167,7 @@ namespace PCGExData
 				}
 				else
 				{
-					FGCScopeGuard GCGuarded;
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 5
-					Out = Cast<UPCGPointData>(In->DuplicateData(true));
-#else
-					{
-						PCGEX_ENFORCE_CONTEXT_ASYNC(Context)
-						FWriteScopeLock WriteScopeLock(Context->ManagedObjectLock); // Ugh
-						Out = Cast<UPCGPointData>(In->DuplicateData(Context, true));
-					}
-#endif
-					Out->AddToRoot();
+					Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);
 				}
 
 				return;

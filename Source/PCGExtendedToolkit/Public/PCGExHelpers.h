@@ -12,7 +12,7 @@
 
 #include "PCGExHelpers.generated.h"
 
-#define PCGEX_ENFORCE_CONTEXT_ASYNC(_CONTEXT)\
+#define PCGEX_FORCE_CONTEXT_ASYNCSTATE(_CONTEXT)\
 	bool bRestoreTo = _CONTEXT->AsyncState.bIsRunningOnMainThread;\
 	ON_SCOPE_EXIT { _CONTEXT->AsyncState.bIsRunningOnMainThread = bRestoreTo; };\
 	_CONTEXT->AsyncState.bIsRunningOnMainThread = IsInGameThread(); // dirty trick
@@ -102,6 +102,93 @@ private:
 
 namespace PCGEx
 {
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FManagedObjects
+	{
+		mutable FRWLock ManagedObjectLock;
+
+		FPCGContext* Context = nullptr;
+		TSet<UObject*> ManagedObjects;
+
+		explicit FManagedObjects(FPCGContext* InContext):
+			Context(InContext)
+		{
+		}
+
+		~FManagedObjects();
+
+		void Flush();
+
+		void Add(UObject* InObject);
+		void Remove(UObject* InObject);
+
+		template <class T, typename... Args>
+		T* New(Args&&... InArgs)
+		{
+			PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
+
+			T* Object = nullptr;
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+			if constexpr (!std::is_base_of_v<T, UPCGData>)
+			{
+				// Since we create ops & factories through this flow, make sure we only use the 5.5 code for UPCGData stuff
+#endif
+
+			if (!Context->AsyncState.bIsRunningOnMainThread)
+			{
+				{
+					FGCScopeGuard Scope;
+					Object = NewObject<T>(std::forward<Args>(InArgs)...);
+				}
+				check(Object);
+			}
+			else
+			{
+				Object = NewObject<T>(std::forward<Args>(InArgs)...);
+			}
+
+			Add(Object);
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+			}
+			else
+			{
+				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+				Object = FPCGContext::NewObject_AnyThread<T>(this, std::forward<Args>(InArgs)...);
+			}
+#endif
+
+			return Object;
+		}
+
+		template <class T, typename... Args>
+		T* Duplicate(const UPCGData* InData)
+		{
+			PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
+			T* Object = nullptr;
+
+			if (!Context->AsyncState.bIsRunningOnMainThread)
+			{
+				{
+					FGCScopeGuard Scope;
+					FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+					Object = Cast<T>(InData->DuplicateData(true));
+				}
+				check(Object);
+			}
+			else
+			{
+				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+				Object = Cast<T>(InData->DuplicateData(true));
+			}
+
+			Add(Object);
+			return Object;
+		}
+
+		void Destroy(UObject* InObject);
+	};
+
 #pragma region Metadata Type
 
 	template <typename T>

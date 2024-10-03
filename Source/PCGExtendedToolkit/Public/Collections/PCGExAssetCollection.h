@@ -592,12 +592,12 @@ protected:
 		const FPCGExAssetAttributeSetDetails& Details,
 		const bool bBuildStaging = false) const
 	{
-		T* Collection = InContext->NewManagedObject<T>();
+		T* Collection = InContext->ManagedObjects->New<T>();
 		TUniquePtr<FPCGAttributeAccessorKeysEntries> Keys;
 
 		auto CreationFailed = [&]()
 		{
-			InContext->DeleteManagedObject(Collection);
+			InContext->ManagedObjects->Remove(Collection);
 			return nullptr;
 		};
 

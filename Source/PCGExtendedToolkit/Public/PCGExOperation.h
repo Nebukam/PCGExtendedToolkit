@@ -43,7 +43,7 @@ public:
 	template <typename T>
 	T* CopyOperation() const
 	{
-		T* TypedInstance = Context->NewManagedObject<T>(this->GetOuter(), this->GetClass());
+		T* TypedInstance = Context->ManagedObjects->New<T>(this->GetOuter(), this->GetClass());
 
 		check(TypedInstance)
 
