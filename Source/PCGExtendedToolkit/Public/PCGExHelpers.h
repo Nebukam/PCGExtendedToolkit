@@ -183,7 +183,7 @@ namespace PCGEx
 
 			DuplicateObjects.Add(Object);
 
-#else
+#elif ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 4
 			if (!IsInGameThread())
 			{
 				{
@@ -197,6 +197,26 @@ namespace PCGEx
 			{
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 				Object = Cast<T>(InData->DuplicateData(true));
+			}
+			
+#else
+			
+			const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(InData);
+			check(AsSpatialData)
+			
+			if (!IsInGameThread())
+			{
+				{
+					FGCScopeGuard Scope;
+					FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+					Object = Cast<T>(AsSpatialData->DuplicateData(true));
+				}
+				check(Object);
+			}
+			else
+			{
+				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+				Object = Cast<T>(AsSpatialData->DuplicateData(true));
 			}
 			
 #endif
