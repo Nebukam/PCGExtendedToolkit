@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExHelpers.h"
+#include "Data/PCGSpatialData.h"
 
 namespace PCGEx
 {
@@ -15,19 +16,9 @@ namespace PCGEx
 		// Flush remaining managed objects & mark them as garbage
 		for (UObject* ObjectPtr : ManagedObjects)
 		{
-			if (!IsValid(ObjectPtr)) { continue; }
-			if (ObjectPtr->IsRooted()) { ObjectPtr->RemoveFromRoot(); }
-			if (ObjectPtr->HasAnyInternalFlags(EInternalObjectFlags::Async))
-			{
-				ObjectPtr->ClearInternalFlags(EInternalObjectFlags::Async);
-
-				ForEachObjectWithOuter(
-					ObjectPtr, [&](UObject* SubObject)
-					{
-						if (ManagedObjects.Contains(SubObject)) { return; }
-						SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
-					}, true);
-			}
+			//if (!IsValid(ObjectPtr)) { continue; }
+			ObjectPtr->RemoveFromRoot();
+			RecursivelyClearAsyncFlag(ObjectPtr);
 
 			if (ObjectPtr->Implements<UPCGExManagedObjectInterface>())
 			{
@@ -46,32 +37,25 @@ namespace PCGEx
 	{
 		if (!IsValid(InObject)) { return; }
 
-		FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-		ManagedObjects.Add(InObject);
+		{
+			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
+			ManagedObjects.Add(InObject);
+		}
+
 		InObject->AddToRoot();
 	}
 
 	void FManagedObjects::Remove(UObject* InObject)
 	{
-		if (!IsValid(InObject)) { return; }
+		if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return; }
 
 		{
 			FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 			ManagedObjects.Remove(InObject);
-			if (InObject->IsRooted()) { InObject->RemoveFromRoot(); }
-
-			if (InObject->HasAnyInternalFlags(EInternalObjectFlags::Async))
-			{
-				InObject->ClearInternalFlags(EInternalObjectFlags::Async);
-
-				ForEachObjectWithOuter(
-					InObject, [&](UObject* SubObject)
-					{
-						if (ManagedObjects.Contains(SubObject)) { return; }
-						SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
-					}, true);
-			}
 		}
+
+		InObject->RemoveFromRoot();
+		RecursivelyClearAsyncFlag(InObject);
 
 		if (InObject->Implements<UPCGExManagedObjectInterface>())
 		{
@@ -84,9 +68,33 @@ namespace PCGEx
 	{
 		check(InObject)
 
-		if (!IsValid(InObject)) { return; }
+		if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return; }
 
 		Remove(InObject);
 		InObject->MarkAsGarbage();
+	}
+
+	void FManagedObjects::RecursivelyClearAsyncFlag(UObject* InObject)
+	{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+		if (DuplicateObjects.Contains(InObject))
+		{
+			//UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InObject);
+			//if(SpatialData && SpatialData->Metadata){SpatialData->Metadata->ClearInternalFlags(EInternalObjectFlags::Async);}
+			return;
+		} 
+#endif
+
+		if (InObject->HasAnyInternalFlags(EInternalObjectFlags::Async))
+		{
+			InObject->ClearInternalFlags(EInternalObjectFlags::Async);
+
+			ForEachObjectWithOuter(
+				InObject, [&](UObject* SubObject)
+				{
+					if (ManagedObjects.Contains(SubObject)) { return; }
+					SubObject->ClearInternalFlags(EInternalObjectFlags::Async);
+				}, true);
+		}
 	}
 }

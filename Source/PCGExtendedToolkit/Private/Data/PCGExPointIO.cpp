@@ -27,7 +27,7 @@ namespace PCGExData
 
 	void FPointIO::InitializeOutput(FPCGExContext* InContext, const EInit InitOut)
 	{
-		if (Out && Out != In) { Context->ManagedObjects->Remove(Out); }
+		if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
 		OutKeys.Reset();
 
 		if (InitOut == EInit::NoOutput)
@@ -47,7 +47,7 @@ namespace PCGExData
 		{
 			if (In)
 			{
-				UObject* GenericInstance = InContext->ManagedObjects->New<UObject>(In->GetOuter(), In->GetClass());
+				UObject* GenericInstance = InContext->ManagedObjects->New<UObject>(GetTransientPackage(), In->GetClass());
 				Out = Cast<UPCGPointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
@@ -67,7 +67,7 @@ namespace PCGExData
 			{
 				Out = Context->ManagedObjects->New<UPCGPointData>();
 			}
-
+			
 			return;
 		}
 

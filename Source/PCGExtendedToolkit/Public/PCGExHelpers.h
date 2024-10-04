@@ -8,6 +8,7 @@
 #include "PCGElement.h"
 #include "PCGExMacros.h"
 #include "PCGModule.h"
+#include "Data/PCGSpatialData.h"
 #include "Metadata/PCGMetadataAttributeTraits.h"
 
 #include "PCGExHelpers.generated.h"
@@ -136,39 +137,10 @@ namespace PCGEx
 		void Remove(UObject* InObject);
 
 		template <class T, typename... Args>
-		T* New(Args&&... InArgs)
+		T*
+		New(Args&&... InArgs)
 		{
 			T* Object = nullptr;
-
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
-			if constexpr (!std::is_base_of_v<UPCGData, T>)
-			{
-				// Since we create ops & factories through this flow, make sure we only use the 5.5 code for UPCGData stuff
-
-				if (!IsInGameThread())
-				{
-					{
-						FGCScopeGuard Scope;
-						Object = NewObject<T>(std::forward<Args>(InArgs)...);
-					}
-					check(Object);
-				}
-				else
-				{
-					Object = NewObject<T>(std::forward<Args>(InArgs)...);
-				}
-
-				Add(Object);
-
-			}
-			else
-			{
-				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
-				PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
-				Object = FPCGContext::NewObject_AnyThread<T>(Context, std::forward<Args>(InArgs)...);
-			}
-#else
-
 			if (!IsInGameThread())
 			{
 				{
@@ -183,25 +155,23 @@ namespace PCGEx
 			}
 
 			Add(Object);
-			
-#endif
-
 			return Object;
 		}
 
 		template <class T, typename... Args>
 		T* Duplicate(const UPCGData* InData)
 		{
-			
 			T* Object = nullptr;
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
+
 			if (!IsInGameThread())
 			{
 				{
 					FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 					PCGEX_FORCE_CONTEXT_ASYNCSTATE(Context)
 					Object = Cast<T>(InData->DuplicateData(Context, true));
+					DuplicateObjects.Add(Object);
 				}
 				check(Object);
 			}
@@ -211,8 +181,8 @@ namespace PCGEx
 				Object = Cast<T>(InData->DuplicateData(Context, true));
 			}
 
-			// Don't Add duplicates, as they will be tracked by 5.5' AsyncObjects.
-						
+			DuplicateObjects.Add(Object);
+
 #else
 			if (!IsInGameThread())
 			{
@@ -229,13 +199,17 @@ namespace PCGEx
 				Object = Cast<T>(InData->DuplicateData(true));
 			}
 			
-			Add(Object);
 #endif
 
+			Add(Object);
 			return Object;
 		}
 
 		void Destroy(UObject* InObject);
+
+	protected:
+		TSet<UObject*> DuplicateObjects;
+		void RecursivelyClearAsyncFlag(UObject* InObject);
 	};
 
 #pragma region Metadata Type

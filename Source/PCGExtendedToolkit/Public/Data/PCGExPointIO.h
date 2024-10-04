@@ -123,7 +123,7 @@ namespace PCGExData
 		template <typename T>
 		void InitializeOutput(FPCGExContext* InContext, const EInit InitOut = EInit::NoOutput)
 		{
-			if (Out && Out != In) { Context->ManagedObjects->Remove(Out); }
+			if (Out && Out != In) { Context->ManagedObjects->Destroy(Out); }
 
 			if (InitOut == EInit::NewOutput)
 			{
@@ -136,7 +136,7 @@ namespace PCGExData
 				const UPCGExPointData* TypedPointData = Cast<UPCGExPointData>(In);
 				UPCGExPointData* TypedOutPointData = Cast<UPCGExPointData>(TypedOut);
 				if (TypedPointData && TypedOutPointData) { TypedOutPointData->InitializeFromPCGExData(TypedPointData, EInit::NewOutput); }
-
+				
 				return;
 			}
 
@@ -158,7 +158,7 @@ namespace PCGExData
 				{
 					Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);
 				}
-
+				
 				return;
 			}
 
