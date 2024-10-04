@@ -85,7 +85,7 @@ namespace PCGExGraph
 				CompoundPointsBlender.Reset();
 
 				CompoundFacade->Write(Context->GetAsyncManager());
-				Context->SetAsyncState(PCGExMT::State_CompoundWriting);
+				Context->SetAsyncState(PCGEx::State_CompoundWriting);
 
 				bRunning = true;
 
@@ -147,24 +147,21 @@ namespace PCGExGraph
 
 		if (Context->IsState(State_ProcessingCompound)) { return false; }
 
-		if (Context->IsState(State_ProcessingPointEdgeIntersections))
+		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingPointEdgeIntersections)
 		{
-			PCGEX_ASYNC_WAIT
 			if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
 			else { WriteClusters(); }
 			return false;
 		}
 
-		if (Context->IsState(State_ProcessingEdgeEdgeIntersections))
+		PCGEX_ON_ASYNC_STATE_READY(State_ProcessingEdgeEdgeIntersections)
 		{
-			PCGEX_ASYNC_WAIT
 			WriteClusters();
 			return false;
 		}
 
-		if (Context->IsState(State_WritingClusters))
+		PCGEX_ON_ASYNC_STATE_READY(State_WritingClusters)
 		{
-			PCGEX_ASYNC_WAIT
 			return true;
 		}
 
@@ -356,7 +353,7 @@ namespace PCGExGraph
 					{
 						if (!MetadataBlender) { return; }
 						const TSharedRef<PCGExDataBlending::FMetadataBlender> Blender = MetadataBlender.ToSharedRef();
-						
+
 						const int32 MaxIndex = StartIndex + Count;
 						for (int i = StartIndex; i < MaxIndex; i++)
 						{

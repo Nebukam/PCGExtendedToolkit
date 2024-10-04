@@ -28,11 +28,8 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(LloydRelax)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExLloydRelax::FProcessor>>(
@@ -50,8 +47,7 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to relax."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to relax."));
 		}
 
 		if (bInvalidInputs)
@@ -60,7 +56,7 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

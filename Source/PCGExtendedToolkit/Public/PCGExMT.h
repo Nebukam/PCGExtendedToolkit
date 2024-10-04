@@ -56,44 +56,11 @@ namespace PCGExMT
 		}
 	}
 
-#define PCGEX_ASYNC_STATE(_NAME) const PCGExMT::AsyncState _NAME = GetTypeHash(FName(#_NAME));
-
 	constexpr int32 GAsyncLoop_XS = 32;
 	constexpr int32 GAsyncLoop_S = 64;
 	constexpr int32 GAsyncLoop_M = 256;
 	constexpr int32 GAsyncLoop_L = 512;
 	constexpr int32 GAsyncLoop_XL = 1024;
-
-	using AsyncState = uint64;
-
-	PCGEX_ASYNC_STATE(State_Setup)
-	PCGEX_ASYNC_STATE(State_ReadyForNextPoints)
-	PCGEX_ASYNC_STATE(State_ProcessingPoints)
-
-	PCGEX_ASYNC_STATE(State_ProcessingTargets)
-	PCGEX_ASYNC_STATE(State_WaitingOnAsyncWork)
-	PCGEX_ASYNC_STATE(State_WaitingOnAsyncProcessing)
-	PCGEX_ASYNC_STATE(State_WaitingOnAsyncCompletion)
-	PCGEX_ASYNC_STATE(State_Done)
-
-	PCGEX_ASYNC_STATE(State_Processing)
-	PCGEX_ASYNC_STATE(State_Completing)
-	PCGEX_ASYNC_STATE(State_Writing)
-
-	PCGEX_ASYNC_STATE(State_CompoundWriting)
-	PCGEX_ASYNC_STATE(State_MetaWriting)
-	PCGEX_ASYNC_STATE(State_MetaWriting2)
-
-	template <class ChunkFunc>
-	static void SubRanges(const int32 MaxItems, const int32 RangeSize, ChunkFunc&& Func)
-	{
-		int32 CurrentCount = 0;
-		while (CurrentCount < MaxItems)
-		{
-			Func(CurrentCount, FMath::Min(MaxItems - CurrentCount, RangeSize));
-			CurrentCount += RangeSize;
-		}
-	}
 
 	static int32 SubRanges(TArray<uint64>& OutSubRanges, const int32 MaxItems, const int32 RangeSize)
 	{
@@ -107,88 +74,6 @@ namespace PCGExMT
 
 		return OutSubRanges.Num();
 	}
-
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FAsyncParallelLoop
-	{
-		FAsyncParallelLoop()
-		{
-		}
-
-		FAsyncParallelLoop(FPCGContext* InContext, const int32 InChunkSize, const bool InEnabled):
-			Context(InContext), ChunkSize(InChunkSize), bAsyncEnabled(InEnabled)
-		{
-		}
-
-		FPCGContext* Context = nullptr;
-		int32 ChunkSize = 32;
-		bool bAsyncEnabled = true;
-		int32 NumIterations = -1;
-
-		int32 CurrentIndex = -1;
-
-		template <class InitializeFunc, class LoopBodyFunc>
-		bool Execute(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody)
-		{
-			if (bAsyncEnabled)
-			{
-				return FPCGAsync::AsyncProcessingOneToOneEx(
-					&(Context->AsyncState), NumIterations, Initialize, [&](int32 ReadIndex, int32 WriteIndex)
-					{
-						LoopBody(ReadIndex);
-						return true;
-					}, true, ChunkSize);
-			}
-
-			if (CurrentIndex == -1)
-			{
-				Initialize();
-				CurrentIndex = 0;
-			}
-
-			const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
-			if (ChunkNumIterations <= 0)
-			{
-				CurrentIndex = -1;
-				return true;
-			}
-			for (int i = 0; i < ChunkNumIterations; ++i) { LoopBody(CurrentIndex + i); }
-			CurrentIndex += ChunkNumIterations;
-			return false;
-		}
-
-		template <class LoopBodyFunc>
-		bool Execute(LoopBodyFunc&& LoopBody)
-		{
-			if (bAsyncEnabled)
-			{
-				return FPCGAsync::AsyncProcessingOneToOneEx(
-					&(Context->AsyncState), NumIterations, []()
-					{
-					}, [&](int32 ReadIndex, int32 WriteIndex)
-					{
-						LoopBody(ReadIndex);
-						return true;
-					}, true, ChunkSize);
-			}
-
-			if (CurrentIndex == -1) { CurrentIndex = 0; }
-			const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
-			if (ChunkNumIterations <= 0)
-			{
-				CurrentIndex = -1;
-				return true;
-			}
-			for (int i = 0; i < ChunkNumIterations; ++i) { LoopBody(CurrentIndex + i); }
-			CurrentIndex += ChunkNumIterations;
-			return false;
-		}
-
-	protected:
-		int32 GetCurrentChunkSize() const
-		{
-			return FMath::Min(ChunkSize, NumIterations - CurrentIndex);
-		}
-	};
 
 	class FPCGExTask;
 	class FTaskGroup;

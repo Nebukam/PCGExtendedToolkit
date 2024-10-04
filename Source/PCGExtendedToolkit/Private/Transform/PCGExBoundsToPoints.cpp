@@ -26,11 +26,8 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsToPoints)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExBoundsToPoints::FProcessor>>& NewBatch)
@@ -38,12 +35,11 @@ bool FPCGExBoundsToPointsElement::ExecuteInternal(FPCGContext* InContext) const
 				//NewBatch->bRequiresWriteStep = true;
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to subdivide."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to subdivide."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

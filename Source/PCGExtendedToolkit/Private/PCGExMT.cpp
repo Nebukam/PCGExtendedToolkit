@@ -15,7 +15,7 @@ namespace PCGExMT
 
 	void FTaskManager::GrowNumStarted()
 	{
-		Context->StartAsyncWork();
+		Context->PauseContext();
 		FPlatformAtomics::InterlockedExchange(&WorkComplete, 0);
 		FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
 	}
@@ -64,7 +64,7 @@ namespace PCGExMT
 		NumStarted = 0;
 		NumCompleted = 0;
 
-		Context->StopAsyncWork();
+		Context->UnpauseContext();
 	}
 
 	void FTaskManager::ScheduleCompletion()
@@ -93,14 +93,14 @@ namespace PCGExMT
 
 		if (Stopped)
 		{
-			Context->StopAsyncWork(); // Ensure context is unpaused
+			Context->UnpauseContext(); // Ensure context is unpaused
 			return;
 		}
 
 		if (NumCompleted == NumStarted)
 		{
 			FPlatformAtomics::InterlockedExchange(&WorkComplete, 1);
-			Context->StopAsyncWork(); // Unpause context
+			Context->UnpauseContext(); // Unpause context
 		}
 	}
 

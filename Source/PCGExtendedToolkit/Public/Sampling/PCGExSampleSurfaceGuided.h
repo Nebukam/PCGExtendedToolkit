@@ -222,6 +222,7 @@ namespace PCGExSampleSurfaceGuided
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 
 		int8 bAnySuccess = 0;
+		UWorld* World = nullptr;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

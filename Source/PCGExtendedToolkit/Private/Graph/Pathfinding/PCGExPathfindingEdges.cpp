@@ -155,23 +155,19 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingEdges)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingEdge::FProcessor>>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingEdge::FProcessor>>& NewBatch)
 			{
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->OutputPaths->StageOutputs();
 

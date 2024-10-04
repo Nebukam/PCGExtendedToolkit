@@ -33,23 +33,19 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT(WriteIndex)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWriteIndex::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWriteIndex::FProcessor>>& NewBatch)
 			{
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to process."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any points to process."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

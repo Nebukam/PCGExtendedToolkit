@@ -18,23 +18,20 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 
 	PCGEX_CONTEXT(PointsProcessor)
 	PCGEX_SETTINGS(DiscardByPointCount)
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
+		const int32 Min = Settings->bRemoveBelow ? FMath::Max(1, Settings->MinPointCount) : 1;
+		const int32 Max = Settings->bRemoveAbove ? FMath::Max(1, Settings->MaxPointCount) : TNumericLimits<int32>::Max();
+
+		for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
+		{
+			if (!FMath::IsWithin(PointIO->GetNum(), Min, Max)) { continue; }
+			PointIO->InitializeOutput(Context, PCGExData::EInit::Forward);
+		}
+
+		Context->MainPoints->StageOutputs();
+		Context->Done();
 	}
-
-	const int32 Min = Settings->bRemoveBelow ? FMath::Max(1, Settings->MinPointCount) : 1;
-	const int32 Max = Settings->bRemoveAbove ? FMath::Max(1, Settings->MaxPointCount) : TNumericLimits<int32>::Max();
-
-	for (const TSharedPtr<PCGExData::FPointIO>& PointIO : Context->MainPoints->Pairs)
-	{
-		if (!FMath::IsWithin(PointIO->GetNum(), Min, Max)) { continue; }
-		PointIO->InitializeOutput(Context, PCGExData::EInit::Forward);
-	}
-
-	Context->MainPoints->StageOutputs();
-	Context->Done();
 
 	return Context->TryComplete();
 }

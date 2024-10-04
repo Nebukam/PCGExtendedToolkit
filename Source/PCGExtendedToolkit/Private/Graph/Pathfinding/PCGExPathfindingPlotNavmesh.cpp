@@ -65,31 +65,20 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 	PCGEX_CONTEXT(PathfindingPlotNavmesh)
 	PCGEX_EXECUTION_CHECK
 
-	if (Context->IsSetup())
-	{
-		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
-
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
+	PCGEX_ON_INITIAL_EXECUTION
 	{
 		while (Context->AdvancePointsIO(false))
 		{
 			if (Context->CurrentIO->GetNum() < 2) { continue; }
 			Context->GetAsyncManager()->Start<FPCGExPlotNavmeshTask>(-1, Context->CurrentIO);
 		}
-		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+		Context->SetAsyncState(PCGEx::State_ProcessingPoints);
 	}
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		PCGEX_ASYNC_WAIT
-		Context->Done();
-	}
-
-	if (Context->IsDone())
+	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_ProcessingPoints)
 	{
 		Context->OutputPaths->StageOutputs();
+		Context->Done();
 	}
 
 	return Context->TryComplete();
@@ -100,7 +89,8 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 	FPCGExPathfindingPlotNavmeshContext* Context = AsyncManager->GetContext<FPCGExPathfindingPlotNavmeshContext>();
 	PCGEX_SETTINGS(PathfindingPlotNavmesh)
 
-	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
+	UWorld* World = Context->SourceComponent->GetWorld();
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World);
 
 	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return false; }
 
@@ -135,7 +125,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>&
 		///
 
 		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-			Context->World, *NavSys->GetDefaultNavDataInstance(),
+			World, *NavSys->GetDefaultNavDataInstance(),
 			SeedPosition, GoalPosition, nullptr, nullptr,
 			TNumericLimits<FVector::FReal>::Max(),
 			Context->bRequireNavigableEndLocation);

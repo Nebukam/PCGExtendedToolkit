@@ -616,34 +616,6 @@ namespace PCGExClusterTask
 			if (bAlreadyExists) { InChains[i].Reset(); }
 		}
 	}
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FExpandClusterNodes final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FExpandClusterNodes(const TSharedPtr<PCGExData::FPointIO>& InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
-			FPCGExTask(InPointIO), Cluster(InCluster), NumIterations(InNumIterations)
-		{
-		}
-
-		PCGExCluster::FCluster* Cluster = nullptr;
-		int32 NumIterations = 0;
-
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
-
-	class /*PCGEXTENDEDTOOLKIT_API*/ FExpandClusterEdges final : public PCGExMT::FPCGExTask
-	{
-	public:
-		FExpandClusterEdges(const TSharedPtr<PCGExData::FPointIO>& InPointIO, PCGExCluster::FCluster* InCluster, const int32 InNumIterations) :
-			FPCGExTask(InPointIO), Cluster(InCluster), NumIterations(InNumIterations)
-		{
-		}
-
-		PCGExCluster::FCluster* Cluster = nullptr;
-		int32 NumIterations = 0;
-
-		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
-	};
 }
 
 USTRUCT(BlueprintType)

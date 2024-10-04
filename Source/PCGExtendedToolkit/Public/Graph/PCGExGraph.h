@@ -323,12 +323,12 @@ namespace PCGExGraph
 
 		void Grab(const FPCGContext* Context, const FPCGExPointPointIntersectionDetails& InDetails)
 		{
-			bWriteCompounded = InDetails.bWriteCompounded;
-			CompoundedAttributeName = InDetails.CompoundedAttributeName;
+			bWriteCompounded = InDetails.bWriteIsPointCompound;
+			CompoundedAttributeName = InDetails.IsPointCompoundAttributeName;
 			PCGEX_SOFT_VALIDATE_NAME(bWriteCompounded, CompoundedAttributeName, Context)
 
-			bWriteCompoundSize = InDetails.bWriteCompoundSize;
-			CompoundSizeAttributeName = InDetails.CompoundSizeAttributeName;
+			bWriteCompoundSize = InDetails.bWritePointCompoundSize;
+			CompoundSizeAttributeName = InDetails.PointCompoundSizeAttributeName;
 			PCGEX_SOFT_VALIDATE_NAME(bWriteCompoundSize, CompoundSizeAttributeName, Context)
 		}
 

@@ -78,11 +78,8 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BevelPath)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bHasInvalidInputs = false;
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBevelPath::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
@@ -102,8 +99,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = (Settings->bFlagEndpoints || Settings->bFlagSubdivision || Settings->bFlagEndPoint || Settings->bFlagStartPoint);
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to Bevel."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to Bevel."));
 		}
 
 		if (bHasInvalidInputs)
@@ -112,7 +108,7 @@ bool FPCGExBevelPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

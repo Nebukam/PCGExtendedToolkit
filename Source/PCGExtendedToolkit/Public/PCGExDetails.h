@@ -436,20 +436,36 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPointIntersectionDetails
 	FPCGExFuseDetails FuseDetails;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteCompounded = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteIsPointCompound = false;
 
 	/** Name of the attribute to mark point as compounded or not */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCompounded"))
-	FName CompoundedAttributeName = "bCompounded";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, DisplayName="Is Compound", EditCondition="bWriteIsPointCompound"))
+	FName IsPointCompoundAttributeName = "bIsCompound";
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteCompoundSize = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWritePointCompoundSize = false;
 
 	/** Name of the attribute to mark the number of fused point held */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCompoundSize"))
-	FName CompoundSizeAttributeName = "CompoundSize";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, DisplayName="Compound Size", EditCondition="bWritePointCompoundSize"))
+	FName PointCompoundSizeAttributeName = "CompoundSize";
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteIsEdgeCompound = false;
+
+	/** Name of the attribute to mark edge as compounded or not */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, DisplayName="Is Compound", EditCondition="bWriteIsEdgeCompound"))
+	FName IsEdgeCompoundAttributeName = "bIsCompound";
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteEdgeCompoundSize = false;
+
+	/** Name of the attribute to mark the number of fused edge held */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, DisplayName="Compound Size", EditCondition="bWriteEdgeCompoundSize"))
+	FName EdgeCompoundSizeAttributeName = "CompoundSize";
 };
 
 USTRUCT(BlueprintType)

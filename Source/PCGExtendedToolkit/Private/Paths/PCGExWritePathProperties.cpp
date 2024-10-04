@@ -31,23 +31,19 @@ bool FPCGExWritePathPropertiesElement::ExecuteInternal(FPCGContext* InContext) c
 
 	PCGEX_CONTEXT_AND_SETTINGS(WritePathProperties)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWritePathProperties::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return Entry->GetNum() >= 2; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExWritePathProperties::FProcessor>>& NewBatch)
 			{
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any valid path."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any valid path."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

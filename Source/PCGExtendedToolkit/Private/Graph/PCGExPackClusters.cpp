@@ -47,13 +47,12 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	PCGEX_CONTEXT(PackClusters)
 	PCGEX_EXECUTION_CHECK
 
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->SetState(PCGEx::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
+	PCGEX_ON_STATE(PCGEx::State_ReadyForNextPoints)
 	{
 		int32 IOIndex = 0;
 		while (Context->AdvancePointsIO(false))
@@ -66,13 +65,11 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 			}
 		}
 
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	PCGEX_ON_ASYNC_STATE_READY(PCGEx::State_WaitingOnAsyncWork)
 	{
-		PCGEX_ASYNC_WAIT
-
 		Context->Done();
 		Context->PackedClusters->StageOutputs();
 	}

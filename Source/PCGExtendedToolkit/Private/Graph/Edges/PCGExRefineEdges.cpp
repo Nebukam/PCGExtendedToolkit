@@ -84,11 +84,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(RefineEdges)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (Settings->bOutputOnlyEdgesAsPoints)
 		{
 			if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExRefineEdges::FProcessor>>(
@@ -98,8 +95,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 					if (Context->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 				}))
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-				return true;
+				return Context->CancelExecution(TEXT("Could not build any clusters."));
 			}
 		}
 		else
@@ -119,8 +115,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		}
 	}
 
-	if (!Context->ProcessClusters(Settings->bOutputOnlyEdgesAsPoints ? PCGExMT::State_Done : PCGExGraph::State_ReadyToCompile)) { return false; }
-	if (!Context->CompileGraphBuilders(true, PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->bOutputOnlyEdgesAsPoints ? PCGEx::State_Done : PCGExGraph::State_ReadyToCompile)
+	
+	if (!Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
 
 	//
 

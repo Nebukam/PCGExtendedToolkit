@@ -56,11 +56,8 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 
 	PCGEX_CONTEXT_AND_SETTINGS(UberFilterCollections)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		Context->NumPairs = Context->MainPoints->Pairs.Num();
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExUberFilterCollections::FProcessor>>(
@@ -69,12 +66,11 @@ bool FPCGExUberFilterCollectionsElement::ExecuteInternal(FPCGContext* InContext)
 			{
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any points to filter."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any points to filter."));
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainBatch->Output();
 

@@ -280,11 +280,8 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (!Context->StartProcessingClusters<PCGExFindContours::FBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExFindContours::FBatch>& NewBatch)
@@ -296,12 +293,11 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 				}
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExMT::State_Done)) { return false; }
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGEx::State_Done)
 
 	if (Settings->bOutputFilteredSeeds)
 	{
@@ -403,12 +399,12 @@ namespace PCGExFindContours
 		PCGEx::InitArray(ProjectedPositions, VtxDataFacade->GetNum());
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ProjectionTaskGroup)
-		
+
 		ProjectionTaskGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
 		{
 			ProjectedPositions[Index] = ProjectionDetails.ProjectFlat(VtxDataFacade->Source->GetInPoint(Index).Transform.GetLocation(), Index);
 		};
-		
+
 		ProjectionTaskGroup->StartIterations(VtxDataFacade->GetNum(), GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize());
 
 		TBatch<FProcessor>::Process();

@@ -29,11 +29,10 @@ bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) co
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMakeClustersUniqueElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(MakeClustersUnique)
-
-	if (Context->IsSetup())
+	PCGEX_EXECUTION_CHECK
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->SetState(PCGEx::State_ReadyForNextPoints);
 	}
 
 	while (Context->AdvancePointsIO(false))

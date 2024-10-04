@@ -42,11 +42,8 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 
 	PCGEX_CONTEXT_AND_SETTINGS(BoundsPathIntersection)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bHasInvalidInputs = false;
 		bool bWritesAny = Settings->OutputSettings.WillWriteAny();
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathIntersections::FProcessor>>(
@@ -76,8 +73,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 				NewBatch->bRequiresWriteStep = Settings->OutputSettings.WillWriteAny();
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to intersect with."));
-			return true;
+			Context->CancelExecution(TEXT("Could not find any paths to intersect with."));
 		}
 
 		if (bHasInvalidInputs)
@@ -86,7 +82,7 @@ bool FPCGExBoundsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

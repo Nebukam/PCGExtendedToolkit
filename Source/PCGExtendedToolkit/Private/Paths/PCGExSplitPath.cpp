@@ -34,11 +34,8 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplitPath)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bHasInvalidInputs = false;
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
@@ -55,8 +52,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to split."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to split."));
 		}
 
 		if (bHasInvalidInputs)
@@ -65,7 +61,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPaths->Pairs.Reserve(Context->MainPaths->Pairs.Num() + Context->MainBatch->GetNumProcessors());
 	Context->MainBatch->Output();

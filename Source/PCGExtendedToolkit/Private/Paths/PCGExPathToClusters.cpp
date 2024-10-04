@@ -86,10 +86,8 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathToClusters)
 	PCGEX_EXECUTION_CHECK
 
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		if (Settings->bFusePaths)
 		{
 			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FFusingProcessor>>(
@@ -102,9 +100,7 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 					NewBatch->bInlineProcessing = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 				}))
 			{
-				PCGE_LOG(
-					Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-				return true;
+				return Context->CancelExecution(TEXT("Could not build any clusters."));
 			}
 		}
 		else
@@ -118,20 +114,18 @@ bool FPCGExPathToClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				{
 				}))
 			{
-				PCGE_LOG(
-					Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-				return true;
+				return Context->CancelExecution(TEXT("Could not build any clusters."));
 			}
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(Settings->bFusePaths ? PCGExGraph::State_PreparingCompound : PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(Settings->bFusePaths ? PCGExGraph::State_PreparingCompound : PCGEx::State_Done)
 
 #pragma region Intersection management
 
 	if (Settings->bFusePaths)
 	{
-		if (Context->IsState(PCGExGraph::State_PreparingCompound))
+		PCGEX_ON_STATE(PCGExGraph::State_PreparingCompound)
 		{
 			const int32 NumFacades = Context->MainBatch->ProcessorFacades.Num();
 			Context->PathsFacades.Reserve(NumFacades);

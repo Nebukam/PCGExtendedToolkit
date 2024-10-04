@@ -809,14 +809,19 @@ namespace PCGExCluster
 	{
 		if (ExpandedNodes) { return; }
 
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ExpandNodesTask);
+
 		ExpandedNodes = MakeShared<TArray<FExpandedNode>>();
 		PCGEx::InitArray(ExpandedNodes, Nodes->Num());
 
-		PCGExMT::SubRanges(
-			Nodes->Num(), 256, [&](const int32 Start, const int32 Count)
-			{
-				AsyncManager->Start<PCGExClusterTask::FExpandClusterNodes>(Start, nullptr, this, Count);
-			});
+		ExpandNodesTask->OnIterationRangeStartCallback = [&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		{
+			TArray<PCGExCluster::FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
+			const int32 MaxIndex = StartIndex + Count;
+			for (int i = StartIndex; i < MaxIndex; ++i) { ExpandedNodesRef[i] = PCGExCluster::FExpandedNode(this, i); }
+		};
+
+		ExpandNodesTask->PrepareRangesOnly(Nodes->Num(), 256);
 	}
 
 	TSharedPtr<TArray<FExpandedEdge>> FCluster::GetExpandedEdges(const bool bBuild)
@@ -842,14 +847,19 @@ namespace PCGExCluster
 	{
 		if (ExpandedEdges) { return; }
 
+		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, ExpandEdgesTask);
+
 		ExpandedEdges = MakeShared<TArray<FExpandedEdge>>();
 		PCGEx::InitArray(ExpandedEdges, Edges->Num());
 
-		PCGExMT::SubRanges(
-			Edges->Num(), 256, [&](const int32 Start, const int32 Count)
-			{
-				AsyncManager->Start<PCGExClusterTask::FExpandClusterEdges>(Start, nullptr, this, Count);
-			});
+		ExpandEdgesTask->OnIterationRangeStartCallback = [&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
+		{
+			TArray<PCGExCluster::FExpandedEdge>& ExpandedEdgesRef = (*ExpandedEdges);
+			const int32 MaxIndex = StartIndex + Count;
+			for (int i = StartIndex; i < MaxIndex; ++i) { ExpandedEdgesRef[i] = PCGExCluster::FExpandedEdge(this, i); }
+		};
+
+		ExpandEdgesTask->PrepareRangesOnly(Edges->Num(), 256);
 	}
 
 	void FCluster::UpdatePositions()
@@ -965,20 +975,6 @@ namespace PCGExClusterTask
 		BuildChain(NewChain, Breakpoints, Cluster);
 		(*Chains)[TaskIndex] = NewChain;
 
-		return true;
-	}
-
-	bool FExpandClusterNodes::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		TArray<PCGExCluster::FExpandedNode>& ExpandedNodesRef = (*Cluster->ExpandedNodes);
-		for (int i = 0; i < NumIterations; ++i) { ExpandedNodesRef[TaskIndex + i] = PCGExCluster::FExpandedNode(Cluster, TaskIndex + i); }
-		return true;
-	}
-
-	bool FExpandClusterEdges::ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager)
-	{
-		TArray<PCGExCluster::FExpandedEdge>& ExpandedEdgesRef = (*Cluster->ExpandedEdges);
-		for (int i = 0; i < NumIterations; ++i) { ExpandedEdgesRef[TaskIndex + i] = PCGExCluster::FExpandedEdge(Cluster, TaskIndex + i); }
 		return true;
 	}
 }

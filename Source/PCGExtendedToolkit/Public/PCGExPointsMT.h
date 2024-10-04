@@ -305,7 +305,7 @@ namespace PCGExPointsMT
 
 		mutable FRWLock BatchLock;
 
-		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
+		PCGEx::AsyncState CurrentState = PCGEx::State_InitialExecution;
 
 		FPCGExContext* ExecutionContext = nullptr;
 
@@ -367,7 +367,7 @@ namespace PCGExPointsMT
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
-		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
+		PCGEx::AsyncState CurrentState = PCGEx::State_InitialExecution;
 
 		TBatch(FPCGExContext* InContext, const TArray<TWeakPtr<PCGExData::FPointIO>>& InPointsCollection):
 			FPointsProcessorBatchBase(InContext, InPointsCollection)
@@ -392,7 +392,7 @@ namespace PCGExPointsMT
 		{
 			if (PointsCollection.IsEmpty()) { return; }
 
-			CurrentState = PCGExMT::State_Processing;
+			CurrentState = PCGEx::State_Processing;
 
 			AsyncManager = InAsyncManager;
 
@@ -432,14 +432,14 @@ namespace PCGExPointsMT
 
 		virtual void CompleteWork() override
 		{
-			CurrentState = PCGExMT::State_Completing;
+			CurrentState = PCGEx::State_Completing;
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
 			FPointsProcessorBatchBase::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
-			CurrentState = PCGExMT::State_Writing;
+			CurrentState = PCGEx::State_Writing;
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
 			FPointsProcessorBatchBase::Write();
 		}

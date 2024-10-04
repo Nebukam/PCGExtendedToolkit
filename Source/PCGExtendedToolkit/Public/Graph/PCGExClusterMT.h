@@ -531,7 +531,7 @@ namespace PCGExClusterMT
 		TArray<TSharedRef<T>> Processors;
 		TArray<TSharedRef<T>> TrivialProcessors;
 
-		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
+		PCGEx::AsyncState CurrentState = PCGEx::State_InitialExecution;
 
 		virtual int32 GetNumProcessors() const override { return Processors.Num(); }
 
@@ -558,7 +558,7 @@ namespace PCGExClusterMT
 
 			if (VtxDataFacade->GetNum() <= 1) { return; }
 
-			CurrentState = PCGExMT::State_Processing;
+			CurrentState = PCGEx::State_Processing;
 			TSharedPtr<FClusterProcessorBatchBase> SelfPtr = SharedThis(this);
 
 			for (const TSharedPtr<PCGExData::FPointIO>& IO : Edges)
@@ -594,14 +594,14 @@ namespace PCGExClusterMT
 
 		virtual void CompleteWork() override
 		{
-			CurrentState = PCGExMT::State_Completing;
+			CurrentState = PCGEx::State_Completing;
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(CompleteWork, bInlineCompletion, { Processor->CompleteWork(); })
 			FClusterProcessorBatchBase::CompleteWork();
 		}
 
 		virtual void Write() override
 		{
-			CurrentState = PCGExMT::State_Writing;
+			CurrentState = PCGEx::State_Writing;
 			PCGEX_ASYNC_MT_LOOP_VALID_PROCESSORS(Write, bInlineWrite, { Processor->Write(); })
 			FClusterProcessorBatchBase::Write();
 		}

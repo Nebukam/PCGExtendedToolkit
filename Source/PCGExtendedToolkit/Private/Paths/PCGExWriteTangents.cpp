@@ -48,11 +48,8 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bInvalidInputs = false;
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWriteTangents::FProcessor>>(
@@ -71,8 +68,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->PrimaryOperation = Context->Tangents;
 			}))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to write tangents to."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to write tangents to."));
 		}
 
 		if (bInvalidInputs)
@@ -81,7 +77,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

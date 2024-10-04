@@ -86,14 +86,8 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseClusters)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context))
-		{
-			return true;
-		}
-
 		const bool bDoInline = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>>(
@@ -103,14 +97,13 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bInlineProcessing = bDoInline;
 			}, bDoInline))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not build any clusters."));
 		}
 	}
 
-	if (!Context->ProcessClusters(PCGExGraph::State_PreparingCompound)) { return false; }
-
-	if (Context->IsState(PCGExGraph::State_PreparingCompound))
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraph::State_PreparingCompound)
+	
+	PCGEX_ON_STATE(PCGExGraph::State_PreparingCompound)
 	{
 		const int32 NumFacades = Context->Batches.Num();
 

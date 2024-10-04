@@ -56,11 +56,8 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathCrossings)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
+	PCGEX_ON_INITIAL_EXECUTION
 	{
-		if (!Boot(Context)) { return true; }
-
 		bool bHasInvalidInputs = false;
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathCrossings::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry)
@@ -83,8 +80,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 				NewBatch->bRequiresWriteStep = Settings->bDoCrossBlending;
 			}))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to intersect with."));
-			return true;
+			return Context->CancelExecution(TEXT("Could not find any paths to intersect with."));
 		}
 
 		if (bHasInvalidInputs)
@@ -93,7 +89,7 @@ bool FPCGExPathCrossingsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (!Context->ProcessPointsBatch(PCGExMT::State_Done)) { return false; }
+	PCGEX_POINTS_BATCH_PROCESSING(PCGEx::State_Done)
 
 	Context->MainPoints->StageOutputs();
 

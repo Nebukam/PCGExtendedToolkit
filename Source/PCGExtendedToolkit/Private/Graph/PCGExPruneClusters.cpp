@@ -36,14 +36,7 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneClusters)
 	PCGEX_EXECUTION_CHECK
-
-	if (Context->IsSetup())
-	{
-		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
-
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
+	PCGEX_ON_INITIAL_EXECUTION
 	{
 		while (Context->AdvancePointsIO(false))
 		{
@@ -54,13 +47,11 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		}
 
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+		Context->SetAsyncState(PCGEx::State_WaitingOnAsyncWork);
 	}
 
-	if (Context->IsState(PCGExGraph::State_WritingClusters))
+	PCGEX_ON_ASYNC_STATE_READY(PCGExGraph::State_WritingClusters)
 	{
-		PCGEX_ASYNC_WAIT
-
 		TSet<PCGExData::FPointIO*> KeepList;
 		TSet<PCGExData::FPointIO*> OmitList;
 
