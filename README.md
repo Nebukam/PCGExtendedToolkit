@@ -15,7 +15,7 @@ It also comes with a set of lower-level, more generic features to manipulate att
 * [Installation](https://nebukam.github.io/PCGExtendedToolkit/installation/) in your own project
 * Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)!
 
-For questions & support, join the [PCGEx Discord Server](https://discord.gg/XKtqxNM7)!
+For questions & support, join the [PCGEx Discord Server](https://discord.gg/wTep9jjaBK)!
 
 # Highlights
 ### Vtx/Edge structures
