@@ -30,6 +30,7 @@ public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SplineToPath, "Spline to Path", "Turns splines to paths.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPath; }
 #endif
 
 protected:
@@ -102,6 +103,10 @@ public:
 	/** ... */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable, EditCondition="bTagIfOpenSpline"))
 	FString IsOpenSplineTag = TEXT("Open");
+
+	/** Tags to be forwarded from source splines */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(PCG_Overridable))
+	FPCGExNameFiltersDetails TagForwarding;
 	
 };
 
@@ -111,7 +116,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSplineToPathContext final : public FPCGE
 
 	PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_DECL_TOGGLE)
 
+	FPCGExNameFiltersDetails TagForwarding;
+	
 	TArray<const UPCGSplineData*> Targets;
+	TArray<TArray<FString>> Tags;
 	TArray<FPCGSplineStruct> Splines;
 
 	int64 NumTargets = 0;

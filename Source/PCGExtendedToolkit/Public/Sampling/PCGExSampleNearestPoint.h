@@ -142,8 +142,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax"))
 	FPCGAttributePropertyInputSelector LocalRangeMax;
 
-	/** Distance method to be used for source & target points. */
+	/** Which mode to use to compute weights. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	EPCGExSampleWeightMode WeightMode = EPCGExSampleWeightMode::Distance;
+
+	/** Weight attribute to read on targets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Distance", EditConditionHides))
+	FPCGAttributePropertyInputSelector WeightAttribute;
+	
+	/** Distance method to be used for source & target points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute", EditConditionHides))
 	FPCGExDistanceDetails DistanceDetails;
 
 	/** Weight method used for blending */
@@ -151,7 +159,7 @@ public:
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
 	/** Curve that balances weight over distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="WeightMode != EPCGExSampleWeightMode::Attribute", EditConditionHides))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
 	/** Attributes to sample from the targets */
@@ -287,6 +295,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNearestPointContext final : public
 	int32 NumTargets = 0;
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
+	TSharedPtr<PCGExData::TBuffer<double>> TargetWeights;
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL_TOGGLE)
 };

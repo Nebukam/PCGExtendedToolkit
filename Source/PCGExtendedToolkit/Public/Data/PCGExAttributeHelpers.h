@@ -835,16 +835,8 @@ namespace PCGEx
 				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
 				return FVector2D(Dir.X, Dir.Y);
 			}
-			else if constexpr (std::is_same_v<T, FVector>)
-			{
-				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
-				return Dir;
-			}
-			else if constexpr (std::is_same_v<T, FVector4>)
-			{
-				const FVector Dir = PCGExMath::GetDirection(Value, Axis);
-				return FVector4(Dir, 0);
-			}
+			else if constexpr (std::is_same_v<T, FVector>) { return PCGExMath::GetDirection(Value, Axis); }
+			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(PCGExMath::GetDirection(Value, Axis), 0); }
 			else if constexpr (std::is_same_v<T, FQuat>) { return Value; }
 			else if constexpr (std::is_same_v<T, FRotator>) { return Value.Rotator(); }
 			else if constexpr (std::is_same_v<T, FTransform>) { return FTransform(Value, FVector::ZeroVector, FVector::OneVector); }
@@ -891,13 +883,8 @@ namespace PCGEx
 					return Value.Euler().SquaredLength() > 0;
 				}
 			}
-			else if constexpr (std::is_same_v<T, FVector2D>)
-			{
-				/* TODO : Handle axis */
-				const FVector Euler = Value.Euler();
-				return FVector2D(Euler.X, Euler.Y);
-			}
-			else if constexpr (std::is_same_v<T, FVector>) { return Value.Euler(); /* TODO : Handle axis */ }
+			else if constexpr (std::is_same_v<T, FVector2D>) { return Convert(Value.Quaternion()); }
+			else if constexpr (std::is_same_v<T, FVector>) { return Convert(Value.Quaternion()); }
 			else if constexpr (std::is_same_v<T, FVector4>) { return FVector4(Value.Euler(), 0); /* TODO : Handle axis */ }
 			else if constexpr (std::is_same_v<T, FQuat>) { return Value.Quaternion(); }
 			else if constexpr (std::is_same_v<T, FRotator>) { return Value; }
@@ -913,8 +900,30 @@ namespace PCGEx
 
 		FORCEINLINE virtual T Convert(const FTransform& Value) const
 		{
-			/* TODO : Implement */
-			return T{};
+			if constexpr (
+				std::is_same_v<T, bool> ||
+				std::is_same_v<T, int32> ||
+				std::is_same_v<T, int64> ||
+				std::is_same_v<T, float> ||
+				std::is_same_v<T, double> ||
+				std::is_same_v<T, FVector2D> ||
+				std::is_same_v<T, FVector> ||
+				std::is_same_v<T, FVector4> ||
+				std::is_same_v<T, FQuat> ||
+				std::is_same_v<T, FRotator>)
+			{
+				switch (Component)
+				{
+				default:
+				case EPCGExTransformComponent::Position: return Convert(Value.GetLocation());
+				case EPCGExTransformComponent::Rotation: return Convert(Value.GetRotation());
+				case EPCGExTransformComponent::Scale: return Convert(Value.GetScale3D());
+				}
+			}
+			else if constexpr (std::is_same_v<T, FTransform>) { return Value; }
+			else if constexpr (std::is_same_v<T, FString>) { return *Value.ToString(); }
+			else if constexpr (std::is_same_v<T, FName>) { return FName(*Value.ToString()); }
+			else { return T{}; }
 		}
 
 #pragma endregion

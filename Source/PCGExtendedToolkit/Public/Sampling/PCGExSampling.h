@@ -57,6 +57,14 @@ enum class EPCGExAngleRange : uint8
 	TAUDegrees = 5 UMETA(DisplayName = "Degrees (0..+360)", ToolTip="0..+360"),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Weight Mode"))
+enum class EPCGExSampleWeightMode : uint8
+{
+	Distance      = 0 UMETA(DisplayName = "Distance", ToolTip="Weight is computed using distance to targets"),
+	Attribute     = 1 UMETA(DisplayName = "Attribute", ToolTip="Uses a fixed attribute value on the target as weight"),
+	AttributeMult = 2 UMETA(DisplayName = "Att x Dist", ToolTip="Uses a fixed attribute value on the target as a multiplier to distance-based weight"),
+};
+
 namespace PCGExSampling
 {
 	const FName SourceIgnoreActorsLabel = TEXT("InIgnoreActors");

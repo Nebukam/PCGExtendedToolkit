@@ -67,6 +67,16 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGExContext* InContext) const
 
 	Context->TargetOctree = &Context->TargetsFacade->Source->GetIn()->GetOctree();
 
+	if (Settings->WeightMode != EPCGExSampleWeightMode::Distance)
+	{
+		Context->TargetWeights = Context->TargetsFacade->GetBroadcaster<double>(Settings->WeightAttribute);
+		if (!Context->TargetWeights)
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Weight Attribute on Targets is invalid."));
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -186,7 +196,7 @@ namespace PCGExSampleNearestPoints
 
 
 		PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
-		auto SampleTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
+		auto SampleTarget = [&](const int32 TargetPtIndex, const FPCGPoint& Target)
 		{
 			//if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; } // TODO : Implement
 
@@ -195,17 +205,20 @@ namespace PCGExSampleNearestPoints
 
 			Settings->DistanceDetails.GetCenters(Point, Target, A, B);
 
-			const double Dist = FVector::DistSquared(A, B);
+			double Dist = FVector::DistSquared(A, B);
 
 			if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
 
+			if (Settings->WeightMode == EPCGExSampleWeightMode::Attribute) { Dist = Context->TargetWeights->Read(TargetPtIndex); }
+			else if (Settings->WeightMode == EPCGExSampleWeightMode::AttributeMult) { Dist *= Context->TargetWeights->Read(TargetPtIndex); }
+
 			if (bSingleSample)
 			{
-				TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(PointIndex, Dist));
+				TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(TargetPtIndex, Dist));
 			}
 			else
 			{
-				const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(PointIndex, Dist);
+				const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(TargetPtIndex, Dist);
 				TargetsCompoundInfos.UpdateCompound(Infos);
 			}
 		};
@@ -215,8 +228,8 @@ namespace PCGExSampleNearestPoints
 			const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
 			auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 			{
-				const ptrdiff_t PointIndex = InPointRef.Point - Context->TargetPoints->GetData();
-				SampleTarget(PointIndex, *(Context->TargetPoints->GetData() + PointIndex));
+				const ptrdiff_t TargetPtIndex = InPointRef.Point - Context->TargetPoints->GetData();
+				SampleTarget(TargetPtIndex, *(Context->TargetPoints->GetData() + TargetPtIndex));
 			};
 
 			Context->TargetOctree->FindElementsWithBoundsTest(Box, ProcessNeighbor);
@@ -239,7 +252,7 @@ namespace PCGExSampleNearestPoints
 		{
 			// Reset compounded infos to full range
 			TargetsCompoundInfos.SampledRangeMin = RangeMin;
-			TargetsCompoundInfos.SampledRangeMax = RangeMax;
+			TargetsCompoundInfos.SampledRangeMax = FMath::Max(TargetsCompoundInfos.SampledRangeMax, RangeMax);
 			TargetsCompoundInfos.SampledRangeWidth = RangeMax - RangeMin;
 		}
 

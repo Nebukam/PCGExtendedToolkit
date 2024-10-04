@@ -27,7 +27,17 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 	if (Context->InputData.GetInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
 
 	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGExSplineToPath::SourceSplineLabel);
+	PCGEX_FWD(TagForwarding)
+	Context->TagForwarding.Init();
 
+
+	auto AddTags = [&](const TSet<FString>& SourceTags)
+	{
+		TArray<FString> Tags = SourceTags.Array();
+		Context->TagForwarding.Prune(Tags);
+		Context->Tags.Add(Tags);
+	};
+	
 	if (!Targets.IsEmpty())
 	{
 		for (const FPCGTaggedData& TaggedData : Targets)
@@ -40,12 +50,21 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 			default:
 			case EPCGExSplineSamplingIncludeMode::All:
 				Context->Targets.Add(SplineData);
+				AddTags(TaggedData.Tags);
 				break;
 			case EPCGExSplineSamplingIncludeMode::ClosedLoopOnly:
-				if (SplineData->SplineStruct.bClosedLoop) { Context->Targets.Add(SplineData); }
+				if (SplineData->SplineStruct.bClosedLoop)
+				{
+					Context->Targets.Add(SplineData);
+					AddTags(TaggedData.Tags);
+				}
 				break;
 			case EPCGExSplineSamplingIncludeMode::OpenSplineOnly:
-				if (!SplineData->SplineStruct.bClosedLoop) { Context->Targets.Add(SplineData); }
+				if (!SplineData->SplineStruct.bClosedLoop)
+				{
+					Context->Targets.Add(SplineData);
+					AddTags(TaggedData.Tags);
+				}
 				break;
 			}
 		}
@@ -64,6 +83,8 @@ bool FPCGExSplineToPathElement::Boot(FPCGExContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_SPLINETOPATH(PCGEX_OUTPUT_VALIDATE_NAME)
 
+	
+	
 	return true;
 }
 
@@ -83,6 +104,8 @@ bool FPCGExSplineToPathElement::ExecuteInternal(FPCGContext* InContext) const
 			TSharedPtr<PCGExData::FPointIO> NewOutput = Context->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
 			TSharedPtr<PCGExData::FFacade> PointDataFacade = MakeShared<PCGExData::FFacade>(NewOutput.ToSharedRef());
 			Context->GetAsyncManager()->Start<PCGExSplineToPath::FWriteTask>(i, NewOutput, PointDataFacade);
+
+			NewOutput->Tags->Append(Context->Tags[i]);
 		}
 
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
