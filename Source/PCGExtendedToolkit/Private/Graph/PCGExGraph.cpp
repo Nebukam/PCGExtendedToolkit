@@ -360,9 +360,9 @@ namespace PCGExGraph
 		if (MetadataDetails && !Graph->NodeMetadata.IsEmpty())
 		{
 #define PCGEX_FOREACH_NODE_METADATA(MACRO)\
-			MACRO(Compounded, bool, false, bCompounded) \
-			MACRO(CompoundSize, int32, 0, CompoundSize) \
-			MACRO(Intersector, bool, false, IsIntersector()) \
+			MACRO(IsPointUnion, bool, false, bIsUnion) \
+			MACRO(PointUnionSize, int32, 0, UnionSize) \
+			MACRO(IsIntersector, bool, false, IsIntersector()) \
 			MACRO(Crossing, bool, false, IsCrossing())
 #define PCGEX_NODE_METADATA_DECL(_NAME, _TYPE, _DEFAULT, _ACCESSOR) const TSharedPtr<PCGExData::TBuffer<_TYPE>> _NAME##Buffer = MetadataDetails->bWrite##_NAME ? NodeDataFacade->GetWritable<_TYPE>(MetadataDetails->_NAME##AttributeName, _DEFAULT, true, true) : nullptr;
 #define PCGEX_NODE_METADATA_OUTPUT(_NAME, _TYPE, _DEFAULT, _ACCESSOR) if(_NAME##Buffer){_NAME##Buffer->GetMutable(PointIndex) = NodeMeta->_ACCESSOR;}
@@ -434,7 +434,7 @@ namespace PCGExGraph
 			const TSharedPtr<FSubGraph> SubGraph = Graph->SubGraphs[Index];
 			PCGExGraphTask::WriteSubGraphEdges(AsyncManager, SubGraph, MetadataDetailsPtr);
 		};
-		
+
 		ProcessSubGraphTask->StartIterations(Graph->SubGraphs.Num(), 1, false, false);
 	}
 
@@ -522,7 +522,7 @@ namespace PCGExGraphTask
 			if (PCGExGraph::FGraphEdgeMetadata** EdgeMetaPtr = Graph->EdgeMetadata.Find(EdgeIndex))
 			{
 				PCGExGraph::FGraphEdgeMetadata* EdgeMeta = *EdgeMetaPtr;
-				//int32 ParentCompoundIndex = PCGExGraph::FGraphEdgeMetadata::GetParentIndex();
+				//int32 ParentUnionIndex = PCGExGraph::FGraphEdgeMetadata::GetParentIndex();
 				//TODO: Handle edge metadata	
 			}
 			*/

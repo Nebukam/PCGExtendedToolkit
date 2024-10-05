@@ -65,7 +65,7 @@ private:
 	friend class FPCGExWriteVtxPropertiesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteVtxPropertiesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteVtxPropertiesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteVtxPropertiesElement;
 

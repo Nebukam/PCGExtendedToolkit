@@ -37,7 +37,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
 	int32 Iterations = 5;
@@ -51,7 +50,7 @@ public:
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExLloydRelax2DContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelax2DElement;
 };

@@ -34,7 +34,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** The name of the attribute to write collocation to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName CollicationNumAttributeName = "NumCollocations";
@@ -52,7 +51,7 @@ public:
 	double Tolerance = 0.01;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExCollocationCountContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExCollocationCountElement;
 };

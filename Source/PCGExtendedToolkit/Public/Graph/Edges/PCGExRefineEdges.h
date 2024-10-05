@@ -69,7 +69,7 @@ private:
 	friend class FPCGExRefineEdgesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRefineEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRefineEdgesElement;
 

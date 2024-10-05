@@ -71,7 +71,7 @@ public:
 	double LeaveScaleConstant = 1;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteTangentsContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExWriteTangentsElement;
 

@@ -18,12 +18,12 @@ class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointIOMerger final : public TSharedFromT
 
 public:
 	TArray<PCGEx::FAttributeIdentity> UniqueIdentities;
-	TSharedRef<PCGExData::FFacade> CompoundDataFacade;
+	TSharedRef<PCGExData::FFacade> UnionDataFacade;
 	TArray<TSharedPtr<PCGExData::FPointIO>> IOSources;
 	TArray<uint64> Scopes;
 	TArray<TSharedPtr<PCGExData::FBufferBase>> Buffers;
 
-	FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InCompoundDataFacade);
+	FPCGExPointIOMerger(const TSharedRef<PCGExData::FFacade>& InUnionDataFacade);
 	~FPCGExPointIOMerger();
 
 	void Append(const TSharedPtr<PCGExData::FPointIO>& InData);

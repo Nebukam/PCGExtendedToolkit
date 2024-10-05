@@ -4,11 +4,11 @@
 #include "Graph/PCGExFuseClusters.h"
 #include "Graph/PCGExIntersections.h"
 
-#include "Data/Blending/PCGExCompoundBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 
 
 #include "Graph/Data/PCGExClusterData.h"
-#include "Graph/PCGExCompoundHelpers.h"
+#include "Graph/PCGExUnionHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -45,7 +45,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	const_cast<UPCGExFuseClustersSettings*>(Settings)->EdgeEdgeIntersectionDetails.Init();
 
-	Context->CompoundProcessor = MakeShared<PCGExGraph::FCompoundProcessor>(
+	Context->UnionProcessor = MakeShared<PCGExGraph::FUnionProcessor>(
 		Context,
 		Settings->PointPointIntersectionDetails,
 		Settings->DefaultPointsBlendingDetails,
@@ -53,7 +53,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bFindPointEdgeIntersections)
 	{
-		Context->CompoundProcessor->InitPointEdge(
+		Context->UnionProcessor->InitPointEdge(
 			Settings->PointEdgeIntersectionDetails,
 			Settings->bUseCustomPointEdgeBlending,
 			&Settings->CustomPointEdgeBlendingDetails);
@@ -61,19 +61,19 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 
 	if (Settings->bFindEdgeEdgeIntersections)
 	{
-		Context->CompoundProcessor->InitEdgeEdge(
+		Context->UnionProcessor->InitEdgeEdge(
 			Settings->EdgeEdgeIntersectionDetails,
 			Settings->bUseCustomPointEdgeBlending,
 			&Settings->CustomEdgeEdgeBlendingDetails);
 	}
 
-	const TSharedPtr<PCGExData::FPointIO> CompoundPoints = MakeShared<PCGExData::FPointIO>(Context);
-	CompoundPoints->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
-	CompoundPoints->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
+	const TSharedPtr<PCGExData::FPointIO> UnionIO = MakeShared<PCGExData::FPointIO>(Context);
+	UnionIO->SetInfos(-1, PCGExGraph::OutputVerticesLabel);
+	UnionIO->InitializeOutput<UPCGExClusterNodesData>(Context, PCGExData::EInit::NewOutput);
 
-	Context->CompoundFacade = MakeShared<PCGExData::FFacade>(CompoundPoints.ToSharedRef());
+	Context->UnionDataFacade = MakeShared<PCGExData::FFacade>(UnionIO.ToSharedRef());
 
-	Context->CompoundGraph = MakeShared<PCGExGraph::FCompoundGraph>(
+	Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
 		Settings->PointPointIntersectionDetails.FuseDetails,
 		Context->MainPoints->GetInBounds().ExpandBy(10));
 
@@ -101,9 +101,9 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraph::State_PreparingCompound)
-	
-	PCGEX_ON_STATE(PCGExGraph::State_PreparingCompound)
+	PCGEX_CLUSTER_BATCH_PROCESSING(PCGExGraph::State_PreparingUnion)
+
+	PCGEX_ON_STATE(PCGExGraph::State_PreparingUnion)
 	{
 		const int32 NumFacades = Context->Batches.Num();
 
@@ -114,17 +114,17 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->VtxFacades.Add(Batch->VtxDataFacade);
 		}
 
-		if (!Context->CompoundProcessor->StartExecution(
-			Context->CompoundGraph,
-			Context->CompoundFacade,
+		if (!Context->UnionProcessor->StartExecution(
+			Context->UnionGraph,
+			Context->UnionDataFacade,
 			Context->VtxFacades,
 			Settings->GraphBuilderDetails,
 			&Settings->VtxCarryOverDetails)) { return true; }
 	}
 
-	if (!Context->CompoundProcessor->Execute()) { return false; }
+	if (!Context->UnionProcessor->Execute()) { return false; }
 
-	Context->CompoundFacade->Source->StageOutput();
+	Context->UnionDataFacade->Source->StageOutput();
 	Context->Done();
 
 	return Context->TryComplete();
@@ -162,7 +162,7 @@ namespace PCGExFuseClusters
 		InPoints = &VtxDataFacade->Source->GetIn()->GetPoints();
 
 		bInvalidEdges = false;
-		CompoundGraph = Context->CompoundGraph;
+		UnionGraph = Context->UnionGraph;
 
 		bInlineProcessRange = bInlineProcessEdges = Settings->PointPointIntersectionDetails.FuseDetails.DoInlineInsertion();
 

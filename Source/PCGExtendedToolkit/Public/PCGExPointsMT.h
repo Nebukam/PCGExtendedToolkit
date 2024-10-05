@@ -19,8 +19,6 @@ namespace PCGExPointsMT
 	PCGEX_ASYNC_STATE(MTState_PointsCompletingWork)
 	PCGEX_ASYNC_STATE(MTState_PointsWriting)
 
-	PCGEX_ASYNC_STATE(State_PointsAsyncWorkComplete)
-
 #define PCGEX_ASYNC_MT_LOOP_TPL(_ID, _INLINE_CONDITION, _BODY)\
 	if (_INLINE_CONDITION)  { \
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, _ID##Inlined) \
@@ -126,7 +124,7 @@ namespace PCGExPointsMT
 			CurrentProcessingSource = Source;
 
 			if (!PointDataFacade->IsDataValid(CurrentProcessingSource)) { return; }
-			
+
 			const int32 NumPoints = PointDataFacade->Source->GetNum(Source);
 
 			if (IsTrivial())
@@ -158,7 +156,7 @@ namespace PCGExPointsMT
 		virtual void ProcessPoints(const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
 			if (!PointDataFacade->IsDataValid(CurrentProcessingSource)) { return; }
-			
+
 			PrepareSingleLoopScopeForPoints(StartIndex, Count);
 			TArray<FPCGPoint>& Points = PointDataFacade->Source->GetMutableData(CurrentProcessingSource)->GetMutablePoints();
 			for (int i = 0; i < Count; ++i)

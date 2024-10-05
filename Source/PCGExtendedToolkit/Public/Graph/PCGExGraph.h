@@ -122,43 +122,16 @@ namespace PCGExGraph
 	const FName OutputHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputModifiersLabel = TEXT("Modifiers");
 
-	PCGEX_ASYNC_STATE(State_ReadyForNextGraph)
-	PCGEX_ASYNC_STATE(State_ProcessingGraph)
-	PCGEX_ASYNC_STATE(State_PreparingCompound)
-	PCGEX_ASYNC_STATE(State_ProcessingCompound)
+	PCGEX_ASYNC_STATE(State_PreparingUnion)
+	PCGEX_ASYNC_STATE(State_ProcessingUnion)
 
-	PCGEX_ASYNC_STATE(State_CachingGraphIndices)
-	PCGEX_ASYNC_STATE(State_SwappingGraphIndices)
-
-	PCGEX_ASYNC_STATE(State_FindingEdgeTypes)
-
-	PCGEX_ASYNC_STATE(State_BuildCustomGraph)
-	PCGEX_ASYNC_STATE(State_FindingCrossings)
 	PCGEX_ASYNC_STATE(State_WritingClusters)
-	PCGEX_ASYNC_STATE(State_WaitingOnWritingClusters)
 	PCGEX_ASYNC_STATE(State_ReadyToCompile)
 	PCGEX_ASYNC_STATE(State_Compiling)
 
 	PCGEX_ASYNC_STATE(State_ProcessingPointEdgeIntersections)
-	PCGEX_ASYNC_STATE(State_InsertingPointEdgeIntersections)
-
-	PCGEX_ASYNC_STATE(State_FindingEdgeEdgeIntersections)
-	PCGEX_ASYNC_STATE(State_InsertingEdgeEdgeIntersections)
-
-	PCGEX_ASYNC_STATE(State_PromotingEdges)
-	PCGEX_ASYNC_STATE(State_UpdatingCompoundCenters)
-
-	PCGEX_ASYNC_STATE(State_MergingPointCompounds)
-	PCGEX_ASYNC_STATE(State_MergingEdgeCompounds)
-	PCGEX_ASYNC_STATE(State_BlendingPointEdgeCrossings)
 	PCGEX_ASYNC_STATE(State_ProcessingEdgeEdgeIntersections)
 
-	PCGEX_ASYNC_STATE(State_WritingMainState)
-	PCGEX_ASYNC_STATE(State_WritingStatesAttributes)
-	PCGEX_ASYNC_STATE(State_WritingIndividualStates)
-
-	PCGEX_ASYNC_STATE(State_ProcessingHeuristics)
-	PCGEX_ASYNC_STATE(State_ProcessingHeuristicModifiers)
 	PCGEX_ASYNC_STATE(State_Pathfinding)
 	PCGEX_ASYNC_STATE(State_WaitingPathfinding)
 
@@ -305,56 +278,54 @@ namespace PCGExGraph
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphMetadataDetails
 	{
-		bool bWriteCompounded = false;
-		FName CompoundedAttributeName = "bCompounded";
+#define PCGEX_FOREACH_POINTPOINT_METADATA(MACRO)\
+		MACRO(IsPointUnion, TEXT("bIsUnion"))\
+		MACRO(PointUnionSize, TEXT("UnionSize"))\
+		MACRO(IsEdgeUnion, TEXT("bIsUnion"))\
+		MACRO(EdgeUnionSize, TEXT("UnionSize"))
 
-		bool bWriteCompoundSize = false;
-		FName CompoundSizeAttributeName = "CompoundSize";
+#define PCGEX_FOREACH_POINTEDGE_METADATA(MACRO)\
+		MACRO(IsIntersector, TEXT("bIsIntersector"))
 
-		bool bWriteCrossing = false;
-		FName CrossingAttributeName = "bCrossing";
+#define PCGEX_FOREACH_EDGEEDGE_METADATA(MACRO)\
+		MACRO(Crossing, TEXT("bCrossing"))
 
-		bool bWriteIntersector = false;
-		FName IntersectorAttributeName = "bIntersector";
+#define PCGEX_GRAPH_META_DECL(_NAME, _DEFAULT)	bool bWrite##_NAME = false; FName _NAME##AttributeName = _DEFAULT;
+		PCGEX_FOREACH_POINTPOINT_METADATA(PCGEX_GRAPH_META_DECL);
+		PCGEX_FOREACH_POINTEDGE_METADATA(PCGEX_GRAPH_META_DECL);
+		PCGEX_FOREACH_EDGEEDGE_METADATA(PCGEX_GRAPH_META_DECL);
 
 		bool bFlagCrossing = false;
 		FName FlagA = NAME_None;
 		FName FlagB = NAME_None;
 
+#define PCGEX_GRAPH_META_FWD(_NAME, _DEFAULT)	bWrite##_NAME = InDetails.bWrite##_NAME; _NAME##AttributeName = InDetails._NAME##AttributeName; PCGEX_SOFT_VALIDATE_NAME(bWrite##_NAME, _NAME##AttributeName, Context)
+
 		void Grab(const FPCGContext* Context, const FPCGExPointPointIntersectionDetails& InDetails)
 		{
-			bWriteCompounded = InDetails.bWriteIsPointCompound;
-			CompoundedAttributeName = InDetails.IsPointCompoundAttributeName;
-			PCGEX_SOFT_VALIDATE_NAME(bWriteCompounded, CompoundedAttributeName, Context)
-
-			bWriteCompoundSize = InDetails.bWritePointCompoundSize;
-			CompoundSizeAttributeName = InDetails.PointCompoundSizeAttributeName;
-			PCGEX_SOFT_VALIDATE_NAME(bWriteCompoundSize, CompoundSizeAttributeName, Context)
-		}
-
-		void Grab(const FPCGContext* Context, const FPCGExEdgeEdgeIntersectionDetails& InDetails)
-		{
-			bWriteCrossing = InDetails.bWriteCrossing;
-			CrossingAttributeName = InDetails.CrossingAttributeName;
-			bFlagCrossing = InDetails.bFlagCrossing;
-			PCGEX_SOFT_VALIDATE_NAME(bFlagCrossing, FlagA, Context)
-			PCGEX_SOFT_VALIDATE_NAME(bFlagCrossing, FlagB, Context)
+			PCGEX_FOREACH_POINTPOINT_METADATA(PCGEX_GRAPH_META_FWD);
 		}
 
 		void Grab(const FPCGContext* Context, const FPCGExPointEdgeIntersectionDetails& InDetails)
 		{
-			bWriteIntersector = InDetails.bWriteIntersector;
-			IntersectorAttributeName = InDetails.IntersectorAttributeName;
-			PCGEX_SOFT_VALIDATE_NAME(bWriteIntersector, IntersectorAttributeName, Context)
+			PCGEX_FOREACH_POINTEDGE_METADATA(PCGEX_GRAPH_META_FWD);
 		}
+
+		void Grab(const FPCGContext* Context, const FPCGExEdgeEdgeIntersectionDetails& InDetails)
+		{
+			PCGEX_FOREACH_EDGEEDGE_METADATA(PCGEX_GRAPH_META_FWD);
+		}
+
+#undef PCGEX_FOREACH_POINTPOINT_METADATA
+#undef PCGEX_GRAPH_META_FWD
 	};
 
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FGraphNodeMetadata
 	{
 		EPCGExIntersectionType Type = EPCGExIntersectionType::PointEdge;
-		bool bCompounded = false; // Represents multiple nodes
+		bool bIsUnion = false; // Represents multiple nodes
 		int32 NodeIndex;
-		int32 CompoundSize = 0; // Fuse size
+		int32 UnionSize = 0; // Fuse size
 
 		explicit FGraphNodeMetadata(const int32 InNodeIndex)
 			: NodeIndex(InNodeIndex)

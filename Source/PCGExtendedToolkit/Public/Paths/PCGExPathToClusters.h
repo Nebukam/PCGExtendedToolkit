@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPathProcessor.h"
-#include "Graph/PCGExCompoundHelpers.h"
+#include "Graph/PCGExUnionHelpers.h"
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
@@ -37,7 +37,6 @@ public:
 	virtual FName GetMainOutputLabel() const override { return PCGExGraph::OutputVerticesLabel; }
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Whether to fuse paths into a single graph or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, NoEditInline))
 	bool bFusePaths = true;
@@ -95,7 +94,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathToClustersElement;
 
@@ -103,10 +102,10 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersContext final : public FPC
 
 	FPCGExCarryOverDetails CarryOverDetails;
 
-	TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
-	TSharedPtr<PCGExData::FFacade> CompoundFacade;
+	TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
+	TSharedPtr<PCGExData::FFacade> UnionDataFacade;
 
-	TUniquePtr<PCGExGraph::FCompoundProcessor> CompoundProcessor;
+	TUniquePtr<PCGExGraph::FUnionProcessor> UnionProcessor;
 };
 
 class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathToClustersElement final : public FPCGExPathProcessorElement
@@ -159,7 +158,7 @@ namespace PCGExPathToClusters
 		const TArray<FPCGPoint>* InPoints = nullptr;
 
 	public:
-		TSharedPtr<PCGExGraph::FCompoundGraph> CompoundGraph;
+		TSharedPtr<PCGExGraph::FUnionGraph> UnionGraph;
 
 		explicit FFusingProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade)
 			: TPointsProcessor(InPointDataFacade)

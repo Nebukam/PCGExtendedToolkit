@@ -51,8 +51,6 @@ namespace PCGExGraph
 	const FString TagStr_PCGExEdges = Tag_PCGExEdges.ToString();
 
 	PCGEX_ASYNC_STATE(State_ReadyForNextEdges)
-	PCGEX_ASYNC_STATE(State_ProcessingEdges)
-	PCGEX_ASYNC_STATE(State_BuildingClusters)
 
 	FORCEINLINE static uint32 NodeGUID(const uint64 Base, const int32 Index)
 	{
@@ -106,7 +104,7 @@ namespace PCGExGraph
 		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FIndexedEdge : public FUnsignedEdge
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FIndexedEdge : FUnsignedEdge
 	{
 		int32 EdgeIndex = -1;
 		int32 PointIndex = -1;

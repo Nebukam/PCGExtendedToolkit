@@ -73,7 +73,6 @@ public:
 #endif
 	//~End UPCGSettings
 
-public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR

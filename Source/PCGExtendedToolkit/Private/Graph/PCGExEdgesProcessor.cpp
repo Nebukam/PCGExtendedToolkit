@@ -377,7 +377,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGExContext* InContext) const
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges have no associated vtx."));
 		}
 	}
-	
+
 	if (Context->MainEdges->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
@@ -398,7 +398,7 @@ FPCGExContext* FPCGExEdgesProcessorElement::InitializeContext(
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
 	Context->bScopedIndexLookupBuild = Settings->bScopedIndexLookupBuild;
-	
+
 	return Context;
 }
 

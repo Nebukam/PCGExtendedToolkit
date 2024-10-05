@@ -40,7 +40,7 @@ public:
 	FPCGExCarryOverDetails CarryOverDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMergeVerticesContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExMergeVerticesSettings;
 	friend class FPCGExMergeVerticesElement;

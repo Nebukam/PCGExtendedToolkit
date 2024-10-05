@@ -24,22 +24,17 @@ namespace PCGEx
 	PCGEX_ASYNC_STATE(State_ReadyForNextPoints)
 	PCGEX_ASYNC_STATE(State_ProcessingPoints)
 
-	PCGEX_ASYNC_STATE(State_ProcessingTargets)
 	PCGEX_ASYNC_STATE(State_WaitingOnAsyncWork)
-	PCGEX_ASYNC_STATE(State_WaitingOnAsyncProcessing)
-	PCGEX_ASYNC_STATE(State_WaitingOnAsyncCompletion)
 	PCGEX_ASYNC_STATE(State_Done)
 
 	PCGEX_ASYNC_STATE(State_Processing)
 	PCGEX_ASYNC_STATE(State_Completing)
 	PCGEX_ASYNC_STATE(State_Writing)
 
-	PCGEX_ASYNC_STATE(State_CompoundWriting)
-	PCGEX_ASYNC_STATE(State_MetaWriting)
-	PCGEX_ASYNC_STATE(State_MetaWriting2)
+	PCGEX_ASYNC_STATE(State_UnionWriting)
 }
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : public FPCGContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExContext : FPCGContext
 {
 protected:
 	mutable FRWLock StagedOutputLock;
@@ -66,7 +61,6 @@ public:
 
 #pragma region State
 
-public:
 	void PauseContext();
 	void UnpauseContext();
 
@@ -76,7 +70,7 @@ public:
 
 	virtual bool ShouldWaitForAsync();
 	void ReadyForExecution();
-	
+
 	bool IsState(const PCGEx::AsyncState StateId) const { return CurrentState == StateId; }
 	bool IsInitialExecution() const { return IsState(PCGEx::State_InitialExecution); }
 	bool IsDone() const { return IsState(PCGEx::State_Done); }

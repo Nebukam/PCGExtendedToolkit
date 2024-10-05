@@ -91,8 +91,8 @@ bool FPCGExAssetStagingElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(AssetStaging)
 	PCGEX_EXECUTION_CHECK
 
-	PCGEX_ON_INITIAL_EXECUTION{
-
+	PCGEX_ON_INITIAL_EXECUTION
+	{
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExAssetStaging::FProcessor>>(
 			[&](const TSharedPtr<PCGExData::FPointIO>& Entry) { return true; },
 			[&](const TSharedPtr<PCGExPointsMT::TBatch<PCGExAssetStaging::FProcessor>>& NewBatch)

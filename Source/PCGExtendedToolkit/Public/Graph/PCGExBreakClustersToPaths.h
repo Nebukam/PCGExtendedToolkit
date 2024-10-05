@@ -65,7 +65,7 @@ private:
 	friend class FPCGExBreakClustersToPathsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBreakClustersToPathsContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExBreakClustersToPathsElement;
 

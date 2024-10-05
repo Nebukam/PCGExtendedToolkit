@@ -107,7 +107,6 @@ public:
 	//~End UPCGSettings
 
 	//~Begin UPCGExNeighborSampleProviderSettings
-public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR

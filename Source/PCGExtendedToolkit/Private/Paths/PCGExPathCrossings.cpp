@@ -4,7 +4,7 @@
 #include "Paths/PCGExPathCrossings.h"
 #include "PCGExMath.h"
 #include "PCGExRandom.h"
-#include "Data/Blending/PCGExCompoundBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
@@ -338,7 +338,7 @@ namespace PCGExPathCrossings
 		PCGEx::ArrayOfIndices(Order, NumCrossings);
 		Order.Sort([&](const int32 A, const int32 B) { return Crossing->Alphas[A] < Crossing->Alphas[B]; });
 
-		TUniquePtr<PCGExData::FIdxCompound> TempCompound = MakeUnique<PCGExData::FIdxCompound>();
+		TUniquePtr<PCGExData::FUnionData> Union = MakeUnique<PCGExData::FUnionData>();
 		for (int i = 0; i < NumCrossings; ++i)
 		{
 			uint32 PtIdx;
@@ -347,10 +347,10 @@ namespace PCGExPathCrossings
 
 			const int32 SecondIndex = PtIdx + 1 >= static_cast<uint32>(Context->MainPoints->Pairs[IOIdx]->GetNum(PCGExData::ESource::In)) ? 0 : PtIdx + 1;
 
-			TempCompound->Clear();
-			TempCompound->Add(IOIdx, PtIdx);
-			TempCompound->Add(IOIdx, SecondIndex);
-			CompoundBlender->SoftMergeSingle(Edge->OffsetedStart + i + 1, TempCompound.Get(), Settings->CrossingBlendingDistance);
+			Union->Reset();
+			Union->Add(IOIdx, PtIdx);
+			Union->Add(IOIdx, SecondIndex);
+			UnionBlender->SoftMergeSingle(Edge->OffsetedStart + i + 1, Union.Get(), Settings->CrossingBlendingDistance);
 		}
 	}
 
@@ -442,14 +442,14 @@ namespace PCGExPathCrossings
 
 	void FProcessor::Write()
 	{
-		CompoundList = MakeShared<PCGExData::FIdxCompoundList>();
-		CompoundBlender = MakeUnique<PCGExDataBlending::FCompoundBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver);
+		UnionMetadata = MakeShared<PCGExData::FUnionMetadata>();
+		UnionBlender = MakeUnique<PCGExDataBlending::FUnionBlender>(&Settings->CrossingBlending, &Settings->CrossingCarryOver);
 		for (const TSharedPtr<PCGExData::FPointIO> IO : Context->MainPoints->Pairs)
 		{
-			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { CompoundBlender->AddSource(Context->SubProcessorMap[IO.Get()]->PointDataFacade); }
+			if (IO && CrossIOIndices.Contains(IO->IOIndex)) { UnionBlender->AddSource(Context->SubProcessorMap[IO.Get()]->PointDataFacade); }
 		}
 
-		CompoundBlender->PrepareSoftMerge(PointDataFacade, CompoundList, &ProtectedAttributes);
+		UnionBlender->PrepareSoftMerge(PointDataFacade, UnionMetadata, &ProtectedAttributes);
 
 		PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, CrossBlendTask)
 		CrossBlendTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)

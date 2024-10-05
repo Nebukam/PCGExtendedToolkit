@@ -82,7 +82,7 @@ private:
 	friend class FPCGExPickClosestClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPickClosestClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPickClosestClustersElement;
 

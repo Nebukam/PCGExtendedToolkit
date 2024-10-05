@@ -38,7 +38,6 @@ public:
 	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExAttributeGatherDetails DefaultAttributesFilter;
 
@@ -52,7 +51,7 @@ private:
 	friend class FPCGExConditionalActionsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConditionalActionsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExConditionalActionsElement;
 

@@ -58,7 +58,7 @@ namespace PCGExMT
 
 		QueuedTasks.Empty();
 		Groups.Empty();
-		
+
 		if (!bHoldStop) { FPlatformAtomics::InterlockedExchange(&Stopped, 0); }
 
 		NumStarted = 0;

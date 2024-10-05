@@ -35,7 +35,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Offset type.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExFetchType OffsetType = EPCGExFetchType::Constant;
@@ -61,7 +60,7 @@ public:
 	FPCGAttributePropertyInputSelector UpVectorAttribute;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOffsetPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExOffsetPathElement;
 };

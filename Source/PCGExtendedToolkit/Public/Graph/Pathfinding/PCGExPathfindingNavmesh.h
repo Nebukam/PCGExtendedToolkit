@@ -41,13 +41,11 @@ protected:
 public:
 #if WITH_EDITOR
 
-public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
 
 	//~Begin UPCGExPointsProcessorSettings
-public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 	virtual FName GetMainInputLabel() const override { return PCGExGraph::SourceSeedsLabel; }
@@ -55,7 +53,6 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 
-public:
 	/** Controls how goals are picked.*/
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
@@ -107,7 +104,7 @@ public:
 };
 
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingNavmeshContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathfindingNavmeshElement;
 

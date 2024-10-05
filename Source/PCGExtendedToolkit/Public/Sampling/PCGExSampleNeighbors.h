@@ -18,12 +18,6 @@ namespace PCGExNeighborSample
 class UPCGExNeighborSamplerFactoryBase;
 class UPCGExNeighborSampleOperation;
 
-namespace PCGExSampleNeighbors
-{
-	PCGEX_ASYNC_STATE(State_ReadyForNextOperation)
-	PCGEX_ASYNC_STATE(State_Sampling)
-}
-
 UCLASS(MinimalAPI, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class /*PCGEXTENDEDTOOLKIT_API*/ UPCGExSampleNeighborsSettings : public UPCGExEdgesProcessorSettings
 {
@@ -47,7 +41,6 @@ public:
 	//~End UPCGExPointsProcessorSettings
 
 	//~Begin UPCGExEdgesProcessorSettings
-public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
@@ -55,7 +48,7 @@ private:
 	friend class FPCGExSampleNeighborsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNeighborsContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleNeighborsContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSampleNeighborsElement;
 	TArray<TObjectPtr<const UPCGExNeighborSamplerFactoryBase>> SamplerFactories;

@@ -49,7 +49,7 @@ private:
 	friend class FPCGExRelaxClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExRelaxClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRelaxClustersElement;
 

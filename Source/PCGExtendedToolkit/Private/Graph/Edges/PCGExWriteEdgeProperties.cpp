@@ -43,7 +43,6 @@ bool FPCGExWriteEdgePropertiesElement::ExecuteInternal(
 	PCGEX_EXECUTION_CHECK
 	PCGEX_ON_INITIAL_EXECUTION
 	{
-
 		if (!Context->StartProcessingClusters<PCGExWriteEdgeProperties::FProcessorBatch>(
 			[](const TSharedPtr<PCGExData::FPointIOTaggedEntries>& Entries) { return true; },
 			[&](const TSharedPtr<PCGExWriteEdgeProperties::FProcessorBatch>& NewBatch)

@@ -816,9 +816,9 @@ namespace PCGExCluster
 
 		ExpandNodesTask->OnIterationRangeStartCallback = [&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
-			TArray<PCGExCluster::FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
+			TArray<FExpandedNode>& ExpandedNodesRef = (*ExpandedNodes);
 			const int32 MaxIndex = StartIndex + Count;
-			for (int i = StartIndex; i < MaxIndex; ++i) { ExpandedNodesRef[i] = PCGExCluster::FExpandedNode(this, i); }
+			for (int i = StartIndex; i < MaxIndex; ++i) { ExpandedNodesRef[i] = FExpandedNode(this, i); }
 		};
 
 		ExpandNodesTask->PrepareRangesOnly(Nodes->Num(), 256);
@@ -854,9 +854,9 @@ namespace PCGExCluster
 
 		ExpandEdgesTask->OnIterationRangeStartCallback = [&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)
 		{
-			TArray<PCGExCluster::FExpandedEdge>& ExpandedEdgesRef = (*ExpandedEdges);
+			TArray<FExpandedEdge>& ExpandedEdgesRef = (*ExpandedEdges);
 			const int32 MaxIndex = StartIndex + Count;
-			for (int i = StartIndex; i < MaxIndex; ++i) { ExpandedEdgesRef[i] = PCGExCluster::FExpandedEdge(this, i); }
+			for (int i = StartIndex; i < MaxIndex; ++i) { ExpandedEdgesRef[i] = FExpandedEdge(this, i); }
 		};
 
 		ExpandEdgesTask->PrepareRangesOnly(Edges->Num(), 256);

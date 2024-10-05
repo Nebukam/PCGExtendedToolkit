@@ -87,7 +87,7 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitonRuleConfig : public FPCGExInputC
 
 namespace FPCGExFilter
 {
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FRule final : public PCGEx::TAttributeBroadcaster<double>
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FRule final : PCGEx::TAttributeBroadcaster<double>
 	{
 		explicit FRule(FPCGExPartitonRuleConfig& InRule)
 			: TAttributeBroadcaster<double>(),

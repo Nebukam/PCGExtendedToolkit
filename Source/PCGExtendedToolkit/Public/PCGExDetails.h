@@ -437,35 +437,35 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointPointIntersectionDetails
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteIsPointCompound = false;
+	bool bWriteIsPointUnion = false;
 
-	/** Name of the attribute to mark point as compounded or not */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, DisplayName="Is Compound", EditCondition="bWriteIsPointCompound"))
-	FName IsPointCompoundAttributeName = "bIsCompound";
+	/** Name of the attribute to mark point as union or not */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, DisplayName="Is Union", EditCondition="bWriteIsPointUnion"))
+	FName IsPointUnionAttributeName = "bIsUnion";
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWritePointCompoundSize = false;
+	bool bWritePointUnionSize = false;
 
 	/** Name of the attribute to mark the number of fused point held */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, DisplayName="Compound Size", EditCondition="bWritePointCompoundSize"))
-	FName PointCompoundSizeAttributeName = "CompoundSize";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Points", meta=(PCG_Overridable, DisplayName="Union Size", EditCondition="bWritePointUnionSize"))
+	FName PointUnionSizeAttributeName = "UnionSize";
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteIsEdgeCompound = false;
+	bool bWriteIsEdgeUnion = false;
 
-	/** Name of the attribute to mark edge as compounded or not */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, DisplayName="Is Compound", EditCondition="bWriteIsEdgeCompound"))
-	FName IsEdgeCompoundAttributeName = "bIsCompound";
+	/** Name of the attribute to mark edge as union or not */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, DisplayName="Is Union", EditCondition="bWriteIsEdgeUnion"))
+	FName IsEdgeUnionAttributeName = "bIsUnion";
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteEdgeCompoundSize = false;
+	bool bWriteEdgeUnionSize = false;
 
 	/** Name of the attribute to mark the number of fused edge held */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, DisplayName="Compound Size", EditCondition="bWriteEdgeCompoundSize"))
-	FName EdgeCompoundSizeAttributeName = "CompoundSize";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata - Edges", meta=(PCG_Overridable, DisplayName="Union Size", EditCondition="bWriteEdgeUnionSize"))
+	FName EdgeUnionSizeAttributeName = "UnionSize";
 };
 
 USTRUCT(BlueprintType)
@@ -487,11 +487,11 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointEdgeIntersectionDetails
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteIntersector = false;
+	bool bWriteIsIntersector = false;
 
 	/** Name of the attribute to flag point as intersector (result of an Point/Edge intersection) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteIntersector"))
-	FName IntersectorAttributeName = "bIntersector";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteIsIntersector"))
+	FName IsIntersectorAttributeName = "bIsIntersector";
 
 	void MakeSafeForTolerance(const double FuseTolerance)
 	{

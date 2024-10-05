@@ -45,7 +45,7 @@ public:
 	bool bScopedIndexLookupBuild = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExEdgesProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class UPCGExEdgesProcessorSettings;
 	friend class FPCGExEdgesProcessorElement;

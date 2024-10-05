@@ -140,7 +140,7 @@ private:
 	friend class FPCGExFindContoursElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindContoursContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFindContoursElement;
 	friend class FPCGExCreateBridgeTask;

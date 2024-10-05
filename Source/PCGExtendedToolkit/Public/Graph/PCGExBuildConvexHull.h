@@ -36,7 +36,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails();
@@ -45,7 +44,7 @@ private:
 	friend class FPCGExBuildConvexHullElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHullContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHullContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildConvexHullElement;
 };

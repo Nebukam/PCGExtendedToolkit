@@ -26,11 +26,10 @@ protected:
 	//~End UPCGSettings
 
 	//~Begin UPCGExEdgesProcessorSettings interface
-public:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneEdgesByLengthContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneEdgesByLengthContext final : FPCGExEdgesProcessorContext
 {
 	friend class UDEPRECATED_PCGExPruneEdgesByLengthSettings;
 	friend class FPCGExPruneEdgesByLengthElement;

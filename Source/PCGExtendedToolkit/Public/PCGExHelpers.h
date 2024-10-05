@@ -198,7 +198,7 @@ namespace PCGEx
 				FWriteScopeLock WriteScopeLock(ManagedObjectLock);
 				Object = Cast<T>(InData->DuplicateData(true));
 			}
-			
+
 #else
 			
 			const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(InData);

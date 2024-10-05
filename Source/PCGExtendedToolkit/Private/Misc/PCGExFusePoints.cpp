@@ -3,7 +3,7 @@
 
 #include "Misc/PCGExFusePoints.h"
 
-#include "Data/Blending/PCGExCompoundBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 
 
 #include "Graph/PCGExIntersections.h"
@@ -66,7 +66,7 @@ namespace PCGExFusePoints
 
 		if (!FPointsProcessor::Process(InAsyncManager)) { return false; }
 
-		CompoundGraph = MakeUnique<PCGExGraph::FCompoundGraph>(
+		UnionGraph = MakeUnique<PCGExGraph::FUnionGraph>(
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			PointDataFacade->GetIn()->GetBounds().ExpandBy(10));
 
@@ -80,34 +80,34 @@ namespace PCGExFusePoints
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point, const int32 LoopIdx, const int32 LoopCount)
 	{
-		CompoundGraph->InsertPoint(Point, PointDataFacade->Source->IOIndex, Index);
+		UnionGraph->InsertPoint(Point, PointDataFacade->Source->IOIndex, Index);
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 LoopCount)
 	{
 		TArray<FPCGPoint>& MutablePoints = PointDataFacade->GetOut()->GetMutablePoints();
 
-		PCGExGraph::FCompoundNode* CompoundNode = CompoundGraph->Nodes[Iteration].Get();
+		PCGExGraph::FUnionNode* UnionNode = UnionGraph->Nodes[Iteration].Get();
 		PCGMetadataEntryKey Key = MutablePoints[Iteration].MetadataEntry;
-		MutablePoints[Iteration] = CompoundNode->Point; // Copy "original" point properties, in case there's only one
+		MutablePoints[Iteration] = UnionNode->Point; // Copy "original" point properties, in case there's only one
 
 		FPCGPoint& Point = MutablePoints[Iteration];
 		Point.MetadataEntry = Key; // Restore key
 
-		Point.Transform.SetLocation(CompoundNode->UpdateCenter(CompoundGraph->PointsCompounds.Get(), Context->MainPoints.Get()));
-		CompoundPointsBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
+		Point.Transform.SetLocation(UnionNode->UpdateCenter(UnionGraph->PointsUnion.Get(), Context->MainPoints.Get()));
+		UnionBlender->MergeSingle(Iteration, PCGExDetails::GetDistanceDetails(Settings->PointPointIntersectionDetails));
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		const int32 NumCompoundNodes = CompoundGraph->Nodes.Num();
-		PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(NumCompoundNodes);
+		const int32 NumUnionNodes = UnionGraph->Nodes.Num();
+		PointDataFacade->Source->GetOut()->GetMutablePoints().SetNum(NumUnionNodes);
 
-		CompoundPointsBlender = MakeUnique<PCGExDataBlending::FCompoundBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
-		CompoundPointsBlender->AddSource(PointDataFacade);
-		CompoundPointsBlender->PrepareMerge(PointDataFacade, CompoundGraph->PointsCompounds);
+		UnionBlender = MakeUnique<PCGExDataBlending::FUnionBlender>(const_cast<FPCGExBlendingDetails*>(&Settings->BlendingDetails), &Context->CarryOverDetails);
+		UnionBlender->AddSource(PointDataFacade);
+		UnionBlender->PrepareMerge(PointDataFacade, UnionGraph->PointsUnion);
 
-		StartParallelLoopForRange(NumCompoundNodes);
+		StartParallelLoopForRange(NumUnionNodes);
 	}
 
 	void FProcessor::Write()

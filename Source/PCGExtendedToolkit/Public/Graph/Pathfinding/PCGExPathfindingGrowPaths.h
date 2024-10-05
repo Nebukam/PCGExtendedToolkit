@@ -118,12 +118,10 @@ protected:
 public:
 #if WITH_EDITOR
 
-public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
 
-public:
 	/** Controls how iterative growth is managed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthIterationMode GrowthMode = EPCGExGrowthIterationMode::Parallel;
@@ -241,7 +239,7 @@ public:
 };
 
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingGrowPathsContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingGrowPathsElement;
 

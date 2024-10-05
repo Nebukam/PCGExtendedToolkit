@@ -66,7 +66,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExBevelPath::SourceBevelFilters, "Filters used to know if a point should be Beveled", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Type of Bevel operation */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable))
 	EPCGExBevelMode Mode = EPCGExBevelMode::Radius;
@@ -157,7 +156,7 @@ public:
 	void InitOutputFlags(const TSharedPtr<PCGExData::FPointIO>& InPointIO) const;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBevelPathContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExBevelPathElement;
 

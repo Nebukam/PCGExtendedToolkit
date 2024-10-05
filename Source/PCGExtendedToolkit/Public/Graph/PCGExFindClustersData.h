@@ -60,7 +60,7 @@ public:
 	bool bSkipImportantWarnings = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindClustersDataContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindClustersDataContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindClustersDataElement;
 

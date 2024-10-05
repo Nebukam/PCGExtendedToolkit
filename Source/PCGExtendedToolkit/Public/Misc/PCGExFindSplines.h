@@ -34,13 +34,12 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** The name of the attribute containing actor references to resolve and look into for all sort of splines-friendly data.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName ActorReferenceAttributeName = "ActorReference";
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindSplinesContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFindSplinesContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindSplinesElement;
 };

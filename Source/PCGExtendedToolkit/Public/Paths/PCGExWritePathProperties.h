@@ -51,7 +51,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Output Path Length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWritePathLength = false;
@@ -210,7 +209,7 @@ public:
 	FString ConvexTag = TEXT("Convex");
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWritePathPropertiesContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExWritePathPropertiesElement;
 

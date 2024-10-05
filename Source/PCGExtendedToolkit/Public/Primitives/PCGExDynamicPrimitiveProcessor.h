@@ -31,7 +31,7 @@ protected:
 	//~End UPCGSettings
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDynamicPrimitiveProcessorContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDynamicPrimitiveProcessorContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExDynamicPrimitiveProcessorElement;
 };

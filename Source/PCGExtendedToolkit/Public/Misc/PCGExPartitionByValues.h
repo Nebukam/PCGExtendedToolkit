@@ -12,8 +12,6 @@
 
 namespace PCGExPartition
 {
-	PCGEX_ASYNC_STATE(State_DistributeToPartition)
-
 	class FKPartition;
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FKPartition : public TSharedFromThis<FKPartition>
@@ -78,7 +76,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** If false, will only write partition identifier values instead of splitting partitions into new point datasets. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
 	bool bSplitOutput = true;
@@ -111,7 +108,6 @@ public:
 	//~Begin UObject interface
 #if WITH_EDITOR
 
-public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
@@ -123,7 +119,7 @@ public:
 	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleConfig>& OutRules) const override;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionByValuesBaseContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPartitionByValuesBaseContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPartitionByValuesBaseElement;
 

@@ -33,5 +33,4 @@ protected:
 #else
 	virtual UPCGSpatialData* CopyInternal(FPCGContext* Context) const override;
 #endif
-	
 };

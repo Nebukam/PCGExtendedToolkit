@@ -56,7 +56,7 @@ public:
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
-	
+
 	/** If enabled, won't throw a warning if no bridge could be created. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bMuteNoBridgeWarning = false;
@@ -65,7 +65,7 @@ private:
 	friend class FPCGExConnectClustersElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExConnectClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExConnectClustersElement;
 	friend class FPCGExCreateBridgeTask;

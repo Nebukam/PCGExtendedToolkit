@@ -71,7 +71,7 @@ struct FPCGExPointPointIntersectionDetails;
 
 namespace PCGExData
 {
-	struct FIdxCompoundList;
+	struct FUnionMetadata;
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Blending Type"))

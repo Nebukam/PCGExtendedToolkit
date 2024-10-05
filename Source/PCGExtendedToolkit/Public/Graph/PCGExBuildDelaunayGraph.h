@@ -38,7 +38,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Output the Urquhart graph of the Delaunay triangulation (removes the longest edge of each Delaunay cell) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bUrquhart = false;
@@ -79,7 +78,7 @@ private:
 	friend class FPCGExBuildDelaunayGraphElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraphContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildDelaunayGraphContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildDelaunayGraphElement;
 

@@ -57,8 +57,6 @@ public:
 
 namespace PCGExPointFilter
 {
-	PCGEX_ASYNC_STATE(State_FilteringPoints)
-
 	const FName OutputFilterLabel = FName("Filter");
 	const FName SourceFiltersLabel = FName("Filters");
 

@@ -32,7 +32,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** List of attributes to delete. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExCarryOverDetails Filters;
@@ -42,7 +41,7 @@ public:
 	bool bSwap = false;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExMetaFilterContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExMetaFilterElement;
 

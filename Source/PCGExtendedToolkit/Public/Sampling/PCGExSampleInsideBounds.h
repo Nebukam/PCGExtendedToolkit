@@ -115,7 +115,6 @@ public:
 
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
@@ -275,7 +274,7 @@ public:
 	bool bProcessFilteredOutAsFails = true;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleInsideBoundsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleInsideBoundsElement;
 

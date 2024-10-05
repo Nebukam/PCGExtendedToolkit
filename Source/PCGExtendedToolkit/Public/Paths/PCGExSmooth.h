@@ -36,7 +36,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters which points get smoothed.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPreserveStart = false;
 
@@ -79,7 +78,7 @@ public:
 	FPCGExBlendingDetails BlendingSettings = FPCGExBlendingDetails(EPCGExDataBlendingType::Average);
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSmoothContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSmoothContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExSmoothElement;
 

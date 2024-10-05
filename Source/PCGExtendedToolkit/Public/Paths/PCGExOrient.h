@@ -51,7 +51,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(FName("Flip Orientation Conditions"), "Filters used to know whether an orientation should be flipped or not", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointProcessorSettings
 
-public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis OrientAxis = EPCGExAxis::Forward;
 
@@ -82,11 +81,10 @@ public:
 	FName DotAttribute = "Dot";
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOrientContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExOrientContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExOrientElement;
 
-public:
 	UPCGExOrientOperation* Orientation;
 };
 

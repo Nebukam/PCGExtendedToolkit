@@ -59,7 +59,7 @@ public:
 	FPCGExGraphBuilderDetails GraphBuilderDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimplifyClustersContext : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSimplifyClustersContext : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSimplifyClustersSettings;
 	friend class FPCGExSimplifyClustersElement;

@@ -47,7 +47,7 @@ public:
 	double InsideEpsilon = 1e-4;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClustersContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPruneClustersContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPruneClustersSettings;
 	friend class FPCGExPruneClustersElement;

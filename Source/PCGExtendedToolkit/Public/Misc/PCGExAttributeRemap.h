@@ -64,7 +64,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Source attribute to remap */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName SourceAttributeName;
@@ -102,7 +101,7 @@ private:
 	friend class FPCGExAttributeRemapElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExAttributeRemapContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeRemapElement;
 

@@ -37,7 +37,6 @@ public:
 	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Attribute to output flags to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName FlagAttribute = FName("Flags");
@@ -50,7 +49,7 @@ private:
 	friend class FPCGExFlagNodesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExFlagNodesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFlagNodesElement;
 

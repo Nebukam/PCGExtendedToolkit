@@ -38,7 +38,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Method used to find Voronoi cell location */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellCenter Method = EPCGExCellCenter::Centroid;
@@ -75,7 +74,7 @@ private:
 	friend class FPCGExBuildVoronoiGraph2DElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraph2DContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildVoronoiGraph2DContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildVoronoiGraph2DElement;
 

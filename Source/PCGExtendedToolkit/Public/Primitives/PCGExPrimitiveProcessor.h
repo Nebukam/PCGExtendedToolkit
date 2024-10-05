@@ -31,7 +31,7 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveProcessorContext : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPrimitiveProcessorContext : FPCGExPointsProcessorContext
 {
 	friend class FPCGExPrimitiveProcessorElement;
 };

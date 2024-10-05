@@ -121,7 +121,7 @@ public:
 	TArray<FName> PostProcessFunctionNames;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathSplineMeshContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathSplineMeshElement;
 

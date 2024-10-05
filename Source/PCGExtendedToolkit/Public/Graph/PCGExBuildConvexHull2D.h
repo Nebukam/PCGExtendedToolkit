@@ -37,7 +37,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionDetails ProjectionDetails;
@@ -50,7 +49,7 @@ private:
 	friend class FPCGExBuildConvexHull2DElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBuildConvexHull2DContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildConvexHull2DElement;
 

@@ -41,7 +41,7 @@ protected:
 	FLinearColor CustomColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugContext final : public FPCGContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDebugContext final : FPCGContext
 {
 	friend class FPCGExDebugElement;
 	bool bWait = true;

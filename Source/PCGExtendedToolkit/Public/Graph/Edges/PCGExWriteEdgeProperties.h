@@ -183,7 +183,7 @@ private:
 	friend class FPCGExWriteEdgePropertiesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExWriteEdgePropertiesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteEdgePropertiesElement;
 

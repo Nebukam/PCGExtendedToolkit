@@ -11,6 +11,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExDataFilter.h"
 
+
 namespace PCGExDataBlending
 {
 	struct FPropertiesBlender;
@@ -53,27 +54,24 @@ namespace PCGExDataBlending
 		}
 	};
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FCompoundBlender final
+	class /*PCGEXTENDEDTOOLKIT_API*/ FUnionBlender final
 	{
-		friend class FPCGExCompoundBlendTask;
-		friend class FPCGExCompoundedPointBlendTask;
-
 	public:
 		const FPCGExCarryOverDetails* CarryOverDetails;
 
-		explicit FCompoundBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails);
-		~FCompoundBlender();
+		explicit FUnionBlender(const FPCGExBlendingDetails* InBlendingDetails, const FPCGExCarryOverDetails* InCarryOverDetails);
+		~FUnionBlender();
 
 		void AddSource(const TSharedPtr<PCGExData::FFacade>& InFacade);
 		void AddSources(const TArray<TSharedPtr<PCGExData::FFacade>>& InFacades);
 
-		void PrepareMerge(const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FIdxCompoundList>& CompoundList, const TSet<FName>* IgnoreAttributeSet = nullptr);
-		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
-		void MergeSingle(const int32 WriteIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails);
+		void PrepareMerge(const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSet<FName>* IgnoreAttributeSet = nullptr);
+		void MergeSingle(const int32 UnionIndex, const FPCGExDistanceDetails& InDistanceDetails);
+		void MergeSingle(const int32 WriteIndex, const PCGExData::FUnionData* InUnionData, const FPCGExDistanceDetails& InDistanceDetails);
 
-		void PrepareSoftMerge(const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FIdxCompoundList>& CompoundList, const TSet<FName>* IgnoreAttributeSet = nullptr);
-		void SoftMergeSingle(const int32 CompoundIndex, const FPCGExDistanceDetails& InDistanceDetails);
-		void SoftMergeSingle(const int32 CompoundIndex, const PCGExData::FIdxCompound* Compound, const FPCGExDistanceDetails& InDistanceDetails);
+		void PrepareSoftMerge(const TSharedPtr<PCGExData::FFacade>& TargetData, const TSharedPtr<PCGExData::FUnionMetadata>& InUnionMetadata, const TSet<FName>* IgnoreAttributeSet = nullptr);
+		void SoftMergeSingle(const int32 UnionIndex, const FPCGExDistanceDetails& InDistanceDetails);
+		void SoftMergeSingle(const int32 UnionIndex, const PCGExData::FUnionData* InUnionData, const FPCGExDistanceDetails& InDistanceDetails);
 
 		void BlendProperties(FPCGPoint& TargetPoint, TArray<int32>& IdxIO, TArray<int32>& IdxPt, TArray<double>& Weights);
 
@@ -88,7 +86,7 @@ namespace PCGExDataBlending
 		TMap<uint32, int32> IOIndices;
 		TArray<TSharedPtr<PCGExData::FFacade>> Sources;
 
-		TSharedPtr<PCGExData::FIdxCompoundList> CurrentCompoundList;
+		TSharedPtr<PCGExData::FUnionMetadata> CurrentUnionMetadata;
 		TSharedPtr<PCGExData::FFacade> CurrentTargetData;
 		TUniquePtr<FPropertiesBlender> PropertiesBlender;
 	};

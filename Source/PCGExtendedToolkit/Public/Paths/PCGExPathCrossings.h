@@ -8,7 +8,7 @@
 #include "PCGExPaths.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/Blending/PCGExCompoundBlender.h"
+#include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
 
 
@@ -40,7 +40,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** If enabled, crossings are only computed per path, against themselves only. Note: this ignores the "bEnableSelfIntersection" from details below. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	bool bSelfIntersectionOnly = false;
@@ -107,7 +106,7 @@ public:
 	FString HasNoCrossingsTag = TEXT("HasNoCrossings");
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : public FPCGExPathProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathCrossingsContext final : FPCGExPathProcessorContext
 {
 	friend class FPCGExPathCrossingsElement;
 
@@ -172,8 +171,8 @@ namespace PCGExPathCrossings
 		UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 		TSet<int32> CrossIOIndices;
-		TSharedPtr<PCGExData::FIdxCompoundList> CompoundList;
-		TUniquePtr<PCGExDataBlending::FCompoundBlender> CompoundBlender;
+		TSharedPtr<PCGExData::FUnionMetadata> UnionMetadata;
+		TUniquePtr<PCGExDataBlending::FUnionBlender> UnionBlender;
 
 		using TEdgeOctree = TOctree2<PCGExPaths::FPathEdge*, PCGExPaths::FPathEdgeSemantics>;
 		TUniquePtr<TEdgeOctree> EdgeOctree;

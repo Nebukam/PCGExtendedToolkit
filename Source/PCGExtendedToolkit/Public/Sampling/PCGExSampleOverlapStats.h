@@ -48,7 +48,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourcePointFiltersLabel, "Filters used to know whether a point should be considered for overlap or not.", PCGExFactories::PointFilters, false)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Point bounds to be used to compute overlaps */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledBounds;
@@ -116,7 +115,7 @@ private:
 	friend class FPCGExSampleOverlapStatsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExSampleOverlapStatsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleOverlapStatsElement;
 

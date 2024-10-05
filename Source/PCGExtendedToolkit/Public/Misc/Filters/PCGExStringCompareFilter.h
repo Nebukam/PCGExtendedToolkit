@@ -107,12 +107,10 @@ public:
 #endif
 	//~End UPCGSettings
 
-public:
 	/** State name.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExStringCompareFilterConfig Config;
 
-public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGExContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR

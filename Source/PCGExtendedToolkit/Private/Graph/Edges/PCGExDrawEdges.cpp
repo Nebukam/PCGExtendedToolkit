@@ -37,7 +37,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	PCGEX_CONTEXT_AND_SETTINGS(DrawEdges)
 
 #if WITH_EDITOR
-	
+
 	PCGEX_ON_INITIAL_EXECUTION
 	{
 		Context->SetState(PCGEx::State_ReadyForNextPoints);

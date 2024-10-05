@@ -65,8 +65,6 @@ namespace PCGExCluster
 	const FName OutputNodeFlagLabel = TEXT("Flag");
 	const FName SourceNodeFlagLabel = TEXT("Node Flags");
 
-	PCGEX_ASYNC_STATE(State_ProcessingCluster)
-
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FAdjacencyData
 	{
 		int32 NodeIndex = -1;
@@ -119,7 +117,7 @@ namespace PCGExCluster
 
 	struct FCluster;
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : public PCGExGraph::FNode
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FNode : PCGExGraph::FNode
 	{
 		FNode(): PCGExGraph::FNode()
 		{

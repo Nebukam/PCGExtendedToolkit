@@ -67,7 +67,7 @@ private:
 	friend class FPCGExDrawEdgesElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawEdgesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExDrawEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExDrawEdgesElement;
 

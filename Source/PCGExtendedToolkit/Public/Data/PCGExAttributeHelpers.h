@@ -49,7 +49,6 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInputConfig
 		Selector.Update(InName.ToString());
 	}
 
-public:
 	virtual ~FPCGExInputConfig() = default;
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
 	FString TitlePropertyName;
@@ -63,7 +62,6 @@ public:
 
 	FPCGAttributePropertyInputSelector& GetMutableSelector() { return Selector; }
 
-public:
 	EPCGAttributePropertySelection GetSelection() const { return Selector.GetSelection(); }
 	FName GetName() const { return Selector.GetName(); }
 #if WITH_EDITOR

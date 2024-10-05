@@ -32,7 +32,6 @@ public:
 #endif
 	//~End UObject interface
 
-public:
 	//~Begin UPCGSettings
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(UberFilterCollections, "Uber Filter (Collection)", "Filter entire collections based on multiple rules & conditions.");
@@ -51,7 +50,6 @@ public:
 	PCGEX_NODE_POINT_FILTER(PCGExPointFilter::SourceFiltersLabel, "Filters", PCGExFactories::PointFilters, true)
 	//~End UPCGExPointsProcessorSettings
 
-public:
 	/** Write result to point instead of split outputs */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExUberFilterCollectionsMode Mode = EPCGExUberFilterCollectionsMode::All;
@@ -84,7 +82,7 @@ private:
 	friend class FPCGExUberFilterCollectionsElement;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterCollectionsContext final : public FPCGExPointsProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExUberFilterCollectionsContext final : FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberFilterCollectionsElement;
 

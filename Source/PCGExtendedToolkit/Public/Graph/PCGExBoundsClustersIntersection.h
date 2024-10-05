@@ -40,7 +40,7 @@ public:
 	FPCGExBoxIntersectionDetails IntersectionDetails;
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExBoundsClustersIntersectionContext final : FPCGExEdgesProcessorContext
 {
 	friend class UPCGExBoundsClustersIntersectionSettings;
 	friend class FPCGExBoundsClustersIntersectionElement;

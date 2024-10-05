@@ -116,7 +116,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	}
 
 	PCGEX_CLUSTER_BATCH_PROCESSING(Settings->bOutputOnlyEdgesAsPoints ? PCGEx::State_Done : PCGExGraph::State_ReadyToCompile)
-	
+
 	if (!Context->CompileGraphBuilders(true, PCGEx::State_Done)) { return false; }
 
 	//

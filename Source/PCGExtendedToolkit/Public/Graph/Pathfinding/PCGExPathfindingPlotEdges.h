@@ -42,12 +42,10 @@ protected:
 public:
 #if WITH_EDITOR
 
-public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
 
-public:
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = false;
@@ -88,7 +86,7 @@ public:
 };
 
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotEdgesContext final : public FPCGExEdgesProcessorContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathfindingPlotEdgesContext final : FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingPlotEdgesElement;
 

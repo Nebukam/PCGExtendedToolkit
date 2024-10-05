@@ -67,7 +67,7 @@ namespace PCGExData
 			{
 				Out = Context->ManagedObjects->New<UPCGPointData>();
 			}
-			
+
 			return;
 		}
 

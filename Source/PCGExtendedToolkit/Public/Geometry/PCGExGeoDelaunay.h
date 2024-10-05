@@ -12,7 +12,6 @@ namespace PCGExGeo
 {
 	struct FDelaunaySite2
 	{
-	public:
 		int32 Vtx[3];
 		int32 Neighbors[3];
 		int32 Id = -1;
@@ -210,7 +209,6 @@ namespace PCGExGeo
 
 	struct FDelaunaySite3
 	{
-	public:
 		uint64 Faces[4];
 		int32 Vtx[4];
 		int32 Neighbors[4];

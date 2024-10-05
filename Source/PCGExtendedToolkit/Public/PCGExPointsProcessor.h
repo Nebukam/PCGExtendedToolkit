@@ -56,7 +56,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings
 public:
 	virtual bool IsInputless() const { return false; }
-	
+
 	virtual FName GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 	virtual FName GetMainOutputLabel() const { return PCGEx::OutputPointsLabel; }
 	virtual bool GetMainAcceptMultipleData() const { return true; }
@@ -98,7 +98,7 @@ protected:
 	//~End UPCGExPointsProcessorSettings
 };
 
-struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : public FPCGExContext
+struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPointsProcessorContext : FPCGExContext
 {
 	friend class FPCGExPointsProcessorElement;
 

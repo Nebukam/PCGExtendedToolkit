@@ -104,7 +104,7 @@ namespace PCGExGeo
 		}
 	};
 
-	struct /*PCGEXTENDEDTOOLKIT_API*/ FBoundedTriangle : public FTriangle
+	struct /*PCGEXTENDEDTOOLKIT_API*/ FBoundedTriangle : FTriangle
 	{
 		FBox Bounds;
 
