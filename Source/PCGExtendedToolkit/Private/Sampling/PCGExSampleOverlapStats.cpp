@@ -256,17 +256,23 @@ namespace PCGExSampleOverlapStats
 		PreparationTask->OnCompleteCallback =
 			[&]()
 			{
-				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
-				SearchTask->OnCompleteCallback =
-					[&]()
+				auto WrapUp = [&]()
+				{
+					for (int i = 0; i < NumPoints; ++i)
 					{
-						for (int i = 0; i < NumPoints; ++i)
-						{
-							LocalOverlapSubCountMax = FMath::Max(LocalOverlapSubCountMax, OverlapSubCount[i]);
-							LocalOverlapCountMax = FMath::Max(LocalOverlapCountMax, OverlapCount[i]);
-						}
-					};
+						LocalOverlapSubCountMax = FMath::Max(LocalOverlapSubCountMax, OverlapSubCount[i]);
+						LocalOverlapCountMax = FMath::Max(LocalOverlapCountMax, OverlapCount[i]);
+					}
+				};
 
+				if (ManagedOverlaps.IsEmpty())
+				{
+					WrapUp();
+					return;
+				}
+				
+				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
+				SearchTask->OnCompleteCallback = WrapUp;
 				SearchTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { ResolveOverlap(Index); };
 				SearchTask->StartIterations(ManagedOverlaps.Num(), 8);
 			};
