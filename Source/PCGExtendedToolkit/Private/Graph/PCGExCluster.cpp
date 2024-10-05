@@ -340,7 +340,7 @@ namespace PCGExCluster
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCluster::RebuildEdgeOctree);
 
-		check(Bounds.GetExtent().Length() != 0, TEXT("RebuildEdgeOctree : Cluster bounds are empty"))
+		check(Bounds.GetExtent().Length() != 0)
 
 		EdgeOctree = MakeShared<ClusterItemOctree>(Bounds.GetCenter(), (Bounds.GetExtent() + FVector(10)).Length());
 
