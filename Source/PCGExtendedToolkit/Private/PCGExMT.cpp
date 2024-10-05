@@ -108,7 +108,7 @@ namespace PCGExMT
 	{
 		if (!Manager->IsAvailable() || !OnIterationCallback) { return; }
 
-		check(MaxItems > 0);
+		check(MaxItems > 0, TEXT("FTaskGroup::StartIterations : 0 items!"));
 
 		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
 
@@ -138,7 +138,7 @@ namespace PCGExMT
 	{
 		if (!Manager->IsAvailable()) { return; }
 
-		check(MaxItems > 0);
+		check(MaxItems > 0, TEXT("FTaskGroup::PrepareRangesOnly : 0 items!"));
 
 		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
 
@@ -161,7 +161,7 @@ namespace PCGExMT
 	{
 		const int32 NumSimpleCallbacks = SimpleCallbacks.Num();
 
-		check(NumSimpleCallbacks > 0);
+		check(NumSimpleCallbacks > 0, TEXT("FTaskGroup::StartSimpleCallbacks : 0 items!"));
 
 		GrowNumStarted(NumSimpleCallbacks);
 		for (int i = 0; i < NumSimpleCallbacks; ++i) { InternalStart<FSimpleCallbackTask>(false, i, nullptr); }

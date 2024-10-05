@@ -66,7 +66,7 @@ namespace PCGEx
 
 	void FManagedObjects::Destroy(UObject* InObject)
 	{
-		check(InObject)
+		check(InObject, TEXT("FManagedObjects::Destroy : Null object"))
 
 		if (!IsValid(InObject) || !ManagedObjects.Contains(InObject)) { return; }
 

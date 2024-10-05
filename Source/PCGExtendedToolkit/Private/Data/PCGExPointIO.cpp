@@ -38,7 +38,7 @@ namespace PCGExData
 
 		if (InitOut == EInit::Forward)
 		{
-			check(In);
+			check(In, TEXT("Null input data while doing IO forwarding"));
 			Out = const_cast<UPCGPointData*>(In);
 			return;
 		}
@@ -51,7 +51,7 @@ namespace PCGExData
 				Out = Cast<UPCGPointData>(GenericInstance);
 
 				// Input type was not a PointData child, should not happen.
-				check(Out)
+				check(Out, TEXT("Null data while attempting to create a new IO output"))
 
 				Out->InitializeFromData(In);
 
@@ -73,7 +73,7 @@ namespace PCGExData
 
 		if (InitOut == EInit::DuplicateInput)
 		{
-			check(In)
+			check(In, TEXT("Null input data while doing IO duplicate"))
 			Out = Context->ManagedObjects->Duplicate<UPCGPointData>(In);
 		}
 	}
@@ -254,7 +254,7 @@ namespace PCGExData
 
 	TSharedPtr<FPointIO> FPointIOCollection::InsertUnsafe(const int32 Index, const TSharedPtr<FPointIO>& PointIO)
 	{
-		check(!Pairs[Index]) // should be an empty spot
+		check(!Pairs[Index], TEXT("Inserting IO where there is already one")) // should be an empty spot
 		Pairs[Index] = PointIO;
 		PointIO->SetInfos(Index, DefaultOutputLabel);
 		return PointIO;

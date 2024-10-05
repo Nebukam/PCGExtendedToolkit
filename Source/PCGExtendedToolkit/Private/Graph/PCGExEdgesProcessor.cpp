@@ -64,10 +64,8 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 	if (TaggedEdges)
 	{
-		//ProjectionSettings.Init(CurrentIO); // TODO : Move to FClusterProcessor?
 		if (bBuildEndpointsLookup)
 		{
-			//check(false) // This node needs to be refactored!
 			PCGExGraph::BuildEndpointsLookup(CurrentIO, EndpointsLookup, EndpointsAdjacency);
 		}
 	}
