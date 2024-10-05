@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
+#include "PCGExDetailsIntersection.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExDataBlending.h"
@@ -69,7 +70,7 @@ public:
 
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
-	FPCGExPointPointIntersectionDetails PointPointIntersectionDetails;
+	FPCGExPointPointIntersectionDetails PointPointIntersectionDetails = FPCGExPointPointIntersectionDetails(false);
 
 	/** Preserve the order of input points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

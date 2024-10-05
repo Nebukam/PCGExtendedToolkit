@@ -160,11 +160,7 @@ namespace PCGExGeo
 
 			PCGEx::InitArray(Vertices, IndexedUniquePositions.Num());
 
-			TArray<FVector> Keys;
-			IndexedUniquePositions.GetKeys(Keys);
-			for (FVector Key : Keys) { Vertices[IndexedUniquePositions[Key]] = Key; }
-
-			IndexedUniquePositions.Empty();
+			for (const TPair<FVector, int32>& Pair : IndexedUniquePositions) { Vertices[IndexedUniquePositions[Pair.Key]] = Pair.Key; }
 
 			bIsLoaded = true;
 		}
@@ -254,11 +250,7 @@ namespace PCGExGeo
 
 			PCGEx::InitArray(Vertices, IndexedUniquePositions.Num());
 
-			TArray<FVector> Keys;
-			IndexedUniquePositions.GetKeys(Keys);
-			for (FVector Key : Keys) { Vertices[IndexedUniquePositions[Key]] = Key; }
-
-			IndexedUniquePositions.Empty();
+			for (const TPair<FVector, int32>& Pair : IndexedUniquePositions) { Vertices[IndexedUniquePositions[Pair.Key]] = Pair.Key; }
 
 			bIsLoaded = true;
 		}

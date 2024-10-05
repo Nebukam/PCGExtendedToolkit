@@ -9,10 +9,10 @@
 #include "PCGExIntersections.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExDetails.h"
+#include "PCGExDetailsIntersection.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExUnionBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-
 
 namespace PCGExGraph
 {
@@ -63,13 +63,14 @@ namespace PCGExGraph
 			const FPCGExGraphBuilderDetails& InBuilderDetails,
 			const FPCGExCarryOverDetails* InCarryOverDetails);
 
-		void InternalStartExecution();
 		bool Execute();
 
 	protected:
 		bool bRunning = false;
 
 		int32 NewEdgesNum = 0;
+
+		void InternalStartExecution();
 
 		FPCGExBlendingDetails DefaultPointsBlendingDetails;
 		FPCGExBlendingDetails DefaultEdgesBlendingDetails;

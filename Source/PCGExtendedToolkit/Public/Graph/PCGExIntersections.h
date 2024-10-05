@@ -261,7 +261,8 @@ namespace PCGExGraph
 		                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TSet<uint64>& OutEdges);
-		void WriteMetadata(TMap<int32, TUniquePtr<FGraphNodeMetadata>>& OutMetadata);
+		void WriteNodeMetadata(TMap<int32, FGraphNodeMetadata>& OutMetadata);
+		void WriteEdgeMetadata(TMap<int32, FGraphEdgeMetadata>& OutMetadata);
 	};
 
 #pragma endregion
@@ -387,7 +388,7 @@ namespace PCGExGraph
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			const int32 RootIndex = FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata);
+			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata(Edge.EdgeIndex)->RootIndex;
 			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Items[RootIndex]->IOIndices;
 
 			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
@@ -639,7 +640,7 @@ namespace PCGExGraph
 			for (const FEESplit& Split : Splits) { AddUnsafe(Split); }
 		}
 
-		void InsertNodes() const;
+		bool InsertNodes() const;
 		void InsertEdges();
 
 		void BlendIntersection(const int32 Index, const TSharedRef<PCGExDataBlending::FMetadataBlender>& Blender) const;
@@ -660,7 +661,7 @@ namespace PCGExGraph
 
 		if (!InIntersections->Details->bEnableSelfIntersection)
 		{
-			const int32 RootIndex = FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata);
+			const int32 RootIndex = InIntersections->Graph->FindEdgeMetadata(Edge.EdgeIndex)->RootIndex;
 			const TSet<int32>& RootIOIndices = InIntersections->UnionGraph->EdgesUnion->Items[RootIndex]->IOIndices;
 
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
@@ -675,9 +676,7 @@ namespace PCGExGraph
 				}
 
 				// Check overlap last as it's the most expensive op
-				if (InIntersections->UnionGraph->PointsUnion->IOIndexOverlap(
-					FGraphEdgeMetadata::GetRootIndex(OtherEdge.EdgeIndex, InIntersections->Graph->EdgeMetadata),
-					RootIOIndices)) { return; }
+				if (InIntersections->UnionGraph->PointsUnion->IOIndexOverlap(InIntersections->Graph->FindEdgeMetadata(OtherEdge.EdgeIndex)->RootIndex, RootIOIndices)) { return; }
 
 				if (!Edge.FindSplit(OtherEdge, OutSplits))
 				{

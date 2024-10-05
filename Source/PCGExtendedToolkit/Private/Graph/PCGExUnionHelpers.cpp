@@ -89,11 +89,13 @@ namespace PCGExGraph
 
 				TSet<uint64> UniqueEdges;
 				UnionGraph->GetUniqueEdges(UniqueEdges);
-				UnionGraph->WriteMetadata(GraphBuilder->Graph->NodeMetadata);
-
 				GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
 
-				InternalStartExecution();
+				PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), WriteMetadataTask);
+				WriteMetadataTask->OnCompleteCallback = [&]() { InternalStartExecution(); };
+				WriteMetadataTask->AddSimpleCallback([&]() { UnionGraph->WriteNodeMetadata(GraphBuilder->Graph->NodeMetadata); });
+				WriteMetadataTask->AddSimpleCallback([&]() { UnionGraph->WriteEdgeMetadata(GraphBuilder->Graph->EdgeMetadata); });
+				WriteMetadataTask->StartSimpleCallbacks();
 			};
 
 		ProcessNodesGroup->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx)
@@ -288,10 +290,15 @@ namespace PCGExGraph
 		TRACE_CPUPROFILER_EVENT_SCOPE(FUnionProcessor::OnEdgeEdgeIntersectionsFound);
 
 		if (!EdgeEdgeIntersections.Get()) { return; }
+		if (!EdgeEdgeIntersections->InsertNodes())
+		{
+			OnEdgeEdgeIntersectionsComplete();
+			return;
+		}
+
 		PCGEX_ASYNC_GROUP_CHKD_VOID(Context->GetAsyncManager(), SortCrossingsGroup)
 
 		// Insert new nodes
-		EdgeEdgeIntersections->InsertNodes(); // TODO : Async?
 
 		SortCrossingsGroup->OnIterationRangeStartCallback =
 			[&](const int32 StartIndex, const int32 Count, const int32 LoopIdx)

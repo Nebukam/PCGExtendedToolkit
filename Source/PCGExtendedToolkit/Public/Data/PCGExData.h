@@ -621,6 +621,7 @@ namespace PCGExData
 	struct /*PCGEXTENDEDTOOLKIT_API*/ FUnionMetadata
 	{
 		TArray<TUniquePtr<FUnionData>> Items;
+		bool bIsAbstract = false;
 
 		FUnionMetadata() { Items.Empty(); }
 		~FUnionMetadata() = default;

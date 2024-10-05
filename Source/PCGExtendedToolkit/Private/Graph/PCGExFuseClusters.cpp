@@ -77,6 +77,8 @@ bool FPCGExFuseClustersElement::Boot(FPCGExContext* InContext) const
 		Settings->PointPointIntersectionDetails.FuseDetails,
 		Context->MainPoints->GetInBounds().ExpandBy(10));
 
+	Context->UnionGraph->EdgesUnion->bIsAbstract = false; // Because we have valid edge data
+
 	return true;
 }
 

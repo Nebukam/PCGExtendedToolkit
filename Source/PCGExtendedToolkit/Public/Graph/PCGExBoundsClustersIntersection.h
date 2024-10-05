@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
-#include "PCGExDataDetails.h"
+#include "PCGExDetailsData.h"
 #include "PCGExEdgesProcessor.h"
 #include "PCGExIntersections.h"
 

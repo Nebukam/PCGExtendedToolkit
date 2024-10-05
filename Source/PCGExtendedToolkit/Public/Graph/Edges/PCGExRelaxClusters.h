@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataDetails.h"
+#include "PCGExDetailsData.h"
 
 
 #include "Graph/PCGExEdgesProcessor.h"

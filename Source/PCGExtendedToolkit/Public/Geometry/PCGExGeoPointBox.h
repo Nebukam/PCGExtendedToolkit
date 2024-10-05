@@ -121,11 +121,8 @@ namespace PCGExGeo
 
 		int32 GetNumCuts() const
 		{
-			TArray<uint64> Keys;
-			IntersectionsMap.GetKeys(Keys);
 			int32 Sum = 0;
-			for (const uint64 Key : Keys) { Sum += IntersectionsMap[Key]->Cuts.Num(); }
-			Keys.Empty();
+			for (const TPair<uint64, TSharedPtr<FIntersections>>& Pair : IntersectionsMap) { Sum += Pair.Value->Cuts.Num(); }
 			return Sum;
 		}
 

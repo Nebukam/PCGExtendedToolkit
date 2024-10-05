@@ -155,16 +155,16 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
 	const FSoftObjectPath SteepnessWeightCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExSteepness_Default.FC_PCGExSteepness_Default"));
 
-	static bool IsPCGExAttribute(const FString& InStr) { return InStr.StartsWith(PCGExPrefix); }
-	static bool IsPCGExAttribute(const FName InName) { return IsPCGExAttribute(InName.ToString()); }
-	static bool IsPCGExAttribute(const FText& InText) { return IsPCGExAttribute(InText.ToString()); }
+	FORCEINLINE static bool IsPCGExAttribute(const FString& InStr) { return InStr.StartsWith(PCGExPrefix); }
+	FORCEINLINE static bool IsPCGExAttribute(const FName InName) { return IsPCGExAttribute(InName.ToString()); }
+	FORCEINLINE static bool IsPCGExAttribute(const FText& InText) { return IsPCGExAttribute(InText.ToString()); }
 
 	static FName MakePCGExAttributeName(const FString& Str0) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}")), FText::FromString(PCGExPrefix), FText::FromString(Str0)).ToString()); }
 	static FName MakePCGExAttributeName(const FString& Str0, const FString& Str1) { return FName(FText::Format(FText::FromString(TEXT("{0}{1}/{2}")), FText::FromString(PCGExPrefix), FText::FromString(Str0), FText::FromString(Str1)).ToString()); }
 
 	static bool IsValidName(const FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
 
-	static void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum)
+	FORCEINLINE static void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum)
 	{
 		{
 			const int32 _num_ = InNum;
@@ -174,14 +174,14 @@ namespace PCGEx
 		for (int i = 0; i < InNum; ++i) { OutArray[i] = i; }
 	}
 
-	static FName GetCompoundName(const FName A, const FName B)
+	FORCEINLINE static FName GetCompoundName(const FName A, const FName B)
 	{
 		// PCGEx/A/B
 		const FString Separator = TEXT("/");
 		return *(TEXT("PCGEx") + Separator + A.ToString() + Separator + B.ToString());
 	}
 
-	static FName GetCompoundName(const FName A, const FName B, const FName C)
+	FORCEINLINE static FName GetCompoundName(const FName A, const FName B, const FName C)
 	{
 		// PCGEx/A/B/C
 		const FString Separator = TEXT("/");
@@ -317,18 +317,10 @@ namespace PCGEx
 
 #pragma endregion
 
-	static UWorld* GetWorld(const FPCGContext* Context)
+	FORCEINLINE static UWorld* GetWorld(const FPCGContext* Context)
 	{
 		check(Context->SourceComponent.IsValid());
 		return Context->SourceComponent->GetWorld();
-	}
-
-	template <typename T>
-	static void Swap(TArray<T>& Array, int32 FirstIndex, int32 SecondIndex)
-	{
-		T* Ptr1 = &Array[FirstIndex];
-		T* Ptr2 = &Array[SecondIndex];
-		std::swap(*Ptr1, *Ptr2);
 	}
 
 	static void ScopeIndices(const TArray<int32>& InIndices, TArray<uint64>& OutScopes)
@@ -359,7 +351,7 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	static bool SameSet(const TSet<T>& A, const TSet<T>& B)
+	FORCEINLINE static bool SameSet(const TSet<T>& A, const TSet<T>& B)
 	{
 		if (A.Num() != B.Num()) { return false; }
 		for (const T& Entry : A) { if (!B.Contains(Entry)) { return false; } }

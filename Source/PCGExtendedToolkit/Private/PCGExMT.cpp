@@ -108,21 +108,23 @@ namespace PCGExMT
 	{
 		if (!Manager->IsAvailable() || !OnIterationCallback) { return; }
 
+		check(MaxItems > 0);
+
 		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
 
 		if (MaxItems <= SanitizedChunkSize && bExecuteSmallSynchronously)
 		{
-			FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
+			GrowNumStarted();
 			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback({PCGEx::H64(0, MaxItems)}); }
 			DoRangeIteration(0, MaxItems, 0);
-			OnTaskCompleted();
+			GrowNumCompleted();
 			return;
 		}
 
 		if (bInlined)
 		{
 			TArray<uint64> Loops;
-			FPlatformAtomics::InterlockedAdd(&NumStarted, SubRanges(Loops, MaxItems, SanitizedChunkSize));
+			GrowNumStarted(SubRanges(Loops, MaxItems, SanitizedChunkSize));
 			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 			InternalStartInlineRange<FGroupRangeInlineIterationTask>(0, MaxItems, SanitizedChunkSize);
 		}
@@ -136,16 +138,52 @@ namespace PCGExMT
 	{
 		if (!Manager->IsAvailable()) { return; }
 
+		check(MaxItems > 0);
+
 		const int32 SanitizedChunkSize = FMath::Max(1, ChunkSize);
 
 		if (bInline)
 		{
 			TArray<uint64> Loops;
-			FPlatformAtomics::InterlockedAdd(&NumStarted, SubRanges(Loops, MaxItems, SanitizedChunkSize));
+			GrowNumStarted(SubRanges(Loops, MaxItems, SanitizedChunkSize));
 			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 			InternalStartInlineRange<FGroupPrepareRangeInlineTask>(0, MaxItems, SanitizedChunkSize);
 		}
 		else { StartRanges<FGroupPrepareRangeTask>(MaxItems, SanitizedChunkSize, nullptr); }
+	}
+
+	void FTaskGroup::AddSimpleCallback(SimpleCallback&& InCallback)
+	{
+		SimpleCallbacks.Add(InCallback);
+	}
+
+	void FTaskGroup::StartSimpleCallbacks()
+	{
+		const int32 NumSimpleCallbacks = SimpleCallbacks.Num();
+
+		check(NumSimpleCallbacks > 0);
+
+		GrowNumStarted(NumSimpleCallbacks);
+		for (int i = 0; i < NumSimpleCallbacks; ++i) { InternalStart<FSimpleCallbackTask>(false, i, nullptr); }
+	}
+
+	void FTaskGroup::GrowNumStarted(const int32 InNumStarted)
+	{
+		FPlatformAtomics::InterlockedAdd(&NumStarted, InNumStarted);
+	}
+
+	void FTaskGroup::GrowNumCompleted()
+	{
+		if (!Manager->IsAvailable()) { return; }
+
+		FPlatformAtomics::InterlockedAdd(&NumCompleted, 1);
+		if (NumCompleted == NumStarted)
+		{
+			NumCompleted = 0;
+			NumStarted = 0;
+			if (OnCompleteCallback) { OnCompleteCallback(); }
+			Manager->GrowNumCompleted();
+		}
 	}
 
 	void FTaskGroup::PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const
@@ -161,25 +199,6 @@ namespace PCGExMT
 		for (int i = 0; i < Count; ++i) { OnIterationCallback(StartIndex + i, Count, LoopIdx); }
 	}
 
-	void FTaskGroup::OnTaskCompleted()
-	{
-		if (!Manager->IsAvailable()) { return; }
-
-		{
-			FWriteScopeLock WriteScopeLock(GroupLock);
-
-			NumCompleted++;
-
-			if (NumCompleted == NumStarted)
-			{
-				NumCompleted = 0;
-				NumStarted = 0;
-				if (OnCompleteCallback) { OnCompleteCallback(); }
-				Manager->GrowNumCompleted();
-			}
-		}
-	}
-
 	void FPCGExTask::DoWork()
 	{
 		if (bWorkDone) { return; }
@@ -190,8 +209,16 @@ namespace PCGExMT
 		if (!Manager->IsAvailable()) { return; }
 
 		const bool bResult = ExecuteTask(Manager);
-		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin()) { Group->OnTaskCompleted(); }
+		if (const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin()) { Group->GrowNumCompleted(); }
 		Manager->GrowNumCompleted();
+	}
+
+	bool FSimpleCallbackTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)
+	{
+		const TSharedPtr<FTaskGroup> Group = GroupPtr.Pin();
+		if (!Group) { return false; }
+		Group->SimpleCallbacks[TaskIndex]();
+		return true;
 	}
 
 	bool FGroupRangeIterationTask::ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager)

@@ -76,6 +76,8 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 			Context->MainPoints->GetInBounds().ExpandBy(10));
 	}
 
+	Context->UnionGraph->EdgesUnion->bIsAbstract = true; // Because we don't have edge data
+
 	return true;
 }
 
@@ -251,10 +253,17 @@ namespace PCGExPathToClusters
 		const int32 NextIndex = Index + 1;
 		if (NextIndex > LastIndex)
 		{
-			if (bClosedLoop) { UnionGraph->InsertEdge(*(InPoints->GetData() + LastIndex), IOIndex, LastIndex, *InPoints->GetData(), IOIndex, 0); }
+			if (bClosedLoop)
+			{
+				UnionGraph->InsertEdge(
+					*(InPoints->GetData() + LastIndex), IOIndex, LastIndex,
+					*InPoints->GetData(), IOIndex, 0);
+			}
 			return;
 		}
-		UnionGraph->InsertEdge(*(InPoints->GetData() + Index), IOIndex, Index, *(InPoints->GetData() + NextIndex), IOIndex, NextIndex);
+		UnionGraph->InsertEdge(
+			*(InPoints->GetData() + Index), IOIndex, Index,
+			*(InPoints->GetData() + NextIndex), IOIndex, NextIndex);
 	}
 
 #pragma endregion

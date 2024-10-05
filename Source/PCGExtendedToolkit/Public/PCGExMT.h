@@ -134,7 +134,11 @@ namespace PCGExMT
 		template <typename T>
 		void StartBackgroundTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
-			if (!IsAvailable()) { return; }
+			if (!IsAvailable())
+			{
+				delete AsyncTask;
+				return;
+			}
 			GrowNumStarted();
 
 			{
@@ -153,7 +157,11 @@ namespace PCGExMT
 		template <typename T>
 		void StartSynchronousTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 		{
-			if (!IsAvailable()) { return; }
+			if (!IsAvailable())
+			{
+				delete AsyncTask;
+				return;
+			}
 			GrowNumStarted();
 
 			T& Task = AsyncTask->GetTask();
@@ -196,6 +204,7 @@ namespace PCGExMT
 		friend class FTaskManager;
 
 		friend class FPCGExTask;
+		friend class FSimpleCallbackTask;
 		friend class FGroupRangeCallbackTask;
 		friend class FGroupPrepareRangeTask;
 		friend class FGroupRangeIterationTask;
@@ -205,6 +214,8 @@ namespace PCGExMT
 		FName GroupName = NAME_None;
 
 	public:
+		using SimpleCallback = std::function<void()>;
+
 		using CompletionCallback = std::function<void()>;
 		CompletionCallback OnCompleteCallback;
 
@@ -227,26 +238,13 @@ namespace PCGExMT
 		{
 		}
 
-
-		template <typename T, typename... Args>
-		void Start(const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
-		{
-			if (!Manager->IsAvailable()) { return; }
-
-			FPlatformAtomics::InterlockedAdd(&NumStarted, 1);
-			FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
-			ATask->GetTask().GroupPtr = SharedThis(this);
-			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, TaskIndex); }
-			else { Manager->StartBackgroundTask<T>(ATask, TaskIndex); }
-		}
-
 		template <typename T, typename... Args>
 		void StartRanges(const int32 MaxItems, const int32 ChunkSize, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
 		{
 			if (!Manager->IsAvailable()) { return; }
 
 			TArray<uint64> Loops;
-			FPlatformAtomics::InterlockedAdd(&NumStarted, SubRanges(Loops, MaxItems, ChunkSize));
+			GrowNumStarted(SubRanges(Loops, MaxItems, ChunkSize));
 
 			if (OnIterationRangePrepareCallback) { OnIterationRangePrepareCallback(Loops); }
 
@@ -267,32 +265,51 @@ namespace PCGExMT
 
 		void PrepareRangesOnly(const int32 MaxItems, const int32 ChunkSize, const bool bInline = false);
 
+		void AddSimpleCallback(SimpleCallback&& InCallback);
+		void StartSimpleCallbacks();
+
 	protected:
+		TArray<SimpleCallback> SimpleCallbacks;
+
 		TSharedPtr<FTaskManager> Manager;
 
 		mutable FRWLock GroupLock;
+		mutable FRWLock TrackingLock;
 
 		int32 NumStarted = 0;
 		int32 NumCompleted = 0;
 
+		void GrowNumStarted(const int32 InNumStarted = 1);
+		void GrowNumCompleted();
+
 		void PrepareRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
 		void DoRangeIteration(const int32 StartIndex, const int32 Count, const int32 LoopIdx) const;
+
+		template <typename T, typename... Args>
+		void InternalStart(const bool bGrowNumStarted, const int32 TaskIndex, const TSharedPtr<PCGExData::FPointIO>& InPointsIO, Args... args)
+		{
+			if (!Manager->IsAvailable()) { return; }
+
+			if (bGrowNumStarted) { GrowNumStarted(); }
+			FAsyncTask<T>* ATask = new FAsyncTask<T>(InPointsIO, args...);
+			ATask->GetTask().GroupPtr = SharedThis(this);
+			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(ATask, TaskIndex); }
+			else { Manager->StartBackgroundTask<T>(ATask, TaskIndex); }
+		}
 
 		template <typename T>
 		void InternalStartInlineRange(const int32 Index, const int32 MaxItems, const int32 ChunkSize)
 		{
+			check(MaxItems > 0);
+
 			FAsyncTask<T>* NextRange = new FAsyncTask<T>(nullptr);
 			NextRange->GetTask().GroupPtr = SharedThis(this);
 			NextRange->GetTask().MaxItems = MaxItems;
 			NextRange->GetTask().ChunkSize = FMath::Max(1, ChunkSize);
 
-
 			if (Manager->ForceSync) { Manager->StartSynchronousTask<T>(NextRange, Index); }
 			else { Manager->StartBackgroundTask<T>(NextRange, Index); }
 		}
-
-
-		void OnTaskCompleted();
 	};
 
 	class /*PCGEXTENDEDTOOLKIT_API*/ FPCGExTask : public FNonAbandonableTask
@@ -346,7 +363,18 @@ namespace PCGExMT
 		}
 	};
 
-	class FGroupRangeCallbackTask : public FPCGExTask
+	class FSimpleCallbackTask final : public FPCGExTask
+	{
+	public:
+		explicit FSimpleCallbackTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO):
+			FPCGExTask(InPointIO)
+		{
+		}
+
+		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
+	};
+
+	class FGroupRangeCallbackTask final : public FPCGExTask
 	{
 	public:
 		explicit FGroupRangeCallbackTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO):
@@ -358,7 +386,7 @@ namespace PCGExMT
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
-	class FGroupRangeIterationTask : public FPCGExTask
+	class FGroupRangeIterationTask final : public FPCGExTask
 	{
 	public:
 		explicit FGroupRangeIterationTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO):
@@ -370,7 +398,7 @@ namespace PCGExMT
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
-	class FGroupPrepareRangeTask : public FPCGExTask
+	class FGroupPrepareRangeTask final : public FPCGExTask
 	{
 	public:
 		explicit FGroupPrepareRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO):
@@ -382,7 +410,7 @@ namespace PCGExMT
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
-	class FGroupPrepareRangeInlineTask : public FPCGExTask
+	class FGroupPrepareRangeInlineTask final : public FPCGExTask
 	{
 	public:
 		explicit FGroupPrepareRangeInlineTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO):
@@ -395,7 +423,7 @@ namespace PCGExMT
 		virtual bool ExecuteTask(const TSharedPtr<FTaskManager>& AsyncManager) override;
 	};
 
-	class FGroupRangeInlineIterationTask : public FPCGExTask
+	class FGroupRangeInlineIterationTask final : public FPCGExTask
 	{
 	public:
 		explicit FGroupRangeInlineIterationTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO):

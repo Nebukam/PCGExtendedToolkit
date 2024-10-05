@@ -10,7 +10,7 @@
 #include "PCGEx.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExDataDetails.generated.h"
+#include "PCGExDetailsData.generated.h"
 
 USTRUCT(BlueprintType)
 struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExInfluenceDetails
