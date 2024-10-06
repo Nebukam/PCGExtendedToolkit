@@ -202,8 +202,8 @@ bool FPCGExFindContoursContext::TryFindContours(
 	const TArray<FPCGPoint>& OriginPoints = PathIO->GetIn()->GetPoints();
 	MutablePoints.SetNumUninitialized(Path.Num());
 
-	const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
-	for (int i = 0; i < Path.Num(); i++) { MutablePoints[i] = OriginPoints[VtxPointIndices[Path[i]]]; }
+	//const TArray<int32>& VtxPointIndices = Cluster->GetVtxPointIndices();
+	for (int i = 0; i < Path.Num(); i++) { MutablePoints[i] = OriginPoints[(Cluster->Nodes->GetData() + Path[i])->PointIndex]; }
 
 	ClusterProcessor->GetContext()->SeedAttributesToPathTags.Tag(SeedIndex, PathIO);
 	ClusterProcessor->GetContext()->SeedForwardHandler->Forward(SeedIndex, PathDataFacade);

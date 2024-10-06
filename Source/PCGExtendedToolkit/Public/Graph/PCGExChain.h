@@ -134,18 +134,18 @@ namespace PCGExClusterTask
 			PCGEx::H64(NextNode.Adjacency[0], OtherIndex, EdgeIndex);                                  // Get next node
 			if (OtherIndex == LastIndex) { PCGEx::H64(NextNode.Adjacency[1], OtherIndex, EdgeIndex); } // Get other next
 
-			if(NextIndex == Chain->First)
-			{
-				Chain->Edges.Add(EdgeIndex);
-				Chain->bClosedLoop = true;
-				break;
-			}
-			
 			LastIndex = NextIndex;
 			NextIndex = OtherIndex;
 
 			Chain->Nodes.Add(LastIndex);
 			Chain->Edges.Add(EdgeIndex);
+
+			if(NextIndex == Chain->First)
+			{
+				Chain->bClosedLoop = true;
+				break;
+			}
+			
 		}
 
 		Chain->Last = LastIndex;

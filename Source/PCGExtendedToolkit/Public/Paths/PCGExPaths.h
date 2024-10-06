@@ -42,7 +42,8 @@ struct /*PCGEXTENDEDTOOLKIT_API*/ FPCGExPathClosedLoopDetails
 
 	bool IsClosedLoop(const TSharedPtr<PCGExData::FPointIO>& InPointIO)
 	{
-		if (Tags.IsEmpty()) { return bClosedLoop; }
+		if (Scope == EPCGExInputScope::All) { return bClosedLoop; }
+		if (Tags.IsEmpty()) { return !bClosedLoop; }
 		for (const FString& Tag : Tags) { if (InPointIO->Tags->IsTagged(Tag)) { return !bClosedLoop; } }
 		return bClosedLoop;
 	}

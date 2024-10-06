@@ -117,7 +117,7 @@ namespace PCGExBreakClustersToPaths
 		const TSharedPtr<PCGExCluster::FNodeChain> Chain = Chains[Iteration];
 		if (!Chain) { return; }
 
-		const int32 ChainSize = Chain->Nodes.Num() + 2;
+		const int32 ChainSize = Chain->Nodes.Num() + 2; // Skip last point
 
 		const TArray<int32>& VtxPointsIndicesRef = *VtxPointIndicesCache;
 
@@ -149,15 +149,21 @@ namespace PCGExBreakClustersToPaths
 		const TSharedPtr<PCGExData::FPointIO> PathIO = Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput);
 
 		TArray<FPCGPoint>& MutablePoints = PathIO->GetOut()->GetMutablePoints();
-		MutablePoints.SetNumUninitialized(ChainSize);
+		MutablePoints.SetNumUninitialized(Chain->bClosedLoop ? ChainSize - 1 : ChainSize);
 		int32 PointCount = 0;
 
 		MutablePoints[PointCount++] = PathIO->GetInPoint(StartIdx);
 		for (const int32 NodeIndex : Chain->Nodes) { MutablePoints[PointCount++] = PathIO->GetInPoint(VtxPointsIndicesRef[NodeIndex]); }
-		MutablePoints[PointCount] = PathIO->GetInPoint(EndIdx);
 
-		if (Chain->bClosedLoop && Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); }
-		else if (!Chain->bClosedLoop && Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); }
+		if (!Chain->bClosedLoop)
+		{
+			MutablePoints[PointCount] = PathIO->GetInPoint(EndIdx); // Add last
+			if (Settings->bTagIfOpenPath) { PathIO->Tags->Add(Settings->IsOpenPathTag); }
+		}
+		else
+		{
+			if (Settings->bTagIfClosedLoop) { PathIO->Tags->Add(Settings->IsClosedLoopTag); }
+		}
 	}
 
 	void FProcessor::ProcessSingleEdge(const int32 EdgeIndex, PCGExGraph::FIndexedEdge& Edge, const int32 LoopIdx, const int32 Count)
