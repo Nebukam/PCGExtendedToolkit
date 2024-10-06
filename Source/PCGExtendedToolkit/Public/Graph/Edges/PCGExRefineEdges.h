@@ -140,7 +140,7 @@ namespace PCGExRefineEdges
 		{
 		}
 
-		const TSharedPtr<FProcessor>& Processor;
+		TSharedPtr<FProcessor> Processor;
 		uint64 Scope = 0;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};

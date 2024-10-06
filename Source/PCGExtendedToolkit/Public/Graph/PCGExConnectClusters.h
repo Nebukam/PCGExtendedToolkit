@@ -122,9 +122,9 @@ namespace PCGExBridgeClusters
 	public:
 		FPCGExCreateBridgeTask(
 			const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-			FProcessorBatch* InBatch,
-			PCGExCluster::FCluster* A,
-			PCGExCluster::FCluster* B) :
+			const TSharedPtr<FProcessorBatch>& InBatch,
+			const TSharedPtr<PCGExCluster::FCluster>& A,
+			const TSharedPtr<PCGExCluster::FCluster>& B) :
 			FPCGExTask(InPointIO),
 			Batch(InBatch),
 			ClusterA(A),
@@ -132,10 +132,10 @@ namespace PCGExBridgeClusters
 		{
 		}
 
-		FProcessorBatch* Batch = nullptr;
+		TSharedPtr<FProcessorBatch> Batch;
 
-		PCGExCluster::FCluster* ClusterA = nullptr;
-		PCGExCluster::FCluster* ClusterB = nullptr;
+		TSharedPtr<PCGExCluster::FCluster> ClusterA;
+		TSharedPtr<PCGExCluster::FCluster> ClusterB;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};

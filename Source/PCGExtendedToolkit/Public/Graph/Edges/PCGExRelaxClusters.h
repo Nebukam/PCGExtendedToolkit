@@ -108,13 +108,13 @@ namespace PCGExRelaxClusters
 	{
 	public:
 		FRelaxRangeTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                FProcessor* InProcessor):
+		                const TSharedPtr<FProcessor>& InProcessor):
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		TSharedPtr<FProcessor> Processor;
 		uint64 Scope = 0;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};

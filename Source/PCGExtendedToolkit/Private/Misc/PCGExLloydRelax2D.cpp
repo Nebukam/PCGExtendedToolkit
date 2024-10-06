@@ -81,7 +81,7 @@ namespace PCGExLloydRelax2D
 		PointDataFacade->Source->InitializeOutput(Context, PCGExData::EInit::DuplicateInput);
 		PCGExGeo::PointsToPositions(PointDataFacade->GetIn()->GetPoints(), ActivePositions);
 
-		AsyncManager->Start<FLloydRelaxTask>(0, PointDataFacade->Source, this, &InfluenceDetails, Settings->Iterations);
+		AsyncManager->Start<FLloydRelaxTask>(0, PointDataFacade->Source, SharedThis(this), &InfluenceDetails, Settings->Iterations);
 
 		return true;
 	}

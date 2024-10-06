@@ -380,7 +380,7 @@ namespace PCGExClusterMT
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 		FPCGExGraphBuilderDetails GraphBuilderDetails;
 
-		TArray<PCGExCluster::FCluster*> ValidClusters;
+		TArray<TSharedPtr<PCGExCluster::FCluster>> ValidClusters;
 
 		virtual int32 GetNumProcessors() const { return -1; }
 
@@ -547,7 +547,7 @@ namespace PCGExClusterMT
 			for (const TSharedPtr<T> P : Processors)
 			{
 				if (!P->Cluster) { continue; }
-				ValidClusters.Add(P->Cluster.Get());
+				ValidClusters.Add(P->Cluster);
 			}
 			return ValidClusters.Num();
 		}

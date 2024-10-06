@@ -32,7 +32,7 @@ PCGExData::EInit UPCGExFindContoursSettings::GetMainOutputInitMode() const { ret
 bool FPCGExFindContoursContext::TryFindContours(
 	const TSharedPtr<PCGExData::FPointIO>& PathIO,
 	const int32 SeedIndex,
-	PCGExFindContours::FProcessor* ClusterProcessor)
+	TSharedPtr<PCGExFindContours::FProcessor> ClusterProcessor)
 {
 	const UPCGExFindContoursSettings* Settings = ClusterProcessor->GetSettings();
 
@@ -360,14 +360,14 @@ namespace PCGExFindContours
 		{
 			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); i++)
 			{
-				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), i, this);
+				Context->TryFindContours(Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), i, SharedThis(this));
 			}
 		}
 		else
 		{
 			for (int i = 0; i < Context->SeedsDataFacade->Source->GetNum(); i++)
 			{
-				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), this);
+				AsyncManager->Start<FPCGExFindContourTask>(i, Context->Paths->Emplace_GetRef<UPCGPointData>(VtxDataFacade->Source, PCGExData::EInit::NewOutput), SharedThis(this));
 			}
 		}
 	}

@@ -242,7 +242,7 @@ namespace PCGExBridgeClusters
 			uint32 End;
 			PCGEx::H64(Bridge, Start, End);
 
-			AsyncManager->Start<FPCGExCreateBridgeTask>(EdgePointIndex, ConsolidatedEdges, this, ValidClusters[Start], ValidClusters[End]);
+			AsyncManager->Start<FPCGExCreateBridgeTask>(EdgePointIndex, ConsolidatedEdges, SharedThis(this), ValidClusters[Start], ValidClusters[End]);
 		}
 
 		// Force writing cluster ID to Vtx, otherwise we inherit from previous metadata.

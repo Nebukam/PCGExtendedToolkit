@@ -407,7 +407,7 @@ namespace PCGExGrowPaths
 		}
 
 		if (IsTrivial()) { Grow(); }
-		else { AsyncManager->Start<FGrowTask>(BatchIndex, nullptr, this); }
+		else { AsyncManager->Start<FGrowTask>(BatchIndex, nullptr, SharedThis(this)); }
 
 		return true;
 	}

@@ -24,7 +24,7 @@ namespace PCGExGeo
 {
 	class FExtractStaticMeshTask;
 
-	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoMesh
+	class /*PCGEXTENDEDTOOLKIT_API*/ FGeoMesh : public TSharedFromThis<FGeoMesh>
 	{
 	public:
 		bool bIsValid = false;
@@ -259,7 +259,7 @@ namespace PCGExGeo
 		{
 			if (bIsLoaded) { return; }
 			if (!bIsValid) { return; }
-			AsyncManager->Start<FExtractStaticMeshTask>(-1, nullptr, this);
+			AsyncManager->Start<FExtractStaticMeshTask>(-1, nullptr, SharedThis(this));
 		}
 
 		~FGeoStaticMesh()
@@ -302,12 +302,12 @@ namespace PCGExGeo
 	class /*PCGEXTENDEDTOOLKIT_API*/ FExtractStaticMeshTask final : public PCGExMT::FPCGExTask
 	{
 	public:
-		FExtractStaticMeshTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, FGeoStaticMesh* InGSM) :
+		FExtractStaticMeshTask(const TSharedPtr<PCGExData::FPointIO>& InPointIO, const TSharedPtr<FGeoStaticMesh>& InGSM) :
 			FPCGExTask(InPointIO), GSM(InGSM)
 		{
 		}
 
-		FGeoStaticMesh* GSM = nullptr;
+		TSharedPtr<FGeoStaticMesh> GSM;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{

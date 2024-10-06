@@ -678,7 +678,7 @@ namespace PCGExGraphTask
 		{
 		}
 
-		const TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
+		TSharedPtr<PCGExGraph::FSubGraph> SubGraph;
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
 
@@ -697,7 +697,7 @@ namespace PCGExGraphTask
 		{
 		}
 
-		const TSharedPtr<PCGExGraph::FGraphBuilder> Builder;
+		TSharedPtr<PCGExGraph::FGraphBuilder> Builder;
 		const bool bWriteNodeFacade = false;
 		PCGExGraph::FGraphMetadataDetails* MetadataDetails = nullptr;
 

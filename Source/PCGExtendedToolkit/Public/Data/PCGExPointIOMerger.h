@@ -90,7 +90,7 @@ namespace PCGExPointIOMerger
 
 		const uint64 Scope;
 		const PCGEx::FAttributeIdentity Identity;
-		const TSharedPtr<TArray<T>> OutValues;
+		TSharedPtr<TArray<T>> OutValues;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override
 		{

@@ -129,13 +129,13 @@ namespace PCGExBuildDelaunay
 	{
 	public:
 		FOutputDelaunaySites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                     FProcessor* InProcessor) :
+		                     const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		TSharedPtr<FProcessor> Processor;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};
@@ -144,13 +144,13 @@ namespace PCGExBuildDelaunay
 	{
 	public:
 		FOutputDelaunayUrquhartSites(const TSharedPtr<PCGExData::FPointIO>& InPointIO,
-		                             FProcessor* InProcessor) :
+		                             const TSharedPtr<FProcessor>& InProcessor) :
 			FPCGExTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
 
-		FProcessor* Processor = nullptr;
+		TSharedPtr<FProcessor> Processor;
 
 		virtual bool ExecuteTask(const TSharedPtr<PCGExMT::FTaskManager>& AsyncManager) override;
 	};

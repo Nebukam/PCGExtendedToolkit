@@ -120,7 +120,7 @@ namespace PCGExRelaxClusters
 		IterationGroup->OnCompleteCallback = [&]() { StartRelaxIteration(); };
 		IterationGroup->StartRanges<FRelaxRangeTask>(
 			NumNodes, GetDefault<UPCGExGlobalSettings>()->GetPointsBatchChunkSize(),
-			nullptr, this);
+			nullptr, SharedThis(this));
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration, const int32 LoopIdx, const int32 Count)

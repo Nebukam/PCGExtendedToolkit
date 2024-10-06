@@ -135,8 +135,8 @@ namespace PCGExBuildDelaunay2D
 
 		if (Settings->bOutputSites)
 		{
-			if (Settings->UrquhartSitesMerge != EPCGExUrquhartSiteMergeMode::None) { AsyncManager->Start<FOutputDelaunayUrquhartSites2D>(BatchIndex, PointDataFacade->Source, this); }
-			else { AsyncManager->Start<FOutputDelaunaySites2D>(BatchIndex, PointDataFacade->Source, this); }
+			if (Settings->UrquhartSitesMerge != EPCGExUrquhartSiteMergeMode::None) { AsyncManager->Start<FOutputDelaunayUrquhartSites2D>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
+			else { AsyncManager->Start<FOutputDelaunaySites2D>(BatchIndex, PointDataFacade->Source, SharedThis(this)); }
 		}
 
 		GraphBuilder = MakeShared<PCGExGraph::FGraphBuilder>(PointDataFacade, &Settings->GraphBuilderDetails);
