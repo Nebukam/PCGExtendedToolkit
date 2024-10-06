@@ -32,8 +32,6 @@ bool UPCGExSearchAStar::FindPath(
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchAStar::FindPath);
 
-	// Basic A* implementation TODO:Optimize
-
 	TBitArray<> Visited;
 	Visited.Init(false, NumNodes);
 

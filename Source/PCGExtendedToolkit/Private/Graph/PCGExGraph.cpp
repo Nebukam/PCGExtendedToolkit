@@ -380,8 +380,9 @@ namespace PCGExGraph
 
 		// Subgraphs
 
-		for (const TSharedPtr<FSubGraph>& SubGraph : Graph->SubGraphs)
+		for (int i = 0; i < Graph->SubGraphs.Num(); i++)
 		{
+			const TSharedPtr<FSubGraph>& SubGraph = Graph->SubGraphs[i];
 			TSharedPtr<PCGExData::FPointIO> EdgeIO;
 
 			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex(); SourceEdgesIO && SourceEdgesIO->Pairs.IsValidIndex(IOIndex))

@@ -70,6 +70,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails();
 
+	/** Whether to output updated sites */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable))
+	bool bOutputSites = true;
+
+	/** If enabled, sites that belong to an removed (out-of-bound) cell will be removed from the output. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bPruneOutOfBounds"))
+	bool bPruneOpenSites = true;
+
+	/** Flag sites belonging to an open cell with a boolean attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Additional Outputs", meta = (PCG_Overridable, EditCondition="bPruneOutOfBounds && !bPruneOpenSites"))
+	FName OpenSiteFlag = "OpenSite";
+
 private:
 	friend class FPCGExBuildVoronoiGraph2DElement;
 };
@@ -102,10 +114,15 @@ namespace PCGExBuildVoronoi2D
 	protected:
 		FPCGExGeo2DProjectionDetails ProjectionDetails;
 
+		TBitArray<> WithinBounds;
+		TBitArray<> VtxWithinBounds;
+
 		TUniquePtr<PCGExGeo::TVoronoi2> Voronoi;
 		TSharedPtr<PCGExGraph::FGraphBuilder> GraphBuilder;
 
-		PCGExData::TBuffer<bool>* HullMarkPointWriter = nullptr;
+		TSharedPtr<PCGExData::FFacade> SiteDataFacade;
+		TSharedPtr<PCGExData::TBuffer<bool>> HullMarkPointWriter;
+		TSharedPtr<PCGExData::TBuffer<bool>> OpenSiteWriter;
 
 	public:
 		explicit FProcessor(const TSharedRef<PCGExData::FFacade>& InPointDataFacade):

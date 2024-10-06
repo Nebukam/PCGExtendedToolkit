@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildDelaunayGraph.h"
+#include "Graph/Diagrams/PCGExBuildDelaunayGraph.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"

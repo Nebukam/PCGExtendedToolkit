@@ -66,6 +66,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Cluster Output Settings"))
 	FPCGExGraphBuilderDetails GraphBuilderDetails = FPCGExGraphBuilderDetails();
 
+	// TODO : Output modified/pruned sites to ensure we can find contours even tho the centroid method is not canon
+
 private:
 	friend class FPCGExBuildVoronoiGraphElement;
 };

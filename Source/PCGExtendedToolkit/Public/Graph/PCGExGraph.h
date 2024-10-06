@@ -396,7 +396,7 @@ namespace PCGExGraph
 		int64 Id = -1;
 		FGraph* ParentGraph = nullptr;
 		TSet<int32> Nodes;
-		TSet<int32> Edges; //TODO : Test for TArray
+		TSet<int32> Edges;
 		TSet<int32> EdgesInIOIndices;
 		TSharedPtr<PCGExData::FFacade> VtxDataFacade;
 		TSharedPtr<PCGExData::FFacade> EdgesDataFacade;

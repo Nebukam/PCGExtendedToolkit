@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildConvexHull2D.h"
+#include "Graph/Diagrams/PCGExBuildConvexHull2D.h"
 
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"

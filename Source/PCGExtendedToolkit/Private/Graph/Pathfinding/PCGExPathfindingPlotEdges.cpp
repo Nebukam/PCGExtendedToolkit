@@ -46,8 +46,6 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 
 	const PCGExCluster::FCluster* Cluster = SearchOperation->Cluster;
 
-
-	// TODO : Implement path-scoped extra weight management
 	const TSharedPtr<PCGExHeuristics::FLocalFeedbackHandler> LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(Cluster);
 	TArray<int32> Path;
 

@@ -57,7 +57,6 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 
 		const uint32 StartIndex = PCGEx::H64A(Scopes[i]);
 
-		// Copy source points -- TODO : could be made async if we split in two steps (merge points then merge attributes)
 		for (int j = 0; j < SourcePoints.Num(); j++)
 		{
 			const int32 TargetIndex = StartIndex + j;
@@ -104,7 +103,7 @@ void FPCGExPointIOMerger::Merge(const TSharedPtr<PCGExMT::FTaskManager>& AsyncMa
 
 			if (*ExpectedType != SourceAtt.UnderlyingType)
 			{
-				// Type mismatch; TODO Log warning
+				PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->Context, FText::Format(FTEXT("Mismatching attribute types for: {0}."), FText::FromName(SourceAtt.Name)));
 			}
 		}
 	}

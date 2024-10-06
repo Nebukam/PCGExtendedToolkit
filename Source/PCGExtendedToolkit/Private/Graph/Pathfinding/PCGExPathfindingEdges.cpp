@@ -29,8 +29,6 @@ void FPCGExPathfindingEdgesContext::TryFindPath(
 	const TSharedPtr<PCGExPathfinding::FPathQuery>& Query,
 	const TSharedPtr<PCGExHeuristics::THeuristicsHandler>& HeuristicsHandler)
 {
-	// TODO : Vtx OR/AND edge points
-
 	PCGEX_SETTINGS_LOCAL(PathfindingEdges)
 
 	const FPCGPoint& Seed = SeedsDataFacade->Source->GetInPoint(Query->SeedIndex);

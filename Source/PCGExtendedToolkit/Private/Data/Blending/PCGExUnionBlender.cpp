@@ -65,7 +65,6 @@ namespace PCGExDataBlending
 				if (Identity.UnderlyingType != Map->Identity.UnderlyingType)
 				{
 					// Type mismatch, ignore for this source
-					//TODO : Support broadcasting
 					continue;
 				}
 			}
@@ -74,7 +73,7 @@ namespace PCGExDataBlending
 				Map = AttributeSourceMaps.Add_GetRef(MakeShared<FAttributeSourceMap>(Identity)).Get();
 				Map->SetNum(NumSources);
 
-				Map->DefaultValuesSource = SourceAttribute; // TODO : Find a better way to choose this?
+				Map->DefaultValuesSource = SourceAttribute;
 
 				if (PCGEx::IsPCGExAttribute(Identity.Name)) { Map->TargetBlendOp = CreateOperation(EPCGExDataBlendingType::Copy, Identity); }
 				else { Map->TargetBlendOp = CreateOperation(BlendTypePtr, BlendingDetails->DefaultBlending, Identity); }
@@ -222,9 +221,6 @@ namespace PCGExDataBlending
 				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-
-					// TODO : Only prepare for data if the matching IO exists
-
 					for (int i = 0; i < Sources.Num(); i++)
 					{
 						if (const TSharedPtr<FDataBlendingOperationBase>& SrcOp = SrcMap->BlendOps[i]) { SrcOp->SoftPrepareForData(CurrentTargetData, Sources[i]); }

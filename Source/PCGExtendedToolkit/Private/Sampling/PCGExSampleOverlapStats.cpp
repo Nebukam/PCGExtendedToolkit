@@ -270,7 +270,7 @@ namespace PCGExSampleOverlapStats
 					WrapUp();
 					return;
 				}
-				
+
 				PCGEX_ASYNC_GROUP_CHKD_VOID(AsyncManager, SearchTask)
 				SearchTask->OnCompleteCallback = WrapUp;
 				SearchTask->OnIterationCallback = [&](const int32 Index, const int32 Count, const int32 LoopIdx) { ResolveOverlap(Index); };

@@ -263,8 +263,6 @@ namespace PCGExCluster
 		Edges->Reserve(NumRawEdges);
 		Edges->Append(SubGraph->FlattenedEdges);
 
-		// TODO : This can probably be more optimal
-
 		for (const PCGExGraph::FIndexedEdge& E : SubGraph->FlattenedEdges)
 		{
 			FNode& StartNode = GetOrCreateNodeUnsafe(SubVtxPoints, E.Start);

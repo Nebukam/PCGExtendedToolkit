@@ -74,7 +74,7 @@ bool FPCGExPathToClustersElement::Boot(FPCGExContext* InContext) const
 		Context->UnionGraph = MakeShared<PCGExGraph::FUnionGraph>(
 			Settings->PointPointIntersectionDetails.FuseDetails,
 			Context->MainPoints->GetInBounds().ExpandBy(10));
-		
+
 		Context->UnionGraph->EdgesUnion->bIsAbstract = true; // Because we don't have edge data
 	}
 

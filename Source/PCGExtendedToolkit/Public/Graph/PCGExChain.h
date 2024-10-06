@@ -140,12 +140,11 @@ namespace PCGExClusterTask
 			Chain->Nodes.Add(LastIndex);
 			Chain->Edges.Add(EdgeIndex);
 
-			if(NextIndex == Chain->First)
+			if (NextIndex == Chain->First)
 			{
 				Chain->bClosedLoop = true;
 				break;
 			}
-			
 		}
 
 		Chain->Last = LastIndex;
